@@ -8,7 +8,8 @@ import { ProgramCategory } from "@/ui/partners/program-marketplace/program-categ
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
 import { prisma } from "@dub/prisma";
 import { ChevronRight, Shop, Tooltip } from "@dub/ui";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { Hyperlink } from "@dub/ui/icons";
+import { OG_AVATAR_URL, cn, getDomainWithoutWWW, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProgramStatusBadge } from "../program-status-badge";
@@ -48,6 +49,9 @@ export default async function MarketplaceProgramPage(props: {
   }
 
   const isDarkImage = program.marketplaceHeaderImage?.includes("dark");
+  const website =
+    program.url &&
+    (getDomainWithoutWWW(program.url) ?? getPrettyUrl(program.url));
 
   return (
     <PageContent
@@ -125,12 +129,7 @@ export default async function MarketplaceProgramPage(props: {
             <div className="mt-6 flex gap-8">
               {Boolean(program.rewards?.length || program.discount) && (
                 <div>
-                  <span
-                    className={cn(
-                      "block text-xs font-medium",
-                      isDarkImage && "text-content-inverted/70",
-                    )}
-                  >
+                  <span className="block text-xs font-medium text-neutral-400">
                     Rewards
                   </span>
                   <ProgramRewardsDisplay
@@ -144,12 +143,7 @@ export default async function MarketplaceProgramPage(props: {
               )}
               {Boolean(program.categories?.length) && (
                 <div className="min-w-0">
-                  <span
-                    className={cn(
-                      "block text-xs font-medium",
-                      isDarkImage && "text-content-inverted/70",
-                    )}
-                  >
+                  <span className="block text-xs font-medium text-neutral-400">
                     Category
                   </span>
                   <div className="mt-1 flex items-center gap-1.5">
@@ -189,6 +183,31 @@ export default async function MarketplaceProgramPage(props: {
                       </Tooltip>
                     )}
                   </div>
+                </div>
+              )}
+              {website && (
+                <div className="min-w-0">
+                  <span className="block text-xs font-medium text-neutral-400">
+                    Website
+                  </span>
+                  <Link
+                    href={
+                      program.url!.startsWith("http")
+                        ? program.url!
+                        : `https://${program.url}`
+                    }
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "mt-1 flex max-w-[220px] items-center gap-1 text-sm font-medium",
+                      isDarkImage
+                        ? "text-content-inverted/90 hover:text-content-inverted"
+                        : "text-content-default hover:text-content-emphasis",
+                    )}
+                  >
+                    <Hyperlink className="size-4 shrink-0" />
+                    <span className="truncate">{website} ↗</span>
+                  </Link>
                 </div>
               )}
             </div>
