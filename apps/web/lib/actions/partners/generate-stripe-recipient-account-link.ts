@@ -62,7 +62,7 @@ export const generateStripeRecipientAccountLink =
 
     const accountLink = await createStripeRecipientAccountLink({
       stripeRecipientId: partner.stripeRecipientId,
-      useCase: "account_onboarding",
+      useCase: "account_update",
     });
 
     return {

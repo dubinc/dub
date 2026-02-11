@@ -1,6 +1,7 @@
 import {
   PartnerBountySchema,
   PartnerEarningsSchema,
+  partnerPayoutMethodsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
   partnerReferralsCountByStatusSchema,
@@ -492,6 +493,10 @@ export type PartnerProfileCustomerProps = z.infer<
 >;
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
+
+export type PartnerPayoutMethodSetting = z.infer<
+  typeof partnerPayoutMethodsSchema
+>;
 
 export type PartnerProfileReferralsCountByStatus = z.infer<
   typeof partnerReferralsCountByStatusSchema

@@ -2,22 +2,15 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { getStripePayoutMethods } from "@/lib/stripe/get-stripe-payout-methods";
+import { PartnerPayoutMethodSetting } from "@/lib/types";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
-
-const payoutMethodsSchema = z.object({
-  type: z.enum(PartnerPayoutMethod),
-  label: z.string(),
-  default: z.boolean(),
-  connected: z.boolean(),
-  identifier: z.string().nullable(),
-});
 
 // GET /api/partner-profile/payouts/settings
 export const GET = withPartnerProfile(async ({ partner }) => {
-  const payoutMethods: z.infer<typeof payoutMethodsSchema>[] = [];
   const availableMethods = getPayoutMethodsForCountry(partner.country);
+
+  const payoutMethods: PartnerPayoutMethodSetting[] = [];
 
   // Connect
   if (availableMethods.includes(PartnerPayoutMethod.connect)) {

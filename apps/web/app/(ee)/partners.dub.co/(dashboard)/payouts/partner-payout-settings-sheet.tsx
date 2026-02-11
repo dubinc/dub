@@ -5,8 +5,10 @@ import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-m
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
+import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
 import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-selector";
+import { PayoutMethodsDropdown } from "@/ui/partners/payouts/payout-methods-dropdown";
 import {
   BlurImage,
   Button,
@@ -15,13 +17,14 @@ import {
   useRouterStuff,
   useScrollProgress,
 } from "@dub/ui";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, type UseFormRegister } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import useSWR from "swr";
 import * as z from "zod/v4";
 
 type PartnerPayoutSettingsFormData = z.infer<
@@ -173,23 +176,33 @@ function PartnerPayoutSettingsSheetInner() {
 }
 
 function PayoutMethodsSection() {
-  const { availablePayoutMethods } = usePartnerProfile();
+  const { partner, availablePayoutMethods } = usePartnerProfile();
+
+  const { data: payoutMethodsData } = useSWR<PartnerPayoutMethodSetting[]>(
+    partner ? "/api/partner-profile/payouts/settings" : null,
+    fetcher,
+  );
+
+  const hasConnectedAccount =
+    payoutMethodsData?.some((m) => m.connected) ?? false;
 
   if (availablePayoutMethods.length === 0) {
     return null;
   }
-
-  const firstPayoutMethod = availablePayoutMethods[0];
 
   return (
     <div>
       <h4 className="text-content-emphasis mb-3 text-base font-semibold leading-6">
         Payout account
       </h4>
-      <PayoutMethodSelector
-        payoutMethods={[firstPayoutMethod]}
-        variant="compact"
-      />
+      {hasConnectedAccount ? (
+        <PayoutMethodsDropdown />
+      ) : (
+        <PayoutMethodSelector
+          payoutMethods={availablePayoutMethods}
+          variant="compact"
+        />
+      )}
     </div>
   );
 }

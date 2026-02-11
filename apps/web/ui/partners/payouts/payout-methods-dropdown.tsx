@@ -2,260 +2,335 @@
 
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
-import { BANK_ACCOUNT_STATUS_DESCRIPTIONS } from "@/lib/constants/payouts";
-import { bankAccountSchema } from "@/lib/partners/get-partner-bank-account";
+import { generateStripeRecipientAccountLink } from "@/lib/actions/partners/generate-stripe-recipient-account-link";
+import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerProps } from "@/lib/types";
-import {
-  Button,
-  DynamicTooltipWrapper,
-  MatrixLines,
-  Paypal,
-  Popover,
-  StripeIcon,
-} from "@dub/ui";
+import type { PartnerPayoutMethodSetting } from "@/lib/types";
+import { partnerPayoutMethodsSchema } from "@/lib/zod/schemas/partner-profile";
+import { useBankAccountRequirementsModal } from "@/ui/partners/payouts/bank-account-requirements-modal";
+import { PAYOUT_METHODS } from "@/ui/partners/payouts/payout-method-selector";
+import { useStablecoinPayoutModal } from "@/ui/partners/payouts/stablecoin-payout-modal";
+import { PartnerPayoutMethod } from "@dub/prisma/client";
+import { Button, Popover } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
-import { AlertCircle, CheckCircle2, ChevronsUpDown } from "lucide-react";
+import { ChevronsUpDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import * as z from "zod/v4";
+
+const PAYOUT_METHOD_ICONS = Object.fromEntries(
+  PAYOUT_METHODS.map((m) => [
+    m.id,
+    {
+      Icon: m.icon,
+      wrapperClass: cn(
+        m.iconWrapperClasses,
+        "iconClassName" in m && m.iconClassName ? m.iconClassName : "",
+      ),
+    },
+  ]),
+);
 
 export function PayoutMethodsDropdown() {
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
-  const {
-    partner,
-    payoutMethod,
-    loading: isPartnerLoading,
-  } = usePartnerProfile();
+  const { partner, loading: isPartnerLoading, mutate } = usePartnerProfile();
 
-  const { data: bankAccount, isLoading: isBankAccountLoading } = useSWR<
-    z.infer<typeof bankAccountSchema>
-  >(
-    partner?.stripeConnectId ? "/api/partner-profile/payouts/settings" : null,
-    fetcher,
-  );
+  const { data: payoutMethodsData, isLoading: isSettingsLoading } = useSWR<
+    PartnerPayoutMethodSetting[]
+  >(partner ? "/api/partner-profile/payouts/settings" : null, fetcher);
+
+  const payoutMethods =
+    !payoutMethodsData || !Array.isArray(payoutMethodsData)
+      ? null
+      : (payoutMethodsData.map((m) =>
+          partnerPayoutMethodsSchema.parse(m),
+        ) as PartnerPayoutMethodSetting[]);
+
+  const hasConnected = payoutMethods?.some((m) => m.connected) ?? false;
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
     useAction(generateStripeAccountLink, {
       onSuccess: ({ data }) => {
-        if (!data?.url) {
-          toast.error("Unable to create account link. Please contact support.");
-          return;
-        }
-        router.push(data.url);
+        router.push(data!.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
       },
     });
 
+  const {
+    executeAsync: executeStablecoinAsync,
+    isPending: isStablecoinPending,
+  } = useAction(generateStripeRecipientAccountLink, {
+    onSuccess: ({ data }) => {
+      router.push(data!.url);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
   const { executeAsync: executePaypalAsync, isPending: isPaypalPending } =
     useAction(generatePaypalOAuthUrl, {
       onSuccess: ({ data }) => {
-        if (!data?.url) {
-          toast.error("Unable to redirect to Paypal. Please contact support.");
-          return;
-        }
-        router.push(data.url);
+        router.push(data!.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
       },
     });
+
+  const { executeAsync: executeUpdateSettings, isPending: isUpdatePending } =
+    useAction(updatePartnerPayoutSettingsAction, {
+      onSuccess: () => {
+        toast.success("Default payout method updated.");
+        mutate();
+        mutatePrefix("/api/partner-profile");
+        mutatePrefix("/api/partner-profile/payouts/settings");
+        setOpenPopover(false);
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError);
+      },
+    });
+
+  const { setShowBankAccountRequirementsModal, BankAccountRequirementsModal } =
+    useBankAccountRequirementsModal({
+      onContinue: async () => {
+        await executeStripeAsync();
+      },
+    });
+
+  const { setShowStablecoinPayoutModal, StablecoinPayoutModal } =
+    useStablecoinPayoutModal({
+      onContinue: async () => {
+        await executeStablecoinAsync();
+      },
+    });
+
+  const handleManage = useCallback(
+    async (type: PartnerPayoutMethod) => {
+      setOpenPopover(false);
+      if (type === "connect") {
+        await executeStripeAsync();
+        return;
+      }
+      if (type === "stablecoin") {
+        await executeStablecoinAsync();
+        return;
+      }
+      if (type === "paypal") {
+        await executePaypalAsync();
+      }
+    },
+    [executeStripeAsync, executeStablecoinAsync, executePaypalAsync],
+  );
+
+  const handleConnect = useCallback(
+    async (type: PartnerPayoutMethod) => {
+      if (type === "connect") {
+        setOpenPopover(false);
+        setShowBankAccountRequirementsModal(true);
+        return;
+      }
+      if (type === "stablecoin") {
+        setOpenPopover(false);
+        setShowStablecoinPayoutModal(true);
+        return;
+      }
+      if (type === "paypal") {
+        await executePaypalAsync();
+      }
+      setOpenPopover(false);
+    },
+    [
+      setShowBankAccountRequirementsModal,
+      setShowStablecoinPayoutModal,
+      executePaypalAsync,
+    ],
+  );
+
+  const handleSetDefault = useCallback(
+    (type: PartnerPayoutMethod) => {
+      executeUpdateSettings({ defaultPayoutMethod: type });
+    },
+    [executeUpdateSettings],
+  );
+
+  const isActionPending =
+    isStripePending || isStablecoinPending || isPaypalPending;
 
   if (!partner) {
     return null;
   }
 
-  const payoutMethods = [
-    {
-      id: "paypal",
-      label: "PayPal",
-      color: "bg-blue-100",
-      icon: <Paypal />,
-      getAccountDetails: (partner: Pick<PartnerProps, "paypalEmail">) =>
-        partner?.paypalEmail
-          ? `Account ${partner.paypalEmail}`
-          : "Not connected",
-      isVisible: (partner: Pick<PartnerProps, "country" | "paypalEmail">) =>
-        payoutMethod === "paypal" || partner.paypalEmail,
-    },
-    {
-      id: "stripe",
-      label: bankAccount?.bank_name || "Stripe",
-      color: "bg-purple-100",
-      icon: <StripeIcon />,
-      status: bankAccount?.status,
-      getAccountDetails: (partner: Pick<PartnerProps, "stripeConnectId">) => {
-        if (!partner?.stripeConnectId || !bankAccount) {
-          return "Not connected";
-        }
-
-        return (
-          <div className="flex items-center gap-1.5">
-            <MatrixLines className="size-3" />
-            {bankAccount.routing_number}
-            <MatrixLines className="size-3" />
-            ••••{bankAccount.last4}
-          </div>
-        );
-      },
-      isVisible: (partner: Pick<PartnerProps, "country" | "stripeConnectId">) =>
-        payoutMethod === "stripe" || partner.stripeConnectId,
-    },
-  ];
-
-  const connectPayout = async (method: string) => {
-    if (!partner) {
-      return;
-    }
-
-    if (method === "paypal") {
-      await executePaypalAsync();
-    } else if (method === "stripe") {
-      await executeStripeAsync();
-    }
-
-    setOpenPopover(false);
-  };
-
-  const selectedMethod = (() => {
-    if (partner?.stripeConnectId) {
-      return payoutMethods.find(({ id }) => id === "stripe");
-    } else if (partner?.paypalEmail) {
-      return payoutMethods.find(({ id }) => id === "paypal");
-    }
-
+  if (!hasConnected) {
     return null;
-  })();
+  }
 
-  const isConnected = (method: string) => {
-    if (method === "paypal") {
-      return !!partner?.paypalEmail;
-    }
-
-    if (method === "stripe") {
-      return !!partner?.stripeConnectId;
-    }
-
-    return false;
-  };
+  const selectedMethod =
+    payoutMethods?.find((m) => m.default) ??
+    payoutMethods?.find((m) => m.connected);
+  const isLoading = isPartnerLoading || isSettingsLoading;
 
   return (
-    <div>
-      <Popover
-        popoverContentClassName="w-[var(--radix-popover-trigger-width)]"
-        content={
-          <div className="relative w-full">
-            <div className="w-full space-y-0.5 rounded-lg bg-white p-1 text-sm">
-              <div className="flex flex-col gap-2">
-                {payoutMethods
-                  .filter(({ isVisible }) => isVisible(partner))
-                  .map(
-                    ({ id, label, color, icon, status, getAccountDetails }) => {
-                      return (
-                        <div
-                          key={id}
-                          className="flex w-full items-center justify-between gap-4 rounded-md px-2 py-1.5 transition-all duration-75"
-                        >
-                          <div className="flex items-center gap-x-2">
-                            <PayoutMethodStatusIndicator
-                              className={cn(
-                                "size-8 shrink-0 rounded-lg",
-                                id === "paypal" && "p-2",
-                                color,
-                              )}
-                              icon={icon}
-                              partner={partner}
-                              bankAccount={bankAccount}
-                              isLoading={
-                                isBankAccountLoading || isPartnerLoading
-                              }
-                            />
-                            <div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-xs font-medium text-neutral-900">
-                                  {label}
-                                </span>
-                              </div>
-                              <span className="block w-44 truncate text-xs text-neutral-500">
-                                {getAccountDetails(partner)}
-                              </span>
-                            </div>
-                          </div>
-
-                          <Button
-                            variant={isConnected(id) ? "secondary" : "primary"}
-                            text={
-                              isConnected(id)
-                                ? id === "paypal"
-                                  ? "Switch account"
-                                  : "Manage"
-                                : "Connect"
-                            }
-                            onClick={() => connectPayout(id)}
-                            loading={isStripePending || isPaypalPending}
-                            className="h-7 w-fit text-xs"
-                          />
-                        </div>
-                      );
-                    },
-                  )}
-              </div>
-            </div>
-          </div>
-        }
-        align="start"
-        openPopover={openPopover}
-        setOpenPopover={setOpenPopover}
-      >
-        <button
-          onClick={() => setOpenPopover(!openPopover)}
-          className={cn(
-            "flex w-full items-center justify-between rounded-lg bg-white p-2 text-left text-sm transition-all duration-75",
-            "border border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-          )}
-        >
-          {isBankAccountLoading || isPartnerLoading ? (
-            <PayoutMethodSkeleton />
-          ) : (
-            <>
-              <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
-                <PayoutMethodStatusIndicator
-                  className={cn(
-                    "size-8 shrink-0 rounded-lg",
-                    selectedMethod?.id === "paypal" && "p-2",
-                    selectedMethod?.color,
-                  )}
-                  icon={selectedMethod?.icon}
-                  partner={partner}
-                  bankAccount={bankAccount}
-                  isLoading={isBankAccountLoading || isPartnerLoading}
-                />
-                <div className="min-w-0">
-                  <div className="flex items-center gap-1">
-                    <span className="block text-xs font-medium text-neutral-900">
-                      {selectedMethod?.label}
-                    </span>
-                  </div>
-                  <span className="block w-44 truncate text-xs text-neutral-500">
-                    {selectedMethod?.getAccountDetails(partner)}
-                  </span>
+    <>
+      {BankAccountRequirementsModal}
+      {StablecoinPayoutModal}
+      <div>
+        <Popover
+          popoverContentClassName="w-[var(--radix-popover-trigger-width)]"
+          content={
+            <div className="relative w-full">
+              <div className="w-full space-y-0.5 rounded-lg bg-white p-1 text-sm">
+                <div className="flex flex-col gap-2">
+                  {payoutMethods?.map((method) => (
+                    <PayoutMethodItem
+                      key={method.type}
+                      method={method}
+                      onManage={handleManage}
+                      onConnect={handleConnect}
+                      onSetDefault={handleSetDefault}
+                      isUpdatePending={isUpdatePending}
+                      isActionPending={isActionPending}
+                    />
+                  ))}
                 </div>
               </div>
-              <ChevronsUpDown
-                className="size-4 shrink-0 text-neutral-400"
-                aria-hidden="true"
-              />
-            </>
+            </div>
+          }
+          align="start"
+          openPopover={openPopover}
+          setOpenPopover={setOpenPopover}
+        >
+          <button
+            onClick={() => setOpenPopover(!openPopover)}
+            className={cn(
+              "flex w-full cursor-pointer items-center justify-between rounded-lg bg-white p-2 text-left text-sm transition-colors duration-75",
+              "border border-neutral-200 outline-none hover:bg-neutral-50 focus-visible:ring-2 focus-visible:ring-black/50",
+            )}
+          >
+            {isLoading || !selectedMethod ? (
+              <PayoutMethodSkeleton />
+            ) : (
+              <SelectedMethodDisplay method={selectedMethod} />
+            )}
+          </button>
+        </Popover>
+      </div>
+    </>
+  );
+}
+
+function PayoutMethodItem({
+  method,
+  onManage,
+  onConnect,
+  onSetDefault,
+  isUpdatePending,
+  isActionPending,
+}: {
+  method: PartnerPayoutMethodSetting;
+  onManage: (type: PartnerPayoutMethod) => void;
+  onConnect: (type: PartnerPayoutMethod) => void;
+  onSetDefault: (type: PartnerPayoutMethod) => void;
+  isUpdatePending: boolean;
+  isActionPending: boolean;
+}) {
+  const { Icon, wrapperClass } = PAYOUT_METHOD_ICONS[method.type];
+
+  return (
+    <div className="flex w-full cursor-default items-center justify-between gap-4 rounded-md px-2 py-1.5 transition-colors duration-75 hover:bg-neutral-50">
+      <div className="flex min-w-0 flex-1 items-center gap-x-2">
+        <div
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-lg border",
+            wrapperClass,
           )}
-        </button>
-      </Popover>
+        >
+          <Icon className="size-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-xs font-medium text-neutral-900">
+              {method.label}
+            </span>
+            {method.default && (
+              <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">
+                Default
+              </span>
+            )}
+            {method.connected && !method.default && (
+              <button
+                type="button"
+                onClick={() => onSetDefault(method.type)}
+                disabled={isUpdatePending}
+                className="cursor-pointer rounded bg-neutral-100 px-1.5 py-0.5 text-xs font-medium text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Set as default
+              </button>
+            )}
+          </div>
+          <span className="block truncate text-xs text-neutral-500">
+            {method.identifier ?? "Not connected"}
+          </span>
+        </div>
+      </div>
+      <Button
+        variant={method.connected ? "primary" : "secondary"}
+        text={method.connected ? "Manage" : "Connect"}
+        onClick={() =>
+          method.connected ? onManage(method.type) : onConnect(method.type)
+        }
+        loading={isActionPending}
+        className="h-7 w-fit shrink-0 cursor-pointer text-xs"
+      />
     </div>
+  );
+}
+
+function SelectedMethodDisplay({
+  method,
+}: {
+  method: PartnerPayoutMethodSetting;
+}) {
+  const { Icon, wrapperClass } = PAYOUT_METHOD_ICONS[method.type];
+  return (
+    <>
+      <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
+        <div
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-lg border",
+            wrapperClass,
+          )}
+        >
+          <Icon className="size-5" />
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1.5">
+            <span className="block text-xs font-medium text-neutral-900">
+              {method.label}
+            </span>
+            {method.default && (
+              <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">
+                Default
+              </span>
+            )}
+          </div>
+          <span className="block truncate text-xs text-neutral-500">
+            {method.identifier ?? "Not connected"}
+          </span>
+        </div>
+      </div>
+      <ChevronsUpDown
+        className="size-4 shrink-0 text-neutral-400"
+        aria-hidden="true"
+      />
+    </>
   );
 }
 
@@ -271,66 +346,5 @@ function PayoutMethodSkeleton() {
       </div>
       <div className="size-4 shrink-0 animate-pulse rounded bg-neutral-200" />
     </>
-  );
-}
-
-function PayoutMethodStatusIndicator({
-  icon,
-  className,
-  partner,
-  bankAccount,
-  isLoading,
-}: {
-  icon: React.ReactNode;
-  className?: string;
-  partner: Pick<PartnerProps, "paypalEmail" | "stripeConnectId"> | null;
-  bankAccount?: z.infer<typeof bankAccountSchema> | null;
-  isLoading?: boolean;
-}) {
-  if (isLoading || !partner?.stripeConnectId || !bankAccount?.status) {
-    return <div className={className}>{icon}</div>;
-  }
-
-  const statusInfo = BANK_ACCOUNT_STATUS_DESCRIPTIONS[bankAccount.status];
-
-  return (
-    <DynamicTooltipWrapper
-      tooltipProps={{
-        content: statusInfo ? (
-          <div className="grid max-w-xs gap-2 p-4">
-            <div className="flex items-center gap-2 text-sm font-medium">
-              {statusInfo.title}
-              <div
-                className={cn(
-                  statusInfo.variant === "invalid"
-                    ? "border-red-300 bg-red-200 text-red-800"
-                    : "border-green-300 bg-green-200 text-green-800",
-                  "flex size-5 items-center justify-center rounded-md border",
-                )}
-              >
-                {statusInfo.variant === "invalid" ? (
-                  <AlertCircle className="size-3" />
-                ) : (
-                  <CheckCircle2 className="size-3" />
-                )}
-              </div>
-            </div>
-            <div className="text-pretty text-sm text-neutral-500">
-              {statusInfo.description}
-            </div>
-          </div>
-        ) : undefined,
-      }}
-    >
-      <div className={cn("relative shrink-0", className)}>
-        {icon}
-        <div
-          className={cn(
-            "absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full",
-            statusInfo.variant === "invalid" ? "bg-red-500" : "bg-green-500",
-          )}
-        />
-      </div>
-    </DynamicTooltipWrapper>
   );
 }
