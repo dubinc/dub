@@ -23,6 +23,7 @@ import {
 } from "../zod/schemas/sales";
 import {
   buildAdvancedFilters,
+  ensureParsedFilter,
   extractWorkspaceLinkFilters,
   prepareFiltersForPipe,
 } from "./filter-helpers";
@@ -106,6 +107,8 @@ export const getEvents = async (params: EventsFilters) => {
 
   const allFilters = [...metadataFilters, ...advancedFilters];
 
+  const partnerIdFilter = ensureParsedFilter(params.partnerId);
+
   const {
     domain: domainParam,
     domainOperator,
@@ -113,9 +116,18 @@ export const getEvents = async (params: EventsFilters) => {
     tagIdsOperator,
     folderId: folderIdParam,
     folderIdOperator,
+    partnerId: partnerIdParam,
+    partnerIdOperator,
+    groupId: groupIdParam,
+    groupIdOperator,
+    tenantId: tenantIdParam,
+    tenantIdOperator,
     root: rootParam,
     rootOperator,
-  } = extractWorkspaceLinkFilters(params);
+  } = extractWorkspaceLinkFilters({
+    ...params,
+    partnerId: partnerIdFilter,
+  });
 
   const tinybirdParams: any = {
     eventType,
@@ -125,9 +137,12 @@ export const getEvents = async (params: EventsFilters) => {
     folderIds: params.folderIds,
     customerId: params.customerId,
     programId: params.programId,
-    partnerId: params.partnerId,
-    tenantId: params.tenantId,
-    groupId: params.groupId,
+    partnerId: partnerIdParam,
+    partnerIdOperator,
+    tenantId: tenantIdParam,
+    tenantIdOperator,
+    groupId: groupIdParam,
+    groupIdOperator,
     ...(typeof triggerForPipe !== 'object' && triggerForPipe ? { trigger: triggerForPipe } : {}),
     ...(typeof countryForPipe !== 'object' && countryForPipe ? { country: countryForPipe } : {}),
     ...(typeof regionForPipe === 'string' ? { region: regionForPipe } : {}),

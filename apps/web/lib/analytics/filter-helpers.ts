@@ -60,7 +60,28 @@ export function prepareFiltersForPipe(params: {
 }
 
 /**
- * Extract workspace link filters (domain, tagIds, folderId, root) into
+ * Normalize a filter value that may be a plain string (e.g. from partner-profile
+ * routes) or an already-parsed ParsedFilter into a consistent ParsedFilter.
+ *
+ * Useful when callers pass a raw ID string but extractWorkspaceLinkFilters
+ * expects a ParsedFilter with sqlOperator.
+ */
+export function ensureParsedFilter(
+  value: string | ParsedFilter | undefined,
+): ParsedFilter | undefined {
+  if (!value) return undefined;
+  if (typeof value === "string") {
+    return {
+      operator: "IS" as const,
+      sqlOperator: "IN" as const,
+      values: [value],
+    };
+  }
+  return value;
+}
+
+/**
+ * Extract workspace link filters (domain, tagIds, folderId, partnerId, root) into
  * separate values and operators for Tinybird.
  *
  * These filters are applied on the workspace_links node in Tinybird,
@@ -70,6 +91,9 @@ export function extractWorkspaceLinkFilters(params: {
   domain?: ParsedFilter;
   tagIds?: ParsedFilter;
   folderId?: ParsedFilter;
+  partnerId?: ParsedFilter;
+  groupId?: ParsedFilter;
+  tenantId?: ParsedFilter;
   root?: ParsedFilter;
 }) {
   const extractFilter = (filter?: ParsedFilter) => ({
@@ -82,6 +106,9 @@ export function extractWorkspaceLinkFilters(params: {
   const domain = extractFilter(params.domain);
   const tagIds = extractFilter(params.tagIds);
   const folderId = extractFilter(params.folderId);
+  const partnerId = extractFilter(params.partnerId);
+  const groupId = extractFilter(params.groupId);
+  const tenantId = extractFilter(params.tenantId);
   const root = extractFilter(params.root);
 
   return {
@@ -91,6 +118,12 @@ export function extractWorkspaceLinkFilters(params: {
     tagIdsOperator: tagIds.operator,
     folderId: folderId.values,
     folderIdOperator: folderId.operator,
+    partnerId: partnerId.values,
+    partnerIdOperator: partnerId.operator,
+    groupId: groupId.values,
+    groupIdOperator: groupId.operator,
+    tenantId: tenantId.values,
+    tenantIdOperator: tenantId.operator,
     root: root.values,
     rootOperator: root.operator,
   };

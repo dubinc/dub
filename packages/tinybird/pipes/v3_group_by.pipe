@@ -22,9 +22,27 @@ SQL >
         }}
         AND deleted == 0
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
-        {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
-        {% if defined(groupId) %} AND partner_group_id = {{ groupId }} {% end %}
-        {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
+        {% if defined(partnerId) %}
+            {% if defined(partnerIdOperator) and String(partnerIdOperator) == 'NOT IN' %}
+                AND partner_id NOT IN {{ Array(partnerId, 'String') }}
+            {% else %}
+                AND partner_id IN {{ Array(partnerId, 'String') }}
+            {% end %}
+        {% end %}
+        {% if defined(groupId) %}
+            {% if defined(groupIdOperator) and String(groupIdOperator) == 'NOT IN' %}
+                AND partner_group_id NOT IN {{ Array(groupId, 'String') }}
+            {% else %}
+                AND partner_group_id IN {{ Array(groupId, 'String') }}
+            {% end %}
+        {% end %}
+        {% if defined(tenantId) %}
+            {% if defined(tenantIdOperator) and String(tenantIdOperator) == 'NOT IN' %}
+                AND tenant_id NOT IN {{ Array(tenantId, 'String') }}
+            {% else %}
+                AND tenant_id IN {{ Array(tenantId, 'String') }}
+            {% end %}
+        {% end %}
         {% if defined(domain) %}
             {% if defined(domainOperator) and String(domainOperator) == 'NOT IN' %}
                 AND domain NOT IN {{ Array(domain, 'String') }}

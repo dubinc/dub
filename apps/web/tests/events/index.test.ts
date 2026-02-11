@@ -5,6 +5,7 @@ import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
+import { E2E_PARTNER, E2E_PARTNERS, E2E_PARTNER_GROUP } from "../utils/resource";
 
 describe.runIf(env.CI).sequential("GET /events", async () => {
   const h = new IntegrationHarness();
@@ -179,6 +180,144 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
           key: "checkly-check",
           country: "US",
           device: "desktop",
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("filter events by single partnerId", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/events`,
+        query: {
+          event: "clicks",
+          workspaceId,
+          interval: "all",
+          partnerId: E2E_PARTNER.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("filter events by multiple partnerIds (IS ONE OF)", async () => {
+      const partnerIds = E2E_PARTNERS.map((p) => p.id).join(",");
+      const { status, data } = await http.get<any[]>({
+        path: `/events`,
+        query: {
+          event: "clicks",
+          workspaceId,
+          interval: "all",
+          partnerId: partnerIds,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("exclude events by partnerId (IS NOT)", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/events`,
+        query: {
+          event: "clicks",
+          workspaceId,
+          interval: "all",
+          partnerId: `-${E2E_PARTNER.id}`,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("filter events by partnerId combined with country", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/events`,
+        query: {
+          event: "clicks",
+          workspaceId,
+          interval: "all",
+          partnerId: E2E_PARTNER.id,
+          country: "US",
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("filter events by single groupId", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/events`,
+        query: {
+          event: "clicks",
+          workspaceId,
+          interval: "all",
+          groupId: E2E_PARTNER_GROUP.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("exclude events by groupId (IS NOT)", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/events`,
+        query: {
+          event: "clicks",
+          workspaceId,
+          interval: "all",
+          groupId: `-${E2E_PARTNER_GROUP.id}`,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("filter events by groupId combined with partnerId", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/events`,
+        query: {
+          event: "clicks",
+          workspaceId,
+          interval: "all",
+          groupId: E2E_PARTNER_GROUP.id,
+          partnerId: E2E_PARTNER.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("filter events by single tenantId", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/events`,
+        query: {
+          event: "clicks",
+          workspaceId,
+          interval: "all",
+          tenantId: E2E_PARTNER.tenantId,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("exclude events by tenantId (IS NOT)", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/events`,
+        query: {
+          event: "clicks",
+          workspaceId,
+          interval: "all",
+          tenantId: `-${E2E_PARTNER.tenantId}`,
         },
       });
 

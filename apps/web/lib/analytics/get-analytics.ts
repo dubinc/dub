@@ -14,6 +14,7 @@ import {
 } from "./constants";
 import {
   buildAdvancedFilters,
+  ensureParsedFilter,
   extractWorkspaceLinkFilters,
   prepareFiltersForPipe,
 } from "./filter-helpers";
@@ -130,6 +131,9 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const allFilters = [...metadataFilters, ...advancedFilters];
 
+  // Normalize partnerId (may be a plain string from partner-profile routes)
+  const partnerIdFilter = ensureParsedFilter(params.partnerId);
+
   const {
     domain: domainParam,
     domainOperator,
@@ -137,9 +141,18 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     tagIdsOperator,
     folderId: folderIdParam,
     folderIdOperator,
+    partnerId: partnerIdParam,
+    partnerIdOperator,
+    groupId: groupIdParam,
+    groupIdOperator,
+    tenantId: tenantIdParam,
+    tenantIdOperator,
     root: rootParam,
     rootOperator,
-  } = extractWorkspaceLinkFilters(params);
+  } = extractWorkspaceLinkFilters({
+    ...params,
+    partnerId: partnerIdFilter,
+  });
 
   const tinybirdParams: any = {
     workspaceId,
@@ -148,9 +161,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     folderIds: params.folderIds,
     customerId: params.customerId,
     programId: params.programId,
-    partnerId: params.partnerId,
-    tenantId: params.tenantId,
-    groupId: params.groupId,
+    partnerId: partnerIdParam,
+    partnerIdOperator,
+    tenantId: tenantIdParam,
+    tenantIdOperator,
+    groupId: groupIdParam,
+    groupIdOperator,
     domain: domainParam,
     domainOperator,
     tagIds: tagIdsParam,

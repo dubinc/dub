@@ -1,3 +1,4 @@
+import { ParsedFilter } from "@dub/utils";
 import * as z from "zod/v4";
 import {
   analyticsQuerySchema,
@@ -45,6 +46,7 @@ export type AnalyticsFilters = Partial<Omit<z.infer<typeof analyticsQuerySchema>
   folderIds?: string[]; // TODO: remove this once it's been added to the public API
   start?: Date | null;
   end?: Date | null;
+  partnerId?: string | ParsedFilter;
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
@@ -52,6 +54,7 @@ export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   dataAvailableFrom?: Date;
   customerId?: string;
   folderIds?: string[];
+  partnerId?: string | ParsedFilter;
 };
 
 const partnerAnalyticsSchema = analyticsQuerySchema

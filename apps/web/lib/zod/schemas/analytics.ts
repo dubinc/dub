@@ -96,9 +96,13 @@ export const analyticsQuerySchema = z.object({
     tenantId: z
       .string()
       .optional()
+      .transform(parseFilterValue)
       .describe(
-        "The ID of the tenant that created the link inside your system.",
-      ),
+        "The ID of the tenant that created the link inside your system. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `tenant_123`, `tenant_123,tenant_456`, `-tenant_789`."
+      )
+      .meta({ example: "tenant_123" }),
     programId: z
       .string()
       .optional()
@@ -106,7 +110,13 @@ export const analyticsQuerySchema = z.object({
     partnerId: z
       .string()
       .optional()
-      .describe("The ID of the partner to retrieve analytics for."),
+      .transform(parseFilterValue)
+      .describe(
+        "The ID of the partner to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `pn_123`, `pn_123,pn_456`, `-pn_789`."
+      )
+      .meta({ example: "pn_123" }),
     customerId: z
       .string()
       .optional()
@@ -298,7 +308,13 @@ export const analyticsQuerySchema = z.object({
     groupId: z
       .string()
       .optional()
-      .describe("The group ID to retrieve analytics for."),
+      .transform(parseFilterValue)
+      .describe(
+        "The group ID to retrieve analytics for. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `grp_123`, `grp_123,grp_456`, `-grp_789`."
+      )
+      .meta({ example: "grp_123" }),
     root: z
       .string()
       .optional()
@@ -480,11 +496,26 @@ export const analyticsFilterTB = z.object({
     .optional()
     .describe("Filter for root domain links."),
   rootOperator: z.enum(["IN", "NOT IN"]).optional(),
-  // Program/Partner/Group filters (not using advanced filtering)
+  // Program/Partner/Group filters (not using advanced filtering for programId/tenantId/groupId)
   programId: z.string().optional(),
-  partnerId: z.string().optional(),
-  tenantId: z.string().optional(),
-  groupId: z.string().optional(),
+  partnerId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The partner ID(s) to retrieve analytics for (with operator support)."),
+  partnerIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  tenantId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The tenant ID(s) to retrieve analytics for (with operator support)."),
+  tenantIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  groupId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The group ID(s) to retrieve analytics for (with operator support)."),
+  groupIdOperator: z.enum(["IN", "NOT IN"]).optional(),
   // Region is a special case - it's the subdivision part of a region code
   region: z.string().optional(),
   // All dimensional filters now go through the JSON filters parameter

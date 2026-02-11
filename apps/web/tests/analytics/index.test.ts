@@ -4,6 +4,7 @@ import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
+import { E2E_PARTNER, E2E_PARTNERS, E2E_PARTNER_GROUP } from "../utils/resource";
 
 describe.runIf(env.CI).sequential("GET /analytics", async () => {
   const h = new IntegrationHarness();
@@ -226,6 +227,305 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
       expect(status).toEqual(200);
       expect(data).toHaveProperty("clicks");
       // Old single-value format should still work
+    });
+  });
+
+  describe("partnerId Filters", () => {
+    test("single partnerId filter (count)", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "composite",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          partnerId: E2E_PARTNER.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+      expect(data).toHaveProperty("leads");
+      expect(data).toHaveProperty("sales");
+    });
+
+    test("multiple partnerIds filter (IS ONE OF)", async () => {
+      const partnerIds = E2E_PARTNERS.map((p) => p.id).join(",");
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "composite",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          partnerId: partnerIds,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+      expect(data).toHaveProperty("leads");
+      expect(data).toHaveProperty("sales");
+    });
+
+    test("exclude partnerId (IS NOT)", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "composite",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          partnerId: `-${E2E_PARTNER.id}`,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+      expect(data).toHaveProperty("leads");
+      expect(data).toHaveProperty("sales");
+    });
+
+    test("exclude multiple partnerIds (IS NOT ONE OF)", async () => {
+      const partnerIds = E2E_PARTNERS.map((p) => p.id).join(",");
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "composite",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          partnerId: `-${partnerIds}`,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+      expect(data).toHaveProperty("leads");
+      expect(data).toHaveProperty("sales");
+    });
+
+    test("partnerId with timeseries groupBy", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/analytics`,
+        query: {
+          event: "clicks",
+          groupBy: "timeseries",
+          workspaceId,
+          interval: "30d",
+          partnerId: E2E_PARTNER.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("partnerId with top_links groupBy", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/analytics`,
+        query: {
+          event: "composite",
+          groupBy: "top_links",
+          workspaceId,
+          interval: "all",
+          partnerId: E2E_PARTNER.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("partnerId combined with country filter", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "clicks",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          partnerId: E2E_PARTNER.id,
+          country: "US",
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+    });
+
+    test("backward compatibility - single partnerId still works", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "clicks",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          partnerId: E2E_PARTNER.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+    });
+  });
+
+  describe("groupId Filters", () => {
+    test("single groupId filter (count)", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "composite",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          groupId: E2E_PARTNER_GROUP.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+      expect(data).toHaveProperty("leads");
+      expect(data).toHaveProperty("sales");
+    });
+
+    test("exclude groupId (IS NOT)", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "composite",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          groupId: `-${E2E_PARTNER_GROUP.id}`,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+      expect(data).toHaveProperty("leads");
+      expect(data).toHaveProperty("sales");
+    });
+
+    test("groupId with timeseries groupBy", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/analytics`,
+        query: {
+          event: "clicks",
+          groupBy: "timeseries",
+          workspaceId,
+          interval: "30d",
+          groupId: E2E_PARTNER_GROUP.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("groupId combined with partnerId filter", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "clicks",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          groupId: E2E_PARTNER_GROUP.id,
+          partnerId: E2E_PARTNER.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+    });
+
+    test("backward compatibility - single groupId still works", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "clicks",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          groupId: E2E_PARTNER_GROUP.id,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+    });
+  });
+
+  describe("tenantId Filters", () => {
+    test("single tenantId filter (count)", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "composite",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          tenantId: E2E_PARTNER.tenantId,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+      expect(data).toHaveProperty("leads");
+      expect(data).toHaveProperty("sales");
+    });
+
+    test("exclude tenantId (IS NOT)", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "composite",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          tenantId: `-${E2E_PARTNER.tenantId}`,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
+      expect(data).toHaveProperty("leads");
+      expect(data).toHaveProperty("sales");
+    });
+
+    test("tenantId with timeseries groupBy", async () => {
+      const { status, data } = await http.get<any[]>({
+        path: `/analytics`,
+        query: {
+          event: "clicks",
+          groupBy: "timeseries",
+          workspaceId,
+          interval: "30d",
+          tenantId: E2E_PARTNER.tenantId,
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(Array.isArray(data)).toBe(true);
+    });
+
+    test("tenantId combined with country filter", async () => {
+      const { status, data } = await http.get<any>({
+        path: `/analytics`,
+        query: {
+          event: "clicks",
+          groupBy: "count",
+          workspaceId,
+          interval: "all",
+          tenantId: E2E_PARTNER.tenantId,
+          country: "US",
+        },
+      });
+
+      expect(status).toEqual(200);
+      expect(data).toHaveProperty("clicks");
     });
   });
 });
