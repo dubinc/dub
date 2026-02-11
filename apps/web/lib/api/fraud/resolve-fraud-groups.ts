@@ -31,7 +31,7 @@ export async function resolveFraudGroups({
       };
     }
 
-    const resolvedAt = new Date();
+    const resolvedAtLowerBound = new Date();
 
     const { count } = await tx.fraudEventGroup.updateMany({
       where: {
@@ -43,7 +43,7 @@ export async function resolveFraudGroups({
       data: {
         userId,
         resolutionReason,
-        resolvedAt,
+        resolvedAt: resolvedAtLowerBound,
         status: "resolved",
       },
     });
@@ -55,6 +55,8 @@ export async function resolveFraudGroups({
       };
     }
 
+    const resolvedAtUpperBound = new Date();
+
     // In case of concurrent updates, only return groups that were updated in this call.
     const resolvedGroups = await tx.fraudEventGroup.findMany({
       where: {
@@ -62,7 +64,11 @@ export async function resolveFraudGroups({
           in: pendingGroupIds,
         },
         status: "resolved",
-        resolvedAt,
+        resolvedAt: {
+          gte: resolvedAtLowerBound,
+          lte: resolvedAtUpperBound,
+        },
+        ...(userId ? { userId } : {}),
       },
       select: {
         id: true,
