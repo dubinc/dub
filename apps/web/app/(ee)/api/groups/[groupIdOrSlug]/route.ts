@@ -311,6 +311,7 @@ export const DELETE = withWorkspace(
         where: {
           groupId: group.id,
         },
+        take: 100,
       });
       if (programEnrollments.length === 0) {
         break;
