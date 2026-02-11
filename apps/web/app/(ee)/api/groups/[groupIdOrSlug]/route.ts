@@ -342,17 +342,11 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // we can't delete this discount because it is needed for `remap-discount-codes` that runs in movePartnersToGroup
-      // if (group.discountId) {
-      //   // 3. Delete the group's discount
-      //   await tx.discount.delete({
-      //     where: {
-      //       id: group.discountId,
-      //     },
-      //   });
-      // }
+      // Note: we can't delete this group's discount yet because it is needed
+      // for `remap-discount-codes` that runs in movePartnersToGroup
+      // but we will delete the Discount in `remap-discount-codes` once there are no remaining discount codes.
 
-      // 4. Delete the group move workflow
+      // 2. Delete the group move workflow
       if (group.workflowId) {
         await tx.workflow.delete({
           where: {
@@ -361,7 +355,7 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 5. Delete the group
+      // 3. Delete the group
       await tx.partnerGroup.delete({
         where: {
           id: group.id,

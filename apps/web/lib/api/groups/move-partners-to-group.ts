@@ -29,6 +29,7 @@ interface MovePartnersToGroupParams {
     | "saleRewardId"
     | "discountId"
   >;
+  isGroupDeleted?: boolean;
 }
 
 export async function movePartnersToGroup({
@@ -37,6 +38,7 @@ export async function movePartnersToGroup({
   partnerIds,
   userId,
   group,
+  isGroupDeleted = false,
 }: MovePartnersToGroupParams): Promise<number> {
   if (partnerIds.length === 0) {
     return 0;
@@ -167,6 +169,7 @@ export async function movePartnersToGroup({
             groupId: group.id,
             partnerIds,
             userId: workspaceUserId,
+            isGroupDeleted,
           },
         }),
 
