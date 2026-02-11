@@ -37,6 +37,7 @@ class ToltImporter {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/tolt`,
       body,
+      contentBasedDeduplication: true,
     });
   }
 

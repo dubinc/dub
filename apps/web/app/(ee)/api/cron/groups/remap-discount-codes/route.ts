@@ -13,11 +13,12 @@ const inputSchema = z.object({
   programId: z.string(),
   groupId: z.string(),
   partnerIds: z.array(z.string()),
+  isGroupDeleted: z.boolean().optional(),
 });
 
 // POST /api/cron/groups/remap-discount-codes
 export const POST = withCron(async ({ rawBody }) => {
-  const { programId, partnerIds, groupId } = inputSchema.parse(
+  const { programId, partnerIds, groupId, isGroupDeleted } = inputSchema.parse(
     JSON.parse(rawBody),
   );
 
@@ -40,6 +41,8 @@ export const POST = withCron(async ({ rawBody }) => {
       },
     },
   });
+
+  const oldDiscount = programEnrollments[0]?.discountCodes[0]?.discount;
 
   if (programEnrollments.length === 0) {
     return logAndRespond("No program enrollments found.");
@@ -157,6 +160,25 @@ export const POST = withCron(async ({ rawBody }) => {
           });
         }
       }
+    }
+  }
+
+  // if the group is deleted, need to check if there are any remaining discount codes, if not, delete the discount
+  if (isGroupDeleted && oldDiscount) {
+    const remainingDiscountCodes = await prisma.discountCode.count({
+      where: {
+        discountId: oldDiscount.id,
+      },
+    });
+    if (remainingDiscountCodes === 0) {
+      await prisma.discount.deleteMany({
+        where: {
+          id: oldDiscount.id,
+        },
+      });
+      console.log(
+        `Deleted discount ${oldDiscount.id} because it has no remaining discount codes.`,
+      );
     }
   }
 
