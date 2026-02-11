@@ -47,6 +47,7 @@ import {
   fetcher,
   formatDate,
   nFormatter,
+  pluralize,
   truncate,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -123,6 +124,34 @@ function ConfirmPayoutsSheetContent() {
       keepPreviousData: true,
     },
   );
+
+  const { data: payoutsCount } = useSWR<
+    {
+      status: string;
+      count: number;
+      amount: number | null;
+    }[]
+  >(
+    workspaceId
+      ? `/api/payouts/count?${new URLSearchParams({
+          workspaceId,
+          groupBy: "status",
+          status: "hold",
+        }).toString()}`
+      : null,
+    fetcher,
+  );
+
+  const { holdPayoutsCount, holdPayoutsAmount } = useMemo(() => {
+    if (!payoutsCount || payoutsCount.length === 0) {
+      return { holdPayoutsCount: 0, holdPayoutsAmount: 0 };
+    }
+
+    return {
+      holdPayoutsCount: payoutsCount[0].count,
+      holdPayoutsAmount: payoutsCount[0].amount ?? 0,
+    };
+  }, [payoutsCount]);
 
   const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
@@ -725,7 +754,7 @@ function ConfirmPayoutsSheetContent() {
         </div>
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 p-5">
+      <div className="flex flex-col gap-3 border-t border-neutral-200 px-5 py-4">
         <ConfirmPayoutsButton
           onClick={async () => {
             if (!workspaceId || !selectedPaymentMethod) {
@@ -786,6 +815,43 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
+        {holdPayoutsCount > 0 && (
+          <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
+            <span>
+              Excluding{" "}
+              <span className="font-medium text-neutral-800">
+                {nFormatter(holdPayoutsCount, { full: true })}
+              </span>
+              {` on hold ${pluralize("payout", holdPayoutsCount)} `}
+              <span className="font-medium text-neutral-800">
+                (
+                {currencyFormatter(holdPayoutsAmount, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })}
+                )
+              </span>
+            </span>
+            <Button
+              variant="secondary"
+              text="Review"
+              className="h-7 w-fit rounded-md border border-neutral-200 px-2 text-sm"
+              onClick={() =>
+                queryParams({
+                  set: {
+                    status: "hold",
+                  },
+                  del: [
+                    "confirmPayouts",
+                    "selectedPayoutId",
+                    "excludedPayoutIds",
+                    "payoutId",
+                    "page",
+                  ],
+                })
+              }
+            />
+          </div>
+        )}
       </div>
     </div>
   );

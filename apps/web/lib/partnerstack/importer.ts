@@ -40,6 +40,7 @@ class PartnerStackImporter {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/partnerstack`,
       body,
+      contentBasedDeduplication: true,
     });
   }
 }

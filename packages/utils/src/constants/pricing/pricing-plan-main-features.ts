@@ -19,13 +19,13 @@ type HeroFeature = {
 
 const getLinksStandards = (plan: Plan): HeroFeature[] => {
   return [
-    // Tracked clicks
+    // Tracked events
     {
       id: "clicks",
       text:
         plan.name === "Enterprise"
-          ? "Unlimited tracked clicks"
-          : `${nFormatter(plan.limits.clicks)} tracked clicks/mo`,
+          ? "Unlimited tracked events"
+          : `${nFormatter(plan.limits.clicks)} tracked events/mo`,
     },
     // New links
     {

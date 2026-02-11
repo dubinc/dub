@@ -126,6 +126,17 @@ export async function bulkDeletePartners({
   });
   console.log(`Deleted ${deletedBountySubmissions.count} bounty submissions`);
 
+  // Delete the activity logs
+  const deletedActivityLogs = await prisma.activityLog.deleteMany({
+    where: {
+      resourceType: "partner",
+      resourceId: {
+        in: partnerIds,
+      },
+    },
+  });
+  console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
+
   if (deletePartners) {
     const deletedPartners = await prisma.partner.deleteMany({
       where: {

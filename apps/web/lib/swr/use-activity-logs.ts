@@ -15,18 +15,18 @@ export function useActivityLogs({
   const searchParams = query
     ? new URLSearchParams({
         workspaceId: workspaceId!,
-        resourceType: query.resourceType,
-        resourceId: query.resourceId,
-        ...(query.action && { action: query.action }),
+        ...query,
       }).toString()
     : "";
 
-  const { data, error, isLoading, mutate } = useSWR<ActivityLog[]>(
+  const requestEnabled =
     enabled &&
-      workspaceId &&
-      query?.resourceType &&
-      query?.resourceId &&
-      `/api/activity-logs?${searchParams}`,
+    workspaceId &&
+    query?.resourceType &&
+    (query?.parentResourceId || query?.resourceId);
+
+  const { data, error, isLoading, mutate } = useSWR<ActivityLog[]>(
+    requestEnabled && `/api/activity-logs?${searchParams}`,
     fetcher,
     {
       keepPreviousData: true,
