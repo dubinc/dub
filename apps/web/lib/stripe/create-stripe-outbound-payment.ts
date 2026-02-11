@@ -23,16 +23,16 @@ export async function createStripeOutboundPayment({
     throw new Error("Partner does not have a Stripe recipient account.");
   }
 
-  const payoutMethods = await getStripePayoutMethods({
-    stripeRecipientId: partner.stripeRecipientId,
-  });
+  const payoutMethods = await getStripePayoutMethods(
+    partner.stripeRecipientId!,
+  );
 
   if (payoutMethods.length === 0) {
     throw new Error("Partner has no payout methods configured.");
   }
 
   const cryptoPayoutMethod = payoutMethods.find(
-    (method) => method.type === "crypto_wallet",
+    (method) => method.payout_method.type === "crypto_wallet",
   );
 
   if (!cryptoPayoutMethod) {
