@@ -322,6 +322,7 @@ export const DELETE = withWorkspace(
         partnerIds: programEnrollments.map(({ partnerId }) => partnerId),
         userId: session.user.id,
         group: defaultGroup,
+        isGroupDeleted: true,
       });
       console.log(`Moved ${count} partners to the default group`);
     }

@@ -171,7 +171,7 @@ export const POST = withCron(async ({ rawBody }) => {
       },
     });
     if (remainingDiscountCodes === 0) {
-      const deletedDiscount = await prisma.discount.delete({
+      await prisma.discount.deleteMany({
         where: {
           id: oldDiscount.id,
         },
