@@ -5,6 +5,8 @@ import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
 import { accountUpdated } from "./account-updated";
 import { balanceAvailable } from "./balance-available";
+import { outboundPaymentFailed } from "./outbound-payment-failed";
+import { outboundPaymentReturned } from "./outbound-payment-returned";
 import { payoutFailed } from "./payout-failed";
 import { payoutPaid } from "./payout-paid";
 import { recipientAccountClosed } from "./recipient-account-closed";
@@ -19,6 +21,8 @@ const relevantEvents = new Set([
   "payout.failed",
   "v2.core.account.closed",
   "v2.core.account[configuration.recipient].updated",
+  "v2.money_management.outbound_payment.failed",
+  "v2.money_management.outbound_payment.returned",
 ]);
 
 // POST /api/stripe/connect/webhook – listen to Stripe Connect webhooks (for connected accounts)
@@ -71,6 +75,14 @@ export const POST = async (req: Request) => {
       // @ts-ignore
       case "v2.core.account[configuration.recipient].updated":
         response = await recipientConfigurationUpdated(event);
+        break;
+      // @ts-ignore
+      case "v2.money_management.outbound_payment.failed":
+        response = await outboundPaymentFailed(event);
+        break;
+      // @ts-ignore
+      case "v2.money_management.outbound_payment.returned":
+        response = await outboundPaymentReturned(event);
         break;
     }
   } catch (error) {

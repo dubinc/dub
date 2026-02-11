@@ -1,19 +1,12 @@
+import { stripeV2ThinEventSchema } from "@/lib/stripe/stripe-v2-schemas";
 import { prisma } from "@dub/prisma";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import type Stripe from "stripe";
 
-type V2ThinEvent = Stripe.Event & {
-  related_object: {
-    id: string;
-  };
-};
+export async function recipientAccountClosed(event: Stripe.Event) {
+  const parsedEvent = stripeV2ThinEventSchema.parse(event);
 
-export async function recipientAccountClosed(event: V2ThinEvent) {
-  const stripeRecipientId = event.related_object.id;
-
-  if (!stripeRecipientId) {
-    return "No stripeRecipientId found in event, skipping...";
-  }
+  const stripeRecipientId = parsedEvent.related_object.id;
 
   const partner = await prisma.partner.findUnique({
     where: {

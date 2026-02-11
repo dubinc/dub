@@ -51,7 +51,6 @@ export const createAccountLinkInputSchema = z.object({
 export const createAccountLinkOutputSchema = z.object({
   url: z.string(),
   expires_at: z.union([z.number(), z.string()]),
-  livemode: z.boolean(),
 });
 
 export const createOutboundPaymentInputSchema = z.object({
@@ -82,7 +81,7 @@ export const createOutboundPaymentInputSchema = z.object({
     .optional(),
 });
 
-export const createOutboundPaymentOutputSchema = z.object({
+export const outboundPaymentSchema = z.object({
   id: z.string(),
   object: z.literal("v2.money_management.outbound_payment"),
   amount: z.object({
@@ -112,7 +111,17 @@ export const createOutboundPaymentOutputSchema = z.object({
   cancelable: z.boolean(),
   description: z.string().nullable().optional(),
   created: z.string(),
-  livemode: z.boolean(),
+  status_details: z
+    .object({
+      failed: z.object({
+        reason: z.string(),
+      }),
+      returned: z.object({
+        reason: z.string(),
+      }),
+    })
+    .nullable()
+    .optional(),
 });
 
 export const listPayoutMethodsQuerySchema = z.object({
@@ -154,3 +163,22 @@ export const retrieveAccountOutputSchema = z.object({
     })
     .nullable(),
 });
+
+export const stripeV2ThinEventSchema = z.object({
+  related_object: z.object({
+    id: z.string(),
+  }),
+});
+
+export const OUTBOUND_PAYMENT_FAILURE_REASONS = {
+  payout_method_declined:
+    "The outbound flow to this payout method was declined.",
+  payout_method_does_not_exist:
+    "Payout method used for this outbound flow does not exist.",
+  payout_method_expired: "Payout method used for this outbound flow expired.",
+  payout_method_unsupported:
+    "Payout method used for this outbound flow is unsupported.",
+  payout_method_usage_frequency_limit_exceeded:
+    "The usage frequency limit for this payout method was exceeded.",
+  unknown_failure: "Unknown failure",
+} as const;

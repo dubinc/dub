@@ -4,11 +4,11 @@ import {
   createAccountLinkInputSchema,
   createAccountLinkOutputSchema,
   createOutboundPaymentInputSchema,
-  createOutboundPaymentOutputSchema,
   createRecipientAccountInputSchema,
   createRecipientAccountOutputSchema,
   listPayoutMethodsOutputSchema,
   listPayoutMethodsQuerySchema,
+  outboundPaymentSchema,
   retrieveAccountOutputSchema,
   retrieveAccountQuerySchema,
 } from "./stripe-v2-schemas";
@@ -41,7 +41,11 @@ export const stripeV2Fetch = createFetch({
       "/v2/money_management/outbound_payments": {
         method: "post",
         input: createOutboundPaymentInputSchema,
-        output: createOutboundPaymentOutputSchema,
+        output: outboundPaymentSchema,
+      },
+      "/v2/money_management/outbound_payments/:id": {
+        method: "get",
+        output: outboundPaymentSchema,
       },
       "/v2/money_management/payout_methods": {
         method: "get",

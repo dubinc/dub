@@ -14,25 +14,26 @@ enum PayoutMode {
 }
 
 model Payout {
-  id                  String       @id @default(cuid())
-  programId           String
-  partnerId           String
-  invoiceId           String?
-  amount              Int          @default(0)
-  currency            String       @default("USD")
-  status              PayoutStatus @default(pending)
-  mode                PayoutMode?
-  description         String?
-  periodStart         DateTime?
-  periodEnd           DateTime?
-  paypalTransferId    String?      @unique
-  stripeTransferId    String?
-  stripePayoutId      String?
-  stripePayoutTraceId String?      @db.Text
-  failureReason       String?      @db.Text
-  webhookEventId      String?      @unique // only for external payouts
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
+  id                      String       @id @default(cuid())
+  programId               String
+  partnerId               String
+  invoiceId               String?
+  amount                  Int          @default(0)
+  currency                String       @default("USD")
+  status                  PayoutStatus @default(pending)
+  mode                    PayoutMode?
+  description             String?
+  periodStart             DateTime?
+  periodEnd               DateTime?
+  paypalTransferId        String?      @unique
+  stripeTransferId        String?
+  stripePayoutId          String?
+  stripePayoutTraceId     String?      @db.Text
+  stripeOutboundPaymentId String?      @unique
+  failureReason           String?      @db.Text
+  webhookEventId          String?      @unique // only for external payouts
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
 
   userId      String? // user who made the payout
   initiatedAt DateTime?
@@ -52,5 +53,6 @@ model Payout {
   @@index(status)
   @@index(userId)
   @@index(stripePayoutId)
+  @@index(stripeOutboundPaymentId)
   @@index(stripeTransferId)
 }
