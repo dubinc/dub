@@ -1,13 +1,10 @@
 import { getSession } from "@/lib/auth";
+import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
+import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-selector";
 import { prisma } from "@dub/prisma";
-import {
-  CONNECT_SUPPORTED_COUNTRIES,
-  PAYPAL_SUPPORTED_COUNTRIES,
-} from "@dub/utils";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { PaypalPayoutOptions } from "./paypal-payout-options";
-import { StripePayoutOptions } from "./stripe-payout-options";
 
 export default function OnboardingVerificationPage() {
   return (
@@ -15,6 +12,9 @@ export default function OnboardingVerificationPage() {
       <h1 className="animate-slide-up-fade text-content-emphasis text-xl font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
         Payout information
       </h1>
+      <p className="animate-slide-up-fade mt-1 text-base font-medium text-neutral-500 [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+        Connect your preferred payout method to receive payments.
+      </p>
       <div className="animate-slide-up-fade relative mt-12 w-full [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
         <Suspense fallback={<PayoutSkeleton />}>
           <PayoutRSC />
@@ -22,18 +22,6 @@ export default function OnboardingVerificationPage() {
       </div>
     </div>
   );
-}
-
-function PayoutProvider({ provider }: { provider: "stripe" | "paypal" }) {
-  if (provider === "stripe") {
-    return <StripePayoutOptions />;
-  }
-
-  if (provider === "paypal") {
-    return <PaypalPayoutOptions />;
-  }
-
-  return null;
 }
 
 function PayoutSkeleton() {
@@ -79,15 +67,21 @@ async function PayoutRSC() {
     redirect("/");
   }
 
-  const provider = CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
-    ? "stripe"
-    : PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)
-      ? "paypal"
-      : null;
+  const availableMethods = getPayoutMethodsForCountry(partner.country);
 
-  if (!provider) {
+  if (availableMethods.length === 0) {
     redirect("/");
   }
 
-  return <PayoutProvider provider={provider} />;
+  return (
+    <>
+      <PayoutMethodSelector payoutMethods={availableMethods} />
+      <Link
+        href="/programs"
+        className="mt-6 block text-center text-sm font-semibold text-neutral-800 transition-colors hover:text-neutral-950"
+      >
+        I'll complete this later
+      </Link>
+    </>
+  );
 }

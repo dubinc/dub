@@ -1,5 +1,6 @@
 "use client";
 
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Modal, MoneyBills2 } from "@dub/ui";
 import { X } from "lucide-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -12,6 +13,8 @@ function SelectPayoutMethodModal({
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { availablePayoutMethods } = usePartnerProfile();
+
   return (
     <Modal
       showModal={showModal}
@@ -42,7 +45,7 @@ function SelectPayoutMethodModal({
       </div>
 
       <div className="px-4 py-4 sm:px-6">
-        <PayoutMethodSelector />
+        <PayoutMethodSelector payoutMethods={availablePayoutMethods} />
       </div>
     </Modal>
   );

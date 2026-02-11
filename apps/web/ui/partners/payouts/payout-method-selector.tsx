@@ -1,6 +1,5 @@
 "use client";
 
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import {
   Badge,
   CircleDollar,
@@ -8,28 +7,18 @@ import {
   Paypal,
   StablecoinIcon,
 } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Calendar, Globe, MapPin, Zap } from "lucide-react";
-import { ReactNode } from "react";
+import { ComponentType, ReactNode } from "react";
 import { ConnectPayoutButton } from "./connect-payout-button";
-
-// TODO:
-// Combine icon and iconSingle
 
 const PAYOUT_METHODS = [
   {
     id: "stablecoin" as const,
     title: "Stablecoin",
     recommended: true,
-    icon: (
-      <div className="flex size-10 items-center justify-center rounded-lg border border-[#1717170D] bg-[#EDE9FE]">
-        <StablecoinIcon className="size-5" />
-      </div>
-    ),
-    iconSingle: (
-      <div className="flex size-14 items-center justify-center rounded-lg border border-[#1717170D] bg-[#EDE9FE]">
-        <StablecoinIcon className="size-8" />
-      </div>
-    ),
+    icon: StablecoinIcon,
+    iconWrapperClasses: "border-[#1717170D] bg-[#EDE9FE]",
     features: [
       { icon: <CircleDollar />, text: "Paid in USDC" },
       { icon: <Globe />, text: "No local bank required" },
@@ -40,16 +29,9 @@ const PAYOUT_METHODS = [
     id: "connect" as const,
     title: "Bank Account",
     recommended: false,
-    icon: (
-      <div className="flex size-10 items-center justify-center rounded-lg border border-[#1717171A] bg-white">
-        <GreekTemple className="text-content-emphasis size-5" />
-      </div>
-    ),
-    iconSingle: (
-      <div className="flex size-14 items-center justify-center rounded-lg border border-[#1717171A] bg-white">
-        <GreekTemple className="text-content-emphasis size-8" />
-      </div>
-    ),
+    icon: GreekTemple,
+    iconWrapperClasses: "border-[#1717171A] bg-white",
+    iconClassName: "text-content-emphasis",
     features: [
       { icon: <MapPin />, text: "Paid in local currency" },
       { icon: <GreekTemple />, text: "Local bank required" },
@@ -60,16 +42,8 @@ const PAYOUT_METHODS = [
     id: "paypal" as const,
     title: "PayPal",
     recommended: false,
-    icon: (
-      <div className="flex size-10 items-center justify-center rounded-lg border border-[#1717171A] bg-white p-2">
-        <Paypal className="size-5" />
-      </div>
-    ),
-    iconSingle: (
-      <div className="flex size-14 items-center justify-center rounded-lg border border-[#1717171A] bg-white p-2">
-        <Paypal className="size-8" />
-      </div>
-    ),
+    icon: Paypal,
+    iconWrapperClasses: "border-[#1717171A] bg-white p-2",
     features: [
       { icon: <MapPin />, text: "Paid in local currency" },
       { icon: <GreekTemple />, text: "May require a linked bank" },
@@ -77,6 +51,76 @@ const PAYOUT_METHODS = [
     ],
   },
 ] as const;
+
+export function PayoutMethodSelector({
+  payoutMethods,
+}: {
+  payoutMethods: string[];
+}) {
+  const filteredMethods = PAYOUT_METHODS.filter((m) =>
+    payoutMethods.includes(m.id),
+  );
+
+  const isSingleOption = filteredMethods.length === 1;
+
+  return (
+    <div className={isSingleOption ? "w-full" : "grid gap-3 sm:grid-cols-2"}>
+      {filteredMethods.map((method) => (
+        <PayoutMethodCard
+          key={method.id}
+          icon={
+            <PayoutMethodIcon
+              icon={method.icon}
+              wrapperClasses={method.iconWrapperClasses}
+              size={isSingleOption ? "lg" : "sm"}
+              iconClassName={
+                "iconClassName" in method ? method.iconClassName : undefined
+              }
+            />
+          }
+          title={method.title}
+          features={method.features}
+          recommended={method.recommended}
+          action={
+            <ConnectPayoutButton
+              payoutMethod={method.id}
+              text="Connect"
+              className="h-9 w-full rounded-lg"
+            />
+          }
+          isSingle={isSingleOption}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PayoutMethodIcon({
+  icon: Icon,
+  wrapperClasses,
+  size = "sm",
+  iconClassName,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  wrapperClasses: string;
+  size?: "sm" | "lg";
+  iconClassName?: string;
+}) {
+  const containerSize = size === "lg" ? "size-14" : "size-10";
+  const iconSize = size === "lg" ? "size-8" : "size-5";
+
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-center rounded-lg border",
+        wrapperClasses,
+        containerSize,
+      )}
+    >
+      <Icon className={cn(iconSize, iconClassName)} />
+    </div>
+  );
+}
 
 function PayoutMethodCard({
   icon,
@@ -97,7 +141,7 @@ function PayoutMethodCard({
     <div
       className={`relative flex flex-col rounded-xl border border-neutral-200 bg-neutral-100 ${isSingle ? "p-8" : "p-4"} `}
     >
-      {recommended && (
+      {recommended && !isSingle && (
         <Badge
           variant="green"
           className="absolute right-3 top-3 rounded-md font-semibold text-green-700"
@@ -141,38 +185,6 @@ function PayoutMethodCard({
 
         <div className={isSingle ? "mt-6" : "mt-4"}>{action}</div>
       </div>
-    </div>
-  );
-}
-
-export function PayoutMethodSelector() {
-  const { availablePayoutMethods } = usePartnerProfile();
-
-  const filteredMethods = PAYOUT_METHODS.filter((m) =>
-    availablePayoutMethods.includes(m.id),
-  );
-
-  const isSingleOption = filteredMethods.length === 1;
-
-  return (
-    <div className={isSingleOption ? "w-full" : "grid gap-3 sm:grid-cols-2"}>
-      {filteredMethods.map((method) => (
-        <PayoutMethodCard
-          key={method.id}
-          icon={isSingleOption ? method.iconSingle : method.icon}
-          title={method.title}
-          features={method.features}
-          recommended={method.recommended}
-          action={
-            <ConnectPayoutButton
-              payoutMethod={method.id}
-              text="Connect"
-              className="h-9 w-full rounded-lg"
-            />
-          }
-          isSingle={isSingleOption}
-        />
-      ))}
     </div>
   );
 }
