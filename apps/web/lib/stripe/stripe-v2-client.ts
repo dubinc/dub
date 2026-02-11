@@ -9,6 +9,8 @@ import {
   createRecipientAccountOutputSchema,
   listPayoutMethodsOutputSchema,
   listPayoutMethodsQuerySchema,
+  retrieveAccountOutputSchema,
+  retrieveAccountQuerySchema,
 } from "./stripe-v2-schemas";
 
 export const STRIPE_API_VERSION = "2025-09-30.preview";
@@ -25,6 +27,11 @@ export const stripeV2Fetch = createFetch({
         method: "post",
         input: createRecipientAccountInputSchema,
         output: createRecipientAccountOutputSchema,
+      },
+      "/v2/core/accounts/:id": {
+        method: "get",
+        query: retrieveAccountQuerySchema,
+        output: retrieveAccountOutputSchema,
       },
       "/v2/core/account_links": {
         method: "post",
@@ -46,6 +53,18 @@ export const stripeV2Fetch = createFetch({
       strict: true,
     },
   ),
+  onResponse: async (context) => {
+    const cloned = context.response.clone();
+
+    try {
+      const raw = await cloned.json();
+      console.log("[Stripe V2] Raw response", prettyPrint(raw));
+    } catch {
+      //
+    }
+
+    return context.response;
+  },
   onError: ({ error }) => {
     console.error("[Stripe V2] Error", prettyPrint(error));
   },

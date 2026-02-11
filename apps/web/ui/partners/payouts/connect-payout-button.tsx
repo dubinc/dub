@@ -133,6 +133,10 @@ export function ConnectPayoutButton({
     return null;
   }
 
+  if (partner?.payoutsEnabledAt) {
+    return null;
+  }
+
   return (
     <>
       {SelectPayoutMethodModal}

@@ -135,3 +135,22 @@ export const listPayoutMethodsOutputSchema = z.object({
     }),
   ),
 });
+
+export const retrieveAccountQuerySchema = z.object({
+  "include[0]": z.string(),
+});
+
+export const retrieveAccountOutputSchema = z.object({
+  id: z.string(),
+  closed: z.boolean().nullable().optional(),
+  configuration: z
+    .object({
+      recipient: z
+        .object({
+          applied: z.boolean(),
+          capabilities: z.record(z.string(), z.any()).nullable(),
+        })
+        .nullable(),
+    })
+    .nullable(),
+});

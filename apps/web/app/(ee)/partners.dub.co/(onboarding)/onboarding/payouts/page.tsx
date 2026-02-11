@@ -8,7 +8,7 @@ import { Suspense } from "react";
 
 export default function OnboardingVerificationPage() {
   return (
-    <div className="relative mx-auto my-10 flex w-full max-w-[600px] flex-col items-center text-center md:mt-6">
+    <div className="relative mx-auto my-10 flex w-full max-w-[600px] flex-col items-center px-4 text-center sm:px-6 md:mt-6">
       <h1 className="animate-slide-up-fade text-content-emphasis text-xl font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
         Payout information
       </h1>
