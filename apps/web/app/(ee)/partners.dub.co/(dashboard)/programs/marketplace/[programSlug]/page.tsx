@@ -129,7 +129,12 @@ export default async function MarketplaceProgramPage(props: {
             <div className="mt-6 flex gap-8">
               {Boolean(program.rewards?.length || program.discount) && (
                 <div>
-                  <span className="block text-xs font-medium text-neutral-400">
+                  <span
+                    className={cn(
+                      "block text-xs font-medium",
+                      isDarkImage ? "text-content-inverted" : "text-neutral-400",
+                    )}
+                  >
                     Rewards
                   </span>
                   <ProgramRewardsDisplay
@@ -143,7 +148,12 @@ export default async function MarketplaceProgramPage(props: {
               )}
               {Boolean(program.categories?.length) && (
                 <div className="min-w-0">
-                  <span className="block text-xs font-medium text-neutral-400">
+                  <span
+                    className={cn(
+                      "block text-xs font-medium",
+                      isDarkImage ? "text-content-inverted" : "text-neutral-400",
+                    )}
+                  >
                     Category
                   </span>
                   <div className="mt-1 flex items-center gap-1.5">
