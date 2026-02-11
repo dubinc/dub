@@ -188,7 +188,6 @@ async function createCommission({
   });
 
   if (commissionFound) {
-    console.log(`Commission ${commission.id} already exists, skipping...`);
     return;
   }
 
@@ -231,12 +230,12 @@ async function createCommission({
   const chargedAt = new Date(commission.created_at);
   const trackedCommission = await prisma.commission.findFirst({
     where: {
+      customerId: customer.id,
       programId: program.id,
       createdAt: {
         gte: new Date(chargedAt.getTime() - 60 * 60 * 1000), // 1 hour before
         lte: new Date(chargedAt.getTime() + 60 * 60 * 1000), // 1 hour after
       },
-      customerId: customer.id,
       type: "sale",
       amount: saleAmount,
     },
