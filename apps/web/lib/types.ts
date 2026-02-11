@@ -15,6 +15,7 @@ import {
   FraudRuleType,
   Link,
   PartnerGroup,
+  PartnerPayoutMethod,
   PartnerReferral,
   PartnerRole,
   PayoutStatus,
@@ -480,6 +481,7 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
   platforms: PartnerPlatformProps[];
+  defaultPayoutMethod: PartnerPayoutMethod | null;
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;

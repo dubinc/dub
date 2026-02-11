@@ -1,11 +1,11 @@
 "use client";
 
-import { StripePayoutMethodOptions } from "@/ui/partners/payout-method-options";
 import { Modal, MoneyBills2 } from "@dub/ui";
 import { X } from "lucide-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { PayoutMethodSelector } from "./payout-method-selector";
 
-function ChoosePayoutMethodModal({
+function SelectPayoutMethodModal({
   showModal,
   setShowModal,
 }: {
@@ -25,7 +25,7 @@ function ChoosePayoutMethodModal({
           </div>
           <div className="min-w-0">
             <h3 className="text-lg font-semibold text-neutral-800">
-              Choose a payout method
+              Select a payout method
             </h3>
             <p className="mt-1 text-sm text-neutral-500">
               Select your preferred payout method to receive payouts.
@@ -42,18 +42,18 @@ function ChoosePayoutMethodModal({
       </div>
 
       <div className="px-4 py-4 sm:px-6">
-        <StripePayoutMethodOptions />
+        <PayoutMethodSelector />
       </div>
     </Modal>
   );
 }
 
-export function useChoosePayoutMethodModal() {
+export function useSelectPayoutMethodModal() {
   const [showModal, setShowModal] = useState(false);
 
-  const ChoosePayoutMethodModalElement = useMemo(
+  const SelectPayoutMethodModalElement = useMemo(
     () => (
-      <ChoosePayoutMethodModal
+      <SelectPayoutMethodModal
         showModal={showModal}
         setShowModal={setShowModal}
       />
@@ -63,9 +63,9 @@ export function useChoosePayoutMethodModal() {
 
   return useMemo(
     () => ({
-      setShowChoosePayoutMethodModal: setShowModal,
-      ChoosePayoutMethodModal: ChoosePayoutMethodModalElement,
+      setShowSelectPayoutMethodModal: setShowModal,
+      SelectPayoutMethodModal: SelectPayoutMethodModalElement,
     }),
-    [ChoosePayoutMethodModalElement, setShowModal],
+    [SelectPayoutMethodModalElement, setShowModal],
   );
 }

@@ -17,8 +17,8 @@ enum MonthlyTraffic {
 }
 
 enum PartnerPayoutMethod {
-  stripeExpress
-  stripeCryptoWallet
+  connect
+  stablecoin
   paypal
 }
 

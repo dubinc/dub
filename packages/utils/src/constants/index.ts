@@ -16,6 +16,7 @@ export * from "./paypal-supported-countries";
 export * from "./regions";
 export * from "./reserved-slugs";
 export * from "./saml";
+export * from "./stablecoin-supported-countries";
 
 // pricing copy & values
 export * from "./pricing/pricing-plan-compare-features";
