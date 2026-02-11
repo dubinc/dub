@@ -12,7 +12,7 @@ import { Calendar, Globe, MapPin, Zap } from "lucide-react";
 import { ComponentType, ReactNode } from "react";
 import { ConnectPayoutButton } from "./connect-payout-button";
 
-const PAYOUT_METHODS = [
+export const PAYOUT_METHODS = [
   {
     id: "stablecoin" as const,
     title: "Stablecoin",
@@ -52,16 +52,53 @@ const PAYOUT_METHODS = [
   },
 ] as const;
 
+const CARD_VARIANTS = {
+  default: {
+    card: "p-4",
+    content: "gap-2",
+    title: "text-sm font-semibold text-neutral-900",
+    list: "space-y-2.5 text-xs",
+    featureIcon: "[&>svg]:size-4",
+    action: "mt-4",
+  },
+  compact: {
+    card: "p-3",
+    content: "gap-2",
+    title: "text-sm font-semibold text-neutral-900",
+    list: "space-y-2 text-xs",
+    featureIcon: "[&>svg]:size-4",
+    action: "mt-3",
+  },
+  spotlight: {
+    card: "p-8",
+    content: "gap-4",
+    title: "text-xl font-semibold text-neutral-900",
+    list: "space-y-3.5 text-sm",
+    featureIcon: "[&>svg]:size-5",
+    action: "mt-6",
+  },
+} as const;
+
 export function PayoutMethodSelector({
   payoutMethods,
+  variant: variantProp,
 }: {
   payoutMethods: string[];
+  variant?: "default" | "compact";
 }) {
   const filteredMethods = PAYOUT_METHODS.filter((m) =>
     payoutMethods.includes(m.id),
   );
 
   const isSingleOption = filteredMethods.length === 1;
+  const cardVariant =
+    variantProp === "compact"
+      ? "compact"
+      : isSingleOption
+        ? "spotlight"
+        : "default";
+  const iconSize =
+    variantProp === "compact" ? "sm" : isSingleOption ? "lg" : "sm";
 
   return (
     <div className={isSingleOption ? "w-full" : "grid gap-3 sm:grid-cols-2"}>
@@ -72,7 +109,7 @@ export function PayoutMethodSelector({
             <PayoutMethodIcon
               icon={method.icon}
               wrapperClasses={method.iconWrapperClasses}
-              size={isSingleOption ? "lg" : "sm"}
+              size={iconSize}
               iconClassName={
                 "iconClassName" in method ? method.iconClassName : undefined
               }
@@ -88,7 +125,7 @@ export function PayoutMethodSelector({
               className="h-9 w-full rounded-lg"
             />
           }
-          isSingle={isSingleOption}
+          variant={cardVariant}
         />
       ))}
     </div>
@@ -128,20 +165,25 @@ function PayoutMethodCard({
   features,
   recommended,
   action,
-  isSingle,
+  variant = "default",
 }: {
   icon: ReactNode;
   title: string;
   features: readonly { icon: ReactNode; text: string }[];
   recommended?: boolean;
   action: ReactNode;
-  isSingle?: boolean;
+  variant?: "default" | "compact" | "spotlight";
 }) {
+  const styles = CARD_VARIANTS[variant];
+
   return (
     <div
-      className={`relative flex flex-col rounded-xl border border-neutral-200 bg-neutral-100 ${isSingle ? "p-8" : "p-4"} `}
+      className={cn(
+        "relative flex flex-col rounded-xl border border-neutral-200 bg-neutral-100",
+        styles.card,
+      )}
     >
-      {recommended && !isSingle && (
+      {recommended && variant !== "spotlight" && (
         <Badge
           variant="green"
           className="absolute right-3 top-3 rounded-md font-semibold text-green-700"
@@ -150,31 +192,18 @@ function PayoutMethodCard({
         </Badge>
       )}
 
-      <div
-        className={`flex flex-col text-left ${isSingle ? "gap-4" : "gap-2"}`}
-      >
+      <div className={cn("flex flex-col text-left", styles.content)}>
         <div>{icon}</div>
-        <h3
-          className={
-            isSingle
-              ? "text-xl font-semibold text-neutral-900"
-              : "text-sm font-semibold text-neutral-900"
-          }
-        >
-          {title}
-        </h3>
+        <h3 className={styles.title}>{title}</h3>
 
-        <ul
-          className={`flex-1 font-medium text-neutral-600 ${
-            isSingle ? "space-y-3.5 text-sm" : "space-y-2.5 text-xs"
-          }`}
-        >
+        <ul className={cn("flex-1 font-medium text-neutral-600", styles.list)}>
           {features.map(({ icon: featureIcon, text }) => (
             <li key={text} className="flex items-center gap-2">
               <span
-                className={`flex shrink-0 items-center justify-center text-neutral-500 [&>svg]:size-4 ${
-                  isSingle ? "[&>svg]:size-5" : ""
-                }`}
+                className={cn(
+                  "flex shrink-0 items-center justify-center text-neutral-500",
+                  styles.featureIcon,
+                )}
               >
                 {featureIcon}
               </span>
@@ -183,7 +212,7 @@ function PayoutMethodCard({
           ))}
         </ul>
 
-        <div className={isSingle ? "mt-6" : "mt-4"}>{action}</div>
+        <div className={styles.action}>{action}</div>
       </div>
     </div>
   );

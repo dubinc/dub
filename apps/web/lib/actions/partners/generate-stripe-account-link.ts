@@ -1,14 +1,12 @@
 "use server";
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
+import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { stripe } from "@/lib/stripe";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { prisma } from "@dub/prisma";
-import {
-  CONNECT_SUPPORTED_COUNTRIES,
-  COUNTRIES,
-  PARTNERS_DOMAIN,
-} from "@dub/utils";
+import { PartnerPayoutMethod } from "@dub/prisma/client";
+import { COUNTRIES, PARTNERS_DOMAIN } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 
 export const generateStripeAccountLink = authPartnerActionClient.action(
@@ -34,12 +32,16 @@ export const generateStripeAccountLink = authPartnerActionClient.action(
         );
       }
 
-      // guard against unsupported countries
-      if (!CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)) {
+      const availablePayoutMethods = getPayoutMethodsForCountry(
+        partner.country,
+      );
+
+      if (!availablePayoutMethods.includes(PartnerPayoutMethod.connect)) {
         throw new Error(
           `Your current country (${COUNTRIES[partner.country]}) is not supported for Stripe payouts. Please go to partners.dub.co/settings to update your country, or contact support.`,
         );
       }
+
       // create a new account
       const connectedAccount = await createConnectedAccount({
         country: partner.country,

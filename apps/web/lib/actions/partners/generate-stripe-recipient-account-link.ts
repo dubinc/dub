@@ -1,10 +1,12 @@
 "use server";
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
+import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { createStripeRecipientAccount } from "@/lib/stripe/create-stripe-recipient-account";
 import { createStripeRecipientAccountLink } from "@/lib/stripe/create-stripe-recipient-account-link";
 import { prisma } from "@dub/prisma";
-import { COUNTRIES, STABLECOIN_SUPPORTED_COUNTRIES } from "@dub/utils";
+import { PartnerPayoutMethod } from "@dub/prisma/client";
+import { COUNTRIES } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 
 export const generateStripeRecipientAccountLink =
@@ -29,7 +31,11 @@ export const generateStripeRecipientAccountLink =
         );
       }
 
-      if (!STABLECOIN_SUPPORTED_COUNTRIES.includes(partner.country)) {
+      const availablePayoutMethods = getPayoutMethodsForCountry(
+        partner.country,
+      );
+
+      if (!availablePayoutMethods.includes(PartnerPayoutMethod.stablecoin)) {
         throw new Error(
           `Your current country (${COUNTRIES[partner.country]}) is not supported for Stablecoin payouts. Please go to partners.dub.co/settings to update your country, or contact support.`,
         );
