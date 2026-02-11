@@ -93,6 +93,7 @@ function WorkspaceLinks() {
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     setSearch,
     setSelectedFilter,
@@ -250,6 +251,7 @@ function WorkspaceLinks() {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
             onRemoveAll={onRemoveAll}
           />
         </PageWidthWrapper>

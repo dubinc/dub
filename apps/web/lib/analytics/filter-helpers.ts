@@ -1,0 +1,142 @@
+import { ParsedFilter, type SQLOperator } from "@dub/utils";
+
+/**
+ * Advanced filter structure for Tinybird's filters JSON parameter.
+ * Used for event-level dimensional filters.
+ */
+export interface AdvancedFilter {
+  field: string;
+  operator: SQLOperator;
+  values: string[];
+}
+
+/**
+ * Extract the first string value from a ParsedFilter.
+ * Useful for API routes that need a single value (e.g., domain, folderId)
+ * for lookups, even when the filter supports multiple values.
+ */
+export function getFirstFilterValue(
+  filter: ParsedFilter | string | undefined,
+): string | undefined {
+  if (!filter) return undefined;
+  if (typeof filter === "string") return filter;
+  return filter.values?.[0];
+}
+
+/**
+ * Prepare trigger and region filters for Tinybird pipes.
+ * Handles backward compatibility for qr parameter and region splitting.
+ */
+export function prepareFiltersForPipe(params: {
+  qr?: boolean;
+  trigger?: ParsedFilter;
+  region?: string | ParsedFilter;
+  country?: ParsedFilter;
+}) {
+  // Handle qr backward compatibility
+  let triggerForPipe = params.trigger;
+  if (params.qr && !params.trigger) {
+    triggerForPipe = {
+      operator: "IS" as const,
+      sqlOperator: "IN" as const,
+      values: ["qr"],
+    };
+  }
+
+  // Handle region split (format: "US-CA")
+  let countryForPipe = params.country;
+  let regionForPipe = params.region;
+  if (params.region && typeof params.region === "string") {
+    const split = params.region.split("-");
+    countryForPipe = {
+      operator: "IS" as const,
+      sqlOperator: "IN" as const,
+      values: [split[0]],
+    };
+    regionForPipe = split[1];
+  }
+
+  return { triggerForPipe, countryForPipe, regionForPipe };
+}
+
+/**
+ * Extract workspace link filters (domain, tagIds, folderId, root) into
+ * separate values and operators for Tinybird.
+ *
+ * These filters are applied on the workspace_links node in Tinybird,
+ * so they need to be passed as separate parameters (not in the filters JSON).
+ */
+export function extractWorkspaceLinkFilters(params: {
+  domain?: ParsedFilter;
+  tagIds?: ParsedFilter;
+  folderId?: ParsedFilter;
+  root?: ParsedFilter;
+}) {
+  const extractFilter = (filter?: ParsedFilter) => ({
+    values: filter?.values,
+    operator: (filter?.sqlOperator === "NOT IN" ? "NOT IN" : "IN") as
+      | "IN"
+      | "NOT IN",
+  });
+
+  const domain = extractFilter(params.domain);
+  const tagIds = extractFilter(params.tagIds);
+  const folderId = extractFilter(params.folderId);
+  const root = extractFilter(params.root);
+
+  return {
+    domain: domain.values,
+    domainOperator: domain.operator,
+    tagIds: tagIds.values,
+    tagIdsOperator: tagIds.operator,
+    folderId: folderId.values,
+    folderIdOperator: folderId.operator,
+    root: root.values,
+    rootOperator: root.operator,
+  };
+}
+
+/**
+ * Build advanced filters array for Tinybird's filters JSON parameter.
+ * Extracts event-level dimensional filters from params and formats them
+ * for the filters JSON that gets passed to Tinybird pipes.
+ */
+const SUPPORTED_FIELDS = [
+  "country",
+  "city",
+  "continent",
+  "device",
+  "browser",
+  "os",
+  "referer",
+  "refererUrl",
+  "url",
+  "trigger",
+  "utm_source",
+  "utm_medium",
+  "utm_campaign",
+  "utm_term",
+  "utm_content",
+  "saleType",
+] as const;
+
+type SupportedField = (typeof SUPPORTED_FIELDS)[number];
+
+export function buildAdvancedFilters(
+  params: Partial<Record<SupportedField, ParsedFilter | undefined>>,
+): AdvancedFilter[] {
+  const filters: AdvancedFilter[] = [];
+
+  for (const field of SUPPORTED_FIELDS) {
+    const parsed = params[field];
+    if (!parsed) continue;
+
+    filters.push({
+      field,
+      operator: parsed.sqlOperator,
+      values: parsed.values,
+    });
+  }
+
+  return filters;
+}

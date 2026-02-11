@@ -1,4 +1,5 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV } from "@/lib/analytics/utils";
@@ -8,7 +9,7 @@ import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
 import { Link } from "@dub/prisma/client";
 import JSZip from "jszip";
 
@@ -17,10 +18,14 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
-    const parsedParams = analyticsQuerySchema.parse(searchParams);
+    const parsedParams = parseAnalyticsQuery(searchParams);
 
-    const { interval, start, end, linkId, externalId, domain, key, folderId } =
+    const { interval, start, end, linkId, externalId, domain: domainFilter, key, folderId: folderIdFilter } =
       parsedParams;
+
+    // Extract string values for specific link/folder lookup
+    const domain = getFirstFilterValue(domainFilter);
+    const folderId = getFirstFilterValue(folderIdFilter);
 
     let link: Link | null = null;
 
@@ -80,7 +85,7 @@ export const GET = withWorkspace(
           ...(link && { linkId: link.id }),
           groupBy: endpoint,
           folderIds,
-          folderId: folderId || "",
+          folderId: folderIdFilter || undefined,
         });
 
         if (!response || response.length === 0) return;

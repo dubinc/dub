@@ -91,15 +91,26 @@ function parseCondition(condition: string): InternalFilter | null {
       .replace(/\[['"]/g, ".") // Replace [' or [" with .
       .replace(/['"]\]/g, ""); // Remove trailing '] or "]
 
+    // Security: Validate metadata key contains only safe characters
+    // Only allow alphanumeric, underscore, and dot (for nested keys)
+    if (!/^[a-zA-Z0-9_.]+$/.test(extractedKey)) return null;
+    
+
     operand = `metadata.${extractedKey}`;
   } else {
     operand = fieldOrMetadata;
   }
 
+  // Security: Sanitize value to prevent SQL injection
+  // Remove potentially dangerous characters from the value
+  const sanitizedValue = value.trim()
+    .replace(/^['"`]|['"`]$/g, "")
+    .replace(/[;\\]|--|\*\/|\/\*/g, "");
+
   return {
     operand,
     operator: mapOperator(operator),
-    value: value.trim().replace(/^['"`]|['"`]$/g, ""),
+    value: sanitizedValue,
   };
 }
 

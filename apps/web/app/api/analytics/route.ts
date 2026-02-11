@@ -1,4 +1,5 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
@@ -13,7 +14,7 @@ import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import {
   analyticsPathParamsSchema,
-  analyticsQuerySchema,
+  parseAnalyticsQuery,
 } from "@/lib/zod/schemas/analytics";
 import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -32,7 +33,7 @@ export const GET = withWorkspace(
       oldEvent = undefined;
     }
 
-    const parsedParams = analyticsQuerySchema.parse(searchParams);
+    const parsedParams = parseAnalyticsQuery(searchParams);
 
     let {
       event,
@@ -42,11 +43,16 @@ export const GET = withWorkspace(
       end,
       linkId,
       externalId,
-      domain,
+      domain: domainFilter,
       key,
-      folderId,
+      folderId: folderIdFilter,
       programId,
     } = parsedParams;
+
+    // Extract string values for specific link/folder lookup
+    // When domain+key is provided, it's for getting a specific link (not filtering)
+    const domain = getFirstFilterValue(domainFilter);
+    const folderId = getFirstFilterValue(folderIdFilter);
 
     let link: Link | null = null;
 
