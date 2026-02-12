@@ -9,7 +9,7 @@ import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program
 import { prisma } from "@dub/prisma";
 import { ChevronRight, Shop, Tooltip } from "@dub/ui";
 import { Hyperlink } from "@dub/ui/icons";
-import { OG_AVATAR_URL, cn, getDomainWithoutWWW, getPrettyUrl } from "@dub/utils";
+import { OG_AVATAR_URL, cn, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProgramStatusBadge } from "../program-status-badge";
@@ -49,9 +49,6 @@ export default async function MarketplaceProgramPage(props: {
   }
 
   const isDarkImage = program.marketplaceHeaderImage?.includes("dark");
-  const website =
-    program.url &&
-    (getDomainWithoutWWW(program.url) ?? getPrettyUrl(program.url));
 
   return (
     <PageContent
@@ -132,7 +129,9 @@ export default async function MarketplaceProgramPage(props: {
                   <span
                     className={cn(
                       "block text-xs font-medium",
-                      isDarkImage ? "text-content-inverted" : "text-neutral-400",
+                      isDarkImage
+                        ? "text-content-inverted"
+                        : "text-neutral-400",
                     )}
                   >
                     Rewards
@@ -151,7 +150,9 @@ export default async function MarketplaceProgramPage(props: {
                   <span
                     className={cn(
                       "block text-xs font-medium",
-                      isDarkImage ? "text-content-inverted" : "text-neutral-400",
+                      isDarkImage
+                        ? "text-content-inverted"
+                        : "text-neutral-400",
                     )}
                   >
                     Category
@@ -195,17 +196,13 @@ export default async function MarketplaceProgramPage(props: {
                   </div>
                 </div>
               )}
-              {website && (
+              {program.url && (
                 <div className="min-w-0">
                   <span className="block text-xs font-medium text-neutral-400">
                     Website
                   </span>
                   <Link
-                    href={
-                      program.url!.startsWith("http")
-                        ? program.url!
-                        : `https://${program.url}`
-                    }
+                    href={program.url}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={cn(
@@ -216,7 +213,9 @@ export default async function MarketplaceProgramPage(props: {
                     )}
                   >
                     <Hyperlink className="size-4 shrink-0" />
-                    <span className="truncate">{website} ↗</span>
+                    <span className="truncate">
+                      {getDomainWithoutWWW(program.url)} ↗
+                    </span>
                   </Link>
                 </div>
               )}
