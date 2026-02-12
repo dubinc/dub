@@ -86,6 +86,9 @@ export const invitePartnerAction = authActionClient
       rejected: "was rejected from",
       declined: "declined the invite to",
       pending: "has a pending application to join",
+      banned: "is banned from",
+      archived: "is archived in",
+      deactivated: "is deactivated in",
     } as const;
 
     for (const recipientEmail of uniqueRecipientEmails) {
@@ -109,6 +112,7 @@ export const invitePartnerAction = authActionClient
       enrolledPartner: Awaited<ReturnType<typeof createAndEnrollPartner>>;
       recipientEmail: string;
     }[] = [];
+    const errors: { recipientEmail: string; error: string }[] = [];
 
     // Use saved invite email data from program if available
     const inviteEmailData = program.inviteEmailData;
@@ -180,8 +184,8 @@ export const invitePartnerAction = authActionClient
       return [...sendPartnerInvitePromises, ...recordAuditLogPromises];
     };
 
-    try {
-      for (const recipientEmail of uniqueRecipientEmails) {
+    for (const recipientEmail of uniqueRecipientEmails) {
+      try {
         const enrolledPartner = await createAndEnrollPartner({
           workspace,
           program,
@@ -196,18 +200,22 @@ export const invitePartnerAction = authActionClient
         });
 
         enrolledPartners.push({ enrolledPartner, recipientEmail });
+      } catch (error) {
+        errors.push({
+          recipientEmail,
+          error: error instanceof Error ? error.message : "Failed to invite",
+        });
       }
-    } catch (error) {
-      if (enrolledPartners.length > 0) {
-        waitUntil(Promise.allSettled(createPostInvitePromises()));
-      }
-
-      throw error;
     }
 
-    const postInvitePromises = createPostInvitePromises();
+    if (enrolledPartners.length > 0) {
+      const postInvitePromises = createPostInvitePromises();
+      waitUntil(Promise.allSettled(postInvitePromises));
+    }
 
-    waitUntil(Promise.allSettled(postInvitePromises));
-
-    return { invitedCount: enrolledPartners.length };
+    return {
+      invitedCount: enrolledPartners.length,
+      invited: enrolledPartners,
+      errors,
+    };
   });

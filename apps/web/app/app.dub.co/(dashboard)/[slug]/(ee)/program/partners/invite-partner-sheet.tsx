@@ -215,13 +215,27 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
   const { executeAsync, isPending } = useAction(invitePartnerAction, {
     onSuccess: ({ data }) => {
-      const invitedCount = data?.invitedCount || 1;
-      toast.success(
-        invitedCount > 1
-          ? `Invitations sent to ${invitedCount} partners!`
-          : "Invitation sent to partner!",
-      );
-      setIsOpen(false);
+      const invitedCount = data?.invitedCount ?? 0;
+      const errorsCount = data?.errors?.length ?? 0;
+
+      if (errorsCount === 0) {
+        toast.success(
+          invitedCount > 1
+            ? `Invitations sent to ${invitedCount} partners!`
+            : "Invitation sent to partner!",
+        );
+        setIsOpen(false);
+        return;
+      }
+
+      if (invitedCount > 0) {
+        toast.warning(
+          `Sent ${invitedCount} invite${invitedCount === 1 ? "" : "s"}, ${errorsCount} failed.`,
+        );
+        return;
+      }
+
+      toast.error(data?.errors?.[0]?.error || "Failed to send invites");
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -463,7 +477,8 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                       type="button"
                       variant="outline"
                       icon={<X className="size-3" strokeWidth={2.5} />}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedRecipientEmail((prev) =>
                           prev === recipientEmail ? null : prev,
                         );
