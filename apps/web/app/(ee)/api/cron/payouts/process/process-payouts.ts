@@ -110,15 +110,6 @@ export async function processPayouts({
     `Updated ${res.count} payouts to invoice ${invoice.id} and "processing" status`,
   );
 
-  // Update payout method from partner's defaultPayoutMethod
-  await prisma.$executeRaw`
-    UPDATE Payout p
-    INNER JOIN Partner pr ON p.partnerId = pr.id
-    SET p.method = pr.defaultPayoutMethod
-    WHERE p.invoiceId = ${invoice.id}
-    AND pr.defaultPayoutMethod IS NOT NULL
-  `;
-
   // if hybrid mode, we need to update payouts for partners with payoutsEnabledAt = null to external mode
   // here we don't need to filter if they have tenantId cause getPayoutEligibilityFilter above already takes care of that
   if (program.payoutMode === "hybrid") {

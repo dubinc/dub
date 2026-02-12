@@ -8,11 +8,16 @@ export async function createStripeInboundTransfer({
   amount,
 }: CreateStripeInboundTransferParams) {
   const financialAccountId = process.env.STRIPE_FINANCIAL_ACCOUNT_ID;
+  const paymentMethodId = process.env.STRIPE_PAYMENT_METHOD_ID;
 
   if (!financialAccountId) {
     throw new Error(
       "STRIPE_FINANCIAL_ACCOUNT_ID is not configured and no financial account was provided.",
     );
+  }
+
+  if (!paymentMethodId) {
+    throw new Error("STRIPE_PAYMENT_METHOD_ID is not configured.");
   }
 
   const { data, error } = await stripeV2Fetch(
@@ -24,7 +29,7 @@ export async function createStripeInboundTransfer({
           currency: "usd",
         },
         from: {
-          payment_method: "pm_1QZ992FZ9999999999999999", // TODO: replace with actual payment method ID
+          payment_method: paymentMethodId,
         },
         to: {
           financial_account: financialAccountId,
