@@ -728,13 +728,29 @@ export const partnerAnalyticsResponseSchema = {
   }),
 } as const;
 
-export const invitePartnerSchema = z.object({
-  workspaceId: z.string(),
-  name: z.string().max(100).optional(),
-  email: z.email().trim().min(1).max(100),
-  username: z.string().max(100).optional(),
-  groupId: z.string().nullish().default(null),
-});
+export const invitePartnerSchema = z
+  .object({
+    workspaceId: z.string(),
+    name: z.string().max(100).optional(),
+    email: z.email().trim().min(1).max(100).optional(),
+    emails: z.array(z.email().trim().min(1).max(100)).max(50).optional(),
+    username: z.string().max(100).optional(),
+    groupId: z.string().nullish().default(null),
+  })
+  .superRefine(({ email, emails }, ctx) => {
+    const recipients = [email, ...(emails ?? [])]
+      .filter((value): value is string => Boolean(value))
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (new Set(recipients).size > 50) {
+      ctx.addIssue({
+        code: "custom",
+        message: "You can invite up to 50 partners at once.",
+        path: ["emails"],
+      });
+    }
+  });
 
 export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
