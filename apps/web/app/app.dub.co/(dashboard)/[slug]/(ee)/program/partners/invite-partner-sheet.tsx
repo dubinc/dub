@@ -444,7 +444,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 ref={emailFieldRef}
                 className={cn(
                   "relative mt-2 flex w-full flex-wrap items-center gap-1 rounded-md border border-neutral-300 bg-white px-1.5 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
-                  isEmailFieldWrapped ? "pb-[5px] pt-[6px]" : "h-[38px] py-[3px]",
+                  isEmailFieldWrapped ? "py-[4px]" : "h-[38px] py-[3px]",
                 )}
               >
                 {recipientEmails.map((recipientEmail) => (
@@ -452,7 +452,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                     key={recipientEmail}
                     onClick={() => setSelectedRecipientEmail(recipientEmail)}
                     className={cn(
-                      "inline-flex items-center gap-1 rounded-md pl-1.5 pr-1 py-0.5 text-sm",
+                      "inline-flex items-center gap-1 rounded-md pl-1.5 pr-1 py-0.5 text-sm leading-6",
                       selectedRecipientEmail === recipientEmail
                         ? "bg-neutral-300 text-neutral-900"
                         : "bg-neutral-100 text-neutral-900",
@@ -491,11 +491,11 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                       setSelectedRecipientEmail(null);
                       commitEmailInput();
                     }}
-                      className={cn(
-                        "relative -top-[0.5px] h-7 w-full border-0 bg-transparent px-1.5 text-sm leading-7 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0",
-                        selectedRecipientEmail &&
-                          "caret-transparent text-transparent placeholder:text-transparent",
-                      )}
+                    className={cn(
+                      "h-7 w-full border-0 bg-transparent px-1.5 text-sm leading-6 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0",
+                      selectedRecipientEmail &&
+                        "caret-transparent text-transparent placeholder:text-transparent",
+                    )}
                     placeholder="panic@thedis.co"
                     type="text"
                     autoComplete="off"
