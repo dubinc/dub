@@ -72,7 +72,7 @@ const sanitizeFormData = (
 };
 
 function sanitizeData(rawData: ProgramApplicationData, group: PartnerGroup) {
-  const { formData: rawFormData, ...data } = rawData;
+  const { formData: rawFormData, inAppApplication, ...data } = rawData;
 
   const formData = rawFormData ? sanitizeFormData(rawFormData, group) : null;
 
@@ -248,7 +248,7 @@ async function createApplicationAndEnrollment({
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  const [application, programEnrollment] = await Promise.all([
+  const [application, programEnrollment] = await prisma.$transaction([
     prisma.programApplication.create({
       data: {
         ...sanitizeData(data, group),
