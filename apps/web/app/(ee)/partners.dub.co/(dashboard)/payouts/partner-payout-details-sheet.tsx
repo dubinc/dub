@@ -46,7 +46,7 @@ type PayoutDetailsSheetProps = {
 };
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
-  const { partner, payoutMethod } = usePartnerProfile();
+  const { partner } = usePartnerProfile();
 
   const {
     data: earnings,
@@ -143,8 +143,8 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
               value: (
                 <span className="text-red-600">{payout.failureReason}</span>
               ),
-              tooltip: `Payout failures are usually due to ${payoutMethod === "paypal" ? "incorrect PayPal account configuration" : "invalid bank account details"}. Once you've [updated your account](/payouts?settings=true), ${
-                payoutMethod === "paypal"
+              tooltip: `Payout failures are usually due to ${partner?.defaultPayoutMethod === "paypal" ? "incorrect PayPal account configuration" : "invalid bank account details"}. Once you've [updated your account](/payouts?settings=true), ${
+                partner?.defaultPayoutMethod === "paypal"
                   ? "you can retry the payout"
                   : "the payout will be retried automatically"
               }.`,

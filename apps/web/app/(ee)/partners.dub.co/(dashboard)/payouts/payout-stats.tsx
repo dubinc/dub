@@ -112,7 +112,7 @@ function PayoutStatsCard({
 }
 
 export function PayoutStats() {
-  const { payoutMethod } = usePartnerProfile();
+  const { partner } = usePartnerProfile();
 
   const { payoutsCount, error } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
@@ -122,8 +122,8 @@ export function PayoutStats() {
     payoutsCount?.map((p) => [p.status, p]) || [],
   ) as Record<PayoutStatus, PayoutsCount>;
 
-  const tooltip = payoutMethod
-    ? PAYOUT_STATUS_DESCRIPTIONS[payoutMethod]
+  const tooltip = partner?.defaultPayoutMethod
+    ? PAYOUT_STATUS_DESCRIPTIONS[partner?.defaultPayoutMethod]
     : undefined;
 
   const payoutStats = [
@@ -145,7 +145,7 @@ export function PayoutStats() {
       error: !!error,
     },
 
-    ...(payoutMethod === "stripe"
+    ...(partner?.defaultPayoutMethod === "connect"
       ? [
           {
             label: "Processed",
@@ -266,7 +266,9 @@ export function PayoutStats() {
       <div
         className={cn(
           "hidden divide-x divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white md:grid",
-          payoutMethod === "stripe" ? "md:grid-cols-5" : "md:grid-cols-3",
+          partner?.defaultPayoutMethod === "connect"
+            ? "md:grid-cols-5"
+            : "md:grid-cols-3",
         )}
       >
         {payoutStats.map((stat) => (
