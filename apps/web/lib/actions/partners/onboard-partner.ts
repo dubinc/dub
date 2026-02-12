@@ -82,7 +82,7 @@ export const onboardPartnerAction = authUserActionClient
           }),
 
       // if the user doesn't have a default partner id, set the new partner id as the user's default partner id
-      user.defaultPartnerId &&
+      !user.defaultPartnerId &&
         prisma.user.update({
           where: {
             id: user.id,
