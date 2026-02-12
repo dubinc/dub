@@ -52,6 +52,7 @@ model Payout {
   @@index(partnerId)
   @@index(invoiceId)
   @@index(status)
+  @@index(method)
   @@index(userId)
   @@index(stripePayoutId)
   @@index(stripeOutboundPaymentId)
