@@ -1,43 +1,32 @@
+import { getStripeOutboundPayment } from "@/lib/stripe/get-stripe-outbound-payment";
 import { stripeV2ThinEventSchema } from "@/lib/stripe/stripe-v2-schemas";
 import { prisma } from "@dub/prisma";
+import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function outboundPaymentPosted(event: Stripe.Event) {
-  const parsedEvent = stripeV2ThinEventSchema.parse(event);
+  const {
+    related_object: { id: outboundPaymentId },
+  } = stripeV2ThinEventSchema.parse(event);
 
-  const outboundPaymentId = parsedEvent.related_object.id;
+  const outboundPayment = await getStripeOutboundPayment(outboundPaymentId);
+  const stripePayoutTraceId = outboundPayment.trace_id?.value;
 
-  const payout = await prisma.payout.findUnique({
+  const updatedPayouts = await prisma.payout.updateMany({
     where: {
-      stripeOutboundPaymentId: outboundPaymentId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!payout) {
-    return `Payout not found for outbound payment ${outboundPaymentId}, skipping...`;
-  }
-
-  const updatedPayout = await prisma.payout.update({
-    where: {
-      id: payout.id,
+      stripePayoutId: outboundPaymentId,
     },
     data: {
       status: "completed",
       paidAt: new Date(),
+      ...(stripePayoutTraceId && {
+        stripePayoutTraceId: stripePayoutTraceId,
+      }),
     },
   });
 
-  await prisma.commission.updateMany({
-    where: {
-      payoutId: payout.id,
-    },
-    data: {
-      status: "paid",
-    },
-  });
+  // TODO:
+  // Send email notification
 
-  return `Updated payout ${updatedPayout.id} to completed status.`;
+  return `Updated ${updatedPayouts.count} ${pluralize("payout", updatedPayouts.count)} to completed status.`;
 }

@@ -134,7 +134,7 @@ export const createStripeTransfer = async ({
   });
 
   let stripeTransferId: string | null = null;
-  let stripeOutboundPaymentId: string | null = null;
+  let stripePayoutId: string | null = null;
   const description = `Dub Partners payout transfer (${allPayoutsProgramNames.join(", ")})`;
 
   if (partner.defaultPayoutMethod === "connect") {
@@ -192,7 +192,7 @@ export const createStripeTransfer = async ({
       description,
     });
 
-    stripeOutboundPaymentId = outboundPayment.id;
+    stripePayoutId = outboundPayment.id;
   }
 
   await Promise.allSettled([
@@ -204,7 +204,7 @@ export const createStripeTransfer = async ({
       },
       data: {
         ...(stripeTransferId && { stripeTransferId }),
-        ...(stripeOutboundPaymentId && { stripeOutboundPaymentId }),
+        ...(stripePayoutId && { stripePayoutId }),
         status: "sent",
         paidAt: new Date(),
         method: partner.defaultPayoutMethod,

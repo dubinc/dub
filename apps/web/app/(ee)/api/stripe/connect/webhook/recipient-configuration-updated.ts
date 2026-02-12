@@ -16,11 +16,9 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
     select: {
       id: true,
       stripeConnectId: true,
-      stripeRecipientId: true,
       paypalEmail: true,
       email: true,
       payoutsEnabledAt: true,
-      payoutMethodHash: true,
     },
   });
 
@@ -36,6 +34,10 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
       ?.crypto_wallets?.status;
 
   const isCryptoWalletActive = cryptoWalletsStatus === "active";
+
+  if (isCryptoWalletActive && partner.payoutsEnabledAt) {
+    return `Partner ${partner.email} (${stripeRecipientId}) already has a crypto wallet active, skipping...`;
+  }
 
   const payoutsEnabledAt = isCryptoWalletActive
     ? partner.payoutsEnabledAt ?? new Date()

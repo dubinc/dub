@@ -1,6 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { createStripeInboundTransfer } from "@/lib/stripe/create-stripe-inbound-transfer";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
@@ -75,12 +74,15 @@ export async function POST(req: Request) {
       },
     });
 
+    // TODO
+    // Fix "Some fields in the request were invalid: 'from.payment_method: The Payment Method ID is invalid.'", error from Stripe
+
     // Make an inbound transfer to Dub's financial account to handle Stablecoin payouts
-    if (totalStablecoinPayoutAmount && totalStablecoinPayoutAmount > 0) {
-      await createStripeInboundTransfer({
-        amount: totalStablecoinPayoutAmount,
-      });
-    }
+    // if (totalStablecoinPayoutAmount && totalStablecoinPayoutAmount > 0) {
+    //   await createStripeInboundTransfer({
+    //     amount: totalStablecoinPayoutAmount,
+    //   });
+    // }
 
     await Promise.allSettled([
       // Queue Stripe payouts

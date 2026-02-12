@@ -16,7 +16,6 @@ async function main() {
         id: true,
         stripeTransferId: true,
         stripePayoutId: true,
-        stripeOutboundPaymentId: true,
         paypalTransferId: true,
       },
       ...(cursor
@@ -44,8 +43,6 @@ async function main() {
 
       if (payout.stripeTransferId || payout.stripePayoutId) {
         method = PartnerPayoutMethod.connect;
-      } else if (payout.stripeOutboundPaymentId) {
-        method = PartnerPayoutMethod.stablecoin;
       } else if (payout.paypalTransferId) {
         method = PartnerPayoutMethod.paypal;
       }

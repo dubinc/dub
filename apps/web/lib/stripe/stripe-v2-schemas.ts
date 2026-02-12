@@ -142,6 +142,12 @@ export const outboundPaymentSchema = z.object({
     })
     .nullable()
     .optional(),
+  trace_id: z
+    .object({
+      value: z.string(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export const listPayoutMethodsQuerySchema = z.object({

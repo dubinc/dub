@@ -4,25 +4,13 @@ import {
   stripeV2ThinEventSchema,
 } from "@/lib/stripe/stripe-v2-schemas";
 import { prisma } from "@dub/prisma";
+import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function outboundPaymentReturned(event: Stripe.Event) {
-  const parsedEvent = stripeV2ThinEventSchema.parse(event);
-
-  const outboundPaymentId = parsedEvent.related_object.id;
-
-  const payout = await prisma.payout.findUnique({
-    where: {
-      stripeOutboundPaymentId: outboundPaymentId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!payout) {
-    return `Payout not found for outbound payment ${outboundPaymentId}, skipping...`;
-  }
+  const {
+    related_object: { id: outboundPaymentId },
+  } = stripeV2ThinEventSchema.parse(event);
 
   const outboundPayment = await getStripeOutboundPayment(outboundPaymentId);
 
@@ -31,9 +19,9 @@ export async function outboundPaymentReturned(event: Stripe.Event) {
     ? OUTBOUND_PAYMENT_FAILURE_REASONS[rawFailureReason]
     : undefined;
 
-  const updatedPayout = await prisma.payout.update({
+  const updatedPayouts = await prisma.payout.updateMany({
     where: {
-      id: payout.id,
+      stripePayoutId: outboundPaymentId,
     },
     data: {
       status: "failed",
@@ -41,5 +29,8 @@ export async function outboundPaymentReturned(event: Stripe.Event) {
     },
   });
 
-  return `Updated payout ${updatedPayout.id} to failed status.`;
+  // TODO:
+  // Send email notification
+
+  return `Updated ${updatedPayouts.count} ${pluralize("payout", updatedPayouts.count)} to failed status.`;
 }
