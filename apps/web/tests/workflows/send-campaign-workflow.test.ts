@@ -1,5 +1,5 @@
 import { EnrolledPartnerProps } from "@/lib/types";
-import { prisma } from "@dub/prisma";
+import { prisma } from "../utils/prisma";
 import { Campaign } from "@dub/prisma/client";
 import { subHours } from "date-fns";
 import { describe, expect, test, onTestFinished } from "vitest";

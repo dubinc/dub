@@ -1,6 +1,6 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Bounty } from "@dub/prisma/client";
-import { prisma } from "@dub/prisma";
+import { prisma } from "../utils/prisma";
 import { describe, expect, test, onTestFinished } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";

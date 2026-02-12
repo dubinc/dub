@@ -1,7 +1,7 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { randomValue } from "@dub/utils";
-import { prisma } from "@dub/prisma";
+import { prisma } from "../utils/prisma";
 import { PartnerGroup } from "@dub/prisma/client";
 import { describe, expect, test, onTestFinished } from "vitest";
 import { randomEmail } from "../utils/helpers";

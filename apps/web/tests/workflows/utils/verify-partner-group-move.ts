@@ -1,4 +1,4 @@
-import { prisma } from "@dub/prisma";
+import { prisma } from "../../utils/prisma";
 import { expect } from "vitest";
 
 interface VerifyPartnerGroupMoveProps {
