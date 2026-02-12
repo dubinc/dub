@@ -114,14 +114,12 @@ describe.concurrent("POST /track/sale", async () => {
 
     await Promise.all([
       verifyCommission({
-        http,
         invoiceId: regularInvoiceId,
         expectedAmount: response1.data.sale?.amount!,
         expectedEarnings: E2E_SALE_REWARD.amountInCents,
       }),
 
       verifyCommission({
-        http,
         invoiceId: premiumInvoiceId,
         expectedAmount: response2.data.sale?.amount!,
         expectedEarnings: E2E_SALE_REWARD.modifiers[0].amountInCents!,
@@ -297,14 +295,12 @@ describe.concurrent("POST /track/sale", async () => {
 
     await Promise.all([
       verifyCommission({
-        http,
         invoiceId: smallSaleInvoiceId,
         expectedAmount: response1.data.sale?.amount!,
         expectedEarnings: E2E_SALE_REWARD.amountInCents,
       }),
 
       verifyCommission({
-        http,
         invoiceId: largeSaleInvoiceId,
         expectedAmount: response2.data.sale?.amount!,
         expectedEarnings: E2E_SALE_REWARD.modifiers[1].amountInCents!,

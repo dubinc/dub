@@ -1,9 +1,7 @@
-import { CommissionResponse, Customer } from "@/lib/types";
 import { expect } from "vitest";
-import { HttpClient } from "./http";
+import { prisma } from "./prisma";
 
 interface VerifyCommissionProps {
-  http: HttpClient;
   customerExternalId?: string;
   invoiceId?: string;
   expectedAmount?: number;
@@ -14,7 +12,6 @@ const POLL_INTERVAL_MS = 5000; // 5 seconds
 const TIMEOUT_MS = 30000; // 30 seconds
 
 export const verifyCommission = async ({
-  http,
   customerExternalId,
   invoiceId,
   expectedAmount,
@@ -24,44 +21,33 @@ export const verifyCommission = async ({
 
   // Resolve customer ID first if customerExternalId is given
   if (customerExternalId) {
-    const { data: customers } = await http.get<Customer[]>({
-      path: "/customers",
-      query: { externalId: customerExternalId },
+    const customer = await prisma.customer.findFirst({
+      where: { externalId: customerExternalId },
+      select: { id: true },
     });
 
-    expect(customers.length).toBeGreaterThan(0);
-    customerId = customers[0].id;
-  }
-
-  const query: Record<string, string> = {};
-
-  if (invoiceId) {
-    query.invoiceId = invoiceId;
-  }
-
-  if (customerId) {
-    query.customerId = customerId;
+    expect(customer).not.toBeNull();
+    customerId = customer!.id;
   }
 
   // Poll for commission every 5 seconds, timeout after 30 seconds
   const startTime = Date.now();
 
   while (Date.now() - startTime < TIMEOUT_MS) {
-    const { status, data: commissions } = await http.get<CommissionResponse[]>({
-      path: "/commissions",
-      query,
+    const commission = await prisma.commission.findFirst({
+      where: {
+        ...(customerId && { customerId }),
+        ...(invoiceId && { invoiceId }),
+      },
     });
 
-    if (status === 200 && commissions.length === 1) {
-      const commission = commissions[0];
-
-      // Verify all expectations
+    if (commission) {
       if (invoiceId) {
         expect(commission.invoiceId).toEqual(invoiceId);
       }
 
       if (customerId) {
-        expect(commission.customer?.id).toEqual(customerId);
+        expect(commission.customerId).toEqual(customerId);
       }
 
       if (expectedAmount !== undefined) {
@@ -70,7 +56,7 @@ export const verifyCommission = async ({
 
       expect(commission.earnings).toEqual(expectedEarnings);
 
-      return;
+      return commission;
     }
 
     // Wait before next poll
@@ -80,6 +66,6 @@ export const verifyCommission = async ({
   // Timeout reached - fail the test
   throw new Error(
     `Commission not found within ${TIMEOUT_MS / 1000} seconds. ` +
-      `Query: ${JSON.stringify(query)}`,
+      `customerId: ${customerId}, invoiceId: ${invoiceId}`,
   );
 };

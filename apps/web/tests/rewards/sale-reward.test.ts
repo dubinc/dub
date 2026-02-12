@@ -30,7 +30,6 @@ describe.concurrent("Sale rewards", async () => {
 
     // Verify the commission (10% of sale amount)
     await verifyCommission({
-      http,
       invoiceId,
       expectedEarnings: saleAmount * 0.1,
     });
@@ -57,7 +56,6 @@ describe.concurrent("Sale rewards", async () => {
 
     // Verify the commission (base reward)
     await verifyCommission({
-      http,
       invoiceId,
       expectedEarnings: E2E_SALE_REWARD.amountInCents,
     });
