@@ -1,3 +1,4 @@
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getEvents } from "@/lib/analytics/get-events";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -38,8 +39,10 @@ export const GET = withPartnerProfile(
       });
     }
 
-    let { linkId, domain, key, ...rest } =
+    let { linkId, domain: domainFilter, key, ...rest } =
       partnerProfileEventsQuerySchema.parse(searchParams);
+
+    const domain = getFirstFilterValue(domainFilter);
 
     if (linkId) {
       if (!links.some((link) => link.id === linkId)) {

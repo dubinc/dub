@@ -38,7 +38,7 @@ export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
-export type AnalyticsFilters = Partial<Omit<z.infer<typeof analyticsQuerySchema>, 'start' | 'end'>> & {
+export type AnalyticsFilters = Partial<Omit<z.infer<typeof analyticsQuerySchema>, 'start' | 'end' | 'partnerId'>> & {
   workspaceId?: string;
   dataAvailableFrom?: Date;
   isDeprecatedClicksEndpoint?: boolean;
@@ -46,16 +46,24 @@ export type AnalyticsFilters = Partial<Omit<z.infer<typeof analyticsQuerySchema>
   folderIds?: string[]; // TODO: remove this once it's been added to the public API
   start?: Date | null;
   end?: Date | null;
+  // Accept plain string (from partner-profile routes) or ParsedFilter (from API schema)
   partnerId?: string | ParsedFilter;
 };
 
-export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
-  workspaceId?: string;
-  dataAvailableFrom?: Date;
-  customerId?: string;
-  folderIds?: string[];
-  partnerId?: string | ParsedFilter;
-};
+// Structural fields from eventsQuerySchema that should remain required
+type EventsStructuralFields = Pick<z.infer<typeof eventsQuerySchema>, 'event' | 'page' | 'limit' | 'sortBy'>;
+
+export type EventsFilters = Partial<Omit<z.infer<typeof eventsQuerySchema>, 'start' | 'end' | 'partnerId' | keyof EventsStructuralFields>> &
+  EventsStructuralFields & {
+    workspaceId?: string;
+    dataAvailableFrom?: Date;
+    customerId?: string;
+    folderIds?: string[];
+    start?: Date | null;
+    end?: Date | null;
+    // Accept plain string (from partner-profile routes) or ParsedFilter (from API schema)
+    partnerId?: string | ParsedFilter;
+  };
 
 const partnerAnalyticsSchema = analyticsQuerySchema
   .pick({

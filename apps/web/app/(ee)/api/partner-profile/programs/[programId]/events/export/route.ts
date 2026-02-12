@@ -2,6 +2,7 @@ import {
   eventsExportColumnAccessors,
   eventsExportColumnNames,
 } from "@/lib/analytics/events-export-helpers";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV } from "@/lib/analytics/utils";
@@ -59,7 +60,9 @@ export const GET = withPartnerProfile(
       .parse(searchParams);
 
     const { event, columns: columnsParam } = parsedParams;
-    let { linkId, domain, key, ...rest } = parsedParams;
+    let { linkId, domain: domainFilter, key, ...rest } = parsedParams;
+
+    const domain = getFirstFilterValue(domainFilter);
 
     // Default columns based on event type if not provided
     const defaultColumns: Record<string, string[]> = {

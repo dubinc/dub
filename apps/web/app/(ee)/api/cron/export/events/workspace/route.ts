@@ -26,7 +26,6 @@ const payloadSchema = eventsQuerySchema.extend({
   userId: z.string(),
   linkId: z.string().optional(),
   folderIds: z.array(z.string()).optional(),
-  folderId: z.string().optional(),
   dataAvailableFrom: z.string().optional(),
 });
 
@@ -78,7 +77,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { linkId, folderIds, folderId, dataAvailableFrom, ...eventFilters } =
+    const { linkId, folderIds, dataAvailableFrom, ...eventFilters } =
       filters;
 
     // Fetch events in batches and build CSV
@@ -89,7 +88,6 @@ export async function POST(req: Request) {
       ...(linkId && { linkId }),
       workspaceId,
       folderIds,
-      folderId: folderId || "",
       dataAvailableFrom: dataAvailableFrom
         ? new Date(dataAvailableFrom)
         : workspace.createdAt,

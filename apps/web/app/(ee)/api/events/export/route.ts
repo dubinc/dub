@@ -2,6 +2,7 @@ import {
   eventsExportColumnAccessors,
   eventsExportColumnNames,
 } from "@/lib/analytics/events-export-helpers";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getEvents } from "@/lib/analytics/get-events";
 import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
@@ -34,8 +35,20 @@ export const GET = withWorkspace(
       })
       .parse(searchParams);
 
-    const { event, domain, interval, start, end, columns, key, folderId } =
-      parsedParams;
+    const {
+      event,
+      domain: domainFilter,
+      interval,
+      start,
+      end,
+      columns,
+      key,
+      folderId: folderIdFilter,
+    } = parsedParams;
+
+    // Extract string values for specific link/folder lookup
+    const domain = getFirstFilterValue(domainFilter);
+    const folderId = getFirstFilterValue(folderIdFilter);
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -100,7 +113,6 @@ export const GET = withWorkspace(
           userId: session.user.id,
           ...(link && { linkId: link.id }),
           folderIds: folderIds ? folderIds : undefined,
-          folderId: folderId || "",
           dataAvailableFrom: workspace.createdAt.toISOString(),
         },
       });
@@ -114,7 +126,6 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
       limit: MAX_EVENTS_TO_EXPORT,
       folderIds,
-      folderId: folderId || "",
     });
 
     const data = response.map((row) =>

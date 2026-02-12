@@ -1,4 +1,5 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV } from "@/lib/analytics/utils";
 import { DubApiError } from "@/lib/api/errors";
@@ -37,7 +38,10 @@ export const GET = withPartnerProfile(
 
     const parsedParams = partnerProfileAnalyticsQuerySchema.parse(searchParams);
 
-    let { linkId, domain, key, ...rest } = parsedParams;
+    let { linkId, domain: domainFilter, key, ...rest } = parsedParams;
+
+    // Extract string value for link lookup
+    const domain = getFirstFilterValue(domainFilter);
 
     if (linkId) {
       if (!links.some((link) => link.id === linkId)) {
