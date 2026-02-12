@@ -490,8 +490,12 @@ export const analyticsFilterTB = z.object({
   root: z
     .union([z.string(), z.boolean(), z.array(z.union([z.string(), z.boolean()]))])
     .transform((v) => {
-      if (Array.isArray(v)) return v.map(val => typeof val === 'boolean' ? val : val === 'true');
-      return typeof v === 'boolean' ? [v] : [v === 'true'];
+      const normalize = (val: string | boolean): boolean => {
+        if (typeof val === 'boolean') return val;
+        return val === 'true' || val === '1' || val === 'yes';
+      };
+      if (Array.isArray(v)) return v.map(normalize);
+      return [normalize(v)];
     })
     .optional()
     .describe("Filter for root domain links."),

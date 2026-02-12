@@ -92,9 +92,8 @@ function parseCondition(condition: string): InternalFilter | null {
       .replace(/['"]\]/g, ""); // Remove trailing '] or "]
 
     // Security: Validate metadata key contains only safe characters
-    // Only allow alphanumeric, underscore, and dot (for nested keys)
-    if (!/^[a-zA-Z0-9_.]+$/.test(extractedKey)) return null;
-    
+    // Only allow alphanumeric and underscore (no dots — nested keys are not supported)
+    if (!/^[a-zA-Z0-9_]+$/.test(extractedKey)) return null;
 
     operand = `metadata.${extractedKey}`;
   } else {
@@ -106,6 +105,8 @@ function parseCondition(condition: string): InternalFilter | null {
   const sanitizedValue = value.trim()
     .replace(/^['"`]|['"`]$/g, "")
     .replace(/[;\\]|--|\*\/|\/\*/g, "");
+
+  if (!sanitizedValue) return null;
 
   return {
     operand,

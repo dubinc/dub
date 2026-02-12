@@ -139,9 +139,9 @@ SQL >
         {% end %}
         {% if defined(root) %}
             {% if defined(rootOperator) and String(rootOperator) == 'NOT IN' %}
-                AND NOT (0{% for val in root %}{% if val %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
+                AND NOT (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
             {% else %}
-                AND (0{% for val in root %}{% if val %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
+                AND (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
             {% end %}
         {% end %}
 
@@ -463,6 +463,23 @@ SQL >
                     {% elif field == 'saleType' %}
                         {# saleType is handled in the sales subquery, not here #}
                     {% end %}
+                {% elif item.get('operand', '').startswith('metadata.') %}
+                    {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                    {% set operator = item.get('operator', 'equals') %}
+                    {% set value = item.get('value', '') %}
+                    {% if operator == 'equals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                    {% elif operator == 'notEquals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                    {% elif operator == 'greaterThan' %}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) > toFloat64OrNull({{ value }})
+                    {% elif operator == 'lessThan' %}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) < toFloat64OrNull({{ value }})
+                    {% elif operator == 'greaterThanOrEqual' %}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) >= toFloat64OrNull({{ value }})
+                    {% elif operator == 'lessThanOrEqual' %}
+                        AND toFloat64OrNull(JSONExtractString(metadata, {{ metadataKey }})) <= toFloat64OrNull({{ value }})
+                    {% end %}
                 {% end %}
             {% end %}
         {% end %}
@@ -692,6 +709,23 @@ SQL >
                             {% end %}
                         {% elif field == 'saleType' %}
                             {# saleType is handled after this subquery #}
+                        {% end %}
+                    {% elif item.get('operand', '').startswith('metadata.') %}
+                        {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                        {% set operator = item.get('operator', 'equals') %}
+                        {% set value = item.get('value', '') %}
+                        {% if operator == 'equals' %}
+                            AND JSONExtractString(se.metadata, {{ metadataKey }}) = {{ value }}
+                        {% elif operator == 'notEquals' %}
+                            AND JSONExtractString(se.metadata, {{ metadataKey }}) != {{ value }}
+                        {% elif operator == 'greaterThan' %}
+                            AND toFloat64OrNull(JSONExtractString(se.metadata, {{ metadataKey }})) > toFloat64OrNull({{ value }})
+                        {% elif operator == 'lessThan' %}
+                            AND toFloat64OrNull(JSONExtractString(se.metadata, {{ metadataKey }})) < toFloat64OrNull({{ value }})
+                        {% elif operator == 'greaterThanOrEqual' %}
+                            AND toFloat64OrNull(JSONExtractString(se.metadata, {{ metadataKey }})) >= toFloat64OrNull({{ value }})
+                        {% elif operator == 'lessThanOrEqual' %}
+                            AND toFloat64OrNull(JSONExtractString(se.metadata, {{ metadataKey }})) <= toFloat64OrNull({{ value }})
                         {% end %}
                     {% end %}
                 {% end %}

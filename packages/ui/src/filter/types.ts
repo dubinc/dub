@@ -1,3 +1,4 @@
+import { type FilterOperator } from "@dub/utils";
 import { LucideIcon } from "lucide-react";
 import { ComponentType, ReactNode, SVGProps } from "react";
 
@@ -6,7 +7,7 @@ type FilterIcon =
   | ReactNode
   | ComponentType<SVGProps<SVGSVGElement>>;
 
-export type FilterOperator = "IS" | "IS_NOT" | "IS_ONE_OF" | "IS_NOT_ONE_OF";
+export type { FilterOperator };
 
 export type Filter = {
   key: string;

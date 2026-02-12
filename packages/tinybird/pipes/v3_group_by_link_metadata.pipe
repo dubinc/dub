@@ -90,9 +90,9 @@ SQL >
         {% end %}
         {% if defined(root) %}
             {% if defined(rootOperator) and String(rootOperator) == 'NOT IN' %}
-                AND NOT (0{% for val in root %}{% if val %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
+                AND NOT (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
             {% else %}
-                AND (0{% for val in root %}{% if val %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
+                AND (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
             {% end %}
         {% end %}
 

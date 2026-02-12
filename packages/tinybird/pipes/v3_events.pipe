@@ -66,9 +66,9 @@ SQL >
         {% end %}
         {% if defined(root) %}
             {% if defined(rootOperator) and String(rootOperator) == 'NOT IN' %}
-                AND NOT (0{% for val in root %}{% if val %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
+                AND NOT (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
             {% else %}
-                AND (0{% for val in root %}{% if val %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
+                AND (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
             {% end %}
         {% end %}
 
@@ -345,6 +345,10 @@ SQL >
                     {% elif field == 'os' %}
                         {% if operator == 'IN' %} AND os IN {{ Array(values, 'String') }}
                         {% elif operator == 'NOT IN' %} AND os NOT IN {{ Array(values, 'String') }}
+                        {% end %}
+                    {% elif field == 'trigger' %}
+                        {% if operator == 'IN' %} AND trigger IN {{ Array(values, 'String') }}
+                        {% elif operator == 'NOT IN' %} AND trigger NOT IN {{ Array(values, 'String') }}
                         {% end %}
                     {% elif field == 'referer' %}
                         {% if operator == 'IN' %} AND referer IN {{ Array(values, 'String') }}
