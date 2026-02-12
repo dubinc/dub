@@ -144,9 +144,7 @@ export const POST = withAxiom(async (req) => {
 
     const response = trackOpenResponseSchema.parse({
       clickId,
-      link: {
-        link: linkData,
-      },
+      link: linkData,
     });
 
     return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });
