@@ -186,6 +186,7 @@ export const createProgramApplicationSchema = z.object({
   email: z.email().trim().min(1).max(100),
   country: z.enum(COUNTRY_CODES),
   formData: programApplicationFormDataWithValuesSchema,
+  inAppApplication: z.boolean().optional(),
 });
 
 export const PartnerCommentSchema = z.object({
