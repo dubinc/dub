@@ -5,7 +5,6 @@ import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withAxiom } from "@/lib/axiom/server";
 import { DeepLinkClickData } from "@/lib/middleware/utils/cache-deeplink-click-data";
-import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
@@ -107,28 +106,16 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const isBot = detectBot(req);
-    if (isBot) {
-      console.log(`Open tracking not recorded ❌ – Bot detected.`, {
-        isBot,
-      });
-      return NextResponse.json(
-        trackOpenResponseSchema.parse({
-          clickId: null,
-          link: {
-            id: cachedLink.id,
-            domain,
-            key,
-            url: cachedLink.url,
-          },
-        }),
-        { headers: COMMON_CORS_HEADERS },
-      );
-    }
+    const linkData = {
+      id: cachedLink.id,
+      domain,
+      key,
+      url: cachedLink.url,
+    };
 
     // if there's no cached clickId, track the click event
     if (!cachedClickId) {
-      await recordClick({
+      const clickData = await recordClick({
         req,
         clickId,
         workspaceId: cachedLink.projectId,
@@ -142,15 +129,23 @@ export const POST = withAxiom(async (req) => {
         shouldCacheClickId: true,
         trigger: "deeplink",
       });
+
+      // return early with clickId = null if no click data was recorded (bot detected)
+      if (!clickData) {
+        return NextResponse.json(
+          trackOpenResponseSchema.parse({
+            clickId: null,
+            link: linkData,
+          }),
+          { headers: COMMON_CORS_HEADERS },
+        );
+      }
     }
 
     const response = trackOpenResponseSchema.parse({
       clickId,
       link: {
-        id: cachedLink.id,
-        domain,
-        key,
-        url: cachedLink.url,
+        link: linkData,
       },
     });
 
