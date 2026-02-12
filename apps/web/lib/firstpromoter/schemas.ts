@@ -110,7 +110,7 @@ export const firstPromoterCommissionSchema = z.object({
   id: z.number(),
   status: z.enum(["pending", "approved", "denied"]),
   metadata: z.record(z.string(), z.any()).nullable(),
-  is_self_referral: z.boolean(),
+  is_self_referral: z.boolean().nullable(),
   commission_type: z.enum(["sale", "custom"]),
   sale_amount: z.number(),
   amount: z.number(),
@@ -141,5 +141,5 @@ export const firstPromoterCommissionSchema = z.object({
       email: true,
       uid: true,
     })
-    .nullable(),
+    .nullish(),
 });

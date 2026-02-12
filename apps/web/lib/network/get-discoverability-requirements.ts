@@ -1,4 +1,3 @@
-import { currencyFormatter } from "@dub/utils";
 import {
   EXCLUDED_PROGRAM_IDS,
   PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
@@ -45,11 +44,7 @@ export function getDiscoverabilityRequirements({
     EnrolledPartnerProps,
     "programId" | "status" | "totalCommissions"
   >[];
-}): {
-  label: string;
-  href?: string;
-  completed: boolean;
-}[] {
+}) {
   return [
     {
       label: "Upload your logo",
@@ -83,10 +78,6 @@ export function getDiscoverabilityRequirements({
       label: "Choose your sales channels",
       href: "#channels",
       completed: Boolean(partner.salesChannels?.length),
-    },
-    {
-      label: `Earn ${currencyFormatter(PARTNER_NETWORK_MIN_COMMISSIONS_CENTS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
-      completed: partnerHasEarnedCommissions(programEnrollments),
     },
     {
       label: "Maintain a healthy partner profile",
