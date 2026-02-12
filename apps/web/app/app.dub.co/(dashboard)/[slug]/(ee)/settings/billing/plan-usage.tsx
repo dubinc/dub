@@ -71,9 +71,9 @@ export default function PlanUsage() {
   const { users } = useWorkspaceUsers();
 
   const { partnersCount } = usePartnersCount<number>({
-    programId: defaultProgramId ?? undefined,
     status: "approved",
     ignoreParams: true,
+    enabled: Boolean(defaultProgramId),
   });
 
   const { groupsCount } = useGroupsCount();
