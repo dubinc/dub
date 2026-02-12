@@ -13,6 +13,7 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../components/footer";
+import { PartnerPayoutMethod } from "../types";
 
 export default function PartnerPayoutProcessed({
   email = "panic@thedis.co",
@@ -26,7 +27,7 @@ export default function PartnerPayoutProcessed({
     periodStart: new Date("2024-11-01"),
     periodEnd: new Date("2024-11-30"),
   },
-  variant = "stripe",
+  variant = "connect",
 }: {
   email: string;
   program: {
@@ -39,7 +40,7 @@ export default function PartnerPayoutProcessed({
     periodStart?: Date | null;
     periodEnd?: Date | null;
   };
-  variant: "stripe" | "paypal";
+  variant: PartnerPayoutMethod;
 }) {
   const payoutAmountInDollars = currencyFormatter(payout.amount, {
     trailingZeroDisplay: "stripIfInteger",
@@ -114,14 +115,14 @@ export default function PartnerPayoutProcessed({
             </Section>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              {variant === "stripe"
+              {variant === "connect"
                 ? payout.amount >= 1000
                   ? "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way."
                   : "Since this payout is below the minimum withdrawal amount of $10, it will remain in processed status."
                 : "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete."}
             </Text>
 
-            {variant === "stripe" && payout.amount < 1000 && (
+            {variant === "connect" && payout.amount < 1000 && (
               <Text className="text-sm leading-6 text-neutral-600">
                 If you'd like to receive your payout right away, please{" "}
                 <Link

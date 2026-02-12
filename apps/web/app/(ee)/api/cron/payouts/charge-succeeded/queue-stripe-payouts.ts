@@ -46,9 +46,18 @@ export async function queueStripePayouts(
       status: "processing",
       mode: "internal",
       partner: {
-        stripeConnectId: {
-          not: null,
-        },
+        OR: [
+          {
+            stripeConnectId: {
+              not: null,
+            },
+          },
+          {
+            stripeRecipientId: {
+              not: null,
+            },
+          },
+        ],
         // here we're not checking for payoutsEnabledAt since we want visiblity
         // if a stripe.transfers.create fails due to restricted Stripe account
       },

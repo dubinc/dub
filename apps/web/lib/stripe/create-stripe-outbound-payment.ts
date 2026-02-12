@@ -1,15 +1,13 @@
-import type { Partner } from "@dub/prisma/client";
-import { getStripePayoutMethods } from "./get-stripe-payout-methods";
 import { stripeV2Fetch } from "./stripe-v2-client";
 
 export interface CreateStripeOutboundPaymentParams {
-  partner: Pick<Partner, "stripeRecipientId">;
+  stripeRecipientId: string;
   amount: number;
   description: string;
 }
 
 export async function createStripeOutboundPayment({
-  partner,
+  stripeRecipientId,
   amount,
   description,
 }: CreateStripeOutboundPaymentParams) {
@@ -19,29 +17,8 @@ export async function createStripeOutboundPayment({
     throw new Error("STRIPE_FINANCIAL_ACCOUNT_ID is not configured.");
   }
 
-  if (!partner.stripeRecipientId) {
+  if (!stripeRecipientId) {
     throw new Error("Partner does not have a Stripe recipient account.");
-  }
-
-  const payoutMethods = await getStripePayoutMethods(
-    partner.stripeRecipientId!,
-  );
-
-  if (payoutMethods.length === 0) {
-    throw new Error("Partner has no payout methods configured.");
-  }
-
-  const cryptoPayoutMethod = payoutMethods.find(
-    (method) =>
-      method.type === "crypto_wallet" &&
-      method.crypto_wallet &&
-      !method.crypto_wallet.archived,
-  );
-
-  if (!cryptoPayoutMethod) {
-    throw new Error(
-      "Partner has no eligible crypto payout methods configured.",
-    );
   }
 
   const { data, error } = await stripeV2Fetch(
@@ -53,8 +30,7 @@ export async function createStripeOutboundPayment({
           currency: "usd",
         },
         to: {
-          recipient: partner.stripeRecipientId,
-          payout_method: cryptoPayoutMethod.id,
+          recipient: stripeRecipientId,
           currency: "usdc",
         },
         amount: {
