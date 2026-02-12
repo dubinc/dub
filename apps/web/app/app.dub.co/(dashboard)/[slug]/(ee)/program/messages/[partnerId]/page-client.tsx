@@ -91,7 +91,7 @@ export function ProgramMessagesPartnerPageClient() {
   });
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
   const shouldAutoFocusComposer = searchParams.get("new") === "1";
 
   useEffect(() => {

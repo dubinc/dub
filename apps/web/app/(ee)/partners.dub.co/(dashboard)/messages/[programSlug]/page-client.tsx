@@ -104,9 +104,7 @@ export function PartnerMessagesProgramPageClient() {
   });
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(
-    () => (typeof window === "undefined" ? true : window.innerWidth >= 1082),
-  );
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
   const shouldAutoFocusComposer = searchParams.get("new") === "1";
 
   useEffect(() => {
