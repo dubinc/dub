@@ -234,7 +234,6 @@ export const createStripeTransfer = async ({
         email: partner.email,
         program: payout.program,
         payout,
-        variant: partner.defaultPayoutMethod,
       }),
     });
 

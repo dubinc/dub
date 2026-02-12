@@ -13,7 +13,14 @@ import {
   Text,
 } from "@react-email/components";
 import { addBusinessDays } from "date-fns";
+import { PartnerPayoutMethod } from "src/types";
 import { Footer } from "../components/footer";
+
+const PAYOUT_METHOD_LABELS: Record<PartnerPayoutMethod, string> = {
+  paypal: "PayPal",
+  connect: "Stripe Express",
+  stablecoin: "USDC wallet",
+} as const;
 
 // Send this email when the payout is confirmed when payment is send using ACH
 export default function PartnerPayoutConfirmed({
@@ -31,7 +38,7 @@ export default function PartnerPayoutConfirmed({
     endDate: new Date("2024-11-30"),
     mode: "internal",
     paymentMethod: "ach",
-    payoutMethod: "stripe",
+    payoutMethod: "stablecoin",
   },
 }: {
   email: string;
@@ -48,7 +55,7 @@ export default function PartnerPayoutConfirmed({
     endDate?: Date | null;
     mode: "internal" | "external" | null;
     paymentMethod: string;
-    payoutMethod: "stripe" | "paypal";
+    payoutMethod: PartnerPayoutMethod;
   };
 }) {
   const payoutAmountInDollars = currencyFormatter(payout.amount);
@@ -71,7 +78,17 @@ export default function PartnerPayoutConfirmed({
       })
     : null;
 
-  const etaDays = payout.paymentMethod === "ach_fast" ? 2 : 5;
+  const etaDays =
+    payout.payoutMethod === "stablecoin"
+      ? 0
+      : payout.paymentMethod === "ach_fast"
+        ? 2
+        : 5;
+
+  const payoutDestination =
+    payout.mode === "external"
+      ? `${program.name} account`
+      : PAYOUT_METHOD_LABELS[payout.payoutMethod];
 
   return (
     <Html>
@@ -115,31 +132,37 @@ export default function PartnerPayoutConfirmed({
               .
             </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              The payout is currently being processed and is expected to be
-              transferred to your{" "}
-              <strong className="text-black">
-                {payout.mode === "external"
-                  ? program.name
-                  : payout.payoutMethod === "paypal"
-                    ? "PayPal"
-                    : "Stripe Express"}
-              </strong>{" "}
-              account in{" "}
-              <strong className="text-black">{etaDays} business days</strong>{" "}
-              (excluding weekends and public holidays).
-            </Text>
-
-            {payout.initiatedAt && (
+            {payout.payoutMethod === "stablecoin" ? (
               <Text className="text-sm leading-6 text-neutral-600">
-                <span className="text-sm text-neutral-500">
-                  Estimated arrival date:{" "}
-                  <strong className="text-black">
-                    {formatDate(addBusinessDays(payout.initiatedAt, etaDays))}
-                  </strong>
-                  .
-                </span>
+                Your USDC will arrive in your connected wallet within seconds.
               </Text>
+            ) : (
+              <>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  The payout is currently being processed and is expected to be
+                  transferred to your{" "}
+                  <strong className="text-black">{payoutDestination}</strong>{" "}
+                  account in{" "}
+                  <strong className="text-black">
+                    {etaDays} business days
+                  </strong>{" "}
+                  (excluding weekends and public holidays).
+                </Text>
+
+                {payout.initiatedAt && (
+                  <Text className="text-sm leading-6 text-neutral-600">
+                    <span className="text-sm text-neutral-500">
+                      Estimated arrival date:{" "}
+                      <strong className="text-black">
+                        {formatDate(
+                          addBusinessDays(payout.initiatedAt, etaDays),
+                        )}
+                      </strong>
+                      .
+                    </span>
+                  </Text>
+                )}
+              </>
             )}
 
             <Section className="mb-12 mt-8">
