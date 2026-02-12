@@ -26,20 +26,6 @@ export const POST = withAxiom(async (req) => {
       await parseRequestBody(req),
     );
 
-    const isBot = detectBot(req);
-    if (isBot) {
-      console.log(`Open tracking not recorded ❌ – Bot detected.`, {
-        isBot,
-      });
-      return NextResponse.json(
-        trackOpenResponseSchema.parse({
-          clickId: null,
-          link: null,
-        }),
-        { headers: COMMON_CORS_HEADERS },
-      );
-    }
-
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
     const identityHash = await getIdentityHash(req);
 
@@ -119,6 +105,25 @@ export const POST = withAxiom(async (req) => {
         code: "not_found",
         message: "Deep link does not belong to a workspace.",
       });
+    }
+
+    const isBot = detectBot(req);
+    if (isBot) {
+      console.log(`Open tracking not recorded ❌ – Bot detected.`, {
+        isBot,
+      });
+      return NextResponse.json(
+        trackOpenResponseSchema.parse({
+          clickId: null,
+          link: {
+            id: cachedLink.id,
+            domain,
+            key,
+            url: cachedLink.url,
+          },
+        }),
+        { headers: COMMON_CORS_HEADERS },
+      );
     }
 
     // if there's no cached clickId, track the click event
