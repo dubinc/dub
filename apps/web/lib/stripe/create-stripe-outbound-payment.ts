@@ -1,4 +1,4 @@
-import { stripeV2Fetch } from "./stripe-v2-client";
+import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
 export interface CreateStripeOutboundPaymentParams {
   stripeRecipientId: string;
@@ -27,6 +27,8 @@ export async function createStripeOutboundPayment({
     "/v2/money_management/outbound_payments",
     {
       headers: {
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+        "Stripe-Version": STRIPE_API_VERSION,
         "Idempotency-Key": idempotencyKey,
       },
       body: {
