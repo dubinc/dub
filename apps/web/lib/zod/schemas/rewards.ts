@@ -147,6 +147,11 @@ export const REWARD_CONDITIONS: Record<
               },
             ],
           },
+          {
+            id: "subscriptionDuration",
+            label: "Subscription duration",
+            type: "number",
+          },
         ],
       },
       PARTNER_ENTITY,
@@ -163,11 +168,6 @@ export const REWARD_CONDITIONS: Record<
             id: "amount",
             label: "Amount",
             type: "currency",
-          },
-          {
-            id: "subscriptionDuration",
-            label: "Subscription duration",
-            type: "number",
           },
         ],
       },
