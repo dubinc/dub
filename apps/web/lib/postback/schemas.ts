@@ -28,8 +28,8 @@ export const postbackEventSchemaTB = z.object({
   message_id: z.string(),
   event: z.enum(PARTNER_POSTBACK_TRIGGERS),
   url: z.string(),
-  http_status: z.number(),
-  request_body: z.string(),
+  response_status: z.number(),
   response_body: z.string(),
+  request_body: z.string(),
   timestamp: z.string(),
 });
