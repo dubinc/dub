@@ -24,7 +24,5 @@ export function getPayoutMethodsForCountry(country: string | null | undefined) {
     methods.push("paypal");
   }
 
-  // return methods;
-
-  return ["connect", "stablecoin"];
+  return methods;
 }

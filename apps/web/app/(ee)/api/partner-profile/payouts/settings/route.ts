@@ -58,7 +58,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
       type: PartnerPayoutMethod.stablecoin,
       label: "Stablecoin",
       default: partner.defaultPayoutMethod === PartnerPayoutMethod.stablecoin,
-      connected: Boolean(partner.stripeRecipientId),
+      connected: Boolean(stripePayoutMethod?.crypto_wallet),
       identifier,
     });
   }

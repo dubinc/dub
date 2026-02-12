@@ -135,6 +135,10 @@ export const createStripeTransfer = async ({
 
   let stripeTransferId: string | null = null;
   let stripePayoutId: string | null = null;
+
+  // will be used for transfer_group and idempotencyKey
+  const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;
+  const idempotencyKey = `${finalPayoutInvoiceId}-${partner.id}`;
   const description = `Dub Partners payout transfer (${allPayoutsProgramNames.join(", ")})`;
 
   if (partner.defaultPayoutMethod === "connect") {
@@ -143,9 +147,6 @@ export const createStripeTransfer = async ({
         `Partner ${partner.email} default payout method is "connect" but does not have a stripeConnectId.`,
       );
     }
-
-    // will be used for transfer_group and idempotencyKey
-    const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;
 
     // Create a transfer for the partner combined payouts and update it as sent
     const transfer = await stripe.transfers.create(
@@ -190,6 +191,7 @@ export const createStripeTransfer = async ({
       stripeRecipientId: partner.stripeRecipientId,
       amount: finalTransferableAmount,
       description,
+      idempotencyKey,
     });
 
     stripePayoutId = outboundPayment.id;
