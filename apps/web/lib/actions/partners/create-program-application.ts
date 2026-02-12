@@ -166,6 +166,8 @@ export const createProgramApplicationAction = actionClient
           include: {
             programs: true,
             platforms: true,
+            preferredEarningStructures: true,
+            salesChannels: true,
           },
         })
       : null;
@@ -180,7 +182,16 @@ export const createProgramApplicationAction = actionClient
     // if the partner has an incomplete profile, if so we prompt them to complete it
     if (inAppApplication && existingPartner) {
       const { isComplete } = getPartnerProfileChecklistProgress({
-        partner: existingPartner,
+        partner: {
+          ...existingPartner,
+          preferredEarningStructures:
+            existingPartner.preferredEarningStructures.map(
+              ({ preferredEarningStructure }) => preferredEarningStructure,
+            ),
+          salesChannels: existingPartner.salesChannels.map(
+            ({ salesChannel }) => salesChannel,
+          ),
+        },
         programEnrollments: existingPartner.programs,
       });
 
