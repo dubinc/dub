@@ -17,9 +17,9 @@ import { PartnerPayoutMethod } from "src/types";
 import { Footer } from "../components/footer";
 
 const PAYOUT_METHOD_LABELS: Record<PartnerPayoutMethod, string> = {
-  paypal: "PayPal",
   connect: "Stripe Express",
   stablecoin: "USDC wallet",
+  paypal: "PayPal",
 } as const;
 
 // Send this email when the payout is confirmed when payment is send using ACH
