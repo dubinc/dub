@@ -178,14 +178,31 @@ function PartnerPayoutSettingsSheetInner() {
   );
 }
 
+function PayoutMethodsSectionSkeleton() {
+  return (
+    <div
+      className="flex w-full cursor-default items-center justify-between rounded-lg border border-neutral-200 bg-white p-2"
+      aria-hidden
+    >
+      <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
+        <div className="size-8 shrink-0 animate-pulse rounded-lg bg-neutral-200" />
+        <div className="min-w-0">
+          <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
+          <div className="mt-1 h-3 w-44 animate-pulse rounded bg-neutral-200" />
+        </div>
+      </div>
+      <div className="size-4 shrink-0 animate-pulse rounded bg-neutral-200" />
+    </div>
+  );
+}
+
 function PayoutMethodsSection() {
   const { partner, availablePayoutMethods } = usePartnerProfile();
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
 
-  const { data: payoutMethodsData } = useSWR<PartnerPayoutMethodSetting[]>(
-    partner ? "/api/partner-profile/payouts/settings" : null,
-    fetcher,
-  );
+  const { data: payoutMethodsData, isLoading: isPayoutMethodsLoading } = useSWR<
+    PartnerPayoutMethodSetting[]
+  >(partner ? "/api/partner-profile/payouts/settings" : null, fetcher);
 
   const hasConnectedAccount =
     payoutMethodsData?.some((m) => m.connected) ?? false;
@@ -217,7 +234,9 @@ function PayoutMethodsSection() {
       <h4 className="text-content-emphasis mb-3 text-base font-semibold leading-6">
         Payout account
       </h4>
-      {hasConnectedAccount ? (
+      {isPayoutMethodsLoading ? (
+        <PayoutMethodsSectionSkeleton />
+      ) : hasConnectedAccount ? (
         <div className="space-y-3">
           <PayoutMethodsDropdown />
           {showStablecoinRecommended && (
