@@ -14,11 +14,11 @@ import { ConnectPayoutButton } from "./connect-payout-button";
 
 export const PAYOUT_METHODS = [
   {
-    id: "stablecoin" as const,
+    id: "stablecoin",
     title: "Stablecoin",
     recommended: true,
     icon: CircleDollar3,
-    iconWrapperClasses: "border-[#1717170D] bg-[#EDE9FE]",
+    iconWrapperClasses: "border-[#1717170D] bg-blue-100",
     features: [
       { icon: <CircleDollar />, text: "Paid in USDC" },
       { icon: <Globe />, text: "No local bank required" },
@@ -26,7 +26,7 @@ export const PAYOUT_METHODS = [
     ],
   },
   {
-    id: "connect" as const,
+    id: "connect",
     title: "Bank Account",
     recommended: false,
     icon: GreekTemple,
@@ -39,7 +39,7 @@ export const PAYOUT_METHODS = [
     ],
   },
   {
-    id: "paypal" as const,
+    id: "paypal",
     title: "PayPal",
     recommended: false,
     icon: Paypal,
