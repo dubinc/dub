@@ -5,6 +5,7 @@ import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withAxiom } from "@/lib/axiom/server";
 import { DeepLinkClickData } from "@/lib/middleware/utils/cache-deeplink-click-data";
+import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
@@ -25,10 +26,25 @@ export const POST = withAxiom(async (req) => {
       await parseRequestBody(req),
     );
 
+    const isBot = detectBot(req);
+    if (isBot) {
+      console.log(`Open tracking not recorded ❌ – Bot detected.`, {
+        isBot,
+      });
+      return NextResponse.json(
+        trackOpenResponseSchema.parse({
+          clickId: null,
+          link: null,
+        }),
+        { headers: COMMON_CORS_HEADERS },
+      );
+    }
+
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
     const identityHash = await getIdentityHash(req);
 
     if (!deepLinkUrl) {
+      // Probabilistic IP-based tracking
       if (ip) {
         // if ip address is present, check if there's a cached click
         console.log(`Checking cache for ${ip}:${dubDomain}:*`);
