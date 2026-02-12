@@ -3,9 +3,9 @@
 import {
   Badge,
   CircleDollar,
+  CircleDollar3,
   GreekTemple,
   Paypal,
-  StablecoinIcon,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Calendar, Globe, MapPin, Zap } from "lucide-react";
@@ -17,7 +17,7 @@ export const PAYOUT_METHODS = [
     id: "stablecoin" as const,
     title: "Stablecoin",
     recommended: true,
-    icon: StablecoinIcon,
+    icon: CircleDollar3,
     iconWrapperClasses: "border-[#1717170D] bg-[#EDE9FE]",
     features: [
       { icon: <CircleDollar />, text: "Paid in USDC" },

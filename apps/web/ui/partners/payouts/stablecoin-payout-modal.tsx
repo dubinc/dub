@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, Button, Modal, StablecoinIcon } from "@dub/ui";
+import { Badge, Button, CircleDollar3, Modal } from "@dub/ui";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 function StablecoinPayoutModal({
@@ -31,7 +31,7 @@ function StablecoinPayoutModal({
           />
           <div className="relative flex size-20 shrink-0 items-center justify-center rounded-2xl bg-white shadow-lg">
             <div className="flex size-12 items-center justify-center rounded-full bg-[#635BFF]">
-              <StablecoinIcon className="size-7 text-white" />
+              <CircleDollar3 className="size-7 text-white" />
             </div>
           </div>
         </div>
