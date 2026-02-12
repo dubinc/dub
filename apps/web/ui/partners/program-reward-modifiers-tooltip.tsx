@@ -17,6 +17,7 @@ import {
   currencyFormatter,
   pluralize,
 } from "@dub/utils";
+import { formatDuration } from "date-fns";
 import { useRef } from "react";
 import * as z from "zod/v4";
 
@@ -118,6 +119,8 @@ export function ProgramRewardModifiersTooltipContent({
   );
 }
 
+// TODO:
+// This became a bit of a mess, let's clean it up a bit.
 const RewardItem = ({
   reward,
   conditions,
@@ -169,7 +172,12 @@ const RewardItem = ({
                 <span className="min-w-0">
                   {idx === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
                   {condition.entity}{" "}
-                  {(attribute?.label ?? condition.attribute)?.toLowerCase()}{" "}
+                  {(
+                    attribute?.label ??
+                    (condition.attribute === "subscriptionDuration"
+                      ? "Subscription duration"
+                      : condition.attribute)
+                  )?.toLowerCase()}{" "}
                   {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                   {condition.value &&
                     (condition.attribute === "country"
@@ -180,29 +188,36 @@ const RewardItem = ({
                             .join(", ")
                         : COUNTRIES[condition.value?.toString()] ??
                           condition.value
-                      : // Non-country value(s)
-                        Array.isArray(condition.value)
-                        ? // Basic array
-                          (attribute?.options
-                            ? (condition.value as string[] | number[]).map(
-                                (v) =>
-                                  attribute.options?.find((o) => o.id === v)
-                                    ?.label ?? v,
-                              )
-                            : condition.value
-                          ).join(", ")
-                        : condition.attribute === "productId" && condition.label
-                          ? // Product label
-                            condition.label
-                          : attribute?.type === "currency"
-                            ? // Currency value
-                              currencyFormatter(Number(condition.value))
-                            : // Everything else
-                              attribute?.options
-                              ? attribute.options.find(
-                                  (o) => o.id === condition.value,
-                                )?.label ?? condition.value.toString()
-                              : condition.value.toString())}
+                      : condition.attribute === "subscriptionDuration"
+                        ? Array.isArray(condition.value)
+                          ? (condition.value as number[])
+                              .map(formatSubscriptionDuration)
+                              .join(", ")
+                          : formatSubscriptionDuration(Number(condition.value))
+                        : // Non-country value(s)
+                          Array.isArray(condition.value)
+                          ? // Basic array
+                            (attribute?.options
+                              ? (condition.value as string[] | number[]).map(
+                                  (v) =>
+                                    attribute.options?.find((o) => o.id === v)
+                                      ?.label ?? v,
+                                )
+                              : condition.value
+                            ).join(", ")
+                          : condition.attribute === "productId" &&
+                              condition.label
+                            ? // Product label
+                              condition.label
+                            : attribute?.type === "currency"
+                              ? // Currency value
+                                currencyFormatter(Number(condition.value))
+                              : // Everything else
+                                attribute?.options
+                                ? attribute.options.find(
+                                    (o) => o.id === condition.value,
+                                  )?.label ?? condition.value.toString()
+                                : condition.value.toString())}
                 </span>
               </li>
             );
@@ -212,3 +227,9 @@ const RewardItem = ({
     </div>
   );
 };
+
+function formatSubscriptionDuration(v: number): string {
+  return formatDuration(
+    v % 12 === 0 && v > 0 ? { years: v / 12 } : { months: v },
+  );
+}
