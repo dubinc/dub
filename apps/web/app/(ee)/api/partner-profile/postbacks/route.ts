@@ -1,0 +1,60 @@
+import { createId } from "@/lib/api/create-id";
+import { createToken } from "@/lib/api/oauth/utils";
+import { parseRequestBody } from "@/lib/api/utils";
+import { withPartnerProfile } from "@/lib/auth/partner";
+import {
+  POSTBACK_SECRET_LENGTH,
+  POSTBACK_SECRET_PREFIX,
+} from "@/lib/postback/constants";
+import { createPostbackSchema, postbackSchema } from "@/lib/postback/schemas";
+import { prisma } from "@dub/prisma";
+import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+// GET /api/partner-profile/postbacks
+export const GET = withPartnerProfile(
+  async ({ partner }) => {
+    const postbacks = await prisma.partnerPostback.findMany({
+      where: {
+        partnerId: partner.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return NextResponse.json(z.array(postbackSchema).parse(postbacks));
+  },
+  {
+    requiredPermission: "postbacks.read",
+  },
+);
+
+// POST /api/partner-profile/postbacks
+export const POST = withPartnerProfile(
+  async ({ partner, req }) => {
+    const { url, triggers } = createPostbackSchema.parse(
+      await parseRequestBody(req),
+    );
+
+    const secret = createToken({
+      prefix: POSTBACK_SECRET_PREFIX,
+      length: POSTBACK_SECRET_LENGTH,
+    });
+
+    const postback = await prisma.partnerPostback.create({
+      data: {
+        id: createId({ prefix: "pb_" }),
+        partnerId: partner.id,
+        url,
+        secret,
+        triggers,
+      },
+    });
+
+    return NextResponse.json(postbackSchema.parse(postback), { status: 201 });
+  },
+  {
+    requiredPermission: "postbacks.write",
+  },
+);

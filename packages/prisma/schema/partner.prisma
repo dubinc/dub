@@ -65,6 +65,7 @@ model Partner {
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
   referrals                  PartnerReferral[]
+  postbacks                  PartnerPostback[]
 
   @@index(country)
   @@index(discoverableAt)
@@ -146,4 +147,19 @@ model PartnerSalesChannel {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, salesChannel])
+}
+
+model PartnerPostback {
+  id         String    @id @default(cuid())
+  partnerId  String
+  url        String    @db.LongText
+  secret     String
+  triggers   Json
+  disabledAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@index(partnerId)
 }
