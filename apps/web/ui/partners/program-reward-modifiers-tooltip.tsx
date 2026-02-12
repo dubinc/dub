@@ -230,6 +230,6 @@ const RewardItem = ({
 
 function formatSubscriptionDuration(v: number): string {
   return formatDuration(
-    v % 12 === 0 && v > 0 ? { years: v / 12 } : { months: v },
+    v >= 12 ? { years: Math.floor(v / 12), months: v % 12 } : { months: v },
   );
 }
