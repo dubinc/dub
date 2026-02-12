@@ -1,4 +1,5 @@
 import { EventType, Link, Prisma, Reward } from "@dub/prisma/client";
+import { differenceInMonths } from "date-fns";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { RewardContext } from "../types";
 import {
@@ -50,6 +51,13 @@ export const determinePartnerReward = ({
       ...partnerLinksStats,
       totalCommissions: programEnrollment.totalCommissions,
       country: programEnrollment.partner?.country,
+    },
+    customer: {
+      ...context?.customer,
+      subscriptionDuration: differenceInMonths(
+        new Date(),
+        context?.customer?.firstSaleAt ?? new Date(),
+      ),
     },
   };
 

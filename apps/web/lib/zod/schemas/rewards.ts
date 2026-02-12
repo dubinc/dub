@@ -164,6 +164,11 @@ export const REWARD_CONDITIONS: Record<
             label: "Amount",
             type: "currency",
           },
+          {
+            id: "subscriptionDuration",
+            label: "Subscription duration",
+            type: "number",
+          },
         ],
       },
     ],
@@ -347,6 +352,8 @@ export const rewardContextSchema = z.object({
     .object({
       country: z.string().nullish(),
       source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
+      firstSaleAt: z.date().nullish(),
+      subscriptionDuration: z.number().nullish(),
     })
     .optional(),
 

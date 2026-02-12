@@ -150,6 +150,7 @@ export async function createShopifySale({
       context: {
         customer: {
           country: customer.country,
+          firstSaleAt: customer.firstSaleAt,
         },
         sale: {
           amount: saleData.amount,
