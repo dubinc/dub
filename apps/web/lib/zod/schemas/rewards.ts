@@ -111,7 +111,7 @@ export const REWARD_CONDITIONS: Record<
               },
               {
                 id: "submitted",
-                label: "qualified lead",
+                label: "submitted lead",
               },
               {
                 id: "trial",
