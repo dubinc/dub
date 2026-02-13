@@ -1,4 +1,3 @@
-import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import {
   IndustryInterest,
   MonthlyTraffic,
@@ -729,29 +728,19 @@ export const partnerAnalyticsResponseSchema = {
   }),
 } as const;
 
-export const invitePartnerSchema = z
-  .object({
-    workspaceId: z.string(),
-    name: z.string().max(100).optional(),
-    email: z.email().trim().min(1).max(100).optional(),
-    emails: z.array(z.email().trim().min(1).max(100)).max(50).optional(),
-    username: z.string().max(100).optional(),
-    groupId: z.string().nullish().default(null),
-  })
-  .superRefine(({ email, emails }, ctx) => {
-    const recipients = [email, ...(emails ?? [])]
-      .filter((value): value is string => Boolean(value))
-      .map((value) => value.trim().toLowerCase())
-      .filter(Boolean);
+export const invitePartnerSchema = z.object({
+  workspaceId: z.string(),
+  groupId: z.string().nullish(),
+  name: z.string().max(100).optional(),
+  email: z.email().trim().min(1).max(100),
+  username: z.string().max(100).optional(),
+});
 
-    if (new Set(recipients).size > MAX_PARTNERS_INVITES_PER_REQUEST) {
-      ctx.addIssue({
-        code: "custom",
-        message: `You can invite up to ${MAX_PARTNERS_INVITES_PER_REQUEST} partners at once.`,
-        path: ["emails"],
-      });
-    }
-  });
+export const bulkInvitePartnersSchema = z.object({
+  workspaceId: z.string(),
+  groupId: z.string().nullish(),
+  emails: z.array(z.email().trim().min(1).max(100)).max(50),
+});
 
 export const approvePartnerSchema = z.object({
   workspaceId: z.string(),

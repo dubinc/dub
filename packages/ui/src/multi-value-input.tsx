@@ -227,8 +227,7 @@ const MultiValueInput = React.forwardRef<
 
   const handleBlur = () => {
     setSelectedValue(null);
-    const next = commitPendingInput();
-    if (next !== values) onChange(next);
+    commitPendingInput();
   };
 
   const removeValue = (value: string) => {

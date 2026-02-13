@@ -1,4 +1,5 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { bulkInvitePartnersAction } from "@/lib/actions/partners/bulk-invite-partners";
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { saveInviteEmailDataAction } from "@/lib/actions/partners/save-invite-email-data";
 import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
@@ -6,7 +7,10 @@ import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramInviteEmailData, ProgramProps } from "@/lib/types";
-import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  bulkInvitePartnersSchema,
+  invitePartnerSchema,
+} from "@/lib/zod/schemas/partners";
 import { GroupSelector } from "@/ui/partners/groups/group-selector";
 import { X } from "@/ui/shared/icons";
 import {
@@ -34,13 +38,18 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import * as z from "zod/v4";
 
 interface InvitePartnerSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-type InvitePartnerFormData = z.infer<typeof invitePartnerSchema>;
+type InvitePartnerFormData = {
+  email: string;
+  emails: string[];
+  name?: string;
+  username?: string;
+  groupId: string | null;
+};
 
 type EmailContent = {
   subject: string;
@@ -106,34 +115,34 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const emails = watch("emails") ?? [];
   const hasMultipleRecipients = emails.length > 1;
 
-  const { executeAsync, isPending } = useAction(invitePartnerAction, {
-    onSuccess: ({ data }) => {
-      const invitedCount = data?.invitedCount ?? 0;
-      const errorsCount = data?.errors?.length ?? 0;
+  const { executeAsync: invitePartner, isPending } = useAction(
+    invitePartnerAction,
+    {
+      onSuccess: () => {
+        toast.success("Invitation sent to partner!");
+        setIsOpen(false);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
+    },
+  );
 
-      if (errorsCount === 0) {
+  const { executeAsync: bulkInvitePartners, isPending: isBulkPending } =
+    useAction(bulkInvitePartnersAction, {
+      onSuccess: ({ data }) => {
+        const invitedCount = data?.invitedCount ?? 0;
         toast.success(
           invitedCount > 1
             ? `Invitations sent to ${invitedCount} partners!`
             : "Invitation sent to partner!",
         );
         setIsOpen(false);
-        return;
-      }
-
-      if (invitedCount > 0) {
-        toast.warning(
-          `Sent ${invitedCount} invite${invitedCount === 1 ? "" : "s"}, ${errorsCount} failed.`,
-        );
-        return;
-      }
-
-      toast.error(data?.errors?.[0]?.error || "Failed to send invites");
-    },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
+    });
 
   const { executeAsync: saveEmailDataAsync, isPending: isSavingEmailData } =
     useAction(saveInviteEmailDataAction, {
@@ -168,15 +177,34 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       return;
     }
 
-    await executeAsync({
-      ...data,
-      email: finalEmails[0],
-      emails: finalEmails,
-      ...(finalEmails.length > 1
-        ? { name: undefined, username: undefined }
-        : {}),
+    if (finalEmails.length === 1) {
+      const payload = {
+        workspaceId,
+        email: finalEmails[0],
+        name: data.name,
+        username: data.username,
+        groupId: data.groupId ?? null,
+      };
+      const parsed = invitePartnerSchema.safeParse(payload);
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+        return;
+      }
+      await invitePartner(parsed.data);
+      return;
+    }
+
+    const payload = {
       workspaceId,
-    });
+      emails: finalEmails,
+      groupId: data.groupId ?? null,
+    };
+    const parsed = bulkInvitePartnersSchema.safeParse(payload);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+      return;
+    }
+    await bulkInvitePartners(parsed.data);
   };
 
   const handleStartEditing = () => {
@@ -380,15 +408,19 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isPending}
+            disabled={isPending || isBulkPending}
           />
           <Button
             type="submit"
             variant="primary"
             text="Send invite"
             className="w-fit"
-            loading={isPending || isSubmitting || isSubmitSuccessful}
-            disabled={isPending || isEditingEmail || isSavingEmailData}
+            loading={
+              isPending || isBulkPending || isSubmitting || isSubmitSuccessful
+            }
+            disabled={
+              isPending || isBulkPending || isEditingEmail || isSavingEmailData
+            }
           />
         </div>
       </div>
