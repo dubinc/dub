@@ -99,6 +99,39 @@ export const createPartnerCommission = async ({
     earnings = amount;
     amount = 0;
   } else {
+    if (["lead", "sale"].includes(event) && customerId) {
+      firstCommission = await prisma.commission.findFirst({
+        where: {
+          partnerId,
+          customerId,
+          type: event,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          rewardId: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+
+      if (firstCommission) {
+        const subscriptionDurationMonths = differenceInMonths(
+          new Date(),
+          firstCommission.createdAt,
+        );
+
+        context = {
+          ...context,
+          customer: {
+            ...context?.customer,
+            subscriptionDurationMonths,
+          },
+        };
+      }
+    }
+
     reward = determinePartnerReward({
       event,
       programEnrollment,
@@ -126,22 +159,6 @@ export const createPartnerCommission = async ({
       // 1. if the partner has reached the max duration for the reward (if applicable)
       // 2. if the previous commission were marked as fraud or canceled
     } else {
-      firstCommission = await prisma.commission.findFirst({
-        where: {
-          partnerId,
-          customerId,
-          type: event,
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          rewardId: true,
-          status: true,
-          createdAt: true,
-        },
-      });
-
       if (firstCommission) {
         // if first commission is fraud or canceled, skip commission creation
         if (["fraud", "canceled"].includes(firstCommission.status)) {
@@ -207,6 +224,7 @@ export const createPartnerCommission = async ({
               console.log(
                 `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
               );
+
               return {
                 commission: null,
                 programEnrollment,
@@ -225,30 +243,7 @@ export const createPartnerCommission = async ({
                 console.log(
                   `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
                 );
-                return {
-                  commission: null,
-                  programEnrollment,
-                  webhookPartner: constructWebhookPartner(programEnrollment),
-                };
-              }
 
-              // re-run determinePartnerReward with the customer's subscription duration
-              reward = determinePartnerReward({
-                event,
-                programEnrollment,
-                context: {
-                  ...context,
-                  customer: {
-                    ...context?.customer,
-                    subscriptionDurationMonths,
-                  },
-                },
-              });
-
-              if (!reward) {
-                console.log(
-                  `Partner ${partnerId} does not have a qualifying reward for subscription duration ${subscriptionDurationMonths}, skipping commission creation...`,
-                );
                 return {
                   commission: null,
                   programEnrollment,
