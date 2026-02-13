@@ -352,7 +352,6 @@ export const rewardContextSchema = z.object({
     .object({
       country: z.string().nullish(),
       source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
-      firstSaleAt: z.date().nullish(),
       subscriptionDuration: z.number().nullish(),
     })
     .optional(),

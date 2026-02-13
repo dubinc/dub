@@ -553,7 +553,6 @@ const _trackSale = async ({
             customer: {
               country: customer.country,
               source,
-              firstSaleAt: customer.firstSaleAt,
             },
             sale: {
               productId: metadata?.productId,

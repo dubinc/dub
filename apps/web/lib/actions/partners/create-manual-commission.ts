@@ -294,7 +294,6 @@ export const createManualCommissionAction = authActionClient
               context: {
                 customer: {
                   country: customer.country,
-                  firstSaleAt: customer.firstSaleAt,
                 },
                 sale: {
                   productId,

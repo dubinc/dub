@@ -216,14 +216,38 @@ export const createPartnerCommission = async ({
 
             // Recurring sale reward (maxDuration > 0)
             else {
-              const monthsDifference = differenceInMonths(
+              const subscriptionDuration = differenceInMonths(
                 new Date(),
                 firstCommission.createdAt,
               );
 
-              if (monthsDifference >= reward.maxDuration) {
+              if (subscriptionDuration >= reward.maxDuration) {
                 console.log(
                   `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
+                );
+                return {
+                  commission: null,
+                  programEnrollment,
+                  webhookPartner: constructWebhookPartner(programEnrollment),
+                };
+              }
+
+              // re-run determinePartnerReward with the customer's subscription duration
+              reward = determinePartnerReward({
+                event,
+                programEnrollment,
+                context: {
+                  ...context,
+                  customer: {
+                    ...context?.customer,
+                    subscriptionDuration,
+                  },
+                },
+              });
+
+              if (!reward) {
+                console.log(
+                  `Partner ${partnerId} does not have a qualifying reward for subscription duration ${subscriptionDuration}, skipping commission creation...`,
                 );
                 return {
                   commission: null,
