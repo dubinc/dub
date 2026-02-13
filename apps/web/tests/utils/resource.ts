@@ -30,6 +30,8 @@ export const E2E_CUSTOMER_ID = "cm25onzuv0001s1bbxchrc0ae";
 export const E2E_CUSTOMER_EXTERNAL_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
 export const E2E_CUSTOMER_EXTERNAL_ID_2 = "cus_pqc8qRtofpu6ZqvutyNDGAU2";
 export const E2E_CUSTOMER_SG_EXTERNAL_ID = "cus_LnZbkb8boLsOn1YGLPxZGZMU";
+export const E2E_CUSTOMER_SUB_DURATION_EXTERNAL_ID =
+  "cus_TlwjnmJb4Fa8lU8IA5Dg0uzo";
 
 export const E2E_WEBHOOK_ID = "wh_MHR7sZXXtZ7keBaNYZ30rQ0v";
 
@@ -98,7 +100,7 @@ export const E2E_SALE_REWARD = {
       operator: "AND",
       conditions: [
         {
-          value: 12,
+          value: 3,
           entity: "customer",
           operator: "greater_than",
           attribute: "subscriptionDurationMonths",

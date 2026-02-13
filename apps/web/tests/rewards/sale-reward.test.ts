@@ -2,8 +2,8 @@ import { TrackSaleResponse } from "@/lib/types";
 import { randomId, randomSaleAmount } from "tests/utils/helpers";
 import {
   E2E_CUSTOMER_EXTERNAL_ID_2,
-  E2E_CUSTOMER_ID,
   E2E_CUSTOMER_SG_EXTERNAL_ID,
+  E2E_CUSTOMER_SUB_DURATION_EXTERNAL_ID,
   E2E_SALE_REWARD,
 } from "tests/utils/resource";
 import { verifyCommission } from "tests/utils/verify-commission";
@@ -119,7 +119,7 @@ describe.concurrent("Sale rewards with conditions", async () => {
       path: "/track/sale",
       body: {
         ...sale,
-        customerExternalId: E2E_CUSTOMER_ID,
+        customerExternalId: E2E_CUSTOMER_SUB_DURATION_EXTERNAL_ID,
       },
     });
 
