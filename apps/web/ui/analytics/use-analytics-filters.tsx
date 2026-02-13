@@ -681,8 +681,8 @@ export function useAnalyticsFilters({
       {
         key: "referer",
         icon: ReferredVia,
-        label: "Referer",
-        getOptionIcon: (value, props) => (
+        label: "Referrer",
+        getOptionIcon: (value, _props) => (
           <ReferrerIcon display={value} className="h-4 w-4" />
         ),
         options:
