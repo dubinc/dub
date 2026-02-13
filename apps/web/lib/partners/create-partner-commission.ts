@@ -99,6 +99,36 @@ export const createPartnerCommission = async ({
     earnings = amount;
     amount = 0;
   } else {
+    if (["lead", "sale"].includes(event) && customerId) {
+      firstCommission = await prisma.commission.findFirst({
+        where: {
+          partnerId,
+          customerId,
+          type: event,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          rewardId: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+
+      const subscriptionDurationMonths = firstCommission
+        ? differenceInMonths(new Date(), firstCommission.createdAt)
+        : 0;
+
+      context = {
+        ...context,
+        customer: {
+          ...context?.customer,
+          subscriptionDurationMonths,
+        },
+      };
+    }
+
     reward = determinePartnerReward({
       event,
       programEnrollment,
@@ -126,22 +156,6 @@ export const createPartnerCommission = async ({
       // 1. if the partner has reached the max duration for the reward (if applicable)
       // 2. if the previous commission were marked as fraud or canceled
     } else {
-      firstCommission = await prisma.commission.findFirst({
-        where: {
-          partnerId,
-          customerId,
-          type: event,
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          rewardId: true,
-          status: true,
-          createdAt: true,
-        },
-      });
-
       if (firstCommission) {
         // if first commission is fraud or canceled, skip commission creation
         if (["fraud", "canceled"].includes(firstCommission.status)) {
@@ -207,6 +221,7 @@ export const createPartnerCommission = async ({
               console.log(
                 `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
               );
+
               return {
                 commission: null,
                 programEnrollment,
@@ -216,15 +231,16 @@ export const createPartnerCommission = async ({
 
             // Recurring sale reward (maxDuration > 0)
             else {
-              const monthsDifference = differenceInMonths(
+              const subscriptionDurationMonths = differenceInMonths(
                 new Date(),
                 firstCommission.createdAt,
               );
 
-              if (monthsDifference >= reward.maxDuration) {
+              if (subscriptionDurationMonths >= reward.maxDuration) {
                 console.log(
                   `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
                 );
+
                 return {
                   commission: null,
                   programEnrollment,
