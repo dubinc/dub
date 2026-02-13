@@ -72,7 +72,7 @@ const sanitizeFormData = (
 };
 
 function sanitizeData(rawData: ProgramApplicationData, group: PartnerGroup) {
-  const { formData: rawFormData, ...data } = rawData;
+  const { formData: rawFormData, inAppApplication, ...data } = rawData;
 
   const formData = rawFormData ? sanitizeFormData(rawFormData, group) : null;
 
@@ -166,6 +166,8 @@ export const createProgramApplicationAction = actionClient
           include: {
             programs: true,
             platforms: true,
+            preferredEarningStructures: true,
+            salesChannels: true,
           },
         })
       : null;
@@ -180,7 +182,16 @@ export const createProgramApplicationAction = actionClient
     // if the partner has an incomplete profile, if so we prompt them to complete it
     if (inAppApplication && existingPartner) {
       const { isComplete } = getPartnerProfileChecklistProgress({
-        partner: existingPartner,
+        partner: {
+          ...existingPartner,
+          preferredEarningStructures:
+            existingPartner.preferredEarningStructures.map(
+              ({ preferredEarningStructure }) => preferredEarningStructure,
+            ),
+          salesChannels: existingPartner.salesChannels.map(
+            ({ salesChannel }) => salesChannel,
+          ),
+        },
         programEnrollments: existingPartner.programs,
       });
 
@@ -237,7 +248,7 @@ async function createApplicationAndEnrollment({
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  const [application, programEnrollment] = await Promise.all([
+  const [application, programEnrollment] = await prisma.$transaction([
     prisma.programApplication.create({
       data: {
         ...sanitizeData(data, group),
