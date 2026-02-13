@@ -171,13 +171,7 @@ const RewardItem = ({
                 <span className="shrink-0 text-lg leading-none">&bull;</span>
                 <span className="min-w-0">
                   {idx === 0 ? "If" : capitalize(operator.toLowerCase())}{" "}
-                  {condition.entity}{" "}
-                  {(
-                    attribute?.label ??
-                    (condition.attribute === "subscriptionDurationMonths"
-                      ? "Subscription duration"
-                      : condition.attribute)
-                  )?.toLowerCase()}{" "}
+                  {condition.entity} {attribute?.label?.toLowerCase()}{" "}
                   {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                   {condition.value &&
                     (condition.attribute === "country"
@@ -189,11 +183,7 @@ const RewardItem = ({
                         : COUNTRIES[condition.value?.toString()] ??
                           condition.value
                       : condition.attribute === "subscriptionDurationMonths"
-                        ? Array.isArray(condition.value)
-                          ? (condition.value as number[])
-                              .map(formatSubscriptionDuration)
-                              .join(", ")
-                          : formatSubscriptionDuration(Number(condition.value))
+                        ? formatSubscriptionDuration(Number(condition.value))
                         : // Non-country value(s)
                           Array.isArray(condition.value)
                           ? // Basic array
