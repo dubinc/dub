@@ -1,3 +1,4 @@
+import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import {
   IndustryInterest,
   MonthlyTraffic,
@@ -739,7 +740,9 @@ export const invitePartnerSchema = z.object({
 export const bulkInvitePartnersSchema = z.object({
   workspaceId: z.string(),
   groupId: z.string().nullish(),
-  emails: z.array(z.email().trim().min(1).max(100)).max(50),
+  emails: z
+    .array(z.email().trim().min(1).max(100))
+    .max(MAX_PARTNERS_INVITES_PER_REQUEST),
 });
 
 export const approvePartnerSchema = z.object({

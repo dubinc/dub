@@ -26,7 +26,7 @@ import {
   Sheet,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -130,13 +130,24 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
   const { executeAsync: bulkInvitePartners, isPending: isBulkPending } =
     useAction(bulkInvitePartnersAction, {
-      onSuccess: ({ data }) => {
-        const invitedCount = data?.invitedCount ?? 0;
-        toast.success(
-          invitedCount > 1
-            ? `Invitations sent to ${invitedCount} partners!`
-            : "Invitation sent to partner!",
-        );
+      onSuccess: ({ data: { invitedCount, skippedCount } }) => {
+        const parts: string[] = [];
+
+        if (invitedCount > 0) {
+          parts.push(
+            invitedCount === 1
+              ? "Invitation sent to 1 partner."
+              : `Invitations sent to ${invitedCount} partners.`,
+          );
+        }
+
+        if (skippedCount > 0) {
+          parts.push(
+            `${skippedCount} ${pluralize("partner", skippedCount)} were skipped because they're already enrolled or previously invited.`,
+          );
+        }
+
+        toast.success(parts.join(" "));
         setIsOpen(false);
       },
       onError({ error }) {
@@ -178,32 +189,34 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     }
 
     if (finalEmails.length === 1) {
-      const payload = {
+      const parsed = invitePartnerSchema.safeParse({
         workspaceId,
         email: finalEmails[0],
         name: data.name,
         username: data.username,
         groupId: data.groupId ?? null,
-      };
-      const parsed = invitePartnerSchema.safeParse(payload);
+      });
+
       if (!parsed.success) {
         toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
         return;
       }
+
       await invitePartner(parsed.data);
       return;
     }
 
-    const payload = {
+    const parsed = bulkInvitePartnersSchema.safeParse({
       workspaceId,
       emails: finalEmails,
       groupId: data.groupId ?? null,
-    };
-    const parsed = bulkInvitePartnersSchema.safeParse(payload);
+    });
+
     if (!parsed.success) {
       toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
       return;
     }
+
     await bulkInvitePartners(parsed.data);
   };
 
