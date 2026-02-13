@@ -308,7 +308,7 @@ export function PartnerInfoCards({
                 Group
               </h3>
 
-              {hasActivityLogs && (
+              {partner && partner.status !== "pending" && hasActivityLogs && (
                 <Button
                   variant="outline"
                   text="View history"
