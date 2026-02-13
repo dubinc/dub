@@ -6,41 +6,17 @@ import { PartnerGroup } from "@dub/prisma/client";
 import { describe, expect, test, onTestFinished } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PROGRAM, E2E_TRACK_CLICK_HEADERS } from "../utils/resource";
+import { E2E_PROGRAM } from "../utils/resource";
+import { trackLeads } from "./utils/track-leads";
 import { verifyPartnerGroupMove } from "./utils/verify-partner-group-move";
 
-async function trackLeads(
+async function cleanupOrphanedGroup(
   http: any,
-  partnerLink: { domain: string; key: string },
-  count: number,
+  slug: string,
+  allGroups: PartnerGroup[],
 ) {
-  for (let i = 0; i < count; i++) {
-    const { status: clickStatus, data: clickData } = await http.post({
-      path: "/track/click",
-      headers: E2E_TRACK_CLICK_HEADERS,
-      body: {
-        domain: partnerLink.domain,
-        key: partnerLink.key,
-      },
-    });
-
-    expect(clickStatus).toEqual(200);
-    expect(clickData.clickId).toBeDefined();
-
-    const { status: leadStatus } = await http.post({
-      path: "/track/lead",
-      body: {
-        clickId: clickData.clickId,
-        eventName: `Signup-${i}-${Date.now()}`,
-        customerExternalId: `e2e-customer-${i}-${Date.now()}`,
-        customerEmail: `customer${i}@example.com`,
-      },
-    });
-
-    expect(leadStatus).toEqual(200);
-
-    await new Promise((resolve) => setTimeout(resolve, 200));
-  }
+  const orphan = allGroups.find((g) => g.slug === slug);
+  if (orphan) await http.delete({ path: `/groups/${orphan.id}` });
 }
 
 describe.sequential("Workflow - MoveGroup", async () => {
@@ -48,24 +24,21 @@ describe.sequential("Workflow - MoveGroup", async () => {
   const { http } = await h.init();
   const programId = E2E_PROGRAM.id;
 
-  const { data: allGroups } = await http.get<PartnerGroup[]>({
+  const { data: allGroupsForCleanup } = await http.get<PartnerGroup[]>({
     path: "/groups",
   });
 
-  for (const group of allGroups) {
-    if (group.slug?.startsWith("e2e-")) {
-      await http.delete({ path: `/groups/${group.id}` });
-    }
-  }
-
   test("Workflow is created when move rules are configured", async () => {
+    const slug = "e2e-target-config";
+    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+
     const { status: targetStatus, data: targetGroup } = await http.post<
       PartnerGroup
     >({
       path: "/groups",
       body: {
         name: "E2E Target Group - Config Test",
-        slug: `e2e-target-config-${Date.now()}`,
+        slug,
         color: randomValue(RESOURCE_COLORS),
       },
     });
@@ -114,11 +87,14 @@ describe.sequential("Workflow - MoveGroup", async () => {
   });
 
   test("Workflow is deleted when move rules are removed", async () => {
+    const slug = "e2e-remove-rules";
+    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+
     const { status: groupStatus, data: group } = await http.post<PartnerGroup>({
       path: "/groups",
       body: {
         name: "E2E Group - Remove Rules",
-        slug: `e2e-remove-rules-${Date.now()}`,
+        slug,
         color: randomValue(RESOURCE_COLORS),
       },
     });
@@ -168,6 +144,9 @@ describe.sequential("Workflow - MoveGroup", async () => {
   });
 
   test("Disabled workflow doesn't execute partner move", async () => {
+    const slug = "e2e-target-disabled";
+    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",
     });
@@ -181,7 +160,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
       path: "/groups",
       body: {
         name: "E2E Target Group - Disabled Move",
-        slug: `e2e-target-disabled-${Date.now()}`,
+        slug,
         color: randomValue(RESOURCE_COLORS),
       },
     });
@@ -254,6 +233,9 @@ describe.sequential("Workflow - MoveGroup", async () => {
   });
 
   test("Workflow doesn't execute when conditions are not met", async () => {
+    const slug = "e2e-target-not-met";
+    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",
     });
@@ -267,7 +249,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
       path: "/groups",
       body: {
         name: "E2E Target Group - Not Met",
-        slug: `e2e-target-not-met-${Date.now()}`,
+        slug,
         color: randomValue(RESOURCE_COLORS),
       },
     });
@@ -328,6 +310,9 @@ describe.sequential("Workflow - MoveGroup", async () => {
   });
 
   test("Workflow executes when conditions are met - partner moves to target group", { timeout: 90000 }, async () => {
+    const slug = "e2e-target-exec";
+    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",
     });
@@ -341,7 +326,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
       path: "/groups",
       body: {
         name: "E2E Target Group - Move Execution",
-        slug: `e2e-target-exec-${Date.now()}`,
+        slug,
         color: randomValue(RESOURCE_COLORS),
       },
     });
@@ -412,6 +397,9 @@ describe.sequential("Workflow - MoveGroup", async () => {
   });
 
   test("No duplicate group moves on multiple triggers", { timeout: 90000 }, async () => {
+    const slug = "e2e-target-no-dup";
+    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",
     });
@@ -425,7 +413,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
       path: "/groups",
       body: {
         name: "E2E Target Group - No Dup Move",
-        slug: `e2e-target-no-dup-${Date.now()}`,
+        slug: "e2e-target-no-dup",
         color: randomValue(RESOURCE_COLORS),
       },
     });
@@ -490,11 +478,14 @@ describe.sequential("Workflow - MoveGroup", async () => {
   });
 
   test("Multiple move rules can be configured (AND operator)", async () => {
+    const slug = "e2e-multi-rules";
+    await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
+
     const { status: groupStatus, data: group } = await http.post<PartnerGroup>({
       path: "/groups",
       body: {
         name: "E2E Group - Multiple Rules",
-        slug: `e2e-multi-rules-${Date.now()}`,
+        slug,
         color: randomValue(RESOURCE_COLORS),
       },
     });

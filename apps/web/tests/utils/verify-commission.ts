@@ -1,5 +1,6 @@
 import { expect } from "vitest";
 import { prisma } from "./prisma";
+import { E2E_PROGRAM, E2E_WORKSPACE_ID } from "./resource";
 
 interface VerifyCommissionProps {
   customerExternalId?: string;
@@ -19,10 +20,15 @@ export const verifyCommission = async ({
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
 
-  // Resolve customer ID first if customerExternalId is given
+  // Resolve customer ID (scoped by projectId — externalId is unique per project)
   if (customerExternalId) {
-    const customer = await prisma.customer.findFirst({
-      where: { externalId: customerExternalId },
+    const customer = await prisma.customer.findUnique({
+      where: {
+        projectId_externalId: {
+          projectId: E2E_WORKSPACE_ID,
+          externalId: customerExternalId,
+        },
+      },
       select: { id: true },
     });
 
@@ -36,6 +42,7 @@ export const verifyCommission = async ({
   while (Date.now() - startTime < TIMEOUT_MS) {
     const commission = await prisma.commission.findFirst({
       where: {
+        programId: E2E_PROGRAM.id,
         ...(customerId && { customerId }),
         ...(invoiceId && { invoiceId }),
       },
@@ -66,6 +73,6 @@ export const verifyCommission = async ({
   // Timeout reached - fail the test
   throw new Error(
     `Commission not found within ${TIMEOUT_MS / 1000} seconds. ` +
-      `customerId: ${customerId}, invoiceId: ${invoiceId}`,
+      `programId: ${E2E_PROGRAM.id}, customerId: ${customerId}, invoiceId: ${invoiceId}`,
   );
 };
