@@ -23,6 +23,7 @@ export * from "./form";
 export * from "./grid";
 export * from "./input";
 export * from "./label";
+export * from "./multi-value-input";
 export * from "./menu-item";
 export * from "./mini-area-chart";
 export * from "./modal";
