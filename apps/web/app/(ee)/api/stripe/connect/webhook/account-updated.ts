@@ -1,5 +1,6 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { qstash } from "@/lib/cron";
+import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
@@ -27,9 +28,12 @@ export async function accountUpdated(event: Stripe.Event) {
     },
     select: {
       id: true,
-      stripeConnectId: true,
       email: true,
+      stripeConnectId: true,
+      stripeRecipientId: true,
+      paypalEmail: true,
       payoutsEnabledAt: true,
+      defaultPayoutMethod: true,
       payoutMethodHash: true,
     },
   });
@@ -38,24 +42,29 @@ export async function accountUpdated(event: Stripe.Event) {
     return `Partner with stripeConnectId ${account.id} not found, skipping...`;
   }
 
-  if (
-    !payoutsEnabled ||
-    !capabilities?.transfers ||
-    capabilities.transfers === "inactive"
-  ) {
-    if (partner.payoutsEnabledAt) {
-      await prisma.partner.update({
-        where: {
-          id: partner.id,
-        },
-        data: {
-          payoutsEnabledAt: null,
-        },
-      });
-      // TODO: notify partner about the change
-      return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt null`;
-    }
-    return `No change in payout status for ${partner.email} (${partner.stripeConnectId}), skipping...`;
+  const { payoutsEnabledAt, defaultPayoutMethod } =
+    await recomputePartnerPayoutState(partner);
+
+  const payoutStateChanged =
+    partner.payoutsEnabledAt !== payoutsEnabledAt ||
+    partner.defaultPayoutMethod !== defaultPayoutMethod;
+
+  if (!payoutStateChanged) {
+    return `No change in payout state for partner ${partner.email} (${partner.stripeConnectId}), skipping...`;
+  }
+
+  await prisma.partner.update({
+    where: {
+      id: partner.id,
+    },
+    data: {
+      payoutsEnabledAt,
+      defaultPayoutMethod,
+    },
+  });
+
+  if (partner.payoutsEnabledAt && !payoutsEnabledAt) {
+    return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt null`;
   }
 
   const bankAccount = await getPartnerBankAccount(partner.stripeConnectId!);

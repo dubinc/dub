@@ -1,6 +1,8 @@
 import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
-export async function getStripePayoutMethod(stripeRecipientId: string) {
+export async function getStripeStablecoinPayoutMethod(
+  stripeRecipientId: string,
+) {
   const { data, error } = await stripeV2Fetch(
     "/v2/money_management/payout_methods",
     {

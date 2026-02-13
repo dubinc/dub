@@ -8,7 +8,7 @@ import { createFraudEvents } from "./create-fraud-events";
 // create fraud events for all their active program enrollments to flag potential fraud
 export async function detectDuplicatePayoutMethodFraud(
   payoutMethodHash: string,
-): Promise<void> {
+) {
   if (!payoutMethodHash) {
     return;
   }

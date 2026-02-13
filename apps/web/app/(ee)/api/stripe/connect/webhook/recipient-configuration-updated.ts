@@ -1,13 +1,12 @@
-import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
+import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
 import { stripeV2ThinEventSchema } from "@/lib/stripe/stripe-v2-schemas";
 import { prisma } from "@dub/prisma";
-import { PartnerPayoutMethod } from "@dub/prisma/client";
 import Stripe from "stripe";
 
 export async function recipientConfigurationUpdated(event: Stripe.Event) {
-  const parsedEvent = stripeV2ThinEventSchema.parse(event);
-
-  const stripeRecipientId = parsedEvent.related_object.id;
+  const {
+    related_object: { id: stripeRecipientId },
+  } = stripeV2ThinEventSchema.parse(event);
 
   const partner = await prisma.partner.findUnique({
     where: {
@@ -15,10 +14,12 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
     },
     select: {
       id: true,
-      stripeConnectId: true,
-      paypalEmail: true,
       email: true,
+      stripeConnectId: true,
+      stripeRecipientId: true,
+      paypalEmail: true,
       payoutsEnabledAt: true,
+      defaultPayoutMethod: true,
     },
   });
 
@@ -26,30 +27,8 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
     return `Partner with stripeRecipientId ${stripeRecipientId} not found, skipping...`;
   }
 
-  const stripeRecipientAccount =
-    await getStripeRecipientAccount(stripeRecipientId);
-
-  const cryptoWalletsStatus =
-    stripeRecipientAccount.configuration?.recipient?.capabilities
-      ?.crypto_wallets?.status;
-
-  const isCryptoWalletActive = cryptoWalletsStatus === "active";
-
-  if (isCryptoWalletActive && partner.payoutsEnabledAt) {
-    return `Partner ${partner.email} (${stripeRecipientId}) already has a crypto wallet active, skipping...`;
-  }
-
-  const payoutsEnabledAt = isCryptoWalletActive
-    ? partner.payoutsEnabledAt ?? new Date()
-    : null;
-
-  const defaultPayoutMethod = isCryptoWalletActive
-    ? PartnerPayoutMethod.stablecoin
-    : partner.stripeConnectId
-      ? PartnerPayoutMethod.connect
-      : partner.paypalEmail
-        ? PartnerPayoutMethod.paypal
-        : null;
+  const { payoutsEnabledAt, defaultPayoutMethod } =
+    await recomputePartnerPayoutState(partner);
 
   await prisma.partner.update({
     where: {
@@ -61,5 +40,5 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
     },
   });
 
-  return `Updated partner ${partner.email} (${stripeRecipientId}) with payoutsEnabledAt ${isCryptoWalletActive ? "set" : "cleared"}, defaultPayoutMethod ${defaultPayoutMethod ?? "cleared"}`;
+  return `Updated partner ${partner.email} (${stripeRecipientId}) with payoutsEnabledAt ${payoutsEnabledAt ? "set" : "cleared"}, defaultPayoutMethod ${defaultPayoutMethod ?? "cleared"}`;
 }

@@ -57,15 +57,24 @@ export const generateStripeAccountLink = authPartnerActionClient.action(
       });
     }
 
-    const { url } = partner.payoutsEnabledAt
-      ? await stripe.accounts.createLoginLink(partner.stripeConnectId)
-      : await stripe.accountLinks.create({
-          account: partner.stripeConnectId,
-          refresh_url: `${PARTNERS_DOMAIN}/payouts`,
-          return_url: `${PARTNERS_DOMAIN}/payouts`,
-          type: "account_onboarding",
-          collect: "eventually_due",
-        });
+    if (!partner.stripeConnectId) {
+      throw new Error(
+        "Failed to create a new Stripe connect account. Please contact support.",
+      );
+    }
+
+    const account = await stripe.accounts.retrieve(partner.stripeConnectId);
+
+    const { url } =
+      account.details_submitted === true
+        ? await stripe.accounts.createLoginLink(partner.stripeConnectId)
+        : await stripe.accountLinks.create({
+            account: partner.stripeConnectId,
+            refresh_url: `${PARTNERS_DOMAIN}/payouts`,
+            return_url: `${PARTNERS_DOMAIN}/payouts`,
+            type: "account_onboarding",
+            collect: "eventually_due",
+          });
 
     return {
       url,
