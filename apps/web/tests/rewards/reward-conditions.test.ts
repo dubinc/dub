@@ -1662,7 +1662,7 @@ describe("evaluateRewardConditions", () => {
   });
 
   describe("subscription duration conditions", () => {
-    describe("customer.subscriptionDuration", () => {
+    describe("customer.subscriptionDurationMonths", () => {
       test("should match when subscription duration meets greater_than_or_equal condition", () => {
         const conditions = [
           {
@@ -1672,7 +1672,7 @@ describe("evaluateRewardConditions", () => {
             conditions: [
               {
                 entity: "customer" as const,
-                attribute: "subscriptionDuration" as const,
+                attribute: "subscriptionDurationMonths" as const,
                 operator: "greater_than_or_equal" as const,
                 value: 12,
               },
@@ -1682,7 +1682,7 @@ describe("evaluateRewardConditions", () => {
 
         const context: RewardContext = {
           customer: {
-            subscriptionDuration: 12,
+            subscriptionDurationMonths: 12,
           },
         };
 
@@ -1703,7 +1703,7 @@ describe("evaluateRewardConditions", () => {
             conditions: [
               {
                 entity: "customer" as const,
-                attribute: "subscriptionDuration" as const,
+                attribute: "subscriptionDurationMonths" as const,
                 operator: "greater_than_or_equal" as const,
                 value: 12,
               },
@@ -1713,7 +1713,7 @@ describe("evaluateRewardConditions", () => {
 
         const context: RewardContext = {
           customer: {
-            subscriptionDuration: 6,
+            subscriptionDurationMonths: 6,
           },
         };
 

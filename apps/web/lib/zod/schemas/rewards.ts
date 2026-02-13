@@ -148,7 +148,7 @@ export const REWARD_CONDITIONS: Record<
             ],
           },
           {
-            id: "subscriptionDuration",
+            id: "subscriptionDurationMonths",
             label: "Subscription duration",
             type: "number",
           },
@@ -352,7 +352,7 @@ export const rewardContextSchema = z.object({
     .object({
       country: z.string().nullish(),
       source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
-      subscriptionDuration: z.number().nullish(),
+      subscriptionDurationMonths: z.number().nullish(),
     })
     .optional(),
 

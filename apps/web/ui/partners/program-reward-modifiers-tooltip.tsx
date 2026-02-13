@@ -174,7 +174,7 @@ const RewardItem = ({
                   {condition.entity}{" "}
                   {(
                     attribute?.label ??
-                    (condition.attribute === "subscriptionDuration"
+                    (condition.attribute === "subscriptionDurationMonths"
                       ? "Subscription duration"
                       : condition.attribute)
                   )?.toLowerCase()}{" "}
@@ -188,7 +188,7 @@ const RewardItem = ({
                             .join(", ")
                         : COUNTRIES[condition.value?.toString()] ??
                           condition.value
-                      : condition.attribute === "subscriptionDuration"
+                      : condition.attribute === "subscriptionDurationMonths"
                         ? Array.isArray(condition.value)
                           ? (condition.value as number[])
                               .map(formatSubscriptionDuration)

@@ -216,12 +216,12 @@ export const createPartnerCommission = async ({
 
             // Recurring sale reward (maxDuration > 0)
             else {
-              const subscriptionDuration = differenceInMonths(
+              const subscriptionDurationMonths = differenceInMonths(
                 new Date(),
                 firstCommission.createdAt,
               );
 
-              if (subscriptionDuration >= reward.maxDuration) {
+              if (subscriptionDurationMonths >= reward.maxDuration) {
                 console.log(
                   `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
                 );
@@ -240,14 +240,14 @@ export const createPartnerCommission = async ({
                   ...context,
                   customer: {
                     ...context?.customer,
-                    subscriptionDuration,
+                    subscriptionDurationMonths,
                   },
                 },
               });
 
               if (!reward) {
                 console.log(
-                  `Partner ${partnerId} does not have a qualifying reward for subscription duration ${subscriptionDuration}, skipping commission creation...`,
+                  `Partner ${partnerId} does not have a qualifying reward for subscription duration ${subscriptionDurationMonths}, skipping commission creation...`,
                 );
                 return {
                   commission: null,
