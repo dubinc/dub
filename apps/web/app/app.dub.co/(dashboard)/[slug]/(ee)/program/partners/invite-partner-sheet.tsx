@@ -1,6 +1,7 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { saveInviteEmailDataAction } from "@/lib/actions/partners/save-invite-email-data";
+import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -275,7 +276,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                   }}
                   placeholder="panic@thedis.co"
                   normalize={(v) => v.trim().toLowerCase()}
-                  maxValues={50}
+                  maxValues={MAX_PARTNERS_INVITES_PER_REQUEST}
                   disabled={isEditingEmail || isSavingEmailData}
                   autoFocus={!isMobile}
                 />
@@ -387,9 +388,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             text="Send invite"
             className="w-fit"
             loading={isPending || isSubmitting || isSubmitSuccessful}
-            disabled={
-              isPending || isEditingEmail || isSavingEmailData
-            }
+            disabled={isPending || isEditingEmail || isSavingEmailData}
           />
         </div>
       </div>

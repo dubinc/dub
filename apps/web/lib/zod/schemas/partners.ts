@@ -1,3 +1,4 @@
+import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import {
   IndustryInterest,
   MonthlyTraffic,
@@ -743,10 +744,10 @@ export const invitePartnerSchema = z
       .map((value) => value.trim().toLowerCase())
       .filter(Boolean);
 
-    if (new Set(recipients).size > 50) {
+    if (new Set(recipients).size > MAX_PARTNERS_INVITES_PER_REQUEST) {
       ctx.addIssue({
         code: "custom",
-        message: "You can invite up to 50 partners at once.",
+        message: `You can invite up to ${MAX_PARTNERS_INVITES_PER_REQUEST} partners at once.`,
         path: ["emails"],
       });
     }

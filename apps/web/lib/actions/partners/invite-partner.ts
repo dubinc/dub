@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
@@ -34,8 +35,10 @@ export const invitePartnerAction = authActionClient
     if (uniqueRecipientEmails.length === 0) {
       throw new Error("Please provide at least one partner email.");
     }
-    if (uniqueRecipientEmails.length > 50) {
-      throw new Error("You can invite up to 50 partners at once.");
+    if (uniqueRecipientEmails.length > MAX_PARTNERS_INVITES_PER_REQUEST) {
+      throw new Error(
+        `You can invite up to ${MAX_PARTNERS_INVITES_PER_REQUEST} partners at once.`,
+      );
     }
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -121,10 +124,12 @@ export const invitePartnerAction = authActionClient
       const sendPartnerInvitePromises = enrolledPartners.map(
         async ({ enrolledPartner, recipientEmail }) => {
           try {
-            const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
-              programId,
-              groupId: enrolledPartner.groupId || program.defaultGroupId,
-            });
+            const rewardsAndBounties = await getPartnerInviteRewardsAndBounties(
+              {
+                programId,
+                groupId: enrolledPartner.groupId || program.defaultGroupId,
+              },
+            );
 
             await sendEmail({
               subject:
@@ -164,21 +169,22 @@ export const invitePartnerAction = authActionClient
         },
       );
 
-      const recordAuditLogPromises = enrolledPartners.map(({ enrolledPartner }) =>
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "partner.invited",
-          description: `Partner ${enrolledPartner.id} invited`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: enrolledPartner.id,
-              metadata: enrolledPartner,
-            },
-          ],
-        }),
+      const recordAuditLogPromises = enrolledPartners.map(
+        ({ enrolledPartner }) =>
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner.invited",
+            description: `Partner ${enrolledPartner.id} invited`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: enrolledPartner.id,
+                metadata: enrolledPartner,
+              },
+            ],
+          }),
       );
 
       return [...sendPartnerInvitePromises, ...recordAuditLogPromises];
