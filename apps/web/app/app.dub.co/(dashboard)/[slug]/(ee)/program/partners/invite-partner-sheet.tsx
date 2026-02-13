@@ -13,6 +13,8 @@ import {
   BlurImage,
   Button,
   InfoTooltip,
+  MultiValueInput,
+  type MultiValueInputRef,
   RichTextArea,
   RichTextProvider,
   RichTextToolbar,
@@ -44,8 +46,6 @@ type EmailContent = {
   title: string;
   body: string;
 };
-
-const invitePartnerEmailSchema = z.email().trim().min(1).max(100);
 
 function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const { program, mutate } = useProgram<
@@ -101,117 +101,9 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     },
   });
 
-  const [recipientEmails, setRecipientEmails] = useState<string[]>([]);
-  const [emailInput, setEmailInput] = useState("");
-  const [selectedRecipientEmail, setSelectedRecipientEmail] = useState<
-    string | null
-  >(null);
-  const emailInputRef = useRef<HTMLInputElement>(null);
-  const emailFieldRef = useRef<HTMLDivElement>(null);
-  const [isEmailFieldWrapped, setIsEmailFieldWrapped] = useState(false);
-  const hasMultipleRecipients = recipientEmails.length > 1;
-
-  const handleEmailInputChange = (value: string) => {
-    emailInputRef.current?.setCustomValidity("");
-    setSelectedRecipientEmail(null);
-    setEmailInput(value);
-  };
-
-  const handleEmailInputKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-  ) => {
-    const inputElement = e.currentTarget;
-    const selectedIndex = selectedRecipientEmail
-      ? recipientEmails.findIndex((email) => email === selectedRecipientEmail)
-      : -1;
-
-    if (e.key === "," || e.key === "Enter") {
-      e.preventDefault();
-      commitEmailInput();
-      return;
-    }
-
-    if (e.key === "ArrowLeft" && recipientEmails.length > 0) {
-      // Move chip selection left from the input caret, then across chips.
-      if (selectedIndex > 0) {
-        e.preventDefault();
-        setSelectedRecipientEmail(recipientEmails[selectedIndex - 1]);
-        return;
-      }
-
-      if (
-        selectedIndex === -1 &&
-        inputElement.selectionStart === 0 &&
-        inputElement.selectionEnd === 0
-      ) {
-        e.preventDefault();
-        setSelectedRecipientEmail(recipientEmails[recipientEmails.length - 1]);
-        return;
-      }
-    }
-
-    if (e.key === "ArrowRight" && selectedIndex !== -1) {
-      e.preventDefault();
-
-      if (selectedIndex < recipientEmails.length - 1) {
-        setSelectedRecipientEmail(recipientEmails[selectedIndex + 1]);
-        return;
-      }
-
-      // Return to regular input cursor mode.
-      setSelectedRecipientEmail(null);
-      return;
-    }
-
-    if (
-      (e.key === "Backspace" || e.key === "Delete") &&
-      !emailInput &&
-      recipientEmails.length > 0
-    ) {
-      e.preventDefault();
-
-      if (selectedRecipientEmail) {
-        setRecipientEmails((prev) =>
-          prev.filter((email) => email !== selectedRecipientEmail),
-        );
-        setSelectedRecipientEmail(null);
-        return;
-      }
-
-      setSelectedRecipientEmail(recipientEmails[recipientEmails.length - 1]);
-    }
-
-    if (e.key === "Tab" && selectedRecipientEmail) {
-      e.preventDefault();
-      setSelectedRecipientEmail(null);
-    }
-  };
-
-  useEffect(() => {
-    const container = emailFieldRef.current;
-    if (!container) return;
-
-    const checkWrappedState = () => {
-      const children = Array.from(container.children) as HTMLElement[];
-
-      if (children.length <= 1) {
-        setIsEmailFieldWrapped(false);
-        return;
-      }
-
-      const tops = children.map((el) => el.offsetTop);
-      const firstRowTop = Math.min(...tops);
-      const wrapped = tops.some((top) => top - firstRowTop > 2);
-      setIsEmailFieldWrapped(wrapped);
-    };
-
-    checkWrappedState();
-
-    const observer = new ResizeObserver(checkWrappedState);
-    observer.observe(container);
-
-    return () => observer.disconnect();
-  }, [recipientEmails, emailInput]);
+  const multiValueInputRef = useRef<MultiValueInputRef>(null);
+  const emails = watch("emails") ?? [];
+  const hasMultipleRecipients = emails.length > 1;
 
   const { executeAsync, isPending } = useAction(invitePartnerAction, {
     onSuccess: ({ data }) => {
@@ -262,112 +154,24 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       },
     });
 
-  useEffect(() => {
-    setValue("emails", recipientEmails, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-    setValue("email", recipientEmails[0], {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  }, [recipientEmails, setValue]);
-
-  useEffect(() => {
-    if (
-      selectedRecipientEmail &&
-      !recipientEmails.includes(selectedRecipientEmail)
-    ) {
-      setSelectedRecipientEmail(null);
-    }
-  }, [recipientEmails, selectedRecipientEmail]);
-
-  const addRecipientEmail = (rawValue: string) => {
-    const normalizedValue = rawValue.trim().toLowerCase();
-
-    if (!normalizedValue) {
-      return true;
-    }
-
-    const parsedEmail = invitePartnerEmailSchema.safeParse(normalizedValue);
-
-    if (!parsedEmail.success) {
-      emailInputRef.current?.setCustomValidity(
-        "Please enter a valid email address.",
-      );
-      emailInputRef.current?.reportValidity();
-      return false;
-    }
-
-    setRecipientEmails((prev) => {
-      if (prev.includes(normalizedValue)) {
-        return prev;
-      }
-
-      return [...prev, normalizedValue];
-    });
-    emailInputRef.current?.setCustomValidity("");
-
-    return true;
-  };
-
-  const commitEmailInput = () => {
-    const emailCandidates = emailInput
-      .split(",")
-      .map((value) => value.trim())
-      .filter(Boolean);
-
-    if (emailCandidates.length === 0) {
-      setEmailInput("");
-      return true;
-    }
-
-    for (const candidate of emailCandidates) {
-      const wasAdded = addRecipientEmail(candidate);
-
-      if (!wasAdded) {
-        return false;
-      }
-    }
-
-    setEmailInput("");
-    return true;
-  };
-
   const onSubmit = async (data: InvitePartnerFormData) => {
     if (!workspaceId || !program?.id) {
       return;
     }
 
-    const didCommitPendingInput = commitEmailInput();
+    const finalEmails =
+      multiValueInputRef.current?.commitPendingInput() ?? data.emails ?? [];
 
-    if (!didCommitPendingInput) {
-      return;
-    }
-
-    const finalRecipientEmails = Array.from(
-      new Set([
-        ...recipientEmails,
-        ...emailInput
-          .split(",")
-          .map((value) => value.trim().toLowerCase())
-          .filter(Boolean),
-      ]),
-    );
-
-    if (finalRecipientEmails.length === 0) {
-      emailInputRef.current?.setCustomValidity(
-        "Please enter at least one email address.",
-      );
-      emailInputRef.current?.reportValidity();
+    if (finalEmails.length === 0) {
+      toast.error("Please enter at least one email address.");
       return;
     }
 
     await executeAsync({
       ...data,
-      email: finalRecipientEmails[0],
-      emails: finalRecipientEmails,
-      ...(finalRecipientEmails.length > 1
+      email: finalEmails[0],
+      emails: finalEmails,
+      ...(finalEmails.length > 1
         ? { name: undefined, username: undefined }
         : {}),
       workspaceId,
@@ -454,72 +258,30 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
                 Email
               </label>
 
-              <div
-                ref={emailFieldRef}
-                className={cn(
-                  "relative mt-2 flex w-full flex-wrap items-center gap-1 rounded-md border border-neutral-300 bg-white px-1.5 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
-                  isEmailFieldWrapped ? "py-[4px]" : "h-[38px] py-[3px]",
-                )}
-              >
-                {recipientEmails.map((recipientEmail) => (
-                  <span
-                    key={recipientEmail}
-                    onClick={() => setSelectedRecipientEmail(recipientEmail)}
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded-md pl-1.5 pr-1 py-0.5 text-sm leading-6",
-                      selectedRecipientEmail === recipientEmail
-                        ? "bg-neutral-300 text-neutral-900"
-                        : "bg-neutral-100 text-neutral-900",
-                    )}
-                  >
-                    <span>{recipientEmail}</span>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      icon={<X className="size-3" strokeWidth={2.5} />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedRecipientEmail((prev) =>
-                          prev === recipientEmail ? null : prev,
-                        );
-                        setRecipientEmails((prev) =>
-                          prev.filter((email) => email !== recipientEmail),
-                        );
-                      }}
-                      className={cn(
-                        "h-auto w-fit rounded-md p-0.5 shadow-none",
-                        selectedRecipientEmail === recipientEmail
-                          ? "text-neutral-600 hover:text-neutral-800"
-                          : "text-neutral-500 hover:text-neutral-700",
-                      )}
-                    />
-                  </span>
-                ))}
-                <div className="min-w-[8rem] flex-[1_1_8rem]">
-                  <input
-                    ref={emailInputRef}
-                    id="partner-email-input"
-                    value={emailInput}
-                    onChange={(e) => handleEmailInputChange(e.target.value)}
-                    onKeyDown={handleEmailInputKeyDown}
-                    onBlur={() => {
-                      setSelectedRecipientEmail(null);
-                      commitEmailInput();
-                    }}
-                    className={cn(
-                      "h-7 w-full border-0 bg-transparent px-1.5 text-sm leading-6 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0",
-                      selectedRecipientEmail &&
-                        "caret-transparent text-transparent placeholder:text-transparent",
-                    )}
-                    placeholder="panic@thedis.co"
-                    type="text"
-                    autoComplete="off"
-                    autoFocus={!isMobile}
-                  />
-                </div>
+              <div className="mt-2">
+                <MultiValueInput
+                  ref={multiValueInputRef}
+                  id="partner-email-input"
+                  values={emails}
+                  onChange={(values) => {
+                    setValue("emails", values, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                    setValue("email", values[0] ?? "", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                  }}
+                  placeholder="panic@thedis.co"
+                  normalize={(v) => v.trim().toLowerCase()}
+                  maxValues={50}
+                  disabled={isEditingEmail || isSavingEmailData}
+                  autoFocus={!isMobile}
+                />
               </div>
               <p className="mt-2 text-xs text-neutral-500">
-                Separate multiple emails with commas
+                Separate multiple emails with commas, or paste a list
               </p>
             </div>
 
@@ -626,10 +388,7 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             className="w-fit"
             loading={isPending || isSubmitting || isSubmitSuccessful}
             disabled={
-              isPending ||
-              (recipientEmails.length === 0 && emailInput.trim().length === 0) ||
-              isEditingEmail ||
-              isSavingEmailData
+              isPending || isEditingEmail || isSavingEmailData
             }
           />
         </div>
