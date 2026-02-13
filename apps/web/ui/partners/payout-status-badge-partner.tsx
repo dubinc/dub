@@ -10,7 +10,7 @@ export const PayoutStatusBadgePartner = ({
   payout,
   program,
 }: {
-  payout: Pick<Payout, "status" | "amount" | "failureReason" | "method"> & {
+  payout: Pick<Payout, "status" | "amount" | "method"> & {
     failureReason?: string | null;
   };
   program: Pick<Program, "minPayoutAmount">;
