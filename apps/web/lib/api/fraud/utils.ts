@@ -120,6 +120,7 @@ export function sanitizeFraudEventMetadata(
 
   delete sanitized.duplicatePartnerId;
   delete sanitized.payoutMethodHash;
+  delete sanitized.payoutWalletHash;
 
   return Object.keys(sanitized).length > 0 ? sanitized : undefined;
 }

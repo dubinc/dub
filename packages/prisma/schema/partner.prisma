@@ -38,6 +38,7 @@ model Partner {
   stripeRecipientId            String?              @unique
   payoutsEnabledAt             DateTime?
   payoutMethodHash             String?
+  payoutWalletHash             String?
   connectPayoutsLastRemindedAt DateTime?
   defaultPayoutMethod          PartnerPayoutMethod?
 

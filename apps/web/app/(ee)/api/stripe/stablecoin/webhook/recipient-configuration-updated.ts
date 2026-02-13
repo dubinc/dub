@@ -1,6 +1,9 @@
+import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
+import { getStripeStablecoinPayoutMethod } from "@/lib/stripe/get-stripe-recipient-payout-method";
 import { stripeV2ThinEventSchema } from "@/lib/stripe/stripe-v2-schemas";
 import { prisma } from "@dub/prisma";
+import { hashStringSHA256 } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function recipientConfigurationUpdated(event: Stripe.Event) {
@@ -30,6 +33,13 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
   const { payoutsEnabledAt, defaultPayoutMethod } =
     await recomputePartnerPayoutState(partner);
 
+  const stablecoinPayoutMethod =
+    await getStripeStablecoinPayoutMethod(stripeRecipientId);
+
+  const payoutWalletHash = stablecoinPayoutMethod?.crypto_wallet?.address
+    ? await hashStringSHA256(stablecoinPayoutMethod?.crypto_wallet?.address)
+    : null;
+
   await prisma.partner.update({
     where: {
       id: partner.id,
@@ -37,8 +47,15 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
     data: {
       payoutsEnabledAt,
       defaultPayoutMethod,
+      payoutWalletHash,
     },
   });
+
+  if (payoutWalletHash) {
+    detectDuplicatePayoutMethodFraud({
+      payoutWalletHash,
+    });
+  }
 
   return `Updated partner ${partner.email} (${stripeRecipientId}) with payoutsEnabledAt ${payoutsEnabledAt ? "set" : "cleared"}, defaultPayoutMethod ${defaultPayoutMethod ?? "cleared"}`;
 }

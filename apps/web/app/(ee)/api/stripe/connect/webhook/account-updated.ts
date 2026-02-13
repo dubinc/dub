@@ -98,7 +98,9 @@ export async function accountUpdated(event: Stripe.Event) {
         },
       }),
 
-      detectDuplicatePayoutMethodFraud(payoutMethodHash),
+      detectDuplicatePayoutMethodFraud({
+        payoutMethodHash,
+      }),
     ]);
 
     // Send confirmation email only if this is the first time connecting a bank account

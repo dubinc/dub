@@ -1,7 +1,7 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
-import { getStripeStablecoinPayoutMethod } from "@/lib/stripe/get-stripe-payout-methods";
+import { getStripeStablecoinPayoutMethod } from "@/lib/stripe/get-stripe-recipient-payout-method";
 import { PartnerPayoutMethodSetting } from "@/lib/types";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
