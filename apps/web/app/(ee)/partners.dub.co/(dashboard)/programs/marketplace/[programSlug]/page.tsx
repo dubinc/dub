@@ -8,7 +8,7 @@ import { ProgramCategory } from "@/ui/partners/program-marketplace/program-categ
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
 import { prisma } from "@dub/prisma";
 import { ChevronRight, Shop, Tooltip } from "@dub/ui";
-import { Hyperlink } from "@dub/ui/icons";
+import { Globe } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -206,13 +206,13 @@ export default async function MarketplaceProgramPage(props: {
                     target="_blank"
                     rel="noopener noreferrer"
                     className={cn(
-                      "mt-1 flex max-w-[220px] items-center gap-1 text-sm font-medium",
+                      "mt-1 flex max-w-[220px] items-center gap-1.5 text-sm font-medium",
                       isDarkImage
                         ? "text-content-inverted/90 hover:text-content-inverted"
                         : "text-content-default hover:text-content-emphasis",
                     )}
                   >
-                    <Hyperlink className="size-4 shrink-0" />
+                    <Globe className="size-4 shrink-0" />
                     <span className="truncate">
                       {getDomainWithoutWWW(program.url)} ↗
                     </span>
