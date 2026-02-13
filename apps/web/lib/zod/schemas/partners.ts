@@ -742,6 +742,7 @@ export const bulkInvitePartnersSchema = z.object({
   groupId: z.string().nullish(),
   emails: z
     .array(z.email().trim().min(1).max(100))
+    .min(1)
     .max(MAX_PARTNERS_INVITES_PER_REQUEST),
 });
 

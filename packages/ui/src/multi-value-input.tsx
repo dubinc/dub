@@ -90,10 +90,7 @@ const MultiValueInput = React.forwardRef<
 
   const addValues = useCallback(
     (candidates: string[]) => {
-      const normalized = candidates
-        .map(normalize)
-        .filter(Boolean)
-        .filter((v) => !values.includes(v));
+      const normalized = candidates.map(normalize).filter(Boolean);
       if (normalized.length === 0) return values;
       const next = [...values];
       for (const v of normalized) {
@@ -104,6 +101,16 @@ const MultiValueInput = React.forwardRef<
     },
     [values, normalize, maxValues],
   );
+
+  /** Deduplicate preserving first occurrence order; used only on blur. */
+  const deduplicateValues = useCallback((list: string[]): string[] => {
+    const seen = new Set<string>();
+    return list.filter((v) => {
+      if (seen.has(v)) return false;
+      seen.add(v);
+      return true;
+    });
+  }, []);
 
   const commitPendingInput = useCallback((): string[] => {
     const parsed = parseCsvLikeValues(inputValue);
@@ -216,6 +223,9 @@ const MultiValueInput = React.forwardRef<
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const pasted = e.clipboardData.getData("text");
+    const hasDelimiter = /[,\n\r]/.test(pasted);
+    if (!hasDelimiter) return;
+
     const parsed = parseCsvLikeValues(pasted);
     if (parsed.length === 0) return;
 
@@ -227,7 +237,11 @@ const MultiValueInput = React.forwardRef<
 
   const handleBlur = () => {
     setSelectedValue(null);
-    commitPendingInput();
+    const afterCommit = commitPendingInput();
+    const deduped = deduplicateValues(afterCommit);
+    if (deduped.length !== afterCommit.length) {
+      onChange(deduped);
+    }
   };
 
   const removeValue = (value: string) => {
@@ -245,9 +259,9 @@ const MultiValueInput = React.forwardRef<
         className,
       )}
     >
-      {values.map((value) => (
+      {values.map((value, index) => (
         <span
-          key={value}
+          key={`${value}-${index}`}
           onClick={() => setSelectedValue(value)}
           className={cn(
             "inline-flex items-center gap-1 rounded-md py-0.5 pl-1.5 pr-1 text-sm leading-6",

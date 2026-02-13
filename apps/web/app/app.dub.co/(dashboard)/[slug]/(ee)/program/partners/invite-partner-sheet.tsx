@@ -135,15 +135,13 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
 
         if (invitedCount > 0) {
           parts.push(
-            invitedCount === 1
-              ? "Invitation sent to 1 partner."
-              : `Invitations sent to ${invitedCount} partners.`,
+            `${pluralize("Invitation", invitedCount)} sent to ${invitedCount} ${pluralize("partner", invitedCount)}.`,
           );
         }
 
         if (skippedCount > 0) {
           parts.push(
-            `${skippedCount} ${pluralize("partner", skippedCount)} were skipped because they're already enrolled or previously invited.`,
+            `Skipped ${skippedCount} ${pluralize("partner", skippedCount)} because they're already enrolled or previously invited.`,
           );
         }
 
