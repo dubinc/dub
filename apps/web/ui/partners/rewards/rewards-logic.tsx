@@ -565,6 +565,10 @@ function ConditionLogic({
                       )}
                     </InlineBadgePopover>
 
+                    {condition.attribute === "subscriptionDurationMonths" && (
+                      <span> months</span>
+                    )}
+
                     {condition.attribute === "productId" && condition.value && (
                       <button
                         type="button"

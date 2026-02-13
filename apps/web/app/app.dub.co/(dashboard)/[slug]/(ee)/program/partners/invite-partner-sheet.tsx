@@ -1,24 +1,32 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
+import { bulkInvitePartnersAction } from "@/lib/actions/partners/bulk-invite-partners";
 import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
 import { saveInviteEmailDataAction } from "@/lib/actions/partners/save-invite-email-data";
+import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramInviteEmailData, ProgramProps } from "@/lib/types";
-import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  bulkInvitePartnersSchema,
+  invitePartnerSchema,
+} from "@/lib/zod/schemas/partners";
 import { GroupSelector } from "@/ui/partners/groups/group-selector";
 import { X } from "@/ui/shared/icons";
 import {
+  AnimatedSizeContainer,
   BlurImage,
   Button,
   InfoTooltip,
+  MultiValueInput,
+  type MultiValueInputRef,
   RichTextArea,
   RichTextProvider,
   RichTextToolbar,
   Sheet,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -30,13 +38,18 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import * as z from "zod/v4";
 
 interface InvitePartnerSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
-type InvitePartnerFormData = z.infer<typeof invitePartnerSchema>;
+type InvitePartnerFormData = {
+  email: string;
+  emails: string[];
+  name?: string;
+  username?: string;
+  groupId: string | null;
+};
 
 type EmailContent = {
   subject: string;
@@ -92,21 +105,53 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
     setValue,
   } = useForm<InvitePartnerFormData>({
     defaultValues: {
+      email: "",
+      emails: [],
       groupId: program?.defaultGroupId || "",
     },
   });
 
-  const email = watch("email");
+  const multiValueInputRef = useRef<MultiValueInputRef>(null);
+  const emails = watch("emails") ?? [];
+  const hasMultipleRecipients = emails.length > 1;
 
-  const { executeAsync, isPending } = useAction(invitePartnerAction, {
-    onSuccess: () => {
-      toast.success("Invitation sent to partner!");
-      setIsOpen(false);
+  const { executeAsync: invitePartner, isPending } = useAction(
+    invitePartnerAction,
+    {
+      onSuccess: () => {
+        toast.success("Invitation sent to partner!");
+        setIsOpen(false);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
+  );
+
+  const { executeAsync: bulkInvitePartners, isPending: isBulkPending } =
+    useAction(bulkInvitePartnersAction, {
+      onSuccess: ({ data: { invitedCount, skippedCount } }) => {
+        const parts: string[] = [];
+
+        if (invitedCount > 0) {
+          parts.push(
+            `${pluralize("Invitation", invitedCount)} sent to ${invitedCount} ${pluralize("partner", invitedCount)}.`,
+          );
+        }
+
+        if (skippedCount > 0) {
+          parts.push(
+            `Skipped ${skippedCount} ${pluralize("partner", skippedCount)} because they're already enrolled or previously invited.`,
+          );
+        }
+
+        toast.success(parts.join(" "));
+        setIsOpen(false);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
+    });
 
   const { executeAsync: saveEmailDataAsync, isPending: isSavingEmailData } =
     useAction(saveInviteEmailDataAction, {
@@ -133,10 +178,44 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
       return;
     }
 
-    await executeAsync({
-      ...data,
+    const finalEmails =
+      multiValueInputRef.current?.commitPendingInput() ?? data.emails ?? [];
+
+    if (finalEmails.length === 0) {
+      toast.error("Please enter at least one email address.");
+      return;
+    }
+
+    if (finalEmails.length === 1) {
+      const parsed = invitePartnerSchema.safeParse({
+        workspaceId,
+        email: finalEmails[0],
+        name: data.name,
+        username: data.username,
+        groupId: data.groupId ?? null,
+      });
+
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+        return;
+      }
+
+      await invitePartner(parsed.data);
+      return;
+    }
+
+    const parsed = bulkInvitePartnersSchema.safeParse({
       workspaceId,
+      emails: finalEmails,
+      groupId: data.groupId ?? null,
     });
+
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message ?? "Invalid input");
+      return;
+    }
+
+    await bulkInvitePartners(parsed.data);
   };
 
   const handleStartEditing = () => {
@@ -213,70 +292,95 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
           <div className="grid grid-cols-1 gap-6">
             <div>
               <label
-                htmlFor="email"
+                htmlFor="partner-email-input"
                 className="block text-sm font-medium text-neutral-900"
               >
                 Email
               </label>
 
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <input
-                  {...register("email", { required: true })}
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              <div className="mt-2">
+                <MultiValueInput
+                  ref={multiValueInputRef}
+                  id="partner-email-input"
+                  values={emails}
+                  onChange={(values) => {
+                    setValue("emails", values, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                    setValue("email", values[0] ?? "", {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    });
+                  }}
                   placeholder="panic@thedis.co"
-                  type="email"
-                  autoComplete="off"
+                  normalize={(v) => v.trim().toLowerCase()}
+                  maxValues={MAX_PARTNERS_INVITES_PER_REQUEST}
+                  disabled={isEditingEmail || isSavingEmailData}
                   autoFocus={!isMobile}
                 />
               </div>
+              <p className="mt-2 text-xs text-neutral-500">
+                Separate multiple emails with commas, or paste a list
+              </p>
             </div>
 
             <div>
-              <label
-                htmlFor="name"
-                className="block text-sm font-medium text-neutral-900"
+              <AnimatedSizeContainer
+                height
+                className="overflow-visible"
+                transition={{ ease: "easeOut", duration: 0.35 }}
               >
-                Name <span className="text-neutral-500">(optional)</span>
-              </label>
+                {!hasMultipleRecipients && (
+                  <div className="grid grid-cols-1 gap-6 pb-6">
+                    <div>
+                      <label
+                        htmlFor="name"
+                        className="block text-sm font-medium text-neutral-900"
+                      >
+                        Name{" "}
+                        <span className="text-neutral-500">(optional)</span>
+                      </label>
 
-              <div className="relative mt-2 rounded-md shadow-sm">
-                <input
-                  {...register("name")}
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  placeholder="John Doe"
-                  type="text"
-                  autoComplete="off"
-                />
-              </div>
-            </div>
+                      <div className="relative mt-2 rounded-md shadow-sm">
+                        <input
+                          {...register("name")}
+                          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          placeholder="John Doe"
+                          type="text"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </div>
 
-            <div>
-              <div className="flex items-center gap-2">
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium text-neutral-900"
-                >
-                  Short link{" "}
-                  <span className="text-neutral-500">(optional)</span>
-                </label>
-              </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <label
+                          htmlFor="username"
+                          className="block text-sm font-medium text-neutral-900"
+                        >
+                          Short link{" "}
+                          <span className="text-neutral-500">(optional)</span>
+                        </label>
+                      </div>
 
-              <div className="mt-2 flex">
-                <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                  {program?.domain}
-                </span>
-                <input
-                  {...register("username")}
-                  type="text"
-                  id="username"
-                  className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  placeholder="johndoe"
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-
-            <div>
+                      <div className="mt-2 flex">
+                        <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
+                          {program?.domain}
+                        </span>
+                        <input
+                          {...register("username")}
+                          type="text"
+                          id="username"
+                          className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                          placeholder="johndoe"
+                          autoComplete="off"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </AnimatedSizeContainer>
               <label className="block text-sm font-medium text-neutral-900">
                 Group <span className="text-neutral-500">(optional)</span>
               </label>
@@ -315,16 +419,18 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="w-fit"
-            disabled={isPending}
+            disabled={isPending || isBulkPending}
           />
           <Button
             type="submit"
             variant="primary"
             text="Send invite"
             className="w-fit"
-            loading={isPending || isSubmitting || isSubmitSuccessful}
+            loading={
+              isPending || isBulkPending || isSubmitting || isSubmitSuccessful
+            }
             disabled={
-              isPending || !email || isEditingEmail || isSavingEmailData
+              isPending || isBulkPending || isEditingEmail || isSavingEmailData
             }
           />
         </div>
