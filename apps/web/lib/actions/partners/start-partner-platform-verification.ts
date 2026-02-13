@@ -7,6 +7,7 @@ import {
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
+import { GENERIC_EMAIL_DOMAINS } from "@/lib/is-generic-email";
 import {
   sanitizeSocialHandle,
   SOCIAL_PLATFORM_CONFIGS,
@@ -98,12 +99,23 @@ async function startWebsiteVerification({
   | Extract<VerificationResult, { type: "txt_record" }>
   | Extract<VerificationResult, { type: "auto_verified" }>
 > {
-  const websiteHostname = getDomainWithoutWWW(handle);
+  const websiteDomain = getDomainWithoutWWW(handle)?.toLowerCase();
+  const emailDomain = partner.email?.split("@")[1]?.toLowerCase();
 
-  // Auto-verify if partner's email domain matches the website domain exactly
-  if (partner.email?.includes("@")) {
-    const emailDomain = partner.email.split("@")[1]?.toLowerCase();
-    if (emailDomain && emailDomain === websiteHostname) {
+  if (websiteDomain && emailDomain) {
+    const isDisposableEmailDomain = await redis.sismember(
+      "disposableEmailDomains",
+      emailDomain,
+    );
+    // Auto-verify if website if the partner's email domain:
+    // - is not a generic email domain
+    // - is not a disposable email domain
+    // - matches the website domain exactly
+    if (
+      !GENERIC_EMAIL_DOMAINS.includes(emailDomain) &&
+      !isDisposableEmailDomain &&
+      emailDomain === websiteDomain
+    ) {
       await upsertPartnerPlatform({
         where: {
           partnerId: partner.id,
