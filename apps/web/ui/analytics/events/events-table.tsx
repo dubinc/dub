@@ -395,7 +395,7 @@ export default function EventsTable({
         },
         {
           id: "referer",
-          header: "Referer",
+          header: "Referrer",
           accessorKey: "click.referer",
           meta: {
             filterParams: ({ getValue }) => ({ referer: getValue() }),
