@@ -11,7 +11,6 @@ export default function usePartnersCount<T>({
   enabled,
   ...params
 }: z.infer<typeof partnersCountQuerySchema> & {
-  programId?: string;
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {

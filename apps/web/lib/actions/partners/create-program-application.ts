@@ -72,7 +72,7 @@ const sanitizeFormData = (
 };
 
 function sanitizeData(rawData: ProgramApplicationData, group: PartnerGroup) {
-  const { formData: rawFormData, ...data } = rawData;
+  const { formData: rawFormData, inAppApplication, ...data } = rawData;
 
   const formData = rawFormData ? sanitizeFormData(rawFormData, group) : null;
 
@@ -114,7 +114,7 @@ function sanitizeData(rawData: ProgramApplicationData, group: PartnerGroup) {
 export const createProgramApplicationAction = actionClient
   .inputSchema(createProgramApplicationSchema)
   .action(async ({ parsedInput }): Promise<Response> => {
-    const { programId, groupId } = parsedInput;
+    const { programId, groupId, inAppApplication } = parsedInput;
 
     // Limit to 3 requests per minute per program per IP
     const { success } = await ratelimit(3, "1 m").limit(
@@ -166,6 +166,8 @@ export const createProgramApplicationAction = actionClient
           include: {
             programs: true,
             platforms: true,
+            preferredEarningStructures: true,
+            salesChannels: true,
           },
         })
       : null;
@@ -176,15 +178,27 @@ export const createProgramApplicationAction = actionClient
       throw new Error("This program is no longer accepting applications.");
     }
 
-    if (existingPartner) {
-      // if an existing partner has an incomplete profile, prompt them to complete it
+    // for in-app applications from existing partners, we need to check
+    // if the partner has an incomplete profile, if so we prompt them to complete it
+    if (inAppApplication && existingPartner) {
       const { isComplete } = getPartnerProfileChecklistProgress({
-        partner: existingPartner,
+        partner: {
+          ...existingPartner,
+          preferredEarningStructures:
+            existingPartner.preferredEarningStructures.map(
+              ({ preferredEarningStructure }) => preferredEarningStructure,
+            ),
+          salesChannels: existingPartner.salesChannels.map(
+            ({ salesChannel }) => salesChannel,
+          ),
+        },
         programEnrollments: existingPartner.programs,
       });
 
       if (!isComplete) {
-        throw new Error("Complete your partner profile to apply.");
+        throw new Error(
+          "Please complete your partner profile to submit your application: https://partners.dub.co/profile",
+        );
       }
 
       return createApplicationAndEnrollment({
@@ -234,7 +248,7 @@ async function createApplicationAndEnrollment({
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  const [application, programEnrollment] = await Promise.all([
+  const [application, programEnrollment] = await prisma.$transaction([
     prisma.programApplication.create({
       data: {
         ...sanitizeData(data, group),

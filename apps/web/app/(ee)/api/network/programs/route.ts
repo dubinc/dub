@@ -113,19 +113,23 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   return NextResponse.json(
     z.array(NetworkProgramSchema).parse(
-      programs.map((program) => ({
-        ...program,
-        rewards:
-          program.groups.length > 0
-            ? [
-                program.groups[0].clickReward,
-                program.groups[0].leadReward,
-                program.groups[0].saleReward,
-              ].filter(Boolean)
-            : [],
-        discount: program.groups.length > 0 ? program.groups[0].discount : null,
-        categories: program.categories.map(({ category }) => category),
-      })),
+      programs
+        // if requesting featured programs, randomize the order
+        .sort(() => (featured ? Math.random() - 0.5 : 0))
+        .map((program) => ({
+          ...program,
+          rewards:
+            program.groups.length > 0
+              ? [
+                  program.groups[0].clickReward,
+                  program.groups[0].leadReward,
+                  program.groups[0].saleReward,
+                ].filter(Boolean)
+              : [],
+          discount:
+            program.groups.length > 0 ? program.groups[0].discount : null,
+          categories: program.categories.map(({ category }) => category),
+        })),
     ),
   );
 });
