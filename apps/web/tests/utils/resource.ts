@@ -26,13 +26,6 @@ export const E2E_TAG_2 = {
   color: "blue",
 };
 
-export const E2E_CUSTOMER_ID = "cm25onzuv0001s1bbxchrc0ae";
-export const E2E_CUSTOMER_EXTERNAL_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
-export const E2E_CUSTOMER_EXTERNAL_ID_2 = "cus_pqc8qRtofpu6ZqvutyNDGAU2";
-export const E2E_CUSTOMER_SG_EXTERNAL_ID = "cus_LnZbkb8boLsOn1YGLPxZGZMU";
-export const E2E_CUSTOMER_SUB_DURATION_EXTERNAL_ID =
-  "cus_TlwjnmJb4Fa8lU8IA5Dg0uzo";
-
 export const E2E_WEBHOOK_ID = "wh_MHR7sZXXtZ7keBaNYZ30rQ0v";
 
 // Folders specific
@@ -41,6 +34,14 @@ export const E2E_READ_ONLY_FOLDER_ID = "fold_1JP8FN462884CA6JJCVPAHAD4"; // Fold
 export const E2E_NO_ACCESS_FOLDER_ID = "fold_1JRZXGNNYWDA5QTT8CVDB3M23"; // Folder with no access
 export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_1KAESR5Z733716RTT4E1RSTW6"; // A link in read-only folder
 export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_1KAESQ2Z6Q35WDV5NGSEVPFB0"; // A link in no access folder
+
+// Different customer external IDs for different reward conditions
+export const E2E_CUSTOMER_ID = "cm25onzuv0001s1bbxchrc0ae";
+export const E2E_CUSTOMER_EXTERNAL_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
+export const E2E_CUSTOMER_SALE_CONDITIONS_EXTERNAL_ID =
+  "cus_pqc8qRtofpu6ZqvutyNDGAU2";
+export const E2E_CUSTOMER_COUNTRY_CONDITIONS_EXTERNAL_ID =
+  "cus_LnZbkb8boLsOn1YGLPxZGZMU";
 
 // Rewards specific
 export const E2E_SALE_REWARD = {
@@ -102,12 +103,12 @@ export const E2E_SALE_REWARD = {
         {
           value: 3,
           entity: "customer",
-          operator: "greater_than",
+          operator: "less_than_or_equal",
           attribute: "subscriptionDurationMonths",
         },
       ],
       maxDuration: null,
-      amountInCents: 500,
+      amountInCents: 2000,
     },
   ],
 };

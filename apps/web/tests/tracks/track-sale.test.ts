@@ -6,12 +6,9 @@ import {
 } from "tests/utils/helpers";
 import {
   E2E_CUSTOMER_EXTERNAL_ID,
-  E2E_CUSTOMER_EXTERNAL_ID_2,
   E2E_CUSTOMER_ID,
-  E2E_SALE_REWARD,
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
-import { verifyCommission } from "tests/utils/verify-commission";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -204,59 +201,5 @@ describe.concurrent("POST /track/sale", async () => {
         metadata: null,
       },
     });
-  });
-
-  test("track sales with different amounts (verifies sale amount is passed via context for reward conditions)", async () => {
-    // Test with a small sale amount
-    const smallSaleInvoiceId = `INV_${randomId()}`;
-    const smallSaleAmount = 10000; // $100.00
-
-    // Test with a large sale amount
-    const largeSaleInvoiceId = `INV_${randomId()}`;
-    const largeSaleAmount = 20000; // $200.00
-
-    const [response1, response2] = await Promise.all([
-      http.post<TrackSaleResponse>({
-        path: "/track/sale",
-        body: {
-          ...sale,
-          amount: smallSaleAmount,
-          customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
-          invoiceId: smallSaleInvoiceId,
-        },
-      }),
-
-      http.post<TrackSaleResponse>({
-        path: "/track/sale",
-        body: {
-          ...sale,
-          amount: largeSaleAmount,
-          customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
-          invoiceId: largeSaleInvoiceId,
-        },
-      }),
-    ]);
-
-    expect(response1.status).toEqual(200);
-    expect(response1.data.sale?.amount).toEqual(smallSaleAmount);
-
-    expect(response2.status).toEqual(200);
-    expect(response2.data.sale?.amount).toEqual(largeSaleAmount);
-
-    await Promise.all([
-      verifyCommission({
-        http,
-        invoiceId: smallSaleInvoiceId,
-        expectedAmount: response1.data.sale?.amount!,
-        expectedEarnings: E2E_SALE_REWARD.amountInCents,
-      }),
-
-      verifyCommission({
-        http,
-        invoiceId: largeSaleInvoiceId,
-        expectedAmount: response2.data.sale?.amount!,
-        expectedEarnings: E2E_SALE_REWARD.modifiers[1].amountInCents!,
-      }),
-    ]);
   });
 });
