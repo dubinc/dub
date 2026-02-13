@@ -116,20 +116,17 @@ export const createPartnerCommission = async ({
         },
       });
 
-      if (firstCommission) {
-        const subscriptionDurationMonths = differenceInMonths(
-          new Date(),
-          firstCommission.createdAt,
-        );
+      const subscriptionDurationMonths = firstCommission
+        ? differenceInMonths(new Date(), firstCommission.createdAt)
+        : 0;
 
-        context = {
-          ...context,
-          customer: {
-            ...context?.customer,
-            subscriptionDurationMonths,
-          },
-        };
-      }
+      context = {
+        ...context,
+        customer: {
+          ...context?.customer,
+          subscriptionDurationMonths,
+        },
+      };
     }
 
     reward = determinePartnerReward({
