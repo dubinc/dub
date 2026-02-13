@@ -10,7 +10,7 @@ import { prisma } from "@dub/prisma";
 import { Partner, Payout, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
-import { getStripeRecipientAccount } from "../stripe/get-stripe-recipient-account";
+import { recomputePartnerPayoutState } from "./api/recompute-partner-payout-state";
 
 export const createStripeTransfer = async ({
   partnerId,
@@ -32,6 +32,7 @@ export const createStripeTransfer = async ({
       email: true,
       stripeConnectId: true,
       stripeRecipientId: true,
+      paypalEmail: true,
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
     },
@@ -277,45 +278,36 @@ async function validateStripeAccount({
     | "email"
     | "stripeConnectId"
     | "stripeRecipientId"
+    | "paypalEmail"
+    | "payoutsEnabledAt"
     | "defaultPayoutMethod"
   >;
   currentInvoicePayouts: Pick<Payout, "id">[];
 }) {
-  const { defaultPayoutMethod, stripeConnectId, stripeRecipientId } = partner;
+  const { payoutsEnabledAt, defaultPayoutMethod } =
+    await recomputePartnerPayoutState(partner);
 
-  let isActive = false;
+  const payoutStateChanged =
+    partner.payoutsEnabledAt !== payoutsEnabledAt ||
+    partner.defaultPayoutMethod !== defaultPayoutMethod;
 
-  // Validate Stripe Connect account
-  if (defaultPayoutMethod === "connect" && stripeConnectId) {
-    const account = await stripe.accounts.retrieve(stripeConnectId);
-
-    isActive =
-      account.payouts_enabled === true &&
-      account.capabilities?.transfers === "active";
-  }
-
-  // Validate Stripe Recipient account (stablecoin)
-  if (defaultPayoutMethod === "stablecoin" && stripeRecipientId) {
-    const account = await getStripeRecipientAccount(stripeRecipientId);
-
-    isActive =
-      account.configuration?.recipient?.capabilities?.crypto_wallets?.status ===
-      "active";
-  }
-
-  if (isActive) {
+  if (!payoutStateChanged) {
     return;
   }
 
-  await prisma.partner.update({
+  const partnerUpdated = await prisma.partner.update({
     where: {
       id: partner.id,
     },
     data: {
-      payoutsEnabledAt: null,
-      defaultPayoutMethod: null,
+      payoutsEnabledAt,
+      defaultPayoutMethod,
     },
   });
+
+  if (partnerUpdated.payoutsEnabledAt) {
+    return;
+  }
 
   await markPayoutsProcessed(currentInvoicePayouts);
 
