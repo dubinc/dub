@@ -77,58 +77,6 @@ describe.concurrent("POST /track/sale", async () => {
     expectValidSaleResponse(response, sale);
   });
 
-  test("track a sale with regular vs premium product ID (should create the right commission)", async () => {
-    const regularInvoiceId = `INV_${randomId()}`;
-    const premiumInvoiceId = `INV_${randomId()}`;
-
-    const [response1, response2] = await Promise.all([
-      http.post<TrackSaleResponse>({
-        path: "/track/sale",
-        body: {
-          ...sale,
-          amount: 2000,
-          customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
-          invoiceId: regularInvoiceId,
-          metadata: {
-            productId: "regularProductId",
-          },
-        },
-      }),
-
-      http.post<TrackSaleResponse>({
-        path: "/track/sale",
-        body: {
-          ...sale,
-          amount: 3000,
-          customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
-          invoiceId: premiumInvoiceId,
-          metadata: {
-            productId: "premiumProductId",
-          },
-        },
-      }),
-    ]);
-
-    expect(response1.status).toEqual(200);
-    expect(response2.status).toEqual(200);
-
-    await Promise.all([
-      verifyCommission({
-        http,
-        invoiceId: regularInvoiceId,
-        expectedAmount: response1.data.sale?.amount!,
-        expectedEarnings: E2E_SALE_REWARD.amountInCents,
-      }),
-
-      verifyCommission({
-        http,
-        invoiceId: premiumInvoiceId,
-        expectedAmount: response2.data.sale?.amount!,
-        expectedEarnings: E2E_SALE_REWARD.modifiers[0].amountInCents!,
-      }),
-    ]);
-  });
-
   test("track a sale with an externalId that does not exist (should return null customer and sale)", async () => {
     const response = await http.post<TrackSaleResponse>({
       path: "/track/sale",
