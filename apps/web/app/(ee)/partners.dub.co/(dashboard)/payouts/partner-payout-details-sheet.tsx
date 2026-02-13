@@ -35,7 +35,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
-import { addBusinessDays } from "date-fns";
+import { addBusinessDays, addMinutes } from "date-fns";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
 import useSWR from "swr";
@@ -201,7 +201,10 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                   {payout.traceId}
                 </CopyText>
               ),
-              tooltip: `Banks can take up to 5 business days to process payouts. If you haven't received your payout${payout.paidAt ? ` by \`${formatDateTimeSmart(addBusinessDays(payout.paidAt, 5))}\`` : ""}, you can contact your bank and provide the following trace ID as reference.`,
+              tooltip:
+                payout.method === "stablecoin"
+                  ? `Stablecoin payouts typically arrive within minutes. If you haven't received your payout${payout.paidAt ? ` by \`${formatDateTimeSmart(addMinutes(payout.paidAt, 60))}\`` : ""}, you can contact the support and provide the following trace ID as reference.`
+                  : `Banks can take up to 5 business days to process payouts. If you haven't received your payout${payout.paidAt ? ` by \`${formatDateTimeSmart(addBusinessDays(payout.paidAt, 5))}\`` : ""}, you can contact your bank and provide the following trace ID as reference.`,
             },
           ]
         : []),
