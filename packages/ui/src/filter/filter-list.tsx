@@ -2,14 +2,20 @@ import { cn, truncate } from "@dub/utils";
 import { Command } from "cmdk";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { ReactNode, isValidElement, useState, useCallback } from "react";
+import { ReactNode, isValidElement, useCallback, useState } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { Combobox, ComboboxOption } from "../combobox";
 import { useKeyboardShortcut } from "../hooks";
 import { Check, Icon } from "../icons";
 import { Popover } from "../popover";
 import { Tooltip } from "../tooltip";
-import { Filter, FilterOption, ActiveFilterInput, FilterOperator, normalizeActiveFilter } from "./types";
+import {
+  ActiveFilterInput,
+  Filter,
+  FilterOperator,
+  FilterOption,
+  normalizeActiveFilter,
+} from "./types";
 
 type FilterListProps = {
   filters: Filter[];
@@ -17,7 +23,10 @@ type FilterListProps = {
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onRemoveFilter?: (key: string) => void;
   onRemoveAll: () => void;
-  onSelect?: (key: string, value: FilterOption["value"] | FilterOption["value"][]) => void;
+  onSelect?: (
+    key: string,
+    value: FilterOption["value"] | FilterOption["value"][],
+  ) => void;
   onToggleOperator?: (key: string) => void;
   isAdvancedFilter?: boolean;
   className?: string;
@@ -42,10 +51,10 @@ function pluralize(word: string, count: number): string {
   if (count === 1) return word.toLowerCase();
 
   const irregularPlurals: Record<string, string> = {
-    'country': 'countries',
-    'city': 'cities',
-    'category': 'categories',
-    'os': 'OS',
+    country: "countries",
+    city: "cities",
+    category: "categories",
+    os: "OS",
   };
 
   const lowerWord = word.toLowerCase();
@@ -53,11 +62,14 @@ function pluralize(word: string, count: number): string {
     return irregularPlurals[lowerWord];
   }
 
-  if (lowerWord.endsWith('y') && !['ay', 'ey', 'iy', 'oy', 'uy'].some(ending => lowerWord.endsWith(ending))) {
-    return lowerWord.slice(0, -1) + 'ies';
+  if (
+    lowerWord.endsWith("y") &&
+    !["ay", "ey", "iy", "oy", "uy"].some((ending) => lowerWord.endsWith(ending))
+  ) {
+    return lowerWord.slice(0, -1) + "ies";
   }
 
-  return lowerWord + 's';
+  return lowerWord + "s";
 }
 
 export function FilterList({
@@ -113,25 +125,26 @@ export function FilterList({
 
               const displayLabel = isSingleValue
                 ? (() => {
-                  const value = values[0];
-                  const option = filter.options?.find((o) =>
-                    typeof o.value === "string" && typeof value === "string"
-                      ? o.value.toLowerCase() === value.toLowerCase()
-                      : o.value === value,
-                  );
-                  return option?.label ??
-                    filter.getOptionLabel?.(value, { key: filter.key, option }) ??
-                    String(value);
-                })()
+                    const value = values[0];
+                    const option = filter.options?.find((o) =>
+                      typeof o.value === "string" && typeof value === "string"
+                        ? o.value.toLowerCase() === value.toLowerCase()
+                        : o.value === value,
+                    );
+                    return (
+                      option?.label ??
+                      filter.getOptionLabel?.(value, {
+                        key: filter.key,
+                        option,
+                      }) ??
+                      String(value)
+                    );
+                  })()
                 : `${values.length} ${pluralize(filter.label, values.length)}`;
 
               const showMultipleIcons = ["country", "city"].includes(key);
 
-              const OptionDisplay = ({
-                className,
-              }: {
-                className?: string;
-              }) => {
+              const OptionDisplay = ({ className }: { className?: string }) => {
                 let iconDisplay;
 
                 if (isSingleValue) {
@@ -164,7 +177,8 @@ export function FilterList({
                     <div className="flex shrink-0 -space-x-1">
                       {displayValues.map((value, idx) => {
                         const option = filter.options?.find((o) =>
-                          typeof o.value === "string" && typeof value === "string"
+                          typeof o.value === "string" &&
+                          typeof value === "string"
                             ? o.value.toLowerCase() === value.toLowerCase()
                             : o.value === value,
                         );
@@ -380,30 +394,38 @@ function OperatorFilterPill({
   OptionDisplay: ({ className }: { className?: string }) => ReactNode;
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onRemoveFilter?: (key: string) => void;
-  onSelect?: (key: string, value: FilterOption["value"] | FilterOption["value"][]) => void;
+  onSelect?: (
+    key: string,
+    value: FilterOption["value"] | FilterOption["value"][],
+  ) => void;
   onToggleOperator?: (key: string) => void;
   isAdvancedFilter?: boolean;
 }) {
   const [operatorDropdownOpen, setOperatorDropdownOpen] = useState(false);
   const [valueDropdownOpen, setValueDropdownOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [initialSelectedValues, setInitialSelectedValues] = useState<Set<FilterOption["value"]>>(new Set());
+  const [initialSelectedValues, setInitialSelectedValues] = useState<
+    Set<FilterOption["value"]>
+  >(new Set());
 
   const openValueDropdown = useCallback(() => {
     setInitialSelectedValues(new Set(values));
     setValueDropdownOpen(true);
   }, [values]);
 
-  const toggleValue = useCallback((value: FilterOption["value"]) => {
-    const isSelected = values.includes(value);
-    if (isSelected) {
-      onRemove(filterKey, value);
-    } else {
-      onSelect?.(filterKey, value);
-    }
+  const toggleValue = useCallback(
+    (value: FilterOption["value"]) => {
+      const isSelected = values.includes(value);
+      if (isSelected) {
+        onRemove(filterKey, value);
+      } else {
+        onSelect?.(filterKey, value);
+      }
 
-    if (!isAdvancedFilter && !filter.multiple) setValueDropdownOpen(false);
-  }, [filterKey, values, onSelect, onRemove, isAdvancedFilter, filter.multiple]);
+      if (!isAdvancedFilter && !filter.multiple) setValueDropdownOpen(false);
+    },
+    [filterKey, values, onSelect, onRemove, isAdvancedFilter, filter.multiple],
+  );
 
   return (
     <motion.div
@@ -432,7 +454,7 @@ function OperatorFilterPill({
                 type="button"
                 className={cn(
                   "flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100",
-                  !operator.includes("NOT") && "bg-neutral-50"
+                  !operator.includes("NOT") && "bg-neutral-50",
                 )}
                 onClick={() => {
                   if (operator.includes("NOT")) {
@@ -447,7 +469,7 @@ function OperatorFilterPill({
                 type="button"
                 className={cn(
                   "flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100",
-                  operator.includes("NOT") && "bg-neutral-50"
+                  operator.includes("NOT") && "bg-neutral-50",
                 )}
                 onClick={() => {
                   if (!operator.includes("NOT")) {
@@ -470,9 +492,7 @@ function OperatorFilterPill({
           </button>
         </Popover>
       ) : (
-        <div className="px-3 py-2 text-neutral-500">
-          is
-        </div>
+        <div className="px-3 py-2 text-neutral-500">is</div>
       )}
 
       <Popover
@@ -486,11 +506,7 @@ function OperatorFilterPill({
         }}
         content={
           <div>
-            <AnimatedSizeContainer
-              width
-              height
-              className="rounded-[inherit]"
-            >
+            <AnimatedSizeContainer width height className="rounded-[inherit]">
               <Command loop shouldFilter={false}>
                 <div className="flex items-center overflow-hidden rounded-t-lg border-b border-neutral-200">
                   <Command.Input
@@ -502,23 +518,27 @@ function OperatorFilterPill({
                   />
                 </div>
                 <div className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll sm:w-auto">
-                  <Command.List className="flex w-full flex-col gap-1 p-1 min-w-[180px]">
+                  <Command.List className="flex w-full min-w-[180px] flex-col gap-1 p-1">
                     {(() => {
-                      const filteredOptions = filter.options?.filter(option => {
-                        if (!search) return true;
-                        const optionLabel = (
-                          option.label ??
-                          filter.getOptionLabel?.(option.value, { key: filter.key, option }) ??
-                          String(option.value)
-                        ).toLowerCase();
-                        return optionLabel.includes(search.toLowerCase());
-                      }) ?? [];
+                      const filteredOptions =
+                        filter.options?.filter((option) => {
+                          if (!search) return true;
+                          const optionLabel = (
+                            option.label ??
+                            filter.getOptionLabel?.(option.value, {
+                              key: filter.key,
+                              option,
+                            }) ??
+                            String(option.value)
+                          ).toLowerCase();
+                          return optionLabel.includes(search.toLowerCase());
+                        }) ?? [];
 
-                      const selectedOptions = filteredOptions.filter(option =>
-                        initialSelectedValues.has(option.value)
+                      const selectedOptions = filteredOptions.filter((option) =>
+                        initialSelectedValues.has(option.value),
                       );
-                      const unselectedOptions = filteredOptions.filter(option =>
-                        !initialSelectedValues.has(option.value)
+                      const unselectedOptions = filteredOptions.filter(
+                        (option) => !initialSelectedValues.has(option.value),
                       );
 
                       const renderOption = (option: FilterOption) => {
@@ -533,7 +553,10 @@ function OperatorFilterPill({
 
                         const optionLabel =
                           option.label ??
-                          filter.getOptionLabel?.(option.value, { key: filter.key, option }) ??
+                          filter.getOptionLabel?.(option.value, {
+                            key: filter.key,
+                            option,
+                          }) ??
                           String(option.value);
 
                         return (
@@ -552,26 +575,36 @@ function OperatorFilterPill({
                             value={optionLabel + option.value}
                           >
                             {(isAdvancedFilter || filter.multiple) && (
-                              <div className={cn(
-                                "flex h-4 w-4 items-center justify-center rounded border",
-                                isSelected ? "border-neutral-900 bg-neutral-900" : "border-neutral-300"
-                              )}>
-                                {isSelected && <Check className="h-3 w-3 text-white" />}
+                              <div
+                                className={cn(
+                                  "flex h-4 w-4 items-center justify-center rounded border",
+                                  isSelected
+                                    ? "border-neutral-900 bg-neutral-900"
+                                    : "border-neutral-300",
+                                )}
+                              >
+                                {isSelected && (
+                                  <Check className="h-3 w-3 text-white" />
+                                )}
                               </div>
                             )}
                             <span className="shrink-0 text-neutral-600">
-                              {isReactNode(OptionIcon) ? OptionIcon : <OptionIcon className="h-4 w-4" />}
-                            </span>
-                            <span className="flex-1">{truncate(optionLabel, 48)}</span>
-                            <div className="ml-1 flex shrink-0 justify-end text-neutral-500">
-                              {(isAdvancedFilter || filter.multiple) ? (
-                                option.right
+                              {isReactNode(OptionIcon) ? (
+                                OptionIcon
                               ) : (
-                                isSelected ? (
-                                  <Check className="h-4 w-4" />
-                                ) : (
-                                  option.right
-                                )
+                                <OptionIcon className="h-4 w-4" />
+                              )}
+                            </span>
+                            <span className="flex-1">
+                              {truncate(optionLabel, 48)}
+                            </span>
+                            <div className="ml-1 flex shrink-0 justify-end text-neutral-500">
+                              {isAdvancedFilter || filter.multiple ? (
+                                option.right
+                              ) : isSelected ? (
+                                <Check className="h-4 w-4" />
+                              ) : (
+                                option.right
                               )}
                             </div>
                           </Command.Item>
@@ -582,9 +615,11 @@ function OperatorFilterPill({
                         <>
                           {selectedOptions.map(renderOption)}
 
-                          {(isAdvancedFilter || filter.multiple) && selectedOptions.length > 0 && unselectedOptions.length > 0 && (
-                            <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
-                          )}
+                          {(isAdvancedFilter || filter.multiple) &&
+                            selectedOptions.length > 0 &&
+                            unselectedOptions.length > 0 && (
+                              <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />
+                            )}
 
                           {unselectedOptions.map(renderOption)}
                         </>
@@ -620,7 +655,9 @@ function OperatorFilterPill({
           if (onRemoveFilter) {
             onRemoveFilter(filterKey);
           } else {
-            values.forEach((value) => { onRemove(filterKey, value); });
+            values.forEach((value) => {
+              onRemove(filterKey, value);
+            });
           }
         }}
       >

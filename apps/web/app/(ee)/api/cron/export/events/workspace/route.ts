@@ -77,8 +77,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { linkId, folderIds, dataAvailableFrom, ...eventFilters } =
-      filters;
+    const { linkId, folderIds, dataAvailableFrom, ...eventFilters } = filters;
 
     // Fetch events in batches and build CSV
     const allEvents: Record<string, any>[] = [];

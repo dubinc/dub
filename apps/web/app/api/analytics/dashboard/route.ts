@@ -19,7 +19,14 @@ export const GET = async (req: Request) => {
     const searchParams = getSearchParams(req.url);
     const parsedParams = parseAnalyticsQuery(searchParams);
 
-    const { domain: domainFilter, key, folderId: folderIdFilter, interval, start, end } = parsedParams;
+    const {
+      domain: domainFilter,
+      key,
+      folderId: folderIdFilter,
+      interval,
+      start,
+      end,
+    } = parsedParams;
 
     // Extract string values for specific link/folder lookup
     const domain = getFirstFilterValue(domainFilter);

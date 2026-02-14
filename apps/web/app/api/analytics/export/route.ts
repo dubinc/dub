@@ -20,8 +20,16 @@ export const GET = withWorkspace(
 
     const parsedParams = parseAnalyticsQuery(searchParams);
 
-    const { interval, start, end, linkId, externalId, domain: domainFilter, key, folderId: folderIdFilter } =
-      parsedParams;
+    const {
+      interval,
+      start,
+      end,
+      linkId,
+      externalId,
+      domain: domainFilter,
+      key,
+      folderId: folderIdFilter,
+    } = parsedParams;
 
     // Extract string values for specific link/folder lookup
     const domain = getFirstFilterValue(domainFilter);

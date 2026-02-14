@@ -38,7 +38,9 @@ export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
-export type AnalyticsFilters = Partial<Omit<z.infer<typeof analyticsQuerySchema>, 'start' | 'end' | 'partnerId'>> & {
+export type AnalyticsFilters = Partial<
+  Omit<z.infer<typeof analyticsQuerySchema>, "start" | "end" | "partnerId">
+> & {
   workspaceId?: string;
   dataAvailableFrom?: Date;
   isDeprecatedClicksEndpoint?: boolean;
@@ -51,9 +53,17 @@ export type AnalyticsFilters = Partial<Omit<z.infer<typeof analyticsQuerySchema>
 };
 
 // Structural fields from eventsQuerySchema that should remain required
-type EventsStructuralFields = Pick<z.infer<typeof eventsQuerySchema>, 'event' | 'page' | 'limit' | 'sortBy'>;
+type EventsStructuralFields = Pick<
+  z.infer<typeof eventsQuerySchema>,
+  "event" | "page" | "limit" | "sortBy"
+>;
 
-export type EventsFilters = Partial<Omit<z.infer<typeof eventsQuerySchema>, 'start' | 'end' | 'partnerId' | keyof EventsStructuralFields>> &
+export type EventsFilters = Partial<
+  Omit<
+    z.infer<typeof eventsQuerySchema>,
+    "start" | "end" | "partnerId" | keyof EventsStructuralFields
+  >
+> &
   EventsStructuralFields & {
     workspaceId?: string;
     dataAvailableFrom?: Date;

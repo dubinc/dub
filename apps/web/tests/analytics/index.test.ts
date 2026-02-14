@@ -4,7 +4,11 @@ import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PARTNER, E2E_PARTNERS, E2E_PARTNER_GROUP } from "../utils/resource";
+import {
+  E2E_PARTNER,
+  E2E_PARTNERS,
+  E2E_PARTNER_GROUP,
+} from "../utils/resource";
 
 describe.runIf(env.CI).sequential("GET /analytics", async () => {
   const h = new IntegrationHarness();
@@ -95,7 +99,7 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
 
       expect(status).toEqual(200);
       expect(Array.isArray(data)).toBe(true);
-      
+
       // All returned countries should be in the filter
       data.forEach((item: any) => {
         expect(["US", "CA", "GB"]).toContain(item.country);
@@ -118,7 +122,7 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
 
       expect(status).toEqual(200);
       expect(Array.isArray(data)).toBe(true);
-      
+
       // No country should be US
       data.forEach((item: any) => {
         expect(item.country).not.toBe("US");
@@ -141,7 +145,7 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
 
       expect(status).toEqual(200);
       expect(Array.isArray(data)).toBe(true);
-      
+
       // No country should be US or GB
       data.forEach((item: any) => {
         expect(["US", "GB"]).not.toContain(item.country);
@@ -164,7 +168,7 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
 
       expect(status).toEqual(200);
       expect(Array.isArray(data)).toBe(true);
-      
+
       // All returned devices should be in the filter
       data.forEach((item: any) => {
         expect(["Mobile", "Desktop"]).toContain(item.device);

@@ -102,7 +102,8 @@ function parseCondition(condition: string): InternalFilter | null {
 
   // Security: Sanitize value to prevent SQL injection
   // Remove potentially dangerous characters from the value
-  const sanitizedValue = value.trim()
+  const sanitizedValue = value
+    .trim()
     .replace(/^['"`]|['"`]$/g, "")
     .replace(/[;\\]|--|\*\/|\/\*/g, "");
 

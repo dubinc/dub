@@ -5,7 +5,11 @@ import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { env } from "../utils/env";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PARTNER, E2E_PARTNERS, E2E_PARTNER_GROUP } from "../utils/resource";
+import {
+  E2E_PARTNER,
+  E2E_PARTNERS,
+  E2E_PARTNER_GROUP,
+} from "../utils/resource";
 
 describe.runIf(env.CI).sequential("GET /events", async () => {
   const h = new IntegrationHarness();

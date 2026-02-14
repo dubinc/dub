@@ -18,11 +18,19 @@ import { useKeyboardShortcut, useMediaQuery } from "../hooks";
 import { useScrollProgress } from "../hooks/use-scroll-progress";
 import { Check, LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
-import { Filter, FilterOption, ActiveFilterInput, normalizeActiveFilter } from "./types";
+import {
+  ActiveFilterInput,
+  Filter,
+  FilterOption,
+  normalizeActiveFilter,
+} from "./types";
 
 type FilterSelectProps = {
   filters: Filter[];
-  onSelect: (key: string, value: FilterOption["value"] | FilterOption["value"][]) => void;
+  onSelect: (
+    key: string,
+    value: FilterOption["value"] | FilterOption["value"][],
+  ) => void;
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onOpenFilter?: (key: string) => void;
   onSearchChange?: (search: string) => void;
@@ -84,39 +92,45 @@ export function FilterSelect({
     ? filters.find(({ key }) => key === selectedFilterKey)
     : null;
 
-  const openFilter = useCallback((key: Filter["key"]) => {
-    // Maintain dimensions for loading options
-    if (listContainer.current) {
-      listDimensions.current = {
-        width: listContainer.current.clientWidth,
-        height: listContainer.current.clientHeight,
-      };
-    }
+  const openFilter = useCallback(
+    (key: Filter["key"]) => {
+      // Maintain dimensions for loading options
+      if (listContainer.current) {
+        listDimensions.current = {
+          width: listContainer.current.clientWidth,
+          height: listContainer.current.clientHeight,
+        };
+      }
 
-    setSearch("");
-    setSelectedFilterKey(key);
+      setSearch("");
+      setSelectedFilterKey(key);
 
-    onOpenFilter?.(key);
-  }, [onOpenFilter]);
+      onOpenFilter?.(key);
+    },
+    [onOpenFilter],
+  );
 
   const isOptionSelected = useCallback(
     (value: FilterOption["value"]) => {
       if (!selectedFilter || !activeFilters) return false;
 
-      const rawActiveFilter = activeFilters.find((filter) => filter.key === selectedFilterKey);
+      const rawActiveFilter = activeFilters.find(
+        (filter) => filter.key === selectedFilterKey,
+      );
       if (!rawActiveFilter) return false;
-      
+
       const normalizedFilter = normalizeActiveFilter(rawActiveFilter);
       return normalizedFilter.values.includes(value);
     },
     [selectedFilter, activeFilters, selectedFilterKey],
   );
 
-
   const selectOption = useCallback(
     (value: FilterOption["value"]) => {
       if (selectedFilter) {
-        const isSingleSelect = selectedFilter?.singleSelect || (!isAdvancedFilter && !selectedFilter?.multiple);
+        const isSingleSelect =
+          selectedFilter?.singleSelect ||
+          (!isAdvancedFilter && !selectedFilter?.multiple);
 
         if (isSingleSelect) {
           const isSelected = isOptionSelected(value);
@@ -136,7 +150,6 @@ export function FilterSelect({
     },
     [selectedFilter, isOptionSelected, onSelect, onRemove, isAdvancedFilter],
   );
-
 
   useEffect(() => {
     onSearchChange?.(search);
@@ -241,7 +254,9 @@ export function FilterSelect({
                     selectedFilter.options
                       ?.filter((option) => !search || !option.hideDuringSearch)
                       ?.map((option) => {
-                        const isSingleSelect = selectedFilter?.singleSelect || (!isAdvancedFilter && !selectedFilter?.multiple);
+                        const isSingleSelect =
+                          selectedFilter?.singleSelect ||
+                          (!isAdvancedFilter && !selectedFilter?.multiple);
                         const isSelected = isOptionSelected(option.value);
 
                         return (
@@ -249,7 +264,10 @@ export function FilterSelect({
                             key={option.value}
                             filter={selectedFilter}
                             option={option}
-                            showCheckbox={!isSingleSelect && (isAdvancedFilter || selectedFilter?.multiple)}
+                            showCheckbox={
+                              !isSingleSelect &&
+                              (isAdvancedFilter || selectedFilter?.multiple)
+                            }
                             isChecked={isSelected}
                             right={
                               isSingleSelect ? (
@@ -433,10 +451,14 @@ function FilterButton({
       value={label + option?.value}
     >
       {showCheckbox && (
-        <div className={cn(
-          "flex h-4 w-4 items-center justify-center rounded border",
-          isChecked ? "border-neutral-900 bg-neutral-900" : "border-neutral-300"
-        )}>
+        <div
+          className={cn(
+            "flex h-4 w-4 items-center justify-center rounded border",
+            isChecked
+              ? "border-neutral-900 bg-neutral-900"
+              : "border-neutral-300",
+          )}
+        >
           {isChecked && <Check className="h-3 w-3 text-white" />}
         </div>
       )}

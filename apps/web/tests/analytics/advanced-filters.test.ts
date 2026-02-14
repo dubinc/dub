@@ -1,9 +1,9 @@
-import { parseFilterValue, buildFilterValue } from "@dub/utils";
 import {
   buildAdvancedFilters,
   ensureParsedFilter,
   extractWorkspaceLinkFilters,
 } from "@/lib/analytics/filter-helpers";
+import { buildFilterValue, parseFilterValue } from "@dub/utils";
 import { describe, expect, test } from "vitest";
 
 describe("Advanced Filters - Unit Tests", () => {
@@ -464,7 +464,11 @@ describe("Advanced Filters - Unit Tests", () => {
           values: ["grp_abc123", "grp_def456", "grp_ghi789"],
         },
       });
-      expect(result.groupId).toEqual(["grp_abc123", "grp_def456", "grp_ghi789"]);
+      expect(result.groupId).toEqual([
+        "grp_abc123",
+        "grp_def456",
+        "grp_ghi789",
+      ]);
       expect(result.groupIdOperator).toBe("IN");
     });
 
@@ -546,7 +550,11 @@ describe("Advanced Filters - Unit Tests", () => {
           values: ["tenant_abc", "tenant_def", "tenant_ghi"],
         },
       });
-      expect(result.tenantId).toEqual(["tenant_abc", "tenant_def", "tenant_ghi"]);
+      expect(result.tenantId).toEqual([
+        "tenant_abc",
+        "tenant_def",
+        "tenant_ghi",
+      ]);
       expect(result.tenantIdOperator).toBe("IN");
     });
 
@@ -573,8 +581,16 @@ describe("Advanced Filters - Unit Tests", () => {
         domain: { operator: "IS", sqlOperator: "IN", values: ["dub.sh"] },
         partnerId: { operator: "IS", sqlOperator: "IN", values: ["pn_abc"] },
         groupId: { operator: "IS", sqlOperator: "IN", values: ["grp_abc"] },
-        tenantId: { operator: "IS_ONE_OF", sqlOperator: "IN", values: ["t1", "t2"] },
-        folderId: { operator: "IS_NOT", sqlOperator: "NOT IN", values: ["fold_x"] },
+        tenantId: {
+          operator: "IS_ONE_OF",
+          sqlOperator: "IN",
+          values: ["t1", "t2"],
+        },
+        folderId: {
+          operator: "IS_NOT",
+          sqlOperator: "NOT IN",
+          values: ["fold_x"],
+        },
       });
       expect(result.domain).toEqual(["dub.sh"]);
       expect(result.partnerId).toEqual(["pn_abc"]);

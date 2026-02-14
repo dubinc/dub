@@ -118,15 +118,22 @@ export function useAnalyticsFilters({
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
-  const parseFilterParam = useCallback((value: string): ParsedFilter | undefined => {
-    return parseFilterValue(value);
-  }, []);
+  const parseFilterParam = useCallback(
+    (value: string): ParsedFilter | undefined => {
+      return parseFilterValue(value);
+    },
+    [],
+  );
 
   const activeFilters = useMemo(() => {
     const { domain, key, tagIds, root, folderId, ...params } = searchParamsObj;
 
     // Handle special cases first
-    const filters: Array<{ key: string; operator: FilterOperator; values: any[] }> = [
+    const filters: Array<{
+      key: string;
+      operator: FilterOperator;
+      values: any[];
+    }> = [
       // Handle domain/key special case for links
       ...(domain && key
         ? [
@@ -145,8 +152,8 @@ export function useAnalyticsFilters({
               operator: "IS" as FilterOperator,
               values: [
                 selectedCustomer.email ||
-                selectedCustomer["name"] ||
-                selectedCustomer["externalId"],
+                  selectedCustomer["name"] ||
+                  selectedCustomer["externalId"],
               ],
             },
           ]
@@ -162,11 +169,25 @@ export function useAnalyticsFilters({
       // Skip domain if we're showing a specific link (domain + key)
       if (filter === "domain" && domain && key) return;
 
-      const value = params[filter] || (filter === "domain" ? domain : filter === "tagIds" ? tagIds : filter === "root" ? root : filter === "folderId" ? folderId : undefined);
+      const value =
+        params[filter] ||
+        (filter === "domain"
+          ? domain
+          : filter === "tagIds"
+            ? tagIds
+            : filter === "root"
+              ? root
+              : filter === "folderId"
+                ? folderId
+                : undefined);
       if (value) {
         const parsed = parseFilterParam(value);
         if (parsed) {
-          filters.push({ key: filter, operator: parsed.operator, values: parsed.values });
+          filters.push({
+            key: filter,
+            operator: parsed.operator,
+            values: parsed.values,
+          });
         }
       }
     });
@@ -545,7 +566,7 @@ export function useAnalyticsFilters({
         icon: FlagWavy,
         label: "Country",
         getOptionIcon: (value) => {
-          if (typeof value !== 'string') return null;
+          if (typeof value !== "string") return null;
 
           return (
             <img
@@ -556,7 +577,7 @@ export function useAnalyticsFilters({
           );
         },
         getOptionLabel: (value) => {
-          if (typeof value !== 'string') return String(value);
+          if (typeof value !== "string") return String(value);
           return COUNTRIES[value] || value;
         },
         options:
@@ -607,11 +628,11 @@ export function useAnalyticsFilters({
         icon: MapPosition,
         label: "Continent",
         getOptionIcon: (value) => {
-          if (typeof value !== 'string') return null;
+          if (typeof value !== "string") return null;
           return <ContinentIcon display={value} className="size-2.5" />;
         },
         getOptionLabel: (value) => {
-          if (typeof value !== 'string') return String(value);
+          if (typeof value !== "string") return String(value);
           return CONTINENTS[value] || value;
         },
         options:
@@ -626,7 +647,7 @@ export function useAnalyticsFilters({
         icon: MobilePhone,
         label: "Device",
         getOptionIcon: (value) => {
-          if (typeof value !== 'string') return null;
+          if (typeof value !== "string") return null;
           return (
             <DeviceIcon
               display={capitalize(value) ?? value}
@@ -647,8 +668,10 @@ export function useAnalyticsFilters({
         icon: Window,
         label: "Browser",
         getOptionIcon: (value) => {
-          if (typeof value !== 'string') return null;
-          return <DeviceIcon display={value} tab="browsers" className="h-4 w-4" />;
+          if (typeof value !== "string") return null;
+          return (
+            <DeviceIcon display={value} tab="browsers" className="h-4 w-4" />
+          );
         },
         options:
           browsers?.map(({ browser, ...rest }) => ({
@@ -662,7 +685,7 @@ export function useAnalyticsFilters({
         icon: Cube,
         label: "OS",
         getOptionIcon: (value) => {
-          if (typeof value !== 'string') return null;
+          if (typeof value !== "string") return null;
           return <DeviceIcon display={value} tab="os" className="h-4 w-4" />;
         },
         options:
@@ -697,7 +720,7 @@ export function useAnalyticsFilters({
         icon: ReferredVia,
         label: "Referrer",
         getOptionIcon: (value, _props) => {
-          if (typeof value !== 'string') return null;
+          if (typeof value !== "string") return null;
           return <ReferrerIcon display={value} className="h-4 w-4" />;
         },
         options:
@@ -715,7 +738,7 @@ export function useAnalyticsFilters({
               icon: ReferredVia,
               label: "Referrer URL",
               getOptionIcon: (value, props) => {
-                if (typeof value !== 'string') return null;
+                if (typeof value !== "string") return null;
                 return <ReferrerIcon display={value} className="h-4 w-4" />;
               },
               options:
@@ -748,7 +771,7 @@ export function useAnalyticsFilters({
                 icon: Icon,
                 label: `UTM ${label}`,
                 getOptionIcon: (value) => {
-                  if (typeof value !== 'string') return null;
+                  if (typeof value !== "string") return null;
                   return <Icon display={value} className="h-4 w-4" />;
                 },
                 options:
@@ -844,9 +867,7 @@ export function useAnalyticsFilters({
           const currentParam = searchParamsObj[key];
           const isNegated = currentParam?.startsWith("-") ?? false;
 
-          const newParam = isNegated
-            ? `-${value.join(",")}`
-            : value.join(",");
+          const newParam = isNegated ? `-${value.join(",")}` : value.join(",");
 
           queryParams({
             set: { [key]: newParam },
@@ -964,12 +985,9 @@ export function useAnalyticsFilters({
     [queryParams],
   );
 
-  const onOpenFilter = useCallback(
-    (key) => {
-      setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]));
-    },
-    [],
-  );
+  const onOpenFilter = useCallback((key) => {
+    setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]));
+  }, []);
 
   const onToggleOperator = useCallback(
     (key) => {
@@ -1001,21 +1019,18 @@ export function useAnalyticsFilters({
     [queryParams],
   );
 
-  const activeFiltersWithStreaming = useMemo(
-    () => {
-      return [
-        ...activeFilters,
-        ...(streaming && !activeFilters.length
-          ? Array.from({ length: 2 }, (_, i) => i).map((i) => ({
+  const activeFiltersWithStreaming = useMemo(() => {
+    return [
+      ...activeFilters,
+      ...(streaming && !activeFilters.length
+        ? Array.from({ length: 2 }, (_, i) => i).map((i) => ({
             key: "loader",
             values: [i],
             operator: "IS" as const,
           }))
-          : []),
-      ];
-    },
-    [activeFilters, streaming],
-  );
+        : []),
+    ];
+  }, [activeFilters, streaming]);
 
   return {
     filters,

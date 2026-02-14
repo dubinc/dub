@@ -39,8 +39,12 @@ export const GET = withPartnerProfile(
       });
     }
 
-    let { linkId, domain: domainFilter, key, ...rest } =
-      partnerProfileEventsQuerySchema.parse(searchParams);
+    let {
+      linkId,
+      domain: domainFilter,
+      key,
+      ...rest
+    } = partnerProfileEventsQuerySchema.parse(searchParams);
 
     const domain = getFirstFilterValue(domainFilter);
 

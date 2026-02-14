@@ -70,30 +70,33 @@ export type ActiveFilterInput =
  * - { key, values, operator } → unchanged (already correct)
  */
 export function normalizeActiveFilter(filter: ActiveFilterInput): ActiveFilter {
-  if ('operator' in filter && filter.operator && Array.isArray(filter.values)) {
+  if ("operator" in filter && filter.operator && Array.isArray(filter.values)) {
     return filter as ActiveFilter;
   }
 
-  if ('value' in filter && !('values' in filter)) {
+  if ("value" in filter && !("values" in filter)) {
     return {
       key: filter.key,
-      operator: 'IS' as FilterOperator,
+      operator: "IS" as FilterOperator,
       values: [filter.value],
     };
   }
 
-  if (Array.isArray((filter as any).values) && (!('operator' in filter) || !filter.operator)) {
+  if (
+    Array.isArray((filter as any).values) &&
+    (!("operator" in filter) || !filter.operator)
+  ) {
     const values = (filter as LegacyActiveFilterPlural).values;
     return {
       key: filter.key,
-      operator: values.length > 1 ? 'IS_ONE_OF' : 'IS',
+      operator: values.length > 1 ? "IS_ONE_OF" : "IS",
       values: values,
     };
   }
 
   return {
     key: filter.key,
-    operator: 'IS',
+    operator: "IS",
     values: [],
   };
 }
