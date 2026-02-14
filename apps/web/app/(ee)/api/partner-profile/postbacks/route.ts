@@ -49,6 +49,7 @@ export const POST = withPartnerProfile(
         url,
         secret,
         triggers,
+        destination: "custom",
       },
     });
 

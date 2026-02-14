@@ -40,7 +40,6 @@ export const PATCH = withPartnerProfile(
 );
 
 // DELETE /api/partner-profile/postbacks/[postbackId]
-
 export const DELETE = withPartnerProfile(
   async ({ partner, params }) => {
     const { postbackId } = params;

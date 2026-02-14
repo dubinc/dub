@@ -8,10 +8,10 @@ export const POSTBACK_TRIGGERS = [
   "commission.created",
 ] as const;
 
-export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];
-
 export const POSTBACK_TRIGGER_DESCRIPTIONS: Record<PostbackTrigger, string> = {
   "lead.created": "Lead created",
   "sale.created": "Sale created",
   "commission.created": "Commission created",
 };
+
+export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];
