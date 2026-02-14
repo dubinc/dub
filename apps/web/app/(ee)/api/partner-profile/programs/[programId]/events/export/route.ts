@@ -53,6 +53,16 @@ export const GET = withPartnerProfile(
       });
     }
 
+    // early return if partner has no links
+    if (links.length === 0) {
+      return new Response("", {
+        headers: {
+          "Content-Type": "application/csv",
+          "Content-Disposition": `attachment; filename=events_export.csv`,
+        },
+      });
+    }
+
     const parsedParams = partnerProfileEventsQuerySchema
       .extend({
         columns: z
@@ -64,15 +74,6 @@ export const GET = withPartnerProfile(
       .parse(searchParams);
 
     const { event, columns: columnsParam } = parsedParams;
-    let {
-      linkId: linkIdFilter,
-      domain: domainFilter,
-      key,
-      ...rest
-    } = parsedParams;
-
-    const domain = getFirstFilterValue(domainFilter);
-    let linkId = getFirstFilterValue(linkIdFilter);
 
     // Default columns based on event type if not provided
     const defaultColumns: Record<string, string[]> = {
@@ -93,44 +94,45 @@ export const GET = withPartnerProfile(
         ? columnsParam
         : defaultColumns[event] || defaultColumns.clicks;
 
+    const { linkId, domain, key } = parsedParams;
+
     if (linkId) {
-      if (!links.some((link) => link.id === linkId)) {
+      // check to make sure all of the linkId.values are in the links
+      if (
+        !linkId.values.every((value) => links.some((link) => link.id === value))
+      ) {
         throw new DubApiError({
           code: "not_found",
-          message: "Link not found",
+          message: "One or more links are not found",
         });
       }
     } else if (domain && key) {
-      const foundLink = links.find(
-        (link) => link.domain === domain && link.key === key,
+      const link = links.find(
+        (link) =>
+          link.domain === getFirstFilterValue(domain) && link.key === key,
       );
-      if (!foundLink) {
+      if (!link) {
         throw new DubApiError({
           code: "not_found",
           message: "Link not found",
         });
       }
 
-      linkId = foundLink.id;
-    }
-
-    if (links.length === 0) {
-      return new Response("", {
-        headers: {
-          "Content-Type": "application/csv",
-          "Content-Disposition": `attachment; filename=${event}_export.csv`,
-        },
-      });
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
     }
 
     // Count events using getAnalytics with groupBy: "count"
     const countResponse = await getAnalytics({
-      ...rest,
+      ...parsedParams,
       event,
       groupBy: "count",
       workspaceId: program.workspaceId,
-      ...(linkId
-        ? { linkId }
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),
@@ -156,9 +158,6 @@ export const GET = withPartnerProfile(
           partnerId: partner.id,
           programId: params.programId,
           userId: session.user.id,
-          ...(linkId && { linkId }),
-          ...(domain && { domain }),
-          ...(key && { key }),
           dataAvailableFrom: (
             program.startedAt ?? program.createdAt
           ).toISOString(),
@@ -169,14 +168,13 @@ export const GET = withPartnerProfile(
     }
 
     const events = await getEvents({
-      ...rest,
+      ...parsedParams,
       workspaceId: program.workspaceId,
       ...(linkId
         ? { linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),
-      dataAvailableFrom: program.startedAt ?? program.createdAt,
       limit: MAX_EVENTS_TO_EXPORT,
     });
 
