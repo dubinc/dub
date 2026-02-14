@@ -18,7 +18,7 @@ import {
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
-import { capitalize, log } from "@dub/utils";
+import { capitalize, log, parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
 import { fetchEventsBatch } from "../fetch-events-batch";
@@ -105,7 +105,7 @@ export async function POST(req: Request) {
         ? { linkId: resolvedLinkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId }
-          : { linkIds: links.map((link) => link.id) }),
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: dataAvailableFrom
         ? new Date(dataAvailableFrom)
         : program.startedAt ?? program.createdAt,

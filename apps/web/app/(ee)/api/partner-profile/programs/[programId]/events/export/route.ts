@@ -20,7 +20,11 @@ import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { APP_DOMAIN_WITH_NGROK, capitalize } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  capitalize,
+  parseFilterValue,
+} from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -60,9 +64,15 @@ export const GET = withPartnerProfile(
       .parse(searchParams);
 
     const { event, columns: columnsParam } = parsedParams;
-    let { linkId, domain: domainFilter, key, ...rest } = parsedParams;
+    let {
+      linkId: linkIdFilter,
+      domain: domainFilter,
+      key,
+      ...rest
+    } = parsedParams;
 
     const domain = getFirstFilterValue(domainFilter);
+    let linkId = getFirstFilterValue(linkIdFilter);
 
     // Default columns based on event type if not provided
     const defaultColumns: Record<string, string[]> = {
@@ -123,7 +133,7 @@ export const GET = withPartnerProfile(
         ? { linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
-          : { linkIds: links.map((link) => link.id) }),
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 
@@ -165,7 +175,7 @@ export const GET = withPartnerProfile(
         ? { linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
-          : { linkIds: links.map((link) => link.id) }),
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
       limit: MAX_EVENTS_TO_EXPORT,
     });

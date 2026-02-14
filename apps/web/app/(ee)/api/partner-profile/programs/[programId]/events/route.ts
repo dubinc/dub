@@ -1,5 +1,6 @@
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getEvents } from "@/lib/analytics/get-events";
+import { parseFilterValue } from "@dub/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -40,13 +41,14 @@ export const GET = withPartnerProfile(
     }
 
     let {
-      linkId,
+      linkId: linkIdFilter,
       domain: domainFilter,
       key,
       ...rest
     } = partnerProfileEventsQuerySchema.parse(searchParams);
 
     const domain = getFirstFilterValue(domainFilter);
+    let linkId = getFirstFilterValue(linkIdFilter);
 
     if (linkId) {
       if (!links.some((link) => link.id === linkId)) {
@@ -80,7 +82,7 @@ export const GET = withPartnerProfile(
         ? { linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
-          : { linkIds: links.map((link) => link.id) }),
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 

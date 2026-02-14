@@ -39,15 +39,19 @@ export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
 export type AnalyticsFilters = Partial<
-  Omit<z.infer<typeof analyticsQuerySchema>, "start" | "end" | "partnerId">
+  Omit<
+    z.infer<typeof analyticsQuerySchema>,
+    "start" | "end" | "partnerId" | "linkId"
+  >
 > & {
   workspaceId?: string;
   dataAvailableFrom?: Date;
   isDeprecatedClicksEndpoint?: boolean;
   start?: Date | null;
   end?: Date | null;
-  // Accept plain string (from partner-profile routes) or ParsedFilter (from API schema)
+  // Accept plain string (from partner-profile/cron routes) or ParsedFilter (from API schema)
   partnerId?: string | ParsedFilter;
+  linkId?: string | ParsedFilter;
 };
 
 // Structural fields from eventsQuerySchema that should remain required
@@ -59,7 +63,7 @@ type EventsStructuralFields = Pick<
 export type EventsFilters = Partial<
   Omit<
     z.infer<typeof eventsQuerySchema>,
-    "start" | "end" | "partnerId" | keyof EventsStructuralFields
+    "start" | "end" | "partnerId" | "linkId" | keyof EventsStructuralFields
   >
 > &
   EventsStructuralFields & {
@@ -68,8 +72,9 @@ export type EventsFilters = Partial<
     customerId?: string;
     start?: Date | null;
     end?: Date | null;
-    // Accept plain string (from partner-profile routes) or ParsedFilter (from API schema)
+    // Accept plain string (from partner-profile/cron routes) or ParsedFilter (from API schema)
     partnerId?: string | ParsedFilter;
+    linkId?: string | ParsedFilter;
   };
 
 const partnerAnalyticsSchema = analyticsQuerySchema
@@ -79,11 +84,12 @@ const partnerAnalyticsSchema = analyticsQuerySchema
     start: true,
     end: true,
     groupBy: true,
-    linkId: true,
   })
   .partial();
 
-export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema>;
+export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema> & {
+  linkId?: string;
+};
 export type PartnerEarningsTimeseriesFilters = z.infer<
   typeof getPartnerEarningsTimeseriesSchema
 >;

@@ -42,6 +42,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     query,
   } = params;
 
+  const normalizedLinkId = ensureParsedFilter(linkId);
+
   // get all-time clicks count if:
   // 1. linkId is defined
   // 2. type is count
@@ -49,7 +51,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // 4. no custom start or end date is provided
   // 5. no other dimensional filters are applied
   if (
-    linkId &&
+    normalizedLinkId &&
     groupBy === "count" &&
     interval === "all" &&
     !start &&
@@ -58,7 +60,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       (filter) => !params[filter as keyof AnalyticsFilters],
     )
   ) {
-    const linkIdPlaceholders = linkId.values.map(() => "?").join(",");
+    const linkIdPlaceholders = normalizedLinkId.values.map(() => "?").join(",");
     const aggregateColumns =
       event === "composite"
         ? `SUM(clicks) as clicks, SUM(leads) as leads, SUM(sales) as sales, SUM(saleAmount) as saleAmount`
@@ -68,7 +70,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
     const response = await conn.execute(
       `SELECT ${aggregateColumns} FROM Link WHERE id IN (${linkIdPlaceholders})`,
-      linkId.values,
+      normalizedLinkId.values,
     );
 
     return analyticsResponse["count"].parse(response.rows[0]);
@@ -151,6 +153,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   } = extractWorkspaceLinkFilters({
     ...params,
     partnerId: partnerIdFilter,
+    linkId: normalizedLinkId,
   });
 
   const tinybirdParams: any = {

@@ -108,6 +108,7 @@ export const getEvents = async (params: EventsFilters) => {
   const allFilters = [...metadataFilters, ...advancedFilters];
 
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
+  const linkIdFilter = ensureParsedFilter(params.linkId);
 
   const {
     linkId: linkIdParam,
@@ -129,6 +130,7 @@ export const getEvents = async (params: EventsFilters) => {
   } = extractWorkspaceLinkFilters({
     ...params,
     partnerId: partnerIdFilter,
+    linkId: linkIdFilter,
   });
 
   const tinybirdParams: any = {

@@ -1,6 +1,7 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { parseFilterValue } from "@dub/utils";
 import { convertToCSV } from "@/lib/analytics/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -38,10 +39,11 @@ export const GET = withPartnerProfile(
 
     const parsedParams = partnerProfileAnalyticsQuerySchema.parse(searchParams);
 
-    let { linkId, domain: domainFilter, key, ...rest } = parsedParams;
+    let { linkId: linkIdFilter, domain: domainFilter, key, ...rest } = parsedParams;
 
-    // Extract string value for link lookup
+    // Extract string values for link lookup
     const domain = getFirstFilterValue(domainFilter);
+    let linkId = getFirstFilterValue(linkIdFilter);
 
     if (linkId) {
       if (!links.some((link) => link.id === linkId)) {
@@ -93,7 +95,7 @@ export const GET = withPartnerProfile(
             ? { linkId }
             : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
               ? { partnerId: partner.id }
-              : { linkIds: links.map((link) => link.id) }),
+              : { linkId: parseFilterValue(links.map((link) => link.id)) }),
           dataAvailableFrom: program.startedAt ?? program.createdAt,
           groupBy: endpoint,
         });
