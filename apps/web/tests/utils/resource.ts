@@ -203,12 +203,6 @@ export const E2E_PARTNERS = [
   },
 ] as const;
 
-export const E2E_CUSTOMER_SG = {
-  id: "cus_1K82FYFF7RANMCGRHRGMWDNEC",
-  externalId: "cus_LnZbkb8boLsOn1YGLPxZGZMU",
-  country: "SG",
-};
-
 export const E2E_FRAUD_PARTNER = {
   id: "pn_1K8ND11BZ4XPEX39QX3YMBGY0",
   email: "kiran+e2e+1@dub.co",
