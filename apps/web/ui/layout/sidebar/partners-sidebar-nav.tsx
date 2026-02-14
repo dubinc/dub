@@ -21,6 +21,7 @@ import {
   Trophy,
   UserCheck,
   Users2,
+  Webhook,
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
@@ -138,6 +139,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Members",
             icon: Users2,
             href: "/profile/members",
+          },
+        ],
+      },
+      {
+        name: "Developer",
+        items: [
+          {
+            name: "Postbacks",
+            icon: Webhook,
+            href: "/profile/postbacks",
           },
         ],
       },

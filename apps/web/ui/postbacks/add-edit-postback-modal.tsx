@@ -1,0 +1,300 @@
+"use client";
+
+import { partnerProfileFetch } from "@/lib/api/partner-profile/client";
+import {
+  POSTBACK_TRIGGER_DESCRIPTIONS,
+  POSTBACK_TRIGGERS,
+  type PostbackTrigger,
+} from "@/lib/postback/constants";
+import {
+  createPostbackInputSchema,
+  postbackSchema,
+} from "@/lib/postback/schemas";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { Badge, Button, Combobox, Modal, useMediaQuery } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { ChevronsUpDown } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod/v4";
+import { usePostbackSecretModal } from "./postback-secret-modal";
+
+type PostbackForEdit = Pick<
+  z.infer<typeof postbackSchema>,
+  "id" | "url" | "triggers"
+>;
+
+type FormData = z.infer<typeof createPostbackInputSchema>;
+
+interface AddEditPostbackModalProps {
+  showModal: boolean;
+  setShowModal: (show: boolean) => void;
+  postback: PostbackForEdit | null;
+  onSuccess: () => void;
+}
+
+function AddEditPostbackModal({
+  showModal,
+  setShowModal,
+  postback,
+  onSuccess,
+}: AddEditPostbackModalProps) {
+  const { isMobile } = useMediaQuery();
+  const [isOpen, setIsOpen] = useState(false);
+  const { openPostbackSecretModal, PostbackSecretModal } =
+    usePostbackSecretModal();
+
+  const triggerOptions = useMemo(
+    () =>
+      POSTBACK_TRIGGERS.map((t) => ({
+        value: t,
+        label: POSTBACK_TRIGGER_DESCRIPTIONS[t],
+      })),
+    [],
+  );
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { isDirty, isSubmitting },
+  } = useForm<FormData>({
+    defaultValues: {
+      url: "",
+      triggers: [],
+    },
+  });
+
+  const isEdit = !!postback;
+  const triggers = watch("triggers") ?? [];
+
+  const selectedTriggers = useMemo(
+    () =>
+      triggers
+        .map((t) => triggerOptions.find((o) => o.value === t))
+        .filter(Boolean) as { value: string; label: string }[],
+    [triggers, triggerOptions],
+  );
+
+  useEffect(() => {
+    if (showModal) {
+      reset({
+        url: postback?.url ?? "",
+        triggers: (postback?.triggers ?? []) as PostbackTrigger[],
+      });
+    }
+  }, [showModal, postback, reset]);
+
+  async function onSubmit(data: FormData) {
+    // Update postback
+    if (postback) {
+      await partnerProfileFetch("/api/partner-profile/postbacks/:postbackId", {
+        params: {
+          postbackId: postback.id,
+        },
+        body: {
+          url: data.url,
+          triggers: data.triggers,
+        },
+        onSuccess: async () => {
+          toast.success("Postback updated");
+          setShowModal(false);
+          await mutatePrefix("/api/partner-profile/postbacks");
+          onSuccess();
+        },
+        onError: ({ error }) => {
+          toast.error(error.error.message);
+        },
+      });
+
+      return;
+    }
+
+    // Create postback
+    const { data: createdPostback } = await partnerProfileFetch(
+      "/api/partner-profile/postbacks",
+      {
+        body: {
+          url: "",
+          triggers: data.triggers,
+        },
+        onSuccess: async () => {
+          toast.success("Postback created");
+          setShowModal(false);
+          await mutatePrefix("/api/partner-profile/postbacks");
+          onSuccess();
+        },
+        onError: ({ error }) => {
+          toast.error(error.error.message);
+        },
+      },
+    );
+
+    if (createdPostback?.secret) {
+      openPostbackSecretModal(createdPostback.secret);
+    }
+  }
+
+  return (
+    <>
+      <Modal showModal={showModal} setShowModal={setShowModal}>
+        <div className="border-b border-neutral-200 px-4 py-4 sm:px-6">
+          <h3 className="text-lg font-medium leading-none">
+            {isEdit ? "Edit" : "Add"} Postback
+          </h3>
+        </div>
+
+        <div className="bg-neutral-50">
+          <form
+            onSubmit={(e) => {
+              e.stopPropagation();
+              return handleSubmit(onSubmit)(e);
+            }}
+          >
+            <div className="flex flex-col gap-4 px-4 py-6 text-left sm:px-6">
+              <div>
+                <label
+                  htmlFor="postback-url"
+                  className="text-content-emphasis block text-sm font-normal"
+                >
+                  Destination URL
+                </label>
+                <input
+                  id="postback-url"
+                  type="url"
+                  autoComplete="off"
+                  className="border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  placeholder="https://your-server.com/webhook"
+                  autoFocus={!isMobile}
+                  disabled={isSubmitting}
+                  {...register("url")}
+                />
+                <p className="mt-1 text-xs text-neutral-500">
+                  Must be a valid HTTPS URL. We will send POST requests to this
+                  URL.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-content-emphasis mb-1 block text-sm font-normal">
+                  Event types
+                </label>
+                <Combobox
+                  multiple
+                  selected={selectedTriggers}
+                  setSelected={(opts) => {
+                    setValue(
+                      "triggers",
+                      opts.map((o) => o.value),
+                      { shouldDirty: true },
+                    );
+                  }}
+                  options={triggerOptions}
+                  searchPlaceholder="Search event types..."
+                  buttonProps={{
+                    className: cn(
+                      "h-auto min-h-10 w-full justify-start px-2.5 py-1.5 font-normal border-neutral-200 bg-white",
+                      selectedTriggers.length === 0 && "text-neutral-400",
+                    ),
+                    disabled: isSubmitting,
+                  }}
+                  matchTriggerWidth
+                  caret={
+                    <ChevronsUpDown className="ml-2 size-4 shrink-0 text-neutral-400" />
+                  }
+                  open={isOpen}
+                  onOpenChange={setIsOpen}
+                >
+                  {selectedTriggers.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedTriggers.map((opt) => (
+                        <Badge
+                          key={opt.value}
+                          variant="gray"
+                          className="animate-fade-in"
+                        >
+                          {opt.label}
+                        </Badge>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className="block py-0.5">Select event types...</span>
+                  )}
+                </Combobox>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-4 py-4 sm:px-6">
+              <Button
+                type="button"
+                variant="secondary"
+                text="Cancel"
+                className="h-9 w-fit"
+                onClick={() => setShowModal(false)}
+                disabled={isSubmitting}
+              />
+              <Button
+                type="submit"
+                text={isEdit ? "Save changes" : "Create postback"}
+                className="h-9 w-fit"
+                loading={isSubmitting}
+                disabled={!isDirty}
+              />
+            </div>
+          </form>
+        </div>
+      </Modal>
+
+      <PostbackSecretModal />
+    </>
+  );
+}
+
+type ModalState =
+  | { mode: "add" }
+  | { mode: "edit"; postback: PostbackForEdit }
+  | null;
+
+export function useAddEditPostbackModal(onSuccess?: () => void) {
+  const [modalState, setModalState] = useState<ModalState>(null);
+
+  function openAddPostbackModal() {
+    setModalState({ mode: "add" });
+  }
+
+  function openEditPostbackModal(postback: PostbackForEdit) {
+    setModalState({ mode: "edit", postback });
+  }
+
+  function closePostbackModal() {
+    setModalState(null);
+  }
+
+  function AddEditPostbackModalWrapper() {
+    if (!modalState) return null;
+
+    return (
+      <AddEditPostbackModal
+        showModal
+        postback={modalState.mode === "edit" ? modalState.postback : null}
+        onSuccess={() => onSuccess?.()}
+        setShowModal={(show) => {
+          if (!show) {
+            closePostbackModal();
+          }
+        }}
+      />
+    );
+  }
+
+  return {
+    openAddPostbackModal,
+    openEditPostbackModal,
+    closePostbackModal,
+    AddEditPostbackModal: AddEditPostbackModalWrapper,
+    isAddEditPostbackModalOpen: modalState !== null,
+  };
+}
