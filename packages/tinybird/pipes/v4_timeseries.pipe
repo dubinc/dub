@@ -184,7 +184,7 @@ SQL >
             {% end %}
         {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
             tenantId
-        ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
+        ) or defined(folderId) or defined(domain) or defined(
             tagIds
         ) or defined(
             root
@@ -340,7 +340,7 @@ SQL >
             {% end %}
         {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
             tenantId
-        ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
+        ) or defined(folderId) or defined(domain) or defined(
             tagIds
         ) or defined(
             root
@@ -591,7 +591,7 @@ SQL >
                 {% end %}
             {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
                 tenantId
-            ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
+            ) or defined(folderId) or defined(domain) or defined(
                 tagIds
             ) or defined(
                 root

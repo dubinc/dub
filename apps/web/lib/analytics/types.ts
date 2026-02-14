@@ -44,7 +44,6 @@ export type AnalyticsFilters = Partial<
   workspaceId?: string;
   dataAvailableFrom?: Date;
   isDeprecatedClicksEndpoint?: boolean;
-  folderIds?: string[]; // TODO: remove this once it's been added to the public API
   start?: Date | null;
   end?: Date | null;
   // Accept plain string (from partner-profile routes) or ParsedFilter (from API schema)
@@ -67,7 +66,6 @@ export type EventsFilters = Partial<
     workspaceId?: string;
     dataAvailableFrom?: Date;
     customerId?: string;
-    folderIds?: string[];
     start?: Date | null;
     end?: Date | null;
     // Accept plain string (from partner-profile routes) or ParsedFilter (from API schema)

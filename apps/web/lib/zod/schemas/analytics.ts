@@ -463,12 +463,6 @@ export const analyticsFilterTB = z.object({
       "The link IDs to retrieve analytics for (with operator support).",
     ),
   linkIdOperator: z.enum(["IN", "NOT IN"]).optional(),
-  // TODO: remove folderIds since we'll just use folderId
-  folderIds: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe("The folder IDs to retrieve analytics for."),
   folderId: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))

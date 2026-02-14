@@ -110,6 +110,8 @@ export const getEvents = async (params: EventsFilters) => {
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
 
   const {
+    linkId: linkIdParam,
+    linkIdOperator,
     domain: domainParam,
     domainOperator,
     tagIds: tagIdsParam,
@@ -132,11 +134,12 @@ export const getEvents = async (params: EventsFilters) => {
   const tinybirdParams: any = {
     eventType,
     workspaceId,
-    linkId: params.linkId,
-    linkIds: params.linkIds,
-    folderIds: params.folderIds,
-    customerId: params.customerId,
     programId: params.programId,
+    customerId: params.customerId,
+    linkId: linkIdParam,
+    linkIdOperator,
+    folderId: folderIdParam,
+    folderIdOperator,
     partnerId: partnerIdParam,
     partnerIdOperator,
     tenantId: tenantIdParam,

@@ -155,9 +155,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const tinybirdParams: any = {
     workspaceId,
-    linkId: linkIdParam,
-    linkIdOperator,
-    folderIds: params.folderIds,
     customerId: params.customerId,
     programId: params.programId,
     partnerId: partnerIdParam,
@@ -166,6 +163,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     tenantIdOperator,
     groupId: groupIdParam,
     groupIdOperator,
+    linkId: linkIdParam,
+    linkIdOperator,
     domain: domainParam,
     domainOperator,
     tagIds: tagIdsParam,

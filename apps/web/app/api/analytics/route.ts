@@ -1,7 +1,6 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
@@ -111,15 +110,6 @@ export const GET = withWorkspace(
       end,
     });
 
-    // no need to get folder ids if we are filtering by a folder or program
-    const folderIds =
-      folderIdToVerify || programId
-        ? undefined
-        : await getFolderIdsToFilter({
-            workspace,
-            userId: session.user.id,
-          });
-
     // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)
     // (/api/analytics/count)
@@ -133,7 +123,6 @@ export const GET = withWorkspace(
       ...parsedParams,
       event,
       groupBy,
-      folderIds,
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
       // dataAvailableFrom is only relevant for timeseries groupBy

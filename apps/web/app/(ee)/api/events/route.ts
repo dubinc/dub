@@ -1,6 +1,5 @@
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getEvents } from "@/lib/analytics/get-events";
-import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -23,7 +22,7 @@ export const GET = withWorkspace(
       interval,
       start,
       end,
-      linkId,
+      linkId: linkIdFilter,
       externalId,
       domain: domainFilter,
       key,
@@ -32,6 +31,7 @@ export const GET = withWorkspace(
 
     // Extract string values for specific link/folder lookup
     const domain = getFirstFilterValue(domainFilter);
+    const linkId = getFirstFilterValue(linkIdFilter);
     const folderId = getFirstFilterValue(folderIdFilter);
 
     let link: Link | null = null;
@@ -69,21 +69,11 @@ export const GET = withWorkspace(
       end,
     });
 
-    const folderIds = folderIdToVerify
-      ? undefined
-      : await getFolderIdsToFilter({
-          workspace,
-          userId: session.user.id,
-        });
-
     console.time("getEvents");
     const response = await getEvents({
       ...parsedParams,
       event,
-      ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
-      folderIds,
-      folderId: folderIdFilter || undefined,
     });
     console.timeEnd("getEvents");
 
