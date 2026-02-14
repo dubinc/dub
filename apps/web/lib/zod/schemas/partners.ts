@@ -9,11 +9,10 @@ import {
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@dub/prisma/client";
-import { COUNTRY_CODES, DUB_FOUNDING_DATE, formatDate } from "@dub/utils";
+import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
-import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
+import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
-import { parseDateSchema } from "./utils";
 import { createLinkBodySchema } from "./links";
 import {
   base64ImageSchema,
@@ -686,51 +685,25 @@ export const upsertPartnerLinkSchema = createPartnerLinkSchema.extend({
 });
 
 // For /api/partners/analytics
-export const partnerAnalyticsQuerySchema = z.object({
-  partnerId: z
-    .string()
-    .nullish()
-    .describe("The ID of the partner to retrieve analytics for."),
-  tenantId: z
-    .string()
-    .nullish()
-    .describe("The ID of the tenant to retrieve analytics for."),
-  interval: z
-    .enum(DATE_RANGE_INTERVAL_PRESETS)
-    .optional()
-    .describe(
-      "The interval to retrieve analytics for. If undefined, defaults to 24h.",
-    ),
-  start: parseDateSchema
-    .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
-      message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
-    })
-    .optional()
-    .describe(
-      "The start date and time when to retrieve analytics from. If set, takes precedence over `interval`.",
-    ),
-  end: parseDateSchema
-    .optional()
-    .describe(
-      "The end date and time when to retrieve analytics from. If not provided, defaults to the current date. If set along with `start`, takes precedence over `interval`.",
-    ),
-  timezone: z
-    .string()
-    .optional()
-    .describe(
-      "The IANA time zone code for aligning timeseries granularity (e.g. America/New_York). Defaults to UTC.",
-    ),
-  query: z
-    .string()
-    .optional()
-    .describe("Custom metadata filter query string."),
-  groupBy: z
-    .enum(["top_links", "timeseries", "count"])
-    .default("count")
-    .describe(
-      "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
-    ),
-});
+export const partnerAnalyticsQuerySchema = analyticsQuerySchema
+  .pick({
+    partnerId: true,
+    tenantId: true,
+    interval: true,
+    start: true,
+    end: true,
+    timezone: true,
+    query: true,
+  })
+  .extend(partnerIdTenantIdSchema.shape)
+  .extend({
+    groupBy: z
+      .enum(["top_links", "timeseries", "count"])
+      .default("count")
+      .describe(
+        "The parameter to group the analytics data points by. Defaults to `count` if undefined.",
+      ),
+  });
 
 const earningsSchema = z.object({
   earnings: z.number().default(0),
