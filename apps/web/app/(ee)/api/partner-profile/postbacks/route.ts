@@ -7,9 +7,9 @@ import {
   POSTBACK_SECRET_PREFIX,
 } from "@/lib/postback/constants";
 import {
-  createPostbackInputSchema,
-  createPostbackOutputSchema,
-  postbackSchema,
+  createPartnerPostbackInputSchema,
+  createPartnerPostbackOutputSchema,
+  partnerPostbackSchema,
 } from "@/lib/postback/schemas";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -27,7 +27,7 @@ export const GET = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(z.array(postbackSchema).parse(postbacks));
+    return NextResponse.json(z.array(partnerPostbackSchema).parse(postbacks));
   },
   {
     requiredPermission: "postbacks.read",
@@ -37,7 +37,7 @@ export const GET = withPartnerProfile(
 // POST /api/partner-profile/postbacks
 export const POST = withPartnerProfile(
   async ({ partner, req }) => {
-    const { url, triggers } = createPostbackInputSchema.parse(
+    const { url, triggers } = createPartnerPostbackInputSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -57,9 +57,12 @@ export const POST = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(createPostbackOutputSchema.parse(postback), {
-      status: 201,
-    });
+    return NextResponse.json(
+      createPartnerPostbackOutputSchema.parse(postback),
+      {
+        status: 201,
+      },
+    );
   },
   {
     requiredPermission: "postbacks.write",

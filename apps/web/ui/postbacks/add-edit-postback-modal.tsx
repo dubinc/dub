@@ -7,8 +7,8 @@ import {
   type PostbackTrigger,
 } from "@/lib/postback/constants";
 import {
-  createPostbackInputSchema,
-  postbackSchema,
+  createPartnerPostbackInputSchema,
+  partnerPostbackSchema,
 } from "@/lib/postback/schemas";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { Badge, Button, Combobox, Modal, useMediaQuery } from "@dub/ui";
@@ -21,11 +21,11 @@ import * as z from "zod/v4";
 import { usePostbackSecretModal } from "./postback-secret-modal";
 
 type PostbackForEdit = Pick<
-  z.infer<typeof postbackSchema>,
+  z.infer<typeof partnerPostbackSchema>,
   "id" | "url" | "triggers"
 >;
 
-type FormData = z.infer<typeof createPostbackInputSchema>;
+type FormData = z.infer<typeof createPartnerPostbackInputSchema>;
 
 interface AddEditPostbackModalProps {
   showModal: boolean;
@@ -118,7 +118,7 @@ function AddEditPostbackModal({
       "/api/partner-profile/postbacks",
       {
         body: {
-          url: "",
+          url: data.url,
           triggers: data.triggers,
         },
         onSuccess: async () => {
@@ -253,33 +253,30 @@ function AddEditPostbackModal({
   );
 }
 
-type ModalState =
-  | { mode: "add" }
-  | { mode: "edit"; postback: PostbackForEdit }
-  | null;
-
 export function useAddEditPostbackModal(onSuccess?: () => void) {
-  const [modalState, setModalState] = useState<ModalState>(null);
+  const [postback, setPostback] = useState<PostbackForEdit | null | undefined>(
+    undefined,
+  );
 
   function openAddPostbackModal() {
-    setModalState({ mode: "add" });
+    setPostback(null);
   }
 
-  function openEditPostbackModal(postback: PostbackForEdit) {
-    setModalState({ mode: "edit", postback });
+  function openEditPostbackModal(postbackToEdit: PostbackForEdit) {
+    setPostback(postbackToEdit);
   }
 
   function closePostbackModal() {
-    setModalState(null);
+    setPostback(undefined);
   }
 
   function AddEditPostbackModalWrapper() {
-    if (!modalState) return null;
+    if (postback === undefined) return null;
 
     return (
       <AddEditPostbackModal
         showModal
-        postback={modalState.mode === "edit" ? modalState.postback : null}
+        postback={postback}
         onSuccess={() => onSuccess?.()}
         setShowModal={(show) => {
           if (!show) {
@@ -295,6 +292,6 @@ export function useAddEditPostbackModal(onSuccess?: () => void) {
     openEditPostbackModal,
     closePostbackModal,
     AddEditPostbackModal: AddEditPostbackModalWrapper,
-    isAddEditPostbackModalOpen: modalState !== null,
+    isAddEditPostbackModalOpen: postback !== undefined,
   };
 }

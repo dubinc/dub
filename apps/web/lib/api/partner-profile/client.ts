@@ -1,8 +1,8 @@
 import {
-  createPostbackInputSchema,
-  createPostbackOutputSchema,
-  postbackSchema,
-  updatePostbackSchema,
+  createPartnerPostbackInputSchema,
+  createPartnerPostbackOutputSchema,
+  partnerPostbackSchema,
+  updatePartnerPostbackInputSchema,
 } from "@/lib/postback/schemas";
 import { createFetch, createSchema } from "@better-fetch/fetch";
 import * as z from "zod/v4";
@@ -15,8 +15,8 @@ export const partnerProfileFetch = createFetch({
       // Create postback
       "/api/partner-profile/postbacks": {
         method: "post",
-        body: createPostbackInputSchema,
-        output: createPostbackOutputSchema,
+        body: createPartnerPostbackInputSchema,
+        output: createPartnerPostbackOutputSchema,
       },
 
       // Update postback
@@ -25,8 +25,8 @@ export const partnerProfileFetch = createFetch({
         params: z.object({
           postbackId: z.string(),
         }),
-        body: updatePostbackSchema,
-        output: postbackSchema,
+        body: updatePartnerPostbackInputSchema,
+        output: partnerPostbackSchema,
       },
     },
     {

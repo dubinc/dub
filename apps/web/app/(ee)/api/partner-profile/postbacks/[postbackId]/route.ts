@@ -1,7 +1,10 @@
 import { getPostbackOrThrow } from "@/lib/api/postbacks/get-postback-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { postbackSchema, updatePostbackSchema } from "@/lib/postback/schemas";
+import {
+  partnerPostbackSchema,
+  updatePartnerPostbackInputSchema,
+} from "@/lib/postback/schemas";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -15,7 +18,7 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
     });
 
-    return NextResponse.json(postbackSchema.parse(postback));
+    return NextResponse.json(partnerPostbackSchema.parse(postback));
   },
   {
     requiredPermission: "postbacks.read",
@@ -32,7 +35,7 @@ export const PATCH = withPartnerProfile(
       partnerId: partner.id,
     });
 
-    const { url, triggers, disabled } = updatePostbackSchema.parse(
+    const { url, triggers, disabled } = updatePartnerPostbackInputSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -49,7 +52,7 @@ export const PATCH = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(postbackSchema.parse(postback));
+    return NextResponse.json(partnerPostbackSchema.parse(postback));
   },
   {
     requiredPermission: "postbacks.write",

@@ -35,6 +35,7 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
+import { partnerPostbackSchema } from "./postback/schemas";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   activityLogActionSchema,
@@ -825,3 +826,5 @@ export type FieldDiff = z.infer<typeof fieldDiffSchema>;
 export type ChangeSet = Record<string, FieldDiff>;
 
 export type ActivityLog = z.infer<typeof activityLogSchema>;
+
+export type PartnerPostbackProps = z.infer<typeof partnerPostbackSchema>;
