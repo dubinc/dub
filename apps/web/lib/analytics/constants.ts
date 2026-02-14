@@ -120,6 +120,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
 export const VALID_ANALYTICS_FILTERS = [
   "domain",
   "key",
+  "linkId",
   "interval",
   "start",
   "end",

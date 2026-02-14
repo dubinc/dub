@@ -115,8 +115,12 @@ SQL >
                 required=True,
             )
         }}
-        {% if defined(linkIds) %} AND ce.link_id IN {{ Array(linkIds, 'String') }}
-        {% elif defined(linkId) %} AND ce.link_id = {{ linkId }}
+        {% if defined(linkId) %}
+            {% if defined(linkIdOperator) and String(linkIdOperator) == 'NOT IN' %}
+                AND ce.link_id NOT IN {{ Array(linkId, 'String') }}
+            {% else %}
+                AND ce.link_id IN {{ Array(linkId, 'String') }}
+            {% end %}
         {% end %}
         {% if defined(region) %} AND region = {{ region }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
@@ -234,8 +238,12 @@ SQL >
                 required=True,
             )
         }}
-        {% if defined(linkIds) %} AND le.link_id IN {{ Array(linkIds, 'String') }}
-        {% elif defined(linkId) %} AND le.link_id = {{ linkId }}
+        {% if defined(linkId) %}
+            {% if defined(linkIdOperator) and String(linkIdOperator) == 'NOT IN' %}
+                AND le.link_id NOT IN {{ Array(linkId, 'String') }}
+            {% else %}
+                AND le.link_id IN {{ Array(linkId, 'String') }}
+            {% end %}
         {% end %}
         {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -425,8 +433,12 @@ SQL >
                     required=True,
                 )
             }}
-            {% if defined(linkIds) %} AND se.link_id IN {{ Array(linkIds, 'String') }}
-            {% elif defined(linkId) %} AND se.link_id = {{ linkId }}
+            {% if defined(linkId) %}
+                {% if defined(linkIdOperator) and String(linkIdOperator) == 'NOT IN' %}
+                    AND se.link_id NOT IN {{ Array(linkId, 'String') }}
+                {% else %}
+                    AND se.link_id IN {{ Array(linkId, 'String') }}
+                {% end %}
             {% end %}
             {% if defined(customerId) %} AND se.customer_id = {{ String(customerId) }} {% end %}
             {% if defined(continent) %} AND se.continent = {{ continent }} {% end %}

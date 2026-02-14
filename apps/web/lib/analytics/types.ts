@@ -44,7 +44,6 @@ export type AnalyticsFilters = Partial<
   workspaceId?: string;
   dataAvailableFrom?: Date;
   isDeprecatedClicksEndpoint?: boolean;
-  linkIds?: string[];
   folderIds?: string[]; // TODO: remove this once it's been added to the public API
   start?: Date | null;
   end?: Date | null;

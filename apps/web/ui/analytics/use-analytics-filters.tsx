@@ -126,7 +126,7 @@ export function useAnalyticsFilters({
   );
 
   const activeFilters = useMemo(() => {
-    const { domain, key, tagIds, root, folderId, ...params } = searchParamsObj;
+    const { domain, key, root, ...params } = searchParamsObj;
 
     // Handle special cases first
     const filters: Array<{
@@ -134,11 +134,11 @@ export function useAnalyticsFilters({
       operator: FilterOperator;
       values: any[];
     }> = [
-      // Handle domain/key special case for links
-      ...(domain && key
+      // Legacy: show one link chip when domain+key are present (no linkId)
+      ...(domain && key && !params.linkId
         ? [
             {
-              key: "link",
+              key: "linkId",
               operator: "IS" as FilterOperator,
               values: [linkConstructor({ domain, key, pretty: true })],
             },
@@ -166,20 +166,13 @@ export function useAnalyticsFilters({
       if (["key", "tagId", "customerId"].includes(filter)) return;
       // Also skip date range filters and qr
       if (["interval", "start", "end", "qr"].includes(filter)) return;
-      // Skip domain if we're showing a specific link (domain + key)
-      if (filter === "domain" && domain && key) return;
+      // Skip domain if we're showing a specific link (domain + key) without linkId
+      if (filter === "domain" && domain && key && !params.linkId) return;
 
       const value =
         params[filter] ||
-        (filter === "domain"
-          ? domain
-          : filter === "tagIds"
-            ? tagIds
-            : filter === "root"
-              ? root
-              : filter === "folderId"
-                ? folderId
-                : undefined);
+        (filter === "domain" ? domain : filter === "root" ? root : undefined);
+
       if (value) {
         const parsed = parseFilterParam(value);
         if (parsed) {
@@ -209,7 +202,7 @@ export function useAnalyticsFilters({
   );
 
   const { data: links } = useAnalyticsFilterOption("top_links", {
-    disabled: !isRequested("link"),
+    disabled: !isRequested("linkId"),
     omitGroupByFilterKey: true,
     context,
   });
@@ -362,22 +355,28 @@ export function useAnalyticsFilters({
   const [streaming, setStreaming] = useState<boolean>(false);
 
   const LinkFilterItem = {
-    key: "link",
+    key: "linkId",
     icon: Hyperlink,
     label: "Link",
-    getOptionIcon: (value, props) => {
-      const url = props.option?.data?.url;
-      const [domain, key] = value.split("/");
-
-      return <LinkIcon url={url} domain={domain} linkKey={key} />;
+    multiple: true,
+    getOptionIcon: (_value, props) => {
+      const data = props.option?.data;
+      const url = data?.url;
+      return <LinkIcon url={url} />;
     },
     options:
       links?.map(
-        ({ domain, key, url, ...rest }: LinkProps & { count?: number }) => ({
-          value: linkConstructor({ domain, key, pretty: true }),
+        ({
+          id,
+          domain,
+          key,
+          url,
+          ...rest
+        }: LinkProps & { id?: string; count?: number }) => ({
+          value: id,
           label: linkConstructor({ domain, key, pretty: true }),
           right: getFilterOptionTotal(rest),
-          data: { url },
+          data: { url, domain, key },
           permalink:
             slug && !partnerPage
               ? `/${slug}/links/${linkConstructor({ domain, key, pretty: true })}`
@@ -575,10 +574,6 @@ export function useAnalyticsFilters({
               className="size-4 shrink-0"
             />
           );
-        },
-        getOptionLabel: (value) => {
-          if (typeof value !== "string") return String(value);
-          return COUNTRIES[value] || value;
         },
         options:
           countries?.map(({ country, ...rest }) => ({
@@ -862,7 +857,10 @@ export function useAnalyticsFilters({
     async (key, value) => {
       if (Array.isArray(value)) {
         if (value.length === 0) {
-          queryParams({ del: key, scroll: false });
+          queryParams({
+            del: key,
+            scroll: false,
+          });
         } else {
           const currentParam = searchParamsObj[key];
           const isNegated = currentParam?.startsWith("-") ?? false;
@@ -897,15 +895,6 @@ export function useAnalyticsFilters({
           }
         }
         setStreaming(false);
-      } else if (key === "link") {
-        queryParams({
-          set: {
-            domain: new URL(`https://${value}`).hostname,
-            key: new URL(`https://${value}`).pathname.slice(1) || "_root",
-          },
-          del: "page",
-          scroll: false,
-        });
       } else {
         const currentParam = searchParamsObj[key];
 
@@ -938,36 +927,29 @@ export function useAnalyticsFilters({
 
   const onRemove = useCallback(
     (key, value) => {
-      if (key === "link") {
+      const currentParam = searchParamsObj[key];
+
+      if (!currentParam) return;
+
+      const parsed = parseFilterParam(currentParam);
+      if (!parsed) {
+        queryParams({ del: key, scroll: false });
+        return;
+      }
+
+      const newValues = parsed.values.filter((v) => v !== value);
+
+      if (newValues.length === 0) {
+        queryParams({ del: key, scroll: false });
+      } else {
+        const newParam = parsed.operator.includes("NOT")
+          ? `-${newValues.join(",")}`
+          : newValues.join(",");
+
         queryParams({
-          del: ["domain", "key", "url"],
+          set: { [key]: newParam },
           scroll: false,
         });
-      } else {
-        const currentParam = searchParamsObj[key];
-
-        if (!currentParam) return;
-
-        const parsed = parseFilterParam(currentParam);
-        if (!parsed) {
-          queryParams({ del: key, scroll: false });
-          return;
-        }
-
-        const newValues = parsed.values.filter((v) => v !== value);
-
-        if (newValues.length === 0) {
-          queryParams({ del: key, scroll: false });
-        } else {
-          const newParam = parsed.operator.includes("NOT")
-            ? `-${newValues.join(",")}`
-            : newValues.join(",");
-
-          queryParams({
-            set: { [key]: newParam },
-            scroll: false,
-          });
-        }
       }
     },
     [queryParams, searchParamsObj, parseFilterParam],
@@ -1009,13 +991,7 @@ export function useAnalyticsFilters({
   );
 
   const onRemoveFilter = useCallback(
-    (key) => {
-      if (key === "link") {
-        queryParams({ del: ["domain", "key", "url"], scroll: false });
-      } else {
-        queryParams({ del: key, scroll: false });
-      }
-    },
+    (key) => queryParams({ del: key, scroll: false }),
     [queryParams],
   );
 

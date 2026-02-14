@@ -41,10 +41,10 @@ export const GET = withWorkspace(
       interval,
       start,
       end,
-      linkId,
       externalId,
       domain: domainFilter,
       key,
+      linkId: linkIdFilter,
       folderId: folderIdFilter,
       programId,
     } = parsedParams;
@@ -52,6 +52,7 @@ export const GET = withWorkspace(
     // Extract string values for specific link/folder lookup
     // When domain+key is provided, it's for getting a specific link (not filtering)
     const domain = getFirstFilterValue(domainFilter);
+    const linkId = getFirstFilterValue(linkIdFilter);
     const folderId = getFirstFilterValue(folderIdFilter);
 
     let link: Link | null = null;
@@ -132,7 +133,6 @@ export const GET = withWorkspace(
       ...parsedParams,
       event,
       groupBy,
-      ...(link && { linkId: link.id }),
       folderIds,
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,

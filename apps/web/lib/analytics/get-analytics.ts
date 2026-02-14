@@ -28,7 +28,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     event,
     groupBy,
     workspaceId,
-    linkIds,
+    linkId,
     interval,
     start,
     end,
@@ -43,13 +43,13 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   } = params;
 
   // get all-time clicks count if:
-  // 1. linkIds is defined
+  // 1. linkId is defined
   // 2. type is count
   // 3. interval is all
   // 4. no custom start or end date is provided
   // 5. no other dimensional filters are applied
   if (
-    linkIds &&
+    linkId &&
     groupBy === "count" &&
     interval === "all" &&
     !start &&
@@ -58,22 +58,20 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       (filter) => !params[filter as keyof AnalyticsFilters],
     )
   ) {
-    if (linkIds && linkIds.length > 0) {
-      const linkIdsToFilter = linkIds.map(() => "?").join(",");
-      const aggregateColumns =
-        event === "composite"
-          ? `SUM(clicks) as clicks, SUM(leads) as leads, SUM(sales) as sales, SUM(saleAmount) as saleAmount`
-          : event === "sales"
-            ? `SUM(sales) as sales, SUM(saleAmount) as saleAmount`
-            : `SUM(${event}) as ${event}`;
+    const linkIdPlaceholders = linkId.values.map(() => "?").join(",");
+    const aggregateColumns =
+      event === "composite"
+        ? `SUM(clicks) as clicks, SUM(leads) as leads, SUM(sales) as sales, SUM(saleAmount) as saleAmount`
+        : event === "sales"
+          ? `SUM(sales) as sales, SUM(saleAmount) as saleAmount`
+          : `SUM(${event}) as ${event}`;
 
-      const response = await conn.execute(
-        `SELECT ${aggregateColumns} FROM Link WHERE id IN (${linkIdsToFilter})`,
-        linkIds,
-      );
+    const response = await conn.execute(
+      `SELECT ${aggregateColumns} FROM Link WHERE id IN (${linkIdPlaceholders})`,
+      linkId.values,
+    );
 
-      return analyticsResponse["count"].parse(response.rows[0]);
-    }
+    return analyticsResponse["count"].parse(response.rows[0]);
   }
 
   if (groupBy === "trigger") groupBy = "triggers";
@@ -136,6 +134,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const {
     domain: domainParam,
     domainOperator,
+    linkId: linkIdParam,
+    linkIdOperator,
     tagIds: tagIdsParam,
     tagIdsOperator,
     folderId: folderIdParam,
@@ -155,8 +155,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const tinybirdParams: any = {
     workspaceId,
-    linkId: params.linkId,
-    linkIds: params.linkIds,
+    linkId: linkIdParam,
+    linkIdOperator,
     folderIds: params.folderIds,
     customerId: params.customerId,
     programId: params.programId,
@@ -181,7 +181,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     granularity,
     timezone,
     region: typeof regionForPipe === "string" ? regionForPipe : undefined,
-
     filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
   };
 

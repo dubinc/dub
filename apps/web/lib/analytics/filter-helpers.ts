@@ -88,6 +88,7 @@ export function ensureParsedFilter(
  * so they need to be passed as separate parameters (not in the filters JSON).
  */
 export function extractWorkspaceLinkFilters(params: {
+  linkId?: ParsedFilter;
   domain?: ParsedFilter;
   tagIds?: ParsedFilter;
   folderId?: ParsedFilter;
@@ -103,6 +104,7 @@ export function extractWorkspaceLinkFilters(params: {
       | "NOT IN",
   });
 
+  const linkId = extractFilter(params.linkId);
   const domain = extractFilter(params.domain);
   const tagIds = extractFilter(params.tagIds);
   const folderId = extractFilter(params.folderId);
@@ -112,6 +114,8 @@ export function extractWorkspaceLinkFilters(params: {
   const root = extractFilter(params.root);
 
   return {
+    linkId: linkId.values,
+    linkIdOperator: linkId.operator,
     domain: domain.values,
     domainOperator: domain.operator,
     tagIds: tagIds.values,

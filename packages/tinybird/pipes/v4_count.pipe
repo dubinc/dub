@@ -93,8 +93,12 @@ SQL >
     WHERE
         true
         {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
-        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
-        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% if defined(linkId) %}
+            {% if defined(linkIdOperator) and String(linkIdOperator) == 'NOT IN' %}
+                AND link_id NOT IN {{ Array(linkId, 'String') }}
+            {% else %}
+                AND link_id IN {{ Array(linkId, 'String') }}
+            {% end %}
         {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
             tenantId
         ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
@@ -243,8 +247,12 @@ SQL >
     WHERE
         true
         {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
-        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
-        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% if defined(linkId) %}
+            {% if defined(linkIdOperator) and String(linkIdOperator) == 'NOT IN' %}
+                AND link_id NOT IN {{ Array(linkId, 'String') }}
+            {% else %}
+                AND link_id IN {{ Array(linkId, 'String') }}
+            {% end %}
         {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
             tenantId
         ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(
@@ -450,8 +458,12 @@ SQL >
             WHERE
                 true
                 {% if defined(workspaceId) %} AND se.workspace_id = {{ workspaceId }} {% end %}
-                {% if defined(linkIds) %} AND se.link_id IN {{ Array(linkIds, 'String') }}
-                {% elif defined(linkId) %} AND se.link_id = {{ linkId }}
+                {% if defined(linkId) %}
+                    {% if defined(linkIdOperator) and String(linkIdOperator) == 'NOT IN' %}
+                        AND se.link_id NOT IN {{ Array(linkId, 'String') }}
+                    {% else %}
+                        AND se.link_id IN {{ Array(linkId, 'String') }}
+                    {% end %}
                 {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
                     tenantId
                 ) or defined(folderIds) or defined(folderId) or defined(domain) or defined(

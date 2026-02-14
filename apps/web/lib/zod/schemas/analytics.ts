@@ -74,16 +74,11 @@ export const analyticsQuerySchema = z.object({
   linkId: z
     .string()
     .optional()
+    .transform(parseFilterValue)
     .describe(
-      "The unique ID of the short link on Dub to retrieve analytics for.",
-    )
-    .meta({ deprecated: false }), // Keep for backward compatibility
-  linkIds: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe(
-      "The link IDs to retrieve analytics for. Supports comma-separated values or array format.",
+      "The unique ID of the link to retrieve analytics for." +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `link_123`, `link_123,link_456`, `-link_789`.",
     ),
   externalId: z
     .string()
@@ -434,13 +429,8 @@ export const analyticsQuerySchema = z.object({
  * Parse analytics query parameters with backward compatibility
  * Converts deprecated singular fields (linkId, tagId) to their plural equivalents
  */
-export function parseAnalyticsQuery(searchParams: unknown) {
+export function parseAnalyticsQuery(searchParams: Record<string, string>) {
   const data = analyticsQuerySchema.parse(searchParams);
-
-  // Backward compatibility: convert linkId to linkIds
-  if (data.linkId && !data.linkIds) {
-    data.linkIds = [data.linkId];
-  }
 
   // Backward compatibility: convert tagId to tagIds
   if (data.tagId && !data.tagIds) {
@@ -465,13 +455,15 @@ export const analyticsFilterTB = z.object({
   granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
   timezone: z.string().optional(),
   groupBy: analyticsGroupBy,
-  // Link-specific filters (not using advanced filtering)
-  linkId: z.string().optional(),
-  linkIds: z
+  linkId: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
-    .describe("The link IDs to retrieve analytics for."),
+    .describe(
+      "The link IDs to retrieve analytics for (with operator support).",
+    ),
+  linkIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  // TODO: remove folderIds since we'll just use folderId
   folderIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -484,6 +476,7 @@ export const analyticsFilterTB = z.object({
     .describe(
       "The folder ID(s) to retrieve analytics for (with operator support).",
     ),
+  folderIdOperator: z.enum(["IN", "NOT IN"]).optional(),
   domain: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -496,7 +489,6 @@ export const analyticsFilterTB = z.object({
     .optional()
     .describe("The tag IDs to retrieve analytics for."),
   tagIdsOperator: z.enum(["IN", "NOT IN"]).optional(),
-  folderIdOperator: z.enum(["IN", "NOT IN"]).optional(),
   root: z
     .union([
       z.string(),
@@ -597,11 +589,6 @@ export const eventsQuerySchema = analyticsQuerySchema
  */
 export function parseEventsQuery(searchParams: unknown) {
   const data = eventsQuerySchema.parse(searchParams);
-
-  // Backward compatibility: convert linkId to linkIds
-  if (data.linkId && !data.linkIds) {
-    data.linkIds = [data.linkId];
-  }
 
   // Backward compatibility: convert tagId to tagIds
   if (data.tagId && !data.tagIds) {
