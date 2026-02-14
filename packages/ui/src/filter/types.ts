@@ -17,7 +17,8 @@ export type Filter = {
   hideInFilterDropdown?: boolean;
   shouldFilter?: boolean;
   separatorAfter?: boolean;
-  multiple?: boolean;
+  multiple?: boolean; // Allow multiple selection of values
+  hideMultipleIcons?: boolean; // Hide multiple "stacked icons" view for the filter (fallback to icon display)
   singleSelect?: boolean; // Force single-select behavior even if multiSelect is enabled globally
   hideOperator?: boolean; // Hide the operator dropdown (is/is not) even when multiple is enabled
   getOptionIcon?: (

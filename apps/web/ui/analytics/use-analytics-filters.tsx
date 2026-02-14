@@ -358,7 +358,6 @@ export function useAnalyticsFilters({
     key: "linkId",
     icon: Hyperlink,
     label: "Link",
-    multiple: true,
     getOptionIcon: (_value, props) => {
       const data = props.option?.data;
       const url = data?.url;
@@ -521,7 +520,6 @@ export function useAnalyticsFilters({
                   key: "tagIds",
                   icon: Tag,
                   label: "Tag",
-                  multiple: true,
                   getOptionIcon: (_value, props) => {
                     const tagColor = props.option?.data?.color;
                     return tagColor ? (
@@ -624,7 +622,12 @@ export function useAnalyticsFilters({
         label: "Continent",
         getOptionIcon: (value) => {
           if (typeof value !== "string") return null;
-          return <ContinentIcon display={value} className="size-2.5" />;
+          return (
+            <ContinentIcon
+              display={value}
+              className="size-4 rounded-full border border-cyan-500"
+            />
+          );
         },
         getOptionLabel: (value) => {
           if (typeof value !== "string") return String(value);
@@ -641,6 +644,7 @@ export function useAnalyticsFilters({
         key: "device",
         icon: MobilePhone,
         label: "Device",
+        hideMultipleIcons: true,
         getOptionIcon: (value) => {
           if (typeof value !== "string") return null;
           return (
@@ -679,6 +683,7 @@ export function useAnalyticsFilters({
         key: "os",
         icon: Cube,
         label: "OS",
+        hideMultipleIcons: true,
         getOptionIcon: (value) => {
           if (typeof value !== "string") return null;
           return <DeviceIcon display={value} tab="os" className="h-4 w-4" />;
@@ -697,6 +702,7 @@ export function useAnalyticsFilters({
               key: "trigger",
               icon: CursorRays,
               label: "Trigger",
+              hideMultipleIcons: true,
               options:
                 triggers?.map(({ trigger, ...rest }) => {
                   const { title, icon } = TRIGGER_DISPLAY[trigger];

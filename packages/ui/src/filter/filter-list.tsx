@@ -142,8 +142,6 @@ export function FilterList({
                   })()
                 : `${values.length} ${pluralize(filter.label, values.length)}`;
 
-              const showMultipleIcons = ["country", "city"].includes(key);
-
               const OptionDisplay = ({ className }: { className?: string }) => {
                 let iconDisplay;
 
@@ -172,7 +170,7 @@ export function FilterList({
                       )}
                     </span>
                   );
-                } else if (showMultipleIcons) {
+                } else if (!filter.hideMultipleIcons) {
                   iconDisplay = (
                     <div className="flex shrink-0 -space-x-1">
                       {displayValues.map((value, idx) => {
@@ -226,7 +224,7 @@ export function FilterList({
                       className,
                     )}
                   >
-                    {values.length > 3 && showMultipleIcons ? (
+                    {values.length > 3 && !filter.hideMultipleIcons ? (
                       <Tooltip content={`Max of 3 icons shown`}>
                         {iconDisplay}
                       </Tooltip>
@@ -245,8 +243,6 @@ export function FilterList({
                   filter={filter}
                   values={values}
                   operator={operator}
-                  displayLabel={displayLabel}
-                  displayValues={displayValues}
                   OptionDisplay={OptionDisplay}
                   onRemove={onRemove}
                   onRemoveFilter={onRemoveFilter}
@@ -376,8 +372,6 @@ function OperatorFilterPill({
   filter,
   values,
   operator,
-  displayLabel,
-  displayValues,
   OptionDisplay,
   onRemove,
   onRemoveFilter,
@@ -389,8 +383,6 @@ function OperatorFilterPill({
   filter: Filter;
   values: FilterOption["value"][];
   operator: FilterOperator;
-  displayLabel: string;
-  displayValues: FilterOption["value"][];
   OptionDisplay: ({ className }: { className?: string }) => ReactNode;
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onRemoveFilter?: (key: string) => void;
