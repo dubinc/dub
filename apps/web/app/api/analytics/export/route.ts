@@ -2,7 +2,6 @@ import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { convertToCSV } from "@/lib/analytics/utils";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -23,22 +22,17 @@ export const GET = withWorkspace(
 
     const parsedParams = parseAnalyticsQuery(searchParams);
 
-    const {
+    let {
       interval,
       start,
       end,
-      linkId: linkIdFilter,
-      externalId,
-      domain: domainFilter,
+      folderId,
+      domain,
       key,
-      folderId: folderIdFilter,
+      linkId,
+      externalId,
       programId,
     } = parsedParams;
-
-    // Extract string values for specific link/folder lookup
-    const domain = getFirstFilterValue(domainFilter);
-    const linkId = getFirstFilterValue(linkIdFilter);
-    const folderId = getFirstFilterValue(folderIdFilter);
 
     let link: Link | null = null;
 
@@ -59,21 +53,29 @@ export const GET = withWorkspace(
       programStartedAt = program.startedAt;
     }
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
-
-    if (linkId || externalId || (domain && key)) {
-      link = await getLinkOrThrow({
+    let folderIdToVerify = getFirstFilterValue(folderId);
+    if (!linkId && (externalId || (domain && key))) {
+      const link = await getLinkOrThrow({
         workspaceId: workspace.id,
         linkId,
         externalId,
-        domain,
+        domain: getFirstFilterValue(domain),
         key,
       });
-    }
 
-    const folderIdToVerify = link?.folderId || folderId;
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
+
+      // since we're filtering for a specific link, exclude domain from filters
+      parsedParams.domain = undefined;
+
+      if (link.folderId && !folderIdToVerify) {
+        folderIdToVerify = link.folderId;
+      }
+    }
 
     if (folderIdToVerify) {
       await verifyFolderAccess({

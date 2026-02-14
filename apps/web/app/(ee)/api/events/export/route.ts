@@ -6,7 +6,6 @@ import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV } from "@/lib/analytics/utils";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
@@ -14,7 +13,6 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { Link } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, capitalize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -38,40 +36,42 @@ export const GET = withWorkspace(
     const parsedParams = eventsQuerySchema.parse(searchParams);
     const { columns } = exportQuerySchema.parse(searchParams);
 
-    const {
+    let {
       event,
       interval,
       start,
       end,
-      linkId: linkIdFilter,
-      externalId,
-      domain: domainFilter,
+      folderId,
+      domain,
       key,
-      folderId: folderIdFilter,
+      linkId,
+      externalId,
     } = parsedParams;
 
-    // Extract string values for specific link/folder lookup
-    const domain = getFirstFilterValue(domainFilter);
-    const linkId = getFirstFilterValue(linkIdFilter);
-    const folderId = getFirstFilterValue(folderIdFilter);
-
-    let link: Link | null = null;
-
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
-
-    if (linkId || externalId || (domain && key)) {
-      link = await getLinkOrThrow({
+    let folderIdToVerify = getFirstFilterValue(folderId);
+    if (!linkId && (externalId || (domain && key))) {
+      const link = await getLinkOrThrow({
         workspaceId: workspace.id,
         linkId,
         externalId,
-        domain,
+        domain: getFirstFilterValue(domain),
         key,
       });
+
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
+
+      // since we're filtering for a specific link, exclude domain from filters
+      parsedParams.domain = undefined;
+
+      if (link.folderId && !folderIdToVerify) {
+        folderIdToVerify = link.folderId;
+      }
     }
 
-    const folderIdToVerify = link?.folderId || folderId;
     if (folderIdToVerify) {
       await verifyFolderAccess({
         workspace,

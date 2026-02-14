@@ -427,11 +427,20 @@ export const analyticsQuerySchema = z.object({
 });
 
 /**
- * Parse analytics query parameters with backward compatibility
+ * Parse analytics/events query parameters with backward compatibility
  * Converts deprecated multiple value fields (tagIds) to singular fields (tagId)
  */
 export function parseAnalyticsQuery(searchParams: Record<string, string>) {
   const data = analyticsQuerySchema.parse(searchParams);
+
+  if (data.tagIds && !data.tagId) {
+    data.tagId = data.tagIds;
+  }
+
+  return data;
+}
+export function parseEventsQuery(searchParams: Record<string, string>) {
+  const data = eventsQuerySchema.parse(searchParams);
 
   if (data.tagIds && !data.tagId) {
     data.tagId = data.tagIds;

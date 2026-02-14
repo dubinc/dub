@@ -1,7 +1,6 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -15,7 +14,6 @@ import {
   analyticsPathParamsSchema,
   parseAnalyticsQuery,
 } from "@/lib/zod/schemas/analytics";
-import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
@@ -40,21 +38,13 @@ export const GET = withWorkspace(
       interval,
       start,
       end,
-      externalId,
-      domain: domainFilter,
+      folderId,
+      domain,
       key,
-      linkId: linkIdFilter,
-      folderId: folderIdFilter,
+      linkId,
+      externalId,
       programId,
     } = parsedParams;
-
-    // Extract string values for specific link/folder lookup
-    // When domain+key is provided, it's for getting a specific link (not filtering)
-    const domain = getFirstFilterValue(domainFilter);
-    const linkId = getFirstFilterValue(linkIdFilter);
-    const folderId = getFirstFilterValue(folderIdFilter);
-
-    let link: Link | null = null;
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;
@@ -77,21 +67,29 @@ export const GET = withWorkspace(
       }
     }
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
-
-    if (linkId || externalId || (domain && key)) {
-      link = await getLinkOrThrow({
+    let folderIdToVerify = getFirstFilterValue(folderId);
+    if (!linkId && (externalId || (domain && key))) {
+      const link = await getLinkOrThrow({
         workspaceId: workspace.id,
         linkId,
         externalId,
-        domain,
+        domain: getFirstFilterValue(domain),
         key,
       });
-    }
 
-    const folderIdToVerify = link?.folderId || folderId;
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
+
+      // since we're filtering for a specific link, exclude domain from filters
+      parsedParams.domain = undefined;
+
+      if (link.folderId && !folderIdToVerify) {
+        folderIdToVerify = link.folderId;
+      }
+    }
 
     if (folderIdToVerify) {
       await verifyFolderAccess({
@@ -118,12 +116,9 @@ export const GET = withWorkspace(
     const isDeprecatedClicksEndpoint =
       oldEvent === "clicks" || oldType === "count";
 
-    // When domain+key resolves a specific link, exclude domain from filters
-    const { domain: _domain, key: _key, ...filterParams } = parsedParams;
-
     console.time("getAnalytics");
     const response = await getAnalytics({
-      ...(link ? filterParams : parsedParams),
+      ...parsedParams,
       event,
       groupBy,
       workspaceId: workspace.id,
