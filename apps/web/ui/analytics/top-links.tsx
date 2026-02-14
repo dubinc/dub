@@ -180,6 +180,7 @@ export function TopLinks() {
                               set: {
                                 linkId: d.id,
                               },
+                              del: ["domain", "key"],
                             }),
                         getNewPath: true,
                       }) as string;
