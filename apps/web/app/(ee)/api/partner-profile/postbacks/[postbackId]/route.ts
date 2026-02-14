@@ -5,6 +5,23 @@ import { postbackSchema, updatePostbackSchema } from "@/lib/postback/schemas";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
+// GET /api/partner-profile/postbacks/[postbackId]
+export const GET = withPartnerProfile(
+  async ({ partner, params }) => {
+    const { postbackId } = params;
+
+    const postback = await getPostbackOrThrow({
+      postbackId,
+      partnerId: partner.id,
+    });
+
+    return NextResponse.json(postbackSchema.parse(postback));
+  },
+  {
+    requiredPermission: "postbacks.read",
+  },
+);
+
 // PATCH /api/partner-profile/postbacks/[postbackId]
 export const PATCH = withPartnerProfile(
   async ({ partner, params, req }) => {

@@ -53,7 +53,13 @@ export const POST = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(postbackSchema.parse(postback), { status: 201 });
+    return NextResponse.json(
+      {
+        ...postbackSchema.parse(postback),
+        secret,
+      },
+      { status: 201 },
+    );
   },
   {
     requiredPermission: "postbacks.write",

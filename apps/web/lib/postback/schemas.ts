@@ -12,7 +12,9 @@ export const postbackSchema = z.object({
 });
 
 export const createPostbackSchema = z.object({
-  url: parseUrlSchema,
+  url: parseUrlSchema.refine((u) => u.startsWith("https://"), {
+    message: "URL must use HTTPS",
+  }),
   triggers: z.array(z.enum(POSTBACK_TRIGGERS)),
 });
 
