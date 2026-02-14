@@ -6,7 +6,7 @@ import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { parseEventsQuery } from "@/lib/zod/schemas/analytics";
+import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
@@ -15,7 +15,7 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
-    const parsedParams = parseEventsQuery(searchParams);
+    const parsedParams = eventsQuerySchema.parse(searchParams);
 
     let {
       event,
@@ -69,9 +69,12 @@ export const GET = withWorkspace(
       end,
     });
 
+    // When domain+key resolves a specific link, exclude domain from filters
+    const { domain: _domain, key: _key, ...filterParams } = parsedParams;
+
     console.time("getEvents");
     const response = await getEvents({
-      ...parsedParams,
+      ...(link ? filterParams : parsedParams),
       event,
       workspaceId: workspace.id,
     });

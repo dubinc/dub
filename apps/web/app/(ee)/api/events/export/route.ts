@@ -13,7 +13,7 @@ import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-r
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { parseEventsQuery } from "@/lib/zod/schemas/analytics";
+import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { Link } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, capitalize } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -35,7 +35,7 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
-    const parsedParams = parseEventsQuery(searchParams);
+    const parsedParams = eventsQuerySchema.parse(searchParams);
     const { columns } = exportQuerySchema.parse(searchParams);
 
     const {

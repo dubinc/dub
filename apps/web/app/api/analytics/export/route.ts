@@ -92,6 +92,9 @@ export const GET = withWorkspace(
       end,
     });
 
+    // When domain+key resolves a specific link, exclude domain from filters
+    const { domain: _domain, key: _key, ...filterParams } = parsedParams;
+
     const zip = new JSZip();
 
     await Promise.all(
@@ -103,7 +106,7 @@ export const GET = withWorkspace(
         if (endpoint === "count") return;
 
         const response = await getAnalytics({
-          ...parsedParams,
+          ...(link ? filterParams : parsedParams),
           workspaceId: workspace.id,
           groupBy: endpoint,
           isDeprecatedClicksEndpoint: false,

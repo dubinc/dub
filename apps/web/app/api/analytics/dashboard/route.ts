@@ -163,8 +163,11 @@ export const GET = async (req: Request) => {
       `[Analytics Dashboard] Cache miss: ${JSON.stringify(parsedParams, null, 2)}`,
     );
 
+    // When domain+key resolves a specific link, exclude domain from filters
+    const { domain: _domain, key: _key, ...filterParams } = parsedParams;
+
     const response = await getAnalytics({
-      ...parsedParams,
+      ...(link ? filterParams : parsedParams),
       // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
       ...(workspace && { workspaceId: workspace.id }),
       ...(folder && { folderId: folder.id }),

@@ -118,9 +118,12 @@ export const GET = withWorkspace(
     const isDeprecatedClicksEndpoint =
       oldEvent === "clicks" || oldType === "count";
 
+    // When domain+key resolves a specific link, exclude domain from filters
+    const { domain: _domain, key: _key, ...filterParams } = parsedParams;
+
     console.time("getAnalytics");
     const response = await getAnalytics({
-      ...parsedParams,
+      ...(link ? filterParams : parsedParams),
       event,
       groupBy,
       workspaceId: workspace.id,
