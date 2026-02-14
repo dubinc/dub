@@ -6,20 +6,27 @@ export const postbackSchema = z.object({
   id: z.string(),
   url: z.string(),
   triggers: z.array(z.enum(POSTBACK_TRIGGERS)),
-  disabledAt: z.date().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
+  disabledAt: z.coerce.date().nullable(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
-export const createPostbackSchema = z.object({
+export const createPostbackInputSchema = z.object({
   url: parseUrlSchema.refine((u) => u.startsWith("https://"), {
     message: "URL must use HTTPS",
   }),
   triggers: z.array(z.enum(POSTBACK_TRIGGERS)),
 });
 
+export const createPostbackOutputSchema = z.object({
+  ...postbackSchema.shape,
+  secret: z.string(),
+});
+
 export const updatePostbackSchema = z.object({
-  url: parseUrlSchema.optional(),
+  url: parseUrlSchema.optional().refine((u) => !u || u.startsWith("https://"), {
+    message: "URL must use HTTPS",
+  }),
   triggers: z.array(z.enum(POSTBACK_TRIGGERS)).optional(),
   disabled: z.boolean().optional(),
 });

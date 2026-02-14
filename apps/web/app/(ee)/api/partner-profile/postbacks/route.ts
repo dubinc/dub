@@ -6,7 +6,11 @@ import {
   POSTBACK_SECRET_LENGTH,
   POSTBACK_SECRET_PREFIX,
 } from "@/lib/postback/constants";
-import { createPostbackSchema, postbackSchema } from "@/lib/postback/schemas";
+import {
+  createPostbackInputSchema,
+  createPostbackOutputSchema,
+  postbackSchema,
+} from "@/lib/postback/schemas";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -33,7 +37,7 @@ export const GET = withPartnerProfile(
 // POST /api/partner-profile/postbacks
 export const POST = withPartnerProfile(
   async ({ partner, req }) => {
-    const { url, triggers } = createPostbackSchema.parse(
+    const { url, triggers } = createPostbackInputSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -53,13 +57,9 @@ export const POST = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(
-      {
-        ...postbackSchema.parse(postback),
-        secret,
-      },
-      { status: 201 },
-    );
+    return NextResponse.json(createPostbackOutputSchema.parse(postback), {
+      status: 201,
+    });
   },
   {
     requiredPermission: "postbacks.write",
