@@ -1007,7 +1007,7 @@ export function useAnalyticsFilters({
       ...(streaming && !activeFilters.length
         ? Array.from({ length: 2 }, (_, i) => i).map((i) => ({
             key: "loader",
-            values: [i],
+            values: [String(i)],
             operator: "IS" as const,
           }))
         : []),

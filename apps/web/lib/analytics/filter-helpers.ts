@@ -90,8 +90,8 @@ export function ensureParsedFilter(
 export function extractWorkspaceLinkFilters(params: {
   linkId?: ParsedFilter;
   domain?: ParsedFilter;
-  tagIds?: ParsedFilter;
   folderId?: ParsedFilter;
+  tagId?: ParsedFilter;
   partnerId?: ParsedFilter;
   groupId?: ParsedFilter;
   tenantId?: ParsedFilter;
@@ -106,7 +106,7 @@ export function extractWorkspaceLinkFilters(params: {
 
   const linkId = extractFilter(params.linkId);
   const domain = extractFilter(params.domain);
-  const tagIds = extractFilter(params.tagIds);
+  const tagId = extractFilter(params.tagId);
   const folderId = extractFilter(params.folderId);
   const partnerId = extractFilter(params.partnerId);
   const groupId = extractFilter(params.groupId);
@@ -118,8 +118,8 @@ export function extractWorkspaceLinkFilters(params: {
     linkIdOperator: linkId.operator,
     domain: domain.values,
     domainOperator: domain.operator,
-    tagIds: tagIds.values,
-    tagIdsOperator: tagIds.operator,
+    tagId: tagId.values,
+    tagIdOperator: tagId.operator,
     folderId: folderId.values,
     folderIdOperator: folderId.operator,
     partnerId: partnerId.values,

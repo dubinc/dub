@@ -50,11 +50,11 @@ SQL >
                 AND domain IN {{ Array(domain, 'String') }}
             {% end %}
         {% end %}
-        {% if defined(tagIds) %}
-            {% if defined(tagIdsOperator) and String(tagIdsOperator) == 'NOT IN' %}
-                AND length(arrayFilter(x -> x NOT IN {{ Array(tagIds, 'String') }}, tag_ids)) = length(tag_ids)
+        {% if defined(tagId) %}
+            {% if defined(tagIdOperator) and String(tagIdOperator) == 'NOT IN' %}
+                AND length(arrayFilter(x -> x NOT IN {{ Array(tagId, 'String') }}, tag_ids)) = length(tag_ids)
             {% else %}
-                AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != []
+                AND arrayIntersect(tag_ids, {{ Array(tagId, 'String') }}) != []
             {% end %}
         {% end %}
         {% if defined(folderId) %}
@@ -106,7 +106,7 @@ SQL >
         {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
-            tagIds
+            tagId
         ) or defined(
             root
         ) %} AND link_id in (SELECT link_id from workspace_links)
@@ -234,8 +234,8 @@ SQL >
                         {% end %}
                     {% elif field == 'domain' %}
                         {# domain is already filtered at workspace_links node level #}
-                    {% elif field == 'tagIds' %}
-                        {# tagIds is already filtered at workspace_links node level #}
+                    {% elif field == 'tagId' %}
+                        {# tagId is already filtered at workspace_links node level #}
                     {% elif field == 'folderId' %}
                         {# folderId is already filtered at workspace_links node level #}
                     {% elif field == 'root' %}
@@ -274,7 +274,7 @@ SQL >
         {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
-            tagIds
+            tagId
         ) or defined(
             root
         ) %} AND link_id in (SELECT link_id from workspace_links)
@@ -402,8 +402,8 @@ SQL >
                         {% end %}
                     {% elif field == 'domain' %}
                         {# domain is already filtered at workspace_links node level #}
-                    {% elif field == 'tagIds' %}
-                        {# tagIds is already filtered at workspace_links node level #}
+                    {% elif field == 'tagId' %}
+                        {# tagId is already filtered at workspace_links node level #}
                     {% elif field == 'folderId' %}
                         {# folderId is already filtered at workspace_links node level #}
                     {% elif field == 'root' %}
@@ -477,7 +477,7 @@ SQL >
                 {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
                     tenantId
                 ) or defined(folderId) or defined(domain) or defined(
-                    tagIds
+                    tagId
                 ) or defined(
                     root
                 ) %} AND se.link_id in (SELECT link_id from workspace_links)
@@ -614,8 +614,8 @@ SQL >
                                 {% end %}
                             {% elif field == 'domain' %}
                                 {# domain is already filtered at workspace_links node level #}
-                            {% elif field == 'tagIds' %}
-                                {# tagIds is already filtered at workspace_links node level #}
+                            {% elif field == 'tagId' %}
+                                {# tagId is already filtered at workspace_links node level #}
                             {% elif field == 'folderId' %}
                                 {# folderId is already filtered at workspace_links node level #}
                             {% elif field == 'root' %}

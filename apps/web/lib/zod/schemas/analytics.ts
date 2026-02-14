@@ -283,12 +283,12 @@ export const analyticsQuerySchema = z.object({
         "Examples: `https://example.com`, `https://example.com,https://other.com`, `-https://spam.com`.",
     )
     .meta({ example: "https://example.com" }),
-  tagIds: z
+  tagId: z
     .string()
     .optional()
     .transform(parseFilterValue)
     .describe(
-      "The tag IDs to retrieve analytics for. " +
+      "The tag ID to retrieve analytics for. " +
         "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
         "Examples: `tag_123`, `tag_123,tag_456`, `-tag_789`.",
     )
@@ -314,67 +314,6 @@ export const analyticsQuerySchema = z.object({
         "Examples: `grp_123`, `grp_123,grp_456`, `-grp_789`.",
     )
     .meta({ example: "grp_123" }),
-  root: z
-    .string()
-    .optional()
-    .transform((v) => {
-      if (!v) return undefined;
-      // Normalize boolean values to "true" or "false" strings for consistency
-      const parsed = parseFilterValue(v);
-      if (!parsed) return undefined;
-      return {
-        ...parsed,
-        values: parsed.values.map((val) => {
-          // Normalize various truthy/falsy values to "true"/"false"
-          if (val === "true" || val === "1" || val === "yes") return "true";
-          if (val === "false" || val === "0" || val === "no") return "false";
-          return val;
-        }),
-      };
-    })
-    .describe(
-      "Filter for root domains. " +
-        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-        "Examples: `true` (root domains only), `false` (regular links only), `true,false` (both). " +
-        "If undefined, return both.",
-    )
-    .meta({ example: "true" }),
-  saleType: z
-    .string()
-    .optional()
-    .transform(parseFilterValue)
-    .describe(
-      "Filter sales by type. " +
-        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-        "Valid values: `new` (first-time purchases), `recurring` (repeat purchases). " +
-        "Examples: `new`, `new,recurring`, `-recurring`. " +
-        "If undefined, returns both.",
-    )
-    .meta({ example: "new" }),
-  query: z
-    .string()
-    .max(10000)
-    .optional()
-    .describe(
-      "Search the events by a custom metadata value. Only available for lead and sale events.",
-    )
-    .meta({
-      example: "metadata['key']:'value'",
-    }),
-  // deprecated fields
-  tagId: z
-    .string()
-    .optional()
-    .describe(
-      "Deprecated: Use `tagIds` instead. The tag ID to retrieve analytics for.",
-    )
-    .meta({ deprecated: true }),
-  qr: booleanQuerySchema
-    .optional()
-    .describe(
-      "Deprecated: Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
-    )
-    .meta({ deprecated: true }),
   utm_source: z
     .string()
     .optional()
@@ -423,23 +362,79 @@ export const analyticsQuerySchema = z.object({
         "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`).",
     )
     .meta({ example: "banner" }),
+  root: z
+    .string()
+    .optional()
+    .transform((v) => {
+      if (!v) return undefined;
+      // Normalize boolean values to "true" or "false" strings for consistency
+      const parsed = parseFilterValue(v);
+      if (!parsed) return undefined;
+      return {
+        ...parsed,
+        values: parsed.values.map((val) => {
+          // Normalize various truthy/falsy values to "true"/"false"
+          if (val === "true" || val === "1" || val === "yes") return "true";
+          if (val === "false" || val === "0" || val === "no") return "false";
+          return val;
+        }),
+      };
+    })
+    .describe(
+      "Filter for root domains. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Examples: `true` (root domains only), `false` (regular links only), `true,false` (both). " +
+        "If undefined, return both.",
+    )
+    .meta({ example: "true" }),
+  saleType: z
+    .string()
+    .optional()
+    .transform(parseFilterValue)
+    .describe(
+      "Filter sales by type. " +
+        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
+        "Valid values: `new` (first-time purchases), `recurring` (repeat purchases). " +
+        "Examples: `new`, `new,recurring`, `-recurring`. " +
+        "If undefined, returns both.",
+    )
+    .meta({ example: "new" }),
+  query: z
+    .string()
+    .max(10000)
+    .optional()
+    .describe(
+      "Search the events by a custom metadata value. Only available for lead and sale events.",
+    )
+    .meta({
+      example: "metadata['key']:'value'",
+    }),
+  // deprecated fields
+  tagIds: z
+    .string()
+    .optional()
+    .transform(parseFilterValue)
+    .describe(
+      "Deprecated: Use `tagId` instead. The tag IDs to retrieve analytics for.",
+    )
+    .meta({ deprecated: true }),
+  qr: booleanQuerySchema
+    .optional()
+    .describe(
+      "Deprecated: Use the `trigger` field instead. Filter for QR code scans. If true, filter for QR codes only. If false, filter for links only. If undefined, return both.",
+    )
+    .meta({ deprecated: true }),
 });
 
 /**
  * Parse analytics query parameters with backward compatibility
- * Converts deprecated singular fields (linkId, tagId) to their plural equivalents
+ * Converts deprecated multiple value fields (tagIds) to singular fields (tagId)
  */
 export function parseAnalyticsQuery(searchParams: Record<string, string>) {
   const data = analyticsQuerySchema.parse(searchParams);
 
-  // Backward compatibility: convert tagId to tagIds
-  if (data.tagId && !data.tagIds) {
-    // Convert single tagId to the multi-value format
-    data.tagIds = {
-      operator: "IS" as const,
-      sqlOperator: "IN" as const,
-      values: [data.tagId],
-    };
+  if (data.tagIds && !data.tagId) {
+    data.tagId = data.tagIds;
   }
 
   return data;
@@ -477,12 +472,14 @@ export const analyticsFilterTB = z.object({
     .optional()
     .describe("The domain(s) to retrieve analytics for."),
   domainOperator: z.enum(["IN", "NOT IN"]).optional(),
-  tagIds: z
+  tagId: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
-    .describe("The tag IDs to retrieve analytics for."),
-  tagIdsOperator: z.enum(["IN", "NOT IN"]).optional(),
+    .describe(
+      "The tag ID(s) to retrieve analytics for (with operator support).",
+    ),
+  tagIdOperator: z.enum(["IN", "NOT IN"]).optional(),
   root: z
     .union([
       z.string(),
@@ -576,23 +573,3 @@ export const eventsQuerySchema = analyticsQuerySchema
       .describe("DEPRECATED. Use `sortOrder` instead.")
       .meta({ deprecated: true }),
   });
-
-/**
- * Parse events query parameters with backward compatibility
- * Converts deprecated singular fields (linkId, tagId) to their plural equivalents
- */
-export function parseEventsQuery(searchParams: unknown) {
-  const data = eventsQuerySchema.parse(searchParams);
-
-  // Backward compatibility: convert tagId to tagIds
-  if (data.tagId && !data.tagIds) {
-    // Convert single tagId to the multi-value format
-    data.tagIds = {
-      operator: "IS" as const,
-      sqlOperator: "IN" as const,
-      values: [data.tagId],
-    };
-  }
-
-  return data;
-}
