@@ -100,7 +100,7 @@ export function ProgramAnalyticsPageClient() {
             onSelect={onSelect}
             onRemove={onRemove}
             onOpenFilter={onOpenFilter}
-            isAdvancedFilter={true}
+            isAdvancedFilter
             askAI
           />
           <SimpleDateRangePicker align="start" className="w-fit" />
@@ -134,7 +134,7 @@ export function ProgramAnalyticsPageClient() {
             onRemoveFilter={onRemoveFilter}
             onRemoveAll={onRemoveAll}
             onToggleOperator={onToggleOperator}
-            isAdvancedFilter={true}
+            isAdvancedFilter
           />
         </div>
       </div>

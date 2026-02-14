@@ -5,7 +5,6 @@ import {
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getEvents } from "@/lib/analytics/get-events";
-import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
@@ -14,50 +13,63 @@ import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-r
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { parseEventsQuery } from "@/lib/zod/schemas/analytics";
+import { Link } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, capitalize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const MAX_EVENTS_TO_EXPORT = 1000;
 
+const exportQuerySchema = z
+  .object({
+    columns: z
+      .string()
+      .transform((c) => c.split(","))
+      .pipe(z.string().array()),
+  })
+  .passthrough();
+
 // GET /api/events/export – export events to CSV (with async support if >1000 events)
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
-    const parsedParams = eventsQuerySchema
-      .extend({
-        columns: z
-          .string()
-          .transform((c) => c.split(","))
-          .pipe(z.string().array()),
-      })
-      .parse(searchParams);
+    const parsedParams = parseEventsQuery(searchParams);
+    const { columns } = exportQuerySchema.parse(searchParams);
 
     const {
       event,
-      domain: domainFilter,
       interval,
       start,
       end,
-      columns,
+      linkId: linkIdFilter,
+      externalId,
+      domain: domainFilter,
       key,
       folderId: folderIdFilter,
     } = parsedParams;
 
     // Extract string values for specific link/folder lookup
     const domain = getFirstFilterValue(domainFilter);
+    const linkId = getFirstFilterValue(linkIdFilter);
     const folderId = getFirstFilterValue(folderIdFilter);
+
+    let link: Link | null = null;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
     }
 
-    const link =
-      domain && key
-        ? await getLinkOrThrow({ workspaceId: workspace.id, domain, key })
-        : null;
+    if (linkId || externalId || (domain && key)) {
+      link = await getLinkOrThrow({
+        workspaceId: workspace.id,
+        linkId,
+        externalId,
+        domain,
+        key,
+      });
+    }
 
     const folderIdToVerify = link?.folderId || folderId;
     if (folderIdToVerify) {
@@ -77,19 +89,10 @@ export const GET = withWorkspace(
       end,
     });
 
-    const folderIds = folderIdToVerify
-      ? undefined
-      : await getFolderIdsToFilter({
-          workspace,
-          userId: session.user.id,
-        });
-
     // Count events using getAnalytics with groupBy: "count"
     const countResponse = await getAnalytics({
       ...parsedParams,
       groupBy: "count",
-      ...(link && { linkId: link.id }),
-      folderIds,
       workspaceId: workspace.id,
       dataAvailableFrom: workspace.createdAt,
     });
@@ -111,9 +114,6 @@ export const GET = withWorkspace(
           ...searchParams,
           workspaceId: workspace.id,
           userId: session.user.id,
-          ...(link && { linkId: link.id }),
-          folderIds: folderIds ? folderIds : undefined,
-          dataAvailableFrom: workspace.createdAt.toISOString(),
         },
       });
 
@@ -122,10 +122,9 @@ export const GET = withWorkspace(
 
     const response = await getEvents({
       ...parsedParams,
-      ...(link && { linkId: link.id }),
+      event,
       workspaceId: workspace.id,
       limit: MAX_EVENTS_TO_EXPORT,
-      folderIds,
     });
 
     const data = response.map((row) =>

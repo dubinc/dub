@@ -83,7 +83,7 @@ export function AnalyticsToggle({
       onSelect={onSelect}
       onRemove={onRemove}
       onOpenFilter={onOpenFilter}
-      isAdvancedFilter={true}
+      isAdvancedFilter
       askAI
     />
   );
@@ -294,7 +294,7 @@ export function AnalyticsToggle({
           onRemoveFilter={onRemoveFilter}
           onRemoveAll={onRemoveAll}
           onToggleOperator={onToggleOperator}
-          isAdvancedFilter={true}
+          isAdvancedFilter
         />
         <div
           className={cn(

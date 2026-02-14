@@ -1,12 +1,15 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
@@ -24,18 +27,37 @@ export const GET = withWorkspace(
       interval,
       start,
       end,
-      linkId,
+      linkId: linkIdFilter,
       externalId,
       domain: domainFilter,
       key,
       folderId: folderIdFilter,
+      programId,
     } = parsedParams;
 
     // Extract string values for specific link/folder lookup
     const domain = getFirstFilterValue(domainFilter);
+    const linkId = getFirstFilterValue(linkIdFilter);
     const folderId = getFirstFilterValue(folderIdFilter);
 
     let link: Link | null = null;
+
+    let programStartedAt: Date | null | undefined = null;
+    if (programId) {
+      const workspaceProgramId = getDefaultProgramIdOrThrow(workspace);
+      if (programId !== workspaceProgramId) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: `Program ${programId} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
+        });
+      }
+      // dataAvailableFrom for timeseries is resolved per-endpoint below
+      const program = await getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      });
+      programStartedAt = program.startedAt;
+    }
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -70,13 +92,6 @@ export const GET = withWorkspace(
       end,
     });
 
-    const folderIds = folderIdToVerify
-      ? undefined
-      : await getFolderIdsToFilter({
-          workspace,
-          userId: session.user.id,
-        });
-
     const zip = new JSZip();
 
     await Promise.all(
@@ -90,10 +105,11 @@ export const GET = withWorkspace(
         const response = await getAnalytics({
           ...parsedParams,
           workspaceId: workspace.id,
-          ...(link && { linkId: link.id }),
           groupBy: endpoint,
-          folderIds,
-          folderId: folderIdFilter || undefined,
+          isDeprecatedClicksEndpoint: false,
+          ...(endpoint === "timeseries" && {
+            dataAvailableFrom: programStartedAt ?? workspace.createdAt,
+          }),
         });
 
         if (!response || response.length === 0) return;
