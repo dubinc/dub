@@ -73,7 +73,7 @@ export const getEvents = async (params: EventsFilters) => {
   }
 
   const pipe = tb.buildPipe({
-    pipe: "v3_events",
+    pipe: "v4_events",
     parameters: eventsFilterTB,
     data:
       {
@@ -143,9 +143,13 @@ export const getEvents = async (params: EventsFilters) => {
     tenantIdOperator,
     groupId: groupIdParam,
     groupIdOperator,
-    ...(typeof triggerForPipe !== 'object' && triggerForPipe ? { trigger: triggerForPipe } : {}),
-    ...(typeof countryForPipe !== 'object' && countryForPipe ? { country: countryForPipe } : {}),
-    ...(typeof regionForPipe === 'string' ? { region: regionForPipe } : {}),
+    ...(typeof triggerForPipe !== "object" && triggerForPipe
+      ? { trigger: triggerForPipe }
+      : {}),
+    ...(typeof countryForPipe !== "object" && countryForPipe
+      ? { country: countryForPipe }
+      : {}),
+    ...(typeof regionForPipe === "string" ? { region: regionForPipe } : {}),
     // Workspace links filters with operators
     ...(domainParam ? { domain: domainParam, domainOperator } : {}),
     ...(tagIdsParam ? { tagIds: tagIdsParam, tagIdsOperator } : {}),
@@ -159,7 +163,7 @@ export const getEvents = async (params: EventsFilters) => {
     end: formatUTCDateTimeClickhouse(endDate),
     filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
   };
-  
+
   const response = await pipe(tinybirdParams);
 
   const [linksMap, customersMap] = await Promise.all([
@@ -186,7 +190,10 @@ export const getEvents = async (params: EventsFilters) => {
       link = decodeLinkIfCaseSensitive(link);
 
       const transformedLink = transformLink(link, { skipDecodeKey: true });
-      if (transformedLink.testVariants && !Array.isArray(transformedLink.testVariants)) {
+      if (
+        transformedLink.testVariants &&
+        !Array.isArray(transformedLink.testVariants)
+      ) {
         transformedLink.testVariants = null;
       }
 

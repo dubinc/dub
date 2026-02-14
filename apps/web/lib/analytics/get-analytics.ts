@@ -1,4 +1,3 @@
-import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { FolderAccessLevel } from "@dub/prisma/client";
@@ -98,16 +97,16 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   // Create a Tinybird pipe
   const pipe = tb.buildPipe({
     pipe: ["count", "timeseries"].includes(groupBy!)
-      ? `v3_${groupBy}`
+      ? `v4_${groupBy}`
       : [
-        "top_folders",
-        "top_link_tags",
-        "top_domains",
-        "top_partners",
-        "top_groups",
-      ].includes(groupBy!)
-        ? "v3_group_by_link_metadata"
-        : "v3_group_by",
+            "top_folders",
+            "top_link_tags",
+            "top_domains",
+            "top_partners",
+            "top_groups",
+          ].includes(groupBy!)
+        ? "v4_group_by_link_metadata"
+        : "v4_group_by",
     parameters: analyticsFilterTB,
     data: z.object({
       groupByField: z.string(),
