@@ -40,7 +40,7 @@ export const POST = async (req: Request) => {
   const request = Buffer.from(sourceBody, "base64").toString("utf-8");
   const response = Buffer.from(body, "base64").toString("utf-8");
 
-  await recordPostbackEvent({
+  const tbResponse = await recordPostbackEvent({
     event_id: eventId,
     postback_id: postbackId,
     message_id: sourceMessageId,
@@ -51,5 +51,16 @@ export const POST = async (req: Request) => {
     response_body: response,
   });
 
-  return logAndRespond(`Postback ${postbackId} processed.`);
+  if (tbResponse.successful_rows === 0) {
+    return logAndRespond(
+      `Failed to record event ${eventId} for postback ${postbackId}.`,
+      {
+        status: 400,
+      },
+    );
+  }
+
+  return logAndRespond(
+    `Event ${eventId} for postback ${postbackId} processed.`,
+  );
 };
