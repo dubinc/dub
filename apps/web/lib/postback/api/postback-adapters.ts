@@ -7,7 +7,7 @@ import { PostbackEventTransformers } from "./postback-event-transformers";
 
 interface PostbackPayload {
   eventId: string;
-  trigger: PostbackTrigger;
+  event: PostbackTrigger;
   createdAt: string;
   data: unknown;
 }
@@ -31,7 +31,7 @@ abstract class PostbackAdapter {
     const searchParams = {
       postbackId: this.postback.id,
       eventId: payload.eventId,
-      event: payload.trigger,
+      event: payload.event,
     };
 
     const callbackUrl = buildCallbackUrl(
@@ -98,7 +98,7 @@ export class PostbackCustomAdapter extends PostbackAdapter {
   private formatPayload(payload: PostbackPayload) {
     return {
       id: payload.eventId,
-      event: payload.trigger,
+      event: payload.event,
       createdAt: payload.createdAt,
       data: payload.data,
     };

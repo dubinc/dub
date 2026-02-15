@@ -7,13 +7,13 @@ import { postbackEventEnrichers } from "./postback-event-enrichers";
 
 interface SendPartnerPostbackParams {
   partnerId: string;
-  trigger: PostbackTrigger;
+  event: PostbackTrigger;
   data: Record<string, unknown>;
 }
 
 export const sendPartnerPostback = async ({
   partnerId,
-  trigger,
+  event,
   data,
 }: SendPartnerPostbackParams) => {
   const postbacks = await prisma.partnerPostback.findMany({
@@ -21,20 +21,20 @@ export const sendPartnerPostback = async ({
       partnerId,
       disabledAt: null,
       triggers: {
-        array_contains: [trigger],
+        array_contains: [event],
       },
     },
   });
 
   if (postbacks.length === 0) {
     console.log(
-      `[sendPartnerPostback] No postbacks found for partner ${partnerId} for the trigger ${trigger}.`,
+      `[sendPartnerPostback] No postbacks found for partner ${partnerId} for the event ${event}.`,
     );
     return;
   }
 
-  const enrichedData = postbackEventEnrichers.has(trigger)
-    ? postbackEventEnrichers.enrich(trigger, data)
+  const enrichedData = postbackEventEnrichers.has(event)
+    ? postbackEventEnrichers.enrich(event, data)
     : data;
 
   const adapters = postbacks.map((postback) => {
@@ -54,7 +54,7 @@ export const sendPartnerPostback = async ({
   await Promise.allSettled(
     adapters.map((adapter) =>
       adapter.execute({
-        trigger,
+        event,
         eventId,
         createdAt,
         data: enrichedData,

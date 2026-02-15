@@ -376,7 +376,7 @@ export const trackLead = async ({
           if (link.partnerId) {
             await sendPartnerPostback({
               partnerId: link.partnerId,
-              trigger: "lead.created",
+              event: "lead.created",
               data: {
                 ...clickData,
                 eventName,

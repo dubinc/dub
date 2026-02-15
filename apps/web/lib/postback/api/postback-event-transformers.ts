@@ -2,7 +2,7 @@ import { PostbackTrigger } from "../constants";
 
 interface PostbackPayload {
   eventId: string;
-  trigger: PostbackTrigger;
+  event: PostbackTrigger;
   createdAt: string;
   data: unknown;
 }
@@ -31,11 +31,11 @@ export class PostbackEventTransformers {
   }
 
   transform(payload: PostbackPayload) {
-    const transformer = this.transformers.get(payload.trigger);
+    const transformer = this.transformers.get(payload.event);
 
     if (!transformer) {
       console.warn(
-        `[PostbackEventTransformers] No transformer found for event ${payload.trigger}.`,
+        `[PostbackEventTransformers] No transformer found for event ${payload.event}.`,
       );
 
       return null;
