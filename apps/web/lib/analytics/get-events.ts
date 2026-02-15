@@ -27,7 +27,7 @@ import {
   extractWorkspaceLinkFilters,
   prepareFiltersForPipe,
 } from "./filter-helpers";
-import { queryParser } from "./query-parser";
+import { metadataQueryParser } from "./metadata-query-parser";
 import { EventsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
@@ -83,7 +83,7 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
-  const metadataFilters = queryParser(query) || [];
+  const metadataFilters = metadataQueryParser(query) || [];
 
   // Build advanced filters for event-level dimensions
   const advancedFilters = buildAdvancedFilters({

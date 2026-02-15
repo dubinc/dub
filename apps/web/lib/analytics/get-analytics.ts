@@ -17,7 +17,7 @@ import {
   extractWorkspaceLinkFilters,
   prepareFiltersForPipe,
 } from "./filter-helpers";
-import { queryParser } from "./query-parser";
+import { metadataQueryParser } from "./metadata-query-parser";
 import { AnalyticsFilters } from "./types";
 import { formatUTCDateTimeClickhouse } from "./utils/format-utc-datetime-clickhouse";
 import { getStartEndDates } from "./utils/get-start-end-dates";
@@ -120,7 +120,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     }),
   });
 
-  const metadataFilters = queryParser(query) || [];
+  const metadataFilters = metadataQueryParser(query) || [];
 
   const advancedFilters = buildAdvancedFilters({
     ...params,

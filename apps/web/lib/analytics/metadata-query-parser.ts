@@ -13,10 +13,7 @@ interface InternalFilter {
 }
 
 // Query parser that can parse the query string into a list of filters
-export const queryParser = (
-  query: EventsFilters["query"],
-  allowedOperands = ["metadata"],
-) => {
+export const metadataQueryParser = (query: EventsFilters["query"]) => {
   if (!query) {
     return undefined;
   }
@@ -37,22 +34,6 @@ export const queryParser = (
     const filter = parseCondition(trimmedCondition);
 
     if (!filter) {
-      continue;
-    }
-
-    const isAllowed = allowedOperands.some((allowed) => {
-      if (filter.operand === allowed) {
-        return true;
-      }
-
-      if (filter.operand.startsWith(`${allowed}.`)) {
-        return true;
-      }
-
-      return false;
-    });
-
-    if (!isAllowed) {
       continue;
     }
 
@@ -92,8 +73,8 @@ function parseCondition(condition: string): InternalFilter | null {
       .replace(/['"]\]/g, ""); // Remove trailing '] or "]
 
     // Security: Validate metadata key contains only safe characters
-    // Only allow alphanumeric and underscore (no dots — nested keys are not supported)
-    if (!/^[a-zA-Z0-9_]+$/.test(extractedKey)) return null;
+    // Only allow alphanumeric and underscore and dots
+    if (!/^[a-zA-Z0-9_.]+$/.test(extractedKey)) return null;
 
     operand = `metadata.${extractedKey}`;
   } else {
