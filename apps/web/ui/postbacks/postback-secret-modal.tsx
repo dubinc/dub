@@ -26,8 +26,8 @@ function PostbackSecretModal({
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">Signing secret</h3>
         <p className="text-sm text-neutral-500">
-          This is the only time we will show this secret. Copy it and store it
-          somewhere safe. You will need it to verify postback signatures.
+          Copy it and store it somewhere safe. You will need it to verify
+          postback signatures.
         </p>
       </div>
 
@@ -58,10 +58,6 @@ function PostbackSecretModal({
               {copied ? "Copied" : "Copy"}
             </button>
           </div>
-          <span className="text-xs text-red-600">
-            Be sure to copy your signing secret. You won&apos;t be able to see
-            it again.
-          </span>
         </div>
 
         <Button

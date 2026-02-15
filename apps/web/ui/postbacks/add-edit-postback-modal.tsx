@@ -20,10 +20,7 @@ import { toast } from "sonner";
 import * as z from "zod/v4";
 import { usePostbackSecretModal } from "./postback-secret-modal";
 
-type PostbackForEdit = Pick<
-  z.infer<typeof partnerPostbackSchema>,
-  "id" | "name" | "url" | "triggers"
->;
+type PostbackForEdit = z.infer<typeof partnerPostbackSchema>;
 
 type FormData = z.infer<typeof createPartnerPostbackInputSchema>;
 
@@ -42,17 +39,9 @@ function AddEditPostbackModal({
 }: AddEditPostbackModalProps) {
   const { isMobile } = useMediaQuery();
   const [isOpen, setIsOpen] = useState(false);
+
   const { openPostbackSecretModal, PostbackSecretModal } =
     usePostbackSecretModal();
-
-  const triggerOptions = useMemo(
-    () =>
-      POSTBACK_TRIGGERS.map((t) => ({
-        value: t,
-        label: POSTBACK_TRIGGER_DESCRIPTIONS[t],
-      })),
-    [],
-  );
 
   const {
     register,
@@ -68,6 +57,11 @@ function AddEditPostbackModal({
       triggers: [],
     },
   });
+
+  const triggerOptions = POSTBACK_TRIGGERS.map((t) => ({
+    value: t,
+    label: POSTBACK_TRIGGER_DESCRIPTIONS[t],
+  }));
 
   const isEdit = !!postback;
   const triggers = watch("triggers") ?? [];
@@ -93,25 +87,28 @@ function AddEditPostbackModal({
   async function onSubmit(data: FormData) {
     // Update postback
     if (postback) {
-      await partnerProfileFetch("/api/partner-profile/postbacks/:postbackId", {
-        params: {
-          postbackId: postback.id,
+      await partnerProfileFetch(
+        "@patch/api/partner-profile/postbacks/:postbackId",
+        {
+          params: {
+            postbackId: postback.id,
+          },
+          body: {
+            name: data.name,
+            url: data.url,
+            triggers: data.triggers,
+          },
+          onSuccess: async () => {
+            toast.success("Postback updated");
+            setShowModal(false);
+            await mutatePrefix("/api/partner-profile/postbacks");
+            onSuccess();
+          },
+          onError: ({ error }) => {
+            toast.error(error.error.message);
+          },
         },
-        body: {
-          name: data.name,
-          url: data.url,
-          triggers: data.triggers,
-        },
-        onSuccess: async () => {
-          toast.success("Postback updated");
-          setShowModal(false);
-          await mutatePrefix("/api/partner-profile/postbacks");
-          onSuccess();
-        },
-        onError: ({ error }) => {
-          toast.error(error.error.message);
-        },
-      });
+      );
 
       return;
     }
@@ -162,7 +159,7 @@ function AddEditPostbackModal({
               <div>
                 <label
                   htmlFor="postback-name"
-                  className="text-content-emphasis block text-sm font-normal"
+                  className="text-content-emphasis block text-sm font-medium"
                 >
                   Name
                 </label>
@@ -181,7 +178,7 @@ function AddEditPostbackModal({
               <div>
                 <label
                   htmlFor="postback-url"
-                  className="text-content-emphasis block text-sm font-normal"
+                  className="text-content-emphasis block text-sm font-medium"
                 >
                   Destination URL
                 </label>
@@ -201,8 +198,8 @@ function AddEditPostbackModal({
               </div>
 
               <div>
-                <label className="text-content-emphasis mb-1 block text-sm font-normal">
-                  Event types
+                <label className="text-content-emphasis mb-1 block text-sm font-medium">
+                  Events
                 </label>
                 <Combobox
                   multiple
@@ -215,7 +212,7 @@ function AddEditPostbackModal({
                     );
                   }}
                   options={triggerOptions}
-                  searchPlaceholder="Search event types..."
+                  searchPlaceholder="Search events..."
                   buttonProps={{
                     className: cn(
                       "h-auto min-h-10 w-full justify-start px-2.5 py-1.5 font-normal border-neutral-200 bg-white",
@@ -243,7 +240,7 @@ function AddEditPostbackModal({
                       ))}
                     </div>
                   ) : (
-                    <span className="block py-0.5">Select event types...</span>
+                    <span className="block py-0.5">Select events...</span>
                   )}
                 </Combobox>
               </div>

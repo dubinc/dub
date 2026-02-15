@@ -19,14 +19,41 @@ export const partnerProfileFetch = createFetch({
         output: createPartnerPostbackOutputSchema,
       },
 
+      // Get postback
+      "@get/api/partner-profile/postbacks/:postbackId": {
+        params: z.object({
+          postbackId: z.string(),
+        }),
+        output: partnerPostbackSchema,
+      },
+
       // Update postback
-      "/api/partner-profile/postbacks/:postbackId": {
-        method: "patch",
+      "@patch/api/partner-profile/postbacks/:postbackId": {
         params: z.object({
           postbackId: z.string(),
         }),
         body: updatePartnerPostbackInputSchema,
         output: partnerPostbackSchema,
+      },
+
+      // Delete postback
+      "@delete/api/partner-profile/postbacks/:postbackId": {
+        params: z.object({
+          postbackId: z.string(),
+        }),
+        output: z.object({
+          id: z.string(),
+        }),
+      },
+
+      // Rotate postback secret
+      "@post/api/partner-profile/postbacks/:postbackId/rotate-secret": {
+        params: z.object({
+          postbackId: z.string(),
+        }),
+        output: z.object({
+          secret: z.string(),
+        }),
       },
     },
     {
