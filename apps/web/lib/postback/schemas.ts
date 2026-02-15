@@ -101,12 +101,26 @@ export const commissionEventPostbackSchema = CommissionSchema.pick({
   }).nullable(),
 });
 
+export const postbackCallbackParamsSchema = z.object({
+  postbackId: z.string(),
+  eventId: z.string(),
+  event: z.enum(POSTBACK_TRIGGERS),
+});
+
+export const postbackCallbackBodySchema = z.object({
+  status: z.number(),
+  url: z.string(),
+  sourceMessageId: z.string(),
+  body: z.string().optional().default(""), // Response from the original postback URL
+  sourceBody: z.string(), // Original request payload from Dub
+});
+
 export const postbackEventSchemaTB = z.object({
   event_id: z.string(),
   postback_id: z.string(),
-  message_id: z.string(),
+  message_id: z.string().describe("QStash message ID."),
   event: z.enum(POSTBACK_TRIGGERS),
-  url: z.string(),
+  url: z.url(),
   response_status: z.number(),
   response_body: z.string(),
   request_body: z.string(),
