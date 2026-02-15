@@ -4,7 +4,7 @@ interface PostbackEventEnricher {
   enrich(data: unknown): unknown;
 }
 
-class PostbackEventEnrichersRegistry {
+class PostbackEventEnrichers {
   private enrichers = new Map<PostbackTrigger, PostbackEventEnricher>();
 
   register(event: PostbackTrigger, enricher: PostbackEventEnricher) {
@@ -41,22 +41,21 @@ class PostbackEventEnrichersRegistry {
 }
 
 // Register event enrichers for each event type
-export const postbackEventEnrichersRegistry =
-  new PostbackEventEnrichersRegistry();
+export const postbackEventEnrichers = new PostbackEventEnrichers();
 
-postbackEventEnrichersRegistry.register("lead.created", {
+postbackEventEnrichers.register("lead.created", {
   enrich: (data) => {
     return data;
   },
 });
 
-postbackEventEnrichersRegistry.register("sale.created", {
+postbackEventEnrichers.register("sale.created", {
   enrich: (data) => {
     return data;
   },
 });
 
-postbackEventEnrichersRegistry.register("commission.created", {
+postbackEventEnrichers.register("commission.created", {
   enrich: (data) => {
     return data;
   },

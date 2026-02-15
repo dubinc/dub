@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { Partner } from "@dub/prisma/client";
 import { PostbackTrigger } from "../constants";
 import { PostbackCustomAdapter } from "./postback-adapters";
+import { postbackEventEnrichers } from "./postback-event-enrichers";
 
 interface SendPartnerPostbackParams {
   partner: Pick<Partner, "id">;
@@ -31,12 +32,9 @@ export const sendPartnerPostback = async ({
     return;
   }
 
-  // const basePayload: PostbackBasePayload = {
-  //   id: `${WEBHOOK_EVENT_ID_PREFIX}${nanoid(25)}`,
-  //   event,
-  //   createdAt: new Date().toISOString(),
-  //   data,
-  // };
+  const enrichedData = postbackEventEnrichers.has(event)
+    ? postbackEventEnrichers.enrich(event, data)
+    : data;
 
   const adapters = postbacks.map((postback) => {
     switch (postback.destination) {
@@ -52,7 +50,7 @@ export const sendPartnerPostback = async ({
   // Send to all destinations in parallel
   await Promise.allSettled(
     adapters.map((adapter) => {
-      adapter.execute(event, data);
+      adapter.execute(event, enrichedData);
     }),
   );
 };
