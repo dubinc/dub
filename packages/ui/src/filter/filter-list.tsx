@@ -2,13 +2,12 @@ import { cn, pluralize, truncate } from "@dub/utils";
 import { Command } from "cmdk";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import { ReactNode, isValidElement, useCallback, useState } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
-import { Combobox, ComboboxOption } from "../combobox";
 import { useKeyboardShortcut } from "../hooks";
-import { Check, Icon } from "../icons";
+import { Check } from "../icons";
 import { Popover } from "../popover";
-import { Tooltip } from "../tooltip";
 import {
   ActiveFilterInput,
   Filter,
@@ -119,6 +118,7 @@ export function FilterList({
 
               const OptionDisplay = ({ className }: { className?: string }) => {
                 let iconDisplay;
+                let permalinkDisplay;
 
                 if (isSingleValue) {
                   const value = values[0];
@@ -127,6 +127,11 @@ export function FilterList({
                       ? o.value.toLowerCase() === value.toLowerCase()
                       : o.value === value,
                   );
+
+                  permalinkDisplay =
+                    option?.permalink ??
+                    filter.getOptionPermalink?.(value) ??
+                    null;
 
                   const OptionIcon =
                     option?.icon ??
@@ -199,14 +204,18 @@ export function FilterList({
                       className,
                     )}
                   >
-                    {values.length > 3 && !filter.hideMultipleIcons ? (
-                      <Tooltip content={`Max of 3 icons shown`}>
-                        {iconDisplay}
-                      </Tooltip>
+                    {iconDisplay}
+                    {permalinkDisplay ? (
+                      <Link
+                        href={permalinkDisplay}
+                        target="_blank"
+                        className="cursor-alias decoration-dotted underline-offset-2 hover:underline"
+                      >
+                        {truncate(displayLabel, 30)}
+                      </Link>
                     ) : (
-                      iconDisplay
+                      truncate(displayLabel, 30)
                     )}
-                    {truncate(displayLabel, 30)}
                   </div>
                 );
               };
@@ -243,102 +252,6 @@ export function FilterList({
         )}
       </div>
     </AnimatedSizeContainer>
-  );
-}
-
-function FilterCombobox({
-  filter,
-  value,
-  filterKey,
-  options,
-  selectedOption,
-  onRemove,
-  onSelect,
-  OptionDisplay,
-  optionLabel,
-}: {
-  filter: Filter;
-  value: FilterOption["value"];
-  filterKey: string;
-  options: ComboboxOption[];
-  selectedOption: ComboboxOption | undefined;
-  onRemove: (key: string, value: FilterOption["value"]) => void;
-  onSelect: (key: string, value: FilterOption["value"]) => void;
-  OptionDisplay: ({ className }: { className?: string }) => ReactNode;
-  optionLabel: string;
-}) {
-  const [search, setSearch] = useState("");
-
-  // Check if filter has empty options array
-  const hasEmptyOptions = filter.options && filter.options.length === 0;
-
-  // Create emptyState based on CommandEmpty logic
-  const emptyState = (() => {
-    // If the filter has no options, show the search input as an option or "Start typing to search..."
-    if (hasEmptyOptions) {
-      if (!search) {
-        return (
-          <div className="p-2 text-center text-sm text-neutral-400">
-            Start typing to search...
-          </div>
-        );
-      }
-      // When search exists and filter has empty options, the onCreate handler will show the create option
-      return null; // onCreate will handle showing the option
-    }
-
-    return (
-      <div className="p-2 text-center text-sm text-neutral-400">
-        No matching options
-      </div>
-    );
-  })();
-
-  return (
-    <Combobox
-      selected={selectedOption ?? null}
-      setSelected={(newOption: ComboboxOption | null) => {
-        if (newOption && newOption.value !== String(value)) {
-          // Remove the current value and add the new one
-          onRemove(filterKey, value);
-          onSelect(filterKey, newOption.value);
-        }
-      }}
-      options={options}
-      onSearchChange={setSearch}
-      onCreate={
-        hasEmptyOptions && onSelect
-          ? async (searchValue: string) => {
-              // Select the search value as a new option
-              onRemove(filterKey, value);
-              onSelect(filterKey, searchValue);
-              return true;
-            }
-          : undefined
-      }
-      createLabel={hasEmptyOptions ? (searchValue) => searchValue : undefined}
-      createIcon={filter.icon as Icon}
-      optionRight={(option) => {
-        if (option.value === String(value)) {
-          return;
-        }
-        const filterOption = filter.options?.find((opt) =>
-          typeof String(opt.value) === "string" &&
-          typeof option.value === "string"
-            ? String(opt.value).toLowerCase() === option.value.toLowerCase()
-            : String(opt.value) === option.value,
-        );
-        return filterOption ? (
-          <span className="ml-2 text-neutral-500">{filterOption.right}</span>
-        ) : null;
-      }}
-      placeholder={truncate(optionLabel, 30)}
-      caret={false}
-      emptyState={emptyState}
-      trigger={OptionDisplay({
-        className: "cursor-pointer hover:bg-neutral-50",
-      })}
-    />
   );
 }
 
@@ -607,8 +520,12 @@ function OperatorFilterPill({
       >
         <button
           type="button"
-          className="flex items-center transition-colors hover:bg-neutral-50"
           onClick={openValueDropdown}
+          disabled={filter.options?.length === 0}
+          className={cn(
+            "flex items-center",
+            filter.options?.length && "transition-colors hover:bg-neutral-50",
+          )}
         >
           {!filter.options ? (
             <div className="flex items-center gap-2.5 px-3 py-2">

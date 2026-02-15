@@ -376,10 +376,6 @@ export function useAnalyticsFilters({
           label: linkConstructor({ domain, key, pretty: true }),
           right: getFilterOptionTotal(rest),
           data: { url, domain, key },
-          permalink:
-            slug && !partnerPage
-              ? `/${slug}/links/${linkConstructor({ domain, key, pretty: true })}`
-              : undefined,
         }),
       ) ?? null,
   };
@@ -836,9 +832,6 @@ export function useAnalyticsFilters({
         },
         getOptionLabel: () => {
           return selectedPartner?.name ?? selectedPartnerId;
-        },
-        getOptionPermalink: () => {
-          return slug ? `/${slug}/program/partners/${selectedPartnerId}` : null;
         },
         options: [],
       },
