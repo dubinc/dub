@@ -34,6 +34,10 @@ export const updatePartnerPostbackInputSchema = createPartnerPostbackInputSchema
     disabled: z.boolean().optional(),
   });
 
+export const sendTestPartnerPostbackInputSchema = z.object({
+  event: z.enum(POSTBACK_TRIGGERS),
+});
+
 export const postbackEventSchemaTB = z.object({
   event_id: z.string(),
   postback_id: z.string(),

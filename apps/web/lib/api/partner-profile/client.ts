@@ -2,6 +2,7 @@ import {
   createPartnerPostbackInputSchema,
   createPartnerPostbackOutputSchema,
   partnerPostbackSchema,
+  sendTestPartnerPostbackInputSchema,
   updatePartnerPostbackInputSchema,
 } from "@/lib/postback/schemas";
 import { createFetch, createSchema } from "@better-fetch/fetch";
@@ -54,6 +55,15 @@ export const partnerProfileFetch = createFetch({
         output: z.object({
           secret: z.string(),
         }),
+      },
+
+      // Send test postback event
+      "@post/api/partner-profile/postbacks/:postbackId/send-test": {
+        params: z.object({
+          postbackId: z.string(),
+        }),
+        body: sendTestPartnerPostbackInputSchema,
+        output: z.object({}),
       },
     },
     {
