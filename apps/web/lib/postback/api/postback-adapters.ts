@@ -53,14 +53,14 @@ abstract class PostbackAdapter {
     );
 
     const response = await qstash.publishJSON({
+      callback: callbackUrl.href,
+      failureCallback: failureCallbackUrl.href,
       url: this.postback.url,
       body: transformedPayload,
       headers: {
         "Dub-Signature": signature,
         "Upstash-Hide-Headers": "true",
       },
-      callback: callbackUrl.href,
-      failureCallback: failureCallbackUrl.href,
     });
 
     if (!response.messageId) {
@@ -83,16 +83,25 @@ export class PostbackCustomAdapter extends PostbackAdapter {
 
   protected registerEventTransformers() {
     this.eventTransformers.register("lead.created", {
-      transform: (data) => data,
+      transform: (payload) => this.formatPayload(payload),
     });
 
     this.eventTransformers.register("sale.created", {
-      transform: (data) => data,
+      transform: (payload) => this.formatPayload(payload),
     });
 
     this.eventTransformers.register("commission.created", {
-      transform: (data) => data,
+      transform: (payload) => this.formatPayload(payload),
     });
+  }
+
+  private formatPayload(payload: PostbackPayload) {
+    return {
+      id: payload.eventId,
+      event: payload.trigger,
+      createdAt: payload.createdAt,
+      data: payload.data,
+    };
   }
 }
 

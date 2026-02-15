@@ -378,7 +378,7 @@ export const trackLead = async ({
               partnerId: link.partnerId,
               trigger: "lead.created",
               data: {
-                click: clickData,
+                ...clickData,
                 eventName,
                 link,
                 customer,
