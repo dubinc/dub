@@ -3,6 +3,7 @@ import {
   postbackCallbackBodySchema,
   postbackCallbackParamsSchema,
 } from "@/lib/postback/schemas";
+import { recordPostbackEvent } from "@/lib/tinybird/record-postback-event";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
@@ -38,7 +39,17 @@ export const POST = async (req: Request) => {
 
   const request = Buffer.from(sourceBody, "base64").toString("utf-8");
   const response = Buffer.from(body, "base64").toString("utf-8");
-  const isFailed = status >= 400 || status === -1;
+
+  await recordPostbackEvent({
+    event_id: eventId,
+    postback_id: postbackId,
+    message_id: sourceMessageId,
+    event,
+    url,
+    response_status: status === -1 ? 503 : status,
+    request_body: request,
+    response_body: response,
+  });
 
   return logAndRespond(`Postback ${postbackId} processed.`);
 };
