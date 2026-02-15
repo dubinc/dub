@@ -122,9 +122,15 @@ export const VALID_ANALYTICS_FILTERS = [
   "domain",
   "key",
   "linkId",
+  "tagId",
+  "folderId",
+  "groupId",
+  "partnerId",
+  "customerId",
   "interval",
   "start",
   "end",
+  // more filter facets
   "country",
   "city",
   "region",
@@ -136,20 +142,16 @@ export const VALID_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
-  "partnerId",
-  "folderId",
-  "groupId",
-  "tagId",
-  "tagIds",
-  "customerId",
-  "qr", // deprecated, but keeping for now for backwards compatibility
-  "root",
-  "saleType",
   "utm_source",
   "utm_medium",
   "utm_campaign",
   "utm_term",
   "utm_content",
+  "root",
+  "saleType",
+  // deprecated filters, but keeping for now for backwards compatibility
+  "tagIds",
+  "qr",
 ];
 
 // possible analytics filters for a given linkId

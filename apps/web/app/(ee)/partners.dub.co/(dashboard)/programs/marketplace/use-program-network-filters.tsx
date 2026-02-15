@@ -91,6 +91,7 @@ export function useProgramNetworkFilters() {
         key: "category",
         icon: Suitcase,
         label: "Category",
+        labelPlural: "categories",
         getOptionIcon: (value) => {
           const Icon = PROGRAM_CATEGORIES_MAP[value]?.icon || Suitcase;
           return <Icon className="size-4" />;

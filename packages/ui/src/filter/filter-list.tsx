@@ -1,4 +1,4 @@
-import { cn, truncate } from "@dub/utils";
+import { cn, pluralize, truncate } from "@dub/utils";
 import { Command } from "cmdk";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
@@ -45,31 +45,6 @@ function getOperatorLabel(operator: FilterOperator): string {
     default:
       return "is";
   }
-}
-
-function pluralize(word: string, count: number): string {
-  if (count === 1) return word.toLowerCase();
-
-  const irregularPlurals: Record<string, string> = {
-    country: "countries",
-    city: "cities",
-    category: "categories",
-    os: "OS",
-  };
-
-  const lowerWord = word.toLowerCase();
-  if (irregularPlurals[lowerWord]) {
-    return irregularPlurals[lowerWord];
-  }
-
-  if (
-    lowerWord.endsWith("y") &&
-    !["ay", "ey", "iy", "oy", "uy"].some((ending) => lowerWord.endsWith(ending))
-  ) {
-    return lowerWord.slice(0, -1) + "ies";
-  }
-
-  return lowerWord + "s";
 }
 
 export function FilterList({
@@ -140,7 +115,7 @@ export function FilterList({
                       String(value)
                     );
                   })()
-                : `${values.length} ${pluralize(filter.label, values.length)}`;
+                : `${values.length} ${filter.labelPlural ?? pluralize(filter.label, values.length)}`;
 
               const OptionDisplay = ({ className }: { className?: string }) => {
                 let iconDisplay;
@@ -436,7 +411,9 @@ function OperatorFilterPill({
         {filter.label}
       </div>
 
-      {(isAdvancedFilter || filter.multiple) && !filter.hideOperator ? (
+      {(isAdvancedFilter || filter.multiple) &&
+      !filter.singleSelect &&
+      !filter.hideOperator ? (
         <Popover
           openPopover={operatorDropdownOpen}
           setOpenPopover={setOperatorDropdownOpen}
@@ -566,20 +543,21 @@ function OperatorFilterPill({
                             }}
                             value={optionLabel + option.value}
                           >
-                            {(isAdvancedFilter || filter.multiple) && (
-                              <div
-                                className={cn(
-                                  "flex h-4 w-4 items-center justify-center rounded border",
-                                  isSelected
-                                    ? "border-neutral-900 bg-neutral-900"
-                                    : "border-neutral-300",
-                                )}
-                              >
-                                {isSelected && (
-                                  <Check className="h-3 w-3 text-white" />
-                                )}
-                              </div>
-                            )}
+                            {(isAdvancedFilter || filter.multiple) &&
+                              !filter.singleSelect && (
+                                <div
+                                  className={cn(
+                                    "flex h-4 w-4 items-center justify-center rounded border",
+                                    isSelected
+                                      ? "border-neutral-900 bg-neutral-900"
+                                      : "border-neutral-300",
+                                  )}
+                                >
+                                  {isSelected && (
+                                    <Check className="h-3 w-3 text-white" />
+                                  )}
+                                </div>
+                              )}
                             <span className="shrink-0 text-neutral-600">
                               {isReactNode(OptionIcon) ? (
                                 OptionIcon
@@ -591,7 +569,8 @@ function OperatorFilterPill({
                               {truncate(optionLabel, 48)}
                             </span>
                             <div className="ml-1 flex shrink-0 justify-end text-neutral-500">
-                              {isAdvancedFilter || filter.multiple ? (
+                              {(isAdvancedFilter || filter.multiple) &&
+                              !filter.singleSelect ? (
                                 option.right
                               ) : isSelected ? (
                                 <Check className="h-4 w-4" />
@@ -608,6 +587,7 @@ function OperatorFilterPill({
                           {selectedOptions.map(renderOption)}
 
                           {(isAdvancedFilter || filter.multiple) &&
+                            !filter.singleSelect &&
                             selectedOptions.length > 0 &&
                             unselectedOptions.length > 0 && (
                               <Command.Separator className="-mx-1 my-1 border-b border-neutral-200" />

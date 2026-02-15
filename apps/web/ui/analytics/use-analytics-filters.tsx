@@ -410,6 +410,7 @@ export function useAnalyticsFilters({
     icon: Receipt2,
     label: "Sale type",
     separatorAfter: true,
+    hideMultipleIcons: true,
     options: [
       {
         value: "new",
@@ -543,6 +544,7 @@ export function useAnalyticsFilters({
                   key: "root",
                   icon: Sliders,
                   label: "Link type",
+                  hideMultipleIcons: true,
                   options: [
                     {
                       value: "true",
@@ -562,6 +564,7 @@ export function useAnalyticsFilters({
         key: "country",
         icon: FlagWavy,
         label: "Country",
+        labelPlural: "countries",
         getOptionIcon: (value) => {
           if (typeof value !== "string") return null;
 
@@ -584,6 +587,7 @@ export function useAnalyticsFilters({
         key: "city",
         icon: OfficeBuilding,
         label: "City",
+        labelPlural: "cities",
         options:
           cities?.map(({ city, country, ...rest }) => ({
             value: city,
@@ -683,6 +687,7 @@ export function useAnalyticsFilters({
         key: "os",
         icon: Cube,
         label: "OS",
+        labelPlural: "OS",
         hideMultipleIcons: true,
         getOptionIcon: (value) => {
           if (typeof value !== "string") return null;
@@ -789,6 +794,8 @@ export function useAnalyticsFilters({
         key: "customerId",
         icon: User,
         label: "Customer",
+        singleSelect: true,
+        hideMultipleIcons: true,
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedCustomer ? (

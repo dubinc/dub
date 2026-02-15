@@ -13,10 +13,11 @@ export type Filter = {
   key: string;
   icon: FilterIcon;
   label: string;
+  labelPlural?: string; // Plural form of the label (optional, defaults to pluralize(label))
   options: FilterOption[] | null;
-  hideInFilterDropdown?: boolean;
-  shouldFilter?: boolean;
-  separatorAfter?: boolean;
+  hideInFilterDropdown?: boolean; // Hide in Filter.Select dropdown
+  shouldFilter?: boolean; // Disable filtering for this filter
+  separatorAfter?: boolean; // Add a separator after the filter in Filter.Select dropdown
   multiple?: boolean; // Allow multiple selection of values
   hideMultipleIcons?: boolean; // Hide multiple "stacked icons" view for the filter (fallback to icon display)
   singleSelect?: boolean; // Force single-select behavior even if multiSelect is enabled globally
