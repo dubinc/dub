@@ -35,15 +35,15 @@ export const PATCH = withPartnerProfile(
       partnerId: partner.id,
     });
 
-    const { url, triggers, disabled } = updatePartnerPostbackInputSchema.parse(
-      await parseRequestBody(req),
-    );
+    const { name, url, triggers, disabled } =
+      updatePartnerPostbackInputSchema.parse(await parseRequestBody(req));
 
     postback = await prisma.partnerPostback.update({
       where: {
         id: postbackId,
       },
       data: {
+        ...(name !== undefined && { name }),
         ...(url !== undefined && { url }),
         ...(triggers !== undefined && { triggers }),
         ...(disabled !== undefined && {

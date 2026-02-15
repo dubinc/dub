@@ -37,7 +37,7 @@ export const GET = withPartnerProfile(
 // POST /api/partner-profile/postbacks
 export const POST = withPartnerProfile(
   async ({ partner, req }) => {
-    const { url, triggers } = createPartnerPostbackInputSchema.parse(
+    const { name, url, triggers } = createPartnerPostbackInputSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -50,6 +50,7 @@ export const POST = withPartnerProfile(
       data: {
         id: createId({ prefix: "pb_" }),
         partnerId: partner.id,
+        name,
         url,
         secret,
         triggers,

@@ -22,7 +22,7 @@ import { usePostbackSecretModal } from "./postback-secret-modal";
 
 type PostbackForEdit = Pick<
   z.infer<typeof partnerPostbackSchema>,
-  "id" | "url" | "triggers"
+  "id" | "name" | "url" | "triggers"
 >;
 
 type FormData = z.infer<typeof createPartnerPostbackInputSchema>;
@@ -63,6 +63,7 @@ function AddEditPostbackModal({
     formState: { isDirty, isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
+      name: "",
       url: "",
       triggers: [],
     },
@@ -82,6 +83,7 @@ function AddEditPostbackModal({
   useEffect(() => {
     if (showModal) {
       reset({
+        name: postback?.name ?? "",
         url: postback?.url ?? "",
         triggers: (postback?.triggers ?? []) as PostbackTrigger[],
       });
@@ -96,6 +98,7 @@ function AddEditPostbackModal({
           postbackId: postback.id,
         },
         body: {
+          name: data.name,
           url: data.url,
           triggers: data.triggers,
         },
@@ -118,6 +121,7 @@ function AddEditPostbackModal({
       "/api/partner-profile/postbacks",
       {
         body: {
+          name: data.name,
           url: data.url,
           triggers: data.triggers,
         },
@@ -157,6 +161,25 @@ function AddEditPostbackModal({
             <div className="flex flex-col gap-4 px-4 py-6 text-left sm:px-6">
               <div>
                 <label
+                  htmlFor="postback-name"
+                  className="text-content-emphasis block text-sm font-normal"
+                >
+                  Name
+                </label>
+                <input
+                  id="postback-name"
+                  type="text"
+                  autoComplete="off"
+                  className="border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  placeholder="My postback"
+                  autoFocus={!isMobile}
+                  disabled={isSubmitting}
+                  {...register("name")}
+                />
+              </div>
+
+              <div>
+                <label
                   htmlFor="postback-url"
                   className="text-content-emphasis block text-sm font-normal"
                 >
@@ -168,7 +191,6 @@ function AddEditPostbackModal({
                   autoComplete="off"
                   className="border-border-subtle mt-2 block w-full rounded-lg text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                   placeholder="https://your-server.com/webhook"
-                  autoFocus={!isMobile}
                   disabled={isSubmitting}
                   {...register("url")}
                 />

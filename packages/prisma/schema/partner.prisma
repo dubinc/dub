@@ -158,6 +158,7 @@ enum PostbackDestination {
 model PartnerPostback {
   id          String              @id @default(cuid())
   partnerId   String
+  name        String
   url         String              @db.LongText
   secret      String
   triggers    Json

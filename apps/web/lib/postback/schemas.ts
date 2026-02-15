@@ -4,6 +4,7 @@ import { POSTBACK_TRIGGERS } from "./constants";
 
 export const partnerPostbackSchema = z.object({
   id: z.string(),
+  name: z.string(),
   url: z.string(),
   triggers: z.array(z.enum(POSTBACK_TRIGGERS)),
   disabledAt: z.coerce.date().nullable(),
@@ -12,6 +13,10 @@ export const partnerPostbackSchema = z.object({
 });
 
 export const createPartnerPostbackInputSchema = z.object({
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(40, "Name must be less than 40 characters"),
   url: parseUrlSchema.refine((u) => u.startsWith("https://"), {
     message: "URL must use HTTPS",
   }),

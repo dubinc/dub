@@ -82,16 +82,8 @@ export function PostbacksPageClient() {
                     icon={Webhook}
                     title="You haven't set up any postbacks yet."
                     description="Postbacks allow you to receive HTTP requests when events like leads, sales, or commissions occur in your partner programs."
+                    learnMore="https://d.to/postbacks"
                   />
-                  <button
-                    type="button"
-                    onClick={openAddPostbackModal}
-                    className="flex h-8 items-center justify-center gap-2 rounded-md border border-neutral-200 bg-white px-4 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-50"
-                  >
-                    <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
-                      Add your first postback
-                    </span>
-                  </button>
                 </div>
               )}
             </div>
