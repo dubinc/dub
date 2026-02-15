@@ -1,4 +1,6 @@
+import { WEBHOOK_EVENT_ID_PREFIX } from "@/lib/webhook/constants";
 import { prisma } from "@dub/prisma";
+import { nanoid } from "@dub/utils";
 import { PostbackTrigger } from "../constants";
 import { PostbackCustomAdapter } from "./postback-adapters";
 import { postbackEventEnrichers } from "./postback-event-enrichers";
@@ -46,11 +48,16 @@ export const sendPartnerPostback = async ({
     }
   });
 
+  const eventId = `${WEBHOOK_EVENT_ID_PREFIX}${nanoid(25)}`;
+  const createdAt = new Date().toISOString();
+
   await Promise.allSettled(
     adapters.map((adapter) =>
       adapter.execute({
         trigger,
-        payload: enrichedData,
+        eventId,
+        createdAt,
+        data: enrichedData,
       }),
     ),
   );
