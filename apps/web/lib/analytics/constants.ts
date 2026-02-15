@@ -91,6 +91,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
+  timeseries: "start",
   continents: "continent",
   regions: "region",
   countries: "country",
@@ -110,19 +111,26 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   top_folders: "folderId",
   top_link_tags: "tagIds",
   top_domains: "domain",
-  top_links: "link",
+  top_links: "linkId",
   top_urls: "url",
   top_base_urls: "url",
   top_groups: "groupId",
-  timeseries: "start",
+  top_partners: "partnerId",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
   "domain",
   "key",
+  "linkId",
+  "tagId",
+  "folderId",
+  "groupId",
+  "partnerId",
+  "customerId",
   "interval",
   "start",
   "end",
+  // more filter facets
   "country",
   "city",
   "region",
@@ -134,20 +142,16 @@ export const VALID_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
-  "partnerId",
-  "folderId",
-  "groupId",
-  "tagId",
-  "tagIds",
-  "customerId",
-  "qr", // deprecated, but keeping for now for backwards compatibility
-  "root",
-  "saleType",
   "utm_source",
   "utm_medium",
   "utm_campaign",
   "utm_term",
   "utm_content",
+  "root",
+  "saleType",
+  // deprecated filters, but keeping for now for backwards compatibility
+  "tagIds",
+  "qr",
 ];
 
 // possible analytics filters for a given linkId

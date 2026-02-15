@@ -229,8 +229,7 @@ async function createCustomer({
 
   // Find the customer by email address
   const customerFound = existingCustomers.find(
-    (c) =>
-      c.email === customer.email || c.externalId === customer.customer_key,
+    (c) => c.email === customer.email || c.externalId === customer.customer_key,
   );
 
   if (customerFound) {
