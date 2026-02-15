@@ -1,9 +1,13 @@
 "use client";
 
-import { PartnerPostbackProps } from "@/lib/types";
+import { PartnerPostbackProps, PostbackEventProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useAddEditPostbackModal } from "@/ui/postbacks/add-edit-postback-modal";
+import { NoPostbackEventsPlaceholder } from "@/ui/postbacks/no-postback-events-placeholder";
+import { PostbackEventList } from "@/ui/postbacks/postback-event-list";
+import { PostbackEventListSkeleton } from "@/ui/postbacks/postback-event-list-skeleton";
+import { usePostbackEventDetailsSheet } from "@/ui/postbacks/postback-event-details-sheet";
 import { PartnerPostbackActions } from "@/ui/postbacks/partner-postback-actions";
 import { PostbackStatus } from "@/ui/postbacks/postback-status";
 import { BackLink } from "@/ui/shared/back-link";
@@ -32,6 +36,16 @@ export function PostbackDetailPageClient({
     postbackId ? `/api/partner-profile/postbacks/${postbackId}` : null,
     fetcher,
   );
+
+  const { data: events, isLoading: isEventsLoading } =
+    useSWR<PostbackEventProps[]>(
+      postbackId ? `/api/partner-profile/postbacks/${postbackId}/events` : null,
+      fetcher,
+      { keepPreviousData: true },
+    );
+
+  const { postbackEventDetailsSheet, openWithEvent } =
+    usePostbackEventDetailsSheet();
 
   const { openEditPostbackModal, AddEditPostbackModal } =
     useAddEditPostbackModal(() => mutate());
@@ -95,42 +109,59 @@ export function PostbackDetailPageClient({
                 </button>
               </div>
             ) : (
-              <div className="flex justify-between gap-8 sm:items-center">
-                <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
-                  <div className="w-fit flex-none rounded-md border border-neutral-200 bg-gradient-to-t from-neutral-100 p-2">
-                    <TokenAvatar id={postback.id} className="size-8" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-1">
-                      <span className="font-semibold text-neutral-700">
-                        {postback.name}
-                      </span>
-                      <PostbackStatus disabledAt={postback.disabledAt} />
+              <>
+                <div className="flex justify-between gap-8 sm:items-center">
+                  <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="w-fit flex-none rounded-md border border-neutral-200 bg-gradient-to-t from-neutral-100 p-2">
+                      <TokenAvatar id={postback.id} className="size-8" />
                     </div>
-                    <a
-                      href={postback.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="line-clamp-1 text-pretty break-all text-sm text-neutral-500 underline-offset-4 hover:text-neutral-700 hover:underline"
-                    >
-                      {postback.url}
-                    </a>
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap items-center gap-1">
+                        <span className="font-semibold text-neutral-700">
+                          {postback.name}
+                        </span>
+                        <PostbackStatus disabledAt={postback.disabledAt} />
+                      </div>
+                      <a
+                        href={postback.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="line-clamp-1 text-pretty break-all text-sm text-neutral-500 underline-offset-4 hover:text-neutral-700 hover:underline"
+                      >
+                        {postback.url}
+                      </a>
+                    </div>
                   </div>
+
+                  <PartnerPostbackActions
+                    postback={postback}
+                    openPopover={openPopover}
+                    setOpenPopover={setOpenPopover}
+                    onEditPostback={openEditPostbackModal}
+                    onMutate={() => mutate()}
+                  />
                 </div>
 
-                <PartnerPostbackActions
-                  postback={postback}
-                  openPopover={openPopover}
-                  setOpenPopover={setOpenPopover}
-                  onEditPostback={openEditPostbackModal}
-                  onMutate={() => mutate()}
-                />
-              </div>
+                <div className="space-y-6">
+                <h2 className="text-lg font-semibold">Events</h2>
+                {isEventsLoading ? (
+                  <PostbackEventListSkeleton />
+                ) : events && events.length === 0 ? (
+                  <NoPostbackEventsPlaceholder />
+                ) : (
+                  <PostbackEventList
+                    events={events || []}
+                    onEventClick={openWithEvent}
+                  />
+                )}
+                </div>
+              </>
             )}
           </MaxWidthWrapper>
         </PageWidthWrapper>
       </PageContent>
       <AddEditPostbackModal />
+      {postbackEventDetailsSheet}
     </>
   );
 }
