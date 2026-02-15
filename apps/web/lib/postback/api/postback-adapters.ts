@@ -1,32 +1,42 @@
+import { PartnerPostback } from "@dub/prisma/client";
 import { PostbackTrigger } from "../constants";
 import { PostbackEventTransformers } from "./postback-event-transformers";
 
 abstract class PostbackAdapter {
   protected eventTransformers = new PostbackEventTransformers();
 
-  constructor() {
+  constructor(protected postback: Pick<PartnerPostback, "url" | "secret">) {
     this.registerEventTransformers();
   }
 
-  // Override this method to register event-specific transformers
   protected abstract registerEventTransformers(): void;
 
-  private async send(payload: unknown) {
-    //
-  }
-
-  async execute(event: PostbackTrigger, payload: unknown) {
-    const transformedPayload = this.eventTransformers.transform(event, payload);
+  async execute({
+    trigger,
+    payload,
+  }: {
+    trigger: PostbackTrigger;
+    payload: unknown;
+  }) {
+    const transformedPayload = this.eventTransformers.transform(
+      trigger,
+      payload,
+    );
 
     if (!transformedPayload) {
       return;
     }
 
-    await this.send(transformedPayload);
+    // TODO:
+    // Send to this.postback.url
   }
 }
 
 export class PostbackCustomAdapter extends PostbackAdapter {
+  constructor(postback: Pick<PartnerPostback, "url" | "secret">) {
+    super(postback);
+  }
+
   protected registerEventTransformers() {
     this.eventTransformers.register("lead.created", {
       transform: (data) => data,

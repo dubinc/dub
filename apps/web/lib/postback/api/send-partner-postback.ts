@@ -1,45 +1,44 @@
 import { prisma } from "@dub/prisma";
-import { Partner } from "@dub/prisma/client";
 import { PostbackTrigger } from "../constants";
 import { PostbackCustomAdapter } from "./postback-adapters";
 import { postbackEventEnrichers } from "./postback-event-enrichers";
 
 interface SendPartnerPostbackParams {
-  partner: Pick<Partner, "id">;
-  event: PostbackTrigger;
-  data: unknown;
+  partnerId: string;
+  trigger: PostbackTrigger;
+  data: Record<string, unknown>;
 }
 
 export const sendPartnerPostback = async ({
-  partner,
-  event,
+  partnerId,
+  trigger,
   data,
 }: SendPartnerPostbackParams) => {
   const postbacks = await prisma.partnerPostback.findMany({
     where: {
-      partnerId: partner.id,
+      partnerId,
       disabledAt: null,
       triggers: {
-        array_contains: [event],
+        array_contains: [trigger],
       },
     },
   });
 
   if (postbacks.length === 0) {
     console.log(
-      `[sendPartnerPostback] No postbacks found for partner ${partner.id} for the event ${event}.`,
+      `[sendPartnerPostback] No postbacks found for partner ${partnerId} for the trigger ${trigger}.`,
     );
     return;
   }
 
-  const enrichedData = postbackEventEnrichers.has(event)
-    ? postbackEventEnrichers.enrich(event, data)
+  const enrichedData = postbackEventEnrichers.has(trigger)
+    ? postbackEventEnrichers.enrich(trigger, data)
     : data;
 
   const adapters = postbacks.map((postback) => {
     switch (postback.destination) {
       case "custom":
-        return new PostbackCustomAdapter();
+        return new PostbackCustomAdapter(postback);
       default:
         throw new Error(
           `Unsupported postback destination ${postback.destination}`,
@@ -47,10 +46,12 @@ export const sendPartnerPostback = async ({
     }
   });
 
-  // Send to all destinations in parallel
   await Promise.allSettled(
-    adapters.map((adapter) => {
-      adapter.execute(event, enrichedData);
-    }),
+    adapters.map((adapter) =>
+      adapter.execute({
+        trigger,
+        payload: enrichedData,
+      }),
+    ),
   );
 };

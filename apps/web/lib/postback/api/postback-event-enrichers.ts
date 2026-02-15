@@ -1,7 +1,10 @@
+import { ExpandedLink, transformLink } from "@/lib/api/links";
+import { toCamelCase } from "@dub/utils";
 import { PostbackTrigger } from "../constants";
+import { leadEventPostbackSchema } from "../schemas";
 
 interface PostbackEventEnricher {
-  enrich(data: unknown): unknown;
+  enrich(data: Record<string, unknown>): unknown;
 }
 
 class PostbackEventEnrichers {
@@ -23,7 +26,7 @@ class PostbackEventEnrichers {
     return this;
   }
 
-  enrich(event: PostbackTrigger, data: unknown) {
+  enrich(event: PostbackTrigger, data: Record<string, unknown>) {
     const enricher = this.enrichers.get(event);
 
     if (!enricher) {
@@ -45,7 +48,20 @@ export const postbackEventEnrichers = new PostbackEventEnrichers();
 
 postbackEventEnrichers.register("lead.created", {
   enrich: (data) => {
-    return data;
+    const lead = Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
+    );
+
+    return leadEventPostbackSchema.parse({
+      ...lead,
+      click: {
+        ...lead,
+        id: lead.clickId,
+        timestamp: new Date(lead.timestamp + "Z"),
+      },
+      link: transformLink(lead.link as ExpandedLink),
+      customer: data.customer,
+    });
   },
 });
 
