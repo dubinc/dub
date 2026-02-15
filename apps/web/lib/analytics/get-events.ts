@@ -87,22 +87,9 @@ export const getEvents = async (params: EventsFilters) => {
 
   // Build advanced filters for event-level dimensions
   const advancedFilters = buildAdvancedFilters({
+    ...params,
     country: countryForPipe,
     trigger: triggerForPipe,
-    city: params.city,
-    continent: params.continent,
-    device: params.device,
-    browser: params.browser,
-    os: params.os,
-    referer: params.referer,
-    refererUrl: params.refererUrl,
-    url: params.url,
-    utm_source: params.utm_source,
-    utm_medium: params.utm_medium,
-    utm_campaign: params.utm_campaign,
-    utm_term: params.utm_term,
-    utm_content: params.utm_content,
-    saleType: params.saleType,
   });
 
   const allFilters = [...metadataFilters, ...advancedFilters];
