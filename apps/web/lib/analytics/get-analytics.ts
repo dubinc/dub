@@ -148,8 +148,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     groupIdOperator,
     tenantId: tenantIdParam,
     tenantIdOperator,
-    root: rootParam,
-    rootOperator,
   } = extractWorkspaceLinkFilters({
     ...params,
     partnerId: partnerIdFilter,
@@ -174,8 +172,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     folderIdOperator,
     tagId: tagIdParam,
     tagIdOperator,
-    root: rootParam,
-    rootOperator,
     groupBy,
     eventType: event,
     start: formatUTCDateTimeClickhouse(startDate),
@@ -183,6 +179,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     granularity,
     timezone,
     region: typeof regionForPipe === "string" ? regionForPipe : undefined,
+    root: params.root,
+    saleType: params.saleType,
     filters: allFilters.length > 0 ? JSON.stringify(allFilters) : undefined,
   };
 
