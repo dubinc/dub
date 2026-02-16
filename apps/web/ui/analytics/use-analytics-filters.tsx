@@ -407,6 +407,7 @@ export function useAnalyticsFilters({
     label: "Sale type",
     separatorAfter: true,
     hideMultipleIcons: true,
+    singleSelect: true,
     options: [
       {
         value: "new",
@@ -541,6 +542,7 @@ export function useAnalyticsFilters({
                   icon: Sliders,
                   label: "Link type",
                   hideMultipleIcons: true,
+                  singleSelect: true,
                   options: [
                     {
                       value: "true",
@@ -903,8 +905,10 @@ export function useAnalyticsFilters({
         setStreaming(false);
       } else {
         const currentParam = searchParamsObj[key];
+        const filterDef = filters.find((f) => f.key === key);
+        const isSingleSelect = filterDef?.singleSelect;
 
-        if (!currentParam) {
+        if (!currentParam || isSingleSelect) {
           queryParams({
             set: { [key]: value },
             del: "page",
@@ -928,7 +932,7 @@ export function useAnalyticsFilters({
         }
       }
     },
-    [queryParams, activeFilters, searchParamsObj, parseFilterParam],
+    [queryParams, activeFilters, searchParamsObj, parseFilterParam, filters],
   );
 
   const onRemove = useCallback(
