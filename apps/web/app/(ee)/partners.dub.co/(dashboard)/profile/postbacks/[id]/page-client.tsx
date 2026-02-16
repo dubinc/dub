@@ -9,6 +9,7 @@ import { PostbackDetailSkeleton } from "@/ui/postbacks/postback-detail-skeleton"
 import { usePostbackEventDetailsSheet } from "@/ui/postbacks/postback-event-details-sheet";
 import { PostbackEventList } from "@/ui/postbacks/postback-event-list";
 import { PostbackEventListSkeleton } from "@/ui/postbacks/postback-event-list-skeleton";
+import { usePostbackSecretModal } from "@/ui/postbacks/postback-secret-modal";
 import { PostbackStatus } from "@/ui/postbacks/postback-status";
 import { BackLink } from "@/ui/shared/back-link";
 import { EmptyState, MaxWidthWrapper, TokenAvatar, Webhook } from "@dub/ui";
@@ -50,11 +51,13 @@ export function PostbackDetailPageClient({
   const { postbackEventDetailsSheet, openWithEvent } =
     usePostbackEventDetailsSheet();
 
-  const { openEditPostbackModal, AddEditPostbackModal } =
-    useAddEditPostbackModal(() => mutate());
+  const { openPostbackSecretModal, PostbackSecretModal } =
+    usePostbackSecretModal();
 
-  const is404 = Boolean(error && (error as { status?: number }).status === 404);
-  if (is404) {
+  const { openEditPostbackModal, AddEditPostbackModal } =
+    useAddEditPostbackModal(() => mutate(), openPostbackSecretModal);
+
+  if (Boolean(error && (error as { status?: number }).status === 404)) {
     redirect("/profile/postbacks");
   }
 
@@ -156,6 +159,7 @@ export function PostbackDetailPageClient({
         </PageWidthWrapper>
       </PageContent>
       <AddEditPostbackModal />
+      <PostbackSecretModal />
       {postbackEventDetailsSheet}
     </>
   );

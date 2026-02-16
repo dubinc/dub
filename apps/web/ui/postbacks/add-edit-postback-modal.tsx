@@ -18,7 +18,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
-import { usePostbackSecretModal } from "./postback-secret-modal";
 
 type PostbackForEdit = z.infer<typeof partnerPostbackSchema>;
 
@@ -29,6 +28,7 @@ interface AddEditPostbackModalProps {
   setShowModal: (show: boolean) => void;
   postback: PostbackForEdit | null;
   onSuccess: () => void;
+  onCreatedWithSecret?: (secret: string) => void;
 }
 
 function AddEditPostbackModal({
@@ -36,12 +36,10 @@ function AddEditPostbackModal({
   setShowModal,
   postback,
   onSuccess,
+  onCreatedWithSecret,
 }: AddEditPostbackModalProps) {
   const { isMobile } = useMediaQuery();
   const [isOpen, setIsOpen] = useState(false);
-
-  const { openPostbackSecretModal, PostbackSecretModal } =
-    usePostbackSecretModal();
 
   const {
     register,
@@ -124,9 +122,7 @@ function AddEditPostbackModal({
         },
         onSuccess: async () => {
           toast.success("Postback created");
-          setShowModal(false);
           await mutatePrefix("/api/partner-profile/postbacks");
-          onSuccess();
         },
         onError: ({ error }) => {
           toast.error(error.error.message);
@@ -135,8 +131,11 @@ function AddEditPostbackModal({
     );
 
     if (createdPostback?.secret) {
-      openPostbackSecretModal(createdPostback.secret);
+      onCreatedWithSecret?.(createdPostback.secret);
     }
+
+    setShowModal(false);
+    onSuccess();
   }
 
   return (
@@ -266,13 +265,14 @@ function AddEditPostbackModal({
           </form>
         </div>
       </Modal>
-
-      <PostbackSecretModal />
     </>
   );
 }
 
-export function useAddEditPostbackModal(onSuccess?: () => void) {
+export function useAddEditPostbackModal(
+  onSuccess?: () => void,
+  onCreatedWithSecret?: (secret: string) => void,
+) {
   const [postback, setPostback] = useState<PostbackForEdit | null | undefined>(
     undefined,
   );
@@ -297,6 +297,7 @@ export function useAddEditPostbackModal(onSuccess?: () => void) {
         showModal
         postback={postback}
         onSuccess={() => onSuccess?.()}
+        onCreatedWithSecret={onCreatedWithSecret}
         setShowModal={(show) => {
           if (!show) {
             closePostbackModal();

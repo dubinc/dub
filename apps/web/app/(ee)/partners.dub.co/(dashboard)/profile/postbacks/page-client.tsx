@@ -6,6 +6,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useAddEditPostbackModal } from "@/ui/postbacks/add-edit-postback-modal";
 import { PostbackCard } from "@/ui/postbacks/postback-card";
 import { PostbackPlaceholder } from "@/ui/postbacks/postback-placeholder";
+import { usePostbackSecretModal } from "@/ui/postbacks/postback-secret-modal";
 import EmptyState from "@/ui/shared/empty-state";
 import { EmptyState as EmptyStateBlock } from "@dub/ui";
 import { fetcher } from "@dub/utils";
@@ -27,8 +28,11 @@ export function PostbacksPageClient() {
     },
   );
 
+  const { openPostbackSecretModal, PostbackSecretModal } =
+    usePostbackSecretModal();
+
   const { openAddPostbackModal, AddEditPostbackModal } =
-    useAddEditPostbackModal(() => mutate());
+    useAddEditPostbackModal(() => mutate(), openPostbackSecretModal);
 
   return (
     <>
@@ -91,6 +95,7 @@ export function PostbacksPageClient() {
         </PageWidthWrapper>
       </PageContent>
       <AddEditPostbackModal />
+      <PostbackSecretModal />
     </>
   );
 }
