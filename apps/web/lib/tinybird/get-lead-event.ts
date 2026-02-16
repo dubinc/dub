@@ -10,5 +10,5 @@ export const getLeadEvent = tb.buildPipe({
   }),
   data: leadEventSchemaTB.extend({
     timestamp: z.string(),
-  }),
+  }), // TODO: This needs review
 });
