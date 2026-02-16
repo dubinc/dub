@@ -11,10 +11,10 @@ import { InlineBadgePopover } from "@/ui/shared/inline-badge-popover";
 import { MoneyBills2, ToggleGroup } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { BountyAmountInput } from "./bounty-amount-input";
+import { BountyCriteriaManualSubmission } from "./bounty-criteria-manual-submission";
+import { BountyCriteriaSocialMetrics } from "./bounty-criteria-social-metrics";
 import { useAddEditBountyForm } from "./bounty-form-context";
 import { BountyLogic } from "./bounty-logic";
-import { BountyManualSubmissionCriteria } from "./bounty-manual-submission-criteria";
-import { BountySocialMetricsCriteriaCards } from "./bounty-social-metrics-criteria-cards";
 
 const MANUAL_SUBMISSION_CRITERIA = [
   { value: "manualSubmission", label: "Manual submission" },
@@ -23,7 +23,7 @@ const MANUAL_SUBMISSION_CRITERIA = [
 
 type SubmissionCriteriaType = "manualSubmission" | "socialMetrics";
 
-export function BountyCriteriaSection() {
+export function BountyCriteria() {
   const { watch, setValue } = useAddEditBountyForm();
 
   const [
@@ -82,71 +82,6 @@ export function BountyCriteriaSection() {
     );
   };
 
-  const handleRequireImageToggle = (checked: boolean) => {
-    updateSubmissionRequirements(
-      checked,
-      requireUrl,
-      checked ? imageMax : undefined,
-      urlMax,
-      urlDomains,
-    );
-  };
-
-  const handleRequireUrlToggle = (checked: boolean) => {
-    updateSubmissionRequirements(
-      requireImage,
-      checked,
-      imageMax,
-      checked ? urlMax : undefined,
-      checked ? urlDomains : undefined,
-    );
-  };
-
-  const handleImageMaxChange = (value: number) => {
-    updateSubmissionRequirements(
-      requireImage,
-      requireUrl,
-      value,
-      urlMax,
-      urlDomains,
-    );
-  };
-
-  const handleUrlMaxChange = (value: number) => {
-    updateSubmissionRequirements(
-      requireImage,
-      requireUrl,
-      imageMax,
-      value,
-      urlDomains,
-    );
-  };
-
-  const handleAddDomain = (domain: string) => {
-    const trimmedDomain = domain.trim().toLowerCase();
-    if (trimmedDomain && !urlDomains.includes(trimmedDomain)) {
-      const newDomains = [...urlDomains, trimmedDomain];
-      updateSubmissionRequirements(
-        requireImage,
-        requireUrl,
-        imageMax,
-        urlMax,
-        newDomains,
-      );
-    }
-  };
-
-  const handleRemoveDomain = (domain: string) => {
-    const newDomains = urlDomains.filter((d) => d !== domain);
-    updateSubmissionRequirements(
-      requireImage,
-      requireUrl,
-      imageMax,
-      urlMax,
-      newDomains,
-    );
-  };
-
   const showPerformanceContent = type === "performance";
   const showSubmissionContent = type === "submission";
 
@@ -186,11 +121,7 @@ export function BountyCriteriaSection() {
                     setValue(
                       "submissionRequirements",
                       {
-                        socialMetrics: current?.socialMetrics ?? {
-                          channel: "youtube",
-                          metric: "likes",
-                          amount: 100,
-                        },
+                        socialMetrics: current?.socialMetrics,
                       },
                       { shouldDirty: true },
                     );
@@ -207,11 +138,11 @@ export function BountyCriteriaSection() {
               />
 
               {submissionCriteriaType === "manualSubmission" && (
-                <BountyManualSubmissionCriteria />
+                <BountyCriteriaManualSubmission />
               )}
 
               {submissionCriteriaType === "socialMetrics" && (
-                <BountySocialMetricsCriteriaCards />
+                <BountyCriteriaSocialMetrics />
               )}
             </>
           )}
@@ -253,14 +184,16 @@ export function BountyCriteriaSection() {
             </div>
           )}
 
-          {rewardType === "custom" && showSubmissionContent && (
-            <div className="rounded-lg bg-orange-50 px-4 py-2 text-center">
-              <span className="text-sm font-medium leading-5 text-orange-900">
-                When reviewing these submissions, a custom reward amount will be
-                required to approve.
-              </span>
-            </div>
-          )}
+          {rewardType === "custom" &&
+            showSubmissionContent &&
+            submissionCriteriaType === "manualSubmission" && (
+              <div className="rounded-lg bg-orange-50 px-4 py-2 text-center">
+                <span className="text-sm font-medium leading-5 text-orange-900">
+                  When reviewing these submissions, a custom reward amount will
+                  be required to approve.
+                </span>
+              </div>
+            )}
         </div>
       </ProgramSheetAccordionContent>
     </ProgramSheetAccordionItem>

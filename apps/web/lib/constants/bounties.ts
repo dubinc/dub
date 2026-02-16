@@ -34,23 +34,23 @@ export const SOCIAL_METRICS_CHANNEL_METRICS: Record<
   readonly { value: string; label: string }[]
 > = {
   youtube: [
-    { value: "views", label: "Views" },
-    { value: "likes", label: "Likes" },
-    { value: "comments", label: "Comments" },
+    { value: "views", label: "views" },
+    { value: "likes", label: "likes" },
+    { value: "comments", label: "comments" },
   ],
   tiktok: [
-    { value: "likes", label: "Likes" },
-    { value: "comments", label: "Comments" },
-    { value: "views", label: "Views" },
+    { value: "likes", label: "likes" },
+    { value: "comments", label: "comments" },
+    { value: "views", label: "views" },
   ],
   instagram: [
-    { value: "likes", label: "Likes" },
-    { value: "views", label: "Views" },
+    { value: "likes", label: "likes" },
+    { value: "views", label: "views" },
   ],
   x_twitter: [
-    { value: "favorites", label: "Favorites" },
-    { value: "replies", label: "Replies" },
-    { value: "retweets", label: "Retweets" },
+    { value: "favorites", label: "favorites" },
+    { value: "replies", label: "replies" },
+    { value: "retweets", label: "retweets" },
   ],
 };
 
@@ -63,5 +63,4 @@ export const SOCIAL_METRICS_METRIC_VALUES = [
   "retweets",
 ] as const;
 
-export type SocialMetricsMetric =
-  (typeof SOCIAL_METRICS_METRIC_VALUES)[number];
+export type SocialMetricsMetric = (typeof SOCIAL_METRICS_METRIC_VALUES)[number];

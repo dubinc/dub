@@ -16,21 +16,27 @@ import { currencyFormatter } from "@dub/utils";
 import { BountyAmountInput } from "./bounty-amount-input";
 import { useAddEditBountyForm } from "./bounty-form-context";
 
-export function BountySocialMetricsCriteriaCards() {
-  const { watch, setValue } = useAddEditBountyForm();
-  const submissionRequirements = watch("submissionRequirements") as {
-    socialMetrics?: {
-      channel: SocialMetricsChannel;
-      metric: string;
-      amount: number;
-    };
-  } | null;
-  const rewardAmount = watch("rewardAmount");
-  const socialMetrics = submissionRequirements?.socialMetrics ?? {
-    channel: "youtube" as SocialMetricsChannel,
-    metric: "likes",
-    amount: 100,
+interface SocialMetricsCriteria {
+  socialMetrics?: {
+    channel: SocialMetricsChannel;
+    metric: string;
+    amount: number;
   };
+}
+
+export function BountyCriteriaSocialMetrics() {
+  const { watch, setValue } = useAddEditBountyForm();
+
+  const submissionRequirements = watch(
+    "submissionRequirements",
+  ) as SocialMetricsCriteria | null;
+
+  const rewardAmount = watch("rewardAmount");
+
+  const socialMetrics = submissionRequirements?.socialMetrics;
+  const hasChannel = socialMetrics?.channel != null;
+  const hasAmount = socialMetrics?.amount != null && socialMetrics.amount > 0;
+  const hasMetric = socialMetrics?.metric != null;
 
   const updateSocialMetrics = (
     updates: Partial<{
@@ -39,14 +45,18 @@ export function BountySocialMetricsCriteriaCards() {
       amount: number;
     }>,
   ) => {
-    const nextChannel = updates.channel ?? socialMetrics.channel;
+    const nextChannel =
+      updates.channel ??
+      socialMetrics?.channel ??
+      ("youtube" as SocialMetricsChannel);
     const channelMetrics = SOCIAL_METRICS_CHANNEL_METRICS[nextChannel];
     const nextMetric =
       updates.metric ??
-      (channelMetrics.some((m) => m.value === socialMetrics.metric)
+      (socialMetrics?.metric &&
+      channelMetrics.some((m) => m.value === socialMetrics.metric)
         ? socialMetrics.metric
         : channelMetrics[0].value);
-    const nextAmount = updates.amount ?? socialMetrics.amount;
+    const nextAmount = updates.amount ?? socialMetrics?.amount ?? 0;
     setValue(
       "submissionRequirements",
       {
@@ -60,13 +70,18 @@ export function BountySocialMetricsCriteriaCards() {
     );
   };
 
-  const channelLabel =
-    SOCIAL_METRICS_CHANNELS.find((c) => c.value === socialMetrics.channel)
-      ?.label ?? socialMetrics.channel;
-  const metricLabel =
-    SOCIAL_METRICS_CHANNEL_METRICS[socialMetrics.channel]?.find(
-      (m) => m.value === socialMetrics.metric,
-    )?.label ?? socialMetrics.metric;
+  const channelLabel = hasChannel
+    ? SOCIAL_METRICS_CHANNELS.find((c) => c.value === socialMetrics!.channel)
+        ?.label ?? socialMetrics!.channel
+    : "channel";
+
+  const metricLabel = hasMetric
+    ? SOCIAL_METRICS_CHANNEL_METRICS[socialMetrics!.channel]?.find(
+        (m) => m.value === socialMetrics!.metric,
+      )?.label ?? socialMetrics!.metric
+    : "metric";
+
+  const metricChannelForMenu = socialMetrics?.channel ?? "youtube";
 
   return (
     <div className="flex flex-col gap-0">
@@ -79,14 +94,19 @@ export function BountySocialMetricsCriteriaCards() {
             If their post on{" "}
             <InlineBadgePopover
               text={channelLabel}
-              buttonClassName="!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
+              invalid={!hasChannel}
+              buttonClassName={
+                hasChannel
+                  ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
+                  : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
+              }
             >
               <InlineBadgePopoverMenu
                 items={SOCIAL_METRICS_CHANNELS.map((c) => ({
                   value: c.value,
                   text: c.label,
                 }))}
-                selectedValue={socialMetrics.channel}
+                selectedValue={socialMetrics?.channel}
                 onSelect={(v) =>
                   updateSocialMetrics({ channel: v as SocialMetricsChannel })
                 }
@@ -94,14 +114,10 @@ export function BountySocialMetricsCriteriaCards() {
             </InlineBadgePopover>{" "}
             has{" "}
             <InlineBadgePopover
-              text={
-                socialMetrics.amount != null && socialMetrics.amount > 0
-                  ? String(socialMetrics.amount)
-                  : "amount"
-              }
-              invalid={socialMetrics.amount == null || socialMetrics.amount < 1}
+              text={hasAmount ? String(socialMetrics!.amount) : "amount"}
+              invalid={!hasAmount}
               buttonClassName={
-                socialMetrics.amount != null && socialMetrics.amount >= 1
+                hasAmount
                   ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
                   : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
               }
@@ -110,7 +126,7 @@ export function BountySocialMetricsCriteriaCards() {
                 type="number"
                 min={1}
                 value={
-                  socialMetrics.amount == null || socialMetrics.amount === 0
+                  socialMetrics?.amount == null || socialMetrics?.amount === 0
                     ? ""
                     : String(socialMetrics.amount)
                 }
@@ -121,18 +137,23 @@ export function BountySocialMetricsCriteriaCards() {
                     amount: Number.isNaN(num) ? 1 : Math.max(1, num),
                   });
                 }}
-                placeholder="100"
+                placeholder="amount"
               />
             </InlineBadgePopover>{" "}
             <InlineBadgePopover
               text={metricLabel}
-              buttonClassName="!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
+              invalid={!hasMetric}
+              buttonClassName={
+                hasMetric
+                  ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
+                  : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
+              }
             >
               <InlineBadgePopoverMenu
-                items={SOCIAL_METRICS_CHANNEL_METRICS[
-                  socialMetrics.channel
-                ].map((m) => ({ value: m.value, text: m.label }))}
-                selectedValue={socialMetrics.metric}
+                items={SOCIAL_METRICS_CHANNEL_METRICS[metricChannelForMenu].map(
+                  (m) => ({ value: m.value, text: m.label }),
+                )}
+                selectedValue={socialMetrics?.metric}
                 onSelect={(v) => updateSocialMetrics({ metric: v })}
               />
             </InlineBadgePopover>

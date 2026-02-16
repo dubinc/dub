@@ -19,27 +19,29 @@ import { BountyAmountInput } from "./bounty-amount-input";
 import { useAddEditBountyForm } from "./bounty-form-context";
 
 const REWARD_TYPES = [
-  {
-    value: "flat",
-    label: "flat rate",
-  },
-  {
-    value: "custom",
-    label: "custom",
-  },
+  { value: "flat", label: "flat rate" },
+  { value: "custom", label: "custom" },
 ] as const;
 
-export function BountyManualSubmissionCriteria() {
-  const { control, watch, setValue } = useAddEditBountyForm();
+type RewardType = (typeof REWARD_TYPES)[number]["value"];
 
-  const [
-    rewardDescription,
-    rewardAmount,
-    submissionRequirements,
-    rewardType = "flat",
-  ] = watch([
-    "rewardDescription",
-    "rewardAmount",
+const REWARD_TYPE_COPY: Record<
+  RewardType,
+  { label: string; connectorCopy: string }
+> = {
+  flat: { label: "flat rate", connectorCopy: "of " },
+  custom: { label: "custom amount", connectorCopy: "shown as " },
+};
+
+const REWARD_VALID_BUTTON_CLASS =
+  "!bg-blue-50 !text-blue-700 hover:!bg-blue-100";
+const REWARD_INVALID_BUTTON_CLASS =
+  "!bg-orange-50 !text-orange-500 hover:!bg-orange-100";
+
+export function BountyCriteriaManualSubmission() {
+  const { watch, setValue } = useAddEditBountyForm();
+
+  const [submissionRequirements, rewardType = "flat"] = watch([
     "submissionRequirements",
     "rewardType",
   ]);
@@ -307,76 +309,102 @@ export function BountyManualSubmissionCriteria() {
           <RewardIconSquare icon={ImageIcon} />
           <span className="text-content-default text-sm leading-relaxed">
             On approval, pay a{" "}
-            <InlineBadgePopover
-              text={rewardType === "flat" ? "flat rate" : "custom amount"}
-              buttonClassName="!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
-            >
-              <InlineBadgePopoverMenu
-                items={REWARD_TYPES.map(({ value, label }) => ({
-                  value,
-                  text: label,
-                }))}
-                selectedValue={rewardType}
-                onSelect={(v) => setValue("rewardType", v)}
-              />
-            </InlineBadgePopover>{" "}
-            {rewardType === "flat" ? "of " : "shown as "}
-            {rewardType === "flat" ? (
-              <InlineBadgePopover
-                text={
-                  rewardAmount != null && !isNaN(rewardAmount)
-                    ? currencyFormatter(rewardAmount * 100, {
-                        trailingZeroDisplay: "stripIfInteger",
-                      })
-                    : "amount"
-                }
-                invalid={
-                  rewardAmount == null ||
-                  isNaN(rewardAmount) ||
-                  rewardAmount < 0
-                }
-                buttonClassName={
-                  rewardAmount != null &&
-                  !isNaN(rewardAmount) &&
-                  rewardAmount >= 0
-                    ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
-                    : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
-                }
-              >
-                <BountyAmountInput name="rewardAmount" />
-              </InlineBadgePopover>
-            ) : (
-              <InlineBadgePopover
-                text={rewardDescription || "reward description"}
-                invalid={!rewardDescription?.trim()}
-                buttonClassName={
-                  rewardDescription?.trim()
-                    ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
-                    : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
-                }
-              >
-                <Controller
-                  control={control}
-                  name="rewardDescription"
-                  rules={{ maxLength: 100 }}
-                  render={({ field }) => (
-                    <InlineBadgePopoverInput
-                      {...field}
-                      value={field.value ?? ""}
-                      onChange={(e) => {
-                        const val = (e.target as HTMLInputElement).value;
-                        field.onChange(val === "" ? null : val);
-                      }}
-                      placeholder="Earn an additional 10% if you hit your revenue goal"
-                      maxLength={100}
-                    />
-                  )}
-                />
-              </InlineBadgePopover>
-            )}
+            <RewardTypeBadge
+              value={rewardType}
+              onSelect={(v) => setValue("rewardType", v)}
+            />{" "}
+            {REWARD_TYPE_COPY[rewardType].connectorCopy}
+            <RewardValueBadge rewardType={rewardType} />
           </span>
         </div>
       </div>
     </>
+  );
+}
+
+function RewardTypeBadge({
+  value,
+  onSelect,
+}: {
+  value: RewardType;
+  onSelect: (v: RewardType) => void;
+}) {
+  return (
+    <InlineBadgePopover
+      text={REWARD_TYPE_COPY[value].label}
+      buttonClassName={REWARD_VALID_BUTTON_CLASS}
+    >
+      <InlineBadgePopoverMenu
+        items={REWARD_TYPES.map(({ value: v, label }) => ({
+          value: v,
+          text: label,
+        }))}
+        selectedValue={value}
+        onSelect={(v) => onSelect(v)}
+      />
+    </InlineBadgePopover>
+  );
+}
+
+function RewardValueBadge({ rewardType }: { rewardType: RewardType }) {
+  const { control, watch } = useAddEditBountyForm();
+
+  const [rewardAmount, rewardDescription] = watch([
+    "rewardAmount",
+    "rewardDescription",
+  ]);
+
+  if (rewardType === "flat") {
+    const invalid =
+      rewardAmount == null || isNaN(rewardAmount) || rewardAmount < 0;
+    const displayText =
+      rewardAmount != null && !isNaN(rewardAmount)
+        ? currencyFormatter(rewardAmount * 100, {
+            trailingZeroDisplay: "stripIfInteger",
+          })
+        : "amount";
+
+    return (
+      <InlineBadgePopover
+        text={displayText}
+        invalid={invalid}
+        buttonClassName={
+          invalid ? REWARD_INVALID_BUTTON_CLASS : REWARD_VALID_BUTTON_CLASS
+        }
+      >
+        <BountyAmountInput name="rewardAmount" />
+      </InlineBadgePopover>
+    );
+  }
+
+  const invalid = !rewardDescription?.trim();
+  const displayText = rewardDescription?.trim() || "reward description";
+
+  return (
+    <InlineBadgePopover
+      text={displayText}
+      invalid={invalid}
+      buttonClassName={
+        invalid ? REWARD_INVALID_BUTTON_CLASS : REWARD_VALID_BUTTON_CLASS
+      }
+    >
+      <Controller
+        control={control}
+        name="rewardDescription"
+        rules={{ maxLength: 100 }}
+        render={({ field }) => (
+          <InlineBadgePopoverInput
+            {...field}
+            value={field.value ?? ""}
+            onChange={(e) => {
+              const val = (e.target as HTMLInputElement).value;
+              field.onChange(val === "" ? null : val);
+            }}
+            placeholder="Earn an additional 10% if you hit your revenue goal"
+            maxLength={100}
+          />
+        )}
+      />
+    </InlineBadgePopover>
   );
 }
