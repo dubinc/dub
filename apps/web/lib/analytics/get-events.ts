@@ -112,8 +112,6 @@ export const getEvents = async (params: EventsFilters) => {
     groupIdOperator,
     tenantId: tenantIdParam,
     tenantIdOperator,
-    root: rootParam,
-    rootOperator,
   } = extractWorkspaceLinkFilters({
     ...params,
     partnerId: partnerIdFilter,
@@ -146,7 +144,8 @@ export const getEvents = async (params: EventsFilters) => {
     ...(domainParam ? { domain: domainParam, domainOperator } : {}),
     ...(tagIdParam ? { tagId: tagIdParam, tagIdOperator } : {}),
     ...(folderIdParam ? { folderId: folderIdParam, folderIdOperator } : {}),
-    ...(rootParam ? { root: rootParam, rootOperator } : {}),
+    ...(params.root !== undefined ? { root: params.root } : {}),
+    ...(params.saleType ? { saleType: params.saleType } : {}),
     order: sortOrder,
     offset: (params.page - 1) * params.limit,
     limit: params.limit,

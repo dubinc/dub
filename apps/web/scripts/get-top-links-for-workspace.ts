@@ -39,7 +39,7 @@ async function main() {
     groupBy: "top_links",
     workspaceId: workspace.id,
     interval: "30d",
-    root: { values: ["false"], operator: "IS", sqlOperator: "IN" },
+    root: false,
   }).then(async (data) => {
     const topFive = data.slice(0, 5);
     return await Promise.all(

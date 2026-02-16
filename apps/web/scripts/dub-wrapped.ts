@@ -61,7 +61,7 @@ async function main() {
           event: "clicks",
           groupBy: "top_links",
           interval: "ytd",
-          root: { values: ["false"], operator: "IS", sqlOperator: "IN" },
+          root: false,
         }),
         getAnalytics({
           workspaceId: projectId!,

@@ -336,39 +336,16 @@ export const analyticsQuerySchema = z.object({
       "The UTM content to retrieve analytics for. " +
         "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`).",
     ),
-  root: z
-    .string()
+  root: booleanQuerySchema
     .optional()
-    .transform((v) => {
-      if (!v) return undefined;
-      // Normalize boolean values to "true" or "false" strings for consistency
-      const parsed = parseFilterValue(v);
-      if (!parsed) return undefined;
-      return {
-        ...parsed,
-        values: parsed.values.map((val) => {
-          // Normalize various truthy/falsy values to "true"/"false"
-          if (val === "true" || val === "1" || val === "yes") return "true";
-          if (val === "false" || val === "0" || val === "no") return "false";
-          return val;
-        }),
-      };
-    })
     .describe(
-      "Filter for root domains. " +
-        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-        "Examples: `true` (root domains only), `false` (regular links only), `true,false` (both). " +
-        "If undefined, return both.",
+      "Filter for root domains. If true, filter for domains only. If false, filter for links only. If undefined, return both.",
     ),
   saleType: z
-    .string()
+    .enum(["new", "recurring"])
     .optional()
-    .transform(parseFilterValue)
     .describe(
-      "Filter sales by type. Valid values: `new` (first-time purchases), `recurring` (repeat purchases). " +
-        "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
-        "Examples: `new`, `new,recurring`, `-recurring`. " +
-        "If undefined, returns both.",
+      "Filter sales by type: 'new' for first-time purchases, 'recurring' for repeat purchases. If undefined, returns both.",
     ),
   query: z
     .string()
@@ -492,23 +469,22 @@ export const analyticsFilterTB = z.object({
   // Region is a special case - it's the subdivision part of a region code
   region: z.string().optional(),
   root: z
-    .union([
-      z.string(),
-      z.boolean(),
-      z.array(z.union([z.string(), z.boolean()])),
-    ])
+    .union([z.string(), z.boolean()])
     .transform((v) => {
-      const normalize = (val: string | boolean): boolean => {
-        if (typeof val === "boolean") return val;
-        return val === "true" || val === "1" || val === "yes";
-      };
-      if (Array.isArray(v)) return v.map(normalize);
-      return [normalize(v)];
+      if (typeof v === "boolean") return v;
+      return v === "true" || v === "1" || v === "yes";
     })
     .optional()
-    .describe("Filter for root domain links."),
-  rootOperator: z.enum(["IN", "NOT IN"]).optional(),
+    .describe(
+      "Filter for root domain links. True = root only, false = links only. Single value (no operator).",
+    ),
   programId: z.string().optional(),
+  saleType: z
+    .enum(["new", "recurring"])
+    .optional()
+    .describe(
+      "Filter sales by type: 'new' or 'recurring'. Single value only (no operator).",
+    ),
   // All dimensional filters now go through the JSON filters parameter
   filters: z
     .string()
