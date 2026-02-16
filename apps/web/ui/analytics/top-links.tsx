@@ -173,16 +173,14 @@ export function TopLinks() {
                     // Determine href
                     let href: string | undefined;
                     if (isLinksSubtab) {
-                      const hasLinkFilter =
-                        searchParams.has("domain") && searchParams.has("key");
                       href = queryParams({
-                        ...(hasLinkFilter
-                          ? { del: ["domain", "key"] }
+                        ...(searchParams.has("linkId")
+                          ? { del: ["linkId"] }
                           : {
                               set: {
-                                domain: d.domain,
-                                key: d.key || "_root",
+                                linkId: d.id,
                               },
+                              del: ["domain", "key"],
                             }),
                         getNewPath: true,
                       }) as string;

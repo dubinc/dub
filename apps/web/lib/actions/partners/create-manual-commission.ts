@@ -292,8 +292,12 @@ export const createManualCommissionAction = authActionClient
               createdAt: new Date(saleEventData.timestamp + "Z"), // add the "Z" to the timestamp to make it UTC
               user,
               context: {
-                customer: { country: customer.country },
-                sale: { productId },
+                customer: {
+                  country: customer.country,
+                },
+                sale: {
+                  productId,
+                },
               },
             })),
           );

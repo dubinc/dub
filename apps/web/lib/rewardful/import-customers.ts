@@ -44,8 +44,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
 
     const stripeCustomerIds = referrals
       .filter(
-        (r) =>
-          r.stripe_customer_id && r.stripe_customer_id.startsWith("cus_"),
+        (r) => r.stripe_customer_id && r.stripe_customer_id.startsWith("cus_"),
       )
       .map((r) => r.stripe_customer_id!);
     const externalIds = referrals.map((r) => r.customer.id);
