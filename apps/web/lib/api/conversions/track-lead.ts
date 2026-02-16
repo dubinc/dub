@@ -360,31 +360,35 @@ export const trackLead = async ({
             ]);
           }
 
-          await sendWorkspaceWebhook({
-            trigger: "lead.created",
-            data: transformLeadEventData({
-              ...clickData,
-              eventName,
-              link,
-              customer,
-              partner: createdCommission?.webhookPartner,
-              metadata,
-            }),
-            workspace,
-          });
-
-          if (link.partnerId) {
-            await sendPartnerPostback({
-              partnerId: link.partnerId,
-              event: "lead.created",
-              data: {
+          await Promise.allSettled([
+            sendWorkspaceWebhook({
+              trigger: "lead.created",
+              data: transformLeadEventData({
                 ...clickData,
                 eventName,
                 link,
                 customer,
-              },
-            });
-          }
+                partner: createdCommission?.webhookPartner,
+                metadata,
+              }),
+              workspace,
+            }),
+
+            ...(link.partnerId
+              ? [
+                  sendPartnerPostback({
+                    partnerId: link.partnerId,
+                    event: "lead.created",
+                    data: {
+                      ...clickData,
+                      eventName,
+                      link,
+                      customer,
+                    },
+                  }),
+                ]
+              : []),
+          ]);
         }
       })(),
     );

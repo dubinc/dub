@@ -42,42 +42,37 @@ export const sendTestPartnerPostbackInputSchema = z.object({
   event: z.enum(POSTBACK_TRIGGERS),
 });
 
+// Postback event schemas
+const postbackLinkSchema = LinkSchema.pick({
+  id: true,
+  shortLink: true,
+  domain: true,
+  key: true,
+});
+
+const postbackCustomerSchema = CustomerEnrichedSchema.pick({
+  id: true,
+  country: true,
+  createdAt: true,
+  firstSaleAt: true,
+  subscriptionCanceledAt: true,
+});
+
 export const leadEventPostbackSchema = z.object({
   eventName: z.string(),
   click: clickEventSchema,
-  link: LinkSchema.pick({
-    id: true,
-    shortLink: true,
-    domain: true,
-    key: true,
-  }),
-  customer: CustomerEnrichedSchema.pick({
-    id: true,
-    country: true,
-    createdAt: true,
-    firstSaleAt: true,
-    subscriptionCanceledAt: true,
-  }),
+  link: postbackLinkSchema,
+  customer: postbackCustomerSchema,
 });
 
 export const saleEventPostbackSchema = z.object({
   eventName: z.string(),
   click: clickEventSchema,
-  link: LinkSchema.pick({
-    id: true,
-    shortLink: true,
-    domain: true,
-    key: true,
-  }),
-  customer: CustomerEnrichedSchema.pick({
-    id: true,
-    country: true,
-    createdAt: true,
-    firstSaleAt: true,
-    subscriptionCanceledAt: true,
-  }),
+  link: postbackLinkSchema,
+  customer: postbackCustomerSchema,
   sale: z.object({
     amount: z.number(),
+    currency: z.string(),
   }),
 });
 
@@ -92,13 +87,7 @@ export const commissionEventPostbackSchema = CommissionSchema.pick({
   quantity: true,
   createdAt: true,
 }).extend({
-  customer: CustomerEnrichedSchema.pick({
-    id: true,
-    country: true,
-    createdAt: true,
-    firstSaleAt: true,
-    subscriptionCanceledAt: true,
-  }).nullable(),
+  customer: postbackCustomerSchema.nullable(),
 });
 
 export const postbackCallbackParamsSchema = z.object({
@@ -115,6 +104,7 @@ export const postbackCallbackBodySchema = z.object({
   sourceBody: z.string(), // Original request payload from Dub
 });
 
+// Tinybird postback event schema
 export const postbackEventSchemaTB = z.object({
   event_id: z.string(),
   event: z.enum(POSTBACK_TRIGGERS),

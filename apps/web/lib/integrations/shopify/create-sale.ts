@@ -4,6 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
 import { recordSale } from "@/lib/tinybird";
 import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -198,17 +199,34 @@ export async function createShopifySale({
   }
 
   waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "sale.created",
-      workspace,
-      data: transformSaleEventData({
-        ...saleData,
-        link,
-        clickedAt: customer.clickedAt || customer.createdAt,
-        customer,
-        partner: createdCommission?.webhookPartner,
-        metadata: null,
+    Promise.allSettled([
+      sendWorkspaceWebhook({
+        trigger: "sale.created",
+        workspace,
+        data: transformSaleEventData({
+          ...saleData,
+          link,
+          clickedAt: customer.clickedAt || customer.createdAt,
+          customer,
+          partner: createdCommission?.webhookPartner,
+          metadata: null,
+        }),
       }),
-    }),
+
+      ...(link?.partnerId
+        ? [
+            sendPartnerPostback({
+              partnerId: link.partnerId,
+              event: "sale.created",
+              data: {
+                ...saleData,
+                clickedAt: customer.clickedAt || customer.createdAt,
+                link,
+                customer,
+              },
+            }),
+          ]
+        : []),
+    ]),
   );
 }

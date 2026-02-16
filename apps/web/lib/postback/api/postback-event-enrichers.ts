@@ -1,10 +1,10 @@
 import { transformLink } from "@/lib/api/links";
 import { toCamelCase } from "@dub/utils";
 import { PostbackTrigger } from "../constants";
-import { leadEventPostbackSchema } from "../schemas";
+import { leadEventPostbackSchema, saleEventPostbackSchema } from "../schemas";
 
 interface PostbackEventEnricher {
-  enrich(data: Record<string, unknown>): unknown;
+  enrich(data: Record<string, unknown>): Record<string, unknown>;
 }
 
 class PostbackEventEnrichers {
@@ -13,14 +13,14 @@ class PostbackEventEnrichers {
   register(event: PostbackTrigger, enricher: PostbackEventEnricher) {
     if (this.enrichers.has(event)) {
       console.warn(
-        `[PostbackEventEnrichersRegistry] Overwriting enricher for event ${event}.`,
+        `[PostbackEventEnrichers] Overwriting enricher for event ${event}.`,
       );
     }
 
     this.enrichers.set(event, enricher);
 
     console.log(
-      `[PostbackEventEnrichersRegistry] Registered enricher for event ${event}.`,
+      `[PostbackEventEnrichers] Registered enricher for event ${event}.`,
     );
 
     return this;
@@ -31,7 +31,7 @@ class PostbackEventEnrichers {
 
     if (!enricher) {
       throw new Error(
-        `[PostbackEventEnrichersRegistry] No enricher registered for event ${event}.`,
+        `[PostbackEventEnrichers] No enricher registered for event ${event}.`,
       );
     }
 
@@ -67,7 +67,24 @@ postbackEventEnrichers.register("lead.created", {
 
 postbackEventEnrichers.register("sale.created", {
   enrich: (data) => {
-    return data;
+    const sale: any = Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
+    );
+
+    return saleEventPostbackSchema.parse({
+      ...sale,
+      link: transformLink(sale.link),
+      click: {
+        ...sale,
+        id: sale.clickId,
+        timestamp: new Date(sale.timestamp + "Z"),
+      },
+      customer: sale.customer,
+      sale: {
+        amount: sale.amount,
+        currency: sale.currency,
+      },
+    });
   },
 });
 

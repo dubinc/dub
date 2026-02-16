@@ -33,9 +33,16 @@ export const sendPartnerPostback = async ({
     return;
   }
 
-  const enrichedData = postbackEventEnrichers.has(event)
-    ? postbackEventEnrichers.enrich(event, data)
-    : data;
+  let enrichedData: Record<string, unknown> | undefined;
+
+  try {
+    enrichedData = postbackEventEnrichers.has(event)
+      ? postbackEventEnrichers.enrich(event, data)
+      : data;
+  } catch (error) {
+    console.error("[sendPartnerPostback] Error enriching data", error);
+    return;
+  }
 
   const adapters = postbacks.map((postback) => {
     switch (postback.destination) {
