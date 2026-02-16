@@ -54,10 +54,12 @@ export const sendPartnerPostback = async ({
 
   const adapters = postbacks.map((postback) => {
     switch (postback.receiver) {
+      case "custom":
+        return new PostbackCustomAdapter(postback);
       case "slack":
         return new PostbackSlackAdapter(postback);
       default:
-        return new PostbackCustomAdapter(postback);
+        throw new Error(`Unknown postback receiver ${postback.receiver}`);
     }
   });
 
