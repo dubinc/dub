@@ -1,8 +1,8 @@
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
-import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, test } from "vitest";
 import * as z from "zod/v4";
 import { env } from "../utils/env";
+import { IntegrationHarnessOld } from "../utils/integration-old";
 import { E2E_PARTNER, E2E_PROGRAM } from "../utils/resource";
 
 describe

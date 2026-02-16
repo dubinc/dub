@@ -65,6 +65,11 @@ export const GET = withPartnerProfile(
           .filter((link) => !linkId.values.includes(link.id))
           .map((link) => link.id);
 
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          return NextResponse.json([], { status: 200 });
+        }
+
         parsedParams.linkId = {
           operator: "IS",
           sqlOperator: "IN",
@@ -93,8 +98,8 @@ export const GET = withPartnerProfile(
     const events = await getEvents({
       ...parsedParams,
       workspaceId: program.workspaceId,
-      ...(linkId
-        ? { linkId }
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),

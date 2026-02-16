@@ -39,13 +39,9 @@ export const GET = withPartnerProfile(
 
     // Early return if partner has no links
     if (links.length === 0) {
-      const zip = new JSZip();
-      const zipData = await zip.generateAsync({ type: "nodebuffer" });
-      return new Response(zipData as unknown as BodyInit, {
-        headers: {
-          "Content-Type": "application/zip",
-          "Content-Disposition": "attachment; filename=analytics_export.zip",
-        },
+      throw new DubApiError({
+        code: "not_found",
+        message: "No links found",
       });
     }
 
@@ -69,6 +65,14 @@ export const GET = withPartnerProfile(
         const finalIncludedLinkIds = links
           .filter((link) => !linkId.values.includes(link.id))
           .map((link) => link.id);
+
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "No links found",
+          });
+        }
 
         parsedParams.linkId = {
           operator: "IS",
@@ -108,8 +112,8 @@ export const GET = withPartnerProfile(
         const response = await getAnalytics({
           ...parsedParams,
           workspaceId: program.workspaceId,
-          ...(linkId
-            ? { linkId }
+          ...(parsedParams.linkId
+            ? { linkId: parsedParams.linkId }
             : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
               ? { partnerId: partner.id }
               : { linkId: parseFilterValue(links.map((link) => link.id)) }),
