@@ -1,4 +1,4 @@
-import { verifyDomainAction } from "@/lib/actions/partners/verify-domain";
+import { verifyPartnerWebsiteAction } from "@/lib/actions/partners/verify-partner-website";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, CopyButton, Modal } from "@dub/ui";
 import { X } from "lucide-react";
@@ -37,7 +37,7 @@ function DomainVerificationModalInner({
 }: DomainVerificationModalProps) {
   const { mutate: mutatePartner } = usePartnerProfile();
 
-  const { executeAsync, status } = useAction(verifyDomainAction, {
+  const { executeAsync, status } = useAction(verifyPartnerWebsiteAction, {
     onSuccess: async () => {
       toast.success("Your domain verified successfully!");
       setShowDomainVerificationModal(false);
