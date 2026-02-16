@@ -26,7 +26,9 @@ export const createPartnerPostbackInputSchema = z.object({
   url: parseUrlSchema.refine((u) => u.startsWith("https://"), {
     message: "URL must use HTTPS",
   }),
-  triggers: z.array(z.enum(POSTBACK_TRIGGERS)),
+  triggers: z
+    .array(z.enum(POSTBACK_TRIGGERS))
+    .min(1, "At least one trigger is required"),
 });
 
 export const createPartnerPostbackOutputSchema = z.object({

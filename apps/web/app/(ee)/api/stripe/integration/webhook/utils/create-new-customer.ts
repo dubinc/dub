@@ -153,7 +153,7 @@ export async function createNewCustomer(event: Stripe.Event) {
               data: {
                 ...clickData,
                 eventName,
-                link,
+                link: linkUpdated,
                 customer,
               },
             }),
