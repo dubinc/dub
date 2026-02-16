@@ -1,7 +1,7 @@
+import { PostbackTrigger } from "@/lib/types";
 import { PartnerPostback } from "@dub/prisma/client";
 import { COUNTRIES, currencyFormatter, PARTNERS_DOMAIN } from "@dub/utils";
 import type { z } from "zod/v4";
-import { PostbackTrigger } from "../constants";
 import {
   commissionEventPostbackSchema,
   leadEventPostbackSchema,

@@ -35,6 +35,7 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
+import { POSTBACK_TRIGGERS } from "./postback/constants";
 import {
   partnerPostbackSchema,
   postbackEventInputSchemaTB,
@@ -833,3 +834,5 @@ export type ActivityLog = z.infer<typeof activityLogSchema>;
 export type PartnerPostbackProps = z.infer<typeof partnerPostbackSchema>;
 
 export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
+
+export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];

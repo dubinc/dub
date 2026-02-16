@@ -4,13 +4,13 @@ import { partnerProfileFetch } from "@/lib/api/partner-profile/client";
 import {
   POSTBACK_TRIGGER_DESCRIPTIONS,
   POSTBACK_TRIGGERS,
-  type PostbackTrigger,
 } from "@/lib/postback/constants";
 import {
   createPartnerPostbackInputSchema,
   partnerPostbackSchema,
 } from "@/lib/postback/schemas";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { PostbackTrigger } from "@/lib/types";
 import { Badge, Button, Combobox, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";

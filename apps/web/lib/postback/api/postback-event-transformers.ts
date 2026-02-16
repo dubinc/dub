@@ -1,4 +1,4 @@
-import { PostbackTrigger } from "../constants";
+import { PostbackTrigger } from "@/lib/types";
 
 interface PostbackPayload {
   eventId: string;

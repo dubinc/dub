@@ -1,6 +1,6 @@
 import { transformLink } from "@/lib/api/links";
+import { PostbackTrigger } from "@/lib/types";
 import { toCamelCase } from "@dub/utils";
-import { PostbackTrigger } from "../constants";
 import {
   commissionEventPostbackSchema,
   leadEventPostbackSchema,

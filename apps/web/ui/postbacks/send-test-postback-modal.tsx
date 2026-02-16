@@ -1,12 +1,10 @@
 "use client";
 
 import { partnerProfileFetch } from "@/lib/api/partner-profile/client";
-import {
-  POSTBACK_TRIGGER_DESCRIPTIONS,
-  type PostbackTrigger,
-} from "@/lib/postback/constants";
+import { POSTBACK_TRIGGER_DESCRIPTIONS } from "@/lib/postback/constants";
 import { sendTestPartnerPostbackInputSchema } from "@/lib/postback/schemas";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { PostbackTrigger } from "@/lib/types";
 import { Button, Combobox, ComboboxOption, Modal } from "@dub/ui";
 import { Dispatch, SetStateAction, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";

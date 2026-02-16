@@ -1,7 +1,7 @@
+import { PostbackTrigger } from "@/lib/types";
 import { WEBHOOK_EVENT_ID_PREFIX } from "@/lib/webhook/constants";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { PostbackTrigger } from "../constants";
 import { PostbackCustomAdapter } from "./postback-adapter-custom";
 import { PostbackSlackAdapter } from "./postback-adapter-slack";
 import { postbackEventEnrichers } from "./postback-event-enrichers";
