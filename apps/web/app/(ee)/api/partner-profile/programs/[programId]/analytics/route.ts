@@ -51,6 +51,11 @@ export const GET = withPartnerProfile(
           .filter((link) => !linkId.values.includes(link.id))
           .map((link) => link.id);
 
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          return NextResponse.json([], { status: 200 });
+        }
+
         parsedParams.linkId = {
           operator: "IS",
           sqlOperator: "IN",
