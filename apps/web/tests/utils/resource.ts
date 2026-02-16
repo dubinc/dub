@@ -1,5 +1,5 @@
 export const E2E_USER_ID = "clxz1q7c7000hbqx5ckv4r82h";
-export const E2E_USER_ID_MEMBER = "user_1KAERYAJ10MDM56EB9XPX4ZZ8"; // for member user tests
+export const E2E_USER_ID_MEMBER = "user_1KAERYAJ10MDM56EB9XPX4ZZ8"; // for member user tests + old personal token tests
 export const E2E_WORKSPACE_ID = "ws_clrei1gld0002vs9mzn93p8ik";
 
 export const E2E_LINK = {
@@ -175,8 +175,13 @@ export const E2E_PROGRAM = {
 
 export const E2E_PARTNER = {
   id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
-  email: "steven@dub.co",
+  email: "steven+test+derek@dub.co",
   tenantId: "4149092f-7265-4002-98d9-da9f8e67e1fb",
+  link: {
+    id: "cm0lcuvtz000xcutmqw4a7wi3",
+    domain: "dub.sh",
+    key: "track-test",
+  },
 };
 
 export const E2E_PARTNER_GROUP = {
