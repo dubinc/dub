@@ -1,6 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { parseFilterValue } from "@dub/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -11,6 +10,7 @@ import {
   partnersTopLinksSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { parseFilterValue } from "@dub/utils";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
