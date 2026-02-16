@@ -11,6 +11,7 @@ interface SendPartnerPostbackParams {
   event: PostbackTrigger;
   data: Record<string, unknown>;
   skipEnrichment?: boolean; // Skip enrichment if the data is already enriched when sending a test event
+  isTest?: boolean;
 }
 
 export const sendPartnerPostback = async ({
@@ -18,11 +19,14 @@ export const sendPartnerPostback = async ({
   event,
   data,
   skipEnrichment = false,
+  isTest = false,
 }: SendPartnerPostbackParams) => {
   const postbacks = await prisma.partnerPostback.findMany({
     where: {
       partnerId,
-      disabledAt: null,
+      ...(isTest
+        ? {} // include disabled
+        : { disabledAt: null }),
       triggers: {
         array_contains: [event],
       },
