@@ -32,6 +32,7 @@ interface WithPartnerProfileHandler {
 
 interface WithPartnerProfileOptions {
   requiredPermission?: Permission;
+  requiredFeature?: "postbacks";
 }
 
 const RATE_LIMIT_FOR_PARTNERS = {
@@ -47,7 +48,7 @@ const RATE_LIMIT_FOR_PARTNERS = {
 
 export const withPartnerProfile = (
   handler: WithPartnerProfileHandler,
-  { requiredPermission }: WithPartnerProfileOptions = {},
+  { requiredPermission, requiredFeature }: WithPartnerProfileOptions = {},
 ) => {
   return withAxiom(
     async (
@@ -136,6 +137,16 @@ export const withPartnerProfile = (
           throwIfNoPermission({
             role: partnerUser.role,
             permission: requiredPermission,
+          });
+        }
+
+        if (
+          requiredFeature === "postbacks" &&
+          !partnerUser.partner.postbacksEnabledAt
+        ) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "Postbacks are not available for your account.",
           });
         }
 

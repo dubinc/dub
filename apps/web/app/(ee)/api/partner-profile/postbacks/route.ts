@@ -34,6 +34,7 @@ export const GET = withPartnerProfile(
   },
   {
     requiredPermission: "postbacks.read",
+    requiredFeature: "postbacks",
   },
 );
 
@@ -83,5 +84,6 @@ export const POST = withPartnerProfile(
   },
   {
     requiredPermission: "postbacks.write",
+    requiredFeature: "postbacks",
   },
 );
