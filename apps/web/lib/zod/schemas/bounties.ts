@@ -27,6 +27,17 @@ export const bountyPerformanceConditionSchema = z.object({
 
 const socialMetricsChannelValues = SOCIAL_METRICS_CHANNELS.map((c) => c.value);
 
+export const variableBonusSchema = z
+  .object({
+    incrementalAmount: z.number().int().positive(),
+    bonusAmount: z.number().min(0),
+    capAmount: z.number().int().positive(),
+  })
+  .refine((data) => data.capAmount >= data.incrementalAmount, {
+    message: "Cap must be at least the incremental amount",
+    path: ["capAmount"],
+  });
+
 export const socialMetricsSchema = z.object({
   channel: z.enum(
     socialMetricsChannelValues as unknown as [string, ...string[]],
@@ -35,6 +46,7 @@ export const socialMetricsSchema = z.object({
     SOCIAL_METRICS_METRIC_VALUES as unknown as [string, ...string[]],
   ),
   amount: z.number().int().positive(),
+  variableBonus: variableBonusSchema.optional(),
 });
 
 export const submissionRequirementsSchema = z.object({
