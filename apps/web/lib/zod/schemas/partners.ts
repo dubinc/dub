@@ -1,3 +1,4 @@
+import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import {
   IndustryInterest,
   MonthlyTraffic,
@@ -601,17 +602,13 @@ export const createPartnerSchema = z.object({
 
 // This is a temporary fix to allow arbitrary image URL
 // TODO: Fix this by using file-type
-const partnerImageSchema = z
-  .union([
-    base64ImageSchema,
-    storedR2ImageUrlSchema,
-    publicHostedImageSchema,
-    googleFaviconUrlSchema,
-  ])
-  .transform((v) => v || "")
-  .refine((v) => v !== "", {
-    message: "Image is required",
-  });
+const partnerImageSchema = z.union([
+  base64ImageSchema,
+  storedR2ImageUrlSchema,
+  publicHostedImageSchema,
+  googleFaviconUrlSchema,
+  z.string().nullish(), // make image optional
+]);
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
@@ -734,10 +731,19 @@ export const partnerAnalyticsResponseSchema = {
 
 export const invitePartnerSchema = z.object({
   workspaceId: z.string(),
+  groupId: z.string().nullish(),
   name: z.string().max(100).optional(),
   email: z.email().trim().min(1).max(100),
   username: z.string().max(100).optional(),
-  groupId: z.string().nullish().default(null),
+});
+
+export const bulkInvitePartnersSchema = z.object({
+  workspaceId: z.string(),
+  groupId: z.string().nullish(),
+  emails: z
+    .array(z.email().trim().min(1).max(100))
+    .min(1)
+    .max(MAX_PARTNERS_INVITES_PER_REQUEST),
 });
 
 export const approvePartnerSchema = z.object({

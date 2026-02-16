@@ -2,7 +2,7 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";

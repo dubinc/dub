@@ -77,6 +77,7 @@ export function useRewardHistorySheet({
 
   return {
     hasActivityLogs: (activityLogs?.length ?? 0) > 0,
+    finalActivityLogDate: activityLogs?.[0]?.createdAt,
     rewardHistorySheet: reward ? (
       <RewardHistorySheet
         reward={reward}

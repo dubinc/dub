@@ -30,19 +30,19 @@ export function PartnerGroupChangedRenderer({ log }: { log: ActivityLog }) {
 
   return (
     <>
-      <Label>Moved to</Label>
+      <Label>{groupChange.old ? "Moved to" : "Added to"}</Label>
       <GroupPill name={newGroup.name} color={newGroupColor} />
       {log.user ? (
         <>
           <Label>by</Label>
           <UserChip user={log.user} />
         </>
-      ) : (
+      ) : groupChange.old ? (
         <>
           <Label>automatically by</Label>
           <SourcePill icon={<Bolt className="size-3" />} label="Group move" />
         </>
-      )}
+      ) : null}
     </>
   );
 }

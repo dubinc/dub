@@ -11,7 +11,7 @@ import {
   useRewardSheet,
 } from "@/ui/partners/rewards/add-edit-reward-sheet";
 import { EventType } from "@dub/prisma/client";
-import { Button, useRouterStuff } from "@dub/ui";
+import { Button, TimestampTooltip, useRouterStuff } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -142,6 +142,7 @@ const RewardItem = ({
 
   const {
     hasActivityLogs,
+    finalActivityLogDate,
     rewardHistorySheet,
     setIsOpen: setHistoryOpen,
   } = useRewardHistorySheet({
@@ -184,15 +185,28 @@ const RewardItem = ({
                 </div>
 
                 <div className="flex items-center gap-1 text-xs font-medium text-neutral-500">
-                  <span>
-                    {`Updated ${formatDate(reward.updatedAt, {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    })}`}
-                  </span>
+                  <span>Last updated </span>
+                  {!finalActivityLogDate ? (
+                    <div className="h-3 w-16 animate-pulse rounded bg-neutral-100" />
+                  ) : (
+                    <TimestampTooltip
+                      timestamp={finalActivityLogDate}
+                      side="left"
+                      rows={["local", "utc", "unix"]}
+                    >
+                      <span>
+                        {formatDate(finalActivityLogDate, {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </TimestampTooltip>
+                  )}
 
-                  {hasActivityLogs && (
+                  {!hasActivityLogs ? (
+                    <div className="ml-1 h-3 w-20 animate-pulse rounded bg-neutral-100" />
+                  ) : (
                     <>
                       <span
                         className="ml-1 size-1 shrink-0 rounded-full bg-neutral-400"

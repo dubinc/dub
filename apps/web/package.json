@@ -26,7 +26,7 @@
     "@boxyhq/saml-jackson": "1.52.1",
     "@chronark/zod-bird": "^1.0.0",
     "@date-fns/tz": "^1.4.1",
-    "@dub/analytics": "^0.0.27",
+    "@dub/analytics": "^0.0.32",
     "@dub/email": "workspace:*",
     "@dub/embed-react": "workspace:*",
     "@dub/prisma": "workspace:*",

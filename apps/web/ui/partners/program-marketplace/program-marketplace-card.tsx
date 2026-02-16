@@ -1,8 +1,6 @@
 "use client";
 
-import { partnerCanViewMarketplace } from "@/lib/network/get-discoverability-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useProgramMarketplacePromo } from "@/ui/partners/program-marketplace/use-program-marketplace-promo";
 import { Grid, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -15,17 +13,10 @@ export function ProgramMarketplaceCard() {
   const pathname = usePathname();
 
   const { partner } = usePartnerProfile();
-  const { programEnrollments } = useProgramEnrollments();
 
   const { status } = useProgramMarketplacePromo();
 
-  if (
-    !partner ||
-    !programEnrollments ||
-    !partnerCanViewMarketplace({ partner, programEnrollments }) ||
-    status !== "card"
-  )
-    return null;
+  if (!partner || status !== "card") return null;
 
   return (
     <AnimatePresence>

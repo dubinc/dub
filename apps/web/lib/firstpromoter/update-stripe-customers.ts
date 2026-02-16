@@ -117,6 +117,7 @@ async function searchStripeAndUpdateCustomer({
     const stripeCustomers = await stripe.customers.search(
       {
         query: `email:'${customer.email}'`,
+        expand: ["data.subscriptions"],
       },
       {
         stripeAccount: workspace.stripeConnectId!,
@@ -144,13 +145,24 @@ async function searchStripeAndUpdateCustomer({
       if (firstPromoterStripeCustomer) {
         stripeCustomer = firstPromoterStripeCustomer;
       } else {
-        await logImportError({
-          ...commonImportLogInputs,
-          code: "STRIPE_CUSTOMER_NOT_FOUND",
-          message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.fp_uid set`,
-        });
+        // look for the one with subscriptions
+        const customerWithSubcription = stripeCustomers.data.find(
+          ({ subscriptions }) => subscriptions && subscriptions.data.length > 0,
+        );
 
-        return null;
+        if (customerWithSubcription) {
+          console.log(
+            `Found Stripe customer with subscriptions for ${customer.email}: ${customerWithSubcription.id}`,
+          );
+          stripeCustomer = customerWithSubcription;
+        } else {
+          await logImportError({
+            ...commonImportLogInputs,
+            code: "STRIPE_CUSTOMER_NOT_FOUND",
+            message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.fp_uid set`,
+          });
+          return null;
+        }
       }
     } else {
       stripeCustomer = stripeCustomers.data[0];

@@ -1,7 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
 import { ConfirmPayoutsSheet } from "@/ui/partners/confirm-payouts-sheet";

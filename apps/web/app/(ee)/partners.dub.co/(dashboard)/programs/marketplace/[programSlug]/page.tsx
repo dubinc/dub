@@ -8,7 +8,8 @@ import { ProgramCategory } from "@/ui/partners/program-marketplace/program-categ
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
 import { prisma } from "@dub/prisma";
 import { ChevronRight, Shop, Tooltip } from "@dub/ui";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { Globe } from "@dub/ui/icons";
+import { OG_AVATAR_URL, cn, getDomainWithoutWWW } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProgramStatusBadge } from "../program-status-badge";
@@ -128,7 +129,9 @@ export default async function MarketplaceProgramPage(props: {
                   <span
                     className={cn(
                       "block text-xs font-medium",
-                      isDarkImage && "text-content-inverted/70",
+                      isDarkImage
+                        ? "text-content-inverted"
+                        : "text-neutral-400",
                     )}
                   >
                     Rewards
@@ -147,7 +150,9 @@ export default async function MarketplaceProgramPage(props: {
                   <span
                     className={cn(
                       "block text-xs font-medium",
-                      isDarkImage && "text-content-inverted/70",
+                      isDarkImage
+                        ? "text-content-inverted"
+                        : "text-neutral-400",
                     )}
                   >
                     Category
@@ -189,6 +194,29 @@ export default async function MarketplaceProgramPage(props: {
                       </Tooltip>
                     )}
                   </div>
+                </div>
+              )}
+              {program.url && (
+                <div className="min-w-0">
+                  <span className="block text-xs font-medium text-neutral-400">
+                    Website
+                  </span>
+                  <Link
+                    href={program.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      "mt-1 flex max-w-[220px] items-center gap-1.5 text-sm font-medium",
+                      isDarkImage
+                        ? "text-content-inverted/90 hover:text-content-inverted"
+                        : "text-content-default hover:text-content-emphasis",
+                    )}
+                  >
+                    <Globe className="size-4 shrink-0" />
+                    <span className="truncate">
+                      {getDomainWithoutWWW(program.url)} ↗
+                    </span>
+                  </Link>
                 </div>
               )}
             </div>

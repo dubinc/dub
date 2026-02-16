@@ -240,6 +240,7 @@ export async function POST(req: Request) {
         programId,
         partnerIds,
         groupId,
+        isGroupDeleted,
       },
     });
 

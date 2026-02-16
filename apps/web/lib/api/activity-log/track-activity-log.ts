@@ -47,14 +47,17 @@ export const trackActivityLog = async (
   }
 
   try {
-    await prisma.activityLog.createMany({
+    const createdActivityLogs = await prisma.activityLog.createMany({
       data: inputs.map((input) => ({
         ...input,
         changeSet: input.changeSet as Prisma.InputJsonValue,
       })),
     });
 
-    console.log("[trackActivityLog] Activity log created", prettyPrint(inputs));
+    console.log(
+      `[trackActivityLog] Created ${createdActivityLogs.count} activity logs`,
+      prettyPrint(inputs),
+    );
   } catch (error) {
     logger.error("[trackActivityLog] Failed to create activity log", error);
     await logger.flush();

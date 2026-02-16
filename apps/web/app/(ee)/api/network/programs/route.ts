@@ -1,5 +1,4 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { throwIfPartnerCannotViewMarketplace } from "@/lib/network/throw-if-partner-cannot-view-marketplace";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   NetworkProgramSchema,
@@ -11,8 +10,6 @@ import * as z from "zod/v4";
 
 // GET /api/network/programs - get all available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  await throwIfPartnerCannotViewMarketplace({ partner });
-
   const {
     search,
     featured,
@@ -116,19 +113,23 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   return NextResponse.json(
     z.array(NetworkProgramSchema).parse(
-      programs.map((program) => ({
-        ...program,
-        rewards:
-          program.groups.length > 0
-            ? [
-                program.groups[0].clickReward,
-                program.groups[0].leadReward,
-                program.groups[0].saleReward,
-              ].filter(Boolean)
-            : [],
-        discount: program.groups.length > 0 ? program.groups[0].discount : null,
-        categories: program.categories.map(({ category }) => category),
-      })),
+      programs
+        // if requesting featured programs, randomize the order
+        .sort(() => (featured ? Math.random() - 0.5 : 0))
+        .map((program) => ({
+          ...program,
+          rewards:
+            program.groups.length > 0
+              ? [
+                  program.groups[0].clickReward,
+                  program.groups[0].leadReward,
+                  program.groups[0].saleReward,
+                ].filter(Boolean)
+              : [],
+          discount:
+            program.groups.length > 0 ? program.groups[0].discount : null,
+          categories: program.categories.map(({ category }) => category),
+        })),
     ),
   );
 });

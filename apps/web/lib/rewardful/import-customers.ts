@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Program, Project } from "@dub/prisma/client";
+import { Customer, Program, Project } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
@@ -42,6 +42,25 @@ export async function importCustomers(payload: RewardfulImportPayload) {
       break;
     }
 
+    const stripeCustomerIds = referrals
+      .filter(
+        (r) => r.stripe_customer_id && r.stripe_customer_id.startsWith("cus_"),
+      )
+      .map((r) => r.stripe_customer_id!);
+    const externalIds = referrals.map((r) => r.customer.id);
+
+    const existingCustomers = await prisma.customer.findMany({
+      where: {
+        OR: [
+          { stripeCustomerId: { in: stripeCustomerIds } },
+          {
+            projectId: workspace.id,
+            externalId: { in: externalIds },
+          },
+        ],
+      },
+    });
+
     await Promise.allSettled(
       referrals.map((referral) =>
         createCustomer({
@@ -50,6 +69,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
           program,
           campaignIds,
           importId,
+          existingCustomers,
         }),
       ),
     );
@@ -72,12 +92,14 @@ async function createCustomer({
   program,
   campaignIds,
   importId,
+  existingCustomers,
 }: {
   referral: RewardfulReferral;
   workspace: Project;
   program: Program;
   campaignIds: string[];
   importId: string;
+  existingCustomers: Customer[];
 }) {
   const referralId = referral.customer ? referral.customer.email : referral.id;
   if (
@@ -148,11 +170,9 @@ async function createCustomer({
     return;
   }
 
-  const customerFoundStripeId = await prisma.customer.findUnique({
-    where: {
-      stripeCustomerId: referral.stripe_customer_id,
-    },
-  });
+  const customerFoundStripeId = existingCustomers.find(
+    (c) => c.stripeCustomerId === referral.stripe_customer_id,
+  );
 
   if (customerFoundStripeId) {
     console.log(
@@ -161,14 +181,9 @@ async function createCustomer({
     return;
   }
 
-  const customerFoundExternalId = await prisma.customer.findUnique({
-    where: {
-      projectId_externalId: {
-        projectId: workspace.id,
-        externalId: referral.customer.id,
-      },
-    },
-  });
+  const customerFoundExternalId = existingCustomers.find(
+    (c) => c.externalId === referral.customer.id,
+  );
 
   if (customerFoundExternalId) {
     console.log(

@@ -87,9 +87,16 @@ export class FirstPromoterApi {
       ...(page ? { page: page.toString() } : {}),
     });
 
-    const customers = await this.fetch(`/referrals?${searchParams.toString()}`);
+    const customers = (await this.fetch(
+      `/referrals?${searchParams.toString()}`,
+    )) as any[];
 
-    return firstPromoterCustomerSchema.array().parse(customers);
+    // filter out the customers without an associated promoter
+    const filteredCustomers = customers.filter(
+      ({ promoter_campaign }) => promoter_campaign?.promoter,
+    );
+
+    return firstPromoterCustomerSchema.array().parse(filteredCustomers);
   }
 
   async listCommissions({ page }: { page?: number }) {

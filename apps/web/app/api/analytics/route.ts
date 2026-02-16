@@ -1,7 +1,6 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
@@ -13,9 +12,8 @@ import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import {
   analyticsPathParamsSchema,
-  analyticsQuerySchema,
+  parseAnalyticsQuery,
 } from "@/lib/zod/schemas/analytics";
-import { Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/analytics – get analytics
@@ -32,7 +30,7 @@ export const GET = withWorkspace(
       oldEvent = undefined;
     }
 
-    const parsedParams = analyticsQuerySchema.parse(searchParams);
+    const parsedParams = parseAnalyticsQuery(searchParams);
 
     let {
       event,
@@ -40,15 +38,13 @@ export const GET = withWorkspace(
       interval,
       start,
       end,
-      linkId,
-      externalId,
+      folderId,
       domain,
       key,
-      folderId,
+      linkId,
+      externalId,
       programId,
     } = parsedParams;
-
-    let link: Link | null = null;
 
     event = oldEvent || event;
     groupBy = oldType || groupBy;
@@ -71,21 +67,29 @@ export const GET = withWorkspace(
       }
     }
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
-
-    if (linkId || externalId || (domain && key)) {
-      link = await getLinkOrThrow({
+    let folderIdToVerify = getFirstFilterValue(folderId);
+    if (!linkId && (externalId || (domain && key))) {
+      const link = await getLinkOrThrow({
         workspaceId: workspace.id,
         linkId,
         externalId,
-        domain,
+        domain: getFirstFilterValue(domain),
         key,
       });
-    }
 
-    const folderIdToVerify = link?.folderId || folderId;
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
+
+      // since we're filtering for a specific link, exclude domain from filters
+      parsedParams.domain = undefined;
+
+      if (link.folderId && !folderIdToVerify) {
+        folderIdToVerify = link.folderId;
+      }
+    }
 
     if (folderIdToVerify) {
       await verifyFolderAccess({
@@ -104,15 +108,6 @@ export const GET = withWorkspace(
       end,
     });
 
-    // no need to get folder ids if we are filtering by a folder or program
-    const folderIds =
-      folderIdToVerify || programId
-        ? undefined
-        : await getFolderIdsToFilter({
-            workspace,
-            userId: session.user.id,
-          });
-
     // Identify the request is from deprecated clicks endpoint
     // (/api/analytics/clicks)
     // (/api/analytics/count)
@@ -126,8 +121,6 @@ export const GET = withWorkspace(
       ...parsedParams,
       event,
       groupBy,
-      ...(link && { linkId: link.id }),
-      folderIds,
       workspaceId: workspace.id,
       isDeprecatedClicksEndpoint,
       // dataAvailableFrom is only relevant for timeseries groupBy
