@@ -4,7 +4,6 @@ import { PartnerPostbackProps, PostbackEventProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useAddEditPostbackModal } from "@/ui/postbacks/add-edit-postback-modal";
-import { NoPostbackEventsPlaceholder } from "@/ui/postbacks/no-postback-events-placeholder";
 import { PartnerPostbackActions } from "@/ui/postbacks/partner-postback-actions";
 import { PostbackDetailSkeleton } from "@/ui/postbacks/postback-detail-skeleton";
 import { usePostbackEventDetailsSheet } from "@/ui/postbacks/postback-event-details-sheet";
@@ -12,7 +11,7 @@ import { PostbackEventList } from "@/ui/postbacks/postback-event-list";
 import { PostbackEventListSkeleton } from "@/ui/postbacks/postback-event-list-skeleton";
 import { PostbackStatus } from "@/ui/postbacks/postback-status";
 import { BackLink } from "@/ui/shared/back-link";
-import { MaxWidthWrapper, TokenAvatar } from "@dub/ui";
+import { EmptyState, MaxWidthWrapper, TokenAvatar, Webhook } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -128,7 +127,13 @@ export function PostbackDetailPageClient({
                   {isEventsLoading ? (
                     <PostbackEventListSkeleton />
                   ) : events && events.length === 0 ? (
-                    <NoPostbackEventsPlaceholder />
+                    <div className="rounded-xl border border-neutral-200 py-10">
+                      <EmptyState
+                        icon={Webhook}
+                        title="No events"
+                        description="No events have been logged for this postback. Events will appear as they are logged."
+                      />
+                    </div>
                   ) : (
                     <PostbackEventList
                       events={events || []}
