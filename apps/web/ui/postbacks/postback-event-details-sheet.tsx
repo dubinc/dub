@@ -4,7 +4,7 @@ import { PostbackEventProps } from "@/lib/types";
 import { Button, ButtonTooltip, Sheet, useCopyToClipboard } from "@dub/ui";
 import { Copy } from "@dub/ui/icons";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { Highlighter } from "shiki";
+import type { HighlighterCore } from "shiki";
 import { toast } from "sonner";
 import { X } from "../shared/icons";
 
@@ -17,13 +17,13 @@ interface PostbackEventDetailsSheetProps {
 function PostbackEventDetailsSheetContent({
   event,
 }: Omit<PostbackEventDetailsSheetProps, "isOpen" | "setIsOpen">) {
-  const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
-  const [responseBody, setResponseBody] = useState<string>("");
-  const [requestBody, setRequestBody] = useState<string>("");
+  const [highlighter, setHighlighter] = useState<HighlighterCore | null>(null);
+  const [responseBody, setResponseBody] = useState("");
+  const [requestBody, setRequestBody] = useState("");
 
   useEffect(() => {
-    import("shiki").then(({ getHighlighter }) => {
-      getHighlighter({
+    import("shiki").then(({ createHighlighter }) => {
+      createHighlighter({
         themes: ["min-light"],
         langs: ["json"],
       }).then(setHighlighter);
@@ -33,24 +33,20 @@ function PostbackEventDetailsSheetContent({
   useEffect(() => {
     if (!highlighter || !event) return;
 
-    const toHighlightedJson = (raw: string) =>
-      highlighter.codeToHtml(
-        JSON.stringify(
-          (() => {
-            try {
-              return JSON.parse(raw);
-            } catch {
-              return raw;
-            }
-          })(),
-          null,
-          2,
-        ),
-        {
-          theme: "min-light",
-          lang: "json",
-        },
-      );
+    const toHighlightedJson = (raw: string) => {
+      let value: unknown;
+      try {
+        value = JSON.parse(raw);
+      } catch {
+        value = raw;
+      }
+
+      const jsonStr = JSON.stringify(value, null, 2) ?? String(value);
+      return highlighter.codeToHtml(jsonStr, {
+        theme: "min-light",
+        lang: "json",
+      });
+    };
 
     setResponseBody(toHighlightedJson(event.response_body));
     setRequestBody(toHighlightedJson(event.request_body));
