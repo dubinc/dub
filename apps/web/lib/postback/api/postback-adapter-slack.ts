@@ -174,11 +174,11 @@ export class PostbackSlackAdapter extends PostbackAdapter {
                   type: "mrkdwn",
                   text: `*Partner earnings*\n${formattedEarnings}`,
                 },
-                ...(description
+                ...(description != null && description !== ""
                   ? [
                       {
                         type: "mrkdwn" as const,
-                        text: `*Description*\n${description}`,
+                        text: `*Description*\n${escapeSlackText(description)}`,
                       },
                     ]
                   : []),
@@ -224,4 +224,15 @@ export class PostbackSlackAdapter extends PostbackAdapter {
       },
     });
   }
+}
+
+function escapeSlackText(value: string | null | undefined) {
+  if (value == null) {
+    return "";
+  }
+
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }

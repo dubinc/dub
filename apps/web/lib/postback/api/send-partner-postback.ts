@@ -1,5 +1,5 @@
+import { POSTBACK_EVENT_ID_PREFIX } from "@/lib/postback/constants";
 import { PostbackTrigger } from "@/lib/types";
-import { WEBHOOK_EVENT_ID_PREFIX } from "@/lib/webhook/constants";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { PostbackCustomAdapter } from "./postback-adapter-custom";
@@ -61,15 +61,12 @@ export const sendPartnerPostback = async ({
     }
   });
 
-  const eventId = `${WEBHOOK_EVENT_ID_PREFIX}${nanoid(25)}`;
-  const createdAt = new Date().toISOString();
-
   await Promise.allSettled(
     adapters.map((adapter) =>
       adapter.execute({
         event,
-        eventId,
-        createdAt,
+        eventId: `${POSTBACK_EVENT_ID_PREFIX}${nanoid(25)}`,
+        createdAt: new Date().toISOString(),
         data: enrichedData,
       }),
     ),
