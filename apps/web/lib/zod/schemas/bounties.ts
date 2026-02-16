@@ -1,6 +1,8 @@
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
+  SOCIAL_METRICS_CHANNELS,
+  SOCIAL_METRICS_METRIC_VALUES,
 } from "@/lib/constants/bounties";
 import {
   BountyPerformanceScope,
@@ -23,7 +25,18 @@ export const bountyPerformanceConditionSchema = z.object({
   value: z.number(),
 });
 
-// Object format with image and url keys
+const socialMetricsChannelValues = SOCIAL_METRICS_CHANNELS.map((c) => c.value);
+
+export const socialMetricsSchema = z.object({
+  channel: z.enum(
+    socialMetricsChannelValues as unknown as [string, ...string[]],
+  ),
+  metric: z.enum(
+    SOCIAL_METRICS_METRIC_VALUES as unknown as [string, ...string[]],
+  ),
+  amount: z.number().int().positive(),
+});
+
 export const submissionRequirementsSchema = z.object({
   image: z
     .object({
@@ -36,6 +49,7 @@ export const submissionRequirementsSchema = z.object({
       domains: z.array(z.string()).optional(),
     })
     .optional(),
+  socialMetrics: socialMetricsSchema.optional(),
 });
 
 // Type exports for TypeScript

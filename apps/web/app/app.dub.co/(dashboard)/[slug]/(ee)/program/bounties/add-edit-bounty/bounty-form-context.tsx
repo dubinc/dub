@@ -3,4 +3,10 @@
 import { BountyFormData } from "@/lib/types";
 import { useFormContext } from "react-hook-form";
 
-export const useAddEditBountyForm = () => useFormContext<BountyFormData>();
+export type BountyFormDataExtended = BountyFormData & {
+  rewardType?: "flat" | "custom";
+  submissionCriteriaType?: "manualSubmission" | "socialMetrics";
+};
+
+export const useAddEditBountyForm = () =>
+  useFormContext<BountyFormDataExtended>();

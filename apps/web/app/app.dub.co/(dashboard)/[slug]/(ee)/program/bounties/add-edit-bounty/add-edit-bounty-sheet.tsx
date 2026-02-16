@@ -1,11 +1,6 @@
 import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
-import {
-  BOUNTY_DEFAULT_SUBMISSION_URLS,
-  BOUNTY_DESCRIPTION_MAX_LENGTH,
-  BOUNTY_MAX_SUBMISSION_FILES,
-  BOUNTY_MAX_SUBMISSION_URLS,
-} from "@/lib/constants/bounties";
+import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/constants/bounties";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
@@ -40,6 +35,7 @@ import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { BountyCriteriaSection } from "./bounty-criteria-section";
+import { BountyFormDataExtended } from "./bounty-form-context";
 import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
 interface BountySheetProps {
@@ -67,8 +63,6 @@ const ACCORDION_ITEMS = [
   "groups",
 ];
 
-type RewardType = "flat" | "custom";
-
 // Helper to check required fields
 const isEmpty = (value: any) =>
   value === undefined || value === null || value === "";
@@ -94,35 +88,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     originalSubmissionWindow,
   );
 
-  const [requireImage, setRequireImage] = useState(
-    () => !!bounty?.submissionRequirements?.image,
-  );
-
-  const [requireUrl, setRequireUrl] = useState(
-    () => !!bounty?.submissionRequirements?.url,
-  );
-
-  const [imageMax, setImageMax] = useState<number | undefined>(() => {
-    return bounty?.submissionRequirements?.image?.max;
-  });
-
-  const [urlMax, setUrlMax] = useState<number | undefined>(() => {
-    return bounty?.submissionRequirements?.url?.max;
-  });
-
-  const [urlDomains, setUrlDomains] = useState<string[]>(() => {
-    return bounty?.submissionRequirements?.url?.domains || [];
-  });
-
-  const [rewardType, setRewardType] = useState<RewardType>(
-    bounty ? (bounty.rewardAmount ? "flat" : "custom") : "flat",
-  );
-
-  const [submissionCriteriaType, setSubmissionCriteriaType] = useState<
-    "manualSubmission" | "socialMetrics"
-  >("manualSubmission");
-
-  const form = useForm<BountyFormData>({
+  const form = useForm<BountyFormDataExtended>({
     defaultValues: {
       name: bounty?.name || undefined,
       description: bounty?.description || undefined,
@@ -147,6 +113,13 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
             operator: "gte",
           },
       performanceScope: bounty?.performanceScope ?? "new",
+      rewardType: bounty ? (bounty.rewardAmount ? "flat" : "custom") : "flat",
+      submissionCriteriaType:
+        bounty?.submissionRequirements &&
+        typeof bounty.submissionRequirements === "object" &&
+        "socialMetrics" in bounty.submissionRequirements
+          ? "socialMetrics"
+          : "manualSubmission",
     },
   });
 
@@ -169,6 +142,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     description,
     performanceCondition,
     groupIds,
+    rewardType,
   ] = watch([
     "startsAt",
     "endsAt",
@@ -179,6 +153,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "description",
     "performanceCondition",
     "groupIds",
+    "rewardType",
   ]);
 
   // Helper functions to update form values
@@ -230,120 +205,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       submissionsOpenAt.setDate(submissionsOpenAt.getDate() - value);
       setValue("submissionsOpenAt", submissionsOpenAt, { shouldDirty: true });
     }
-  };
-
-  const updateSubmissionRequirements = (
-    imageRequired: boolean,
-    urlRequired: boolean,
-    imageMaxCount?: number,
-    urlMaxCount?: number,
-    urlDomainsList?: string[],
-  ) => {
-    const requirements: {
-      image?: { max?: number };
-      url?: { max?: number; domains?: string[] };
-    } = {};
-
-    if (imageRequired) {
-      requirements.image = {};
-      if (imageMaxCount !== undefined) {
-        requirements.image.max = imageMaxCount;
-      }
-    }
-
-    if (urlRequired) {
-      requirements.url = {};
-      if (urlMaxCount !== undefined) {
-        requirements.url.max = urlMaxCount;
-      }
-      if (urlDomainsList && urlDomainsList.length > 0) {
-        requirements.url.domains = urlDomainsList;
-      }
-    }
-
-    setValue(
-      "submissionRequirements",
-      Object.keys(requirements).length > 0 ? requirements : null,
-      { shouldDirty: true },
-    );
-  };
-
-  const handleRequireImageToggle = (checked: boolean) => {
-    setRequireImage(checked);
-    if (!checked) {
-      setImageMax(undefined);
-    }
-    updateSubmissionRequirements(
-      checked,
-      requireUrl,
-      checked ? imageMax : undefined,
-      urlMax,
-      urlDomains,
-    );
-  };
-
-  const handleRequireUrlToggle = (checked: boolean) => {
-    setRequireUrl(checked);
-    if (!checked) {
-      setUrlMax(undefined);
-      setUrlDomains([]);
-    }
-    updateSubmissionRequirements(
-      requireImage,
-      checked,
-      imageMax,
-      checked ? urlMax : undefined,
-      checked ? urlDomains : undefined,
-    );
-  };
-
-  const handleImageMaxChange = (value: number) => {
-    setImageMax(value);
-    updateSubmissionRequirements(
-      requireImage,
-      requireUrl,
-      value,
-      urlMax,
-      urlDomains,
-    );
-  };
-
-  const handleUrlMaxChange = (value: number) => {
-    setUrlMax(value);
-    updateSubmissionRequirements(
-      requireImage,
-      requireUrl,
-      imageMax,
-      value,
-      urlDomains,
-    );
-  };
-
-  const handleAddDomain = (domain: string) => {
-    const trimmedDomain = domain.trim().toLowerCase();
-    if (trimmedDomain && !urlDomains.includes(trimmedDomain)) {
-      const newDomains = [...urlDomains, trimmedDomain];
-      setUrlDomains(newDomains);
-      updateSubmissionRequirements(
-        requireImage,
-        requireUrl,
-        imageMax,
-        urlMax,
-        newDomains,
-      );
-    }
-  };
-
-  const handleRemoveDomain = (domain: string) => {
-    const newDomains = urlDomains.filter((d) => d !== domain);
-    setUrlDomains(newDomains);
-    updateSubmissionRequirements(
-      requireImage,
-      requireUrl,
-      imageMax,
-      urlMax,
-      newDomains,
-    );
   };
 
   // Comprehensive validation logic
@@ -407,7 +268,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         return "Name must be 100 characters or less.";
       }
 
-      if (rewardType === "flat") {
+      if ((rewardType ?? "flat") === "flat") {
         if (isEmpty(rewardAmount)) {
           return "Reward amount is required for flat rate rewards.";
         }
@@ -419,7 +280,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         }
       }
 
-      if (rewardType === "custom") {
+      if ((rewardType ?? "flat") === "custom") {
         if (!rewardDescription?.trim()) {
           return "Reward description is required for custom rewards.";
         }
@@ -520,7 +381,11 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   }: { sendNotificationEmails?: boolean } = {}) => {
     if (!workspaceId) return;
 
-    const data = form.getValues();
+    const {
+      rewardType: _rewardType,
+      submissionCriteriaType: _submissionCriteriaType,
+      ...data
+    } = form.getValues();
 
     data.rewardAmount = data.rewardAmount ? data.rewardAmount * 100 : null;
 
@@ -553,9 +418,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     } else if (type === "submission") {
       data.performanceCondition = null;
 
-      if (rewardType === "custom") {
+      if ((rewardType ?? "flat") === "custom") {
         data.rewardAmount = null;
-      } else if (rewardType === "flat") {
+      } else if ((rewardType ?? "flat") === "flat") {
         data.rewardDescription = null;
       }
     }
@@ -859,23 +724,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>
 
-              <BountyCriteriaSection
-                rewardType={rewardType}
-                setRewardType={setRewardType}
-                submissionCriteriaType={submissionCriteriaType}
-                setSubmissionCriteriaType={setSubmissionCriteriaType}
-                requireImage={requireImage}
-                requireUrl={requireUrl}
-                onRequireImageToggle={handleRequireImageToggle}
-                onRequireUrlToggle={handleRequireUrlToggle}
-                imageMax={imageMax}
-                urlMax={urlMax}
-                urlDomains={urlDomains}
-                onImageMaxChange={handleImageMaxChange}
-                onUrlMaxChange={handleUrlMaxChange}
-                onAddDomain={handleAddDomain}
-                onRemoveDomain={handleRemoveDomain}
-              />
+              <BountyCriteriaSection />
 
               <ProgramSheetAccordionItem value="groups">
                 <ProgramSheetAccordionTrigger>
