@@ -77,7 +77,7 @@ postbackEventEnrichers.register("sale.created", {
       click: {
         ...sale,
         id: sale.clickId,
-        timestamp: new Date(sale.timestamp + "Z"),
+        timestamp: new Date(sale.clickedAt + "Z"),
       },
       customer: sale.customer,
       sale: {

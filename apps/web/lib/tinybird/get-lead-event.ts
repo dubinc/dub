@@ -8,7 +8,5 @@ export const getLeadEvent = tb.buildPipe({
     customerId: z.string(),
     eventName: z.string().nullish(),
   }),
-  data: leadEventSchemaTB.extend({
-    timestamp: z.string(),
-  }), // TODO: This needs review
+  data: leadEventSchemaTB,
 });
