@@ -1,5 +1,5 @@
 import { PartnerPostbackProps } from "@/lib/types";
-import { TokenAvatar } from "@dub/ui";
+import { Slack, TokenAvatar } from "@dub/ui";
 import Link from "next/link";
 import { PostbackStatus } from "./postback-status";
 
@@ -11,7 +11,11 @@ export function PostbackCard(postback: PartnerPostbackProps) {
     >
       <div className="flex items-center gap-x-3">
         <div className="flex-shrink-0 rounded-md border border-neutral-200 bg-gradient-to-t from-neutral-100 p-2.5">
-          <TokenAvatar id={postback.name} className="size-6" />
+          {postback.destination === "slack" ? (
+            <Slack className="size-6" />
+          ) : (
+            <TokenAvatar id={postback.name} className="size-6" />
+          )}
         </div>
         <div className="overflow-hidden">
           <div className="flex items-center gap-1">
