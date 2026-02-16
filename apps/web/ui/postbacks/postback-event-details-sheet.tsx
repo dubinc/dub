@@ -31,30 +31,29 @@ function PostbackEventDetailsSheetContent({
   }, []);
 
   useEffect(() => {
-    if (highlighter && event) {
-      let responseBodyDecoded = event.response_body;
-      try {
-        responseBodyDecoded = JSON.parse(event.response_body);
-      } catch {
-        // If it's not JSON, just use the original response body
-      }
-      const responseBodyHtml = highlighter.codeToHtml(
-        JSON.stringify(responseBodyDecoded, null, 2),
+    if (!highlighter || !event) return;
+
+    const toHighlightedJson = (raw: string) =>
+      highlighter.codeToHtml(
+        JSON.stringify(
+          (() => {
+            try {
+              return JSON.parse(raw);
+            } catch {
+              return raw;
+            }
+          })(),
+          null,
+          2,
+        ),
         {
           theme: "min-light",
           lang: "json",
         },
       );
-      setResponseBody(responseBodyHtml);
-      const requestBodyHtml = highlighter.codeToHtml(
-        JSON.stringify(event.request_body, null, 2),
-        {
-          theme: "min-light",
-          lang: "json",
-        },
-      );
-      setRequestBody(requestBodyHtml);
-    }
+
+    setResponseBody(toHighlightedJson(event.response_body));
+    setRequestBody(toHighlightedJson(event.request_body));
   }, [highlighter, event]);
 
   const [, copyToClipboard] = useCopyToClipboard();

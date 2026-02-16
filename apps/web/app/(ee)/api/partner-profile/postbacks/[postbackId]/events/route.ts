@@ -17,12 +17,7 @@ export const GET = withPartnerProfile(
       postbackId,
     });
 
-    const parsedEvents = events.data.map((event) => ({
-      ...event,
-      request_body: JSON.parse(event.request_body),
-    }));
-
-    return NextResponse.json(parsedEvents);
+    return NextResponse.json(events.data);
   },
   {
     requiredPermission: "postbacks.read",

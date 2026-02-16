@@ -103,8 +103,8 @@ export const postbackCallbackBodySchema = z.object({
   status: z.number(),
   url: z.string(),
   sourceMessageId: z.string(),
-  body: z.string().optional().default(""), // Response from the original postback URL
-  sourceBody: z.string(), // Original request payload from Dub
+  body: z.string().optional().default(""),
+  sourceBody: z.string(),
 });
 
 export const postbackEventInputSchemaTB = z.object({

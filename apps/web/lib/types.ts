@@ -832,6 +832,4 @@ export type ActivityLog = z.infer<typeof activityLogSchema>;
 
 export type PartnerPostbackProps = z.infer<typeof partnerPostbackSchema>;
 
-export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB> & {
-  request_body: Record<string, unknown>;
-};
+export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;

@@ -49,6 +49,6 @@ export const POST = withPartnerProfile(
     return NextResponse.json({});
   },
   {
-    requiredPermission: "postbacks.read",
+    requiredPermission: "postbacks.write",
   },
 );

@@ -629,7 +629,7 @@ const _trackSale = async ({
           workspace,
         }),
 
-        ...(link?.partnerId
+        ...(link.partnerId
           ? [
               sendPartnerPostback({
                 partnerId: link.partnerId,
