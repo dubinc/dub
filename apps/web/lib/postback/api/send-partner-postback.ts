@@ -59,21 +59,18 @@ export const sendPartnerPostback = async ({
       case "slack":
         return new PostbackSlackAdapter(postback);
       default:
-        console.error(`Unknown postback receiver ${postback.receiver}`);
-        return;
+        throw new Error(`Unknown postback receiver ${postback.receiver}`);
     }
   });
 
   await Promise.allSettled(
-    adapters
-      .filter((adapter) => adapter != null)
-      .map((adapter) =>
-        adapter.execute({
-          event,
-          eventId: `${POSTBACK_EVENT_ID_PREFIX}${nanoid(25)}`,
-          createdAt: new Date().toISOString(),
-          data: enrichedData,
-        }),
-      ),
+    adapters.map((adapter) =>
+      adapter.execute({
+        event,
+        eventId: `${POSTBACK_EVENT_ID_PREFIX}${nanoid(25)}`,
+        createdAt: new Date().toISOString(),
+        data: enrichedData,
+      }),
+    ),
   );
 };
