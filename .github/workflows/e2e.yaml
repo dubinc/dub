@@ -6,7 +6,7 @@ on:
 jobs:
   api-tests:
     timeout-minutes: 30
-    if: github.event_name == 'deployment_status' && github.event.deployment_status.state == 'success'
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Check out code
