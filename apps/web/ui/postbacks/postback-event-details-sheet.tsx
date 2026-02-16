@@ -16,8 +16,7 @@ interface PostbackEventDetailsSheetProps {
 
 function PostbackEventDetailsSheetContent({
   event,
-  setIsOpen,
-}: Omit<PostbackEventDetailsSheetProps, "isOpen">) {
+}: Omit<PostbackEventDetailsSheetProps, "isOpen" | "setIsOpen">) {
   const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
   const [responseBody, setResponseBody] = useState<string>("");
   const [requestBody, setRequestBody] = useState<string>("");
@@ -64,18 +63,20 @@ function PostbackEventDetailsSheetContent({
 
   return (
     <div className="flex size-full flex-col">
-      <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <Sheet.Title className="text-lg font-semibold">{event.event}</Sheet.Title>
-        <Sheet.Close asChild>
-          <Button
-            variant="outline"
-            icon={<X className="size-5" />}
-            className="h-auto w-fit p-1"
-          />
-        </Sheet.Close>
-      </div>
-      <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="group flex items-center gap-2 p-6">
+      <div className="p-6">
+        <div className="flex items-start justify-between">
+          <Sheet.Title className="text-lg font-semibold">
+            {event.event}
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
+        </div>
+        <div className="group flex items-center gap-2">
           <p className="font-mono text-sm text-neutral-500">{event.event_id}</p>
           <ButtonTooltip
             tooltipProps={{
@@ -90,6 +91,8 @@ function PostbackEventDetailsSheetContent({
             <Copy className="size-4 opacity-0 transition-opacity group-hover:opacity-100" />
           </ButtonTooltip>
         </div>
+      </div>
+      <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto">
         <div className="grid gap-4 border-t border-neutral-200 bg-white p-6">
           <h4 className="font-semibold">Response</h4>
           <div className="flex items-center gap-8">
@@ -115,15 +118,16 @@ function PostbackEventDetailsSheetContent({
 
 export function PostbackEventDetailsSheet({
   isOpen,
-  ...rest
+  setIsOpen,
+  event,
 }: PostbackEventDetailsSheetProps) {
   return (
     <Sheet
       open={isOpen}
-      onOpenChange={rest.setIsOpen}
+      onOpenChange={setIsOpen}
       contentProps={{ className: "md:w-[650px]" }}
     >
-      <PostbackEventDetailsSheetContent {...rest} />
+      <PostbackEventDetailsSheetContent event={event} />
     </Sheet>
   );
 }

@@ -117,8 +117,6 @@ export const postbackCallbackBodySchema = z.object({
 
 export const postbackEventSchemaTB = z.object({
   event_id: z.string(),
-  postback_id: z.string(),
-  message_id: z.string().describe("QStash message ID."),
   event: z.enum(POSTBACK_TRIGGERS),
   url: z.url(),
   response_status: z.number(),

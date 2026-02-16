@@ -5,10 +5,11 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useAddEditPostbackModal } from "@/ui/postbacks/add-edit-postback-modal";
 import { NoPostbackEventsPlaceholder } from "@/ui/postbacks/no-postback-events-placeholder";
+import { PartnerPostbackActions } from "@/ui/postbacks/partner-postback-actions";
+import { PostbackDetailSkeleton } from "@/ui/postbacks/postback-detail-skeleton";
+import { usePostbackEventDetailsSheet } from "@/ui/postbacks/postback-event-details-sheet";
 import { PostbackEventList } from "@/ui/postbacks/postback-event-list";
 import { PostbackEventListSkeleton } from "@/ui/postbacks/postback-event-list-skeleton";
-import { usePostbackEventDetailsSheet } from "@/ui/postbacks/postback-event-details-sheet";
-import { PartnerPostbackActions } from "@/ui/postbacks/partner-postback-actions";
 import { PostbackStatus } from "@/ui/postbacks/postback-status";
 import { BackLink } from "@/ui/shared/back-link";
 import { MaxWidthWrapper, TokenAvatar } from "@dub/ui";
@@ -37,12 +38,13 @@ export function PostbackDetailPageClient({
     fetcher,
   );
 
-  const { data: events, isLoading: isEventsLoading } =
-    useSWR<PostbackEventProps[]>(
-      postbackId ? `/api/partner-profile/postbacks/${postbackId}/events` : null,
-      fetcher,
-      { keepPreviousData: true },
-    );
+  const { data: events, isLoading: isEventsLoading } = useSWR<
+    PostbackEventProps[]
+  >(
+    postbackId ? `/api/partner-profile/postbacks/${postbackId}/events` : null,
+    fetcher,
+    { keepPreviousData: true },
+  );
 
   const { postbackEventDetailsSheet, openWithEvent } =
     usePostbackEventDetailsSheet();
@@ -70,29 +72,7 @@ export function PostbackDetailPageClient({
           <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
             <BackLink href="/profile/postbacks">Back to postbacks</BackLink>
             {isLoading && !postback ? (
-              <>
-                <div className="flex justify-between gap-8 sm:items-center">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                    <div className="w-fit flex-none rounded-md border border-neutral-200 bg-gradient-to-t from-neutral-100 p-2">
-                      <div className="size-8 animate-pulse rounded-full bg-neutral-100" />
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <div className="h-5 w-28 animate-pulse rounded-full bg-neutral-100" />
-                      <div className="h-3 w-48 animate-pulse rounded-full bg-neutral-100" />
-                    </div>
-                  </div>
-                </div>
-                <div className="rounded-xl border border-neutral-200 bg-white p-5">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <div
-                        key={i}
-                        className="h-10 animate-pulse rounded bg-neutral-100"
-                      />
-                    ))}
-                  </div>
-                </div>
-              </>
+              <PostbackDetailSkeleton />
             ) : error || !postback ? (
               <div className="rounded-xl border border-neutral-200 py-10 text-center">
                 <p className="text-sm text-red-600">
@@ -142,18 +122,19 @@ export function PostbackDetailPageClient({
                   />
                 </div>
 
-                <div className="space-y-6">
-                <h2 className="text-lg font-semibold">Events</h2>
-                {isEventsLoading ? (
-                  <PostbackEventListSkeleton />
-                ) : events && events.length === 0 ? (
-                  <NoPostbackEventsPlaceholder />
-                ) : (
-                  <PostbackEventList
-                    events={events || []}
-                    onEventClick={openWithEvent}
-                  />
-                )}
+                <div className="space-y-4">
+                  <h2 className="text-sm font-medium">Events</h2>
+
+                  {isEventsLoading ? (
+                    <PostbackEventListSkeleton />
+                  ) : events && events.length === 0 ? (
+                    <NoPostbackEventsPlaceholder />
+                  ) : (
+                    <PostbackEventList
+                      events={events || []}
+                      onEventClick={openWithEvent}
+                    />
+                  )}
                 </div>
               </>
             )}

@@ -1,8 +1,9 @@
 "use client";
 
 import { PostbackEventProps } from "@/lib/types";
-import { Tooltip, useMediaQuery } from "@dub/ui";
+import { TimestampTooltip, Tooltip } from "@dub/ui";
 import { CircleCheck, CircleHalfDottedClock } from "@dub/ui/icons";
+import { formatDateTimeSmart } from "@dub/utils";
 import { PropsWithChildren } from "react";
 
 export type PostbackEventListProps = PropsWithChildren<{
@@ -18,7 +19,6 @@ const PostbackEventRow = ({
   onClick: () => void;
 }) => {
   const isSuccess = event.response_status >= 200 && event.response_status < 300;
-  const { isMobile } = useMediaQuery();
 
   return (
     <button
@@ -50,17 +50,15 @@ const PostbackEventRow = ({
         <div className="text-sm text-neutral-500">{event.event}</div>
       </div>
 
-      <div className="text-xs text-neutral-400">
-        {(() => {
-          const date = new Date(event.timestamp);
-          const localDate = new Date(
-            date.getTime() - date.getTimezoneOffset() * 60000,
-          );
-          return isMobile
-            ? localDate.toLocaleTimeString()
-            : localDate.toLocaleString();
-        })()}
-      </div>
+      <TimestampTooltip
+        timestamp={event.timestamp}
+        side="right"
+        rows={["local", "utc", "unix"]}
+      >
+        <div className="text-xs text-neutral-400">
+          {formatDateTimeSmart(event.timestamp)}
+        </div>
+      </TimestampTooltip>
     </button>
   );
 };

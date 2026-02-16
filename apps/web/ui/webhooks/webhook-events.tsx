@@ -20,9 +20,12 @@ export type EventListProps = PropsWithChildren<{
 }>;
 
 const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
+  const { isMobile } = useMediaQuery();
+  const [, copyToClipboard] = useCopyToClipboard();
   const [highlighter, setHighlighter] = useState<Highlighter | null>(null);
   const [responseBody, setResponseBody] = useState<string>("");
   const [requestBody, setRequestBody] = useState<string>("");
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     import("shiki").then(({ getHighlighter }) => {
@@ -50,7 +53,9 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
           lang: "json",
         },
       );
+
       setResponseBody(responseBodyHtml);
+
       const requestBodyHtml = highlighter.codeToHtml(
         JSON.stringify(event.request_body, null, 2),
         {
@@ -58,16 +63,12 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
           lang: "json",
         },
       );
+
       setRequestBody(requestBodyHtml);
     }
   }, [highlighter, event]);
 
-  const [, copyToClipboard] = useCopyToClipboard();
-
   const isSuccess = event.http_status >= 200 && event.http_status < 300;
-  const { isMobile } = useMediaQuery();
-
-  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <>
@@ -82,7 +83,7 @@ const WebhookEvent = ({ event }: { event: WebhookEventProps }) => {
               content={
                 isSuccess
                   ? "This webhook was successfully delivered."
-                  : "This webhook failed to deliver – it will be retried."
+                  : "This webhook failed to deliver - it will be retried."
               }
             >
               <div>

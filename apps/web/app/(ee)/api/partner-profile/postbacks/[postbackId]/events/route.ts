@@ -19,7 +19,7 @@ export const GET = withPartnerProfile(
 
     const parsedEvents = events.data.map((event) => ({
       ...event,
-      request_body: JSON.parse(event.request_body || "{}"),
+      request_body: JSON.parse(event.request_body),
     }));
 
     return NextResponse.json(parsedEvents);
