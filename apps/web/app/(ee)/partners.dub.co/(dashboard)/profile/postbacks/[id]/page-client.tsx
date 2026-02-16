@@ -13,8 +13,8 @@ import { PostbackStatus } from "@/ui/postbacks/postback-status";
 import { BackLink } from "@/ui/shared/back-link";
 import { EmptyState, MaxWidthWrapper, TokenAvatar, Webhook } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { redirect, useRouter } from "next/navigation";
+import { useState } from "react";
 import useSWR from "swr";
 
 interface PostbackDetailPageClientProps {
@@ -37,9 +37,11 @@ export function PostbackDetailPageClient({
     fetcher,
   );
 
-  const { data: events, isLoading: isEventsLoading } = useSWR<
-    PostbackEventProps[]
-  >(
+  const {
+    data: events,
+    error: eventsError,
+    isLoading: isEventsLoading,
+  } = useSWR<PostbackEventProps[]>(
     postbackId ? `/api/partner-profile/postbacks/${postbackId}/events` : null,
     fetcher,
     { keepPreviousData: true },
@@ -51,11 +53,10 @@ export function PostbackDetailPageClient({
   const { openEditPostbackModal, AddEditPostbackModal } =
     useAddEditPostbackModal(() => mutate());
 
-  useEffect(() => {
-    if (error && (error as { status?: number }).status === 404) {
-      router.replace("/profile/postbacks");
-    }
-  }, [error, router]);
+  const is404 = Boolean(error && (error as { status?: number }).status === 404);
+  if (is404) {
+    redirect("/profile/postbacks");
+  }
 
   return (
     <>
@@ -126,6 +127,14 @@ export function PostbackDetailPageClient({
 
                   {isEventsLoading ? (
                     <PostbackEventListSkeleton />
+                  ) : eventsError ? (
+                    <div className="rounded-xl border border-neutral-200 py-10 text-center">
+                      <p className="text-sm text-red-600">
+                        {eventsError instanceof Error
+                          ? eventsError.message
+                          : "Failed to load events"}
+                      </p>
+                    </div>
                   ) : events && events.length === 0 ? (
                     <div className="rounded-xl border border-neutral-200 py-10">
                       <EmptyState

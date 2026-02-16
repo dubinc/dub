@@ -107,24 +107,19 @@ export function SendTestPostbackModal({
           }}
         >
           <div className="flex flex-col gap-4 px-4 py-6 text-left sm:px-6">
-            <div>
-              <label className="text-content-emphasis text-sm font-normal">
-                Event
-              </label>
-              <div className="mt-2">
-                <Combobox
-                  options={options}
-                  selected={selectedOption}
-                  setSelected={(opt) =>
-                    setValue("event", (opt?.value as FormData["event"]) ?? "", {
-                      shouldDirty: true,
-                    })
-                  }
-                  placeholder="Select an event"
-                  matchTriggerWidth
-                  caret
-                />
-              </div>
+            <div className="mt-2">
+              <Combobox
+                options={options}
+                selected={selectedOption}
+                setSelected={(opt) =>
+                  setValue("event", (opt?.value as FormData["event"]) ?? "", {
+                    shouldDirty: true,
+                  })
+                }
+                placeholder="Select an event"
+                matchTriggerWidth
+                caret
+              />
             </div>
           </div>
 
