@@ -1,7 +1,8 @@
-import { prisma } from "../../utils/prisma";
 import { expect } from "vitest";
+import { HttpClient } from "../../utils/http";
 
 interface VerifyBountySubmissionProps {
+  http: HttpClient;
   bountyId: string;
   partnerId: string;
   expectedStatus?: "draft" | "submitted" | "approved" | "rejected";
@@ -12,6 +13,7 @@ const POLL_INTERVAL_MS = 5000; // 5 seconds
 const TIMEOUT_MS = 60000; // 60 seconds
 
 export const verifyBountySubmission = async ({
+  http,
   bountyId,
   partnerId,
   expectedStatus = "submitted",
@@ -22,13 +24,12 @@ export const verifyBountySubmission = async ({
   let lastSubmission: any = null;
 
   while (Date.now() - startTime < TIMEOUT_MS) {
-    const submission = await prisma.bountySubmission.findFirst({
-      where: {
-        bountyId,
-        partnerId,
-      },
+    const { data: submissions } = await http.get<any[]>({
+      path: `/bounties/${bountyId}/submissions`,
+      query: { partnerId },
     });
 
+    const submission = submissions?.[0];
     lastSubmission = submission;
 
     if (

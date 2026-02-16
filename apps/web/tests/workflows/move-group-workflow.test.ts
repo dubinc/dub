@@ -1,7 +1,6 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { randomValue } from "@dub/utils";
-import { prisma } from "../utils/prisma";
 import { PartnerGroup } from "@dub/prisma/client";
 import { describe, expect, test, onTestFinished } from "vitest";
 import { randomEmail } from "../utils/helpers";
@@ -64,22 +63,21 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     expect(patchStatus).toEqual(200);
 
-    const workflow = await prisma.workflow.findFirst({
-      where: {
-        partnerGroup: { id: targetGroup.id },
-      },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { groupId: targetGroup.id },
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow?.trigger).toBe("partnerMetricsUpdated");
-    expect(workflow?.disabledAt).toBeNull();
+    expect(workflow.trigger).toBe("partnerMetricsUpdated");
+    expect(workflow.disabledAt).toBeNull();
 
-    const workflowActions = workflow?.actions as any[];
+    const workflowActions = workflow.actions as any[];
     expect(workflowActions).toHaveLength(1);
     expect(workflowActions[0].type).toBe("moveGroup");
     expect(workflowActions[0].data.groupId).toBe(targetGroup.id);
 
-    const workflowConditions = workflow?.triggerConditions as any[];
+    const workflowConditions = workflow.triggerConditions as any[];
     expect(workflowConditions).toHaveLength(1);
     expect(workflowConditions[0].attribute).toBe("totalLeads");
     expect(workflowConditions[0].operator).toBe("gte");
@@ -120,12 +118,12 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     expect(addStatus).toEqual(200);
 
-    let workflow = await prisma.workflow.findFirst({
-      where: { partnerGroup: { id: group.id } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { groupId: group.id },
     });
 
     expect(workflow).not.toBeNull();
-    const workflowId = workflow!.id;
 
     const { status: removeStatus } = await http.patch({
       path: `/groups/${group.id}`,
@@ -136,11 +134,12 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     expect(removeStatus).toEqual(200);
 
-    workflow = await prisma.workflow.findUnique({
-      where: { id: workflowId },
+    const { data: deletedWorkflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { groupId: group.id },
     });
 
-    expect(workflow).toBeNull();
+    expect(deletedWorkflow).toBeNull();
   });
 
   test("Disabled workflow doesn't execute partner move", async () => {
@@ -186,16 +185,17 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     expect(patchStatus).toEqual(200);
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { partnerGroup: { id: targetGroup.id } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { groupId: targetGroup.id },
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow?.disabledAt).toBeNull();
+    expect(workflow.disabledAt).toBeNull();
 
-    await prisma.workflow.update({
-      where: { id: workflow!.id },
-      data: { disabledAt: new Date() },
+    await http.patch({
+      path: `/e2e/workflows/${workflow.id}`,
+      body: { disabledAt: new Date().toISOString() },
     });
 
     const { status: partnerStatus, data: partner } = await http.post<
@@ -218,18 +218,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const enrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
-        },
-      },
-      select: { groupId: true },
+    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+      path: `/partners/${partner.id}`,
     });
 
-    expect(enrollment).not.toBeNull();
-    expect(enrollment?.groupId).toBe(sourceGroup.id);
+    expect(partnerAfter.groupId).toBe(sourceGroup.id);
   });
 
   test("Workflow doesn't execute when conditions are not met", async () => {
@@ -295,18 +288,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const enrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
-        },
-      },
-      select: { groupId: true },
+    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+      path: `/partners/${partner.id}`,
     });
 
-    expect(enrollment).not.toBeNull();
-    expect(enrollment?.groupId).toBe(sourceGroup.id);
+    expect(partnerAfter.groupId).toBe(sourceGroup.id);
   });
 
   test("Workflow executes when conditions are met - partner moves to target group", { timeout: 90000 }, async () => {
@@ -365,33 +351,15 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     expect(partnerStatus).toEqual(201);
     expect(partner.links).not.toBeNull();
-
-    const enrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
-        },
-      },
-      select: { id: true, groupId: true },
-    });
-
-    if (!enrollment) {
-      console.warn(
-        `Skipping test: Partner ${partner.id} not enrolled in program ${programId}. This may indicate an E2E seed configuration issue.`,
-      );
-      return;
-    }
-
-    expect(enrollment.groupId).toBe(sourceGroup.id);
+    expect(partner.groupId).toBe(sourceGroup.id);
 
     const partnerLink = partner.links![0];
 
     await trackLeads(http, partnerLink, 3);
 
     await verifyPartnerGroupMove({
+      http,
       partnerId: partner.id,
-      programId,
       expectedGroupId: targetGroup.id,
     });
   });
@@ -413,7 +381,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
       path: "/groups",
       body: {
         name: "E2E Target Group - No Dup Move",
-        slug: "e2e-target-no-dup",
+        slug,
         color: randomValue(RESOURCE_COLORS),
       },
     });
@@ -458,23 +426,16 @@ describe.sequential("Workflow - MoveGroup", async () => {
     await trackLeads(http, partnerLink, 5);
 
     await verifyPartnerGroupMove({
+      http,
       partnerId: partner.id,
-      programId,
       expectedGroupId: targetGroup.id,
     });
 
-    const enrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
-        },
-      },
-      select: { groupId: true },
+    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+      path: `/partners/${partner.id}`,
     });
 
-    expect(enrollment).not.toBeNull();
-    expect(enrollment?.groupId).toBe(targetGroup.id);
+    expect(partnerAfter.groupId).toBe(targetGroup.id);
   });
 
   test("Multiple move rules can be configured (AND operator)", async () => {
@@ -516,13 +477,14 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     expect(patchStatus).toEqual(200);
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { partnerGroup: { id: group.id } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { groupId: group.id },
     });
 
     expect(workflow).not.toBeNull();
 
-    const workflowConditions = workflow?.triggerConditions as any[];
+    const workflowConditions = workflow.triggerConditions as any[];
     expect(workflowConditions).toHaveLength(2);
     expect(workflowConditions[0].attribute).toBe("totalLeads");
     expect(workflowConditions[0].value).toBe(10);

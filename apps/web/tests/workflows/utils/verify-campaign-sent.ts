@@ -1,7 +1,8 @@
-import { prisma } from "../../utils/prisma";
 import { expect } from "vitest";
+import { HttpClient } from "../../utils/http";
 
 interface VerifyCampaignSentProps {
+  http: HttpClient;
   campaignId: string;
   partnerId: string;
 }
@@ -10,22 +11,21 @@ const POLL_INTERVAL_MS = 5000; // 5 seconds
 const TIMEOUT_MS = 60000; // 60 seconds
 
 export const verifyCampaignSent = async ({
+  http,
   campaignId,
   partnerId,
 }: VerifyCampaignSentProps) => {
   const startTime = Date.now();
 
   while (Date.now() - startTime < TIMEOUT_MS) {
-    const emailSent = await prisma.notificationEmail.findFirst({
-      where: {
-        campaignId,
-        type: "Campaign",
-        partnerId,
-      },
+    const { data: emails } = await http.get<any[]>({
+      path: "/e2e/notification-emails",
+      query: { campaignId, partnerId },
     });
 
+    const emailSent = emails?.[0];
+
     if (emailSent) {
-      expect(emailSent).toBeDefined();
       expect(emailSent.type).toBe("Campaign");
       expect(emailSent.campaignId).toBe(campaignId);
       expect(emailSent.partnerId).toBe(partnerId);

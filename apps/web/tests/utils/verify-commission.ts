@@ -1,8 +1,9 @@
+import { CommissionResponse, Customer } from "@/lib/types";
 import { expect } from "vitest";
-import { prisma } from "./prisma";
-import { E2E_PROGRAM, E2E_WORKSPACE_ID } from "./resource";
+import { HttpClient } from "./http";
 
 interface VerifyCommissionProps {
+  http: HttpClient;
   customerExternalId?: string;
   invoiceId?: string;
   expectedAmount?: number;
@@ -13,6 +14,7 @@ const POLL_INTERVAL_MS = 5000; // 5 seconds
 const TIMEOUT_MS = 30000; // 30 seconds
 
 export const verifyCommission = async ({
+  http,
   customerExternalId,
   invoiceId,
   expectedAmount,
@@ -22,39 +24,44 @@ export const verifyCommission = async ({
 
   // Resolve customer ID (scoped by projectId — externalId is unique per project)
   if (customerExternalId) {
-    const customer = await prisma.customer.findUnique({
-      where: {
-        projectId_externalId: {
-          projectId: E2E_WORKSPACE_ID,
-          externalId: customerExternalId,
-        },
-      },
-      select: { id: true },
+    const { data: customers } = await http.get<Customer[]>({
+      path: "/customers",
+      query: { externalId: customerExternalId },
     });
 
-    expect(customer).not.toBeNull();
-    customerId = customer!.id;
+    expect(customers.length).toBeGreaterThan(0);
+    customerId = customers[0].id;
+  }
+
+  const query: Record<string, string> = {};
+
+  if (invoiceId) {
+    query.invoiceId = invoiceId;
+  }
+
+  if (customerId) {
+    query.customerId = customerId;
   }
 
   // Poll for commission every 5 seconds, timeout after 30 seconds
   const startTime = Date.now();
 
   while (Date.now() - startTime < TIMEOUT_MS) {
-    const commission = await prisma.commission.findFirst({
-      where: {
-        programId: E2E_PROGRAM.id,
-        ...(customerId && { customerId }),
-        ...(invoiceId && { invoiceId }),
-      },
+    const { status, data: commissions } = await http.get<CommissionResponse[]>({
+      path: "/commissions",
+      query,
     });
 
-    if (commission) {
+    if (status === 200 && commissions.length === 1) {
+      const commission = commissions[0];
+
+      // Verify all expectations
       if (invoiceId) {
         expect(commission.invoiceId).toEqual(invoiceId);
       }
 
       if (customerId) {
-        expect(commission.customerId).toEqual(customerId);
+        expect(commission.customer?.id).toEqual(customerId);
       }
 
       if (expectedAmount !== undefined) {
@@ -63,7 +70,7 @@ export const verifyCommission = async ({
 
       expect(commission.earnings).toEqual(expectedEarnings);
 
-      return commission;
+      return;
     }
 
     // Wait before next poll
@@ -73,6 +80,6 @@ export const verifyCommission = async ({
   // Timeout reached - fail the test
   throw new Error(
     `Commission not found within ${TIMEOUT_MS / 1000} seconds. ` +
-      `programId: ${E2E_PROGRAM.id}, customerId: ${customerId}, invoiceId: ${invoiceId}`,
+      `Query: ${JSON.stringify(query)}`,
   );
 };

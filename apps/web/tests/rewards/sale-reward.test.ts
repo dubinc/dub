@@ -43,6 +43,7 @@ describe.concurrent("Sale rewards with conditions", async () => {
     expect(response.status).toEqual(200);
 
     await verifyCommission({
+      http,
       invoiceId: sale.invoiceId,
       expectedEarnings: E2E_SALE_REWARD.amountInCents,
     });
@@ -65,6 +66,7 @@ describe.concurrent("Sale rewards with conditions", async () => {
     expect(response.status).toEqual(200);
 
     await verifyCommission({
+      http,
       invoiceId: sale.invoiceId,
       expectedEarnings: E2E_SALE_REWARD.modifiers[0].amountInCents!,
     });
@@ -88,6 +90,7 @@ describe.concurrent("Sale rewards with conditions", async () => {
     expect(response.status).toEqual(200);
 
     await verifyCommission({
+      http,
       invoiceId: sale.invoiceId,
       expectedEarnings: E2E_SALE_REWARD.modifiers[1].amountInCents!,
     });
@@ -107,6 +110,7 @@ describe.concurrent("Sale rewards with conditions", async () => {
     expect(trackSaleResponse.status).toEqual(200);
 
     await verifyCommission({
+      http,
       invoiceId: sale.invoiceId,
       expectedEarnings: E2E_SALE_REWARD.modifiers[2].amountInCents!,
     });
@@ -143,6 +147,7 @@ describe.concurrent("Sale rewards with conditions", async () => {
     expect(trackSaleResponse.status).toEqual(200);
 
     await verifyCommission({
+      http,
       invoiceId: sale.invoiceId,
       expectedEarnings: E2E_SALE_REWARD.modifiers[3].amountInCents!,
     });

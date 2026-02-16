@@ -45,6 +45,7 @@ describe.concurrent("Lead rewards", async () => {
 
     // Verify the commission
     await verifyCommission({
+      http,
       customerExternalId: customer.externalId,
       expectedEarnings: E2E_LEAD_REWARD.modifiers[1].amountInCents,
     });
@@ -82,6 +83,7 @@ describe.concurrent("Lead rewards", async () => {
 
     // Verify the commission
     await verifyCommission({
+      http,
       customerExternalId: customer.externalId,
       expectedEarnings: E2E_LEAD_REWARD.modifiers[0].amountInCents,
     });

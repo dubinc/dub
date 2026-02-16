@@ -1,6 +1,5 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Bounty } from "@dub/prisma/client";
-import { prisma } from "../utils/prisma";
 import { describe, expect, test, onTestFinished } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
@@ -56,6 +55,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
     await trackLeads(http, partnerLink, 3);
 
     const submission = await verifyBountySubmission({
+      http,
       bountyId: bounty.id,
       partnerId: partner.id,
       expectedStatus: "submitted",
@@ -112,17 +112,17 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const submission = await prisma.bountySubmission.findFirst({
-      where: {
-        bountyId: bounty.id,
-        partnerId: partner.id,
-      },
+    const { data: submissions } = await http.get<any[]>({
+      path: `/bounties/${bounty.id}/submissions`,
+      query: { partnerId: partner.id },
     });
 
-    expect(submission).not.toBeNull();
-    expect(submission?.status).toBe("draft");
-    expect(submission?.performanceCount).toBe(1);
-    expect(submission?.completedAt).toBeNull();
+    expect(submissions.length).toBeGreaterThan(0);
+
+    const submission = submissions[0];
+    expect(submission.status).toBe("draft");
+    expect(submission.performanceCount).toBe(1);
+    expect(submission.completedAt).toBeNull();
   });
 
   test("Disabled workflow doesn't execute", async () => {
@@ -151,15 +151,17 @@ describe.sequential("Workflow - AwardBounty", async () => {
       await h.deleteBounty(bounty.id);
     });
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { bounty: { id: bounty.id } },
+    // Find workflow via E2E endpoint and disable it
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { bountyId: bounty.id },
     });
 
     expect(workflow).not.toBeNull();
 
-    await prisma.workflow.update({
-      where: { id: workflow!.id },
-      data: { disabledAt: new Date() },
+    await http.patch({
+      path: `/e2e/workflows/${workflow.id}`,
+      body: { disabledAt: new Date().toISOString() },
     });
 
     const { status: partnerStatus, data: partner } = await http.post<
@@ -181,14 +183,12 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const submission = await prisma.bountySubmission.findFirst({
-      where: {
-        bountyId: bounty.id,
-        partnerId: partner.id,
-      },
+    const { data: submissions } = await http.get<any[]>({
+      path: `/bounties/${bounty.id}/submissions`,
+      query: { partnerId: partner.id },
     });
 
-    expect(submission).toBeNull();
+    expect(submissions).toHaveLength(0);
   });
 
   test("No duplicate execution on multiple triggers", { timeout: 90000 }, async () => {
@@ -235,17 +235,16 @@ describe.sequential("Workflow - AwardBounty", async () => {
     await trackLeads(http, partnerLink, 5);
 
     await verifyBountySubmission({
+      http,
       bountyId: bounty.id,
       partnerId: partner.id,
       expectedStatus: "submitted",
       minPerformanceCount: 2,
     });
 
-    const submissions = await prisma.bountySubmission.findMany({
-      where: {
-        bountyId: bounty.id,
-        partnerId: partner.id,
-      },
+    const { data: submissions } = await http.get<any[]>({
+      path: `/bounties/${bounty.id}/submissions`,
+      query: { partnerId: partner.id },
     });
 
     expect(submissions).toHaveLength(1);

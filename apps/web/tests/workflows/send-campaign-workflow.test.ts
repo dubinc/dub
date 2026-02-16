@@ -1,5 +1,4 @@
 import { EnrolledPartnerProps } from "@/lib/types";
-import { prisma } from "../utils/prisma";
 import { Campaign } from "@dub/prisma/client";
 import { subHours } from "date-fns";
 import { describe, expect, test, onTestFinished } from "vitest";
@@ -82,15 +81,16 @@ describe.sequential("Workflow - SendCampaign", async () => {
     expect(publishStatus).toEqual(200);
     expect(publishedCampaign.status).toBe("active");
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { campaign: { id: campaignId } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow?.trigger).toBe("partnerEnrolled");
-    expect(workflow?.disabledAt).toBeNull();
+    expect(workflow.trigger).toBe("partnerEnrolled");
+    expect(workflow.disabledAt).toBeNull();
 
-    const workflowActions = workflow?.actions as any[];
+    const workflowActions = workflow.actions as any[];
     expect(workflowActions[0].type).toBe("sendCampaign");
     expect(workflowActions[0].data.campaignId).toBe(campaignId);
   });
@@ -143,12 +143,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
     expect(updateStatus).toEqual(200);
     expect(updatedCampaign.status).toBe("draft");
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { campaign: { id: campaignId } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow?.disabledAt).not.toBeNull();
+    expect(workflow.disabledAt).not.toBeNull();
   });
 
   test("Cron executes send campaign workflow", async () => {
@@ -192,13 +193,14 @@ describe.sequential("Workflow - SendCampaign", async () => {
       },
     });
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { campaign: { id: campaignId } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
 
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow!.id);
+    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
 
     expect(status).toEqual(200);
     expect(body).toContain("Finished executing workflow");
@@ -245,27 +247,27 @@ describe.sequential("Workflow - SendCampaign", async () => {
       },
     });
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { campaign: { id: campaignId } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
 
-    await prisma.workflow.update({
-      where: { id: workflow!.id },
-      data: { disabledAt: new Date() },
+    // Disable workflow via E2E endpoint
+    await http.patch({
+      path: `/e2e/workflows/${workflow.id}`,
+      body: { disabledAt: new Date().toISOString() },
     });
 
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow!.id);
+    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
 
     expect(status).toEqual(200);
     expect(body).toContain("disabled");
 
-    const emailsSent = await prisma.notificationEmail.findMany({
-      where: {
-        campaignId,
-        type: "Campaign",
-      },
+    const { data: emailsSent } = await http.get<any[]>({
+      path: "/e2e/notification-emails",
+      query: { campaignId },
     });
 
     expect(emailsSent).toHaveLength(0);
@@ -312,8 +314,9 @@ describe.sequential("Workflow - SendCampaign", async () => {
       },
     });
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { campaign: { id: campaignId } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
@@ -330,19 +333,16 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     expect(partnerStatus).toEqual(201);
 
-    const programId = E2E_PROGRAM.id;
-
-    await prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
-        },
+    // Backdate the enrollment to 18h ago so it falls in the cron window
+    await http.patch({
+      path: "/e2e/enrollments",
+      body: {
+        partnerId: partner.id,
+        createdAt: subHours(new Date(), 18).toISOString(),
       },
-      data: { createdAt: subHours(new Date(), 18) },
     });
 
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow!.id);
+    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
 
     expect(status).toEqual(200);
     expect(body).toContain("Finished executing workflow");
@@ -389,12 +389,14 @@ describe.sequential("Workflow - SendCampaign", async () => {
       },
     });
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { campaign: { id: campaignId } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
 
+    // Create a partner enrolled just now — doesn't match the 12-24h window
     const { status: partnerStatus, data: partner } = await http.post<
       EnrolledPartnerProps
     >({
@@ -407,20 +409,17 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     expect(partnerStatus).toEqual(201);
 
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow!.id);
+    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
 
     expect(status).toEqual(200);
     expect(body).toContain("Finished executing workflow");
 
-    const emailSent = await prisma.notificationEmail.findFirst({
-      where: {
-        campaignId,
-        type: "Campaign",
-        partnerId: partner.id,
-      },
+    const { data: emailsSent } = await http.get<any[]>({
+      path: "/e2e/notification-emails",
+      query: { campaignId, partnerId: partner.id },
     });
 
-    expect(emailSent).toBeNull();
+    expect(emailsSent).toHaveLength(0);
   });
 
   test("No duplicate campaign sends on multiple cron executions", async () => {
@@ -438,8 +437,9 @@ describe.sequential("Workflow - SendCampaign", async () => {
     const campaignId = campaign.id;
 
     onTestFinished(async () => {
-      await prisma.notificationEmail.deleteMany({
-        where: { campaignId, type: "Campaign" },
+      await http.delete({
+        path: "/e2e/notification-emails",
+        query: { campaignId },
       });
       await h.deleteCampaign(campaignId);
     });
@@ -467,8 +467,9 @@ describe.sequential("Workflow - SendCampaign", async () => {
       },
     });
 
-    const workflow = await prisma.workflow.findFirst({
-      where: { campaign: { id: campaignId } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
@@ -485,25 +486,20 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     expect(partnerStatus).toEqual(201);
 
-    const programId = E2E_PROGRAM.id;
-
-    await prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
-        },
+    // Backdate enrollment to match the cron window
+    await http.patch({
+      path: "/e2e/enrollments",
+      body: {
+        partnerId: partner.id,
+        createdAt: subHours(new Date(), 18).toISOString(),
       },
-      data: { createdAt: subHours(new Date(), 18) },
     });
 
-    const existingEmail = await prisma.notificationEmail.create({
-      data: {
-        id: `em_e2e_dedup_${Date.now()}`,
-        type: "Campaign",
-        emailId: `resend_e2e_dedup_${Date.now()}`,
+    // Pre-insert a notification email to simulate a previous send
+    const { data: existingEmail } = await http.post<any>({
+      path: "/e2e/notification-emails",
+      body: {
         campaignId,
-        programId,
         partnerId: partner.id,
         recipientUserId: E2E_USER_ID,
       },
@@ -511,17 +507,16 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     expect(existingEmail).not.toBeNull();
 
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow!.id);
+    // Call the cron — the workflow should skip this partner (already sent)
+    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
 
     expect(status).toEqual(200);
     expect(body).toContain("Finished executing workflow");
 
-    const emails = await prisma.notificationEmail.findMany({
-      where: {
-        campaignId,
-        type: "Campaign",
-        partnerId: partner.id,
-      },
+    // Verify still only 1 notification email (no duplicate)
+    const { data: emails } = await http.get<any[]>({
+      path: "/e2e/notification-emails",
+      query: { campaignId, partnerId: partner.id },
     });
 
     expect(emails).toHaveLength(1);
@@ -569,12 +564,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
       },
     });
 
-    let workflow = await prisma.workflow.findFirst({
-      where: { campaign: { id: campaignId } },
+    const { data: workflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
-    const conditions1 = workflow?.triggerConditions as any[];
+    const conditions1 = workflow.triggerConditions as any[];
     expect(conditions1[0].value).toBe(1);
 
     const { status: pauseStatus, data: pausedCampaign } = await http.patch<Campaign>({
@@ -587,12 +583,11 @@ describe.sequential("Workflow - SendCampaign", async () => {
     expect(pauseStatus).toEqual(200);
     expect(pausedCampaign.status).toBe("paused");
 
-    const pausedWorkflow = await prisma.workflow.findUnique({
-      where: { id: workflow!.id },
-      select: { disabledAt: true },
+    const { data: pausedWorkflow } = await http.get<any>({
+      path: "/e2e/workflows",
+      query: { campaignId },
     });
 
-    expect(pausedWorkflow?.disabledAt).not.toBeNull();
+    expect(pausedWorkflow.disabledAt).not.toBeNull();
   });
 });
-
