@@ -2,7 +2,8 @@ import { WEBHOOK_EVENT_ID_PREFIX } from "@/lib/webhook/constants";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { PostbackTrigger } from "../constants";
-import { PostbackCustomAdapter } from "./postback-adapters";
+import { PostbackCustomAdapter } from "./postback-adapter-custom";
+import { PostbackSlackAdapter } from "./postback-adapter-slack";
 import { postbackEventEnrichers } from "./postback-event-enrichers";
 
 interface SendPartnerPostbackParams {
@@ -49,12 +50,10 @@ export const sendPartnerPostback = async ({
 
   const adapters = postbacks.map((postback) => {
     switch (postback.destination) {
-      case "custom":
-        return new PostbackCustomAdapter(postback);
+      case "slack":
+        return new PostbackSlackAdapter(postback);
       default:
-        throw new Error(
-          `Unsupported postback destination ${postback.destination}`,
-        );
+        return new PostbackCustomAdapter(postback);
     }
   });
 

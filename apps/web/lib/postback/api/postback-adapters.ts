@@ -5,14 +5,14 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PostbackTrigger } from "../constants";
 import { PostbackEventTransformers } from "./postback-event-transformers";
 
-interface PostbackPayload {
+export interface PostbackPayload {
   eventId: string;
   event: PostbackTrigger;
   createdAt: string;
   data: unknown;
 }
 
-abstract class PostbackAdapter {
+export abstract class PostbackAdapter {
   protected eventTransformers = new PostbackEventTransformers();
 
   constructor(protected postback: PartnerPostback) {
@@ -73,35 +73,6 @@ abstract class PostbackAdapter {
         payload: transformedPayload,
       });
     }
-  }
-}
-
-export class PostbackCustomAdapter extends PostbackAdapter {
-  constructor(postback: PartnerPostback) {
-    super(postback);
-  }
-
-  protected registerEventTransformers() {
-    this.eventTransformers.register("lead.created", {
-      transform: (payload) => this.formatPayload(payload),
-    });
-
-    this.eventTransformers.register("sale.created", {
-      transform: (payload) => this.formatPayload(payload),
-    });
-
-    this.eventTransformers.register("commission.created", {
-      transform: (payload) => this.formatPayload(payload),
-    });
-  }
-
-  private formatPayload(payload: PostbackPayload) {
-    return {
-      id: payload.eventId,
-      event: payload.event,
-      createdAt: payload.createdAt,
-      data: payload.data,
-    };
   }
 }
 
