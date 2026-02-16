@@ -3,16 +3,14 @@
 import { TokenProps } from "@/lib/types";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
   IconMenu,
   LoadingSpinner,
   Popover,
   TokenAvatar,
+  TriangleWarning,
 } from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
-import { FolderOpen, Info, MoreVertical, Trash } from "lucide-react";
+import { FolderOpen, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -24,17 +22,15 @@ export default function TokensPageClient() {
 
   return (
     <>
-      <Alert>
-        <Info className="mt-2 h-5 w-5 text-yellow-500" />
-        <AlertTitle>
-          User API Keys have been replaced by Workspace API Keys.
-        </AlertTitle>
-        <AlertDescription className="text-neutral-500">
-          We recommend creating a new{" "}
+      <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5">
+        <TriangleWarning className="mt-0.5 size-4 shrink-0 text-amber-600" />
+        <p className="flex-1 text-sm text-amber-900">
+          User API Keys have been replaced by Workspace API Keys. We recommend
+          creating a new{" "}
           <a
             href="https://dub.co/docs/api-reference/tokens"
             target="_blank"
-            className="font-medium underline underline-offset-4 hover:text-black"
+            className="font-medium underline underline-offset-2 transition-colors hover:text-neutral-800"
           >
             Workspace API Key
           </a>{" "}
@@ -43,22 +39,14 @@ export default function TokensPageClient() {
           <a
             href="https://dub.co/blog/workspace-api-keys"
             target="_blank"
-            className="font-medium underline underline-offset-4 hover:text-black"
+            className="font-medium underline underline-offset-2 transition-colors hover:text-neutral-800"
           >
             Read the announcement.
           </a>
-        </AlertDescription>
-      </Alert>
+        </p>
+      </div>
 
-      <div className="rounded-lg border border-neutral-200 bg-white">
-        <div className="flex flex-col space-y-3 p-5 sm:p-10">
-          <h2 className="text-xl font-medium">Your API Keys</h2>
-          <p className="text-sm text-neutral-500">
-            These API keys allow other apps to access your account. Use it with
-            caution – do not share your API key with others, or expose it in the
-            browser or other client-side code
-          </p>
-        </div>
+      <div className="mt-6 rounded-lg border border-neutral-200 bg-white">
         {isLoading || !tokens ? (
           <div className="flex flex-col items-center justify-center space-y-4 pb-20 pt-10">
             <LoadingSpinner className="h-6 w-6 text-neutral-500" />

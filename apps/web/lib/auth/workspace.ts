@@ -98,7 +98,7 @@ export const withWorkspace = (
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
-          if (!authorizationHeader.includes("Bearer ")) {
+          if (!authorizationHeader.startsWith("Bearer ")) {
             throw new DubApiError({
               code: "bad_request",
               message:
@@ -183,10 +183,10 @@ export const withWorkspace = (
                 hashedKey,
               },
               select: {
+                expires: true,
                 ...(isRestrictedToken && {
                   scopes: true,
                   projectId: true,
-                  expires: true,
                   installationId: true,
                   project: {
                     select: {

@@ -184,7 +184,7 @@ describe
       });
 
       test("multiple partnerIds filter (IS ONE OF)", async () => {
-        const partnerIds = E2E_PARTNERS.map((p) => p.id).join(",");
+        const partnerIds = E2E_PARTNERS.map((p) => p.id);
         const { status, data } = await http.get<any>({
           path: `/analytics`,
           query: {
@@ -192,7 +192,7 @@ describe
             groupBy: "top_partners",
             workspaceId,
             interval: "all",
-            partnerId: partnerIds,
+            partnerId: partnerIds.join(","),
           },
         });
 
@@ -202,7 +202,9 @@ describe
           .safeParse(data);
         expect(parsed.success).toBeTruthy();
         expect(
-          parsed.data?.every((item) => partnerIds.includes(item.partner.id)),
+          parsed.data?.every((item) =>
+            partnerIds.some((id) => id === item.partner.id),
+          ),
         ).toBe(true);
       });
 
@@ -229,7 +231,7 @@ describe
       });
 
       test("exclude multiple partnerIds (IS NOT ONE OF)", async () => {
-        const partnerIds = E2E_PARTNERS.map((p) => p.id).join(",");
+        const partnerIds = E2E_PARTNERS.map((p) => p.id);
         const { status, data } = await http.get<any>({
           path: `/analytics`,
           query: {
@@ -237,7 +239,7 @@ describe
             groupBy: "top_partners",
             workspaceId,
             interval: "all",
-            partnerId: `-${partnerIds}`,
+            partnerId: `-${partnerIds.join(",")}`,
           },
         });
 
@@ -248,7 +250,7 @@ describe
         expect(parsed.success).toBeTruthy();
         expect(
           parsed.data?.every(
-            (item: any) => !partnerIds.includes(item.partner.id),
+            (item: any) => !partnerIds.some((id) => id === item.partner.id),
           ),
         ).toBe(true);
       });

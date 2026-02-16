@@ -48,7 +48,7 @@ export const withPublishableKey = (
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
-          if (!authorizationHeader.includes("Bearer ")) {
+          if (!authorizationHeader.startsWith("Bearer ")) {
             throw new DubApiError({
               code: "bad_request",
               message: "Invalid or missing publishable key.",

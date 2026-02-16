@@ -37,7 +37,7 @@ export const withSession = (handler: WithSessionHandler) =>
 
         const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
-          if (!authorizationHeader.includes("Bearer ")) {
+          if (!authorizationHeader.startsWith("Bearer ")) {
             throw new DubApiError({
               code: "bad_request",
               message:

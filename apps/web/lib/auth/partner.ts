@@ -68,7 +68,7 @@ export const withPartnerProfile = (
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
-          if (!authorizationHeader.includes("Bearer ")) {
+          if (!authorizationHeader.startsWith("Bearer ")) {
             throw new DubApiError({
               code: "bad_request",
               message:
@@ -94,6 +94,7 @@ export const withPartnerProfile = (
                 hashedKey,
               },
               select: {
+                expires: true,
                 user: {
                   select: {
                     id: true,
