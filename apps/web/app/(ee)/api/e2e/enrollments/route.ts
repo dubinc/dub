@@ -2,10 +2,13 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { assertE2EWorkspace } from "../guard";
 
 // PATCH /api/e2e/enrollments - Update enrollment (e.g., backdate createdAt)
 export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
+    assertE2EWorkspace(workspace);
+
     const programId = getDefaultProgramIdOrThrow(workspace);
     const body = await req.json();
     const { partnerId, createdAt } = body;

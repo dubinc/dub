@@ -1,10 +1,13 @@
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { assertE2EWorkspace } from "../../guard";
 
 // PATCH /api/e2e/workflows/[workflowId] - Update workflow (e.g., disable)
 export const PATCH = withWorkspace(
-  async ({ req, params }) => {
+  async ({ req, params, workspace }) => {
+    assertE2EWorkspace(workspace);
+
     const { workflowId } = params;
     const body = await req.json();
 

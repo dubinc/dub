@@ -3,9 +3,12 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { assertE2EWorkspace } from "../guard";
 
 // GET /api/e2e/notification-emails - Find notification emails
-export const GET = withWorkspace(async ({ searchParams }) => {
+export const GET = withWorkspace(async ({ workspace, searchParams }) => {
+  assertE2EWorkspace(workspace);
+
   const { campaignId, partnerId } = searchParams;
 
   const emails = await prisma.notificationEmail.findMany({
@@ -22,6 +25,8 @@ export const GET = withWorkspace(async ({ searchParams }) => {
 // POST /api/e2e/notification-emails - Create a notification email (for test setup)
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
+    assertE2EWorkspace(workspace);
+
     const programId = getDefaultProgramIdOrThrow(workspace);
     const body = await req.json();
 
@@ -46,7 +51,9 @@ export const POST = withWorkspace(
 
 // DELETE /api/e2e/notification-emails - Delete notification emails (cleanup)
 export const DELETE = withWorkspace(
-  async ({ searchParams }) => {
+  async ({ workspace, searchParams }) => {
+    assertE2EWorkspace(workspace);
+
     const { campaignId } = searchParams;
 
     if (!campaignId) {
