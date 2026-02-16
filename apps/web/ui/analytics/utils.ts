@@ -60,7 +60,6 @@ export function useAnalyticsFilterOption(
         // else, we need to remove the filter for that groupBy param
         (() => {
           if (!groupBy || !options?.omitGroupByFilterKey) return undefined;
-          if (groupBy === "top_links") return ["domain", "key"];
           return SINGULAR_ANALYTICS_ENDPOINTS[groupBy]
             ? SINGULAR_ANALYTICS_ENDPOINTS[groupBy]
             : undefined;
