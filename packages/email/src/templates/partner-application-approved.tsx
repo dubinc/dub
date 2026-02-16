@@ -229,7 +229,7 @@ export default function PartnerApplicationApproved({
 
             <Footer
               email={partner.email}
-              notificationSettingsUrl="https://partners.dub.co/settings/notifications"
+              notificationSettingsUrl="https://partners.dub.co/profile/notifications"
             />
           </Container>
         </Body>

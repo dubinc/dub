@@ -429,12 +429,13 @@ export function parseEventsQuery(searchParams: Record<string, string>) {
 export const analyticsFilterTB = z.object({
   eventType: analyticsEvents,
   workspaceId: z.string().optional(),
-  customerId: z.string().optional(),
-  start: z.string(),
-  end: z.string(),
-  granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
-  timezone: z.string().optional(),
   groupBy: analyticsGroupBy,
+  domain: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe("The domain(s) to retrieve analytics for."),
+  domainOperator: z.enum(["IN", "NOT IN"]).optional(),
   linkId: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -443,20 +444,14 @@ export const analyticsFilterTB = z.object({
       "The link IDs to retrieve analytics for (with operator support).",
     ),
   linkIdOperator: z.enum(["IN", "NOT IN"]).optional(),
-  folderId: z
+  tenantId: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional()
     .describe(
-      "The folder ID(s) to retrieve analytics for (with operator support).",
+      "The tenant ID(s) to retrieve analytics for (with operator support).",
     ),
-  folderIdOperator: z.enum(["IN", "NOT IN"]).optional(),
-  domain: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe("The domain(s) to retrieve analytics for."),
-  domainOperator: z.enum(["IN", "NOT IN"]).optional(),
+  tenantIdOperator: z.enum(["IN", "NOT IN"]).optional(),
   tagId: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -465,6 +460,37 @@ export const analyticsFilterTB = z.object({
       "The tag ID(s) to retrieve analytics for (with operator support).",
     ),
   tagIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  folderId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The folder ID(s) to retrieve analytics for (with operator support).",
+    ),
+  folderIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  groupId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The group ID(s) to retrieve analytics for (with operator support).",
+    ),
+  groupIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  partnerId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional()
+    .describe(
+      "The partner ID(s) to retrieve analytics for (with operator support).",
+    ),
+  partnerIdOperator: z.enum(["IN", "NOT IN"]).optional(),
+  customerId: z.string().optional(),
+  start: z.string(),
+  end: z.string(),
+  granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
+  timezone: z.string().optional(),
+  // Region is a special case - it's the subdivision part of a region code
+  region: z.string().optional(),
   root: z
     .union([
       z.string(),
@@ -482,34 +508,7 @@ export const analyticsFilterTB = z.object({
     .optional()
     .describe("Filter for root domain links."),
   rootOperator: z.enum(["IN", "NOT IN"]).optional(),
-  // Program/Partner/Group filters (not using advanced filtering for programId/tenantId/groupId)
   programId: z.string().optional(),
-  partnerId: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe(
-      "The partner ID(s) to retrieve analytics for (with operator support).",
-    ),
-  partnerIdOperator: z.enum(["IN", "NOT IN"]).optional(),
-  tenantId: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe(
-      "The tenant ID(s) to retrieve analytics for (with operator support).",
-    ),
-  tenantIdOperator: z.enum(["IN", "NOT IN"]).optional(),
-  groupId: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional()
-    .describe(
-      "The group ID(s) to retrieve analytics for (with operator support).",
-    ),
-  groupIdOperator: z.enum(["IN", "NOT IN"]).optional(),
-  // Region is a special case - it's the subdivision part of a region code
-  region: z.string().optional(),
   // All dimensional filters now go through the JSON filters parameter
   filters: z
     .string()

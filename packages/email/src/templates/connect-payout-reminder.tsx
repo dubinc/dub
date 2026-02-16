@@ -117,7 +117,10 @@ export default function ConnectPayoutReminder({
               </Link>
             </Section>
 
-            <Footer email={email} />
+            <Footer
+              email={email}
+              notificationSettingsUrl="https://partners.dub.co/profile/notifications"
+            />
           </Container>
         </Body>
       </Tailwind>
