@@ -48,6 +48,13 @@ export const GET = withPartnerProfile(
     const parsedParams = partnerProfileEventsQuerySchema.parse(searchParams);
     const { linkId, domain, key } = parsedParams;
 
+    if (linkId?.sqlOperator === "NOT IN") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "The 'is not' filter is not supported for partner events.",
+      });
+    }
+
     if (linkId) {
       // check to make sure all of the linkId.values are in the links
       if (
