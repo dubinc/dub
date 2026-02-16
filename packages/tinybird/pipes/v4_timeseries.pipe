@@ -138,11 +138,7 @@ SQL >
             {% end %}
         {% end %}
         {% if defined(root) %}
-            {% if defined(rootOperator) and String(rootOperator) == 'NOT IN' %}
-                AND NOT (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
-            {% else %}
-                AND (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
-            {% end %}
+            {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
         {% end %}
 
 
@@ -281,14 +277,6 @@ SQL >
                         {% if operator == 'IN' %} AND link_id IN (SELECT link_id FROM workspace_links WHERE folder_id IN {{ Array(values, 'String') }})
                         {% elif operator == 'NOT IN' %} AND link_id NOT IN (SELECT link_id FROM workspace_links WHERE folder_id IN {{ Array(values, 'String') }})
                         {% end %}
-                    {% elif field == 'root' %}
-                        {% if operator == 'IN' %}
-                            AND link_id IN (SELECT link_id FROM workspace_links WHERE 0{% for val in values %} OR {% if val == 'true' %}key = '_root'{% else %}key != '_root'{% end %}{% end %})
-                        {% elif operator == 'NOT IN' %}
-                            AND link_id NOT IN (SELECT link_id FROM workspace_links WHERE 0{% for val in values %} OR {% if val == 'true' %}key = '_root'{% else %}key != '_root'{% end %}{% end %})
-                        {% end %}
-                    {% elif field == 'saleType' %}
-                        {# saleType is handled in the sales subquery, not here #}
                     {% end %}
                 {% end %}
             {% end %}
@@ -462,14 +450,6 @@ SQL >
                         {% if operator == 'IN' %} AND link_id IN (SELECT link_id FROM workspace_links WHERE folder_id IN {{ Array(values, 'String') }})
                         {% elif operator == 'NOT IN' %} AND link_id NOT IN (SELECT link_id FROM workspace_links WHERE folder_id IN {{ Array(values, 'String') }})
                         {% end %}
-                    {% elif field == 'root' %}
-                        {% if operator == 'IN' %}
-                            AND link_id IN (SELECT link_id FROM workspace_links WHERE 0{% for val in values %} OR {% if val == 'true' %}key = '_root'{% else %}key != '_root'{% end %}{% end %})
-                        {% elif operator == 'NOT IN' %}
-                            AND link_id NOT IN (SELECT link_id FROM workspace_links WHERE 0{% for val in values %} OR {% if val == 'true' %}key = '_root'{% else %}key != '_root'{% end %}{% end %})
-                        {% end %}
-                    {% elif field == 'saleType' %}
-                        {# saleType is handled in the sales subquery, not here #}
                     {% end %}
                 {% elif item.get('operand', '').startswith('metadata.') %}
                     {% set metadataKey = item.get('operand', '').split('.')[1] %}
@@ -713,14 +693,6 @@ SQL >
                             {% if operator == 'IN' %} AND se.link_id IN (SELECT link_id FROM workspace_links WHERE folder_id IN {{ Array(values, 'String') }})
                             {% elif operator == 'NOT IN' %} AND se.link_id NOT IN (SELECT link_id FROM workspace_links WHERE folder_id IN {{ Array(values, 'String') }})
                             {% end %}
-                        {% elif field == 'root' %}
-                            {% if operator == 'IN' %}
-                                AND se.link_id IN (SELECT link_id FROM workspace_links WHERE 0{% for val in values %} OR {% if val == 'true' %}key = '_root'{% else %}key != '_root'{% end %}{% end %})
-                            {% elif operator == 'NOT IN' %}
-                                AND se.link_id NOT IN (SELECT link_id FROM workspace_links WHERE 0{% for val in values %} OR {% if val == 'true' %}key = '_root'{% else %}key != '_root'{% end %}{% end %})
-                            {% end %}
-                        {% elif field == 'saleType' %}
-                            {# saleType is handled after this subquery #}
                         {% end %}
                     {% elif item.get('operand', '').startswith('metadata.') %}
                         {% set metadataKey = item.get('operand', '').split('.')[1] %}
@@ -745,17 +717,7 @@ SQL >
     ) AS typed
     WHERE
         true
-        {% if defined(filters) %}
-            {% for item in JSON(filters, '[]') %}
-                {% if item.get('field', '') == 'saleType' %}
-                    {% set operator = item.get('operator', 'IN') %}
-                    {% set values = item.get('values', []) %}
-                    {% if operator == 'IN' %} AND typed.sale_type IN {{ Array(values, 'String') }}
-                    {% elif operator == 'NOT IN' %} AND typed.sale_type NOT IN {{ Array(values, 'String') }}
-                    {% end %}
-                {% end %}
-            {% end %}
-        {% end %}
+        {% if defined(saleType) %} AND typed.sale_type = {{ String(saleType) }} {% end %}
     GROUP BY interval
     ORDER BY interval
 

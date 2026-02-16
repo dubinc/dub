@@ -81,7 +81,7 @@ export function ensureParsedFilter(
 }
 
 /**
- * Extract workspace link filters (domain, tagIds, folderId, partnerId, root) into
+ * Extract workspace link filters (domain, tagIds, folderId, partnerId) into
  * separate values and operators for Tinybird.
  *
  * These filters are applied on the workspace_links node in Tinybird,
@@ -95,7 +95,6 @@ export function extractWorkspaceLinkFilters(params: {
   partnerId?: ParsedFilter;
   groupId?: ParsedFilter;
   tenantId?: ParsedFilter;
-  root?: ParsedFilter;
 }) {
   const extractFilter = (filter?: ParsedFilter) => ({
     values: filter?.values,
@@ -111,7 +110,6 @@ export function extractWorkspaceLinkFilters(params: {
   const partnerId = extractFilter(params.partnerId);
   const groupId = extractFilter(params.groupId);
   const tenantId = extractFilter(params.tenantId);
-  const root = extractFilter(params.root);
 
   return {
     linkId: linkId.values,
@@ -128,8 +126,6 @@ export function extractWorkspaceLinkFilters(params: {
     groupIdOperator: groupId.operator,
     tenantId: tenantId.values,
     tenantIdOperator: tenantId.operator,
-    root: root.values,
-    rootOperator: root.operator,
   };
 }
 
@@ -154,7 +150,6 @@ const SUPPORTED_FIELDS = [
   "utm_campaign",
   "utm_term",
   "utm_content",
-  "saleType",
 ] as const;
 
 type SupportedField = (typeof SUPPORTED_FIELDS)[number];

@@ -65,11 +65,7 @@ SQL >
             {% end %}
         {% end %}
         {% if defined(root) %}
-            {% if defined(rootOperator) and String(rootOperator) == 'NOT IN' %}
-                AND NOT (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
-            {% else %}
-                AND (0{% for val in root %}{% if val == 'true' %} OR key = '_root'{% else %} OR key != '_root'{% end %}{% end %})
-            {% end %}
+            {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
         {% end %}
 
 
@@ -238,10 +234,6 @@ SQL >
                         {# tagId is already filtered at workspace_links node level #}
                     {% elif field == 'folderId' %}
                         {# folderId is already filtered at workspace_links node level #}
-                    {% elif field == 'root' %}
-                        {# root is already filtered at workspace_links node level #}
-                    {% elif field == 'saleType' %}
-                        {# saleType only applies to sales events #}
                     {% end %}
                 {% end %}
             {% end %}
@@ -406,10 +398,6 @@ SQL >
                         {# tagId is already filtered at workspace_links node level #}
                     {% elif field == 'folderId' %}
                         {# folderId is already filtered at workspace_links node level #}
-                    {% elif field == 'root' %}
-                        {# root is already filtered at workspace_links node level #}
-                    {% elif field == 'saleType' %}
-                        {# saleType only applies to sales events #}
                     {% end %}
                 {% end %}
             {% end %}
@@ -618,10 +606,6 @@ SQL >
                                 {# tagId is already filtered at workspace_links node level #}
                             {% elif field == 'folderId' %}
                                 {# folderId is already filtered at workspace_links node level #}
-                            {% elif field == 'root' %}
-                                {# root is already filtered at workspace_links node level #}
-                            {% elif field == 'saleType' %}
-                                {# saleType is filtered in the outer query where the computed sale_type is available #}
                             {% end %}
                         {% end %}
                     {% end %}
@@ -630,17 +614,6 @@ SQL >
         ) AS t
     WHERE true
         {% if defined(saleType) %} AND t.sale_type = {{ String(saleType) }} {% end %}
-        {% if defined(filters) %}
-            {% for item in JSON(filters, '[]') %}
-                {% if item.get('field', '') == 'saleType' %}
-                    {% set operator = item.get('operator', 'IN') %}
-                    {% set values = item.get('values', []) %}
-                    {% if operator == 'IN' %} AND t.sale_type IN {{ Array(values, 'String') }}
-                    {% elif operator == 'NOT IN' %} AND t.sale_type NOT IN {{ Array(values, 'String') }}
-                    {% end %}
-                {% end %}
-            {% end %}
-        {% end %}
     ORDER BY t.timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
