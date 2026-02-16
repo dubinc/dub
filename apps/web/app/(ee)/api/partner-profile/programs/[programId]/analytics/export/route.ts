@@ -8,10 +8,8 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
-  MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { parseFilterValue } from "@dub/utils";
 import JSZip from "jszip";
 
 // GET /api/partner-profile/programs/[programId]/analytics/export – get export data for partner profile analytics
@@ -52,14 +50,6 @@ export const GET = withPartnerProfile(
     const parsedParams = partnerProfileAnalyticsQuerySchema.parse(searchParams);
 
     const { linkId, domain, key } = parsedParams;
-
-    if (linkId?.sqlOperator === "NOT IN") {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "The 'is not' filter is not supported for partner analytics export.",
-      });
-    }
 
     if (linkId) {
       // check to make sure all of the linkId.values are in the links
@@ -103,11 +93,9 @@ export const GET = withPartnerProfile(
         const response = await getAnalytics({
           ...parsedParams,
           workspaceId: program.workspaceId,
-          ...(linkId
-            ? { linkId }
-            : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
-              ? { partnerId: partner.id }
-              : { linkId: parseFilterValue(links.map((link) => link.id)) }),
+          // Always scope to partner for security, linkId filter is applied additionally
+          partnerId: partner.id,
+          ...(parsedParams.linkId && { linkId: parsedParams.linkId }),
           dataAvailableFrom: program.startedAt ?? program.createdAt,
           groupBy: endpoint,
         });

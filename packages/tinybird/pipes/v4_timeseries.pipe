@@ -182,7 +182,8 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+        {% end %}
+        {% if defined(programId) or defined(partnerId) or defined(groupId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -338,7 +339,8 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+        {% end %}
+        {% if defined(programId) or defined(partnerId) or defined(groupId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -589,7 +591,8 @@ SQL >
                 {% else %}
                     AND se.link_id IN {{ Array(linkId, 'String') }}
                 {% end %}
-            {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+            {% end %}
+            {% if defined(programId) or defined(partnerId) or defined(groupId) or defined(
                 tenantId
                 ) or defined(folderId) or defined(domain) or defined(
                     tagId
