@@ -1,7 +1,11 @@
 import { transformLink } from "@/lib/api/links";
 import { toCamelCase } from "@dub/utils";
 import { PostbackTrigger } from "../constants";
-import { leadEventPostbackSchema, saleEventPostbackSchema } from "../schemas";
+import {
+  commissionEventPostbackSchema,
+  leadEventPostbackSchema,
+  saleEventPostbackSchema,
+} from "../schemas";
 
 interface PostbackEventEnricher {
   enrich(data: Record<string, unknown>): Record<string, unknown>;
@@ -89,7 +93,5 @@ postbackEventEnrichers.register("sale.created", {
 });
 
 postbackEventEnrichers.register("commission.created", {
-  enrich: (data) => {
-    return data;
-  },
+  enrich: (data) => commissionEventPostbackSchema.parse(data),
 });

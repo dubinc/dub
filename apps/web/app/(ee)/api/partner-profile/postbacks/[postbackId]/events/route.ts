@@ -1,6 +1,6 @@
 import { getPostbackOrThrow } from "@/lib/api/postbacks/get-postback-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { getPartnerPostbackEvents } from "@/lib/tinybird/get-partner-postback-events";
+import { getPostbackEvents } from "@/lib/postback/api/get-postback-events";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/postbacks/[postbackId]/events
@@ -13,7 +13,7 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
     });
 
-    const events = await getPartnerPostbackEvents({
+    const events = await getPostbackEvents({
       postbackId,
     });
 

@@ -87,6 +87,7 @@ export const commissionEventPostbackSchema = CommissionSchema.pick({
   quantity: true,
   createdAt: true,
 }).extend({
+  link: postbackLinkSchema.nullable(),
   customer: postbackCustomerSchema.nullable(),
 });
 
@@ -104,13 +105,19 @@ export const postbackCallbackBodySchema = z.object({
   sourceBody: z.string(), // Original request payload from Dub
 });
 
-// Tinybird postback event schema
-export const postbackEventSchemaTB = z.object({
+export const postbackEventInputSchemaTB = z.object({
+  postback_id: z.string(),
   event_id: z.string(),
+  message_id: z.string(),
   event: z.enum(POSTBACK_TRIGGERS),
   url: z.url(),
   response_status: z.number(),
   response_body: z.string(),
   request_body: z.string(),
   timestamp: z.string(),
+});
+
+export const postbackEventOutputSchemaTB = postbackEventInputSchemaTB.omit({
+  postback_id: true,
+  message_id: true,
 });

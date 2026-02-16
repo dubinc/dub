@@ -1,9 +1,9 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { recordPostbackEvent } from "@/lib/postback/api/record-postback-event";
 import {
   postbackCallbackBodySchema,
   postbackCallbackParamsSchema,
 } from "@/lib/postback/schemas";
-import { recordPostbackEvent } from "@/lib/tinybird/record-postback-event";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";

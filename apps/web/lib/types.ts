@@ -37,7 +37,7 @@ import {
 } from "./folder/constants";
 import {
   partnerPostbackSchema,
-  postbackEventSchemaTB,
+  postbackEventInputSchemaTB,
 } from "./postback/schemas";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
@@ -832,6 +832,6 @@ export type ActivityLog = z.infer<typeof activityLogSchema>;
 
 export type PartnerPostbackProps = z.infer<typeof partnerPostbackSchema>;
 
-export type PostbackEventProps = z.infer<typeof postbackEventSchemaTB> & {
+export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB> & {
   request_body: Record<string, unknown>;
 };
