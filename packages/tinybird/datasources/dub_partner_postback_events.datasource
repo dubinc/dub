@@ -10,7 +10,8 @@ SCHEMA >
     `response_status` UInt16 `json:$.response_status`,
     `request_body` String `json:$.request_body`,
     `response_body` String `json:$.response_body`,
-    `message_id` String `json:$.message_id`
+    `message_id` String `json:$.message_id`,
+    `retry_attempt` UInt8 `json:$.retry_attempt`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

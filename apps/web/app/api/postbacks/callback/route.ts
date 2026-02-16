@@ -17,7 +17,7 @@ export const POST = async (req: Request) => {
     rawBody,
   });
 
-  const { status, url, sourceMessageId, body, sourceBody } =
+  const { status, url, sourceMessageId, body, sourceBody, retried } =
     postbackCallbackBodySchema.parse(JSON.parse(rawBody));
 
   const { postbackId, eventId, event } = postbackCallbackParamsSchema.parse(
@@ -49,6 +49,7 @@ export const POST = async (req: Request) => {
     response_status: status === -1 ? 503 : status,
     request_body: request,
     response_body: response,
+    retry_attempt: retried,
   });
 
   if (tbResponse.successful_rows === 0) {

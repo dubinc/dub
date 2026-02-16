@@ -39,14 +39,6 @@ export abstract class PostbackAdapter {
       searchParams,
     );
 
-    const failureCallbackUrl = buildCallbackUrl(
-      `${APP_DOMAIN_WITH_NGROK}/api/postbacks/failure`,
-      {
-        ...searchParams,
-        failed: "true",
-      },
-    );
-
     const signature = await createWebhookSignature(
       this.postback.secret,
       transformedPayload,
@@ -54,7 +46,7 @@ export abstract class PostbackAdapter {
 
     const response = await qstash.publishJSON({
       callback: callbackUrl.href,
-      failureCallback: failureCallbackUrl.href,
+      failureCallback: callbackUrl.href,
       url: this.postback.url,
       body: transformedPayload,
       headers: {

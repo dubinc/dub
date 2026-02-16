@@ -107,6 +107,7 @@ export const postbackCallbackBodySchema = z.object({
   sourceMessageId: z.string(),
   body: z.string().optional().default(""),
   sourceBody: z.string(),
+  retried: z.number().optional().default(0),
 });
 
 export const postbackEventInputSchemaTB = z.object({
@@ -119,6 +120,7 @@ export const postbackEventInputSchemaTB = z.object({
   response_body: z.string(),
   request_body: z.string(),
   timestamp: z.string(),
+  retry_attempt: z.number(),
 });
 
 export const postbackEventOutputSchemaTB = postbackEventInputSchemaTB.omit({
