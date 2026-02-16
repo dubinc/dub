@@ -49,7 +49,7 @@ export const sendPartnerPostback = async ({
   }
 
   const adapters = postbacks.map((postback) => {
-    switch (postback.destination) {
+    switch (postback.receiver) {
       case "slack":
         return new PostbackSlackAdapter(postback);
       default:

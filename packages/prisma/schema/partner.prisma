@@ -149,23 +149,22 @@ model PartnerSalesChannel {
   @@unique([partnerId, salesChannel])
 }
 
-enum PostbackDestination {
+enum PostbackReceiver {
   custom
   slack
-  discord
 }
 
 model PartnerPostback {
-  id          String              @id @default(cuid())
-  partnerId   String
-  name        String
-  url         String              @db.LongText
-  secret      String
-  triggers    Json
-  destination PostbackDestination
-  disabledAt  DateTime?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
+  id         String           @id @default(cuid())
+  partnerId  String
+  name       String
+  url        String           @db.LongText
+  secret     String
+  triggers   Json
+  receiver   PostbackReceiver
+  disabledAt DateTime?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
 
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 

@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { createToken } from "@/lib/api/oauth/utils";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { identifyPostbackDestination } from "@/lib/postback/api/utils";
+import { identifyPostbackChannel } from "@/lib/postback/api/utils";
 import {
   POSTBACK_SECRET_LENGTH,
   POSTBACK_SECRET_PREFIX,
@@ -55,7 +55,7 @@ export const POST = withPartnerProfile(
         url,
         secret,
         triggers,
-        destination: identifyPostbackDestination(url),
+        receiver: identifyPostbackChannel(url),
       },
     });
 

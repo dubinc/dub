@@ -11,7 +11,7 @@ export function PostbackCard(postback: PartnerPostbackProps) {
     >
       <div className="flex items-center gap-x-3">
         <div className="flex-shrink-0 rounded-md border border-neutral-200 bg-gradient-to-t from-neutral-100 p-2.5">
-          {postback.destination === "slack" ? (
+          {postback.receiver === "slack" ? (
             <Slack className="size-6" />
           ) : (
             <TokenAvatar id={postback.name} className="size-6" />

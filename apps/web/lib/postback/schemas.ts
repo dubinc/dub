@@ -1,5 +1,5 @@
 import { parseUrlSchema } from "@/lib/zod/schemas/utils";
-import { PostbackDestination } from "@dub/prisma/client";
+import { PostbackReceiver } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { CommissionSchema } from "../zod/schemas/commissions";
@@ -12,7 +12,7 @@ export const partnerPostbackSchema = z.object({
   name: z.string(),
   url: z.string(),
   triggers: z.array(z.enum(POSTBACK_TRIGGERS)),
-  destination: z.enum(PostbackDestination),
+  receiver: z.enum(PostbackReceiver),
   disabledAt: z.coerce.date().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
