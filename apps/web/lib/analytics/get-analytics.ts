@@ -209,8 +209,9 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         domain: true,
         key: true,
         url: true,
-        comments: true,
         title: true,
+        comments: true,
+        partnerId: true,
         createdAt: true,
       },
     });
@@ -237,8 +238,9 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             domain: link.domain,
             key: punyEncode(link.key),
           }),
-          comments: link.comments,
           title: link.title || null,
+          comments: link.comments,
+          partnerId: link.partnerId,
           createdAt: link.createdAt.toISOString(),
           ...item,
         });

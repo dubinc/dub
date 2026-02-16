@@ -48,13 +48,6 @@ export const GET = withPartnerProfile(
     const parsedParams = partnerProfileEventsQuerySchema.parse(searchParams);
     const { linkId, domain, key } = parsedParams;
 
-    if (linkId?.sqlOperator === "NOT IN") {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "The 'is not' filter is not supported for partner events.",
-      });
-    }
-
     if (linkId) {
       // check to make sure all of the linkId.values are in the links
       if (
@@ -64,6 +57,24 @@ export const GET = withPartnerProfile(
           code: "not_found",
           message: "One or more links are not found",
         });
+      }
+
+      if (linkId.sqlOperator === "NOT IN") {
+        // if using NOT IN operator, we need to include all links except the ones in the linkId.values
+        const finalIncludedLinkIds = links
+          .filter((link) => !linkId.values.includes(link.id))
+          .map((link) => link.id);
+
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          return NextResponse.json([], { status: 200 });
+        }
+
+        parsedParams.linkId = {
+          operator: "IS",
+          sqlOperator: "IN",
+          values: finalIncludedLinkIds,
+        };
       }
     } else if (domain && key) {
       const link = links.find(
@@ -87,8 +98,8 @@ export const GET = withPartnerProfile(
     const events = await getEvents({
       ...parsedParams,
       workspaceId: program.workspaceId,
-      ...(linkId
-        ? { linkId }
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),

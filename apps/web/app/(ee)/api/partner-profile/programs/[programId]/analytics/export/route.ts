@@ -39,27 +39,15 @@ export const GET = withPartnerProfile(
 
     // Early return if partner has no links
     if (links.length === 0) {
-      const zip = new JSZip();
-      const zipData = await zip.generateAsync({ type: "nodebuffer" });
-      return new Response(zipData as unknown as BodyInit, {
-        headers: {
-          "Content-Type": "application/zip",
-          "Content-Disposition": "attachment; filename=analytics_export.zip",
-        },
+      throw new DubApiError({
+        code: "not_found",
+        message: "No links found",
       });
     }
 
     const parsedParams = partnerProfileAnalyticsQuerySchema.parse(searchParams);
 
     const { linkId, domain, key } = parsedParams;
-
-    if (linkId?.sqlOperator === "NOT IN") {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "The 'is not' filter is not supported for partner analytics export.",
-      });
-    }
 
     if (linkId) {
       // check to make sure all of the linkId.values are in the links
@@ -70,6 +58,27 @@ export const GET = withPartnerProfile(
           code: "not_found",
           message: "One or more links are not found",
         });
+      }
+
+      if (linkId.sqlOperator === "NOT IN") {
+        // if using NOT IN operator, we need to include all links except the ones in the linkId.values
+        const finalIncludedLinkIds = links
+          .filter((link) => !linkId.values.includes(link.id))
+          .map((link) => link.id);
+
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "No links found",
+          });
+        }
+
+        parsedParams.linkId = {
+          operator: "IS",
+          sqlOperator: "IN",
+          values: finalIncludedLinkIds,
+        };
       }
     } else if (domain && key) {
       const link = links.find(
@@ -103,8 +112,8 @@ export const GET = withPartnerProfile(
         const response = await getAnalytics({
           ...parsedParams,
           workspaceId: program.workspaceId,
-          ...(linkId
-            ? { linkId }
+          ...(parsedParams.linkId
+            ? { linkId: parsedParams.linkId }
             : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
               ? { partnerId: partner.id }
               : { linkId: parseFilterValue(links.map((link) => link.id)) }),
