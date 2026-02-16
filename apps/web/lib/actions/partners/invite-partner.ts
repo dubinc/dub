@@ -7,7 +7,6 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
-import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
@@ -17,7 +16,7 @@ export const invitePartnerAction = authActionClient
   .inputSchema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { email, username, name, groupId } = parsedInput;
+    const { groupId, email, username, name } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -26,30 +25,26 @@ export const invitePartnerAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [program, programEnrollment] = await Promise.all([
-      getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-        include: {
-          emailDomains: {
-            where: {
-              status: "verified",
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+      include: {
+        partners: {
+          where: {
+            partner: {
+              email,
             },
           },
         },
-      }),
-
-      prisma.programEnrollment.findFirst({
-        where: {
-          programId,
-          partner: {
-            email,
+        emailDomains: {
+          where: {
+            status: "verified",
           },
         },
-      }),
-    ]);
+      },
+    });
 
-    if (programEnrollment) {
+    if (program.partners.length > 0) {
       const statusMessages = {
         invited: "has already been invited to",
         approved: "is already enrolled in",
@@ -58,7 +53,7 @@ export const invitePartnerAction = authActionClient
         pending: "has a pending application to join",
       };
 
-      const message = statusMessages[programEnrollment.status];
+      const message = statusMessages[program.partners[0].status];
 
       if (message) {
         throw new Error(`Partner ${email} ${message} this program.`);

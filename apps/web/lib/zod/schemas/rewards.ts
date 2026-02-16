@@ -111,7 +111,7 @@ export const REWARD_CONDITIONS: Record<
               },
               {
                 id: "submitted",
-                label: "qualified lead",
+                label: "submitted referral",
               },
               {
                 id: "trial",
@@ -146,6 +146,11 @@ export const REWARD_CONDITIONS: Record<
                 label: "closed won deal",
               },
             ],
+          },
+          {
+            id: "subscriptionDurationMonths",
+            label: "Subscription duration",
+            type: "number",
           },
         ],
       },
@@ -347,6 +352,7 @@ export const rewardContextSchema = z.object({
     .object({
       country: z.string().nullish(),
       source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
+      subscriptionDurationMonths: z.number().nullish(),
     })
     .optional(),
 

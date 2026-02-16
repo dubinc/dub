@@ -154,8 +154,17 @@ export const PartnerPlatformsForm = forwardRef<
       executeAsync: startSocialVerification,
       isPending: isStartingSocialVerification,
     } = useAction(startPartnerPlatformVerificationAction, {
-      onSuccess: ({ input, data }) => {
+      onSuccess: async ({ input, data }) => {
         if (!input || !data) {
+          return;
+        }
+
+        // For website: auto-verified when email domain matches website domain
+        if (data.type === "auto_verified") {
+          toast.success(
+            "Website automatically verified because your email domain matches the website domain.",
+          );
+          await mutate("/api/partner-profile");
           return;
         }
 

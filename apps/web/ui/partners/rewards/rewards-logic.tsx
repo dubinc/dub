@@ -2,6 +2,8 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
@@ -273,6 +275,7 @@ function ConditionLogic({
   conditionIndex: number;
   onRemove?: () => void;
 }) {
+  const { program } = useProgram();
   const modifierKey = `modifiers.${modifierIndex}` as const;
   const conditionKey = `${modifierKey}.conditions.${conditionIndex}` as const;
 
@@ -511,10 +514,20 @@ function ConditionLogic({
                             (condition.value as string[] | undefined) ??
                             (isArrayValue ? [] : undefined)
                           }
-                          items={attribute.options.map(({ id, label }) => ({
-                            text: label,
-                            value: id,
-                          }))}
+                          items={attribute.options
+                            .filter(
+                              (attribute) =>
+                                isCustomerSourceCondition &&
+                                (attribute.id !== "submitted" ||
+                                  (program &&
+                                    REFERRAL_ENABLED_PROGRAM_IDS.includes(
+                                      program.id,
+                                    ))),
+                            )
+                            .map(({ id, label }) => ({
+                              text: label,
+                              value: id,
+                            }))}
                           onSelect={(value) => {
                             setValue(conditionKey, {
                               ...condition,
@@ -564,6 +577,10 @@ function ConditionLogic({
                         />
                       )}
                     </InlineBadgePopover>
+
+                    {condition.attribute === "subscriptionDurationMonths" && (
+                      <span> months</span>
+                    )}
 
                     {condition.attribute === "productId" && condition.value && (
                       <button
