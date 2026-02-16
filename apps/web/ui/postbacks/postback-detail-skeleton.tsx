@@ -13,9 +13,10 @@ export function PostbackDetailSkeleton() {
             <div className="h-3 w-48 animate-pulse rounded-full bg-neutral-100" />
           </div>
         </div>
+        <div className="size-8 shrink-0 animate-pulse rounded-md border border-neutral-200 bg-neutral-100" />
       </div>
-      <div className="space-y-6">
-        <h2 className="text-lg font-semibold">Events</h2>
+      <div className="space-y-4">
+        <h2 className="text-sm font-medium">Events</h2>
         <PostbackEventListSkeleton />
       </div>
     </>
