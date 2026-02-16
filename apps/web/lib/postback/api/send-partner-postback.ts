@@ -9,12 +9,14 @@ interface SendPartnerPostbackParams {
   partnerId: string;
   event: PostbackTrigger;
   data: Record<string, unknown>;
+  skipEnrichment?: boolean; // Skip enrichment if the data is already enriched when sending a test event
 }
 
 export const sendPartnerPostback = async ({
   partnerId,
   event,
   data,
+  skipEnrichment = false,
 }: SendPartnerPostbackParams) => {
   const postbacks = await prisma.partnerPostback.findMany({
     where: {
@@ -36,9 +38,10 @@ export const sendPartnerPostback = async ({
   let enrichedData: Record<string, unknown> | undefined;
 
   try {
-    enrichedData = postbackEventEnrichers.has(event)
-      ? postbackEventEnrichers.enrich(event, data)
-      : data;
+    enrichedData =
+      !skipEnrichment && postbackEventEnrichers.has(event)
+        ? postbackEventEnrichers.enrich(event, data)
+        : data;
   } catch (error) {
     console.error("[sendPartnerPostback] Error enriching data", error);
     return;

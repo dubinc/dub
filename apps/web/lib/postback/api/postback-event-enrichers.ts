@@ -23,10 +23,6 @@ class PostbackEventEnrichers {
 
     this.enrichers.set(event, enricher);
 
-    console.log(
-      `[PostbackEventEnrichers] Registered enricher for event ${event}.`,
-    );
-
     return this;
   }
 

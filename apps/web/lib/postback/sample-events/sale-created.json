@@ -1,1 +1,36 @@
-{}
+{
+  "eventName": "Subscription",
+  "click": {
+    "id": "GWGrkftJdYlZD2mq",
+    "timestamp": "2025-02-03T09:35:57.926Z",
+    "url": "https://github.com/dubinc/dub",
+    "country": "US",
+    "city": "San Jose",
+    "region": "sfo1",
+    "continent": "NA",
+    "device": "Desktop",
+    "browser": "Chrome",
+    "os": "Mac OS",
+    "referer": "(direct)",
+    "refererUrl": "(direct)",
+    "qr": false,
+    "ip": "185.211.32.242"
+  },
+  "link": {
+    "id": "cm0lcuvtz000xcutmqw4a7wi3",
+    "shortLink": "https://dub.sh/track-test",
+    "domain": "dub.sh",
+    "key": "track-test"
+  },
+  "customer": {
+    "id": "cm25onzuv0001s1bbxchrc0ae",
+    "country": "US",
+    "createdAt": "2024-10-12T04:55:36.007Z",
+    "firstSaleAt": null,
+    "subscriptionCanceledAt": null
+  },
+  "sale": {
+    "amount": 100,
+    "currency": "usd"
+  }
+}

@@ -23,10 +23,6 @@ export class PostbackEventTransformers {
 
     this.transformers.set(event, transformer);
 
-    console.log(
-      `[PostbackEventTransformers] Registered transformer for event ${event}.`,
-    );
-
     return this;
   }
 
