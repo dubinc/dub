@@ -112,30 +112,28 @@ function AddEditPostbackModal({
     }
 
     // Create postback
-    const { data: createdPostback } = await partnerProfileFetch(
-      "/api/partner-profile/postbacks",
-      {
-        body: {
-          name: data.name,
-          url: data.url,
-          triggers: data.triggers,
-        },
-        onSuccess: async () => {
-          toast.success("Postback created");
-          await mutatePrefix("/api/partner-profile/postbacks");
-        },
-        onError: ({ error }) => {
-          toast.error(error.error.message);
-        },
+    await partnerProfileFetch("/api/partner-profile/postbacks", {
+      body: {
+        name: data.name,
+        url: data.url,
+        triggers: data.triggers,
       },
-    );
+      onSuccess: async ({ data: createdPostback }) => {
+        toast.success("Postback created");
 
-    if (createdPostback?.secret) {
-      onCreatedWithSecret?.(createdPostback.secret);
-    }
+        if (createdPostback?.secret) {
+          onCreatedWithSecret?.(createdPostback.secret);
+        }
 
-    setShowModal(false);
-    onSuccess();
+        setShowModal(false);
+        onSuccess();
+
+        await mutatePrefix("/api/partner-profile/postbacks");
+      },
+      onError: ({ error }) => {
+        toast.error(error.error.message);
+      },
+    });
   }
 
   return (
