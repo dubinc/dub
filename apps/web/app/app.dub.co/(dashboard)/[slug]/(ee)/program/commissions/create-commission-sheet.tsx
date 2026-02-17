@@ -1,6 +1,7 @@
 import { createManualCommissionAction } from "@/lib/actions/partners/create-manual-commission";
 import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerActivityResponse } from "@/lib/types";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
@@ -54,6 +55,7 @@ function CreateCommissionSheetContent({
   const { id: workspaceId, defaultProgramId, slug } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [hasProductId, setHasProductId] = useState(false);
+  const [hasDate, setHasDate] = useState(false);
 
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
@@ -107,6 +109,33 @@ function CreateCommissionSheetContent({
     "description",
   ]);
 
+  const { rewards } = useRewards();
+  const hasLeadRewards = rewards?.some((reward) => reward.event === "lead");
+
+  const commissionTypeOptions = [
+    {
+      value: "custom",
+      label: "One-time",
+      description:
+        "Pay a one-time commission to a partner (e.g. bonuses, reimbursements, etc.)",
+    },
+    ...(hasLeadRewards
+      ? [
+          {
+            value: "lead",
+            label: "Lead",
+            description: "Reward a partner for a qualified signup/referral.",
+          },
+        ]
+      : []),
+    {
+      value: "sale",
+      label: "Recurring sale",
+      description:
+        "Reward a partner for a recurring subscription from a referred customer.",
+    },
+  ];
+
   // Fetch customer activity data when customer is selected and we're using existing events
   const { data: customerActivity, isLoading: isCustomerActivityLoading } =
     useSWR<CustomerActivityResponse>(
@@ -127,6 +156,12 @@ function CreateCommissionSheetContent({
       setValue("leadEventDate", null);
     }
   }, [hasCustomLeadEventDate, setValue]);
+
+  useEffect(() => {
+    if (!hasDate) {
+      setValue("date", null);
+    }
+  }, [hasDate, setValue]);
 
   useEffect(() => {
     if (commissionType === "custom") {
@@ -342,18 +377,21 @@ function CreateCommissionSheetContent({
                     </label>
                     <ToggleGroup
                       className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
-                      optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
+                      optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm normal-case"
                       indicatorClassName="bg-white"
-                      options={[
-                        { value: "custom", label: "One-time" },
-                        { value: "lead", label: "Lead" },
-                        { value: "sale", label: "Sale" },
-                      ]}
+                      options={commissionTypeOptions}
                       selected={commissionType}
                       selectAction={(id: CommissionType) =>
                         setCommissionType(id)
                       }
                     />
+                    <p className="mt-2 text-xs text-neutral-500">
+                      {
+                        commissionTypeOptions.find(
+                          (option) => option.value === commissionType,
+                        )?.description
+                      }
+                    </p>
                   </div>
 
                   {commissionType !== "custom" && (
@@ -406,19 +444,6 @@ function CreateCommissionSheetContent({
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
                   <div className="grid grid-cols-1 gap-6">
-                    <div>
-                      <SmartDateTimePicker
-                        value={date}
-                        onChange={(date) => {
-                          setValue("date", date, {
-                            shouldDirty: true,
-                          });
-                        }}
-                        label="Date"
-                        placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
-                      />
-                    </div>
-
                     <div>
                       <label
                         htmlFor="amount"
@@ -502,6 +527,36 @@ function CreateCommissionSheetContent({
                           })}
                         />
                       </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-4">
+                        <Switch
+                          fn={setHasDate}
+                          checked={hasDate}
+                          trackDimensions="w-8 h-4"
+                          thumbDimensions="w-3 h-3"
+                          thumbTranslate="translate-x-4"
+                        />
+                        <h3 className="text-sm font-medium text-neutral-700">
+                          Add a custom date
+                        </h3>
+                      </div>
+
+                      {hasDate && (
+                        <div className="mt-4">
+                          <SmartDateTimePicker
+                            value={date}
+                            onChange={(date) => {
+                              setValue("date", date, {
+                                shouldDirty: true,
+                              });
+                            }}
+                            label="Custom date"
+                            placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 </ProgramSheetAccordionContent>
@@ -684,19 +739,6 @@ function CreateCommissionSheetContent({
                       ) : commissionType === "sale" ? (
                         <div className="grid grid-cols-1 gap-6">
                           <div>
-                            <SmartDateTimePicker
-                              value={saleEventDate}
-                              onChange={(date) => {
-                                setValue("saleEventDate", date, {
-                                  shouldDirty: true,
-                                });
-                              }}
-                              label="Sale date"
-                              placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
-                            />
-                          </div>
-
-                          <div>
                             <label
                               htmlFor="saleAmount"
                               className="flex items-center space-x-2"
@@ -744,6 +786,19 @@ function CreateCommissionSheetContent({
                                 USD
                               </span>
                             </div>
+                          </div>
+
+                          <div>
+                            <SmartDateTimePicker
+                              value={saleEventDate}
+                              onChange={(date) => {
+                                setValue("saleEventDate", date, {
+                                  shouldDirty: true,
+                                });
+                              }}
+                              label="Sale date"
+                              placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                            />
                           </div>
 
                           <div>
