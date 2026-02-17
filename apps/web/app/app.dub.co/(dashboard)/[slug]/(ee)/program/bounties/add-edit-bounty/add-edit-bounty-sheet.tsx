@@ -34,7 +34,7 @@ import { cn, formatDate } from "@dub/utils";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { BountyCriteria } from "./bounty-criteria-section";
+import { BountyCriteria } from "./bounty-criteria";
 import { BountyFormDataExtended } from "./bounty-form-context";
 import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
