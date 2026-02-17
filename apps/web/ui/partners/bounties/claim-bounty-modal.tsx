@@ -8,10 +8,12 @@ import {
 } from "@/lib/bounty/constants";
 import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import {
+  getBountySocialMetricsChannel,
   getRewardCriteriaTexts,
   getSubmissionRequirementTexts,
 } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
@@ -64,8 +66,8 @@ interface Url {
 
 function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const { submission } = bounty;
-
   const { programEnrollment } = useProgramEnrollment();
+  const { platformsVerified } = usePartnerProfile();
 
   const [success, setSuccess] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -241,6 +243,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
       setIsDraft(null); // reset submit state on error
     }
   };
+
+  const socialChannel = getBountySocialMetricsChannel(bounty);
 
   return (
     <>
@@ -684,12 +688,19 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                   </div>
                 </div>
               ) : (
-                <Button
-                  variant="primary"
-                  text={submission ? "Continue submission" : "Claim bounty"}
-                  className="w-full rounded-lg"
-                  onClick={() => setIsFormOpen(true)}
-                />
+                <>
+                  {socialChannel &&
+                  !platformsVerified?.[socialChannel.value] ? (
+                    <SocialAccountNotVerifiedWarning bounty={bounty} />
+                  ) : (
+                    <Button
+                      variant="primary"
+                      text={submission ? "Continue submission" : "Claim bounty"}
+                      className="w-full rounded-lg"
+                      onClick={() => setIsFormOpen(true)}
+                    />
+                  )}
+                </>
               )}
             </div>
           )}
@@ -757,6 +768,36 @@ function DescriptionWrapper({ children }: { children: React.ReactNode }) {
   return (
     <div className="border-border-subtle flex flex-col space-y-5 border-t p-6 text-sm max-sm:px-4">
       {children}
+    </div>
+  );
+}
+
+function SocialAccountNotVerifiedWarning({
+  bounty,
+}: {
+  bounty: PartnerBountyProps;
+}) {
+  const channel = getBountySocialMetricsChannel(bounty);
+
+  if (!channel) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg bg-orange-50 p-2 text-center">
+      <div className="px-2 text-sm font-medium text-orange-900">
+        {`A verified ${channel?.label} account must be connected to your Dub partner profile to claim this bounty.`}
+
+        <Link
+          href="https://dub.co/help/article/receiving-payouts"
+          target="_blank"
+          className="ml-1 underline underline-offset-2"
+        >
+          Learn more
+        </Link>
+      </div>
+
+      <Button text="View profile" className="h-7 w-full rounded-lg" />
     </div>
   );
 }

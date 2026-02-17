@@ -2,12 +2,16 @@ import { currencyFormatter } from "@dub/utils";
 import { PartnerBountyProps } from "../types";
 import { SOCIAL_METRICS_CHANNELS } from "./constants";
 
-function getChannel(channelValue?: string) {
-  if (!channelValue) {
+export function getBountySocialMetricsChannel(bounty: PartnerBountyProps) {
+  const socialMetrics = bounty.submissionRequirements?.socialMetrics;
+
+  if (!socialMetrics) {
     return null;
   }
 
-  return SOCIAL_METRICS_CHANNELS.find(({ value }) => value === channelValue);
+  return SOCIAL_METRICS_CHANNELS.find(
+    ({ value }) => value === socialMetrics.channel,
+  );
 }
 
 export function getSubmissionRequirementTexts(
@@ -19,7 +23,7 @@ export function getSubmissionRequirementTexts(
     return [];
   }
 
-  const channel = getChannel(socialMetrics.channel);
+  const channel = getBountySocialMetricsChannel(bounty);
 
   if (!channel) {
     return [];
@@ -38,7 +42,7 @@ export function getRewardCriteriaTexts(bounty: PartnerBountyProps): string[] {
     return [];
   }
 
-  const channel = getChannel(socialMetrics.channel);
+  const channel = getBountySocialMetricsChannel(bounty);
 
   if (!channel || !bounty.rewardAmount) {
     return [];
