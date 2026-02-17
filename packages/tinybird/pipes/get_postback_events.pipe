@@ -7,7 +7,7 @@ SQL >
 
     %
             SELECT *
-            FROM dub_partner_postback_events
+            FROM dub_postback_events
             WHERE
                 postback_id
                 = {{
