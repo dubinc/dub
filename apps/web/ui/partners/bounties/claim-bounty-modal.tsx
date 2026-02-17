@@ -24,6 +24,7 @@ import {
   Button,
   Calendar6,
   Check2,
+  CircleCheckFill,
   FileUpload,
   Gift,
   LoadingSpinner,
@@ -40,7 +41,7 @@ import Linkify from "linkify-react";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
@@ -62,6 +63,14 @@ interface FileInput {
 interface Url {
   id: string;
   url: string;
+}
+
+/** Stub: replace with real backend verification later. */
+async function verifySocialMetricsSubmission(
+  _url: string,
+  _bounty: PartnerBountyProps,
+): Promise<{ fromAccount: boolean; afterStartDate: boolean }> {
+  return Promise.resolve({ fromAccount: true, afterStartDate: true });
 }
 
 function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
@@ -89,16 +98,40 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
     return [];
   });
 
+  const socialChannel = getBountySocialMetricsChannel(bounty);
   const [urls, setUrls] = useState<Url[]>(() => {
     if (submission?.urls && submission.urls.length > 0) {
-      return submission.urls.map((url) => ({
-        id: uuid(),
-        url: url,
-      }));
+      const urlsToUse = socialChannel
+        ? submission.urls.slice(1)
+        : submission.urls;
+      if (urlsToUse.length === 0) return [{ id: uuid(), url: "" }];
+      return urlsToUse.map((url) => ({ id: uuid(), url }));
     }
-
     return [{ id: uuid(), url: "" }];
   });
+  const [socialMetricsUrl, setSocialMetricsUrl] = useState(() =>
+    socialChannel && submission?.urls?.[0] ? submission.urls[0] : "",
+  );
+  const [socialMetricsVerification, setSocialMetricsVerification] = useState<{
+    fromAccount: boolean;
+    afterStartDate: boolean;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!socialChannel || !socialMetricsUrl.trim()) {
+      setSocialMetricsVerification(null);
+      return;
+    }
+    let cancelled = false;
+    verifySocialMetricsSubmission(socialMetricsUrl.trim(), bounty).then(
+      (result) => {
+        if (!cancelled) setSocialMetricsVerification(result);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [socialChannel, socialMetricsUrl, bounty]);
 
   const { executeAsync: uploadFile } = useAction(
     uploadBountySubmissionFileAction,
@@ -200,7 +233,11 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         size: file?.size || 0,
       }));
 
-    const finalUrls = urls.map(({ url }) => url).filter(Boolean);
+    const baseUrls = urls.map(({ url }) => url).filter(Boolean);
+    const finalUrls =
+      socialChannel && socialMetricsUrl.trim()
+        ? [socialMetricsUrl.trim(), ...baseUrls]
+        : baseUrls;
 
     try {
       // Check the submission requirements are met for non-draft submissions
@@ -208,6 +245,10 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         setShowConfirmModal(false);
         if (imageRequired && finalFiles.length === 0) {
           throw new Error("You must upload at least one image.");
+        }
+
+        if (socialChannel && !socialMetricsUrl.trim()) {
+          throw new Error(`You must provide the ${socialChannel.label} link.`);
         }
 
         if (urlRequired && finalUrls.length === 0) {
@@ -243,8 +284,6 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
       setIsDraft(null); // reset submit state on error
     }
   };
-
-  const socialChannel = getBountySocialMetricsChannel(bounty);
 
   return (
     <>
@@ -594,6 +633,27 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       </div>
                     )}
 
+                    {socialChannel && (
+                      <div>
+                        <label className="block">
+                          <h2 className="text-sm font-medium text-neutral-900">
+                            {`${socialChannel.label} URL`}
+                          </h2>
+                        </label>
+                        <input
+                          type="url"
+                          placeholder="https://"
+                          value={socialMetricsUrl}
+                          onChange={(e) => setSocialMetricsUrl(e.target.value)}
+                          className="mt-2 block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                        />
+                        <SocialMetricsRequirementChecks
+                          verification={socialMetricsVerification}
+                          bountyStartsAt={bounty.startsAt}
+                        />
+                      </div>
+                    )}
+
                     <div>
                       <label className="flex items-center space-x-2">
                         <h2 className="text-sm font-medium text-neutral-900">
@@ -793,6 +853,53 @@ function SocialAccountNotVerifiedWarning({
 
       <Button text="View profile" className="h-7 w-full rounded-lg" />
     </div>
+  );
+}
+
+function SocialMetricsRequirementChecks({
+  verification,
+  bountyStartsAt,
+}: {
+  verification: { fromAccount: boolean; afterStartDate: boolean } | null;
+  bountyStartsAt: Date | null;
+}) {
+  const afterDateLabel = bountyStartsAt
+    ? `Posted after ${formatDate(bountyStartsAt, { month: "short", day: "numeric", year: "numeric" })}`
+    : "Posted after bounty start";
+
+  return (
+    <ul className="mt-2 flex flex-wrap items-center gap-3">
+      <li
+        className={cn(
+          "flex items-center gap-1 text-xs transition-colors",
+          verification?.fromAccount ? "text-green-600" : "text-neutral-400",
+        )}
+      >
+        <CircleCheckFill
+          className={cn(
+            "size-2.5 transition-opacity",
+            verification?.fromAccount ? "text-green-600" : "text-neutral-200",
+          )}
+        />
+        <span>Posted from your account</span>
+      </li>
+      <li
+        className={cn(
+          "flex items-center gap-1 text-xs transition-colors",
+          verification?.afterStartDate ? "text-green-600" : "text-neutral-400",
+        )}
+      >
+        <CircleCheckFill
+          className={cn(
+            "size-2.5 transition-opacity",
+            verification?.afterStartDate
+              ? "text-green-600"
+              : "text-neutral-200",
+          )}
+        />
+        <span>{afterDateLabel}</span>
+      </li>
+    </ul>
   );
 }
 
