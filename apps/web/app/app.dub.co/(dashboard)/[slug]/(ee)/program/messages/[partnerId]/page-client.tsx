@@ -81,8 +81,12 @@ export function ProgramMessagesPartnerPageClient() {
     },
   });
 
-  const partner = partnerMessages?.[0]?.partner;
-  const messages = partnerMessages?.[0]?.messages;
+  const activeThread =
+    partnerMessages?.[0]?.partner.id === partnerId
+      ? partnerMessages[0]
+      : undefined;
+  const partner = activeThread?.partner;
+  const messages = activeThread?.messages;
 
   const { executeAsync: sendMessage } = useAction(messagePartnerAction, {
     onError({ error }) {

@@ -94,8 +94,12 @@ export function PartnerMessagesProgramPageClient() {
     },
   });
 
-  const program = programMessages?.[0]?.program;
-  const messages = programMessages?.[0]?.messages;
+  const activeThread =
+    programMessages?.[0]?.program.slug === programSlug
+      ? programMessages[0]
+      : undefined;
+  const program = activeThread?.program;
+  const messages = activeThread?.messages;
 
   const { executeAsync: sendMessage } = useAction(messageProgramAction, {
     onError({ error }) {
