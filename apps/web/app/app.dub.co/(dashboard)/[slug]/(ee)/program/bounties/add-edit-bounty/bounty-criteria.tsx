@@ -164,11 +164,13 @@ export function BountyCriteria() {
                     Then pay{" "}
                     <InlineBadgePopover
                       text={
-                        rewardAmount != null && !isNaN(rewardAmount)
+                        rewardAmount != null &&
+                        !isNaN(rewardAmount) &&
+                        rewardAmount >= 0
                           ? currencyFormatter(rewardAmount * 100, {
                               trailingZeroDisplay: "stripIfInteger",
                             })
-                          : "$0"
+                          : "amount"
                       }
                       invalid={
                         rewardAmount == null ||

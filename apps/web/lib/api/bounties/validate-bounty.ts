@@ -6,6 +6,7 @@ export function validateBounty({
   startsAt,
   endsAt,
   submissionsOpenAt,
+  submissionRequirements,
   rewardAmount,
   rewardDescription,
   performanceScope,
@@ -52,12 +53,18 @@ export function validateBounty({
         code: "bad_request",
         message: "Reward amount is required for performance bounties.",
       });
-    } else if (!rewardDescription) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "For submission bounties, either reward amount or reward description is required.",
-      });
+    } else {
+      const isSocialMetrics =
+        submissionRequirements &&
+        typeof submissionRequirements === "object" &&
+        "socialMetrics" in submissionRequirements;
+      if (!isSocialMetrics && !rewardDescription) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "For submission bounties, either reward amount or reward description is required.",
+        });
+      }
     }
   }
 

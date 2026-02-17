@@ -121,6 +121,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
           ? "socialMetrics"
           : "manualSubmission",
     },
+    shouldUnregister: false,
   });
 
   const {
@@ -143,6 +144,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     performanceCondition,
     groupIds,
     rewardType,
+    submissionRequirements,
   ] = watch([
     "startsAt",
     "endsAt",
@@ -154,6 +156,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "performanceCondition",
     "groupIds",
     "rewardType",
+    "submissionRequirements",
   ]);
 
   // Helper functions to update form values
@@ -281,11 +284,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       }
 
       if ((rewardType ?? "flat") === "custom") {
-        if (!rewardDescription?.trim()) {
-          return "Reward description is required for custom rewards.";
-        }
-        if (rewardDescription && rewardDescription.length > 100) {
-          return "Reward description must be 100 characters or less.";
+        const isSocialMetrics =
+          submissionRequirements &&
+          typeof submissionRequirements === "object" &&
+          "socialMetrics" in submissionRequirements;
+        if (!isSocialMetrics) {
+          if (!rewardDescription?.trim()) {
+            return "Reward description is required for custom rewards.";
+          }
+          if (rewardDescription && rewardDescription.length > 100) {
+            return "Reward description must be 100 characters or less.";
+          }
         }
       }
     }
@@ -342,6 +351,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     performanceCondition?.attribute,
     performanceCondition?.operator,
     performanceCondition?.value,
+    submissionRequirements,
   ]);
 
   const { setShowConfirmCreateBountyModal, confirmCreateBountyModal } =
@@ -382,12 +392,18 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     if (!workspaceId) return;
 
     const {
-      rewardType: _rewardType,
+      rewardType,
       submissionCriteriaType: _submissionCriteriaType,
       ...data
     } = form.getValues();
 
-    data.rewardAmount = data.rewardAmount ? data.rewardAmount * 100 : null;
+    const rawRewardAmount = data.rewardAmount;
+    const numAmount =
+      typeof rawRewardAmount === "number" && !Number.isNaN(rawRewardAmount)
+        ? rawRewardAmount
+        : null;
+    data.rewardAmount =
+      numAmount != null && numAmount > 0 ? numAmount * 100 : null;
 
     // Parse performance logic
     if (data.type === "performance") {
@@ -415,7 +431,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       data.performanceCondition = condition;
       data.rewardDescription = null;
       data.submissionsOpenAt = null;
-    } else if (type === "submission") {
+    } else if (data.type === "submission") {
       data.performanceCondition = null;
 
       if ((rewardType ?? "flat") === "custom") {

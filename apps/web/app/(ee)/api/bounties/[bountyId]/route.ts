@@ -10,6 +10,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import type { SubmissionRequirements } from "@/lib/zod/schemas/bounties";
 import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { PartnerGroup, Prisma } from "@dub/prisma/client";
@@ -85,6 +86,9 @@ export const PATCH = withWorkspace(
       startsAt,
       endsAt,
       submissionsOpenAt,
+      submissionRequirements:
+        submissionRequirements ??
+        (bounty.submissionRequirements as SubmissionRequirements | null),
       rewardAmount,
       rewardDescription,
       performanceScope: bounty.performanceScope,
@@ -148,7 +152,8 @@ export const PATCH = withWorkspace(
           endsAt,
           submissionsOpenAt:
             bounty.type === "submission" ? submissionsOpenAt : null,
-          rewardAmount,
+          rewardAmount:
+            rewardAmount !== undefined ? rewardAmount : bounty.rewardAmount,
           rewardDescription,
           ...(bounty.type === "submission" &&
             submissionRequirements !== undefined && {
