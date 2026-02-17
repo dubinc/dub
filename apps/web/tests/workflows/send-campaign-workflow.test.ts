@@ -1,23 +1,10 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Campaign } from "@dub/prisma/client";
 import { subHours } from "date-fns";
-import { describe, expect, test, onTestFinished } from "vitest";
+import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PROGRAM, E2E_USER_ID } from "../utils/resource";
-
-async function callCronWorkflow(baseUrl: string, workflowId: string) {
-  const response = await fetch(`${baseUrl}/api/cron/workflows/${workflowId}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({}),
-  });
-
-  return {
-    status: response.status,
-    body: await response.text(),
-  };
-}
+import { E2E_USER_ID } from "../utils/resource";
 
 describe.sequential("Workflow - SendCampaign", async () => {
   const h = new IntegrationHarness();
@@ -71,12 +58,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     expect(updateStatus).toEqual(200);
 
-    const { status: publishStatus, data: publishedCampaign } = await http.patch<Campaign>({
-      path: `/campaigns/${campaignId}`,
-      body: {
-        status: "active",
-      },
-    });
+    const { status: publishStatus, data: publishedCampaign } =
+      await http.patch<Campaign>({
+        path: `/campaigns/${campaignId}`,
+        body: {
+          status: "active",
+        },
+      });
 
     expect(publishStatus).toEqual(200);
     expect(publishedCampaign.status).toBe("active");
@@ -113,32 +101,33 @@ describe.sequential("Workflow - SendCampaign", async () => {
       await h.deleteCampaign(campaignId);
     });
 
-    const { status: updateStatus, data: updatedCampaign } = await http.patch<Campaign>({
-      path: `/campaigns/${campaignId}`,
-      body: {
-        name: "E2E Draft Campaign",
-        subject: "This should not be sent",
-        bodyJson: {
-          type: "doc",
-          content: [
-            {
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: "Draft content",
-                },
-              ],
-            },
-          ],
+    const { status: updateStatus, data: updatedCampaign } =
+      await http.patch<Campaign>({
+        path: `/campaigns/${campaignId}`,
+        body: {
+          name: "E2E Draft Campaign",
+          subject: "This should not be sent",
+          bodyJson: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "Draft content",
+                  },
+                ],
+              },
+            ],
+          },
+          triggerCondition: {
+            attribute: "partnerEnrolledDays",
+            operator: "gte",
+            value: 1,
+          },
         },
-        triggerCondition: {
-          attribute: "partnerEnrolledDays",
-          operator: "gte",
-          value: 1,
-        },
-      },
-    });
+      });
 
     expect(updateStatus).toEqual(200);
     expect(updatedCampaign.status).toBe("draft");
@@ -200,10 +189,12 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     expect(workflow).not.toBeNull();
 
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
+    const { status, data } = await http.post<{ message: string }>({
+      path: `/e2e/trigger-workflow/${workflow.id}`,
+    });
 
     expect(status).toEqual(200);
-    expect(body).toContain("Finished executing workflow");
+    expect(data.message).toContain("Finished executing workflow");
   });
 
   test("Cron skips disabled send campaign workflow", async () => {
@@ -260,10 +251,12 @@ describe.sequential("Workflow - SendCampaign", async () => {
       body: { disabledAt: new Date().toISOString() },
     });
 
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
+    const { status, data } = await http.post<{ message: string }>({
+      path: `/e2e/trigger-workflow/${workflow.id}`,
+    });
 
     expect(status).toEqual(200);
-    expect(body).toContain("disabled");
+    expect(data.message).toContain("disabled");
 
     const { data: emailsSent } = await http.get<any[]>({
       path: "/e2e/notification-emails",
@@ -321,15 +314,14 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     expect(workflow).not.toBeNull();
 
-    const { status: partnerStatus, data: partner } = await http.post<
-      EnrolledPartnerProps
-    >({
-      path: "/partners",
-      body: {
-        name: "E2E Test Partner - Campaign Send",
-        email: randomEmail(),
-      },
-    });
+    const { status: partnerStatus, data: partner } =
+      await http.post<EnrolledPartnerProps>({
+        path: "/partners",
+        body: {
+          name: "E2E Test Partner - Campaign Send",
+          email: randomEmail(),
+        },
+      });
 
     expect(partnerStatus).toEqual(201);
 
@@ -342,10 +334,12 @@ describe.sequential("Workflow - SendCampaign", async () => {
       },
     });
 
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
+    const { status, data } = await http.post<{ message: string }>({
+      path: `/e2e/trigger-workflow/${workflow.id}`,
+    });
 
     expect(status).toEqual(200);
-    expect(body).toContain("Finished executing workflow");
+    expect(data.message).toContain("Finished executing workflow");
   });
 
   test("Cron doesn't send campaign when partner doesn't meet conditions", async () => {
@@ -397,22 +391,23 @@ describe.sequential("Workflow - SendCampaign", async () => {
     expect(workflow).not.toBeNull();
 
     // Create a partner enrolled just now — doesn't match the 12-24h window
-    const { status: partnerStatus, data: partner } = await http.post<
-      EnrolledPartnerProps
-    >({
-      path: "/partners",
-      body: {
-        name: "E2E Test Partner - No Match",
-        email: randomEmail(),
-      },
-    });
+    const { status: partnerStatus, data: partner } =
+      await http.post<EnrolledPartnerProps>({
+        path: "/partners",
+        body: {
+          name: "E2E Test Partner - No Match",
+          email: randomEmail(),
+        },
+      });
 
     expect(partnerStatus).toEqual(201);
 
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
+    const { status, data: triggerData } = await http.post<{ message: string }>({
+      path: `/e2e/trigger-workflow/${workflow.id}`,
+    });
 
     expect(status).toEqual(200);
-    expect(body).toContain("Finished executing workflow");
+    expect(triggerData.message).toContain("Finished executing workflow");
 
     const { data: emailsSent } = await http.get<any[]>({
       path: "/e2e/notification-emails",
@@ -474,15 +469,14 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     expect(workflow).not.toBeNull();
 
-    const { status: partnerStatus, data: partner } = await http.post<
-      EnrolledPartnerProps
-    >({
-      path: "/partners",
-      body: {
-        name: "E2E Test Partner - No Dup Campaign",
-        email: randomEmail(),
-      },
-    });
+    const { status: partnerStatus, data: partner } =
+      await http.post<EnrolledPartnerProps>({
+        path: "/partners",
+        body: {
+          name: "E2E Test Partner - No Dup Campaign",
+          email: randomEmail(),
+        },
+      });
 
     expect(partnerStatus).toEqual(201);
 
@@ -507,11 +501,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     expect(existingEmail).not.toBeNull();
 
-    // Call the cron — the workflow should skip this partner (already sent)
-    const { status, body } = await callCronWorkflow(h.baseUrl, workflow.id);
+    // Trigger the workflow — should skip this partner (already sent)
+    const { status, data: triggerData } = await http.post<{ message: string }>({
+      path: `/e2e/trigger-workflow/${workflow.id}`,
+    });
 
     expect(status).toEqual(200);
-    expect(body).toContain("Finished executing workflow");
+    expect(triggerData.message).toContain("Finished executing workflow");
 
     // Verify still only 1 notification email (no duplicate)
     const { data: emails } = await http.get<any[]>({
@@ -573,12 +569,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
     const conditions1 = workflow.triggerConditions as any[];
     expect(conditions1[0].value).toBe(1);
 
-    const { status: pauseStatus, data: pausedCampaign } = await http.patch<Campaign>({
-      path: `/campaigns/${campaignId}`,
-      body: {
-        status: "paused",
-      },
-    });
+    const { status: pauseStatus, data: pausedCampaign } =
+      await http.patch<Campaign>({
+        path: `/campaigns/${campaignId}`,
+        body: {
+          status: "paused",
+        },
+      });
 
     expect(pauseStatus).toEqual(200);
     expect(pausedCampaign.status).toBe("paused");
