@@ -1,4 +1,4 @@
-import { CRON_BATCH_SIZE } from "@/lib/cron";
+import { CRON_BATCH_SIZE, qstash } from "@/lib/cron";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
 import { withCron } from "@/lib/cron/with-cron";
 import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
@@ -111,7 +111,22 @@ export const POST = withCron(async ({ rawBody }) => {
     })),
   );
 
-  return logAndRespond(
-    `Queued ${links.length} links for discount ${discountId}.`,
-  );
+  if (programEnrollments.length === CRON_BATCH_SIZE) {
+    const startingAfter = programEnrollments[programEnrollments.length - 1].id;
+
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
+      method: "POST",
+      body: {
+        discountId,
+        startingAfter,
+      },
+    });
+
+    return logAndRespond(
+      `Queued next batch for discount ${discountId} (startingAfter: ${startingAfter}).`,
+    );
+  }
+
+  return logAndRespond(`Finished queuing jobs for discount ${discountId}.`);
 });
