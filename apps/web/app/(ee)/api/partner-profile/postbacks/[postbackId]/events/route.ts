@@ -21,6 +21,5 @@ export const GET = withPartnerProfile(
   },
   {
     requiredPermission: "postbacks.read",
-    requiredFeature: "postbacks",
   },
 );

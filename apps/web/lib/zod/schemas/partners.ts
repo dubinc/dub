@@ -342,10 +342,6 @@ export const PartnerSchema = z
       .describe(
         "The date when the partner received the trusted badge in the partner network.",
       ),
-    postbacksEnabledAt: z
-      .date()
-      .nullable()
-      .describe("The date when postbacks were enabled for the partner."),
   })
   .extend(PartnerPartnerPlatformsSchema.shape)
   .extend(PartnerProfileSchema.partial().shape);

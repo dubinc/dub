@@ -36,6 +36,5 @@ export const POST = withPartnerProfile(
   },
   {
     requiredPermission: "postbacks.write",
-    requiredFeature: "postbacks",
   },
 );
