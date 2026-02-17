@@ -22,6 +22,7 @@ export const GET = withPartnerProfile(
   },
   {
     requiredPermission: "postbacks.read",
+    featureFlag: "postbacks",
   },
 );
 
@@ -56,6 +57,7 @@ export const PATCH = withPartnerProfile(
   },
   {
     requiredPermission: "postbacks.write",
+    featureFlag: "postbacks",
   },
 );
 
@@ -79,5 +81,6 @@ export const DELETE = withPartnerProfile(
   },
   {
     requiredPermission: "postbacks.write",
+    featureFlag: "postbacks",
   },
 );

@@ -438,7 +438,7 @@ export const withWorkspace = (
 
         // beta feature checks
         if (featureFlag) {
-          let flags = await getFeatureFlags({
+          const flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
 

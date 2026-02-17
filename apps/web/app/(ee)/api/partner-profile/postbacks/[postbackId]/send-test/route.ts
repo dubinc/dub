@@ -50,5 +50,6 @@ export const POST = withPartnerProfile(
   },
   {
     requiredPermission: "postbacks.write",
+    featureFlag: "postbacks",
   },
 );

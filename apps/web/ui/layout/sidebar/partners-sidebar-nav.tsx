@@ -365,6 +365,7 @@ export function PartnersSidebarNav({
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
+        postbacksEnabled: partner?.featureFlags?.postbacks,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
