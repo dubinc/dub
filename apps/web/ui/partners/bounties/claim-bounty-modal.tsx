@@ -446,7 +446,6 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                   )}
                 >
                   <div className="border-border-subtle flex flex-col gap-5 border-t p-6 max-sm:px-4">
-                    {/* Files */}
                     {imageRequired && (
                       <div>
                         <label
@@ -522,7 +521,6 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       </div>
                     )}
 
-                    {/* URLs */}
                     {urlRequired && (
                       <div>
                         <label
@@ -596,14 +594,10 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       </div>
                     )}
 
-                    {/* Description */}
                     <div>
-                      <label
-                        htmlFor="slug"
-                        className="flex items-center space-x-2"
-                      >
+                      <label className="flex items-center space-x-2">
                         <h2 className="text-sm font-medium text-neutral-900">
-                          How did you complete this bounty?
+                          Provide any additional details (optional)
                         </h2>
                       </label>
                       <ReactTextareaAutosize
