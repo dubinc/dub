@@ -49,7 +49,7 @@ export function getRewardCriteriaTexts(bounty: PartnerBountyProps): string[] {
   });
 
   const texts: string[] = [
-    `Earn ${formattedAmount} when your ${channel.postType} reaches ${socialMetrics.amount} ${socialMetrics.metric}`,
+    `Get ${socialMetrics.amount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedAmount}`,
   ];
 
   const variableBonus = socialMetrics.variableBonus;
@@ -63,7 +63,7 @@ export function getRewardCriteriaTexts(bounty: PartnerBountyProps): string[] {
       });
 
       texts.push(
-        `For every additional ${incrementalAmount} ${socialMetrics.metric}, earn ${formattedBonus} — up to ${capAmount} ${socialMetrics.metric}`,
+        `For each additional ${incrementalAmount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedBonus}, up to ${capAmount} ${socialMetrics.metric}`,
       );
     }
   }
