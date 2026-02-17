@@ -23,10 +23,26 @@ export const REJECT_BOUNTY_SUBMISSION_REASONS = {
 } as const;
 
 export const SOCIAL_METRICS_CHANNELS = [
-  { value: "youtube", label: "YouTube" },
-  { value: "tiktok", label: "TikTok" },
-  { value: "instagram", label: "Instagram" },
-  { value: "twitter", label: "Twitter" },
+  {
+    value: "youtube",
+    label: "YouTube",
+    postType: "video",
+  },
+  {
+    value: "tiktok",
+    label: "TikTok",
+    postType: "video",
+  },
+  {
+    value: "instagram",
+    label: "Instagram",
+    postType: "photo",
+  },
+  {
+    value: "twitter",
+    label: "Twitter",
+    postType: "tweet",
+  },
 ] as const;
 
 export const SOCIAL_METRICS_CHANNEL_METRICS: Record<

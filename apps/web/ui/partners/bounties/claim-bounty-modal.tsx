@@ -7,6 +7,10 @@ import {
   REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/bounty/constants";
 import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
+import {
+  getRewardCriteriaTexts,
+  getSubmissionRequirementTexts,
+} from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps } from "@/lib/types";
@@ -17,6 +21,7 @@ import {
   AnimatedSizeContainer,
   Button,
   Calendar6,
+  Check2,
   FileUpload,
   Gift,
   LoadingSpinner,
@@ -424,16 +429,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                   )}
                 </div>
 
-                {bounty.description && (
-                  <div className="border-border-subtle flex flex-col gap-2 border-t p-6 text-sm max-sm:px-4">
-                    <span className="text-content-emphasis font-semibold">
-                      Details
-                    </span>
-                    <Markdown className={PROSE_STYLES.default}>
-                      {bounty.description}
-                    </Markdown>
-                  </div>
-                )}
+                <BountyDescription bounty={bounty} />
 
                 {/* Form */}
                 <motion.div
@@ -699,6 +695,69 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
           )}
       </form>
     </>
+  );
+}
+
+function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
+  if (!bounty.description) {
+    return null;
+  }
+
+  const submissionTexts = getSubmissionRequirementTexts(bounty);
+  const rewardTexts = getRewardCriteriaTexts(bounty);
+
+  return (
+    <DescriptionWrapper>
+      <div>
+        <span className="text-content-emphasis font-semibold">Details</span>
+        <Markdown
+          className={cn(
+            PROSE_STYLES.default,
+            "text-content-subtle text-sm font-medium leading-5",
+          )}
+        >
+          {bounty.description}
+        </Markdown>
+      </div>
+
+      <div>
+        <span className="text-content-emphasis font-semibold">
+          Submission requirements
+        </span>
+
+        <div className="text-content-subtle mt-2 text-sm font-medium leading-5">
+          {submissionTexts.map((text) => (
+            <div className="flex items-center gap-1.5">
+              <Check2 className="size-3 text-green-600" />
+              <span key={text}>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <span className="text-content-emphasis font-semibold">
+          Reward criteria
+        </span>
+
+        <div className="text-content-subtle mt-2 text-sm font-medium leading-5">
+          {rewardTexts.map((text) => (
+            <div className="flex items-center gap-1.5">
+              <Check2 className="size-3 text-green-600" />
+              <span key={text}>{text}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </DescriptionWrapper>
+  );
+}
+
+function DescriptionWrapper({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border-border-subtle flex flex-col space-y-5 border-t p-6 text-sm max-sm:px-4">
+      {children}
+    </div>
   );
 }
 
