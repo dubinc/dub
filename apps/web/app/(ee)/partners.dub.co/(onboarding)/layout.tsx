@@ -48,7 +48,7 @@ export default function PartnerOnboardingLayout({
         ))}
       </div>
 
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-between">
+      <div className="relative flex min-h-screen min-h-[100dvh] w-full flex-col items-center justify-between">
         <div className="grow basis-0">
           <div className="pt-4">
             <Link href="https://dub.co/home" target="_blank" className="block">
