@@ -31,6 +31,7 @@ const schema = z.object({
     .max(BOUNTY_MAX_SUBMISSION_FILES)
     .default([]),
   urls: z.array(z.url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
+  postUrl: z.url().trim().optional(),
   description: z
     .string()
     .trim()
@@ -46,8 +47,13 @@ export const createBountySubmissionAction = authPartnerActionClient
   .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { programId, bountyId, files, urls, description, isDraft } =
+    const { programId, bountyId, files, urls, postUrl, description, isDraft } =
       parsedInput;
+
+    const storedUrls = [
+      ...(postUrl?.trim() ? [postUrl.trim()] : []),
+      ...urls,
+    ].slice(0, BOUNTY_MAX_SUBMISSION_URLS);
 
     const [programEnrollment, bounty] = await Promise.all([
       getProgramEnrollmentOrThrow({
@@ -152,7 +158,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         throw new Error("You must submit an image.");
       }
 
-      if (requireUrl && urls.length === 0) {
+      if (requireUrl && storedUrls.length === 0) {
         throw new Error("You must submit a URL.");
       }
 
@@ -160,14 +166,14 @@ export const createBountySubmissionAction = authPartnerActionClient
       if (
         urlRequirement?.domains &&
         urlRequirement.domains.length > 0 &&
-        urls.length > 0
+        storedUrls.length > 0
       ) {
         const allowedDomains = urlRequirement.domains
           .map((domain) => getDomainWithoutWWW(domain)?.toLowerCase())
           .filter((domain): domain is string => !!domain);
 
         if (allowedDomains.length > 0) {
-          const invalidUrls = urls.filter((url) => {
+          const invalidUrls = storedUrls.filter((url) => {
             const urlDomain = getDomainWithoutWWW(url)?.toLowerCase();
             if (!urlDomain) return true;
             // Check if URL domain matches any allowed domain or is a subdomain
@@ -188,7 +194,7 @@ export const createBountySubmissionAction = authPartnerActionClient
       }
 
       // Validate max count for URLs
-      if (urlRequirement?.max && urls.length > urlRequirement.max) {
+      if (urlRequirement?.max && storedUrls.length > urlRequirement.max) {
         throw new Error(
           `You can submit at most ${urlRequirement.max} URL${urlRequirement.max === 1 ? "" : "s"}.`,
         );
@@ -211,7 +217,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         data: {
           description,
           ...(requireImage && { files }),
-          ...(requireUrl && { urls }),
+          ...((requireUrl || storedUrls.length > 0) && { urls: storedUrls }),
           status: isDraft ? "draft" : "submitted",
           ...(isDraft ? {} : { completedAt: new Date() }),
         },
@@ -227,7 +233,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           partnerId: partner.id,
           description,
           ...(requireImage && { files }),
-          ...(requireUrl && { urls }),
+          ...((requireUrl || storedUrls.length > 0) && { urls: storedUrls }),
           status: isDraft ? "draft" : "submitted",
           ...(isDraft ? {} : { completedAt: new Date() }),
         },

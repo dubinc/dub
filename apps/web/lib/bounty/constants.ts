@@ -53,15 +53,15 @@ export const SOCIAL_METRICS_CHANNEL_METRICS: Record<
     { value: "views", label: "views" },
     { value: "likes", label: "likes" },
   ],
-  tiktok: [
-    { value: "likes", label: "likes" },
-    { value: "views", label: "views" },
-  ],
   instagram: [
     { value: "likes", label: "likes" },
     { value: "views", label: "views" },
   ],
   twitter: [
+    { value: "likes", label: "likes" },
+    { value: "views", label: "views" },
+  ],
+  tiktok: [
     { value: "likes", label: "likes" },
     { value: "views", label: "views" },
   ],

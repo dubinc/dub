@@ -42,6 +42,7 @@ import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
@@ -109,29 +110,15 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
     }
     return [{ id: uuid(), url: "" }];
   });
-  const [socialMetricsUrl, setSocialMetricsUrl] = useState(() =>
-    socialChannel && submission?.urls?.[0] ? submission.urls[0] : "",
-  );
-  const [socialMetricsVerification, setSocialMetricsVerification] = useState<{
-    fromAccount: boolean;
-    afterStartDate: boolean;
-  } | null>(null);
 
-  useEffect(() => {
-    if (!socialChannel || !socialMetricsUrl.trim()) {
-      setSocialMetricsVerification(null);
-      return;
-    }
-    let cancelled = false;
-    verifySocialMetricsSubmission(socialMetricsUrl.trim(), bounty).then(
-      (result) => {
-        if (!cancelled) setSocialMetricsVerification(result);
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [socialChannel, socialMetricsUrl, bounty]);
+  const claimForm = useForm<{
+    socialMetricsUrl: string;
+  }>({
+    defaultValues: {
+      socialMetricsUrl:
+        socialChannel && submission?.urls?.[0] ? submission.urls[0] : "",
+    },
+  });
 
   const { executeAsync: uploadFile } = useAction(
     uploadBountySubmissionFileAction,
@@ -233,11 +220,11 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         size: file?.size || 0,
       }));
 
+    const socialMetricsUrl = claimForm.getValues("socialMetricsUrl") ?? "";
     const baseUrls = urls.map(({ url }) => url).filter(Boolean);
-    const finalUrls =
-      socialChannel && socialMetricsUrl.trim()
-        ? [socialMetricsUrl.trim(), ...baseUrls]
-        : baseUrls;
+    const postUrl = socialChannel && socialMetricsUrl.trim() ? socialMetricsUrl.trim() : undefined;
+    const hasPostUrl = !!postUrl;
+    const totalUrlsCount = (hasPostUrl ? 1 : 0) + baseUrls.length;
 
     try {
       // Check the submission requirements are met for non-draft submissions
@@ -251,7 +238,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
           throw new Error(`You must provide the ${socialChannel.label} link.`);
         }
 
-        if (urlRequired && finalUrls.length === 0) {
+        if (urlRequired && totalUrlsCount === 0) {
           throw new Error("You must provide at least one URL.");
         }
       }
@@ -260,7 +247,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         programId: programEnrollment.programId,
         bountyId: bounty.id,
         files: finalFiles,
-        urls: finalUrls,
+        urls: baseUrls,
+        ...(postUrl && { postUrl }),
         description,
         ...(isDraft && { isDraft }),
       });
@@ -288,477 +276,464 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   return (
     <>
       {confirmModal}
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          if (!programEnrollment) return;
+      <FormProvider {...claimForm}>
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (!programEnrollment) return;
 
-          // Determine which button was clicked
-          const submitter = (e.nativeEvent as SubmitEvent)
-            .submitter as HTMLButtonElement;
+            // Determine which button was clicked
+            const submitter = (e.nativeEvent as SubmitEvent)
+              .submitter as HTMLButtonElement;
 
-          const isDraft = submitter?.name === "draft";
+            const isDraft = submitter?.name === "draft";
 
-          if (isDraft) {
-            // Handle draft save directly
-            await handleSubmission({ isDraft: true });
-          } else {
-            // Show confirmation modal for final submission
-            setShowConfirmModal(true);
-          }
-        }}
-      >
-        <div className="scrollbar-hide max-h-[calc(100dvh-150px)] overflow-y-auto">
-          <div className="flex h-[132px] items-center justify-center bg-neutral-100 py-3">
-            <div className="relative size-full">
-              <BountyThumbnailImage bounty={bounty} />
-            </div>
-          </div>
-
-          <AnimatedSizeContainer
-            height={isFormOpen}
-            transition={{ duration: 0.15, ease: "easeInOut" }}
-          >
-            {success ? (
-              <div className="mx-auto flex max-w-sm flex-col items-center gap-1 p-6 text-center max-sm:px-4">
-                {isDraft ? (
-                  <>
-                    <span className="text-content-emphasis text-base font-semibold">
-                      Progress saved successfully.
-                    </span>
-                    <p className="text-content-subtle text-balance text-sm font-medium">
-                      You can continue working on your submission later.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-content-emphasis text-base font-semibold">
-                      Congratulations! You've successfully submitted your
-                      bounty.
-                    </span>
-                    <p className="text-content-subtle text-balance text-sm font-medium">
-                      We'll let you know when your bounty has been reviewed.
-                    </p>
-                  </>
-                )}
+            if (isDraft) {
+              // Handle draft save directly
+              await handleSubmission({ isDraft: true });
+            } else {
+              // Show confirmation modal for final submission
+              setShowConfirmModal(true);
+            }
+          }}
+        >
+          <div className="scrollbar-hide max-h-[calc(100dvh-150px)] overflow-y-auto">
+            <div className="flex h-[132px] items-center justify-center bg-neutral-100 py-3">
+              <div className="relative size-full">
+                <BountyThumbnailImage bounty={bounty} />
               </div>
-            ) : (
-              <>
-                <div className="flex flex-col gap-1 p-6 max-sm:px-4">
-                  <span className="text-content-emphasis truncate text-sm font-semibold">
-                    {bounty.name}
-                  </span>
+            </div>
 
-                  <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-                    <Calendar6 className="size-3.5" />
-                    <span>
-                      {bounty.endsAt ? (
-                        <>
-                          Ends {formatDate(bounty.endsAt, { month: "short" })}
-                        </>
-                      ) : (
-                        "No end date"
-                      )}
-                    </span>
-                  </div>
-
-                  {getBountyRewardDescription(bounty) && (
-                    <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-                      <Gift className="size-3.5" />
-                      <span>{getBountyRewardDescription(bounty)}</span>
-                    </div>
-                  )}
-
-                  {submission ? (
-                    <div className="mt-3 grid gap-2">
-                      <div className="flex items-center gap-2">
-                        {submission.status === "approved" && (
-                          <Link
-                            href={`/programs/${programEnrollment?.program.slug}/earnings?type=custom`}
-                            target="_blank"
-                            className={cn(
-                              buttonVariants({ variant: "primary" }),
-                              "flex h-7 w-fit items-center whitespace-nowrap rounded-lg border px-2.5 text-sm",
-                            )}
-                          >
-                            View earnings
-                          </Link>
-                        )}
-                        {submission.status !== "draft" && (
-                          <StatusBadge
-                            className="rounded-lg py-1.5"
-                            variant={
-                              submission.status === "submitted"
-                                ? "new"
-                                : submission.status === "approved"
-                                  ? "success"
-                                  : "error"
-                            }
-                            icon={
-                              submission.status === "approved"
-                                ? undefined
-                                : null
-                            }
-                          >
-                            {submission.status === "submitted" ? (
-                              <>
-                                Pending Review |{" "}
-                                {bounty.type === "performance"
-                                  ? "Completed"
-                                  : "Submitted"}{" "}
-                                {submission.completedAt &&
-                                  formatDate(submission.completedAt, {
-                                    month: "short",
-                                  })}
-                              </>
-                            ) : submission.status === "approved" ? (
-                              <>
-                                Confirmed{" "}
-                                {submission.reviewedAt &&
-                                  formatDate(submission.reviewedAt, {
-                                    month: "short",
-                                  })}
-                              </>
-                            ) : (
-                              "Rejected"
-                            )}
-                          </StatusBadge>
-                        )}
-                      </div>
-
-                      {/* Rejection details for rejected submissions */}
-                      {submission.status === "rejected" && (
-                        <div className="mt-3 flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4">
-                          <div className="flex gap-1">
-                            <span className="text-sm font-medium text-red-900">
-                              Rejection reason:
-                            </span>
-                            <span className="text-sm text-red-800">
-                              {submission.rejectionReason &&
-                                REJECT_BOUNTY_SUBMISSION_REASONS[
-                                  submission.rejectionReason as keyof typeof REJECT_BOUNTY_SUBMISSION_REASONS
-                                ]}
-                            </span>
-                          </div>
-                          {submission.rejectionNote && (
-                            <div className="mt-1">
-                              <span className="text-sm font-medium text-red-900">
-                                Note:
-                              </span>
-                              <Linkify
-                                as="p"
-                                options={{
-                                  target: "_blank",
-                                  rel: "noopener noreferrer nofollow",
-                                  format: (href) => getPrettyUrl(href),
-                                  className:
-                                    "underline underline-offset-4 text-red-400 hover:text-red-700",
-                                }}
-                                className="mt-1 whitespace-pre-wrap text-sm text-red-800"
-                              >
-                                {submission.rejectionNote}
-                              </Linkify>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
+            <AnimatedSizeContainer
+              height={isFormOpen}
+              transition={{ duration: 0.15, ease: "easeInOut" }}
+            >
+              {success ? (
+                <div className="mx-auto flex max-w-sm flex-col items-center gap-1 p-6 text-center max-sm:px-4">
+                  {isDraft ? (
+                    <>
+                      <span className="text-content-emphasis text-base font-semibold">
+                        Progress saved successfully.
+                      </span>
+                      <p className="text-content-subtle text-balance text-sm font-medium">
+                        You can continue working on your submission later.
+                      </p>
+                    </>
                   ) : (
-                    bounty.type === "performance" && (
-                      <div className="mt-5">
-                        <BountyPerformance bounty={bounty} />
-                      </div>
-                    )
+                    <>
+                      <span className="text-content-emphasis text-base font-semibold">
+                        Congratulations! You've successfully submitted your
+                        bounty.
+                      </span>
+                      <p className="text-content-subtle text-balance text-sm font-medium">
+                        We'll let you know when your bounty has been reviewed.
+                      </p>
+                    </>
                   )}
-                </div>
-
-                <BountyDescription bounty={bounty} />
-
-                {/* Form */}
-                <motion.div
-                  initial={false}
-                  animate={{ height: isFormOpen ? "auto" : 0 }}
-                  transition={{ duration: 0.15 }}
-                  className={cn(
-                    "overflow-hidden transition-opacity",
-                    !isFormOpen && "opacity-0",
-                  )}
-                >
-                  <div className="border-border-subtle flex flex-col gap-5 border-t p-6 max-sm:px-4">
-                    {imageRequired && (
-                      <div>
-                        <label
-                          htmlFor="slug"
-                          className="flex items-center space-x-2"
-                        >
-                          <h2 className="text-sm font-medium text-neutral-900">
-                            Files
-                            {imageRequired && " (at least 1 required)"}
-                          </h2>
-                        </label>
-                        <div
-                          className={cn(
-                            "mt-2 flex h-12 items-center gap-2 transition-[height]",
-                            files.length === 0 && "h-24",
-                          )}
-                        >
-                          {files.map((file, idx) => (
-                            <div
-                              key={file.id}
-                              className="border-border-subtle group relative flex aspect-square h-full items-center justify-center rounded-md border bg-white"
-                            >
-                              {file.uploading ? (
-                                <LoadingSpinner className="size-4" />
-                              ) : (
-                                <div className="relative size-full overflow-hidden rounded-md">
-                                  <img src={file.url} alt="object-cover" />
-                                </div>
-                              )}
-                              <span className="sr-only">
-                                {file.file?.name || `File ${idx + 1}`}
-                              </span>
-                              <button
-                                type="button"
-                                className={cn(
-                                  "absolute right-0 top-0 flex size-[1.125rem] -translate-y-1/2 translate-x-1/2 items-center justify-center",
-                                  "rounded-full border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 active:scale-95",
-                                  "scale-50 opacity-0 transition-[background-color,transform,opacity] group-hover:scale-100 group-hover:opacity-100",
-                                )}
-                                onClick={() => {
-                                  setFiles((prev) =>
-                                    prev.filter((s) => s.id !== file.id),
-                                  );
-                                }}
-                              >
-                                <X className="size-2.5 text-neutral-400" />
-                              </button>
-                            </div>
-                          ))}
-
-                          <FileUpload
-                            accept="images"
-                            className={cn(
-                              "border-border-subtle h-full w-auto rounded-md border",
-                              files.length > 0
-                                ? "aspect-square"
-                                : "aspect-[unset] w-full",
-                            )}
-                            iconClassName="size-5 shrink-0"
-                            variant="plain"
-                            content={
-                              files.length > 0
-                                ? null
-                                : "JPG or PNG, max size of 5MB"
-                            }
-                            onChange={async ({ file }) =>
-                              await handleUpload(file)
-                            }
-                            disabled={files.length >= maxFiles}
-                            maxFileSizeMB={5}
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {urlRequired && (
-                      <div>
-                        <label
-                          htmlFor="slug"
-                          className="flex items-center justify-between"
-                        >
-                          <h2 className="text-sm font-medium text-neutral-900">
-                            URLs
-                            {urlRequired && " (at least 1 required)"}
-                          </h2>
-                          <span className="text-xs font-medium text-neutral-500">
-                            {urls.filter((u) => u.url).length} / {maxUrls}
-                          </span>
-                        </label>
-                        <div className={cn("mt-2 flex flex-col gap-2")}>
-                          {urls.map(({ id, url }, idx) => (
-                            <div key={id} className="flex items-center gap-2">
-                              <input
-                                type="url"
-                                placeholder={placeholderUrl}
-                                value={url}
-                                onChange={(e) =>
-                                  setUrls((prev) =>
-                                    prev.map((u) =>
-                                      u.id === id
-                                        ? { ...u, url: e.target.value }
-                                        : u,
-                                    ),
-                                  )
-                                }
-                                className="block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                              />
-                              {urls.length > 1 && (
-                                <Button
-                                  variant="outline"
-                                  icon={<Trash className="size-4" />}
-                                  className="w-10 shrink-0 bg-red-50 p-0 text-red-700 hover:bg-red-100"
-                                  onClick={() =>
-                                    setUrls((prev) =>
-                                      prev.filter((s) => s.id !== id),
-                                    )
-                                  }
-                                />
-                              )}
-                            </div>
-                          ))}
-                          {urls.length < maxUrls && (
-                            <Button
-                              variant="secondary"
-                              text="Add URL"
-                              className="h-8 rounded-lg"
-                              onClick={() =>
-                                setUrls((prev) => [
-                                  ...prev,
-                                  { id: uuid(), url: "" },
-                                ])
-                              }
-                            />
-                          )}
-                          {bounty.submissionRequirements?.url?.domains &&
-                            bounty.submissionRequirements.url.domains.length >
-                              0 && (
-                              <p className="text-xs text-neutral-400">
-                                Allowed domains:{" "}
-                                {bounty.submissionRequirements.url.domains.join(
-                                  ", ",
-                                )}
-                              </p>
-                            )}
-                        </div>
-                      </div>
-                    )}
-
-                    {socialChannel && (
-                      <div>
-                        <label className="block">
-                          <h2 className="text-sm font-medium text-neutral-900">
-                            {`${socialChannel.label} URL`}
-                          </h2>
-                        </label>
-                        <input
-                          type="url"
-                          placeholder="https://"
-                          value={socialMetricsUrl}
-                          onChange={(e) => setSocialMetricsUrl(e.target.value)}
-                          className="mt-2 block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                        />
-                        <SocialMetricsRequirementChecks
-                          verification={socialMetricsVerification}
-                          bountyStartsAt={bounty.startsAt}
-                        />
-                      </div>
-                    )}
-
-                    <div>
-                      <label className="flex items-center space-x-2">
-                        <h2 className="text-sm font-medium text-neutral-900">
-                          Provide any additional details (optional)
-                        </h2>
-                      </label>
-                      <ReactTextareaAutosize
-                        className={cn(
-                          "mt-2 block w-full resize-none rounded-md focus:outline-none sm:text-sm",
-                          "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                        )}
-                        minRows={2}
-                        maxLength={BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH}
-                        value={description}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          if (
-                            value.length <=
-                            BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH
-                          ) {
-                            setDescription(value);
-                          }
-                        }}
-                      />
-                      <div className="mt-1 text-left">
-                        <span className="text-xs text-neutral-500">
-                          {BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH -
-                            description.length}{" "}
-                          / {BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              </>
-            )}
-          </AnimatedSizeContainer>
-        </div>
-
-        {/* Action buttons - outside scrollable area */}
-        {bounty.type !== "performance" &&
-          (!submission || submission.status === "draft") &&
-          !success && (
-            <div className="border-t border-neutral-200 bg-white p-4">
-              {isFormOpen ? (
-                <div className="flex items-center justify-between">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    text="Cancel"
-                    className="h-9 w-fit rounded-lg px-3"
-                    onClick={() => setIsFormOpen(false)}
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      variant="secondary"
-                      text="Save progress"
-                      className="h-9 rounded-lg px-3"
-                      type="submit"
-                      name="draft" // for submitter.name detection above
-                      loading={isDraft === true}
-                      disabled={fileUploading || isDraft === false}
-                    />
-                    <Button
-                      variant="primary"
-                      text="Submit"
-                      className="h-9 rounded-lg px-3"
-                      type="submit"
-                      name="submit" // for submitter.name detection above
-                      loading={isDraft === false}
-                      disabled={fileUploading || isDraft === true}
-                      disabledTooltip={
-                        !hasSubmissionsOpen
-                          ? `Submissions are not open yet. They will open on ${formatDate(
-                              bounty.submissionsOpenAt!,
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                                timeZone: "UTC",
-                              },
-                            )}. In the meantime, you can save your progress as a draft.`
-                          : undefined
-                      }
-                    />
-                  </div>
                 </div>
               ) : (
                 <>
-                  {socialChannel &&
-                  !platformsVerified?.[socialChannel.value] ? (
-                    <SocialAccountNotVerifiedWarning bounty={bounty} />
-                  ) : (
-                    <Button
-                      variant="primary"
-                      text={submission ? "Continue submission" : "Claim bounty"}
-                      className="w-full rounded-lg"
-                      onClick={() => setIsFormOpen(true)}
-                    />
-                  )}
+                  <div className="flex flex-col gap-1 p-6 max-sm:px-4">
+                    <span className="text-content-emphasis truncate text-sm font-semibold">
+                      {bounty.name}
+                    </span>
+
+                    <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+                      <Calendar6 className="size-3.5" />
+                      <span>
+                        {bounty.endsAt ? (
+                          <>
+                            Ends {formatDate(bounty.endsAt, { month: "short" })}
+                          </>
+                        ) : (
+                          "No end date"
+                        )}
+                      </span>
+                    </div>
+
+                    {getBountyRewardDescription(bounty) && (
+                      <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+                        <Gift className="size-3.5" />
+                        <span>{getBountyRewardDescription(bounty)}</span>
+                      </div>
+                    )}
+
+                    {submission ? (
+                      <div className="mt-3 grid gap-2">
+                        <div className="flex items-center gap-2">
+                          {submission.status === "approved" && (
+                            <Link
+                              href={`/programs/${programEnrollment?.program.slug}/earnings?type=custom`}
+                              target="_blank"
+                              className={cn(
+                                buttonVariants({ variant: "primary" }),
+                                "flex h-7 w-fit items-center whitespace-nowrap rounded-lg border px-2.5 text-sm",
+                              )}
+                            >
+                              View earnings
+                            </Link>
+                          )}
+                          {submission.status !== "draft" && (
+                            <StatusBadge
+                              className="rounded-lg py-1.5"
+                              variant={
+                                submission.status === "submitted"
+                                  ? "new"
+                                  : submission.status === "approved"
+                                    ? "success"
+                                    : "error"
+                              }
+                              icon={
+                                submission.status === "approved"
+                                  ? undefined
+                                  : null
+                              }
+                            >
+                              {submission.status === "submitted" ? (
+                                <>
+                                  Pending Review |{" "}
+                                  {bounty.type === "performance"
+                                    ? "Completed"
+                                    : "Submitted"}{" "}
+                                  {submission.completedAt &&
+                                    formatDate(submission.completedAt, {
+                                      month: "short",
+                                    })}
+                                </>
+                              ) : submission.status === "approved" ? (
+                                <>
+                                  Confirmed{" "}
+                                  {submission.reviewedAt &&
+                                    formatDate(submission.reviewedAt, {
+                                      month: "short",
+                                    })}
+                                </>
+                              ) : (
+                                "Rejected"
+                              )}
+                            </StatusBadge>
+                          )}
+                        </div>
+
+                        {/* Rejection details for rejected submissions */}
+                        {submission.status === "rejected" && (
+                          <div className="mt-3 flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4">
+                            <div className="flex gap-1">
+                              <span className="text-sm font-medium text-red-900">
+                                Rejection reason:
+                              </span>
+                              <span className="text-sm text-red-800">
+                                {submission.rejectionReason &&
+                                  REJECT_BOUNTY_SUBMISSION_REASONS[
+                                    submission.rejectionReason as keyof typeof REJECT_BOUNTY_SUBMISSION_REASONS
+                                  ]}
+                              </span>
+                            </div>
+                            {submission.rejectionNote && (
+                              <div className="mt-1">
+                                <span className="text-sm font-medium text-red-900">
+                                  Note:
+                                </span>
+                                <Linkify
+                                  as="p"
+                                  options={{
+                                    target: "_blank",
+                                    rel: "noopener noreferrer nofollow",
+                                    format: (href) => getPrettyUrl(href),
+                                    className:
+                                      "underline underline-offset-4 text-red-400 hover:text-red-700",
+                                  }}
+                                  className="mt-1 whitespace-pre-wrap text-sm text-red-800"
+                                >
+                                  {submission.rejectionNote}
+                                </Linkify>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      bounty.type === "performance" && (
+                        <div className="mt-5">
+                          <BountyPerformance bounty={bounty} />
+                        </div>
+                      )
+                    )}
+                  </div>
+
+                  <BountyDescription bounty={bounty} />
+
+                  {/* Form */}
+                  <motion.div
+                    initial={false}
+                    animate={{ height: isFormOpen ? "auto" : 0 }}
+                    transition={{ duration: 0.15 }}
+                    className={cn(
+                      "overflow-hidden transition-opacity",
+                      !isFormOpen && "opacity-0",
+                    )}
+                  >
+                    <div className="border-border-subtle flex flex-col gap-5 border-t p-6 max-sm:px-4">
+                      {imageRequired && (
+                        <div>
+                          <label
+                            htmlFor="slug"
+                            className="flex items-center space-x-2"
+                          >
+                            <h2 className="text-sm font-medium text-neutral-900">
+                              Files
+                              {imageRequired && " (at least 1 required)"}
+                            </h2>
+                          </label>
+                          <div
+                            className={cn(
+                              "mt-2 flex h-12 items-center gap-2 transition-[height]",
+                              files.length === 0 && "h-24",
+                            )}
+                          >
+                            {files.map((file, idx) => (
+                              <div
+                                key={file.id}
+                                className="border-border-subtle group relative flex aspect-square h-full items-center justify-center rounded-md border bg-white"
+                              >
+                                {file.uploading ? (
+                                  <LoadingSpinner className="size-4" />
+                                ) : (
+                                  <div className="relative size-full overflow-hidden rounded-md">
+                                    <img src={file.url} alt="object-cover" />
+                                  </div>
+                                )}
+                                <span className="sr-only">
+                                  {file.file?.name || `File ${idx + 1}`}
+                                </span>
+                                <button
+                                  type="button"
+                                  className={cn(
+                                    "absolute right-0 top-0 flex size-[1.125rem] -translate-y-1/2 translate-x-1/2 items-center justify-center",
+                                    "rounded-full border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 active:scale-95",
+                                    "scale-50 opacity-0 transition-[background-color,transform,opacity] group-hover:scale-100 group-hover:opacity-100",
+                                  )}
+                                  onClick={() => {
+                                    setFiles((prev) =>
+                                      prev.filter((s) => s.id !== file.id),
+                                    );
+                                  }}
+                                >
+                                  <X className="size-2.5 text-neutral-400" />
+                                </button>
+                              </div>
+                            ))}
+
+                            <FileUpload
+                              accept="images"
+                              className={cn(
+                                "border-border-subtle h-full w-auto rounded-md border",
+                                files.length > 0
+                                  ? "aspect-square"
+                                  : "aspect-[unset] w-full",
+                              )}
+                              iconClassName="size-5 shrink-0"
+                              variant="plain"
+                              content={
+                                files.length > 0
+                                  ? null
+                                  : "JPG or PNG, max size of 5MB"
+                              }
+                              onChange={async ({ file }) =>
+                                await handleUpload(file)
+                              }
+                              disabled={files.length >= maxFiles}
+                              maxFileSizeMB={5}
+                            />
+                          </div>
+                        </div>
+                      )}
+
+                      {urlRequired && (
+                        <div>
+                          <label
+                            htmlFor="slug"
+                            className="flex items-center justify-between"
+                          >
+                            <h2 className="text-sm font-medium text-neutral-900">
+                              URLs
+                              {urlRequired && " (at least 1 required)"}
+                            </h2>
+                            <span className="text-xs font-medium text-neutral-500">
+                              {urls.filter((u) => u.url).length} / {maxUrls}
+                            </span>
+                          </label>
+                          <div className={cn("mt-2 flex flex-col gap-2")}>
+                            {urls.map(({ id, url }, idx) => (
+                              <div key={id} className="flex items-center gap-2">
+                                <input
+                                  type="url"
+                                  placeholder={placeholderUrl}
+                                  value={url}
+                                  onChange={(e) =>
+                                    setUrls((prev) =>
+                                      prev.map((u) =>
+                                        u.id === id
+                                          ? { ...u, url: e.target.value }
+                                          : u,
+                                      ),
+                                    )
+                                  }
+                                  className="block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                                />
+                                {urls.length > 1 && (
+                                  <Button
+                                    variant="outline"
+                                    icon={<Trash className="size-4" />}
+                                    className="w-10 shrink-0 bg-red-50 p-0 text-red-700 hover:bg-red-100"
+                                    onClick={() =>
+                                      setUrls((prev) =>
+                                        prev.filter((s) => s.id !== id),
+                                      )
+                                    }
+                                  />
+                                )}
+                              </div>
+                            ))}
+                            {urls.length < maxUrls && (
+                              <Button
+                                variant="secondary"
+                                text="Add URL"
+                                className="h-8 rounded-lg"
+                                onClick={() =>
+                                  setUrls((prev) => [
+                                    ...prev,
+                                    { id: uuid(), url: "" },
+                                  ])
+                                }
+                              />
+                            )}
+                            {bounty.submissionRequirements?.url?.domains &&
+                              bounty.submissionRequirements.url.domains.length >
+                                0 && (
+                                <p className="text-xs text-neutral-400">
+                                  Allowed domains:{" "}
+                                  {bounty.submissionRequirements.url.domains.join(
+                                    ", ",
+                                  )}
+                                </p>
+                              )}
+                          </div>
+                        </div>
+                      )}
+
+                      {socialChannel && (
+                        <SocialMediaPostUrlField bounty={bounty} />
+                      )}
+
+                      <div>
+                        <label className="flex items-center space-x-2">
+                          <h2 className="text-sm font-medium text-neutral-900">
+                            Provide any additional details (optional)
+                          </h2>
+                        </label>
+                        <ReactTextareaAutosize
+                          className={cn(
+                            "mt-2 block w-full resize-none rounded-md focus:outline-none sm:text-sm",
+                            "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                          )}
+                          minRows={2}
+                          maxLength={BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH}
+                          value={description}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (
+                              value.length <=
+                              BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH
+                            ) {
+                              setDescription(value);
+                            }
+                          }}
+                        />
+                        <div className="mt-1 text-left">
+                          <span className="text-xs text-neutral-500">
+                            {BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH -
+                              description.length}{" "}
+                            / {BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
                 </>
               )}
-            </div>
-          )}
-      </form>
+            </AnimatedSizeContainer>
+          </div>
+
+          {/* Action buttons - outside scrollable area */}
+          {bounty.type !== "performance" &&
+            (!submission || submission.status === "draft") &&
+            !success && (
+              <div className="border-t border-neutral-200 bg-white p-4">
+                {isFormOpen ? (
+                  <div className="flex items-center justify-between">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      text="Cancel"
+                      className="h-9 w-fit rounded-lg px-3"
+                      onClick={() => setIsFormOpen(false)}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        variant="secondary"
+                        text="Save progress"
+                        className="h-9 rounded-lg px-3"
+                        type="submit"
+                        name="draft" // for submitter.name detection above
+                        loading={isDraft === true}
+                        disabled={fileUploading || isDraft === false}
+                      />
+                      <Button
+                        variant="primary"
+                        text="Submit"
+                        className="h-9 rounded-lg px-3"
+                        type="submit"
+                        name="submit" // for submitter.name detection above
+                        loading={isDraft === false}
+                        disabled={fileUploading || isDraft === true}
+                        disabledTooltip={
+                          !hasSubmissionsOpen
+                            ? `Submissions are not open yet. They will open on ${formatDate(
+                                bounty.submissionsOpenAt!,
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                  timeZone: "UTC",
+                                },
+                              )}. In the meantime, you can save your progress as a draft.`
+                            : undefined
+                        }
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {socialChannel &&
+                    !platformsVerified?.[socialChannel.value] ? (
+                      <SocialAccountNotVerifiedWarning bounty={bounty} />
+                    ) : (
+                      <Button
+                        variant="primary"
+                        text={
+                          submission ? "Continue submission" : "Claim bounty"
+                        }
+                        className="w-full rounded-lg"
+                        onClick={() => setIsFormOpen(true)}
+                      />
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+        </form>
+      </FormProvider>
     </>
   );
 }
@@ -856,7 +831,62 @@ function SocialAccountNotVerifiedWarning({
   );
 }
 
-function SocialMetricsRequirementChecks({
+function SocialMediaPostUrlField({ bounty }: { bounty: PartnerBountyProps }) {
+  const { register, watch } = useFormContext<{
+    socialMetricsUrl: string;
+  }>();
+
+  const socialMetricsUrl = watch("socialMetricsUrl") ?? "";
+
+  const [verification, setVerification] = useState<{
+    fromAccount: boolean;
+    afterStartDate: boolean;
+  } | null>(null);
+
+  const socialChannel = getBountySocialMetricsChannel(bounty);
+
+  useEffect(() => {
+    if (!socialChannel || !socialMetricsUrl.trim()) {
+      setVerification(null);
+      return;
+    }
+    let cancelled = false;
+    verifySocialMetricsSubmission(socialMetricsUrl.trim(), bounty).then(
+      (result) => {
+        if (!cancelled) setVerification(result);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [socialChannel, socialMetricsUrl, bounty]);
+
+  if (!socialChannel) {
+    return null;
+  }
+
+  return (
+    <div>
+      <label className="block">
+        <h2 className="text-sm font-medium text-neutral-900">
+          {`${socialChannel.label} URL`}
+        </h2>
+      </label>
+      <input
+        type="url"
+        placeholder="https://"
+        className="mt-2 block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+        {...register("socialMetricsUrl")}
+      />
+      <SocialMediaPostUrlRequirementChecks
+        verification={verification}
+        bountyStartsAt={bounty.startsAt}
+      />
+    </div>
+  );
+}
+
+function SocialMediaPostUrlRequirementChecks({
   verification,
   bountyStartsAt,
 }: {

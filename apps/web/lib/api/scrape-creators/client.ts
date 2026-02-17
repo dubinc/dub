@@ -1,7 +1,7 @@
 import { createFetch, createSchema } from "@better-fetch/fetch";
 import { PlatformType } from "@dub/prisma/client";
 import * as z from "zod/v4";
-import { profileResponseSchema } from "./schema";
+import { socialContentStatsSchema, socialProfileSchema } from "./schema";
 
 export const scrapeCreatorsFetch = createFetch({
   baseURL: "https://api.scrapecreators.com",
@@ -15,6 +15,7 @@ export const scrapeCreatorsFetch = createFetch({
   },
   schema: createSchema(
     {
+      // Fetch social profile
       "/v1/:platform/:handleType": {
         method: "get",
         params: z.object({
@@ -24,10 +25,25 @@ export const scrapeCreatorsFetch = createFetch({
         query: z.object({
           handle: z.string(),
         }),
-        output: profileResponseSchema,
+        output: socialProfileSchema,
+      },
+
+      // Fetch social content
+      "/v1/:platform/:contentType": {
+        method: "get",
+        params: z.object({
+          platform: z.enum(PlatformType),
+          contentType: z.enum(["post", "video", "tweet"]),
+        }),
+        query: z.object({
+          url: z.string(),
+        }),
+        output: socialContentStatsSchema,
       },
     },
-    { strict: true },
+    {
+      strict: true,
+    },
   ),
   onError: ({ error }) => {
     console.error("[ScrapeCreators] Error", error);

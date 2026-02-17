@@ -1,6 +1,6 @@
 import * as z from "zod/v4";
 
-export const profileResponseSchema = z.preprocess(
+export const socialProfileSchema = z.preprocess(
   (data: unknown) => {
     if (typeof data === "object" && data !== null) {
       // Check for "account doesn't exist" response
@@ -126,4 +126,99 @@ export const profileResponseSchema = z.preprocess(
   ]),
 );
 
-export type ProfileResponse = z.infer<typeof profileResponseSchema>;
+export const socialContentStatsSchema = z.preprocess(
+  (data: any) => {
+    if (typeof data === "object" && data !== null) {
+      // YouTube detection
+      if ("viewCountInt" in data && "likeCountInt" in data) {
+        return {
+          ...data,
+          platform: "youtube",
+        };
+      }
+
+      // Instagram detection
+      if ("data" in data && "xdt_shortcode_media" in data.data) {
+        return {
+          ...data.data.xdt_shortcode_media,
+          platform: "instagram",
+        };
+      }
+
+      // Twitter detection
+      if ("__typename" in data && data.__typename === "Tweet") {
+        return {
+          ...data,
+          platform: "twitter",
+        };
+      }
+
+      // TikTok detection
+      if ("itemInfo" in data) {
+        return {
+          ...data.itemInfo.itemStruct,
+          platform: "tiktok",
+        };
+      }
+    }
+
+    return data;
+  },
+  z.discriminatedUnion("platform", [
+    z.object({
+      platform: z.literal("youtube"),
+      viewCountInt: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+      likeCountInt: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+    }),
+
+    z.object({
+      platform: z.literal("instagram"),
+      video_view_count: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+      edge_media_preview_like: z.object({
+        count: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+      }),
+    }),
+
+    z.object({
+      platform: z.literal("twitter"),
+      views: z.object({
+        count: z.z
+          .string()
+          .nullish()
+          .transform((val) => (val == null ? 0 : Number(val))),
+      }),
+      legacy: z.object({
+        favorite_count: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+      }),
+    }),
+
+    z.object({
+      platform: z.literal("tiktok"),
+      stats: z.object({
+        playCount: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+        diggCount: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+      }),
+    }),
+  ]),
+);
