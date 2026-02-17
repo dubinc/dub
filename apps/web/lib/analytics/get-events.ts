@@ -96,6 +96,7 @@ export const getEvents = async (params: EventsFilters) => {
 
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
   const linkIdFilter = ensureParsedFilter(params.linkId);
+  const folderIdFilter = ensureParsedFilter(params.folderId);
 
   const {
     linkId: linkIdParam,
@@ -116,6 +117,7 @@ export const getEvents = async (params: EventsFilters) => {
     ...params,
     partnerId: partnerIdFilter,
     linkId: linkIdFilter,
+    folderId: folderIdFilter,
   });
 
   const tinybirdParams: any = {
