@@ -27,7 +27,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
   test("get click events", async () => {
     const { status, data } = await http.get<any[]>({
-      path: `/events`,
+      path: "/events",
       query: {
         event: "clicks",
         workspaceId,
@@ -45,7 +45,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
   test("get lead events", async () => {
     const { status, data } = await http.get<any[]>({
-      path: `/events`,
+      path: "/events",
       query: {
         event: "leads",
         workspaceId,
@@ -61,7 +61,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
   test("get sale events", async () => {
     const { status, data } = await http.get<any[]>({
-      path: `/events`,
+      path: "/events",
       query: {
         event: "sales",
         workspaceId,
@@ -78,7 +78,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
   describe("Advanced Filters", () => {
     test("filter events by country", async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "clicks",
           workspaceId,
@@ -101,7 +101,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
     test("filter events by multiple countries (IS ONE OF)", async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "clicks",
           workspaceId,
@@ -123,7 +123,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
     test("exclude country (IS NOT)", async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "clicks",
           workspaceId,
@@ -145,7 +145,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
     test("filter events by metadata query", async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "sales",
           workspaceId,
@@ -165,7 +165,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
     test("filter events by single partnerId", async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "leads",
           workspaceId,
@@ -188,7 +188,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
     test("filter events by multiple partnerIds (IS ONE OF)", async () => {
       const partnerIds = E2E_PARTNERS.map((p) => p.id);
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "leads",
           workspaceId,
@@ -209,7 +209,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
     test("exclude events by partnerId (IS NOT)", async () => {
       const partnerIds = E2E_PARTNERS.map((p) => p.id);
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "clicks",
           workspaceId,
@@ -228,7 +228,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
     test("filter events by partnerId combined with country", async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "clicks",
           workspaceId,
@@ -249,7 +249,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
     test("filter events by single tenantId", async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "clicks",
           workspaceId,
@@ -268,7 +268,7 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
 
     test("exclude events by tenantId (IS NOT)", async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/events`,
+        path: "/events",
         query: {
           event: "clicks",
           workspaceId,
