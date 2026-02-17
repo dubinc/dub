@@ -7,14 +7,20 @@ import {
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
+import { GENERIC_EMAIL_DOMAINS } from "@/lib/is-generic-email";
 import {
   sanitizeSocialHandle,
   SOCIAL_PLATFORM_CONFIGS,
 } from "@/lib/social-utils";
+import { PartnerProps } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { redis } from "@/lib/upstash/redis";
 import { PlatformType } from "@dub/prisma/client";
-import { nanoid, PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
+import {
+  getDomainWithoutWWW,
+  nanoid,
+  PARTNERS_DOMAIN_WITH_NGROK,
+} from "@dub/utils";
 import { cookies } from "next/headers";
 import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
@@ -29,10 +35,11 @@ const startPartnerPlatformVerificationSchema = z.object({
 type VerificationResult =
   | { type: "oauth"; oauthUrl: string }
   | { type: "verification_code"; verificationCode: string }
-  | { type: "txt_record"; websiteTxtRecord: string };
+  | { type: "txt_record"; websiteTxtRecord: string }
+  | { type: "auto_verified" };
 
 type VerificationParams = {
-  partnerId: string;
+  partner: Pick<PartnerProps, "id" | "email">;
   platform: PlatformType;
   handle: string;
   source: "onboarding" | "settings";
@@ -63,7 +70,7 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
     }
 
     const params: VerificationParams = {
-      partnerId: partner.id,
+      partner,
       platform,
       handle,
       source,
@@ -84,18 +91,51 @@ export const startPartnerPlatformVerificationAction = authPartnerActionClient
     return startCodeVerification(params);
   });
 
-// Start website verification using TXT record
+// Start website verification using TXT record (or auto-verify if email domain matches)
 async function startWebsiteVerification({
-  partnerId,
+  partner,
   handle,
-}: Pick<VerificationParams, "partnerId" | "handle">): Promise<
-  Extract<VerificationResult, { type: "txt_record" }>
+}: Pick<VerificationParams, "partner" | "handle">): Promise<
+  | Extract<VerificationResult, { type: "txt_record" }>
+  | Extract<VerificationResult, { type: "auto_verified" }>
 > {
+  const websiteDomain = getDomainWithoutWWW(handle)?.toLowerCase();
+  const emailDomain = partner.email?.split("@")[1]?.toLowerCase();
+
+  if (websiteDomain && emailDomain) {
+    const isDisposableEmailDomain = await redis.sismember(
+      "disposableEmailDomains",
+      emailDomain,
+    );
+    // Auto-verify if website if the partner's email domain:
+    // - is not a generic email domain
+    // - is not a disposable email domain
+    // - matches the website domain exactly
+    if (
+      !GENERIC_EMAIL_DOMAINS.includes(emailDomain) &&
+      !isDisposableEmailDomain &&
+      emailDomain === websiteDomain
+    ) {
+      await upsertPartnerPlatform({
+        where: {
+          partnerId: partner.id,
+          type: "website",
+        },
+        data: {
+          identifier: handle,
+          verifiedAt: new Date(),
+          metadata: {},
+        },
+      });
+      return { type: "auto_verified" };
+    }
+  }
+
   const websiteTxtRecord = `dub-domain-verification=${uuid()}`;
 
   await upsertPartnerPlatform({
     where: {
-      partnerId,
+      partnerId: partner.id,
       type: "website",
     },
     data: {
@@ -115,7 +155,7 @@ async function startWebsiteVerification({
 
 // Start OAuth verification for platforms Twitter, TikTok and LinkedIn
 async function startOAuthVerification({
-  partnerId,
+  partner,
   platform,
   handle: rawHandle,
   source,
@@ -142,7 +182,7 @@ async function startOAuthVerification({
   // Store handle before OAuth redirect
   await upsertPartnerPlatform({
     where: {
-      partnerId,
+      partnerId: partner.id,
       type: platform,
     },
     data: {
@@ -157,7 +197,7 @@ async function startOAuthVerification({
     `partnerSocialVerification:${state}`,
     {
       platform,
-      partnerId,
+      partnerId: partner.id,
       source,
     },
     {
@@ -200,10 +240,10 @@ async function startOAuthVerification({
 
 // Start verification code flow for platforms like YouTube, Instagram
 async function startCodeVerification({
-  partnerId,
+  partner,
   platform,
   handle: rawHandle,
-}: Pick<VerificationParams, "partnerId" | "platform" | "handle">): Promise<
+}: Pick<VerificationParams, "partner" | "platform" | "handle">): Promise<
   Extract<VerificationResult, { type: "verification_code" }>
 > {
   const platformConfig = SOCIAL_PLATFORM_CONFIGS[platform];
@@ -219,14 +259,14 @@ async function startCodeVerification({
   }
 
   const verificationCode = generateOTP();
-  const cacheKey = `social-verification:${partnerId}:${platform}:${handle}`;
+  const cacheKey = `social-verification:${partner.id}:${platform}:${handle}`;
   await redis.set(cacheKey, verificationCode, {
     ex: 60 * 60 * 24, // 24 hours
   });
 
   await upsertPartnerPlatform({
     where: {
-      partnerId,
+      partnerId: partner.id,
       type: platform,
     },
     data: {

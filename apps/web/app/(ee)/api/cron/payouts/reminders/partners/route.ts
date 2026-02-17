@@ -79,6 +79,22 @@ async function handler(req: Request) {
           id: {
             in: pendingPayouts.map((payout) => payout.partnerId),
           },
+          OR: [
+            {
+              users: {
+                none: {},
+              },
+            },
+            {
+              users: {
+                some: {
+                  notificationPreferences: {
+                    connectPayoutReminder: true,
+                  },
+                },
+              },
+            },
+          ],
         },
       }),
 

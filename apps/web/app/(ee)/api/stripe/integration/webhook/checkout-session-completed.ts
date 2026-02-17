@@ -269,14 +269,15 @@ export async function checkoutSessionCompleted(
 
     // if leadEvent is not defined yet, we need to pull it from Tinybird
     if (!leadEvent) {
-      leadEvent = await getLeadEvent({ customerId: customer.id }).then(
-        (res) => res.data[0],
-      );
-      if (!leadEvent) {
+      const leadEventData = await getLeadEvent({ customerId: customer.id });
+      if (!leadEventData) {
         return `No lead event found for customer ${customer.id}, skipping...`;
       }
-
-      linkId = leadEvent.link_id as string;
+      leadEvent = {
+        ...leadEventData,
+        workspace_id: leadEventData.workspace_id || customer.projectId, // in case for some reason the lead event doesn't have workspace_id
+      };
+      linkId = leadEvent.link_id;
     }
   } else {
     return "No stripeCustomerId or dubCustomerExternalId found in Stripe checkout session metadata, skipping...";

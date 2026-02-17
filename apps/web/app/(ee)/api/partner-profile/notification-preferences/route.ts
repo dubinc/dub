@@ -17,6 +17,7 @@ export const GET = withPartnerProfile(async ({ partner, session }) => {
         applicationApproved: true,
         newMessageFromProgram: true,
         marketingCampaign: true,
+        connectPayoutReminder: true,
       },
     },
   );

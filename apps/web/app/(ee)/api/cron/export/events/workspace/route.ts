@@ -24,10 +24,6 @@ const payloadSchema = eventsQuerySchema.extend({
     .pipe(z.string().array()),
   workspaceId: z.string(),
   userId: z.string(),
-  linkId: z.string().optional(),
-  folderIds: z.array(z.string()).optional(),
-  folderId: z.string().optional(),
-  dataAvailableFrom: z.string().optional(),
 });
 
 // POST /api/cron/export/events/workspace - QStash worker for processing large event exports
@@ -40,7 +36,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { columns, workspaceId, userId, ...filters } = payloadSchema.parse(
+    const { columns, userId, ...filters } = payloadSchema.parse(
       JSON.parse(rawBody),
     );
 
@@ -63,7 +59,7 @@ export async function POST(req: Request) {
 
     const workspace = await prisma.project.findUnique({
       where: {
-        id: workspaceId,
+        id: filters.workspaceId,
       },
       select: {
         id: true,
@@ -74,28 +70,14 @@ export async function POST(req: Request) {
 
     if (!workspace) {
       return logAndRespond(
-        `Workspace ${workspaceId} not found. Skipping the export.`,
+        `Workspace ${filters.workspaceId} not found. Skipping the export.`,
       );
     }
-
-    const { linkId, folderIds, folderId, dataAvailableFrom, ...eventFilters } =
-      filters;
 
     // Fetch events in batches and build CSV
     const allEvents: Record<string, any>[] = [];
 
-    const eventsFilters = {
-      ...eventFilters,
-      ...(linkId && { linkId }),
-      workspaceId,
-      folderIds,
-      folderId: folderId || "",
-      dataAvailableFrom: dataAvailableFrom
-        ? new Date(dataAvailableFrom)
-        : workspace.createdAt,
-    };
-
-    for await (const { events } of fetchEventsBatch(eventsFilters)) {
+    for await (const { events } of fetchEventsBatch(filters)) {
       const formattedEvents = events.map((row) =>
         Object.fromEntries(
           columns.map((c) => [

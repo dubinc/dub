@@ -212,13 +212,13 @@ export function PartnerSection() {
                         getNewPath: true,
                       }) as string;
                     } else if (isTagsSubtab) {
-                      const hasTagFilter = searchParams.has("tagIds");
+                      const hasTagFilter = searchParams.has("tagId");
                       href = queryParams({
                         ...(hasTagFilter
-                          ? { del: "tagIds" }
+                          ? { del: "tagId" }
                           : {
                               set: {
-                                tagIds: d.tagId,
+                                tagId: d.tagId,
                               },
                             }),
                         getNewPath: true,

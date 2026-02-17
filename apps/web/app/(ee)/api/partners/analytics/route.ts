@@ -1,5 +1,6 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { parseFilterValue } from "@dub/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -72,7 +73,7 @@ export const GET = withWorkspace(
     const analytics = await getAnalytics({
       event: "composite",
       groupBy,
-      linkIds: programEnrollment.links.map((link) => link.id),
+      linkId: parseFilterValue(programEnrollment.links.map((link) => link.id)),
       interval,
       start,
       end,
