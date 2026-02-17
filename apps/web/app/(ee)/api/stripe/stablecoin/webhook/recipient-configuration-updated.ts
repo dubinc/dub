@@ -36,7 +36,7 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
   const stablecoinPayoutMethod =
     await getStripeStablecoinPayoutMethod(stripeRecipientId);
 
-  const payoutWalletHash = stablecoinPayoutMethod?.crypto_wallet?.address
+  const payoutWalletAddress = stablecoinPayoutMethod?.crypto_wallet?.address
     ? await hashStringSHA256(stablecoinPayoutMethod?.crypto_wallet?.address)
     : null;
 
@@ -47,13 +47,13 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
     data: {
       payoutsEnabledAt,
       defaultPayoutMethod,
-      payoutWalletHash,
+      payoutWalletAddress,
     },
   });
 
-  if (payoutWalletHash) {
+  if (payoutWalletAddress) {
     detectDuplicatePayoutMethodFraud({
-      payoutWalletHash,
+      payoutWalletAddress,
     });
   }
 

@@ -5,16 +5,16 @@ import { FraudRuleType, ProgramEnrollment } from "@dub/prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 
 type DetectDuplicatePayoutMethodFraudOptions =
-  | { payoutMethodHash: string; payoutWalletHash?: never }
-  | { payoutWalletHash: string; payoutMethodHash?: never };
+  | { payoutMethodHash: string; payoutWalletAddress?: never }
+  | { payoutWalletAddress: string; payoutMethodHash?: never };
 
 // Check for duplicate payout methods: if multiple partners share the same payout method hash,
 // create fraud events for all their active program enrollments to flag potential fraud
 export async function detectDuplicatePayoutMethodFraud({
   payoutMethodHash,
-  payoutWalletHash,
+  payoutWalletAddress,
 }: DetectDuplicatePayoutMethodFraudOptions) {
-  if (!payoutMethodHash && !payoutWalletHash) {
+  if (!payoutMethodHash && !payoutWalletAddress) {
     return;
   }
 
@@ -22,7 +22,7 @@ export async function detectDuplicatePayoutMethodFraud({
     where: {
       partner: {
         ...(payoutMethodHash ? { payoutMethodHash } : {}),
-        ...(payoutWalletHash ? { payoutWalletHash } : {}),
+        ...(payoutWalletAddress ? { payoutWalletAddress } : {}),
       },
     },
     select: {
@@ -73,7 +73,7 @@ export async function detectDuplicatePayoutMethodFraud({
           type: FraudRuleType.partnerDuplicatePayoutMethod,
           metadata: {
             ...(payoutMethodHash ? { payoutMethodHash } : {}),
-            ...(payoutWalletHash ? { payoutWalletHash } : {}),
+            ...(payoutWalletAddress ? { payoutWalletAddress } : {}),
             duplicatePartnerId: enrolledPartner.partnerId,
           },
         });
