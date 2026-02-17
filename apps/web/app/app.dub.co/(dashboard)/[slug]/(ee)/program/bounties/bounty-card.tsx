@@ -1,4 +1,4 @@
-import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
+import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";

@@ -1,5 +1,5 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
-import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
+import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import { APP_DOMAIN, COUNTRIES, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import * as z from "zod/v4";

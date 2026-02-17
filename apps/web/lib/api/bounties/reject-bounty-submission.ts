@@ -1,5 +1,5 @@
 import { Session } from "@/lib/auth";
-import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/constants/bounties";
+import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import {
   BountySubmissionSchema,
   rejectBountySubmissionBodySchema,

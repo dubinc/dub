@@ -7,7 +7,7 @@ import {
   BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_URLS,
-} from "@/lib/constants/bounties";
+} from "@/lib/bounty/constants";
 import {
   BountySubmissionFileSchema,
   submissionRequirementsSchema,

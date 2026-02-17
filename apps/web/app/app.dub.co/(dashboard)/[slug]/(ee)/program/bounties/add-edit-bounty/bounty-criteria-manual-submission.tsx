@@ -4,7 +4,7 @@ import {
   BOUNTY_DEFAULT_SUBMISSION_URLS,
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_URLS,
-} from "@/lib/constants/bounties";
+} from "@/lib/bounty/constants";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
 import {

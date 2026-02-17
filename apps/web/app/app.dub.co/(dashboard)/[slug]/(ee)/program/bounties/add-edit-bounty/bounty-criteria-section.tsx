@@ -1,6 +1,6 @@
 "use client";
 
-import type { SocialMetricsChannel } from "@/lib/constants/bounties";
+import type { SocialMetricsChannel } from "@/lib/types";
 import {
   ProgramSheetAccordionContent,
   ProgramSheetAccordionItem,

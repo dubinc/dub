@@ -1,10 +1,10 @@
 "use client";
 
-import type { SocialMetricsChannel } from "@/lib/constants/bounties";
 import {
   SOCIAL_METRICS_CHANNELS,
   SOCIAL_METRICS_CHANNEL_METRICS,
-} from "@/lib/constants/bounties";
+} from "@/lib/bounty/constants";
+import type { SocialMetricsChannel } from "@/lib/types";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { Repeat, X } from "@/ui/shared/icons";
 import {
@@ -253,7 +253,7 @@ export function BountyCriteriaSocialMetrics() {
       {variableBonus && (
         <>
           <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
-          <div className="border-border-subtle rounded-xl border bg-white shadow-sm overflow-hidden">
+          <div className="border-border-subtle overflow-hidden rounded-xl border bg-white shadow-sm">
             <div className="flex items-center gap-2.5 p-2.5">
               <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
                 <ArrowTurnRight2 className="size-4 text-neutral-800" />
@@ -272,7 +272,7 @@ export function BountyCriteriaSocialMetrics() {
               <button
                 type="button"
                 onClick={removeVariableBonus}
-                className="text-neutral-400 hover:text-neutral-600 ml-auto"
+                className="ml-auto text-neutral-400 hover:text-neutral-600"
                 aria-label="Remove variable bonus"
               >
                 <X className="size-4" />
@@ -326,10 +326,9 @@ export function BountyCriteriaSocialMetrics() {
                       text={
                         variableBonus.bonusAmount != null &&
                         !isNaN(variableBonus.bonusAmount)
-                          ? currencyFormatter(
-                              variableBonus.bonusAmount * 100,
-                              { trailingZeroDisplay: "stripIfInteger" },
-                            )
+                          ? currencyFormatter(variableBonus.bonusAmount * 100, {
+                              trailingZeroDisplay: "stripIfInteger",
+                            })
                           : "$0"
                       }
                       invalid={
@@ -380,9 +379,7 @@ export function BountyCriteriaSocialMetrics() {
                           const raw = (e.target as HTMLInputElement).value;
                           const num = raw === "" ? 0 : parseInt(raw, 10);
                           updateVariableBonus({
-                            capAmount: Number.isNaN(num)
-                              ? 1
-                              : Math.max(1, num),
+                            capAmount: Number.isNaN(num) ? 1 : Math.max(1, num),
                           });
                         }}
                         placeholder="amount"

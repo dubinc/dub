@@ -30,7 +30,11 @@ import {
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
-import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./constants/bounties";
+import {
+  BOUNTY_SUBMISSION_REQUIREMENTS,
+  SOCIAL_METRICS_CHANNELS,
+  SOCIAL_METRICS_METRIC_VALUES,
+} from "./bounty/constants";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
@@ -658,6 +662,11 @@ export type BountySubmissionProps = z.infer<
 
 export type BountySubmissionRequirement =
   (typeof BOUNTY_SUBMISSION_REQUIREMENTS)[number];
+
+export type SocialMetricsChannel =
+  (typeof SOCIAL_METRICS_CHANNELS)[number]["value"];
+
+export type SocialMetricsMetric = (typeof SOCIAL_METRICS_METRIC_VALUES)[number];
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 

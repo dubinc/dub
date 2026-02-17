@@ -1,8 +1,11 @@
+import type { SocialMetricsChannel } from "@/lib/types";
+
 export const BOUNTY_DESCRIPTION_MAX_LENGTH = 5000;
 
 export const BOUNTY_MAX_SUBMISSION_FILES = 4;
 
 export const BOUNTY_DEFAULT_SUBMISSION_URLS = 10;
+
 export const BOUNTY_MAX_SUBMISSION_URLS = 100;
 
 export const BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH = 1000;
@@ -23,11 +26,8 @@ export const SOCIAL_METRICS_CHANNELS = [
   { value: "youtube", label: "YouTube" },
   { value: "tiktok", label: "TikTok" },
   { value: "instagram", label: "Instagram" },
-  { value: "x_twitter", label: "X/Twitter" },
+  { value: "twitter", label: "Twitter" },
 ] as const;
-
-export type SocialMetricsChannel =
-  (typeof SOCIAL_METRICS_CHANNELS)[number]["value"];
 
 export const SOCIAL_METRICS_CHANNEL_METRICS: Record<
   SocialMetricsChannel,
@@ -36,31 +36,19 @@ export const SOCIAL_METRICS_CHANNEL_METRICS: Record<
   youtube: [
     { value: "views", label: "views" },
     { value: "likes", label: "likes" },
-    { value: "comments", label: "comments" },
   ],
   tiktok: [
     { value: "likes", label: "likes" },
-    { value: "comments", label: "comments" },
     { value: "views", label: "views" },
   ],
   instagram: [
     { value: "likes", label: "likes" },
     { value: "views", label: "views" },
   ],
-  x_twitter: [
-    { value: "favorites", label: "favorites" },
-    { value: "replies", label: "replies" },
-    { value: "retweets", label: "retweets" },
+  twitter: [
+    { value: "likes", label: "likes" },
+    { value: "views", label: "views" },
   ],
 };
 
-export const SOCIAL_METRICS_METRIC_VALUES = [
-  "views",
-  "likes",
-  "comments",
-  "favorites",
-  "replies",
-  "retweets",
-] as const;
-
-export type SocialMetricsMetric = (typeof SOCIAL_METRICS_METRIC_VALUES)[number];
+export const SOCIAL_METRICS_METRIC_VALUES = ["views", "likes"] as const;

@@ -1,6 +1,6 @@
 "use client";
 
-import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
+import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import useBounty from "@/lib/swr/use-bounty";
 import {
   SubmissionsCountByStatus,

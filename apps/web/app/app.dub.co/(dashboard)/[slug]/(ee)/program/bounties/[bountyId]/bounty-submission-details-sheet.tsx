@@ -1,7 +1,7 @@
 "use client";
 
 import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
-import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/constants/bounties";
+import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";

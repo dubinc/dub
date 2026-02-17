@@ -3,7 +3,7 @@ import {
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
   SOCIAL_METRICS_CHANNELS,
   SOCIAL_METRICS_METRIC_VALUES,
-} from "@/lib/constants/bounties";
+} from "@/lib/bounty/constants";
 import {
   BountyPerformanceScope,
   BountySubmissionRejectionReason,

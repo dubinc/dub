@@ -5,8 +5,8 @@ import {
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_URLS,
   REJECT_BOUNTY_SUBMISSION_REASONS,
-} from "@/lib/constants/bounties";
-import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
+} from "@/lib/bounty/constants";
+import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps } from "@/lib/types";

@@ -1,4 +1,4 @@
-import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
+import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import { PartnerBountyProps } from "@/lib/types";
 import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
