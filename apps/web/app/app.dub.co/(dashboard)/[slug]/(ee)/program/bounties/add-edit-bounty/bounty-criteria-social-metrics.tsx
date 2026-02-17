@@ -6,14 +6,21 @@ import {
 } from "@/lib/bounty/constants";
 import type { SocialMetricsChannel } from "@/lib/types";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
-import { Repeat, X } from "@/ui/shared/icons";
+import { X } from "@/ui/shared/icons";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
   InlineBadgePopoverInput,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
-import { ArrowTurnRight2, Megaphone, MoneyBills2, Tooltip } from "@dub/ui";
+import {
+  ArrowTurnRight2,
+  Button,
+  Megaphone,
+  MoneyBills2,
+  Refresh2,
+  Tooltip,
+} from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
 import { useContext } from "react";
@@ -21,9 +28,9 @@ import { BountyAmountInput } from "./bounty-amount-input";
 import { useAddEditBountyForm } from "./bounty-form-context";
 
 interface VariableBonus {
-  incrementalAmount: number;
-  bonusAmount: number;
-  capAmount: number;
+  incrementalAmount?: number;
+  bonusAmount?: number;
+  capAmount?: number;
 }
 
 interface SocialMetricsCriteria {
@@ -35,11 +42,12 @@ interface SocialMetricsCriteria {
   };
 }
 
-const VARIABLE_BONUS_DEFAULTS: VariableBonus = {
-  incrementalAmount: 100,
-  bonusAmount: 5,
-  capAmount: 1000,
-};
+interface SocialMetricsVariableBonusProps {
+  variableBonus: VariableBonus;
+  metricLabel: string;
+  onUpdate: (updates: Partial<VariableBonus>) => void;
+  onRemove: () => void;
+}
 
 export function BountyCriteriaSocialMetrics() {
   const { watch, setValue } = useAddEditBountyForm();
@@ -76,7 +84,7 @@ export function BountyCriteriaSocialMetrics() {
         : channelMetrics[0].value);
     const nextAmount = updates.amount ?? socialMetrics?.amount ?? 0;
     const nextVariableBonus =
-      updates.variableBonus !== undefined
+      "variableBonus" in updates
         ? updates.variableBonus
         : socialMetrics?.variableBonus;
     setValue(
@@ -94,19 +102,23 @@ export function BountyCriteriaSocialMetrics() {
   };
 
   const updateVariableBonus = (updates: Partial<VariableBonus>) => {
-    const current = socialMetrics?.variableBonus ?? VARIABLE_BONUS_DEFAULTS;
+    const current = socialMetrics?.variableBonus ?? {};
     updateSocialMetrics({
       variableBonus: {
         incrementalAmount:
-          updates.incrementalAmount ?? current.incrementalAmount,
-        bonusAmount: updates.bonusAmount ?? current.bonusAmount,
-        capAmount: updates.capAmount ?? current.capAmount,
+          "incrementalAmount" in updates
+            ? updates.incrementalAmount
+            : current.incrementalAmount,
+        bonusAmount:
+          "bonusAmount" in updates ? updates.bonusAmount : current.bonusAmount,
+        capAmount:
+          "capAmount" in updates ? updates.capAmount : current.capAmount,
       },
     });
   };
 
   const addVariableBonus = () => {
-    updateSocialMetrics({ variableBonus: VARIABLE_BONUS_DEFAULTS });
+    updateSocialMetrics({ variableBonus: {} });
   };
 
   const removeVariableBonus = () => {
@@ -239,160 +251,203 @@ export function BountyCriteriaSocialMetrics() {
       </div>
 
       {socialMetrics && !variableBonus && (
-        <div className="pt-2">
-          <button
-            type="button"
+        <div className="border-bg-subtle mt-4 rounded-xl border bg-neutral-100 p-2.5">
+          <Button
+            text="Add variable bonus"
             onClick={addVariableBonus}
-            className="text-content-default hover:text-content-emphasis text-sm font-medium"
-          >
-            Add variable bonus
-          </button>
+            variant="secondary"
+            icon={<ArrowTurnRight2 className="size-4 text-neutral-900" />}
+            className="h-8 rounded-lg"
+          />
         </div>
       )}
 
       {variableBonus && (
-        <>
-          <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
-          <div className="border-border-subtle overflow-hidden rounded-xl border bg-white shadow-sm">
-            <div className="flex items-center gap-2.5 p-2.5">
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-                <ArrowTurnRight2 className="size-4 text-neutral-800" />
-              </div>
-              <span className="text-content-emphasis text-sm font-semibold leading-relaxed">
-                Variable bonus
-              </span>
-              <Tooltip
-                content="Partners earn the base payout when they hit the threshold, plus an extra amount for each additional increment up to the cap."
-                side="top"
-              >
-                <div className="text-neutral-400 hover:text-neutral-600">
-                  <HelpCircle className="size-3.5" />
-                </div>
-              </Tooltip>
-              <button
-                type="button"
-                onClick={removeVariableBonus}
-                className="ml-auto text-neutral-400 hover:text-neutral-600"
-                aria-label="Remove variable bonus"
-              >
-                <X className="size-4" />
-              </button>
-            </div>
-            <div className="flex flex-col gap-0 pb-2.5">
-              <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
-              <div className="border-border-subtle rounded-xl border bg-white shadow-sm">
-                <div className="flex items-center gap-2.5 p-2.5">
-                  <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-                    <Megaphone className="size-4 text-neutral-800" />
-                  </div>
-                  <span className="text-content-emphasis text-sm font-medium leading-relaxed">
-                    For each additional{" "}
-                    <InlineBadgePopover
-                      text={String(variableBonus.incrementalAmount)}
-                      invalid={variableBonus.incrementalAmount < 1}
-                      buttonClassName={
-                        variableBonus.incrementalAmount >= 1
-                          ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
-                          : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
-                      }
-                    >
-                      <InlineBadgePopoverInput
-                        type="number"
-                        min={1}
-                        value={String(variableBonus.incrementalAmount)}
-                        onChange={(e) => {
-                          const raw = (e.target as HTMLInputElement).value;
-                          const num = raw === "" ? 0 : parseInt(raw, 10);
-                          updateVariableBonus({
-                            incrementalAmount: Number.isNaN(num)
-                              ? 1
-                              : Math.max(1, num),
-                          });
-                        }}
-                        placeholder="amount"
-                      />
-                    </InlineBadgePopover>{" "}
-                    {metricLabel}
-                  </span>
-                </div>
-              </div>
-              <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
-              <div className="border-border-subtle rounded-xl border bg-white shadow-sm">
-                <div className="flex items-center gap-2.5 p-2.5">
-                  <RewardIconSquare icon={MoneyBills2} />
-                  <span className="text-content-emphasis text-sm font-medium leading-relaxed">
-                    Pay{" "}
-                    <InlineBadgePopover
-                      text={
-                        variableBonus.bonusAmount != null &&
-                        !isNaN(variableBonus.bonusAmount)
-                          ? currencyFormatter(variableBonus.bonusAmount * 100, {
-                              trailingZeroDisplay: "stripIfInteger",
-                            })
-                          : "$0"
-                      }
-                      invalid={
-                        variableBonus.bonusAmount == null ||
-                        isNaN(variableBonus.bonusAmount) ||
-                        variableBonus.bonusAmount < 0
-                      }
-                      buttonClassName={
-                        variableBonus.bonusAmount != null &&
-                        !isNaN(variableBonus.bonusAmount) &&
-                        variableBonus.bonusAmount >= 0
-                          ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
-                          : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
-                      }
-                    >
-                      <VariableBonusAmountInput
-                        value={variableBonus.bonusAmount}
-                        onChange={(v) =>
-                          updateVariableBonus({ bonusAmount: v })
-                        }
-                      />
-                    </InlineBadgePopover>
-                  </span>
-                </div>
-              </div>
-              <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
-              <div className="border-border-subtle rounded-xl border bg-white shadow-sm">
-                <div className="flex items-center gap-2.5 p-2.5">
-                  <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-                    <Repeat className="size-4 text-neutral-800" />
-                  </div>
-                  <span className="text-content-emphasis text-sm font-medium leading-relaxed">
-                    Up to{" "}
-                    <InlineBadgePopover
-                      text={String(variableBonus.capAmount)}
-                      invalid={variableBonus.capAmount < 1}
-                      buttonClassName={
-                        variableBonus.capAmount >= 1
-                          ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
-                          : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
-                      }
-                    >
-                      <InlineBadgePopoverInput
-                        type="number"
-                        min={1}
-                        value={String(variableBonus.capAmount)}
-                        onChange={(e) => {
-                          const raw = (e.target as HTMLInputElement).value;
-                          const num = raw === "" ? 0 : parseInt(raw, 10);
-                          updateVariableBonus({
-                            capAmount: Number.isNaN(num) ? 1 : Math.max(1, num),
-                          });
-                        }}
-                        placeholder="amount"
-                      />
-                    </InlineBadgePopover>{" "}
-                    {metricLabel}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
+        <SocialMetricsVariableBonus
+          variableBonus={variableBonus}
+          metricLabel={metricLabel}
+          onUpdate={updateVariableBonus}
+          onRemove={removeVariableBonus}
+        />
       )}
+    </div>
+  );
+}
+
+function SocialMetricsVariableBonus({
+  variableBonus,
+  metricLabel,
+  onUpdate,
+  onRemove,
+}: SocialMetricsVariableBonusProps) {
+  return (
+    <div className="border-border-subtle mt-4 overflow-hidden rounded-xl border bg-neutral-100 p-2.5 pt-0 shadow-sm">
+      <div className="flex items-center justify-between py-2.5">
+        <div className="flex items-center gap-2 px-2">
+          <ArrowTurnRight2 className="size-4 text-neutral-800" />
+          <span className="text-sm font-medium text-neutral-800">
+            Variable bonus
+          </span>
+          <Tooltip
+            content="Partners earn the base payout when they hit the threshold, plus an extra amount for each additional increment up to the cap."
+            side="top"
+          >
+            <div className="text-neutral-400 hover:text-neutral-600">
+              <HelpCircle className="size-3.5" />
+            </div>
+          </Tooltip>
+        </div>
+
+        <button
+          type="button"
+          onClick={onRemove}
+          className="ml-auto text-neutral-400 hover:text-neutral-600"
+          aria-label="Remove variable bonus"
+        >
+          <X className="size-4" />
+        </button>
+      </div>
+
+      <div className="flex flex-col gap-0 rounded-xl border border-neutral-200 bg-white px-2.5 py-3">
+        <div className="border-border-subtle rounded-xl border bg-white shadow-sm">
+          <div className="flex items-center gap-2.5 p-2.5">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+              <Megaphone className="size-4 text-neutral-800" />
+            </div>
+            <span className="text-content-emphasis text-sm font-medium leading-relaxed">
+              For each additional{" "}
+              <InlineBadgePopover
+                text={
+                  variableBonus.incrementalAmount != null &&
+                  variableBonus.incrementalAmount >= 1
+                    ? String(variableBonus.incrementalAmount)
+                    : "amount"
+                }
+                invalid={
+                  variableBonus.incrementalAmount == null ||
+                  variableBonus.incrementalAmount < 1
+                }
+                buttonClassName={
+                  variableBonus.incrementalAmount != null &&
+                  variableBonus.incrementalAmount >= 1
+                    ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
+                    : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
+                }
+              >
+                <InlineBadgePopoverInput
+                  type="number"
+                  min={1}
+                  value={
+                    variableBonus.incrementalAmount != null
+                      ? String(variableBonus.incrementalAmount)
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const raw = (e.target as HTMLInputElement).value;
+                    const num = raw === "" ? undefined : parseInt(raw, 10);
+                    onUpdate({
+                      incrementalAmount:
+                        num === undefined || Number.isNaN(num)
+                          ? undefined
+                          : Math.max(1, num),
+                    });
+                  }}
+                  placeholder="amount"
+                />
+              </InlineBadgePopover>{" "}
+              {metricLabel}
+            </span>
+          </div>
+        </div>
+        <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
+        <div className="border-border-subtle rounded-xl border bg-white shadow-sm">
+          <div className="flex items-center gap-2.5 p-2.5">
+            <RewardIconSquare icon={MoneyBills2} />
+            <span className="text-content-emphasis text-sm font-medium leading-relaxed">
+              Pay{" "}
+              <InlineBadgePopover
+                text={
+                  variableBonus.bonusAmount != null &&
+                  !isNaN(variableBonus.bonusAmount) &&
+                  variableBonus.bonusAmount >= 0
+                    ? currencyFormatter(variableBonus.bonusAmount * 100, {
+                        trailingZeroDisplay: "stripIfInteger",
+                      })
+                    : "amount"
+                }
+                invalid={
+                  variableBonus.bonusAmount == null ||
+                  isNaN(variableBonus.bonusAmount) ||
+                  variableBonus.bonusAmount < 0
+                }
+                buttonClassName={
+                  variableBonus.bonusAmount != null &&
+                  !isNaN(variableBonus.bonusAmount) &&
+                  variableBonus.bonusAmount >= 0
+                    ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
+                    : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
+                }
+              >
+                <VariableBonusAmountInput
+                  value={variableBonus.bonusAmount}
+                  onChange={(v) => onUpdate({ bonusAmount: v })}
+                />
+              </InlineBadgePopover>
+            </span>
+          </div>
+        </div>
+        <div className="bg-border-subtle ml-6 h-4 w-px shrink-0" />
+        <div className="border-border-subtle rounded-xl border bg-white shadow-sm">
+          <div className="flex items-center gap-2.5 p-2.5">
+            <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+              <Refresh2 className="size-4 text-neutral-800" />
+            </div>
+            <span className="text-content-emphasis text-sm font-medium leading-relaxed">
+              Up to{" "}
+              <InlineBadgePopover
+                text={
+                  variableBonus.capAmount != null &&
+                  variableBonus.capAmount >= 1
+                    ? String(variableBonus.capAmount)
+                    : "amount"
+                }
+                invalid={
+                  variableBonus.capAmount == null ||
+                  variableBonus.capAmount < 1
+                }
+                buttonClassName={
+                  variableBonus.capAmount != null &&
+                  variableBonus.capAmount >= 1
+                    ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
+                    : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
+                }
+              >
+                <InlineBadgePopoverInput
+                  type="number"
+                  min={1}
+                  value={
+                    variableBonus.capAmount != null
+                      ? String(variableBonus.capAmount)
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const raw = (e.target as HTMLInputElement).value;
+                    const num = raw === "" ? undefined : parseInt(raw, 10);
+                    onUpdate({
+                      capAmount:
+                        num === undefined || Number.isNaN(num)
+                          ? undefined
+                          : Math.max(1, num),
+                    });
+                  }}
+                  placeholder="amount"
+                />
+              </InlineBadgePopover>{" "}
+              {metricLabel}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -401,8 +456,8 @@ function VariableBonusAmountInput({
   value,
   onChange,
 }: {
-  value: number;
-  onChange: (value: number) => void;
+  value?: number;
+  onChange: (value: number | undefined) => void;
 }) {
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
   return (
@@ -415,11 +470,15 @@ function VariableBonusAmountInput({
         type="number"
         min={0}
         step={0.01}
-        value={value != null && !isNaN(value) && value >= 0 ? value : ""}
+        value={
+          value != null && !isNaN(value) && value >= 0 ? value : ""
+        }
         onChange={(e) => {
           const raw = (e.target as HTMLInputElement).value;
-          const num = raw === "" ? 0 : parseFloat(raw);
-          onChange(Number.isNaN(num) ? 0 : Math.max(0, num));
+          const num = raw === "" ? undefined : parseFloat(raw);
+          onChange(
+            num === undefined || Number.isNaN(num) ? undefined : Math.max(0, num),
+          );
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter") {

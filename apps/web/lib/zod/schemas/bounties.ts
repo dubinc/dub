@@ -29,14 +29,28 @@ const socialMetricsChannelValues = SOCIAL_METRICS_CHANNELS.map((c) => c.value);
 
 export const variableBonusSchema = z
   .object({
-    incrementalAmount: z.number().int().positive(),
-    bonusAmount: z.number().min(0),
-    capAmount: z.number().int().positive(),
+    incrementalAmount: z.number().int().positive().optional(),
+    bonusAmount: z.number().min(0).optional(),
+    capAmount: z.number().int().positive().optional(),
   })
-  .refine((data) => data.capAmount >= data.incrementalAmount, {
-    message: "Cap must be at least the incremental amount",
-    path: ["capAmount"],
-  });
+  .refine(
+    (data) => {
+      const { incrementalAmount, capAmount } = data;
+      if (
+        incrementalAmount != null &&
+        capAmount != null &&
+        !Number.isNaN(incrementalAmount) &&
+        !Number.isNaN(capAmount)
+      ) {
+        return capAmount >= incrementalAmount;
+      }
+      return true;
+    },
+    {
+      message: "Cap must be at least the incremental amount",
+      path: ["capAmount"],
+    },
+  );
 
 export const socialMetricsSchema = z.object({
   channel: z.enum(
