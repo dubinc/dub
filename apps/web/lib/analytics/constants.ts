@@ -109,7 +109,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   utm_contents: "utm_content",
   // extra fields
   top_folders: "folderId",
-  top_link_tags: "tagIds",
+  top_link_tags: "tagId",
   top_domains: "domain",
   top_links: "linkId",
   top_urls: "url",

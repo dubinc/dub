@@ -81,7 +81,7 @@ export function ensureParsedFilter(
 }
 
 /**
- * Extract workspace link filters (domain, tagIds, folderId, partnerId) into
+ * Extract workspace link filters (domain, tagId, folderId, partnerId) into
  * separate values and operators for Tinybird.
  *
  * These filters are applied on the workspace_links node in Tinybird,

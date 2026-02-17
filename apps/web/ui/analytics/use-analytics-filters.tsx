@@ -160,10 +160,10 @@ export function useAnalyticsFilters({
         : []),
     ];
 
-    // Handle all filters dynamically (including domain, tagIds, folderId, root)
+    // Handle all filters dynamically (including domain, tagId, folderId, root)
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
-      if (["key", "tagId", "customerId"].includes(filter)) return;
+      if (["key", "customerId"].includes(filter)) return;
       // Also skip date range filters and qr
       if (["interval", "start", "end", "qr"].includes(filter)) return;
       // Skip domain if we're showing a specific link (domain + key) without linkId
@@ -212,7 +212,7 @@ export function useAnalyticsFilters({
     context,
   });
   const { data: linkTags } = useAnalyticsFilterOption("top_link_tags", {
-    disabled: !isRequested("tagIds"),
+    disabled: !isRequested("tagId"),
     omitGroupByFilterKey: true,
     context,
   });
@@ -515,7 +515,7 @@ export function useAnalyticsFilters({
                     })) ?? null,
                 },
                 {
-                  key: "tagIds",
+                  key: "tagId",
                   icon: Tag,
                   label: "Tag",
                   getOptionIcon: (_value, props) => {
@@ -856,7 +856,7 @@ export function useAnalyticsFilters({
       refererUrls,
       baseUrls,
       utmData,
-      searchParamsObj.tagIds,
+      searchParamsObj.tagId,
       searchParamsObj.domain,
     ],
   );
