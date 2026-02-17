@@ -130,7 +130,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const allFilters = [...metadataFilters, ...advancedFilters];
 
-  // Normalize partnerId (may be a plain string from partner-profile routes)
+  const folderIdFilter = ensureParsedFilter(params.folderId);
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
 
   const {
@@ -152,6 +152,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     ...params,
     partnerId: partnerIdFilter,
     linkId: normalizedLinkId,
+    folderId: folderIdFilter,
   });
 
   const tinybirdParams: any = {
