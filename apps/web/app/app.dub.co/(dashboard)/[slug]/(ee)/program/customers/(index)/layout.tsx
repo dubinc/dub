@@ -24,16 +24,17 @@ export default function PartnerCustomersLayout({
     includeParams: [],
   });
 
-  const { data: referralsCount } = useProgramReferralsCount<number>({
-    ignoreParams: true,
-  });
-
-  const isEnabled = defaultProgramId
+  const isReferralEnabled = defaultProgramId
     ? REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId)
     : false;
 
+  const { data: referralsCount } = useProgramReferralsCount<number>({
+    ignoreParams: true,
+    enabled: isReferralEnabled,
+  });
+
   const tabs = useMemo(() => {
-    if (!isEnabled) {
+    if (!isReferralEnabled) {
       return [];
     }
 
@@ -53,7 +54,7 @@ export default function PartnerCustomersLayout({
         count: referralsCount,
       },
     ];
-  }, [isEnabled, customersCount, referralsCount]);
+  }, [isReferralEnabled, customersCount, referralsCount]);
 
   return (
     <PageContent

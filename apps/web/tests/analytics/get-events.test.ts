@@ -112,9 +112,8 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
         },
       });
 
-      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
-
       expect(status).toEqual(200);
+      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       // expect all events to have country US, CA, or GB
       parsed.data?.forEach((event) => {
@@ -135,9 +134,8 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
         },
       });
 
-      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
-
       expect(status).toEqual(200);
+      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       // expect all events to not have country US
       parsed.data?.forEach((event) => {
@@ -156,9 +154,8 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
         },
       });
 
-      const parsed = z.array(saleEventResponseSchema.strict()).safeParse(data);
-
       expect(status).toEqual(200);
+      const parsed = z.array(saleEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       // expect all events to have metadata.productId equal to premiumProductId
       parsed.data?.forEach((event) => {
@@ -177,9 +174,8 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
         },
       });
 
-      const parsed = z.array(leadEventResponseSchema.strict()).safeParse(data);
-
       expect(status).toEqual(200);
+      const parsed = z.array(leadEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       parsed.data?.forEach((event) => {
         // expect all events to have partnerId equal to E2E_PARTNER.id
@@ -201,9 +197,8 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
         },
       });
 
-      const parsed = z.array(leadEventResponseSchema.strict()).safeParse(data);
-
       expect(status).toEqual(200);
+      const parsed = z.array(leadEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       // expect all events to have partnerId equal to E2E_PARTNER.id
       parsed.data?.forEach((event) => {
@@ -223,9 +218,8 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
         },
       });
 
-      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
-
       expect(status).toEqual(200);
+      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       parsed.data?.forEach((event) => {
         expect(partnerIds).not.toContain(event.link.partnerId);
@@ -244,9 +238,8 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
         },
       });
 
-      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
-
       expect(status).toEqual(200);
+      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       parsed.data?.forEach((event) => {
         expect(event.click.country).toBe("US");
@@ -265,9 +258,8 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
         },
       });
 
-      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
-
       expect(status).toEqual(200);
+      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       parsed.data?.forEach((event) => {
         expect(event.link.tenantId).toBe(E2E_PARTNER.tenantId);
@@ -285,9 +277,8 @@ describe.runIf(env.CI).sequential("GET /events", async () => {
         },
       });
 
-      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
-
       expect(status).toEqual(200);
+      const parsed = z.array(clickEventResponseSchema.strict()).safeParse(data);
       expect(parsed.success).toBeTruthy();
       parsed.data?.forEach((event) => {
         expect(event.link.tenantId).not.toBe(E2E_PARTNER.tenantId);

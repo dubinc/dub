@@ -4,10 +4,15 @@ import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { PartnerUser } from "@dub/prisma/client";
 import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
+import { headers } from "next/headers";
+import { ratelimit } from "../upstash";
 import { partnerPlatformSchema } from "../zod/schemas/partners";
+import { hashToken } from "./hash-token";
 import { Permission } from "./partner-users/partner-user-permissions";
 import { throwIfNoPermission } from "./partner-users/throw-if-no-permission";
 import { rateLimitRequest } from "./rate-limit-request";
+import { tokenCache, TokenCacheItem } from "./token-cache";
 import { getSession, Session } from "./utils";
 
 interface WithPartnerProfileHandler {
@@ -56,16 +61,121 @@ export const withPartnerProfile = (
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
+
+      let apiKey: string | undefined;
+      let requestHeaders = await headers();
       let responseHeaders = new Headers();
 
       try {
-        const session = await getSession();
+        const authorizationHeader = requestHeaders.get("Authorization");
+        if (authorizationHeader) {
+          if (!authorizationHeader.startsWith("Bearer ")) {
+            throw new DubApiError({
+              code: "bad_request",
+              message:
+                "Misconfigured authorization header. Did you forget to add 'Bearer '? Learn more: https://d.to/auth",
+            });
+          }
+          apiKey = authorizationHeader.replace("Bearer ", "");
+        }
 
-        if (!session?.user?.id) {
-          throw new DubApiError({
-            code: "unauthorized",
-            message: "Unauthorized: Login required.",
+        let session: Session | undefined;
+        let token: TokenCacheItem | null = null;
+
+        if (apiKey) {
+          const hashedKey = await hashToken(apiKey);
+
+          const cachedToken = await tokenCache.get({
+            hashedKey,
           });
+
+          if (!cachedToken) {
+            token = await prisma.token.findUnique({
+              where: {
+                hashedKey,
+              },
+              select: {
+                expires: true,
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    isMachine: true,
+                    defaultPartnerId: true,
+                  },
+                },
+              },
+            });
+          }
+
+          token = cachedToken || token;
+
+          if (!token || !token.user) {
+            throw new DubApiError({
+              code: "unauthorized",
+              message: "Unauthorized: Invalid API key.",
+            });
+          }
+
+          if (token.expires && token.expires < new Date()) {
+            throw new DubApiError({
+              code: "unauthorized",
+              message: "Unauthorized: Access token expired.",
+            });
+          }
+
+          if (!cachedToken) {
+            waitUntil(
+              tokenCache.set({
+                hashedKey,
+                token,
+              }),
+            );
+          }
+
+          waitUntil(
+            // update last used time for the token (only once every minute)
+            (async () => {
+              try {
+                const { success } = await ratelimit(1, "1 m").limit(
+                  `last-used-${hashedKey}`,
+                );
+
+                if (success) {
+                  await prisma.token.update({
+                    where: {
+                      hashedKey,
+                    },
+                    data: {
+                      lastUsed: new Date(),
+                    },
+                  });
+                }
+              } catch (error) {
+                console.error(error);
+              }
+            })(),
+          );
+
+          session = {
+            user: {
+              id: token.user.id,
+              name: token.user.name || "",
+              email: token.user.email || "",
+              isMachine: token.user.isMachine,
+              defaultPartnerId: token.user.defaultPartnerId || undefined,
+            },
+          };
+        } else {
+          session = await getSession();
+
+          if (!session?.user?.id) {
+            throw new DubApiError({
+              code: "unauthorized",
+              message: "Unauthorized: Login required.",
+            });
+          }
         }
 
         const searchParams = getSearchParams(req.url);
