@@ -5,7 +5,7 @@ import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
 import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
-import { isValidUrl } from "@dub/utils";
+import { getDomainWithoutWWW, getUrlFromString, isValidUrl } from "@dub/utils";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -118,13 +118,14 @@ export const updatePartnerPlatformsAction = authPartnerActionClient
           let domainChanged = false;
 
           try {
-            const oldDomain = currentIdentifier
-              ? new URL(currentIdentifier).hostname
-              : null;
-            const newDomain = inputValue ? new URL(inputValue).hostname : null;
+            const oldDomain = getDomainWithoutWWW(
+              getUrlFromString(currentIdentifier ?? ""),
+            );
+            const newDomain = getDomainWithoutWWW(
+              getUrlFromString(inputValue ?? ""),
+            );
 
-            domainChanged =
-              oldDomain?.toLowerCase() !== newDomain?.toLowerCase();
+            domainChanged = oldDomain !== newDomain;
           } catch (error) {
             console.error("Failed to get domain from partner website", error);
             domainChanged = true;

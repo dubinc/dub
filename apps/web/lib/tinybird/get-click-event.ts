@@ -13,19 +13,21 @@ const getClickEventTB = tb.buildPipe({
 });
 
 export const getClickEvent = async ({ clickId }: { clickId: string }) => {
-  // check Redis cache first
-  const cachedClickData = await redis.get<ClickEventTB>(
-    `clickIdCache:${clickId}`,
-  );
+  try {
+    // check Redis cache first
+    const cachedClickData = await redis.get<ClickEventTB>(
+      `clickIdCache:${clickId}`,
+    );
 
-  if (cachedClickData) {
-    return {
-      ...cachedClickData,
-      timestamp: cachedClickData.timestamp.replace("T", " ").replace("Z", ""),
-      qr: cachedClickData.qr ? 1 : 0,
-      bot: cachedClickData.bot ? 1 : 0,
-    };
-  }
+    if (cachedClickData) {
+      return {
+        ...cachedClickData,
+        timestamp: cachedClickData.timestamp.replace("T", " ").replace("Z", ""),
+        qr: cachedClickData.qr ? 1 : 0,
+        bot: cachedClickData.bot ? 1 : 0,
+      };
+    }
+  } catch (_e) {}
 
   try {
     // fallback to Tinybird if Redis cache is not found

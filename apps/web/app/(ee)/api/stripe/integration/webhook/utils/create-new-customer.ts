@@ -4,6 +4,7 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
+import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
@@ -71,9 +72,14 @@ export async function createNewCustomer(event: Stripe.Event) {
     customer_id: customer.id,
   };
 
-  const [_lead, linkUpdated, workspace] = await Promise.all([
-    // Record lead
+  const [_lead, _leadCached, linkUpdated, workspace] = await Promise.all([
+    // record lead event in Tinybird
     recordLead(leadData),
+
+    // cache lead event in Redis because the ingested event is not available immediately on Tinybird
+    redis.set(`leadCache:${customer.id}`, leadData, {
+      ex: 60 * 5,
+    }),
 
     // update link leads count + lastLeadAt date
     prisma.link.update({

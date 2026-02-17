@@ -58,6 +58,24 @@ export const GET = withPartnerProfile(
           message: "One or more links are not found",
         });
       }
+
+      if (linkId.sqlOperator === "NOT IN") {
+        // if using NOT IN operator, we need to include all links except the ones in the linkId.values
+        const finalIncludedLinkIds = links
+          .filter((link) => !linkId.values.includes(link.id))
+          .map((link) => link.id);
+
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          return NextResponse.json([], { status: 200 });
+        }
+
+        parsedParams.linkId = {
+          operator: "IS",
+          sqlOperator: "IN",
+          values: finalIncludedLinkIds,
+        };
+      }
     } else if (domain && key) {
       const link = links.find(
         (link) =>
@@ -80,8 +98,8 @@ export const GET = withPartnerProfile(
     const events = await getEvents({
       ...parsedParams,
       workspaceId: program.workspaceId,
-      ...(linkId
-        ? { linkId }
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),

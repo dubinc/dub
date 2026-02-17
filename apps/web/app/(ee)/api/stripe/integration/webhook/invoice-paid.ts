@@ -118,7 +118,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
 
   // Find lead
   const leadEvent = await getLeadEvent({ customerId: customer.id });
-  if (!leadEvent || leadEvent.data.length === 0) {
+  if (!leadEvent) {
     return `Lead event with customer ID ${customer.id} not found, skipping...`;
   }
 
@@ -130,8 +130,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
   );
 
   const saleData = {
-    ...leadEvent.data[0],
-    workspace_id: leadEvent.data[0].workspace_id || customer.projectId, // in case for some reason the lead event doesn't have workspace_id
+    ...leadEvent,
+    workspace_id: leadEvent.workspace_id || customer.projectId, // in case for some reason the lead event doesn't have workspace_id
     event_id: eventId,
     event_name: isOneTimePayment ? "Purchase" : "Invoice paid",
     payment_processor: "stripe",
@@ -143,7 +143,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     }),
   };
 
-  const linkId = leadEvent.data[0].link_id;
+  const linkId = leadEvent.link_id;
   const link = await prisma.link.findUnique({
     where: {
       id: linkId,

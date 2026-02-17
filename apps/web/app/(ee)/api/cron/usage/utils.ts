@@ -122,7 +122,7 @@ export const updateUsage = async () => {
           event: "clicks",
           groupBy: "top_links",
           interval: "30d",
-          root: { values: ["false"], operator: "IS", sqlOperator: "IN" },
+          root: false,
         });
 
         const topFive = topLinks.slice(0, 5);

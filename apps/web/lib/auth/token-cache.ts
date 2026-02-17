@@ -14,6 +14,7 @@ const tokenCacheItemSchema = z.object({
     name: z.string().nullable(),
     email: z.string().nullable(),
     isMachine: z.boolean(),
+    defaultPartnerId: z.string().nullish(),
   }),
   project: z
     .object({
