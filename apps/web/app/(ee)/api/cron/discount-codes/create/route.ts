@@ -1,5 +1,4 @@
 import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
@@ -8,39 +7,70 @@ import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
 const inputSchema = z.object({
-  partnerId: z.string(),
-  discountId: z.string(),
+  linkId: z
+    .string()
+    .describe("The ID of the link to create a discount code for."),
 });
 
 // POST /api/cron/discount-codes/create
 export const POST = withCron(async ({ rawBody }) => {
-  const { partnerId, discountId } = inputSchema.parse(JSON.parse(rawBody));
+  const { linkId } = inputSchema.parse(JSON.parse(rawBody));
 
-  const discount = await prisma.discount.findUnique({
+  const link = await prisma.link.findUnique({
     where: {
-      id: discountId,
+      id: linkId,
     },
-    include: {
-      program: {
+    select: {
+      id: true,
+      discountCode: true,
+      partnerGroupDefaultLinkId: true,
+      programEnrollment: {
         select: {
-          id: true,
-          workspace: {
+          discount: true,
+          partner: {
             select: {
               id: true,
-              stripeConnectId: true,
+              name: true,
             },
           },
+          program: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+      project: {
+        select: {
+          id: true,
+          stripeConnectId: true,
         },
       },
     },
   });
 
-  if (!discount) {
-    return logAndRespond(`Discount ${discountId} not found. Skipping...`);
+  if (!link || !link.project) {
+    return logAndRespond(`Link ${linkId} not found. Skipping...`);
   }
 
-  const { program } = discount;
-  const { workspace } = program;
+  if (link.discountCode) {
+    return logAndRespond(
+      `Link ${linkId} already has a discount code. Skipping...`,
+    );
+  }
+
+  if (link.partnerGroupDefaultLinkId === null) {
+    return logAndRespond(`Link ${linkId} is not a default link. Skipping...`);
+  }
+
+  if (!link.programEnrollment) {
+    return logAndRespond(
+      `Link ${linkId} is not associated with a program enrollment. Skipping...`,
+    );
+  }
+
+  const { project: workspace, programEnrollment } = link;
+  const { partner, discount, program } = programEnrollment;
 
   if (!workspace.stripeConnectId) {
     return logAndRespond(
@@ -48,47 +78,18 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const { links, partner } = await getProgramEnrollmentOrThrow({
-    partnerId,
-    programId: program.id,
-    include: {
-      links: {
-        select: {
-          id: true,
-        },
-        // Only fetch links that don't have a discount code yet and are default links
-        where: {
-          discountCode: null,
-          partnerGroupDefaultLinkId: {
-            not: null,
-          },
-        },
-      },
-      partner: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-    },
-  });
-
-  if (links.length === 0) {
+  if (!discount) {
     return logAndRespond(
-      `Partner ${partnerId} has no links to create discount codes for. Skipping...`,
+      `Partner ${partner.id} does not have a discount with program ${program.id}. Skipping...`,
     );
   }
 
-  for (const link of links) {
-    await createDiscountCode({
-      stripeConnectId: workspace.stripeConnectId,
-      partner,
-      link,
-      discount,
-    });
-  }
+  await createDiscountCode({
+    stripeConnectId: workspace.stripeConnectId,
+    partner,
+    link,
+    discount,
+  });
 
-  return logAndRespond(
-    `Created discount codes for partner ${partner.id} in program ${program.id}.`,
-  );
+  return logAndRespond(`Discount code created for link ${linkId}.`);
 });
