@@ -19,7 +19,7 @@ describe
     describe("groupBy country / device", () => {
       test("single country filter", async () => {
         const { status, data } = await http.get<any[]>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "countries",
@@ -41,7 +41,7 @@ describe
 
       test("multiple countries filter (IS ONE OF)", async () => {
         const { status, data } = await http.get<any[]>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "countries",
@@ -67,7 +67,7 @@ describe
 
       test("exclude country (IS NOT)", async () => {
         const { status, data } = await http.get<any[]>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "countries",
@@ -89,7 +89,7 @@ describe
 
       test("exclude multiple countries (IS NOT ONE OF)", async () => {
         const { status, data } = await http.get<any[]>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "countries",
@@ -113,7 +113,7 @@ describe
 
       test("multiple devices filter", async () => {
         const { status, data } = await http.get<any[]>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "devices",
@@ -139,7 +139,7 @@ describe
 
       test("backward compatibility - old format still works", async () => {
         const { status, data } = await http.get<any[]>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "countries",
@@ -163,7 +163,7 @@ describe
     describe("filter by partnerId", () => {
       test("single partnerId filter (count)", async () => {
         const { status, data } = await http.get<any>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "top_partners",
@@ -186,7 +186,7 @@ describe
       test("multiple partnerIds filter (IS ONE OF)", async () => {
         const partnerIds = E2E_PARTNERS.map((p) => p.id);
         const { status, data } = await http.get<any>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "top_partners",
@@ -210,7 +210,7 @@ describe
 
       test("exclude partnerId (IS NOT)", async () => {
         const { status, data } = await http.get<any>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "top_partners",
@@ -233,7 +233,7 @@ describe
       test("exclude multiple partnerIds (IS NOT ONE OF)", async () => {
         const partnerIds = E2E_PARTNERS.map((p) => p.id);
         const { status, data } = await http.get<any>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "top_partners",
@@ -257,7 +257,7 @@ describe
 
       test("backward compatibility - single partnerId still works", async () => {
         const { status, data } = await http.get<any>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "top_partners",
@@ -281,7 +281,7 @@ describe
     describe("filter by groupId", () => {
       test("single groupId filter (count)", async () => {
         const { status, data } = await http.get<any>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "top_groups",
@@ -303,7 +303,7 @@ describe
 
       test("exclude groupId (IS NOT)", async () => {
         const { status, data } = await http.get<any>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "top_groups",
@@ -325,7 +325,7 @@ describe
 
       test("backward compatibility - single groupId still works", async () => {
         const { status, data } = await http.get<any>({
-          path: `/analytics`,
+          path: "/analytics",
           query: {
             event: "clicks",
             groupBy: "top_groups",

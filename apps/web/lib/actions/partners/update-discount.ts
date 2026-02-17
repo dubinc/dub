@@ -75,6 +75,17 @@ export const updateDiscountAction = authActionClient
               ]
             : []),
 
+          ...(updatedDiscount.autoProvisionEnabledAt
+            ? [
+                qstash.publishJSON({
+                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
+                  body: {
+                    discountId: discount.id,
+                  },
+                }),
+              ]
+            : []),
+
           recordAuditLog({
             workspaceId: workspace.id,
             programId,
