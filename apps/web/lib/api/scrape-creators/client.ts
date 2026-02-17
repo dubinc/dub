@@ -29,9 +29,10 @@ export const scrapeCreatorsFetch = createFetch({
       },
 
       // Fetch social content
-      "/v1/:platform/:contentType": {
+      "/:version/:platform/:contentType": {
         method: "get",
         params: z.object({
+          version: z.enum(["v1", "v2"]),
           platform: z.enum(PlatformType),
           contentType: z.enum(["post", "video", "tweet"]),
         }),

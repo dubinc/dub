@@ -154,9 +154,9 @@ export const socialContentStatsSchema = z.preprocess(
       }
 
       // TikTok detection
-      if ("itemInfo" in data) {
+      if ("aweme_detail" in data) {
         return {
-          ...data.itemInfo.itemStruct,
+          ...data.aweme_detail,
           platform: "tiktok",
         };
       }
@@ -174,54 +174,72 @@ export const socialContentStatsSchema = z.preprocess(
       }),
       viewCountInt: z
         .number()
-        .nullish()
+        .nullable()
         .transform((val) => val ?? 0),
       likeCountInt: z
         .number()
-        .nullish()
+        .nullable()
         .transform((val) => val ?? 0),
     }),
 
     z.object({
       platform: z.literal("instagram"),
+      taken_at_timestamp: z.number(),
+      owner: z.object({
+        username: z.string(),
+      }),
       video_view_count: z
         .number()
-        .nullish()
+        .nullable()
         .transform((val) => val ?? 0),
       edge_media_preview_like: z.object({
         count: z
           .number()
-          .nullish()
+          .nullable()
           .transform((val) => val ?? 0),
       }),
     }),
 
     z.object({
       platform: z.literal("twitter"),
+      core: z.object({
+        user_results: z.object({
+          result: z.object({
+            core: z.object({
+              screen_name: z.string(),
+            }),
+          }),
+        }),
+      }),
       views: z.object({
         count: z.z
           .string()
-          .nullish()
+          .nullable()
           .transform((val) => (val == null ? 0 : Number(val))),
       }),
       legacy: z.object({
+        created_at: z.string(),
         favorite_count: z
           .number()
-          .nullish()
+          .nullable()
           .transform((val) => val ?? 0),
       }),
     }),
 
     z.object({
       platform: z.literal("tiktok"),
-      stats: z.object({
-        playCount: z
+      create_time_utc: z.string(),
+      author: z.object({
+        unique_id: z.string(),
+      }),
+      statistics: z.object({
+        play_count: z
           .number()
-          .nullish()
+          .nullable()
           .transform((val) => val ?? 0),
-        diggCount: z
+        digg_count: z
           .number()
-          .nullish()
+          .nullable()
           .transform((val) => val ?? 0),
       }),
     }),

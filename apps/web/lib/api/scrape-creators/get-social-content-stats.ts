@@ -29,11 +29,13 @@ export async function getSocialContentStats({
   url,
 }: GetSocialContentStatsParams): Promise<SocialContentStats> {
   const contentType = PLATFORM_CONTENT_TYPE[platform];
+  const version = platform === "tiktok" ? "v2" : "v1";
 
   const { data, error } = await scrapeCreatorsFetch(
-    "/v1/:platform/:contentType",
+    "/:version/:platform/:contentType",
     {
       params: {
+        version,
         platform,
         contentType,
       },
@@ -65,8 +67,8 @@ export async function getSocialContentStats({
 
     case "instagram":
       return {
-        publishedAt: null,
-        handle: null,
+        publishedAt: new Date(data.taken_at_timestamp * 1000),
+        handle: data.owner.username,
         platformId: null,
         views: data.video_view_count,
         likes: data.edge_media_preview_like.count,
@@ -74,8 +76,8 @@ export async function getSocialContentStats({
 
     case "twitter":
       return {
-        publishedAt: null,
-        handle: null,
+        publishedAt: new Date(data.legacy.created_at),
+        handle: data.core.user_results.result.core.screen_name,
         platformId: null,
         views: data.views.count,
         likes: data.legacy.favorite_count,
@@ -83,11 +85,11 @@ export async function getSocialContentStats({
 
     case "tiktok":
       return {
-        publishedAt: null,
-        handle: null,
+        publishedAt: new Date(data.create_time_utc),
+        handle: data.author.unique_id,
         platformId: null,
-        views: data.stats.playCount,
-        likes: data.stats.diggCount,
+        views: data.statistics.play_count,
+        likes: data.statistics.digg_count,
       };
 
     default:
