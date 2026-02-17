@@ -100,16 +100,18 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const links = programEnrollments.flatMap(({ links }) => links);
 
-  await enqueueBatchJobs(
-    links.map((link) => ({
-      queueName: "create-discount-code",
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
-      deduplicationId: `${discountId}-${link.id}-1`,
-      body: {
-        linkId: link.id,
-      },
-    })),
-  );
+  if (links.length > 0) {
+    await enqueueBatchJobs(
+      links.map((link) => ({
+        queueName: "create-discount-code",
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
+        deduplicationId: `${discountId}-${link.id}-1`,
+        body: {
+          linkId: link.id,
+        },
+      })),
+    );
+  }
 
   if (programEnrollments.length === CRON_BATCH_SIZE) {
     const startingAfter = programEnrollments[programEnrollments.length - 1].id;
