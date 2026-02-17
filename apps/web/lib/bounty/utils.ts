@@ -2,7 +2,9 @@ import { currencyFormatter } from "@dub/utils";
 import { PartnerBountyProps } from "../types";
 import { SOCIAL_METRICS_CHANNELS } from "./constants";
 
-export function getBountySocialMetricsChannel(bounty: PartnerBountyProps) {
+export function getBountySocialPlatform(
+  bounty: Pick<PartnerBountyProps, "submissionRequirements">,
+) {
   const socialMetrics = bounty.submissionRequirements?.socialMetrics;
 
   if (!socialMetrics) {
@@ -15,7 +17,7 @@ export function getBountySocialMetricsChannel(bounty: PartnerBountyProps) {
 }
 
 export function getSubmissionRequirementTexts(
-  bounty: PartnerBountyProps,
+  bounty: Pick<PartnerBountyProps, "submissionRequirements">,
 ): string[] {
   const socialMetrics = bounty.submissionRequirements?.socialMetrics;
 
@@ -23,7 +25,7 @@ export function getSubmissionRequirementTexts(
     return [];
   }
 
-  const channel = getBountySocialMetricsChannel(bounty);
+  const channel = getBountySocialPlatform(bounty);
 
   if (!channel) {
     return [];
@@ -42,7 +44,7 @@ export function getRewardCriteriaTexts(bounty: PartnerBountyProps): string[] {
     return [];
   }
 
-  const channel = getBountySocialMetricsChannel(bounty);
+  const channel = getBountySocialPlatform(bounty);
 
   if (!channel || !bounty.rewardAmount) {
     return [];

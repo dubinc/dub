@@ -167,6 +167,11 @@ export const socialContentStatsSchema = z.preprocess(
   z.discriminatedUnion("platform", [
     z.object({
       platform: z.literal("youtube"),
+      publishDateText: z.string(),
+      channel: z.object({
+        id: z.string(),
+        handle: z.string(),
+      }),
       viewCountInt: z
         .number()
         .nullish()

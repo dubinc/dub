@@ -45,6 +45,13 @@ export const SOCIAL_METRICS_CHANNELS = [
   },
 ] as const;
 
+export const BOUNTY_SOCIAL_PLATFORMS = [
+  "youtube",
+  "instagram",
+  "twitter",
+  "tiktok",
+] as const;
+
 export const SOCIAL_METRICS_CHANNEL_METRICS: Record<
   SocialMetricsChannel,
   readonly { value: string; label: string }[]

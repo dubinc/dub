@@ -1,5 +1,5 @@
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
-import { fetchSocialProfile } from "@/lib/api/scrape-creators/fetch-social-profile";
+import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { getSession } from "@/lib/auth/utils";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
@@ -158,7 +158,7 @@ export async function GET(req: Request) {
 
   if (["tiktok", "twitter"].includes(platform)) {
     try {
-      const socialProfile = await fetchSocialProfile({
+      const socialProfile = await getSocialProfile({
         platform,
         handle: partnerPlatform.identifier,
       });

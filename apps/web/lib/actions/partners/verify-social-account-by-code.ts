@@ -1,6 +1,6 @@
 "use server";
 
-import { fetchSocialProfile } from "@/lib/api/scrape-creators/fetch-social-profile";
+import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
@@ -74,7 +74,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
     // Verifies that a verification code exists in the account's profile bio/description.
     // Fetches the account profile and checks if the provided code appears in any of the
     // profile text fields (description, about, bio, summary).
-    const socialProfile = await fetchSocialProfile({
+    const socialProfile = await getSocialProfile({
       platform,
       handle,
     });

@@ -1,17 +1,17 @@
 import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import { scrapeCreatorsFetch } from "./client";
 
-type FetchSocialProfileParams = {
-  platform: PlatformType;
-  handle: string;
-};
-
 type SocialProfile = Pick<
   PartnerPlatform,
   "platformId" | "subscribers" | "posts" | "views"
 > & {
   description: string | null;
 };
+
+interface GetSocialProfileParams {
+  platform: PlatformType;
+  handle: string;
+}
 
 export class AccountNotFoundError extends Error {
   constructor(message: string) {
@@ -20,10 +20,10 @@ export class AccountNotFoundError extends Error {
   }
 }
 
-export async function fetchSocialProfile({
+export async function getSocialProfile({
   platform,
   handle,
-}: FetchSocialProfileParams) {
+}: GetSocialProfileParams) {
   const { data, error } = await scrapeCreatorsFetch(
     "/v1/:platform/:handleType",
     {

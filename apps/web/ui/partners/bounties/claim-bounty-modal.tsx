@@ -8,7 +8,7 @@ import {
 } from "@/lib/bounty/constants";
 import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import {
-  getBountySocialMetricsChannel,
+  getBountySocialPlatform,
   getRewardCriteriaTexts,
   getSubmissionRequirementTexts,
 } from "@/lib/bounty/utils";
@@ -99,7 +99,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
     return [];
   });
 
-  const socialChannel = getBountySocialMetricsChannel(bounty);
+  const socialChannel = getBountySocialPlatform(bounty);
   const [urls, setUrls] = useState<Url[]>(() => {
     if (submission?.urls && submission.urls.length > 0) {
       const urlsToUse = socialChannel
@@ -222,7 +222,10 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
 
     const socialMetricsUrl = claimForm.getValues("socialMetricsUrl") ?? "";
     const baseUrls = urls.map(({ url }) => url).filter(Boolean);
-    const postUrl = socialChannel && socialMetricsUrl.trim() ? socialMetricsUrl.trim() : undefined;
+    const postUrl =
+      socialChannel && socialMetricsUrl.trim()
+        ? socialMetricsUrl.trim()
+        : undefined;
     const hasPostUrl = !!postUrl;
     const totalUrlsCount = (hasPostUrl ? 1 : 0) + baseUrls.length;
 
@@ -806,7 +809,7 @@ function SocialAccountNotVerifiedWarning({
 }: {
   bounty: PartnerBountyProps;
 }) {
-  const channel = getBountySocialMetricsChannel(bounty);
+  const channel = getBountySocialPlatform(bounty);
 
   if (!channel) {
     return null;
@@ -843,7 +846,7 @@ function SocialMediaPostUrlField({ bounty }: { bounty: PartnerBountyProps }) {
     afterStartDate: boolean;
   } | null>(null);
 
-  const socialChannel = getBountySocialMetricsChannel(bounty);
+  const socialChannel = getBountySocialPlatform(bounty);
 
   useEffect(() => {
     if (!socialChannel || !socialMetricsUrl.trim()) {
