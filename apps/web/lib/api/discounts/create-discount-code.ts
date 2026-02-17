@@ -65,7 +65,7 @@ export async function createDiscountCode({
 
         // Generate a new suffix for retry
         if (hasAttemptsLeft) {
-          finalCode = `${stripeDiscountCode.code}${nanoid(3)}.toUpperCase()`;
+          finalCode = `${stripeDiscountCode.code}${nanoid(3)}`.toUpperCase();
           attempt++;
           continue;
         }
