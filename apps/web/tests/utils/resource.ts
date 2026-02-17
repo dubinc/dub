@@ -34,6 +34,7 @@ export const E2E_READ_ONLY_FOLDER_ID = "fold_1JP8FN462884CA6JJCVPAHAD4"; // Fold
 export const E2E_NO_ACCESS_FOLDER_ID = "fold_1JRZXGNNYWDA5QTT8CVDB3M23"; // Folder with no access
 export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_1KAESR5Z733716RTT4E1RSTW6"; // A link in read-only folder
 export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_1KAESQ2Z6Q35WDV5NGSEVPFB0"; // A link in no access folder
+export const E2E_PUBLIC_ANALYTICS_FOLDER_ID = "fold_1JP8FXWM7PECSA4SA7FMGHDWE"; // Folder with public analytics dashboard
 
 // Different customer external IDs for different reward conditions
 export const E2E_CUSTOMER_ID = "cm25onzuv0001s1bbxchrc0ae";
