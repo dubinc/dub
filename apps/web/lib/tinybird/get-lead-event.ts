@@ -20,15 +20,19 @@ export const getLeadEvent = async ({
   customerId: string;
   eventName?: string | null;
 }) => {
-  const cachedLeadEvent = await redis.get<LeadEventTB>(
-    `leadCache:${customerId}${eventName ? `:${eventName.toLowerCase().replaceAll(" ", "-")}` : ""}`,
-  );
+  try {
+    // check Redis cache first
+    const cachedLeadEvent = await redis.get<LeadEventTB>(
+      `leadCache:${customerId}${eventName ? `:${eventName.toLowerCase().replaceAll(" ", "-")}` : ""}`,
+    );
 
-  if (cachedLeadEvent) {
-    return cachedLeadEvent;
-  }
+    if (cachedLeadEvent) {
+      return cachedLeadEvent;
+    }
+  } catch (_e) {}
 
   try {
+    // fallback to Tinybird if Redis cache is not found
     const { data } = await getLeadEventTB({ customerId, eventName });
     return data[0];
   } catch (error) {
