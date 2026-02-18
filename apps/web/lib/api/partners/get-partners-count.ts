@@ -30,6 +30,7 @@ export async function getPartnersCount<T>(
           : {
               email: { search: sanitizeFullTextSearch(search) },
               name: { search: sanitizeFullTextSearch(search) },
+              companyName: { search: sanitizeFullTextSearch(search) },
             }
         : {}),
     ...(partnerIds && {
