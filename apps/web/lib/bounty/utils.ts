@@ -130,9 +130,9 @@ export function getBountyRewardCriteriaTexts(
     trailingZeroDisplay: "stripIfInteger",
   });
 
-  const amount = socialMetrics.amount ?? 0;
+  const minCount = socialMetrics.minCount ?? 0;
   const texts: string[] = [
-    `Get ${amount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedAmount}`,
+    `Get ${minCount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedAmount}`,
   ];
 
   const variableBonus = socialMetrics.incrementalBonus;

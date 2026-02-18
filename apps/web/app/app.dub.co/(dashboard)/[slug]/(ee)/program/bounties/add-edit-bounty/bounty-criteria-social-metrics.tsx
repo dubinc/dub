@@ -37,7 +37,7 @@ interface SocialMetricsCriteria {
   socialMetrics?: {
     platform: SocialMetricsChannel;
     metric: string;
-    amount?: number;
+    minCount?: number;
     incrementalBonus?: VariableBonus;
   };
 }
@@ -60,14 +60,15 @@ export function BountyCriteriaSocialMetrics() {
 
   const socialMetrics = submissionRequirements?.socialMetrics;
   const hasChannel = socialMetrics?.platform != null;
-  const hasAmount = socialMetrics?.amount != null && socialMetrics.amount > 0;
+  const hasMinCount =
+    socialMetrics?.minCount != null && socialMetrics.minCount > 0;
   const hasMetric = socialMetrics?.metric != null;
 
   const updateSocialMetrics = (
     updates: Partial<{
       platform: SocialMetricsChannel;
       metric: string;
-      amount: number;
+      minCount: number;
       incrementalBonus?: VariableBonus | undefined;
     }>,
   ) => {
@@ -81,7 +82,7 @@ export function BountyCriteriaSocialMetrics() {
       platformMetrics?.some((m) => m.value === socialMetrics.metric)
         ? socialMetrics.metric
         : platformMetrics?.[0]?.value ?? "views")) as "views" | "likes";
-    const nextAmount = updates.amount ?? socialMetrics?.amount ?? 0;
+    const nextMinCount = updates.minCount ?? socialMetrics?.minCount ?? 0;
     const nextIncrementalBonus =
       "incrementalBonus" in updates
         ? updates.incrementalBonus
@@ -92,7 +93,7 @@ export function BountyCriteriaSocialMetrics() {
         socialMetrics: {
           platform: nextPlatform,
           metric: nextMetric,
-          amount: nextAmount,
+          minCount: nextMinCount,
           ...(nextIncrementalBonus && {
             incrementalBonus: nextIncrementalBonus,
           }),
@@ -172,10 +173,12 @@ export function BountyCriteriaSocialMetrics() {
             </InlineBadgePopover>{" "}
             has{" "}
             <InlineBadgePopover
-              text={hasAmount ? String(socialMetrics!.amount) : "amount"}
-              invalid={!hasAmount}
+              text={
+                hasMinCount ? String(socialMetrics!.minCount) : "min count"
+              }
+              invalid={!hasMinCount}
               buttonClassName={
-                hasAmount
+                hasMinCount
                   ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
                   : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
               }
@@ -184,18 +187,19 @@ export function BountyCriteriaSocialMetrics() {
                 type="number"
                 min={1}
                 value={
-                  socialMetrics?.amount == null || socialMetrics?.amount === 0
+                  socialMetrics?.minCount == null ||
+                  socialMetrics?.minCount === 0
                     ? ""
-                    : String(socialMetrics.amount)
+                    : String(socialMetrics.minCount)
                 }
                 onChange={(e) => {
                   const raw = (e.target as HTMLInputElement).value;
                   const num = raw === "" ? 0 : parseInt(raw, 10);
                   updateSocialMetrics({
-                    amount: Number.isNaN(num) ? 1 : Math.max(1, num),
+                    minCount: Number.isNaN(num) ? 1 : Math.max(1, num),
                   });
                 }}
-                placeholder="amount"
+                placeholder="min count"
               />
             </InlineBadgePopover>{" "}
             <InlineBadgePopover

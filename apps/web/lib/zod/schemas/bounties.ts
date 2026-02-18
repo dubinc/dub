@@ -54,7 +54,12 @@ export const bountySocialMetricsIncrementalBonusSchema = z
 export const bountySocialContentRequirementsSchema = z.object({
   platform: z.enum(BOUNTY_SOCIAL_PLATFORM_VALUES),
   metric: z.enum(BOUNTY_SOCIAL_PLATFORM_METRICS),
-  amount: z.number().int().positive().optional(),
+  minCount: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Minimum metric required for eligibility"),
   incrementalBonus: bountySocialMetricsIncrementalBonusSchema.optional(),
 });
 
