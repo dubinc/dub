@@ -39,6 +39,25 @@ export function useAddEditBountyForm({
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
 
+  const initialSubmissionRequirements = (() => {
+    const raw = bounty?.submissionRequirements;
+    const bonus = raw?.socialMetrics?.incrementalBonus;
+
+    if (raw && bonus && typeof bonus.bonusAmount === "number") {
+      return {
+        ...raw,
+        socialMetrics: {
+          ...raw.socialMetrics!,
+          incrementalBonus: {
+            ...bonus,
+            bonusAmount: bonus.bonusAmount / 100,
+          },
+        },
+      };
+    }
+    return raw ?? null;
+  })();
+
   const form = useForm<CreateBountyInputExtended>({
     defaultValues: {
       name: bounty?.name || undefined,
@@ -51,7 +70,7 @@ export function useAddEditBountyForm({
         : undefined,
       rewardDescription: bounty?.rewardDescription || undefined,
       type: bounty?.type || "performance",
-      submissionRequirements: bounty?.submissionRequirements || null,
+      submissionRequirements: initialSubmissionRequirements,
       groupIds: bounty?.groups?.map(({ id }) => id) || null,
       performanceCondition: bounty?.performanceCondition
         ? {
@@ -349,6 +368,21 @@ export function useAddEditBountyForm({
         data.rewardAmount = null;
       } else if ((formRewardType ?? "flat") === "flat") {
         data.rewardDescription = null;
+      }
+
+      const incBonus =
+        data.submissionRequirements?.socialMetrics?.incrementalBonus;
+      if (incBonus && typeof incBonus.bonusAmount === "number") {
+        data.submissionRequirements = {
+          ...data.submissionRequirements!,
+          socialMetrics: {
+            ...data.submissionRequirements!.socialMetrics!,
+            incrementalBonus: {
+              ...incBonus,
+              bonusAmount: incBonus.bonusAmount * 100,
+            },
+          },
+        };
       }
     }
 
