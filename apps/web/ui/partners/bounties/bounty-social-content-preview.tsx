@@ -116,7 +116,7 @@ function ContentAuthor({ url, platform, content }: ContentAuthorProps) {
   const statsLine = getStatsLine(content);
 
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="flex items-center justify-between gap-3 p-2">
       <div className="flex min-w-0 flex-1 items-start gap-3">
         <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-neutral-100">
           <Icon className="size-9 shrink-0 text-neutral-500" aria-hidden />
@@ -144,7 +144,7 @@ function ContentAuthor({ url, platform, content }: ContentAuthorProps) {
 }
 
 function ContentEmbedWrapper({ children }: PropsWithChildren) {
-  return <div className="my-2 rounded-lg bg-neutral-100 p-3">{children}</div>;
+  return <div className="rounded-lg bg-neutral-100 p-3">{children}</div>;
 }
 
 function ContentInfo({ content }: ContentInfoProps) {
@@ -153,7 +153,7 @@ function ContentInfo({ content }: ContentInfoProps) {
   const publishedAt = content?.publishedAt ?? null;
 
   return (
-    <div className="flex flex-col gap-1 overflow-y-auto p-3">
+    <div className="flex flex-col gap-1 overflow-y-auto p-2">
       {title && <p className="text-sm font-medium text-neutral-800">{title}</p>}
 
       {description && (
@@ -248,35 +248,25 @@ function TikTokContent({ url, content }: SocialContentPreviewContentProps) {
   return (
     <div className="flex flex-col">
       <ContentEmbedWrapper>
-        <div className="relative mx-auto aspect-[9/16] max-h-[320px] w-full bg-neutral-100">
-          {embedUrl ? (
+        <div className="relative mx-auto flex aspect-[9/16] max-h-[320px] w-full items-center justify-center overflow-hidden rounded-lg bg-black">
+          {embedUrl && (
             <iframe
               src={embedUrl}
               title={content?.title ?? "TikTok video"}
-              className="absolute inset-0 size-full"
+              className="h-full max-h-full w-full max-w-full [aspect-ratio:9/16]"
               allowFullScreen
               loading="lazy"
             />
-          ) : thumbnailUrl ? (
-            <img
-              src={thumbnailUrl}
-              alt={content?.title ?? "TikTok video"}
-              className="size-full object-cover"
-            />
-          ) : (
-            <div className="flex size-full items-center justify-center text-sm text-neutral-500">
-              Video preview
-            </div>
           )}
         </div>
       </ContentEmbedWrapper>
-      <ContentInfo content={content} />
       <ContentAuthor
         url={url}
         platform="tiktok"
         content={content}
         position="bottom"
       />
+      <ContentInfo content={content} />
     </div>
   );
 }
