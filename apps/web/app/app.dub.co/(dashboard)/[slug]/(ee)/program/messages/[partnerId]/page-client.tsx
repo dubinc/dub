@@ -255,7 +255,7 @@ export function ProgramMessagesPartnerPageClient() {
       <div
         className={cn(
           "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[960px]/page:shadow-none @[960px]/page:relative",
+          "@[960px]/page:relative @[960px]/page:shadow-none @[960px]/page:transition-none",
           isRightPanelOpen && "w-full sm:w-[340px]",
         )}
       >

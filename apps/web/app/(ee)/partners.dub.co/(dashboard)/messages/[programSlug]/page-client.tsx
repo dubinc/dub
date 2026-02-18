@@ -302,7 +302,7 @@ export function PartnerMessagesProgramPageClient() {
       <div
         className={cn(
           "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[1082px]/page:shadow-none @[1082px]/page:relative",
+          "@[1082px]/page:relative @[1082px]/page:shadow-none @[1082px]/page:transition-none",
           isRightPanelOpen && "w-full sm:w-[400px]",
         )}
       >
