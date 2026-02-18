@@ -325,7 +325,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
             {
               attribute: "totalLeads",
               operator: "between",
-              value: { min: 2, max: 3 },
+              value: { min: 1, max: 2 },
             },
           ],
         },
@@ -396,7 +396,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
             {
               attribute: "totalLeads",
               operator: "between",
-              value: { min: 2, max: 3 },
+              value: { min: 1, max: 2 },
             },
           ],
         },

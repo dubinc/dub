@@ -123,7 +123,7 @@ export function CustomerDetailsColumn({
                 )}
               </div>
 
-              {customer && (
+              {customer && workspaceSlug && (
                 <Button
                   variant="secondary"
                   icon={<Pencil className="size-3.5" />}
