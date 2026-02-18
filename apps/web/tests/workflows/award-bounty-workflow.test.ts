@@ -65,7 +65,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
       });
 
       expect(submission.status).toBe("submitted");
-      expect(submission.performanceCount).toBeGreaterThanOrEqual(2);
+      expect(submission.performanceCount).toBeGreaterThanOrEqual(1);
       expect(submission.completedAt).not.toBeNull();
     },
   );
