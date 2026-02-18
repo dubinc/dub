@@ -13,19 +13,16 @@ export default function useSocialContentStats({
   bountyId,
   url,
 }: UseSocialContentStatsParams) {
+  const searchParams = new URLSearchParams({
+    url,
+    bountyId,
+  });
+
   const { data, error, isValidating } = useSWR<SocialContentStats>(
     url && programId
-      ? `/api/partner-profile/programs/${programId}/bounties/social-content-stats?${new URLSearchParams(
-          {
-            url,
-            bountyId,
-          },
-        ).toString()}`
+      ? `/api/partner-profile/programs/${programId}/bounties/social-content-stats?${searchParams.toString()}`
       : null,
     fetcher,
-    {
-      revalidateOnFocus: false,
-    },
   );
 
   return {

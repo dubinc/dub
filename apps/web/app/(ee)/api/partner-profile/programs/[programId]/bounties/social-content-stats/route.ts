@@ -35,16 +35,18 @@ export const GET = withPartnerProfile(
       programId: params.programId,
     });
 
-    const { success } = await ratelimit(10, "24 h").limit(
-      `retrieve-social-content-stats:${partner.id}:${bountyId}`,
-    );
+    if (process.env.NODE_ENV !== "development") {
+      const { success } = await ratelimit(10, "24 h").limit(
+        `retrieve-social-content-stats:${partner.id}:${bountyId}`,
+      );
 
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limited",
-        message:
-          "You have reached the rate limit for retrieving social content stats.",
-      });
+      if (!success) {
+        throw new DubApiError({
+          code: "rate_limited",
+          message:
+            "You have reached the rate limit for retrieving social content stats.",
+        });
+      }
     }
 
     const platform = getBountySocialPlatform(

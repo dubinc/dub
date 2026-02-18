@@ -39,7 +39,7 @@ import {
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { isBefore } from "date-fns";
 import Linkify from "linkify-react";
-import { AlertCircle } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -855,12 +855,6 @@ function SocialContentUrlField({ bounty }: { bounty: PartnerBountyProps }) {
 
   const showIcon = isValidating || (error && urlToCheck);
 
-  const iconContent = isValidating ? (
-    <LoadingSpinner className="size-4 shrink-0 text-neutral-400" />
-  ) : error && urlToCheck ? (
-    <AlertCircle className="size-4 shrink-0 text-red-500" fill="#ef4444" />
-  ) : null;
-
   return (
     <div>
       <label className="block">
@@ -884,9 +878,17 @@ function SocialContentUrlField({ bounty }: { bounty: PartnerBountyProps }) {
             setUrlToCheck(getValues("socialMetricsUrl")?.trim() ?? "");
           }}
         />
+
         {showIcon && (
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-            {iconContent}
+            {isValidating ? (
+              <LoadingSpinner className="size-4 shrink-0 text-neutral-400" />
+            ) : error && urlToCheck ? (
+              <AlertTriangle
+                className="size-4 shrink-0 text-red-500"
+                fill="#ef4444"
+              />
+            ) : null}
           </div>
         )}
       </div>
@@ -905,45 +907,53 @@ function SocialContentRequirementChecks({
   contentStats: SocialContentStats | null;
   bounty: PartnerBountyProps;
 }) {
-  const bountyStartsAt = bounty.startsAt;
-  const afterDateLabel = bountyStartsAt
-    ? `Posted after ${formatDate(bountyStartsAt, { month: "short", day: "numeric", year: "numeric" })}`
-    : "Posted after bounty start";
+  const { partner } = usePartnerProfile();
+  const socialChannel = getBountySocialPlatform(bounty);
 
-  const afterStartDate =
+  const partnerPlatform = partner?.platforms?.find(
+    (p) => p.type === socialChannel?.value,
+  );
+
+  const isPostedFromYourAccount =
+    partnerPlatform &&
+    partnerPlatform.verifiedAt &&
+    partnerPlatform.identifier === contentStats?.handle;
+
+  const isAfterStartDate =
     contentStats?.publishedAt &&
-    bountyStartsAt &&
-    !isBefore(contentStats.publishedAt, bountyStartsAt);
+    bounty.startsAt &&
+    !isBefore(contentStats.publishedAt, bounty.startsAt);
 
   return (
     <ul className="mt-2 flex flex-wrap items-center gap-3">
       <li
         className={cn(
           "flex items-center gap-1 text-xs transition-colors",
-          contentStats?.handle ? "text-green-600" : "text-neutral-400",
+          isPostedFromYourAccount ? "text-green-600" : "text-neutral-400",
         )}
       >
         <CircleCheckFill
           className={cn(
             "size-2.5 transition-opacity",
-            contentStats?.handle ? "text-green-600" : "text-neutral-200",
+            isPostedFromYourAccount ? "text-green-600" : "text-neutral-200",
           )}
         />
         <span>Posted from your account</span>
       </li>
+
       <li
         className={cn(
           "flex items-center gap-1 text-xs transition-colors",
-          afterStartDate ? "text-green-600" : "text-neutral-400",
+          isAfterStartDate ? "text-green-600" : "text-neutral-400",
         )}
       >
         <CircleCheckFill
           className={cn(
             "size-2.5 transition-opacity",
-            afterStartDate ? "text-green-600" : "text-neutral-200",
+            isAfterStartDate ? "text-green-600" : "text-neutral-200",
           )}
         />
-        <span>{afterDateLabel}</span>
+        <span>{`Posted after ${formatDate(bounty.startsAt, { month: "short", day: "numeric", year: "numeric" })}`}</span>
       </li>
     </ul>
   );
