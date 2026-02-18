@@ -19,9 +19,12 @@ export async function POST(req: Request) {
       rawBody,
     });
 
+    let deletedPartnersCount = 0;
+
     while (true) {
       const partnersToDelete = await prisma.partner.findMany({
         where: {
+          stripeConnectId: null,
           programs: {
             none: {},
           },
@@ -44,14 +47,13 @@ export async function POST(req: Request) {
           partnerIds: partnersToDelete.map((partner) => partner.id),
           deletePartners: true,
         });
+        deletedPartnersCount += partnersToDelete.length;
       }
-
-      console.log(
-        `Deleted ${partnersToDelete.length} partners that are not enrolled in any programs.`,
-      );
     }
 
-    return logAndRespond("Completed cleanup of unenrolled partners");
+    return logAndRespond(
+      `Deleted ${deletedPartnersCount} partners that were not enrolled in any programs.`,
+    );
   } catch (error) {
     await log({
       message: `/api/cron/cleanup/unenrolled-partners failed - ${error.message}`,
