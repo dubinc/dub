@@ -4,6 +4,7 @@ import { getBountySocialPlatform } from "@/lib/bounty/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps, SocialContent } from "@/lib/types";
+import { useClaimBountyForm } from "@/ui/partners/bounties/use-claim-bounty-form";
 import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
 import { Button, CircleCheckFill, LoadingSpinner } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
@@ -11,31 +12,30 @@ import { isBefore } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
 
 function SocialContentRequirementChecks({
-  contentStats,
+  content,
   bounty,
 }: {
-  contentStats: SocialContent | null;
+  content: SocialContent | null;
   bounty: PartnerBountyProps;
 }) {
   const { partner } = usePartnerProfile();
-  const socialChannel = getBountySocialPlatform(bounty);
+  const socialPlatform = getBountySocialPlatform(bounty);
 
   const partnerPlatform = partner?.platforms?.find(
-    (p) => p.type === socialChannel?.value,
+    (p) => p.type === socialPlatform?.value,
   );
 
   const isPostedFromYourAccount =
     partnerPlatform &&
     partnerPlatform.verifiedAt &&
-    partnerPlatform.identifier === contentStats?.handle;
+    partnerPlatform.identifier === content?.handle;
 
   const isAfterStartDate =
-    contentStats?.publishedAt &&
+    content?.publishedAt &&
     bounty.startsAt &&
-    !isBefore(contentStats.publishedAt, bounty.startsAt);
+    !isBefore(content.publishedAt, bounty.startsAt);
 
   return (
     <ul className="mt-2 flex flex-wrap items-center gap-3">
@@ -78,53 +78,56 @@ export function SocialContentUrlField({
   bounty: PartnerBountyProps;
 }) {
   const { programEnrollment } = useProgramEnrollment();
+  const { setValue, getValues } = useClaimBountyForm();
 
-  const { register, getValues } = useFormContext<{
-    socialContentUrl: string;
-  }>();
+  const initialUrl = (getValues("urls") ?? [])[0] ?? "";
 
+  const [localUrl, setLocalUrl] = useState(initialUrl);
   const [urlToCheck, setUrlToCheck] = useState<string>("");
 
-  const {
-    data: contentStats,
-    error,
-    isValidating,
-  } = useSocialContent({
+  const { data, error, isValidating } = useSocialContent({
     programId: programEnrollment?.programId,
     bountyId: bounty.id,
     url: urlToCheck,
   });
 
-  const socialChannel = getBountySocialPlatform(bounty);
+  const socialPlatform = getBountySocialPlatform(bounty);
 
-  if (!socialChannel) {
+  const showIcon = isValidating || (error && urlToCheck);
+
+  if (!socialPlatform) {
     return null;
   }
 
-  const showIcon = isValidating || (error && urlToCheck);
+  const handleBlur = () => {
+    const trimmed = localUrl.trim();
+    const prev = getValues("urls") ?? [];
+    setValue("urls", [trimmed, ...prev.slice(1)]);
+    setUrlToCheck(trimmed);
+  };
 
   return (
     <div>
       <label className="block">
         <h2 className="text-sm font-medium text-neutral-900">
-          {`${socialChannel.label} URL`}
+          {`${socialPlatform.label} URL`}
         </h2>
       </label>
       <div className="relative mt-2">
         <input
-          type="url"
-          placeholder={socialChannel.placeholder}
+          type="text"
+          inputMode="url"
+          autoComplete="url"
+          placeholder={socialPlatform.placeholder}
+          value={localUrl}
+          onChange={(e) => setLocalUrl(e.target.value)}
+          onBlur={handleBlur}
           className={cn(
             "block h-10 w-full rounded-md border-neutral-300 px-3 py-2 pr-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
             error &&
               urlToCheck &&
               "border-red-500 focus:border-red-500 focus:ring-red-500",
           )}
-          {...register("socialContentUrl")}
-          onBlur={(e) => {
-            register("socialContentUrl").onBlur(e);
-            setUrlToCheck(getValues("socialContentUrl")?.trim() ?? "");
-          }}
         />
 
         {showIcon && (
@@ -140,10 +143,7 @@ export function SocialContentUrlField({
           </div>
         )}
       </div>
-      <SocialContentRequirementChecks
-        contentStats={contentStats}
-        bounty={bounty}
-      />
+      <SocialContentRequirementChecks content={data} bounty={bounty} />
     </div>
   );
 }

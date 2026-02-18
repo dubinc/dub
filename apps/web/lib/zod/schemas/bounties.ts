@@ -1,6 +1,9 @@
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
+  BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
+  BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
+  BOUNTY_MAX_SUBMISSION_URLS,
   BOUNTY_SOCIAL_PLATFORM_METRICS,
   BOUNTY_SOCIAL_PLATFORM_VALUES,
 } from "@/lib/bounty/constants";
@@ -289,4 +292,23 @@ export const socialContentOutputSchema = z.object({
   thumbnailUrl: z.string().nullable().optional(),
   mediaType: z.enum(["image", "video", "carousel"]).optional(),
   thumbnailUrls: z.array(z.string()).optional(),
+});
+
+export const createBountySubmissionInputSchema = z.object({
+  programId: z.string(),
+  bountyId: z.string(),
+  files: z
+    .array(BountySubmissionFileSchema)
+    .max(BOUNTY_MAX_SUBMISSION_FILES)
+    .default([]),
+  urls: z.array(z.url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
+  description: z
+    .string()
+    .trim()
+    .max(BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH)
+    .optional(),
+  isDraft: z
+    .boolean()
+    .default(false)
+    .describe("Whether to create a draft submission or a final submission."),
 });

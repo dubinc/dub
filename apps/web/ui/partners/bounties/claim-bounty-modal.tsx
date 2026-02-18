@@ -46,6 +46,7 @@ import {
 } from "./bounty-social-content";
 import { BountySocialContentPreview } from "./bounty-social-content-preview";
 import { BountyThumbnailImage } from "./bounty-thumbnail-image";
+import { CreateBountySubmissionInput } from "./use-claim-bounty-form";
 
 type ClaimBountyModalProps = {
   setShowModal: Dispatch<SetStateAction<boolean>>;
@@ -57,11 +58,6 @@ interface FileInput {
   file?: File;
   url?: string;
   uploading: boolean;
-}
-
-interface Url {
-  id: string;
-  url: string;
 }
 
 function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
@@ -91,67 +87,24 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
     return [];
   });
 
-  const [urls, setUrls] = useState<Url[]>(() => {
+  const initialUrls = (() => {
     if (submission?.urls && submission.urls.length > 0) {
-      const urlsToUse = socialPlatform
-        ? submission.urls.slice(1)
-        : submission.urls;
-      if (urlsToUse.length === 0) return [{ id: uuid(), url: "" }];
-      return urlsToUse.map((url) => ({ id: uuid(), url }));
+      return socialPlatform
+        ? [submission.urls[0] ?? "", ...submission.urls.slice(1)]
+        : [...submission.urls];
     }
-    return [{ id: uuid(), url: "" }];
-  });
+    return socialPlatform ? [""] : [""];
+  })();
 
-  const claimForm = useForm<{
-    socialContentUrl: string;
-  }>({
+  const claimForm = useForm<CreateBountySubmissionInput>({
     defaultValues: {
-      socialContentUrl:
-        socialPlatform && submission?.urls?.[0] ? submission.urls[0] : "",
+      urls: initialUrls,
     },
   });
 
   const { executeAsync: uploadFile } = useAction(
     uploadBountySubmissionFileAction,
   );
-
-  const handleUpload = async (file: File) => {
-    if (!programEnrollment) return;
-
-    setFiles((prev) => [...prev, { id: uuid(), file, uploading: true }]);
-
-    // TODO: Partners upload URL
-    const result = await uploadFile({
-      programId: programEnrollment.programId,
-      bountyId: bounty.id,
-    });
-
-    if (!result?.data) throw new Error("Failed to get signed upload URL");
-
-    const { signedUrl, destinationUrl } = result.data;
-
-    const uploadResponse = await fetch(signedUrl, {
-      method: "PUT",
-      body: file,
-      headers: {
-        "Content-Type": file.type,
-        "Content-Length": file.size.toString(),
-      },
-    });
-
-    if (!uploadResponse.ok) {
-      const result = await uploadResponse.json();
-      toast.error(result.error.message || "Failed to upload screenshot.");
-      return;
-    }
-
-    toast.success(`${file.name} uploaded!`);
-    setFiles((prev) =>
-      prev.map((f) =>
-        f.file === file ? { ...f, uploading: false, url: destinationUrl } : f,
-      ),
-    );
-  };
 
   const { executeAsync: createSubmission } = useAction(
     createBountySubmissionAction,
@@ -171,6 +124,48 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
       },
     },
   );
+
+  // Handle file upload
+  const handleUpload = async (file: File) => {
+    if (!programEnrollment) return;
+
+    setFiles((prev) => [...prev, { id: uuid(), file, uploading: true }]);
+
+    const result = await uploadFile({
+      programId: programEnrollment.programId,
+      bountyId: bounty.id,
+    });
+
+    if (!result?.data) {
+      toast.error("Failed to get signed upload URL.");
+      return;
+    }
+
+    const { signedUrl, destinationUrl } = result.data;
+
+    const uploadResponse = await fetch(signedUrl, {
+      method: "PUT",
+      body: file,
+      headers: {
+        "Content-Type": file.type,
+        "Content-Length": file.size.toString(),
+      },
+    });
+
+    if (!uploadResponse.ok) {
+      const result = await uploadResponse.json();
+      toast.error(result.error.message || "Failed to upload screenshot.");
+      return;
+    }
+
+    toast.success(`${file.name} uploaded!`);
+
+    setFiles((prev) =>
+      prev.map((f) =>
+        f.file === file ? { ...f, uploading: false, url: destinationUrl } : f,
+      ),
+    );
+  };
 
   const imageRequired = !!bounty.submissionRequirements?.image;
   const urlRequired = !!bounty.submissionRequirements?.url;
@@ -219,35 +214,27 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
     setIsDraft(isDraft);
 
     const finalFiles = files
-      .filter(({ url }) => url)
+      .filter((f): f is FileInput & { url: string } => !!f.url)
       .map(({ file, url }) => ({
-        url: url!,
+        url,
         fileName: file?.name || "File",
         size: file?.size || 0,
       }));
 
-    const socialContentUrl = claimForm.getValues("socialContentUrl") ?? "";
-    const baseUrls = urls.map(({ url }) => url).filter(Boolean);
-    const postUrl =
-      socialPlatform && socialContentUrl.trim()
-        ? socialContentUrl.trim()
-        : undefined;
-    const hasPostUrl = !!postUrl;
-    const totalUrlsCount = (hasPostUrl ? 1 : 0) + baseUrls.length;
+    const formUrls = (claimForm.getValues("urls") ?? []).filter(Boolean);
 
     try {
-      // Check the submission requirements are met for non-draft submissions
       if (!isDraft) {
         setShowConfirmModal(false);
         if (imageRequired && finalFiles.length === 0) {
           throw new Error("You must upload at least one image.");
         }
 
-        if (socialPlatform && !socialContentUrl.trim()) {
+        if (socialPlatform && !formUrls[0]?.trim()) {
           throw new Error(`You must provide the ${socialPlatform.label} link.`);
         }
 
-        if (urlRequired && totalUrlsCount === 0) {
+        if (urlRequired && formUrls.length === 0) {
           throw new Error("You must provide at least one URL.");
         }
       }
@@ -256,7 +243,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         programId: programEnrollment.programId,
         bountyId: bounty.id,
         files: finalFiles,
-        urls: baseUrls,
+        urls: formUrls,
         description,
         ...(isDraft && { isDraft }),
       });
@@ -573,54 +560,90 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                               {urlRequired && " (at least 1 required)"}
                             </h2>
                             <span className="text-xs font-medium text-neutral-500">
-                              {urls.filter((u) => u.url).length} / {maxUrls}
+                              {
+                                (claimForm.watch("urls") ?? []).filter(Boolean)
+                                  .length
+                              }{" "}
+                              / {maxUrls}
                             </span>
                           </label>
                           <div className={cn("mt-2 flex flex-col gap-2")}>
-                            {urls.map(({ id, url }, idx) => (
-                              <div key={id} className="flex items-center gap-2">
-                                <input
-                                  type="url"
-                                  placeholder={placeholderUrl}
-                                  value={url}
-                                  onChange={(e) =>
-                                    setUrls((prev) =>
-                                      prev.map((u) =>
-                                        u.id === id
-                                          ? { ...u, url: e.target.value }
-                                          : u,
-                                      ),
-                                    )
-                                  }
-                                  className="block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                                />
-                                {urls.length > 1 && (
-                                  <Button
-                                    variant="outline"
-                                    icon={<Trash className="size-4" />}
-                                    className="w-10 shrink-0 bg-red-50 p-0 text-red-700 hover:bg-red-100"
-                                    onClick={() =>
-                                      setUrls((prev) =>
-                                        prev.filter((s) => s.id !== id),
-                                      )
-                                    }
-                                  />
-                                )}
-                              </div>
-                            ))}
-                            {urls.length < maxUrls && (
-                              <Button
-                                variant="secondary"
-                                text="Add URL"
-                                className="h-8 rounded-lg"
-                                onClick={() =>
-                                  setUrls((prev) => [
-                                    ...prev,
-                                    { id: uuid(), url: "" },
-                                  ])
-                                }
-                              />
-                            )}
+                            {(() => {
+                              const formUrls = claimForm.watch("urls") ?? [];
+                              const displayUrls = socialPlatform
+                                ? formUrls.slice(1)
+                                : formUrls;
+                              const rows =
+                                displayUrls.length > 0 ? displayUrls : [""];
+                              return (
+                                <>
+                                  {rows.map((url, i) => (
+                                    <div
+                                      key={i}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <input
+                                        type="url"
+                                        placeholder={placeholderUrl}
+                                        value={url}
+                                        onChange={(e) => {
+                                          const prev =
+                                            claimForm.getValues("urls") ?? [];
+                                          const idx = socialPlatform
+                                            ? i + 1
+                                            : i;
+                                          const next =
+                                            prev.length > idx
+                                              ? [...prev]
+                                              : [
+                                                  ...prev,
+                                                  ...Array(
+                                                    idx - prev.length + 1,
+                                                  ).fill(""),
+                                                ];
+                                          next[idx] = e.target.value;
+                                          claimForm.setValue("urls", next);
+                                        }}
+                                        className="block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                                      />
+                                      {rows.length > 1 && (
+                                        <Button
+                                          variant="outline"
+                                          icon={<Trash className="size-4" />}
+                                          className="w-10 shrink-0 bg-red-50 p-0 text-red-700 hover:bg-red-100"
+                                          onClick={() => {
+                                            const prev =
+                                              claimForm.getValues("urls") ?? [];
+                                            const idx = socialPlatform
+                                              ? i + 1
+                                              : i;
+                                            claimForm.setValue(
+                                              "urls",
+                                              prev.filter((_, j) => j !== idx),
+                                            );
+                                          }}
+                                        />
+                                      )}
+                                    </div>
+                                  ))}
+                                  {(claimForm.watch("urls") ?? []).length <
+                                    maxUrls && (
+                                    <Button
+                                      variant="secondary"
+                                      text="Add URL"
+                                      className="h-8 rounded-lg"
+                                      onClick={() => {
+                                        claimForm.setValue("urls", [
+                                          ...(claimForm.getValues("urls") ??
+                                            []),
+                                          "",
+                                        ]);
+                                      }}
+                                    />
+                                  )}
+                                </>
+                              );
+                            })()}
                             {bounty.submissionRequirements?.url?.domains &&
                               bounty.submissionRequirements.url.domains.length >
                                 0 && (

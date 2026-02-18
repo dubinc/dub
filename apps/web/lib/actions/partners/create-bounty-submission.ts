@@ -5,15 +5,11 @@ import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
-import {
-  BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
-  BOUNTY_MAX_SUBMISSION_FILES,
-  BOUNTY_MAX_SUBMISSION_URLS,
-} from "@/lib/bounty/constants";
+import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import { getBountySocialPlatform } from "@/lib/bounty/utils";
 import {
   bountySocialContentRequirementsSchema,
-  BountySubmissionFileSchema,
+  createBountySubmissionInputSchema,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendBatchEmail, sendEmail } from "@dub/email";
@@ -24,30 +20,10 @@ import { BountySubmission, WorkspaceRole } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
-import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-const inputSchema = z.object({
-  programId: z.string(),
-  bountyId: z.string(),
-  files: z
-    .array(BountySubmissionFileSchema)
-    .max(BOUNTY_MAX_SUBMISSION_FILES)
-    .default([]),
-  urls: z.array(z.url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
-  description: z
-    .string()
-    .trim()
-    .max(BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH)
-    .optional(),
-  isDraft: z
-    .boolean()
-    .default(false)
-    .describe("Whether to create a draft submission or a final submission."),
-});
-
 export const createBountySubmissionAction = authPartnerActionClient
-  .inputSchema(inputSchema)
+  .inputSchema(createBountySubmissionInputSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { programId, bountyId, files, urls, description, isDraft } =
