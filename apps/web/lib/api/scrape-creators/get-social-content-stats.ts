@@ -1,17 +1,11 @@
+import { SocialContentStats } from "@/lib/types";
 import { PlatformType } from "@dub/prisma/client";
+import "server-only";
 import { scrapeCreatorsFetch } from "./client";
 
 interface GetSocialContentStatsParams {
   platform: PlatformType;
   url: string;
-}
-
-interface SocialContentStats {
-  publishedAt: Date | null;
-  platformId: string | null;
-  handle: string | null;
-  likes: number;
-  views: number;
 }
 
 const PLATFORM_CONTENT_TYPE: Record<

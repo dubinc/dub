@@ -282,3 +282,11 @@ export const getBountySubmissionsQuerySchema = z
     }),
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
+
+export const socialContentStatsOutputSchema = z.object({
+  likes: z.number(),
+  views: z.number(),
+  handle: z.string().nullable(),
+  platformId: z.string().nullable(),
+  publishedAt: z.date().nullable(),
+});

@@ -15,7 +15,8 @@ import {
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerBountyProps } from "@/lib/types";
+import useSocialContentStats from "@/lib/swr/use-social-content-stats";
+import { PartnerBountyProps, SocialContentStats } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
@@ -38,10 +39,11 @@ import {
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { isBefore } from "date-fns";
 import Linkify from "linkify-react";
+import { AlertCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -64,14 +66,6 @@ interface FileInput {
 interface Url {
   id: string;
   url: string;
-}
-
-/** Stub: replace with real backend verification later. */
-async function verifySocialMetricsSubmission(
-  _url: string,
-  _bounty: PartnerBountyProps,
-): Promise<{ fromAccount: boolean; afterStartDate: boolean }> {
-  return Promise.resolve({ fromAccount: true, afterStartDate: true });
 }
 
 function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
@@ -626,7 +620,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       )}
 
                       {socialChannel && (
-                        <SocialMediaPostUrlField bounty={bounty} />
+                        <SocialContentUrlField bounty={bounty} />
                       )}
 
                       <div>
@@ -834,39 +828,38 @@ function SocialAccountNotVerifiedWarning({
   );
 }
 
-function SocialMediaPostUrlField({ bounty }: { bounty: PartnerBountyProps }) {
-  const { register, watch } = useFormContext<{
+function SocialContentUrlField({ bounty }: { bounty: PartnerBountyProps }) {
+  const { programEnrollment } = useProgramEnrollment();
+
+  const { register, getValues } = useFormContext<{
     socialMetricsUrl: string;
   }>();
 
-  const socialMetricsUrl = watch("socialMetricsUrl") ?? "";
+  const [urlToCheck, setUrlToCheck] = useState<string>("");
 
-  const [verification, setVerification] = useState<{
-    fromAccount: boolean;
-    afterStartDate: boolean;
-  } | null>(null);
+  const {
+    data: contentStats,
+    error,
+    isValidating,
+  } = useSocialContentStats({
+    programId: programEnrollment?.programId,
+    bountyId: bounty.id,
+    url: urlToCheck,
+  });
 
   const socialChannel = getBountySocialPlatform(bounty);
-
-  useEffect(() => {
-    if (!socialChannel || !socialMetricsUrl.trim()) {
-      setVerification(null);
-      return;
-    }
-    let cancelled = false;
-    verifySocialMetricsSubmission(socialMetricsUrl.trim(), bounty).then(
-      (result) => {
-        if (!cancelled) setVerification(result);
-      },
-    );
-    return () => {
-      cancelled = true;
-    };
-  }, [socialChannel, socialMetricsUrl, bounty]);
 
   if (!socialChannel) {
     return null;
   }
+
+  const showIcon = isValidating || (error && urlToCheck);
+
+  const iconContent = isValidating ? (
+    <LoadingSpinner className="size-4 shrink-0 text-neutral-400" />
+  ) : error && urlToCheck ? (
+    <AlertCircle className="size-4 shrink-0 text-red-500" fill="#ef4444" />
+  ) : null;
 
   return (
     <div>
@@ -875,43 +868,65 @@ function SocialMediaPostUrlField({ bounty }: { bounty: PartnerBountyProps }) {
           {`${socialChannel.label} URL`}
         </h2>
       </label>
-      <input
-        type="url"
-        placeholder="https://"
-        className="mt-2 block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-        {...register("socialMetricsUrl")}
-      />
-      <SocialMediaPostUrlRequirementChecks
-        verification={verification}
-        bountyStartsAt={bounty.startsAt}
+      <div className="relative mt-2">
+        <input
+          type="url"
+          placeholder="https://"
+          className={cn(
+            "block h-10 w-full rounded-md border-neutral-300 px-3 py-2 pr-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+            error &&
+              urlToCheck &&
+              "border-red-500 focus:border-red-500 focus:ring-red-500",
+          )}
+          {...register("socialMetricsUrl")}
+          onBlur={(e) => {
+            register("socialMetricsUrl").onBlur(e);
+            setUrlToCheck(getValues("socialMetricsUrl")?.trim() ?? "");
+          }}
+        />
+        {showIcon && (
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            {iconContent}
+          </div>
+        )}
+      </div>
+      <SocialContentRequirementChecks
+        contentStats={contentStats}
+        bounty={bounty}
       />
     </div>
   );
 }
 
-function SocialMediaPostUrlRequirementChecks({
-  verification,
-  bountyStartsAt,
+function SocialContentRequirementChecks({
+  contentStats,
+  bounty,
 }: {
-  verification: { fromAccount: boolean; afterStartDate: boolean } | null;
-  bountyStartsAt: Date | null;
+  contentStats: SocialContentStats | null;
+  bounty: PartnerBountyProps;
 }) {
+  const bountyStartsAt = bounty.startsAt;
   const afterDateLabel = bountyStartsAt
     ? `Posted after ${formatDate(bountyStartsAt, { month: "short", day: "numeric", year: "numeric" })}`
     : "Posted after bounty start";
+
+  const afterStartDate =
+    contentStats?.publishedAt &&
+    bountyStartsAt &&
+    !isBefore(contentStats.publishedAt, bountyStartsAt);
 
   return (
     <ul className="mt-2 flex flex-wrap items-center gap-3">
       <li
         className={cn(
           "flex items-center gap-1 text-xs transition-colors",
-          verification?.fromAccount ? "text-green-600" : "text-neutral-400",
+          contentStats?.handle ? "text-green-600" : "text-neutral-400",
         )}
       >
         <CircleCheckFill
           className={cn(
             "size-2.5 transition-opacity",
-            verification?.fromAccount ? "text-green-600" : "text-neutral-200",
+            contentStats?.handle ? "text-green-600" : "text-neutral-200",
           )}
         />
         <span>Posted from your account</span>
@@ -919,15 +934,13 @@ function SocialMediaPostUrlRequirementChecks({
       <li
         className={cn(
           "flex items-center gap-1 text-xs transition-colors",
-          verification?.afterStartDate ? "text-green-600" : "text-neutral-400",
+          afterStartDate ? "text-green-600" : "text-neutral-400",
         )}
       >
         <CircleCheckFill
           className={cn(
             "size-2.5 transition-opacity",
-            verification?.afterStartDate
-              ? "text-green-600"
-              : "text-neutral-200",
+            afterStartDate ? "text-green-600" : "text-neutral-200",
           )}
         />
         <span>{afterDateLabel}</span>
