@@ -32,8 +32,6 @@ interface AddCustomerModalProps {
 type FormData = z.infer<typeof createCustomerBodySchema>;
 type StripeCustomer = z.infer<typeof StripeCustomerSchema>;
 
-const STRIPE_DASHBOARD_CUSTOMER_URL = "https://dashboard.stripe.com/customers";
-
 function getCustomerInitials(customer: StripeCustomer): string {
   const raw = customer.name || customer.email || customer.id;
   const parts = raw
@@ -288,7 +286,7 @@ export const AddCustomerModal = ({
                         const displayName =
                           customer.name || customer.email || customer.id;
                         const initials = getCustomerInitials(customer);
-                        const stripeUrl = `${STRIPE_DASHBOARD_CUSTOMER_URL}/${customer.id}`;
+                        const stripeUrl = `https://dashboard.stripe.com/customers/${customer.id}`;
 
                         return (
                           <li key={customer.id}>

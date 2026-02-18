@@ -577,7 +577,7 @@ function CreateCommissionSheetContent({
                       </div>
                     </div>
 
-                    {customerId && (
+                    {customerId && commissionType === "sale" && (
                       <div>
                         <label htmlFor="eventSource">
                           <h2 className="text-sm font-medium text-neutral-900">

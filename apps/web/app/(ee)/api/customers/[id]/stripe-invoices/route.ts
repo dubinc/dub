@@ -1,14 +1,8 @@
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
+import { getCustomerStripeInvoices } from "@/lib/api/customers/get-customer-stripe-invoices";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { stripeAppClient } from "@/lib/stripe";
-import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
 import { NextResponse } from "next/server";
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
-
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { id: customerId } = params;
 
@@ -33,18 +27,10 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     });
   }
 
-  const { data } = await stripe.invoices.list(
-    {
-      customer: customer.stripeCustomerId,
-      status: "paid",
-    },
-    {
-      stripeAccount: workspace.stripeConnectId,
-    },
-  );
-
-  const stripeCustomerInvoices =
-    StripeCustomerInvoiceSchema.array().parse(data);
+  const stripeCustomerInvoices = await getCustomerStripeInvoices({
+    stripeCustomerId: customer.stripeCustomerId,
+    stripeConnectId: workspace.stripeConnectId,
+  });
 
   return NextResponse.json(stripeCustomerInvoices);
 });
