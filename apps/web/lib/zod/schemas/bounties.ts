@@ -51,9 +51,10 @@ export const bountySocialMetricsIncrementalBonusSchema = z
     },
   );
 
-export const bountySocialMetricsRequirementSchema = z.object({
+export const bountySocialContentRequirementsSchema = z.object({
   platform: z.enum(BOUNTY_SOCIAL_PLATFORM_VALUES),
   metric: z.enum(BOUNTY_SOCIAL_PLATFORM_METRICS),
+  amount: z.number().int().positive().optional(),
   incrementalBonus: bountySocialMetricsIncrementalBonusSchema.optional(),
 });
 
@@ -69,7 +70,7 @@ export const submissionRequirementsSchema = z.object({
       domains: z.array(z.string()).optional(),
     })
     .optional(),
-  socialMetrics: bountySocialMetricsRequirementSchema.optional(),
+  socialMetrics: bountySocialContentRequirementsSchema.optional(),
 });
 
 export const createBountySchema = z.object({

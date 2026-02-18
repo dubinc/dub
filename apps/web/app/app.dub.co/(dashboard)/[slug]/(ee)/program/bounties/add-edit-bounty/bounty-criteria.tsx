@@ -113,9 +113,9 @@ export function BountyCriteria() {
                   if (next === "socialMetrics") {
                     const current = submissionRequirements as {
                       socialMetrics?: {
-                        channel: SocialMetricsChannel;
-                        metric: string;
-                        amount: number;
+                        platform: SocialMetricsChannel;
+                        metric: "views" | "likes";
+                        amount?: number;
                       };
                     } | null;
                     setValue(

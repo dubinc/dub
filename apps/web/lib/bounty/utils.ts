@@ -76,9 +76,9 @@ export function getSocialContentEmbedUrl({
   }
 }
 
-export function getBountySocialPlatform(
-  bounty: Pick<PartnerBountyProps, "submissionRequirements">,
-) {
+export function getBountySocialPlatform(bounty: {
+  submissionRequirements: any;
+}) {
   const socialMetrics = bounty.submissionRequirements?.socialMetrics;
 
   if (!socialMetrics) {
@@ -130,11 +130,12 @@ export function getBountyRewardCriteriaTexts(
     trailingZeroDisplay: "stripIfInteger",
   });
 
+  const amount = socialMetrics.amount ?? 0;
   const texts: string[] = [
-    `Get ${socialMetrics.amount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedAmount}`,
+    `Get ${amount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedAmount}`,
   ];
 
-  const variableBonus = socialMetrics.variableBonus;
+  const variableBonus = socialMetrics.incrementalBonus;
 
   if (variableBonus) {
     const { incrementalAmount, bonusAmount, capAmount } = variableBonus;

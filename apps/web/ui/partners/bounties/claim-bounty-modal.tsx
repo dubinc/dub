@@ -244,10 +244,6 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         ...(isDraft && { isDraft }),
       });
 
-      if (!result?.data?.success) {
-        throw new Error(result?.serverError);
-      }
-
       toast.success(isDraft ? "Bounty progress saved." : "Bounty submitted.");
 
       setSuccess(true);

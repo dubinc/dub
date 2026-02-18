@@ -1,4 +1,4 @@
-import { getBountyOrThrow } from "@/lib/api/api/get-bounty-or-throw";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {

@@ -1,5 +1,5 @@
-import { generatePerformanceBountyName } from "@/lib/api/api/generate-performance-bounty-name";
-import { validateBounty } from "@/lib/api/api/validate-bounty";
+import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";

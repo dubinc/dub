@@ -9,7 +9,7 @@ import {
   trackActivityLog,
   TrackActivityLogInput,
 } from "../activity-log/track-activity-log";
-import { triggerDraftBountySubmissionCreation } from "../api/trigger-draft-bounty-submissions";
+import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";

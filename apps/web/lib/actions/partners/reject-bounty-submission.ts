@@ -1,6 +1,6 @@
 "use server";
 
-import { rejectBountySubmission } from "@/lib/api/api/reject-bounty-submission";
+import { rejectBountySubmission } from "@/lib/bounty/api/reject-bounty-submission";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
 import * as z from "zod/v4";

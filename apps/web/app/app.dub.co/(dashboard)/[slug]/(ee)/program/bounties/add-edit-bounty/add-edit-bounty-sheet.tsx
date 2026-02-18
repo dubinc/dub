@@ -1,4 +1,4 @@
-import { generatePerformanceBountyName } from "@/lib/api/api/generate-performance-bounty-name";
+import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/bounty/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";

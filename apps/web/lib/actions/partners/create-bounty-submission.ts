@@ -1,15 +1,18 @@
 "use server";
 
-import { getBountyOrThrow } from "@/lib/api/api/get-bounty-or-throw";
 import { createId } from "@/lib/api/create-id";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import {
   BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_URLS,
 } from "@/lib/bounty/constants";
+import { getBountySocialPlatform } from "@/lib/bounty/utils";
 import {
+  bountySocialContentRequirementsSchema,
   BountySubmissionFileSchema,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
@@ -20,7 +23,7 @@ import { prisma } from "@dub/prisma";
 import { BountySubmission, WorkspaceRole } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -145,6 +148,76 @@ export const createBountySubmissionAction = authPartnerActionClient
     const urlRequirement = submissionRequirements?.url || null;
     const imageRequirement = submissionRequirements?.image || null;
 
+    // Validate social content requirements
+    const socialContentRequirements = bountySocialContentRequirementsSchema
+      .optional()
+      .parse(submissionRequirements?.socialMetrics);
+
+    if (socialContentRequirements) {
+      const platform = getBountySocialPlatform(bounty);
+      const contentUrl = storedUrls[0];
+
+      if (!platform) {
+        throw new Error("Invalid bounty platform.");
+      }
+
+      if (!contentUrl) {
+        throw new Error(`You must provide a ${platform.label} URL.`);
+      }
+
+      const partnerPlatform = await prisma.partnerPlatform.findUnique({
+        where: {
+          partnerId_type: {
+            partnerId: partner.id,
+            type: platform.value,
+          },
+        },
+        select: {
+          identifier: true,
+          verifiedAt: true,
+        },
+      });
+
+      if (!partnerPlatform) {
+        throw new Error(
+          `You must connect your ${platform.label} account to your profile before submitting this bounty.`,
+        );
+      }
+
+      if (!partnerPlatform.verifiedAt) {
+        throw new Error(
+          `You must verify your ${platform.label} account before submitting this bounty.`,
+        );
+      }
+
+      const { handle, publishedAt } = await getSocialContent({
+        platform: platform.value,
+        url: storedUrls[0],
+      });
+
+      if (!handle || !publishedAt) {
+        throw new Error(
+          "We were unable to verify this content. Please review the submission and try again.",
+        );
+      }
+
+      if (handle.toLowerCase() !== partnerPlatform.identifier.toLowerCase()) {
+        throw new Error(
+          `The content was not published from your connected ${platform.label} account.`,
+        );
+      }
+
+      if (
+        publishedAt &&
+        bounty.startsAt &&
+        isBefore(publishedAt, bounty.startsAt)
+      ) {
+        throw new Error(
+          `This content was published before the bounty started. Please submit content posted after the start date.`,
+        );
+      }
+    }
+
     if (!isDraft) {
       if (requireImage && files.length === 0) {
         throw new Error("You must submit an image.");
@@ -168,6 +241,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           const invalidUrls = storedUrls.filter((url) => {
             const urlDomain = getDomainWithoutWWW(url)?.toLowerCase();
             if (!urlDomain) return true;
+
             // Check if URL domain matches any allowed domain or is a subdomain
             return !allowedDomains.some(
               (allowedDomain) =>
@@ -294,8 +368,4 @@ export const createBountySubmissionAction = authPartnerActionClient
         }
       })(),
     );
-
-    return {
-      success: true,
-    };
   });

@@ -54,3 +54,13 @@ export const BOUNTY_SOCIAL_PLATFORM_VALUES = BOUNTY_SOCIAL_PLATFORMS.map(
 export const BOUNTY_SOCIAL_PLATFORM_METRICS = BOUNTY_SOCIAL_PLATFORMS.map(
   (p) => p.metrics,
 ).flat();
+
+export const BOUNTY_SOCIAL_PLATFORM_METRICS_MAP = Object.fromEntries(
+  BOUNTY_SOCIAL_PLATFORMS.map((p) => [
+    p.value,
+    p.metrics.map((m) => ({
+      value: m,
+      label: m.charAt(0).toUpperCase() + m.slice(1),
+    })),
+  ]),
+);
