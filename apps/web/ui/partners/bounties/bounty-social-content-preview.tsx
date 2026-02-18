@@ -51,20 +51,20 @@ interface SocialContentPreviewContentProps {
 
 interface ContentAuthorProps {
   url: string;
-  platformValue: Platform["value"];
-  handle: string | null | undefined;
-  statsLine: string | null;
+  platform: Platform["value"];
+  content: SocialContent | null;
   position?: "top" | "bottom";
 }
 
 function ContentAuthor({
   url,
-  platformValue,
-  handle,
-  statsLine,
+  platform,
+  content,
   position = "top",
 }: ContentAuthorProps) {
-  const Icon = PLATFORM_ICONS[platformValue] ?? Tv;
+  const Icon = PLATFORM_ICONS[platform] ?? Tv;
+  const handle = content?.handle;
+  const statsLine = getStatsLine(content);
 
   return (
     <div
@@ -81,11 +81,7 @@ function ContentAuthor({
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-neutral-900">
-            {handle
-              ? platformValue === "twitter"
-                ? `@${handle}`
-                : handle
-              : "—"}
+            {handle ? (platform === "twitter" ? `@${handle}` : handle) : "—"}
           </p>
           {statsLine && (
             <p className="mt-0.5 text-xs text-neutral-500">{statsLine}</p>
@@ -135,10 +131,7 @@ export function BountySocialContentPreview({
   }
 
   return (
-    <div className="">
-      <h2 className="mb-3 text-base font-semibold text-neutral-900">
-        Submission
-      </h2>
+    <>
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white p-2">
         <div
           className="relative overflow-hidden"
@@ -170,7 +163,7 @@ export function BountySocialContentPreview({
           )}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -189,9 +182,9 @@ function YouTubeContent({ url, content }: SocialContentPreviewContentProps) {
     <div className="flex flex-col">
       <ContentAuthor
         url={url}
-        platformValue="youtube"
-        handle={content?.handle}
-        statsLine={getStatsLine(content)}
+        platform="youtube"
+        content={content}
+        position="bottom"
       />
       <div className="relative aspect-video w-full bg-neutral-100">
         {embedUrl ? (
@@ -260,12 +253,7 @@ function TwitterContent({ url, content }: SocialContentPreviewContentProps) {
 
   return (
     <div className="flex flex-col gap-3 overflow-y-auto p-3">
-      <ContentAuthor
-        url={url}
-        platformValue="twitter"
-        handle={content?.handle}
-        statsLine={getStatsLine(content)}
-      />
+      <ContentAuthor url={url} platform="twitter" content={content} />
       {hasRichCard && (thumbnailUrl || title) && (
         <div className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
           {thumbnailUrl && (
@@ -355,9 +343,8 @@ function TikTokContent({ url, content }: SocialContentPreviewContentProps) {
       </div>
       <ContentAuthor
         url={url}
-        platformValue="tiktok"
-        handle={content?.handle}
-        statsLine={getStatsLine(content)}
+        platform="tiktok"
+        content={content}
         position="bottom"
       />
     </div>
@@ -376,12 +363,7 @@ function InstagramContent({ url, content }: SocialContentPreviewContentProps) {
 
   return (
     <div className="flex flex-col">
-      <ContentAuthor
-        url={url}
-        platformValue="instagram"
-        handle={content?.handle}
-        statsLine={getStatsLine(content)}
-      />
+      <ContentAuthor url={url} platform="instagram" content={content} />
       <div className="relative mx-auto aspect-square max-h-[320px] w-full bg-neutral-100">
         {embedUrl ? (
           <iframe
