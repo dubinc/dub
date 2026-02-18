@@ -246,11 +246,14 @@ export function BountyCriteriaSocialMetrics() {
         <SocialMetricsIncrementalBonus
           variableBonus={incrementalBonus}
           metricLabel={metricLabel}
-          onUpdate={(incrementalBonus) =>
+          onUpdate={(updates) =>
             updateRequirements({
               socialMetrics: {
                 ...socialMetrics,
-                incrementalBonus,
+                incrementalBonus: {
+                  ...incrementalBonus,
+                  ...updates,
+                },
               },
             })
           }
