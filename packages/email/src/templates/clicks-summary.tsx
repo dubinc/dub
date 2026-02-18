@@ -26,23 +26,39 @@ export default function ClicksSummary({
   createdLinks = 25,
   topLinks = [
     {
-      link: "acmesuperlongdomain.com/insta",
+      link: {
+        id: "link_1",
+        shortLink: "acmesuperlongdomain.com/insta",
+      },
       clicks: 1820,
     },
     {
-      link: "acmesuperlongdomain.com/super-long-path-that-is-way-too-long-and-should-be-truncated",
+      link: {
+        id: "link_2",
+        shortLink:
+          "acmesuperlongdomain.com/super-long-path-that-is-way-too-long-and-should-be-truncated",
+      },
       clicks: 2187,
     },
     {
-      link: "acme.com",
+      link: {
+        id: "link_3",
+        shortLink: "acme.com",
+      },
       clicks: 1552,
     },
     {
-      link: "acme.com/twitter",
+      link: {
+        id: "link_4",
+        shortLink: "acme.com/twitter",
+      },
       clicks: 1229,
     },
     {
-      link: "acme.com/linkedin/more/path",
+      link: {
+        id: "link_5",
+        shortLink: "acme.com/linkedin/more/path",
+      },
       clicks: 1055,
     },
   ],
@@ -53,7 +69,10 @@ export default function ClicksSummary({
   totalClicks: number;
   createdLinks: number;
   topLinks: {
-    link: string;
+    link: {
+      id: string;
+      shortLink: string;
+    };
     clicks: number;
   }[];
 }) {
@@ -111,33 +130,33 @@ export default function ClicksSummary({
                       Clicks
                     </Column>
                   </Row>
-                  {topLinks.map(({ link, clicks }, index) => {
-                    const [domain, ...pathParts] = link.split("/");
-                    const path = pathParts.join("/") || "_root";
-                    return (
-                      <div key={index}>
-                        <Row>
-                          <Column align="left">
-                            <Link
-                              href={`https://app.dub.co/${workspaceSlug}/analytics?domain=${domain}&key=${path}`}
-                              className="text-sm font-medium text-black underline"
+                  {topLinks.map(
+                    ({ link: { id: linkId, shortLink }, clicks }, index) => {
+                      return (
+                        <div key={linkId}>
+                          <Row>
+                            <Column align="left">
+                              <Link
+                                href={`https://app.dub.co/${workspaceSlug}/analytics?linkId=${linkId}`}
+                                className="text-sm font-medium text-black underline"
+                              >
+                                {smartTruncate(shortLink, 33)}↗
+                              </Link>
+                            </Column>
+                            <Column
+                              align="right"
+                              className="text-sm text-neutral-600"
                             >
-                              {smartTruncate(link, 33)}↗
-                            </Link>
-                          </Column>
-                          <Column
-                            align="right"
-                            className="text-sm text-neutral-600"
-                          >
-                            {nFormatter(clicks, { full: clicks < 99999 })}
-                          </Column>
-                        </Row>
-                        {index !== topLinks.length - 1 && (
-                          <Hr className="my-2 w-full border border-neutral-200" />
-                        )}
-                      </div>
-                    );
-                  })}
+                              {nFormatter(clicks, { full: clicks < 99999 })}
+                            </Column>
+                          </Row>
+                          {index !== topLinks.length - 1 && (
+                            <Hr className="my-2 w-full border border-neutral-200" />
+                          )}
+                        </div>
+                      );
+                    },
+                  )}
                 </Section>
               </>
             )}
