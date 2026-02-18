@@ -38,6 +38,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
+import { ClaimBountyProvider, useClaimBountyContext } from "./claim-bounty-context";
 import { BountyDescription } from "./bounty-description";
 import { BountyPerformance } from "./bounty-performance";
 import {
@@ -68,6 +69,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const [success, setSuccess] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDraft, setIsDraft] = useState<boolean | null>(null);
+  const { socialContentVerifying } = useClaimBountyContext();
 
   const socialPlatform = getBountySocialPlatform(bounty);
 
@@ -445,7 +447,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     )}
                   </div>
 
-                  <div className="border-border-subtle flex flex-col space-y-6 border-t p-6 text-sm max-sm:px-4">
+                  <div className="border-border-subtle flex flex-col space-y-3 border-t p-6 text-sm max-sm:px-4">
                     <BountyDescription bounty={bounty} />
                   </div>
 
@@ -713,7 +715,21 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       variant="outline"
                       text="Cancel"
                       className="h-9 w-fit rounded-lg px-3"
-                      onClick={() => setIsFormOpen(false)}
+                      onClick={() => {
+                        claimForm.reset({ urls: initialUrls });
+                        setDescription(submission?.description || "");
+                        setFiles(
+                          submission?.files && submission.files.length > 0
+                            ? submission.files.map((file) => ({
+                                id: uuid(),
+                                url: file.url,
+                                uploading: false,
+                                file: undefined,
+                              }))
+                            : [],
+                        );
+                        setIsFormOpen(false);
+                      }}
                     />
                     <div className="flex gap-2">
                       <Button
@@ -723,7 +739,11 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                         type="submit"
                         name="draft" // for submitter.name detection above
                         loading={isDraft === true}
-                        disabled={fileUploading || isDraft === false}
+                        disabled={
+                          fileUploading ||
+                          isDraft === false ||
+                          socialContentVerifying
+                        }
                       />
                       <Button
                         variant="primary"
@@ -732,7 +752,11 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                         type="submit"
                         name="submit" // for submitter.name detection above
                         loading={isDraft === false}
-                        disabled={fileUploading || isDraft === true}
+                        disabled={
+                          fileUploading ||
+                          isDraft === true ||
+                          socialContentVerifying
+                        }
                         disabledTooltip={
                           !hasSubmissionsOpen
                             ? `Submissions are not open yet. They will open on ${formatDate(
@@ -788,7 +812,9 @@ export function ClaimBountyModal({
       setShowModal={rest.setShowModal}
       onClose={() => queryParams({ del: "bountyId", scroll: false })}
     >
-      <ClaimBountyModalContent {...rest} />
+      <ClaimBountyProvider>
+        <ClaimBountyModalContent {...rest} />
+      </ClaimBountyProvider>
     </Modal>
   );
 }

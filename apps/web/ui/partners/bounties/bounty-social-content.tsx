@@ -11,7 +11,7 @@ import { cn, formatDate } from "@dub/utils";
 import { isBefore } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 function SocialContentRequirementChecks({
   content,
@@ -78,18 +78,30 @@ export function SocialContentUrlField({
   bounty: PartnerBountyProps;
 }) {
   const { programEnrollment } = useProgramEnrollment();
-  const { setValue, getValues } = useClaimBountyForm();
 
-  const initialUrl = (getValues("urls") ?? [])[0] ?? "";
+  const { watch, setValue, getValues, setSocialContentVerifying } =
+    useClaimBountyForm();
 
-  const [localUrl, setLocalUrl] = useState(initialUrl);
   const [urlToCheck, setUrlToCheck] = useState<string>("");
+
+  const contentUrl = watch("urls")?.[0] ?? "";
+
+  useEffect(() => {
+    if (contentUrl === "") {
+      setUrlToCheck("");
+    }
+  }, [contentUrl]);
 
   const { data, error, isValidating } = useSocialContent({
     programId: programEnrollment?.programId,
     bountyId: bounty.id,
     url: urlToCheck,
   });
+
+  useEffect(() => {
+    setSocialContentVerifying(isValidating);
+    return () => setSocialContentVerifying(false);
+  }, [isValidating, setSocialContentVerifying]);
 
   const socialPlatform = getBountySocialPlatform(bounty);
 
@@ -99,10 +111,15 @@ export function SocialContentUrlField({
     return null;
   }
 
-  const handleBlur = () => {
-    const trimmed = localUrl.trim();
+  const handleChange = (value: string) => {
     const prev = getValues("urls") ?? [];
-    setValue("urls", [trimmed, ...prev.slice(1)]);
+    setValue("urls", [value, ...prev.slice(1)], { shouldDirty: true });
+  };
+
+  const handleBlur = () => {
+    const trimmed = contentUrl.trim();
+    const prev = getValues("urls") ?? [];
+    setValue("urls", [trimmed, ...prev.slice(1)], { shouldDirty: true });
     setUrlToCheck(trimmed);
   };
 
@@ -119,8 +136,8 @@ export function SocialContentUrlField({
           inputMode="url"
           autoComplete="url"
           placeholder={socialPlatform.placeholder}
-          value={localUrl}
-          onChange={(e) => setLocalUrl(e.target.value)}
+          value={contentUrl}
+          onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
           className={cn(
             "block h-10 w-full rounded-md border-neutral-300 px-3 py-2 pr-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
