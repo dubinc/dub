@@ -156,6 +156,12 @@ export const createManualCommissionAction = authActionClient
 
     // If we're using existing events (Stripe invoice for sale)
     if (useExistingEvents) {
+      if (commissionType !== "sale") {
+        throw new Error(
+          "You can only use existing events for recurring sale commissions.",
+        );
+      }
+
       if (!workspace.stripeConnectId) {
         throw new Error(
           "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
@@ -186,6 +192,7 @@ export const createManualCommissionAction = authActionClient
         );
       }
 
+      // use the first ever stripe invoice created date as the last lead and conversion dates
       lastLeadAt = stripeCustomerInvoices[0].createdAt;
       lastConversionAt = stripeCustomerInvoices[0].createdAt;
 

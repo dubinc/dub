@@ -60,6 +60,7 @@ export const withPartnerProfile = (
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
+      const searchParams = getSearchParams(req.url);
 
       let apiKey: string | undefined;
       let requestHeaders = await headers();
@@ -100,7 +101,9 @@ export const withPartnerProfile = (
                     id: true,
                     name: true,
                     email: true,
+                    image: true,
                     isMachine: true,
+                    defaultWorkspace: true,
                     defaultPartnerId: true,
                   },
                 },
@@ -177,9 +180,7 @@ export const withPartnerProfile = (
           }
         }
 
-        const searchParams = getSearchParams(req.url);
         const { defaultPartnerId, id: userId } = session.user;
-
         if (!defaultPartnerId) {
           throw new DubApiError({
             code: "not_found",
