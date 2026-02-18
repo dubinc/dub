@@ -110,6 +110,7 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
         subscribers: socialProfile.subscribers,
         posts: socialProfile.posts,
         views: socialProfile.views,
+        avatarUrl: socialProfile.avatarUrl,
       },
     });
 

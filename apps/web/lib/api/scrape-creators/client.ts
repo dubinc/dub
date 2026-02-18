@@ -1,7 +1,8 @@
 import { createFetch, createSchema } from "@better-fetch/fetch";
 import { PlatformType } from "@dub/prisma/client";
+import { prettyPrint } from "@dub/utils";
 import * as z from "zod/v4";
-import { socialContentStatsSchema, socialProfileSchema } from "./schema";
+import { socialContentSchema, socialProfileSchema } from "./schema";
 
 export const scrapeCreatorsFetch = createFetch({
   baseURL: "https://api.scrapecreators.com",
@@ -39,7 +40,7 @@ export const scrapeCreatorsFetch = createFetch({
         query: z.object({
           url: z.string(),
         }),
-        output: socialContentStatsSchema,
+        output: socialContentSchema,
       },
     },
     {
@@ -49,12 +50,10 @@ export const scrapeCreatorsFetch = createFetch({
   onError: ({ error }) => {
     console.error("[ScrapeCreators] Error", error);
   },
-  // onResponse: async ({ response }) => {
-  //   if (process.env.NODE_ENV === "development") {
-  //     console.log(
-  //       "[ScrapeCreators] Response",
-  //       prettyPrint(await response.clone().json()),
-  //     );
-  //   }
-  // },
+  onResponse: async ({ response }) => {
+    console.log(
+      "[ScrapeCreators] Response",
+      prettyPrint(await response.clone().json()),
+    );
+  },
 });

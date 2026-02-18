@@ -91,6 +91,7 @@ export const POST = withCron(async ({ rawBody }) => {
         const newStats = {
           subscribers: socialProfile.subscribers,
           posts: socialProfile.posts,
+          avatarUrl: socialProfile.avatarUrl,
         };
 
         await prisma.partnerPlatform.update({

@@ -1,38 +1,52 @@
 import * as z from "zod/v4";
 
 export const socialProfileSchema = z.preprocess(
-  (data: unknown) => {
+  (data: any) => {
     if (typeof data === "object" && data !== null) {
       // Check for "account doesn't exist" response
       if (
         "message" in data &&
-        typeof (data as any).message === "string" &&
-        ((data as any).message.toLowerCase().includes("doesn't exist") ||
-          (data as any).message.toLowerCase().includes("does not exist") ||
-          (data as any).message.toLowerCase().includes("not found"))
+        typeof data.message === "string" &&
+        (data.message.toLowerCase().includes("doesn't exist") ||
+          data.message.toLowerCase().includes("does not exist") ||
+          data.message.toLowerCase().includes("not found"))
       ) {
-        return { platform: "account_not_found", ...data };
+        return {
+          ...data,
+          platform: "account_not_found",
+        };
       }
 
+      // YouTube detection
       if ("description" in data && "channelId" in data) {
-        return { platform: "youtube", ...data };
+        return {
+          ...data,
+          platform: "youtube",
+        };
       }
 
-      if (
-        "data" in data &&
-        typeof (data as any).data === "object" &&
-        (data as any).data?.user
-      ) {
-        return { platform: "instagram", ...data };
+      // Instagram detection
+      if ("data" in data && typeof data.data === "object" && data.data?.user) {
+        return {
+          ...data,
+          platform: "instagram",
+        };
       }
 
+      // TikTok detection
       if ("user" in data && "stats" in data) {
-        return { platform: "tiktok", ...data };
+        return {
+          ...data,
+          platform: "tiktok",
+        };
       }
 
       // Twitter detection: check for rest_id and legacy fields (more reliable than is_blue_verified)
       if ("rest_id" in data && "legacy" in data) {
-        return { platform: "twitter", ...data };
+        return {
+          ...data,
+          platform: "twitter",
+        };
       }
     }
 
@@ -62,6 +76,17 @@ export const socialProfileSchema = z.preprocess(
         .number()
         .nullish()
         .transform((val) => val ?? 0),
+      avatar: z.object({
+        image: z.object({
+          sources: z.array(
+            z.object({
+              url: z.url(),
+              width: z.number(),
+              height: z.number(),
+            }),
+          ),
+        }),
+      }),
     }),
 
     z.object({
@@ -81,6 +106,7 @@ export const socialProfileSchema = z.preprocess(
               .nullish()
               .transform((val) => val ?? 0),
           }),
+          profile_pic_url: z.url().nullish().default(null),
         }),
       }),
     }),
@@ -91,6 +117,7 @@ export const socialProfileSchema = z.preprocess(
         id: z.string(),
         signature: z.string(),
         uniqueId: z.string(),
+        avatarThumb: z.url().nullish().default(null),
       }),
       stats: z.object({
         followerCount: z
@@ -122,11 +149,14 @@ export const socialProfileSchema = z.preprocess(
           .nullish()
           .transform((val) => val ?? 0),
       }),
+      avatar: z.object({
+        image_url: z.url().nullish().default(null),
+      }),
     }),
   ]),
 );
 
-export const socialContentStatsSchema = z.preprocess(
+export const socialContentSchema = z.preprocess(
   (data: any) => {
     if (typeof data === "object" && data !== null) {
       // YouTube detection
@@ -180,9 +210,9 @@ export const socialContentStatsSchema = z.preprocess(
         .number()
         .nullable()
         .transform((val) => val ?? 0),
-      title: z.string().optional(),
-      description: z.string().optional(),
-      thumbnailUrl: z.string().optional(),
+      title: z.string().nullish(),
+      description: z.string().nullish(),
+      thumbnailUrl: z.string().nullish(),
     }),
 
     z.object({

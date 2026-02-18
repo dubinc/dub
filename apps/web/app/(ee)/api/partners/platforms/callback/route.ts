@@ -149,11 +149,14 @@ export async function GET(req: Request) {
     return NextResponse.redirect(redirectUrl);
   }
 
-  // Sync social stats for platforms
-  let socialStats: Pick<PartnerPlatform, "subscribers" | "posts" | "views"> = {
+  let socialStats: Pick<
+    PartnerPlatform,
+    "subscribers" | "posts" | "views" | "avatarUrl"
+  > = {
     subscribers: BigInt(0),
     posts: BigInt(0),
     views: BigInt(0),
+    avatarUrl: null,
   };
 
   if (["tiktok", "twitter"].includes(platform)) {
@@ -167,6 +170,7 @@ export async function GET(req: Request) {
         subscribers: socialProfile.subscribers,
         posts: socialProfile.posts,
         views: socialProfile.views,
+        avatarUrl: socialProfile.avatarUrl,
       };
     } catch (error) {
       console.error(
@@ -186,7 +190,10 @@ export async function GET(req: Request) {
     data: {
       verifiedAt: new Date(),
       ...(metadata && { metadata }),
-      ...socialStats,
+      subscribers: socialStats.subscribers,
+      posts: socialStats.posts,
+      views: socialStats.views,
+      avatarUrl: socialStats.avatarUrl,
     },
   });
 

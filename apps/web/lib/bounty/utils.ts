@@ -23,7 +23,18 @@ export function getSocialContentEmbedUrl({
 
       if (host === "youtube.com" || host === "m.youtube.com") {
         const v = parsed.searchParams.get("v");
-        return v ? `https://www.youtube.com/embed/${v}` : null;
+
+        if (v) {
+          return `https://www.youtube.com/embed/${v}`;
+        }
+
+        const shortsMatch = parsed.pathname.match(/\/shorts\/([^/?#]+)/);
+
+        if (shortsMatch?.[1]) {
+          return `https://www.youtube.com/embed/${shortsMatch[1]}`;
+        }
+
+        return null;
       }
     }
 
@@ -31,6 +42,7 @@ export function getSocialContentEmbedUrl({
       if (host === "instagram.com" || host === "www.instagram.com") {
         const pathMatch = parsed.pathname.match(/\/p\/([^/]+)/);
         const shortcode = pathMatch?.[1];
+
         return shortcode
           ? `https://www.instagram.com/p/${shortcode}/embed/`
           : null;
@@ -41,6 +53,7 @@ export function getSocialContentEmbedUrl({
       if (host === "tiktok.com" || host === "www.tiktok.com") {
         const match = parsed.pathname.match(/\/video\/(\d+)/);
         const videoId = match?.[1];
+
         return videoId ? `https://www.tiktok.com/embed/v2/${videoId}` : null;
       }
     }
