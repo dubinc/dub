@@ -16,7 +16,6 @@ const inputSchema = z.object({
 
 // TODO:
 // - Add hostname allowlist per platform and validate the request url before calling scrape-creators
-// - Cache getSocialContentStats results in Redis to reduce duplicate scrape-creators calls
 // - Make sure the partner is verified their social account
 
 // POST /api/partner-profile/programs/[programId]/bounties/social-content-stats – get social content stats for a social content

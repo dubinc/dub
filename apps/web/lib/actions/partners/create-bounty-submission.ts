@@ -171,8 +171,6 @@ export const createBountySubmissionAction = authPartnerActionClient
         url: storedUrls[0],
       });
 
-      console.log("getSocialContent", socialContent);
-
       if (!socialContent.handle || !socialContent.publishedAt) {
         throw new Error(
           "We were unable to verify this content. Please review the submission and try again.",

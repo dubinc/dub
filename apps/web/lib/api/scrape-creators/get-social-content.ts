@@ -1,7 +1,14 @@
+import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/constants";
 import { SocialContent } from "@/lib/types";
+import { redis } from "@/lib/upstash";
 import { PlatformType } from "@dub/prisma/client";
 import { isValidUrl } from "@dub/utils";
+import { hashStringSHA256 } from "@dub/utils/src";
+import { waitUntil } from "@vercel/functions";
 import { scrapeCreatorsFetch } from "./client";
+
+const CACHE_KEY_PREFIX = "socialContentCache";
+const CACHE_TTL = 60 * 60;
 
 interface GetSocialContentStatsParams {
   platform: PlatformType;
@@ -33,10 +40,22 @@ export async function getSocialContent({
   platform,
   url,
 }: GetSocialContentStatsParams): Promise<SocialContent> {
-  const trimmed = url?.trim();
+  url = url?.trim();
 
-  if (!trimmed || !isValidUrl(trimmed)) {
+  // Invalid URL
+  if (!url || !isValidUrl(url)) {
     return EMPTY_SOCIAL_CONTENT;
+  }
+
+  url = normalizeUrl(url);
+
+  // Check cache first
+  const urlHash = await hashStringSHA256(url);
+  const cacheKey = `${CACHE_KEY_PREFIX}:${urlHash}`;
+  const cachedResult = await redis.get<SocialContent>(cacheKey);
+
+  if (cachedResult) {
+    return cachedResult;
   }
 
   const contentType = PLATFORM_CONTENT_TYPE[platform];
@@ -60,9 +79,11 @@ export async function getSocialContent({
     return EMPTY_SOCIAL_CONTENT;
   }
 
+  let result: SocialContent;
+
   switch (data.platform) {
     case "youtube": {
-      return {
+      result = {
         publishedAt: new Date(data.publishDateText),
         handle: data.channel.handle,
         platformId: data.channel.id,
@@ -72,6 +93,7 @@ export async function getSocialContent({
         description: data.description ?? null,
         thumbnailUrl: data.thumbnailUrl ?? null,
       };
+      break;
     }
 
     case "instagram": {
@@ -89,7 +111,6 @@ export async function getSocialContent({
               .filter(Boolean)
           : undefined;
 
-      // Find the media type based on the data
       let mediaType: "image" | "video" | "carousel" | undefined;
 
       if (data.__typename === "GraphVideo") {
@@ -105,7 +126,7 @@ export async function getSocialContent({
         mediaType = "video";
       }
 
-      return {
+      result = {
         publishedAt: new Date(data.taken_at_timestamp * 1000),
         handle: data.owner.username,
         platformId: null,
@@ -117,10 +138,11 @@ export async function getSocialContent({
         mediaType,
         thumbnailUrls,
       };
+      break;
     }
 
     case "twitter": {
-      return {
+      result = {
         publishedAt: new Date(data.legacy.created_at),
         handle: data.core.user_results.result.core.screen_name,
         platformId: null,
@@ -130,10 +152,11 @@ export async function getSocialContent({
         description: data.legacy.full_text ?? null,
         thumbnailUrl: null,
       };
+      break;
     }
 
     case "tiktok": {
-      return {
+      result = {
         publishedAt: new Date(data.create_time_utc),
         handle: data.author.unique_id,
         platformId: null,
@@ -143,10 +166,11 @@ export async function getSocialContent({
         description: data.desc ?? null,
         thumbnailUrl: data.video?.cover?.url_list?.[0] ?? null,
       };
+      break;
     }
 
     default:
-      return {
+      result = {
         publishedAt: null,
         handle: null,
         platformId: null,
@@ -157,4 +181,33 @@ export async function getSocialContent({
         thumbnailUrl: null,
       };
   }
+
+  if (BOUNTY_SOCIAL_PLATFORM_VALUES.includes(data.platform)) {
+    waitUntil(redis.set(cacheKey, result, { ex: CACHE_TTL }));
+  }
+
+  return result;
+}
+
+function normalizeUrl(raw: string) {
+  const url = new URL(raw);
+
+  // Lowercase hostname
+  url.hostname = url.hostname.toLowerCase();
+
+  // Remove tracking params
+  [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "si",
+    "feature",
+    "igshid",
+    "t",
+  ].forEach((p) => url.searchParams.delete(p));
+
+  // Remove trailing slash
+  url.pathname = url.pathname.replace(/\/$/, "");
+
+  return url.toString();
 }
