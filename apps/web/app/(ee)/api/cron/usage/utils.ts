@@ -143,6 +143,7 @@ export const updateUsage = async () => {
           .filter((d: { link: string; clicks: number }) =>
             linksMetadata.find((l) => l.id === d.link),
           )
+          .slice(0, 5)
           .map((d: { link: string; clicks: number }) => ({
             link: linksMetadata.find((l) => l.id === d.link)!, // coerce here since we're already filtering out links that don't exist
             clicks: d.clicks,
