@@ -623,7 +623,7 @@ export function AppSidebarNav({
         slug: slug || "",
         pathname,
         queryString: getQueryString(undefined, {
-          include: ["folderId", "tagIds"],
+          include: ["folderId"],
         }),
         session: session || undefined,
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,

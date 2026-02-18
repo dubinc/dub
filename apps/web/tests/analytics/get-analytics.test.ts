@@ -13,7 +13,7 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
   VALID_ANALYTICS_ENDPOINTS.map((groupBy) => {
     test(`by ${groupBy}`, async () => {
       const { status, data } = await http.get<any[]>({
-        path: `/analytics`,
+        path: "/analytics",
         query: {
           event: "composite",
           groupBy,
@@ -42,7 +42,7 @@ describe.runIf(env.CI).sequential("GET /analytics", async () => {
 
   test("filter events by metadata.productId", async () => {
     const { status, data } = await http.get<any[]>({
-      path: `/events`,
+      path: "/events",
       query: {
         event: "sales",
         workspaceId,
