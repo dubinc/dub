@@ -180,6 +180,9 @@ export const socialContentStatsSchema = z.preprocess(
         .number()
         .nullable()
         .transform((val) => val ?? 0),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      thumbnailUrl: z.string().optional(),
     }),
 
     z.object({
@@ -198,6 +201,17 @@ export const socialContentStatsSchema = z.preprocess(
           .nullable()
           .transform((val) => val ?? 0),
       }),
+      edge_media_to_caption: z
+        .object({
+          edges: z.array(
+            z.object({
+              node: z.object({ text: z.string() }),
+            }),
+          ),
+        })
+        .optional(),
+      display_url: z.string().optional(),
+      thumbnail_src: z.string().optional(),
     }),
 
     z.object({
@@ -212,7 +226,7 @@ export const socialContentStatsSchema = z.preprocess(
         }),
       }),
       views: z.object({
-        count: z.z
+        count: z
           .string()
           .nullable()
           .transform((val) => (val == null ? 0 : Number(val))),
@@ -223,6 +237,7 @@ export const socialContentStatsSchema = z.preprocess(
           .number()
           .nullable()
           .transform((val) => val ?? 0),
+        full_text: z.string().optional(),
       }),
     }),
 
@@ -242,6 +257,16 @@ export const socialContentStatsSchema = z.preprocess(
           .nullable()
           .transform((val) => val ?? 0),
       }),
+      desc: z.string().optional(),
+      video: z
+        .object({
+          cover: z
+            .object({
+              url_list: z.array(z.string()),
+            })
+            .optional(),
+        })
+        .optional(),
     }),
   ]),
 );

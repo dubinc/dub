@@ -1,7 +1,7 @@
 import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { getSocialContentStats } from "@/lib/api/scrape-creators/get-social-content-stats";
+import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { getBountySocialPlatform } from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
@@ -60,18 +60,11 @@ export const GET = withPartnerProfile(
       });
     }
 
-    const { likes, views, handle, platformId, publishedAt } =
-      await getSocialContentStats({
-        platform: platform.value,
-        url,
-      });
-
-    return NextResponse.json({
-      likes,
-      views,
-      handle,
-      platformId,
-      publishedAt,
+    const stats = await getSocialContent({
+      platform: platform.value,
+      url,
     });
+
+    return NextResponse.json(stats);
   },
 );

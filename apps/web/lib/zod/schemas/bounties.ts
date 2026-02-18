@@ -283,10 +283,13 @@ export const getBountySubmissionsQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const socialContentStatsOutputSchema = z.object({
+export const socialContentOutputSchema = z.object({
   likes: z.number(),
   views: z.number(),
   handle: z.string().nullable(),
   platformId: z.string().nullable(),
   publishedAt: z.date().nullable(),
+  title: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  thumbnailUrl: z.string().nullable().optional(),
 });

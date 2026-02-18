@@ -54,7 +54,7 @@ import {
   BountySubmissionExtendedSchema,
   createBountySchema,
   getBountySubmissionsQuerySchema,
-  socialContentStatsOutputSchema,
+  socialContentOutputSchema,
 } from "./zod/schemas/bounties";
 import {
   CampaignListSchema,
@@ -839,4 +839,4 @@ export type ActivityLog = z.infer<typeof activityLogSchema>;
 
 export type BountyFormData = z.infer<typeof createBountySchema>;
 
-export type SocialContentStats = z.infer<typeof socialContentStatsOutputSchema>;
+export type SocialContent = z.infer<typeof socialContentOutputSchema>;

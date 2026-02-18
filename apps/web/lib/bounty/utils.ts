@@ -2,6 +2,59 @@ import { currencyFormatter } from "@dub/utils";
 import { PartnerBountyProps } from "../types";
 import { SOCIAL_METRICS_CHANNELS } from "./constants";
 
+type SocialPlatformValue = "youtube" | "twitter" | "tiktok" | "instagram";
+
+export function getSocialContentEmbedUrl({
+  platform,
+  url,
+}: {
+  platform: SocialPlatformValue;
+  url: string;
+}) {
+  try {
+    const parsed = new URL(url);
+    const host = parsed.hostname.replace(/^www\./, "");
+
+    if (platform === "youtube") {
+      if (host === "youtu.be") {
+        const id = parsed.pathname.slice(1).split("?")[0];
+        return id ? `https://www.youtube.com/embed/${id}` : null;
+      }
+
+      if (host === "youtube.com" || host === "m.youtube.com") {
+        const v = parsed.searchParams.get("v");
+        return v ? `https://www.youtube.com/embed/${v}` : null;
+      }
+    }
+
+    if (platform === "instagram") {
+      if (host === "instagram.com" || host === "www.instagram.com") {
+        const pathMatch = parsed.pathname.match(/\/p\/([^/]+)/);
+        const shortcode = pathMatch?.[1];
+        return shortcode
+          ? `https://www.instagram.com/p/${shortcode}/embed/`
+          : null;
+      }
+    }
+
+    if (platform === "tiktok") {
+      if (host === "tiktok.com" || host === "www.tiktok.com") {
+        const match = parsed.pathname.match(/\/video\/(\d+)/);
+        const videoId = match?.[1];
+        return videoId ? `https://www.tiktok.com/embed/v2/${videoId}` : null;
+      }
+    }
+
+    if (platform === "twitter") {
+      return null;
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function getBountySocialPlatform(
   bounty: Pick<PartnerBountyProps, "submissionRequirements">,
 ) {
@@ -16,7 +69,7 @@ export function getBountySocialPlatform(
   );
 }
 
-export function getSubmissionRequirementTexts(
+export function getBountySubmissionRequirementTexts(
   bounty: Pick<PartnerBountyProps, "submissionRequirements">,
 ): string[] {
   const socialMetrics = bounty.submissionRequirements?.socialMetrics;
@@ -37,7 +90,9 @@ export function getSubmissionRequirementTexts(
   ];
 }
 
-export function getRewardCriteriaTexts(bounty: PartnerBountyProps): string[] {
+export function getBountyRewardCriteriaTexts(
+  bounty: PartnerBountyProps,
+): string[] {
   const socialMetrics = bounty.submissionRequirements?.socialMetrics;
 
   if (!socialMetrics) {

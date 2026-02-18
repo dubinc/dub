@@ -1,4 +1,4 @@
-import { SocialContentStats } from "@/lib/types";
+import { SocialContent } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
@@ -18,7 +18,7 @@ export default function useSocialContentStats({
     bountyId,
   });
 
-  const { data, error, isValidating } = useSWR<SocialContentStats>(
+  const { data, error, isValidating, mutate } = useSWR<SocialContent>(
     url && programId
       ? `/api/partner-profile/programs/${programId}/bounties/social-content-stats?${searchParams.toString()}`
       : null,
@@ -29,5 +29,6 @@ export default function useSocialContentStats({
     data: data ?? null,
     error,
     isValidating,
+    mutate,
   };
 }
