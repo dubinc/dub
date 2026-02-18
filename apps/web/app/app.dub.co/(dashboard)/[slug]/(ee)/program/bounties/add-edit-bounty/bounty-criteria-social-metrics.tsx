@@ -4,7 +4,7 @@ import {
   BOUNTY_SOCIAL_PLATFORM_METRICS_MAP,
   BOUNTY_SOCIAL_PLATFORMS,
 } from "@/lib/bounty/constants";
-import type { SocialMetricsChannel } from "@/lib/types";
+import type { BountySocialMetricsIncrementalBonus } from "@/lib/types";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
 import {
@@ -25,119 +25,57 @@ import { currencyFormatter } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
 import { useContext } from "react";
 import { BountyAmountInput } from "./bounty-amount-input";
-import { useBountyFormContext } from "./bounty-form-context";
-
-interface VariableBonus {
-  incrementalAmount?: number;
-  bonusAmount?: number;
-  capAmount?: number;
-}
-
-interface SocialMetricsCriteria {
-  socialMetrics?: {
-    platform: SocialMetricsChannel;
-    metric: string;
-    minCount?: number;
-    incrementalBonus?: VariableBonus;
-  };
-}
+import {
+  CreateBountyInputExtended,
+  useBountyFormContext,
+} from "./bounty-form-context";
 
 interface SocialMetricsVariableBonusProps {
-  variableBonus: VariableBonus;
+  variableBonus: BountySocialMetricsIncrementalBonus;
   metricLabel: string;
-  onUpdate: (updates: Partial<VariableBonus>) => void;
+  onUpdate: (updates: Partial<BountySocialMetricsIncrementalBonus>) => void;
   onRemove: () => void;
 }
 
 export function BountyCriteriaSocialMetrics() {
   const { watch, setValue } = useBountyFormContext();
 
-  const submissionRequirements = watch(
+  const [submissionRequirements, rewardAmount] = watch([
     "submissionRequirements",
-  ) as SocialMetricsCriteria | null;
-
-  const rewardAmount = watch("rewardAmount");
+    "rewardAmount",
+  ]);
 
   const socialMetrics = submissionRequirements?.socialMetrics;
   const hasChannel = socialMetrics?.platform != null;
   const hasMinCount =
     socialMetrics?.minCount != null && socialMetrics.minCount > 0;
   const hasMetric = socialMetrics?.metric != null;
+  const incrementalBonus = socialMetrics?.incrementalBonus;
 
-  const updateSocialMetrics = (
-    updates: Partial<{
-      platform: SocialMetricsChannel;
-      metric: string;
-      minCount: number;
-      incrementalBonus?: VariableBonus | undefined;
-    }>,
+  const updateRequirements = (
+    data: CreateBountyInputExtended["submissionRequirements"],
   ) => {
-    const nextPlatform =
-      updates.platform ??
-      socialMetrics?.platform ??
-      ("youtube" as SocialMetricsChannel);
-    const platformMetrics = BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[nextPlatform];
-    const nextMetric = (updates.metric ??
-      (socialMetrics?.metric &&
-      platformMetrics?.some((m) => m.value === socialMetrics.metric)
-        ? socialMetrics.metric
-        : platformMetrics?.[0]?.value ?? "views")) as "views" | "likes";
-    const nextMinCount = updates.minCount ?? socialMetrics?.minCount ?? 0;
-    const nextIncrementalBonus =
-      "incrementalBonus" in updates
-        ? updates.incrementalBonus
-        : socialMetrics?.incrementalBonus;
     setValue(
       "submissionRequirements",
       {
-        socialMetrics: {
-          platform: nextPlatform,
-          metric: nextMetric,
-          minCount: nextMinCount,
-          ...(nextIncrementalBonus && {
-            incrementalBonus: nextIncrementalBonus,
-          }),
-        },
+        ...submissionRequirements,
+        ...data,
       },
-      { shouldDirty: true },
+      {
+        shouldDirty: true,
+      },
     );
   };
 
-  const updateVariableBonus = (updates: Partial<VariableBonus>) => {
-    const current = socialMetrics?.incrementalBonus ?? {};
-    updateSocialMetrics({
-      incrementalBonus: {
-        incrementalAmount:
-          "incrementalAmount" in updates
-            ? updates.incrementalAmount
-            : current.incrementalAmount,
-        bonusAmount:
-          "bonusAmount" in updates ? updates.bonusAmount : current.bonusAmount,
-        capAmount:
-          "capAmount" in updates ? updates.capAmount : current.capAmount,
-      },
-    });
-  };
-
-  const addVariableBonus = () => {
-    updateSocialMetrics({ incrementalBonus: {} });
-  };
-
-  const removeVariableBonus = () => {
-    updateSocialMetrics({ incrementalBonus: undefined });
-  };
-
-  const variableBonus = socialMetrics?.incrementalBonus;
-
   const channelLabel = hasChannel
-    ? BOUNTY_SOCIAL_PLATFORMS.find((c) => c.value === socialMetrics!.platform)
-        ?.label ?? socialMetrics!.platform
+    ? BOUNTY_SOCIAL_PLATFORMS.find((c) => c.value === socialMetrics.platform)
+        ?.label ?? socialMetrics.platform
     : "channel";
 
   const metricLabel = hasMetric
-    ? BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[socialMetrics!.platform]?.find(
-        (m) => m.value === socialMetrics!.metric,
-      )?.label ?? socialMetrics!.metric
+    ? BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[socialMetrics.platform]?.find(
+        (m) => m.value === socialMetrics.metric,
+      )?.label ?? socialMetrics.metric
     : "metric";
 
   const metricPlatformForMenu = socialMetrics?.platform ?? "youtube";
@@ -166,16 +104,31 @@ export function BountyCriteriaSocialMetrics() {
                   text: c.label,
                 }))}
                 selectedValue={socialMetrics?.platform}
-                onSelect={(v) =>
-                  updateSocialMetrics({ platform: v as SocialMetricsChannel })
-                }
+                onSelect={(value) => {
+                  const platformMetrics =
+                    BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[value];
+
+                  const metric =
+                    socialMetrics?.metric &&
+                    platformMetrics?.some(
+                      (m) => m.value === socialMetrics.metric,
+                    )
+                      ? socialMetrics.metric
+                      : platformMetrics?.[0]?.value ?? "views";
+
+                  updateRequirements({
+                    socialMetrics: {
+                      ...socialMetrics,
+                      platform: value,
+                      metric,
+                    },
+                  });
+                }}
               />
             </InlineBadgePopover>{" "}
             has{" "}
             <InlineBadgePopover
-              text={
-                hasMinCount ? String(socialMetrics!.minCount) : "min count"
-              }
+              text={hasMinCount ? String(socialMetrics!.minCount) : "metrics"}
               invalid={!hasMinCount}
               buttonClassName={
                 hasMinCount
@@ -195,11 +148,16 @@ export function BountyCriteriaSocialMetrics() {
                 onChange={(e) => {
                   const raw = (e.target as HTMLInputElement).value;
                   const num = raw === "" ? 0 : parseInt(raw, 10);
-                  updateSocialMetrics({
-                    minCount: Number.isNaN(num) ? 1 : Math.max(1, num),
+                  updateRequirements({
+                    socialMetrics: {
+                      ...socialMetrics,
+                      platform: socialMetrics?.platform ?? "youtube",
+                      metric: socialMetrics?.metric ?? "views",
+                      minCount: Number.isNaN(num) ? 1 : Math.max(1, num),
+                    },
                   });
                 }}
-                placeholder="min count"
+                placeholder="metrics"
               />
             </InlineBadgePopover>{" "}
             <InlineBadgePopover
@@ -218,7 +176,15 @@ export function BountyCriteriaSocialMetrics() {
                   ]?.map((m) => ({ value: m.value, text: m.label })) ?? []
                 }
                 selectedValue={socialMetrics?.metric}
-                onSelect={(v) => updateSocialMetrics({ metric: v })}
+                onSelect={(v) =>
+                  updateRequirements({
+                    socialMetrics: {
+                      ...socialMetrics,
+                      platform: socialMetrics?.platform ?? "youtube",
+                      metric: v,
+                    },
+                  })
+                }
               />
             </InlineBadgePopover>
           </span>
@@ -257,11 +223,18 @@ export function BountyCriteriaSocialMetrics() {
         </div>
       </div>
 
-      {socialMetrics && !variableBonus && (
+      {socialMetrics && !incrementalBonus && (
         <div className="border-bg-subtle mt-4 rounded-xl border bg-neutral-100 p-2.5">
           <Button
             text="Add variable bonus"
-            onClick={addVariableBonus}
+            onClick={() =>
+              updateRequirements({
+                socialMetrics: {
+                  ...socialMetrics,
+                  incrementalBonus: {},
+                },
+              })
+            }
             variant="secondary"
             icon={<ArrowTurnRight2 className="size-4 text-neutral-900" />}
             className="h-8 rounded-lg"
@@ -269,19 +242,33 @@ export function BountyCriteriaSocialMetrics() {
         </div>
       )}
 
-      {variableBonus && (
-        <SocialMetricsVariableBonus
-          variableBonus={variableBonus}
+      {incrementalBonus && (
+        <SocialMetricsIncrementalBonus
+          variableBonus={incrementalBonus}
           metricLabel={metricLabel}
-          onUpdate={updateVariableBonus}
-          onRemove={removeVariableBonus}
+          onUpdate={(incrementalBonus) =>
+            updateRequirements({
+              socialMetrics: {
+                ...socialMetrics,
+                incrementalBonus,
+              },
+            })
+          }
+          onRemove={() =>
+            updateRequirements({
+              socialMetrics: {
+                ...socialMetrics,
+                incrementalBonus: undefined,
+              },
+            })
+          }
         />
       )}
     </div>
   );
 }
 
-function SocialMetricsVariableBonus({
+function SocialMetricsIncrementalBonus({
   variableBonus,
   metricLabel,
   onUpdate,
