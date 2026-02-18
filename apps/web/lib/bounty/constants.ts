@@ -64,7 +64,7 @@ export const BOUNTY_SOCIAL_PLATFORM_METRICS_MAP = Object.fromEntries(
     p.value,
     p.metrics.map((m) => ({
       value: m,
-      label: m.charAt(0).toUpperCase() + m.slice(1),
+      label: m,
     })),
   ]),
 );
