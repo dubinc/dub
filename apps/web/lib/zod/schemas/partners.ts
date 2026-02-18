@@ -213,6 +213,7 @@ export const partnerPlatformSchema = z.object({
   identifier: z.string(),
   verifiedAt: z.date().nullable(),
   platformId: z.string().nullable(),
+  avatarUrl: z.string().nullish(),
   subscribers: z.bigint().default(BigInt(0)),
   posts: z.bigint().default(BigInt(0)),
   views: z.bigint().default(BigInt(0)),

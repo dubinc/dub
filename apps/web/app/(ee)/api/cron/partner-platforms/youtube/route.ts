@@ -12,6 +12,15 @@ const youtubeChannelSchema = z.object({
     subscriberCount: z.string().transform((val) => parseInt(val, 10)),
     viewCount: z.string().transform((val) => parseInt(val, 10)),
   }),
+  snippet: z.object({
+    thumbnails: z.object({
+      default: z.object({
+        url: z.string(),
+        width: z.number(),
+        height: z.number(),
+      }),
+    }),
+  }),
 });
 
 export const dynamic = "force-dynamic";
@@ -77,16 +86,11 @@ export const POST = withCron(async () => {
         continue;
       }
 
-      const currentStats = {
-        subscribers: partnerPlatform.subscribers,
-        posts: partnerPlatform.posts,
-        views: partnerPlatform.views,
-      };
-
       const newStats = {
         subscribers: channel.statistics.subscriberCount,
         posts: channel.statistics.videoCount,
         views: channel.statistics.viewCount,
+        avatarUrl: channel.snippet.thumbnails.default.url,
       };
 
       await prisma.partnerPlatform.update({

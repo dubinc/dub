@@ -5,6 +5,7 @@ import {
   getBountySocialPlatform,
   getSocialContentEmbedUrl,
 } from "@/lib/bounty/utils";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
   BountySubmissionProps,
@@ -22,7 +23,7 @@ import {
 import { formatDate, truncate } from "@dub/utils";
 import type { LucideIcon } from "lucide-react";
 import { Instagram, Loader2, Music2, Tv, Youtube } from "lucide-react";
-import { PropsWithChildren } from "react";
+import { PropsWithChildren, useState } from "react";
 
 const DESCRIPTION_MAX_LENGTH = 200;
 
@@ -68,11 +69,7 @@ export function BountySocialContentPreview({
   const url = submission?.urls?.[0] ?? "";
   const platform = getBountySocialPlatform(bounty);
 
-  const {
-    data: content,
-    isValidating: isRefreshing,
-    mutate: refresh,
-  } = useSocialContent({
+  const { data: content, isValidating: isRefreshing } = useSocialContent({
     programId: programEnrollment?.programId,
     bountyId: bounty.id,
     url,
@@ -117,19 +114,41 @@ export function BountySocialContentPreview({
 }
 
 function ContentAuthor({ url, platform, content }: ContentAuthorProps) {
+  const { partner } = usePartnerProfile();
+  const [avatarError, setAvatarError] = useState(false);
+
+  const avatarUrl = platform
+    ? partner?.platforms?.find((p) => p.type === platform)?.avatarUrl ?? null
+    : null;
+
+  const showAvatar = avatarUrl && !avatarError;
   const Icon = PLATFORM_ICONS[platform] ?? Tv;
-  const handle = content?.handle;
   const statsLine = getStatsLine(content);
 
   return (
     <div className="flex items-center justify-between gap-3 p-2">
       <div className="flex min-w-0 flex-1 items-start gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-neutral-100">
-          <Icon className="size-9 shrink-0 text-neutral-500" aria-hidden />
+        <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-neutral-100">
+          {showAvatar ? (
+            <img
+              src={avatarUrl}
+              alt=""
+              className="size-10 object-cover"
+              referrerPolicy="no-referrer"
+              crossOrigin="anonymous"
+              onError={() => setAvatarError(true)}
+            />
+          ) : (
+            <Icon className="size-9 shrink-0 text-neutral-500" aria-hidden />
+          )}
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-neutral-800">
-            {handle ? (platform === "twitter" ? `@${handle}` : handle) : "—"}
+            {content?.handle
+              ? platform === "twitter"
+                ? `@${content.handle}`
+                : content.handle
+              : "—"}
           </p>
 
           {statsLine && <p className="text-xs text-neutral-500">{statsLine}</p>}
