@@ -7,30 +7,23 @@ import {
   REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/bounty/constants";
 import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
-import {
-  getBountySocialPlatform,
-  getRewardCriteriaTexts,
-  getSubmissionRequirementTexts,
-} from "@/lib/bounty/utils";
+import { getBountySocialPlatform } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import useSocialContentStats from "@/lib/swr/use-social-content-stats";
-import { PartnerBountyProps, SocialContentStats } from "@/lib/types";
+import { PartnerBountyProps, SocialContent } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
 import { X } from "@/ui/shared/icons";
-import { Markdown } from "@/ui/shared/markdown";
 import {
   AnimatedSizeContainer,
   Button,
   Calendar6,
-  Check2,
   CircleCheckFill,
   FileUpload,
   Gift,
   LoadingSpinner,
   Modal,
-  PROSE_STYLES,
   StatusBadge,
   Trash,
   buttonVariants,
@@ -48,7 +41,9 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
+import { BountyDescription } from "./bounty-description";
 import { BountyPerformance } from "./bounty-performance";
+import { BountySocialContentPreview } from "./bounty-social-content-preview";
 import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 
 type ClaimBountyModalProps = {
@@ -458,7 +453,16 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     )}
                   </div>
 
-                  <BountyDescription bounty={bounty} />
+                  <div className="border-border-subtle flex flex-col space-y-6 border-t p-6 text-sm max-sm:px-4">
+                    <BountyDescription bounty={bounty} />
+                  </div>
+
+                  <div className="border-border-subtle flex flex-col border-t p-6 text-sm max-sm:px-4">
+                    <BountySocialContentPreview
+                      bounty={bounty}
+                      submission={submission}
+                    />
+                  </div>
 
                   {/* Form */}
                   <motion.div
@@ -735,69 +739,6 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   );
 }
 
-function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
-  if (!bounty.description) {
-    return null;
-  }
-
-  const submissionTexts = getSubmissionRequirementTexts(bounty);
-  const rewardTexts = getRewardCriteriaTexts(bounty);
-
-  return (
-    <DescriptionWrapper>
-      <div>
-        <span className="text-content-emphasis font-semibold">Details</span>
-        <Markdown
-          className={cn(
-            PROSE_STYLES.default,
-            "text-content-subtle text-sm font-medium leading-5",
-          )}
-        >
-          {bounty.description}
-        </Markdown>
-      </div>
-
-      <div>
-        <span className="text-content-emphasis font-semibold">
-          Submission requirements
-        </span>
-
-        <div className="text-content-subtle mt-2 text-sm font-medium leading-5">
-          {submissionTexts.map((text) => (
-            <div className="flex items-center gap-1.5">
-              <Check2 className="size-3 text-green-600" />
-              <span key={text}>{text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <span className="text-content-emphasis font-semibold">
-          Reward criteria
-        </span>
-
-        <div className="text-content-subtle mt-2 text-sm font-medium leading-5">
-          {rewardTexts.map((text) => (
-            <div className="flex items-center gap-1.5">
-              <Check2 className="size-3 text-green-600" />
-              <span key={text}>{text}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </DescriptionWrapper>
-  );
-}
-
-function DescriptionWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="border-border-subtle flex flex-col space-y-5 border-t p-6 text-sm max-sm:px-4">
-      {children}
-    </div>
-  );
-}
-
 function SocialAccountNotVerifiedWarning({
   bounty,
 }: {
@@ -841,7 +782,7 @@ function SocialContentUrlField({ bounty }: { bounty: PartnerBountyProps }) {
     data: contentStats,
     error,
     isValidating,
-  } = useSocialContentStats({
+  } = useSocialContent({
     programId: programEnrollment?.programId,
     bountyId: bounty.id,
     url: urlToCheck,
@@ -904,7 +845,7 @@ function SocialContentRequirementChecks({
   contentStats,
   bounty,
 }: {
-  contentStats: SocialContentStats | null;
+  contentStats: SocialContent | null;
   bounty: PartnerBountyProps;
 }) {
   const { partner } = usePartnerProfile();

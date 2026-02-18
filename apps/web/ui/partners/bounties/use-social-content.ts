@@ -2,17 +2,17 @@ import { SocialContent } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
-interface UseSocialContentStatsParams {
+interface UseSocialContentParams {
   programId: string | undefined;
   bountyId: string;
   url: string;
 }
 
-export default function useSocialContentStats({
+export function useSocialContent({
   programId,
   bountyId,
   url,
-}: UseSocialContentStatsParams) {
+}: UseSocialContentParams) {
   const searchParams = new URLSearchParams({
     url,
     bountyId,

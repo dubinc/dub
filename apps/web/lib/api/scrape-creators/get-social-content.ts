@@ -1,6 +1,5 @@
 import { SocialContent } from "@/lib/types";
 import { PlatformType } from "@dub/prisma/client";
-import "server-only";
 import { scrapeCreatorsFetch } from "./client";
 
 interface GetSocialContentStatsParams {
