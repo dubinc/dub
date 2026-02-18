@@ -94,8 +94,12 @@ export function PartnerMessagesProgramPageClient() {
     },
   });
 
+  const { setCurrentPanel, targetThreadId } = useMessagesContext();
+  const isThreadTransitioning =
+    targetThreadId !== null && targetThreadId !== programSlug;
+
   const activeThread =
-    programMessages?.[0]?.program.slug === programSlug
+    !isThreadTransitioning && programMessages?.[0]?.program.slug === programSlug
       ? programMessages[0]
       : undefined;
   const program = activeThread?.program;
@@ -107,7 +111,6 @@ export function PartnerMessagesProgramPageClient() {
     },
   });
 
-  const { setCurrentPanel } = useMessagesContext();
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
   const shouldAutoFocusComposer = searchParams.get("new") === "1";
 

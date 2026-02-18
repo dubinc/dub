@@ -40,13 +40,22 @@ function CapableLayout({ children }: { children: ReactNode }) {
   const [currentPanel, setCurrentPanel] = useState<MessagesPanel>(
     partnerId ? "main" : "index",
   );
+  const [targetThreadId, setTargetThreadId] = useState<string | null>(null);
 
   useEffect(() => {
     setCurrentPanel(partnerId ? "main" : "index");
+    setTargetThreadId(null);
   }, [partnerId]);
 
   return (
-    <MessagesContext.Provider value={{ currentPanel, setCurrentPanel }}>
+    <MessagesContext.Provider
+      value={{
+        currentPanel,
+        setCurrentPanel,
+        targetThreadId,
+        setTargetThreadId,
+      }}
+    >
       <div className="@container/page h-[calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] w-full overflow-hidden rounded-t-[inherit] bg-white">
         <div
           className="@[800px]/page:grid-cols-[min-content_minmax(340px,1fr)] @[800px]/page:translate-x-0 grid h-full translate-x-[calc(var(--current-panel)*-100%)] grid-cols-[100%_100%]"
@@ -75,6 +84,7 @@ function CapableLayout({ children }: { children: ReactNode }) {
               <PartnerSelector
                 selectedPartnerId={partnerId ?? null}
                 setSelectedPartnerId={(id) => {
+                  setTargetThreadId(id);
                   setCurrentPanel("main");
                   router.push(`/${workspaceSlug}/program/messages/${id}?new=1`);
                 }}
