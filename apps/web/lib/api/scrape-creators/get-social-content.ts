@@ -1,5 +1,6 @@
 import { SocialContent } from "@/lib/types";
 import { PlatformType } from "@dub/prisma/client";
+import { isValidUrl } from "@dub/utils";
 import { scrapeCreatorsFetch } from "./client";
 
 interface GetSocialContentStatsParams {
@@ -17,10 +18,27 @@ const PLATFORM_CONTENT_TYPE: Record<
   tiktok: "video",
 };
 
+const EMPTY_SOCIAL_CONTENT: SocialContent = {
+  publishedAt: null,
+  platformId: null,
+  handle: null,
+  likes: 0,
+  views: 0,
+  title: null,
+  description: null,
+  thumbnailUrl: null,
+};
+
 export async function getSocialContent({
   platform,
   url,
 }: GetSocialContentStatsParams): Promise<SocialContent> {
+  const trimmed = url?.trim();
+
+  if (!trimmed || !isValidUrl(trimmed)) {
+    return EMPTY_SOCIAL_CONTENT;
+  }
+
   const contentType = PLATFORM_CONTENT_TYPE[platform];
   const version = platform === "tiktok" ? "v2" : "v1";
 
@@ -39,16 +57,7 @@ export async function getSocialContent({
   );
 
   if (error) {
-    return {
-      publishedAt: null,
-      platformId: null,
-      handle: null,
-      likes: 0,
-      views: 0,
-      title: null,
-      description: null,
-      thumbnailUrl: null,
-    };
+    return EMPTY_SOCIAL_CONTENT;
   }
 
   switch (data.platform) {
