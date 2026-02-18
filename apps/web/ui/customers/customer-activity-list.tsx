@@ -28,7 +28,7 @@ const activityData = {
           <Link
             href={
               programSlug
-                ? `${analyticsBaseUrl}?domain=${event.link.domain}&key=${event.link.key}`
+                ? `${analyticsBaseUrl}?linkId=${event.link.id}`
                 : `/${slug}/links/${getPrettyUrl(event.link.shortLink)}`
             }
             target="_blank"
