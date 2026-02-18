@@ -119,8 +119,15 @@ export function PartnerMessagesProgramPageClient() {
 
   useEffect(() => {
     if (!shouldAutoFocusComposer) return;
-    router.replace(`/messages/${programSlug}`);
-  }, [programSlug, router, shouldAutoFocusComposer]);
+
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+    nextSearchParams.delete("new");
+    const nextSearch = nextSearchParams.toString();
+
+    router.replace(
+      nextSearch ? `/messages/${programSlug}?${nextSearch}` : `/messages/${programSlug}`,
+    );
+  }, [programSlug, router, searchParams, shouldAutoFocusComposer]);
 
   // Redirect if no messages and not enrolled, or messages error
   if (
