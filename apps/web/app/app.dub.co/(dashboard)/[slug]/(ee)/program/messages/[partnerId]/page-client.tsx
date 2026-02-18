@@ -80,12 +80,10 @@ export function ProgramMessagesPartnerPageClient() {
     },
   });
 
-  const { setCurrentPanel, targetThreadId } = useMessagesContext();
-  const isThreadTransitioning =
-    targetThreadId !== null && targetThreadId !== partnerId;
+  const { setCurrentPanel } = useMessagesContext();
 
   const activeThread =
-    !isThreadTransitioning && partnerMessages?.[0]?.partner.id === partnerId
+    partnerMessages?.[0]?.partner.id === partnerId
       ? partnerMessages[0]
       : undefined;
   const partner = activeThread?.partner;
@@ -98,12 +96,12 @@ export function ProgramMessagesPartnerPageClient() {
   });
 
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(
-    () => typeof window !== "undefined" && window.innerWidth >= 960,
+    () => typeof window !== "undefined" && window.innerWidth >= 1024,
   );
   const shouldAutoFocusComposer = searchParams.get("new") === "1";
 
   useEffect(() => {
-    setIsRightPanelOpen(window.innerWidth >= 960);
+    setIsRightPanelOpen(window.innerWidth >= 1024);
   }, [partnerId]);
 
   useEffect(() => {
@@ -255,7 +253,7 @@ export function ProgramMessagesPartnerPageClient() {
       <div
         className={cn(
           "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-          "@[960px]/page:relative @[960px]/page:shadow-none @[960px]/page:transition-none",
+          "@lg/page:relative @lg/page:shadow-none @lg/page:transition-none",
           isRightPanelOpen && "w-full sm:w-[340px]",
         )}
       >
@@ -269,7 +267,7 @@ export function ProgramMessagesPartnerPageClient() {
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen(false)}
-                className="@[960px]/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
+                className="@lg/page:hidden rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-100 hover:text-neutral-900"
               >
                 <X className="size-4" />
               </button>

@@ -78,6 +78,7 @@ type SidebarNavData = {
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
+const TAILWIND_MD_BREAKPOINT = 768;
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
@@ -554,9 +555,9 @@ export function AppSidebarNav({
       pathname.endsWith("/program/payouts/success");
     const isMobileDrawerViewport =
       typeof width === "number"
-        ? width < 768
+        ? width < TAILWIND_MD_BREAKPOINT
         : typeof window !== "undefined"
-          ? window.innerWidth < 768
+          ? window.innerWidth < TAILWIND_MD_BREAKPOINT
           : isMobile;
 
     return pathname.startsWith("/account/settings")

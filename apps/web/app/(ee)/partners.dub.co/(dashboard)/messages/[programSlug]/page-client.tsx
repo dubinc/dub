@@ -93,12 +93,10 @@ export function PartnerMessagesProgramPageClient() {
     },
   });
 
-  const { setCurrentPanel, targetThreadId } = useMessagesContext();
-  const isThreadTransitioning =
-    targetThreadId !== null && targetThreadId !== programSlug;
+  const { setCurrentPanel } = useMessagesContext();
 
   const activeThread =
-    !isThreadTransitioning && programMessages?.[0]?.program.slug === programSlug
+    programMessages?.[0]?.program.slug === programSlug
       ? programMessages[0]
       : undefined;
   const program = activeThread?.program;

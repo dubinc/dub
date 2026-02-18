@@ -1,6 +1,5 @@
 import { OG_AVATAR_URL, cn, timeAgo } from "@dub/utils";
 import Link from "next/link";
-import { useMessagesContext } from "./messages-context";
 
 function stripMarkdown(text: string): string {
   return text
@@ -31,8 +30,6 @@ export function MessagesList({
     | undefined;
   activeId?: string;
 }) {
-  const { setCurrentPanel, setTargetThreadId } = useMessagesContext();
-
   return (
     <div className="flex w-full flex-col">
       {groupedMessages
@@ -43,10 +40,6 @@ export function MessagesList({
               <Link
                 key={group.id}
                 href={group.href}
-                onClick={() => {
-                  setTargetThreadId(group.id);
-                  setCurrentPanel("main");
-                }}
                 className={cn(
                   "border-border-subtle flex w-full items-center gap-2.5 border-b bg-white px-6 py-4",
                   group.id === activeId ? "bg-bg-subtle" : "hover:bg-bg-muted",
