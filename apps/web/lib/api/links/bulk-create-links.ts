@@ -125,8 +125,11 @@ export async function bulkCreateLinks({
         );
       }
 
-      createdLinksData.forEach((link, idx) => {
-        const originalLink = links[idx];
+      createdLinksData.forEach((link) => {
+        const originalIndex = shortLinkToIndexMap.get(link.shortLink);
+        if (originalIndex === undefined) return;
+
+        const originalLink = links[originalIndex];
         if (!originalLink) return;
 
         const { tagId, tagIds, tagNames } = originalLink;
@@ -167,8 +170,11 @@ export async function bulkCreateLinks({
     if (hasWebhooks) {
       const linkWebhooksToCreate: { linkId: string; webhookId: string }[] = [];
 
-      createdLinksData.forEach((link, idx) => {
-        const originalLink = links[idx];
+      createdLinksData.forEach((link) => {
+        const originalIndex = shortLinkToIndexMap.get(link.shortLink);
+        if (originalIndex === undefined) return;
+
+        const originalLink = links[originalIndex];
         if (!originalLink?.webhookIds?.length) return;
 
         originalLink.webhookIds.forEach((webhookId) => {
