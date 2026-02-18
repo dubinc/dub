@@ -166,27 +166,32 @@ export const createBountySubmissionAction = authPartnerActionClient
         );
       }
 
-      const { handle, publishedAt } = await getSocialContent({
+      const socialContent = await getSocialContent({
         platform: platform.value,
         url: storedUrls[0],
       });
 
-      if (!handle || !publishedAt) {
+      console.log("getSocialContent", socialContent);
+
+      if (!socialContent.handle || !socialContent.publishedAt) {
         throw new Error(
           "We were unable to verify this content. Please review the submission and try again.",
         );
       }
 
-      if (handle.toLowerCase() !== partnerPlatform.identifier.toLowerCase()) {
+      if (
+        socialContent.handle.toLowerCase() !==
+        partnerPlatform.identifier.toLowerCase()
+      ) {
         throw new Error(
           `The content was not published from your connected ${platform.label} account.`,
         );
       }
 
       if (
-        publishedAt &&
+        socialContent.publishedAt &&
         bounty.startsAt &&
-        isBefore(publishedAt, bounty.startsAt)
+        isBefore(socialContent.publishedAt, bounty.startsAt)
       ) {
         throw new Error(
           `This content was published before the bounty started. Please submit content posted after the start date.`,
