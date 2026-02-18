@@ -22,11 +22,13 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import * as z from "zod/v4";
 
+export type AddCustomerInitialData = { name?: string; email?: string };
+
 interface AddCustomerModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onSuccess?: (customer: CustomerProps) => void;
-  initialName?: string;
+  initialData?: AddCustomerInitialData;
 }
 
 type FormData = z.infer<typeof createCustomerBodySchema>;
@@ -48,7 +50,7 @@ export const AddCustomerModal = ({
   showModal,
   setShowModal,
   onSuccess,
-  initialName,
+  initialData,
 }: AddCustomerModalProps) => {
   const { id: workspaceId } = useWorkspace();
   const { isMobile } = useMediaQuery();
@@ -93,15 +95,15 @@ export const AddCustomerModal = ({
       setStripeSearchResults(null);
       setStripeSearchError(null);
       reset({
-        name: initialName || null,
-        email: null,
+        name: initialData?.name ?? null,
+        email: initialData?.email ?? null,
         externalId: "",
         stripeCustomerId: null,
         country: "US",
       });
     }
     prevShowModal.current = showModal;
-  }, [showModal, initialName, reset]);
+  }, [showModal, initialData, reset]);
 
   useEffect(() => {
     if (!hasStripeCustomerId) {
@@ -359,7 +361,7 @@ export const AddCustomerModal = ({
                     autoComplete="off"
                     className="mt-1.5 block w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-colors focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200"
                     placeholder="John Doe"
-                    autoFocus={!isMobile}
+                    autoFocus={!isMobile && !initialData?.email}
                     {...register("name", {
                       setValueAs: (value) => (value === "" ? null : value),
                     })}
@@ -375,6 +377,7 @@ export const AddCustomerModal = ({
                     autoComplete="off"
                     className="mt-1.5 block w-full rounded-lg border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-colors focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200"
                     placeholder="john@example.com"
+                    autoFocus={!isMobile && !!initialData?.email}
                     {...register("email", {
                       setValueAs: (value) => (value === "" ? null : value),
                     })}
@@ -496,7 +499,9 @@ export function useAddCustomerModal({
   onSuccess?: (customer: CustomerProps) => void;
 } = {}) {
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
-  const [initialName, setInitialName] = useState<string | undefined>();
+  const [initialData, setInitialData] = useState<
+    AddCustomerInitialData | undefined
+  >();
 
   const AddCustomerModalCallback = useCallback(() => {
     return (
@@ -505,28 +510,28 @@ export function useAddCustomerModal({
         setShowModal={(show) => {
           setShowAddCustomerModal(show);
           if (!show) {
-            setInitialName(undefined);
+            setInitialData(undefined);
           }
         }}
         onSuccess={onSuccess}
-        initialName={initialName}
+        initialData={initialData}
       />
     );
-  }, [showAddCustomerModal, initialName, onSuccess]);
+  }, [showAddCustomerModal, initialData, onSuccess]);
 
-  const setShowAddCustomerModalWithName = useCallback(
-    (show: boolean, name?: string) => {
+  const setShowAddCustomerModalWithData = useCallback(
+    (show: boolean, data?: AddCustomerInitialData) => {
       setShowAddCustomerModal(show);
-      setInitialName(name);
+      setInitialData(data);
     },
     [],
   );
 
   return useMemo(
     () => ({
-      setShowAddCustomerModal: setShowAddCustomerModalWithName,
+      setShowAddCustomerModal: setShowAddCustomerModalWithData,
       AddCustomerModal: AddCustomerModalCallback,
     }),
-    [setShowAddCustomerModalWithName, AddCustomerModalCallback],
+    [setShowAddCustomerModalWithData, AddCustomerModalCallback],
   );
 }
