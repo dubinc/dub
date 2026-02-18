@@ -185,3 +185,12 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     autoProvisionEnabledAt: true,
   }).nullish(),
 });
+
+export const StripeCustomerSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  country: z.string().nullable(),
+  subscriptions: z.number(),
+  dubCustomerId: z.string().nullable(),
+});
