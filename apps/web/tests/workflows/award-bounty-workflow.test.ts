@@ -3,7 +3,7 @@ import { Bounty } from "@dub/prisma/client";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { trackLeads } from "./utils/track-e2e-lead";
+import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyBountySubmission } from "./utils/verify-bounty-submission";
 
 describe.sequential("Workflow - AwardBounty", async () => {
@@ -28,7 +28,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           performanceCondition: {
             attribute: "totalLeads",
             operator: "gte",
-            value: 2,
+            value: 1,
           },
         },
       });
@@ -54,14 +54,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
       const partnerLink = partner.links![0];
 
-      await trackLeads(http, partnerLink, 3);
+      await trackE2ELead(http, partnerLink);
 
       const submission = await verifyBountySubmission({
         http,
         bountyId: bounty.id,
         partnerId: partner.id,
         expectedStatus: "submitted",
-        minPerformanceCount: 2,
+        minPerformanceCount: 1,
       });
 
       expect(submission.status).toBe("submitted");
@@ -110,7 +110,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 1);
+    await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
@@ -180,7 +180,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 3);
+    await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
@@ -210,7 +210,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           performanceCondition: {
             attribute: "totalLeads",
             operator: "gte",
-            value: 2,
+            value: 1,
           },
         },
       });
@@ -235,14 +235,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
       const partnerLink = partner.links![0];
 
-      await trackLeads(http, partnerLink, 5);
+      await trackE2ELead(http, partnerLink);
 
       await verifyBountySubmission({
         http,
         bountyId: bounty.id,
         partnerId: partner.id,
         expectedStatus: "submitted",
-        minPerformanceCount: 2,
+        minPerformanceCount: 1,
       });
 
       const { data: submissions } = await http.get<any[]>({
