@@ -458,10 +458,15 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                   </div>
 
                   <div className="border-border-subtle flex flex-col border-t p-6 text-sm max-sm:px-4">
-                    <BountySocialContentPreview
-                      bounty={bounty}
-                      submission={submission}
-                    />
+                    <div>
+                      <h2 className="mb-3 text-base font-semibold text-neutral-900">
+                        Submission
+                      </h2>
+                      <BountySocialContentPreview
+                        bounty={bounty}
+                        submission={submission}
+                      />
+                    </div>
                   </div>
 
                   {/* Form */}
