@@ -1,6 +1,6 @@
 import { currencyFormatter } from "@dub/utils";
 import { PartnerBountyProps } from "../types";
-import { SOCIAL_METRICS_CHANNELS } from "./constants";
+import { BOUNTY_SOCIAL_PLATFORMS } from "./constants";
 
 type SocialPlatformValue = "youtube" | "twitter" | "tiktok" | "instagram";
 
@@ -85,8 +85,8 @@ export function getBountySocialPlatform(
     return null;
   }
 
-  return SOCIAL_METRICS_CHANNELS.find(
-    ({ value }) => value === socialMetrics.channel,
+  return BOUNTY_SOCIAL_PLATFORMS.find(
+    ({ value }) => value === socialMetrics.platform,
   );
 }
 

@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  SOCIAL_METRICS_CHANNELS,
-  SOCIAL_METRICS_CHANNEL_METRICS,
+  BOUNTY_SOCIAL_PLATFORM_METRICS,
+  BOUNTY_SOCIAL_PLATFORMS,
 } from "@/lib/bounty/constants";
 import type { SocialMetricsChannel } from "@/lib/types";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
@@ -75,7 +75,7 @@ export function BountyCriteriaSocialMetrics() {
       updates.channel ??
       socialMetrics?.channel ??
       ("youtube" as SocialMetricsChannel);
-    const channelMetrics = SOCIAL_METRICS_CHANNEL_METRICS[nextChannel];
+    const channelMetrics = BOUNTY_SOCIAL_PLATFORM_METRICS[nextChannel];
     const nextMetric =
       updates.metric ??
       (socialMetrics?.metric &&
@@ -128,7 +128,7 @@ export function BountyCriteriaSocialMetrics() {
   const variableBonus = socialMetrics?.variableBonus;
 
   const channelLabel = hasChannel
-    ? SOCIAL_METRICS_CHANNELS.find((c) => c.value === socialMetrics!.channel)
+    ? BOUNTY_SOCIAL_PLATFORMS.find((c) => c.value === socialMetrics!.channel)
         ?.label ?? socialMetrics!.channel
     : "channel";
 
@@ -159,7 +159,7 @@ export function BountyCriteriaSocialMetrics() {
               }
             >
               <InlineBadgePopoverMenu
-                items={SOCIAL_METRICS_CHANNELS.map((c) => ({
+                items={BOUNTY_SOCIAL_PLATFORMS.map((c) => ({
                   value: c.value,
                   text: c.label,
                 }))}
@@ -412,8 +412,7 @@ function SocialMetricsVariableBonus({
                     : "amount"
                 }
                 invalid={
-                  variableBonus.capAmount == null ||
-                  variableBonus.capAmount < 1
+                  variableBonus.capAmount == null || variableBonus.capAmount < 1
                 }
                 buttonClassName={
                   variableBonus.capAmount != null &&
@@ -470,14 +469,14 @@ function VariableBonusAmountInput({
         type="number"
         min={0}
         step={0.01}
-        value={
-          value != null && !isNaN(value) && value >= 0 ? value : ""
-        }
+        value={value != null && !isNaN(value) && value >= 0 ? value : ""}
         onChange={(e) => {
           const raw = (e.target as HTMLInputElement).value;
           const num = raw === "" ? undefined : parseFloat(raw);
           onChange(
-            num === undefined || Number.isNaN(num) ? undefined : Math.max(0, num),
+            num === undefined || Number.isNaN(num)
+              ? undefined
+              : Math.max(0, num),
           );
         }}
         onKeyDown={(e) => {

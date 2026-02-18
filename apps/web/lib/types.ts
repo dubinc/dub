@@ -31,9 +31,8 @@ import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import {
+  BOUNTY_SOCIAL_PLATFORMS,
   BOUNTY_SUBMISSION_REQUIREMENTS,
-  SOCIAL_METRICS_CHANNELS,
-  SOCIAL_METRICS_METRIC_VALUES,
 } from "./bounty/constants";
 import {
   FOLDER_PERMISSIONS,
@@ -55,6 +54,7 @@ import {
   createBountySchema,
   getBountySubmissionsQuerySchema,
   socialContentOutputSchema,
+  submissionRequirementsSchema,
 } from "./zod/schemas/bounties";
 import {
   CampaignListSchema,
@@ -665,9 +665,7 @@ export type BountySubmissionRequirement =
   (typeof BOUNTY_SUBMISSION_REQUIREMENTS)[number];
 
 export type SocialMetricsChannel =
-  (typeof SOCIAL_METRICS_CHANNELS)[number]["value"];
-
-export type SocialMetricsMetric = (typeof SOCIAL_METRICS_METRIC_VALUES)[number];
+  (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["value"];
 
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
@@ -840,3 +838,13 @@ export type ActivityLog = z.infer<typeof activityLogSchema>;
 export type BountyFormData = z.infer<typeof createBountySchema>;
 
 export type SocialContent = z.infer<typeof socialContentOutputSchema>;
+
+export type SubmissionRequirements = z.infer<
+  typeof submissionRequirementsSchema
+>;
+
+export type BountySocialPlatform =
+  (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["value"];
+
+export type BountySocialPlatformMetric =
+  (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["metrics"][number];

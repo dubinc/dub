@@ -240,7 +240,6 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         bountyId: bounty.id,
         files: finalFiles,
         urls: baseUrls,
-        ...(postUrl && { postUrl }),
         description,
         ...(isDraft && { isDraft }),
       });

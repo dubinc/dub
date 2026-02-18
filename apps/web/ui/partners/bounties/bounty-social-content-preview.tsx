@@ -1,6 +1,5 @@
 "use client";
 
-import { SOCIAL_METRICS_CHANNELS } from "@/lib/bounty/constants";
 import {
   getBountySocialPlatform,
   getSocialContentEmbedUrl,
@@ -8,6 +7,7 @@ import {
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
+  BountySocialPlatform,
   BountySubmissionProps,
   PartnerBountyProps,
   SocialContent,
@@ -27,12 +27,7 @@ import { PropsWithChildren, useState } from "react";
 
 const DESCRIPTION_MAX_LENGTH = 200;
 
-type Platform = Pick<
-  (typeof SOCIAL_METRICS_CHANNELS)[number],
-  "value" | "label"
->;
-
-const PLATFORM_ICONS: Record<Platform["value"], LucideIcon> = {
+const PLATFORM_ICONS: Record<BountySocialPlatform, LucideIcon> = {
   youtube: Youtube,
   twitter: Tv,
   tiktok: Music2,
@@ -51,7 +46,7 @@ interface SocialContentPreviewContentProps {
 
 interface ContentAuthorProps {
   url: string;
-  platform: Platform["value"];
+  platform: BountySocialPlatform;
   content: SocialContent | null;
   position?: "top" | "bottom";
 }

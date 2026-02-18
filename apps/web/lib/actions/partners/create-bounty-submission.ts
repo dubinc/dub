@@ -1,5 +1,6 @@
 "use server";
 
+import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { createId } from "@/lib/api/create-id";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -23,7 +24,7 @@ import { formatDistanceToNow } from "date-fns";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-const schema = z.object({
+const inputSchema = z.object({
   programId: z.string(),
   bountyId: z.string(),
   files: z
@@ -31,7 +32,6 @@ const schema = z.object({
     .max(BOUNTY_MAX_SUBMISSION_FILES)
     .default([]),
   urls: z.array(z.url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
-  postUrl: z.url().trim().optional(),
   description: z
     .string()
     .trim()
@@ -44,16 +44,13 @@ const schema = z.object({
 });
 
 export const createBountySubmissionAction = authPartnerActionClient
-  .inputSchema(schema)
+  .inputSchema(inputSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { programId, bountyId, files, urls, postUrl, description, isDraft } =
+    const { programId, bountyId, files, urls, description, isDraft } =
       parsedInput;
 
-    const storedUrls = [
-      ...(postUrl?.trim() ? [postUrl.trim()] : []),
-      ...urls,
-    ].slice(0, BOUNTY_MAX_SUBMISSION_URLS);
+    const storedUrls = [...urls].slice(0, BOUNTY_MAX_SUBMISSION_URLS);
 
     const [programEnrollment, bounty] = await Promise.all([
       getProgramEnrollmentOrThrow({
@@ -62,10 +59,9 @@ export const createBountySubmissionAction = authPartnerActionClient
         include: {},
       }),
 
-      prisma.bounty.findUniqueOrThrow({
-        where: {
-          id: bountyId,
-        },
+      getBountyOrThrow({
+        programId,
+        bountyId,
         include: {
           groups: true,
           submissions: {
@@ -81,10 +77,6 @@ export const createBountySubmissionAction = authPartnerActionClient
       throw new Error(
         "You are not allowed to submit a bounty for this program.",
       );
-    }
-
-    if (bounty.programId !== programId) {
-      throw new Error("This bounty is not for this program.");
     }
 
     let submission: BountySubmission | null = null;

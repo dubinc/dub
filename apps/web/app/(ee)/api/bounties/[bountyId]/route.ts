@@ -8,9 +8,8 @@ import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { WorkflowCondition } from "@/lib/types";
+import { SubmissionRequirements, WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import type { SubmissionRequirements } from "@/lib/zod/schemas/bounties";
 import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { PartnerGroup, Prisma } from "@dub/prisma/client";

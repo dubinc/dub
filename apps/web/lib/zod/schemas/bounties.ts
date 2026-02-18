@@ -1,8 +1,8 @@
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
-  SOCIAL_METRICS_CHANNELS,
-  SOCIAL_METRICS_METRIC_VALUES,
+  BOUNTY_SOCIAL_PLATFORM_METRICS,
+  BOUNTY_SOCIAL_PLATFORM_VALUES,
 } from "@/lib/bounty/constants";
 import {
   BountyPerformanceScope,
@@ -25,17 +25,15 @@ export const bountyPerformanceConditionSchema = z.object({
   value: z.number(),
 });
 
-const socialMetricsChannelValues = SOCIAL_METRICS_CHANNELS.map((c) => c.value);
-
-export const variableBonusSchema = z
+// Eg: for each additional 1000 views, earn $1, up to $100
+export const bountySocialMetricsIncrementalBonusSchema = z
   .object({
     incrementalAmount: z.number().int().positive().optional(),
     bonusAmount: z.number().min(0).optional(),
     capAmount: z.number().int().positive().optional(),
   })
   .refine(
-    (data) => {
-      const { incrementalAmount, capAmount } = data;
+    ({ incrementalAmount, capAmount }) => {
       if (
         incrementalAmount != null &&
         capAmount != null &&
@@ -44,6 +42,7 @@ export const variableBonusSchema = z
       ) {
         return capAmount >= incrementalAmount;
       }
+
       return true;
     },
     {
@@ -52,15 +51,10 @@ export const variableBonusSchema = z
     },
   );
 
-export const socialMetricsSchema = z.object({
-  channel: z.enum(
-    socialMetricsChannelValues as unknown as [string, ...string[]],
-  ),
-  metric: z.enum(
-    SOCIAL_METRICS_METRIC_VALUES as unknown as [string, ...string[]],
-  ),
-  amount: z.number().int().positive(),
-  variableBonus: variableBonusSchema.optional(),
+export const bountySocialMetricsRequirementSchema = z.object({
+  platform: z.enum(BOUNTY_SOCIAL_PLATFORM_VALUES),
+  metric: z.enum(BOUNTY_SOCIAL_PLATFORM_METRICS),
+  incrementalBonus: bountySocialMetricsIncrementalBonusSchema.optional(),
 });
 
 export const submissionRequirementsSchema = z.object({
@@ -75,13 +69,8 @@ export const submissionRequirementsSchema = z.object({
       domains: z.array(z.string()).optional(),
     })
     .optional(),
-  socialMetrics: socialMetricsSchema.optional(),
+  socialMetrics: bountySocialMetricsRequirementSchema.optional(),
 });
-
-// Type exports for TypeScript
-export type SubmissionRequirements = z.infer<
-  typeof submissionRequirementsSchema
->;
 
 export const createBountySchema = z.object({
   name: z
