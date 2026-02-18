@@ -23,6 +23,9 @@ export function useSocialContent({
       ? `/api/partner-profile/programs/${programId}/bounties/social-content-stats?${searchParams.toString()}`
       : null,
     fetcher,
+    {
+      revalidateOnFocus: false,
+    },
   );
 
   return {
