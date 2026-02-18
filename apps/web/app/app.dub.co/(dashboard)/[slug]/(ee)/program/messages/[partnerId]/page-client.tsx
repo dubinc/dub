@@ -16,7 +16,7 @@ import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { PartnerInfoStats } from "@/ui/partners/partner-info-stats";
 import { X } from "@/ui/shared/icons";
-import { Button, useMediaQuery } from "@dub/ui";
+import { Button } from "@dub/ui";
 import { ChevronLeft } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -37,7 +37,6 @@ export function ProgramMessagesPartnerPageClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { width } = useMediaQuery();
 
   const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
@@ -98,13 +97,14 @@ export function ProgramMessagesPartnerPageClient() {
     },
   });
 
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(
+    () => typeof window !== "undefined" && window.innerWidth >= 960,
+  );
   const shouldAutoFocusComposer = searchParams.get("new") === "1";
 
   useEffect(() => {
-    if (typeof width !== "number") return;
-    setIsRightPanelOpen(width >= 960);
-  }, [partnerId, width]);
+    setIsRightPanelOpen(window.innerWidth >= 960);
+  }, [partnerId]);
 
   useEffect(() => {
     if (!shouldAutoFocusComposer) return;

@@ -553,7 +553,11 @@ export function AppSidebarNav({
       pathname.includes("/program/messages/") ||
       pathname.endsWith("/program/payouts/success");
     const isMobileDrawerViewport =
-      typeof width === "number" ? width < 768 : isMobile;
+      typeof width === "number"
+        ? width < 768
+        : typeof window !== "undefined"
+          ? window.innerWidth < 768
+          : isMobile;
 
     return pathname.startsWith("/account/settings")
       ? "userSettings"
