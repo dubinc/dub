@@ -1,6 +1,6 @@
+import { generatePerformanceBountyName } from "@/lib/api/api/generate-performance-bounty-name";
+import { validateBounty } from "@/lib/api/api/validate-bounty";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
-import { validateBounty } from "@/lib/api/bounties/validate-bounty";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";

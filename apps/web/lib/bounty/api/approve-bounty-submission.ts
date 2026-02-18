@@ -1,44 +1,46 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
-import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
+import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
+  approveBountySubmissionBodySchema,
   BountySubmissionSchema,
-  rejectBountySubmissionBodySchema,
 } from "@/lib/zod/schemas/bounties";
 import { sendEmail } from "@dub/email";
-import BountyRejected from "@dub/email/templates/bounty-rejected";
+import BountyApproved from "@dub/email/templates/bounty-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { recordAuditLog } from "../audit-logs/record-audit-log";
-import { DubApiError } from "../errors";
 
-interface RejectBountySubmissionParams
-  extends z.infer<typeof rejectBountySubmissionBodySchema> {
-  bountyId?: string;
+interface ApproveBountySubmissionParams
+  extends z.infer<typeof approveBountySubmissionBodySchema> {
   programId: string;
+  bountyId?: string;
   submissionId: string;
   user: Session["user"];
 }
 
-export async function rejectBountySubmission({
-  programId,
+export async function approveBountySubmission({
   bountyId,
+  programId,
   submissionId,
-  rejectionReason = "other",
-  rejectionNote,
+  rewardAmount,
   user,
-}: RejectBountySubmissionParams) {
+}: ApproveBountySubmissionParams) {
   const submission = await prisma.bountySubmission.findUnique({
     where: {
       id: submissionId,
     },
     select: {
       programId: true,
+      partnerId: true,
       bountyId: true,
       status: true,
       bounty: {
         select: {
           name: true,
+          type: true,
+          rewardAmount: true,
         },
       },
     },
@@ -68,38 +70,55 @@ export async function rejectBountySubmission({
   if (submission.status === "draft") {
     throw new DubApiError({
       code: "bad_request",
-      message: "This bounty submission is in progress and cannot be rejected.",
-    });
-  }
-
-  if (submission.status === "rejected") {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "This bounty submission has already been rejected.",
+      message: "This bounty submission is in progress and cannot be approved.",
     });
   }
 
   if (submission.status === "approved") {
     throw new DubApiError({
       code: "bad_request",
-      message:
-        "This bounty submission has already been approved and cannot be rejected.",
+      message: "This bounty submission has already been approved.",
     });
   }
 
   const bounty = submission.bounty;
+  const finalRewardAmount = bounty.rewardAmount ?? rewardAmount;
 
-  const rejectedSubmission = await prisma.bountySubmission.update({
+  if (!finalRewardAmount) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Reward amount is required to approve the bounty submission.",
+    });
+  }
+
+  const { commission } = await createPartnerCommission({
+    event: "custom",
+    partnerId: submission.partnerId,
+    programId: submission.programId,
+    amount: finalRewardAmount,
+    quantity: 1,
+    user,
+    description: `Commission for successfully completed "${bounty.name}" bounty.`,
+  });
+
+  if (!commission) {
+    throw new DubApiError({
+      code: "internal_server_error",
+      message: "Failed to create commission for the bounty submission.",
+    });
+  }
+
+  const approvedSubmission = await prisma.bountySubmission.update({
     where: {
       id: submissionId,
     },
     data: {
-      status: "rejected",
+      status: "approved",
       reviewedAt: new Date(),
       userId: user.id,
-      rejectionReason,
-      rejectionNote,
-      commissionId: null,
+      rejectionNote: null,
+      rejectionReason: null,
+      commissionId: commission.id,
     },
     include: {
       partner: {
@@ -120,32 +139,32 @@ export async function rejectBountySubmission({
     },
   });
 
-  const { program, partner } = rejectedSubmission;
+  const { program, partner } = approvedSubmission;
 
   waitUntil(
     Promise.allSettled([
       recordAuditLog({
         workspaceId: program.workspaceId,
         programId: program.id,
-        action: "bounty_submission.rejected",
-        description: `Bounty submission rejected for ${partner.id}`,
+        action: "bounty_submission.approved",
+        description: `Bounty submission approved for ${partner.id}`,
         actor: user,
         targets: [
           {
             type: "bounty_submission",
             id: submissionId,
-            metadata: BountySubmissionSchema.parse(rejectedSubmission),
+            metadata: BountySubmissionSchema.parse(approvedSubmission),
           },
         ],
       }),
 
       partner.email &&
         sendEmail({
-          subject: "Bounty rejected",
+          subject: "Bounty approved!",
           to: partner.email,
           variant: "notifications",
           replyTo: program.supportEmail || "noreply",
-          react: BountyRejected({
+          react: BountyApproved({
             email: partner.email,
             program: {
               name: program.name,
@@ -153,16 +172,12 @@ export async function rejectBountySubmission({
             },
             bounty: {
               name: bounty.name,
-            },
-            submission: {
-              rejectionReason:
-                REJECT_BOUNTY_SUBMISSION_REASONS[rejectionReason],
-              rejectionNote,
+              type: bounty.type,
             },
           }),
         }),
     ]),
   );
 
-  return BountySubmissionSchema.parse(rejectedSubmission);
+  return BountySubmissionSchema.parse(approvedSubmission);
 }

@@ -1,6 +1,6 @@
 "use server";
 
-import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
+import { getBountyOrThrow } from "@/lib/api/api/get-bounty-or-throw";
 import { createId } from "@/lib/api/create-id";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";

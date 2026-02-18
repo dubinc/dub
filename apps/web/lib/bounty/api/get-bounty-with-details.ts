@@ -1,5 +1,5 @@
+import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@dub/prisma";
-import { DubApiError } from "../errors";
 
 export const getBountyWithDetails = async ({
   bountyId,

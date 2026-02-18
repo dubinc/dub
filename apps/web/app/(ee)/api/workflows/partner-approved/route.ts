@@ -1,4 +1,4 @@
-import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
+import { triggerDraftBountySubmissionCreation } from "@/lib/api/api/trigger-draft-bounty-submissions";
 import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";

@@ -1,5 +1,5 @@
+import { DubApiError } from "@/lib/api/errors";
 import { BountyFormData } from "@/lib/types";
-import { DubApiError } from "../errors";
 
 export function validateBounty({
   type,

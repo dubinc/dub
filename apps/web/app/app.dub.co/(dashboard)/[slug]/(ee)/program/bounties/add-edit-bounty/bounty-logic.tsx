@@ -1,6 +1,6 @@
 "use client";
 
-import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/api/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
 import {

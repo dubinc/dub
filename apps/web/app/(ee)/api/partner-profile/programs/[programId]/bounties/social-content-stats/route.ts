@@ -1,4 +1,4 @@
-import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
+import { getBountyOrThrow } from "@/lib/api/api/get-bounty-or-throw";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";

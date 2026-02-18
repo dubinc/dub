@@ -1,5 +1,5 @@
-import { approveBountySubmission } from "@/lib/api/bounties/approve-bounty-submission";
-import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
+import { approveBountySubmission } from "@/lib/api/api/approve-bounty-submission";
+import { getBountyOrThrow } from "@/lib/api/api/get-bounty-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
