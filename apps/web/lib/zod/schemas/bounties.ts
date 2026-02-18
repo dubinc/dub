@@ -30,7 +30,7 @@ export const bountyPerformanceConditionSchema = z.object({
 });
 
 // Eg: for each additional 1000 views, earn $1, up to $100
-export const bountySocialMetricsIncrementalBonusSchema = z
+export const bountySocialContentIncrementalBonusSchema = z
   .object({
     incrementalAmount: z.number().int().positive().optional(),
     bonusAmount: z.number().min(0).optional(),
@@ -64,7 +64,7 @@ export const bountySocialContentRequirementsSchema = z.object({
     .positive()
     .optional()
     .describe("Minimum metric required for eligibility"),
-  incrementalBonus: bountySocialMetricsIncrementalBonusSchema.optional(),
+  incrementalBonus: bountySocialContentIncrementalBonusSchema.optional(),
 });
 
 export const submissionRequirementsSchema = z.object({
