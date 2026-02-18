@@ -11,15 +11,13 @@ import { getBountySocialPlatform } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { PartnerBountyProps, SocialContent } from "@/lib/types";
+import { PartnerBountyProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
   Calendar6,
-  CircleCheckFill,
   FileUpload,
   Gift,
   LoadingSpinner,
@@ -32,17 +30,20 @@ import {
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { isBefore } from "date-fns";
 import Linkify from "linkify-react";
-import { AlertTriangle } from "lucide-react";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
-import { FormProvider, useForm, useFormContext } from "react-hook-form";
+import { FormProvider, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { BountyDescription } from "./bounty-description";
 import { BountyPerformance } from "./bounty-performance";
+import {
+  SocialAccountNotVerifiedWarning,
+  SocialContentUrlField,
+} from "./bounty-social-content";
 import { BountySocialContentPreview } from "./bounty-social-content-preview";
 import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 
@@ -72,6 +73,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDraft, setIsDraft] = useState<boolean | null>(null);
 
+  const socialPlatform = getBountySocialPlatform(bounty);
+
   // Initialize form state with existing draft submission data
   const [description, setDescription] = useState(submission?.description || "");
 
@@ -88,10 +91,9 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
     return [];
   });
 
-  const socialChannel = getBountySocialPlatform(bounty);
   const [urls, setUrls] = useState<Url[]>(() => {
     if (submission?.urls && submission.urls.length > 0) {
-      const urlsToUse = socialChannel
+      const urlsToUse = socialPlatform
         ? submission.urls.slice(1)
         : submission.urls;
       if (urlsToUse.length === 0) return [{ id: uuid(), url: "" }];
@@ -101,11 +103,11 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   });
 
   const claimForm = useForm<{
-    socialMetricsUrl: string;
+    socialContentUrl: string;
   }>({
     defaultValues: {
-      socialMetricsUrl:
-        socialChannel && submission?.urls?.[0] ? submission.urls[0] : "",
+      socialContentUrl:
+        socialPlatform && submission?.urls?.[0] ? submission.urls[0] : "",
     },
   });
 
@@ -153,6 +155,21 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
 
   const { executeAsync: createSubmission } = useAction(
     createBountySubmissionAction,
+    {
+      onSuccess: async () => {
+        toast.success(isDraft ? "Bounty progress saved." : "Bounty submitted.");
+        setSuccess(true);
+        await mutatePrefix(
+          `/api/partner-profile/programs/${programEnrollment?.program.slug}/bounties`,
+        );
+      },
+      onError: ({ error }) => {
+        toast.error(
+          error.serverError || "Failed to create submission. Please try again.",
+        );
+        setIsDraft(null);
+      },
+    },
   );
 
   const imageRequired = !!bounty.submissionRequirements?.image;
@@ -209,11 +226,11 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         size: file?.size || 0,
       }));
 
-    const socialMetricsUrl = claimForm.getValues("socialMetricsUrl") ?? "";
+    const socialContentUrl = claimForm.getValues("socialContentUrl") ?? "";
     const baseUrls = urls.map(({ url }) => url).filter(Boolean);
     const postUrl =
-      socialChannel && socialMetricsUrl.trim()
-        ? socialMetricsUrl.trim()
+      socialPlatform && socialContentUrl.trim()
+        ? socialContentUrl.trim()
         : undefined;
     const hasPostUrl = !!postUrl;
     const totalUrlsCount = (hasPostUrl ? 1 : 0) + baseUrls.length;
@@ -226,8 +243,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
           throw new Error("You must upload at least one image.");
         }
 
-        if (socialChannel && !socialMetricsUrl.trim()) {
-          throw new Error(`You must provide the ${socialChannel.label} link.`);
+        if (socialPlatform && !socialContentUrl.trim()) {
+          throw new Error(`You must provide the ${socialPlatform.label} link.`);
         }
 
         if (urlRequired && totalUrlsCount === 0) {
@@ -235,7 +252,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         }
       }
 
-      const result = await createSubmission({
+      await createSubmission({
         programId: programEnrollment.programId,
         bountyId: bounty.id,
         files: finalFiles,
@@ -243,13 +260,6 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         description,
         ...(isDraft && { isDraft }),
       });
-
-      toast.success(isDraft ? "Bounty progress saved." : "Bounty submitted.");
-
-      setSuccess(true);
-      await mutatePrefix(
-        `/api/partner-profile/programs/${programEnrollment.program.slug}/bounties`,
-      );
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -452,17 +462,19 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     <BountyDescription bounty={bounty} />
                   </div>
 
-                  <div className="border-border-subtle flex flex-col border-t p-6 text-sm max-sm:px-4">
-                    <div>
-                      <h2 className="mb-3 text-base font-semibold text-neutral-900">
-                        Submission
-                      </h2>
-                      <BountySocialContentPreview
-                        bounty={bounty}
-                        submission={submission}
-                      />
+                  {socialPlatform && submission?.status === "submitted" && (
+                    <div className="border-border-subtle flex flex-col border-t p-6 text-sm max-sm:px-4">
+                      <div>
+                        <h2 className="mb-3 text-base font-semibold text-neutral-900">
+                          Submission
+                        </h2>
+                        <BountySocialContentPreview
+                          bounty={bounty}
+                          submission={submission}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   {/* Form */}
                   <motion.div
@@ -623,7 +635,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                         </div>
                       )}
 
-                      {socialChannel && (
+                      {socialPlatform && (
                         <SocialContentUrlField bounty={bounty} />
                       )}
 
@@ -716,8 +728,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                   </div>
                 ) : (
                   <>
-                    {socialChannel &&
-                    !platformsVerified?.[socialChannel.value] ? (
+                    {socialPlatform &&
+                    !platformsVerified?.[socialPlatform.value] ? (
                       <SocialAccountNotVerifiedWarning bounty={bounty} />
                     ) : (
                       <Button
@@ -736,167 +748,6 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         </form>
       </FormProvider>
     </>
-  );
-}
-
-function SocialAccountNotVerifiedWarning({
-  bounty,
-}: {
-  bounty: PartnerBountyProps;
-}) {
-  const channel = getBountySocialPlatform(bounty);
-
-  if (!channel) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col gap-2 rounded-lg bg-orange-50 p-2 text-center">
-      <div className="px-2 text-sm font-medium text-orange-900">
-        {`A verified ${channel?.label} account must be connected to your Dub partner profile to claim this bounty.`}
-
-        <Link
-          href="https://dub.co/help/article/receiving-payouts"
-          target="_blank"
-          className="ml-1 underline underline-offset-2"
-        >
-          Learn more
-        </Link>
-      </div>
-
-      <Button text="View profile" className="h-7 w-full rounded-lg" />
-    </div>
-  );
-}
-
-function SocialContentUrlField({ bounty }: { bounty: PartnerBountyProps }) {
-  const { programEnrollment } = useProgramEnrollment();
-
-  const { register, getValues } = useFormContext<{
-    socialMetricsUrl: string;
-  }>();
-
-  const [urlToCheck, setUrlToCheck] = useState<string>("");
-
-  const {
-    data: contentStats,
-    error,
-    isValidating,
-  } = useSocialContent({
-    programId: programEnrollment?.programId,
-    bountyId: bounty.id,
-    url: urlToCheck,
-  });
-
-  const socialChannel = getBountySocialPlatform(bounty);
-
-  if (!socialChannel) {
-    return null;
-  }
-
-  const showIcon = isValidating || (error && urlToCheck);
-
-  return (
-    <div>
-      <label className="block">
-        <h2 className="text-sm font-medium text-neutral-900">
-          {`${socialChannel.label} URL`}
-        </h2>
-      </label>
-      <div className="relative mt-2">
-        <input
-          type="url"
-          placeholder="https://"
-          className={cn(
-            "block h-10 w-full rounded-md border-neutral-300 px-3 py-2 pr-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-            error &&
-              urlToCheck &&
-              "border-red-500 focus:border-red-500 focus:ring-red-500",
-          )}
-          {...register("socialMetricsUrl")}
-          onBlur={(e) => {
-            register("socialMetricsUrl").onBlur(e);
-            setUrlToCheck(getValues("socialMetricsUrl")?.trim() ?? "");
-          }}
-        />
-
-        {showIcon && (
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-            {isValidating ? (
-              <LoadingSpinner className="size-4 shrink-0 text-neutral-400" />
-            ) : error && urlToCheck ? (
-              <AlertTriangle
-                className="size-4 shrink-0 text-red-500"
-                fill="#ef4444"
-              />
-            ) : null}
-          </div>
-        )}
-      </div>
-      <SocialContentRequirementChecks
-        contentStats={contentStats}
-        bounty={bounty}
-      />
-    </div>
-  );
-}
-
-function SocialContentRequirementChecks({
-  contentStats,
-  bounty,
-}: {
-  contentStats: SocialContent | null;
-  bounty: PartnerBountyProps;
-}) {
-  const { partner } = usePartnerProfile();
-  const socialChannel = getBountySocialPlatform(bounty);
-
-  const partnerPlatform = partner?.platforms?.find(
-    (p) => p.type === socialChannel?.value,
-  );
-
-  const isPostedFromYourAccount =
-    partnerPlatform &&
-    partnerPlatform.verifiedAt &&
-    partnerPlatform.identifier === contentStats?.handle;
-
-  const isAfterStartDate =
-    contentStats?.publishedAt &&
-    bounty.startsAt &&
-    !isBefore(contentStats.publishedAt, bounty.startsAt);
-
-  return (
-    <ul className="mt-2 flex flex-wrap items-center gap-3">
-      <li
-        className={cn(
-          "flex items-center gap-1 text-xs transition-colors",
-          isPostedFromYourAccount ? "text-green-600" : "text-neutral-400",
-        )}
-      >
-        <CircleCheckFill
-          className={cn(
-            "size-2.5 transition-opacity",
-            isPostedFromYourAccount ? "text-green-600" : "text-neutral-200",
-          )}
-        />
-        <span>Posted from your account</span>
-      </li>
-
-      <li
-        className={cn(
-          "flex items-center gap-1 text-xs transition-colors",
-          isAfterStartDate ? "text-green-600" : "text-neutral-400",
-        )}
-      >
-        <CircleCheckFill
-          className={cn(
-            "size-2.5 transition-opacity",
-            isAfterStartDate ? "text-green-600" : "text-neutral-200",
-          )}
-        />
-        <span>{`Posted after ${formatDate(bounty.startsAt, { month: "short", day: "numeric", year: "numeric" })}`}</span>
-      </li>
-    </ul>
   );
 }
 

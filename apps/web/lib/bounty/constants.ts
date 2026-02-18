@@ -26,24 +26,28 @@ export const BOUNTY_SOCIAL_PLATFORMS = [
     label: "YouTube",
     postType: "video",
     metrics: ["views", "likes"],
+    placeholder: "https://www.youtube.com/watch?v=",
   },
   {
     value: "tiktok",
     label: "TikTok",
     postType: "video",
     metrics: ["views", "likes"],
+    placeholder: "https://www.tiktok.com/@username/video/",
   },
   {
     value: "instagram",
     label: "Instagram",
     postType: "photo",
     metrics: ["likes", "views"],
+    placeholder: "https://www.instagram.com/username/reel/",
   },
   {
     value: "twitter",
     label: "Twitter",
     postType: "tweet",
     metrics: ["likes", "views"],
+    placeholder: "https://x.com/username/status/",
   },
 ] as const;
 
