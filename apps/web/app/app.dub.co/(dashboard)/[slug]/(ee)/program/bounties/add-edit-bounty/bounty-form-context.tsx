@@ -1,15 +1,15 @@
 "use client";
 
-import { BountyFormData } from "@/lib/types";
+import { CreateBountyInput } from "@/lib/types";
 import { useFormContext } from "react-hook-form";
 
-export type BountyFormDataExtended = BountyFormData & {
+export type EndDateMode = "fixed-end-date" | "repeat-submissions";
+
+export type CreateBountyInputExtended = CreateBountyInput & {
   rewardType?: "flat" | "custom";
   submissionCriteriaType?: "manualSubmission" | "socialMetrics";
-  endDateMode?: "fixed" | "repeat";
-  submissionFrequency?: "day" | "week" | "month";
-  totalSubmissionsAllowed?: number | null;
+  endDateMode?: EndDateMode;
 };
 
-export const useAddEditBountyForm = () =>
-  useFormContext<BountyFormDataExtended>();
+export const useBountyFormContext = () =>
+  useFormContext<CreateBountyInputExtended>();

@@ -1,5 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
-import { BountyFormData } from "@/lib/types";
+import { CreateBountyInput } from "@/lib/types";
 
 export function validateBounty({
   type,
@@ -10,7 +10,7 @@ export function validateBounty({
   rewardAmount,
   rewardDescription,
   performanceScope,
-}: Partial<BountyFormData>) {
+}: Partial<CreateBountyInput>) {
   startsAt = startsAt || new Date();
 
   if (endsAt && endsAt < startsAt) {

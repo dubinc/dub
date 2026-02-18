@@ -1,6 +1,5 @@
 "use client";
 
-import type { SocialMetricsChannel } from "@/lib/types";
 import {
   ProgramSheetAccordionContent,
   ProgramSheetAccordionItem,
@@ -13,18 +12,24 @@ import { currencyFormatter } from "@dub/utils";
 import { BountyAmountInput } from "./bounty-amount-input";
 import { BountyCriteriaManualSubmission } from "./bounty-criteria-manual-submission";
 import { BountyCriteriaSocialMetrics } from "./bounty-criteria-social-metrics";
-import { useAddEditBountyForm } from "./bounty-form-context";
+import { useBountyFormContext } from "./bounty-form-context";
 import { BountyLogic } from "./bounty-logic";
 
-const MANUAL_SUBMISSION_CRITERIA = [
-  { value: "manualSubmission", label: "Manual submission" },
-  { value: "socialMetrics", label: "Social metrics" },
-];
+const BOUNTY_SUBMISSION_TYPES = [
+  {
+    value: "manualSubmission",
+    label: "Manual submission",
+  },
+  {
+    value: "socialMetrics",
+    label: "Social metrics",
+  },
+] as const;
 
-type SubmissionCriteriaType = "manualSubmission" | "socialMetrics";
+type BountySubmissionType = (typeof BOUNTY_SUBMISSION_TYPES)[number]["value"];
 
 export function BountyCriteria() {
-  const { watch, setValue } = useAddEditBountyForm();
+  const { watch, setValue } = useBountyFormContext();
 
   const [
     type,
@@ -60,6 +65,7 @@ export function BountyCriteria() {
 
     if (imageRequired) {
       requirements.image = {};
+
       if (imageMaxCount !== undefined) {
         requirements.image.max = imageMaxCount;
       }
@@ -67,9 +73,11 @@ export function BountyCriteria() {
 
     if (urlRequired) {
       requirements.url = {};
+
       if (urlMaxCount !== undefined) {
         requirements.url.max = urlMaxCount;
       }
+
       if (urlDomainsList && urlDomainsList.length > 0) {
         requirements.url.domains = urlDomainsList;
       }
@@ -105,25 +113,20 @@ export function BountyCriteria() {
                 className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
                 optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
                 indicatorClassName="bg-white border border-neutral-200 rounded-md shadow-sm"
-                options={MANUAL_SUBMISSION_CRITERIA}
+                options={[...BOUNTY_SUBMISSION_TYPES]}
                 selected={submissionCriteriaType}
-                selectAction={(id) => {
-                  const next = id as SubmissionCriteriaType;
-                  setValue("submissionCriteriaType", next);
-                  if (next === "socialMetrics") {
-                    const current = submissionRequirements as {
-                      socialMetrics?: {
-                        platform: SocialMetricsChannel;
-                        metric: "views" | "likes";
-                        amount?: number;
-                      };
-                    } | null;
+                selectAction={(id: BountySubmissionType) => {
+                  setValue("submissionCriteriaType", id);
+
+                  if (id === "socialMetrics") {
                     setValue(
                       "submissionRequirements",
                       {
-                        socialMetrics: current?.socialMetrics,
+                        socialMetrics: submissionRequirements?.socialMetrics,
                       },
-                      { shouldDirty: true },
+                      {
+                        shouldDirty: true,
+                      },
                     );
                   } else {
                     updateSubmissionRequirements(

@@ -25,7 +25,7 @@ import { currencyFormatter } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
 import { useContext } from "react";
 import { BountyAmountInput } from "./bounty-amount-input";
-import { useAddEditBountyForm } from "./bounty-form-context";
+import { useBountyFormContext } from "./bounty-form-context";
 
 interface VariableBonus {
   incrementalAmount?: number;
@@ -50,7 +50,7 @@ interface SocialMetricsVariableBonusProps {
 }
 
 export function BountyCriteriaSocialMetrics() {
-  const { watch, setValue } = useAddEditBountyForm();
+  const { watch, setValue } = useBountyFormContext();
 
   const submissionRequirements = watch(
     "submissionRequirements",

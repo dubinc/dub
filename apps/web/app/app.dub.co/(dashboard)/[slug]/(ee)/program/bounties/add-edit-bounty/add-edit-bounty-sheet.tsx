@@ -1,12 +1,6 @@
-import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
-import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
 import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/bounty/constants";
-import { mutatePrefix } from "@/lib/swr/mutate";
-import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyFormData, BountyProps } from "@/lib/types";
-import { bountyPerformanceConditionSchema } from "@/lib/zod/schemas/bounties";
+import { BountyProps, CreateBountyInput } from "@/lib/types";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
   ProgramSheetAccordion,
@@ -30,13 +24,12 @@ import {
   Switch,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, formatDate } from "@dub/utils";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { cn } from "@dub/utils";
+import { Dispatch, SetStateAction, useState } from "react";
+import { Controller, FormProvider } from "react-hook-form";
 import { BountyCriteria } from "./bounty-criteria";
-import { BountyFormDataExtended } from "./bounty-form-context";
-import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
+import { EndDateMode } from "./bounty-form-context";
+import { useAddEditBountyForm } from "./use-add-edit-bounty-form";
 
 interface BountySheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -58,12 +51,12 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
 
 const END_DATE_OPTIONS: CardSelectorOption[] = [
   {
-    key: "fixed",
+    key: "fixed-end-date",
     label: "End date",
     description: "Set a fixed end date",
   },
   {
-    key: "repeat",
+    key: "repeat-submissions",
     label: "Repeat submissions",
     description: "Set scheduled submissions",
   },
@@ -84,392 +77,36 @@ const SUBMISSION_FREQUENCY_OPTIONS = [
   },
 ] as const;
 
-const ACCORDION_ITEMS = [
-  "bounty-type",
-  "bounty-details",
-  "bounty-criteria",
-  "groups",
-];
-
-// Helper to check required fields
-const isEmpty = (value: any) =>
-  value === undefined || value === null || value === "";
-
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
-  const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
-
-  const [hasStartDate, setHasStartDate] = useState(!!bounty?.startsAt);
-  const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
-
-  const form = useForm<BountyFormDataExtended>({
-    defaultValues: {
-      name: bounty?.name || undefined,
-      description: bounty?.description || undefined,
-      startsAt: bounty?.startsAt || undefined,
-      endsAt: bounty?.endsAt || undefined,
-      submissionsOpenAt: bounty?.submissionsOpenAt || undefined,
-      rewardAmount: bounty?.rewardAmount
-        ? bounty.rewardAmount / 100
-        : undefined,
-      rewardDescription: bounty?.rewardDescription || undefined,
-      type: bounty?.type || "performance",
-      submissionRequirements: bounty?.submissionRequirements || null,
-      groupIds: bounty?.groups?.map(({ id }) => id) || null,
-      performanceCondition: bounty?.performanceCondition
-        ? {
-            ...bounty.performanceCondition,
-            value: isCurrencyAttribute(bounty.performanceCondition.attribute)
-              ? bounty.performanceCondition.value / 100
-              : bounty.performanceCondition.value,
-          }
-        : {
-            operator: "gte",
-          },
-      performanceScope: bounty?.performanceScope ?? "new",
-      rewardType: bounty ? (bounty.rewardAmount ? "flat" : "custom") : "flat",
-      submissionCriteriaType:
-        bounty?.submissionRequirements &&
-        typeof bounty.submissionRequirements === "object" &&
-        "socialMetrics" in bounty.submissionRequirements
-          ? "socialMetrics"
-          : "manualSubmission",
-      endDateMode:
-        bounty?.totalSubmissionsAllowed != null || bounty?.submissionFrequency
-          ? "repeat"
-          : "fixed",
-      submissionFrequency: bounty?.submissionFrequency ?? "week",
-      totalSubmissionsAllowed: bounty?.totalSubmissionsAllowed ?? 2,
-    },
-    shouldUnregister: false,
-  });
 
   const {
-    handleSubmit,
-    watch,
-    setValue,
+    form,
+    openAccordions,
+    setOpenAccordions,
+    hasStartDate,
+    handleStartDateToggle,
+    hasEndDate,
+    handleEndDateToggle,
+    handleEndDateChange,
+    endDateMode,
+    handleEndDateModeChange,
+    totalSubmissionsAllowed,
+    handleTotalSubmissionsAllowedChange,
+    submissionFrequency,
+    type,
+    name,
     control,
     register,
-    formState: { errors, isDirty },
-  } = form;
-
-  const endDateMode = watch("endDateMode") ?? "fixed";
-  const totalSubmissionsAllowed = watch("totalSubmissionsAllowed") ?? 2;
-  const isRepeatMode = endDateMode === "repeat";
-
-  const [
-    startsAt,
-    endsAt,
-    rewardAmount,
-    rewardDescription,
-    type,
-    name,
-    description,
-    performanceCondition,
-    groupIds,
-    rewardType,
-    submissionRequirements,
-    submissionFrequency,
-    totalSubmissionsAllowedVal,
-  ] = watch([
-    "startsAt",
-    "endsAt",
-    "rewardAmount",
-    "rewardDescription",
-    "type",
-    "name",
-    "description",
-    "performanceCondition",
-    "groupIds",
-    "rewardType",
-    "submissionRequirements",
-    "submissionFrequency",
-    "totalSubmissionsAllowed",
-  ]);
-
-  // Helper functions to update form values
-  const handleStartDateToggle = (checked: boolean) => {
-    setHasStartDate(checked);
-    if (!checked) {
-      setValue("startsAt", null, { shouldDirty: true, shouldValidate: true });
-    }
-  };
-
-  const handleEndDateChange = (date: Date | null) => {
-    setValue("endsAt", date, {
-      shouldDirty: true,
-      shouldValidate: true,
-    });
-  };
-
-  const handleEndDateModeChange = (mode: "fixed" | "repeat") => {
-    setValue("endDateMode", mode, { shouldDirty: true });
-    if (mode === "fixed") {
-      setValue("submissionFrequency", undefined, { shouldDirty: true });
-      setValue("totalSubmissionsAllowed", null, { shouldDirty: true });
-      setValue("submissionsOpenAt", null, { shouldDirty: true });
-    } else {
-      setValue("submissionFrequency", "week", { shouldDirty: true });
-      setValue("totalSubmissionsAllowed", 2, { shouldDirty: true });
-      setValue("endsAt", null, { shouldDirty: true });
-    }
-  };
-
-  const handleTotalSubmissionsAllowedChange = (value: number) => {
-    setValue("totalSubmissionsAllowed", value, { shouldDirty: true });
-  };
-
-  // Comprehensive validation logic
-  const validationError = useMemo(() => {
-    const now = new Date();
-
-    // Date validations
-    if (startsAt && startsAt !== bounty?.startsAt) {
-      const startDate = new Date(startsAt);
-      if (startDate < now) {
-        return "Please choose a start date that is in the future.";
-      }
-    }
-
-    const effectiveStartDate = startsAt ? new Date(startsAt) : now;
-
-    if (endsAt) {
-      const endDate = new Date(endsAt);
-
-      if (endDate <= effectiveStartDate) {
-        return `Please choose an end date that is after the start date (${formatDate(effectiveStartDate)}).`;
-      }
-
-      // Ensure end date is at least 1 hour from start
-      const minEndDate = new Date(
-        effectiveStartDate.getTime() + 60 * 60 * 1000,
-      );
-      if (endDate < minEndDate) {
-        return "End date must be at least 1 hour after the start date.";
-      }
-    }
-
-    if (type === "submission" && isRepeatMode) {
-      const total = totalSubmissionsAllowedVal ?? 2;
-      if (total < 1 || total > 10) {
-        return "Total submissions allowed must be between 1 and 10.";
-      }
-    }
-
-    // Type-specific validations
-    if (type === "submission") {
-      if (!name?.trim()) {
-        return "Name is required for submission bounties.";
-      }
-
-      if (name && name.length > 100) {
-        return "Name must be 100 characters or less.";
-      }
-
-      if ((rewardType ?? "flat") === "flat") {
-        if (isEmpty(rewardAmount)) {
-          return "Reward amount is required for flat rate rewards.";
-        }
-        if (rewardAmount !== null && rewardAmount <= 0) {
-          return "Reward amount must be greater than 0.";
-        }
-        if (rewardAmount !== null && rewardAmount > 1000000) {
-          return "Reward amount cannot exceed $1,000,000.";
-        }
-      }
-
-      if ((rewardType ?? "flat") === "custom") {
-        const isSocialMetrics =
-          submissionRequirements &&
-          typeof submissionRequirements === "object" &&
-          "socialMetrics" in submissionRequirements;
-        if (!isSocialMetrics) {
-          if (!rewardDescription?.trim()) {
-            return "Reward description is required for custom rewards.";
-          }
-          if (rewardDescription && rewardDescription.length > 100) {
-            return "Reward description must be 100 characters or less.";
-          }
-        }
-      }
-    }
-
-    if (type === "performance") {
-      const condition = performanceCondition;
-
-      if (!condition?.attribute) {
-        return "Performance attribute is required.";
-      }
-
-      if (!condition?.operator) {
-        return "Performance operator is required.";
-      }
-
-      if (isEmpty(condition?.value)) {
-        return "Performance value is required.";
-      }
-
-      if (condition?.value !== null && condition.value < 0) {
-        return "Performance value must be greater than or equal to 0.";
-      }
-
-      if (isEmpty(rewardAmount)) {
-        return "Reward amount is required for performance bounties.";
-      }
-
-      if (rewardAmount !== null && rewardAmount <= 0) {
-        return "Reward amount must be greater than 0.";
-      }
-
-      if (rewardAmount !== null && rewardAmount > 1000000) {
-        return "Reward amount cannot exceed $1,000,000.";
-      }
-    }
-
-    // Description validation
-    if (description && description.length > BOUNTY_DESCRIPTION_MAX_LENGTH) {
-      return `Description must be ${BOUNTY_DESCRIPTION_MAX_LENGTH} characters or less.`;
-    }
-
-    return null;
-  }, [
-    bounty,
-    startsAt,
-    endsAt,
-    rewardAmount,
-    rewardDescription,
-    isRepeatMode,
-    rewardType,
-    type,
-    name,
-    description,
-    performanceCondition?.attribute,
-    performanceCondition?.operator,
-    performanceCondition?.value,
-    submissionRequirements,
-    totalSubmissionsAllowedVal,
-  ]);
-
-  const { setShowConfirmCreateBountyModal, confirmCreateBountyModal } =
-    useConfirmCreateBountyModal({
-      bounty: !validationError
-        ? {
-            type,
-            name:
-              type === "performance" && performanceCondition
-                ? generatePerformanceBountyName({
-                    rewardAmount: rewardAmount ? rewardAmount * 100 : 0,
-                    condition: isCurrencyAttribute(
-                      performanceCondition?.attribute,
-                    )
-                      ? {
-                          ...performanceCondition,
-                          value: performanceCondition?.value * 100,
-                        }
-                      : performanceCondition,
-                  })
-                : name || "New bounty",
-            startsAt: startsAt || new Date(),
-            endsAt: endsAt || null,
-            rewardAmount: rewardAmount ? rewardAmount * 100 : null,
-            rewardDescription: rewardDescription || null,
-            groups: groupIds?.map((id) => ({ id })) || [],
-          }
-        : undefined,
-      onConfirm: async ({ sendNotificationEmails }) => {
-        await performSubmit({ sendNotificationEmails });
-      },
-    });
-
-  // Handle actual form submission (called after confirmation)
-  const performSubmit = async ({
-    sendNotificationEmails,
-  }: { sendNotificationEmails?: boolean } = {}) => {
-    if (!workspaceId) return;
-
-    const {
-      rewardType,
-      submissionCriteriaType: _submissionCriteriaType,
-      ...data
-    } = form.getValues();
-
-    const rawRewardAmount = data.rewardAmount;
-    const numAmount =
-      typeof rawRewardAmount === "number" && !Number.isNaN(rawRewardAmount)
-        ? rawRewardAmount
-        : null;
-    data.rewardAmount =
-      numAmount != null && numAmount > 0 ? numAmount * 100 : null;
-
-    // Parse performance logic
-    if (data.type === "performance") {
-      const result = bountyPerformanceConditionSchema.safeParse(
-        data.performanceCondition,
-      );
-
-      if (!result.success) {
-        toast.error(
-          "Invalid performance logic. Please fix the errors and try again.",
-        );
-        return;
-      }
-
-      let { data: condition } = result;
-
-      // Format the value to be in cents if it's a currency attribute
-      condition = {
-        ...condition,
-        value: isCurrencyAttribute(condition.attribute)
-          ? condition.value * 100
-          : condition.value,
-      };
-
-      data.performanceCondition = condition;
-      data.rewardDescription = null;
-      data.submissionsOpenAt = null;
-    } else if (data.type === "submission") {
-      data.performanceCondition = null;
-
-      if (isRepeatMode) {
-        data.submissionFrequency = submissionFrequency ?? "week";
-        data.totalSubmissionsAllowed = totalSubmissionsAllowedVal ?? 2;
-        data.endsAt = null;
-        data.submissionsOpenAt = null;
-      } else {
-        data.submissionFrequency = undefined;
-        data.totalSubmissionsAllowed = undefined;
-        data.submissionsOpenAt = null;
-      }
-
-      if ((rewardType ?? "flat") === "custom") {
-        data.rewardAmount = null;
-      } else if ((rewardType ?? "flat") === "flat") {
-        data.rewardDescription = null;
-      }
-    }
-
-    await makeRequest(bounty ? `/api/bounties/${bounty.id}` : "/api/bounties", {
-      method: bounty ? "PATCH" : "POST",
-      body: { ...data, sendNotificationEmails },
-      onSuccess: () => {
-        mutatePrefix("/api/bounties");
-        setIsOpen(false);
-        toast.success(`Bounty ${bounty ? "updated" : "created"} successfully!`);
-      },
-    });
-  };
-
-  // Handle form submission (shows confirmation modal for creation only)
-  const onSubmit = handleSubmit(async () => {
-    if (bounty) {
-      // For updates, submit directly without confirmation
-      await performSubmit();
-    } else {
-      // For creation, show confirmation modal
-      setShowConfirmCreateBountyModal(true);
-    }
-  });
+    setValue,
+    watch,
+    errors,
+    isDirty,
+    validationError,
+    confirmCreateBountyModal,
+    onSubmit,
+    isSubmitting,
+  } = useAddEditBountyForm({ bounty, setIsOpen });
 
   return (
     <form onSubmit={onSubmit} className="flex h-full flex-col">
@@ -510,7 +147,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       <CardSelector
                         options={BOUNTY_TYPES}
                         value={watch("type")}
-                        onChange={(value: BountyFormData["type"]) =>
+                        onChange={(value: CreateBountyInput["type"]) =>
                           setValue("type", value)
                         }
                         name="bounty-type"
@@ -565,7 +202,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 onChange={(date) =>
                                   field.onChange(date ?? undefined)
                                 }
-                                placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                                placeholder='E.g. "2026-02-28", "Last Thursday", "2 hours ago"'
                               />
                             )}
                           />
@@ -574,19 +211,33 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       )}
                     </AnimatedSizeContainer>
 
-                    {type === "submission" ? (
-                      <div className="space-y-4">
-                        <CardSelector
-                          options={END_DATE_OPTIONS}
-                          value={endDateMode}
-                          onChange={(value) =>
-                            handleEndDateModeChange(value as "fixed" | "repeat")
-                          }
-                          name="end-date-mode"
-                        />
+                    {type === "performance" && (
+                      <AnimatedSizeContainer
+                        height
+                        transition={{ ease: "easeInOut", duration: 0.2 }}
+                        style={{
+                          height: hasEndDate ? "auto" : "0px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <Switch
+                            fn={handleEndDateToggle}
+                            checked={hasEndDate}
+                            trackDimensions="w-8 h-4"
+                            thumbDimensions="w-3 h-3"
+                            thumbTranslate="translate-x-4"
+                            disabled={Boolean(bounty?.endsAt)}
+                          />
+                          <div className="flex flex-col gap-1">
+                            <h3 className="text-sm font-medium text-neutral-700">
+                              End date
+                            </h3>
+                          </div>
+                        </div>
 
-                        {endDateMode === "fixed" && (
-                          <div className="p-px">
+                        {hasEndDate && (
+                          <div className="mt-3 p-px">
                             <Controller
                               control={control}
                               name="endsAt"
@@ -596,33 +247,69 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                   onChange={(date) =>
                                     handleEndDateChange(date ?? null)
                                   }
-                                  placeholder="Set a fixed end date"
+                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
                                 />
                               )}
                             />
                           </div>
                         )}
+                      </AnimatedSizeContainer>
+                    )}
 
-                        {isRepeatMode && (
-                          <div className="space-y-4">
+                    {type === "submission" && (
+                      <div>
+                        <CardSelector
+                          name="end-date-mode"
+                          options={END_DATE_OPTIONS}
+                          value={endDateMode}
+                          onChange={(value: EndDateMode) =>
+                            handleEndDateModeChange(value)
+                          }
+                        />
+
+                        {endDateMode === "fixed-end-date" && (
+                          <div className="mt-3 p-px">
+                            <label className="text-sm font-medium text-neutral-800">
+                              End date
+                            </label>
+                            <div className="mt-2">
+                              <Controller
+                                control={control}
+                                name="endsAt"
+                                render={({ field }) => (
+                                  <SmartDateTimePicker
+                                    value={field.value}
+                                    onChange={(date) =>
+                                      handleEndDateChange(date ?? null)
+                                    }
+                                    placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
+                                  />
+                                )}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {endDateMode === "repeat-submissions" && (
+                          <div className="mt-3 space-y-4">
                             <div>
                               <label className="text-sm font-medium text-neutral-800">
                                 Submission frequency
                               </label>
                               <div className="mt-2">
                                 <select
+                                  className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                                   value={submissionFrequency ?? "week"}
                                   onChange={(e) =>
                                     setValue(
                                       "submissionFrequency",
-                                      e.target.value as
-                                        | "day"
-                                        | "week"
-                                        | "month",
-                                      { shouldDirty: true },
+                                      e.target
+                                        .value as CreateBountyInput["submissionFrequency"],
+                                      {
+                                        shouldDirty: true,
+                                      },
                                     )
                                   }
-                                  className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
                                 >
                                   {SUBMISSION_FREQUENCY_OPTIONS.map((opt) => (
                                     <option key={opt.value} value={opt.value}>
@@ -632,6 +319,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 </select>
                               </div>
                             </div>
+
                             <div>
                               <label className="text-sm font-medium text-neutral-800">
                                 Total submissions allowed
@@ -649,22 +337,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                             </div>
                           </div>
                         )}
-                      </div>
-                    ) : (
-                      <div className="p-px">
-                        <Controller
-                          control={control}
-                          name="endsAt"
-                          render={({ field }) => (
-                            <SmartDateTimePicker
-                              value={field.value}
-                              onChange={(date) =>
-                                handleEndDateChange(date ?? null)
-                              }
-                              placeholder="Set a fixed end date"
-                            />
-                          )}
-                        />
                       </div>
                     )}
 
@@ -721,10 +393,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               placeholder="Provide any bounty requirements to the partner"
                               editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
                               initialValue={field.value}
-                              onChange={(editor) =>
-                                field.onChange(
-                                  (editor as any).getMarkdown() || null,
-                                )
+                              onChange={(editor: any) =>
+                                field.onChange(editor.getMarkdown() || null)
                               }
                             >
                               <div

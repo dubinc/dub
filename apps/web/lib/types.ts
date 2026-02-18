@@ -835,7 +835,7 @@ export type ChangeSet = Record<string, FieldDiff>;
 
 export type ActivityLog = z.infer<typeof activityLogSchema>;
 
-export type BountyFormData = z.infer<typeof createBountySchema>;
+export type CreateBountyInput = z.infer<typeof createBountySchema>;
 
 export type SocialContent = z.infer<typeof socialContentOutputSchema>;
 

@@ -11,10 +11,10 @@ import { Trophy } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
-import { useAddEditBountyForm } from "./bounty-form-context";
+import { useBountyFormContext } from "./bounty-form-context";
 
 export function BountyLogic({ className }: { className?: string }) {
-  const { control, watch } = useAddEditBountyForm();
+  const { control, watch } = useBountyFormContext();
 
   const [attribute, value] = watch([
     "performanceCondition.attribute",

@@ -5,7 +5,7 @@ import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { InlineBadgePopoverContext } from "@/ui/shared/inline-badge-popover";
 import { cn } from "@dub/utils";
 import { useContext } from "react";
-import { useAddEditBountyForm } from "./bounty-form-context";
+import { useBountyFormContext } from "./bounty-form-context";
 
 interface BountyAmountInputProps {
   name: "rewardAmount" | "performanceCondition.value";
@@ -16,7 +16,7 @@ export function BountyAmountInput({
   name,
   emptyValue = null,
 }: BountyAmountInputProps) {
-  const { watch, register } = useAddEditBountyForm();
+  const { watch, register } = useBountyFormContext();
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
 
   const attribute =

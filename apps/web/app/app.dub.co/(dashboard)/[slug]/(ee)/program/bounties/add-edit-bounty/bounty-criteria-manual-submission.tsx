@@ -16,11 +16,17 @@ import { Button, ImageIcon, NumberStepper, Switch } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
-import { useAddEditBountyForm } from "./bounty-form-context";
+import { useBountyFormContext } from "./bounty-form-context";
 
 const REWARD_TYPES = [
-  { value: "flat", label: "flat rate" },
-  { value: "custom", label: "custom" },
+  {
+    value: "flat",
+    label: "flat rate",
+  },
+  {
+    value: "custom",
+    label: "custom",
+  },
 ] as const;
 
 type RewardType = (typeof REWARD_TYPES)[number]["value"];
@@ -39,7 +45,7 @@ const REWARD_INVALID_BUTTON_CLASS =
   "!bg-orange-50 !text-orange-500 hover:!bg-orange-100";
 
 export function BountyCriteriaManualSubmission() {
-  const { watch, setValue } = useAddEditBountyForm();
+  const { watch, setValue } = useBountyFormContext();
 
   const [submissionRequirements, rewardType = "flat"] = watch([
     "submissionRequirements",
@@ -347,7 +353,7 @@ function RewardTypeBadge({
 }
 
 function RewardValueBadge({ rewardType }: { rewardType: RewardType }) {
-  const { control, watch } = useAddEditBountyForm();
+  const { control, watch } = useBountyFormContext();
 
   const [rewardAmount, rewardDescription] = watch([
     "rewardAmount",

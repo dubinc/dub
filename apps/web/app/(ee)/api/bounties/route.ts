@@ -156,6 +156,8 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    const parsedBody = createBountySchema.parse(await parseRequestBody(req));
+
     let {
       name,
       description,
@@ -172,21 +174,12 @@ export const POST = withWorkspace(
       performanceCondition,
       performanceScope,
       sendNotificationEmails,
-    } = createBountySchema.parse(await parseRequestBody(req));
+    } = parsedBody;
 
     // Use current date as default if startsAt is not provided
     startsAt = startsAt || new Date();
 
-    validateBounty({
-      type,
-      startsAt,
-      endsAt,
-      submissionsOpenAt,
-      submissionRequirements,
-      rewardAmount,
-      rewardDescription,
-      performanceScope,
-    });
+    validateBounty(parsedBody);
 
     const partnerGroups = await throwIfInvalidGroupIds({
       programId,
@@ -243,7 +236,7 @@ export const POST = withWorkspace(
           name: bountyName,
           description,
           type,
-          startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
+          startsAt,
           endsAt,
           submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
           submissionFrequency:
