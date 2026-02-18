@@ -194,3 +194,9 @@ export const StripeCustomerSchema = z.object({
   subscriptions: z.number(),
   dubCustomerId: z.string().nullable(),
 });
+
+export const StripeCustomerInvoiceSchema = z.object({
+  id: z.string(),
+  amount_paid: z.number(),
+  created: z.number().transform((v) => new Date(v * 1000)),
+});

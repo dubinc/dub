@@ -3,7 +3,6 @@ import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CustomerActivityResponse } from "@/lib/types";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
@@ -23,19 +22,10 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
-  Table,
   ToggleGroup,
-  useTable,
 } from "@dub/ui";
-import {
-  cn,
-  currencyFormatter,
-  fetcher,
-  formatDateTime,
-  pluralize,
-} from "@dub/utils";
+import { cn, currencyFormatter, formatDate } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -49,6 +39,33 @@ interface CreateCommissionSheetProps {
 
 type FormData = z.infer<typeof createCommissionSchema>;
 
+// API returns created as ISO string after JSON serialization
+type StripeInvoiceFromApi = {
+  id: string;
+  amount_paid: number;
+  created: string;
+};
+
+async function fetcherStripeInvoices(url: string): Promise<{
+  invoices: StripeInvoiceFromApi[];
+  noStripeCustomerId?: boolean;
+  message?: string;
+}> {
+  const res = await fetch(url);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    if (res.status === 400 && body?.error?.message) {
+      return {
+        invoices: [],
+        noStripeCustomerId: true,
+        message: body.error.message,
+      };
+    }
+    throw new Error(body?.error?.message ?? "Failed to load invoices");
+  }
+  return { invoices: Array.isArray(body) ? body : [] };
+}
+
 function CreateCommissionSheetContent({
   setIsOpen,
 }: CreateCommissionSheetProps) {
@@ -56,6 +73,7 @@ function CreateCommissionSheetContent({
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [hasProductId, setHasProductId] = useState(false);
   const [hasDate, setHasDate] = useState(false);
+  const [hasSaleEventDate, setHasSaleEventDate] = useState(false);
 
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
@@ -136,14 +154,36 @@ function CreateCommissionSheetContent({
     },
   ];
 
-  // Fetch customer activity data when customer is selected and we're using existing events
-  const { data: customerActivity, isLoading: isCustomerActivityLoading } =
-    useSWR<CustomerActivityResponse>(
-      customerId && useExistingEvents && workspaceId
-        ? `/api/customers/${customerId}/activity?workspaceId=${workspaceId}`
-        : null,
-      fetcher,
-    );
+  const eventSourceOptions = [
+    {
+      value: "new",
+      label: "Create new event",
+      description:
+        "Create a new sale event for the partner (e.g. for one-time purchases)",
+    },
+    {
+      value: "existing",
+      label: "Import from Stripe",
+      description:
+        "Fetch the customer's paid invoices from Stripe (e.g. for recurring subscriptions)",
+    },
+  ];
+
+  // Fetch Stripe invoices when customer is selected and we're using existing events
+  const {
+    data: stripeInvoicesData,
+    isLoading: isStripeInvoicesLoading,
+    error: stripeInvoicesError,
+  } = useSWR(
+    customerId && useExistingEvents && commissionType === "sale" && workspaceId
+      ? `/api/customers/${customerId}/stripe-invoices?workspaceId=${workspaceId}`
+      : null,
+    fetcherStripeInvoices,
+  );
+
+  const stripeInvoices = stripeInvoicesData?.invoices ?? [];
+  const noStripeCustomerId = stripeInvoicesData?.noStripeCustomerId ?? false;
+  const noStripeCustomerMessage = stripeInvoicesData?.message;
 
   useEffect(() => {
     if (commissionType === "custom") {
@@ -162,6 +202,12 @@ function CreateCommissionSheetContent({
       setValue("date", null);
     }
   }, [hasDate, setValue]);
+
+  useEffect(() => {
+    if (!hasSaleEventDate) {
+      setValue("saleEventDate", null);
+    }
+  }, [hasSaleEventDate, setValue]);
 
   useEffect(() => {
     if (commissionType === "custom") {
@@ -212,99 +258,39 @@ function CreateCommissionSheetContent({
     });
   };
 
-  // Filter events based on commission type
-  const filteredEvents = useMemo(() => {
-    if (!customerActivity?.events) return [];
-
-    return customerActivity.events.filter((event) => {
-      if (commissionType === "sale") return event.event === "sale";
-      if (commissionType === "lead") return event.event === "lead";
-      return false;
-    });
-  }, [customerActivity?.events, commissionType]);
-
-  // Table configuration for existing events
-  const eventsTable = useTable({
-    data: filteredEvents || [],
-    columns: [
-      {
-        header: "Event",
-        minSize: 160,
-        size: 200,
-        maxSize: 250,
-        cell: ({ row }) => {
-          const eventType = commissionType === "sale" ? "sales" : "leads";
-          const link = row.original.link;
-          const eventUrl =
-            link?.domain && link?.key
-              ? `/${slug}/events?event=${eventType}&interval=all&domain=${link.domain}&key=${link.key}`
-              : null;
-
-          const eventContent = (
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-neutral-700">
-                {row.original.eventName ||
-                  (row.original.event === "sale" ? "Sale" : "Lead")}
-              </span>
-              <span className="text-xs text-neutral-500">
-                {formatDateTime(row.original.timestamp)}
-              </span>
-            </div>
-          );
-
-          return eventUrl ? (
-            <Link
-              href={eventUrl}
-              target="_blank"
-              className="-mx-2 -my-1 block cursor-pointer rounded-md px-2 py-1 decoration-dotted underline-offset-2 hover:underline"
-            >
-              {eventContent}
-            </Link>
-          ) : (
-            eventContent
-          );
-        },
-      },
-      ...(commissionType === "sale"
-        ? [
-            {
-              header: "Amount",
-              minSize: 100,
-              size: 100,
-              maxSize: 100,
-              cell: ({ row }) => (
-                <span className="text-sm text-neutral-700">
-                  {row.original.sale?.amount
-                    ? currencyFormatter(row.original.sale.amount)
-                    : "-"}
-                </span>
-              ),
-            },
-          ]
-        : []),
-    ],
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px] max-h-[200px]",
-    resourceName: (p) => `event${p ? "s" : ""}`,
-    loading: isCustomerActivityLoading,
-    error: undefined,
-  } as any);
-
-  const shouldDisableSubmit = useMemo(() => {
+  const submitDisabledMessage = useMemo(() => {
     if (!partnerId) {
-      return true;
+      return "You need to select a partner first before you can create a commission.";
     }
 
     if (commissionType === "custom") {
-      return !amount;
+      return !amount
+        ? "You need to enter an amount for the commission."
+        : undefined;
     }
 
     if (!linkId || !customerId) {
-      return true;
+      return "You need to select a customer and a link first before you can create a commission.";
     }
 
-    if (useExistingEvents && !filteredEvents.length) {
-      return true;
+    if (commissionType === "sale") {
+      if (useExistingEvents) {
+        if (isStripeInvoicesLoading) {
+          return "Loading Stripe invoices...";
+        }
+
+        if (noStripeCustomerId) {
+          return "This customer doesn't have a Stripe customer ID. Add one in the customer profile before proceeding.";
+        }
+
+        if (stripeInvoices.length === 0) {
+          return "No paid Stripe invoices found for this customer.";
+        }
+      } else {
+        if (!saleAmount) {
+          return "You need to enter a sale amount for the commission.";
+        }
+      }
     }
 
     return false;
@@ -313,10 +299,12 @@ function CreateCommissionSheetContent({
     partnerId,
     linkId,
     customerId,
-    saleAmount,
-    amount,
+    amount, // custom commission amount
+    saleAmount, // sale commission amount
     useExistingEvents,
-    filteredEvents,
+    noStripeCustomerId,
+    stripeInvoices.length,
+    isStripeInvoicesLoading,
   ]);
 
   return (
@@ -600,46 +588,102 @@ function CreateCommissionSheetContent({
                           className="mt-2 flex w-full items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-1"
                           optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm normal-case"
                           indicatorClassName="bg-white"
-                          options={[
-                            {
-                              value: "new",
-                              label: "Create new event",
-                            },
-                            {
-                              value: "existing",
-                              label: `Use existing ${pluralize("event", filteredEvents.length)}`,
-                            },
-                          ]}
+                          options={eventSourceOptions}
                           selected={useExistingEvents ? "existing" : "new"}
                           selectAction={(value: string) =>
                             setUseExistingEvents(value === "existing")
                           }
                         />
-                        {useExistingEvents && (
-                          <p className="mt-2 text-xs text-neutral-500">
-                            Existing events will be transferred to the new
-                            partner.
-                          </p>
-                        )}
+                        <p className="mt-2 text-xs text-neutral-500">
+                          {
+                            eventSourceOptions.find(
+                              (option) =>
+                                option.value ===
+                                (useExistingEvents ? "existing" : "new"),
+                            )?.description
+                          }
+                        </p>
                       </div>
                     )}
 
-                    {/* Show existing events table when using existing events */}
-                    {customerId && useExistingEvents && (
-                      <div>
-                        {isCustomerActivityLoading ? (
-                          <div className="flex h-32 items-center justify-center rounded-md border border-neutral-200">
-                            <LoadingSpinner />
-                          </div>
-                        ) : filteredEvents.length > 0 ? (
-                          <Table {...eventsTable} />
-                        ) : (
-                          <div className="flex h-20 items-center justify-center rounded-md border border-neutral-200 text-sm text-neutral-500">
-                            No {commissionType} events found for this customer
-                          </div>
-                        )}
-                      </div>
-                    )}
+                    {/* Stripe invoices for sale + use existing */}
+                    {customerId &&
+                      useExistingEvents &&
+                      commissionType === "sale" && (
+                        <div className="space-y-3">
+                          {isStripeInvoicesLoading ? (
+                            <div className="flex h-40 items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50/50">
+                              <LoadingSpinner />
+                            </div>
+                          ) : noStripeCustomerId ? (
+                            <div className="rounded-lg border border-amber-200 bg-amber-50/80 p-4">
+                              <p className="text-sm font-medium text-amber-800">
+                                No Stripe customer ID
+                              </p>
+                              <p className="mt-1 text-xs text-amber-700">
+                                {noStripeCustomerMessage ??
+                                  "This customer doesn't have a Stripe customer ID. Add one in the customer profile to use paid Stripe invoices here."}
+                              </p>
+                              <a
+                                href={`/${slug}/program/customers/${customerId}`}
+                                target="_blank"
+                                className="mt-2 inline-block text-xs font-medium text-amber-800 underline hover:no-underline"
+                              >
+                                Open customer profile →
+                              </a>
+                            </div>
+                          ) : stripeInvoicesError ? (
+                            <div className="rounded-lg border border-red-200 bg-red-50/80 p-4 text-sm text-red-800">
+                              Failed to load invoices. Try again.
+                            </div>
+                          ) : stripeInvoices.length === 0 ? (
+                            <div className="flex h-24 flex-col items-center justify-center rounded-lg border border-neutral-200 bg-neutral-50/30 text-center">
+                              <p className="text-sm font-medium text-neutral-600">
+                                No paid invoices found
+                              </p>
+                              <p className="mt-0.5 text-xs text-neutral-500">
+                                This customer has no paid invoices in Stripe.
+                              </p>
+                            </div>
+                          ) : (
+                            <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm">
+                              <div className="border-b border-neutral-100 bg-neutral-50/80 px-3 py-2">
+                                <p className="text-xs font-medium text-neutral-500">
+                                  Paid invoices ({stripeInvoices.length})
+                                </p>
+                              </div>
+                              <div className="max-h-96 overflow-y-auto p-1.5">
+                                {stripeInvoices.map((inv) => {
+                                  const createdDate = new Date(inv.created);
+                                  return (
+                                    <div
+                                      key={inv.id}
+                                      className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5"
+                                    >
+                                      <div className="min-w-0 flex-1">
+                                        <a
+                                          href={`https://dashboard.stripe.com/invoices/${inv.id}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="cursor-alias font-mono text-sm font-medium text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                                        >
+                                          {inv.id}
+                                        </a>
+                                        <p className="mt-0.5 text-xs text-neutral-500">
+                                          {formatDate(createdDate)}
+                                        </p>
+                                      </div>
+                                      <span className="shrink-0 text-sm font-medium text-neutral-700">
+                                        {currencyFormatter(inv.amount_paid)}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
 
                     {customerId &&
                       !useExistingEvents &&
@@ -789,16 +833,33 @@ function CreateCommissionSheetContent({
                           </div>
 
                           <div>
-                            <SmartDateTimePicker
-                              value={saleEventDate}
-                              onChange={(date) => {
-                                setValue("saleEventDate", date, {
-                                  shouldDirty: true,
-                                });
-                              }}
-                              label="Sale date"
-                              placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
-                            />
+                            <div className="flex items-center gap-4">
+                              <Switch
+                                fn={setHasSaleEventDate}
+                                checked={hasSaleEventDate}
+                                trackDimensions="w-8 h-4"
+                                thumbDimensions="w-3 h-3"
+                                thumbTranslate="translate-x-4"
+                              />
+                              <h3 className="text-sm font-medium text-neutral-700">
+                                Add sale date
+                              </h3>
+                            </div>
+
+                            {hasSaleEventDate && (
+                              <div className="mt-4">
+                                <SmartDateTimePicker
+                                  value={saleEventDate}
+                                  onChange={(date) => {
+                                    setValue("saleEventDate", date, {
+                                      shouldDirty: true,
+                                    });
+                                  }}
+                                  label="Sale date"
+                                  placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                                />
+                              </div>
+                            )}
                           </div>
 
                           <div>
@@ -924,10 +985,10 @@ function CreateCommissionSheetContent({
           <Button
             type="submit"
             variant="primary"
-            text="Create commission"
+            text={`Create commission${stripeInvoices.length > 0 ? "s" : ""}`}
             className="w-fit"
             loading={isPending}
-            disabled={shouldDisableSubmit}
+            disabledTooltip={submitDisabledMessage}
           />
         </div>
       </div>
