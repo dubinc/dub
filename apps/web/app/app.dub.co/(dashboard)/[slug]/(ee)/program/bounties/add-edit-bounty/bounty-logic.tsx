@@ -1,7 +1,7 @@
 "use client";
 
-import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
 import {
   InlineBadgePopover,

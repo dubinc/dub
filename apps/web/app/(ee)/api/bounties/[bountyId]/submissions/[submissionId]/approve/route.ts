@@ -1,8 +1,8 @@
-import { approveBountySubmission } from "@/lib/bounty/api/approve-bounty-submission";
-import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { approveBountySubmission } from "@/lib/bounty/api/approve-bounty-submission";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { approveBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
 import { NextResponse } from "next/server";
 

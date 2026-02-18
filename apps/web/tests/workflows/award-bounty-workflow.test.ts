@@ -1,6 +1,6 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Bounty } from "@dub/prisma/client";
-import { describe, expect, test, onTestFinished } from "vitest";
+import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { trackLeads } from "./utils/track-leads";
@@ -10,62 +10,65 @@ describe.sequential("Workflow - AwardBounty", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
-  test("Workflow executes when partner reaches goal", { timeout: 90000 }, async () => {
-    const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
-      path: "/bounties",
-      body: {
-        name: "E2E Performance Bounty - Goal Reached",
-        description: "Get 2 leads to earn $10",
-        type: "performance",
-        startsAt: new Date().toISOString(),
-        endsAt: null,
-        rewardAmount: 1000,
-        performanceScope: "new",
-        groupIds: [],
-        performanceCondition: {
-          attribute: "totalLeads",
-          operator: "gte",
-          value: 2,
+  test(
+    "Workflow executes when partner reaches goal",
+    { timeout: 90000 },
+    async () => {
+      const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
+        path: "/bounties",
+        body: {
+          name: "E2E Performance Bounty - Goal Reached",
+          description: "Get 2 leads to earn $10",
+          type: "performance",
+          startsAt: new Date().toISOString(),
+          endsAt: null,
+          rewardAmount: 1000,
+          performanceScope: "new",
+          groupIds: [],
+          performanceCondition: {
+            attribute: "totalLeads",
+            operator: "gte",
+            value: 2,
+          },
         },
-      },
-    });
+      });
 
-    expect(bountyStatus).toEqual(200);
+      expect(bountyStatus).toEqual(200);
 
-    onTestFinished(async () => {
-      await h.deleteBounty(bounty.id);
-    });
+      onTestFinished(async () => {
+        await h.deleteBounty(bounty.id);
+      });
 
-    const { status: partnerStatus, data: partner } = await http.post<
-      EnrolledPartnerProps
-    >({
-      path: "/partners",
-      body: {
-        name: "E2E Test Partner - Goal",
-        email: randomEmail(),
-      },
-    });
+      const { status: partnerStatus, data: partner } =
+        await http.post<EnrolledPartnerProps>({
+          path: "/partners",
+          body: {
+            name: "E2E Test Partner - Goal",
+            email: randomEmail(),
+          },
+        });
 
-    expect(partnerStatus).toEqual(201);
-    expect(partner.links).not.toBeNull();
-    expect(partner.links!.length).toBeGreaterThan(0);
+      expect(partnerStatus).toEqual(201);
+      expect(partner.links).not.toBeNull();
+      expect(partner.links!.length).toBeGreaterThan(0);
 
-    const partnerLink = partner.links![0];
+      const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 3);
+      await trackLeads(http, partnerLink, 3);
 
-    const submission = await verifyBountySubmission({
-      http,
-      bountyId: bounty.id,
-      partnerId: partner.id,
-      expectedStatus: "submitted",
-      minPerformanceCount: 2,
-    });
+      const submission = await verifyBountySubmission({
+        http,
+        bountyId: bounty.id,
+        partnerId: partner.id,
+        expectedStatus: "submitted",
+        minPerformanceCount: 2,
+      });
 
-    expect(submission.status).toBe("submitted");
-    expect(submission.performanceCount).toBeGreaterThanOrEqual(2);
-    expect(submission.completedAt).not.toBeNull();
-  });
+      expect(submission.status).toBe("submitted");
+      expect(submission.performanceCount).toBeGreaterThanOrEqual(2);
+      expect(submission.completedAt).not.toBeNull();
+    },
+  );
 
   test("Workflow doesn't execute when goal not reached", async () => {
     const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
@@ -93,15 +96,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
       await h.deleteBounty(bounty.id);
     });
 
-    const { status: partnerStatus, data: partner } = await http.post<
-      EnrolledPartnerProps
-    >({
-      path: "/partners",
-      body: {
-        name: "E2E Test Partner - Not Reached",
-        email: randomEmail(),
-      },
-    });
+    const { status: partnerStatus, data: partner } =
+      await http.post<EnrolledPartnerProps>({
+        path: "/partners",
+        body: {
+          name: "E2E Test Partner - Not Reached",
+          email: randomEmail(),
+        },
+      });
 
     expect(partnerStatus).toEqual(201);
     expect(partner.links).not.toBeNull();
@@ -164,15 +166,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
       body: { disabledAt: new Date().toISOString() },
     });
 
-    const { status: partnerStatus, data: partner } = await http.post<
-      EnrolledPartnerProps
-    >({
-      path: "/partners",
-      body: {
-        name: "E2E Test Partner - Disabled",
-        email: randomEmail(),
-      },
-    });
+    const { status: partnerStatus, data: partner } =
+      await http.post<EnrolledPartnerProps>({
+        path: "/partners",
+        body: {
+          name: "E2E Test Partner - Disabled",
+          email: randomEmail(),
+        },
+      });
 
     expect(partnerStatus).toEqual(201);
     expect(partner.links).not.toBeNull();
@@ -191,63 +192,66 @@ describe.sequential("Workflow - AwardBounty", async () => {
     expect(submissions).toHaveLength(0);
   });
 
-  test("No duplicate execution on multiple triggers", { timeout: 90000 }, async () => {
-    const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
-      path: "/bounties",
-      body: {
-        name: "E2E Performance Bounty - No Duplicates",
-        description: "Get 2 leads to earn $10",
-        type: "performance",
-        startsAt: new Date().toISOString(),
-        endsAt: null,
-        rewardAmount: 1000,
-        performanceScope: "new",
-        groupIds: [],
-        performanceCondition: {
-          attribute: "totalLeads",
-          operator: "gte",
-          value: 2,
+  test(
+    "No duplicate execution on multiple triggers",
+    { timeout: 90000 },
+    async () => {
+      const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
+        path: "/bounties",
+        body: {
+          name: "E2E Performance Bounty - No Duplicates",
+          description: "Get 2 leads to earn $10",
+          type: "performance",
+          startsAt: new Date().toISOString(),
+          endsAt: null,
+          rewardAmount: 1000,
+          performanceScope: "new",
+          groupIds: [],
+          performanceCondition: {
+            attribute: "totalLeads",
+            operator: "gte",
+            value: 2,
+          },
         },
-      },
-    });
+      });
 
-    expect(bountyStatus).toEqual(200);
+      expect(bountyStatus).toEqual(200);
 
-    onTestFinished(async () => {
-      await h.deleteBounty(bounty.id);
-    });
+      onTestFinished(async () => {
+        await h.deleteBounty(bounty.id);
+      });
 
-    const { status: partnerStatus, data: partner } = await http.post<
-      EnrolledPartnerProps
-    >({
-      path: "/partners",
-      body: {
-        name: "E2E Test Partner - No Dup",
-        email: randomEmail(),
-      },
-    });
+      const { status: partnerStatus, data: partner } =
+        await http.post<EnrolledPartnerProps>({
+          path: "/partners",
+          body: {
+            name: "E2E Test Partner - No Dup",
+            email: randomEmail(),
+          },
+        });
 
-    expect(partnerStatus).toEqual(201);
-    expect(partner.links).not.toBeNull();
+      expect(partnerStatus).toEqual(201);
+      expect(partner.links).not.toBeNull();
 
-    const partnerLink = partner.links![0];
+      const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 5);
+      await trackLeads(http, partnerLink, 5);
 
-    await verifyBountySubmission({
-      http,
-      bountyId: bounty.id,
-      partnerId: partner.id,
-      expectedStatus: "submitted",
-      minPerformanceCount: 2,
-    });
+      await verifyBountySubmission({
+        http,
+        bountyId: bounty.id,
+        partnerId: partner.id,
+        expectedStatus: "submitted",
+        minPerformanceCount: 2,
+      });
 
-    const { data: submissions } = await http.get<any[]>({
-      path: `/bounties/${bounty.id}/submissions`,
-      query: { partnerId: partner.id },
-    });
+      const { data: submissions } = await http.get<any[]>({
+        path: `/bounties/${bounty.id}/submissions`,
+        query: { partnerId: partner.id },
+      });
 
-    expect(submissions).toHaveLength(1);
-    expect(submissions[0].status).toBe("submitted");
-  });
+      expect(submissions).toHaveLength(1);
+      expect(submissions[0].status).toBe("submitted");
+    },
+  );
 });

@@ -1,5 +1,5 @@
-import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { PartnerBountyProps } from "@/lib/types";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 

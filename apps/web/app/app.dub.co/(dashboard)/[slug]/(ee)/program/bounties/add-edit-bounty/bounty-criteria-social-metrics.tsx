@@ -1,9 +1,8 @@
 "use client";
 
 import {
-  BOUNTY_SOCIAL_PLATFORM_METRICS,
-  BOUNTY_SOCIAL_PLATFORMS,
   BOUNTY_SOCIAL_PLATFORM_METRICS_MAP,
+  BOUNTY_SOCIAL_PLATFORMS,
 } from "@/lib/bounty/constants";
 import type { SocialMetricsChannel } from "@/lib/types";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
@@ -77,13 +76,11 @@ export function BountyCriteriaSocialMetrics() {
       socialMetrics?.platform ??
       ("youtube" as SocialMetricsChannel);
     const platformMetrics = BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[nextPlatform];
-    const nextMetric = (
-      updates.metric ??
+    const nextMetric = (updates.metric ??
       (socialMetrics?.metric &&
       platformMetrics?.some((m) => m.value === socialMetrics.metric)
         ? socialMetrics.metric
-        : platformMetrics?.[0]?.value ?? "views")
-    ) as "views" | "likes";
+        : platformMetrics?.[0]?.value ?? "views")) as "views" | "likes";
     const nextAmount = updates.amount ?? socialMetrics?.amount ?? 0;
     const nextIncrementalBonus =
       "incrementalBonus" in updates
@@ -212,9 +209,9 @@ export function BountyCriteriaSocialMetrics() {
             >
               <InlineBadgePopoverMenu
                 items={
-                  BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[metricPlatformForMenu]?.map(
-                    (m) => ({ value: m.value, text: m.label }),
-                  ) ?? []
+                  BOUNTY_SOCIAL_PLATFORM_METRICS_MAP[
+                    metricPlatformForMenu
+                  ]?.map((m) => ({ value: m.value, text: m.label })) ?? []
                 }
                 selectedValue={socialMetrics?.metric}
                 onSelect={(v) => updateSocialMetrics({ metric: v })}
