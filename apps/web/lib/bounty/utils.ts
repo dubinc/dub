@@ -40,12 +40,20 @@ export function getSocialContentEmbedUrl({
 
     if (platform === "instagram") {
       if (host === "instagram.com" || host === "www.instagram.com") {
-        const pathMatch = parsed.pathname.match(/\/p\/([^/]+)/);
+        const pathMatch =
+          parsed.pathname.match(/\/p\/([^/]+)/) ??
+          parsed.pathname.match(/\/reel\/([^/]+)/);
         const shortcode = pathMatch?.[1];
 
-        return shortcode
-          ? `https://www.instagram.com/p/${shortcode}/embed/`
-          : null;
+        if (!shortcode) {
+          return null;
+        }
+
+        const isReel = parsed.pathname.includes("/reel/");
+
+        return isReel
+          ? `https://www.instagram.com/reel/${shortcode}/embed/`
+          : `https://www.instagram.com/p/${shortcode}/embed/`;
       }
     }
 

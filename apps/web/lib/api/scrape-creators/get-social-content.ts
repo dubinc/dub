@@ -66,6 +66,36 @@ export async function getSocialContent({
     }
 
     case "instagram": {
+      const thumbnailUrl = data.display_url ?? data.thumbnail_src ?? null;
+      const carouselEdges = data.edge_sidecar_to_children?.edges ?? [];
+
+      const thumbnailUrls =
+        carouselEdges.length > 0
+          ? carouselEdges
+              .map(
+                (edge: {
+                  node: { display_url?: string; thumbnail_src?: string };
+                }) => edge.node.display_url ?? edge.node.thumbnail_src ?? "",
+              )
+              .filter(Boolean)
+          : undefined;
+
+      // Find the media type based on the data
+      let mediaType: "image" | "video" | "carousel" | undefined;
+
+      if (data.__typename === "GraphVideo") {
+        mediaType = "video";
+      } else if (
+        data.__typename === "GraphSidecar" ||
+        (thumbnailUrls !== undefined && thumbnailUrls.length > 0)
+      ) {
+        mediaType = "carousel";
+      } else if (data.__typename === "GraphImage") {
+        mediaType = "image";
+      } else if (thumbnailUrls === undefined && data.video_view_count > 0) {
+        mediaType = "video";
+      }
+
       return {
         publishedAt: new Date(data.taken_at_timestamp * 1000),
         handle: data.owner.username,
@@ -74,7 +104,9 @@ export async function getSocialContent({
         likes: data.edge_media_preview_like.count,
         title: null,
         description: data.edge_media_to_caption?.edges?.[0]?.node?.text ?? null,
-        thumbnailUrl: data.display_url ?? data.thumbnail_src ?? null,
+        thumbnailUrl,
+        mediaType,
+        thumbnailUrls,
       };
     }
 

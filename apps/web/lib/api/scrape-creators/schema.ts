@@ -223,7 +223,7 @@ export const socialContentSchema = z.preprocess(
       }),
       video_view_count: z
         .number()
-        .nullable()
+        .nullish()
         .transform((val) => val ?? 0),
       edge_media_preview_like: z.object({
         count: z
@@ -242,6 +242,19 @@ export const socialContentSchema = z.preprocess(
         .optional(),
       display_url: z.string().optional(),
       thumbnail_src: z.string().optional(),
+      __typename: z.string().optional(),
+      edge_sidecar_to_children: z
+        .object({
+          edges: z.array(
+            z.object({
+              node: z.object({
+                display_url: z.string().optional(),
+                thumbnail_src: z.string().optional(),
+              }),
+            }),
+          ),
+        })
+        .optional(),
     }),
 
     z.object({

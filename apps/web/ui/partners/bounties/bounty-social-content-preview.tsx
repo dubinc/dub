@@ -13,6 +13,12 @@ import {
 } from "@/lib/types";
 import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
 import { ButtonLink } from "@/ui/placeholders/button-link";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNavBar,
+} from "@dub/ui";
 import { formatDate, truncate } from "@dub/utils";
 import type { LucideIcon } from "lucide-react";
 import { Instagram, Loader2, Music2, Tv, Youtube } from "lucide-react";
@@ -238,8 +244,6 @@ function TwitterContent({ url, content }: SocialContentPreviewContentProps) {
 }
 
 function TikTokContent({ url, content }: SocialContentPreviewContentProps) {
-  const thumbnailUrl = content?.thumbnailUrl ?? null;
-
   const embedUrl = getSocialContentEmbedUrl({
     platform: "tiktok",
     url,
@@ -273,31 +277,65 @@ function TikTokContent({ url, content }: SocialContentPreviewContentProps) {
 
 function InstagramContent({ url, content }: SocialContentPreviewContentProps) {
   const thumbnailUrl = content?.thumbnailUrl ?? null;
+  const mediaType = content?.mediaType;
+  const thumbnailUrls = content?.thumbnailUrls;
+
+  const isCarousel =
+    mediaType === "carousel" && thumbnailUrls && thumbnailUrls.length > 1;
 
   const embedUrl = getSocialContentEmbedUrl({
     platform: "instagram",
     url,
   });
 
+  const imageUrls =
+    isCarousel && thumbnailUrls
+      ? thumbnailUrls
+      : thumbnailUrl
+        ? [thumbnailUrl]
+        : [];
+
   return (
     <div className="flex flex-col">
       <ContentAuthor url={url} platform="instagram" content={content} />
       <ContentEmbedWrapper>
         <div className="relative mx-auto aspect-square max-h-[320px] w-full bg-neutral-100">
-          {embedUrl ? (
-            <iframe
-              src={embedUrl}
-              title={content?.title ?? "Instagram post"}
-              className="absolute inset-0 size-full"
-              allowFullScreen
-              loading="lazy"
-            />
+          {isCarousel ? (
+            <Carousel opts={{ loop: true }} className="size-full">
+              <CarouselContent className="ml-0 size-full">
+                {imageUrls.map((src, idx) => (
+                  <CarouselItem key={idx} className="basis-full pl-0">
+                    <img
+                      src={src}
+                      alt={`${content?.title ?? "Instagram post"} slide ${idx + 1}`}
+                      className="size-full object-cover"
+                    />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselNavBar
+                variant="simple"
+                className="absolute bottom-2 left-1/2 -translate-x-1/2"
+              />
+            </Carousel>
+          ) : embedUrl ? (
+            <>
+              <iframe
+                src={embedUrl}
+                title={content?.title ?? "Instagram post"}
+                className="absolute inset-0 size-full"
+                allowFullScreen
+                loading="lazy"
+              />
+            </>
           ) : thumbnailUrl ? (
-            <img
-              src={thumbnailUrl}
-              alt={content?.title ?? "Instagram post"}
-              className="size-full object-cover"
-            />
+            <>
+              <img
+                src={thumbnailUrl}
+                alt={content?.title ?? "Instagram post"}
+                className="size-full object-cover"
+              />
+            </>
           ) : (
             <div className="flex size-full items-center justify-center text-sm text-neutral-500">
               Image preview

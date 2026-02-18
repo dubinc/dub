@@ -292,4 +292,6 @@ export const socialContentOutputSchema = z.object({
   title: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
   thumbnailUrl: z.string().nullable().optional(),
+  mediaType: z.enum(["image", "video", "carousel"]).optional(),
+  thumbnailUrls: z.array(z.string()).optional(),
 });
