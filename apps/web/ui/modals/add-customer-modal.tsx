@@ -73,6 +73,7 @@ export const AddCustomerModal = ({
     watch,
     reset,
     setValue,
+    getValues,
     formState: { isSubmitting, errors },
   } = useForm<FormData>({
     defaultValues: {
@@ -183,7 +184,7 @@ export const AddCustomerModal = ({
       const customer = await response.json();
       await mutate(`/api/customers?workspaceId=${workspaceId}`);
       toast.success(
-        `Customer with ID "${customer.externalId}" added successfully!`,
+        `Customer "${customer.email ?? customer.externalId}" added successfully!`,
       );
       onSuccess?.(customer);
       setShowModal(false);
@@ -210,6 +211,7 @@ export const AddCustomerModal = ({
               setShowStripeImport(true);
               setStripeSearchResults(null);
               setStripeSearchError(null);
+              setStripeSearchEmail(getValues("email") ?? "");
             }}
           />
         )}
@@ -461,7 +463,7 @@ export const AddCustomerModal = ({
                         })}
                       />
                       <p className="mt-1.5 text-xs text-neutral-500">
-                        Optional. Used to attribute recurring sales to partners.
+                        Used to attribute recurring sales to partners.
                       </p>
                     </div>
                   )}

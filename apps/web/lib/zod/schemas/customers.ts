@@ -197,6 +197,7 @@ export const StripeCustomerSchema = z.object({
 
 export const StripeCustomerInvoiceSchema = z.object({
   id: z.string(),
-  amount_paid: z.number(),
-  created: z.number().transform((v) => new Date(v * 1000)),
+  amount: z.number(),
+  createdAt: z.date(),
+  metadata: z.any(),
 });

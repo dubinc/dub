@@ -4,6 +4,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
+import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
@@ -39,12 +40,7 @@ interface CreateCommissionSheetProps {
 
 type FormData = z.infer<typeof createCommissionSchema>;
 
-// API returns created as ISO string after JSON serialization
-type StripeInvoiceFromApi = {
-  id: string;
-  amount_paid: number;
-  created: string;
-};
+type StripeInvoiceFromApi = z.infer<typeof StripeCustomerInvoiceSchema>;
 
 async function fetcherStripeInvoices(url: string): Promise<{
   invoices: StripeInvoiceFromApi[];
@@ -653,32 +649,29 @@ function CreateCommissionSheetContent({
                                 </p>
                               </div>
                               <div className="max-h-96 overflow-y-auto p-1.5">
-                                {stripeInvoices.map((inv) => {
-                                  const createdDate = new Date(inv.created);
-                                  return (
-                                    <div
-                                      key={inv.id}
-                                      className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5"
-                                    >
-                                      <div className="min-w-0 flex-1">
-                                        <a
-                                          href={`https://dashboard.stripe.com/invoices/${inv.id}`}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="cursor-alias font-mono text-sm font-medium text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
-                                        >
-                                          {inv.id}
-                                        </a>
-                                        <p className="mt-0.5 text-xs text-neutral-500">
-                                          {formatDate(createdDate)}
-                                        </p>
-                                      </div>
-                                      <span className="shrink-0 text-sm font-medium text-neutral-700">
-                                        {currencyFormatter(inv.amount_paid)}
-                                      </span>
+                                {stripeInvoices.map((inv) => (
+                                  <div
+                                    key={inv.id}
+                                    className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5"
+                                  >
+                                    <div className="min-w-0 flex-1">
+                                      <a
+                                        href={`https://dashboard.stripe.com/invoices/${inv.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="cursor-alias font-mono text-sm font-medium text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                                      >
+                                        {inv.id}
+                                      </a>
+                                      <p className="mt-0.5 text-xs text-neutral-500">
+                                        {formatDate(inv.createdAt)}
+                                      </p>
                                     </div>
-                                  );
-                                })}
+                                    <span className="shrink-0 text-sm font-medium text-neutral-700">
+                                      {currencyFormatter(inv.amount)}
+                                    </span>
+                                  </div>
+                                ))}
                               </div>
                             </div>
                           )}

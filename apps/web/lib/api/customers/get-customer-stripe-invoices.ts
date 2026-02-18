@@ -16,14 +16,21 @@ export async function getCustomerStripeInvoices({
     {
       customer: stripeCustomerId,
       status: "paid",
+      limit: 100,
     },
     {
       stripeAccount: stripeConnectId,
     },
   );
 
-  const stripeCustomerInvoices =
-    StripeCustomerInvoiceSchema.array().parse(data);
+  const stripeCustomerInvoices = data.map((invoice) =>
+    StripeCustomerInvoiceSchema.parse({
+      id: invoice.id,
+      amount: invoice.amount_paid,
+      createdAt: new Date(invoice.created * 1000),
+      metadata: invoice,
+    }),
+  );
 
   return stripeCustomerInvoices;
 }

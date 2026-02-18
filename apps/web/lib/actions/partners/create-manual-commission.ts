@@ -141,7 +141,7 @@ export const createManualCommissionAction = authActionClient
       }
     }
 
-    const tbEventsToRecord: Promise<any>[] = []; // a list of promises of events to record in Tinybird
+    const tbEventsToRecord: Array<() => Promise<unknown>> = []; // a list of promises of events to record in Tinybird
     const commissionsToCreate: CreatePartnerCommissionProps[] = [];
 
     // keep track of click event to update customer later
@@ -174,7 +174,10 @@ export const createManualCommissionAction = authActionClient
       }).then(
         (
           invoices, // sort invoices by created date ascending
-        ) => invoices.sort((a, b) => a.created.getTime() - b.created.getTime()),
+        ) =>
+          invoices.sort(
+            (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
+          ),
       );
 
       if (stripeCustomerInvoices.length === 0) {
@@ -183,8 +186,8 @@ export const createManualCommissionAction = authActionClient
         );
       }
 
-      lastLeadAt = stripeCustomerInvoices[0].created;
-      lastConversionAt = stripeCustomerInvoices[0].created;
+      lastLeadAt = stripeCustomerInvoices[0].createdAt;
+      lastConversionAt = stripeCustomerInvoices[0].createdAt;
 
       clickId = nanoid(16);
       clickedAt = new Date(lastLeadAt.getTime() - 5 * 60 * 1000);
@@ -201,7 +204,7 @@ export const createManualCommissionAction = authActionClient
           : "",
       });
 
-      tbEventsToRecord.push(recordClickZod(generatedClickEvent));
+      tbEventsToRecord.push(() => recordClickZod(generatedClickEvent));
 
       const leadEventData = leadEventSchemaTBWithTimestamp.parse({
         ...generatedClickEvent,
@@ -211,23 +214,24 @@ export const createManualCommissionAction = authActionClient
         timestamp: lastLeadAt.toISOString(),
       });
 
-      tbEventsToRecord.push(recordLeadWithTimestamp(leadEventData));
+      tbEventsToRecord.push(() => recordLeadWithTimestamp(leadEventData));
 
       const saleEventData = stripeCustomerInvoices.map((invoice) =>
         saleEventSchemaTBWithTimestamp.parse({
           ...generatedClickEvent,
           event_id: nanoid(16),
           invoice_id: invoice.id,
-          event_name: "Purchase",
-          amount: invoice.amount_paid,
+          event_name: "Invoice paid",
+          amount: invoice.amount,
           customer_id: customer.id,
           payment_processor: "stripe",
           currency: "usd",
-          timestamp: invoice.created.toISOString(),
+          timestamp: invoice.createdAt.toISOString(),
+          metadata: JSON.stringify(invoice.metadata),
         }),
       );
 
-      tbEventsToRecord.push(recordSaleWithTimestamp(saleEventData));
+      tbEventsToRecord.push(() => recordSaleWithTimestamp(saleEventData));
 
       commissionsToCreate.push(
         ...saleEventData.map((saleEvent) => ({
@@ -271,7 +275,7 @@ export const createManualCommissionAction = authActionClient
           : "",
       });
 
-      tbEventsToRecord.push(recordClickZod(generatedClickEvent));
+      tbEventsToRecord.push(() => recordClickZod(generatedClickEvent));
 
       // Record lead event
       const leadEventData = leadEventSchemaTBWithTimestamp.parse({
@@ -284,7 +288,7 @@ export const createManualCommissionAction = authActionClient
 
       console.log("New lead event to record: ", leadEventData);
 
-      tbEventsToRecord.push(recordLeadWithTimestamp(leadEventData));
+      tbEventsToRecord.push(() => recordLeadWithTimestamp(leadEventData));
 
       if (commissionType === "lead") {
         commissionsToCreate.push({
@@ -322,7 +326,7 @@ export const createManualCommissionAction = authActionClient
 
         console.log("New sale event to record: ", saleEventData);
 
-        tbEventsToRecord.push(recordSaleWithTimestamp(saleEventData));
+        tbEventsToRecord.push(() => recordSaleWithTimestamp(saleEventData));
 
         if (commissionType === "sale") {
           commissionsToCreate.push({
@@ -343,15 +347,16 @@ export const createManualCommissionAction = authActionClient
               sale: { productId },
             },
           });
-          // Track the sale event timestamp for link stats update
+          totalSales++;
+          totalSaleAmount += saleEventData.amount;
           lastConversionAt = new Date(saleEventData.timestamp);
         }
       }
     }
 
     // record events in Tinybird
-    const tbRes = await Promise.allSettled(tbEventsToRecord);
-    console.log("recorded events in Tinybird: ", prettyPrint(tbRes));
+    const tbRes = await Promise.allSettled(tbEventsToRecord.map((fn) => fn()));
+    console.log("Recorded events in Tinybird: ", prettyPrint(tbRes));
 
     // create partner commissions
     await Promise.allSettled(
@@ -399,14 +404,12 @@ export const createManualCommissionAction = authActionClient
                   newTimestamp: lastConversionAt || new Date(),
                 }),
               }),
-              ...(commissionType === "sale" && {
-                sales: {
-                  increment: saleAmount ? 1 : totalSales,
-                },
-                saleAmount: {
-                  increment: saleAmount ?? totalSaleAmount,
-                },
-              }),
+              sales: {
+                increment: totalSales,
+              },
+              saleAmount: {
+                increment: totalSaleAmount,
+              },
             },
           }),
           prisma.customer.update({
@@ -425,7 +428,9 @@ export const createManualCommissionAction = authActionClient
               saleAmount: {
                 increment: totalSaleAmount,
               },
-              firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+              firstSaleAt: customer.firstSaleAt
+                ? undefined
+                : lastConversionAt ?? new Date(),
             },
           }),
         ]);
