@@ -59,11 +59,11 @@ export const GET = withPartnerProfile(
       });
     }
 
-    const stats = await getSocialContent({
+    const content = await getSocialContent({
       platform: platform.value,
       url,
     });
 
-    return NextResponse.json(stats);
+    return NextResponse.json(content);
   },
 );

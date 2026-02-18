@@ -165,6 +165,8 @@ export const POST = withWorkspace(
       startsAt,
       endsAt,
       submissionsOpenAt,
+      submissionFrequency,
+      totalSubmissionsAllowed,
       submissionRequirements,
       groupIds,
       performanceCondition,
@@ -244,6 +246,10 @@ export const POST = withWorkspace(
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
           submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
+          submissionFrequency:
+            type === "submission" ? submissionFrequency ?? null : null,
+          totalSubmissionsAllowed:
+            type === "submission" ? totalSubmissionsAllowed ?? null : null,
           rewardAmount: rewardAmount ?? null,
           rewardDescription,
           performanceScope: type === "performance" ? performanceScope : null,
