@@ -194,17 +194,7 @@ export const withWorkspace = (
                     },
                   },
                 }),
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    image: true,
-                    isMachine: true,
-                    defaultWorkspace: true,
-                    defaultPartnerId: true,
-                  },
-                },
+                user: true,
               },
             };
 

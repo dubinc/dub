@@ -96,17 +96,7 @@ export const withPartnerProfile = (
               },
               select: {
                 expires: true,
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    image: true,
-                    isMachine: true,
-                    defaultWorkspace: true,
-                    defaultPartnerId: true,
-                  },
-                },
+                user: true,
               },
             });
           }
