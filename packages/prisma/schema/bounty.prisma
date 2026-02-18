@@ -23,23 +23,31 @@ enum BountySubmissionRejectionReason {
   other
 }
 
+enum BountySubmissionFrequency {
+  day
+  week
+  month
+}
+
 model Bounty {
-  id                     String                  @id @default(cuid())
-  programId              String
-  workflowId             String?                 @unique
-  name                   String
-  description            String?                 @db.Text
-  type                   BountyType
-  startsAt               DateTime
-  endsAt                 DateTime?
-  submissionsOpenAt      DateTime?
-  rewardAmount           Int?
-  rewardDescription      String?
-  performanceScope       BountyPerformanceScope?
-  submissionRequirements Json?
-  archivedAt             DateTime?
-  createdAt              DateTime                @default(now())
-  updatedAt              DateTime                @updatedAt
+  id                      String                     @id @default(cuid())
+  programId               String
+  workflowId              String?                    @unique
+  name                    String
+  description             String?                    @db.Text
+  type                    BountyType
+  startsAt                DateTime
+  endsAt                  DateTime?
+  submissionsOpenAt       DateTime?
+  submissionFrequency     BountySubmissionFrequency?
+  totalSubmissionsAllowed Int?
+  rewardAmount            Int?
+  rewardDescription       String?
+  performanceScope        BountyPerformanceScope?
+  submissionRequirements  Json?
+  archivedAt              DateTime?
+  createdAt               DateTime                   @default(now())
+  updatedAt               DateTime                   @updatedAt
 
   submissions BountySubmission[]
   groups      BountyGroup[]

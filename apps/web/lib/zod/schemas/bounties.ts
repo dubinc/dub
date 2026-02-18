@@ -9,6 +9,7 @@ import {
 } from "@/lib/bounty/constants";
 import {
   BountyPerformanceScope,
+  BountySubmissionFrequency,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
   BountyType,
@@ -99,6 +100,8 @@ export const createBountySchema = z.object({
   startsAt: parseDateSchema.nullish(),
   endsAt: parseDateSchema.nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
+  submissionFrequency: z.enum(BountySubmissionFrequency).nullish(),
+  totalSubmissionsAllowed: z.number().int().positive().nullish(),
   rewardAmount: z
     .number()
     .min(1, "Reward amount must be greater than 1")
@@ -139,6 +142,8 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   submissionsOpenAt: z.date().nullable(),
+  submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
+  totalSubmissionsAllowed: z.number().nullable(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
   performanceCondition: bountyPerformanceConditionSchema

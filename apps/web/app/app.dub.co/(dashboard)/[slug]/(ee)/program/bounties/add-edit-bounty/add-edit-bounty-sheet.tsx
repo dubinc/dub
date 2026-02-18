@@ -56,6 +56,34 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
   },
 ];
 
+const END_DATE_OPTIONS: CardSelectorOption[] = [
+  {
+    key: "fixed",
+    label: "End date",
+    description: "Set a fixed end date",
+  },
+  {
+    key: "repeat",
+    label: "Repeat submissions",
+    description: "Set scheduled submissions",
+  },
+];
+
+const SUBMISSION_FREQUENCY_OPTIONS = [
+  {
+    value: "week",
+    label: "Once a week (default)",
+  },
+  {
+    value: "month",
+    label: "Once a month",
+  },
+  {
+    value: "day",
+    label: "Once a day",
+  },
+] as const;
+
 const ACCORDION_ITEMS = [
   "bounty-type",
   "bounty-details",
@@ -73,20 +101,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
 
   const [hasStartDate, setHasStartDate] = useState(!!bounty?.startsAt);
-  const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
-  const originalSubmissionWindow = useMemo(() => {
-    return bounty?.submissionsOpenAt && bounty?.endsAt
-      ? Math.ceil(
-          (new Date(bounty.endsAt).getTime() -
-            new Date(bounty.submissionsOpenAt).getTime()) /
-            (1000 * 60 * 60 * 24),
-        )
-      : null;
-  }, [bounty]);
-  const [submissionWindow, setSubmissionWindow] = useState<number | null>(
-    originalSubmissionWindow,
-  );
 
   const form = useForm<BountyFormDataExtended>({
     defaultValues: {
@@ -120,6 +135,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         "socialMetrics" in bounty.submissionRequirements
           ? "socialMetrics"
           : "manualSubmission",
+      endDateMode:
+        bounty?.totalSubmissionsAllowed != null || bounty?.submissionFrequency
+          ? "repeat"
+          : "fixed",
+      submissionFrequency: bounty?.submissionFrequency ?? "week",
+      totalSubmissionsAllowed: bounty?.totalSubmissionsAllowed ?? 2,
     },
     shouldUnregister: false,
   });
@@ -133,6 +154,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     formState: { errors, isDirty },
   } = form;
 
+  const endDateMode = watch("endDateMode") ?? "fixed";
+  const totalSubmissionsAllowed = watch("totalSubmissionsAllowed") ?? 2;
+  const isRepeatMode = endDateMode === "repeat";
+
   const [
     startsAt,
     endsAt,
@@ -145,6 +170,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     groupIds,
     rewardType,
     submissionRequirements,
+    submissionFrequency,
+    totalSubmissionsAllowedVal,
   ] = watch([
     "startsAt",
     "endsAt",
@@ -157,6 +184,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "groupIds",
     "rewardType",
     "submissionRequirements",
+    "submissionFrequency",
+    "totalSubmissionsAllowed",
   ]);
 
   // Helper functions to update form values
@@ -167,47 +196,28 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     }
   };
 
-  const handleEndDateToggle = (checked: boolean) => {
-    setHasEndDate(checked);
-    if (!checked) {
-      setValue("endsAt", null, { shouldDirty: true, shouldValidate: true });
-      setSubmissionWindow(null);
-      setValue("submissionsOpenAt", null, { shouldDirty: true });
-    }
-  };
-
-  // Update submissionsOpenAt when endsAt or submissionWindow changes
   const handleEndDateChange = (date: Date | null) => {
     setValue("endsAt", date, {
       shouldDirty: true,
       shouldValidate: true,
     });
-    if (date && submissionWindow) {
-      const submissionsOpenAt = new Date(date);
-      submissionsOpenAt.setDate(submissionsOpenAt.getDate() - submissionWindow);
-      setValue("submissionsOpenAt", submissionsOpenAt, { shouldDirty: true });
-    }
   };
 
-  const handleSubmissionWindowToggle = (checked: boolean) => {
-    if (checked) {
-      setSubmissionWindow(originalSubmissionWindow || 2);
-      if (bounty?.submissionsOpenAt) {
-        setValue("submissionsOpenAt", bounty.submissionsOpenAt);
-      }
-    } else {
-      setSubmissionWindow(null);
+  const handleEndDateModeChange = (mode: "fixed" | "repeat") => {
+    setValue("endDateMode", mode, { shouldDirty: true });
+    if (mode === "fixed") {
+      setValue("submissionFrequency", undefined, { shouldDirty: true });
+      setValue("totalSubmissionsAllowed", null, { shouldDirty: true });
       setValue("submissionsOpenAt", null, { shouldDirty: true });
+    } else {
+      setValue("submissionFrequency", "week", { shouldDirty: true });
+      setValue("totalSubmissionsAllowed", 2, { shouldDirty: true });
+      setValue("endsAt", null, { shouldDirty: true });
     }
   };
 
-  const handleSubmissionWindowChange = (value: number) => {
-    setSubmissionWindow(value);
-    if (endsAt) {
-      const submissionsOpenAt = new Date(endsAt);
-      submissionsOpenAt.setDate(submissionsOpenAt.getDate() - value);
-      setValue("submissionsOpenAt", submissionsOpenAt, { shouldDirty: true });
-    }
+  const handleTotalSubmissionsAllowedChange = (value: number) => {
+    setValue("totalSubmissionsAllowed", value, { shouldDirty: true });
   };
 
   // Comprehensive validation logic
@@ -240,24 +250,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       }
     }
 
-    // Submission window validations
-    if (submissionWindow !== null) {
-      if (!endsAt) {
-        return "An end date is required to determine when the submission window opens.";
-      }
-
-      if (submissionWindow < 1 || submissionWindow > 30) {
-        return "Submission window must be between 1 and 30 days.";
-      }
-
-      // Check if submission window doesn't push submissionsOpenAt before start date
-      const calculatedSubmissionsOpenAt = new Date(endsAt);
-      calculatedSubmissionsOpenAt.setDate(
-        calculatedSubmissionsOpenAt.getDate() - submissionWindow,
-      );
-
-      if (calculatedSubmissionsOpenAt <= effectiveStartDate) {
-        return "Submission window is too long. It would open before the bounty starts.";
+    if (type === "submission" && isRepeatMode) {
+      const total = totalSubmissionsAllowedVal ?? 2;
+      if (total < 1 || total > 10) {
+        return "Total submissions allowed must be between 1 and 10.";
       }
     }
 
@@ -343,7 +339,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     endsAt,
     rewardAmount,
     rewardDescription,
-    submissionWindow,
+    isRepeatMode,
     rewardType,
     type,
     name,
@@ -352,6 +348,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     performanceCondition?.operator,
     performanceCondition?.value,
     submissionRequirements,
+    totalSubmissionsAllowedVal,
   ]);
 
   const { setShowConfirmCreateBountyModal, confirmCreateBountyModal } =
@@ -433,6 +430,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       data.submissionsOpenAt = null;
     } else if (data.type === "submission") {
       data.performanceCondition = null;
+
+      if (isRepeatMode) {
+        data.submissionFrequency = submissionFrequency ?? "week";
+        data.totalSubmissionsAllowed = totalSubmissionsAllowedVal ?? 2;
+        data.endsAt = null;
+        data.submissionsOpenAt = null;
+      } else {
+        data.submissionFrequency = undefined;
+        data.totalSubmissionsAllowed = undefined;
+        data.submissionsOpenAt = null;
+      }
 
       if ((rewardType ?? "flat") === "custom") {
         data.rewardAmount = null;
@@ -566,92 +574,102 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       )}
                     </AnimatedSizeContainer>
 
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
-                      style={{
-                        height: hasEndDate ? "auto" : "0px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <Switch
-                          fn={handleEndDateToggle}
-                          checked={hasEndDate}
-                          trackDimensions="w-8 h-4"
-                          thumbDimensions="w-3 h-3"
-                          thumbTranslate="translate-x-4"
+                    {type === "submission" ? (
+                      <div className="space-y-4">
+                        <CardSelector
+                          options={END_DATE_OPTIONS}
+                          value={endDateMode}
+                          onChange={(value) =>
+                            handleEndDateModeChange(value as "fixed" | "repeat")
+                          }
+                          name="end-date-mode"
                         />
-                        <div className="flex flex-col gap-1">
-                          <h3 className="text-sm font-medium text-neutral-700">
-                            End date
-                          </h3>
-                        </div>
-                      </div>
 
-                      {hasEndDate && (
-                        <div className="mt-3 p-px">
-                          <Controller
-                            control={control}
-                            name="endsAt"
-                            render={({ field }) => (
-                              <SmartDateTimePicker
-                                value={field.value}
-                                onChange={(date) =>
-                                  handleEndDateChange(date ?? null)
-                                }
-                                placeholder='E.g. "in 3 months"'
-                              />
-                            )}
-                          />
-                        </div>
-                      )}
-                    </AnimatedSizeContainer>
+                        {endDateMode === "fixed" && (
+                          <div className="p-px">
+                            <Controller
+                              control={control}
+                              name="endsAt"
+                              render={({ field }) => (
+                                <SmartDateTimePicker
+                                  value={field.value}
+                                  onChange={(date) =>
+                                    handleEndDateChange(date ?? null)
+                                  }
+                                  placeholder="Set a fixed end date"
+                                />
+                              )}
+                            />
+                          </div>
+                        )}
+
+                        {isRepeatMode && (
+                          <div className="space-y-4">
+                            <div>
+                              <label className="text-sm font-medium text-neutral-800">
+                                Submission frequency
+                              </label>
+                              <div className="mt-2">
+                                <select
+                                  value={submissionFrequency ?? "week"}
+                                  onChange={(e) =>
+                                    setValue(
+                                      "submissionFrequency",
+                                      e.target.value as
+                                        | "day"
+                                        | "week"
+                                        | "month",
+                                      { shouldDirty: true },
+                                    )
+                                  }
+                                  className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
+                                >
+                                  {SUBMISSION_FREQUENCY_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium text-neutral-800">
+                                Total submissions allowed
+                              </label>
+                              <div className="mt-2">
+                                <NumberStepper
+                                  value={totalSubmissionsAllowed ?? 2}
+                                  onChange={handleTotalSubmissionsAllowedChange}
+                                  min={1}
+                                  max={10}
+                                  step={1}
+                                  className="w-full"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="p-px">
+                        <Controller
+                          control={control}
+                          name="endsAt"
+                          render={({ field }) => (
+                            <SmartDateTimePicker
+                              value={field.value}
+                              onChange={(date) =>
+                                handleEndDateChange(date ?? null)
+                              }
+                              placeholder="Set a fixed end date"
+                            />
+                          )}
+                        />
+                      </div>
+                    )}
 
                     {type === "submission" && (
                       <>
-                        <AnimatedSizeContainer
-                          height
-                          transition={{ ease: "easeInOut", duration: 0.2 }}
-                          style={{
-                            height: submissionWindow ? "auto" : "0px",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div className="flex items-center gap-4">
-                            <Switch
-                              fn={handleSubmissionWindowToggle}
-                              checked={submissionWindow !== null}
-                              trackDimensions="w-8 h-4"
-                              thumbDimensions="w-3 h-3"
-                              thumbTranslate="translate-x-4"
-                              disabled={!Boolean(endsAt)}
-                            />
-                            <div className="flex flex-col gap-1">
-                              <h3 className="text-sm font-medium text-neutral-700">
-                                Submission window
-                              </h3>
-                            </div>
-                          </div>
-
-                          {submissionWindow !== null && (
-                            <div className="mt-3 p-px">
-                              <NumberStepper
-                                value={submissionWindow ?? 2}
-                                onChange={handleSubmissionWindowChange}
-                                min={1} // Min 1 day
-                                max={30} // Max 30 days
-                                step={1}
-                                className="w-full"
-                              />
-                              <p className="mt-2 text-xs text-neutral-500">
-                                Submissions open {submissionWindow} days before
-                                the end date. Drafts can be saved until then.
-                              </p>
-                            </div>
-                          )}
-                        </AnimatedSizeContainer>
-
                         <div>
                           <label
                             htmlFor="name"
