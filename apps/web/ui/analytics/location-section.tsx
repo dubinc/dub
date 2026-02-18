@@ -53,7 +53,7 @@ export function LocationSection() {
                       tab === "continents" ? (
                         <ContinentIcon
                           display={d.continent}
-                          className="size-3"
+                          className="size-4 rounded-full border border-cyan-500"
                         />
                       ) : (
                         <img

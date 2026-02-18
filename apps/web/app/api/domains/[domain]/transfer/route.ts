@@ -34,8 +34,8 @@ export const POST = withWorkspace(
       });
     }
 
-    // Allow only 1 domain transfer per workspace per hour
-    const { success } = await ratelimit(1, "1 h").limit(
+    // Allow up to 5 domain transfer per workspace per hour
+    const { success } = await ratelimit(5, "1 h").limit(
       `domain-transfer:${workspace.id}`,
     );
 

@@ -2,6 +2,7 @@ import {
   eventsExportColumnAccessors,
   eventsExportColumnNames,
 } from "@/lib/analytics/events-export-helpers";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getEvents } from "@/lib/analytics/get-events";
 import { convertToCSV } from "@/lib/analytics/utils";
@@ -19,7 +20,11 @@ import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-import { APP_DOMAIN_WITH_NGROK, capitalize } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  capitalize,
+  parseFilterValue,
+} from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -48,6 +53,14 @@ export const GET = withPartnerProfile(
       });
     }
 
+    // early return if partner has no links
+    if (links.length === 0) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "No links found",
+      });
+    }
+
     const parsedParams = partnerProfileEventsQuerySchema
       .extend({
         columns: z
@@ -59,7 +72,6 @@ export const GET = withPartnerProfile(
       .parse(searchParams);
 
     const { event, columns: columnsParam } = parsedParams;
-    let { linkId, domain, key, ...rest } = parsedParams;
 
     // Default columns based on event type if not provided
     const defaultColumns: Record<string, string[]> = {
@@ -80,47 +92,69 @@ export const GET = withPartnerProfile(
         ? columnsParam
         : defaultColumns[event] || defaultColumns.clicks;
 
+    const { linkId, domain, key } = parsedParams;
+
     if (linkId) {
-      if (!links.some((link) => link.id === linkId)) {
+      // check to make sure all of the linkId.values are in the links
+      if (
+        !linkId.values.every((value) => links.some((link) => link.id === value))
+      ) {
         throw new DubApiError({
           code: "not_found",
-          message: "Link not found",
+          message: "One or more links are not found",
         });
+      }
+
+      if (linkId.sqlOperator === "NOT IN") {
+        // if using NOT IN operator, we need to include all links except the ones in the linkId.values
+        const finalIncludedLinkIds = links
+          .filter((link) => !linkId.values.includes(link.id))
+          .map((link) => link.id);
+
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "No links found",
+          });
+        }
+
+        parsedParams.linkId = {
+          operator: "IS",
+          sqlOperator: "IN",
+          values: finalIncludedLinkIds,
+        };
       }
     } else if (domain && key) {
-      const foundLink = links.find(
-        (link) => link.domain === domain && link.key === key,
+      const link = links.find(
+        (link) =>
+          link.domain === getFirstFilterValue(domain) && link.key === key,
       );
-      if (!foundLink) {
+      if (!link) {
         throw new DubApiError({
           code: "not_found",
           message: "Link not found",
         });
       }
 
-      linkId = foundLink.id;
-    }
-
-    if (links.length === 0) {
-      return new Response("", {
-        headers: {
-          "Content-Type": "application/csv",
-          "Content-Disposition": `attachment; filename=${event}_export.csv`,
-        },
-      });
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
     }
 
     // Count events using getAnalytics with groupBy: "count"
     const countResponse = await getAnalytics({
-      ...rest,
+      ...parsedParams,
       event,
       groupBy: "count",
       workspaceId: program.workspaceId,
-      ...(linkId
-        ? { linkId }
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
-          : { linkIds: links.map((link) => link.id) }),
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 
@@ -143,9 +177,6 @@ export const GET = withPartnerProfile(
           partnerId: partner.id,
           programId: params.programId,
           userId: session.user.id,
-          ...(linkId && { linkId }),
-          ...(domain && { domain }),
-          ...(key && { key }),
           dataAvailableFrom: (
             program.startedAt ?? program.createdAt
           ).toISOString(),
@@ -156,14 +187,13 @@ export const GET = withPartnerProfile(
     }
 
     const events = await getEvents({
-      ...rest,
+      ...parsedParams,
       workspaceId: program.workspaceId,
-      ...(linkId
-        ? { linkId }
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
-          : { linkIds: links.map((link) => link.id) }),
-      dataAvailableFrom: program.startedAt ?? program.createdAt,
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       limit: MAX_EVENTS_TO_EXPORT,
     });
 

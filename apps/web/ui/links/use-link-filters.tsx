@@ -40,6 +40,7 @@ export function useLinkFilters() {
         icon: Tag,
         label: "Tag",
         multiple: true,
+        hideOperator: true,
         shouldFilter: !tagsAsync,
         getOptionIcon: (value, props) => {
           const tagColor =
@@ -48,6 +49,11 @@ export function useLinkFilters() {
           return tagColor ? (
             <TagBadge color={tagColor} withIcon className="sm:p-1" />
           ) : null;
+        },
+        getOptionLabel: (value, props) => {
+          if (props.option?.label) return props.option.label;
+          const tag = tags?.find(({ id }) => id === value);
+          return tag?.name ?? value;
         },
         options:
           tags?.map(({ id, name, color, count, hideDuringSearch }) => ({
@@ -111,10 +117,10 @@ export function useLinkFilters() {
     const { domain, tagIds, userId } = searchParamsObj;
     return [
       ...(domain ? [{ key: "domain", value: domain }] : []),
-      ...(tagIds ? [{ key: "tagIds", value: selectedTagIds }] : []),
+      ...(tagIds ? [{ key: "tagIds", values: selectedTagIds }] : []),
       ...(userId ? [{ key: "userId", value: userId }] : []),
     ];
-  }, [searchParamsObj]);
+  }, [searchParamsObj, selectedTagIds]);
 
   const onSelect = (key: string, value: any) => {
     if (key === "tagIds") {
@@ -152,6 +158,12 @@ export function useLinkFilters() {
     }
   };
 
+  const onRemoveFilter = (key: string) => {
+    queryParams({
+      del: [key, "page"],
+    });
+  };
+
   const onRemoveAll = () => {
     queryParams({
       del: ["domain", "tagIds", "userId", "search"],
@@ -163,6 +175,7 @@ export function useLinkFilters() {
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     setSearch,
     setSelectedFilter,

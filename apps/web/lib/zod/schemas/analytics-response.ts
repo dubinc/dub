@@ -270,11 +270,23 @@ export const analyticsResponse = {
     key: z.string().describe("The key of the short link"),
     shortLink: z.string().describe("The short link URL"),
     url: z.string().describe("The destination URL of the short link"),
-    comments: z.string().nullish().describe("The comments of the short link"),
     title: z
       .string()
       .nullish()
       .describe("The custom link preview title (og:title)"),
+    comments: z.string().nullish().describe("The comments of the short link"),
+    folderId: z
+      .string()
+      .nullish()
+      .describe(
+        "The ID of the folder that the link belongs to (if applicable)",
+      ),
+    partnerId: z
+      .string()
+      .nullish()
+      .describe(
+        "The ID of the partner that the link belongs to (if applicable)",
+      ),
     createdAt: z.string().describe("The creation timestamp of the short link"),
     clicks: z
       .number()

@@ -2,6 +2,7 @@ import {
   eventsExportColumnAccessors,
   eventsExportColumnNames,
 } from "@/lib/analytics/events-export-helpers";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
@@ -18,7 +19,7 @@ import {
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
-import { capitalize, log } from "@dub/utils";
+import { capitalize, log, parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../../utils";
 import { fetchEventsBatch } from "../fetch-events-batch";
@@ -31,10 +32,6 @@ const payloadSchema = partnerProfileEventsQuerySchema.extend({
   partnerId: z.string(),
   programId: z.string(),
   userId: z.string(),
-  linkId: z.string().optional(),
-  domain: z.string().optional(),
-  key: z.string().optional(),
-  dataAvailableFrom: z.string().optional(),
 });
 
 // POST /api/cron/export/events/partner - QStash worker for processing large partner event exports
@@ -47,7 +44,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { columns, partnerId, programId, userId, ...filters } =
+    const { columns, partnerId, programId, userId, ...parsedParams } =
       payloadSchema.parse(JSON.parse(rawBody));
 
     const user = await prisma.user.findUnique({
@@ -77,38 +74,50 @@ export async function POST(req: Request) {
         },
       });
 
-    const { linkId, domain, key, dataAvailableFrom, ...eventFilters } = filters;
-
     // If no links, return early with empty export
     if (links.length === 0) {
       return logAndRespond("No links found. Skipping the export.");
     }
 
-    // Resolve linkId if domain and key are provided
-    let resolvedLinkId = linkId;
-    if (!resolvedLinkId && domain && key) {
-      const foundLink = links.find(
-        (link) => link.domain === domain && link.key === key,
-      );
-      if (foundLink) {
-        resolvedLinkId = foundLink.id;
+    const { linkId, domain, key } = parsedParams;
+
+    if (linkId) {
+      // check to make sure all of the linkId.values are in the links
+      if (
+        !linkId.values.every((value) => links.some((link) => link.id === value))
+      ) {
+        return logAndRespond(
+          "One or more links are not found. Skipping the export.",
+        );
       }
+    } else if (domain && key) {
+      const link = links.find(
+        (link) =>
+          link.domain === getFirstFilterValue(domain) && link.key === key,
+      );
+      if (!link) {
+        return logAndRespond("Link not found. Skipping the export.");
+      }
+
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
     }
 
     // Fetch events in batches and build CSV
     const allEvents: Record<string, any>[] = [];
 
     const eventsFilters = {
-      ...eventFilters,
+      ...parsedParams,
       workspaceId: program.workspaceId,
-      ...(resolvedLinkId
-        ? { linkId: resolvedLinkId }
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId }
-          : { linkIds: links.map((link) => link.id) }),
-      dataAvailableFrom: dataAvailableFrom
-        ? new Date(dataAvailableFrom)
-        : program.startedAt ?? program.createdAt,
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
     };
 
     for await (const { events } of fetchEventsBatch(eventsFilters)) {

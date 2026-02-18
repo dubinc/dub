@@ -92,43 +92,28 @@ export const trackSale = async ({
       eventName: leadEventName,
     });
 
-    if (!leadEvent || leadEvent.data.length === 0) {
-      // Check cache to see if the lead event exists
-      // if leadEventName is provided, we only check for that specific event
-      // otherwise, we check for all cached lead events for that customer
+    if (!leadEvent) {
+      const errorMessage = `Lead event not found for externalId: ${customerExternalId} and leadEventName: ${leadEventName}`;
 
-      const cachedLeadEvent = await redis.get<LeadEventTB>(
-        `leadCache:${existingCustomer.id}${leadEventName ? `:${leadEventName.toLowerCase().replaceAll(" ", "-")}` : ""}`,
+      waitUntil(
+        logConversionEvent({
+          workspace_id: workspace.id,
+          path: "/track/sale",
+          body: JSON.stringify(rawBody),
+          error: errorMessage,
+        }),
       );
 
-      if (!cachedLeadEvent) {
-        const errorMessage = `Lead event not found for externalId: ${customerExternalId} and leadEventName: ${leadEventName}`;
-
-        waitUntil(
-          logConversionEvent({
-            workspace_id: workspace.id,
-            path: "/track/sale",
-            body: JSON.stringify(rawBody),
-            error: errorMessage,
-          }),
-        );
-
-        throw new DubApiError({
-          code: "not_found",
-          message: errorMessage,
-        });
-      }
-
-      leadEventData = {
-        ...cachedLeadEvent,
-        workspace_id: cachedLeadEvent.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
-      };
-    } else {
-      leadEventData = {
-        ...leadEvent.data[0],
-        workspace_id: leadEvent.data[0].workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
-      };
+      throw new DubApiError({
+        code: "not_found",
+        message: errorMessage,
+      });
     }
+
+    leadEventData = {
+      ...leadEvent,
+      workspace_id: leadEvent.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
+    };
   }
 
   // If no existing customer is found and no clickId is provided, return an error
@@ -552,10 +537,10 @@ const _trackSale = async ({
           context: {
             customer: {
               country: customer.country,
-              source: source!,
+              source,
             },
             sale: {
-              productId: metadata?.productId as string,
+              productId: metadata?.productId,
               amount: saleData.amount,
             },
           },

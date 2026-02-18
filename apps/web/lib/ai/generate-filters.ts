@@ -4,40 +4,53 @@ import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { anthropic } from "@ai-sdk/anthropic";
 import { createStreamableValue } from "@ai-sdk/rsc";
-import { COUNTRY_CODES } from "@dub/utils";
-import { streamObject } from "ai";
+import { Output, streamText } from "ai";
 import * as z from "zod/v4";
+
+function getDescription(schema: z.ZodTypeAny): string {
+  const s = schema as { description?: string; _def?: { description?: string } };
+  return s.description ?? s._def?.description ?? "";
+}
+
+/** Schema for AI filter generation: same keys as analytics filters but all string (no parseFilterValue transform). */
+function buildAIFilterSchema() {
+  const shape = analyticsQuerySchema.shape as Record<string, z.ZodTypeAny>;
+  const entries = VALID_ANALYTICS_FILTERS.filter(
+    (key) => shape[key] != null,
+  ).map((key) => {
+    return [
+      key,
+      z.string().optional().describe(getDescription(shape[key])),
+    ] as const;
+  });
+  return z.object(Object.fromEntries(entries));
+}
+
+const AI_FILTER_SCHEMA = buildAIFilterSchema();
+
+const SYSTEM_PROMPT = `You are an analytics filter assistant. Extract or infer filter parameters from the user's request.
+
+Output format: every filter value must use the advanced filtering syntax as a single string:
+- Single value: \`dub.co\`
+- Multiple values (comma-separated): \`dub.co,google.com\`
+- Exclusion (prefix with -): \`-spam.com\`
+
+Only include fields that are clearly requested or implied. Omit optional fields when not relevant. For dates use ISO 8601 (e.g. 2024-01-15).`;
 
 export async function generateFilters(prompt: string) {
   const stream = createStreamableValue();
 
-  const schema = analyticsQuerySchema
-    .pick({
-      ...(VALID_ANALYTICS_FILTERS.reduce((acc, filter) => {
-        acc[filter] = true;
-        return acc;
-      }, {}) as any),
-    })
-    .extend({
-      // polyfilling this here cause we're removing it from the main Analytics schema (to save space for our OpenAPI spec)
-      country: z
-        .enum(COUNTRY_CODES)
-        .optional()
-        .describe(
-          "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
-        ),
-    });
-
   (async () => {
-    const { partialObjectStream } = await streamObject({
+    const { partialOutputStream } = streamText({
       model: anthropic("claude-sonnet-4-20250514"),
-      schema,
+      output: Output.object({ schema: AI_FILTER_SCHEMA }),
+      system: SYSTEM_PROMPT,
       prompt,
       temperature: 0.4,
     });
 
-    for await (const partialObject of partialObjectStream) {
-      const parsed = schema.safeParse(partialObject);
+    for await (const partialObject of partialOutputStream) {
+      const parsed = AI_FILTER_SCHEMA.safeParse(partialObject);
       if (parsed.success) stream.update(parsed.data);
     }
 

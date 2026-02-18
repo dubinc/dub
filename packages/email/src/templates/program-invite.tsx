@@ -133,7 +133,7 @@ export default function ProgramInvite({
   body,
 }: {
   email: string;
-  name: string | null;
+  name?: string | null;
   program: {
     name: string;
     slug: string;

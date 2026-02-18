@@ -16,8 +16,7 @@ export function ProgramMarketplaceCard() {
 
   const { status } = useProgramMarketplacePromo();
 
-  if (!partner || status !== "card")
-    return null;
+  if (!partner || status !== "card") return null;
 
   return (
     <AnimatePresence>

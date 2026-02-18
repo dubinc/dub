@@ -148,58 +148,75 @@ async function searchStripeAndUpdateCustomer({
     entity_id: customer.id,
   } as const;
 
-  const stripeCustomers = await stripe.customers.search(
-    {
-      query: `email:'${customer.email}'`,
-    },
-    {
-      stripeAccount: workspace.stripeConnectId!,
-    },
-  );
-
-  if (stripeCustomers.data.length === 0) {
-    await logImportError({
-      ...commonImportLogInputs,
-      code: "STRIPE_CUSTOMER_NOT_FOUND",
-      message: `Stripe search returned no customer for ${customer.email}`,
-    });
-
-    return null;
-  }
-
-  let stripeCustomer: Stripe.Customer;
-
-  if (stripeCustomers.data.length > 1) {
-    // look for the one with metadata.customer_key set
-    const partnerStackStripeCustomer = stripeCustomers.data.find(
-      ({ metadata }) => metadata.customer_key,
+  try {
+    const stripeCustomers = await stripe.customers.search(
+      {
+        query: `email:'${customer.email}'`,
+        expand: ["data.subscriptions"],
+      },
+      {
+        stripeAccount: workspace.stripeConnectId!,
+      },
     );
 
-    if (partnerStackStripeCustomer) {
-      stripeCustomer = partnerStackStripeCustomer;
-    } else {
+    if (stripeCustomers.data.length === 0) {
       await logImportError({
         ...commonImportLogInputs,
         code: "STRIPE_CUSTOMER_NOT_FOUND",
-        message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
+        message: `Stripe search returned no customer for ${customer.email}`,
       });
 
       return null;
     }
-  } else {
-    stripeCustomer = stripeCustomers.data[0];
+
+    let stripeCustomer: Stripe.Customer;
+
+    if (stripeCustomers.data.length > 1) {
+      // look for the one with metadata.customer_key set
+      const partnerStackStripeCustomer = stripeCustomers.data.find(
+        ({ metadata }) => metadata.customer_key,
+      );
+
+      if (partnerStackStripeCustomer) {
+        stripeCustomer = partnerStackStripeCustomer;
+      } else {
+        // look for the one with subscriptions
+        const customerWithSubcription = stripeCustomers.data.find(
+          ({ subscriptions }) =>
+            subscriptions && subscriptions.data.length > 0,
+        );
+
+        if (customerWithSubcription) {
+          console.log(
+            `Found Stripe customer with subscriptions for ${customer.email}: ${customerWithSubcription.id}`,
+          );
+          stripeCustomer = customerWithSubcription;
+        } else {
+          await logImportError({
+            ...commonImportLogInputs,
+            code: "STRIPE_CUSTOMER_NOT_FOUND",
+            message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.customer_key set`,
+          });
+          return null;
+        }
+      }
+    } else {
+      stripeCustomer = stripeCustomers.data[0];
+    }
+
+    await prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        stripeCustomerId: stripeCustomer.id,
+      },
+    });
+
+    console.log(
+      `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
+    );
+  } catch (error) {
+    console.error(error);
   }
-
-  await prisma.customer.update({
-    where: {
-      id: customer.id,
-    },
-    data: {
-      stripeCustomerId: stripeCustomer.id,
-    },
-  });
-
-  console.log(
-    `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
-  );
 }

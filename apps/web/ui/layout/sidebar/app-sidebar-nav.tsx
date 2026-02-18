@@ -1,13 +1,14 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -576,6 +577,7 @@ export function AppSidebarNav({
   >({
     eligibility: "eligible",
     status: "pending",
+    ignoreParams: true,
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
@@ -611,7 +613,11 @@ export function AppSidebarNav({
   const { data: pendingReferralsCount } = useProgramReferralsCount<number>({
     query: { status: "pending" },
     ignoreParams: true,
-    enabled: Boolean(currentArea === "program" && defaultProgramId),
+    enabled: Boolean(
+      currentArea === "program" &&
+        defaultProgramId &&
+        REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+    ),
   });
 
   const { canTrackConversions } = getPlanCapabilities(plan);
@@ -625,7 +631,7 @@ export function AppSidebarNav({
         slug: slug || "",
         pathname,
         queryString: getQueryString(undefined, {
-          include: ["folderId", "tagIds"],
+          include: ["folderId"],
         }),
         session: session || undefined,
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,

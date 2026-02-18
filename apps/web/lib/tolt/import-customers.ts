@@ -108,9 +108,7 @@ export async function importCustomers(payload: ToltImportPayload) {
       {} as Record<string, Date>,
     );
 
-    const externalIds = customers.map(
-      (c) => c.customer_id || c.email || c.id,
-    );
+    const externalIds = customers.map((c) => c.customer_id || c.email || c.id);
 
     const existingCustomers = await prisma.customer.findMany({
       where: {

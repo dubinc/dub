@@ -416,7 +416,7 @@ function PartnerCard({
             "_blank",
           );
         } else {
-          queryParams({ set: { partnerId: partner.id } });
+          queryParams({ set: { partnerId: partner.id }, scroll: false });
         }
       }}
     >

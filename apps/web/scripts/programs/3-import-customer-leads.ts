@@ -27,7 +27,25 @@ async function main() {
     transformHeader: (header: string) =>
       header.trim().replace(/^["']|["']$/g, ""),
     step: (result: { data: CustomerData }) => {
-      leadsToBackfill.push(result.data);
+      const stripeCustomerId =
+        !result.data.stripeCustomerId || result.data.stripeCustomerId === "null"
+          ? undefined
+          : result.data.stripeCustomerId;
+      const customerExternalId =
+        !result.data.customerExternalId ||
+        result.data.customerExternalId === "null"
+          ? stripeCustomerId
+          : result.data.customerExternalId;
+
+      if (!customerExternalId) {
+        return;
+      }
+
+      leadsToBackfill.push({
+        ...result.data,
+        customerExternalId: customerExternalId!,
+        stripeCustomerId: stripeCustomerId,
+      });
     },
     complete: async () => {
       console.table(leadsToBackfill);
@@ -50,13 +68,42 @@ async function main() {
         },
       });
 
+      const existingCustomers = await prisma.customer.findMany({
+        where: {
+          OR: [
+            {
+              projectId: workspace.id,
+              externalId: {
+                in: leadsToBackfill.map((lead) => lead.customerExternalId),
+              },
+            },
+            {
+              stripeCustomerId: {
+                in: leadsToBackfill
+                  .map((lead) => lead.stripeCustomerId)
+                  .filter((id): id is string => id !== undefined),
+              },
+            },
+          ],
+        },
+      });
+
       // filter out leads that are not associated with a partner link
-      const finalLeadsToBackfill = leadsToBackfill.filter((lead) =>
-        partnerLinks.some(
-          (link) =>
-            link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
-        ),
-      );
+      const finalLeadsToBackfill = leadsToBackfill
+        .filter((lead) =>
+          partnerLinks.some(
+            (link) =>
+              link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
+          ),
+        )
+        .filter(
+          (lead) =>
+            !existingCustomers.some(
+              (customer) =>
+                customer.externalId === lead.customerExternalId ||
+                customer.stripeCustomerId === lead.stripeCustomerId,
+            ),
+        );
 
       console.log(`Found ${finalLeadsToBackfill.length} leads to backfill`);
       console.table(finalLeadsToBackfill.slice(0, 10));

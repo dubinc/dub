@@ -1,5 +1,5 @@
 export const E2E_USER_ID = "clxz1q7c7000hbqx5ckv4r82h";
-export const E2E_USER_ID_MEMBER = "user_1KAERYAJ10MDM56EB9XPX4ZZ8"; // for member user tests
+export const E2E_USER_ID_MEMBER = "user_1KAERYAJ10MDM56EB9XPX4ZZ8"; // for member user tests + old personal token tests
 export const E2E_WORKSPACE_ID = "ws_clrei1gld0002vs9mzn93p8ik";
 
 export const E2E_LINK = {
@@ -26,8 +26,6 @@ export const E2E_TAG_2 = {
   color: "blue",
 };
 
-export const E2E_CUSTOMER_ID = "cm25onzuv0001s1bbxchrc0ae";
-export const E2E_CUSTOMER_EXTERNAL_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
 export const E2E_WEBHOOK_ID = "wh_MHR7sZXXtZ7keBaNYZ30rQ0v";
 
 // Folders specific
@@ -36,9 +34,17 @@ export const E2E_READ_ONLY_FOLDER_ID = "fold_1JP8FN462884CA6JJCVPAHAD4"; // Fold
 export const E2E_NO_ACCESS_FOLDER_ID = "fold_1JRZXGNNYWDA5QTT8CVDB3M23"; // Folder with no access
 export const E2E_READ_ONLY_FOLDER_LINK_ID = "link_1KAESR5Z733716RTT4E1RSTW6"; // A link in read-only folder
 export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_1KAESQ2Z6Q35WDV5NGSEVPFB0"; // A link in no access folder
+export const E2E_PUBLIC_ANALYTICS_FOLDER_ID = "fold_1JP8FXWM7PECSA4SA7FMGHDWE"; // Folder with public analytics dashboard
+
+// Different customer external IDs for different reward conditions
+export const E2E_CUSTOMER_ID = "cm25onzuv0001s1bbxchrc0ae";
+export const E2E_CUSTOMER_EXTERNAL_ID = "cus_jTrfVKYN3Buc3F80JoqBiY0g";
+export const E2E_CUSTOMER_SALE_CONDITIONS_EXTERNAL_ID =
+  "cus_pqc8qRtofpu6ZqvutyNDGAU2";
+export const E2E_CUSTOMER_COUNTRY_CONDITIONS_EXTERNAL_ID =
+  "cus_LnZbkb8boLsOn1YGLPxZGZMU";
 
 // Rewards specific
-export const E2E_CUSTOMER_EXTERNAL_ID_2 = "cus_pqc8qRtofpu6ZqvutyNDGAU2";
 export const E2E_SALE_REWARD = {
   id: "rw_1JYPP77NNDG6TVPAJDKNZREQN",
   event: "sale",
@@ -46,6 +52,7 @@ export const E2E_SALE_REWARD = {
   amountInCents: 1000,
   modifiers: [
     {
+      id: "02f54268-bb03-4bc5-b7cb-4353ec3459e3",
       type: "flat",
       operator: "AND",
       conditions: [
@@ -60,6 +67,7 @@ export const E2E_SALE_REWARD = {
       amountInCents: 3000,
     },
     {
+      id: "d91651b8-f14f-4f1a-9749-c523e618f8fb",
       type: "flat",
       operator: "AND",
       conditions: [
@@ -74,32 +82,34 @@ export const E2E_SALE_REWARD = {
       amountInCents: 5000,
     },
     {
-      type: "percentage",
-      operator: "AND",
-      conditions: [
-        {
-          value: "US",
-          entity: "customer",
-          operator: "equals_to",
-          attribute: "country",
-        },
-      ],
-      maxDuration: null,
-      amountInPercentage: 10,
-    },
-    {
+      id: "249b049f-a476-45fb-8ecf-71f989fc2a8a",
       type: "flat",
       operator: "AND",
       conditions: [
         {
-          value: "CA",
+          value: "SG",
           entity: "customer",
           operator: "equals_to",
           attribute: "country",
         },
       ],
       maxDuration: null,
-      amountInCents: 50,
+      amountInCents: 6500,
+    },
+    {
+      id: "c12b3226-accc-4ed1-a322-09f4310910d3",
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: 3,
+          entity: "customer",
+          operator: "less_than_or_equal",
+          attribute: "subscriptionDurationMonths",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 2000,
     },
   ],
 };
@@ -166,8 +176,13 @@ export const E2E_PROGRAM = {
 
 export const E2E_PARTNER = {
   id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
-  email: "steven@dub.co",
+  email: "steven+test+derek@dub.co",
   tenantId: "4149092f-7265-4002-98d9-da9f8e67e1fb",
+  link: {
+    id: "cm0lcuvtz000xcutmqw4a7wi3",
+    domain: "dub.sh",
+    key: "track-test",
+  },
 };
 
 export const E2E_PARTNER_GROUP = {
@@ -191,19 +206,6 @@ export const E2E_PARTNERS = [
       domain: "getacme.link",
       key: "kiran-e2e-1",
     },
-  },
-] as const;
-
-export const E2E_CUSTOMERS = [
-  {
-    id: "cus_1K82FYFF7RANMCGRHRGMWDNEC",
-    externalId: "cus_LnZbkb8boLsOn1YGLPxZGZMU",
-    country: "SG",
-  },
-  {
-    id: "cus_1K86CG1DZFW8EMSSWXX4AVZFA",
-    externalId: "cus_vq3UgXINHS99MIon8vNvAO1n",
-    country: "CA",
   },
 ] as const;
 

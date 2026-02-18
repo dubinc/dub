@@ -173,16 +173,14 @@ export function TopLinks() {
                     // Determine href
                     let href: string | undefined;
                     if (isLinksSubtab) {
-                      const hasLinkFilter =
-                        searchParams.has("domain") && searchParams.has("key");
                       href = queryParams({
-                        ...(hasLinkFilter
-                          ? { del: ["domain", "key"] }
+                        ...(searchParams.has("linkId")
+                          ? { del: ["linkId"] }
                           : {
                               set: {
-                                domain: d.domain,
-                                key: d.key || "_root",
+                                linkId: d.id,
                               },
+                              del: ["domain", "key"],
                             }),
                         getNewPath: true,
                       }) as string;
@@ -211,13 +209,13 @@ export function TopLinks() {
                         getNewPath: true,
                       }) as string;
                     } else if (isTagsSubtab) {
-                      const hasTagFilter = searchParams.has("tagIds");
+                      const hasTagFilter = searchParams.has("tagId");
                       href = queryParams({
                         ...(hasTagFilter
-                          ? { del: "tagIds" }
+                          ? { del: "tagId" }
                           : {
                               set: {
-                                tagIds: d.tagId,
+                                tagId: d.tagId,
                               },
                             }),
                         getNewPath: true,

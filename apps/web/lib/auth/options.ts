@@ -532,8 +532,8 @@ export const authOptions: NextAuthOptions = {
             email: true,
             image: true,
             isMachine: true,
-            defaultPartnerId: true,
             defaultWorkspace: true,
+            defaultPartnerId: true,
           },
         });
 

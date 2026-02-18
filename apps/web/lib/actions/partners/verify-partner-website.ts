@@ -1,11 +1,11 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
-import { getUrlFromString } from "@dub/utils";
+import { getDomainWithoutWWW } from "@dub/utils";
 import dns from "dns";
 import { authPartnerActionClient } from "../safe-action";
 
-export const verifyDomainAction = authPartnerActionClient.action(
+export const verifyPartnerWebsiteAction = authPartnerActionClient.action(
   async ({ ctx }) => {
     const { partner } = ctx;
 
@@ -35,24 +35,28 @@ export const verifyDomainAction = authPartnerActionClient.action(
     let domain: string | null = null;
 
     try {
-      domain = new URL(getUrlFromString(partnerPlatform.identifier)).hostname;
+      domain = getDomainWithoutWWW(partnerPlatform.identifier)!;
     } catch (e) {
       throw new Error("Please make sure the website is a valid URL.");
     }
 
-    const valid = await new Promise((resolve, reject) =>
-      dns.resolveTxt(domain, (err, addresses) => {
+    // Use a custom resolver with public DNS to avoid system/OS DNS cache
+    const resolver = new dns.Resolver();
+    resolver.setServers(["8.8.8.8", "1.1.1.1"]);
+
+    const valid = await new Promise<boolean>((resolve, reject) => {
+      resolver.resolveTxt(domain!, (err, addresses) => {
         if (err) {
           reject(err);
         } else {
           resolve(
-            addresses.some((address) =>
-              address.includes(metadata.websiteTxtRecord),
+            addresses.some(
+              (address) => address.join("").includes(metadata.websiteTxtRecord), // join because resolveTxt returns string[][]
             ),
           );
         }
-      }),
-    );
+      });
+    });
 
     if (!valid) {
       throw new Error(

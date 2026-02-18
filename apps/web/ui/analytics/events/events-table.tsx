@@ -332,8 +332,7 @@ export default function EventsTable({
           maxSize: 400,
           meta: {
             filterParams: ({ getValue }) => ({
-              domain: getValue().domain,
-              key: getValue().key,
+              linkId: getValue().id,
             }),
           },
           cell: ({ getValue }) => {
@@ -395,7 +394,7 @@ export default function EventsTable({
         },
         {
           id: "referer",
-          header: "Referer",
+          header: "Referrer",
           accessorKey: "click.referer",
           meta: {
             filterParams: ({ getValue }) => ({ referer: getValue() }),
