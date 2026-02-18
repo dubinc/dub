@@ -50,6 +50,7 @@ import {
   BountyListSchema,
   bountyPerformanceConditionSchema,
   BountySchema,
+  bountySocialContentIncrementalBonusSchema,
   BountySubmissionExtendedSchema,
   createBountySchema,
   getBountySubmissionsQuerySchema,
@@ -671,6 +672,10 @@ export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
 export type BountyPerformanceCondition = z.infer<
   typeof bountyPerformanceConditionSchema
+>;
+
+export type BountySocialMetricsIncrementalBonus = z.infer<
+  typeof bountySocialContentIncrementalBonusSchema
 >;
 
 export type CampaignTriggerCondition = z.infer<
