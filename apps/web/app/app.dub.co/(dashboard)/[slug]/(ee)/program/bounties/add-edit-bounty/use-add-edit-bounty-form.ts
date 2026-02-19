@@ -210,8 +210,8 @@ export function useAddEditBountyForm({
 
     if (type === "submission" && isRepeatMode) {
       const total = totalSubmissionsAllowedVal ?? 2;
-      if (total < 1 || total > 10) {
-        return "Total submissions allowed must be between 1 and 10.";
+      if (total < 2 || total > 10) {
+        return "Total submissions allowed must be between 2 and 10.";
       }
     }
 

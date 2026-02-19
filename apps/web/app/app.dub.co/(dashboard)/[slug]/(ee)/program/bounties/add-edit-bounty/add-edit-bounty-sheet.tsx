@@ -328,7 +328,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 <NumberStepper
                                   value={totalSubmissionsAllowed ?? 2}
                                   onChange={handleTotalSubmissionsAllowedChange}
-                                  min={1}
+                                  min={2}
                                   max={10}
                                   step={1}
                                   className="w-full"

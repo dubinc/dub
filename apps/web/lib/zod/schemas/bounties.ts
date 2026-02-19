@@ -101,7 +101,12 @@ export const createBountySchema = z.object({
   endsAt: parseDateSchema.nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullish(),
-  totalSubmissionsAllowed: z.number().int().positive().nullish(),
+  totalSubmissionsAllowed: z
+    .number()
+    .int()
+    .min(2, "Total submissions allowed must be at least 2")
+    .max(10)
+    .nullish(),
   rewardAmount: z
     .number()
     .positive()
