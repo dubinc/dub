@@ -2,13 +2,11 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { PartnerData } from "@/lib/actions/partners/create-program-application";
+import { ONBOARDING_PAYOUTS_VISIT_SESSION_KEY } from "@/lib/onboarding/constants";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
-import {
-  ONBOARDING_PAYOUTS_VISIT_SESSION_KEY,
-  useCountryChangeWarningModal,
-} from "@/ui/partners/use-country-change-warning-modal";
+import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
@@ -102,9 +100,10 @@ export function OnboardingForm({
     const emailData = localStorage.getItem(emailKey);
 
     if (anonymousData && !emailData) {
-      localStorage.setItem(emailKey, anonymousData);
       try {
-        setPartnerData(JSON.parse(anonymousData));
+        const parsed = JSON.parse(anonymousData) as PartnerData | null;
+        setPartnerData(parsed);
+        localStorage.setItem(emailKey, JSON.stringify(parsed));
       } catch {
         setPartnerData(null);
       }
@@ -121,7 +120,7 @@ export function OnboardingForm({
       !image && setValue("image", session.user.image ?? "");
       !country && setValue("country", partnerData?.country ?? "");
     }
-  }, [session?.user, name, image, country, partnerData]);
+  }, [session?.user, name, image, country, partnerData, setValue]);
 
   // refresh the session after the Partner account is created
   useEffect(() => {

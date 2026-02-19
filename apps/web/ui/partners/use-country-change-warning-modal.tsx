@@ -3,9 +3,6 @@
 import { Button, Modal } from "@dub/ui";
 import { useCallback, useRef, useState } from "react";
 
-export const ONBOARDING_PAYOUTS_VISIT_SESSION_KEY =
-  "partner_onboarding_reached_payouts";
-
 export function useCountryChangeWarningModal() {
   const [showModalState, setShowModalState] = useState(false);
   const [isAcknowledged, setIsAcknowledged] = useState(false);

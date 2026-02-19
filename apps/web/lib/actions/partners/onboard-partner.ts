@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { logger } from "@/lib/axiom/server";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { stripe } from "@/lib/stripe";
 import { storage } from "@/lib/storage";
@@ -56,7 +57,12 @@ export const onboardPartnerAction = authUserActionClient
       : undefined;
 
     const partnerChangeHistoryLog = existingPartner?.changeHistoryLog
-      ? partnerProfileChangeHistoryLogSchema.parse(existingPartner.changeHistoryLog)
+      ? (() => {
+          const parsed = partnerProfileChangeHistoryLogSchema.safeParse(
+            existingPartner.changeHistoryLog,
+          );
+          return parsed.success ? parsed.data : [];
+        })()
       : [];
 
     if (countryChanged) {
@@ -140,6 +146,14 @@ export const onboardPartnerAction = authUserActionClient
             return;
           }
 
+          logger.error("Failed to delete Stripe account after country update", {
+            operation: "deleteStripeAccount",
+            partnerId,
+            stripeConnectIdToDelete,
+            userId: user.id,
+            userEmail: user.email,
+            error,
+          });
           console.error(
             "Failed to delete Stripe account after country update",
             error,
