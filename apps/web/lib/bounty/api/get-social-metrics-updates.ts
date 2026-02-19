@@ -23,8 +23,14 @@ export async function getSocialMetricsUpdates({
   ignoreCache?: boolean; // If true, will not use cache and will always fetch from the API
 }): Promise<SocialMetricsUpdate[]> {
   const bountyInfo = getBountyInfo(bounty);
+  const socialPlatform = bountyInfo?.socialPlatform;
+  const socialMetrics = bountyInfo?.socialMetrics;
 
-  if (!bountyInfo?.hasSocialMetrics || !bountyInfo.socialPlatform?.value) {
+  if (
+    !bountyInfo?.hasSocialMetrics ||
+    !socialPlatform?.value ||
+    !socialMetrics
+  ) {
     return [];
   }
 
@@ -38,7 +44,7 @@ export async function getSocialMetricsUpdates({
   const results = await Promise.allSettled(
     toProcess.map((s) =>
       getSocialContent({
-        platform: bountyInfo.socialPlatform.value,
+        platform: socialPlatform.value,
         url: s.url!,
       }),
     ),
@@ -61,11 +67,18 @@ export async function getSocialMetricsUpdates({
     }
 
     const socialContent = result.value;
-    const metricValue = socialContent[socialMetrics.metric];
+    const rawValue =
+      socialContent[socialMetrics.metric as keyof typeof socialContent];
 
-    if (metricValue === null || !Number.isInteger(metricValue)) {
+    if (
+      rawValue === null ||
+      rawValue === undefined ||
+      !Number.isInteger(rawValue)
+    ) {
       continue;
     }
+
+    const metricValue = rawValue as number;
 
     updates.push({
       id: submission.id,
