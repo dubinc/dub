@@ -50,6 +50,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           body: {
             name: "E2E Test Partner - Goal",
             email: randomEmail(),
+            groupId: E2E_PARTNER_GROUP.id,
           },
         });
 
@@ -110,6 +111,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         body: {
           name: "E2E Test Partner - Not Reached",
           email: randomEmail(),
+          groupId: E2E_PARTNER_GROUP.id,
         },
       });
 
@@ -183,6 +185,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         body: {
           name: "E2E Test Partner - Disabled",
           email: randomEmail(),
+          groupId: E2E_PARTNER_GROUP.id,
         },
       });
 
@@ -241,6 +244,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           body: {
             name: "E2E Test Partner - No Dup",
             email: randomEmail(),
+            groupId: E2E_PARTNER_GROUP.id,
           },
         });
 
