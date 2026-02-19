@@ -465,7 +465,7 @@ export function BountySubmissionsTable() {
               onSearchChange={setSearch}
               onSelectedFilterChange={setSelectedFilter}
             />
-            {bountyInfo?.hasSocialMetrics && (
+            {bountyInfo?.hasSocialMetrics && (submissions?.length ?? 0) > 0 && (
               <div className="flex shrink-0 items-center gap-3">
                 {bounty?.socialMetricsLastSyncedAt ? (
                   <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
