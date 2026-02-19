@@ -8,6 +8,7 @@ import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-perform
 import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { SubmissionRequirements, WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
@@ -95,6 +96,17 @@ export const PATCH = withWorkspace(
       performanceScope: bounty.performanceScope,
     });
 
+    if (
+      submissionRequirements !== undefined &&
+      submissionRequirements?.socialMetrics &&
+      !getPlanCapabilities(workspace.plan).canUseBountySocialMetrics
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Social metrics criteria require Advanced plan or above.",
+      });
+    }
+
     // TODO:
     // When we do archive, make sure it disables the workflow
 
@@ -154,9 +166,7 @@ export const PATCH = withWorkspace(
           submissionsOpenAt:
             bounty.type === "submission" ? submissionsOpenAt : null,
           submissionFrequency:
-            bounty.type === "submission"
-              ? submissionFrequency ?? null
-              : null,
+            bounty.type === "submission" ? submissionFrequency ?? null : null,
           totalSubmissionsAllowed:
             bounty.type === "submission"
               ? totalSubmissionsAllowed ?? null

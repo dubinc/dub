@@ -1,5 +1,8 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import {
   ProgramSheetAccordionContent,
   ProgramSheetAccordionItem,
@@ -8,7 +11,8 @@ import {
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { InlineBadgePopover } from "@/ui/shared/inline-badge-popover";
 import { MoneyBills2, ToggleGroup } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { cn, currencyFormatter } from "@dub/utils";
+import { useMemo } from "react";
 import { BountyAmountInput } from "./bounty-amount-input";
 import { BountyCriteriaManualSubmission } from "./bounty-criteria-manual-submission";
 import { BountyCriteriaSocialMetrics } from "./bounty-criteria-social-metrics";
@@ -29,6 +33,13 @@ const BOUNTY_SUBMISSION_TYPES = [
 type BountySubmissionType = (typeof BOUNTY_SUBMISSION_TYPES)[number]["value"];
 
 export function BountyCriteria() {
+  const { plan } = useWorkspace();
+  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
+    usePartnersUpgradeModal();
+
+  const canUseBountySocialMetrics =
+    getPlanCapabilities(plan).canUseBountySocialMetrics;
+
   const { watch, setValue } = useBountyFormContext();
 
   const [
@@ -98,6 +109,35 @@ export function BountyCriteria() {
     (type === "performance" ||
       (type === "submission" && rewardType === "flat"));
 
+  const submissionTypeOptions = useMemo(
+    () => [
+      {
+        value: "manualSubmission",
+        label: "Manual submission",
+      },
+      {
+        value: "socialMetrics",
+        label:
+          !canUseBountySocialMetrics ? (
+            <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+              Social metrics
+              <span
+                className={cn(
+                  "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
+                  "bg-violet-50 text-violet-600",
+                )}
+              >
+                UPGRADE REQUIRED
+              </span>
+            </span>
+          ) : (
+            "Social metrics"
+          ),
+      },
+    ],
+    [canUseBountySocialMetrics],
+  );
+
   return (
     <ProgramSheetAccordionItem value="bounty-criteria">
       <ProgramSheetAccordionTrigger>Criteria</ProgramSheetAccordionTrigger>
@@ -105,17 +145,23 @@ export function BountyCriteria() {
         <div className="space-y-6">
           {showSubmissionContent && (
             <>
+              {partnersUpgradeModal}
               <p className="text-content-default text-sm leading-relaxed">
                 Set how partners claim bounties and how they&apos;re verified.
                 By default an open text field is provided.
               </p>
               <ToggleGroup
                 className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
-                optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
+                optionClassName="h-8 flex flex-1 items-center justify-center gap-2 rounded-md text-sm whitespace-nowrap"
                 indicatorClassName="bg-white border border-neutral-200 rounded-md shadow-sm"
-                options={[...BOUNTY_SUBMISSION_TYPES]}
+                options={submissionTypeOptions}
                 selected={submissionCriteriaType}
                 selectAction={(id: BountySubmissionType) => {
+                  if (id === "socialMetrics" && !canUseBountySocialMetrics) {
+                    setShowPartnersUpgradeModal(true);
+                    return;
+                  }
+
                   setValue("submissionCriteriaType", id);
 
                   if (id === "socialMetrics") {

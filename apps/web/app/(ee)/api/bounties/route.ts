@@ -181,6 +181,16 @@ export const POST = withWorkspace(
 
     validateBounty(parsedBody);
 
+    if (
+      submissionRequirements?.socialMetrics &&
+      !getPlanCapabilities(workspace.plan).canUseBountySocialMetrics
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Social metrics criteria require Advanced plan or above.",
+      });
+    }
+
     const partnerGroups = await throwIfInvalidGroupIds({
       programId,
       groupIds,
