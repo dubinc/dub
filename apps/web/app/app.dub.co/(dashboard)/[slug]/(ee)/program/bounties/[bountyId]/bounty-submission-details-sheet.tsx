@@ -8,7 +8,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
-import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
@@ -22,7 +21,12 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
+import {
+  currencyFormatter,
+  formatDate,
+  getPrettyUrl,
+  OG_AVATAR_URL,
+} from "@dub/utils";
 import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
@@ -182,20 +186,33 @@ function BountySubmissionDetailsSheetContent({
       </div>
 
       <div className="flex grow flex-col">
-        <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          <PartnerInfoSection
-            partner={submission.partner}
-            showPartnerStatus={false}
-          >
+        <div className="px-6 pt-6">
+          <div className="flex items-center gap-4 rounded-xl bg-neutral-100 px-4 py-3">
+            <img
+              src={
+                submission.partner.image ||
+                `${OG_AVATAR_URL}${submission.partner.id}`
+              }
+              alt={submission.partner.name}
+              className="size-10 shrink-0 rounded-full"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="text-base font-semibold text-neutral-800">
+                {submission.partner.name}
+              </div>
+              <div className="text-sm font-medium text-neutral-500">
+                {submission.partner.email}
+              </div>
+            </div>
             <ButtonLink
               href={`/${workspaceSlug}/program/partners/${submission.partner.id}`}
               variant="secondary"
-              className="h-8 w-fit px-3 py-2 text-sm font-medium"
+              className="h-8 shrink-0 px-3 text-sm font-medium"
               target="_blank"
             >
-              View profile
+              View
             </ButtonLink>
-          </PartnerInfoSection>
+          </div>
         </div>
 
         <div className="flex grow flex-col gap-8 overflow-y-auto p-6">

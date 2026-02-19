@@ -157,6 +157,7 @@ export const BountySchema = z.object({
     .default(null),
   performanceScope: z.enum(BountyPerformanceScope).nullable(),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
+  socialMetricsLastSyncedAt: z.date().nullable().optional(),
   groups: z.array(GroupSchema.pick({ id: true })),
 });
 

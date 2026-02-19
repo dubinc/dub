@@ -1,14 +1,37 @@
+import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
 import { currencyFormatter } from "@dub/utils";
-import { PartnerBountyProps } from "../types";
+import { BountySocialPlatform, PartnerBountyProps } from "../types";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./constants";
 
-type SocialPlatformValue = "youtube" | "twitter" | "tiktok" | "instagram";
+export function getBountySocialMetricsRequirements(bounty: {
+  submissionRequirements?: unknown;
+}) {
+  const requirements = bounty.submissionRequirements;
+
+  if (
+    requirements == null ||
+    typeof requirements !== "object" ||
+    Array.isArray(requirements)
+  ) {
+    return null;
+  }
+
+  if (!("socialMetrics" in requirements)) {
+    return null;
+  }
+
+  const parsed = bountySocialContentRequirementsSchema.safeParse(
+    requirements.socialMetrics,
+  );
+
+  return parsed.success ? parsed.data : null;
+}
 
 export function getSocialContentEmbedUrl({
   platform,
   url,
 }: {
-  platform: SocialPlatformValue;
+  platform: BountySocialPlatform;
   url: string;
 }) {
   try {
@@ -77,9 +100,9 @@ export function getSocialContentEmbedUrl({
 }
 
 export function getBountySocialPlatform(bounty: {
-  submissionRequirements: any;
+  submissionRequirements?: unknown;
 }) {
-  const socialMetrics = bounty.submissionRequirements?.socialMetrics;
+  const socialMetrics = getBountySocialMetricsRequirements(bounty);
 
   if (!socialMetrics) {
     return null;
@@ -93,7 +116,7 @@ export function getBountySocialPlatform(bounty: {
 export function getBountySubmissionRequirementTexts(
   bounty: Pick<PartnerBountyProps, "submissionRequirements">,
 ): string[] {
-  const socialMetrics = bounty.submissionRequirements?.socialMetrics;
+  const socialMetrics = getBountySocialMetricsRequirements(bounty);
 
   if (!socialMetrics) {
     return [];
@@ -114,7 +137,7 @@ export function getBountySubmissionRequirementTexts(
 export function getBountyRewardCriteriaTexts(
   bounty: PartnerBountyProps,
 ): string[] {
-  const socialMetrics = bounty.submissionRequirements?.socialMetrics;
+  const socialMetrics = getBountySocialMetricsRequirements(bounty);
 
   if (!socialMetrics) {
     return [];

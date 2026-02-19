@@ -31,24 +31,25 @@ enum BountySubmissionFrequency {
 }
 
 model Bounty {
-  id                      String                     @id @default(cuid())
-  programId               String
-  workflowId              String?                    @unique
-  name                    String
-  description             String?                    @db.Text
-  type                    BountyType
-  startsAt                DateTime
-  endsAt                  DateTime?
-  submissionsOpenAt       DateTime?
-  submissionFrequency     BountySubmissionFrequency?
-  totalSubmissionsAllowed Int?
-  rewardAmount            Int?
-  rewardDescription       String?
-  performanceScope        BountyPerformanceScope?
-  submissionRequirements  Json?
-  archivedAt              DateTime?
-  createdAt               DateTime                   @default(now())
-  updatedAt               DateTime                   @updatedAt
+  id                        String                     @id @default(cuid())
+  programId                 String
+  workflowId                String?                    @unique
+  name                      String
+  description               String?                    @db.Text
+  type                      BountyType
+  startsAt                  DateTime
+  endsAt                    DateTime?
+  submissionsOpenAt         DateTime?
+  submissionFrequency       BountySubmissionFrequency?
+  totalSubmissionsAllowed   Int?
+  rewardAmount              Int?
+  rewardDescription         String?
+  performanceScope          BountyPerformanceScope?
+  submissionRequirements    Json?
+  socialMetricsLastSyncedAt DateTime?
+  archivedAt                DateTime?
+  createdAt                 DateTime                   @default(now())
+  updatedAt                 DateTime                   @updatedAt
 
   submissions BountySubmission[]
   groups      BountyGroup[]
@@ -72,24 +73,25 @@ model BountyGroup {
 }
 
 model BountySubmission {
-  id                String                           @id @default(cuid())
-  programId         String
-  partnerId         String
-  bountyId          String
-  performanceCount  Int?
-  socialMetricCount Int?
-  commissionId      String?                          @unique
-  userId            String?
-  description       String?                          @db.Text
-  status            BountySubmissionStatus           @default(draft)
-  rejectionReason   BountySubmissionRejectionReason?
-  rejectionNote     String?                          @db.Text
-  files             Json?
-  urls              Json?
-  completedAt       DateTime?
-  reviewedAt        DateTime?
-  createdAt         DateTime                         @default(now())
-  updatedAt         DateTime                         @updatedAt
+  id                        String                           @id @default(cuid())
+  programId                 String
+  partnerId                 String
+  bountyId                  String
+  performanceCount          Int?
+  socialMetricCount         Int?
+  commissionId              String?                          @unique
+  userId                    String?
+  description               String?                          @db.Text
+  status                    BountySubmissionStatus           @default(draft)
+  rejectionReason           BountySubmissionRejectionReason?
+  rejectionNote             String?                          @db.Text
+  files                     Json?
+  urls                      Json?
+  socialMetricsLastSyncedAt DateTime?
+  completedAt               DateTime?
+  reviewedAt                DateTime?
+  createdAt                 DateTime                         @default(now())
+  updatedAt                 DateTime                         @updatedAt
 
   bounty            Bounty             @relation(fields: [bountyId], references: [id], onDelete: Cascade)
   partner           Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)
