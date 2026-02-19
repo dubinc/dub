@@ -59,9 +59,6 @@ export const GET = withPartnerProfile(
           where: {
             partnerId: partner.id,
           },
-          orderBy: {
-            createdAt: "desc",
-          },
         },
       },
     });
@@ -70,6 +67,7 @@ export const GET = withPartnerProfile(
       z.array(PartnerBountySchema).parse(
         bounties.map((bounty) => ({
           ...bounty,
+          submission: bounty.submissions?.[0] || null,
           performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
           partner: {
             ...aggregatePartnerLinksStats(links),

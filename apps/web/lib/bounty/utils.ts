@@ -218,6 +218,3 @@ export function getBountyInfo(bounty: BountyInfoInput | undefined | null) {
     hasSocialMetrics: socialMetrics != null,
   };
 }
-
-//getBountySocialMetricsRequirements
-//getBountySocialPlatform
