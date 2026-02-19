@@ -104,6 +104,7 @@ export const createBountySchema = z.object({
   totalSubmissionsAllowed: z.number().int().positive().nullish(),
   rewardAmount: z
     .number()
+    .positive()
     .min(1, "Reward amount must be greater than 1")
     .nullable(),
   rewardDescription: z

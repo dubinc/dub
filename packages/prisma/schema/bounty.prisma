@@ -11,6 +11,7 @@ enum BountyPerformanceScope {
 enum BountySubmissionStatus {
   draft
   submitted
+  reviewable
   approved
   rejected
 }

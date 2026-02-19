@@ -6,7 +6,8 @@ export function validateBounty({
   startsAt,
   endsAt,
   submissionsOpenAt,
-  submissionRequirements,
+  submissionFrequency,
+  totalSubmissionsAllowed,
   rewardAmount,
   rewardDescription,
   performanceScope,
@@ -53,26 +54,15 @@ export function validateBounty({
         code: "bad_request",
         message: "Reward amount is required for performance bounties.",
       });
-    } else {
-      const isSocialMetrics =
-        submissionRequirements &&
-        typeof submissionRequirements === "object" &&
-        "socialMetrics" in submissionRequirements;
-      if (!isSocialMetrics && !rewardDescription) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "For submission bounties, either reward amount or reward description is required.",
-        });
-      }
     }
-  }
 
-  if (rewardAmount && rewardAmount < 0) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Reward amount cannot be negative.",
-    });
+    if (!rewardDescription) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "For submission bounties, either reward amount or reward description is required.",
+      });
+    }
   }
 
   if (!performanceScope && type === "performance") {
@@ -80,5 +70,23 @@ export function validateBounty({
       code: "bad_request",
       message: "performanceScope must be set for performance bounties.",
     });
+  }
+
+  if (type === "submission") {
+    if (totalSubmissionsAllowed != null && !submissionFrequency) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "submissionFrequency is required when totalSubmissionsAllowed is set (e.g. per day, per week, per month).",
+      });
+    }
+
+    if (submissionFrequency && totalSubmissionsAllowed == null) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "totalSubmissionsAllowed is required when submissionFrequency is set.",
+      });
+    }
   }
 }
