@@ -1,7 +1,44 @@
 import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { currencyFormatter } from "@dub/utils";
+import { PlatformType } from "@dub/prisma/client";
+import { currencyFormatter, isValidUrl } from "@dub/utils";
 import { BountySocialPlatform, PartnerBountyProps } from "../types";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./constants";
+
+const SOCIAL_URL_HOST_TO_PLATFORM: Record<string, PlatformType> = {
+  "youtube.com": "youtube",
+  "m.youtube.com": "youtube",
+  "youtu.be": "youtube",
+  "tiktok.com": "tiktok",
+  "www.tiktok.com": "tiktok",
+  "instagram.com": "instagram",
+  "www.instagram.com": "instagram",
+  "twitter.com": "twitter",
+  "www.twitter.com": "twitter",
+  "x.com": "twitter",
+  "www.x.com": "twitter",
+};
+
+export function getPlatformFromSocialUrl(url: string): PlatformType | null {
+  const trimmed = url?.trim();
+
+  if (!trimmed || !isValidUrl(trimmed)) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const host = parsed.hostname.replace(/^www\./, "");
+    const withWww = parsed.hostname;
+
+    return (
+      SOCIAL_URL_HOST_TO_PLATFORM[host] ??
+      SOCIAL_URL_HOST_TO_PLATFORM[withWww] ??
+      null
+    );
+  } catch {
+    return null;
+  }
+}
 
 export function getBountySocialMetricsRequirements(bounty: {
   submissionRequirements?: unknown;

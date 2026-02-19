@@ -2,7 +2,6 @@
 
 import { getBountySocialPlatform } from "@/lib/bounty/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps, SocialContent } from "@/lib/types";
 import { useClaimBountyForm } from "@/ui/partners/bounties/use-claim-bounty-form";
 import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
@@ -77,8 +76,6 @@ export function SocialContentUrlField({
 }: {
   bounty: PartnerBountyProps;
 }) {
-  const { programEnrollment } = useProgramEnrollment();
-
   const { watch, setValue, getValues, setSocialContentVerifying } =
     useClaimBountyForm();
 
@@ -93,8 +90,6 @@ export function SocialContentUrlField({
   }, [contentUrl]);
 
   const { data, error, isValidating } = useSocialContent({
-    programId: programEnrollment?.programId,
-    bountyId: bounty.id,
     url: urlToCheck,
   });
 

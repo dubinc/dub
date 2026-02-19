@@ -3,25 +3,14 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 
 interface UseSocialContentParams {
-  programId: string | undefined;
-  bountyId: string;
   url: string;
 }
 
-export function useSocialContent({
-  programId,
-  bountyId,
-  url,
-}: UseSocialContentParams) {
-  const searchParams = new URLSearchParams({
-    url,
-    bountyId,
-  });
+export function useSocialContent({ url }: UseSocialContentParams) {
+  const searchParams = new URLSearchParams({ url });
 
   const { data, error, isValidating, mutate } = useSWR<SocialContent>(
-    url && programId
-      ? `/api/partner-profile/programs/${programId}/bounties/social-content-stats?${searchParams.toString()}`
-      : null,
+    url ? `/api/social-content-stats?${searchParams.toString()}` : null,
     fetcher,
     {
       revalidateOnFocus: false,

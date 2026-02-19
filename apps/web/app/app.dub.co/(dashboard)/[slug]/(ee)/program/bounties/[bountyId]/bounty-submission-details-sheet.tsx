@@ -2,11 +2,13 @@
 
 import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
+import { getBountySocialMetricsRequirements } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { AmountInput } from "@/ui/shared/amount-input";
@@ -144,9 +146,14 @@ function BountySubmissionDetailsSheetContent({
     return true;
   }, [bounty, rewardAmount]);
 
-  if (!submission || !submission.partner) {
+  if (!submission || !submission.partner || !bounty) {
     return null;
   }
+
+  const socialMetricsRequirements = getBountySocialMetricsRequirements(bounty);
+
+  const hasSocialContent =
+    socialMetricsRequirements && (submission.urls?.length ?? 0) > 0;
 
   return (
     <div className="flex h-full flex-col">
@@ -215,13 +222,13 @@ function BountySubmissionDetailsSheetContent({
           </div>
         </div>
 
-        <div className="flex grow flex-col gap-8 overflow-y-auto p-6">
+        <div className="flex grow flex-col gap-6 overflow-y-auto p-6">
           <div>
             <h2 className="text-base font-semibold text-neutral-900">
-              Bounty details
+              Details
             </h2>
 
-            <div className="mt-4 max-w-md space-y-3">
+            <div className="mt-3 max-w-md space-y-2">
               {[
                 {
                   label: "Status",
@@ -248,6 +255,17 @@ function BountySubmissionDetailsSheetContent({
                       })
                     : "-",
                 },
+                ...(socialMetricsRequirements
+                  ? [
+                      {
+                        label: "Criteria",
+                        value:
+                          socialMetricsRequirements.minCount != null
+                            ? `${socialMetricsRequirements.minCount} ${socialMetricsRequirements.metric}`
+                            : socialMetricsRequirements.metric,
+                      },
+                    ]
+                  : []),
                 ...(submission.status === "rejected"
                   ? [
                       {
@@ -302,10 +320,21 @@ function BountySubmissionDetailsSheetContent({
           {bounty?.type === "submission" && (
             <div>
               <h2 className="text-base font-semibold text-neutral-900">
-                Bounty submission
+                Submission
               </h2>
 
-              <div className="mt-6 flex flex-col gap-6">
+              <div className="mt-3 flex flex-col gap-6">
+                {hasSocialContent && (
+                  <BountySocialContentPreview
+                    bounty={bounty}
+                    submission={submission}
+                    authorOverride={{
+                      name: submission.partner.name,
+                      imageUrl: submission.partner.image ?? null,
+                    }}
+                  />
+                )}
+
                 {Boolean(submission.files?.length) && (
                   <div>
                     <h2 className="text-content-emphasis text-sm font-medium">
@@ -332,7 +361,7 @@ function BountySubmissionDetailsSheetContent({
                   </div>
                 )}
 
-                {Boolean(submission.urls?.length) && (
+                {Boolean(submission.urls?.length) && !hasSocialContent && (
                   <div>
                     <h2 className="text-content-emphasis text-sm font-medium">
                       URLs

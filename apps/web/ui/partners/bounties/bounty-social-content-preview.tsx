@@ -5,7 +5,6 @@ import {
   getSocialContentEmbedUrl,
 } from "@/lib/bounty/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
   BountySocialPlatform,
   BountySubmissionProps,
@@ -37,11 +36,13 @@ const PLATFORM_ICONS: Record<BountySocialPlatform, LucideIcon> = {
 interface BountySocialContentPreviewProps {
   bounty: Pick<PartnerBountyProps, "id" | "submissionRequirements">;
   submission: Pick<BountySubmissionProps, "urls"> | null | undefined;
+  authorOverride?: { name: string; imageUrl: string | null };
 }
 
 interface SocialContentPreviewContentProps {
   url: string;
   content: SocialContent | null;
+  authorOverride?: { name: string; imageUrl: string | null };
 }
 
 interface ContentAuthorProps {
@@ -49,6 +50,7 @@ interface ContentAuthorProps {
   platform: BountySocialPlatform;
   content: SocialContent | null;
   position?: "top" | "bottom";
+  authorOverride?: { name: string; imageUrl: string | null };
 }
 
 interface ContentInfoProps {
@@ -58,15 +60,12 @@ interface ContentInfoProps {
 export function BountySocialContentPreview({
   bounty,
   submission,
+  authorOverride,
 }: BountySocialContentPreviewProps) {
-  const { programEnrollment } = useProgramEnrollment();
-
   const url = submission?.urls?.[0] ?? "";
   const platform = getBountySocialPlatform(bounty);
 
   const { data: content, isValidating: isRefreshing } = useSocialContent({
-    programId: programEnrollment?.programId,
-    bountyId: bounty.id,
     url,
   });
 
@@ -88,19 +87,35 @@ export function BountySocialContentPreview({
           )}
 
           {platform.value === "youtube" && (
-            <YouTubeContent url={url} content={content} />
+            <YouTubeContent
+              url={url}
+              content={content}
+              authorOverride={authorOverride}
+            />
           )}
 
           {platform.value === "twitter" && (
-            <TwitterContent url={url} content={content} />
+            <TwitterContent
+              url={url}
+              content={content}
+              authorOverride={authorOverride}
+            />
           )}
 
           {platform.value === "tiktok" && (
-            <TikTokContent url={url} content={content} />
+            <TikTokContent
+              url={url}
+              content={content}
+              authorOverride={authorOverride}
+            />
           )}
 
           {platform.value === "instagram" && (
-            <InstagramContent url={url} content={content} />
+            <InstagramContent
+              url={url}
+              content={content}
+              authorOverride={authorOverride}
+            />
           )}
         </div>
       </div>
@@ -108,17 +123,32 @@ export function BountySocialContentPreview({
   );
 }
 
-function ContentAuthor({ url, platform, content }: ContentAuthorProps) {
+function ContentAuthor({
+  url,
+  platform,
+  content,
+  authorOverride,
+}: ContentAuthorProps) {
   const { partner } = usePartnerProfile();
   const [avatarError, setAvatarError] = useState(false);
 
-  const avatarUrl = platform
-    ? partner?.platforms?.find((p) => p.type === platform)?.avatarUrl ?? null
-    : null;
+  const avatarUrl = authorOverride?.imageUrl
+    ? authorOverride.imageUrl
+    : platform
+      ? partner?.platforms?.find((p) => p.type === platform)?.avatarUrl ?? null
+      : null;
 
   const showAvatar = avatarUrl && !avatarError;
   const Icon = PLATFORM_ICONS[platform] ?? Tv;
   const statsLine = getStatsLine(content);
+
+  const displayName = authorOverride?.name
+    ? authorOverride.name
+    : content?.handle
+      ? platform === "twitter"
+        ? `@${content.handle}`
+        : content.handle
+      : "—";
 
   return (
     <div className="flex items-center justify-between gap-3 p-2">
@@ -139,11 +169,7 @@ function ContentAuthor({ url, platform, content }: ContentAuthorProps) {
         </div>
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-neutral-800">
-            {content?.handle
-              ? platform === "twitter"
-                ? `@${content.handle}`
-                : content.handle
-              : "—"}
+            {displayName}
           </p>
 
           {statsLine && <p className="text-xs text-neutral-500">{statsLine}</p>}
@@ -195,7 +221,11 @@ function ContentInfo({ content }: ContentInfoProps) {
   );
 }
 
-function YouTubeContent({ url, content }: SocialContentPreviewContentProps) {
+function YouTubeContent({
+  url,
+  content,
+  authorOverride,
+}: SocialContentPreviewContentProps) {
   const embedUrl = getSocialContentEmbedUrl({
     platform: "youtube",
     url,
@@ -203,7 +233,12 @@ function YouTubeContent({ url, content }: SocialContentPreviewContentProps) {
 
   return (
     <div className="flex flex-col">
-      <ContentAuthor url={url} platform="youtube" content={content} />
+      <ContentAuthor
+        url={url}
+        platform="youtube"
+        content={content}
+        authorOverride={authorOverride}
+      />
 
       <ContentEmbedWrapper>
         <div className="relative aspect-video w-full">
@@ -224,14 +259,23 @@ function YouTubeContent({ url, content }: SocialContentPreviewContentProps) {
   );
 }
 
-function TwitterContent({ url, content }: SocialContentPreviewContentProps) {
+function TwitterContent({
+  url,
+  content,
+  authorOverride,
+}: SocialContentPreviewContentProps) {
   const thumbnailUrl = content?.thumbnailUrl ?? null;
   const title = content?.title ?? null;
   const hasRichCard = !!(thumbnailUrl || title);
 
   return (
     <div className="flex flex-col">
-      <ContentAuthor url={url} platform="twitter" content={content} />
+      <ContentAuthor
+        url={url}
+        platform="twitter"
+        content={content}
+        authorOverride={authorOverride}
+      />
       {hasRichCard && (thumbnailUrl || title) && (
         <ContentEmbedWrapper>
           <div className="overflow-hidden rounded-md border border-neutral-200 bg-neutral-50">
@@ -257,7 +301,11 @@ function TwitterContent({ url, content }: SocialContentPreviewContentProps) {
   );
 }
 
-function TikTokContent({ url, content }: SocialContentPreviewContentProps) {
+function TikTokContent({
+  url,
+  content,
+  authorOverride,
+}: SocialContentPreviewContentProps) {
   const embedUrl = getSocialContentEmbedUrl({
     platform: "tiktok",
     url,
@@ -283,13 +331,18 @@ function TikTokContent({ url, content }: SocialContentPreviewContentProps) {
         platform="tiktok"
         content={content}
         position="bottom"
+        authorOverride={authorOverride}
       />
       <ContentInfo content={content} />
     </div>
   );
 }
 
-function InstagramContent({ url, content }: SocialContentPreviewContentProps) {
+function InstagramContent({
+  url,
+  content,
+  authorOverride,
+}: SocialContentPreviewContentProps) {
   const thumbnailUrl = content?.thumbnailUrl ?? null;
   const mediaType = content?.mediaType;
   const thumbnailUrls = content?.thumbnailUrls;
@@ -311,7 +364,12 @@ function InstagramContent({ url, content }: SocialContentPreviewContentProps) {
 
   return (
     <div className="flex flex-col">
-      <ContentAuthor url={url} platform="instagram" content={content} />
+      <ContentAuthor
+        url={url}
+        platform="instagram"
+        content={content}
+        authorOverride={authorOverride}
+      />
       <ContentEmbedWrapper>
         <div className="relative mx-auto aspect-square max-h-[320px] w-full bg-neutral-100">
           {isCarousel ? (
