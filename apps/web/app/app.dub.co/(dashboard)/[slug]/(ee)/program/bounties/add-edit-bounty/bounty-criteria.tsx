@@ -117,22 +117,21 @@ export function BountyCriteria() {
       },
       {
         value: "socialMetrics",
-        label:
-          !canUseBountySocialMetrics ? (
-            <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
-              Social metrics
-              <span
-                className={cn(
-                  "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
-                  "bg-violet-50 text-violet-600",
-                )}
-              >
-                UPGRADE REQUIRED
-              </span>
+        label: !canUseBountySocialMetrics ? (
+          <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+            Social metrics
+            <span
+              className={cn(
+                "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
+                "bg-violet-50 text-violet-600",
+              )}
+            >
+              UPGRADE REQUIRED
             </span>
-          ) : (
-            "Social metrics"
-          ),
+          </span>
+        ) : (
+          "Social metrics"
+        ),
       },
     ],
     [canUseBountySocialMetrics],
