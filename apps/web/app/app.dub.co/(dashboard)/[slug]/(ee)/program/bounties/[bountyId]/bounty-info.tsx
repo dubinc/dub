@@ -9,6 +9,7 @@ import {
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { BountyIncrementalBonusTooltip } from "@/ui/partners/bounties/bounty-incremental-bonus-tooltip";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { ScrollableTooltipContent, Tooltip } from "@dub/ui";
@@ -93,6 +94,7 @@ export function BountyInfo() {
             <span className="text-ellipsis">
               {getBountyRewardDescription(bounty)}
             </span>
+            <BountyIncrementalBonusTooltip bounty={bounty} />
           </div>
         )}
 

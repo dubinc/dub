@@ -1,5 +1,6 @@
 import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import { PartnerBountyProps } from "@/lib/types";
+import { BountyIncrementalBonusTooltip } from "@/ui/partners/bounties/bounty-incremental-bonus-tooltip";
 import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
@@ -95,8 +96,12 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
 
             {getBountyRewardDescription(bounty) && (
               <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-                <Gift className="size-3.5" />
+                <Gift className="size-3.5 shrink-0" />
                 <span>{getBountyRewardDescription(bounty)}</span>
+                <BountyIncrementalBonusTooltip
+                  bounty={bounty}
+                  onTooltipClick={(e) => e.stopPropagation()}
+                />
               </div>
             )}
           </div>

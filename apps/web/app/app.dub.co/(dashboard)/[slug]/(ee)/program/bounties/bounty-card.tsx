@@ -3,6 +3,7 @@ import useGroups from "@/lib/swr/use-groups";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyListProps } from "@/lib/types";
+import { BountyIncrementalBonusTooltip } from "@/ui/partners/bounties/bounty-incremental-bonus-tooltip";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { DynamicTooltipWrapper, ScrollableTooltipContent } from "@dub/ui";
@@ -73,8 +74,12 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
 
           {getBountyRewardDescription(bounty) && (
             <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
-              <Gift className="size-3.5" />
+              <Gift className="size-3.5 shrink-0" />
               <span>{getBountyRewardDescription(bounty)}</span>
+              <BountyIncrementalBonusTooltip
+                bounty={bounty}
+                onTooltipClick={(e) => e.preventDefault()}
+              />
             </div>
           )}
 
