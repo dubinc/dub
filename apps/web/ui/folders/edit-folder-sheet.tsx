@@ -1,3 +1,4 @@
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { updateUserRoleInFolder } from "@/lib/actions/folders/update-folder-user-role";
 import {
   FOLDER_USER_ROLE,
@@ -164,7 +165,11 @@ const EditFolderSheetContent = ({
                     <TooltipContent
                       title="You can only set custom folder permissions on a Business plan and above."
                       cta="Upgrade to Business"
-                      href={`/${slug}/upgrade`}
+                      href={buildUpgradeUrl({
+                        slug,
+                        upgradePlan: "business",
+                        upgradeSource: "folders_edit_permissions",
+                      })}
                       target="_blank"
                     />
                   }
@@ -192,7 +197,11 @@ const EditFolderSheetContent = ({
                   </>
                 }
                 className="border-none"
-                learnMoreHref={`/${slug}/upgrade`}
+                learnMoreHref={buildUpgradeUrl({
+                  slug,
+                  upgradePlan: "business",
+                  upgradeSource: "folders_edit_users",
+                })}
                 learnMoreText="Upgrade to Business"
               />
             ) : (

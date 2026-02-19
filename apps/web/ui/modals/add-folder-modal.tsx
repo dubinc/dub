@@ -1,3 +1,4 @@
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
@@ -62,7 +63,11 @@ function AddFolderButton({
           <TooltipContent
             title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
             cta="Upgrade to Pro"
-            href={`/${slug}/upgrade`}
+            href={buildUpgradeUrl({
+              slug,
+              upgradePlan: "pro",
+              upgradeSource: "folders_add_modal",
+            })}
           />
         ) : (
           permissionsError || undefined

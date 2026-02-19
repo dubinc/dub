@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import EmptyState from "@/ui/shared/empty-state";
@@ -23,7 +24,11 @@ export default function WebhooksPageClient() {
           description="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
           learnMore="https://d.to/webhooks"
           buttonText="Upgrade to Business"
-          buttonLink={`/${slug}/upgrade`}
+          buttonLink={buildUpgradeUrl({
+            slug,
+            upgradePlan: "business",
+            upgradeSource: "settings_webhooks",
+          })}
         />
       </div>
     );

@@ -1,3 +1,4 @@
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   LinkFormData,
@@ -120,7 +121,11 @@ export const LinkPreview = memo(() => {
               <TooltipContent
                 title="Custom Link Previews are only available on the Pro plan and above."
                 cta="Upgrade to Pro"
-                href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+                href={buildUpgradeUrl({
+                  slug,
+                  upgradePlan: "pro",
+                  upgradeSource: "link_preview_custom_og",
+                })}
                 target="_blank"
               />
             ) : undefined

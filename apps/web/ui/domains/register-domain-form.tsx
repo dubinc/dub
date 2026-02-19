@@ -1,3 +1,4 @@
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -373,7 +374,15 @@ function UpgradeTooltipContent() {
     <TooltipContent
       title="You can only claim a free `.link` domain on a Pro plan and above."
       cta="Upgrade to Pro"
-      onClick={() => window.open(`/${slug}/upgrade`)}
+      onClick={() =>
+        window.open(
+          buildUpgradeUrl({
+            slug,
+            upgradePlan: "pro",
+            upgradeSource: "domains_register_free_dot_link",
+          }),
+        )
+      }
     />
   );
 }

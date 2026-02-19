@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import useWorkspace from "@/lib/swr/use-workspace";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import { AnimatedSizeContainer, buttonVariants, Icon } from "@dub/ui";
@@ -136,7 +137,11 @@ function UsageInner() {
             />
           ) : (warning || plan === "free") && plan !== "enterprise" ? (
             <Link
-              href={`/${slug}/upgrade`}
+              href={buildUpgradeUrl({
+                slug,
+                upgradePlan: plan === "free" ? "pro" : undefined,
+                upgradeSource: "sidebar_usage",
+              })}
               className={cn(
                 buttonVariants(),
                 "mt-4 flex h-9 items-center justify-center rounded-md border px-4 text-sm",

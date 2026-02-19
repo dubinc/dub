@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  buildUpgradeUrl,
+  parseUpgradePlan,
+} from "@/lib/billing/upgrade-intent";
 import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import {
   useCheckFolderPermission,
@@ -412,7 +416,11 @@ function ImportOption({
         <TooltipContent
           title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
           cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
-          href={`/${slug}/upgrade`}
+          href={buildUpgradeUrl({
+            slug,
+            upgradePlan: parseUpgradePlan(nextPlan?.name.toLowerCase()),
+            upgradeSource: "links_import_option",
+          })}
         />
       }
     >

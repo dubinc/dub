@@ -1,3 +1,4 @@
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
@@ -69,7 +70,10 @@ function AddDomainButton({
             <TooltipContent
               title={`You can only add up to ${domainsLimit} ${pluralize("domain", domainsLimit || 0)} on the ${capitalize(plan)} plan. Upgrade to add more domains`}
               cta="Upgrade"
-              href={`/${slug}/upgrade`}
+              href={buildUpgradeUrl({
+                slug,
+                upgradeSource: "domains_limit",
+              })}
             />
           ) : (
             permissionsError || undefined

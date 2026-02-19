@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
@@ -312,7 +313,10 @@ export function CreateLinkButton({
           <TooltipContent
             title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
             cta="Upgrade plan"
-            href={`/${slug}/upgrade`}
+            href={buildUpgradeUrl({
+              slug,
+              upgradeSource: "link_builder_exceeded_links",
+            })}
           />
         ) : (
           permissionsError || undefined

@@ -4,6 +4,7 @@ import { unsortedLinks } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useFolder from "@/lib/swr/use-folder";
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import useFolders from "@/lib/swr/use-folders";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -158,7 +159,11 @@ export const FolderDropdown = ({
           <TooltipContent
             title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
             cta="Upgrade to Pro"
-            href={`/${slug}/upgrade`}
+            href={buildUpgradeUrl({
+              slug,
+              upgradePlan: "pro",
+              upgradeSource: "folders_dropdown_create",
+            })}
           />
         ) : undefined,
       },
@@ -269,7 +274,11 @@ export const FolderDropdown = ({
                   <TooltipContent
                     title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
                     cta="Upgrade to Pro"
-                    href={`/${slug}/upgrade`}
+                    href={buildUpgradeUrl({
+                      slug,
+                      upgradePlan: "pro",
+                      upgradeSource: "folders_dropdown_empty_state",
+                    })}
                   />
                 ) : undefined
               }

@@ -1,5 +1,6 @@
 "use client";
 
+import { buildUpgradeUrl } from "@/lib/billing/upgrade-intent";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { buttonVariants } from "@dub/ui";
@@ -22,7 +23,11 @@ export function PartnersUpgradeCTA({
     if (!canManageProgram || isLegacyBusinessPlan({ plan, payoutsLimit })) {
       return {
         cta: "Upgrade plan",
-        href: `/${slug}/upgrade`,
+        href: buildUpgradeUrl({
+          slug,
+          upgradePlan: "advanced",
+          upgradeSource: "partners_overview",
+        }),
       };
     } else {
       return {
