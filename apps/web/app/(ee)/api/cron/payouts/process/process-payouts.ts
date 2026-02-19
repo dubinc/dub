@@ -48,7 +48,7 @@ interface ProcessPayoutsProps {
   >;
   program: Pick<
     Program,
-    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail"
+    "id" | "name" | "logo" | "url" | "minPayoutAmount" | "supportEmail"
   > & {
     payoutMode: ProgramPayoutMode;
   };
@@ -281,7 +281,7 @@ export async function processPayouts({
   });
 
   await log({
-    message: `*${program.name}* just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    message: `*${program.name}* (${program.url}) just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
     type: "payouts",
   });
 
