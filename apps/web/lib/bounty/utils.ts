@@ -198,15 +198,15 @@ export function getBountyRewardCriteriaTexts(
   const variableBonus = socialMetrics.incrementalBonus;
 
   if (variableBonus) {
-    const { incrementalAmount, bonusAmount, capAmount } = variableBonus;
+    const { incrementCount, bonusPerIncrement, maxCount } = variableBonus;
 
-    if (incrementalAmount && bonusAmount && capAmount) {
-      const formattedBonus = currencyFormatter(bonusAmount, {
+    if (incrementCount && bonusPerIncrement && maxCount) {
+      const formattedBonus = currencyFormatter(bonusPerIncrement, {
         trailingZeroDisplay: "stripIfInteger",
       });
 
       texts.push(
-        `For each additional ${incrementalAmount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedBonus}, up to ${capAmount} ${socialMetrics.metric}`,
+        `For each additional ${incrementCount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedBonus}, up to ${maxCount} ${socialMetrics.metric}`,
       );
     }
   }

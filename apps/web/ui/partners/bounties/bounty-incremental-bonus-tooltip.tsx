@@ -35,21 +35,21 @@ function getBountyIncrementalBonusDescription(
     return null;
   }
 
-  const { incrementalAmount, bonusAmount, capAmount } = variableBonus;
+  const { incrementCount, bonusPerIncrement, maxCount } = variableBonus;
 
   if (
-    incrementalAmount == null ||
-    bonusAmount == null ||
-    capAmount == null ||
-    incrementalAmount < 1 ||
-    capAmount < 1
+    incrementCount == null ||
+    bonusPerIncrement == null ||
+    maxCount == null ||
+    incrementCount < 1 ||
+    maxCount < 1
   ) {
     return null;
   }
 
-  const formattedBonus = currencyFormatter(bonusAmount, {
+  const formattedBonus = currencyFormatter(bonusPerIncrement, {
     trailingZeroDisplay: "stripIfInteger",
   });
 
-  return `For each additional ${incrementalAmount} ${socialMetrics.metric} earn ${formattedBonus}, up to ${capAmount} ${socialMetrics.metric}`;
+  return `For each additional ${incrementCount} ${socialMetrics.metric} earn ${formattedBonus}, up to ${maxCount} ${socialMetrics.metric}`;
 }

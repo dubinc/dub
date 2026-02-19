@@ -315,18 +315,18 @@ function SocialMetricsIncrementalBonus({
               For each additional{" "}
               <InlineBadgePopover
                 text={
-                  variableBonus.incrementalAmount != null &&
-                  variableBonus.incrementalAmount >= 1
-                    ? String(variableBonus.incrementalAmount)
+                  variableBonus.incrementCount != null &&
+                  variableBonus.incrementCount >= 1
+                    ? String(variableBonus.incrementCount)
                     : "amount"
                 }
                 invalid={
-                  variableBonus.incrementalAmount == null ||
-                  variableBonus.incrementalAmount < 1
+                  variableBonus.incrementCount == null ||
+                  variableBonus.incrementCount < 1
                 }
                 buttonClassName={
-                  variableBonus.incrementalAmount != null &&
-                  variableBonus.incrementalAmount >= 1
+                  variableBonus.incrementCount != null &&
+                  variableBonus.incrementCount >= 1
                     ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
                     : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
                 }
@@ -335,15 +335,15 @@ function SocialMetricsIncrementalBonus({
                   type="number"
                   min={1}
                   value={
-                    variableBonus.incrementalAmount != null
-                      ? String(variableBonus.incrementalAmount)
+                    variableBonus.incrementCount != null
+                      ? String(variableBonus.incrementCount)
                       : ""
                   }
                   onChange={(e) => {
                     const raw = (e.target as HTMLInputElement).value;
                     const num = raw === "" ? undefined : parseInt(raw, 10);
                     onUpdate({
-                      incrementalAmount:
+                      incrementCount:
                         num === undefined || Number.isNaN(num)
                           ? undefined
                           : Math.max(1, num),
@@ -364,30 +364,30 @@ function SocialMetricsIncrementalBonus({
               Pay{" "}
               <InlineBadgePopover
                 text={
-                  variableBonus.bonusAmount != null &&
-                  !isNaN(variableBonus.bonusAmount) &&
-                  variableBonus.bonusAmount >= 0
-                    ? currencyFormatter(variableBonus.bonusAmount * 100, {
+                  variableBonus.bonusPerIncrement != null &&
+                  !isNaN(variableBonus.bonusPerIncrement) &&
+                  variableBonus.bonusPerIncrement >= 0
+                    ? currencyFormatter(variableBonus.bonusPerIncrement * 100, {
                         trailingZeroDisplay: "stripIfInteger",
                       })
                     : "amount"
                 }
                 invalid={
-                  variableBonus.bonusAmount == null ||
-                  isNaN(variableBonus.bonusAmount) ||
-                  variableBonus.bonusAmount < 0
+                  variableBonus.bonusPerIncrement == null ||
+                  isNaN(variableBonus.bonusPerIncrement) ||
+                  variableBonus.bonusPerIncrement < 0
                 }
                 buttonClassName={
-                  variableBonus.bonusAmount != null &&
-                  !isNaN(variableBonus.bonusAmount) &&
-                  variableBonus.bonusAmount >= 0
+                  variableBonus.bonusPerIncrement != null &&
+                  !isNaN(variableBonus.bonusPerIncrement) &&
+                  variableBonus.bonusPerIncrement >= 0
                     ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
                     : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
                 }
               >
                 <VariableBonusAmountInput
-                  value={variableBonus.bonusAmount}
-                  onChange={(v) => onUpdate({ bonusAmount: v })}
+                  value={variableBonus.bonusPerIncrement}
+                  onChange={(v) => onUpdate({ bonusPerIncrement: v })}
                 />
               </InlineBadgePopover>
             </span>
@@ -403,17 +403,15 @@ function SocialMetricsIncrementalBonus({
               Up to{" "}
               <InlineBadgePopover
                 text={
-                  variableBonus.capAmount != null &&
-                  variableBonus.capAmount >= 1
-                    ? String(variableBonus.capAmount)
+                  variableBonus.maxCount != null && variableBonus.maxCount >= 1
+                    ? String(variableBonus.maxCount)
                     : "amount"
                 }
                 invalid={
-                  variableBonus.capAmount == null || variableBonus.capAmount < 1
+                  variableBonus.maxCount == null || variableBonus.maxCount < 1
                 }
                 buttonClassName={
-                  variableBonus.capAmount != null &&
-                  variableBonus.capAmount >= 1
+                  variableBonus.maxCount != null && variableBonus.maxCount >= 1
                     ? "!bg-blue-50 !text-blue-700 hover:!bg-blue-100"
                     : "!bg-orange-50 !text-orange-500 hover:!bg-orange-100"
                 }
@@ -422,15 +420,15 @@ function SocialMetricsIncrementalBonus({
                   type="number"
                   min={1}
                   value={
-                    variableBonus.capAmount != null
-                      ? String(variableBonus.capAmount)
+                    variableBonus.maxCount != null
+                      ? String(variableBonus.maxCount)
                       : ""
                   }
                   onChange={(e) => {
                     const raw = (e.target as HTMLInputElement).value;
                     const num = raw === "" ? undefined : parseInt(raw, 10);
                     onUpdate({
-                      capAmount:
+                      maxCount:
                         num === undefined || Number.isNaN(num)
                           ? undefined
                           : Math.max(1, num),

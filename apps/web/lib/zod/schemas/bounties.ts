@@ -32,26 +32,26 @@ export const bountyPerformanceConditionSchema = z.object({
 // Eg: for each additional 1000 views, earn $1, up to $100
 export const bountySocialContentIncrementalBonusSchema = z
   .object({
-    incrementalAmount: z.number().int().positive().optional(),
-    bonusAmount: z.number().min(0).optional(),
-    capAmount: z.number().int().positive().optional(),
+    incrementCount: z.number().int().positive().optional(),
+    bonusPerIncrement: z.number().min(0).optional(),
+    maxCount: z.number().int().positive().optional(),
   })
   .refine(
-    ({ incrementalAmount, capAmount }) => {
+    ({ incrementCount, maxCount }) => {
       if (
-        incrementalAmount != null &&
-        capAmount != null &&
-        !Number.isNaN(incrementalAmount) &&
-        !Number.isNaN(capAmount)
+        incrementCount != null &&
+        maxCount != null &&
+        !Number.isNaN(incrementCount) &&
+        !Number.isNaN(maxCount)
       ) {
-        return capAmount >= incrementalAmount;
+        return maxCount >= incrementCount;
       }
 
       return true;
     },
     {
-      message: "Cap must be at least the incremental amount",
-      path: ["capAmount"],
+      message: "Cap must be at least the increment count",
+      path: ["maxCount"],
     },
   );
 

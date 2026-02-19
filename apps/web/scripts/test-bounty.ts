@@ -10,9 +10,9 @@ async function main() {
       platform: "instagram",
       minCount: 1000,
       incrementalBonus: {
-        incrementalAmount: 1000,
-        bonusAmount: 100,
-        capAmount: 5000,
+        incrementCount: 1000,
+        bonusPerIncrement: 100,
+        maxCount: 5000,
       },
     },
   };
