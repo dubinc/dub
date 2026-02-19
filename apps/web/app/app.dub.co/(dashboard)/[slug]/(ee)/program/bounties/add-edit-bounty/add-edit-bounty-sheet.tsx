@@ -91,7 +91,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     handleEndDateChange,
     endDateMode,
     handleEndDateModeChange,
-    totalSubmissionsAllowed,
+    maxSubmissions,
     handleTotalSubmissionsAllowedChange,
     submissionFrequency,
     type,
@@ -326,7 +326,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               </label>
                               <div className="mt-2">
                                 <NumberStepper
-                                  value={totalSubmissionsAllowed ?? 2}
+                                  value={maxSubmissions ?? 2}
                                   onChange={handleTotalSubmissionsAllowedChange}
                                   min={2}
                                   max={10}

@@ -91,11 +91,11 @@ export function useAddEditBountyForm({
           ? "socialMetrics"
           : "manualSubmission",
       endDateMode:
-        bounty?.totalSubmissionsAllowed != null || bounty?.submissionFrequency
+        bounty?.maxSubmissions != null || bounty?.submissionFrequency
           ? "repeat-submissions"
           : "fixed-end-date",
       submissionFrequency: bounty?.submissionFrequency ?? "week",
-      totalSubmissionsAllowed: bounty?.totalSubmissionsAllowed ?? 2,
+      maxSubmissions: bounty?.maxSubmissions ?? 2,
     },
     shouldUnregister: false,
   });
@@ -110,7 +110,7 @@ export function useAddEditBountyForm({
   } = form;
 
   const endDateMode = watch("endDateMode") ?? "fixed-end-date";
-  const totalSubmissionsAllowed = watch("totalSubmissionsAllowed") ?? 2;
+  const maxSubmissions = watch("maxSubmissions") ?? 2;
   const isRepeatMode = endDateMode === "repeat-submissions";
 
   const [
@@ -140,7 +140,7 @@ export function useAddEditBountyForm({
     "rewardType",
     "submissionRequirements",
     "submissionFrequency",
-    "totalSubmissionsAllowed",
+    "maxSubmissions",
   ]);
 
   const handleStartDateToggle = (checked: boolean) => {
@@ -168,17 +168,17 @@ export function useAddEditBountyForm({
     setValue("endDateMode", mode, { shouldDirty: true });
     if (mode === "fixed-end-date") {
       setValue("submissionFrequency", undefined, { shouldDirty: true });
-      setValue("totalSubmissionsAllowed", null, { shouldDirty: true });
+      setValue("maxSubmissions", null, { shouldDirty: true });
       setValue("submissionsOpenAt", null, { shouldDirty: true });
     } else {
       setValue("submissionFrequency", "week", { shouldDirty: true });
-      setValue("totalSubmissionsAllowed", 2, { shouldDirty: true });
+      setValue("maxSubmissions", 2, { shouldDirty: true });
       setValue("endsAt", null, { shouldDirty: true });
     }
   };
 
   const handleTotalSubmissionsAllowedChange = (value: number) => {
-    setValue("totalSubmissionsAllowed", value, { shouldDirty: true });
+    setValue("maxSubmissions", value, { shouldDirty: true });
   };
 
   const validationError = useMemo(() => {
@@ -355,12 +355,12 @@ export function useAddEditBountyForm({
 
       if (isRepeatMode) {
         data.submissionFrequency = submissionFrequency ?? "week";
-        data.totalSubmissionsAllowed = totalSubmissionsAllowedVal ?? 2;
+        data.maxSubmissions = totalSubmissionsAllowedVal ?? 2;
         data.endsAt = null;
         data.submissionsOpenAt = null;
       } else {
         data.submissionFrequency = undefined;
-        data.totalSubmissionsAllowed = undefined;
+        data.maxSubmissions = undefined;
         data.submissionsOpenAt = null;
       }
 
@@ -446,7 +446,7 @@ export function useAddEditBountyForm({
     setOpenAccordions,
     endDateMode,
     isRepeatMode,
-    totalSubmissionsAllowed,
+    maxSubmissions,
     submissionFrequency,
     type,
     name,

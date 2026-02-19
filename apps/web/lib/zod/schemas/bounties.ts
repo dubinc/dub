@@ -101,7 +101,7 @@ export const createBountySchema = z.object({
   endsAt: parseDateSchema.nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullish(),
-  totalSubmissionsAllowed: z
+  maxSubmissions: z
     .number()
     .int()
     .min(2, "Total submissions allowed must be at least 2")
@@ -149,7 +149,7 @@ export const BountySchema = z.object({
   endsAt: z.date().nullable(),
   submissionsOpenAt: z.date().nullable(),
   submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
-  totalSubmissionsAllowed: z.number().nullable(),
+  maxSubmissions: z.number().nullable(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
   performanceCondition: bountyPerformanceConditionSchema

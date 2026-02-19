@@ -168,7 +168,7 @@ export const POST = withWorkspace(
       endsAt,
       submissionsOpenAt,
       submissionFrequency,
-      totalSubmissionsAllowed,
+      maxSubmissions,
       submissionRequirements,
       groupIds,
       performanceCondition,
@@ -251,8 +251,7 @@ export const POST = withWorkspace(
           submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
           submissionFrequency:
             type === "submission" ? submissionFrequency ?? null : null,
-          totalSubmissionsAllowed:
-            type === "submission" ? totalSubmissionsAllowed ?? null : null,
+          maxSubmissions: type === "submission" ? maxSubmissions ?? null : null,
           rewardAmount: rewardAmount ?? null,
           rewardDescription,
           performanceScope: type === "performance" ? performanceScope : null,

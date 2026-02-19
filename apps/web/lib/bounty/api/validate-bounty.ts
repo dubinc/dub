@@ -7,7 +7,7 @@ export function validateBounty({
   endsAt,
   submissionsOpenAt,
   submissionFrequency,
-  totalSubmissionsAllowed,
+  maxSubmissions,
   rewardAmount,
   rewardDescription,
   performanceScope,
@@ -73,19 +73,18 @@ export function validateBounty({
   }
 
   if (type === "submission") {
-    if (totalSubmissionsAllowed != null && !submissionFrequency) {
+    if (maxSubmissions != null && !submissionFrequency) {
       throw new DubApiError({
         code: "bad_request",
         message:
-          "submissionFrequency is required when totalSubmissionsAllowed is set (e.g. per day, per week, per month).",
+          "submissionFrequency is required when maxSubmissions is set (e.g. per day, per week, per month).",
       });
     }
 
-    if (submissionFrequency && totalSubmissionsAllowed == null) {
+    if (submissionFrequency && maxSubmissions == null) {
       throw new DubApiError({
         code: "bad_request",
-        message:
-          "totalSubmissionsAllowed is required when submissionFrequency is set.",
+        message: "maxSubmissions is required when submissionFrequency is set.",
       });
     }
   }

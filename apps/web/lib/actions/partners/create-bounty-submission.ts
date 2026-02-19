@@ -8,7 +8,6 @@ import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import { getBountyInfo } from "@/lib/bounty/utils";
 import {
-  bountySocialContentRequirementsSchema,
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
@@ -28,8 +27,6 @@ export const createBountySubmissionAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId, bountyId, files, urls, description, isDraft } =
       parsedInput;
-
-    const storedUrls = [...urls].slice(0, BOUNTY_MAX_SUBMISSION_URLS);
 
     const [programEnrollment, bounty] = await Promise.all([
       getProgramEnrollmentOrThrow({
@@ -113,6 +110,8 @@ export const createBountySubmissionAction = authPartnerActionClient
       );
     }
 
+    const bountyInfo = getBountyInfo(bounty);
+
     // Validate the submission requirements
     const submissionRequirements = bounty.submissionRequirements
       ? submissionRequirementsSchema.parse(bounty.submissionRequirements)
@@ -122,16 +121,12 @@ export const createBountySubmissionAction = authPartnerActionClient
     const requireUrl = !!submissionRequirements?.url;
     const urlRequirement = submissionRequirements?.url || null;
     const imageRequirement = submissionRequirements?.image || null;
+    const storedUrls = [...urls].slice(0, BOUNTY_MAX_SUBMISSION_URLS);
 
     // Validate social content requirements
-    const socialContentRequirements = bountySocialContentRequirementsSchema
-      .optional()
-      .parse(submissionRequirements?.socialMetrics);
-
     let socialMetricCount: number | undefined;
 
-    if (socialContentRequirements) {
-      const bountyInfo = getBountyInfo(bounty);
+    if (bountyInfo?.socialMetrics) {
       const contentUrl = storedUrls[0];
 
       if (!bountyInfo?.socialPlatform) {
@@ -199,7 +194,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         );
       }
 
-      const metricValue = socialContent[socialContentRequirements.metric];
+      const metricValue = socialContent[bountyInfo.socialMetrics.metric];
 
       if (typeof metricValue === "number" && Number.isInteger(metricValue)) {
         socialMetricCount = metricValue;
