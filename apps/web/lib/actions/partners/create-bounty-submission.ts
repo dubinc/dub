@@ -63,33 +63,6 @@ export const createBountySubmissionAction = authPartnerActionClient
 
     const now = new Date();
 
-    // Check maxSubmissions
-    if (bounty.submissions.length >= bounty.maxSubmissions) {
-      throw new Error(
-        `You can submit at most ${bounty.maxSubmissions} submissions for this bounty.`,
-      );
-    }
-
-    // Check submissionFrequency
-    if (bounty.submissionFrequency && bounty.submissions.length > 0) {
-      const lastSubmission = bounty.submissions[0];
-
-      const nextEligibleAt = getNextBountySubmissionEligibleAt({
-        submissionFrequency: bounty.submissionFrequency,
-        lastSubmissionAt: lastSubmission.createdAt,
-      });
-
-      if (nextEligibleAt > now) {
-        const waitTime = formatDistanceToNow(nextEligibleAt, {
-          addSuffix: true,
-        });
-
-        throw new Error(
-          `You can only submit once per ${bounty.submissionFrequency}. Please wait until ${waitTime} to submit again.`,
-        );
-      }
-    }
-
     if (bounty.groups.length > 0) {
       const isInGroup = bounty.groups.find(
         ({ groupId }) => groupId === programEnrollment.groupId,
@@ -285,6 +258,9 @@ export const createBountySubmissionAction = authPartnerActionClient
         where: {
           bountyId: bounty.id,
           partnerId: partner.id,
+          status: {
+            not: "draft",
+          },
         },
       });
 
@@ -294,7 +270,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         );
       }
 
-      const existingDraftSubmission = await tx.bountySubmission.findFirst({
+      const existingDraft = await tx.bountySubmission.findFirst({
         where: {
           bountyId: bounty.id,
           partnerId: partner.id,
@@ -309,10 +285,10 @@ export const createBountySubmissionAction = authPartnerActionClient
       });
 
       // If there is an existing submission, update it
-      if (existingDraftSubmission) {
+      if (existingDraft) {
         return await tx.bountySubmission.update({
           where: {
-            id: existingDraftSubmission.id,
+            id: existingDraft.id,
           },
           data: {
             description,
@@ -323,6 +299,26 @@ export const createBountySubmissionAction = authPartnerActionClient
             ...(socialMetricCount != null && { socialMetricCount }),
           },
         });
+      }
+
+      // Check submissionFrequency
+      if (bounty.submissionFrequency && count > 0) {
+        const lastSubmission = bounty.submissions[0];
+
+        const nextEligibleAt = getNextBountySubmissionEligibleAt({
+          submissionFrequency: bounty.submissionFrequency,
+          lastSubmissionAt: lastSubmission.createdAt,
+        });
+
+        if (nextEligibleAt > now) {
+          const waitTime = formatDistanceToNow(nextEligibleAt, {
+            addSuffix: true,
+          });
+
+          throw new Error(
+            `You can only submit once per ${bounty.submissionFrequency}. Please wait until ${waitTime} to submit again.`,
+          );
+        }
       }
 
       // If there is no existing submission, create a new one

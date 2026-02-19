@@ -148,7 +148,7 @@ export const partnerNotificationTypes = z.enum([
 export const PartnerBountySchema = BountySchema.omit({
   groups: true,
 }).extend({
-  submission: BountySubmissionSchema.nullable(),
+  submissions: z.array(BountySubmissionSchema).nullable(),
   performanceCondition: bountyPerformanceConditionSchema
     .nullable()
     .default(null),
