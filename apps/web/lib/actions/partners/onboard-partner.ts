@@ -151,7 +151,6 @@ export const onboardPartnerAction = authUserActionClient
             partnerId,
             stripeConnectIdToDelete,
             userId: user.id,
-            userEmail: user.email,
             error,
           });
           console.error(
