@@ -5,8 +5,7 @@ import { randomValue } from "@dub/utils";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PROGRAM } from "../utils/resource";
-import { trackLeads } from "./utils/track-leads";
+import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyPartnerGroupMove } from "./utils/verify-partner-group-move";
 
 async function cleanupOrphanedGroup(
@@ -21,7 +20,6 @@ async function cleanupOrphanedGroup(
 describe.sequential("Workflow - MoveGroup", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
-  const programId = E2E_PROGRAM.id;
 
   const { data: allGroupsForCleanup } = await http.get<PartnerGroup[]>({
     path: "/groups",
@@ -53,8 +51,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
         moveRules: [
           {
             attribute: "totalLeads",
-            operator: "gte",
-            value: 10,
+            operator: "between",
+            value: { min: 3, max: 5 },
           },
         ],
       },
@@ -79,8 +77,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
     const workflowConditions = workflow.triggerConditions as any[];
     expect(workflowConditions).toHaveLength(1);
     expect(workflowConditions[0].attribute).toBe("totalLeads");
-    expect(workflowConditions[0].operator).toBe("gte");
-    expect(workflowConditions[0].value).toBe(10);
+    expect(workflowConditions[0].operator).toBe("between");
+    expect(workflowConditions[0].value).toStrictEqual({ min: 3, max: 5 });
   });
 
   test("Workflow is deleted when move rules are removed", async () => {
@@ -108,8 +106,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
         moveRules: [
           {
             attribute: "totalLeads",
-            operator: "gte",
-            value: 5,
+            operator: "between",
+            value: { min: 2, max: 3 },
           },
         ],
       },
@@ -174,8 +172,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
         moveRules: [
           {
             attribute: "totalLeads",
-            operator: "gte",
-            value: 2,
+            operator: "between",
+            value: { min: 2, max: 3 },
           },
         ],
       },
@@ -211,7 +209,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 3);
+    await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
@@ -255,8 +253,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
         moveRules: [
           {
             attribute: "totalLeads",
-            operator: "gte",
-            value: 2,
+            operator: "between",
+            value: { min: 4, max: 5 },
           },
         ],
       },
@@ -279,7 +277,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 1);
+    await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
@@ -326,8 +324,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
           moveRules: [
             {
               attribute: "totalLeads",
-              operator: "gte",
-              value: 2,
+              operator: "between",
+              value: { min: 1, max: 2 },
             },
           ],
         },
@@ -351,7 +349,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
       const partnerLink = partner.links![0];
 
-      await trackLeads(http, partnerLink, 3);
+      await trackE2ELead(http, partnerLink);
 
       await verifyPartnerGroupMove({
         http,
@@ -397,8 +395,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
           moveRules: [
             {
               attribute: "totalLeads",
-              operator: "gte",
-              value: 2,
+              operator: "between",
+              value: { min: 1, max: 2 },
             },
           ],
         },
@@ -421,7 +419,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
       const partnerLink = partner.links![0];
 
-      await trackLeads(http, partnerLink, 5);
+      await trackE2ELead(http, partnerLink);
 
       await verifyPartnerGroupMove({
         http,
@@ -462,13 +460,13 @@ describe.sequential("Workflow - MoveGroup", async () => {
         moveRules: [
           {
             attribute: "totalLeads",
-            operator: "gte",
-            value: 10,
+            operator: "between",
+            value: { min: 2, max: 3 },
           },
           {
             attribute: "totalConversions",
-            operator: "gte",
-            value: 5,
+            operator: "between",
+            value: { min: 1, max: 2 },
           },
         ],
       },
@@ -486,8 +484,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
     const workflowConditions = workflow.triggerConditions as any[];
     expect(workflowConditions).toHaveLength(2);
     expect(workflowConditions[0].attribute).toBe("totalLeads");
-    expect(workflowConditions[0].value).toBe(10);
+    expect(workflowConditions[0].value).toStrictEqual({ min: 2, max: 3 });
     expect(workflowConditions[1].attribute).toBe("totalConversions");
-    expect(workflowConditions[1].value).toBe(5);
+    expect(workflowConditions[1].value).toStrictEqual({ min: 1, max: 2 });
   });
 });

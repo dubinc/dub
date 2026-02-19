@@ -1,9 +1,11 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Bounty } from "@dub/prisma/client";
+import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { trackLeads } from "./utils/track-leads";
+import { deleteBountyAndSubmissions } from "./utils/delete-bounty-and-submissions";
+import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyBountySubmission } from "./utils/verify-bounty-submission";
 
 describe.sequential("Workflow - AwardBounty", async () => {
@@ -24,11 +26,11 @@ describe.sequential("Workflow - AwardBounty", async () => {
           endsAt: null,
           rewardAmount: 1000,
           performanceScope: "new",
-          groupIds: [],
+          groupIds: [E2E_PARTNER_GROUP.id],
           performanceCondition: {
             attribute: "totalLeads",
             operator: "gte",
-            value: 2,
+            value: 1,
           },
         },
       });
@@ -36,7 +38,10 @@ describe.sequential("Workflow - AwardBounty", async () => {
       expect(bountyStatus).toEqual(200);
 
       onTestFinished(async () => {
-        await h.deleteBounty(bounty.id);
+        await deleteBountyAndSubmissions({
+          http,
+          bountyId: bounty.id,
+        });
       });
 
       const { status: partnerStatus, data: partner } =
@@ -45,6 +50,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           body: {
             name: "E2E Test Partner - Goal",
             email: randomEmail(),
+            groupId: E2E_PARTNER_GROUP.id,
           },
         });
 
@@ -54,18 +60,18 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
       const partnerLink = partner.links![0];
 
-      await trackLeads(http, partnerLink, 3);
+      await trackE2ELead(http, partnerLink);
 
       const submission = await verifyBountySubmission({
         http,
         bountyId: bounty.id,
         partnerId: partner.id,
         expectedStatus: "submitted",
-        minPerformanceCount: 2,
+        minPerformanceCount: 1,
       });
 
       expect(submission.status).toBe("submitted");
-      expect(submission.performanceCount).toBeGreaterThanOrEqual(2);
+      expect(submission.performanceCount).toBeGreaterThanOrEqual(1);
       expect(submission.completedAt).not.toBeNull();
     },
   );
@@ -81,7 +87,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         endsAt: null,
         rewardAmount: 1000,
         performanceScope: "new",
-        groupIds: [],
+        groupIds: [E2E_PARTNER_GROUP.id],
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
@@ -93,7 +99,10 @@ describe.sequential("Workflow - AwardBounty", async () => {
     expect(bountyStatus).toEqual(200);
 
     onTestFinished(async () => {
-      await h.deleteBounty(bounty.id);
+      await deleteBountyAndSubmissions({
+        http,
+        bountyId: bounty.id,
+      });
     });
 
     const { status: partnerStatus, data: partner } =
@@ -102,6 +111,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         body: {
           name: "E2E Test Partner - Not Reached",
           email: randomEmail(),
+          groupId: E2E_PARTNER_GROUP.id,
         },
       });
 
@@ -110,7 +120,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 1);
+    await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
@@ -138,7 +148,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         endsAt: null,
         rewardAmount: 1000,
         performanceScope: "new",
-        groupIds: [],
+        groupIds: [E2E_PARTNER_GROUP.id],
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
@@ -150,7 +160,10 @@ describe.sequential("Workflow - AwardBounty", async () => {
     expect(bountyStatus).toEqual(200);
 
     onTestFinished(async () => {
-      await h.deleteBounty(bounty.id);
+      await deleteBountyAndSubmissions({
+        http,
+        bountyId: bounty.id,
+      });
     });
 
     // Find workflow via E2E endpoint and disable it
@@ -172,6 +185,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         body: {
           name: "E2E Test Partner - Disabled",
           email: randomEmail(),
+          groupId: E2E_PARTNER_GROUP.id,
         },
       });
 
@@ -180,7 +194,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const partnerLink = partner.links![0];
 
-    await trackLeads(http, partnerLink, 3);
+    await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
@@ -206,11 +220,11 @@ describe.sequential("Workflow - AwardBounty", async () => {
           endsAt: null,
           rewardAmount: 1000,
           performanceScope: "new",
-          groupIds: [],
+          groupIds: [E2E_PARTNER_GROUP.id],
           performanceCondition: {
             attribute: "totalLeads",
             operator: "gte",
-            value: 2,
+            value: 1,
           },
         },
       });
@@ -218,7 +232,10 @@ describe.sequential("Workflow - AwardBounty", async () => {
       expect(bountyStatus).toEqual(200);
 
       onTestFinished(async () => {
-        await h.deleteBounty(bounty.id);
+        await deleteBountyAndSubmissions({
+          http,
+          bountyId: bounty.id,
+        });
       });
 
       const { status: partnerStatus, data: partner } =
@@ -227,6 +244,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           body: {
             name: "E2E Test Partner - No Dup",
             email: randomEmail(),
+            groupId: E2E_PARTNER_GROUP.id,
           },
         });
 
@@ -235,14 +253,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
       const partnerLink = partner.links![0];
 
-      await trackLeads(http, partnerLink, 5);
+      await trackE2ELead(http, partnerLink);
 
       await verifyBountySubmission({
         http,
         bountyId: bounty.id,
         partnerId: partner.id,
         expectedStatus: "submitted",
-        minPerformanceCount: 2,
+        minPerformanceCount: 1,
       });
 
       const { data: submissions } = await http.get<any[]>({

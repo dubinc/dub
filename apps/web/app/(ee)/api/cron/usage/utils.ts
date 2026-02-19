@@ -9,7 +9,6 @@ import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,
   getAdjustedBillingCycleStart,
-  getPrettyUrl,
   log,
 } from "@dub/utils";
 
@@ -125,14 +124,13 @@ export const updateUsage = async () => {
           root: false,
         });
 
-        const topFive = topLinks.slice(0, 5);
-        const topFiveLinkIds = topFive.map(({ link }) => link);
+        const topLinkIds = topLinks.slice(0, 100).map(({ link }) => link);
 
         const linksMetadata = await prisma.link.findMany({
           where: {
             projectId: workspace.id,
             id: {
-              in: topFiveLinkIds,
+              in: topLinkIds,
             },
           },
           select: {
@@ -141,13 +139,15 @@ export const updateUsage = async () => {
           },
         });
 
-        const topFiveLinks = topFive.map((d) => ({
-          link:
-            getPrettyUrl(
-              linksMetadata.find((l) => l.id === d.link)?.shortLink,
-            ) || d.link,
-          clicks: d.clicks,
-        }));
+        const topFiveLinks = topLinks
+          .filter((d: { link: string; clicks: number }) =>
+            linksMetadata.find((l) => l.id === d.link),
+          )
+          .slice(0, 5)
+          .map((d: { link: string; clicks: number }) => ({
+            link: linksMetadata.find((l) => l.id === d.link)!, // coerce here since we're already filtering out links that don't exist
+            clicks: d.clicks,
+          }));
 
         const totalClicks = topLinks.reduce(
           (acc, curr) => acc + curr.clicks,

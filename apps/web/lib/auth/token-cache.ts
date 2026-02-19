@@ -5,22 +5,23 @@ const CACHE_EXPIRATION = 60 * 60 * 24; // 24 hours
 const CACHE_KEY_PREFIX = "dubTokenCache";
 
 const tokenCacheItemSchema = z.object({
-  scopes: z.string().nullish(),
-  projectId: z.string().nullish(),
   expires: z.date().nullish(),
-  installationId: z.string().nullish(),
   user: z.object({
     id: z.string(),
     name: z.string().nullable(),
     email: z.string().nullable(),
     isMachine: z.boolean(),
+    defaultWorkspace: z.string().nullish(),
     defaultPartnerId: z.string().nullish(),
   }),
+  scopes: z.string().nullish(),
+  projectId: z.string().nullish(),
   project: z
     .object({
       plan: z.string().nullish(),
     })
     .nullish(),
+  installationId: z.string().nullish(),
 });
 
 export type TokenCacheItem = z.infer<typeof tokenCacheItemSchema>;
