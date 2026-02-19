@@ -105,7 +105,7 @@ export const POST = withCron(async ({ rawBody }) => {
       links.map((link) => ({
         queueName: "create-discount-code",
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create`,
-        deduplicationId: `${discountId}-${link.id}-1`,
+        deduplicationId: `${discountId}-${link.id}`,
         body: {
           linkId: link.id,
         },
