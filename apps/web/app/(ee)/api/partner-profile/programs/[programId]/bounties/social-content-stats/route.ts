@@ -14,10 +14,6 @@ const inputSchema = z.object({
   bountyId: z.string(),
 });
 
-// TODO:
-// - Add hostname allowlist per platform and validate the request url before calling scrape-creators
-// - Make sure the partner is verified their social account
-
 // POST /api/partner-profile/programs/[programId]/bounties/social-content-stats – get social content stats for a social content
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
@@ -41,7 +37,7 @@ export const GET = withPartnerProfile(
 
       if (!success) {
         throw new DubApiError({
-          code: "rate_limited",
+          code: "rate_limit_exceeded",
           message:
             "You have reached the rate limit for retrieving social content stats.",
         });

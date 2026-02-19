@@ -2,7 +2,12 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
-import { getBountySocialPlatform } from "@/lib/bounty/utils";
+import {
+  getBountySocialMetricsRequirements,
+  getBountySocialPlatform,
+} from "@/lib/bounty/utils";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
 import {
   SubmissionsCountByStatus,
@@ -17,6 +22,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { UserRowItem } from "@/ui/users/user-row-item";
 import {
   AnimatedSizeContainer,
+  Button,
   Filter,
   ProgressCircle,
   StatusBadge,
@@ -33,10 +39,12 @@ import {
   fetcher,
   formatDate,
   nFormatter,
+  timeAgo,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
 import { BountySubmissionRowMenu } from "./bounty-submission-row-menu";
@@ -139,6 +147,28 @@ export function BountySubmissionsTable() {
     | { open: false; submission: BountySubmissionProps | null }
     | { open: true; submission: BountySubmissionProps }
   >({ open: false, submission: null });
+
+  const hasSocialMetrics = bounty
+    ? !!getBountySocialMetricsRequirements(bounty)
+    : false;
+
+  const { isSubmitting: isRefreshingStats, makeRequest } = useApiMutation();
+
+  const refreshStats = useCallback(() => {
+    if (!bountyId) return;
+
+    makeRequest(`/api/bounties/${bountyId}/sync-social-metrics`, {
+      method: "POST",
+      body: {},
+      onSuccess: async () => {
+        toast.success("Stats sync in progress. Updates will appear shortly.");
+        await mutatePrefix(`/api/bounties/${bountyId}`);
+      },
+      onError: (error) => {
+        toast.error(error);
+      },
+    });
+  }, [bountyId, makeRequest]);
 
   // Open the details sheet if submissionId is set in params
   useEffect(() => {
@@ -299,7 +329,9 @@ export function BountySubmissionsTable() {
           ]
         : []),
 
-      ...(showColumns.includes("socialMetrics") && socialPlatform && socialMetricsConfig
+      ...(showColumns.includes("socialMetrics") &&
+      socialPlatform &&
+      socialMetricsConfig
         ? [
             {
               id: "socialMetricCount",
@@ -434,15 +466,36 @@ export function BountySubmissionsTable() {
 
       <div className="flex flex-col gap-6">
         <div>
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
+          <div className="flex w-full items-center justify-between gap-4">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+              onSearchChange={setSearch}
+              onSelectedFilterChange={setSelectedFilter}
+            />
+            {hasSocialMetrics && (
+              <div className="flex shrink-0 items-center gap-3">
+                {bounty?.socialMetricsLastSyncedAt ? (
+                  <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
+                    Last sync{" "}
+                    {timeAgo(bounty.socialMetricsLastSyncedAt, {
+                      withAgo: true,
+                    })}
+                  </span>
+                ) : null}
+                <Button
+                  variant="secondary"
+                  text="Refresh stats"
+                  loading={isRefreshingStats}
+                  onClick={refreshStats}
+                  className="h-8 rounded-lg px-3"
+                />
+              </div>
+            )}
+          </div>
           <AnimatedSizeContainer height>
             <div>
               {activeFilters.length > 0 && (

@@ -64,18 +64,15 @@ export const POST = withWorkspace(
       });
     }
 
-    if (process.env.NODE_ENV !== "development") {
-      const { success } = await ratelimit(1, "1 h").limit(
-        `sync-bounty-social:${bountyId}`,
-      );
+    const { success } = await ratelimit(1, "1 h").limit(
+      `sync-bounty-social:${bountyId}`,
+    );
 
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limited",
-          message:
-            "Refresh is limited to once per hour. Please try again later.",
-        });
-      }
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "Refresh is limited to once per hour. Please try again later.",
+      });
     }
 
     // Do the sync in a background job
