@@ -4,6 +4,7 @@ import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { withWorkspace } from "@/lib/auth";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { assertE2EWorkspace } from "../../guard";
 
@@ -16,7 +17,7 @@ export const POST = withWorkspace(async ({ workspace, params }) => {
 
   try {
     const workflow = await prisma.workflow.findUnique({
-      where: { id: workflowId },
+      where: { id: workflowId, programId: ACME_PROGRAM_ID },
     });
 
     if (!workflow) {

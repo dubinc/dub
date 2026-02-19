@@ -65,8 +65,34 @@ export async function bulkDeletePartners({
     console.log(`Deleted ${deletedLinks.count} links`);
   }
 
-  while (true) {
-    const commissionsToDelete = await prisma.commission.findMany({
+  if (programEnrollmentIds.length > 0) {
+    while (true) {
+      const commissionsToDelete = await prisma.commission.findMany({
+        where: {
+          programEnrollment: {
+            id: {
+              in: programEnrollmentIds,
+            },
+          },
+        },
+        take: BATCH_SIZE,
+      });
+
+      if (commissionsToDelete.length === 0) {
+        break;
+      }
+
+      const deletedCommissions = await prisma.commission.deleteMany({
+        where: {
+          id: {
+            in: commissionsToDelete.map((commission) => commission.id),
+          },
+        },
+      });
+      console.log(`Deleted ${deletedCommissions.count} commissions`);
+    }
+
+    const deletedPayouts = await prisma.payout.deleteMany({
       where: {
         programEnrollment: {
           id: {
@@ -74,68 +100,44 @@ export async function bulkDeletePartners({
           },
         },
       },
-      take: BATCH_SIZE,
     });
+    console.log(`Deleted ${deletedPayouts.count} payouts`);
 
-    if (commissionsToDelete.length === 0) {
-      break;
-    }
-
-    const deletedCommissions = await prisma.commission.deleteMany({
+    // Delete the messages
+    const deletedMessages = await prisma.message.deleteMany({
       where: {
-        id: {
-          in: commissionsToDelete.map((commission) => commission.id),
+        programEnrollment: {
+          id: {
+            in: programEnrollmentIds,
+          },
         },
       },
     });
-    console.log(`Deleted ${deletedCommissions.count} commissions`);
+    console.log(`Deleted ${deletedMessages.count} messages`);
+
+    // Delete the bounty submissions
+    const deletedBountySubmissions = await prisma.bountySubmission.deleteMany({
+      where: {
+        programEnrollment: {
+          id: {
+            in: programEnrollmentIds,
+          },
+        },
+      },
+    });
+    console.log(`Deleted ${deletedBountySubmissions.count} bounty submissions`);
+
+    // Delete the activity logs
+    const deletedActivityLogs = await prisma.activityLog.deleteMany({
+      where: {
+        resourceType: "partner",
+        resourceId: {
+          in: partnerIds,
+        },
+      },
+    });
+    console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
   }
-
-  const deletedPayouts = await prisma.payout.deleteMany({
-    where: {
-      programEnrollment: {
-        id: {
-          in: programEnrollmentIds,
-        },
-      },
-    },
-  });
-  console.log(`Deleted ${deletedPayouts.count} payouts`);
-
-  // Delete the messages
-  const deletedMessages = await prisma.message.deleteMany({
-    where: {
-      programEnrollment: {
-        id: {
-          in: programEnrollmentIds,
-        },
-      },
-    },
-  });
-  console.log(`Deleted ${deletedMessages.count} messages`);
-
-  // Delete the bounty submissions
-  const deletedBountySubmissions = await prisma.bountySubmission.deleteMany({
-    where: {
-      programEnrollment: {
-        id: {
-          in: programEnrollmentIds,
-        },
-      },
-    },
-  });
-  console.log(`Deleted ${deletedBountySubmissions.count} bounty submissions`);
-
-  // Delete the activity logs
-  const deletedActivityLogs = await prisma.activityLog.deleteMany({
-    where: {
-      resourceType: "partner",
-      resourceId: {
-        in: partnerIds,
-      },
-    },
-  });
-  console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
 
   if (deletePartners) {
     const deletedPartners = await prisma.partner.deleteMany({
@@ -146,7 +148,7 @@ export async function bulkDeletePartners({
       },
     });
     console.log(`Deleted ${deletedPartners.count} partners`);
-  } else {
+  } else if (programEnrollmentIds.length > 0) {
     const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany(
       {
         where: {

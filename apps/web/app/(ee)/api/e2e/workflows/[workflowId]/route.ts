@@ -1,5 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { assertE2EWorkspace } from "../../guard";
 
@@ -12,7 +13,7 @@ export const PATCH = withWorkspace(
     const body = await req.json();
 
     const workflow = await prisma.workflow.update({
-      where: { id: workflowId },
+      where: { id: workflowId, programId: ACME_PROGRAM_ID },
       data: {
         disabledAt: body.disabledAt ? new Date(body.disabledAt) : null,
       },
