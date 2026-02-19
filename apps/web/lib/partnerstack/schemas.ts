@@ -103,6 +103,6 @@ export const partnerStackCommission = z.object({
     "scheduled",
   ]),
   partnership: z.object({
-    email: z.string().nullish(),
+    email: z.string().nullable(),
   }),
 });
