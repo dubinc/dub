@@ -64,19 +64,20 @@ export const POST = withWorkspace(
       });
     }
 
-    const { success } = await ratelimit(1, "1 h").limit(
-      `sync-bounty-social:${bountyId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "Refresh is limited to once per hour. Please try again later.",
-      });
-    }
-
-    // Do the sync in a background job
+    // Do the sync in a background job if no submissionId is provided
     if (!submissionId) {
+      const { success } = await ratelimit(1, "1 h").limit(
+        `sync-bounty-social:${bountyId}`,
+      );
+
+      if (!success) {
+        throw new DubApiError({
+          code: "rate_limit_exceeded",
+          message:
+            "Refresh is limited to once per hour. Please try again later.",
+        });
+      }
+
       const response = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/sync-social-metrics`,
         method: "POST",
@@ -99,6 +100,7 @@ export const POST = withWorkspace(
     const toUpdate = await getSocialMetricsUpdates({
       bounty,
       submissions: bounty.submissions![0],
+      ignoreCache: true,
     });
 
     if (toUpdate.length > 0) {

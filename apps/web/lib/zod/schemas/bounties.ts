@@ -205,6 +205,10 @@ export const BountySubmissionSchema = z.object({
     description:
       "The social metric count (views or likes) for the social content",
   }),
+  socialMetricsLastSyncedAt: z.date().nullable().optional().meta({
+    description:
+      "The date and time the submission's social metrics were last synced",
+  }),
   createdAt: z
     .date()
     .meta({ description: "The date and time the submission was created" }),

@@ -16,9 +16,11 @@ const submissionWithUrl = (s: { id: string; urls: unknown }) => {
 export async function getSocialMetricsUpdates({
   bounty,
   submissions,
+  ignoreCache = false,
 }: {
   bounty: { submissionRequirements?: unknown };
   submissions: { id: string; urls: unknown } | { id: string; urls: unknown }[];
+  ignoreCache?: boolean; // If true, will not use cache and will always fetch from the API
 }): Promise<SocialMetricsUpdate[]> {
   const socialMetrics = getBountySocialMetricsRequirements(bounty);
 

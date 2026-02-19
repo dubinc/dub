@@ -4,6 +4,7 @@ import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bo
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getBountySocialMetricsRequirements } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
@@ -28,10 +29,17 @@ import {
   formatDate,
   getPrettyUrl,
   OG_AVATAR_URL,
+  timeAgo,
 } from "@dub/utils";
 import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
@@ -55,6 +63,26 @@ function BountySubmissionDetailsSheetContent({
     useRejectBountySubmissionModal(submission, onNext);
 
   const [rewardAmount, setRewardAmount] = useState<number | null>(null);
+
+  const { isSubmitting: isRefreshingSocialMetrics, makeRequest } =
+    useApiMutation();
+
+  const refreshSubmissionSocialMetrics = useCallback(() => {
+    if (!bounty?.id || !submission?.id) return;
+
+    makeRequest(`/api/bounties/${bounty.id}/sync-social-metrics`, {
+      method: "POST",
+      body: { submissionId: submission.id },
+      onSuccess: async () => {
+        await mutatePrefix(`/api/bounties/${bounty.id}/submissions`);
+        toast.success("Social content stats updated successfully.");
+      },
+
+      onError: (error) => {
+        toast.error(error);
+      },
+    });
+  }, [bounty?.id, submission?.id, makeRequest]);
 
   const {
     executeAsync: approveBountySubmission,
@@ -319,9 +347,30 @@ function BountySubmissionDetailsSheetContent({
 
           {bounty?.type === "submission" && (
             <div>
-              <h2 className="text-base font-semibold text-neutral-900">
-                Submission
-              </h2>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-base font-semibold text-neutral-900">
+                  Submission
+                </h2>
+                {hasSocialContent && (
+                  <div className="flex shrink-0 items-center gap-3">
+                    {submission.socialMetricsLastSyncedAt ? (
+                      <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
+                        Last sync{" "}
+                        {timeAgo(submission.socialMetricsLastSyncedAt, {
+                          withAgo: true,
+                        })}
+                      </span>
+                    ) : null}
+                    <Button
+                      variant="secondary"
+                      text="Refresh"
+                      loading={isRefreshingSocialMetrics}
+                      onClick={refreshSubmissionSocialMetrics}
+                      className="h-8 rounded-lg px-3"
+                    />
+                  </div>
+                )}
+              </div>
 
               <div className="mt-3 flex flex-col gap-6">
                 {hasSocialContent && (
