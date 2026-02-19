@@ -626,8 +626,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       />
                       <div className="mt-1 text-left">
                         <span className="text-xs text-neutral-500">
-                          {BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH -
-                            description.length}{" "}
+                          {description.length}{" "}
                           / {BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH}
                         </span>
                       </div>
