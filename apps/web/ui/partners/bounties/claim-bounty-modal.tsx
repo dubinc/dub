@@ -40,6 +40,7 @@ import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { ClaimBountyProvider, useClaimBountyContext } from "./claim-bounty-context";
 import { BountyDescription } from "./bounty-description";
+import { BountyIncrementalBonusTooltip } from "./bounty-incremental-bonus-tooltip";
 import { BountyPerformance } from "./bounty-performance";
 import {
   SocialAccountNotVerifiedWarning,
@@ -341,6 +342,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
                         <Gift className="size-3.5" />
                         <span>{getBountyRewardDescription(bounty)}</span>
+                        <BountyIncrementalBonusTooltip bounty={bounty} />
                       </div>
                     )}
 
