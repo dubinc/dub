@@ -1,4 +1,5 @@
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
+import { clearOnboardingPartnerDrafts } from "@/lib/onboarding/clear-onboarding-partner-drafts";
 import useUser from "@/lib/swr/use-user";
 import { Button } from "@dub/ui";
 import { AlertTriangle, ArrowDown } from "lucide-react";
@@ -28,6 +29,7 @@ export function MergeAccountForm({
           "Account merge process has started! We'll send you an email when it's complete. You'll be logged out automatically.",
         );
 
+        clearOnboardingPartnerDrafts();
         await signOut({
           callbackUrl: "/login",
         });

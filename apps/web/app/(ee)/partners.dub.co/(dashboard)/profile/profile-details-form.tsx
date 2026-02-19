@@ -4,6 +4,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
+import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import {
   PartnerPlatformsForm,
   usePartnerPlatformsForm,
@@ -22,7 +23,7 @@ import {
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
-import { RefObject, useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -171,6 +172,8 @@ function BasicInfoForm({
   }, [isSubmitSuccessful, reset, getValues]);
 
   const { profileType } = watch();
+  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
+  const countryChangeWarning = useCountryChangeWarningModal();
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onSuccess: async ({ data }) => {
@@ -201,6 +204,12 @@ function BasicInfoForm({
     },
   });
 
+  const shouldShowCountryChangeWarning =
+    !disabled &&
+    !partner?.payoutsEnabledAt &&
+    !!partner?.country &&
+    !countryChangeWarning.isAcknowledged;
+
   return (
     <form
       ref={formRef}
@@ -213,6 +222,7 @@ function BasicInfoForm({
         });
       })}
     >
+      {countryChangeWarning.modal}
       <div className="flex flex-col gap-6">
         <label>
           <div className="flex items-center gap-5">
@@ -302,6 +312,22 @@ function BasicInfoForm({
                 value={field.value || ""}
                 onChange={field.onChange}
                 error={errors.country ? true : false}
+                open={isCountryComboboxOpen}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setIsCountryComboboxOpen(false);
+                    return;
+                  }
+
+                  if (shouldShowCountryChangeWarning) {
+                    countryChangeWarning.acknowledgeAndContinue(() => {
+                      setIsCountryComboboxOpen(true);
+                    });
+                    return;
+                  }
+
+                  setIsCountryComboboxOpen(true);
+                }}
                 disabledTooltip={
                   disabled ? (
                     "You don't have permission to update this field"

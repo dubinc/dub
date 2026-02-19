@@ -5,6 +5,10 @@ import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
+import {
+  ONBOARDING_PAYOUTS_VISIT_SESSION_KEY,
+  useCountryChangeWarningModal,
+} from "@/ui/partners/use-country-change-warning-modal";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
@@ -20,7 +24,7 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -47,7 +51,20 @@ export function OnboardingForm({
   const router = useRouter();
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
-  const { data: session, update: refreshSession } = useSession();
+  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
+  const { data: session, status, update: refreshSession } = useSession();
+  const countryChangeWarning = useCountryChangeWarningModal();
+  const onboardingPartnerDataStorageKey = useMemo(() => {
+    if (status === "loading") {
+      return "application-form-partner-data:pending";
+    }
+
+    if (session?.user?.email) {
+      return `application-form-partner-data:${session.user.email.toLowerCase()}`;
+    }
+
+    return "application-form-partner-data:anonymous";
+  }, [status, session?.user?.email]);
 
   const {
     register,
@@ -70,10 +87,33 @@ export function OnboardingForm({
 
   const { name, image, country, profileType } = watch();
 
-  const [partnerData] = useLocalStorage<PartnerData | null>(
-    `application-form-partner-data`,
+  const [partnerData, setPartnerData] = useLocalStorage<PartnerData | null>(
+    onboardingPartnerDataStorageKey,
     null,
   );
+
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user?.email) return;
+
+    const anonymousKey = "application-form-partner-data:anonymous";
+    const emailKey = `application-form-partner-data:${session.user.email.toLowerCase()}`;
+
+    const anonymousData = localStorage.getItem(anonymousKey);
+    const emailData = localStorage.getItem(emailKey);
+
+    if (anonymousData && !emailData) {
+      localStorage.setItem(emailKey, anonymousData);
+      try {
+        setPartnerData(JSON.parse(anonymousData));
+      } catch {
+        setPartnerData(null);
+      }
+    }
+
+    if (anonymousData) {
+      localStorage.removeItem(anonymousKey);
+    }
+  }, [status, session?.user?.email, setPartnerData]);
 
   useEffect(() => {
     if (session?.user) {
@@ -91,7 +131,11 @@ export function OnboardingForm({
   }, [accountCreated, refreshSession]);
 
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
-    onSuccess: () => {
+    onSuccess: ({ input }) => {
+      setPartnerData({
+        name: input.name,
+        country: input.country,
+      });
       setAccountCreated(true);
       router.push("/onboarding/platforms");
     },
@@ -110,6 +154,7 @@ export function OnboardingForm({
       onSubmit={handleSubmit(async (data) => await executeAsync(data))}
       className="flex w-full flex-col gap-6 text-left"
     >
+      {countryChangeWarning.modal}
       <label>
         <span className="text-sm font-medium text-neutral-800">Name</span>
         <input
@@ -172,6 +217,30 @@ export function OnboardingForm({
             <CountryCombobox
               {...field}
               error={errors.country ? true : false}
+              open={isCountryComboboxOpen}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setIsCountryComboboxOpen(false);
+                  return;
+                }
+
+                const shouldShowCountryChangeWarning =
+                  !!country &&
+                  !partner?.payoutsEnabledAt &&
+                  sessionStorage.getItem(
+                    ONBOARDING_PAYOUTS_VISIT_SESSION_KEY,
+                  ) === "true" &&
+                  !countryChangeWarning.isAcknowledged;
+
+                if (shouldShowCountryChangeWarning) {
+                  countryChangeWarning.acknowledgeAndContinue(() => {
+                    setIsCountryComboboxOpen(true);
+                  });
+                  return;
+                }
+
+                setIsCountryComboboxOpen(true);
+              }}
               disabledTooltip={
                 partner?.payoutsEnabledAt ? (
                   <TooltipContent
