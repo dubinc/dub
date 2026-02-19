@@ -129,6 +129,8 @@ export const createBountySubmissionAction = authPartnerActionClient
       .optional()
       .parse(submissionRequirements?.socialMetrics);
 
+    let socialMetricCount: number | undefined;
+
     if (socialContentRequirements) {
       const platform = getBountySocialPlatform(bounty);
       const contentUrl = storedUrls[0];
@@ -194,6 +196,12 @@ export const createBountySubmissionAction = authPartnerActionClient
         throw new Error(
           `This content was published before the bounty started. Please submit content posted after the start date.`,
         );
+      }
+
+      const metricValue = socialContent[socialContentRequirements.metric];
+
+      if (typeof metricValue === "number" && Number.isInteger(metricValue)) {
+        socialMetricCount = metricValue;
       }
     }
 
@@ -265,6 +273,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           ...((requireUrl || storedUrls.length > 0) && { urls: storedUrls }),
           status: isDraft ? "draft" : "submitted",
           ...(isDraft ? {} : { completedAt: new Date() }),
+          ...(socialMetricCount != null && { socialMetricCount }),
         },
       });
     }
@@ -281,6 +290,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           ...((requireUrl || storedUrls.length > 0) && { urls: storedUrls }),
           status: isDraft ? "draft" : "submitted",
           ...(isDraft ? {} : { completedAt: new Date() }),
+          ...(socialMetricCount != null && { socialMetricCount }),
         },
       });
     }

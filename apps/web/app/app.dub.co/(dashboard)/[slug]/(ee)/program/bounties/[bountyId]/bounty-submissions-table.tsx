@@ -2,6 +2,7 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { getBountySocialPlatform } from "@/lib/bounty/utils";
 import useBounty from "@/lib/swr/use-bounty";
 import {
   SubmissionsCountByStatus,
@@ -62,11 +63,21 @@ export function BountySubmissionsTable() {
       columns.push("performanceMetrics");
     }
 
+    if (
+      bounty.type === "submission" &&
+      bounty.submissionRequirements?.socialMetrics
+    ) {
+      columns.push("socialMetrics");
+    }
+
     return columns;
   }, [bounty]);
 
-  // Performance based bounty columns
   const performanceCondition = bounty?.performanceCondition;
+  const socialPlatform = bounty ? getBountySocialPlatform(bounty) : null;
+  const socialMetricsConfig = bounty?.submissionRequirements?.socialMetrics as
+    | { metric: string; minCount?: number }
+    | undefined;
 
   const metricColumnLabel = performanceCondition?.attribute
     ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute]
@@ -76,6 +87,13 @@ export function BountySubmissionsTable() {
     if (searchParams.get("sortBy")) return searchParams.get("sortBy") as string;
 
     if (bounty?.type === "performance") return "performanceCount";
+
+    if (
+      bounty?.type === "submission" &&
+      bounty?.submissionRequirements?.socialMetrics
+    ) {
+      return "socialMetricCount";
+    }
 
     return "completedAt";
   }, [searchParams, bounty]);
@@ -281,6 +299,30 @@ export function BountySubmissionsTable() {
           ]
         : []),
 
+      ...(showColumns.includes("socialMetrics") && socialPlatform && socialMetricsConfig
+        ? [
+            {
+              id: "socialMetricCount",
+              header: `${socialPlatform.label} ${capitalize(socialMetricsConfig.metric)}`,
+              cell: ({ row }: { row: Row<BountySubmissionProps> }) => {
+                const value = row.original.socialMetricCount ?? 0;
+                const minCount = socialMetricsConfig.minCount ?? 0;
+                const target = Math.max(minCount, 1);
+                const progress = Math.min(1, value / target);
+
+                return (
+                  <div className="flex items-center gap-2">
+                    <ProgressCircle progress={progress} />
+                    <span className="min-w-0 text-sm font-medium leading-5 text-neutral-600">
+                      {nFormatter(value, { full: true })}
+                    </span>
+                  </div>
+                );
+              },
+            },
+          ]
+        : []),
+
       ...(showColumns.includes("reviewedAt")
         ? [
             {
@@ -321,6 +363,8 @@ export function BountySubmissionsTable() {
       showColumns,
       metricColumnLabel,
       performanceCondition,
+      socialPlatform,
+      socialMetricsConfig,
       workspaceId,
     ],
   );
@@ -344,6 +388,7 @@ export function BountySubmissionsTable() {
     sortableColumns: [
       "completedAt",
       ...(bounty?.type === "performance" ? ["performanceCount"] : []),
+      ...(showColumns.includes("socialMetrics") ? ["socialMetricCount"] : []),
     ],
     sortBy,
     sortOrder,

@@ -47,8 +47,11 @@ export const GET = withWorkspace(
         programEnrollment: true,
       },
       orderBy: {
-        [sortBy === "completedAt" ? "completedAt" : "performanceCount"]:
-          sortOrder,
+        [sortBy === "completedAt"
+          ? "completedAt"
+          : sortBy === "socialMetricCount"
+            ? "socialMetricCount"
+            : "performanceCount"]: sortOrder,
       },
       skip: (page - 1) * pageSize,
       take: pageSize,

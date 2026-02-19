@@ -200,6 +200,10 @@ export const BountySubmissionSchema = z.object({
     .number()
     .nullable()
     .meta({ description: "The performance count of the submission" }),
+  socialMetricCount: z.number().int().nullable().meta({
+    description:
+      "The social metric count (views or likes) for the social content",
+  }),
   createdAt: z
     .date()
     .meta({ description: "The date and time the submission was created" }),
@@ -281,7 +285,7 @@ export const getBountySubmissionsQuerySchema = z
       description: "The ID of the partner to list submissions for.",
     }),
     sortBy: z
-      .enum(["completedAt", "performanceCount"])
+      .enum(["completedAt", "performanceCount", "socialMetricCount"])
       .default("completedAt")
       .meta({
         description: "The field to sort the submissions by.",
