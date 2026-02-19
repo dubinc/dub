@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  getBountySocialPlatform,
-  getSocialContentEmbedUrl,
-} from "@/lib/bounty/utils";
+import { getBountyInfo, getSocialContentEmbedUrl } from "@/lib/bounty/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import {
   BountySocialPlatform,
@@ -63,7 +60,9 @@ export function BountySocialContentPreview({
   authorOverride,
 }: BountySocialContentPreviewProps) {
   const url = submission?.urls?.[0] ?? "";
-  const platform = getBountySocialPlatform(bounty);
+
+  const bountyInfo = getBountyInfo(bounty);
+  const platform = bountyInfo?.socialPlatform;
 
   const { data: content, isValidating: isRefreshing } = useSocialContent({
     url,

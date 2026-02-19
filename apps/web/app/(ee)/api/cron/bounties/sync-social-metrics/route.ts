@@ -1,5 +1,5 @@
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
-import { getBountySocialMetricsRequirements } from "@/lib/bounty/utils";
+import { getBountyInfo } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
@@ -37,9 +37,9 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Bounty ${bountyId} not found. Skipping...`);
   }
 
-  const socialMetrics = getBountySocialMetricsRequirements(bounty);
+  const bountyInfo = getBountyInfo(bounty);
 
-  if (!socialMetrics) {
+  if (!bountyInfo?.hasSocialMetrics) {
     return logAndRespond(
       `Bounty ${bountyId} has no social metrics requirements. Skipping...`,
     );

@@ -1,6 +1,6 @@
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
-import { getBountySocialMetricsRequirements } from "@/lib/bounty/utils";
-import { BountySubmission } from "@dub/prisma/client";
+import { getBountyInfo } from "@/lib/bounty/utils";
+import { Bounty, BountySubmission } from "@dub/prisma/client";
 
 export type SocialMetricsUpdate = Pick<
   BountySubmission,
@@ -18,13 +18,13 @@ export async function getSocialMetricsUpdates({
   submissions,
   ignoreCache = false,
 }: {
-  bounty: { submissionRequirements?: unknown };
+  bounty: Pick<Bounty, "submissionRequirements">;
   submissions: { id: string; urls: unknown } | { id: string; urls: unknown }[];
   ignoreCache?: boolean; // If true, will not use cache and will always fetch from the API
 }): Promise<SocialMetricsUpdate[]> {
-  const socialMetrics = getBountySocialMetricsRequirements(bounty);
+  const bountyInfo = getBountyInfo(bounty);
 
-  if (!socialMetrics) {
+  if (!bountyInfo?.hasSocialMetrics || !bountyInfo.socialPlatform?.value) {
     return [];
   }
 
@@ -38,7 +38,7 @@ export async function getSocialMetricsUpdates({
   const results = await Promise.allSettled(
     toProcess.map((s) =>
       getSocialContent({
-        platform: socialMetrics.platform,
+        platform: bountyInfo.socialPlatform.value,
         url: s.url!,
       }),
     ),

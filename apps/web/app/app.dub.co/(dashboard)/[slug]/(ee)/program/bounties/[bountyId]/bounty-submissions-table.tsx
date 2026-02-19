@@ -2,10 +2,7 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
-import {
-  getBountySocialMetricsRequirements,
-  getBountySocialPlatform,
-} from "@/lib/bounty/utils";
+import { getBountyInfo } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
@@ -81,11 +78,8 @@ export function BountySubmissionsTable() {
     return columns;
   }, [bounty]);
 
+  const bountyInfo = getBountyInfo(bounty);
   const performanceCondition = bounty?.performanceCondition;
-  const socialPlatform = bounty ? getBountySocialPlatform(bounty) : null;
-  const socialMetricsConfig = bounty?.submissionRequirements?.socialMetrics as
-    | { metric: string; minCount?: number }
-    | undefined;
 
   const metricColumnLabel = performanceCondition?.attribute
     ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute]
@@ -147,10 +141,6 @@ export function BountySubmissionsTable() {
     | { open: false; submission: BountySubmissionProps | null }
     | { open: true; submission: BountySubmissionProps }
   >({ open: false, submission: null });
-
-  const hasSocialMetrics = bounty
-    ? !!getBountySocialMetricsRequirements(bounty)
-    : false;
 
   const { isSubmitting: isRefreshingStats, makeRequest } = useApiMutation();
 
@@ -330,15 +320,15 @@ export function BountySubmissionsTable() {
         : []),
 
       ...(showColumns.includes("socialMetrics") &&
-      socialPlatform &&
-      socialMetricsConfig
+      bountyInfo?.socialPlatform &&
+      bountyInfo?.socialMetrics
         ? [
             {
               id: "socialMetricCount",
-              header: `${socialPlatform.label} ${capitalize(socialMetricsConfig.metric)}`,
+              header: `${bountyInfo.socialPlatform.label} ${capitalize(bountyInfo.socialMetrics.metric)}`,
               cell: ({ row }: { row: Row<BountySubmissionProps> }) => {
                 const value = row.original.socialMetricCount ?? 0;
-                const minCount = socialMetricsConfig.minCount ?? 0;
+                const minCount = bountyInfo.socialMetrics?.minCount ?? 0;
                 const target = Math.max(minCount, 1);
                 const progress = Math.min(1, value / target);
 
@@ -395,8 +385,7 @@ export function BountySubmissionsTable() {
       showColumns,
       metricColumnLabel,
       performanceCondition,
-      socialPlatform,
-      socialMetricsConfig,
+      bountyInfo,
       workspaceId,
     ],
   );
@@ -476,7 +465,7 @@ export function BountySubmissionsTable() {
               onSearchChange={setSearch}
               onSelectedFilterChange={setSelectedFilter}
             />
-            {hasSocialMetrics && (
+            {bountyInfo?.hasSocialMetrics && (
               <div className="flex shrink-0 items-center gap-3">
                 {bounty?.socialMetricsLastSyncedAt ? (
                   <span className="whitespace-nowrap text-xs font-medium text-neutral-500">

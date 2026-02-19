@@ -4,7 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
-import { getBountySocialMetricsRequirements } from "@/lib/bounty/utils";
+import { getBountyInfo } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
@@ -57,7 +57,9 @@ export const POST = withWorkspace(
       });
     }
 
-    if (!getBountySocialMetricsRequirements(bounty)) {
+    const bountyInfo = getBountyInfo(bounty);
+
+    if (!bountyInfo?.hasSocialMetrics) {
       throw new DubApiError({
         code: "bad_request",
         message: "This bounty does not have social metrics requirements.",

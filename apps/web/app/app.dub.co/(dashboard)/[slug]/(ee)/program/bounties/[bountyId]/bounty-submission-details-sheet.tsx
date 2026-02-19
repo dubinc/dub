@@ -2,7 +2,7 @@
 
 import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
-import { getBountySocialMetricsRequirements } from "@/lib/bounty/utils";
+import { getBountyInfo } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
@@ -178,10 +178,10 @@ function BountySubmissionDetailsSheetContent({
     return null;
   }
 
-  const socialMetricsRequirements = getBountySocialMetricsRequirements(bounty);
+  const bountyInfo = getBountyInfo(bounty);
 
   const hasSocialContent =
-    socialMetricsRequirements && (submission.urls?.length ?? 0) > 0;
+    bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;
 
   return (
     <div className="flex h-full flex-col">
@@ -283,14 +283,11 @@ function BountySubmissionDetailsSheetContent({
                       })
                     : "-",
                 },
-                ...(socialMetricsRequirements
+                ...(bountyInfo?.socialMetrics
                   ? [
                       {
                         label: "Criteria",
-                        value:
-                          socialMetricsRequirements.minCount != null
-                            ? `${socialMetricsRequirements.minCount} ${socialMetricsRequirements.metric}`
-                            : socialMetricsRequirements.metric,
+                        value: `${bountyInfo?.socialMetrics.minCount} ${bountyInfo?.socialMetrics.metric}`,
                       },
                     ]
                   : []),

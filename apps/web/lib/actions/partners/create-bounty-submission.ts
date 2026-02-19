@@ -6,7 +6,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
-import { getBountySocialPlatform } from "@/lib/bounty/utils";
+import { getBountyInfo } from "@/lib/bounty/utils";
 import {
   bountySocialContentRequirementsSchema,
   createBountySubmissionInputSchema,
@@ -60,7 +60,6 @@ export const createBountySubmissionAction = authPartnerActionClient
 
     let submission: BountySubmission | null = null;
 
-    // Validate the partner has not already created a submission for this bounty
     if (bounty.submissions.length > 0) {
       submission = bounty.submissions[0];
 
@@ -132,12 +131,14 @@ export const createBountySubmissionAction = authPartnerActionClient
     let socialMetricCount: number | undefined;
 
     if (socialContentRequirements) {
-      const platform = getBountySocialPlatform(bounty);
+      const bountyInfo = getBountyInfo(bounty);
       const contentUrl = storedUrls[0];
 
-      if (!platform) {
+      if (!bountyInfo?.socialPlatform) {
         throw new Error("Invalid bounty platform.");
       }
+
+      const platform = bountyInfo.socialPlatform;
 
       if (!contentUrl) {
         throw new Error(`You must provide a ${platform.label} URL.`);

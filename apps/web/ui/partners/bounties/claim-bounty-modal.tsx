@@ -6,7 +6,7 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
   REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/bounty/constants";
-import { getBountySocialPlatform } from "@/lib/bounty/utils";
+import { getBountyInfo } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -73,7 +73,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const [isDraft, setIsDraft] = useState<boolean | null>(null);
   const { socialContentVerifying } = useClaimBountyContext();
 
-  const socialPlatform = getBountySocialPlatform(bounty);
+  const bountyInfo = getBountyInfo(bounty);
+  const socialPlatform = bountyInfo?.socialPlatform;
 
   // Initialize form state with existing draft submission data
   const [description, setDescription] = useState(submission?.description || "");

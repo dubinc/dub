@@ -1,6 +1,6 @@
 "use client";
 
-import { getBountySocialPlatform } from "@/lib/bounty/utils";
+import { getBountyInfo } from "@/lib/bounty/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerBountyProps, SocialContent } from "@/lib/types";
 import { useClaimBountyForm } from "@/ui/partners/bounties/use-claim-bounty-form";
@@ -20,7 +20,9 @@ function SocialContentRequirementChecks({
   bounty: PartnerBountyProps;
 }) {
   const { partner } = usePartnerProfile();
-  const socialPlatform = getBountySocialPlatform(bounty);
+
+  const bountyInfo = getBountyInfo(bounty);
+  const socialPlatform = bountyInfo?.socialPlatform;
 
   const partnerPlatform = partner?.platforms?.find(
     (p) => p.type === socialPlatform?.value,
@@ -98,11 +100,11 @@ export function SocialContentUrlField({
     return () => setSocialContentVerifying(false);
   }, [isValidating, setSocialContentVerifying]);
 
-  const socialPlatform = getBountySocialPlatform(bounty);
-
   const showIcon = isValidating || (error && urlToCheck);
 
-  if (!socialPlatform) {
+  const bountyInfo = getBountyInfo(bounty);
+
+  if (!bountyInfo?.socialPlatform) {
     return null;
   }
 
@@ -122,7 +124,7 @@ export function SocialContentUrlField({
     <div>
       <label className="block">
         <h2 className="text-sm font-medium text-neutral-900">
-          {`${socialPlatform.label} URL`}
+          {`${bountyInfo?.socialPlatform.label} URL`}
         </h2>
       </label>
       <div className="relative mt-2">
@@ -130,7 +132,7 @@ export function SocialContentUrlField({
           type="text"
           inputMode="url"
           autoComplete="url"
-          placeholder={socialPlatform.placeholder}
+          placeholder={bountyInfo?.socialPlatform.placeholder}
           value={contentUrl}
           onChange={(e) => handleChange(e.target.value)}
           onBlur={handleBlur}
@@ -165,16 +167,16 @@ export function SocialAccountNotVerifiedWarning({
 }: {
   bounty: PartnerBountyProps;
 }) {
-  const channel = getBountySocialPlatform(bounty);
+  const bountyInfo = getBountyInfo(bounty);
 
-  if (!channel) {
+  if (!bountyInfo?.socialPlatform) {
     return null;
   }
 
   return (
     <div className="flex flex-col gap-2 rounded-lg bg-orange-50 p-2 text-center">
       <div className="px-2 text-sm font-medium text-orange-900">
-        {`A verified ${channel?.label} account must be connected to your Dub partner profile to claim this bounty.`}
+        {`A verified ${bountyInfo.socialPlatform.label} account must be connected to your Dub partner profile to claim this bounty.`}
 
         <Link
           href="https://dub.co/help/article/receiving-payouts"

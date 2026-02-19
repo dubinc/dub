@@ -1,7 +1,7 @@
-import { bountySocialContentRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { PlatformType } from "@dub/prisma/client";
+import { PlatformType, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, isValidUrl } from "@dub/utils";
 import { BountySocialPlatform, PartnerBountyProps } from "../types";
+import { bountySocialContentRequirementsSchema } from "../zod/schemas/bounties";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./constants";
 
 const SOCIAL_URL_HOST_TO_PLATFORM: Record<string, PlatformType> = {
@@ -9,13 +9,9 @@ const SOCIAL_URL_HOST_TO_PLATFORM: Record<string, PlatformType> = {
   "m.youtube.com": "youtube",
   "youtu.be": "youtube",
   "tiktok.com": "tiktok",
-  "www.tiktok.com": "tiktok",
   "instagram.com": "instagram",
-  "www.instagram.com": "instagram",
   "twitter.com": "twitter",
-  "www.twitter.com": "twitter",
   "x.com": "twitter",
-  "www.x.com": "twitter",
 };
 
 export function getPlatformFromSocialUrl(url: string): PlatformType | null {
@@ -28,40 +24,11 @@ export function getPlatformFromSocialUrl(url: string): PlatformType | null {
   try {
     const parsed = new URL(trimmed);
     const host = parsed.hostname.replace(/^www\./, "");
-    const withWww = parsed.hostname;
 
-    return (
-      SOCIAL_URL_HOST_TO_PLATFORM[host] ??
-      SOCIAL_URL_HOST_TO_PLATFORM[withWww] ??
-      null
-    );
+    return SOCIAL_URL_HOST_TO_PLATFORM[host] ?? null;
   } catch {
     return null;
   }
-}
-
-export function getBountySocialMetricsRequirements(bounty: {
-  submissionRequirements?: unknown;
-}) {
-  const requirements = bounty.submissionRequirements;
-
-  if (
-    requirements == null ||
-    typeof requirements !== "object" ||
-    Array.isArray(requirements)
-  ) {
-    return null;
-  }
-
-  if (!("socialMetrics" in requirements)) {
-    return null;
-  }
-
-  const parsed = bountySocialContentRequirementsSchema.safeParse(
-    requirements.socialMetrics,
-  );
-
-  return parsed.success ? parsed.data : null;
 }
 
 export function getSocialContentEmbedUrl({
@@ -99,7 +66,7 @@ export function getSocialContentEmbedUrl({
     }
 
     if (platform === "instagram") {
-      if (host === "instagram.com" || host === "www.instagram.com") {
+      if (host === "instagram.com") {
         const pathMatch =
           parsed.pathname.match(/\/p\/([^/]+)/) ??
           parsed.pathname.match(/\/reel\/([^/]+)/);
@@ -118,7 +85,7 @@ export function getSocialContentEmbedUrl({
     }
 
     if (platform === "tiktok") {
-      if (host === "tiktok.com" || host === "www.tiktok.com") {
+      if (host === "tiktok.com") {
         const match = parsed.pathname.match(/\/video\/(\d+)/);
         const videoId = match?.[1];
 
@@ -136,37 +103,17 @@ export function getSocialContentEmbedUrl({
   }
 }
 
-export function getBountySocialPlatform(bounty: {
-  submissionRequirements?: unknown;
-}) {
-  const socialMetrics = getBountySocialMetricsRequirements(bounty);
-
-  if (!socialMetrics) {
-    return null;
-  }
-
-  return BOUNTY_SOCIAL_PLATFORMS.find(
-    ({ value }) => value === socialMetrics.platform,
-  );
-}
-
 export function getBountySubmissionRequirementTexts(
-  bounty: Pick<PartnerBountyProps, "submissionRequirements">,
+  bounty: PartnerBountyProps,
 ): string[] {
-  const socialMetrics = getBountySocialMetricsRequirements(bounty);
+  const bountyInfo = getBountyInfo(bounty);
 
-  if (!socialMetrics) {
-    return [];
-  }
-
-  const channel = getBountySocialPlatform(bounty);
-
-  if (!channel) {
+  if (!bountyInfo?.hasSocialMetrics || !bountyInfo.socialPlatform) {
     return [];
   }
 
   return [
-    `Submit a ${channel.label} link from your connected account`,
+    `Submit a ${bountyInfo.socialPlatform.label} link from your connected account`,
     "The content shared is posted after this bounty started",
   ];
 }
@@ -174,31 +121,29 @@ export function getBountySubmissionRequirementTexts(
 export function getBountyRewardCriteriaTexts(
   bounty: PartnerBountyProps,
 ): string[] {
-  const socialMetrics = getBountySocialMetricsRequirements(bounty);
+  const bountyInfo = getBountyInfo(bounty);
 
-  if (!socialMetrics) {
+  if (
+    !bountyInfo?.socialMetrics ||
+    !bountyInfo.socialPlatform ||
+    !bountyInfo.rewardAmount
+  ) {
     return [];
   }
 
-  const channel = getBountySocialPlatform(bounty);
-
-  if (!channel || !bounty.rewardAmount) {
-    return [];
-  }
-
-  const formattedAmount = currencyFormatter(bounty.rewardAmount, {
+  const formattedAmount = currencyFormatter(bountyInfo.rewardAmount, {
     trailingZeroDisplay: "stripIfInteger",
   });
 
-  const minCount = socialMetrics.minCount ?? 0;
+  const { minCount, metric, platform, incrementalBonus } =
+    bountyInfo.socialMetrics;
+
   const texts: string[] = [
-    `Get ${minCount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedAmount}`,
+    `Get ${minCount} ${metric} on your ${platform}, earn ${formattedAmount}`,
   ];
 
-  const variableBonus = socialMetrics.incrementalBonus;
-
-  if (variableBonus) {
-    const { incrementCount, bonusPerIncrement, maxCount } = variableBonus;
+  if (incrementalBonus) {
+    const { incrementCount, bonusPerIncrement, maxCount } = incrementalBonus;
 
     if (incrementCount && bonusPerIncrement && maxCount) {
       const formattedBonus = currencyFormatter(bonusPerIncrement, {
@@ -206,10 +151,49 @@ export function getBountyRewardCriteriaTexts(
       });
 
       texts.push(
-        `For each additional ${incrementCount} ${socialMetrics.metric} on your ${channel.postType}, earn ${formattedBonus}, up to ${maxCount} ${socialMetrics.metric}`,
+        `For each additional ${incrementCount} ${metric} on your ${platform}, earn ${formattedBonus}, up to ${maxCount} ${metric}`,
       );
     }
   }
 
   return texts;
 }
+
+interface BountyInfoInput {
+  submissionRequirements: Prisma.JsonValue;
+  rewardAmount?: number | undefined | null;
+}
+
+export function getBountyInfo(bounty: BountyInfoInput | undefined | null) {
+  if (!bounty) {
+    return null;
+  }
+
+  // Social metrics requirements
+  const submissionRequirements = bounty.submissionRequirements as {
+    socialMetrics?: unknown | Prisma.JsonValue | undefined | null;
+  };
+
+  const parsedSocialMetrics = bountySocialContentRequirementsSchema
+    .optional()
+    .safeParse(submissionRequirements?.socialMetrics);
+
+  const socialMetrics = parsedSocialMetrics.success
+    ? parsedSocialMetrics.data
+    : null;
+
+  // Identify the social platform
+  const socialPlatform = BOUNTY_SOCIAL_PLATFORMS.find(
+    ({ value }) => value === socialMetrics?.platform,
+  );
+
+  return {
+    ...bounty,
+    socialPlatform,
+    socialMetrics,
+    hasSocialMetrics: socialMetrics !== null,
+  };
+}
+
+//getBountySocialMetricsRequirements
+//getBountySocialPlatform
