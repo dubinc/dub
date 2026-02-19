@@ -18,6 +18,12 @@ export const BOUNTY_SUBMISSION_STATUS_BADGES = {
     icon: CircleHalfDottedClock,
     iconClassName: "text-blue-600",
   },
+  reviewable: {
+    label: "For review",
+    variant: "new",
+    icon: CircleHalfDottedClock,
+    iconClassName: "text-blue-600",
+  },
   approved: {
     label: "Approved",
     variant: "success",
