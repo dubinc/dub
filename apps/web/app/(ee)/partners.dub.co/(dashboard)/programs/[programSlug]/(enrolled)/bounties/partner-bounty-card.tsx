@@ -1,12 +1,10 @@
-import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import { PartnerBountyProps } from "@/lib/types";
-import { BountyIncrementalBonusTooltip } from "@/ui/partners/bounties/bounty-incremental-bonus-tooltip";
 import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
+import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
 import {
   DynamicTooltipWrapper,
-  Gift,
   StatusBadge,
   TimestampTooltip,
   TooltipContent,
@@ -94,16 +92,11 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
               </span>
             </div>
 
-            {getBountyRewardDescription(bounty) && (
-              <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-                <Gift className="size-3.5 shrink-0" />
-                <span>{getBountyRewardDescription(bounty)}</span>
-                <BountyIncrementalBonusTooltip
-                  bounty={bounty}
-                  onTooltipClick={(e) => e.stopPropagation()}
-                />
-              </div>
-            )}
+            <BountyRewardDescription
+              bounty={bounty}
+              onTooltipClick={(e) => e.stopPropagation()}
+              className="font-medium"
+            />
           </div>
 
           <div className="flex grow flex-col justify-end px-2 pb-1">

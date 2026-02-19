@@ -6,7 +6,6 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
   REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/bounty/constants";
-import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import { getBountySocialPlatform } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -19,7 +18,6 @@ import {
   Button,
   Calendar6,
   FileUpload,
-  Gift,
   LoadingSpinner,
   Modal,
   StatusBadge,
@@ -38,16 +36,19 @@ import { FormProvider, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
-import { ClaimBountyProvider, useClaimBountyContext } from "./claim-bounty-context";
 import { BountyDescription } from "./bounty-description";
-import { BountyIncrementalBonusTooltip } from "./bounty-incremental-bonus-tooltip";
 import { BountyPerformance } from "./bounty-performance";
+import { BountyRewardDescription } from "./bounty-reward-description";
 import {
   SocialAccountNotVerifiedWarning,
   SocialContentUrlField,
 } from "./bounty-social-content";
 import { BountySocialContentPreview } from "./bounty-social-content-preview";
 import { BountyThumbnailImage } from "./bounty-thumbnail-image";
+import {
+  ClaimBountyProvider,
+  useClaimBountyContext,
+} from "./claim-bounty-context";
 import { CreateBountySubmissionInput } from "./use-claim-bounty-form";
 
 type ClaimBountyModalProps = {
@@ -338,13 +339,10 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       </span>
                     </div>
 
-                    {getBountyRewardDescription(bounty) && (
-                      <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-                        <Gift className="size-3.5" />
-                        <span>{getBountyRewardDescription(bounty)}</span>
-                        <BountyIncrementalBonusTooltip bounty={bounty} />
-                      </div>
-                    )}
+                    <BountyRewardDescription
+                      bounty={bounty}
+                      className="font-medium"
+                    />
 
                     {submission ? (
                       <div className="mt-3 grid gap-2">
