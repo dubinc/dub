@@ -65,10 +65,10 @@ export const onboardPartnerAction = authUserActionClient
         })()
       : [];
 
-    if (countryChanged) {
+    if (countryChanged && existingPartner) {
       partnerChangeHistoryLog.push({
         field: "country",
-        from: existingPartner.country as string,
+        from: existingPartner.country,
         to: country,
         changedAt: new Date(),
       });
