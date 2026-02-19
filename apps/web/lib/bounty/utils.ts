@@ -1,8 +1,32 @@
-import { PlatformType, Prisma } from "@dub/prisma/client";
+import {
+  BountySubmissionFrequency,
+  PlatformType,
+  Prisma,
+} from "@dub/prisma/client";
 import { currencyFormatter, isValidUrl } from "@dub/utils";
+import { addDays, addMonths, addWeeks } from "date-fns";
 import { BountySocialPlatform, PartnerBountyProps } from "../types";
 import { bountySocialContentRequirementsSchema } from "../zod/schemas/bounties";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./constants";
+
+export function getNextBountySubmissionEligibleAt({
+  submissionFrequency,
+  lastSubmissionAt,
+}: {
+  submissionFrequency: BountySubmissionFrequency;
+  lastSubmissionAt: Date;
+}): Date {
+  switch (submissionFrequency) {
+    case "day":
+      return addDays(lastSubmissionAt, 1);
+    case "week":
+      return addWeeks(lastSubmissionAt, 1);
+    case "month":
+      return addMonths(lastSubmissionAt, 1);
+    default:
+      throw new Error("Invalid submission frequency");
+  }
+}
 
 const SOCIAL_URL_HOST_TO_PLATFORM: Record<string, PlatformType> = {
   "youtube.com": "youtube",

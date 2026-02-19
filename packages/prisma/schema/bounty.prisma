@@ -41,7 +41,7 @@ model Bounty {
   endsAt                    DateTime?
   submissionsOpenAt         DateTime?
   submissionFrequency       BountySubmissionFrequency?
-  maxSubmissions            Int?
+  maxSubmissions            Int                        @default(1)
   rewardAmount              Int?
   rewardDescription         String?
   performanceScope          BountyPerformanceScope?

@@ -6,7 +6,10 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
-import { getBountyInfo } from "@/lib/bounty/utils";
+import {
+  getBountyInfo,
+  getNextBountySubmissionEligibleAt,
+} from "@/lib/bounty/utils";
 import {
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,
@@ -15,7 +18,7 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
-import { BountySubmission, WorkspaceRole } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
@@ -44,6 +47,9 @@ export const createBountySubmissionAction = authPartnerActionClient
             where: {
               partnerId: partner.id,
             },
+            orderBy: {
+              createdAt: "desc",
+            },
           },
         },
       }),
@@ -55,14 +61,31 @@ export const createBountySubmissionAction = authPartnerActionClient
       );
     }
 
-    let submission: BountySubmission | null = null;
+    const now = new Date();
 
-    if (bounty.submissions.length > 0) {
-      submission = bounty.submissions[0];
+    // Check maxSubmissions
+    if (bounty.submissions.length >= bounty.maxSubmissions) {
+      throw new Error(
+        `You can submit at most ${bounty.maxSubmissions} submissions for this bounty.`,
+      );
+    }
 
-      if (submission.status !== "draft") {
+    // Check submissionFrequency
+    if (bounty.submissionFrequency && bounty.submissions.length > 0) {
+      const lastSubmission = bounty.submissions[0];
+
+      const nextEligibleAt = getNextBountySubmissionEligibleAt({
+        submissionFrequency: bounty.submissionFrequency,
+        lastSubmissionAt: lastSubmission.createdAt,
+      });
+
+      if (nextEligibleAt > now) {
+        const waitTime = formatDistanceToNow(nextEligibleAt, {
+          addSuffix: true,
+        });
+
         throw new Error(
-          `You already have a ${submission.status} submission for this bounty.`,
+          `You can only submit once per ${bounty.submissionFrequency}. Please wait until ${waitTime} to submit again.`,
         );
       }
     }
@@ -78,8 +101,6 @@ export const createBountySubmissionAction = authPartnerActionClient
     }
 
     // Validate the bounty dates
-    const now = new Date();
-
     if (bounty.startsAt && bounty.startsAt > now) {
       throw new Error("This bounty is not yet available.");
     }
@@ -136,7 +157,9 @@ export const createBountySubmissionAction = authPartnerActionClient
       const platform = bountyInfo.socialPlatform;
 
       if (!contentUrl) {
-        throw new Error(`You must provide a ${platform.label} URL.`);
+        throw new Error(
+          `You must provide a ${platform.label} URL to submit this bounty.`,
+        );
       }
 
       const partnerPlatform = await prisma.partnerPlatform.findUnique({
@@ -257,25 +280,53 @@ export const createBountySubmissionAction = authPartnerActionClient
       }
     }
 
-    // If there is an existing submission, update it
-    if (submission) {
-      submission = await prisma.bountySubmission.update({
+    const submission = await prisma.$transaction(async (tx) => {
+      const count = await tx.bountySubmission.count({
         where: {
-          id: submission.id,
-        },
-        data: {
-          description,
-          ...(requireImage && { files }),
-          ...((requireUrl || storedUrls.length > 0) && { urls: storedUrls }),
-          status: isDraft ? "draft" : "submitted",
-          ...(isDraft ? {} : { completedAt: new Date() }),
-          ...(socialMetricCount != null && { socialMetricCount }),
+          bountyId: bounty.id,
+          partnerId: partner.id,
         },
       });
-    }
-    // If there is no existing submission, create a new one
-    else {
-      submission = await prisma.bountySubmission.create({
+
+      if (count >= bounty.maxSubmissions) {
+        throw new Error(
+          `You have reached the maximum number of submissions for this bounty. You can submit at most ${bounty.maxSubmissions} submissions.`,
+        );
+      }
+
+      const existingDraftSubmission = await tx.bountySubmission.findFirst({
+        where: {
+          bountyId: bounty.id,
+          partnerId: partner.id,
+          status: "draft",
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      // If there is an existing submission, update it
+      if (existingDraftSubmission) {
+        return await tx.bountySubmission.update({
+          where: {
+            id: existingDraftSubmission.id,
+          },
+          data: {
+            description,
+            ...(requireImage && { files }),
+            ...((requireUrl || storedUrls.length > 0) && { urls: storedUrls }),
+            status: isDraft ? "draft" : "submitted",
+            ...(isDraft ? {} : { completedAt: now }),
+            ...(socialMetricCount != null && { socialMetricCount }),
+          },
+        });
+      }
+
+      // If there is no existing submission, create a new one
+      return await tx.bountySubmission.create({
         data: {
           id: createId({ prefix: "bnty_sub_" }),
           programId: bounty.programId,
@@ -285,11 +336,11 @@ export const createBountySubmissionAction = authPartnerActionClient
           ...(requireImage && { files }),
           ...((requireUrl || storedUrls.length > 0) && { urls: storedUrls }),
           status: isDraft ? "draft" : "submitted",
-          ...(isDraft ? {} : { completedAt: new Date() }),
+          ...(isDraft ? {} : { completedAt: now }),
           ...(socialMetricCount != null && { socialMetricCount }),
         },
       });
-    }
+    });
 
     waitUntil(
       (async () => {
