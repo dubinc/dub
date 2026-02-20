@@ -6,7 +6,7 @@ const PUBLIC_EMBED_PATHS = ["/embed/supported-countries"];
 export function EmbedMiddleware(req: NextRequest) {
   const { path, searchParamsObj, fullPath } = parse(req);
 
-  if (PUBLIC_EMBED_PATHS.some((p) => path === p || path.startsWith(`${p}/`))) {
+  if (PUBLIC_EMBED_PATHS.includes(path)) {
     return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
   }
 
