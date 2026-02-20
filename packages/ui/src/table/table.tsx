@@ -216,9 +216,13 @@ export function useTable<T extends any>(
                     const end = Math.max(lastSelectedIndex, currentIndex);
                     const rangeIds = rows
                       .slice(start, end + 1)
-                      .map((row) => getRowId?.(row.original));
+                      .map((row) => getRowId?.(row.original))
+                      .filter((id): id is string => id !== undefined);
 
                     table.setRowSelection((rowSelection) => {
+                      const validRangeIds = rangeIds.filter(
+                        (id): id is string => id !== undefined,
+                      );
                       const alreadySelected =
                         currentId !== undefined &&
                         (rowSelection?.[currentId] ?? false);
@@ -226,7 +230,7 @@ export function useTable<T extends any>(
                       return {
                         ...rowSelection,
                         ...Object.fromEntries(
-                          rangeIds.map((id) => [id, !alreadySelected]),
+                          validRangeIds.map((id) => [id, !alreadySelected]),
                         ),
                       };
                     });
