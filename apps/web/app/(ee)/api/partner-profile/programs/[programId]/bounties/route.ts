@@ -77,7 +77,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       bounties.map((bounty) => ({
         ...bounty,
         submission: bounty.submissions?.[0] || null,
-        commission: bounty.submissions?.[0]?.commission || null,
         performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
         partner: {
           ...aggregatePartnerLinksStats(links),

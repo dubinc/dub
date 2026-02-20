@@ -4,7 +4,7 @@ import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
 import { getBountyInfo } from "@/lib/bounty/utils";
-import { PartnerBountyProps } from "@/lib/types";
+import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import { BountyDescription } from "@/ui/partners/bounties/bounty-description";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
@@ -36,7 +36,7 @@ function PartnerBountySubmissionDetailsSheetContent({
 }: Omit<PartnerBountySubmissionDetailsSheetProps, "isOpen" | "setIsOpen">) {
   const { programSlug } = useParams();
 
-  const submission = bounty.submission!;
+  const submission = bounty.submission! as BountySubmissionProps;
   const bountyInfo = getBountyInfo(bounty);
   const description = getBountyRewardDescription(bounty);
 
@@ -177,11 +177,7 @@ function PartnerBountySubmissionDetailsSheetContent({
                 {bountyInfo?.hasSocialMetrics && bounty && (
                   <BountySocialMetricsRewardsTable
                     bounty={bounty}
-                    submission={
-                      submission as unknown as Parameters<
-                        typeof BountySocialMetricsRewardsTable
-                      >[0]["submission"]
-                    }
+                    submission={submission}
                   />
                 )}
               </>

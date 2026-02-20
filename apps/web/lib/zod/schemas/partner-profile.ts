@@ -148,7 +148,16 @@ export const partnerNotificationTypes = z.enum([
 export const PartnerBountySchema = BountySchema.omit({
   groups: true,
 }).extend({
-  submission: BountySubmissionSchema.nullable(),
+  submission: BountySubmissionSchema.extend({
+    commission: PartnerEarningsSchema.pick({
+      id: true,
+      earnings: true,
+      status: true,
+      createdAt: true,
+    })
+      .nullable()
+      .default(null),
+  }).nullable(),
   performanceCondition: bountyPerformanceConditionSchema
     .nullable()
     .default(null),
@@ -160,14 +169,6 @@ export const PartnerBountySchema = BountySchema.omit({
     totalSaleAmount: z.number(),
     totalCommissions: z.number(),
   }),
-  commission: PartnerEarningsSchema.pick({
-    id: true,
-    earnings: true,
-    status: true,
-    createdAt: true,
-  })
-    .nullable()
-    .default(null),
 });
 
 export const invitePartnerUserSchema = z.object({
