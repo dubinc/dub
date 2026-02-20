@@ -8,12 +8,16 @@ export function CountryCombobox({
   disabledTooltip,
   error,
   className,
+  open,
+  onOpenChange,
 }: {
   value: string;
   onChange: (value: string) => void;
   disabledTooltip?: string | ReactNode;
   error?: boolean;
   className?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
   const options = useMemo(
     () =>
@@ -67,6 +71,8 @@ export function CountryCombobox({
         ),
         disabledTooltip,
       }}
+      open={open}
+      onOpenChange={onOpenChange}
     />
   );
 }

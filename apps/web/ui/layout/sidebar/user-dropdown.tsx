@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { clearOnboardingPartnerDrafts } from "@/lib/onboarding/clear-onboarding-partner-drafts";
 import {
   ArrowsOppositeDirectionX,
   Avatar,
@@ -74,10 +75,12 @@ export function UserDropdown() {
       type: "button",
       label: "Log out",
       icon: LogOut,
-      onClick: () =>
+      onClick: () => {
+        clearOnboardingPartnerDrafts();
         signOut({
           callbackUrl: "/login",
-        }),
+        });
+      },
     });
 
     return options;

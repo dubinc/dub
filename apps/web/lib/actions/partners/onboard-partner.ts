@@ -1,8 +1,11 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { logger } from "@/lib/axiom/server";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
+import { stripe } from "@/lib/stripe";
 import { storage } from "@/lib/storage";
+import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -29,6 +32,21 @@ export const onboardPartnerAction = authUserActionClient
       ? existingPartner.id
       : createId({ prefix: "pn_" });
 
+    const countryChanged =
+      !!existingPartner?.country &&
+      existingPartner.country.toLowerCase() !== country.toLowerCase();
+
+    if (countryChanged && existingPartner?.payoutsEnabledAt) {
+      throw new Error(
+        "Since you've already connected your bank account for payouts, you cannot change your country. Please contact support to update this field.",
+      );
+    }
+
+    const stripeConnectIdToDelete =
+      countryChanged && existingPartner?.stripeConnectId
+        ? existingPartner.stripeConnectId
+        : null;
+
     const imageUrl = image
       ? await storage
           .upload({
@@ -38,15 +56,40 @@ export const onboardPartnerAction = authUserActionClient
           .then(({ url }) => url)
       : undefined;
 
-    // country, profileType, and companyName cannot be changed once set
-    const payload: Prisma.PartnerCreateInput = {
+    const partnerChangeHistoryLog = existingPartner?.changeHistoryLog
+      ? (() => {
+          const parsed = partnerProfileChangeHistoryLogSchema.safeParse(
+            existingPartner.changeHistoryLog,
+          );
+          return parsed.success ? parsed.data : [];
+        })()
+      : [];
+
+    if (countryChanged && existingPartner) {
+      partnerChangeHistoryLog.push({
+        field: "country",
+        from: existingPartner.country,
+        to: country,
+        changedAt: new Date(),
+      });
+    }
+
+    const payload = {
       name: name || user.email,
       email: user.email,
-      // can only update these fields if it's not already set (else you need to update under profile settings)
-      ...(existingPartner?.country ? {} : { country }),
+      // country can be updated until payouts are enabled
+      ...(!existingPartner?.country || !existingPartner?.payoutsEnabledAt
+        ? { country }
+        : {}),
       ...(existingPartner?.profileType ? {} : { profileType }),
       ...(description && { description }),
       image: imageUrl,
+      ...(countryChanged
+        ? {
+            stripeConnectId: null,
+            changeHistoryLog: partnerChangeHistoryLog,
+          }
+        : {}),
       users: {
         connectOrCreate: {
           where: {
@@ -66,18 +109,21 @@ export const onboardPartnerAction = authUserActionClient
       },
     };
 
+    const createPayload = payload as Prisma.PartnerCreateInput;
+    const updatePayload = payload as Prisma.PartnerUpdateInput;
+
     await Promise.all([
       existingPartner
         ? prisma.partner.update({
             where: {
               id: existingPartner.id,
             },
-            data: payload,
+            data: updatePayload,
           })
         : prisma.partner.create({
             data: {
               id: partnerId,
-              ...payload,
+              ...createPayload,
             },
           }),
 
@@ -92,6 +138,28 @@ export const onboardPartnerAction = authUserActionClient
           },
         }),
     ]);
+
+    if (stripeConnectIdToDelete) {
+      waitUntil(
+        stripe.accounts.del(stripeConnectIdToDelete).catch((error) => {
+          if (error?.code === "account_invalid") {
+            return;
+          }
+
+          logger.error("Failed to delete Stripe account after country update", {
+            operation: "deleteStripeAccount",
+            partnerId,
+            stripeConnectIdToDelete,
+            userId: user.id,
+            error,
+          });
+          console.error(
+            "Failed to delete Stripe account after country update",
+            error,
+          );
+        }),
+      );
+    }
 
     // Complete any outstanding program application
     waitUntil(completeProgramApplications(user.email));
