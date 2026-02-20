@@ -118,7 +118,10 @@ export const createPartnerCommission = async ({
       });
 
       const subscriptionDurationMonths = firstCommission
-        ? differenceInMonths(new Date(), firstCommission.createdAt)
+        ? differenceInMonths(
+            createdAt ?? new Date(), // account for custom commission creation date
+            firstCommission.createdAt,
+          )
         : 0;
 
       context = {
@@ -233,13 +236,13 @@ export const createPartnerCommission = async ({
             // Recurring sale reward (maxDuration > 0)
             else {
               const subscriptionDurationMonths = differenceInMonths(
-                new Date(),
+                createdAt ?? new Date(), // account for custom commission creation date
                 firstCommission.createdAt,
               );
 
               if (subscriptionDurationMonths >= reward.maxDuration) {
                 console.log(
-                  `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
+                  `Partner ${partnerId} has reached max duration for ${event} event (subscription duration: ${subscriptionDurationMonths} months, max duration: ${reward.maxDuration} months), skipping commission creation...`,
                 );
 
                 return {
