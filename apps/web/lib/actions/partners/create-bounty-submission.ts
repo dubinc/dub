@@ -14,11 +14,7 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
-import {
-  BountySubmission,
-  BountySubmissionStatus,
-  WorkspaceRole,
-} from "@dub/prisma/client";
+import { BountySubmission, Prisma, WorkspaceRole } from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
@@ -138,15 +134,72 @@ export const createBountySubmissionAction = authPartnerActionClient
     const imageRequirement = submissionRequirements?.image || null;
     const storedUrls = [...urls].slice(0, BOUNTY_MAX_SUBMISSION_URLS);
 
-    let status: BountySubmissionStatus = isDraft ? "draft" : "submitted";
+    let submissionData: Partial<Prisma.BountySubmissionUncheckedCreateInput> = {
+      status: isDraft ? "draft" : "submitted",
+    };
+
+    if (!isDraft) {
+      if (requireImage && files.length === 0) {
+        throw new Error("You must submit an image.");
+      }
+
+      if (requireUrl && urls.length === 0) {
+        throw new Error("You must submit a URL.");
+      }
+
+      // Validate URL domain restrictions
+      if (
+        urlRequirement?.domains &&
+        urlRequirement.domains.length > 0 &&
+        urls.length > 0
+      ) {
+        const allowedDomains = urlRequirement.domains
+          .map((domain) => getDomainWithoutWWW(domain)?.toLowerCase())
+          .filter((domain): domain is string => !!domain);
+
+        if (allowedDomains.length > 0) {
+          const invalidUrls = urls.filter((url) => {
+            const urlDomain = getDomainWithoutWWW(url)?.toLowerCase();
+            if (!urlDomain) return true;
+            // Check if URL domain matches any allowed domain or is a subdomain
+            return !allowedDomains.some(
+              (allowedDomain) =>
+                urlDomain === allowedDomain ||
+                urlDomain.endsWith(`.${allowedDomain}`),
+            );
+          });
+
+          if (invalidUrls.length > 0) {
+            const domainsList = allowedDomains.join(", ");
+            throw new Error(
+              `All URLs must be from one of the following domains: ${domainsList}. Please check your submission.`,
+            );
+          }
+        }
+      }
+
+      // Validate max count for URLs
+      if (urlRequirement?.max && urls.length > urlRequirement.max) {
+        throw new Error(
+          `You can submit at most ${urlRequirement.max} URL${urlRequirement.max === 1 ? "" : "s"}.`,
+        );
+      }
+
+      // Validate max count for images
+      if (imageRequirement?.max && files.length > imageRequirement.max) {
+        throw new Error(
+          `You can submit at most ${imageRequirement.max} image${imageRequirement.max === 1 ? "" : "s"}.`,
+        );
+      }
+
+      submissionData = {
+        ...submissionData,
+        completedAt: new Date(),
+      };
+    }
 
     // Validate social content requirements
-    let socialMetricCount: number | undefined;
-
     if (bountyInfo?.socialMetrics) {
-      // A URL is always required for social metrics bounties
-      requireUrl = true;
-
       const contentUrl = storedUrls[0];
 
       if (!bountyInfo?.socialPlatform) {
@@ -227,74 +280,33 @@ export const createBountySubmissionAction = authPartnerActionClient
       const metricValue = socialContent[bountyInfo.socialMetrics.metric];
 
       if (typeof metricValue === "number" && Number.isInteger(metricValue)) {
-        socialMetricCount = metricValue;
+        submissionData = {
+          ...submissionData,
+          urls: [contentUrl],
+          socialMetricCount: metricValue,
+          socialMetricsLastSyncedAt: new Date(),
+        };
 
         if (
           metricValue &&
           bountyInfo.socialMetrics.minCount &&
           metricValue >= bountyInfo.socialMetrics.minCount
         ) {
-          status = "submitted";
+          submissionData.status = "submitted";
+          submissionData.completedAt = new Date();
         } else {
-          status = "draft";
+          submissionData.status = "draft";
+          submissionData.completedAt = null;
         }
       }
     }
 
-    if (!isDraft) {
-      if (requireImage && files.length === 0) {
-        throw new Error("You must submit an image.");
-      }
-
-      if (requireUrl && urls.length === 0) {
-        throw new Error("You must submit a URL.");
-      }
-
-      // Validate URL domain restrictions
-      if (
-        urlRequirement?.domains &&
-        urlRequirement.domains.length > 0 &&
-        urls.length > 0
-      ) {
-        const allowedDomains = urlRequirement.domains
-          .map((domain) => getDomainWithoutWWW(domain)?.toLowerCase())
-          .filter((domain): domain is string => !!domain);
-
-        if (allowedDomains.length > 0) {
-          const invalidUrls = urls.filter((url) => {
-            const urlDomain = getDomainWithoutWWW(url)?.toLowerCase();
-            if (!urlDomain) return true;
-            // Check if URL domain matches any allowed domain or is a subdomain
-            return !allowedDomains.some(
-              (allowedDomain) =>
-                urlDomain === allowedDomain ||
-                urlDomain.endsWith(`.${allowedDomain}`),
-            );
-          });
-
-          if (invalidUrls.length > 0) {
-            const domainsList = allowedDomains.join(", ");
-            throw new Error(
-              `All URLs must be from one of the following domains: ${domainsList}. Please check your submission.`,
-            );
-          }
-        }
-      }
-
-      // Validate max count for URLs
-      if (urlRequirement?.max && urls.length > urlRequirement.max) {
-        throw new Error(
-          `You can submit at most ${urlRequirement.max} URL${urlRequirement.max === 1 ? "" : "s"}.`,
-        );
-      }
-
-      // Validate max count for images
-      if (imageRequirement?.max && files.length > imageRequirement.max) {
-        throw new Error(
-          `You can submit at most ${imageRequirement.max} image${imageRequirement.max === 1 ? "" : "s"}.`,
-        );
-      }
-    }
+    submissionData = {
+      ...submissionData,
+      ...(requireImage && { files }),
+      ...(requireUrl && { urls }),
+      ...(description && { description }),
+    };
 
     // If there is an existing submission, update it
     if (submission) {
@@ -303,15 +315,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           id: submission.id,
         },
         data: {
-          description,
-          status,
-          ...(requireImage && { files }),
-          ...(requireUrl && { urls }),
-          ...(isDraft ? {} : { completedAt: new Date() }),
-          ...(socialMetricCount && {
-            socialMetricCount,
-            socialMetricsLastSyncedAt: new Date(),
-          }),
+          ...submissionData,
         },
       });
     }
@@ -319,19 +323,11 @@ export const createBountySubmissionAction = authPartnerActionClient
     else {
       submission = await prisma.bountySubmission.create({
         data: {
+          ...submissionData,
           id: createId({ prefix: "bnty_sub_" }),
           programId: bounty.programId,
           bountyId: bounty.id,
           partnerId: partner.id,
-          description,
-          status,
-          ...(requireImage && { files }),
-          ...(requireUrl && { urls }),
-          ...(isDraft ? {} : { completedAt: new Date() }),
-          ...(socialMetricCount && {
-            socialMetricCount,
-            socialMetricsLastSyncedAt: new Date(),
-          }),
         },
       });
     }
