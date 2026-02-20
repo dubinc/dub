@@ -158,6 +158,9 @@ export const POST = withWorkspace(
                   slug: bounty.program.slug,
                 },
               }),
+              headers: {
+                "Idempotency-Key": `bounty-completed-${submissionId}`,
+              },
             });
           }
         }
