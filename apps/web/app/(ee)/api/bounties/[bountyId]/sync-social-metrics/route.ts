@@ -9,7 +9,7 @@ import { qstash } from "@/lib/cron";
 import { sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { prisma } from "@dub/prisma";
-import { BountySubmissionStatus } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -111,20 +111,22 @@ export const POST = withWorkspace(
 
       if (socialMetricCount) {
         const submission = bounty.submissions![0];
+        const minCount = bountyInfo.socialMetrics?.minCount ?? 0;
 
-        let status: BountySubmissionStatus = submission.status;
-        let transitionedToSubmitted = false;
+        const updateData: Prisma.BountySubmissionUpdateInput = {
+          socialMetricCount,
+          socialMetricsLastSyncedAt,
+        };
 
-        if (status === "draft") {
-          const hasMetCriteria =
-            socialMetricCount &&
-            bountyInfo.socialMetrics.minCount &&
-            socialMetricCount >= bountyInfo.socialMetrics.minCount;
+        const hasMetCriteria =
+          socialMetricCount != null && socialMetricCount >= minCount;
 
-          if (hasMetCriteria) {
-            status = "submitted";
-            transitionedToSubmitted = true;
-          }
+        const shouldTransitionToSubmitted =
+          submission.status === "draft" && hasMetCriteria;
+
+        if (shouldTransitionToSubmitted) {
+          updateData.status = "submitted";
+          updateData.completedAt = new Date();
         }
 
         await prisma.bountySubmission.update({
@@ -132,13 +134,15 @@ export const POST = withWorkspace(
             id: submissionId,
           },
           data: {
-            status,
-            socialMetricCount,
-            socialMetricsLastSyncedAt,
+            ...updateData,
           },
         });
 
-        if (transitionedToSubmitted && bounty.program && submission.partner) {
+        if (
+          shouldTransitionToSubmitted &&
+          bounty.program &&
+          submission.partner
+        ) {
           const { partner } = submission;
 
           if (partner.email) {

@@ -2,7 +2,10 @@ import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-upd
 import { getBountyInfo } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
+import { sendBatchEmail } from "@dub/email";
+import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { prisma } from "@dub/prisma";
+import { Partner, Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -26,6 +29,9 @@ export const POST = withCron(async ({ rawBody }) => {
   const bounty = await prisma.bounty.findUnique({
     where: {
       id: bountyId,
+    },
+    include: {
+      program: true,
     },
   });
 
@@ -56,6 +62,11 @@ export const POST = withCron(async ({ rawBody }) => {
       urls: true,
       socialMetricCount: true,
       status: true,
+      partner: {
+        select: {
+          email: true,
+        },
+      },
     },
     orderBy: {
       id: "asc",
@@ -85,24 +96,82 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const toUpdate = await getSocialMetricsUpdates({
+  const newMetrics = await getSocialMetricsUpdates({
     bounty,
     submissions,
   });
 
-  if (toUpdate.length > 0) {
-    await prisma.$transaction(
-      toUpdate.map(({ id, socialMetricCount, socialMetricsLastSyncedAt }) =>
-        prisma.bountySubmission.update({
-          where: {
-            id,
+  const now = new Date();
+  const minCount = bountyInfo.socialMetrics?.minCount ?? 0;
+  const submissionById = new Map(submissions.map((s) => [s.id, s]));
+
+  const updates: Prisma.PrismaPromise<unknown>[] = [];
+  const notifications: Pick<Partner, "email">[] = [];
+
+  for (const {
+    id,
+    socialMetricCount,
+    socialMetricsLastSyncedAt,
+  } of newMetrics) {
+    const submission = submissionById.get(id);
+
+    if (!submission) {
+      continue;
+    }
+
+    const hasMetCriteria =
+      socialMetricCount != null && socialMetricCount >= minCount;
+
+    const shouldTransitionToSubmitted =
+      submission.status === "draft" && hasMetCriteria;
+
+    const updateData: Prisma.BountySubmissionUpdateInput = {
+      socialMetricCount,
+      socialMetricsLastSyncedAt,
+    };
+
+    if (shouldTransitionToSubmitted) {
+      updateData.status = "submitted";
+      updateData.completedAt = now;
+
+      if (submission.partner?.email) {
+        notifications.push({
+          email: submission.partner.email,
+        });
+      }
+    }
+
+    updates.push(
+      prisma.bountySubmission.update({
+        where: {
+          id,
+        },
+        data: updateData,
+      }),
+    );
+  }
+
+  await prisma.$transaction(updates);
+
+  if (notifications.length > 0 && bounty.program) {
+    await sendBatchEmail(
+      notifications.map(({ email }) => ({
+        subject: "Bounty completed!",
+        to: email!,
+        variant: "notifications",
+        replyTo: bounty.program.supportEmail || "noreply",
+        react: BountyCompleted({
+          email: email!,
+          bounty: {
+            name: bounty.name,
+            type: bounty.type,
           },
-          data: {
-            socialMetricCount,
-            socialMetricsLastSyncedAt,
+          program: {
+            name: bounty.program.name,
+            slug: bounty.program.slug,
           },
         }),
-      ),
+      })),
     );
   }
 
@@ -119,7 +188,7 @@ export const POST = withCron(async ({ rawBody }) => {
     });
 
     return logAndRespond(
-      `Synced ${toUpdate.length} submissions for bounty ${bountyId}. Queued next batch (startingAfter: ${startingAfter}).`,
+      `Synced ${updates.length} submissions for bounty ${bountyId}. Queued next batch (startingAfter: ${startingAfter}).`,
     );
   }
 
@@ -133,6 +202,6 @@ export const POST = withCron(async ({ rawBody }) => {
   });
 
   return logAndRespond(
-    `Synced ${toUpdate.length} submission(s) for bounty ${bountyId}.`,
+    `Synced ${updates.length} submission(s) for bounty ${bountyId}.`,
   );
 });
