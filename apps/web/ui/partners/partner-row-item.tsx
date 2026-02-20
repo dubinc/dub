@@ -140,9 +140,13 @@ export function PartnerRowItem({
     <div className="flex min-w-0 items-center gap-2">
       <div className="shrink-0">
         <DynamicTooltipWrapper
-          tooltipProps={{
-            content: <PartnerPayoutStatusTooltip statusKey={statusKey} />,
-          }}
+          tooltipProps={
+            statusKey
+              ? {
+                  content: <PartnerPayoutStatusTooltip statusKey={statusKey} />,
+                }
+              : undefined
+          }
         >
           <div className="relative shrink-0">
             <img

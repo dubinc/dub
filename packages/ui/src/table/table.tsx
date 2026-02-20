@@ -200,7 +200,17 @@ export function useTable<T extends any>(
                     lastSelectedIndex !== -1
                   ) {
                     // Multi-select w/ shift key
-                    const currentIndex = row.index;
+                    const currentIndex =
+                      currentId !== undefined
+                        ? rows.findIndex(
+                            (row) => getRowId?.(row.original) === currentId,
+                          )
+                        : -1;
+                    if (currentIndex === -1) {
+                      row.toggleSelected();
+                      lastSelectedRowId.current = currentId ?? null;
+                      return;
+                    }
 
                     const start = Math.min(lastSelectedIndex, currentIndex);
                     const end = Math.max(lastSelectedIndex, currentIndex);
