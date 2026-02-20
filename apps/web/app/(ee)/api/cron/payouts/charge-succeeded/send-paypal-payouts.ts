@@ -71,7 +71,6 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
         email: payout.partner.email!,
         program: payout.program,
         payout,
-        variant: "paypal",
       },
     })),
   );

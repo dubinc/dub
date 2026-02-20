@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { createStripeInboundTransfer } from "@/lib/stripe/create-stripe-inbound-transfer";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
@@ -50,6 +51,35 @@ export async function POST(req: Request) {
       return logAndRespond(
         `No payouts found with status 'processing' for invoice ${invoiceId}, skipping...`,
       );
+    }
+
+    // Update payout method from partner's defaultPayoutMethod
+    await prisma.$executeRaw`
+      UPDATE Payout p
+      INNER JOIN Partner pr ON p.partnerId = pr.id
+      SET p.method = pr.defaultPayoutMethod
+      WHERE p.invoiceId = ${invoice.id}
+      AND pr.defaultPayoutMethod IS NOT NULL
+    `;
+
+    // Find the total amount we should transfer to FA to handle Stablecoin payouts
+    const {
+      _sum: { amount: totalStablecoinPayoutAmount },
+    } = await prisma.payout.aggregate({
+      _sum: {
+        amount: true,
+      },
+      where: {
+        invoiceId: invoice.id,
+        method: "stablecoin",
+      },
+    });
+
+    // Make an inbound transfer to Dub's financial account to handle Stablecoin payouts
+    if (totalStablecoinPayoutAmount && totalStablecoinPayoutAmount > 0) {
+      await createStripeInboundTransfer({
+        amount: totalStablecoinPayoutAmount,
+      });
     }
 
     await Promise.allSettled([

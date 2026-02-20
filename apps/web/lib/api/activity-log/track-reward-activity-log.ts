@@ -1,14 +1,10 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import type { RewardConditions, RewardProps } from "@/lib/types";
 import { REWARD_EVENT_TO_RESOURCE_TYPE } from "@/lib/zod/schemas/activity-log";
-import { rewardConditionsSchema } from "@/lib/zod/schemas/rewards";
 import type { Reward } from "@dub/prisma/client";
-import type { z } from "zod/v4";
 import { getResourceDiff } from "./get-resource-diff";
 import type { TrackActivityLogInput } from "./track-activity-log";
 import { trackActivityLog } from "./track-activity-log";
-
-type RewardConditionModifier = z.infer<typeof rewardConditionsSchema>;
 
 interface TrackRewardActivityLogParams
   extends Omit<
@@ -32,10 +28,7 @@ function toRewardActivitySnapshot(reward: RewardProps) {
   };
 }
 
-function modifierEquals(
-  a: RewardConditionModifier,
-  b: RewardConditionModifier,
-): boolean {
+function modifierEquals(a: RewardConditions, b: RewardConditions): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 

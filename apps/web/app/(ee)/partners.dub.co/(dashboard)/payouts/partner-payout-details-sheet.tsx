@@ -9,7 +9,7 @@ import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PartnerPayoutMethod, PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   CircleArrowRight,
@@ -35,7 +35,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
-import { addBusinessDays } from "date-fns";
+import { addBusinessDays, addMinutes } from "date-fns";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
 import useSWR from "swr";
@@ -45,8 +45,17 @@ type PayoutDetailsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
+const failureTooltips: Record<PartnerPayoutMethod, string> = {
+  connect:
+    "Payout failures are usually due to invalid bank account details. Once you've [updated your account](/payouts?settings=true), the payout will be retried automatically.",
+  stablecoin:
+    "Payout failures are usually due to incorrect wallet configuration. Once you've [updated your account](/payouts?settings=true), you can retry the payout.",
+  paypal:
+    "Payout failures are usually due to incorrect PayPal account configuration. Once you've [updated your account](/payouts?settings=true), you can retry the payout.",
+};
+
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
-  const { partner, payoutMethod } = usePartnerProfile();
+  const { partner } = usePartnerProfile();
 
   const {
     data: earnings,
@@ -143,11 +152,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
               value: (
                 <span className="text-red-600">{payout.failureReason}</span>
               ),
-              tooltip: `Payout failures are usually due to ${payoutMethod === "paypal" ? "incorrect PayPal account configuration" : "invalid bank account details"}. Once you've [updated your account](/payouts?settings=true), ${
-                payoutMethod === "paypal"
-                  ? "you can retry the payout"
-                  : "the payout will be retried automatically"
-              }.`,
+              tooltip: payout.method
+                ? failureTooltips[payout.method]
+                : undefined,
             },
           ]
         : []),
@@ -201,7 +208,10 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                   {payout.traceId}
                 </CopyText>
               ),
-              tooltip: `Banks can take up to 5 business days to process payouts. If you haven't received your payout${payout.paidAt ? ` by \`${formatDateTimeSmart(addBusinessDays(payout.paidAt, 5))}\`` : ""}, you can contact your bank and provide the following trace ID as reference.`,
+              tooltip:
+                payout.method === "stablecoin"
+                  ? `Stablecoin payouts typically arrive within minutes. If you haven't received your payout${payout.paidAt ? ` by \`${formatDateTimeSmart(addMinutes(payout.paidAt, 60))}\`` : ""}, you can contact support and provide the following trace ID as reference.`
+                  : `Banks can take up to 5 business days to process payouts. If you haven't received your payout${payout.paidAt ? ` by \`${formatDateTimeSmart(addBusinessDays(payout.paidAt, 5))}\`` : ""}, you can contact your bank and provide the following trace ID as reference.`,
             },
           ]
         : []),

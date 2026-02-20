@@ -2,12 +2,10 @@
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
-import { RewardConditions, RewardProps } from "@/lib/types";
+import { RewardCondition, RewardConditions, RewardProps } from "@/lib/types";
 import {
   CONDITION_OPERATOR_LABELS,
   REWARD_CONDITIONS,
-  rewardConditionSchema,
-  rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { InfoTooltip, useScrollProgress } from "@dub/ui";
 import {
@@ -19,7 +17,6 @@ import {
 } from "@dub/utils";
 import { formatDuration } from "date-fns";
 import { useRef } from "react";
-import * as z from "zod/v4";
 
 interface ProgramRewardModifiersTooltipProps {
   reward?: Omit<RewardProps, "id" | "updatedAt"> | null;
@@ -127,8 +124,8 @@ const RewardItem = ({
   operator = "AND",
 }: {
   reward: Omit<RewardProps, "id" | "updatedAt">;
-  conditions?: z.infer<typeof rewardConditionSchema>[];
-  operator?: z.infer<typeof rewardConditionsSchema>["operator"];
+  conditions?: RewardCondition[];
+  operator?: RewardConditions["operator"];
 }) => {
   const rewardAmount = constructRewardAmount({
     ...reward,
