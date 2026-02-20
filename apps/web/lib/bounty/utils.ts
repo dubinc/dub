@@ -5,7 +5,11 @@ import {
 } from "@dub/prisma/client";
 import { currencyFormatter, isValidUrl } from "@dub/utils";
 import { addDays, addMonths, addWeeks } from "date-fns";
-import { BountySocialPlatform, PartnerBountyProps } from "../types";
+import {
+  BountySocialPlatform,
+  BountySubmissionProps,
+  PartnerBountyProps,
+} from "../types";
 import { bountySocialContentRequirementsSchema } from "../zod/schemas/bounties";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./constants";
 
@@ -217,4 +221,94 @@ export function getBountyInfo(bounty: BountyInfoInput | undefined | null) {
     socialMetrics,
     hasSocialMetrics: socialMetrics != null,
   };
+}
+
+export interface SocialMetricsRewardTier {
+  threshold: number;
+  rewardAmount: number;
+  status: "met" | "unmet";
+}
+
+export function getSocialMetricsRewardTiers({
+  bounty,
+  submission,
+}: {
+  bounty: BountyInfoInput | undefined | null;
+  submission: Pick<BountySubmissionProps, "socialMetricCount">;
+}): SocialMetricsRewardTier[] {
+  const bountyInfo = getBountyInfo(bounty);
+  const socialMetrics = bountyInfo?.socialMetrics;
+  const rewardAmount = bounty?.rewardAmount ?? 0;
+  const socialMetricCount = submission.socialMetricCount ?? 0;
+
+  if (!socialMetrics?.metric || !socialMetrics.minCount || rewardAmount <= 0) {
+    return [];
+  }
+
+  const { minCount, incrementalBonus } = socialMetrics;
+
+  // Base tier
+  const tiers: SocialMetricsRewardTier[] = [
+    {
+      threshold: minCount,
+      rewardAmount,
+      status: socialMetricCount >= minCount ? "met" : "unmet",
+    },
+  ];
+
+  if (tiers[0].status === "unmet") {
+    return tiers;
+  }
+
+  // Incremental bonus tiers
+  if (incrementalBonus) {
+    const { incrementCount, bonusPerIncrement, maxCount } = incrementalBonus;
+
+    const hasValidIncrementalBonus =
+      incrementCount != null &&
+      bonusPerIncrement != null &&
+      maxCount != null &&
+      incrementCount > 0;
+
+    if (hasValidIncrementalBonus) {
+      for (
+        let t = minCount + incrementCount;
+        t <= maxCount;
+        t += incrementCount
+      ) {
+        const status = socialMetricCount >= t ? "met" : "unmet";
+
+        tiers.push({
+          threshold: t,
+          rewardAmount: bonusPerIncrement,
+          status,
+        });
+
+        // Stop after first unmet
+        if (status === "unmet") {
+          break;
+        }
+      }
+    }
+  }
+
+  return tiers;
+}
+
+export function calculateSocialMetricsRewardAmount({
+  bounty,
+  submission,
+}: {
+  bounty: BountyInfoInput | undefined | null;
+  submission: Pick<BountySubmissionProps, "socialMetricCount">;
+}) {
+  const tiers = getSocialMetricsRewardTiers({ bounty, submission });
+
+  if (tiers.length === 0 || submission.socialMetricCount == null) {
+    return null;
+  }
+
+  return tiers
+    .filter((tier) => tier.status === "met")
+    .reduce((sum, tier) => sum + tier.rewardAmount, 0);
 }

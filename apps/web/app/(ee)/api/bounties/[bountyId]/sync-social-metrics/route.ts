@@ -58,22 +58,46 @@ export const POST = withWorkspace(
         : undefined,
     });
 
-    if (
-      submissionId &&
-      (!bounty.submissions || bounty.submissions.length === 0)
-    ) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Submission ${submissionId} not found.`,
-      });
-    }
-
     const bountyInfo = getBountyInfo(bounty);
 
     if (!bountyInfo?.socialMetrics) {
       throw new DubApiError({
         code: "bad_request",
         message: "This bounty does not have social metrics requirements.",
+      });
+    }
+
+    const submission = submissionId ? bounty.submissions?.[0] : undefined;
+
+    if (submissionId) {
+      if (!submission) {
+        throw new DubApiError({
+          code: "not_found",
+          message: `Submission ${submissionId} not found.`,
+        });
+      }
+
+      if (submission.status === "approved") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Social metrics can't be synced for an approved submission.",
+        });
+      }
+    }
+
+    const now = new Date();
+
+    if (bounty.startsAt && bounty.startsAt > now) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can only be synced after the bounty starts.",
+      });
+    }
+
+    if (bounty.endsAt && bounty.endsAt < now) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Social metrics can't be synced after the bounty ends.",
       });
     }
 

@@ -39,8 +39,15 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Bounty ${bountyId} not found. Skipping...`);
   }
 
-  // TODO:
-  // Should we prevent syncing social metrics for bounties that are not started yet or have ended?
+  const now = new Date();
+
+  if (bounty.startsAt && bounty.startsAt > now) {
+    return logAndRespond(`Bounty ${bountyId} has not started yet. Skipping...`);
+  }
+
+  if (bounty.endsAt && bounty.endsAt < now) {
+    return logAndRespond(`Bounty ${bountyId} has ended. Skipping...`);
+  }
 
   const bountyInfo = getBountyInfo(bounty);
 
@@ -54,7 +61,8 @@ export const POST = withCron(async ({ rawBody }) => {
     where: {
       bountyId,
       status: {
-        notIn: ["rejected"],
+        // We only want to process submissions that are not rejected or approved.
+        notIn: ["rejected", "approved"],
       },
     },
     select: {
@@ -101,7 +109,6 @@ export const POST = withCron(async ({ rawBody }) => {
     submissions,
   });
 
-  const now = new Date();
   const minCount = bountyInfo.socialMetrics?.minCount ?? 0;
   const submissionById = new Map(submissions.map((s) => [s.id, s]));
 

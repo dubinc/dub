@@ -10,6 +10,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
+import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
 import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { AmountInput } from "@/ui/shared/amount-input";
@@ -348,7 +349,7 @@ function BountySubmissionDetailsSheetContent({
                 <h2 className="text-base font-semibold text-neutral-900">
                   Submission
                 </h2>
-                {hasSocialContent && (
+                {hasSocialContent && submission.status !== "approved" && (
                   <div className="flex shrink-0 items-center gap-3">
                     {submission.socialMetricsLastSyncedAt ? (
                       <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
@@ -378,6 +379,13 @@ function BountySubmissionDetailsSheetContent({
                       name: submission.partner.name,
                       imageUrl: submission.partner.image ?? null,
                     }}
+                  />
+                )}
+
+                {bountyInfo?.hasSocialMetrics && bounty && (
+                  <BountySocialMetricsRewardsTable
+                    bounty={bounty}
+                    submission={submission}
                   />
                 )}
 
