@@ -247,7 +247,7 @@ export const POST = withWorkspace(
           startsAt,
           endsAt,
           submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
-          rewardAmount: rewardAmount ?? null,
+          rewardAmount,
           rewardDescription,
           performanceScope: type === "performance" ? performanceScope : null,
           ...(submissionRequirements &&
