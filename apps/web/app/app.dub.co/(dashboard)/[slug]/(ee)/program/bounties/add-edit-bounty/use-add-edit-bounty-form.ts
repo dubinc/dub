@@ -12,7 +12,7 @@ import { formatDate } from "@dub/utils";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CreateBountyInputExtended, EndDateMode } from "./bounty-form-context";
+import { CreateBountyInputExtended } from "./bounty-form-context";
 import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
 const ACCORDION_ITEMS = [
@@ -102,12 +102,6 @@ export function useAddEditBountyForm({
         "socialMetrics" in bounty.submissionRequirements
           ? "socialMetrics"
           : "manualSubmission",
-      endDateMode:
-        bounty?.maxSubmissions != null || bounty?.submissionFrequency
-          ? "repeat-submissions"
-          : "fixed-end-date",
-      submissionFrequency: bounty?.submissionFrequency ?? "week",
-      maxSubmissions: bounty?.maxSubmissions ?? 2,
     },
     shouldUnregister: false,
   });
@@ -121,10 +115,6 @@ export function useAddEditBountyForm({
     formState: { errors, isDirty },
   } = form;
 
-  const endDateMode = watch("endDateMode") ?? "fixed-end-date";
-  const maxSubmissions = watch("maxSubmissions") ?? 2;
-  const isRepeatMode = endDateMode === "repeat-submissions";
-
   const [
     startsAt,
     endsAt,
@@ -137,8 +127,6 @@ export function useAddEditBountyForm({
     groupIds,
     rewardType,
     submissionRequirements,
-    submissionFrequency,
-    totalSubmissionsAllowedVal,
   ] = watch([
     "startsAt",
     "endsAt",
@@ -151,8 +139,6 @@ export function useAddEditBountyForm({
     "groupIds",
     "rewardType",
     "submissionRequirements",
-    "submissionFrequency",
-    "maxSubmissions",
   ]);
 
   const handleStartDateToggle = (checked: boolean) => {
@@ -226,23 +212,6 @@ export function useAddEditBountyForm({
     }
   };
 
-  const handleEndDateModeChange = (mode: EndDateMode) => {
-    setValue("endDateMode", mode, { shouldDirty: true });
-    if (mode === "fixed-end-date") {
-      setValue("submissionFrequency", undefined, { shouldDirty: true });
-      setValue("maxSubmissions", null, { shouldDirty: true });
-      setValue("submissionsOpenAt", null, { shouldDirty: true });
-    } else {
-      setValue("submissionFrequency", "week", { shouldDirty: true });
-      setValue("maxSubmissions", 2, { shouldDirty: true });
-      setValue("endsAt", null, { shouldDirty: true });
-    }
-  };
-
-  const handleTotalSubmissionsAllowedChange = (value: number) => {
-    setValue("maxSubmissions", value, { shouldDirty: true });
-  };
-
   const validationError = useMemo(() => {
     const now = new Date();
 
@@ -267,13 +236,6 @@ export function useAddEditBountyForm({
       );
       if (endDate < minEndDate) {
         return "End date must be at least 1 hour after the start date.";
-      }
-    }
-
-    if (type === "submission" && isRepeatMode) {
-      const total = totalSubmissionsAllowedVal ?? 2;
-      if (total < 2 || total > 10) {
-        return "Total submissions allowed must be between 2 and 10.";
       }
     }
 
@@ -374,7 +336,6 @@ export function useAddEditBountyForm({
     submissionWindow,
     rewardAmount,
     rewardDescription,
-    isRepeatMode,
     rewardType,
     type,
     name,
@@ -383,7 +344,6 @@ export function useAddEditBountyForm({
     performanceCondition?.operator,
     performanceCondition?.value,
     submissionRequirements,
-    totalSubmissionsAllowedVal,
   ]);
 
   const performSubmit = async ({
@@ -431,16 +391,8 @@ export function useAddEditBountyForm({
       data.submissionsOpenAt = null;
     } else if (data.type === "submission") {
       data.performanceCondition = null;
-
-      if (isRepeatMode) {
-        data.submissionFrequency = submissionFrequency ?? "week";
-        data.maxSubmissions = totalSubmissionsAllowedVal ?? 2;
-        data.endsAt = null;
-        data.submissionsOpenAt = null;
-      } else {
-        data.submissionFrequency = undefined;
-        data.maxSubmissions = undefined;
-      }
+      data.submissionFrequency = undefined;
+      data.maxSubmissions = undefined;
 
       if ((formRewardType ?? "flat") === "custom") {
         data.rewardAmount = null;
@@ -522,10 +474,6 @@ export function useAddEditBountyForm({
     handleEndDateToggle,
     openAccordions,
     setOpenAccordions,
-    endDateMode,
-    isRepeatMode,
-    maxSubmissions,
-    submissionFrequency,
     type,
     name,
     control,
@@ -536,8 +484,6 @@ export function useAddEditBountyForm({
     isDirty,
     handleStartDateToggle,
     handleEndDateChange,
-    handleEndDateModeChange,
-    handleTotalSubmissionsAllowedChange,
     submissionWindow,
     handleSubmissionWindowToggle,
     handleSubmissionWindowChange,
