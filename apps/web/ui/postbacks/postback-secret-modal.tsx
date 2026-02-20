@@ -71,29 +71,6 @@ function PostbackSecretModal({
   );
 }
 
-interface PostbackSecretModalWrapperProps {
-  state: { show: boolean; secret: string };
-  closePostbackSecretModal: () => void;
-}
-
-function PostbackSecretModalWrapper({
-  state,
-  closePostbackSecretModal,
-}: PostbackSecretModalWrapperProps) {
-  if (!state.show) return null;
-
-  return (
-    <PostbackSecretModal
-      showModal={state.show}
-      setShowModal={(show) => {
-        const next = typeof show === "function" ? show(state.show) : show;
-        if (!next) closePostbackSecretModal();
-      }}
-      secret={state.secret}
-    />
-  );
-}
-
 export function usePostbackSecretModal() {
   const [state, setState] = useState<{ show: boolean; secret: string }>({
     show: false,
@@ -108,15 +85,25 @@ export function usePostbackSecretModal() {
     setState({ show: false, secret: "" });
   }
 
+  function PostbackSecretModalWrapper() {
+    if (!state.show) return null;
+
+    return (
+      <PostbackSecretModal
+        showModal={state.show}
+        setShowModal={(show) => {
+          const next = typeof show === "function" ? show(state.show) : show;
+          if (!next) closePostbackSecretModal();
+        }}
+        secret={state.secret}
+      />
+    );
+  }
+
   return {
     openPostbackSecretModal,
     closePostbackSecretModal,
-    PostbackSecretModal: (
-      <PostbackSecretModalWrapper
-        state={state}
-        closePostbackSecretModal={closePostbackSecretModal}
-      />
-    ),
+    PostbackSecretModal: PostbackSecretModalWrapper,
     isPostbackSecretModalOpen: state.show,
   };
 }

@@ -64,7 +64,7 @@ export function PostbackDetailPageClient({
   return (
     <>
       {AddEditPostbackModal}
-      <PostbackSecretModal />
+      {PostbackSecretModal}
       {postbackEventDetailsSheet}
       <PageContent
         title="Postbacks"

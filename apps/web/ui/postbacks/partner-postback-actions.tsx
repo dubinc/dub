@@ -180,7 +180,7 @@ export function PostbackActions({
       {enableConfirmModal}
       {deleteConfirmModal}
       {rollSecretConfirmModal}
-      <PostbackSecretModal />
+      {PostbackSecretModal}
       <SendTestPostbackModal
         postbackId={postback.id}
         triggers={postback.triggers}
