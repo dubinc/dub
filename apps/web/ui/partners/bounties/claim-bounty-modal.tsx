@@ -75,6 +75,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
 
   const bountyInfo = getBountyInfo(bounty);
   const socialPlatform = bountyInfo?.socialPlatform;
+  const isSocialMetricsBounty = bountyInfo?.hasSocialMetrics ?? false;
 
   // Initialize form state with existing draft submission data
   const [description, setDescription] = useState(submission?.description || "");
@@ -202,10 +203,12 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
           Are you sure you want to submit this bounty? Once submitted, you won't
           be able to make any further changes.
         </p>
-        <p>
-          If you need to make changes later, you can save your progress as a
-          draft instead.
-        </p>
+        {!isSocialMetricsBounty && (
+          <p>
+            If you need to make changes later, you can save your progress as a
+            draft instead.
+          </p>
+        )}
       </div>
     ),
     confirmText: "Confirm submission",
@@ -275,7 +278,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
             const submitter = (e.nativeEvent as SubmitEvent)
               .submitter as HTMLButtonElement;
 
-            const isDraft = submitter?.name === "draft";
+            const isDraft =
+              submitter?.name === "draft" && !isSocialMetricsBounty;
 
             if (isDraft) {
               // Handle draft save directly
@@ -455,7 +459,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                   {socialPlatform && submission?.status === "submitted" && (
                     <div className="border-border-subtle flex flex-col border-t p-6 text-sm max-sm:px-4">
                       <div>
-                        <h2 className="mb-3 text-base font-semibold text-neutral-900">
+                        <h2 className="text-content-emphasis mb-3 font-semibold">
                           Submission
                         </h2>
                         <BountySocialContentPreview
@@ -733,19 +737,21 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       }}
                     />
                     <div className="flex gap-2">
-                      <Button
-                        variant="secondary"
-                        text="Save progress"
-                        className="h-9 rounded-lg px-3"
-                        type="submit"
-                        name="draft" // for submitter.name detection above
-                        loading={isDraft === true}
-                        disabled={
-                          fileUploading ||
-                          isDraft === false ||
-                          socialContentVerifying
-                        }
-                      />
+                      {!isSocialMetricsBounty && (
+                        <Button
+                          variant="secondary"
+                          text="Save progress"
+                          className="h-9 rounded-lg px-3"
+                          type="submit"
+                          name="draft" // for submitter.name detection above
+                          loading={isDraft === true}
+                          disabled={
+                            fileUploading ||
+                            isDraft === false ||
+                            socialContentVerifying
+                          }
+                        />
+                      )}
                       <Button
                         variant="primary"
                         text="Submit"
@@ -768,7 +774,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                                   year: "numeric",
                                   timeZone: "UTC",
                                 },
-                              )}. In the meantime, you can save your progress as a draft.`
+                              )}.${isSocialMetricsBounty ? "" : " In the meantime, you can save your progress as a draft."}`
                             : undefined
                         }
                       />

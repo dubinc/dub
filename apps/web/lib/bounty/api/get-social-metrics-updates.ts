@@ -46,6 +46,7 @@ export async function getSocialMetricsUpdates({
       getSocialContent({
         platform: socialPlatform.value,
         url: s.url!,
+        ignoreCache,
       }),
     ),
   );

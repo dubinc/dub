@@ -33,6 +33,10 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
+  //
+  // TODO
+  // Don't sync bounties that not are expired or not started yet
+
   if (!bounty) {
     return logAndRespond(`Bounty ${bountyId} not found. Skipping...`);
   }
@@ -49,7 +53,7 @@ export const POST = withCron(async ({ rawBody }) => {
     where: {
       bountyId,
       status: {
-        in: ["submitted", "reviewable"],
+        notIn: ["rejected"],
       },
     },
     select: {

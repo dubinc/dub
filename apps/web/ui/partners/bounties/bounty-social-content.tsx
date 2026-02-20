@@ -31,7 +31,7 @@ function SocialContentRequirementChecks({
   const isPostedFromYourAccount =
     partnerPlatform &&
     partnerPlatform.verifiedAt &&
-    partnerPlatform.identifier === content?.handle;
+    partnerPlatform.identifier.toLowerCase() === content?.handle?.toLowerCase();
 
   const isAfterStartDate =
     content?.publishedAt &&

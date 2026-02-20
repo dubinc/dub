@@ -6,8 +6,8 @@ import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { getBountyInfo } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
-import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { BountySubmissionStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -41,6 +41,7 @@ export const POST = withWorkspace(
               select: {
                 id: true,
                 urls: true,
+                status: true,
               },
             },
           }
@@ -59,7 +60,7 @@ export const POST = withWorkspace(
 
     const bountyInfo = getBountyInfo(bounty);
 
-    if (!bountyInfo?.hasSocialMetrics) {
+    if (!bountyInfo?.socialMetrics) {
       throw new DubApiError({
         code: "bad_request",
         message: "This bounty does not have social metrics requirements.",
@@ -68,18 +69,6 @@ export const POST = withWorkspace(
 
     // Do the sync in a background job if no submissionId is provided
     if (!submissionId) {
-      const { success } = await ratelimit(1, "1 h").limit(
-        `sync-bounty-social:${bountyId}`,
-      );
-
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message:
-            "Refresh is limited to once per hour. Please try again later.",
-        });
-      }
-
       const response = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/sync-social-metrics`,
         method: "POST",
@@ -110,15 +99,32 @@ export const POST = withWorkspace(
         (s) => s.id === submissionId,
       )!;
 
-      await prisma.bountySubmission.update({
-        where: {
-          id: submissionId,
-        },
-        data: {
-          socialMetricCount,
-          socialMetricsLastSyncedAt,
-        },
-      });
+      if (socialMetricCount) {
+        const submission = bounty.submissions![0];
+        let status: BountySubmissionStatus = submission.status;
+
+        if (status === "draft") {
+          const hasMetCriteria =
+            socialMetricCount &&
+            bountyInfo.socialMetrics.minCount &&
+            socialMetricCount >= bountyInfo.socialMetrics.minCount;
+
+          if (hasMetCriteria) {
+            status = "submitted";
+          }
+        }
+
+        await prisma.bountySubmission.update({
+          where: {
+            id: submissionId,
+          },
+          data: {
+            status,
+            socialMetricCount,
+            socialMetricsLastSyncedAt,
+          },
+        });
+      }
     }
 
     return NextResponse.json({});

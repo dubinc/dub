@@ -14,7 +14,11 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
-import { BountySubmission, WorkspaceRole } from "@dub/prisma/client";
+import {
+  BountySubmission,
+  BountySubmissionStatus,
+  WorkspaceRole,
+} from "@dub/prisma/client";
 import { getDomainWithoutWWW } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
@@ -117,21 +121,32 @@ export const createBountySubmissionAction = authPartnerActionClient
 
     const bountyInfo = getBountyInfo(bounty);
 
+    if (bountyInfo?.hasSocialMetrics && isDraft) {
+      throw new Error(
+        "Draft submissions are not allowed for social metrics bounties.",
+      );
+    }
+
     // Validate the submission requirements
     const submissionRequirements = bounty.submissionRequirements
       ? submissionRequirementsSchema.parse(bounty.submissionRequirements)
       : null;
 
     const requireImage = !!submissionRequirements?.image;
-    const requireUrl = !!submissionRequirements?.url;
+    let requireUrl = !!submissionRequirements?.url;
     const urlRequirement = submissionRequirements?.url || null;
     const imageRequirement = submissionRequirements?.image || null;
     const storedUrls = [...urls].slice(0, BOUNTY_MAX_SUBMISSION_URLS);
+
+    let status: BountySubmissionStatus = isDraft ? "draft" : "submitted";
 
     // Validate social content requirements
     let socialMetricCount: number | undefined;
 
     if (bountyInfo?.socialMetrics) {
+      // A URL is always required for social metrics bounties
+      requireUrl = true;
+
       const contentUrl = storedUrls[0];
 
       if (!bountyInfo?.socialPlatform) {
@@ -205,6 +220,16 @@ export const createBountySubmissionAction = authPartnerActionClient
 
       if (typeof metricValue === "number" && Number.isInteger(metricValue)) {
         socialMetricCount = metricValue;
+
+        if (
+          metricValue &&
+          bountyInfo.socialMetrics.minCount &&
+          metricValue >= bountyInfo.socialMetrics.minCount
+        ) {
+          status = "submitted";
+        } else {
+          status = "draft";
+        }
       }
     }
 
@@ -271,10 +296,14 @@ export const createBountySubmissionAction = authPartnerActionClient
         },
         data: {
           description,
+          status,
           ...(requireImage && { files }),
           ...(requireUrl && { urls }),
-          status: isDraft ? "draft" : "submitted",
           ...(isDraft ? {} : { completedAt: new Date() }),
+          ...(socialMetricCount && {
+            socialMetricCount,
+            socialMetricsLastSyncedAt: new Date(),
+          }),
         },
       });
     }
@@ -287,10 +316,14 @@ export const createBountySubmissionAction = authPartnerActionClient
           bountyId: bounty.id,
           partnerId: partner.id,
           description,
+          status,
           ...(requireImage && { files }),
           ...(requireUrl && { urls }),
-          status: isDraft ? "draft" : "submitted",
           ...(isDraft ? {} : { completedAt: new Date() }),
+          ...(socialMetricCount && {
+            socialMetricCount,
+            socialMetricsLastSyncedAt: new Date(),
+          }),
         },
       });
     }
