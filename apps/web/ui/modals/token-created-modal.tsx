@@ -46,7 +46,7 @@ function TokenCreatedModal({
                 });
               }}
               type="button"
-              className="text-neutral-90 flex h-7 items-center gap-2 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs font-medium hover:bg-neutral-50"
+              className="flex h-7 items-center gap-2 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-neutral-900 hover:bg-neutral-50"
             >
               {copied ? (
                 <Tick className="h-3.5 w-3.5" />

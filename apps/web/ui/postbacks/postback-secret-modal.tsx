@@ -48,7 +48,7 @@ function PostbackSecretModal({
                 });
               }}
               type="button"
-              className="text-neutral-90 flex h-7 shrink-0 items-center gap-2 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs font-medium hover:bg-neutral-50"
+              className="flex h-7 shrink-0 items-center gap-2 rounded-md border border-neutral-200 bg-white px-2 py-1 text-xs font-medium text-neutral-900 hover:bg-neutral-50"
             >
               {copied ? (
                 <Tick className="h-3.5 w-3.5" />
@@ -71,6 +71,29 @@ function PostbackSecretModal({
   );
 }
 
+interface PostbackSecretModalWrapperProps {
+  state: { show: boolean; secret: string };
+  closePostbackSecretModal: () => void;
+}
+
+function PostbackSecretModalWrapper({
+  state,
+  closePostbackSecretModal,
+}: PostbackSecretModalWrapperProps) {
+  if (!state.show) return null;
+
+  return (
+    <PostbackSecretModal
+      showModal={state.show}
+      setShowModal={(show) => {
+        const next = typeof show === "function" ? show(state.show) : show;
+        if (!next) closePostbackSecretModal();
+      }}
+      secret={state.secret}
+    />
+  );
+}
+
 export function usePostbackSecretModal() {
   const [state, setState] = useState<{ show: boolean; secret: string }>({
     show: false,
@@ -85,25 +108,15 @@ export function usePostbackSecretModal() {
     setState({ show: false, secret: "" });
   }
 
-  function PostbackSecretModalWrapper() {
-    if (!state.show) return null;
-
-    return (
-      <PostbackSecretModal
-        showModal={state.show}
-        setShowModal={(show) => {
-          const next = typeof show === "function" ? show(state.show) : show;
-          if (!next) closePostbackSecretModal();
-        }}
-        secret={state.secret}
-      />
-    );
-  }
-
   return {
     openPostbackSecretModal,
     closePostbackSecretModal,
-    PostbackSecretModal: PostbackSecretModalWrapper,
+    PostbackSecretModal: (
+      <PostbackSecretModalWrapper
+        state={state}
+        closePostbackSecretModal={closePostbackSecretModal}
+      />
+    ),
     isPostbackSecretModalOpen: state.show,
   };
 }

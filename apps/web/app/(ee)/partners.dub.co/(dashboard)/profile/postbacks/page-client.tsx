@@ -37,7 +37,7 @@ export function PostbacksPageClient() {
         titleInfo={{
           title:
             "Receive HTTP requests when events like leads, sales, or commissions occur in your partner programs.",
-          href: "https://dub.co/help",
+          href: "https://d.to/postbacks",
         }}
         controls={<AddPostbackButton onClick={openAddPostbackModal} />}
       >
@@ -91,7 +91,7 @@ export function PostbacksPageClient() {
         </PageWidthWrapper>
       </PageContent>
       {AddEditPostbackModal}
-      <PostbackSecretModal />
+      {PostbackSecretModal}
     </>
   );
 }
