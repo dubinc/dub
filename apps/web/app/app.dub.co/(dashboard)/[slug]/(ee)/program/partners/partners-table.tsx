@@ -279,8 +279,10 @@ export function PartnersTable() {
         {
           id: "location",
           header: "Location",
-          minSize: 150,
+          minSize: 190,
+          size: 190,
           meta: {
+            disableTruncate: true,
             filterParams: ({ getValue }) =>
               getValue()
                 ? {
@@ -291,7 +293,7 @@ export function PartnersTable() {
           cell: ({ row }) => {
             const country = row.original.country;
             return (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 whitespace-nowrap">
                 {country && (
                   <img
                     alt={`${country} flag`}
@@ -299,7 +301,7 @@ export function PartnersTable() {
                     className="size-4 shrink-0"
                   />
                 )}
-                <span className="min-w-0 truncate">
+                <span className="whitespace-nowrap">
                   {(country ? COUNTRIES[country] : null) ?? "-"}
                 </span>
               </div>
@@ -911,7 +913,7 @@ function RowMenuButton({
       >
         <Button
           type="button"
-          className="h-8 whitespace-nowrap px-2"
+          className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
           variant="outline"
           icon={<Dots className="h-4 w-4 shrink-0" />}
         />
