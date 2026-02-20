@@ -14,9 +14,7 @@ export function BountyRewardDescription({
     "rewardAmount" | "rewardDescription" | "submissionRequirements"
   >;
   className?: string;
-
-  // Prevent the tooltip from being clicked when the reward description is clicked (it's inside a tooltip wrapper)
-  onTooltipClick?: (e: React.MouseEvent) => void;
+  onTooltipClick?: (e: React.MouseEvent) => void; // Prevent the tooltip from being clicked when the reward description is clicked
 }) {
   const description = getBountyRewardDescription(bounty);
 

@@ -7,74 +7,83 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/bounties – get available bounties for an enrolled program
-export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
-    const { program, totalCommissions, groupId, links } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-        include: {
-          program: true,
-          links: true,
-        },
-      });
-
-    const now = new Date();
-    const partnerGroupId = groupId || program.defaultGroupId;
-
-    const bounties = await prisma.bounty.findMany({
-      where: {
-        programId: program.id,
-        startsAt: {
-          lte: now,
-        },
-        // If bounty has no groups, it's available to all partners
-        // If bounty has groups, only partners in those groups can see it
-        AND: [
-          {
-            OR: [
-              {
-                groups: {
-                  none: {},
-                },
-              },
-              {
-                groups: {
-                  some: {
-                    groupId: partnerGroupId,
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
+export const GET = withPartnerProfile(async ({ partner, params }) => {
+  const { program, totalCommissions, groupId, links } =
+    await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
       include: {
-        workflow: {
-          select: {
-            triggerConditions: true,
-          },
-        },
-        submissions: {
-          where: {
-            partnerId: partner.id,
-          },
-        },
+        program: true,
+        links: true,
       },
     });
 
-    return NextResponse.json(
-      z.array(PartnerBountySchema).parse(
-        bounties.map((bounty) => ({
-          ...bounty,
-          submission: bounty.submissions?.[0] || null,
-          performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
-          partner: {
-            ...aggregatePartnerLinksStats(links),
-            totalCommissions,
+  const now = new Date();
+  const partnerGroupId = groupId || program.defaultGroupId;
+
+  const bounties = await prisma.bounty.findMany({
+    where: {
+      programId: program.id,
+      startsAt: {
+        lte: now,
+      },
+      // If bounty has no groups, it's available to all partners
+      // If bounty has groups, only partners in those groups can see it
+      AND: [
+        {
+          OR: [
+            {
+              groups: {
+                none: {},
+              },
+            },
+            {
+              groups: {
+                some: {
+                  groupId: partnerGroupId,
+                },
+              },
+            },
+          ],
+        },
+      ],
+    },
+    include: {
+      workflow: {
+        select: {
+          triggerConditions: true,
+        },
+      },
+      submissions: {
+        where: {
+          partnerId: partner.id,
+        },
+        include: {
+          commission: {
+            select: {
+              id: true,
+              earnings: true,
+              status: true,
+              createdAt: true,
+            },
           },
-        })),
-      ),
-    );
-  },
-);
+        },
+      },
+    },
+  });
+
+  return NextResponse.json(
+    z.array(PartnerBountySchema).parse(
+      bounties.map((bounty) => ({
+        ...bounty,
+        submission: bounty.submissions?.[0] || null,
+        commission: bounty.submissions?.[0]?.commission || null,
+        performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
+        partner: {
+          ...aggregatePartnerLinksStats(links),
+          totalCommissions,
+        },
+      })),
+    ),
+  );
+});

@@ -160,6 +160,14 @@ export const PartnerBountySchema = BountySchema.omit({
     totalSaleAmount: z.number(),
     totalCommissions: z.number(),
   }),
+  commission: PartnerEarningsSchema.pick({
+    id: true,
+    earnings: true,
+    status: true,
+    createdAt: true,
+  })
+    .nullable()
+    .default(null),
 });
 
 export const invitePartnerUserSchema = z.object({

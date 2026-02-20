@@ -164,6 +164,7 @@ function renderSubmissionStatus({
     bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
 
   const { submission } = bounty;
+
   // When there is no submission, we show the performance or claim bounty button
   if (!submission) {
     return bounty.type === "performance" ? (
