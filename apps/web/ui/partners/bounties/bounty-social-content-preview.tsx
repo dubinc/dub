@@ -91,6 +91,8 @@ export function BountySocialContentPreview({
         )}
         <iframe
           src={embedUrl}
+          title={`${platform.label} content preview`}
+          aria-label={`${platform.label} content preview`}
           className={cn("absolute inset-0 size-full", !loaded && "opacity-0")}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
