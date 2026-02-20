@@ -71,7 +71,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const [success, setSuccess] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDraft, setIsDraft] = useState<boolean | null>(null);
-  const { socialContentVerifying } = useClaimBountyContext();
+  const { socialContentVerifying, socialContentRequirementsMet } =
+    useClaimBountyContext();
 
   const bountyInfo = getBountyInfo(bounty);
   const socialPlatform = bountyInfo?.socialPlatform;
@@ -748,7 +749,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                           disabled={
                             fileUploading ||
                             isDraft === false ||
-                            socialContentVerifying
+                            socialContentVerifying ||
+                            (!!socialPlatform && !socialContentRequirementsMet)
                           }
                         />
                       )}
@@ -762,7 +764,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                         disabled={
                           fileUploading ||
                           isDraft === true ||
-                          socialContentVerifying
+                          socialContentVerifying ||
+                          (!!socialPlatform && !socialContentRequirementsMet)
                         }
                         disabledTooltip={
                           !hasSubmissionsOpen
@@ -775,7 +778,9 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                                   timeZone: "UTC",
                                 },
                               )}.${isSocialMetricsBounty ? "" : " In the meantime, you can save your progress as a draft."}`
-                            : undefined
+                            : socialPlatform && !socialContentRequirementsMet
+                              ? "Post must be from your verified account and after the bounty start date."
+                              : undefined
                         }
                       />
                     </div>

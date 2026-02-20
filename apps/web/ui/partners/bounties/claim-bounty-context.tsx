@@ -11,6 +11,8 @@ import {
 export type ClaimBountyContextValue = {
   socialContentVerifying: boolean;
   setSocialContentVerifying: Dispatch<SetStateAction<boolean>>;
+  socialContentRequirementsMet: boolean;
+  setSocialContentRequirementsMet: Dispatch<SetStateAction<boolean>>;
 };
 
 const ClaimBountyContext = createContext<ClaimBountyContextValue | undefined>(
@@ -23,10 +25,17 @@ export function ClaimBountyProvider({
   children: React.ReactNode;
 }) {
   const [socialContentVerifying, setSocialContentVerifying] = useState(false);
+  const [socialContentRequirementsMet, setSocialContentRequirementsMet] =
+    useState(true);
 
   return (
     <ClaimBountyContext.Provider
-      value={{ socialContentVerifying, setSocialContentVerifying }}
+      value={{
+        socialContentVerifying,
+        setSocialContentVerifying,
+        socialContentRequirementsMet,
+        setSocialContentRequirementsMet,
+      }}
     >
       {children}
     </ClaimBountyContext.Provider>

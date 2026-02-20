@@ -3,6 +3,7 @@
 import { getBountyInfo } from "@/lib/bounty/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerBountyProps, SocialContent } from "@/lib/types";
+import { useClaimBountyContext } from "@/ui/partners/bounties/claim-bounty-context";
 import { useClaimBountyForm } from "@/ui/partners/bounties/use-claim-bounty-form";
 import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
 import { Button, CircleCheckFill, LoadingSpinner } from "@dub/ui";
@@ -11,6 +12,32 @@ import { isBefore } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+
+function socialContentRequirementChecks({
+  content,
+  bounty,
+  partnerPlatform,
+}: {
+  content: SocialContent | null | undefined;
+  bounty: PartnerBountyProps;
+  partnerPlatform: { identifier: string; verifiedAt: Date | null } | undefined;
+}) {
+  const isPostedFromYourAccount =
+    !!content &&
+    !!partnerPlatform &&
+    !!partnerPlatform.verifiedAt &&
+    partnerPlatform.identifier.toLowerCase() === content.handle?.toLowerCase();
+
+  const isAfterStartDate =
+    !!content?.publishedAt &&
+    !!bounty.startsAt &&
+    !isBefore(content.publishedAt, bounty.startsAt);
+
+  return {
+    isPostedFromYourAccount,
+    isAfterStartDate,
+  };
+}
 
 function SocialContentRequirementChecks({
   content,
@@ -28,21 +55,18 @@ function SocialContentRequirementChecks({
     (p) => p.type === socialPlatform?.value,
   );
 
-  const isPostedFromYourAccount =
-    partnerPlatform &&
-    partnerPlatform.verifiedAt &&
-    partnerPlatform.identifier.toLowerCase() === content?.handle?.toLowerCase();
-
-  const isAfterStartDate =
-    content?.publishedAt &&
-    bounty.startsAt &&
-    !isBefore(content.publishedAt, bounty.startsAt);
+  const { isPostedFromYourAccount, isAfterStartDate } =
+    socialContentRequirementChecks({
+      content,
+      bounty,
+      partnerPlatform,
+    });
 
   return (
     <ul className="mt-2 flex flex-wrap items-center gap-3">
       <li
         className={cn(
-          "flex items-center gap-1 text-xs transition-colors",
+          "flex items-center gap-1 text-xs font-medium transition-colors",
           isPostedFromYourAccount ? "text-green-600" : "text-neutral-400",
         )}
       >
@@ -57,7 +81,7 @@ function SocialContentRequirementChecks({
 
       <li
         className={cn(
-          "flex items-center gap-1 text-xs transition-colors",
+          "flex items-center gap-1 text-xs font-medium transition-colors",
           isAfterStartDate ? "text-green-600" : "text-neutral-400",
         )}
       >
@@ -78,6 +102,9 @@ export function SocialContentUrlField({
 }: {
   bounty: PartnerBountyProps;
 }) {
+  const { partner } = usePartnerProfile();
+  const { setSocialContentRequirementsMet } = useClaimBountyContext();
+
   const { watch, setValue, getValues, setSocialContentVerifying } =
     useClaimBountyForm();
 
@@ -100,9 +127,26 @@ export function SocialContentUrlField({
     return () => setSocialContentVerifying(false);
   }, [isValidating, setSocialContentVerifying]);
 
-  const showIcon = isValidating || (error && urlToCheck);
-
   const bountyInfo = getBountyInfo(bounty);
+  const partnerPlatform = partner?.platforms?.find(
+    (p) => p.type === bountyInfo?.socialPlatform?.value,
+  );
+
+  useEffect(() => {
+    const checks = socialContentRequirementChecks({
+      content: data,
+      bounty,
+      partnerPlatform,
+    });
+
+    setSocialContentRequirementsMet(
+      checks.isPostedFromYourAccount && checks.isAfterStartDate,
+    );
+
+    return () => setSocialContentRequirementsMet(true);
+  }, [data, bounty, partnerPlatform, setSocialContentRequirementsMet]);
+
+  const showIcon = isValidating || (error && urlToCheck);
 
   if (!bountyInfo?.socialPlatform) {
     return null;
