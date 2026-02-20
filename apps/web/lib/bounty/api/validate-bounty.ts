@@ -12,17 +12,6 @@ export function validateBounty({
   rewardDescription,
   performanceScope,
 }: Partial<CreateBountyInput>) {
-  // We don't support repeat submissions for now
-  if (
-    type === "submission" &&
-    (submissionFrequency != null || maxSubmissions != null)
-  ) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Repeat submissions are not supported.",
-    });
-  }
-
   startsAt = startsAt || new Date();
 
   if (endsAt && endsAt < startsAt) {
