@@ -22,7 +22,7 @@ export const verifyCommission = async ({
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
 
-  // Resolve customer ID first if customerExternalId is given
+  // Resolve customer ID (scoped by projectId — externalId is unique per project)
   if (customerExternalId) {
     const { data: customers } = await http.get<Customer[]>({
       path: "/customers",

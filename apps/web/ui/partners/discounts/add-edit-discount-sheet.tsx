@@ -474,7 +474,7 @@ function DiscountSheetContent({
                 <h3 className="text-sm font-medium text-neutral-900">
                   Auto-provision discount codes
                 </h3>
-                <InfoTooltip content="When enabled, discount codes will be automatically created for partners when they join this group." />
+                <InfoTooltip content="When enabled, discount codes will be automatically created for all existing partners in this group + future partners when they join this group." />
               </div>
 
               <Switch

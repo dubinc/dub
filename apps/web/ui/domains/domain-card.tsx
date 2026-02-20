@@ -201,7 +201,7 @@ export default function DomainCard({ props }: { props: DomainProps }) {
                 }
               >
                 <Link
-                  href={`/${slug}/analytics?domain=${domain}&key=_root`}
+                  href={`/${slug}/analytics?linkId=${props.link?.id}`}
                   className="flex items-center space-x-1 whitespace-nowrap rounded-md border border-neutral-200 bg-neutral-50 px-3 py-1 transition-colors hover:bg-neutral-100"
                 >
                   <CursorRays className="h-4 w-4 text-neutral-700" />

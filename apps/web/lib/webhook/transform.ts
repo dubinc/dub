@@ -37,11 +37,16 @@ export const transformClickEventData = (
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
+  const parsedTimestamp = new Date(click.timestamp ?? Date.now());
+  const validTimestamp = Number.isNaN(parsedTimestamp.getTime())
+    ? new Date()
+    : parsedTimestamp;
+
   return clickWebhookEventSchema.parse({
     ...click,
     click: clickEventSchema.parse({
       ...click,
-      timestamp: new Date(click.timestamp),
+      timestamp: validTimestamp,
       id: click.clickId,
     }),
   });

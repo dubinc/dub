@@ -1,7 +1,6 @@
 "use client";
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -95,23 +94,7 @@ export function RewardsLogic({
       <Button
         className="h-8 rounded-lg"
         icon={<ArrowTurnRight2 className="size-4" />}
-        text={
-          <div className="flex items-center gap-2">
-            <span>Add condition</span>
-            {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
-              <div
-                className={cn(
-                  "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
-                  isDefaultReward
-                    ? "bg-violet-500/50 text-violet-200"
-                    : "bg-violet-50 text-violet-600",
-                )}
-              >
-                Upgrade required
-              </div>
-            )}
-          </div>
-        }
+        text="Add condition"
         onClick={() => {
           const type = getValues("type");
 

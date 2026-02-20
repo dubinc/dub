@@ -130,7 +130,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const allFilters = [...metadataFilters, ...advancedFilters];
 
-  // Normalize partnerId (may be a plain string from partner-profile routes)
+  const folderIdFilter = ensureParsedFilter(params.folderId);
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
 
   const {
@@ -152,6 +152,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     ...params,
     partnerId: partnerIdFilter,
     linkId: normalizedLinkId,
+    folderId: folderIdFilter,
   });
 
   const tinybirdParams: any = {
@@ -209,6 +210,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         url: true,
         title: true,
         comments: true,
+        folderId: true,
         partnerId: true,
         createdAt: true,
       },
@@ -227,18 +229,13 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         });
 
         return analyticsResponse[groupBy].parse({
-          id: link.id,
+          ...link,
           link: link.id,
-          domain: link.domain,
           key: punyEncode(link.key),
-          url: link.url,
           shortLink: linkConstructor({
             domain: link.domain,
             key: punyEncode(link.key),
           }),
-          title: link.title || null,
-          comments: link.comments,
-          partnerId: link.partnerId,
           createdAt: link.createdAt.toISOString(),
           ...item,
         });

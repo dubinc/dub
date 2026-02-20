@@ -27,7 +27,6 @@ import {
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { usePartnerCustomerFilters } from "./use-partner-customer-filters";
@@ -132,8 +131,9 @@ export function ProgramCustomersPageClient() {
           accessorKey: "activity.link",
           cell: ({ row }) =>
             row.original.activity.link ? (
-              <Link
-                href={`/programs/${programSlug}/links?domain=${row.original.activity.link.domain}&key=${row.original.activity.link.key}`}
+              <a
+                href={`/programs/${programSlug}/analytics?linkId=${row.original.activity.link.id}`}
+                target="_blank"
                 className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
               >
                 <LinkLogo
@@ -148,7 +148,7 @@ export function ProgramCustomersPageClient() {
                 >
                   {getPrettyUrl(row.original.activity.link.shortLink)}
                 </span>
-              </Link>
+              </a>
             ) : (
               "-"
             ),

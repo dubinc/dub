@@ -123,7 +123,7 @@ export function CustomerDetailsColumn({
                 )}
               </div>
 
-              {customer && (
+              {customer && workspaceSlug && (
                 <Button
                   variant="secondary"
                   icon={<Pencil className="size-3.5" />}
@@ -335,7 +335,7 @@ export function CustomerDetailsColumn({
                       workspaceSlug
                         ? `/${workspaceSlug}/links/${link.domain}/${link.key}`
                         : programSlug
-                          ? `/programs/${programSlug}/analytics?domain=${encodeURIComponent(link.domain)}&key=${encodeURIComponent(link.key)}`
+                          ? `/programs/${programSlug}/analytics?linkId=${link.id}`
                           : undefined
                     }
                     target="_blank"
