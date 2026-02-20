@@ -177,18 +177,18 @@ export const createManualCommissionAction = authActionClient
       const stripeCustomerInvoices = await getCustomerStripeInvoices({
         stripeCustomerId: customer.stripeCustomerId,
         stripeConnectId: workspace.stripeConnectId,
-      }).then(
-        (
-          invoices, // sort invoices by created date ascending
-        ) =>
-          invoices.sort(
-            (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-          ),
+        programId,
+      }).then((invoices) =>
+        invoices
+          // filter out invoices that are already associated with a commission on Dub
+          .filter((invoice) => !invoice.dubCommissionId)
+          // sort invoices by created date ascending
+          .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime()),
       );
 
       if (stripeCustomerInvoices.length === 0) {
         throw new Error(
-          `No paid Stripe invoices found for customer ${customer.email} (${customer.stripeCustomerId}).`,
+          `No unimported Stripe invoices found for customer ${customer.email} (${customer.stripeCustomerId}).`,
         );
       }
 
