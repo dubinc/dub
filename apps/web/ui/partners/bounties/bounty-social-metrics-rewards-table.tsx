@@ -6,7 +6,7 @@ import {
   SocialMetricsRewardTier,
 } from "@/lib/bounty/utils";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
-import { StatusBadge, Table, useTable } from "@dub/ui";
+import { ProgressCircle, StatusBadge, Table, useTable } from "@dub/ui";
 import { capitalize, currencyFormatter } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
@@ -80,11 +80,19 @@ export function BountySocialMetricsRewardsTable({
         header: capitalize(metricLabel)!,
         minSize: 100,
         size: 120,
-        cell: ({ row: { original } }) => (
-          <span className="font-medium text-neutral-800">
-            {original.threshold.toLocaleString()}
-          </span>
-        ),
+        cell: ({ row: { original } }) => {
+          const progress =
+            (submission.socialMetricCount ?? 0) / original.threshold;
+
+          return (
+            <div className="flex items-center gap-2">
+              <ProgressCircle progress={progress} />
+              <span className="font-medium text-neutral-800">
+                {original.threshold.toLocaleString()}
+              </span>
+            </div>
+          );
+        },
       },
       {
         id: "reward",
@@ -111,7 +119,7 @@ export function BountySocialMetricsRewardsTable({
         },
       },
     ],
-    [metricLabel],
+    [metricLabel, submission],
   );
 
   const table = useTable({
