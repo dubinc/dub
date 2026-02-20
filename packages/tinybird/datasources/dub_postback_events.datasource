@@ -1,0 +1,18 @@
+TOKEN "dub_tinybird_token" APPEND
+
+
+SCHEMA >
+    `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
+    `event_id` String `json:$.event_id`,
+    `postback_id` String `json:$.postback_id`,
+    `url` String `json:$.url`,
+    `event` LowCardinality(String) `json:$.event`,
+    `response_status` UInt16 `json:$.response_status`,
+    `request_body` String `json:$.request_body`,
+    `response_body` String `json:$.response_body`,
+    `message_id` String `json:$.message_id`,
+    `retry_attempt` UInt8 `json:$.retry_attempt`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "postback_id, event_id, timestamp"
