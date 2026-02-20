@@ -122,7 +122,13 @@ export function getSocialContentEmbedUrl({
     }
 
     if (platform === "twitter") {
-      return null;
+      if (host === "twitter.com" || host === "x.com") {
+        const statusMatch = parsed.pathname.match(/\/status\/(\d+)/);
+        const tweetId = statusMatch?.[1];
+        return tweetId
+          ? `https://platform.twitter.com/embed/Tweet.html?id=${tweetId}`
+          : null;
+      }
     }
 
     return null;

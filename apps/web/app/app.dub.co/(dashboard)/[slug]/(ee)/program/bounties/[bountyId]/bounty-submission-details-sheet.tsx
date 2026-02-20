@@ -374,10 +374,6 @@ function BountySubmissionDetailsSheetContent({
                   <BountySocialContentPreview
                     bounty={bounty}
                     submission={submission}
-                    authorOverride={{
-                      name: submission.partner.name,
-                      imageUrl: submission.partner.image ?? null,
-                    }}
                   />
                 )}
 

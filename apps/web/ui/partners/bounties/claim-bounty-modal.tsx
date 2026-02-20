@@ -43,7 +43,6 @@ import {
   SocialAccountNotVerifiedWarning,
   SocialContentUrlField,
 } from "./bounty-social-content";
-import { BountySocialContentPreview } from "./bounty-social-content-preview";
 import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 import {
   ClaimBountyProvider,
@@ -456,20 +455,6 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                   <div className="border-border-subtle flex flex-col space-y-3 border-t p-6 text-sm max-sm:px-4">
                     <BountyDescription bounty={bounty} />
                   </div>
-
-                  {socialPlatform && submission?.status === "submitted" && (
-                    <div className="border-border-subtle flex flex-col border-t p-6 text-sm max-sm:px-4">
-                      <div>
-                        <h2 className="text-content-emphasis mb-3 font-semibold">
-                          Submission
-                        </h2>
-                        <BountySocialContentPreview
-                          bounty={bounty}
-                          submission={submission}
-                        />
-                      </div>
-                    </div>
-                  )}
 
                   {/* Form */}
                   <motion.div
