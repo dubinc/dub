@@ -2,7 +2,7 @@
 
 import { partnerProfileFetch } from "@/lib/api/partner-profile/client";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { PartnerPostbackProps } from "@/lib/types";
+import { PostbackProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { usePostbackSecretModal } from "@/ui/postbacks/postback-secret-modal";
 import { SendTestPostbackModal } from "@/ui/postbacks/send-test-postback-modal";
@@ -20,21 +20,21 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 
-interface PartnerPostbackActionsProps {
-  postback: PartnerPostbackProps;
+interface PostbackActionsProps {
+  postback: PostbackProps;
   openPopover: boolean;
   setOpenPopover: (open: boolean) => void;
-  onEditPostback: (postback: PartnerPostbackProps) => void;
+  onEditPostback: (postback: PostbackProps) => void;
   onMutate?: () => void;
 }
 
-export function PartnerPostbackActions({
+export function PostbackActions({
   postback,
   openPopover,
   setOpenPopover,
   onEditPostback,
   onMutate,
-}: PartnerPostbackActionsProps) {
+}: PostbackActionsProps) {
   const router = useRouter();
   const [showSendTest, setShowSendTest] = useState(false);
 

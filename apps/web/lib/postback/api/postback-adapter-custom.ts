@@ -1,8 +1,8 @@
-import { PartnerPostback } from "@dub/prisma/client";
+import { Postback } from "@dub/prisma/client";
 import { PostbackAdapter, PostbackPayload } from "./postback-adapters";
 
 export class PostbackCustomAdapter extends PostbackAdapter {
-  constructor(postback: PartnerPostback) {
+  constructor(postback: Postback) {
     super(postback);
   }
 

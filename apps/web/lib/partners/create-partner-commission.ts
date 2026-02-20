@@ -18,7 +18,7 @@ import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollm
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "../api/workflows/execute-workflows";
 import { Session } from "../auth";
-import { sendPartnerPostback } from "../postback/api/send-partner-postback";
+import { sendPostback } from "../postback/api/send-postback";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
@@ -358,7 +358,7 @@ export const createPartnerCommission = async ({
             }),
           }),
 
-          sendPartnerPostback({
+          sendPostback({
             partnerId,
             event: "commission.created",
             data: {

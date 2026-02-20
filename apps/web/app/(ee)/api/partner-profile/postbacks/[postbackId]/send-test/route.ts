@@ -2,11 +2,11 @@ import { DubApiError } from "@/lib/api/errors";
 import { getPostbackOrThrow } from "@/lib/api/postbacks/get-postback-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { sendPostback } from "@/lib/postback/api/send-postback";
 import commissionCreated from "@/lib/postback/sample-events/commission-created.json";
 import leadCreated from "@/lib/postback/sample-events/lead-created.json";
 import saleCreated from "@/lib/postback/sample-events/sale-created.json";
-import { sendTestPartnerPostbackInputSchema } from "@/lib/postback/schemas";
+import { sendTestPostbackInputSchema } from "@/lib/postback/schemas";
 import { PostbackTrigger } from "@/lib/types";
 import { NextResponse } from "next/server";
 
@@ -21,7 +21,7 @@ export const POST = withPartnerProfile(
   async ({ partner, params, req }) => {
     const { postbackId } = params;
 
-    const { event } = sendTestPartnerPostbackInputSchema.parse(
+    const { event } = sendTestPostbackInputSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -39,7 +39,7 @@ export const POST = withPartnerProfile(
       });
     }
 
-    await sendPartnerPostback({
+    await sendPostback({
       partnerId: partner.id,
       event,
       data: samplePayloads[event],

@@ -36,10 +36,7 @@ import {
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
 import { POSTBACK_TRIGGERS } from "./postback/constants";
-import {
-  partnerPostbackSchema,
-  postbackEventInputSchemaTB,
-} from "./postback/schemas";
+import { postbackEventInputSchemaTB, postbackSchema } from "./postback/schemas";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   activityLogActionSchema,
@@ -833,7 +830,7 @@ export type ChangeSet = Record<string, FieldDiff>;
 
 export type ActivityLog = z.infer<typeof activityLogSchema>;
 
-export type PartnerPostbackProps = z.infer<typeof partnerPostbackSchema>;
+export type PostbackProps = z.infer<typeof postbackSchema>;
 
 export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
 

@@ -10,7 +10,7 @@ export const getPostbackOrThrow = async ({
   postbackId,
   partnerId,
 }: GetPostbackOrThrowParams) => {
-  const postback = await prisma.partnerPostback.findUnique({
+  const postback = await prisma.postback.findUnique({
     where: {
       id: postbackId,
     },

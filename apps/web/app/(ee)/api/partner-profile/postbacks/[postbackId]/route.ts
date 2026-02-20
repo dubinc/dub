@@ -2,8 +2,8 @@ import { getPostbackOrThrow } from "@/lib/api/postbacks/get-postback-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
-  partnerPostbackSchema,
-  updatePartnerPostbackInputSchema,
+  postbackSchema,
+  updatePostbackInputSchema,
 } from "@/lib/postback/schemas";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -18,7 +18,7 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
     });
 
-    return NextResponse.json(partnerPostbackSchema.parse(postback));
+    return NextResponse.json(postbackSchema.parse(postback));
   },
   {
     requiredPermission: "postbacks.read",
@@ -36,10 +36,11 @@ export const PATCH = withPartnerProfile(
       partnerId: partner.id,
     });
 
-    const { name, url, triggers, disabled } =
-      updatePartnerPostbackInputSchema.parse(await parseRequestBody(req));
+    const { name, url, triggers, disabled } = updatePostbackInputSchema.parse(
+      await parseRequestBody(req),
+    );
 
-    postback = await prisma.partnerPostback.update({
+    postback = await prisma.postback.update({
       where: {
         id: postbackId,
       },
@@ -53,7 +54,7 @@ export const PATCH = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(partnerPostbackSchema.parse(postback));
+    return NextResponse.json(postbackSchema.parse(postback));
   },
   {
     requiredPermission: "postbacks.write",
@@ -71,7 +72,7 @@ export const DELETE = withPartnerProfile(
       partnerId: partner.id,
     });
 
-    await prisma.partnerPostback.delete({
+    await prisma.postback.delete({
       where: {
         id: postbackId,
       },

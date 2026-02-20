@@ -1,7 +1,7 @@
 import { qstash } from "@/lib/cron";
 import { PostbackTrigger } from "@/lib/types";
 import { createWebhookSignature } from "@/lib/webhook/signature";
-import { PartnerPostback } from "@dub/prisma/client";
+import { Postback } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PostbackEventTransformers } from "./postback-event-transformers";
 
@@ -15,7 +15,7 @@ export interface PostbackPayload {
 export abstract class PostbackAdapter {
   protected eventTransformers = new PostbackEventTransformers();
 
-  constructor(protected postback: PartnerPostback) {
+  constructor(protected postback: Postback) {
     this.registerEventTransformers();
   }
 

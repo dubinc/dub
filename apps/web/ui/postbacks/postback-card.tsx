@@ -1,9 +1,9 @@
-import { PartnerPostbackProps } from "@/lib/types";
+import { PostbackProps } from "@/lib/types";
 import { Slack, TokenAvatar } from "@dub/ui";
 import Link from "next/link";
 import { PostbackStatus } from "./postback-status";
 
-export function PostbackCard(postback: PartnerPostbackProps) {
+export function PostbackCard(postback: PostbackProps) {
   return (
     <Link
       href={`/profile/postbacks/${postback.id}`}

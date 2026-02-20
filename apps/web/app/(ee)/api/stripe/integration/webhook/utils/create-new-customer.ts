@@ -3,7 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { sendPostback } from "@/lib/postback/api/send-postback";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -153,7 +153,7 @@ export async function createNewCustomer(event: Stripe.Event) {
 
       ...(link.partnerId
         ? [
-            sendPartnerPostback({
+            sendPostback({
               partnerId: link.partnerId,
               event: "lead.created",
               data: {

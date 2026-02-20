@@ -6,7 +6,7 @@ import { PostbackCustomAdapter } from "./postback-adapter-custom";
 import { PostbackSlackAdapter } from "./postback-adapter-slack";
 import { postbackEventEnrichers } from "./postback-event-enrichers";
 
-interface SendPartnerPostbackParams {
+interface SendPostbackParams {
   partnerId: string;
   event: PostbackTrigger;
   data: Record<string, unknown>;
@@ -14,14 +14,14 @@ interface SendPartnerPostbackParams {
   isTest?: boolean;
 }
 
-export const sendPartnerPostback = async ({
+export const sendPostback = async ({
   partnerId,
   event,
   data,
   skipEnrichment = false,
   isTest = false,
-}: SendPartnerPostbackParams) => {
-  const postbacks = await prisma.partnerPostback.findMany({
+}: SendPostbackParams) => {
+  const postbacks = await prisma.postback.findMany({
     where: {
       partnerId,
       ...(isTest
@@ -35,7 +35,7 @@ export const sendPartnerPostback = async ({
 
   if (postbacks.length === 0) {
     console.log(
-      `[sendPartnerPostback] No postbacks found for partner ${partnerId} for the event ${event}.`,
+      `[sendPostback] No postbacks found for partner ${partnerId} for the event ${event}.`,
     );
     return;
   }
@@ -48,7 +48,7 @@ export const sendPartnerPostback = async ({
         ? postbackEventEnrichers.enrich(event, data)
         : data;
   } catch (error) {
-    console.error("[sendPartnerPostback] Error enriching data", error);
+    console.error("[sendPostback] Error enriching data", error);
     return;
   }
 

@@ -1,10 +1,8 @@
-import { PartnerPostback } from "@dub/prisma/client";
+import { Postback } from "@dub/prisma/client";
 import { Badge } from "@dub/ui";
 import { cn } from "@dub/utils";
 
-export function PostbackStatus({
-  disabledAt,
-}: Pick<PartnerPostback, "disabledAt">) {
+export function PostbackStatus({ disabledAt }: Pick<Postback, "disabledAt">) {
   const isDisabled = !!disabledAt;
 
   return (

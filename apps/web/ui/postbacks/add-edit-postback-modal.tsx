@@ -6,8 +6,8 @@ import {
   POSTBACK_TRIGGERS,
 } from "@/lib/postback/constants";
 import {
-  createPartnerPostbackInputSchema,
-  partnerPostbackSchema,
+  createPostbackInputSchema,
+  postbackSchema,
 } from "@/lib/postback/schemas";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { PostbackTrigger } from "@/lib/types";
@@ -19,9 +19,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
-type PostbackForEdit = z.infer<typeof partnerPostbackSchema>;
+type PostbackForEdit = z.infer<typeof postbackSchema>;
 
-type FormData = z.infer<typeof createPartnerPostbackInputSchema>;
+type FormData = z.infer<typeof createPostbackInputSchema>;
 
 interface AddEditPostbackModalProps {
   showModal: boolean;

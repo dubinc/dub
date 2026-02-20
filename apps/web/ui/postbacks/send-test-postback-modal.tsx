@@ -2,7 +2,7 @@
 
 import { partnerProfileFetch } from "@/lib/api/partner-profile/client";
 import { POSTBACK_TRIGGER_DESCRIPTIONS } from "@/lib/postback/constants";
-import { sendTestPartnerPostbackInputSchema } from "@/lib/postback/schemas";
+import { sendTestPostbackInputSchema } from "@/lib/postback/schemas";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { PostbackTrigger } from "@/lib/types";
 import { Button, Combobox, ComboboxOption, Modal } from "@dub/ui";
@@ -11,7 +11,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
 
-type FormData = z.infer<typeof sendTestPartnerPostbackInputSchema>;
+type FormData = z.infer<typeof sendTestPostbackInputSchema>;
 
 interface SendTestPostbackModalProps {
   postbackId: string;

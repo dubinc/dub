@@ -1,6 +1,6 @@
 "use client";
 
-import { PartnerPostbackProps } from "@/lib/types";
+import { PostbackProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useAddEditPostbackModal } from "@/ui/postbacks/add-edit-postback-modal";
@@ -20,13 +20,9 @@ export function PostbacksPageClient() {
     error,
     isLoading,
     mutate,
-  } = useSWR<PartnerPostbackProps[]>(
-    "/api/partner-profile/postbacks",
-    fetcher,
-    {
-      keepPreviousData: true,
-    },
-  );
+  } = useSWR<PostbackProps[]>("/api/partner-profile/postbacks", fetcher, {
+    keepPreviousData: true,
+  });
 
   const { openPostbackSecretModal, PostbackSecretModal } =
     usePostbackSecretModal();

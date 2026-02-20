@@ -23,7 +23,7 @@ export const POST = withPartnerProfile(
       length: POSTBACK_SECRET_LENGTH,
     });
 
-    await prisma.partnerPostback.update({
+    await prisma.postback.update({
       where: {
         id: postbackId,
       },

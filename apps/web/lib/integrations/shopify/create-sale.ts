@@ -4,7 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { sendPostback } from "@/lib/postback/api/send-postback";
 import { recordSale } from "@/lib/tinybird";
 import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -215,7 +215,7 @@ export async function createShopifySale({
 
       ...(link?.partnerId
         ? [
-            sendPartnerPostback({
+            sendPostback({
               partnerId: link.partnerId,
               event: "sale.created",
               data: {

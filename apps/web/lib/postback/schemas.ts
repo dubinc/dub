@@ -7,7 +7,7 @@ import { CustomerEnrichedSchema } from "../zod/schemas/customers";
 import { LinkSchema } from "../zod/schemas/links";
 import { POSTBACK_TRIGGERS } from "./constants";
 
-export const partnerPostbackSchema = z.object({
+export const postbackSchema = z.object({
   id: z.string(),
   name: z.string(),
   url: z.string(),
@@ -18,7 +18,7 @@ export const partnerPostbackSchema = z.object({
   updatedAt: z.coerce.date(),
 });
 
-export const createPartnerPostbackInputSchema = z.object({
+export const createPostbackInputSchema = z.object({
   name: z
     .string()
     .min(1, "Name is required")
@@ -31,18 +31,18 @@ export const createPartnerPostbackInputSchema = z.object({
     .min(1, "At least one trigger is required"),
 });
 
-export const createPartnerPostbackOutputSchema = z.object({
-  ...partnerPostbackSchema.shape,
+export const createPostbackOutputSchema = z.object({
+  ...postbackSchema.shape,
   secret: z.string(),
 });
 
-export const updatePartnerPostbackInputSchema = createPartnerPostbackInputSchema
+export const updatePostbackInputSchema = createPostbackInputSchema
   .partial()
   .extend({
     disabled: z.boolean().optional(),
   });
 
-export const sendTestPartnerPostbackInputSchema = z.object({
+export const sendTestPostbackInputSchema = z.object({
   event: z.enum(POSTBACK_TRIGGERS),
 });
 

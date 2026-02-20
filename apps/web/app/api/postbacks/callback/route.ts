@@ -24,7 +24,7 @@ export const POST = async (req: Request) => {
     getSearchParams(req.url),
   );
 
-  const postback = await prisma.partnerPostback.findUnique({
+  const postback = await prisma.postback.findUnique({
     where: {
       id: postbackId,
     },

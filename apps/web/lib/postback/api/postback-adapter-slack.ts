@@ -1,5 +1,5 @@
 import { PostbackTrigger } from "@/lib/types";
-import { PartnerPostback } from "@dub/prisma/client";
+import { Postback } from "@dub/prisma/client";
 import type { z } from "zod/v4";
 import {
   commissionEventPostbackSchema,
@@ -20,7 +20,7 @@ interface PostbackPayload<T extends Record<string, unknown>> {
 }
 
 export class PostbackSlackAdapter extends PostbackAdapter {
-  constructor(postback: PartnerPostback) {
+  constructor(postback: Postback) {
     super(postback);
   }
 

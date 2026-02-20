@@ -5,7 +5,7 @@ import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-e
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { sendPostback } from "@/lib/postback/api/send-postback";
 import { isStored, storage } from "@/lib/storage";
 import {
   getClickEvent,
@@ -392,7 +392,7 @@ const _trackLead = async ({
 
         ...(link.partnerId
           ? [
-              sendPartnerPostback({
+              sendPostback({
                 partnerId: link.partnerId,
                 event: "lead.created",
                 data: {
@@ -616,7 +616,7 @@ const _trackSale = async ({
 
         ...(link.partnerId
           ? [
-              sendPartnerPostback({
+              sendPostback({
                 partnerId: link.partnerId,
                 event: "sale.created",
                 data: {

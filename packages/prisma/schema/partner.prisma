@@ -50,6 +50,7 @@ model Partner {
   payouts                    Payout[]
   commissions                Commission[]
   bountySubmissions          BountySubmission[]
+  postbacks                  Postback[]
   messages                   Message[]
   sentMessages               Message[]                          @relation("SenderPartner")
   comments                   PartnerComment[]
@@ -65,7 +66,6 @@ model Partner {
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
   referrals                  PartnerReferral[]
-  postbacks                  PartnerPostback[]
 
   @@index(country)
   @@index(discoverableAt)
@@ -147,26 +147,4 @@ model PartnerSalesChannel {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, salesChannel])
-}
-
-enum PostbackReceiver {
-  custom
-  slack
-}
-
-model PartnerPostback {
-  id         String           @id @default(cuid())
-  partnerId  String
-  name       String
-  url        String           @db.LongText
-  secret     String
-  triggers   Json
-  receiver   PostbackReceiver
-  disabledAt DateTime?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-
-  @@index(partnerId)
 }

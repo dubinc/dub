@@ -1,10 +1,10 @@
 "use client";
 
-import { PartnerPostbackProps, PostbackEventProps } from "@/lib/types";
+import { PostbackEventProps, PostbackProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useAddEditPostbackModal } from "@/ui/postbacks/add-edit-postback-modal";
-import { PartnerPostbackActions } from "@/ui/postbacks/partner-postback-actions";
+import { PostbackActions } from "@/ui/postbacks/partner-postback-actions";
 import { PostbackDetailSkeleton } from "@/ui/postbacks/postback-detail-skeleton";
 import { usePostbackEventDetailsSheet } from "@/ui/postbacks/postback-event-details-sheet";
 import { PostbackEventList } from "@/ui/postbacks/postback-event-list";
@@ -33,7 +33,7 @@ export function PostbackDetailPageClient({
     error,
     isLoading,
     mutate,
-  } = useSWR<PartnerPostbackProps>(
+  } = useSWR<PostbackProps>(
     postbackId ? `/api/partner-profile/postbacks/${postbackId}` : null,
     fetcher,
   );
@@ -116,7 +116,7 @@ export function PostbackDetailPageClient({
                     </div>
                   </div>
 
-                  <PartnerPostbackActions
+                  <PostbackActions
                     postback={postback}
                     openPopover={openPopover}
                     setOpenPopover={setOpenPopover}

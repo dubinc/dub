@@ -10,9 +10,9 @@ import {
   POSTBACK_SECRET_PREFIX,
 } from "@/lib/postback/constants";
 import {
-  createPartnerPostbackInputSchema,
-  createPartnerPostbackOutputSchema,
-  partnerPostbackSchema,
+  createPostbackInputSchema,
+  createPostbackOutputSchema,
+  postbackSchema,
 } from "@/lib/postback/schemas";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -21,7 +21,7 @@ import * as z from "zod/v4";
 // GET /api/partner-profile/postbacks
 export const GET = withPartnerProfile(
   async ({ partner }) => {
-    const postbacks = await prisma.partnerPostback.findMany({
+    const postbacks = await prisma.postback.findMany({
       where: {
         partnerId: partner.id,
       },
@@ -30,7 +30,7 @@ export const GET = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(z.array(partnerPostbackSchema).parse(postbacks));
+    return NextResponse.json(z.array(postbackSchema).parse(postbacks));
   },
   {
     requiredPermission: "postbacks.read",
@@ -41,11 +41,11 @@ export const GET = withPartnerProfile(
 // POST /api/partner-profile/postbacks
 export const POST = withPartnerProfile(
   async ({ partner, req }) => {
-    const { name, url, triggers } = createPartnerPostbackInputSchema.parse(
+    const { name, url, triggers } = createPostbackInputSchema.parse(
       await parseRequestBody(req),
     );
 
-    const postbackCount = await prisma.partnerPostback.count({
+    const postbackCount = await prisma.postback.count({
       where: {
         partnerId: partner.id,
       },
@@ -63,7 +63,7 @@ export const POST = withPartnerProfile(
       length: POSTBACK_SECRET_LENGTH,
     });
 
-    const postback = await prisma.partnerPostback.create({
+    const postback = await prisma.postback.create({
       data: {
         id: createId({ prefix: "pb_" }),
         partnerId: partner.id,
@@ -75,12 +75,9 @@ export const POST = withPartnerProfile(
       },
     });
 
-    return NextResponse.json(
-      createPartnerPostbackOutputSchema.parse(postback),
-      {
-        status: 201,
-      },
-    );
+    return NextResponse.json(createPostbackOutputSchema.parse(postback), {
+      status: 201,
+    });
   },
   {
     requiredPermission: "postbacks.write",

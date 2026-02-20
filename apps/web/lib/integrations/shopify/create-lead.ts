@@ -3,7 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { generateRandomName } from "@/lib/names";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { sendPostback } from "@/lib/postback/api/send-postback";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -120,7 +120,7 @@ export async function createShopifyLead({
 
       ...(link.partnerId
         ? [
-            sendPartnerPostback({
+            sendPostback({
               partnerId: link.partnerId,
               event: "lead.created",
               data: {
