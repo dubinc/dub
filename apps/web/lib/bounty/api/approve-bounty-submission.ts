@@ -2,8 +2,8 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
 import {
-  getBountyInfo,
   calculateSocialMetricsRewardAmount,
+  getBountyInfo,
 } from "@/lib/bounty/utils";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
