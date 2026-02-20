@@ -9,7 +9,7 @@ import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { SubmissionRequirements, WorkflowCondition } from "@/lib/types";
+import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
@@ -86,9 +86,7 @@ export const PATCH = withWorkspace(
       startsAt,
       endsAt,
       submissionsOpenAt,
-      submissionRequirements:
-        submissionRequirements ??
-        (bounty.submissionRequirements as SubmissionRequirements | null),
+      submissionRequirements,
       rewardAmount,
       rewardDescription,
       performanceScope: bounty.performanceScope,
