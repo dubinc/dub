@@ -58,8 +58,6 @@ export const PATCH = withWorkspace(
       startsAt,
       endsAt,
       submissionsOpenAt,
-      submissionFrequency,
-      maxSubmissions,
       rewardAmount,
       rewardDescription,
       submissionRequirements,
@@ -165,10 +163,6 @@ export const PATCH = withWorkspace(
           endsAt,
           submissionsOpenAt:
             bounty.type === "submission" ? submissionsOpenAt : null,
-          submissionFrequency:
-            bounty.type === "submission" ? submissionFrequency ?? null : null,
-          maxSubmissions:
-            bounty.type === "submission" ? maxSubmissions ?? null : null,
           rewardAmount:
             rewardAmount !== undefined ? rewardAmount : bounty.rewardAmount,
           rewardDescription,
