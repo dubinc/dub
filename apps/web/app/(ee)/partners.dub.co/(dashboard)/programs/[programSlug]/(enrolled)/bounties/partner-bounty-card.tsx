@@ -3,6 +3,7 @@ import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
+import { usePartnerBountySubmissionDetailsSheet } from "@/ui/partners/bounties/partner-bounty-submission-details-sheet";
 import {
   DynamicTooltipWrapper,
   StatusBadge,
@@ -15,16 +16,38 @@ import { useParams } from "next/navigation";
 
 export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
   const { programSlug } = useParams();
+
   const { claimBountyModal, setShowClaimBountyModal } = useClaimBountyModal({
     bounty,
   });
 
+  const {
+    partnerBountySubmissionDetailsSheet,
+    setPartnerBountySubmissionDetailsSheetOpen,
+  } = usePartnerBountySubmissionDetailsSheet(bounty);
+
   const expiredBounty =
     bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
+
+  const handleCardClick = () => {
+    if (expiredBounty) {
+      return;
+    }
+
+    const shouldOpenSheet =
+      bounty.submission && bounty.submission.status !== "draft";
+
+    if (shouldOpenSheet) {
+      setPartnerBountySubmissionDetailsSheetOpen(true);
+    } else {
+      setShowClaimBountyModal(true);
+    }
+  };
 
   return (
     <>
       {claimBountyModal}
+      {partnerBountySubmissionDetailsSheet}
       <DynamicTooltipWrapper
         tooltipProps={
           expiredBounty
@@ -42,7 +65,7 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
       >
         <button
           type="button"
-          onClick={() => setShowClaimBountyModal(true)}
+          onClick={handleCardClick}
           disabled={expiredBounty}
           className={cn(
             "border-border-subtle group relative flex w-full cursor-pointer flex-col gap-2.5 overflow-hidden rounded-xl border bg-white p-3 text-left",

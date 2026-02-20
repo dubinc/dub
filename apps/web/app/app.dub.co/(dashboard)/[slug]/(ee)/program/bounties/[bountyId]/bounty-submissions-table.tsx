@@ -2,6 +2,7 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { getBountyInfo } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
@@ -45,7 +46,6 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
 import { BountySubmissionRowMenu } from "./bounty-submission-row-menu";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
 
 export function BountySubmissionsTable() {

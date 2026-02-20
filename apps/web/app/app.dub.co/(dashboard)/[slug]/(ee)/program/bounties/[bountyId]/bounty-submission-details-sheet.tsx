@@ -1,6 +1,7 @@
 "use client";
 
 import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getBountyInfo } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -42,7 +43,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
 type BountySubmissionDetailsSheetProps = {
   submission: BountySubmissionProps;
