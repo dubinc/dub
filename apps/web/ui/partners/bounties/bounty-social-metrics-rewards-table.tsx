@@ -66,10 +66,6 @@ export function BountySocialMetricsRewardsTable({
     submission,
   });
 
-  if (tiers.length === 0) {
-    return null;
-  }
-
   const bountyInfo = getBountyInfo(bounty);
   const metricLabel = bountyInfo?.socialMetrics?.metric ?? "Count";
 
@@ -132,6 +128,10 @@ export function BountySocialMetricsRewardsTable({
     tdClassName: "border-l-0",
     className: "[&_tbody_tr:last-child_td]:border-b-0",
   });
+
+  if (tiers.length === 0) {
+    return null;
+  }
 
   return (
     <div>
