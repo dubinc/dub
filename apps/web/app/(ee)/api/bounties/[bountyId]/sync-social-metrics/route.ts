@@ -129,69 +129,64 @@ export const POST = withWorkspace(
     });
 
     if (toUpdate.length > 0) {
-      const { socialMetricCount, socialMetricsLastSyncedAt } = toUpdate.find(
-        (s) => s.id === submissionId,
-      )!;
+      const update = toUpdate.find((s) => s.id === submissionId);
 
-      if (socialMetricCount) {
-        const submission = bounty.submissions![0];
-        const minCount = bountyInfo.socialMetrics?.minCount ?? 0;
+      if (!update) {
+        return NextResponse.json({});
+      }
 
-        const updateData: Prisma.BountySubmissionUpdateInput = {
-          socialMetricCount,
-          socialMetricsLastSyncedAt,
-        };
+      const { socialMetricCount, socialMetricsLastSyncedAt } = update;
+      const submission = bounty.submissions![0];
+      const minCount = bountyInfo.socialMetrics?.minCount ?? 0;
 
-        const hasMetCriteria =
-          socialMetricCount != null && socialMetricCount >= minCount;
+      const updateData: Prisma.BountySubmissionUpdateInput = {
+        socialMetricCount,
+        socialMetricsLastSyncedAt,
+      };
 
-        const shouldTransitionToSubmitted =
-          submission.status === "draft" && hasMetCriteria;
+      const hasMetCriteria =
+        socialMetricCount != null && socialMetricCount >= minCount;
 
-        if (shouldTransitionToSubmitted) {
-          updateData.status = "submitted";
-          updateData.completedAt = new Date();
-        }
+      const shouldTransitionToSubmitted =
+        submission.status === "draft" && hasMetCriteria;
 
-        await prisma.bountySubmission.update({
-          where: {
-            id: submissionId,
-          },
-          data: {
-            ...updateData,
+      if (shouldTransitionToSubmitted) {
+        updateData.status = "submitted";
+        updateData.completedAt = new Date();
+      }
+
+      await prisma.bountySubmission.update({
+        where: {
+          id: submissionId,
+        },
+        data: {
+          ...updateData,
+        },
+      });
+
+      const { partner } = submission;
+
+      if (shouldTransitionToSubmitted && partner.email) {
+        await sendEmail({
+          subject: "Bounty completed!",
+          to: partner.email,
+          variant: "notifications",
+          replyTo: bounty.program.supportEmail || "noreply",
+          react: BountyCompleted({
+            email: partner.email,
+            bounty: {
+              name: bounty.name,
+              type: bounty.type,
+            },
+            program: {
+              name: bounty.program.name,
+              slug: bounty.program.slug,
+            },
+          }),
+          headers: {
+            "Idempotency-Key": `bounty-completed-${submissionId}`,
           },
         });
-
-        if (
-          shouldTransitionToSubmitted &&
-          bounty.program &&
-          submission.partner
-        ) {
-          const { partner } = submission;
-
-          if (partner.email) {
-            await sendEmail({
-              subject: "Bounty completed!",
-              to: partner.email,
-              variant: "notifications",
-              replyTo: bounty.program.supportEmail || "noreply",
-              react: BountyCompleted({
-                email: partner.email,
-                bounty: {
-                  name: bounty.name,
-                  type: bounty.type,
-                },
-                program: {
-                  name: bounty.program.name,
-                  slug: bounty.program.slug,
-                },
-              }),
-              headers: {
-                "Idempotency-Key": `bounty-completed-${submissionId}`,
-              },
-            });
-          }
-        }
       }
     }
 

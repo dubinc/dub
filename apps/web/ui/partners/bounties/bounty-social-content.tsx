@@ -6,7 +6,8 @@ import { PartnerBountyProps, SocialContent } from "@/lib/types";
 import { useClaimBountyContext } from "@/ui/partners/bounties/claim-bounty-context";
 import { useClaimBountyForm } from "@/ui/partners/bounties/use-claim-bounty-form";
 import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
-import { Button, CircleCheckFill, LoadingSpinner } from "@dub/ui";
+import { ButtonLink } from "@/ui/placeholders/button-link";
+import { CircleCheckFill, LoadingSpinner } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import { isBefore } from "date-fns";
 import { AlertTriangle } from "lucide-react";
@@ -231,7 +232,15 @@ export function SocialAccountNotVerifiedWarning({
         </Link>
       </div>
 
-      <Button text="View profile" className="h-7 w-full rounded-lg" />
+      <ButtonLink
+        variant="primary"
+        href="/profile"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="h-7 w-full justify-center rounded-lg"
+      >
+        View profile
+      </ButtonLink>
     </div>
   );
 }
