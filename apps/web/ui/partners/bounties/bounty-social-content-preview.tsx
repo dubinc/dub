@@ -7,6 +7,7 @@ import {
   PartnerBountyProps,
 } from "@/lib/types";
 import { cn } from "@dub/utils";
+import { useState } from "react";
 
 interface BountySocialContentPreviewProps {
   bounty: Pick<PartnerBountyProps, "id" | "submissionRequirements">;
@@ -50,6 +51,8 @@ export function BountySocialContentPreview({
   bounty,
   submission,
 }: BountySocialContentPreviewProps) {
+  const [loaded, setLoaded] = useState(false);
+
   const bountyInfo = getBountyInfo(bounty);
 
   const url = submission?.urls?.[0] ?? "";
@@ -74,23 +77,27 @@ export function BountySocialContentPreview({
   });
 
   return (
-    <>
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white p-2">
-        <div
-          className={cn(
-            "relative mx-auto flex max-h-[700px] w-full items-center justify-center overflow-hidden rounded-lg",
-            aspectClass,
-          )}
-        >
-          <iframe
-            src={embedUrl}
-            className="absolute inset-0 size-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            loading="lazy"
-          />
-        </div>
+    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white p-2">
+      <div
+        className={cn(
+          "relative mx-auto flex max-h-[700px] w-full items-center justify-center overflow-hidden rounded-lg",
+          aspectClass,
+        )}
+      >
+        {!loaded && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-neutral-100">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600" />
+          </div>
+        )}
+        <iframe
+          src={embedUrl}
+          className={cn("absolute inset-0 size-full", !loaded && "opacity-0")}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+        />
       </div>
-    </>
+    </div>
   );
 }
