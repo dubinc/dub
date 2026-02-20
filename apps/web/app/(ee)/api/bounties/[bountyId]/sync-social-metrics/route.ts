@@ -125,7 +125,7 @@ export const POST = withWorkspace(
     const toUpdate = await getSocialMetricsUpdates({
       bounty,
       submissions: bounty.submissions![0],
-      ignoreCache: true,
+      skipCache: true,
     });
 
     if (toUpdate.length > 0) {

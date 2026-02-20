@@ -16,11 +16,11 @@ const submissionWithUrl = (s: { id: string; urls: unknown }) => {
 export async function getSocialMetricsUpdates({
   bounty,
   submissions,
-  ignoreCache = false,
+  skipCache = false,
 }: {
   bounty: Pick<Bounty, "submissionRequirements">;
   submissions: { id: string; urls: unknown } | { id: string; urls: unknown }[];
-  ignoreCache?: boolean; // If true, will not use cache and will always fetch from the API
+  skipCache?: boolean; // If true, will not use cache and will always fetch from the API
 }): Promise<SocialMetricsUpdate[]> {
   const bountyInfo = getBountyInfo(bounty);
   const socialPlatform = bountyInfo?.socialPlatform;
@@ -46,7 +46,7 @@ export async function getSocialMetricsUpdates({
       getSocialContent({
         platform: socialPlatform.value,
         url: s.url!,
-        ignoreCache,
+        skipCache,
       }),
     ),
   );

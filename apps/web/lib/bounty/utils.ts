@@ -163,11 +163,11 @@ export function getBountyRewardCriteriaTexts(
     trailingZeroDisplay: "stripIfInteger",
   });
 
-  const { minCount, metric, platform, incrementalBonus } =
-    bountyInfo.socialMetrics;
+  const socialPlatform = bountyInfo.socialPlatform;
+  const { minCount, metric, incrementalBonus } = bountyInfo.socialMetrics;
 
   const texts: string[] = [
-    `Get ${minCount} ${metric} on your ${platform}, earn ${formattedAmount}`,
+    `Get ${minCount} ${metric} on your ${socialPlatform.label}, earn ${formattedAmount}`,
   ];
 
   if (incrementalBonus) {
@@ -179,7 +179,7 @@ export function getBountyRewardCriteriaTexts(
       });
 
       texts.push(
-        `For each additional ${incrementCount} ${metric} on your ${platform}, earn ${formattedBonus}, up to ${maxCount} ${metric}`,
+        `For each additional ${incrementCount} ${metric} on your ${socialPlatform.label}, earn ${formattedBonus}, up to ${maxCount} ${metric}`,
       );
     }
   }

@@ -350,7 +350,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     />
 
                     {submission ? (
-                      <div className="mt-3 grid gap-2">
+                      <div className="grid gap-2">
                         <div className="flex items-center gap-2">
                           {submission.status === "approved" && (
                             <Link

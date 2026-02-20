@@ -78,7 +78,6 @@ function BountySubmissionDetailsSheetContent({
         await mutatePrefix(`/api/bounties/${bounty.id}/submissions`);
         toast.success("Social content stats updated successfully.");
       },
-
       onError: (error) => {
         toast.error(error);
       },
