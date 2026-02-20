@@ -175,7 +175,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               />
                             )}
                           />
-                          {errors.startsAt && "test"}
                         </div>
                       )}
                     </AnimatedSizeContainer>
@@ -299,8 +298,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               className="w-full"
                             />
                             <p className="text-sm text-neutral-500">
-                              Submissions open {submissionWindow} days before the
-                              end date. Drafts can be saved until then.
+                              Submissions open {submissionWindow} days before
+                              the end date. Drafts can be saved until then.
                             </p>
                           </div>
                         )}

@@ -5,7 +5,7 @@ import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
-import { getBountyInfo } from "@/lib/bounty/utils";
+import { getBountyInfo, getPlatformFromSocialUrl } from "@/lib/bounty/utils";
 import {
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,
@@ -158,6 +158,14 @@ export const createBountySubmissionAction = authPartnerActionClient
       if (!contentUrl) {
         throw new Error(
           `You must provide a ${platform.label} URL to submit this bounty.`,
+        );
+      }
+
+      const urlPlatform = getPlatformFromSocialUrl(contentUrl);
+
+      if (urlPlatform !== platform.value) {
+        throw new Error(
+          `This link must be a ${platform.label} link. You submitted a link from another platform.`,
         );
       }
 
