@@ -25,11 +25,15 @@ export async function getCustomerStripeInvoices({
       stripeAccount: stripeConnectId,
     },
   );
+  const validInvoices = data.filter(
+    (invoice): invoice is (typeof data)[number] & { id: string } =>
+      typeof invoice.id === "string",
+  );
 
   const commissions = await prisma.commission.findMany({
     where: {
       invoiceId: {
-        in: data.map((invoice) => invoice.id!),
+        in: validInvoices.map((invoice) => invoice.id),
       },
       programId: programId,
     },
@@ -43,13 +47,13 @@ export async function getCustomerStripeInvoices({
     {} as Record<string, string>,
   );
 
-  const stripeCustomerInvoices = data.map((invoice) =>
+  const stripeCustomerInvoices = validInvoices.map((invoice) =>
     StripeCustomerInvoiceSchema.parse({
       id: invoice.id,
       amount: invoice.amount_paid,
       createdAt: new Date(invoice.created * 1000),
       metadata: invoice,
-      dubCommissionId: invoiceIdCommissionIdMap[invoice.id!],
+      dubCommissionId: invoiceIdCommissionIdMap[invoice.id],
     }),
   );
 
