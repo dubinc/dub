@@ -1,10 +1,15 @@
 "use client";
 
 import { useMediaQuery } from "@dub/ui";
-import { cn, COUNTRIES } from "@dub/utils";
+import {
+  cn,
+  CONNECT_SUPPORTED_COUNTRIES,
+  COUNTRIES,
+  PAYPAL_SUPPORTED_COUNTRIES,
+} from "@dub/utils";
 import { useState } from "react";
 
-export function CountryGrid({ countries }: { countries: string[] }) {
+function CountryGrid({ countries }: { countries: string[] }) {
   const { isMobile } = useMediaQuery();
   const showCount = isMobile ? 16 : 30;
   const [expanded, setExpanded] = useState(false);
@@ -56,4 +61,15 @@ export function CountryGrid({ countries }: { countries: string[] }) {
       )}
     </div>
   );
+}
+
+export default function PayoutSupportedCountries() {
+  const supportedCountries = [
+    ...CONNECT_SUPPORTED_COUNTRIES,
+    ...PAYPAL_SUPPORTED_COUNTRIES,
+  ];
+  const sortedCountries = supportedCountries.sort((a, b) =>
+    COUNTRIES[a].localeCompare(COUNTRIES[b]),
+  );
+  return <CountryGrid countries={sortedCountries} />;
 }
