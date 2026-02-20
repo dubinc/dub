@@ -199,7 +199,20 @@ export function PostbackActions({
                 className="h-9 justify-start px-2"
                 onClick={() => closeAnd(() => setShowSendTest(true))}
               />
+              <Button
+                text="Roll signing secret"
+                variant="outline"
+                icon={<RefreshCw className="size-4" />}
+                className="h-9 justify-start px-2"
+                onClick={() =>
+                  closeAnd(() => setShowRollSecretConfirmModal(true))
+                }
+              />
+            </div>
 
+            <div className="h-px w-full bg-neutral-200" />
+
+            <div className="grid gap-px p-2">
               <Button
                 text="Edit postback"
                 variant="outline"
@@ -222,20 +235,6 @@ export function PostbackActions({
                 onClick={() => closeAnd(handleEnableDisable)}
               />
 
-              <Button
-                text="Roll secret"
-                variant="outline"
-                icon={<RefreshCw className="size-4" />}
-                className="h-9 justify-start px-2"
-                onClick={() =>
-                  closeAnd(() => setShowRollSecretConfirmModal(true))
-                }
-              />
-            </div>
-
-            <div className="h-px w-full bg-neutral-200" />
-
-            <div className="grid gap-px p-2">
               <Button
                 text="Delete postback"
                 variant="danger-outline"

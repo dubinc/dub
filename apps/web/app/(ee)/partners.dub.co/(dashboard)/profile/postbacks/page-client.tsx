@@ -90,7 +90,7 @@ export function PostbacksPageClient() {
           </div>
         </PageWidthWrapper>
       </PageContent>
-      <AddEditPostbackModal />
+      {AddEditPostbackModal}
       <PostbackSecretModal />
     </>
   );

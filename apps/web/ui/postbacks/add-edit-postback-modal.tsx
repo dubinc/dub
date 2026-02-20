@@ -267,6 +267,36 @@ function AddEditPostbackModal({
   );
 }
 
+interface AddEditPostbackModalWrapperProps {
+  postback: PostbackForEdit | null | undefined;
+  onSuccess?: () => void;
+  onCreatedWithSecret?: (secret: string) => void;
+  closePostbackModal: () => void;
+}
+
+function AddEditPostbackModalWrapper({
+  postback,
+  onSuccess,
+  onCreatedWithSecret,
+  closePostbackModal,
+}: AddEditPostbackModalWrapperProps) {
+  if (postback === undefined) return null;
+
+  return (
+    <AddEditPostbackModal
+      showModal
+      postback={postback}
+      onSuccess={() => onSuccess?.()}
+      onCreatedWithSecret={onCreatedWithSecret}
+      setShowModal={(show) => {
+        if (!show) {
+          closePostbackModal();
+        }
+      }}
+    />
+  );
+}
+
 export function useAddEditPostbackModal(
   onSuccess?: () => void,
   onCreatedWithSecret?: (secret: string) => void,
@@ -287,29 +317,18 @@ export function useAddEditPostbackModal(
     setPostback(undefined);
   }
 
-  function AddEditPostbackModalWrapper() {
-    if (postback === undefined) return null;
-
-    return (
-      <AddEditPostbackModal
-        showModal
-        postback={postback}
-        onSuccess={() => onSuccess?.()}
-        onCreatedWithSecret={onCreatedWithSecret}
-        setShowModal={(show) => {
-          if (!show) {
-            closePostbackModal();
-          }
-        }}
-      />
-    );
-  }
-
   return {
     openAddPostbackModal,
     openEditPostbackModal,
     closePostbackModal,
-    AddEditPostbackModal: AddEditPostbackModalWrapper,
+    AddEditPostbackModal: (
+      <AddEditPostbackModalWrapper
+        postback={postback}
+        onSuccess={onSuccess}
+        onCreatedWithSecret={onCreatedWithSecret}
+        closePostbackModal={closePostbackModal}
+      />
+    ),
     isAddEditPostbackModalOpen: postback !== undefined,
   };
 }
