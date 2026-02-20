@@ -5,6 +5,7 @@ import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-e
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
 import { isStored, storage } from "@/lib/storage";
 import {
   getClickEvent,
@@ -378,18 +379,31 @@ const _trackLead = async ({
         ]);
       }
 
-      // Send workspace webhook
-      const webhookPayload = transformLeadEventData({
-        ...leadEventData,
-        link,
-        customer,
-      });
+      await Promise.allSettled([
+        sendWorkspaceWebhook({
+          trigger: "lead.created",
+          data: transformLeadEventData({
+            ...leadEventData,
+            link,
+            customer,
+          }),
+          workspace,
+        }),
 
-      await sendWorkspaceWebhook({
-        trigger: "lead.created",
-        data: webhookPayload,
-        workspace,
-      });
+        ...(link.partnerId
+          ? [
+              sendPartnerPostback({
+                partnerId: link.partnerId,
+                event: "lead.created",
+                data: {
+                  ...leadEventData,
+                  link,
+                  customer,
+                },
+              }),
+            ]
+          : []),
+      ]);
     })(),
   );
 };
@@ -460,7 +474,6 @@ const _trackSale = async ({
     currency,
     invoice_id: invoiceId || "",
     metadata: metadata ? JSON.stringify(metadata) : "",
-    timestamp: undefined,
   };
 
   const firstConversionFlag = isFirstConversion({
@@ -472,7 +485,10 @@ const _trackSale = async ({
     (async () => {
       const [_sale, link] = await Promise.all([
         // Record sale event
-        recordSale(saleData),
+        recordSale({
+          ...saleData,
+          timestamp: undefined,
+        }),
 
         // Update link conversions, sales, and saleAmount
         prisma.link.update({
@@ -584,21 +600,35 @@ const _trackSale = async ({
         ]);
       }
 
-      // Send workspace webhook
-      const webhookPayload = transformSaleEventData({
-        ...saleData,
-        clickedAt: customer.clickedAt || customer.createdAt,
-        link,
-        customer,
-        partner: createdCommission?.webhookPartner,
-        metadata,
-      });
+      await Promise.allSettled([
+        sendWorkspaceWebhook({
+          trigger: "sale.created",
+          data: transformSaleEventData({
+            ...saleData,
+            clickedAt: customer.clickedAt || customer.createdAt,
+            link,
+            customer,
+            partner: createdCommission?.webhookPartner,
+            metadata,
+          }),
+          workspace,
+        }),
 
-      await sendWorkspaceWebhook({
-        trigger: "sale.created",
-        data: webhookPayload,
-        workspace,
-      });
+        ...(link.partnerId
+          ? [
+              sendPartnerPostback({
+                partnerId: link.partnerId,
+                event: "sale.created",
+                data: {
+                  ...saleData,
+                  clickedAt: customer.clickedAt || customer.createdAt,
+                  link,
+                  customer,
+                },
+              }),
+            ]
+          : []),
+      ]);
 
       // Update customer stats + program/partner associations
       await prisma.customer.update({

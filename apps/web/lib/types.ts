@@ -38,6 +38,8 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
+import { POSTBACK_TRIGGERS } from "./postback/constants";
+import { postbackEventInputSchemaTB, postbackSchema } from "./postback/schemas";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   activityLogActionSchema,
@@ -242,6 +244,8 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
+
+export type PartnerBetaFeatures = "postbacks";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -853,3 +857,8 @@ export type BountySocialPlatform =
 
 export type BountySocialPlatformMetric =
   (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["metrics"][number];
+export type PostbackProps = z.infer<typeof postbackSchema>;
+
+export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
+
+export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];

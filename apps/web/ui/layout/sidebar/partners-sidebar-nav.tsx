@@ -1,5 +1,6 @@
 "use client";
 
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
@@ -21,6 +22,7 @@ import {
   Trophy,
   UserCheck,
   Users2,
+  Webhook,
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
@@ -42,6 +44,7 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
+  postbacksEnabled?: boolean;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
@@ -122,7 +125,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
-  profile: () => ({
+  profile: ({ postbacksEnabled }) => ({
     title: "Partner profile",
     direction: "left",
     content: [
@@ -141,6 +144,20 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
         ],
       },
+      ...(postbacksEnabled
+        ? [
+            {
+              name: "Developer",
+              items: [
+                {
+                  name: "Postbacks",
+                  icon: Webhook,
+                  href: "/profile/postbacks" as `/${string}`,
+                },
+              ],
+            },
+          ]
+        : []),
       {
         name: "Account",
         items: [
@@ -332,6 +349,8 @@ export function PartnersSidebarNav({
     },
   });
 
+  const { partner } = usePartnerProfile();
+
   return (
     <SidebarNav
       groups={NAV_GROUPS}
@@ -346,6 +365,7 @@ export function PartnersSidebarNav({
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
+        postbacksEnabled: partner?.featureFlags?.postbacks,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

@@ -1,4 +1,5 @@
 export * from "./get-feature-flags";
+export * from "./get-partner-feature-flags";
 export * from "./is-blacklisted-domain";
 export * from "./is-blacklisted-email";
 export * from "./is-blacklisted-key";
