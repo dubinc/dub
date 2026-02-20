@@ -7,7 +7,7 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { sendPostback } from "@/lib/postback/api/send-postback";
+import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
 import {
   getClickEvent,
   getLeadEvent,
@@ -530,7 +530,7 @@ export async function checkoutSessionCompleted(
 
       ...(link?.partnerId
         ? [
-            sendPostback({
+            sendPartnerPostback({
               partnerId: link.partnerId,
               event: "sale.created",
               data: {
@@ -718,7 +718,7 @@ async function attributeViaPromoCode({
 
         ...(link.partnerId
           ? [
-              sendPostback({
+              sendPartnerPostback({
                 partnerId: link.partnerId,
                 event: "lead.created",
                 data: {
