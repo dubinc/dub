@@ -7,7 +7,13 @@ import { Markdown } from "@/ui/shared/markdown";
 import { Check2, PROSE_STYLES } from "@dub/ui";
 import { cn } from "@dub/utils";
 
-export function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
+export function BountyDescription({
+  bounty,
+  hideHeading = false,
+}: {
+  bounty: PartnerBountyProps;
+  hideHeading?: boolean;
+}) {
   const submissionTexts = getBountySubmissionRequirementTexts(bounty);
   const rewardTexts = getBountyRewardCriteriaTexts(bounty);
 
@@ -23,7 +29,9 @@ export function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
     <>
       {hasDescription && (
         <div>
-          <span className="text-content-emphasis font-semibold">Details</span>
+          {!hideHeading && (
+            <span className="text-content-emphasis font-semibold">Details</span>
+          )}
           <Markdown
             className={cn(
               PROSE_STYLES.default,

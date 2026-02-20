@@ -72,10 +72,8 @@ function PartnerBountySubmissionDetailsSheetContent({
                 <AccordionTrigger className="py-1.5 text-base font-semibold text-neutral-900 hover:no-underline [&[data-state=open]>svg]:rotate-180">
                   Details
                 </AccordionTrigger>
-                <AccordionContent className="pb-0 pt-2">
-                  <div className="space-y-3">
-                    <BountyDescription bounty={bounty} />
-                  </div>
+                <AccordionContent className="space-y-3 pb-0 pt-2">
+                  <BountyDescription bounty={bounty} hideHeading />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
