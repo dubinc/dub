@@ -281,7 +281,7 @@ export async function processPayouts({
   });
 
   await log({
-    message: `*${program.name}* (${program.url}) just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    message: `<${program.url}|*${program.name}*> (\`${workspace.slug}\`) just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
     type: "payouts",
   });
 
