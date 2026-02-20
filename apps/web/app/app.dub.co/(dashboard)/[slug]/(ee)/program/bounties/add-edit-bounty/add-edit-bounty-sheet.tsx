@@ -28,7 +28,6 @@ import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
 import { Controller, FormProvider } from "react-hook-form";
 import { BountyCriteria } from "./bounty-criteria";
-import { EndDateMode } from "./bounty-form-context";
 import { useAddEditBountyForm } from "./use-add-edit-bounty-form";
 
 interface BountySheetProps {
@@ -49,34 +48,6 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
   },
 ];
 
-const END_DATE_OPTIONS: CardSelectorOption[] = [
-  {
-    key: "fixed-end-date",
-    label: "End date",
-    description: "Set a fixed end date",
-  },
-  {
-    key: "repeat-submissions",
-    label: "Repeat submissions",
-    description: "Set scheduled submissions",
-  },
-];
-
-const SUBMISSION_FREQUENCY_OPTIONS = [
-  {
-    value: "week",
-    label: "Once a week (default)",
-  },
-  {
-    value: "month",
-    label: "Once a month",
-  },
-  {
-    value: "day",
-    label: "Once a day",
-  },
-] as const;
-
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { program } = useProgram();
 
@@ -89,11 +60,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     hasEndDate,
     handleEndDateToggle,
     handleEndDateChange,
-    endDateMode,
-    handleEndDateModeChange,
-    maxSubmissions,
-    handleTotalSubmissionsAllowedChange,
-    submissionFrequency,
+    submissionWindow,
+    handleSubmissionWindowToggle,
+    handleSubmissionWindowChange,
     type,
     name,
     control,
@@ -257,87 +226,85 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     )}
 
                     {type === "submission" && (
-                      <div>
-                        <CardSelector
-                          name="end-date-mode"
-                          options={END_DATE_OPTIONS}
-                          value={endDateMode}
-                          onChange={(value: EndDateMode) =>
-                            handleEndDateModeChange(value)
-                          }
-                        />
-
-                        {endDateMode === "fixed-end-date" && (
-                          <div className="mt-3 p-px">
-                            <label className="text-sm font-medium text-neutral-800">
+                      <AnimatedSizeContainer
+                        height
+                        transition={{ ease: "easeInOut", duration: 0.2 }}
+                        style={{
+                          height: hasEndDate ? "auto" : "0px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <Switch
+                            fn={handleEndDateToggle}
+                            checked={hasEndDate}
+                            trackDimensions="w-8 h-4"
+                            thumbDimensions="w-3 h-3"
+                            thumbTranslate="translate-x-4"
+                            disabled={Boolean(bounty?.endsAt)}
+                          />
+                          <div className="flex flex-col gap-1">
+                            <h3 className="text-sm font-medium text-neutral-700">
                               End date
-                            </label>
-                            <div className="mt-2">
-                              <Controller
-                                control={control}
-                                name="endsAt"
-                                render={({ field }) => (
-                                  <SmartDateTimePicker
-                                    value={field.value}
-                                    onChange={(date) =>
-                                      handleEndDateChange(date ?? null)
-                                    }
-                                    placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
-                                  />
-                                )}
-                              />
-                            </div>
+                            </h3>
                           </div>
-                        )}
+                        </div>
 
-                        {endDateMode === "repeat-submissions" && (
-                          <div className="mt-3 space-y-4">
-                            <div>
-                              <label className="text-sm font-medium text-neutral-800">
-                                Submission frequency
-                              </label>
-                              <div className="mt-2">
-                                <select
-                                  className="block w-full rounded-md border border-neutral-300 bg-white py-2 pl-3 pr-10 text-sm text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-                                  value={submissionFrequency ?? "week"}
-                                  onChange={(e) =>
-                                    setValue(
-                                      "submissionFrequency",
-                                      e.target
-                                        .value as CreateBountyInput["submissionFrequency"],
-                                      {
-                                        shouldDirty: true,
-                                      },
-                                    )
+                        {hasEndDate && (
+                          <div className="mt-3 p-px">
+                            <Controller
+                              control={control}
+                              name="endsAt"
+                              render={({ field }) => (
+                                <SmartDateTimePicker
+                                  value={field.value}
+                                  onChange={(date) =>
+                                    handleEndDateChange(date ?? null)
                                   }
-                                >
-                                  {SUBMISSION_FREQUENCY_OPTIONS.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                      {opt.label}
-                                    </option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-
-                            <div>
-                              <label className="text-sm font-medium text-neutral-800">
-                                Total submissions allowed
-                              </label>
-                              <div className="mt-2">
-                                <NumberStepper
-                                  value={maxSubmissions ?? 2}
-                                  onChange={handleTotalSubmissionsAllowedChange}
-                                  min={2}
-                                  max={10}
-                                  step={1}
-                                  className="w-full"
+                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
                                 />
-                              </div>
-                            </div>
+                              )}
+                            />
                           </div>
                         )}
-                      </div>
+                      </AnimatedSizeContainer>
+                    )}
+
+                    {type === "submission" && (
+                      <>
+                        <div className="flex items-center gap-4">
+                          <Switch
+                            fn={handleSubmissionWindowToggle}
+                            checked={submissionWindow != null}
+                            trackDimensions="w-8 h-4"
+                            thumbDimensions="w-3 h-3"
+                            thumbTranslate="translate-x-4"
+                            disabled={!hasEndDate}
+                          />
+                          <div className="flex flex-col gap-1">
+                            <h3 className="text-sm font-medium text-neutral-700">
+                              Submission window
+                            </h3>
+                          </div>
+                        </div>
+
+                        {submissionWindow != null && (
+                          <div className="mt-3 space-y-2">
+                            <NumberStepper
+                              value={submissionWindow}
+                              onChange={handleSubmissionWindowChange}
+                              min={2}
+                              max={14}
+                              step={1}
+                              className="w-full"
+                            />
+                            <p className="text-sm text-neutral-500">
+                              Submissions open {submissionWindow} days before the
+                              end date. Drafts can be saved until then.
+                            </p>
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {type === "submission" && (

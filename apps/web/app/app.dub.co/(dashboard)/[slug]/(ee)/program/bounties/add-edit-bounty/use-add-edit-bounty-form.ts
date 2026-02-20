@@ -39,6 +39,18 @@ export function useAddEditBountyForm({
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
 
+  const [submissionWindow, setSubmissionWindow] = useState<number | null>(
+    () => {
+      if (!bounty?.submissionsOpenAt || !bounty?.endsAt) return null;
+      const days = Math.ceil(
+        (new Date(bounty.endsAt).getTime() -
+          new Date(bounty.submissionsOpenAt).getTime()) /
+          (1000 * 60 * 60 * 24),
+      );
+      return days >= 2 && days <= 14 ? days : null;
+    },
+  );
+
   const initialSubmissionRequirements = (() => {
     const raw = bounty?.submissionRequirements;
     const bonus = raw?.socialMetrics?.incrementalBonus;
@@ -154,6 +166,8 @@ export function useAddEditBountyForm({
     setHasEndDate(checked);
     if (!checked) {
       setValue("endsAt", null, { shouldDirty: true, shouldValidate: true });
+      setSubmissionWindow(null);
+      setValue("submissionsOpenAt", null, { shouldDirty: true });
     }
   };
 
@@ -162,6 +176,54 @@ export function useAddEditBountyForm({
       shouldDirty: true,
       shouldValidate: true,
     });
+    if (date && submissionWindow != null) {
+      const submissionsOpenAt = new Date(date);
+      submissionsOpenAt.setDate(submissionsOpenAt.getDate() - submissionWindow);
+      setValue("submissionsOpenAt", submissionsOpenAt, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
+  };
+
+  const getInitialSubmissionWindow = () => {
+    if (!bounty?.submissionsOpenAt || !bounty?.endsAt) return null;
+    const days = Math.ceil(
+      (new Date(bounty.endsAt).getTime() -
+        new Date(bounty.submissionsOpenAt).getTime()) /
+        (1000 * 60 * 60 * 24),
+    );
+    return days >= 2 && days <= 14 ? days : null;
+  };
+
+  const handleSubmissionWindowToggle = (checked: boolean) => {
+    if (checked) {
+      const val = getInitialSubmissionWindow() ?? 2;
+      setSubmissionWindow(val);
+      if (endsAt) {
+        const submissionsOpenAt = new Date(endsAt);
+        submissionsOpenAt.setDate(submissionsOpenAt.getDate() - val);
+        setValue("submissionsOpenAt", submissionsOpenAt, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      }
+    } else {
+      setSubmissionWindow(null);
+      setValue("submissionsOpenAt", null, { shouldDirty: true });
+    }
+  };
+
+  const handleSubmissionWindowChange = (value: number) => {
+    setSubmissionWindow(value);
+    if (endsAt) {
+      const submissionsOpenAt = new Date(endsAt);
+      submissionsOpenAt.setDate(submissionsOpenAt.getDate() - value);
+      setValue("submissionsOpenAt", submissionsOpenAt, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    }
   };
 
   const handleEndDateModeChange = (mode: EndDateMode) => {
@@ -212,6 +274,22 @@ export function useAddEditBountyForm({
       const total = totalSubmissionsAllowedVal ?? 2;
       if (total < 2 || total > 10) {
         return "Total submissions allowed must be between 2 and 10.";
+      }
+    }
+
+    if (type === "submission" && submissionWindow != null) {
+      if (!endsAt) {
+        return "An end date is required to determine when the submission window opens.";
+      }
+      if (submissionWindow < 2 || submissionWindow > 14) {
+        return "Submission window must be between 2 and 14 days.";
+      }
+      const calculatedSubmissionsOpenAt = new Date(endsAt);
+      calculatedSubmissionsOpenAt.setDate(
+        calculatedSubmissionsOpenAt.getDate() - submissionWindow,
+      );
+      if (calculatedSubmissionsOpenAt < effectiveStartDate) {
+        return "Submission window is too long. It would open before the bounty starts.";
       }
     }
 
@@ -293,6 +371,7 @@ export function useAddEditBountyForm({
     bounty,
     startsAt,
     endsAt,
+    submissionWindow,
     rewardAmount,
     rewardDescription,
     isRepeatMode,
@@ -361,7 +440,6 @@ export function useAddEditBountyForm({
       } else {
         data.submissionFrequency = undefined;
         data.maxSubmissions = undefined;
-        data.submissionsOpenAt = null;
       }
 
       if ((formRewardType ?? "flat") === "custom") {
@@ -460,6 +538,9 @@ export function useAddEditBountyForm({
     handleEndDateChange,
     handleEndDateModeChange,
     handleTotalSubmissionsAllowedChange,
+    submissionWindow,
+    handleSubmissionWindowToggle,
+    handleSubmissionWindowChange,
     validationError,
     confirmCreateBountyModal,
     setShowConfirmCreateBountyModal,

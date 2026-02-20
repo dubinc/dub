@@ -100,7 +100,7 @@ model BountySubmission {
   user              User?              @relation(fields: [userId], references: [id])
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
 
-  @@index([bountyId, partnerId])
+  @@unique([bountyId, partnerId])
   @@index([programId, partnerId])
   @@index(partnerId)
   @@index(userId)
