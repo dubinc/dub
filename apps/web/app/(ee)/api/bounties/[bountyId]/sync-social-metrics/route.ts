@@ -6,6 +6,8 @@ import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { getBountyInfo } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
+import { sendEmail } from "@dub/email";
+import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { prisma } from "@dub/prisma";
 import { BountySubmissionStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -34,6 +36,13 @@ export const POST = withWorkspace(
       programId,
       include: submissionId
         ? {
+            program: {
+              select: {
+                name: true,
+                slug: true,
+                supportEmail: true,
+              },
+            },
             submissions: {
               where: {
                 id: submissionId,
@@ -42,6 +51,7 @@ export const POST = withWorkspace(
                 id: true,
                 urls: true,
                 status: true,
+                partner: true,
               },
             },
           }
@@ -101,7 +111,9 @@ export const POST = withWorkspace(
 
       if (socialMetricCount) {
         const submission = bounty.submissions![0];
+
         let status: BountySubmissionStatus = submission.status;
+        let transitionedToSubmitted = false;
 
         if (status === "draft") {
           const hasMetCriteria =
@@ -111,6 +123,7 @@ export const POST = withWorkspace(
 
           if (hasMetCriteria) {
             status = "submitted";
+            transitionedToSubmitted = true;
           }
         }
 
@@ -124,6 +137,30 @@ export const POST = withWorkspace(
             socialMetricsLastSyncedAt,
           },
         });
+
+        if (transitionedToSubmitted && bounty.program && submission.partner) {
+          const { partner } = submission;
+
+          if (partner.email) {
+            await sendEmail({
+              subject: "Bounty completed!",
+              to: partner.email,
+              variant: "notifications",
+              replyTo: bounty.program.supportEmail || "noreply",
+              react: BountyCompleted({
+                email: partner.email,
+                bounty: {
+                  name: bounty.name,
+                  type: bounty.type,
+                },
+                program: {
+                  name: bounty.program.name,
+                  slug: bounty.program.slug,
+                },
+              }),
+            });
+          }
+        }
       }
     }
 

@@ -27,19 +27,14 @@ export const POST = withCron(async ({ rawBody }) => {
     where: {
       id: bountyId,
     },
-    select: {
-      id: true,
-      submissionRequirements: true,
-    },
   });
-
-  //
-  // TODO
-  // Don't sync bounties that not are expired or not started yet
 
   if (!bounty) {
     return logAndRespond(`Bounty ${bountyId} not found. Skipping...`);
   }
+
+  // TODO:
+  // Should we prevent syncing social metrics for bounties that are not started yet or have ended?
 
   const bountyInfo = getBountyInfo(bounty);
 
