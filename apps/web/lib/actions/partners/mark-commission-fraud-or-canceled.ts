@@ -41,11 +41,13 @@ export const markCommissionFraudOrCanceledAction = authActionClient
 
     const { partnerId, customerId } = commission;
 
-    // for custom commissions, only update this commission
+    // for custom and click commissions, only update this commission
     // for all other commission types, update all historical commissions for the customer and partner combination
     const commissions = await prisma.commission.findMany({
       where: {
-        ...(commission.type === "custom" ? { id: commissionId } : {}),
+        ...(commission.type === "custom" || commission.type === "click"
+          ? { id: commissionId }
+          : {}),
         partnerId,
         customerId,
         status: {

@@ -200,4 +200,5 @@ export const StripeCustomerInvoiceSchema = z.object({
   amount: z.number(),
   createdAt: z.date(),
   metadata: z.any(),
+  dubCommissionId: z.string().nullable(),
 });
