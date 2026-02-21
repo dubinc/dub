@@ -98,9 +98,7 @@ export async function approveBountySubmission({
       submission,
     });
 
-    if (socialRewardAmount) {
-      finalRewardAmount = socialRewardAmount;
-    }
+    finalRewardAmount = socialRewardAmount;
   }
 
   if (!finalRewardAmount) {
