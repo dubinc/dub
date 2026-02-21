@@ -14,7 +14,7 @@ export const GET = withWorkspace(
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bounty = await getBountyOrThrow({
+    await getBountyOrThrow({
       bountyId,
       programId,
       include: {
@@ -47,11 +47,7 @@ export const GET = withWorkspace(
         programEnrollment: true,
       },
       orderBy: {
-        [sortBy === "completedAt"
-          ? "completedAt"
-          : sortBy === "socialMetricCount"
-            ? "socialMetricCount"
-            : "performanceCount"]: sortOrder,
+        [sortBy]: sortOrder,
       },
       skip: (page - 1) * pageSize,
       take: pageSize,

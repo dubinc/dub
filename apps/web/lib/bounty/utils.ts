@@ -37,6 +37,8 @@ const SOCIAL_URL_HOST_TO_PLATFORM: Record<string, PlatformType> = {
   "m.youtube.com": "youtube",
   "youtu.be": "youtube",
   "tiktok.com": "tiktok",
+  "m.tiktok.com": "tiktok",
+  "vm.tiktok.com": "tiktok",
   "instagram.com": "instagram",
   "twitter.com": "twitter",
   "x.com": "twitter",
@@ -113,7 +115,11 @@ export function getSocialContentEmbedUrl({
     }
 
     if (platform === "tiktok") {
-      if (host === "tiktok.com") {
+      if (
+        host === "tiktok.com" ||
+        host === "m.tiktok.com" ||
+        host === "vm.tiktok.com"
+      ) {
         const match = parsed.pathname.match(/\/video\/(\d+)/);
         const videoId = match?.[1];
 

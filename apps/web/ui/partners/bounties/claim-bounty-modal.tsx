@@ -470,15 +470,12 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     <div className="border-border-subtle flex flex-col gap-5 border-t p-6 max-sm:px-4">
                       {imageRequired && (
                         <div>
-                          <label
-                            htmlFor="slug"
-                            className="flex items-center space-x-2"
-                          >
+                          <div className="flex items-center space-x-2">
                             <h2 className="text-sm font-medium text-neutral-900">
                               Files
                               {imageRequired && " (at least 1 required)"}
                             </h2>
-                          </label>
+                          </div>
                           <div
                             className={cn(
                               "mt-2 flex h-12 items-center gap-2 transition-[height]",
@@ -494,7 +491,13 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                                   <LoadingSpinner className="size-4" />
                                 ) : (
                                   <div className="relative size-full overflow-hidden rounded-md">
-                                    <img src={file.url} alt="object-cover" />
+                                    <img
+                                      src={file.url}
+                                      alt={
+                                        file.file?.name ||
+                                        `Bounty attachment ${idx + 1}`
+                                      }
+                                    />
                                   </div>
                                 )}
                                 <span className="sr-only">
@@ -545,10 +548,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
 
                       {urlRequired && (
                         <div>
-                          <label
-                            htmlFor="slug"
-                            className="flex items-center justify-between"
-                          >
+                          <div className="flex items-center justify-between">
                             <h2 className="text-sm font-medium text-neutral-900">
                               URLs
                               {urlRequired && " (at least 1 required)"}
@@ -560,7 +560,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                               }{" "}
                               / {maxUrls}
                             </span>
-                          </label>
+                          </div>
                           <div className={cn("mt-2 flex flex-col gap-2")}>
                             {(() => {
                               const formUrls = claimForm.watch("urls") ?? [];
