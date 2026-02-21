@@ -138,7 +138,7 @@ export function BountyCriteriaSocialMetrics() {
             >
               <InlineBadgePopoverInput
                 type="number"
-                min={1}
+                min={0}
                 value={
                   socialMetrics?.minCount == null ||
                   socialMetrics?.minCount === 0
@@ -147,13 +147,27 @@ export function BountyCriteriaSocialMetrics() {
                 }
                 onChange={(e) => {
                   const raw = (e.target as HTMLInputElement).value;
-                  const num = raw === "" ? 0 : parseInt(raw, 10);
+
+                  if (raw === "") {
+                    updateRequirements({
+                      socialMetrics: {
+                        ...socialMetrics,
+                        platform: socialMetrics?.platform ?? "youtube",
+                        metric: socialMetrics?.metric ?? "views",
+                        minCount: 0,
+                      },
+                    });
+                    return;
+                  }
+
+                  const num = parseInt(raw, 10);
+
                   updateRequirements({
                     socialMetrics: {
                       ...socialMetrics,
                       platform: socialMetrics?.platform ?? "youtube",
                       metric: socialMetrics?.metric ?? "views",
-                      minCount: Number.isNaN(num) ? 1 : Math.max(1, num),
+                      minCount: Number.isNaN(num) ? 0 : Math.max(0, num),
                     },
                   });
                 }}
