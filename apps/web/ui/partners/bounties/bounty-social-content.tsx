@@ -12,7 +12,7 @@ import { cn, formatDate } from "@dub/utils";
 import { isBefore } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 
 function socialContentRequirementChecks({
   content,
@@ -110,6 +110,7 @@ export function SocialContentUrlField({
     useClaimBountyForm();
 
   const [urlToCheck, setUrlToCheck] = useState<string>("");
+  const inputId = useId();
 
   const contentUrl = watch("urls")?.[0] ?? "";
 
@@ -167,13 +168,14 @@ export function SocialContentUrlField({
 
   return (
     <div>
-      <label className="block">
-        <h2 className="text-sm font-medium text-neutral-900">
+      <label htmlFor={inputId} className="block">
+        <span className="text-sm font-medium text-neutral-900">
           {`${bountyInfo?.socialPlatform.label} URL`}
-        </h2>
+        </span>
       </label>
       <div className="relative mt-2">
         <input
+          id={inputId}
           type="text"
           inputMode="url"
           autoComplete="url"
