@@ -7,10 +7,19 @@ export type SocialMetricsUpdate = Pick<
   "id" | "socialMetricCount" | "socialMetricsLastSyncedAt"
 >;
 
-const submissionWithUrl = (s: { id: string; urls: unknown }) => {
+const submissionWithUrl = (submission: { id: string; urls: unknown }) => {
+  const first =
+    Array.isArray(submission.urls) && submission.urls.length > 0
+      ? submission.urls[0]
+      : null;
+
   const url =
-    Array.isArray(s.urls) && s.urls.length > 0 ? (s.urls[0] as string) : null;
-  return { submissionId: s.id, url };
+    typeof first === "string" && first.trim().length > 0 ? first.trim() : null;
+
+  return {
+    submissionId: submission.id,
+    url,
+  };
 };
 
 export async function getSocialMetricsUpdates({
@@ -68,22 +77,19 @@ export async function getSocialMetricsUpdates({
     }
 
     const socialContent = result.value;
-    const rawValue =
-      socialContent[socialMetrics.metric as keyof typeof socialContent];
+    const socialMetricCount = socialContent[socialMetrics.metric];
 
     if (
-      rawValue === null ||
-      rawValue === undefined ||
-      !Number.isInteger(rawValue)
+      socialMetricCount === null ||
+      socialMetricCount === undefined ||
+      !Number.isInteger(socialMetricCount)
     ) {
       continue;
     }
 
-    const metricValue = rawValue as number;
-
     updates.push({
       id: submission.id,
-      socialMetricCount: metricValue,
+      socialMetricCount,
       socialMetricsLastSyncedAt: new Date(),
     });
   }
