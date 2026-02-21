@@ -4,7 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
-import { getBountyInfo } from "@/lib/bounty/utils";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
@@ -58,7 +58,7 @@ export const POST = withWorkspace(
         : undefined,
     });
 
-    const bountyInfo = getBountyInfo(bounty);
+    const bountyInfo = resolveBountyDetails(bounty);
 
     if (!bountyInfo?.socialMetrics) {
       throw new DubApiError({

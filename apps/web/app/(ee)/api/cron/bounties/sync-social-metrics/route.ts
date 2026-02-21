@@ -1,5 +1,5 @@
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
-import { getBountyInfo } from "@/lib/bounty/utils";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { sendBatchEmail } from "@dub/email";
@@ -49,7 +49,7 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Bounty ${bountyId} has ended. Skipping...`);
   }
 
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
 
   if (!bountyInfo?.hasSocialMetrics) {
     return logAndRespond(

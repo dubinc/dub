@@ -3,7 +3,7 @@
 import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
-import { getBountyInfo } from "@/lib/bounty/utils";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
@@ -178,7 +178,7 @@ function BountySubmissionDetailsSheetContent({
     return null;
   }
 
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
 
   const hasSocialContent =
     bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;

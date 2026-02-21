@@ -3,7 +3,7 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
-import { getBountyInfo } from "@/lib/bounty/utils";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
@@ -78,7 +78,7 @@ export function BountySubmissionsTable() {
     return columns;
   }, [bounty]);
 
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
   const performanceCondition = bounty?.performanceCondition;
 
   const metricColumnLabel = performanceCondition?.attribute

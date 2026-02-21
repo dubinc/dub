@@ -6,7 +6,7 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
   REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/bounty/constants";
-import { getBountyInfo } from "@/lib/bounty/utils";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -73,7 +73,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const { socialContentVerifying, socialContentRequirementsMet } =
     useClaimBountyContext();
 
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
   const socialPlatform = bountyInfo?.socialPlatform;
   const isSocialMetricsBounty = bountyInfo?.hasSocialMetrics ?? false;
 

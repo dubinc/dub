@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  getBountyInfo,
   getSocialMetricsRewardTiers,
+  resolveBountyDetails,
   SocialMetricsRewardTier,
 } from "@/lib/bounty/utils";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
@@ -66,7 +66,7 @@ export function BountySocialMetricsRewardsTable({
     submission,
   });
 
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
   const metricLabel = bountyInfo?.socialMetrics?.metric ?? "Count";
 
   const columns = useMemo<ColumnDef<SocialMetricsRewardTier>[]>(

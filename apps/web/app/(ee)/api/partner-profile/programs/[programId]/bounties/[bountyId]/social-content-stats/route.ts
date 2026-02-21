@@ -3,7 +3,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
-import { getBountyInfo } from "@/lib/bounty/utils";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { ratelimit } from "@/lib/upstash";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -41,7 +41,7 @@ export const GET = withPartnerProfile(
       programId: (await programEnrollment).programId,
     });
 
-    const bountyInfo = getBountyInfo(bounty);
+    const bountyInfo = resolveBountyDetails(bounty);
 
     if (!bountyInfo?.socialMetrics) {
       throw new DubApiError({

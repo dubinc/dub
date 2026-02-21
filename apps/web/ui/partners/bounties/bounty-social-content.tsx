@@ -1,6 +1,6 @@
 "use client";
 
-import { getBountyInfo } from "@/lib/bounty/utils";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerBountyProps, SocialContent } from "@/lib/types";
 import { useClaimBountyContext } from "@/ui/partners/bounties/claim-bounty-context";
@@ -49,7 +49,7 @@ function SocialContentRequirementChecks({
 }) {
   const { partner } = usePartnerProfile();
 
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
   const socialPlatform = bountyInfo?.socialPlatform;
 
   const partnerPlatform = partner?.platforms?.find(
@@ -130,7 +130,7 @@ export function SocialContentUrlField({
     return () => setSocialContentVerifying(false);
   }, [isValidating, setSocialContentVerifying]);
 
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
   const partnerPlatform = partner?.platforms?.find(
     (p) => p.type === bountyInfo?.socialPlatform?.value,
   );
@@ -215,7 +215,7 @@ export function SocialAccountNotVerifiedWarning({
 }: {
   bounty: PartnerBountyProps;
 }) {
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
 
   if (!bountyInfo?.socialPlatform) {
     return null;

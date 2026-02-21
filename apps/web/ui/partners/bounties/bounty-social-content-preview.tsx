@@ -1,6 +1,9 @@
 "use client";
 
-import { getBountyInfo, getSocialContentEmbedUrl } from "@/lib/bounty/utils";
+import {
+  getSocialContentEmbedUrl,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import {
   BountySocialPlatform,
   BountySubmissionProps,
@@ -53,7 +56,7 @@ export function BountySocialContentPreview({
 }: BountySocialContentPreviewProps) {
   const [loaded, setLoaded] = useState(false);
 
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
 
   const url = submission?.urls?.[0] ?? "";
   const platform = bountyInfo?.socialPlatform;

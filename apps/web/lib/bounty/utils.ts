@@ -146,7 +146,7 @@ export function getSocialContentEmbedUrl({
 export function getBountySubmissionRequirementTexts(
   bounty: PartnerBountyProps,
 ): string[] {
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
 
   if (!bountyInfo?.hasSocialMetrics || !bountyInfo.socialPlatform) {
     return [];
@@ -161,7 +161,7 @@ export function getBountySubmissionRequirementTexts(
 export function getBountyRewardCriteriaTexts(
   bounty: PartnerBountyProps,
 ): string[] {
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
 
   if (
     !bountyInfo?.socialMetrics ||
@@ -204,7 +204,9 @@ interface BountyInfoInput {
   rewardAmount?: number | undefined | null;
 }
 
-export function getBountyInfo(bounty: BountyInfoInput | undefined | null) {
+export function resolveBountyDetails(
+  bounty: BountyInfoInput | undefined | null,
+) {
   if (!bounty) {
     return null;
   }
@@ -248,7 +250,7 @@ export function getSocialMetricsRewardTiers({
   bounty: BountyInfoInput | undefined | null;
   submission: Pick<BountySubmissionProps, "socialMetricCount">;
 }): SocialMetricsRewardTier[] {
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
   const socialMetrics = bountyInfo?.socialMetrics;
   const rewardAmount = bounty?.rewardAmount ?? 0;
   const socialMetricCount = submission.socialMetricCount ?? 0;

@@ -3,7 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
 import {
   calculateSocialMetricsRewardAmount,
-  getBountyInfo,
+  resolveBountyDetails,
 } from "@/lib/bounty/utils";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
@@ -88,7 +88,7 @@ export async function approveBountySubmission({
   }
 
   const bounty = submission.bounty;
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
 
   let finalRewardAmount = bounty.rewardAmount ?? rewardAmount;
 

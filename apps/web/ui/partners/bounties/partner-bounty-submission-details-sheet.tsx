@@ -3,7 +3,7 @@
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
-import { getBountyInfo } from "@/lib/bounty/utils";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import { BountyDescription } from "@/ui/partners/bounties/bounty-description";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
@@ -37,7 +37,7 @@ function PartnerBountySubmissionDetailsSheetContent({
   const { programSlug } = useParams();
 
   const submission = bounty.submission! as BountySubmissionProps;
-  const bountyInfo = getBountyInfo(bounty);
+  const bountyInfo = resolveBountyDetails(bounty);
   const description = getBountyRewardDescription(bounty);
 
   const hasSocialContent =
