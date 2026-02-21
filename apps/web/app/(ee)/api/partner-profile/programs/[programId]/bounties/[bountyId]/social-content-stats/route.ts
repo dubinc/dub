@@ -30,20 +30,16 @@ export const GET = withPartnerProfile(
       });
     }
 
-    const [_, bounty] = await Promise.all([
-      getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-        include: {
-          program: true,
-        },
-      }),
+    const programEnrollment = getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId,
+      include: {},
+    });
 
-      getBountyOrThrow({
-        bountyId,
-        programId,
-      }),
-    ]);
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId: (await programEnrollment).programId,
+    });
 
     const bountyInfo = getBountyInfo(bounty);
 
