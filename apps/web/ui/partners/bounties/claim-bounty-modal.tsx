@@ -99,7 +99,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
         ? [submission.urls[0] ?? "", ...submission.urls.slice(1)]
         : [...submission.urls];
     }
-    return socialPlatform ? [""] : [""];
+
+    return [""];
   })();
 
   const claimForm = useForm<CreateBountySubmissionInput>({
