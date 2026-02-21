@@ -109,7 +109,14 @@ export const POST = withCron(async ({ rawBody }) => {
     submissions,
   });
 
-  const minCount = bountyInfo.socialMetrics?.minCount ?? 0;
+  const minCount = bountyInfo.socialMetrics?.minCount;
+
+  if (!minCount) {
+    return logAndRespond(
+      `Bounty ${bountyId} has no minimum social metrics count. Skipping...`,
+    );
+  }
+
   const submissionById = new Map(submissions.map((s) => [s.id, s]));
 
   const updates: Prisma.PrismaPromise<unknown>[] = [];
