@@ -39,8 +39,8 @@ function getDisplayStatus(
 
   if (
     submission.status === "approved" &&
-    submission.commission &&
-    submission.commission.earnings
+    submission.commission != null &&
+    submission.commission.earnings != null
   ) {
     return "approved";
   }
