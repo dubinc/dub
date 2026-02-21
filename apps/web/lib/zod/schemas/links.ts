@@ -521,6 +521,22 @@ export const createLinkBodySchema = z.object({
     .nullish()
     .describe("The date and time when the tests were or will be completed."),
 
+  // Redirect rules (wildcard/pattern matching)
+  isRule: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe(
+      "Whether this link is a redirect rule. Redirect rules use pattern matching to redirect multiple URLs to a single destination.",
+    ),
+  rulePattern: z
+    .string()
+    .max(500)
+    .nullish()
+    .describe(
+      "The pattern to match for redirect rules. Supports wildcards (e.g., /blog/*) and named parameters (e.g., /docs/:slug). Required when isRule is true.",
+    ),
+
   // deprecated fields
   publicStats: z
     .boolean()
