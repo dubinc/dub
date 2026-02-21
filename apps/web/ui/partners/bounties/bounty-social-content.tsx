@@ -121,6 +121,7 @@ export function SocialContentUrlField({
   }, [contentUrl]);
 
   const { data, error, isValidating } = useSocialContent({
+    bountyId: bounty.id,
     url: urlToCheck,
   });
 
