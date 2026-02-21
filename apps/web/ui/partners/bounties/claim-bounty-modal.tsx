@@ -657,12 +657,16 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       )}
 
                       <div>
-                        <label className="flex items-center space-x-2">
-                          <h2 className="text-sm font-medium text-neutral-900">
+                        <label
+                          htmlFor="bounty-submission-description"
+                          className="flex items-center space-x-2"
+                        >
+                          <span className="text-sm font-medium text-neutral-900">
                             Provide any additional details (optional)
-                          </h2>
+                          </span>
                         </label>
                         <ReactTextareaAutosize
+                          id="bounty-submission-description"
                           className={cn(
                             "mt-2 block w-full resize-none rounded-md focus:outline-none sm:text-sm",
                             "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
