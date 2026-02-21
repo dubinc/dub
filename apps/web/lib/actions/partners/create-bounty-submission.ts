@@ -129,7 +129,7 @@ export const createBountySubmissionAction = authPartnerActionClient
       : null;
 
     const requireImage = !!submissionRequirements?.image;
-    let requireUrl = !!submissionRequirements?.url;
+    const requireUrl = !!submissionRequirements?.url;
     const urlRequirement = submissionRequirements?.url || null;
     const imageRequirement = submissionRequirements?.image || null;
     const storedUrls = [...urls].slice(0, BOUNTY_MAX_SUBMISSION_URLS);
@@ -304,7 +304,7 @@ export const createBountySubmissionAction = authPartnerActionClient
     submissionData = {
       ...submissionData,
       ...(requireImage && { files }),
-      ...(requireUrl && { urls }),
+      ...(!bountyInfo?.hasSocialMetrics && requireUrl && { urls }),
       ...(description && { description }),
     };
 
