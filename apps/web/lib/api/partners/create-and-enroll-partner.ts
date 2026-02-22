@@ -26,6 +26,24 @@ interface CreateAndEnrollPartnerInput {
   userId: string;
 }
 
+type UpsertedPartner = Prisma.PartnerGetPayload<{
+  include: {
+    platforms: true;
+    programs: true;
+  };
+}>;
+
+type ExistingProgramEnrollment = Prisma.ProgramEnrollmentGetPayload<{
+  include: {
+    partner: {
+      include: {
+        platforms: true;
+      };
+    };
+    links: true;
+  };
+}>;
+
 export const createAndEnrollPartner = async ({
   workspace,
   program,
@@ -160,14 +178,8 @@ export const createAndEnrollPartner = async ({
     },
   };
 
-  type UpsertedPartner = Prisma.PartnerGetPayload<{
-    include: {
-      platforms: true;
-      programs: true;
-    };
-  }>;
-
   let upsertedPartner: UpsertedPartner;
+
   try {
     upsertedPartner = await prisma.partner.upsert({
       where: {
@@ -193,94 +205,66 @@ export const createAndEnrollPartner = async ({
       },
     });
   } catch (error) {
-    // Prisma upsert is not concurrency-safe across separate requests for the same unique key.
-    // If another request won the race, resolve to the existing enrollment.
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002"
-    ) {
-      const existingProgramEnrollment = await prisma.programEnrollment.findFirst({
-        where: {
-          programId: program.id,
-          OR: [
-            ...(partner.tenantId
-              ? [
-                  {
-                    tenantId: partner.tenantId,
-                  },
-                ]
-              : []),
-            {
-              partner: {
-                email: partner.email,
-              },
-            },
-          ],
-        },
-        include: {
-          partner: {
-            include: {
-              platforms: true,
-            },
-          },
-          links: true,
-        },
-      });
+    // Prisma upsert can race across concurrent requests for the same email.
+    // When another request wins and commits first (P2002 here), switch to a
+    // read path and return the currently visible enrollment state.
+    const isUniqueConstraintError =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002";
 
-      let finalProgramEnrollment = existingProgramEnrollment;
+    if (isUniqueConstraintError) {
+      let existingProgramEnrollment: ExistingProgramEnrollment | null = null;
 
-      // In a race, the winning request may have created the enrollment but not
-      // finished creating default links yet. Give it a short window to complete.
-      if (
-        finalProgramEnrollment &&
-        group.partnerGroupDefaultLinks.length > 0 &&
-        finalProgramEnrollment.links.length === 0
-      ) {
-        const partnerId = finalProgramEnrollment.partnerId;
+      // Winner write may not be committed yet when we observe the conflict.
+      // Poll briefly for enrollment visibility before returning a 500.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
 
-        for (let attempt = 0; attempt < 3; attempt++) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, 100 * (attempt + 1)),
-          );
-
-          const refreshedProgramEnrollment =
-            await prisma.programEnrollment.findUnique({
-              where: {
-                partnerId_programId: {
-                  partnerId,
-                  programId: program.id,
-                },
-              },
-              include: {
+        existingProgramEnrollment = await prisma.programEnrollment.findFirst({
+          where: {
+            programId: program.id,
+            OR: [
+              ...(partner.tenantId
+                ? [
+                    {
+                      tenantId: partner.tenantId,
+                    },
+                  ]
+                : []),
+              {
                 partner: {
-                  include: {
-                    platforms: true,
-                  },
+                  email: partner.email,
                 },
-                links: true,
               },
-            });
+            ],
+          },
+          include: {
+            partner: {
+              include: {
+                platforms: true,
+              },
+            },
+            links: true,
+          },
+        });
 
-          if (!refreshedProgramEnrollment) {
-            break;
-          }
-
-          finalProgramEnrollment = refreshedProgramEnrollment;
-
-          if (finalProgramEnrollment.links.length > 0) {
-            break;
-          }
+        if (existingProgramEnrollment) {
+          break;
         }
       }
 
-      if (finalProgramEnrollment) {
+      if (existingProgramEnrollment) {
         return EnrolledPartnerSchema.parse({
-          ...finalProgramEnrollment.partner,
-          ...finalProgramEnrollment,
-          id: finalProgramEnrollment.partner.id,
-          links: finalProgramEnrollment.links,
+          ...existingProgramEnrollment.partner,
+          ...existingProgramEnrollment,
+          id: existingProgramEnrollment.partner.id,
+          links: existingProgramEnrollment.links,
           ...polyfillSocialMediaFields(
-            finalProgramEnrollment.partner.platforms,
+            existingProgramEnrollment.partner.platforms,
           ),
         });
       }
