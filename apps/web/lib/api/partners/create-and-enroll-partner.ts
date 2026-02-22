@@ -160,29 +160,134 @@ export const createAndEnrollPartner = async ({
     },
   };
 
-  const upsertedPartner = await prisma.partner.upsert({
-    where: {
-      email: partner.email,
-    },
-    update: payload,
-    create: {
-      ...payload,
-      id: createId({ prefix: "pn_" }),
-      name: partner.name || partner.email,
-      email: partner.email,
-      image: partner.image && !isStored(partner.image) ? null : partner.image,
-      country: partner.country,
-      description: partner.description,
-    },
+  type UpsertedPartner = Prisma.PartnerGetPayload<{
     include: {
-      platforms: true,
-      programs: {
-        where: {
-          programId: program.id,
+      platforms: true;
+      programs: true;
+    };
+  }>;
+
+  let upsertedPartner: UpsertedPartner;
+  try {
+    upsertedPartner = await prisma.partner.upsert({
+      where: {
+        email: partner.email,
+      },
+      update: payload,
+      create: {
+        ...payload,
+        id: createId({ prefix: "pn_" }),
+        name: partner.name || partner.email,
+        email: partner.email,
+        image: partner.image && !isStored(partner.image) ? null : partner.image,
+        country: partner.country,
+        description: partner.description,
+      },
+      include: {
+        platforms: true,
+        programs: {
+          where: {
+            programId: program.id,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    // Prisma upsert is not concurrency-safe across separate requests for the same unique key.
+    // If another request won the race, resolve to the existing enrollment.
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      const existingProgramEnrollment = await prisma.programEnrollment.findFirst({
+        where: {
+          programId: program.id,
+          OR: [
+            ...(partner.tenantId
+              ? [
+                  {
+                    tenantId: partner.tenantId,
+                  },
+                ]
+              : []),
+            {
+              partner: {
+                email: partner.email,
+              },
+            },
+          ],
+        },
+        include: {
+          partner: {
+            include: {
+              platforms: true,
+            },
+          },
+          links: true,
+        },
+      });
+
+      let finalProgramEnrollment = existingProgramEnrollment;
+
+      // In a race, the winning request may have created the enrollment but not
+      // finished creating default links yet. Give it a short window to complete.
+      if (
+        finalProgramEnrollment &&
+        group.partnerGroupDefaultLinks.length > 0 &&
+        finalProgramEnrollment.links.length === 0
+      ) {
+        const partnerId = finalProgramEnrollment.partnerId;
+
+        for (let attempt = 0; attempt < 3; attempt++) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, 100 * (attempt + 1)),
+          );
+
+          const refreshedProgramEnrollment =
+            await prisma.programEnrollment.findUnique({
+              where: {
+                partnerId_programId: {
+                  partnerId,
+                  programId: program.id,
+                },
+              },
+              include: {
+                partner: {
+                  include: {
+                    platforms: true,
+                  },
+                },
+                links: true,
+              },
+            });
+
+          if (!refreshedProgramEnrollment) {
+            break;
+          }
+
+          finalProgramEnrollment = refreshedProgramEnrollment;
+
+          if (finalProgramEnrollment.links.length > 0) {
+            break;
+          }
+        }
+      }
+
+      if (finalProgramEnrollment) {
+        return EnrolledPartnerSchema.parse({
+          ...finalProgramEnrollment.partner,
+          ...finalProgramEnrollment,
+          id: finalProgramEnrollment.partner.id,
+          links: finalProgramEnrollment.links,
+          ...polyfillSocialMediaFields(
+            finalProgramEnrollment.partner.platforms,
+          ),
+        });
+      }
+    }
+
+    throw error;
+  }
 
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
