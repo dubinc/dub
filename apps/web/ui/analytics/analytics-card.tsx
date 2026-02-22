@@ -28,6 +28,7 @@ export function AnalyticsCard<T extends string>({
   selectedSubTabId,
   onSelectSubTab,
   expandLimit,
+  dataLength,
   hasMore,
   children,
   className,
@@ -41,6 +42,7 @@ export function AnalyticsCard<T extends string>({
     | Dispatch<SetStateAction<string>>
     | ((subTabId: string) => void);
   expandLimit: number;
+  dataLength?: number;
   hasMore?: boolean;
   children: (props: {
     limit?: number;
@@ -57,6 +59,14 @@ export function AnalyticsCard<T extends string>({
   const selectedTab = tabs.find(({ id }) => id === selectedTabId) || tabs[0];
   const SelectedTabIcon = selectedTab.icon;
   const { isMobile } = useMediaQuery();
+  const hasSecondaryTabs = !!(subTabs && selectedSubTabId && onSelectSubTab);
+  const effectiveExpandLimit = hasSecondaryTabs
+    ? Math.max(1, expandLimit - 1)
+    : expandLimit;
+  const showViewAll =
+    typeof dataLength === "number"
+      ? dataLength > effectiveExpandLimit
+      : !!hasMore;
 
   return (
     <>
@@ -168,12 +178,12 @@ export function AnalyticsCard<T extends string>({
         </AnimatedSizeContainer>
         <div className="py-4">
           {children({
-            limit: expandLimit,
+            limit: effectiveExpandLimit,
             event,
             setShowModal,
           })}
         </div>
-        {hasMore && (
+        {showViewAll && (
           <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">
             <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />
             <button
