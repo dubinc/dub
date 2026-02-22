@@ -1,4 +1,10 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
+import {
+  calculateSocialMetricsRewardAmount,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
   approveBountySubmissionBodySchema,
@@ -9,8 +15,6 @@ import BountyApproved from "@dub/email/templates/bounty-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { recordAuditLog } from "../audit-logs/record-audit-log";
-import { DubApiError } from "../errors";
 
 interface ApproveBountySubmissionParams
   extends z.infer<typeof approveBountySubmissionBodySchema> {
@@ -36,11 +40,13 @@ export async function approveBountySubmission({
       partnerId: true,
       bountyId: true,
       status: true,
+      socialMetricCount: true,
       bounty: {
         select: {
           name: true,
           type: true,
           rewardAmount: true,
+          submissionRequirements: true,
         },
       },
     },
@@ -82,7 +88,18 @@ export async function approveBountySubmission({
   }
 
   const bounty = submission.bounty;
-  const finalRewardAmount = bounty.rewardAmount ?? rewardAmount;
+  const bountyInfo = resolveBountyDetails(bounty);
+
+  let finalRewardAmount = bounty.rewardAmount ?? rewardAmount;
+
+  if (bountyInfo?.hasSocialMetrics) {
+    const socialRewardAmount = calculateSocialMetricsRewardAmount({
+      bounty,
+      submission,
+    });
+
+    finalRewardAmount = socialRewardAmount;
+  }
 
   if (!finalRewardAmount) {
     throw new DubApiError({

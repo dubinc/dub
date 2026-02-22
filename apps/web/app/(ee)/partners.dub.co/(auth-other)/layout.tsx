@@ -45,7 +45,7 @@ export default function PartnerAuthLayout({
           </div>
         ))}
       </div>
-      <div className="relative flex min-h-screen min-h-[100dvh] w-full justify-center">
+      <div className="relative flex min-h-[100dvh] min-h-screen w-full justify-center">
         <Logo />
         {children}
       </div>

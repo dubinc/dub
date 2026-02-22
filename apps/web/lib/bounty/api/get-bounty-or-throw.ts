@@ -1,6 +1,6 @@
+import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { DubApiError } from "../errors";
 
 interface GetBountyOrThrowParams<T extends Prisma.BountyInclude = {}> {
   programId: string;

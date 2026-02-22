@@ -1,5 +1,5 @@
+import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@dub/prisma";
-import { DubApiError } from "../errors";
 
 export const getBountyWithDetails = async ({
   bountyId,
@@ -17,9 +17,12 @@ export const getBountyWithDetails = async ({
       b.startsAt,
       b.endsAt,
       b.submissionsOpenAt,
+      b.submissionFrequency,
+      b.maxSubmissions,
       b.rewardAmount,
       b.rewardDescription,
       b.submissionRequirements,
+      b.socialMetricsLastSyncedAt,
       b.performanceScope,
       wf.triggerConditions,
 
@@ -61,9 +64,12 @@ export const getBountyWithDetails = async ({
     startsAt: bounty.startsAt,
     endsAt: bounty.endsAt,
     submissionsOpenAt: bounty.submissionsOpenAt,
+    submissionFrequency: bounty.submissionFrequency,
+    maxSubmissions: bounty.maxSubmissions,
     rewardAmount: bounty.rewardAmount,
     rewardDescription: bounty.rewardDescription,
     submissionRequirements: bounty.submissionRequirements,
+    socialMetricsLastSyncedAt: bounty.socialMetricsLastSyncedAt ?? null,
     performanceScope,
     performanceCondition,
     groups: bounty.groups.filter((group) => group !== null) ?? [],

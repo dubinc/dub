@@ -51,6 +51,10 @@
     {
       "path": "/api/cron/payouts/reminders/program-owners",
       "schedule": "0 13 25-31,1-5 * *"
+    },
+    {
+      "path": "/api/cron/bounties/queue-sync-social-metrics",
+      "schedule": "0 * * * *"
     }
   ],
   "functions": {

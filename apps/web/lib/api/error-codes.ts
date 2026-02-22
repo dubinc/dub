@@ -15,5 +15,8 @@ export const ErrorCodes = {
 } as const;
 
 export const ErrorCode = z.enum(
-  Object.keys(ErrorCodes) as [string, ...string[]],
+  Object.keys(ErrorCodes) as [
+    keyof typeof ErrorCodes,
+    ...(keyof typeof ErrorCodes)[],
+  ],
 );

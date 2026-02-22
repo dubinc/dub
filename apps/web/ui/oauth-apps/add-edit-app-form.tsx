@@ -352,7 +352,7 @@ export default function AddOAuthAppForm({
             >
               <div
                 className={cn(
-                  "border-border-subtle overflow-hidden rounded-md border border-neutral-300 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                  "border-border-subtle overflow-hidden rounded-md border shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
                   !canManageApp && "cursor-not-allowed bg-neutral-50",
                 )}
               >

@@ -13,6 +13,7 @@ model PartnerPlatform {
   type          PlatformType
   identifier    String // The unique identifier for the platform (e.g., username for social platforms, domain for websites)
   platformId    String? // Platform-specific immutable ID (e.g., YouTube channel ID)
+  avatarUrl     String?      @db.Text
   subscribers   BigInt       @default(0) // Subscribers/followers for social platforms, also for newsletter subscribers
   posts         BigInt       @default(0)
   views         BigInt       @default(0) // Video views for YouTube, impressions for social platforms, pageviews for websites

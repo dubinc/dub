@@ -1,13 +1,14 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
-import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
-import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
-import { validateBounty } from "@/lib/api/bounties/validate-bounty";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { validateBounty } from "@/lib/bounty/api/validate-bounty";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
@@ -85,10 +86,22 @@ export const PATCH = withWorkspace(
       startsAt,
       endsAt,
       submissionsOpenAt,
+      submissionRequirements,
       rewardAmount,
       rewardDescription,
       performanceScope: bounty.performanceScope,
     });
+
+    if (
+      submissionRequirements !== undefined &&
+      submissionRequirements?.socialMetrics &&
+      !getPlanCapabilities(workspace.plan).canUseBountySocialMetrics
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Social metrics criteria require Advanced plan or above.",
+      });
+    }
 
     // TODO:
     // When we do archive, make sure it disables the workflow
@@ -148,7 +161,8 @@ export const PATCH = withWorkspace(
           endsAt,
           submissionsOpenAt:
             bounty.type === "submission" ? submissionsOpenAt : null,
-          rewardAmount,
+          rewardAmount:
+            rewardAmount !== undefined ? rewardAmount : bounty.rewardAmount,
           rewardDescription,
           ...(bounty.type === "submission" &&
             submissionRequirements !== undefined && {
