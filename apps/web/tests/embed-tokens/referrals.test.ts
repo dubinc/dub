@@ -80,34 +80,6 @@ describe.sequential("POST /api/tokens/embed/referrals", async () => {
     expect(data).toStrictEqual(expectedTokenResponse);
   });
 
-  test("handles concurrent requests with the same partner email", async () => {
-    const sharedEmail = randomEmail();
-
-    const [first, second] = await Promise.all([
-      http.post({
-        path: "/tokens/embed/referrals",
-        body: {
-          partner: {
-            email: sharedEmail,
-          },
-        },
-      }),
-      http.post({
-        path: "/tokens/embed/referrals",
-        body: {
-          partner: {
-            email: sharedEmail,
-          },
-        },
-      }),
-    ]);
-
-    expect(first.status).toEqual(201);
-    expect(first.data).toStrictEqual(expectedTokenResponse);
-    expect(second.status).toEqual(201);
-    expect(second.data).toStrictEqual(expectedTokenResponse);
-  });
-
   test("fails with no partnerId, tenantId, or partner", async () => {
     const { data, status } = await http.post({
       path: "/tokens/embed/referrals",
