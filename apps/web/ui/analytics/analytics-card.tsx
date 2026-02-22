@@ -29,7 +29,6 @@ export function AnalyticsCard<T extends string>({
   onSelectSubTab,
   expandLimit,
   dataLength,
-  hasMore,
   children,
   className,
 }: {
@@ -43,7 +42,6 @@ export function AnalyticsCard<T extends string>({
     | ((subTabId: string) => void);
   expandLimit: number;
   dataLength?: number;
-  hasMore?: boolean;
   children: (props: {
     limit?: number;
     event?: EventType;
@@ -63,10 +61,7 @@ export function AnalyticsCard<T extends string>({
   const effectiveExpandLimit = hasSecondaryTabs
     ? Math.max(1, expandLimit - 1)
     : expandLimit;
-  const showViewAll =
-    typeof dataLength === "number"
-      ? dataLength > effectiveExpandLimit
-      : !!hasMore;
+  const showViewAll = (dataLength ?? 0) > effectiveExpandLimit;
 
   return (
     <>
