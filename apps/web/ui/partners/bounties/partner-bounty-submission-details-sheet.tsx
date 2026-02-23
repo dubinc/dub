@@ -20,8 +20,8 @@ import {
 } from "@dub/ui";
 import { formatDate, getPrettyUrl } from "@dub/utils";
 import Linkify from "linkify-react";
-import Link from "next/link";
 import { useParams } from "next/navigation";
+import { ButtonLink } from "@/ui/placeholders/button-link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { BountyIncrementalBonusTooltip } from "./bounty-incremental-bonus-tooltip";
 
@@ -187,17 +187,14 @@ function PartnerBountySubmissionDetailsSheetContent({
 
         {submission.status === "approved" && programSlug ? (
           <div className="shrink-0 border-t border-neutral-200 p-5">
-            <Link
+            <ButtonLink
               href={`/programs/${programSlug}/earnings?type=custom`}
               target="_blank"
+              variant="secondary"
               className="w-full"
             >
-              <Button
-                variant="secondary"
-                text="View earnings"
-                className="w-full"
-              />
-            </Link>
+              View earnings
+            </ButtonLink>
           </div>
         ) : null}
       </div>
