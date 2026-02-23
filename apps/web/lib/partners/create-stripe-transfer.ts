@@ -2,6 +2,7 @@ import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
+  STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
@@ -93,6 +94,7 @@ export const createStripeTransfer = async ({
   );
 
   let withdrawalFee = 0;
+  let stablecoinPayoutFee = 0;
 
   // If the total transferable amount is less than the minimum withdrawal amount
   // No minimum withdrawal amount for stablecoin payouts
@@ -116,12 +118,26 @@ export const createStripeTransfer = async ({
     }
   }
 
-  // Minus the withdrawal fee from the total amount
-  const finalTransferableAmount = totalTransferableAmount - withdrawalFee;
+  // Stablecoin payouts incur a 1% outbound fee that is passed along to partners.
+  if (partner.defaultPayoutMethod === "stablecoin") {
+    stablecoinPayoutFee = Math.round(
+      totalTransferableAmount * STABLECOIN_PAYOUT_FEE_RATE,
+    );
+  }
+
+  // Minus payout fees from the total amount.
+  const finalTransferableAmount =
+    totalTransferableAmount - withdrawalFee - stablecoinPayoutFee;
 
   if (finalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
     throw new Error(
       `Final transferable amount (${currencyFormatter(finalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)})`,
+    );
+  }
+
+  if (stablecoinPayoutFee > 0) {
+    console.log(
+      `Applying stablecoin payout fee of ${currencyFormatter(stablecoinPayoutFee)} (${STABLECOIN_PAYOUT_FEE_RATE * 100}%) for partner ${partner.id}`,
     );
   }
 

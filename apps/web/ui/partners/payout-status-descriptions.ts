@@ -23,7 +23,7 @@ export const PAYOUT_STATUS_DESCRIPTIONS: Record<
     processing:
       "Payouts that are being processed by the program – this can take up to 5 business days.",
     processed:
-      "Payouts that have been processed by the program and will be sent to your connected crypto wallet.",
+      "Payouts that have been processed by the program and will be sent to your connected crypto wallet (a 1% stablecoin payout fee is deducted).",
     sent: "Payouts that are on their way to your connected crypto wallet – typically arriving within minutes.",
     completed:
       "Payouts that have been paid out to your connected crypto wallet.",
