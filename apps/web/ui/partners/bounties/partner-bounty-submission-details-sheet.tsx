@@ -19,7 +19,7 @@ import {
   Sheet,
   StatusBadge,
 } from "@dub/ui";
-import { formatDate, getPrettyUrl } from "@dub/utils";
+import { currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
 import Linkify from "linkify-react";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -127,6 +127,16 @@ function PartnerBountySubmissionDetailsSheetContent({
                           </div>
                         ),
                       },
+                      ...(submission.commission?.earnings != null
+                        ? [
+                            {
+                              label: "Commission",
+                              value: currencyFormatter(
+                                submission.commission.earnings,
+                              ),
+                            },
+                          ]
+                        : []),
                     ]),
               ].map((item, index) => (
                 <div key={index} className="grid grid-cols-2 gap-6">
