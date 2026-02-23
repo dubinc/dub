@@ -94,16 +94,6 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const hasAnyUrl = submissions.some(
-    (s) => Array.isArray(s.urls) && s.urls.length > 0,
-  );
-
-  if (!hasAnyUrl) {
-    return logAndRespond(
-      `No submissions to process for bounty ${bountyId}. Skipping...`,
-    );
-  }
-
   const newMetrics = await getSocialMetricsUpdates({
     bounty,
     submissions,
