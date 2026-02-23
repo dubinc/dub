@@ -96,7 +96,10 @@ export async function POST(req: Request) {
     // Send money to Dub's Financial Account to handle Stablecoin payouts
     if (stablecoinFundingAmount > 0) {
       try {
-        await fundFinancialAccount(stablecoinFundingAmount);
+        await fundFinancialAccount({
+          amount: stablecoinFundingAmount,
+          idempotencyKey: `fund-financial-account-${invoiceId}`,
+        });
       } catch (error) {
         await log({
           message: `Failed to fund Dub's financial account for stablecoin payouts: ${error.message}`,

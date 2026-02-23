@@ -3,8 +3,16 @@ import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
 const financialAccountId = process.env.STRIPE_FINANCIAL_ACCOUNT_ID;
 
+interface FundFinancialAccountParams {
+  amount: number;
+  idempotencyKey: string;
+}
+
 // Fund the Dub's financial account for Global payouts
-export async function fundFinancialAccount(amount: number) {
+export async function fundFinancialAccount({
+  amount,
+  idempotencyKey,
+}: FundFinancialAccountParams) {
   if (amount <= 0) {
     throw new Error("Amount must be greater than 0.");
   }
@@ -23,6 +31,7 @@ export async function fundFinancialAccount(amount: number) {
       Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
       "Stripe-Version": STRIPE_API_VERSION,
       "Content-Type": "application/x-www-form-urlencoded",
+      "Idempotency-Key": idempotencyKey,
     },
   });
 
