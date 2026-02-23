@@ -47,46 +47,55 @@ async function main() {
       }
     }
 
-    const promise1 = prisma.partner.updateMany({
-      where: {
-        id: {
-          in: stablecoinPartners.map((partner) => partner.id),
-        },
-        defaultPayoutMethod: null,
-      },
-      data: {
-        defaultPayoutMethod: "stablecoin",
-      },
-    });
+    const promise1 =
+      stablecoinPartners.length > 0
+        ? prisma.partner.updateMany({
+            where: {
+              id: {
+                in: stablecoinPartners.map((partner) => partner.id),
+              },
+              defaultPayoutMethod: null,
+            },
+            data: {
+              defaultPayoutMethod: "stablecoin",
+            },
+          })
+        : Promise.resolve({ count: 0 });
 
-    const promise2 = prisma.partner.updateMany({
-      where: {
-        id: {
-          in: connectPartners.map((partner) => partner.id),
-        },
-        defaultPayoutMethod: null,
-      },
-      data: {
-        defaultPayoutMethod: "connect",
-      },
-    });
+    const promise2 =
+      connectPartners.length > 0
+        ? prisma.partner.updateMany({
+            where: {
+              id: {
+                in: connectPartners.map((partner) => partner.id),
+              },
+              defaultPayoutMethod: null,
+            },
+            data: {
+              defaultPayoutMethod: "connect",
+            },
+          })
+        : Promise.resolve({ count: 0 });
 
-    const promise3 = prisma.partner.updateMany({
-      where: {
-        id: {
-          in: paypalPartners.map((partner) => partner.id),
-        },
-        defaultPayoutMethod: null,
-      },
-      data: {
-        defaultPayoutMethod: "paypal",
-      },
-    });
+    const promise3 =
+      paypalPartners.length > 0
+        ? prisma.partner.updateMany({
+            where: {
+              id: {
+                in: paypalPartners.map((partner) => partner.id),
+              },
+              defaultPayoutMethod: null,
+            },
+            data: {
+              defaultPayoutMethod: "paypal",
+            },
+          })
+        : Promise.resolve({ count: 0 });
 
     const [stablecoinRes, connectRes, paypalRes] = await Promise.all([
-      stablecoinPartners.length > 0 ? promise1 : Promise.resolve({ count: 0 }),
-      connectPartners.length > 0 ? promise2 : Promise.resolve({ count: 0 }),
-      paypalPartners.length > 0 ? promise3 : Promise.resolve({ count: 0 }),
+      promise1,
+      promise2,
+      promise3,
     ]);
 
     console.log(
