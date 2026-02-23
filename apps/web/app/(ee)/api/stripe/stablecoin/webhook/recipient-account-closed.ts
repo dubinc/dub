@@ -4,7 +4,13 @@ import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
 export async function recipientAccountClosed(event: Stripe.ThinEvent) {
-  const { id: stripeRecipientId } = event;
+  const { related_object: relatedObject } = event;
+
+  if (!relatedObject) {
+    return "No related object found in event, skipping...";
+  }
+
+  const { id: stripeRecipientId } = relatedObject;
 
   const partner = await prisma.partner.findUnique({
     where: {

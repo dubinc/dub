@@ -4,9 +4,16 @@ import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function outboundPaymentPosted(event: Stripe.ThinEvent) {
-  const { id: outboundPaymentId } = event;
+  const { related_object: relatedObject } = event;
+
+  if (!relatedObject) {
+    return "No related object found in event, skipping...";
+  }
+
+  const { id: outboundPaymentId } = relatedObject;
 
   const outboundPayment = await getStripeOutboundPayment(outboundPaymentId);
+
   const stripePayoutTraceId = outboundPayment.trace_id?.value;
 
   const updatedPayouts = await prisma.payout.updateMany({

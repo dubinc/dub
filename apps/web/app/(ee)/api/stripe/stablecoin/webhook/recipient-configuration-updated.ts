@@ -8,7 +8,13 @@ import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 
 export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
-  const { id: stripeRecipientId } = event;
+  const { related_object: relatedObject } = event;
+
+  if (!relatedObject) {
+    return "No related object found in event, skipping...";
+  }
+
+  const { id: stripeRecipientId } = relatedObject;
 
   const partner = await prisma.partner.findUnique({
     where: {

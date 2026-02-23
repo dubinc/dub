@@ -9,9 +9,6 @@ async function main() {
 
   while (true) {
     const partners = await prisma.partner.findMany({
-      where: {
-        defaultPayoutMethod: null,
-      },
       select: {
         id: true,
         stripeConnectId: true,

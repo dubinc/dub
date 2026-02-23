@@ -13,8 +13,8 @@ import {
   Text,
 } from "@react-email/components";
 import { addBusinessDays } from "date-fns";
-import { PartnerPayoutMethod } from "src/types";
 import { Footer } from "../components/footer";
+import { PartnerPayoutMethod } from "../types";
 
 const PAYOUT_METHOD_LABELS: Record<PartnerPayoutMethod, string> = {
   connect: "Stripe Express",
@@ -55,7 +55,7 @@ export default function PartnerPayoutConfirmed({
     endDate?: Date | null;
     mode: "internal" | "external" | null;
     paymentMethod: string;
-    payoutMethod: PartnerPayoutMethod;
+    payoutMethod: PartnerPayoutMethod | null;
   };
 }) {
   const payoutAmountInDollars = currencyFormatter(payout.amount);
@@ -81,7 +81,7 @@ export default function PartnerPayoutConfirmed({
   const etaDays = payout.paymentMethod === "ach_fast" ? 2 : 5;
 
   const payoutDestination =
-    payout.mode === "external"
+    payout.payoutMethod === null
       ? `${program.name} account`
       : PAYOUT_METHOD_LABELS[payout.payoutMethod];
 

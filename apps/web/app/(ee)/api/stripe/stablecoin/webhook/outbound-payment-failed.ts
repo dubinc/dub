@@ -5,11 +5,17 @@ import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function outboundPaymentFailed(event: Stripe.ThinEvent) {
-  const { id: outboundPaymentId } = event;
+  const { related_object: relatedObject } = event;
+
+  if (!relatedObject) {
+    return "No related object found in event, skipping...";
+  }
+
+  const { id: outboundPaymentId } = relatedObject;
 
   const outboundPayment = await getStripeOutboundPayment(outboundPaymentId);
 
-  const rawFailureReason = outboundPayment.status_details?.failed.reason;
+  const rawFailureReason = outboundPayment.status_details?.failed?.reason;
   const failureReason = rawFailureReason
     ? OUTBOUND_PAYMENT_FAILURE_REASONS[rawFailureReason]
     : undefined;
