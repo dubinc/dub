@@ -8,6 +8,7 @@ import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import { BountyDescription } from "@/ui/partners/bounties/bounty-description";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
+import { ButtonLink } from "@/ui/placeholders/button-link";
 import { X } from "@/ui/shared/icons";
 import {
   Accordion,
@@ -21,7 +22,6 @@ import {
 import { formatDate, getPrettyUrl } from "@dub/utils";
 import Linkify from "linkify-react";
 import { useParams } from "next/navigation";
-import { ButtonLink } from "@/ui/placeholders/button-link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { BountyIncrementalBonusTooltip } from "./bounty-incremental-bonus-tooltip";
 
@@ -38,7 +38,7 @@ function PartnerBountySubmissionDetailsSheetContent({
 
   const submission = bounty.submission! as BountySubmissionProps;
   const bountyInfo = resolveBountyDetails(bounty);
-  const description = getBountyRewardDescription(bounty);
+  const rewardDescription = getBountyRewardDescription(bounty);
 
   const hasSocialContent =
     bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;
@@ -122,7 +122,7 @@ function PartnerBountySubmissionDetailsSheetContent({
                         label: "Reward",
                         value: (
                           <div className="flex items-center gap-2">
-                            <span>{description}</span>
+                            <span>{rewardDescription}</span>
                             <BountyIncrementalBonusTooltip bounty={bounty} />
                           </div>
                         ),
