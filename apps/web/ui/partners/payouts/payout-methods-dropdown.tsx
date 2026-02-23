@@ -190,6 +190,7 @@ export function PayoutMethodsDropdown() {
           setOpenPopover={setOpenPopover}
         >
           <button
+            type="button"
             onClick={() => setOpenPopover(!openPopover)}
             className={cn(
               "flex w-full cursor-pointer items-center justify-between rounded-lg bg-white p-2 text-left text-sm transition-colors duration-75",
