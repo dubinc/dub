@@ -126,7 +126,10 @@ export function PayoutMethodSelector({
             <ConnectPayoutButton
               payoutMethod={method.id}
               text="Connect"
-              className="h-9 w-full rounded-lg"
+              className={cn(
+                "w-full rounded-lg",
+                isSingleOption ? "h-10" : "h-9",
+              )}
               allowWhenPayoutsEnabled={allowConnectWhenPayoutsEnabled}
             />
           }
