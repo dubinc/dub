@@ -28,25 +28,6 @@ export const GET = withPartnerProfile(async ({ partner }) => {
 
   const payoutMethods: PartnerPayoutMethodSetting[] = [];
 
-  // Connect
-  if (availablePayoutMethods.includes(PartnerPayoutMethod.connect)) {
-    let identifier: string | null = null;
-
-    if (bankAccount) {
-      identifier = bankAccount.routing_number
-        ? `${bankAccount.routing_number}••••${bankAccount.last4}`
-        : `••••${bankAccount.last4}`;
-    }
-
-    payoutMethods.push({
-      type: PartnerPayoutMethod.connect,
-      label: "Bank Account",
-      default: partner.defaultPayoutMethod === PartnerPayoutMethod.connect,
-      connected: Boolean(bankAccount),
-      identifier,
-    });
-  }
-
   // Stablecoin
   if (availablePayoutMethods.includes(PartnerPayoutMethod.stablecoin)) {
     let identifier: string | null = null;
@@ -65,6 +46,25 @@ export const GET = withPartnerProfile(async ({ partner }) => {
       label: "Stablecoin",
       default: partner.defaultPayoutMethod === PartnerPayoutMethod.stablecoin,
       connected: Boolean(stripePayoutMethod?.crypto_wallet),
+      identifier,
+    });
+  }
+
+  // Connect
+  if (availablePayoutMethods.includes(PartnerPayoutMethod.connect)) {
+    let identifier: string | null = null;
+
+    if (bankAccount) {
+      identifier = bankAccount.routing_number
+        ? `${bankAccount.routing_number}••••${bankAccount.last4}`
+        : `••••${bankAccount.last4}`;
+    }
+
+    payoutMethods.push({
+      type: PartnerPayoutMethod.connect,
+      label: "Bank Account",
+      default: partner.defaultPayoutMethod === PartnerPayoutMethod.connect,
+      connected: Boolean(bankAccount),
       identifier,
     });
   }
