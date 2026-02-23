@@ -148,7 +148,7 @@ export const RESOURCES = [
     icon: Book2Fill,
     title: "Docs",
     description: "Platform documentation",
-    href: "/docs/introduction",
+    href: "/docs",
   },
   {
     icon: UsersFill,

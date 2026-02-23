@@ -37,13 +37,13 @@ import {
   ShieldKeyhole,
   Sliders,
   Tag,
+  Trophy,
   UserCheck,
   UserPlus,
   Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
-import { Trophy } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
