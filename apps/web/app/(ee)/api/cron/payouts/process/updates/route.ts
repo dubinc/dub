@@ -112,7 +112,7 @@ export async function POST(req: Request) {
               endDate: payout.periodEnd,
               mode: payout.mode,
               paymentMethod: invoice.paymentMethod ?? "ach",
-              payoutMethod: payout.method,
+              payoutMethod: payout.partner.defaultPayoutMethod ?? null,
             },
           }),
         })),
