@@ -199,3 +199,26 @@ export const OUTBOUND_PAYMENT_FAILURE_REASONS = {
     "The usage frequency limit for this payout method was exceeded.",
   unknown_failure: "Unknown failure",
 } as const;
+
+export const OUTBOUND_PAYMENT_RETURNED_REASONS = {
+  payout_method_canceled_by_customer:
+    "The outbound flow to this payout method was canceled by customer.",
+  payout_method_closed:
+    "Payout method account used for this outbound flow is closed.",
+  payout_method_currency_unsupported:
+    "Currency is not supported by the payout method account.",
+  payout_method_does_not_exist:
+    "Payout method account used for this outbound flow does not exist.",
+  payout_method_holder_address_incorrect:
+    "Address on the payout method account is incorrect.",
+  payout_method_holder_details_incorrect:
+    "The payout method account holder's details are incorrect.",
+  payout_method_holder_name_incorrect:
+    "Name on the payout method account is incorrect.",
+  payout_method_invalid_account_number:
+    "The outbound flow to this payout method has an invalid account number.",
+  payout_method_restricted:
+    "Payout method account used for this outbound flow is restricted.",
+  recalled: "The outbound flow to this payout method was recalled.",
+  unknown_failure: "Unknown failure",
+} as const;

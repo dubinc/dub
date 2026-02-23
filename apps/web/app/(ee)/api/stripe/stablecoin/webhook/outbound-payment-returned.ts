@@ -1,5 +1,5 @@
 import { getStripeOutboundPayment } from "@/lib/stripe/get-stripe-outbound-payment";
-import { OUTBOUND_PAYMENT_FAILURE_REASONS } from "@/lib/stripe/stripe-v2-schemas";
+import { OUTBOUND_PAYMENT_RETURNED_REASONS } from "@/lib/stripe/stripe-v2-schemas";
 import { prisma } from "@dub/prisma";
 import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
@@ -15,9 +15,9 @@ export async function outboundPaymentReturned(event: Stripe.ThinEvent) {
 
   const outboundPayment = await getStripeOutboundPayment(outboundPaymentId);
 
-  const rawFailureReason = outboundPayment.status_details?.returned?.reason;
-  const failureReason = rawFailureReason
-    ? OUTBOUND_PAYMENT_FAILURE_REASONS[rawFailureReason]
+  const rawReturnedReason = outboundPayment.status_details?.returned?.reason;
+  const failureReason = rawReturnedReason
+    ? OUTBOUND_PAYMENT_RETURNED_REASONS[rawReturnedReason]
     : undefined;
 
   const updatedPayouts = await prisma.payout.updateMany({
