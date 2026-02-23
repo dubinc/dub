@@ -78,6 +78,16 @@ export function PartnersUpgradeModal({
             },
           },
           {
+            id: "email",
+            text: "Email campaigns",
+            tooltip: {
+              title:
+                "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/email-campaigns",
+            },
+          },
+          {
             id: "messages",
             text: "Messaging center",
             tooltip: {
@@ -88,13 +98,13 @@ export function PartnersUpgradeModal({
             },
           },
           {
-            id: "email",
-            text: "Email campaigns",
+            id: "sso",
+            text: "Fraud detection",
             tooltip: {
               title:
-                "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
+                "Safeguard your partner program by automatically flagging, reviewing, and resolving suspicious activity.",
               cta: "Learn more.",
-              href: "https://dub.co/help/article/email-campaigns",
+              href: "https://dub.co/help/article/fraud-detection",
             },
           },
           {

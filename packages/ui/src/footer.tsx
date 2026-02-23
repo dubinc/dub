@@ -62,7 +62,7 @@ const navigation = {
     { name: "Affiliate management", href: "/partners" },
   ],
   resources: [
-    { name: "Docs", href: "/docs/introduction" },
+    { name: "Docs", href: "/docs" },
     { name: "Help Center", href: "/help" },
     { name: "Integrations", href: "/integrations" },
     { name: "Pricing", href: "/pricing" },
