@@ -72,8 +72,11 @@ function StablecoinPayoutModal({
               loading={isLoading}
               onClick={async () => {
                 setIsLoading(true);
-                await onContinue();
-                setIsLoading(false);
+                try {
+                  await onContinue();
+                } finally {
+                  setIsLoading(false);
+                }
               }}
             />
           </div>

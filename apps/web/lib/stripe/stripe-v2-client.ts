@@ -68,19 +68,19 @@ export const stripeV2Fetch = createFetch({
       strict: true,
     },
   ),
-  onResponse: async (context) => {
-    const cloned = context.response.clone();
-
-    try {
-      const raw = await cloned.json();
-      console.log("[Stripe V2] Raw response", prettyPrint(raw));
-    } catch {
-      //
-    }
-
-    return context.response;
-  },
   onError: ({ error }) => {
     console.error("[Stripe V2] Error", prettyPrint(error));
   },
+  // onResponse: async (context) => {
+  //   const cloned = context.response.clone();
+
+  //   try {
+  //     const raw = await cloned.json();
+  //     console.log("[Stripe V2] Raw response", prettyPrint(raw));
+  //   } catch {
+  //     //
+  //   }
+
+  //   return context.response;
+  // },
 });

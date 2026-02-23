@@ -113,12 +113,16 @@ export const outboundPaymentSchema = z.object({
   created: z.string(),
   status_details: z
     .object({
-      failed: z.object({
-        reason: z.string(),
-      }),
-      returned: z.object({
-        reason: z.string(),
-      }),
+      failed: z
+        .object({
+          reason: z.string(),
+        })
+        .optional(),
+      returned: z
+        .object({
+          reason: z.string(),
+        })
+        .optional(),
     })
     .nullable()
     .optional(),

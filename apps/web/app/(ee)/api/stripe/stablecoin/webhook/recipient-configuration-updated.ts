@@ -79,7 +79,7 @@ export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
   }
 
   if (cryptoWalletAddress) {
-    detectDuplicatePayoutMethodFraud({
+    await detectDuplicatePayoutMethodFraud({
       payoutWalletAddress: cryptoWalletAddress,
     });
   }
