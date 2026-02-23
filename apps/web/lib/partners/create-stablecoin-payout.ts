@@ -1,21 +1,11 @@
 import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { Payout } from "@dub/prisma/client";
 import { currencyFormatter, prettyPrint } from "@dub/utils";
 import { STABLECOIN_PAYOUT_FEE_RATE } from "../constants/payouts";
 import { markPayoutsAsProcessed } from "../payouts/api/mark-payouts-as-processed";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
 import { getStripeRecipientAccount } from "../stripe/get-stripe-recipient-account";
-
-export type PayoutWithProgramName = Pick<
-  Payout,
-  "id" | "amount" | "invoiceId"
-> & {
-  program: {
-    name: string;
-  };
-};
 
 interface CreateStablecoinPayoutParams {
   partnerId: string;

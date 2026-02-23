@@ -115,12 +115,12 @@ export const outboundPaymentSchema = z.object({
     .object({
       failed: z
         .object({
-          reason: z.string(),
+          reason: z.string().default("unknown_failure"),
         })
         .optional(),
       returned: z
         .object({
-          reason: z.string(),
+          reason: z.string().default("unknown_failure"),
         })
         .optional(),
     })

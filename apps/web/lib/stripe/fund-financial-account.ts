@@ -36,7 +36,7 @@ export async function fundFinancialAccount({
   });
 
   if (error) {
-    throw new Error(`Failed to Dub's fund financial account: ${error.message}`);
+    throw new Error(`Failed to fund Dub's financial account: ${error.message}`);
   }
 
   console.log("Money sent to Dub's financial account", prettyPrint(data));

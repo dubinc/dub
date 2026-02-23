@@ -7,18 +7,9 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { Payout, Prisma } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
 import { markPayoutsAsProcessed } from "../payouts/api/mark-payouts-as-processed";
-
-export type PayoutWithProgramName = Pick<
-  Payout,
-  "id" | "amount" | "invoiceId"
-> & {
-  program: {
-    name: string;
-  };
-};
 
 export const createStripeTransfer = async ({
   partnerId,
