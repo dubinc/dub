@@ -1,0 +1,24 @@
+{
+  "id": "cm_1K09DJTBCRT24P6BRD515CK29",
+  "type": "sale",
+  "amount": 50000,
+  "earnings": 10000,
+  "currency": "usd",
+  "status": "pending",
+  "description": null,
+  "quantity": 1,
+  "createdAt": "2025-07-16T10:48:14.722Z",
+  "link": {
+    "id": "cm0lcuvtz000xcutmqw4a7wi3",
+    "shortLink": "https://dub.sh/track-test",
+    "domain": "dub.sh",
+    "key": "track-test"
+  },
+  "customer": {
+    "id": "cus_1K09DJDEACR47NPYC93RM43WF",
+    "country": "US",
+    "createdAt": "2025-07-16T10:48:01.739Z",
+    "firstSaleAt": "2025-07-18T10:48:01.739Z",
+    "subscriptionCanceledAt": null
+  }
+}

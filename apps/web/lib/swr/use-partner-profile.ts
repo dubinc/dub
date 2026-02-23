@@ -2,7 +2,11 @@ import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { getPayoutMethodsForCountry } from "../partners/get-payout-methods-for-country";
-import { PartnerProps } from "../types";
+import { PartnerBetaFeatures, PartnerProps } from "../types";
+
+interface PartnerProfile extends PartnerProps {
+  featureFlags?: Record<PartnerBetaFeatures, boolean>;
+}
 
 export default function usePartnerProfile() {
   const { data: session, status } = useSession();
@@ -13,7 +17,7 @@ export default function usePartnerProfile() {
     error,
     isLoading,
     mutate,
-  } = useSWR<PartnerProps>(
+  } = useSWR<PartnerProfile>(
     defaultPartnerId && "/api/partner-profile",
     fetcher,
     {

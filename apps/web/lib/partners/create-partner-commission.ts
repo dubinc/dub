@@ -18,6 +18,7 @@ import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollm
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "../api/workflows/execute-workflows";
 import { Session } from "../auth";
+import { sendPartnerPostback } from "../postback/api/send-partner-postback";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
@@ -117,7 +118,10 @@ export const createPartnerCommission = async ({
       });
 
       const subscriptionDurationMonths = firstCommission
-        ? differenceInMonths(new Date(), firstCommission.createdAt)
+        ? differenceInMonths(
+            createdAt ?? new Date(), // account for custom commission creation date
+            firstCommission.createdAt,
+          )
         : 0;
 
       context = {
@@ -232,13 +236,13 @@ export const createPartnerCommission = async ({
             // Recurring sale reward (maxDuration > 0)
             else {
               const subscriptionDurationMonths = differenceInMonths(
-                new Date(),
+                createdAt ?? new Date(), // account for custom commission creation date
                 firstCommission.createdAt,
               );
 
               if (subscriptionDurationMonths >= reward.maxDuration) {
                 console.log(
-                  `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
+                  `Partner ${partnerId} has reached max duration for ${event} event (subscription duration: ${subscriptionDurationMonths} months, max duration: ${reward.maxDuration} months), skipping commission creation...`,
                 );
 
                 return {
@@ -355,6 +359,15 @@ export const createPartnerCommission = async ({
               ...commission,
               partner: webhookPartner,
             }),
+          }),
+
+          sendPartnerPostback({
+            partnerId,
+            event: "commission.created",
+            data: {
+              ...commission,
+              customer: commission.customer,
+            },
           }),
 
           syncTotalCommissions({

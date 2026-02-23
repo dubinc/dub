@@ -126,7 +126,7 @@ export function PartnerSection() {
         { id: "links", label: "Partner Links", icon: Hyperlink },
       ]}
       expandLimit={8}
-      hasMore={(data?.length ?? 0) > 8}
+      dataLength={data?.length}
       selectedTabId={tab}
       onSelectTab={handleTabChange}
       {...subTabProps}

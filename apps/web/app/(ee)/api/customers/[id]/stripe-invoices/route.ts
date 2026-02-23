@@ -1,8 +1,10 @@
 import { getCustomerOrThrow } from "@/lib/api/customers/get-customer-or-throw";
 import { getCustomerStripeInvoices } from "@/lib/api/customers/get-customer-stripe-invoices";
 import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { NextResponse } from "next/server";
+
 export const GET = withWorkspace(async ({ workspace, params }) => {
   const { id: customerId } = params;
 
@@ -30,6 +32,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   const stripeCustomerInvoices = await getCustomerStripeInvoices({
     stripeCustomerId: customer.stripeCustomerId,
     stripeConnectId: workspace.stripeConnectId,
+    programId: getDefaultProgramIdOrThrow(workspace),
   });
 
   return NextResponse.json(stripeCustomerInvoices);
