@@ -18,6 +18,10 @@ async function main() {
         stripePayoutId: true,
         paypalTransferId: true,
       },
+      take: BATCH_SIZE,
+      orderBy: {
+        id: "asc",
+      },
       ...(cursor
         ? {
             skip: 1,
@@ -26,10 +30,6 @@ async function main() {
             },
           }
         : {}),
-      take: BATCH_SIZE,
-      orderBy: {
-        id: "asc",
-      },
     });
 
     if (payouts.length === 0) {

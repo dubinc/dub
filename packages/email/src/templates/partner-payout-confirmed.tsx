@@ -38,7 +38,7 @@ export default function PartnerPayoutConfirmed({
     endDate: new Date("2024-11-30"),
     mode: "internal",
     paymentMethod: "ach",
-    payoutMethod: "stablecoin",
+    payoutMethod: "connect",
   },
 }: {
   email: string;
@@ -78,12 +78,7 @@ export default function PartnerPayoutConfirmed({
       })
     : null;
 
-  const etaDays =
-    payout.payoutMethod === "stablecoin"
-      ? 0
-      : payout.paymentMethod === "ach_fast"
-        ? 2
-        : 5;
+  const etaDays = payout.paymentMethod === "ach_fast" ? 2 : 5;
 
   const payoutDestination =
     payout.mode === "external"
@@ -132,37 +127,25 @@ export default function PartnerPayoutConfirmed({
               .
             </Text>
 
-            {payout.payoutMethod === "stablecoin" ? (
-              <Text className="text-sm leading-6 text-neutral-600">
-                Your USDC will arrive in your connected wallet within seconds.
-              </Text>
-            ) : (
-              <>
-                <Text className="text-sm leading-6 text-neutral-600">
-                  The payout is currently being processed and is expected to be
-                  transferred to your{" "}
-                  <strong className="text-black">{payoutDestination}</strong>{" "}
-                  account in{" "}
-                  <strong className="text-black">
-                    {etaDays} business days
-                  </strong>{" "}
-                  (excluding weekends and public holidays).
-                </Text>
+            <Text className="text-sm leading-6 text-neutral-600">
+              The payout is currently being processed and is expected to be
+              transferred to your{" "}
+              <strong className="text-black">{payoutDestination}</strong>{" "}
+              account in{" "}
+              <strong className="text-black">{etaDays} business days</strong>{" "}
+              (excluding weekends and public holidays).
+            </Text>
 
-                {payout.initiatedAt && (
-                  <Text className="text-sm leading-6 text-neutral-600">
-                    <span className="text-sm text-neutral-500">
-                      Estimated arrival date:{" "}
-                      <strong className="text-black">
-                        {formatDate(
-                          addBusinessDays(payout.initiatedAt, etaDays),
-                        )}
-                      </strong>
-                      .
-                    </span>
-                  </Text>
-                )}
-              </>
+            {payout.initiatedAt && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                <span className="text-sm text-neutral-500">
+                  Estimated arrival date:{" "}
+                  <strong className="text-black">
+                    {formatDate(addBusinessDays(payout.initiatedAt, etaDays))}
+                  </strong>
+                  .
+                </span>
+              </Text>
             )}
 
             <Section className="mb-12 mt-8">

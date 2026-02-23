@@ -5,6 +5,7 @@ import { prisma } from "@dub/prisma";
 import { partnerPayoutSettingsSchema } from "../../zod/schemas/partners";
 import { authPartnerActionClient } from "../safe-action";
 
+// Update a partner payout & invoice settings
 export const updatePartnerPayoutSettingsAction = authPartnerActionClient
   .inputSchema(partnerPayoutSettingsSchema)
   .action(async ({ ctx, parsedInput }) => {

@@ -6,7 +6,6 @@ const BATCH_SIZE = 100;
 
 async function main() {
   let cursor: string | undefined;
-  let totalUpdated = 0;
 
   while (true) {
     const partners = await prisma.partner.findMany({
@@ -19,6 +18,9 @@ async function main() {
         stripeRecipientId: true,
         paypalEmail: true,
       },
+      orderBy: {
+        id: "asc",
+      },
       ...(cursor
         ? {
             skip: 1,
@@ -28,9 +30,6 @@ async function main() {
           }
         : {}),
       take: BATCH_SIZE,
-      orderBy: {
-        id: "asc",
-      },
     });
 
     if (partners.length === 0) {
@@ -40,12 +39,12 @@ async function main() {
     for (const partner of partners) {
       let defaultPayoutMethod: PartnerPayoutMethod | null = null;
 
-      if (partner.stripeConnectId) {
+      if (partner.stripeRecipientId) {
+        defaultPayoutMethod = PartnerPayoutMethod.stablecoin;
+      } else if (partner.stripeConnectId) {
         defaultPayoutMethod = PartnerPayoutMethod.connect;
       } else if (partner.paypalEmail) {
         defaultPayoutMethod = PartnerPayoutMethod.paypal;
-      } else if (partner.stripeRecipientId) {
-        defaultPayoutMethod = PartnerPayoutMethod.stablecoin;
       }
 
       if (defaultPayoutMethod) {

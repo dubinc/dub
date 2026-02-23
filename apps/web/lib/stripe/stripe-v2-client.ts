@@ -17,6 +17,9 @@ import {
 
 export const STRIPE_API_VERSION = "2025-09-30.preview";
 
+// TODO:
+// Replace this with new Stripe SDK when it becomes stable
+
 export const stripeV2Fetch = createFetch({
   baseURL: "https://api.stripe.com",
   headers: {
