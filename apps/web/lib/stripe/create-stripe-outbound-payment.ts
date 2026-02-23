@@ -19,10 +19,6 @@ export async function createStripeOutboundPayment({
     throw new Error("STRIPE_FINANCIAL_ACCOUNT_ID is not configured.");
   }
 
-  if (!stripeRecipientId) {
-    throw new Error("Partner does not have a Stripe recipient account.");
-  }
-
   const { data, error } = await stripeV2Fetch(
     "/v2/money_management/outbound_payments",
     {
