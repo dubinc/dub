@@ -12,7 +12,6 @@ const CACHE_TTL = 60 * 60;
 interface GetSocialContentStatsParams {
   platform: PlatformType;
   url: string;
-  skipCache?: boolean;
 }
 
 const PLATFORM_CONTENT_TYPE: Record<
@@ -39,7 +38,6 @@ const EMPTY_SOCIAL_CONTENT: SocialContent = {
 export async function getSocialContent({
   platform,
   url,
-  skipCache = false,
 }: GetSocialContentStatsParams): Promise<SocialContent> {
   url = url?.trim();
 
@@ -54,12 +52,10 @@ export async function getSocialContent({
   const urlHash = await hashStringSHA256(url);
   const cacheKey = `${CACHE_KEY_PREFIX}:${urlHash}`;
 
-  if (!skipCache) {
-    const cachedResult = await redis.get<SocialContent>(cacheKey);
+  const cachedResult = await redis.get<SocialContent>(cacheKey);
 
-    if (cachedResult) {
-      return cachedResult;
-    }
+  if (cachedResult) {
+    return cachedResult;
   }
 
   const contentType = PLATFORM_CONTENT_TYPE[platform];
