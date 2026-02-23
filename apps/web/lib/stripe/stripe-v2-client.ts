@@ -3,11 +3,11 @@ import { prettyPrint } from "@dub/utils";
 import {
   createAccountLinkInputSchema,
   createAccountLinkOutputSchema,
-  createInboundTransferInputSchema,
   createOutboundPaymentInputSchema,
+  createPayoutInputSchema,
+  createPayoutOutputSchema,
   createRecipientAccountInputSchema,
   createRecipientAccountOutputSchema,
-  inboundTransferSchema,
   listPayoutMethodsOutputSchema,
   listPayoutMethodsQuerySchema,
   outboundPaymentSchema,
@@ -40,11 +40,6 @@ export const stripeV2Fetch = createFetch({
         input: createAccountLinkInputSchema,
         output: createAccountLinkOutputSchema,
       },
-      "/v2/money_management/inbound_transfers": {
-        method: "post",
-        input: createInboundTransferInputSchema,
-        output: inboundTransferSchema,
-      },
       "/v2/money_management/outbound_payments": {
         method: "post",
         input: createOutboundPaymentInputSchema,
@@ -58,6 +53,13 @@ export const stripeV2Fetch = createFetch({
         method: "get",
         query: listPayoutMethodsQuerySchema,
         output: listPayoutMethodsOutputSchema,
+      },
+
+      // payout_method is a preview feature and not currently available in our current SDK version
+      "/v1/payouts": {
+        method: "post",
+        input: createPayoutInputSchema,
+        output: createPayoutOutputSchema,
       },
     },
     {

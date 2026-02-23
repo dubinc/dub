@@ -53,26 +53,6 @@ export const createAccountLinkOutputSchema = z.object({
   expires_at: z.union([z.number(), z.string()]),
 });
 
-export const createInboundTransferInputSchema = z.object({
-  amount: z.object({
-    currency: z.string(),
-    value: z.number(),
-  }),
-  from: z.object({
-    payment_method: z.string(),
-    currency: z.string().optional(),
-  }),
-  to: z.object({
-    currency: z.string(),
-    financial_account: z.string(),
-  }),
-  description: z.string().optional(),
-});
-
-export const inboundTransferSchema = z.object({
-  id: z.string(),
-});
-
 export const createOutboundPaymentInputSchema = z.object({
   amount: z.object({
     currency: z.string(),
@@ -188,6 +168,19 @@ export const retrieveAccountOutputSchema = z.object({
         .nullable(),
     })
     .nullable(),
+});
+
+export const createPayoutInputSchema = z.object({
+  amount: z.number(),
+  currency: z.literal("usd"),
+  payout_method: z.string(),
+});
+
+export const createPayoutOutputSchema = z.object({
+  id: z.string(),
+  amount: z.number(),
+  currency: z.string(),
+  status: z.enum(["pending", "paid", "in_transit", "canceled", "failed"]),
 });
 
 export const stripeV2ThinEventSchema = z.object({

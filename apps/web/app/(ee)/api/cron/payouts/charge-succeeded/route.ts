@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { STABLECOIN_PAYOUT_FEE_RATE } from "@/lib/constants/payouts";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { createStripeInboundTransfer } from "@/lib/stripe/create-stripe-inbound-transfer";
+import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
@@ -53,7 +54,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Update payout method from partner's defaultPayoutMethod
+    // Set the payout method to the partner's default payout method
     await prisma.$executeRaw`
       UPDATE Payout p
       INNER JOIN Partner pr ON p.partnerId = pr.id
@@ -62,10 +63,10 @@ export async function POST(req: Request) {
       AND pr.defaultPayoutMethod IS NOT NULL
     `;
 
-    // Find the total amount we should transfer to FA to handle Stablecoin payouts
-    const {
-      _sum: { amount: totalStablecoinPayoutAmount },
-    } = await prisma.payout.aggregate({
+    // Fund only the net amount we actually pay out (after the 1% stablecoin fee).
+    // We compute this per partner to match the rounding used in `createStripeTransfer`.
+    const stablecoinPayoutsByPartner = await prisma.payout.groupBy({
+      by: ["partnerId"],
       _sum: {
         amount: true,
       },
@@ -75,11 +76,25 @@ export async function POST(req: Request) {
       },
     });
 
-    // Make an inbound transfer to Dub's financial account to handle Stablecoin payouts
-    if (totalStablecoinPayoutAmount && totalStablecoinPayoutAmount > 0) {
-      await createStripeInboundTransfer({
-        amount: totalStablecoinPayoutAmount,
-      });
+    const stablecoinFundingAmount = stablecoinPayoutsByPartner.reduce(
+      (total, payout) => {
+        const partnerPayoutAmount = payout._sum.amount ?? 0;
+
+        if (partnerPayoutAmount <= 0) {
+          return total;
+        }
+
+        const stablecoinPayoutFee = Math.round(
+          partnerPayoutAmount * STABLECOIN_PAYOUT_FEE_RATE,
+        );
+
+        return total + (partnerPayoutAmount - stablecoinPayoutFee);
+      },
+      0,
+    );
+
+    if (stablecoinFundingAmount > 0) {
+      await fundFinancialAccount(stablecoinFundingAmount);
     }
 
     await Promise.allSettled([
