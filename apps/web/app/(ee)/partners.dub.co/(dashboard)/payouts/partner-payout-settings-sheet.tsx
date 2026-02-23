@@ -291,11 +291,15 @@ function InvoiceDetailsSection({
       </div>
 
       <div>
-        <label className="text-sm font-medium text-neutral-900">
+        <label
+          htmlFor="companyName"
+          className="text-sm font-medium text-neutral-900"
+        >
           Business name
         </label>
         <div className="relative mt-1.5 rounded-md shadow-sm">
           <input
+            id="companyName"
             className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
             {...register("companyName")}
           />
@@ -303,10 +307,14 @@ function InvoiceDetailsSection({
       </div>
 
       <div>
-        <label className="text-sm font-medium text-neutral-900">
+        <label
+          htmlFor="address"
+          className="text-sm font-medium text-neutral-900"
+        >
           Business address
         </label>
         <TextareaAutosize
+          id="address"
           className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
           minRows={3}
           {...register("address")}
@@ -314,11 +322,15 @@ function InvoiceDetailsSection({
       </div>
 
       <div>
-        <label className="text-sm font-medium text-neutral-900">
+        <label
+          htmlFor="taxId"
+          className="text-sm font-medium text-neutral-900"
+        >
           Business tax ID
         </label>
         <div className="relative mt-1.5 rounded-md shadow-sm">
           <input
+            id="taxId"
             className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
             {...register("taxId")}
           />
