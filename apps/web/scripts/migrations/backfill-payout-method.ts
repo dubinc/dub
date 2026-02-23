@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { PartnerPayoutMethod, Payout } from "@dub/prisma/client";
+import { PartnerPayoutMethod } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
 const BATCH_SIZE = 100;
@@ -33,39 +33,48 @@ async function main() {
       break;
     }
 
-    const toUpdate: Pick<Payout, "id" | "method">[] = [];
+    const connectPayoutIds: string[] = [];
+    const paypalPayoutIds: string[] = [];
 
     for (const payout of payouts) {
-      let method: PartnerPayoutMethod | null = null;
-
       if (payout.stripeTransferId || payout.stripePayoutId) {
-        method = PartnerPayoutMethod.connect;
+        connectPayoutIds.push(payout.id);
       } else if (payout.paypalTransferId) {
-        method = PartnerPayoutMethod.paypal;
-      }
-
-      if (method) {
-        toUpdate.push({
-          id: payout.id,
-          method,
-        });
+        paypalPayoutIds.push(payout.id);
       }
     }
 
-    if (toUpdate.length > 0) {
-      await Promise.all(
-        toUpdate.map(({ id, method }) =>
-          prisma.payout.update({
+    const [connectRes, paypalRes] = await Promise.all([
+      connectPayoutIds.length > 0
+        ? prisma.payout.updateMany({
             where: {
-              id,
+              id: {
+                in: connectPayoutIds,
+              },
             },
             data: {
-              method,
+              method: PartnerPayoutMethod.connect,
             },
-          }),
-        ),
-      );
-    }
+          })
+        : Promise.resolve({ count: 0 }),
+
+      paypalPayoutIds.length > 0
+        ? prisma.payout.updateMany({
+            where: {
+              id: {
+                in: paypalPayoutIds,
+              },
+            },
+            data: {
+              method: PartnerPayoutMethod.paypal,
+            },
+          })
+        : Promise.resolve({ count: 0 }),
+    ]);
+
+    console.log(
+      `Updated ${connectRes.count} connect payouts and ${paypalRes.count} paypal payouts`,
+    );
 
     cursor = payouts[payouts.length - 1].id;
   }
