@@ -18,12 +18,12 @@ export function getPayoutMethodsForCountry({
 
   const methods: PartnerPayoutMethod[] = [];
 
-  if (CONNECT_SUPPORTED_COUNTRIES.includes(country)) {
-    methods.push("connect");
-  }
-
   if (stablecoinEnabled && STABLECOIN_SUPPORTED_COUNTRIES.includes(country)) {
     methods.push("stablecoin");
+  }
+
+  if (CONNECT_SUPPORTED_COUNTRIES.includes(country)) {
+    methods.push("connect");
   }
 
   if (PAYPAL_SUPPORTED_COUNTRIES.includes(country)) {
