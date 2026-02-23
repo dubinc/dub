@@ -54,7 +54,6 @@ export const stripeV2Fetch = createFetch({
         query: listPayoutMethodsQuerySchema,
         output: listPayoutMethodsOutputSchema,
       },
-
       // payout_method is a preview feature and not currently available in our current SDK version
       "/v1/payouts": {
         method: "post",

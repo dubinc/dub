@@ -1,5 +1,5 @@
 import { prettyPrint } from "@dub/utils";
-import { stripeV2Fetch } from "./stripe-v2-client";
+import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
 const financialAccountId = process.env.STRIPE_FINANCIAL_ACCOUNT_ID;
 
@@ -19,6 +19,11 @@ export async function fundFinancialAccount(amount: number) {
       currency: "usd",
       payout_method: financialAccountId,
     },
+    headers: {
+      Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+      "Stripe-Version": STRIPE_API_VERSION,
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
   });
 
   if (error) {
@@ -26,12 +31,6 @@ export async function fundFinancialAccount(amount: number) {
   }
 
   console.log("Money sent to Dub's financial account", prettyPrint(data));
-
-  if (data.status !== "paid") {
-    throw new Error(
-      `Failed to fund Dub's financial account. The current status is ${data.status}.`,
-    );
-  }
 
   return data;
 }
