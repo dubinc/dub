@@ -1,6 +1,5 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
-import { maskWalletAddress } from "@/lib/payouts/stablecoin-utils";
 import { getStripeStablecoinPayoutMethod } from "@/lib/stripe/get-stripe-recipient-payout-method";
 import { stripeV2ThinEventSchema } from "@/lib/stripe/stripe-v2-schemas";
 import { sendEmail } from "@dub/email";
@@ -55,6 +54,12 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
     },
   });
 
+  const maskedCryptoWalletAddress = cryptoWalletAddress
+    ? cryptoWalletAddress.length > 10
+      ? `${cryptoWalletAddress.slice(0, 6)}••••${cryptoWalletAddress.slice(-4)}`
+      : cryptoWalletAddress
+    : null;
+
   if (
     partner.email &&
     cryptoWalletAddress &&
@@ -68,7 +73,7 @@ export async function recipientConfigurationUpdated(event: Stripe.Event) {
         email: partner.email,
         payoutMethod: {
           type: "stablecoin",
-          wallet_address: maskWalletAddress(cryptoWalletAddress),
+          wallet_address: maskedCryptoWalletAddress,
           wallet_network: cryptoWalletNetwork,
         },
       }),
