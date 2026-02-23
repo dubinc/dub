@@ -81,6 +81,9 @@ export const createStablecoinPayout = async ({
   totalTransferableAmount -=
     totalTransferableAmount * STABLECOIN_PAYOUT_FEE_RATE;
 
+  // Round down to the nearest integer
+  totalTransferableAmount = Math.floor(totalTransferableAmount);
+
   if (totalTransferableAmount <= 0) {
     console.warn(
       `Total transferable amount for partner ${partner.email} in invoice ${invoiceId} is less than 0.`,
