@@ -243,6 +243,7 @@ function PayoutMethodsSection() {
             <PayoutMethodSelector
               payoutMethods={["stablecoin"]}
               variant="compact"
+              allowConnectWhenPayoutsEnabled
             />
           )}
         </div>

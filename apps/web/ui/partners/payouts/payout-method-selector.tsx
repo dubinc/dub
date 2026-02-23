@@ -83,10 +83,12 @@ export function PayoutMethodSelector({
   payoutMethods,
   variant: variantProp,
   actionFooter,
+  allowConnectWhenPayoutsEnabled,
 }: {
   payoutMethods: string[];
   variant?: "default" | "compact";
   actionFooter?: (methodId: string) => ReactNode;
+  allowConnectWhenPayoutsEnabled?: boolean;
 }) {
   const filteredMethods = PAYOUT_METHODS.filter((m) =>
     payoutMethods.includes(m.id),
@@ -125,6 +127,7 @@ export function PayoutMethodSelector({
               payoutMethod={method.id}
               text="Connect"
               className="h-9 w-full rounded-lg"
+              allowWhenPayoutsEnabled={allowConnectWhenPayoutsEnabled}
             />
           }
           actionFooter={actionFooter?.(method.id)}

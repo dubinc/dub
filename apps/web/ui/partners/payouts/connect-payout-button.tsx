@@ -18,10 +18,12 @@ import { toast } from "sonner";
 
 interface ConnectPayoutButtonProps extends ButtonProps {
   payoutMethod?: PartnerPayoutMethod;
+  allowWhenPayoutsEnabled?: boolean;
 }
 
 export function ConnectPayoutButton({
   payoutMethod,
+  allowWhenPayoutsEnabled,
   ...props
 }: ConnectPayoutButtonProps) {
   const router = useRouter();
@@ -133,7 +135,7 @@ export function ConnectPayoutButton({
     return null;
   }
 
-  if (partner?.payoutsEnabledAt) {
+  if (partner?.payoutsEnabledAt && !allowWhenPayoutsEnabled) {
     return null;
   }
 
