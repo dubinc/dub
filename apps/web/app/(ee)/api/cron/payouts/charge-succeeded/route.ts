@@ -61,6 +61,7 @@ export async function POST(req: Request) {
       SET p.method = pr.defaultPayoutMethod
       WHERE p.invoiceId = ${invoice.id}
       AND pr.defaultPayoutMethod IS NOT NULL
+      AND p.status = 'processing'
     `;
 
     // Fund only the net amount we actually pay out (after the 1% stablecoin fee).
