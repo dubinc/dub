@@ -280,6 +280,12 @@ export const createBountySubmissionAction = authPartnerActionClient
         );
       }
 
+      submissionData = {
+        ...submissionData,
+        status: "draft",
+        completedAt: null,
+      };
+
       const metricValue = socialContent[bountyInfo.socialMetrics.metric];
 
       if (typeof metricValue === "number" && Number.isInteger(metricValue)) {
@@ -297,9 +303,6 @@ export const createBountySubmissionAction = authPartnerActionClient
         ) {
           submissionData.status = "submitted";
           submissionData.completedAt = new Date();
-        } else {
-          submissionData.status = "draft";
-          submissionData.completedAt = null;
         }
       }
     }
