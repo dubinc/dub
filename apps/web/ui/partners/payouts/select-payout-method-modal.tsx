@@ -15,6 +15,8 @@ function SelectPayoutMethodModal({
 }) {
   const { availablePayoutMethods } = usePartnerProfile();
 
+  const isOnlyPayoutMethod = availablePayoutMethods.length === 1;
+
   return (
     <Modal
       showModal={showModal}
@@ -28,10 +30,14 @@ function SelectPayoutMethodModal({
           </div>
           <div className="min-w-0">
             <h3 className="text-lg font-semibold text-neutral-800">
-              Select a payout method
+              {isOnlyPayoutMethod
+                ? "Connect your payout method"
+                : "Select a payout method"}
             </h3>
             <p className="mt-1 text-sm text-neutral-500">
-              Select your preferred payout method to receive payouts.
+              {isOnlyPayoutMethod
+                ? "Set up your payout method to receive payouts."
+                : "Select your preferred payout method to receive payouts."}
             </p>
           </div>
         </div>

@@ -116,7 +116,6 @@ export const STABLECOIN_SUPPORTED_COUNTRIES = [
   "TR", // Turkey
   "AE", // United Arab Emirates
   "GB", // United Kingdom
-  "US", // United States
   "UY", // Uruguay
   "UZ", // Uzbekistan
   "VN", // Vietnam
