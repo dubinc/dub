@@ -40,6 +40,7 @@ const SOCIAL_URL_HOST_TO_PLATFORM: Record<string, PlatformType> = {
   "m.tiktok.com": "tiktok",
   "vm.tiktok.com": "tiktok",
   "instagram.com": "instagram",
+  "m.instagram.com": "instagram",
   "twitter.com": "twitter",
   "x.com": "twitter",
 };
@@ -96,7 +97,7 @@ export function getSocialContentEmbedUrl({
     }
 
     if (platform === "instagram") {
-      if (host === "instagram.com") {
+      if (host === "instagram.com" || host === "m.instagram.com") {
         const pathMatch =
           parsed.pathname.match(/\/p\/([^/]+)/) ??
           parsed.pathname.match(/\/reel\/([^/]+)/);
