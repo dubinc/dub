@@ -9,7 +9,7 @@ import { openApiErrorResponses } from "../responses";
 export const updateCommission: ZodOpenApiOperationObject = {
   operationId: "updateCommission",
   "x-speakeasy-name-override": "update",
-  summary: "Update a commission.",
+  summary: "Update a commission",
   description:
     "Update an existing commission amount. This is useful for handling refunds (partial or full) or fraudulent sales.",
   requestParams: {
