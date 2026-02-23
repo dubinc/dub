@@ -5,7 +5,13 @@ import {
   STABLECOIN_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
 
-export function getPayoutMethodsForCountry(country: string | null | undefined) {
+export function getPayoutMethodsForCountry({
+  country,
+  stablecoinEnabled = true,
+}: {
+  country: string | null | undefined;
+  stablecoinEnabled?: boolean;
+}) {
   if (!country) {
     return [];
   }
@@ -16,7 +22,7 @@ export function getPayoutMethodsForCountry(country: string | null | undefined) {
     methods.push("connect");
   }
 
-  if (STABLECOIN_SUPPORTED_COUNTRIES.includes(country)) {
+  if (stablecoinEnabled && STABLECOIN_SUPPORTED_COUNTRIES.includes(country)) {
     methods.push("stablecoin");
   }
 

@@ -26,11 +26,16 @@ export default function usePartnerProfile() {
     },
   );
 
+  const availablePayoutMethods = getPayoutMethodsForCountry({
+    country: partner?.country,
+    stablecoinEnabled: Boolean(partner?.featureFlags?.stablecoin),
+  });
+
   return {
     partner,
     error,
     loading: status === "loading" || isLoading,
     mutate,
-    availablePayoutMethods: getPayoutMethodsForCountry(partner?.country),
+    availablePayoutMethods,
   };
 }

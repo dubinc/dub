@@ -22,7 +22,9 @@ export const generatePaypalOAuthUrl = authPartnerActionClient.action(
       );
     }
 
-    const availablePayoutMethods = getPayoutMethodsForCountry(partner.country);
+    const availablePayoutMethods = getPayoutMethodsForCountry({
+      country: partner.country,
+    });
 
     if (!availablePayoutMethods.includes(PartnerPayoutMethod.paypal)) {
       throw new Error(

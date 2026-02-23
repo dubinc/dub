@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/auth";
+import { getPartnerFeatureFlags } from "@/lib/edge-config";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-selector";
 import { prisma } from "@dub/prisma";
@@ -59,6 +60,7 @@ async function PayoutRSC() {
       email: user.email,
     },
     select: {
+      id: true,
       country: true,
     },
   });
@@ -67,15 +69,20 @@ async function PayoutRSC() {
     redirect("/");
   }
 
-  const availableMethods = getPayoutMethodsForCountry(partner.country);
+  const featureFlags = await getPartnerFeatureFlags(partner.id);
 
-  if (availableMethods.length === 0) {
+  const availablePayoutMethods = getPayoutMethodsForCountry({
+    country: partner.country,
+    stablecoinEnabled: featureFlags.stablecoin,
+  });
+
+  if (availablePayoutMethods.length === 0) {
     redirect("/");
   }
 
   return (
     <>
-      <PayoutMethodSelector payoutMethods={availableMethods} />
+      <PayoutMethodSelector payoutMethods={availablePayoutMethods} />
       <Link
         href="/programs"
         className="mt-6 block text-center text-sm font-semibold text-neutral-800 transition-colors hover:text-neutral-950"

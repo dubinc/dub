@@ -1,4 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { getPartnerFeatureFlags } from "@/lib/edge-config";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { getStripeStablecoinPayoutMethod } from "@/lib/stripe/get-stripe-recipient-payout-method";
@@ -8,7 +9,12 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/payouts/settings
 export const GET = withPartnerProfile(async ({ partner }) => {
-  const availableMethods = getPayoutMethodsForCountry(partner.country);
+  const featureFlags = await getPartnerFeatureFlags(partner.id);
+
+  const availablePayoutMethods = getPayoutMethodsForCountry({
+    country: partner.country,
+    stablecoinEnabled: featureFlags.stablecoin,
+  });
 
   const [bankAccount, stripePayoutMethod] = await Promise.all([
     partner.stripeConnectId
@@ -23,7 +29,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
   const payoutMethods: PartnerPayoutMethodSetting[] = [];
 
   // Connect
-  if (availableMethods.includes(PartnerPayoutMethod.connect)) {
+  if (availablePayoutMethods.includes(PartnerPayoutMethod.connect)) {
     let identifier: string | null = null;
 
     if (bankAccount) {
@@ -42,7 +48,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
   }
 
   // Stablecoin
-  if (availableMethods.includes(PartnerPayoutMethod.stablecoin)) {
+  if (availablePayoutMethods.includes(PartnerPayoutMethod.stablecoin)) {
     let identifier: string | null = null;
 
     if (stripePayoutMethod?.crypto_wallet) {
@@ -64,7 +70,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
   }
 
   // PayPal
-  if (availableMethods.includes(PartnerPayoutMethod.paypal)) {
+  if (availablePayoutMethods.includes(PartnerPayoutMethod.paypal)) {
     payoutMethods.push({
       type: PartnerPayoutMethod.paypal,
       label: "PayPal",
