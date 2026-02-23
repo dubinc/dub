@@ -183,12 +183,6 @@ export const createPayoutOutputSchema = z.object({
   status: z.enum(["pending", "paid", "in_transit", "canceled", "failed"]),
 });
 
-export const stripeV2ThinEventSchema = z.object({
-  related_object: z.object({
-    id: z.string(),
-  }),
-});
-
 export const OUTBOUND_PAYMENT_FAILURE_REASONS = {
   payout_method_declined:
     "The outbound flow to this payout method was declined.",

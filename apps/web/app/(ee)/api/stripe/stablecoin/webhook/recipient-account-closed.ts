@@ -1,12 +1,10 @@
 import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
-import { stripeV2ThinEventSchema } from "@/lib/stripe/stripe-v2-schemas";
+
 import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
-export async function recipientAccountClosed(event: Stripe.Event) {
-  const {
-    related_object: { id: stripeRecipientId },
-  } = stripeV2ThinEventSchema.parse(event);
+export async function recipientAccountClosed(event: Stripe.ThinEvent) {
+  const { id: stripeRecipientId } = event;
 
   const partner = await prisma.partner.findUnique({
     where: {

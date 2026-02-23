@@ -1,16 +1,14 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
 import { getStripeStablecoinPayoutMethod } from "@/lib/stripe/get-stripe-recipient-payout-method";
-import { stripeV2ThinEventSchema } from "@/lib/stripe/stripe-v2-schemas";
+
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 
-export async function recipientConfigurationUpdated(event: Stripe.Event) {
-  const {
-    related_object: { id: stripeRecipientId },
-  } = stripeV2ThinEventSchema.parse(event);
+export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
+  const { id: stripeRecipientId } = event;
 
   const partner = await prisma.partner.findUnique({
     where: {

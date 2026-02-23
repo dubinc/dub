@@ -36,12 +36,14 @@ export const POST = async (req: Request) => {
     );
   }
 
-  let event: Stripe.Event;
+  let event: Stripe.ThinEvent;
 
   try {
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = stripe.parseThinEvent(body, signature, webhookSecret);
   } catch (error) {
-    return logAndRespond(`[Webhook error]:${error.message}`, {
+    const message = error instanceof Error ? error.message : String(error);
+
+    return logAndRespond(`[Webhook error]: ${message}`, {
       status: 400,
     });
   }
@@ -75,12 +77,13 @@ export const POST = async (req: Request) => {
         break;
     }
   } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
     await log({
-      message: `/api/stripe/stablecoin/webhook webhook failed (${event.type}). Error: ${error.message}`,
+      message: `/api/stripe/stablecoin/webhook webhook failed (${event.type}). Error: ${message}`,
       type: "errors",
     });
 
-    return logAndRespond(`[Webhook error]: ${error.message}`, {
+    return logAndRespond(`[Webhook error]: ${message}`, {
       status: 400,
     });
   }

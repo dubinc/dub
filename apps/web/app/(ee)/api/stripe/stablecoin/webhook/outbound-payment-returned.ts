@@ -1,16 +1,11 @@
 import { getStripeOutboundPayment } from "@/lib/stripe/get-stripe-outbound-payment";
-import {
-  OUTBOUND_PAYMENT_FAILURE_REASONS,
-  stripeV2ThinEventSchema,
-} from "@/lib/stripe/stripe-v2-schemas";
+import { OUTBOUND_PAYMENT_FAILURE_REASONS } from "@/lib/stripe/stripe-v2-schemas";
 import { prisma } from "@dub/prisma";
 import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
 
-export async function outboundPaymentReturned(event: Stripe.Event) {
-  const {
-    related_object: { id: outboundPaymentId },
-  } = stripeV2ThinEventSchema.parse(event);
+export async function outboundPaymentReturned(event: Stripe.ThinEvent) {
+  const { id: outboundPaymentId } = event;
 
   const outboundPayment = await getStripeOutboundPayment(outboundPaymentId);
 
