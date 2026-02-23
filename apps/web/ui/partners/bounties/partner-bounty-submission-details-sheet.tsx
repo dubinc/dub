@@ -191,7 +191,7 @@ function PartnerBountySubmissionDetailsSheetContent({
               href={`/programs/${programSlug}/earnings?type=custom`}
               target="_blank"
               variant="secondary"
-              className="w-full"
+              className="w-full justify-center text-sm font-medium"
             >
               View earnings
             </ButtonLink>
