@@ -3,7 +3,6 @@ import {
   IndustryInterest,
   MonthlyTraffic,
   PartnerBannedReason,
-  PartnerPayoutMethod,
   PartnerProfileType,
   PlatformType,
   PreferredEarningStructure,
@@ -863,7 +862,6 @@ export const partnerPayoutSettingsSchema = z.object({
   companyName: z.string().max(190).trim().nullish(),
   address: z.string().max(500).trim().nullish(),
   taxId: z.string().max(100).trim().nullish(),
-  defaultPayoutMethod: z.enum(PartnerPayoutMethod).nullish(),
 });
 
 export const partnerCrossProgramSummarySchema = z.object({

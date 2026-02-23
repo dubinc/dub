@@ -10,10 +10,9 @@ const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [
 ];
 
 /**
- * Computes payoutsEnabledAt and defaultPayoutMethod after a payout method is
- * disconnected. Fetches Stripe account status to determine availability;
- * preserves payouts when another method remains active; clears both when no
- * methods remain.
+ * Computes payoutsEnabledAt and defaultPayoutMethod based on currently active
+ * payout methods. The default is always selected from priority order:
+ * stablecoin > connect > paypal.
  */
 export async function recomputePartnerPayoutState(
   partner: Pick<
@@ -60,20 +59,7 @@ export async function recomputePartnerPayoutState(
     }
   });
 
-  // Preserve existing default if still active; otherwise pick first by priority
-  let defaultPayoutMethod: PartnerPayoutMethod | null = null;
-
-  if (activePayoutMethods.length > 0) {
-    if (
-      partner.defaultPayoutMethod &&
-      activePayoutMethods.includes(partner.defaultPayoutMethod)
-    ) {
-      defaultPayoutMethod = partner.defaultPayoutMethod;
-    } else {
-      defaultPayoutMethod = activePayoutMethods[0];
-    }
-  }
-
+  const defaultPayoutMethod = activePayoutMethods[0] ?? null;
   let payoutsEnabledAt: Date | null = null;
 
   if (defaultPayoutMethod) {

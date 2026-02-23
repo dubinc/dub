@@ -36,7 +36,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
       type: PartnerPayoutMethod.connect,
       label: "Bank Account",
       default: partner.defaultPayoutMethod === PartnerPayoutMethod.connect,
-      connected: Boolean(partner.stripeConnectId),
+      connected: Boolean(bankAccount),
       identifier,
     });
   }

@@ -3,8 +3,6 @@
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
 import { generateStripeRecipientAccountLink } from "@/lib/actions/partners/generate-stripe-recipient-account-link";
-import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import { partnerPayoutMethodsSchema } from "@/lib/zod/schemas/partner-profile";
@@ -37,7 +35,7 @@ const PAYOUT_METHOD_ICONS = Object.fromEntries(
 export function PayoutMethodsDropdown() {
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
-  const { partner, loading: isPartnerLoading, mutate } = usePartnerProfile();
+  const { partner, loading: isPartnerLoading } = usePartnerProfile();
 
   const { data: payoutMethodsData, isLoading: isSettingsLoading } = useSWR<
     PartnerPayoutMethodSetting[]
@@ -78,20 +76,6 @@ export function PayoutMethodsDropdown() {
     useAction(generatePaypalOAuthUrl, {
       onSuccess: ({ data }) => {
         router.push(data!.url);
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-    });
-
-  const { executeAsync: executeUpdateSettings, isPending: isUpdatePending } =
-    useAction(updatePartnerPayoutSettingsAction, {
-      onSuccess: () => {
-        toast.success("Default payout method updated.");
-        mutate();
-        mutatePrefix("/api/partner-profile");
-        mutatePrefix("/api/partner-profile/payouts/settings");
-        setOpenPopover(false);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
@@ -160,15 +144,6 @@ export function PayoutMethodsDropdown() {
     ],
   );
 
-  const handleSetDefault = useCallback(
-    (type: PartnerPayoutMethod) => {
-      executeUpdateSettings({
-        defaultPayoutMethod: type,
-      });
-    },
-    [executeUpdateSettings],
-  );
-
   const isActionPending =
     isStripePending || isStablecoinPending || isPaypalPending;
 
@@ -203,8 +178,6 @@ export function PayoutMethodsDropdown() {
                       method={method}
                       onManage={handleManage}
                       onConnect={handleConnect}
-                      onSetDefault={handleSetDefault}
-                      isUpdatePending={isUpdatePending}
                       isActionPending={isActionPending}
                     />
                   ))}
@@ -239,15 +212,11 @@ function PayoutMethodItem({
   method,
   onManage,
   onConnect,
-  onSetDefault,
-  isUpdatePending,
   isActionPending,
 }: {
   method: PartnerPayoutMethodSetting;
   onManage: (type: PartnerPayoutMethod) => void;
   onConnect: (type: PartnerPayoutMethod) => void;
-  onSetDefault: (type: PartnerPayoutMethod) => void;
-  isUpdatePending: boolean;
   isActionPending: boolean;
 }) {
   const { Icon, wrapperClass } = PAYOUT_METHOD_ICONS[method.type];
@@ -273,17 +242,6 @@ function PayoutMethodItem({
               <span className="rounded-md bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700">
                 Default
               </span>
-            )}
-
-            {method.connected && !method.default && (
-              <button
-                type="button"
-                onClick={() => onSetDefault(method.type)}
-                disabled={isUpdatePending}
-                className="border-border-subtle cursor-pointer rounded-md border bg-white px-1.5 py-0.5 text-xs font-semibold text-neutral-600 transition-colors hover:bg-neutral-200 hover:text-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                Set as default
-              </button>
             )}
           </div>
           <span className="mt-0.5 block truncate text-xs text-neutral-500">
