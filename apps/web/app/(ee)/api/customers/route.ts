@@ -22,7 +22,7 @@ import { NextResponse } from "next/server";
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    let { programId, partnerId, includeExpandedFields, ...otherFilters } =
+    let { programId, partnerId, includeExpandedFields, ...filters } =
       getCustomersQuerySchemaExtended.parse(searchParams);
 
     if (programId || partnerId) {
@@ -30,7 +30,7 @@ export const GET = withWorkspace(
     }
 
     const customers = await getCustomers({
-      ...otherFilters,
+      ...filters,
       programId,
       workspaceId: workspace.id,
     });

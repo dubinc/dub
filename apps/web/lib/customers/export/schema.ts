@@ -60,8 +60,10 @@ export const customersExportQuerySchema = getCustomersQuerySchema
       ),
   });
 
-export const customersExportCronPayloadSchema =
-  customersExportQuerySchema.extend({
+export const customersExportCronInputSchema = customersExportQuerySchema.extend(
+  {
+    workspaceId: z.string(),
     programId: z.string(),
     userId: z.string(),
-  });
+  },
+);

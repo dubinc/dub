@@ -14,7 +14,7 @@ const MAX_CUSTOMERS_TO_EXPORT = 1000;
 
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
-    let { programId, partnerId, columns, ...otherFilters } =
+    let { programId, partnerId, columns, ...filters } =
       customersExportQuerySchema.parse(searchParams);
 
     if (programId || partnerId) {
@@ -22,7 +22,7 @@ export const GET = withWorkspace(
     }
 
     const where = buildCustomerCountWhere({
-      ...otherFilters,
+      ...filters,
       programId,
       workspaceId: workspace.id,
     });
@@ -35,7 +35,7 @@ export const GET = withWorkspace(
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/customers`,
         body: {
-          ...otherFilters,
+          ...filters,
           programId,
           userId: session.user.id,
           columns: columns.join(","),
@@ -46,7 +46,7 @@ export const GET = withWorkspace(
     }
 
     const customers = await getCustomers({
-      ...otherFilters,
+      ...filters,
       programId,
       workspaceId: workspace.id,
       page: 1,

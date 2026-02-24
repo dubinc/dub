@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/customers/count
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  let { programId, partnerId, groupBy, ...otherFilters } =
+  let { programId, partnerId, groupBy, ...filters } =
     getCustomersCountQuerySchema.parse(searchParams);
 
   if (programId || partnerId) {
@@ -15,7 +15,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   }
 
   const commonWhere = buildCustomerCountWhere({
-    ...otherFilters,
+    ...filters,
     programId,
     workspaceId: workspace.id,
   });
