@@ -75,7 +75,7 @@ export function PayoutRowMenu({ row }: { row: Row<PartnerPayoutResponse> }) {
       >
         <Button
           type="button"
-          className="h-8 whitespace-nowrap px-2"
+          className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
           variant="outline"
           icon={<Dots className="h-4 w-4 shrink-0" />}
         />

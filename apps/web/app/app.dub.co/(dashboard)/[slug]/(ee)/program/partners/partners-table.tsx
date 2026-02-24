@@ -219,7 +219,7 @@ export function PartnersTable() {
           id: "partner",
           header: "Partner",
           enableHiding: false,
-          minSize: 250,
+          maxSize: 250,
           cell: ({ row }) => {
             return (
               <PartnerRowItem partner={row.original} showPermalink={false} />
@@ -229,6 +229,7 @@ export function PartnersTable() {
         {
           id: "group",
           header: "Group",
+          maxSize: 250,
           cell: ({ row }) => {
             if (!groups) return "-";
 
@@ -279,8 +280,10 @@ export function PartnersTable() {
         {
           id: "location",
           header: "Location",
-          minSize: 150,
+          minSize: 190,
+          size: 190,
           meta: {
+            disableTruncate: true,
             filterParams: ({ getValue }) =>
               getValue()
                 ? {
@@ -291,7 +294,7 @@ export function PartnersTable() {
           cell: ({ row }) => {
             const country = row.original.country;
             return (
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 whitespace-nowrap">
                 {country && (
                   <img
                     alt={`${country} flag`}
@@ -299,7 +302,7 @@ export function PartnersTable() {
                     className="size-4 shrink-0"
                   />
                 )}
-                <span className="min-w-0 truncate">
+                <span className="whitespace-nowrap">
                   {(country ? COUNTRIES[country] : null) ?? "-"}
                 </span>
               </div>
@@ -445,9 +448,6 @@ export function PartnersTable() {
         {
           id: "menu",
           enableHiding: false,
-          minSize: 43,
-          size: 43,
-          maxSize: 43,
           header: ({ table }) => <EditColumnsButton table={table} />,
           cell: ({ row }) => (
             <RowMenuButton row={row} workspaceId={workspaceId!} />
@@ -911,7 +911,7 @@ function RowMenuButton({
       >
         <Button
           type="button"
-          className="h-8 whitespace-nowrap px-2"
+          className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
           variant="outline"
           icon={<Dots className="h-4 w-4 shrink-0" />}
         />
