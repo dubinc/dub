@@ -18,7 +18,8 @@ export async function GET() {
   return NextResponse.json(sorted, {
     headers: {
       "Access-Control-Allow-Origin": "*",
-      "Cache-Control": "public, max-age=86400",
+      // cache indefinitely till next deployment
+      "Cache-Control": "public, max-age=31536000, s-maxage=31536000",
     },
   });
 }
