@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { clearOnboardingPartnerDrafts } from "@/lib/onboarding/clear-onboarding-partner-drafts";
 import { SessionProvider, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
@@ -40,7 +39,6 @@ function NotFoundHintChild() {
         text="Sign in as a different user"
         onClick={() => {
           setIsLoading(true);
-          clearOnboardingPartnerDrafts();
           signOut();
         }}
         loading={isLoading}

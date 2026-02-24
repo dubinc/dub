@@ -28,7 +28,7 @@ export function useCountryChangeWarningModal() {
     >
       <div className="border-border-subtle bg-white border-b p-5 text-left">
         <h3 className="text-content-emphasis text-base font-semibold">
-          Change your country
+          Updating your country
         </h3>
       </div>
 

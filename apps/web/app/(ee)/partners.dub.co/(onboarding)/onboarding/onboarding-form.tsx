@@ -1,8 +1,6 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { PartnerData } from "@/lib/actions/partners/create-program-application";
-import { ONBOARDING_PAYOUTS_VISIT_SESSION_KEY } from "@/lib/onboarding/constants";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
@@ -14,7 +12,6 @@ import {
   ToggleGroup,
   TooltipContent,
   useEnterSubmit,
-  useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -22,7 +19,7 @@ import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -50,19 +47,8 @@ export function OnboardingForm({
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
   const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
-  const { data: session, status, update: refreshSession } = useSession();
+  const { data: session, update: refreshSession } = useSession();
   const countryChangeWarning = useCountryChangeWarningModal();
-  const onboardingPartnerDataStorageKey = useMemo(() => {
-    if (status === "loading") {
-      return "application-form-partner-data:pending";
-    }
-
-    if (session?.user?.email) {
-      return `application-form-partner-data:${session.user.email.toLowerCase()}`;
-    }
-
-    return "application-form-partner-data:anonymous";
-  }, [status, session?.user?.email]);
 
   const {
     register,
@@ -83,44 +69,14 @@ export function OnboardingForm({
     },
   });
 
-  const { name, image, country, profileType } = watch();
-
-  const [partnerData, setPartnerData] = useLocalStorage<PartnerData | null>(
-    onboardingPartnerDataStorageKey,
-    null,
-  );
-
-  useEffect(() => {
-    if (status !== "authenticated" || !session?.user?.email) return;
-
-    const anonymousKey = "application-form-partner-data:anonymous";
-    const emailKey = `application-form-partner-data:${session.user.email.toLowerCase()}`;
-
-    const anonymousData = localStorage.getItem(anonymousKey);
-    const emailData = localStorage.getItem(emailKey);
-
-    if (anonymousData && !emailData) {
-      try {
-        const parsed = JSON.parse(anonymousData) as PartnerData | null;
-        setPartnerData(parsed);
-        localStorage.setItem(emailKey, JSON.stringify(parsed));
-      } catch {
-        setPartnerData(null);
-      }
-    }
-
-    if (anonymousData) {
-      localStorage.removeItem(anonymousKey);
-    }
-  }, [status, session?.user?.email, setPartnerData]);
+  const { name, image, profileType } = watch();
 
   useEffect(() => {
     if (session?.user) {
-      !name && setValue("name", partnerData?.name ?? session.user.name ?? "");
+      !name && setValue("name", session.user.name ?? "");
       !image && setValue("image", session.user.image ?? "");
-      !country && setValue("country", partnerData?.country ?? "");
     }
-  }, [session?.user, name, image, country, partnerData, setValue]);
+  }, [session?.user, name, image, setValue]);
 
   // refresh the session after the Partner account is created
   useEffect(() => {
@@ -130,11 +86,7 @@ export function OnboardingForm({
   }, [accountCreated, refreshSession]);
 
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
-    onSuccess: ({ input }) => {
-      setPartnerData({
-        name: input.name,
-        country: input.country,
-      });
+    onSuccess: () => {
       setAccountCreated(true);
       router.push("/onboarding/platforms");
     },
@@ -224,12 +176,7 @@ export function OnboardingForm({
                 }
 
                 const shouldShowCountryChangeWarning =
-                  !!country &&
-                  !partner?.payoutsEnabledAt &&
-                  sessionStorage.getItem(
-                    ONBOARDING_PAYOUTS_VISIT_SESSION_KEY,
-                  ) === "true" &&
-                  !countryChangeWarning.isAcknowledged;
+                  !partner?.payoutsEnabledAt;
 
                 if (shouldShowCountryChangeWarning) {
                   countryChangeWarning.acknowledgeAndContinue(() => {

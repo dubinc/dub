@@ -1,6 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { clearOnboardingPartnerDrafts } from "@/lib/onboarding/clear-onboarding-partner-drafts";
 import { PartnerUserProps } from "@/lib/types";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
 import { signOut, useSession } from "next-auth/react";
@@ -55,7 +54,6 @@ function RemovePartnerUserModal({
 
       if (self) {
         toast.success("You have left the partner profile!");
-        clearOnboardingPartnerDrafts();
         await signOut({ callbackUrl: "/" });
         return;
       }

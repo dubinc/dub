@@ -8,12 +8,10 @@ import {
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { PayoutsVisitMarker } from "./payouts-visit-marker";
 
 export default function OnboardingVerificationPage() {
   return (
     <div className="relative mx-auto my-10 flex w-full max-w-[416px] flex-col items-center text-center md:mt-6">
-      <PayoutsVisitMarker />
       <h1 className="animate-slide-up-fade text-content-emphasis text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
         Payout information
       </h1>

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { clearOnboardingPartnerDrafts } from "@/lib/onboarding/clear-onboarding-partner-drafts";
 import { signOut, useSession } from "next-auth/react";
 import { useState } from "react";
 
@@ -24,7 +23,6 @@ export function SignedInHint() {
         text="Sign in as a different user"
         onClick={() => {
           setIsLoading(true);
-          clearOnboardingPartnerDrafts();
           signOut({
             callbackUrl: "/login",
           });
