@@ -1,6 +1,5 @@
 import { getSession } from "@/lib/auth";
-import { getPartnerFeatureFlags } from "@/lib/edge-config";
-import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
+import { getPartnerPayoutMethods } from "@/lib/payouts/api/get-partner-payout-methods";
 import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-selector";
 import { prisma } from "@dub/prisma";
 import Link from "next/link";
@@ -62,6 +61,10 @@ async function PayoutRSC() {
     select: {
       id: true,
       country: true,
+      stripeConnectId: true,
+      stripeRecipientId: true,
+      paypalEmail: true,
+      defaultPayoutMethod: true,
     },
   });
 
@@ -69,21 +72,16 @@ async function PayoutRSC() {
     redirect("/");
   }
 
-  const featureFlags = await getPartnerFeatureFlags(partner.id);
+  const payoutMethods = await getPartnerPayoutMethods(partner);
 
-  const availablePayoutMethods = getPayoutMethodsForCountry({
-    country: partner.country,
-    stablecoinEnabled: featureFlags.stablecoin,
-  });
-
-  if (availablePayoutMethods.length === 0) {
+  if (payoutMethods.length === 0) {
     redirect("/");
   }
 
   return (
     <>
       <PayoutMethodSelector
-        payoutMethods={availablePayoutMethods}
+        settings={payoutMethods}
         allowConnectWhenPayoutsEnabled
       />
       <Link
