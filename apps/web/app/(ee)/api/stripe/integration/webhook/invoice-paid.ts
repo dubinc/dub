@@ -296,10 +296,11 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
         }),
       }),
 
-      ...(link?.partnerId
+      ...(link?.partnerId && linkUpdated?.programId
         ? [
             sendPartnerPostback({
               partnerId: link.partnerId,
+              programId: linkUpdated.programId,
               event: "sale.created",
               data: {
                 ...saleData,
