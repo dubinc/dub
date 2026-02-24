@@ -11,10 +11,14 @@ import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
+import {
+  BountySchema,
+  submissionRequirementsSchema,
+  updateBountySchema,
+} from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { PartnerGroup, Prisma } from "@dub/prisma/client";
-import { arrayEqual } from "@dub/utils";
+import { arrayEqual, deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -135,6 +139,28 @@ export const PATCH = withWorkspace(
         throw new DubApiError({
           code: "bad_request",
           message: `You cannot change the performance condition from "${PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[currentCondition.attribute].toLowerCase()}" to "${PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute].toLowerCase()}" because the bounty has submissions.`,
+        });
+      }
+    }
+
+    // Prevent update if `submissionRequirements.socialMetrics` differs from the current value if there are existing submissions
+    if (submissionRequirements) {
+      const submissionCount = bounty._count.submissions;
+
+      const { socialMetrics: currentSocialMetrics = {} } =
+        submissionRequirementsSchema.parse(bounty.submissionRequirements);
+
+      const { socialMetrics: incomingSocialMetrics = {} } =
+        submissionRequirementsSchema.parse(submissionRequirements);
+
+      if (
+        !deepEqual(currentSocialMetrics, incomingSocialMetrics) &&
+        submissionCount > 0
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "You cannot change the social metrics criteria because the bounty has submissions.",
         });
       }
     }
