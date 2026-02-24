@@ -2,7 +2,6 @@
 
 import { createId } from "@/lib/api/create-id";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
-import { stripe } from "@/lib/stripe";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -30,21 +29,6 @@ export const onboardPartnerAction = authUserActionClient
       ? existingPartner.id
       : createId({ prefix: "pn_" });
 
-    const countryChanged =
-      !!existingPartner?.country &&
-      existingPartner.country.toLowerCase() !== country.toLowerCase();
-
-    if (countryChanged && existingPartner?.payoutsEnabledAt) {
-      throw new Error(
-        "Since you've already connected your bank account for payouts, you cannot change your country. Please contact support to update this field.",
-      );
-    }
-
-    const stripeConnectIdToDelete =
-      countryChanged && existingPartner?.stripeConnectId
-        ? existingPartner.stripeConnectId
-        : null;
-
     const imageUrl = image
       ? await storage
           .upload({
@@ -54,21 +38,15 @@ export const onboardPartnerAction = authUserActionClient
           .then(({ url }) => url)
       : undefined;
 
-    const payload = {
+    // country, profileType, and companyName cannot be changed once set
+    const payload: Prisma.PartnerCreateInput = {
       name: name || user.email,
       email: user.email,
-      // country can be updated until payouts are enabled
-      ...(!existingPartner?.country || !existingPartner?.payoutsEnabledAt
-        ? { country }
-        : {}),
+      // can only update these fields if it's not already set (else you need to update under profile settings)
+      ...(existingPartner?.country ? {} : { country }),
       ...(existingPartner?.profileType ? {} : { profileType }),
       ...(description && { description }),
       image: imageUrl,
-      ...(countryChanged
-        ? {
-            stripeConnectId: null,
-          }
-        : {}),
       users: {
         connectOrCreate: {
           where: {
@@ -88,21 +66,18 @@ export const onboardPartnerAction = authUserActionClient
       },
     };
 
-    const createPayload = payload as Prisma.PartnerCreateInput;
-    const updatePayload = payload as Prisma.PartnerUpdateInput;
-
     await Promise.all([
       existingPartner
         ? prisma.partner.update({
             where: {
               id: existingPartner.id,
             },
-            data: updatePayload,
+            data: payload,
           })
         : prisma.partner.create({
             data: {
               id: partnerId,
-              ...createPayload,
+              ...payload,
             },
           }),
 
@@ -117,21 +92,6 @@ export const onboardPartnerAction = authUserActionClient
           },
         }),
     ]);
-
-    if (stripeConnectIdToDelete) {
-      waitUntil(
-        stripe.accounts.del(stripeConnectIdToDelete).catch((error) => {
-          if (error?.code === "account_invalid") {
-            return;
-          }
-
-          console.error(
-            "Failed to delete Stripe account after country update",
-            error,
-          );
-        }),
-      );
-    }
 
     // Complete any outstanding program application
     waitUntil(completeProgramApplications(user.email));
