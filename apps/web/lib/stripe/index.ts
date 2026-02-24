@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { StripeMode } from "../types";
 
 export const stripe = new Stripe(`${process.env.STRIPE_SECRET_KEY}`, {
-  apiVersion: "2025-08-27.basil",
+  apiVersion: "2025-05-28.basil",
   appInfo: {
     name: "Dub.co",
     version: "0.1.0",
@@ -20,7 +20,7 @@ export const stripeAppClient = ({ mode }: { mode?: StripeMode }) => {
   const appSecretKey = secretMap[mode ?? "test"];
 
   return new Stripe(appSecretKey!, {
-    apiVersion: "2025-08-27.basil",
+    apiVersion: "2025-05-28.basil",
     appInfo: {
       name: "Dub.co",
       version: "0.1.0",
