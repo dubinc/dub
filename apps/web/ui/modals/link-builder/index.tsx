@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { getBillingUpgradePath } from "@/lib/billing/upgrade-url";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps } from "@/lib/types";
 import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls/link-builder-destination-url-input";
@@ -263,7 +264,7 @@ export function CreateLinkButton({
 }: {
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
 } & CreateLinkButtonProps) {
-  const { slug, role, exceededLinks } = useWorkspace();
+  const { slug, role, exceededLinks, nextPlan } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
     action: "links.write",
@@ -312,7 +313,14 @@ export function CreateLinkButton({
           <TooltipContent
             title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
             cta="Upgrade plan"
-            href={`/${slug}/upgrade`}
+            href={getBillingUpgradePath({
+              slug,
+              recommendation: nextPlan
+                ? {
+                    plan: nextPlan.name.toLowerCase(),
+                  }
+                : undefined,
+            })}
           />
         ) : (
           permissionsError || undefined

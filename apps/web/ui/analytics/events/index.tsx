@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import EmptyState from "@/ui/shared/empty-state";
 import { Menu3 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -59,7 +60,10 @@ function EventsTableContainer() {
           description={`Want more data on your link ${selectedTab === "clicks" ? "clicks & QR code scans" : selectedTab}? Upgrade to our Business Plan to get a detailed, real-time stream of events in your workspace.`}
           learnMore="https://d.to/events"
           buttonText="Upgrade to Business"
-          buttonLink={`/${slug}/upgrade`}
+          buttonLink={getBillingUpgradePathForFeature({
+            slug,
+            feature: "business",
+          })}
         />
       }
     />

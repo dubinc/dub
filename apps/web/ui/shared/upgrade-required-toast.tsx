@@ -1,5 +1,6 @@
 "use client";
 
+import { getBillingUpgradePath } from "@/lib/billing/upgrade-url";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { capitalize } from "@dub/utils";
 import { Crown } from "lucide-react";
@@ -26,7 +27,14 @@ export const UpgradeRequiredToast = ({
     ? `Upgrade to ${capitalize(planToUpgradeTo)}`
     : "Contact support";
 
-  const defaultCtaUrl = slug ? `/${slug}/upgrade` : "https://dub.co/pricing";
+  const defaultCtaUrl = getBillingUpgradePath({
+    slug,
+    recommendation: planToUpgradeTo
+      ? {
+          plan: planToUpgradeTo.toLowerCase(),
+        }
+      : undefined,
+  });
 
   return (
     <div className="flex flex-col space-y-3 rounded-lg bg-white p-6 shadow-lg">

@@ -1,4 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -373,7 +374,14 @@ function UpgradeTooltipContent() {
     <TooltipContent
       title="You can only claim a free `.link` domain on a Pro plan and above."
       cta="Upgrade to Pro"
-      onClick={() => window.open(`/${slug}/upgrade`)}
+      onClick={() =>
+        window.open(
+          getBillingUpgradePathForFeature({
+            slug,
+            feature: "pro",
+          }),
+        )
+      }
     />
   );
 }

@@ -1,4 +1,5 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderSummary } from "@/lib/types";
 import { Button, Modal, TooltipContent, useKeyboardShortcut } from "@dub/ui";
@@ -62,7 +63,10 @@ function AddFolderButton({
           <TooltipContent
             title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
             cta="Upgrade to Pro"
-            href={`/${slug}/upgrade`}
+            href={getBillingUpgradePathForFeature({
+              slug,
+              feature: "pro",
+            })}
           />
         ) : (
           permissionsError || undefined

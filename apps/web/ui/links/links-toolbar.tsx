@@ -1,4 +1,5 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { useFolderPermissions } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -123,7 +124,10 @@ export const LinksToolbar = memo(
               <TooltipContent
                 title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
                 cta="Upgrade to Pro"
-                href={`/${slug}/upgrade`}
+                href={getBillingUpgradePathForFeature({
+                  slug,
+                  feature: "pro",
+                })}
               />
             ) : undefined,
           keyboardShortcut: "m",
@@ -136,7 +140,10 @@ export const LinksToolbar = memo(
             <TooltipContent
               title="Conversion tracking is only available on Business plans and above."
               cta="Upgrade to Business"
-              href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+              href={getBillingUpgradePathForFeature({
+                slug,
+                feature: "business",
+              })}
               target="_blank"
             />
           ),

@@ -1,4 +1,5 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { getBillingUpgradePath } from "@/lib/billing/upgrade-url";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -16,7 +17,7 @@ import {
   useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
-import { capitalize, cn, pluralize } from "@dub/utils";
+import { capitalize, cn, getNextPlan, pluralize } from "@dub/utils";
 import {
   Dispatch,
   FormEvent,
@@ -207,6 +208,7 @@ function AddTagButton({
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { slug, plan, tagsLimit, role } = useWorkspace();
+  const nextPlan = getNextPlan(plan);
   const { tags } = useTags();
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
 
@@ -231,7 +233,14 @@ function AddTagButton({
             <TooltipContent
               title={`You can only add up to ${tagsLimit} ${pluralize("tag", tagsLimit || 0)} on the ${capitalize(plan)} plan. Upgrade to add more tags`}
               cta="Upgrade"
-              href={`/${slug}/upgrade`}
+              href={getBillingUpgradePath({
+                slug,
+                recommendation: nextPlan
+                  ? {
+                      plan: nextPlan.name.toLowerCase(),
+                    }
+                  : undefined,
+              })}
             />
           ) : (
             permissionsError || undefined

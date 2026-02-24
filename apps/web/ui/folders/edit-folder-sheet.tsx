@@ -3,6 +3,7 @@ import {
   FOLDER_USER_ROLE,
   FOLDER_WORKSPACE_ACCESS,
 } from "@/lib/folder/constants";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   useCheckFolderPermission,
@@ -164,7 +165,10 @@ const EditFolderSheetContent = ({
                     <TooltipContent
                       title="You can only set custom folder permissions on a Business plan and above."
                       cta="Upgrade to Business"
-                      href={`/${slug}/upgrade`}
+                      href={getBillingUpgradePathForFeature({
+                        slug,
+                        feature: "business",
+                      })}
                       target="_blank"
                     />
                   }
@@ -192,7 +196,10 @@ const EditFolderSheetContent = ({
                   </>
                 }
                 className="border-none"
-                learnMoreHref={`/${slug}/upgrade`}
+                learnMoreHref={getBillingUpgradePathForFeature({
+                  slug,
+                  feature: "business",
+                })}
                 learnMoreText="Upgrade to Business"
               />
             ) : (

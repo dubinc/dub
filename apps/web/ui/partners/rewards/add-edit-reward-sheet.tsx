@@ -5,6 +5,7 @@ import { createRewardAction } from "@/lib/actions/partners/create-reward";
 import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroup from "@/lib/swr/use-group";
@@ -604,7 +605,11 @@ function RewardSheetContent({
                   <TooltipContent
                     title="Advanced reward structures are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
+                    href={getBillingUpgradePathForFeature({
+                      slug: workspaceSlug,
+                      feature: "partners",
+                      showPartnersUpgradeModal: true,
+                    })}
                     target="_blank"
                   />
                 ) : undefined

@@ -1,4 +1,5 @@
 import { getQRAsCanvas, getQRAsSVGDataUri, getQRData } from "@/lib/qr";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import useDomain from "@/lib/swr/use-domain";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { QRLinkProps } from "@/lib/types";
@@ -256,7 +257,10 @@ function LinkQRModalInner({
               <TooltipContent
                 title="You need to be on the Pro plan and above to customize your QR Code logo."
                 cta="Upgrade to Pro"
-                href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+                href={getBillingUpgradePathForFeature({
+                  slug,
+                  feature: "pro",
+                })}
                 target="_blank"
               />
             ) : undefined

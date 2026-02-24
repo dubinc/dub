@@ -1,5 +1,6 @@
 "use client";
 
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { ModalContext } from "@/ui/modals/modal-provider";
 import { Button, TooltipContent } from "@dub/ui";
@@ -21,7 +22,10 @@ export default function CreateWorkspaceButton() {
               cta="Upgrade to Pro"
               href={
                 freeWorkspaces
-                  ? `/${freeWorkspaces[0].slug}/upgrade`
+                  ? getBillingUpgradePathForFeature({
+                      slug: freeWorkspaces[0].slug,
+                      feature: "pro",
+                    })
                   : "https://dub.co/pricing"
               }
             />

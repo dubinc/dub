@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import useDefaultDomains from "@/lib/swr/use-default-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
@@ -42,7 +43,7 @@ function DubDomainsIcon(domain: string) {
 }
 
 export function DefaultDomains() {
-  const { id, plan, role, flags } = useWorkspace();
+  const { id, slug: workspaceSlug, plan, role, flags } = useWorkspace();
   const [submitting, setSubmitting] = useState(false);
   const [defaultDomains, setDefaultDomains] = useState<string[]>([]);
   const { defaultDomains: initialDefaultDomains, mutate } = useDefaultDomains();
@@ -97,7 +98,10 @@ export function DefaultDomains() {
                     <TooltipContent
                       title="You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain."
                       cta="Upgrade to Pro"
-                      href={`/${slug}/upgrade`}
+                      href={getBillingUpgradePathForFeature({
+                        slug: workspaceSlug,
+                        feature: "pro",
+                      })}
                     />
                   ) : undefined)
                 }

@@ -1,4 +1,5 @@
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
@@ -176,7 +177,11 @@ function ConfirmCreateBountyModal({
                     <TooltipContent
                       title="New bounty notifications are only available on Advanced plans and above."
                       cta="Upgrade to Advanced"
-                      href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
+                      href={getBillingUpgradePathForFeature({
+                        slug: workspaceSlug,
+                        feature: "partners",
+                        showPartnersUpgradeModal: true,
+                      })}
                       target="_blank"
                     />
                   ),

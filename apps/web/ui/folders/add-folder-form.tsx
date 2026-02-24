@@ -1,4 +1,5 @@
 import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderAccessLevel, FolderSummary } from "@/lib/types";
@@ -173,7 +174,10 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
                         <TooltipContent
                           title="You can only set custom folder permissions on a Business plan and above."
                           cta="Upgrade to Business"
-                          href={`/${workspace.slug}/upgrade`}
+                          href={getBillingUpgradePathForFeature({
+                            slug: workspace.slug,
+                            feature: "business",
+                          })}
                           target="_blank"
                         />
                       }

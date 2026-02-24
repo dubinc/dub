@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { Button, Download, TooltipContent } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { Dispatch, SetStateAction, useContext } from "react";
@@ -65,7 +66,10 @@ export function EventsExportButton({
           <TooltipContent
             title="Upgrade to our Business Plan to enable CSV downloads for events in your workspace."
             cta="Upgrade to Business"
-            href={`/${slug}/upgrade`}
+            href={getBillingUpgradePathForFeature({
+              slug,
+              feature: "business",
+            })}
           />
         )
       }
