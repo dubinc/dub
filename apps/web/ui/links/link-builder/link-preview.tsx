@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import {
   LinkFormData,
   useLinkBuilderContext,
@@ -120,7 +121,10 @@ export const LinkPreview = memo(() => {
               <TooltipContent
                 title="Custom Link Previews are only available on the Pro plan and above."
                 cta="Upgrade to Pro"
-                href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+                href={getBillingUpgradePathForFeature({
+                  slug,
+                  feature: "pro",
+                })}
                 target="_blank"
               />
             ) : undefined

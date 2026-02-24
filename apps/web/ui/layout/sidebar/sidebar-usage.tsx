@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { getBillingUpgradePath } from "@/lib/billing/upgrade-url";
 import ManageSubscriptionButton from "@/ui/workspaces/manage-subscription-button";
 import { AnimatedSizeContainer, buttonVariants, Icon } from "@dub/ui";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
@@ -136,7 +137,14 @@ function UsageInner() {
             />
           ) : (warning || plan === "free") && plan !== "enterprise" ? (
             <Link
-              href={`/${slug}/upgrade`}
+              href={getBillingUpgradePath({
+                slug,
+                recommendation: nextPlan
+                  ? {
+                      plan: nextPlan.name.toLowerCase(),
+                    }
+                  : undefined,
+              })}
               className={cn(
                 buttonVariants(),
                 "mt-4 flex h-9 items-center justify-center rounded-md border px-4 text-sm",

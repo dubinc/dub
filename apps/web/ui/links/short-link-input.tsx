@@ -1,5 +1,6 @@
 "use client";
 
+import { getBillingUpgradePath } from "@/lib/billing/upgrade-url";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
@@ -365,7 +366,12 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
               {error.split(`Upgrade to ${nextPlan.name}`)[0]}
               <a
                 className="cursor-pointer underline"
-                href={`/${slug}/upgrade`}
+                href={getBillingUpgradePath({
+                  slug,
+                  recommendation: {
+                    plan: nextPlan.name.toLowerCase(),
+                  },
+                })}
                 target="_blank"
               >
                 Upgrade to {nextPlan.name}

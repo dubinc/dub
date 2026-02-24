@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { SegmentIntegrationCredentials } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
 import { Button, Tooltip, TooltipContent } from "@dub/ui";
@@ -50,7 +51,10 @@ export function SetWriteKey({
     <TooltipContent
       title="You can only install the Segment integration on the Business plan and above."
       cta="Upgrade to Business"
-      href={`/${slug}/upgrade`}
+      href={getBillingUpgradePathForFeature({
+        slug,
+        feature: "business",
+      })}
     />
   );
 

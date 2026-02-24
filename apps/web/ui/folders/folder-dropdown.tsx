@@ -1,6 +1,7 @@
 "use client";
 
 import { unsortedLinks } from "@/lib/folder/constants";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useFolder from "@/lib/swr/use-folder";
@@ -158,7 +159,10 @@ export const FolderDropdown = ({
           <TooltipContent
             title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
             cta="Upgrade to Pro"
-            href={`/${slug}/upgrade`}
+            href={getBillingUpgradePathForFeature({
+              slug,
+              feature: "pro",
+            })}
           />
         ) : undefined,
       },
@@ -269,7 +273,10 @@ export const FolderDropdown = ({
                   <TooltipContent
                     title="You can only use Link Folders on a Pro plan and above. Upgrade to Pro to continue."
                     cta="Upgrade to Pro"
-                    href={`/${slug}/upgrade`}
+                    href={getBillingUpgradePathForFeature({
+                      slug,
+                      feature: "pro",
+                    })}
                   />
                 ) : undefined
               }

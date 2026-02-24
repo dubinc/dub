@@ -7,6 +7,7 @@ import {
 } from "@/lib/swr/use-folder-permissions";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { getBillingUpgradePath } from "@/lib/billing/upgrade-url";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { FolderDropdown } from "@/ui/folders/folder-dropdown";
 import {
@@ -412,7 +413,14 @@ function ImportOption({
         <TooltipContent
           title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
           cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
-          href={`/${slug}/upgrade`}
+          href={getBillingUpgradePath({
+            slug,
+            recommendation: nextPlan
+              ? {
+                  plan: nextPlan.name.toLowerCase(),
+                }
+              : undefined,
+          })}
         />
       }
     >

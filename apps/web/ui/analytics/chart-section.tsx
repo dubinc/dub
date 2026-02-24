@@ -1,5 +1,6 @@
 import { EventType } from "@/lib/analytics/types";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import {
   BlurImage,
   buttonVariants,
@@ -182,7 +183,10 @@ function ConversionTrackingPaywall() {
           </Link>
         </p>
         <Link
-          href={`/${slug}/upgrade`}
+          href={getBillingUpgradePathForFeature({
+            slug,
+            feature: "business",
+          })}
           className={cn(
             buttonVariants({ variant: "primary" }),
             "mt-4 flex h-8 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",

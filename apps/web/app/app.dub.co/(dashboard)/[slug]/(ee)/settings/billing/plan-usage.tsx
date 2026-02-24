@@ -1,6 +1,7 @@
 "use client";
 
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
+import { getBillingUpgradePath, getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
@@ -32,6 +33,7 @@ import {
   capitalize,
   cn,
   getFirstAndLastDay,
+  getNextPlan,
   INFINITY_NUMBER,
   isLegacyBusinessPlan,
   nFormatter,
@@ -66,6 +68,7 @@ export default function PlanUsage() {
     usersLimit,
     billingCycleStart,
   } = useWorkspace();
+  const nextPlan = getNextPlan(plan);
 
   const { data: tags } = useTagsCount();
   const { users } = useWorkspaceUsers();
@@ -174,7 +177,16 @@ export default function PlanUsage() {
         </div>
         <div className="flex items-center gap-2">
           {plan !== "enterprise" && (
-            <Link href={`/${slug}/settings/billing/upgrade`}>
+            <Link
+              href={getBillingUpgradePath({
+                slug,
+                recommendation: nextPlan
+                  ? {
+                      plan: nextPlan.name.toLowerCase(),
+                    }
+                  : undefined,
+              })}
+            >
               <Button
                 text={plan === "free" ? "Upgrade" : "Manage plan"}
                 variant="primary"
@@ -362,7 +374,10 @@ function UsageTabCard({
                 <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-600">
                   Upgrade to Business to unlock conversion tracking.{" "}
                   <Link
-                    href={`/${slug}/upgrade`}
+                    href={getBillingUpgradePathForFeature({
+                      slug,
+                      feature: "business",
+                    })}
                     className="underline underline-offset-2 hover:text-neutral-800"
                   >
                     View pricing plans

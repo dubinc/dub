@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import {
   CrownSmall,
@@ -63,7 +64,10 @@ export const ConversionTrackingToggle = memo(() => {
             <TooltipContent
               title="Conversion tracking is only available on Business plans and above."
               cta="Upgrade to Business"
-              href={slug ? `/${slug}/upgrade` : "https://dub.co/pricing"}
+              href={getBillingUpgradePathForFeature({
+                slug,
+                feature: "business",
+              })}
               target="_blank"
             />
           )

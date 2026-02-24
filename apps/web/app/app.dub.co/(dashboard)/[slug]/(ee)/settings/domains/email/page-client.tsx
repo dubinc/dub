@@ -1,5 +1,6 @@
 "use client";
 
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -41,7 +42,10 @@ export function EmailDomains() {
             }
             addButton={
               <Link
-                href={`/${slug}/upgrade`}
+                href={getBillingUpgradePathForFeature({
+                  slug,
+                  feature: "advanced",
+                })}
                 className={cn(
                   buttonVariants({ variant: "primary" }),
                   "flex h-9 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",

@@ -8,6 +8,7 @@ import {
   INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
 } from "@/lib/constants/payouts";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
   CUTOFF_PERIOD,
@@ -806,7 +807,10 @@ function ConfirmPayoutsSheetContent() {
                   type: "payouts",
                 })}
                 cta="Upgrade"
-                href={`/${slug}/settings/billing/upgrade`}
+                href={getBillingUpgradePathForFeature({
+                  slug,
+                  feature: "partners",
+                })}
               />
             ) : amount && amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS ? (
               "Your payout total is less than the minimum invoice amount of $10."

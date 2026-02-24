@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -84,7 +85,10 @@ export function ConversionTrackingToggle() {
           <TooltipContent
             title="You can only enable conversion tracking on Business plans and above."
             cta="Upgrade to Business"
-            href={`/${workspaceSlug}/upgrade`}
+            href={getBillingUpgradePathForFeature({
+              slug: workspaceSlug,
+              feature: "business",
+            })}
           />
         ) : (
           permissionsError || (

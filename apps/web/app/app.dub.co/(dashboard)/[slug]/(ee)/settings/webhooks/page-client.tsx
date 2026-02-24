@@ -2,6 +2,7 @@
 
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { getBillingUpgradePathForFeature } from "@/lib/billing/upgrade-url";
 import EmptyState from "@/ui/shared/empty-state";
 import WebhookCard from "@/ui/webhooks/webhook-card";
 import WebhookPlaceholder from "@/ui/webhooks/webhook-placeholder";
@@ -23,7 +24,10 @@ export default function WebhooksPageClient() {
           description="Webhooks allow you to receive HTTP requests whenever a specific event (eg: someone clicked your link) occurs in Dub."
           learnMore="https://d.to/webhooks"
           buttonText="Upgrade to Business"
-          buttonLink={`/${slug}/upgrade`}
+          buttonLink={getBillingUpgradePathForFeature({
+            slug,
+            feature: "business",
+          })}
         />
       </div>
     );

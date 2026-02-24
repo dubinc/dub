@@ -1,9 +1,10 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { getBillingUpgradePath } from "@/lib/billing/upgrade-url";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DomainProps } from "@/lib/types";
 import { AddEditDomainForm } from "@/ui/domains/add-edit-domain-form";
 import { Button, ButtonProps, Modal, TooltipContent } from "@dub/ui";
-import { capitalize, pluralize } from "@dub/utils";
+import { capitalize, getNextPlan, pluralize } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -54,6 +55,7 @@ function AddDomainButton({
   buttonProps?: Partial<ButtonProps>;
 }) {
   const { slug, plan, role, domainsLimit, exceededDomains } = useWorkspace();
+  const nextPlan = getNextPlan(plan);
 
   const permissionsError = clientAccessCheck({
     action: "domains.write",
@@ -69,7 +71,14 @@ function AddDomainButton({
             <TooltipContent
               title={`You can only add up to ${domainsLimit} ${pluralize("domain", domainsLimit || 0)} on the ${capitalize(plan)} plan. Upgrade to add more domains`}
               cta="Upgrade"
-              href={`/${slug}/upgrade`}
+              href={getBillingUpgradePath({
+                slug,
+                recommendation: nextPlan
+                  ? {
+                      plan: nextPlan.name.toLowerCase(),
+                    }
+                  : undefined,
+              })}
             />
           ) : (
             permissionsError || undefined
