@@ -12,7 +12,7 @@ export default function CustomersPage() {
           "Get deeper, real-time insights about your customers' demographics, purchasing behavior, and lifetime value (LTV).",
         href: "https://dub.co/help/article/customer-insights",
       }}
-      controls={<ExportCustomersButton scope="workspace" />}
+      controls={<ExportCustomersButton />}
     >
       <PageWidthWrapper>
         <CustomersPageClient />

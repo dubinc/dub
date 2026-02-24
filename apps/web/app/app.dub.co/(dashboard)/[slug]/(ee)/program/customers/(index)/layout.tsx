@@ -65,7 +65,7 @@ export default function PartnerCustomersLayout({
           "Get deeper, real-time insights about your referred customers' demographics, purchasing behavior, and lifetime value (LTV).",
         href: "https://dub.co/help/article/customer-insights",
       }}
-      controls={<ExportCustomersButton scope="program" />}
+      controls={<ExportCustomersButton />}
     >
       <PageWidthWrapper className="flex flex-col gap-3 pb-10">
         {tabs.length > 0 && (

@@ -9,6 +9,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Checkbox, Logo, Modal, Switch, useRouterStuff } from "@dub/ui";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -32,10 +33,12 @@ function ExportCustomersModal({
   showExportCustomersModal: boolean;
   setShowExportCustomersModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const pathname = usePathname();
+
   const { program } = useProgram();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
-  const { getQueryString } = useRouterStuff();
+  const { getQueryString, searchParams } = useRouterStuff();
 
   const columnCheckboxId = useId();
 
@@ -50,31 +53,51 @@ function ExportCustomersModal({
     },
   });
 
+  const scope = pathname.includes("/program") ? "program" : "workspace";
+
   const onSubmit = handleSubmit(async (data) => {
-    if (!workspaceId || !program?.id) {
+    if (!workspaceId) {
       return;
     }
 
     const lid = toast.loading("Exporting customers...");
 
     try {
-      const params = {
-        ...(data.columns.length
-          ? { columns: data.columns.join(",") }
-          : undefined),
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      let baseParams: Record<string, string> = {
+        timezone,
+        workspaceId,
+        ...(data.columns.length ? { columns: data.columns.join(",") } : {}),
       };
 
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const searchParams = data.useFilters
-        ? getQueryString({ ...params, timezone })
-        : "?" + new URLSearchParams({ ...params, timezone });
+      if (scope === "program" && program?.id) {
+        baseParams = {
+          ...baseParams,
+          programId: program?.id,
+        };
+      }
 
-      const response = await fetch(`/api/customers/export${searchParams}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
+      let searchParamsStr = "";
+
+      if (data.useFilters) {
+        const current = Object.fromEntries(searchParams.entries());
+
+        searchParamsStr = getQueryString({
+          ...current,
+          ...baseParams,
+        });
+      }
+
+      const response = await fetch(
+        `/api/customers/export?${new URLSearchParams(baseParams).toString()}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      });
+      );
 
       if (!response.ok) {
         const body = await response.json();
@@ -120,7 +143,9 @@ function ExportCustomersModal({
         <div className="flex flex-col space-y-1 text-center">
           <h3 className="text-lg font-medium">Export customers</h3>
           <p className="text-sm text-neutral-500">
-            Export this program&apos;s customers to a CSV file
+            {scope === "workspace"
+              ? "Export this workspace's customers to a CSV file"
+              : "Export this program's customers to a CSV file"}
           </p>
         </div>
       </div>
