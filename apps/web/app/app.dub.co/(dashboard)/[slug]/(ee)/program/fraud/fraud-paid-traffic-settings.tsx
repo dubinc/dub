@@ -222,6 +222,7 @@ export function FraudPaidTrafficSettings({
                         type="button"
                         onClick={() => removeCampaignId(id)}
                         disabled={isDisabled}
+                        aria-label="Remove campaign ID"
                         className="text-neutral-400 hover:text-neutral-600"
                       >
                         <X className="size-3.5" />
