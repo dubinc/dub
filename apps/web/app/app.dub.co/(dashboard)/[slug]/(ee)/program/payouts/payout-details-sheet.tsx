@@ -240,9 +240,6 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       {
         id: "menu",
         enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
         cell: ({ row }) => <CommissionRowMenu row={row} />,
       },
     ],
