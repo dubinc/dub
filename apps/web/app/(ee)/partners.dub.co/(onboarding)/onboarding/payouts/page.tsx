@@ -82,7 +82,10 @@ async function PayoutRSC() {
 
   return (
     <>
-      <PayoutMethodSelector payoutMethods={availablePayoutMethods} />
+      <PayoutMethodSelector
+        payoutMethods={availablePayoutMethods}
+        allowConnectWhenPayoutsEnabled
+      />
       <Link
         href="/programs"
         className="mt-6 block text-center text-sm font-semibold text-neutral-800 transition-colors hover:text-neutral-950"

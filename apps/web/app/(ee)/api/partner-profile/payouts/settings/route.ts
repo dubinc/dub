@@ -16,8 +16,6 @@ export const GET = withPartnerProfile(async ({ partner }) => {
     stablecoinEnabled: featureFlags.stablecoin,
   });
 
-  console.log({ availablePayoutMethods });
-
   const [bankAccount, stripePayoutMethod] = await Promise.all([
     partner.stripeConnectId
       ? getPartnerBankAccount(partner.stripeConnectId)
