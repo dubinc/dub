@@ -16,6 +16,8 @@ export const GET = withPartnerProfile(async ({ partner }) => {
     stablecoinEnabled: featureFlags.stablecoin,
   });
 
+  console.log({ availablePayoutMethods });
+
   const [bankAccount, stripePayoutMethod] = await Promise.all([
     partner.stripeConnectId
       ? getPartnerBankAccount(partner.stripeConnectId)
@@ -26,7 +28,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
       : Promise.resolve(null),
   ]);
 
-  const payoutMethods: PartnerPayoutMethodSetting[] = [];
+  let payoutMethods: PartnerPayoutMethodSetting[] = [];
 
   // Stablecoin
   if (availablePayoutMethods.includes(PartnerPayoutMethod.stablecoin)) {
@@ -78,6 +80,17 @@ export const GET = withPartnerProfile(async ({ partner }) => {
       connected: Boolean(partner.paypalEmail),
       identifier: partner.paypalEmail ?? null,
     });
+  }
+
+  const stablecoinConnected = payoutMethods.some(
+    (m) => m.type === PartnerPayoutMethod.stablecoin && m.connected,
+  );
+
+  // When Stablecoin is connected: Show only Stablecoin + any other method that is already connected
+  if (stablecoinConnected) {
+    payoutMethods = payoutMethods.filter(
+      (m) => m.type === PartnerPayoutMethod.stablecoin || m.connected,
+    );
   }
 
   return NextResponse.json(payoutMethods);
