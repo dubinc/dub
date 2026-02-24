@@ -1,28 +1,20 @@
 "use client";
 
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import type { PartnerPayoutMethodSetting } from "@/lib/types";
+import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
 import { Modal, MoneyBills2 } from "@dub/ui";
-import { fetcher } from "@dub/utils";
 import { X } from "lucide-react";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
-import useSWR from "swr";
-import { PayoutMethodSelector } from "./payout-method-selector";
+import { PayoutMethodSelector } from "./payout-method-cards";
 
-function SelectPayoutMethodModal({
+function ConnectPayoutModal({
   showModal,
   setShowModal,
 }: {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { partner } = usePartnerProfile();
-
-  const { data: payoutMethods = [], isLoading: isPayoutMethodsLoading } =
-    useSWR<PartnerPayoutMethodSetting[]>(
-      partner ? "/api/partner-profile/payouts/settings" : null,
-      fetcher,
-    );
+  const { payoutMethods, isLoading: isPayoutMethodsLoading } =
+    usePartnerPayoutSettings();
 
   const isOnlyPayoutMethod = payoutMethods.length === 1;
 
@@ -100,24 +92,21 @@ function PayoutMethodSelectorSkeleton() {
   );
 }
 
-export function useSelectPayoutMethodModal() {
+export function useConnectPayoutModal() {
   const [showModal, setShowModal] = useState(false);
 
-  const SelectPayoutMethodModalElement = useMemo(
+  const ConnectPayoutModalElement = useMemo(
     () => (
-      <SelectPayoutMethodModal
-        showModal={showModal}
-        setShowModal={setShowModal}
-      />
+      <ConnectPayoutModal showModal={showModal} setShowModal={setShowModal} />
     ),
     [showModal],
   );
 
   return useMemo(
     () => ({
-      setShowSelectPayoutMethodModal: setShowModal,
-      SelectPayoutMethodModal: SelectPayoutMethodModalElement,
+      setShowConnectPayoutModal: setShowModal,
+      ConnectPayoutModal: ConnectPayoutModalElement,
     }),
-    [SelectPayoutMethodModalElement, setShowModal],
+    [ConnectPayoutModalElement, setShowModal],
   );
 }

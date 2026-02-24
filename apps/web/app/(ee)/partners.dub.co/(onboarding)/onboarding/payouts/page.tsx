@@ -1,6 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { getPartnerPayoutMethods } from "@/lib/payouts/api/get-partner-payout-methods";
-import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-selector";
+import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-cards";
 import { prisma } from "@dub/prisma";
 import Link from "next/link";
 import { redirect } from "next/navigation";

@@ -1,20 +1,13 @@
 "use client";
 
-import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
-import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
-import { generateStripeRecipientAccountLink } from "@/lib/actions/partners/generate-stripe-recipient-account-link";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { useBankAccountRequirementsModal } from "@/ui/partners/payouts/bank-account-requirements-modal";
-import { useSelectPayoutMethodModal } from "@/ui/partners/payouts/select-payout-method-modal";
-import { useStablecoinPayoutModal } from "@/ui/partners/payouts/stablecoin-payout-modal";
+import { useConnectPayoutModal } from "@/ui/partners/payouts/connect-payout-modal";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
 import { COUNTRIES } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
-import { toast } from "sonner";
+import { usePayoutConnectFlow } from "./use-payout-connect-flow";
 
 interface ConnectPayoutButtonProps extends ButtonProps {
   payoutMethod?: PartnerPayoutMethod;
@@ -28,100 +21,27 @@ export function ConnectPayoutButton({
   allowWhenPayoutsEnabled,
   ...props
 }: ConnectPayoutButtonProps) {
-  const router = useRouter();
   const { partner, availablePayoutMethods } = usePartnerProfile();
 
-  const {
-    executeAsync: executeStripeConnect,
-    isPending: isStripeConnectPending,
-  } = useAction(generateStripeAccountLink, {
-    onSuccess: ({ data }) => {
-      router.push(data.url);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
-  });
+  const { setShowConnectPayoutModal, ConnectPayoutModal } =
+    useConnectPayoutModal();
 
   const {
-    executeAsync: executeStablecoinConnect,
-    isPending: isStablecoinConnectPending,
-  } = useAction(generateStripeRecipientAccountLink, {
-    onSuccess: ({ data }) => {
-      router.push(data.url);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
+    connect,
+    isPending,
+    BankAccountRequirementsModal,
+    StablecoinPayoutModal,
+  } = usePayoutConnectFlow({
+    closeParent: () => setShowConnectPayoutModal(false),
   });
-
-  const {
-    executeAsync: executePaypalConnect,
-    isPending: isPaypalConnectPending,
-  } = useAction(generatePaypalOAuthUrl, {
-    onSuccess: ({ data }) => {
-      router.push(data.url);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
-  });
-
-  const { setShowSelectPayoutMethodModal, SelectPayoutMethodModal } =
-    useSelectPayoutMethodModal();
-
-  const { setShowBankAccountRequirementsModal, BankAccountRequirementsModal } =
-    useBankAccountRequirementsModal({
-      onContinue: async () => {
-        await executeStripeConnect();
-      },
-    });
-
-  const { setShowStablecoinPayoutModal, StablecoinPayoutModal } =
-    useStablecoinPayoutModal({
-      onContinue: async () => {
-        await executeStablecoinConnect();
-      },
-    });
 
   const handleClick = useCallback(() => {
-    if (payoutMethod === "connect") {
-      setShowSelectPayoutMethodModal(false);
-      setShowBankAccountRequirementsModal(true);
+    if (payoutMethod) {
+      connect(payoutMethod);
       return;
     }
-
-    if (payoutMethod === "stablecoin") {
-      setShowSelectPayoutMethodModal(false);
-      setShowStablecoinPayoutModal(true);
-      return;
-    }
-
-    if (payoutMethod === "paypal") {
-      executePaypalConnect();
-      return;
-    }
-
-    setShowSelectPayoutMethodModal(true);
-  }, [
-    payoutMethod,
-    setShowSelectPayoutMethodModal,
-    setShowBankAccountRequirementsModal,
-    setShowStablecoinPayoutModal,
-    executePaypalConnect,
-  ]);
-
-  const isPending = useMemo(
-    () =>
-      isStripeConnectPending ||
-      isStablecoinConnectPending ||
-      isPaypalConnectPending,
-    [
-      isStripeConnectPending,
-      isStablecoinConnectPending,
-      isPaypalConnectPending,
-    ],
-  );
+    setShowConnectPayoutModal(true);
+  }, [payoutMethod, connect, setShowConnectPayoutModal]);
 
   const errorMessage = useMemo(
     () =>
@@ -143,7 +63,7 @@ export function ConnectPayoutButton({
 
   return (
     <>
-      {SelectPayoutMethodModal}
+      {ConnectPayoutModal}
       {BankAccountRequirementsModal}
       {StablecoinPayoutModal}
       <Button

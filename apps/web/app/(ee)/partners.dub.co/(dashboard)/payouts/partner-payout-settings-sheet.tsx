@@ -3,15 +3,15 @@
 import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
 import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
 import {
   PAYOUT_METHODS,
   PayoutMethodSelector,
-} from "@/ui/partners/payouts/payout-method-selector";
-import { PayoutMethodsDropdown } from "@/ui/partners/payouts/payout-methods-dropdown";
+} from "@/ui/partners/payouts/payout-method-cards";
+import { PayoutMethodDropdown } from "@/ui/partners/payouts/payout-method-dropdown";
 import {
   BlurImage,
   Button,
@@ -20,14 +20,13 @@ import {
   useRouterStuff,
   useScrollProgress,
 } from "@dub/ui";
-import { fetcher, OG_AVATAR_URL } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm, type UseFormRegister } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
-import useSWR from "swr";
 import * as z from "zod/v4";
 
 type PartnerPayoutSettingsFormData = z.infer<
@@ -197,12 +196,13 @@ function PayoutMethodsSectionSkeleton() {
 }
 
 function PayoutMethodsSection() {
-  const { partner, availablePayoutMethods } = usePartnerProfile();
+  const { availablePayoutMethods } = usePartnerProfile();
   const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
 
-  const { data: payoutMethodsData, isLoading: isPayoutMethodsLoading } = useSWR<
-    PartnerPayoutMethodSetting[]
-  >(partner ? "/api/partner-profile/payouts/settings" : null, fetcher);
+  const {
+    payoutMethods: payoutMethodsData,
+    isLoading: isPayoutMethodsLoading,
+  } = usePartnerPayoutSettings();
 
   const hasConnectedAccount =
     payoutMethodsData?.some((m) => m.connected) ?? false;
@@ -238,7 +238,7 @@ function PayoutMethodsSection() {
         <PayoutMethodsSectionSkeleton />
       ) : hasConnectedAccount ? (
         <div className="space-y-3">
-          <PayoutMethodsDropdown />
+          <PayoutMethodDropdown />
           {showStablecoinRecommended &&
             payoutMethodsData?.some((m) => m.type === "stablecoin") && (
               <PayoutMethodSelector

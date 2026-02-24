@@ -1,57 +1,17 @@
 "use client";
 
 import type { PartnerPayoutMethodSetting } from "@/lib/types";
-import {
-  Badge,
-  CircleDollar,
-  CircleDollar3,
-  GreekTemple,
-  Paypal,
-} from "@dub/ui";
+import { Badge } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { Calendar, Globe, MapPin, Zap } from "lucide-react";
-import { ComponentType, ReactNode } from "react";
+import type { ComponentType } from "react";
+import { ReactNode } from "react";
 import { ConnectPayoutButton } from "./connect-payout-button";
+import {
+  PAYOUT_METHODS,
+  type PayoutMethodFeature,
+} from "./payout-method-config";
 
-export const PAYOUT_METHODS = [
-  {
-    id: "stablecoin",
-    title: "Stablecoin",
-    recommended: true,
-    icon: CircleDollar3,
-    iconWrapperClasses: "border-[#1717170D] bg-blue-100",
-    features: [
-      { icon: <CircleDollar />, text: "Paid in USDC" },
-      { icon: <Globe />, text: "No local bank required" },
-      { icon: <Zap />, text: "Payouts deposited instantly" },
-    ],
-  },
-  {
-    id: "connect",
-    title: "Bank Account",
-    recommended: false,
-    icon: GreekTemple,
-    iconWrapperClasses: "border-[#1717171A] bg-white",
-    iconClassName: "text-content-emphasis",
-    features: [
-      { icon: <MapPin />, text: "Paid in local currency" },
-      { icon: <GreekTemple />, text: "Local bank required" },
-      { icon: <Calendar />, text: "Payouts deposited in days" },
-    ],
-  },
-  {
-    id: "paypal",
-    title: "PayPal",
-    recommended: false,
-    icon: Paypal,
-    iconWrapperClasses: "border-[#1717171A] bg-white p-2",
-    features: [
-      { icon: <MapPin />, text: "Paid in local currency" },
-      { icon: <GreekTemple />, text: "May require a linked bank" },
-      { icon: <Zap />, text: "Payouts deposited instantly" },
-    ],
-  },
-] as const;
+export { PAYOUT_METHODS };
 
 const CARD_VARIANTS = {
   default: {
@@ -101,7 +61,9 @@ export function PayoutMethodSelector({
 
   const gridClassName = isSingleOption
     ? "w-full"
-    : `grid gap-3 sm:grid-cols-${Math.min(methodCount, 3)}`;
+    : methodCount === 2
+      ? "grid gap-3 sm:grid-cols-2"
+      : "grid gap-3 sm:grid-cols-3";
 
   const cardVariant = isCompact
     ? "compact"
@@ -189,7 +151,7 @@ function PayoutMethodCard({
 }: {
   icon: ReactNode;
   title: string;
-  features: readonly { icon: ReactNode; text: string }[];
+  features: readonly PayoutMethodFeature[];
   recommended?: boolean;
   action: ReactNode;
   actionFooter?: ReactNode;
@@ -218,7 +180,7 @@ function PayoutMethodCard({
         <h3 className={styles.title}>{title}</h3>
 
         <ul className={cn("flex-1 font-medium text-neutral-600", styles.list)}>
-          {features.map(({ icon: featureIcon, text }) => (
+          {features.map(({ icon: FeatureIcon, text }) => (
             <li key={text} className="flex items-center gap-2">
               <span
                 className={cn(
@@ -226,7 +188,7 @@ function PayoutMethodCard({
                   styles.featureIcon,
                 )}
               >
-                {featureIcon}
+                <FeatureIcon />
               </span>
               {text}
             </li>

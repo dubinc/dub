@@ -199,7 +199,7 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
   ]),
 );
 
-export const partnerPayoutMethodsSchema = z.object({
+export const partnerPayoutMethodSchema = z.object({
   type: z.enum(PartnerPayoutMethod),
   label: z.string(),
   default: z.boolean(),

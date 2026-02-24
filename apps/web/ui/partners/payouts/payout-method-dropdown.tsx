@@ -1,149 +1,45 @@
 "use client";
 
-import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
-import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
-import { generateStripeRecipientAccountLink } from "@/lib/actions/partners/generate-stripe-recipient-account-link";
+import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import type { PartnerPayoutMethodSetting } from "@/lib/types";
-import { partnerPayoutMethodsSchema } from "@/lib/zod/schemas/partner-profile";
-import { useBankAccountRequirementsModal } from "@/ui/partners/payouts/bank-account-requirements-modal";
-import { PAYOUT_METHODS } from "@/ui/partners/payouts/payout-method-selector";
-import { useStablecoinPayoutModal } from "@/ui/partners/payouts/stablecoin-payout-modal";
+import { partnerPayoutMethodSchema } from "@/lib/zod/schemas/partner-profile";
+import { getPayoutMethodIconConfig } from "@/ui/partners/payouts/payout-method-config";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { Button, Popover } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { ChevronsUpDown } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
-import { toast } from "sonner";
-import useSWR from "swr";
+import { usePayoutConnectFlow } from "./use-payout-connect-flow";
 
-const PAYOUT_METHOD_ICONS = Object.fromEntries(
-  PAYOUT_METHODS.map((m) => [
-    m.id,
-    {
-      Icon: m.icon,
-      wrapperClass: cn(
-        m.iconWrapperClasses,
-        "iconClassName" in m && m.iconClassName ? m.iconClassName : "",
-      ),
-    },
-  ]),
-);
-
-export function PayoutMethodsDropdown() {
-  const router = useRouter();
+export function PayoutMethodDropdown() {
   const [openPopover, setOpenPopover] = useState(false);
   const { partner, loading: isPartnerLoading } = usePartnerProfile();
 
-  const { data: payoutMethodsData, isLoading: isSettingsLoading } = useSWR<
-    PartnerPayoutMethodSetting[]
-  >(partner ? "/api/partner-profile/payouts/settings" : null, fetcher);
+  const {
+    connect,
+    isPending,
+    BankAccountRequirementsModal,
+    StablecoinPayoutModal,
+  } = usePayoutConnectFlow();
+
+  const { payoutMethods: payoutMethodsData, isLoading: isSettingsLoading } =
+    usePartnerPayoutSettings();
 
   const payoutMethods =
     !payoutMethodsData || !Array.isArray(payoutMethodsData)
       ? null
-      : payoutMethodsData.map((m) => partnerPayoutMethodsSchema.parse(m));
+      : payoutMethodsData.map((m) => partnerPayoutMethodSchema.parse(m));
 
   const hasConnected = payoutMethods?.some((m) => m.connected) ?? false;
 
-  const { executeAsync: executeStripeAsync, isPending: isStripePending } =
-    useAction(generateStripeAccountLink, {
-      onSuccess: ({ data }) => {
-        router.push(data.url);
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-    });
-
-  const {
-    executeAsync: executeStablecoinAsync,
-    isPending: isStablecoinPending,
-  } = useAction(generateStripeRecipientAccountLink, {
-    onSuccess: ({ data }) => {
-      router.push(data.url);
-    },
-    onError: ({ error }) => {
-      toast.error(error.serverError);
-    },
-  });
-
-  const { executeAsync: executePaypalAsync, isPending: isPaypalPending } =
-    useAction(generatePaypalOAuthUrl, {
-      onSuccess: ({ data }) => {
-        router.push(data.url);
-      },
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-    });
-
-  const { setShowBankAccountRequirementsModal, BankAccountRequirementsModal } =
-    useBankAccountRequirementsModal({
-      onContinue: async () => {
-        await executeStripeAsync();
-      },
-    });
-
-  const { setShowStablecoinPayoutModal, StablecoinPayoutModal } =
-    useStablecoinPayoutModal({
-      onContinue: async () => {
-        await executeStablecoinAsync();
-      },
-    });
-
-  const handleManage = useCallback(
-    async (type: PartnerPayoutMethod) => {
+  const handleAction = useCallback(
+    (type: PartnerPayoutMethod, isManage: boolean) => {
       setOpenPopover(false);
-
-      if (type === "connect") {
-        await executeStripeAsync();
-        return;
-      }
-
-      if (type === "stablecoin") {
-        await executeStablecoinAsync();
-        return;
-      }
-
-      if (type === "paypal") {
-        await executePaypalAsync();
-      }
+      connect(type, { isManage });
     },
-    [executeStripeAsync, executeStablecoinAsync, executePaypalAsync],
+    [connect],
   );
-
-  const handleConnect = useCallback(
-    async (type: PartnerPayoutMethod) => {
-      if (type === "connect") {
-        setOpenPopover(false);
-        setShowBankAccountRequirementsModal(true);
-        return;
-      }
-
-      if (type === "stablecoin") {
-        setOpenPopover(false);
-        setShowStablecoinPayoutModal(true);
-        return;
-      }
-
-      if (type === "paypal") {
-        await executePaypalAsync();
-      }
-
-      setOpenPopover(false);
-    },
-    [
-      setShowBankAccountRequirementsModal,
-      setShowStablecoinPayoutModal,
-      executePaypalAsync,
-    ],
-  );
-
-  const isActionPending =
-    isStripePending || isStablecoinPending || isPaypalPending;
 
   const selectedMethod =
     payoutMethods?.find((m) => m.default) ??
@@ -151,11 +47,7 @@ export function PayoutMethodsDropdown() {
 
   const isLoading = isPartnerLoading || isSettingsLoading;
 
-  if (!partner) {
-    return null;
-  }
-
-  if (!hasConnected) {
+  if (!partner || !hasConnected) {
     return null;
   }
 
@@ -174,9 +66,8 @@ export function PayoutMethodsDropdown() {
                     <PayoutMethodItem
                       key={method.type}
                       method={method}
-                      onManage={handleManage}
-                      onConnect={handleConnect}
-                      isActionPending={isActionPending}
+                      onAction={handleAction}
+                      isActionPending={isPending}
                     />
                   ))}
                 </div>
@@ -209,16 +100,14 @@ export function PayoutMethodsDropdown() {
 
 function PayoutMethodItem({
   method,
-  onManage,
-  onConnect,
+  onAction,
   isActionPending,
 }: {
   method: PartnerPayoutMethodSetting;
-  onManage: (type: PartnerPayoutMethod) => void;
-  onConnect: (type: PartnerPayoutMethod) => void;
+  onAction: (type: PartnerPayoutMethod, isManage: boolean) => void;
   isActionPending: boolean;
 }) {
-  const { Icon, wrapperClass } = PAYOUT_METHOD_ICONS[method.type];
+  const { Icon, wrapperClass } = getPayoutMethodIconConfig(method.type);
 
   return (
     <div className="flex w-full cursor-default items-center justify-between gap-4 rounded-md px-2 py-1.5 transition-colors duration-75 hover:bg-neutral-50">
@@ -251,9 +140,7 @@ function PayoutMethodItem({
       <Button
         variant={method.connected ? "primary" : "secondary"}
         text={method.connected ? "Manage" : "Connect"}
-        onClick={() =>
-          method.connected ? onManage(method.type) : onConnect(method.type)
-        }
+        onClick={() => onAction(method.type, method.connected)}
         loading={isActionPending}
         className="h-7 w-fit shrink-0 cursor-pointer text-xs"
       />
@@ -266,7 +153,7 @@ function SelectedMethodDisplay({
 }: {
   method: PartnerPayoutMethodSetting;
 }) {
-  const { Icon, wrapperClass } = PAYOUT_METHOD_ICONS[method.type];
+  const { Icon, wrapperClass } = getPayoutMethodIconConfig(method.type);
   return (
     <>
       <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
