@@ -44,16 +44,14 @@ export function PayoutMethodsDropdown() {
   const payoutMethods =
     !payoutMethodsData || !Array.isArray(payoutMethodsData)
       ? null
-      : (payoutMethodsData.map((m) =>
-          partnerPayoutMethodsSchema.parse(m),
-        ) as PartnerPayoutMethodSetting[]);
+      : payoutMethodsData.map((m) => partnerPayoutMethodsSchema.parse(m));
 
   const hasConnected = payoutMethods?.some((m) => m.connected) ?? false;
 
   const { executeAsync: executeStripeAsync, isPending: isStripePending } =
     useAction(generateStripeAccountLink, {
       onSuccess: ({ data }) => {
-        router.push(data!.url);
+        router.push(data.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
@@ -65,7 +63,7 @@ export function PayoutMethodsDropdown() {
     isPending: isStablecoinPending,
   } = useAction(generateStripeRecipientAccountLink, {
     onSuccess: ({ data }) => {
-      router.push(data!.url);
+      router.push(data.url);
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
@@ -75,7 +73,7 @@ export function PayoutMethodsDropdown() {
   const { executeAsync: executePaypalAsync, isPending: isPaypalPending } =
     useAction(generatePaypalOAuthUrl, {
       onSuccess: ({ data }) => {
-        router.push(data!.url);
+        router.push(data.url);
       },
       onError: ({ error }) => {
         toast.error(error.serverError);
