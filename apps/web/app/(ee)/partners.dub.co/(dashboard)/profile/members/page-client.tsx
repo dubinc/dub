@@ -68,6 +68,12 @@ export function ProfileMembersPageClient() {
     },
   );
 
+  const { data: invitesForCount } = useSWR<PartnerUserProps[]>(
+    defaultPartnerId ? "/api/partner-profile/invites" : null,
+    fetcher,
+  );
+  const inviteCount = invitesForCount?.length ?? 0;
+
   const isCurrentUserOwner = partner?.role === "owner";
 
   const { InvitePartnerUserModal, setShowInvitePartnerUserModal } =
@@ -236,14 +242,36 @@ export function ProfileMembersPageClient() {
           )
         }
       >
-        <PageWidthWrapper className="mb-20 flex flex-col gap-4">
+        <PageWidthWrapper className="mb-20 flex flex-col gap-2">
           <div className="flex justify-between gap-3">
-            <Filter.Select
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-            />
+            <div className="flex items-center gap-2">
+              <Filter.Select
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+              />
+              {inviteCount && status !== "invited" ? (
+                <Button
+                  text="View pending invites"
+                  variant="secondary"
+                  className="w-fit"
+                  right={
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 py-0.5 text-xs font-medium",
+                        "bg-neutral-200 text-neutral-700",
+                      )}
+                    >
+                      {inviteCount}
+                    </span>
+                  }
+                  onClick={() =>
+                    queryParams({ set: { status: "invited" }, del: "page" })
+                  }
+                />
+              ) : undefined}
+            </div>
             <SearchBoxPersisted
               placeholder="Search by name or email"
               inputClassName="w-full md:w-[20rem]"
