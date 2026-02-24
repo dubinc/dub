@@ -16,6 +16,7 @@ import {
   Twitter,
 } from "@dub/ui";
 import { cn } from "@dub/utils/src";
+import { motion } from "motion/react";
 import React from "react";
 import { useFormContext } from "react-hook-form";
 import * as z from "zod/v4";
@@ -165,9 +166,21 @@ export function FraudPaidTrafficSettings({
                     />
                   </div>
 
-                  {isGoogle && isGoogleEnabled && (
-                    <div className="m-2 space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4">
-                      <label className="text-sm font-medium text-neutral-700">
+                  {isGoogle && (
+                    <motion.div
+                      initial={false}
+                      animate={{
+                        height: isGoogleEnabled ? "auto" : 0,
+                        opacity: isGoogleEnabled ? 1 : 0,
+                      }}
+                      transition={{
+                        height: { duration: 0.2, ease: "easeInOut" },
+                        opacity: { duration: 0.15 },
+                      }}
+                      className="overflow-hidden"
+                    >
+                      <div className="m-2 space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4">
+                        <label className="text-sm font-medium text-neutral-700">
                         Google campaign whitelist
                         <span className="ml-1 font-normal text-neutral-500">
                           (optional)
@@ -233,6 +246,7 @@ export function FraudPaidTrafficSettings({
                         the predefined IDs.
                       </p>
                     </div>
+                    </motion.div>
                   )}
                 </React.Fragment>
               );
