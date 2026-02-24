@@ -83,11 +83,8 @@ export function PayoutMethodSelector({
             icon={
               <PayoutMethodIcon
                 icon={method.icon}
-                wrapperClasses={method.iconWrapperClasses}
+                wrapperClasses={method.iconWrapperClass}
                 size={iconSize}
-                iconClassName={
-                  "iconClassName" in method ? method.iconClassName : undefined
-                }
               />
             }
             title={method.title}
