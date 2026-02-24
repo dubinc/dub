@@ -181,71 +181,72 @@ export function FraudPaidTrafficSettings({
                     >
                       <div className="m-2 space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4">
                         <label className="text-sm font-medium text-neutral-700">
-                        Google campaign whitelist
-                        <span className="ml-1 font-normal text-neutral-500">
-                          (optional)
-                        </span>
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          placeholder="e.g. 123456789"
-                          disabled={isDisabled}
-                          className={cn(
-                            "block h-9 flex-1 rounded-md border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 disabled:bg-neutral-100 disabled:text-neutral-500",
-                          )}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              const input = e.currentTarget;
-                              addCampaignId(input.value);
-                              input.value = "";
-                            }
-                          }}
-                        />
-                        <Button
-                          type="button"
-                          variant="secondary"
-                          text="Add"
-                          className="h-9 w-fit px-3"
-                          disabled={isDisabled}
-                          onClick={(e) => {
-                            const input = e.currentTarget
-                              .previousElementSibling as HTMLInputElement;
-                            if (input) {
-                              addCampaignId(input.value);
-                              input.value = "";
-                            }
-                          }}
-                        />
-                      </div>
-
-                      {whitelistedCampaignIds.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {whitelistedCampaignIds.map((id) => (
-                            <div
-                              key={id}
-                              className="flex items-center gap-1.5 rounded-md bg-neutral-100 px-2.5 py-1.5 text-sm text-neutral-700"
-                            >
-                              <span>{id}</span>
-                              <button
-                                type="button"
-                                onClick={() => removeCampaignId(id)}
-                                disabled={isDisabled}
-                                aria-label="Remove campaign ID"
-                                className="text-neutral-400 hover:text-neutral-600"
-                              >
-                                <X className="size-3.5" />
-                              </button>
-                            </div>
-                          ))}
+                          Campaign IDs whitelist
+                          <span className="ml-1 font-normal text-neutral-500">
+                            (optional)
+                          </span>
+                        </label>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="e.g. 123456789"
+                            disabled={isDisabled}
+                            className={cn(
+                              "block h-9 flex-1 rounded-md border-neutral-300 px-3 py-1.5 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 disabled:bg-neutral-100 disabled:text-neutral-500",
+                            )}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.preventDefault();
+                                const input = e.currentTarget;
+                                addCampaignId(input.value);
+                                input.value = "";
+                              }
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            text="Add"
+                            className="h-9 w-fit px-3"
+                            disabled={isDisabled}
+                            onClick={(e) => {
+                              const input = e.currentTarget
+                                .previousElementSibling as HTMLInputElement;
+                              if (input) {
+                                addCampaignId(input.value);
+                                input.value = "";
+                              }
+                            }}
+                          />
                         </div>
-                      )}
-                      <p className="text-content-subtle text-xs font-normal tracking-normal">
-                        Skip the fraud event when the campaign ID matches one of
-                        the predefined IDs.
-                      </p>
-                    </div>
+
+                        {whitelistedCampaignIds.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {whitelistedCampaignIds.map((id) => (
+                              <div
+                                key={id}
+                                className="flex items-center gap-1.5 rounded-md bg-neutral-100 px-2.5 py-1.5 text-sm text-neutral-700"
+                              >
+                                <span>{id}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => removeCampaignId(id)}
+                                  disabled={isDisabled}
+                                  aria-label="Remove campaign ID"
+                                  className="text-neutral-400 hover:text-neutral-600"
+                                >
+                                  <X className="size-3.5" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                        <p className="text-content-subtle text-xs font-normal tracking-normal">
+                          Exclude internal Google Campaign IDs from this rule.
+                          Recommended if you're running DSA (Dynamic Search Ad)
+                          campaigns.
+                        </p>
+                      </div>
                     </motion.div>
                   )}
                 </React.Fragment>
