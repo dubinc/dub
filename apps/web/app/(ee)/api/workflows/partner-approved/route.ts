@@ -1,4 +1,5 @@
 import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
+import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -26,21 +27,24 @@ type Payload = z.infer<typeof payloadSchema>;
  * Partner Approved Workflow
  *
  * This workflow is triggered when a partner's application to join a program is approved.
- * It performs three main steps in sequence:
+ * It performs the following steps in sequence:
  *
  * 1. **Create Default Links**: Creates partner-specific default links based on the group's
  *    configuration.
  *
- * 2. **Send Email Notification**: Sends an approval email to all partner users who have
+ * 2. **Create Discount Codes**: If the group's discount has auto-provisioning enabled,
+ *    creates a discount code for the partner.
+ *
+ * 3. **Send Email Notification**: Sends an approval email to all partner users who have
  *    opted in to receive application approval notifications.
  *
- * 3. **Send Webhook**: Notifies the workspace via webhook that a new partner has been
+ * 4. **Send Webhook**: Notifies the workspace via webhook that a new partner has been
  *    enrolled in the program.
  *
- * 4. **Trigger Draft Bounty Submission Creation**: Triggers the creation of
+ * 5. **Trigger Draft Bounty Submission Creation**: Triggers the creation of
  *    draft bounty submissions for the partner if they are eligible for performance bounties.
  *
- * 5. **Execute Dub Workflows**: Executes Dub workflows using the “partnerEnrolled” trigger.
+ * 6. **Execute Dub Workflows**: Executes Dub workflows using the “partnerEnrolled” trigger.
  */
 
 // POST /api/workflows/partner-approved
@@ -153,7 +157,76 @@ export const { POST } = serve<Payload>(
       return;
     });
 
-    // Step 2: Send email to partner application approved
+    // Step 2: Auto-provision discount code if enabled
+    await context.run("create-discount-codes", async () => {
+      if (!groupId) {
+        return;
+      }
+
+      const group = await prisma.partnerGroup.findUnique({
+        where: {
+          id: groupId,
+        },
+        include: {
+          discount: true,
+        },
+      });
+
+      if (!group?.discount?.autoProvisionEnabledAt) {
+        return;
+      }
+
+      const workspace = await prisma.project.findUniqueOrThrow({
+        where: {
+          id: program.workspaceId,
+        },
+        select: {
+          stripeConnectId: true,
+        },
+      });
+
+      if (!workspace.stripeConnectId) {
+        return;
+      }
+
+      const partnerLinks = await prisma.link.findMany({
+        where: {
+          programId,
+          partnerId,
+          partnerGroupDefaultLinkId: {
+            not: null,
+          },
+          discountCode: {
+            is: null,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (partnerLinks.length === 0) {
+        return;
+      }
+
+      for (const link of partnerLinks) {
+        try {
+          await createDiscountCode({
+            stripeConnectId: workspace.stripeConnectId,
+            partner,
+            link,
+            discount: group.discount,
+          });
+        } catch (error) {
+          console.error(
+            `Failed to create discount code for link ${link.id}:`,
+            error,
+          );
+        }
+      }
+    });
+
+    // Step 3: Send email to partner application approved
     await context.run("send-email", async () => {
       logger.info({
         message: "Started executing workflow step 'send-email'.",
@@ -245,7 +318,7 @@ export const { POST } = serve<Payload>(
       }
     });
 
-    // Step 3: Send webhook to workspace
+    // Step 4: Send webhook to workspace
     await context.run("send-webhook", async () => {
       logger.info({
         message: "Started executing workflow step 'send-webhook'.",
@@ -288,7 +361,7 @@ export const { POST } = serve<Payload>(
       });
     });
 
-    // Step 4: Trigger draft bounty submission creation
+    // Step 5: Trigger draft bounty submission creation
     await context.run("trigger-draft-bounty-submission-creation", async () => {
       logger.info({
         message:
@@ -306,7 +379,7 @@ export const { POST } = serve<Payload>(
       });
     });
 
-    // Step 5: Execute Dub workflows using the “partnerEnrolled” trigger.
+    // Step 6: Execute Dub workflows using the “partnerEnrolled” trigger.
     await context.run("execute-workflows", async () => {
       logger.info({
         message:
@@ -316,7 +389,8 @@ export const { POST } = serve<Payload>(
 
       await executeWorkflows({
         trigger: "partnerEnrolled",
-        context: {
+        identity: {
+          workspaceId: program.workspaceId,
           programId,
           partnerId,
         },

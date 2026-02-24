@@ -5,6 +5,7 @@ import { clientAccessCheck } from "@/lib/client-access-check";
 import { HubSpotSettings } from "@/lib/integrations/hubspot/ui/settings";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
 import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
+import { StripeIntegrationSettings } from "@/lib/integrations/stripe/ui/settings";
 import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
@@ -46,6 +47,7 @@ import {
   getDomainWithoutWWW,
   SEGMENT_INTEGRATION_ID,
   SLACK_INTEGRATION_ID,
+  STRIPE_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
 import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src/constants/integrations";
@@ -59,6 +61,7 @@ const integrationSettings = {
   [SLACK_INTEGRATION_ID]: SlackSettings,
   [SEGMENT_INTEGRATION_ID]: SegmentSettings,
   [HUBSPOT_INTEGRATION_ID]: HubSpotSettings,
+  [STRIPE_INTEGRATION_ID]: StripeIntegrationSettings,
 };
 
 export default function IntegrationPageClient({

@@ -233,6 +233,7 @@ export function MessagesPanel({
                               "p",
                               "a",
                               "code",
+                              "pre",
                               "strong",
                               "em",
                               "ul",
@@ -245,6 +246,17 @@ export function MessagesPanel({
                                   {...props}
                                   target="_blank"
                                   rel="noopener noreferrer"
+                                />
+                              ),
+                              pre: ({ node, ...props }) => (
+                                <pre
+                                  {...props}
+                                  className={cn(
+                                    "my-1 text-wrap py-1 text-sm",
+                                    isMySide
+                                      ? "text-content-inverted bg-neutral-600"
+                                      : "text-content-default bg-neutral-200",
+                                  )}
                                 />
                               ),
                             }}

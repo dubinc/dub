@@ -106,7 +106,7 @@ export const bulkBanPartnersAction = authActionClient
         enqueueBatchJobs(
           programEnrollments.map(({ programId, partnerId }) => ({
             queueName: "ban-partner",
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/ban/process`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/ban`,
             deduplicationId: `ban-${programId}-${partnerId}`,
             body: {
               programId,

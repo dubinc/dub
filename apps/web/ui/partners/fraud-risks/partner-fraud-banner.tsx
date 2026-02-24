@@ -52,6 +52,7 @@ export function PartnerFraudBanner({
       status: "pending",
     },
     enabled: partner.status !== "pending",
+    ignoreParams: true,
   });
 
   if (loading) {

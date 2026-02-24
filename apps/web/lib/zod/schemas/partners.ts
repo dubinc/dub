@@ -1,3 +1,4 @@
+import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import {
   IndustryInterest,
   MonthlyTraffic,
@@ -28,14 +29,14 @@ import { parseUrlSchema } from "./utils";
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 
 export const ACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
-  "approved",
-  "archived",
+  ProgramEnrollmentStatus.approved,
+  ProgramEnrollmentStatus.archived,
 ];
 
 export const INACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
-  "banned",
-  "deactivated",
-  "rejected",
+  ProgramEnrollmentStatus.banned,
+  ProgramEnrollmentStatus.deactivated,
+  ProgramEnrollmentStatus.rejected,
 ];
 
 export const exportPartnerColumns = [
@@ -224,7 +225,7 @@ export const partnerPlatformSchema = z.object({
   views: z.bigint().default(BigInt(0)),
 });
 
-export const PartnerOnlinePresenceSchema = z.object({
+export const PartnerPartnerPlatformsSchema = z.object({
   website: z
     .string()
     .nullish()
@@ -349,7 +350,7 @@ export const PartnerSchema = z
         "The date when the partner received the trusted badge in the partner network.",
       ),
   })
-  .extend(PartnerOnlinePresenceSchema.shape)
+  .extend(PartnerPartnerPlatformsSchema.shape)
   .extend(PartnerProfileSchema.partial().shape);
 
 export const PartnerWithProfileSchema = PartnerSchema.extend(
@@ -468,7 +469,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       ),
   })
   .extend(
-    PartnerOnlinePresenceSchema.pick({
+    PartnerPartnerPlatformsSchema.pick({
       website: true,
       youtube: true,
       twitter: true,
@@ -492,7 +493,7 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
       salesChannels: true,
     }).shape,
   )
-  .extend(PartnerOnlinePresenceSchema.shape);
+  .extend(PartnerPartnerPlatformsSchema.shape);
 
 export const WebhookPartnerSchema = PartnerSchema.pick({
   id: true,
@@ -612,17 +613,13 @@ export const createPartnerSchema = z.object({
 
 // This is a temporary fix to allow arbitrary image URL
 // TODO: Fix this by using file-type
-const partnerImageSchema = z
-  .union([
-    base64ImageSchema,
-    storedR2ImageUrlSchema,
-    publicHostedImageSchema,
-    googleFaviconUrlSchema,
-  ])
-  .transform((v) => v || "")
-  .refine((v) => v !== "", {
-    message: "Image is required",
-  });
+const partnerImageSchema = z.union([
+  base64ImageSchema,
+  storedR2ImageUrlSchema,
+  publicHostedImageSchema,
+  googleFaviconUrlSchema,
+  z.string().nullish(), // make image optional
+]);
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
@@ -745,10 +742,19 @@ export const partnerAnalyticsResponseSchema = {
 
 export const invitePartnerSchema = z.object({
   workspaceId: z.string(),
+  groupId: z.string().nullish(),
   name: z.string().max(100).optional(),
   email: z.email().trim().min(1).max(100),
   username: z.string().max(100).optional(),
-  groupId: z.string().nullish().default(null),
+});
+
+export const bulkInvitePartnersSchema = z.object({
+  workspaceId: z.string(),
+  groupId: z.string().nullish(),
+  emails: z
+    .array(z.email().trim().min(1).max(100))
+    .min(1)
+    .max(MAX_PARTNERS_INVITES_PER_REQUEST),
 });
 
 export const approvePartnerSchema = z.object({
@@ -832,6 +838,8 @@ export const deactivatePartnerSchema = z.object({
   partnerId: z.string(),
 });
 
+export const deactivatePartnerApiSchema = partnerIdTenantIdSchema;
+
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
@@ -863,6 +871,6 @@ export const partnerPayoutSettingsSchema = z.object({
 
 export const partnerCrossProgramSummarySchema = z.object({
   totalPrograms: z.number(),
-  trustedPrograms: z.number(),
+  activePrograms: z.number(),
   bannedPrograms: z.number(),
 });

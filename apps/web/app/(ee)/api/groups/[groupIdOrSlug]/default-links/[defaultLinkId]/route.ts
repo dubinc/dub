@@ -1,4 +1,3 @@
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -26,41 +25,34 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
-    const [group, domainRecord] = await Promise.all([
-      prisma.partnerGroup.findUniqueOrThrow({
-        where: {
-          ...(groupIdOrSlug.startsWith("grp_")
-            ? {
-                id: groupIdOrSlug,
-              }
-            : {
-                programId_slug: {
-                  programId,
-                  slug: groupIdOrSlug,
-                },
-              }),
-          programId,
-        },
-        include: {
-          utmTemplate: true,
-          partnerGroupDefaultLinks: {
-            where: {
-              id: params.defaultLinkId,
-            },
-          },
-          program: {
-            select: {
-              domain: true,
-            },
+    const group = await prisma.partnerGroup.findUniqueOrThrow({
+      where: {
+        ...(groupIdOrSlug.startsWith("grp_")
+          ? {
+              id: groupIdOrSlug,
+            }
+          : {
+              programId_slug: {
+                programId,
+                slug: groupIdOrSlug,
+              },
+            }),
+        programId,
+      },
+      include: {
+        utmTemplate: true,
+        partnerGroupDefaultLinks: {
+          where: {
+            id: params.defaultLinkId,
           },
         },
-      }),
-
-      getDomainOrThrow({
-        workspace,
-        domain,
-      }),
-    ]);
+        program: {
+          select: {
+            domain: true,
+          },
+        },
+      },
+    });
 
     if (group.partnerGroupDefaultLinks.length === 0) {
       throw new DubApiError({

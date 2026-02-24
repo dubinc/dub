@@ -31,6 +31,7 @@ export const getGroupOrThrow = async ({
       utmTemplate: includeExpandedFields,
       partnerGroupDefaultLinks: includeExpandedFields,
       program: includeExpandedFields,
+      workflow: includeExpandedFields,
     },
   });
 
@@ -48,5 +49,8 @@ export const getGroupOrThrow = async ({
     });
   }
 
-  return group;
+  return {
+    ...group,
+    moveRules: group.workflow?.triggerConditions,
+  };
 };

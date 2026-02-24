@@ -1,5 +1,5 @@
-import { CustomerTable } from "@/ui/customers/customer-table/customer-table";
+import { CustomersTable } from "@/ui/customers/customers-table/customers-table";
 
 export function CustomersPageClient() {
-  return <CustomerTable />;
+  return <CustomersTable />;
 }

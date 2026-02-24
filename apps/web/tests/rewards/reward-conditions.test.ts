@@ -1660,4 +1660,98 @@ describe("evaluateRewardConditions", () => {
       expect(result).toBeNull(); // Should not match when country is null
     });
   });
+
+  describe("subscription duration conditions", () => {
+    const lessThanOrEqualCondition = [
+      {
+        operator: "AND" as const,
+        type: "flat" as const,
+        amountInCents: 5000,
+        conditions: [
+          {
+            entity: "customer" as const,
+            attribute: "subscriptionDurationMonths" as const,
+            operator: "less_than_or_equal" as const,
+            value: 12,
+          },
+        ],
+      },
+    ];
+
+    const greaterThanCondition = [
+      {
+        operator: "AND" as const,
+        type: "flat" as const,
+        amountInCents: 5000,
+        conditions: [
+          {
+            entity: "customer" as const,
+            attribute: "subscriptionDurationMonths" as const,
+            operator: "greater_than" as const,
+            value: 12,
+          },
+        ],
+      },
+    ];
+
+    test("should match when subscription duration meets less_than_or_equal condition", () => {
+      const context: RewardContext = {
+        customer: {
+          subscriptionDurationMonths: 12,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions: lessThanOrEqualCondition,
+        context,
+      });
+
+      expect(result).toEqual(lessThanOrEqualCondition[0]);
+    });
+
+    test("should not match when subscription duration is more than less_than_or_equal condition value", () => {
+      const context: RewardContext = {
+        customer: {
+          subscriptionDurationMonths: 16,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions: lessThanOrEqualCondition,
+        context,
+      });
+
+      expect(result).toBe(null);
+    });
+
+    test("should match when subscription duration meets greater_than condition", () => {
+      const context: RewardContext = {
+        customer: {
+          subscriptionDurationMonths: 16,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions: greaterThanCondition,
+        context,
+      });
+
+      expect(result).toEqual(greaterThanCondition[0]);
+    });
+
+    test("should not match when subscription duration is less than greater_than condition value", () => {
+      const context: RewardContext = {
+        customer: {
+          subscriptionDurationMonths: 6,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions: greaterThanCondition,
+        context,
+      });
+
+      expect(result).toBe(null);
+    });
+  });
 });

@@ -68,7 +68,7 @@ function DiscountSheetContent({
 
   const { group, mutateGroup } = useGroup();
   const { mutate: mutateProgram } = useProgram();
-  const { id: workspaceId, defaultProgramId, stripeConnectId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
 
   const [useExistingCoupon, setUseExistingCoupon] = useState(false);
 
@@ -83,6 +83,7 @@ function DiscountSheetContent({
       maxDuration: 6,
       couponId: "",
       couponTestId: "",
+      autoProvisionEnabledAt: null,
     }; // default is 10% for 6 months
 
   const form = useForm<FormData>({
@@ -98,11 +99,17 @@ function DiscountSheetContent({
           : defaultValuesSource.maxDuration,
       couponId: defaultValuesSource.couponId || "",
       couponTestId: defaultValuesSource.couponTestId,
+      autoProvision: Boolean(defaultValuesSource.autoProvisionEnabledAt),
     },
   });
 
   const { handleSubmit, watch, setValue, register } = form;
-  const [type, amount, maxDuration] = watch(["type", "amount", "maxDuration"]);
+  const [type, amount, maxDuration, autoProvision] = watch([
+    "type",
+    "amount",
+    "maxDuration",
+    "autoProvision",
+  ]);
 
   const { executeAsync: createDiscount, isPending: isCreating } = useAction(
     createDiscountAction,
@@ -180,6 +187,7 @@ function DiscountSheetContent({
         workspaceId,
         discountId: discount.id,
         couponTestId: data.couponTestId,
+        autoProvision: data.autoProvision,
       });
       return;
     }
@@ -457,6 +465,27 @@ function DiscountSheetContent({
             }
             content={<></>}
           />
+
+          <VerticalLine />
+
+          <div className="border-border-subtle rounded-xl border bg-white p-3 text-sm shadow-sm">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-medium text-neutral-900">
+                  Auto-provision discount codes
+                </h3>
+                <InfoTooltip content="When enabled, discount codes will be automatically created for all existing partners in this group + future partners when they join this group." />
+              </div>
+
+              <Switch
+                fn={() => setValue("autoProvision", !autoProvision)}
+                checked={autoProvision}
+                trackDimensions="w-8 h-4"
+                thumbDimensions="w-3 h-3"
+                thumbTranslate="translate-x-4"
+              />
+            </div>
+          </div>
 
           <VerticalLine />
 

@@ -10,6 +10,9 @@ interface VerifyCommissionProps {
   expectedEarnings: number;
 }
 
+const POLL_INTERVAL_MS = 5000; // 5 seconds
+const TIMEOUT_MS = 30000; // 30 seconds
+
 export const verifyCommission = async ({
   http,
   customerExternalId,
@@ -19,10 +22,7 @@ export const verifyCommission = async ({
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
 
-  // Pause for 1.5 seconds for data to be fully processed
-  await new Promise((resolve) => setTimeout(resolve, 1500));
-
-  // Optional: resolve customer ID if customerExternalId is given
+  // Resolve customer ID (scoped by projectId — externalId is unique per project)
   if (customerExternalId) {
     const { data: customers } = await http.get<Customer[]>({
       path: "/customers",
@@ -31,9 +31,6 @@ export const verifyCommission = async ({
 
     expect(customers.length).toBeGreaterThan(0);
     customerId = customers[0].id;
-
-    // Small delay if necessary for async commission processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
   }
 
   const query: Record<string, string> = {};
@@ -46,27 +43,43 @@ export const verifyCommission = async ({
     query.customerId = customerId;
   }
 
-  const { status, data: commissions } = await http.get<CommissionResponse[]>({
-    path: "/commissions",
-    query,
-  });
+  // Poll for commission every 5 seconds, timeout after 30 seconds
+  const startTime = Date.now();
 
-  expect(status).toEqual(200);
-  expect(commissions).toHaveLength(1);
+  while (Date.now() - startTime < TIMEOUT_MS) {
+    const { status, data: commissions } = await http.get<CommissionResponse[]>({
+      path: "/commissions",
+      query,
+    });
 
-  const commission = commissions[0];
+    if (status === 200 && commissions.length === 1) {
+      const commission = commissions[0];
 
-  if (invoiceId) {
-    expect(commission.invoiceId).toEqual(invoiceId);
+      // Verify all expectations
+      if (invoiceId) {
+        expect(commission.invoiceId).toEqual(invoiceId);
+      }
+
+      if (customerId) {
+        expect(commission.customer?.id).toEqual(customerId);
+      }
+
+      if (expectedAmount !== undefined) {
+        expect(commission.amount).toEqual(expectedAmount);
+      }
+
+      expect(commission.earnings).toEqual(expectedEarnings);
+
+      return;
+    }
+
+    // Wait before next poll
+    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
   }
 
-  if (customerId) {
-    expect(commission.customer?.id).toEqual(customerId);
-  }
-
-  if (expectedAmount !== undefined) {
-    expect(commission.amount).toEqual(expectedAmount);
-  }
-
-  expect(commission.earnings).toEqual(expectedEarnings);
+  // Timeout reached - fail the test
+  throw new Error(
+    `Commission not found within ${TIMEOUT_MS / 1000} seconds. ` +
+      `Query: ${JSON.stringify(query)}`,
+  );
 };

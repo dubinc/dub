@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
@@ -88,7 +88,7 @@ export const deleteDiscountAction = authActionClient
           },
         }),
 
-        queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
+        deleteDiscountCodes(discountCodes),
 
         recordAuditLog({
           workspaceId: workspace.id,

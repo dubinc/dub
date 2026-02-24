@@ -27,9 +27,15 @@ export function FeaturedProgramCard({
             alt={program.name}
             className="absolute inset-0 size-full object-cover"
           />
-          {!isDarkImage && (
-            <div className="absolute inset-0 size-full bg-gradient-to-t from-white via-white/75 to-transparent xl:hidden" />
-          )}
+          <div
+            className={cn(
+              "absolute inset-x-0 bottom-0 h-1/2 backdrop-blur-[2px] xl:hidden",
+              isDarkImage
+                ? "bg-gradient-to-t from-black/50 to-transparent"
+                : "bg-gradient-to-t from-white/50 to-transparent",
+            )}
+            aria-hidden
+          />
         </>
       )}
 

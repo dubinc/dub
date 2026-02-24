@@ -11,8 +11,10 @@ model Customer {
   clickedAt DateTime?
   country   String?
 
-  sales      Int @default(0)
-  saleAmount Int @default(0)
+  sales                  Int       @default(0)
+  saleAmount             Int       @default(0)
+  firstSaleAt            DateTime?
+  subscriptionCanceledAt DateTime?
 
   projectId        String
   projectConnectId String?
@@ -30,13 +32,17 @@ model Customer {
   programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
   commissions       Commission[]
   fraudEvents       FraudEvent[]
+  referrals         PartnerReferral[]
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])
   @@index([projectId, email])
   @@index([projectId, createdAt])
   @@index([projectId, saleAmount])
+  @@index([projectId, firstSaleAt])
+  @@index([projectId, subscriptionCanceledAt])
   @@index([programId, partnerId])
+  @@index(partnerId)
   @@index(linkId)
   @@index(country)
   @@fulltext([email, name]) // For full-text search

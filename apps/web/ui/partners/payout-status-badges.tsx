@@ -50,6 +50,7 @@ export const PayoutStatusBadges = {
     icon: CircleXmark,
     className: "text-gray-600 bg-gray-100",
   },
+  // extra status for hold (not in OpenAPI spec)
   hold: {
     label: "On Hold",
     variant: "error",

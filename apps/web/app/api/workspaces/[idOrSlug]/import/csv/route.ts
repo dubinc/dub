@@ -7,6 +7,7 @@ import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Papa from "papaparse";
+import { v4 as uuid } from "uuid";
 
 // POST /api/workspaces/[idOrSlug]/import/csv - create job to import links from CSV file
 export const POST = withWorkspace(
@@ -40,7 +41,7 @@ export const POST = withWorkspace(
       ) as Record<string, string>,
     );
 
-    const id = crypto.randomUUID();
+    const id = uuid();
     const redisKey = `import:csv:${workspace.id}:${id}`;
     const BATCH_SIZE = 1000; // Push 1000 rows to Redis at a time
     let rows: Record<string, string>[] = [];

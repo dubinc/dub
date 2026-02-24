@@ -11,8 +11,7 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
-import { cn, pluralize } from "@dub/utils";
-import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
+import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
@@ -149,7 +148,7 @@ function WorkspaceList({
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   const { users } = useWorkspaceUsers();
-  const membersCount = users?.length ?? 0;
+  const membersCount = users?.filter((user) => !user.isMachine).length ?? 0;
 
   const href = useCallback(
     (slug: string) => {
@@ -195,8 +194,10 @@ function WorkspaceList({
                     getPlanColor(selected.plan),
                   )}
                 >
-                  {selected.plan} · {membersCount}{" "}
-                  {pluralize("member", membersCount)}
+                  {selected.plan}
+                  {membersCount > 0
+                    ? ` · ${membersCount} ${pluralize("member", membersCount)}`
+                    : ""}
                 </div>
               )}
             </div>

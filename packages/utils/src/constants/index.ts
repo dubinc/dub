@@ -13,8 +13,12 @@ export * from "./main";
 export * from "./middleware";
 export * from "./misc";
 export * from "./paypal-supported-countries";
-export * from "./plan-compare";
-export * from "./pricing";
 export * from "./regions";
 export * from "./reserved-slugs";
 export * from "./saml";
+
+// pricing copy & values
+export * from "./pricing/pricing-plan-compare-features";
+export * from "./pricing/pricing-plan-main-features";
+export * from "./pricing/pricing-plan-taglines";
+export * from "./pricing/pricing-plans";

@@ -27,8 +27,15 @@ export const createDiscountAction = authActionClient
   .inputSchema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let { amount, type, maxDuration, couponId, couponTestId, groupId } =
-      parsedInput;
+    let {
+      amount,
+      type,
+      maxDuration,
+      couponId,
+      couponTestId,
+      groupId,
+      autoProvision,
+    } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -109,6 +116,7 @@ export const createDiscountAction = authActionClient
           maxDuration,
           couponId: stripeCoupon?.id || couponId,
           ...(couponTestId && { couponTestId }),
+          ...(autoProvision && { autoProvisionEnabledAt: new Date() }),
         },
       });
 
@@ -124,6 +132,17 @@ export const createDiscountAction = authActionClient
       await tx.programEnrollment.updateMany({
         where: {
           groupId,
+        },
+        data: {
+          discountId: discount.id,
+        },
+      });
+
+      await tx.discountCode.updateMany({
+        where: {
+          programEnrollment: {
+            groupId,
+          },
         },
         data: {
           discountId: discount.id,
@@ -156,6 +175,17 @@ export const createDiscountAction = authActionClient
             },
           ],
         }),
+
+        ...(discount.autoProvisionEnabledAt
+          ? [
+              qstash.publishJSON({
+                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
+                body: {
+                  discountId: discount.id,
+                },
+              }),
+            ]
+          : []),
       ]),
     );
   });

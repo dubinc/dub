@@ -38,12 +38,12 @@ async function main() {
     });
     console.log("Deleted customers", deletedCustomers);
 
-    const deletedSales = await prisma.commission.deleteMany({
+    const deletedCommissions = await prisma.commission.deleteMany({
       where: {
         partnerId: partner.id,
       },
     });
-    console.log("Deleted sales", deletedSales);
+    console.log("Deleted commissions", deletedCommissions);
 
     const deletedPayouts = await prisma.payout.deleteMany({
       where: {

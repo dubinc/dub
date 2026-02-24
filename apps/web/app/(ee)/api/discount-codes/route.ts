@@ -1,11 +1,10 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { createId } from "@/lib/api/create-id";
+import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { createStripeDiscountCode } from "@/lib/stripe/create-stripe-discount-code";
 import {
   createDiscountCodeSchema,
   DiscountCodeSchema,
@@ -61,7 +60,7 @@ export const POST = withWorkspace(
       throw new DubApiError({
         code: "bad_request",
         message:
-          "Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount codes.",
+          "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
       });
     }
 
@@ -72,6 +71,12 @@ export const POST = withWorkspace(
         links: true,
         discount: true,
         discountCodes: true,
+        partner: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
 
@@ -125,33 +130,13 @@ export const POST = withWorkspace(
       });
     }
 
-    // Use the link.key as the code if no code is provided
-    const finalCode = code || link.key;
-
     try {
-      const stripeDiscountCode = await createStripeDiscountCode({
+      const discountCode = await createDiscountCode({
         stripeConnectId: workspace.stripeConnectId,
+        partner: programEnrollment.partner,
+        link,
         discount,
-        code: finalCode,
-        shouldRetry: !code,
-      });
-
-      if (!stripeDiscountCode?.code) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Failed to create Stripe discount code. Please try again.",
-        });
-      }
-
-      const discountCode = await prisma.discountCode.create({
-        data: {
-          id: createId({ prefix: "dcode_" }),
-          code: stripeDiscountCode.code,
-          programId,
-          partnerId,
-          linkId,
-          discountId: discount.id,
-        },
+        code,
       });
 
       waitUntil(

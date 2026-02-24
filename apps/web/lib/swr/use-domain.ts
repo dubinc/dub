@@ -25,5 +25,6 @@ export default function useDomain({
   return {
     ...domain,
     loading: !domain && !error,
+    error,
   };
 }

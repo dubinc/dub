@@ -582,6 +582,16 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                               }
                             />
                           )}
+                          {bounty.submissionRequirements?.url?.domains &&
+                            bounty.submissionRequirements.url.domains.length >
+                              0 && (
+                              <p className="text-xs text-neutral-400">
+                                Allowed domains:{" "}
+                                {bounty.submissionRequirements.url.domains.join(
+                                  ", ",
+                                )}
+                              </p>
+                            )}
                         </div>
                       </div>
                     )}

@@ -14,8 +14,10 @@ export const approveBountySubmission: ZodOpenApiOperationObject = {
     "Approve a bounty submission. Optionally specify a custom reward amount.",
   requestParams: {
     path: z.object({
-      bountyId: z.string(),
-      submissionId: z.string(),
+      bountyId: z.string().meta({ description: "The ID of the bounty" }),
+      submissionId: z
+        .string()
+        .meta({ description: "The ID of the bounty submission" }),
     }),
   },
   requestBody: {

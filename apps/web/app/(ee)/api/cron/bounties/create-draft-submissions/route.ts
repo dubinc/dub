@@ -1,6 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { evaluateWorkflowCondition } from "@/lib/api/workflows/execute-workflows";
+import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
@@ -152,8 +152,8 @@ export async function POST(req: Request) {
         .map((partner) => {
           const performanceCount = partner[condition.attribute];
 
-          const conditionMet = evaluateWorkflowCondition({
-            condition,
+          const conditionMet = evaluateWorkflowConditions({
+            conditions: [condition],
             attributes: {
               [condition.attribute]: performanceCount,
             },

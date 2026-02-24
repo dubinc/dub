@@ -85,8 +85,15 @@ export function BountySubmissionsTable() {
   const { submissionsCount } =
     useBountySubmissionsCount<SubmissionsCountByStatus[]>();
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    useBountySubmissionFilters({ bounty });
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useBountySubmissionFilters({ bounty });
 
   const {
     error,
@@ -388,6 +395,8 @@ export function BountySubmissionsTable() {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
           <AnimatedSizeContainer height>
             <div>

@@ -10,6 +10,7 @@ import {
   partnersTopLinksSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { parseFilterValue } from "@dub/utils";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
@@ -31,7 +32,7 @@ export const GET = withWorkspace(
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    const programEnrollment = await prisma.programEnrollment.findUnique({
       where: partnerId
         ? {
             partnerId_programId: {
@@ -55,6 +56,13 @@ export const GET = withWorkspace(
       },
     });
 
+    if (!programEnrollment) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `The partner with ${partnerId ? "partnerId" : "tenantId"} ${partnerId ?? tenantId} is not enrolled in your program.`,
+      });
+    }
+
     if (programEnrollment.program.workspaceId !== workspace.id) {
       throw new DubApiError({
         code: "not_found",
@@ -65,7 +73,7 @@ export const GET = withWorkspace(
     const analytics = await getAnalytics({
       event: "composite",
       groupBy,
-      linkIds: programEnrollment.links.map((link) => link.id),
+      linkId: parseFilterValue(programEnrollment.links.map((link) => link.id)),
       interval,
       start,
       end,

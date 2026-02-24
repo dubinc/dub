@@ -56,6 +56,46 @@ input[type="number"]::-webkit-outer-spin-button {
   border-radius: 10px;
 }
 
+/* Earnings calculator slider */
+.earnings-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+
+.earnings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #262626;
+  cursor: pointer;
+  margin-top: -4px;
+}
+
+.earnings-slider::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #262626;
+  border: none;
+  cursor: pointer;
+}
+
+.earnings-slider::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+}
+
+.earnings-slider::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+}
+
 /* Override Sonner toast border radius from 8px to 10px (Tailwind rounded-2xl) */
 [data-sonner-toast] {
   border-radius: 10px !important;

@@ -23,7 +23,7 @@ export default function PartnerBanned({
     name: "Acme",
     slug: "acme",
   },
-  bannedReason = "violating our terms of service",
+  bannedReason = "Terms of Service Violation",
 }: {
   partner: {
     name: string;
@@ -39,7 +39,7 @@ export default function PartnerBanned({
     <Html>
       <Head />
       <Preview>
-        You've been banned from the {program.name} Partner Program for{" "}
+        {program.name} has banned you from their partner program for{" "}
         {bannedReason}
       </Preview>
       <Tailwind>
@@ -54,7 +54,7 @@ export default function PartnerBanned({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You've been banned from the {program.name} Partner Program for{" "}
+              {program.name} has banned you from their partner program for{" "}
               <strong>{bannedReason}</strong>.
             </Text>
 

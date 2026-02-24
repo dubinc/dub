@@ -47,6 +47,7 @@ const config: Config = {
         // Modal
         "scale-in": "scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
         "fade-in": "fade-in 0.2s ease-out forwards",
+        "fade-in-blur": "fade-in-blur 0.5s ease-out forwards",
         "scale-in-fade": "scale-in-fade 0.2s ease-out forwards",
         // Popover, Tooltip
         "slide-up-fade": "slide-up-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
@@ -85,6 +86,11 @@ const config: Config = {
         "fade-in": {
           "0%": { opacity: "0" },
           "100%": { opacity: "1" },
+        },
+        "fade-in-blur": {
+          "0%": { opacity: "0", filter: "blur(4px)" },
+          "50%": { opacity: "0.5", filter: "blur(0px)" },
+          "100%": { opacity: "1", filter: "blur(0px)" },
         },
         "scale-in-fade": {
           "0%": { transform: "scale(0.95)", opacity: "0" },

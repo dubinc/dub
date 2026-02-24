@@ -24,6 +24,7 @@ export default function PartnerDeactivated({
     slug: "acme",
   },
   deactivatedReason,
+  programDeactivated,
 }: {
   partner: {
     name: string;
@@ -34,12 +35,15 @@ export default function PartnerDeactivated({
     slug: string;
   };
   deactivatedReason?: string;
+  programDeactivated?: boolean;
 }) {
   return (
     <Html>
       <Head />
       <Preview>
-        {program.name} has deactivated your partnership with their program.
+        {programDeactivated
+          ? `${program.name} has deactivated their partner program.`
+          : `${program.name} has deactivated your partnership with their program.`}
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -49,36 +53,71 @@ export default function PartnerDeactivated({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-600">
-              {program.name} has deactivated your partnership
+              {program.name} has deactivated{" "}
+              {programDeactivated ? "their program" : "your partnership"}
             </Heading>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              Hello {partner.name}! Your partnership with the {program.name}{" "}
-              program has been deactivated
-              {deactivatedReason ? (
-                <span className="font-bold">{` ${deactivatedReason}`}</span>
-              ) : (
-                ""
-              )}
-              .
-            </Text>
+            {programDeactivated ? (
+              <>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  We're reaching out to let you know that {program.name} has
+                  deactivated their partner program.
+                </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              All your links have been disabled, but your pending commissions
-              and payouts will remain until they are approved and paid out by
-              the {program.name} team.
-            </Text>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  As a result, any {program.name} links you were sharing are now
+                  disabled and will no longer generate new commissions.
+                </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              If you have any questions, please{" "}
-              <Link
-                href={`https://partners.dub.co/messages/${program.slug}`}
-                className="font-semibold text-neutral-700 underline underline-offset-2"
-              >
-                reach out to the {program.name} team ↗
-              </Link>
-              .
-            </Text>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  We recommend removing or replacing any {program.name} links
+                  you currently have live, since they will no longer be eligible
+                  for future commissions.
+                </Text>
+
+                <Text className="text-sm leading-6 text-neutral-600">
+                  If you have questions about the program or your payouts,
+                  please{" "}
+                  <Link
+                    href={`https://partners.dub.co/messages/${program.slug}`}
+                    className="font-semibold text-neutral-700 underline underline-offset-2"
+                  >
+                    reach out to the {program.name} team ↗
+                  </Link>
+                  .
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  Hello {partner.name}, {program.name} has deactivated your
+                  partnership with their program
+                  {deactivatedReason ? (
+                    <span className="font-bold">{` ${deactivatedReason}`}</span>
+                  ) : (
+                    ""
+                  )}
+                  .
+                </Text>
+
+                <Text className="text-sm leading-6 text-neutral-600">
+                  All your links have been disabled, but your pending
+                  commissions and payouts will remain until they are approved
+                  and paid out by the {program.name} team.
+                </Text>
+
+                <Text className="text-sm leading-6 text-neutral-600">
+                  If you have any questions, please{" "}
+                  <Link
+                    href={`https://partners.dub.co/messages/${program.slug}`}
+                    className="font-semibold text-neutral-700 underline underline-offset-2"
+                  >
+                    reach out to the {program.name} team ↗
+                  </Link>
+                  .
+                </Text>
+              </>
+            )}
 
             <Footer email={partner.email} />
           </Container>

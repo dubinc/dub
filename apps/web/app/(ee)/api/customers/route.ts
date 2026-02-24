@@ -83,20 +83,26 @@ export const GET = withWorkspace(
         ? {
             include: {
               link: {
+                select: {
+                  id: true,
+                  domain: true,
+                  key: true,
+                  shortLink: true,
+                  url: true,
+                  programId: true,
+                },
+              },
+              programEnrollment: {
                 include: {
-                  programEnrollment: {
-                    include: {
-                      partner: {
-                        select: {
-                          id: true,
-                          name: true,
-                          email: true,
-                          image: true,
-                        },
-                      },
-                      discount: true,
+                  partner: {
+                    select: {
+                      id: true,
+                      name: true,
+                      email: true,
+                      image: true,
                     },
                   },
+                  discount: true,
                 },
               },
             },

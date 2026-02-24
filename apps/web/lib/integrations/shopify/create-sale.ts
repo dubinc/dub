@@ -4,13 +4,13 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
 import { recordSale } from "@/lib/tinybird";
 import { LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
@@ -116,7 +116,7 @@ export async function createShopifySale({
     }),
     prisma.customer.update({
       where: {
-        id: customerId,
+        id: existingCustomer.id,
       },
       data: {
         sales: {
@@ -125,6 +125,7 @@ export async function createShopifySale({
         saleAmount: {
           increment: amount,
         },
+        firstSaleAt: existingCustomer.firstSaleAt ? undefined : new Date(),
       },
     }),
     redis.del(`shopify:checkout:${checkoutToken}`),
@@ -162,10 +163,14 @@ export async function createShopifySale({
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          context: {
+          trigger: "partnerMetricsUpdated",
+          reason: "sale",
+          identity: {
+            workspaceId: workspaceId,
             programId: link.programId,
             partnerId: link.partnerId,
+          },
+          metrics: {
             current: {
               saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
@@ -194,17 +199,34 @@ export async function createShopifySale({
   }
 
   waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "sale.created",
-      workspace,
-      data: transformSaleEventData({
-        ...saleData,
-        link,
-        clickedAt: customer.clickedAt || customer.createdAt,
-        customer,
-        partner: createdCommission?.webhookPartner,
-        metadata: null,
+    Promise.allSettled([
+      sendWorkspaceWebhook({
+        trigger: "sale.created",
+        workspace,
+        data: transformSaleEventData({
+          ...saleData,
+          link,
+          clickedAt: customer.clickedAt || customer.createdAt,
+          customer,
+          partner: createdCommission?.webhookPartner,
+          metadata: null,
+        }),
       }),
-    }),
+
+      ...(link?.partnerId
+        ? [
+            sendPartnerPostback({
+              partnerId: link.partnerId,
+              event: "sale.created",
+              data: {
+                ...saleData,
+                clickedAt: customer.clickedAt || customer.createdAt,
+                link,
+                customer,
+              },
+            }),
+          ]
+        : []),
+    ]),
   );
 }

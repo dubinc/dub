@@ -20,7 +20,7 @@ interface GeneratePartnerLinkInput {
     key?: string;
     partnerGroupDefaultLinkId?: string | null;
   };
-  userId: string;
+  userId?: string;
 }
 
 // Generates and processes a partner link without creating it

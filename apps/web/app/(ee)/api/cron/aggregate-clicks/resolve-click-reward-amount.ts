@@ -23,6 +23,7 @@ export function resolveClickRewardAmount({
         context: {
           customer: {
             country,
+            source: "tracked",
           },
         },
       });

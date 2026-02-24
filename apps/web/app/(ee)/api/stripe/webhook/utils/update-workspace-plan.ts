@@ -1,7 +1,9 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
@@ -161,6 +163,18 @@ export async function updateWorkspacePlan({
       await deleteWorkspaceFolders({
         workspaceId: workspace.id,
       });
+    }
+
+    // Deactivate the program if the workspace loses partner access (Business/Enterprise -> Pro/Free)
+    if (
+      wouldLosePartnerAccess({
+        currentPlan: workspace.plan,
+        newPlan: newPlanName,
+      })
+    ) {
+      if (workspace.defaultProgramId) {
+        await deactivateProgram(workspace.defaultProgramId);
+      }
     }
 
     if (

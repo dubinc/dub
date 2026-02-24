@@ -46,6 +46,7 @@ model Payout {
   commissions       Commission[]
 
   @@index([programId, status])
+  @@index([programId, partnerId]) // for programEnrollment relation
   @@index(partnerId)
   @@index(invoiceId)
   @@index(status)

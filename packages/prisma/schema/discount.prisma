@@ -7,6 +7,7 @@ model Discount {
   description  String?
   couponId     String?
   couponTestId String?
+  autoProvisionEnabledAt DateTime? // Auto create discount codes for partners when they join the group
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 

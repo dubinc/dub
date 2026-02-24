@@ -39,22 +39,25 @@ model Program {
   minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
   payoutMode         ProgramPayoutMode @default(internal)
 
-  inviteEmailData Json?   @db.Json
-  embedData       Json?   @db.Json
-  resources       Json?   @db.Json
-  termsUrl        String? @db.Text
-  helpUrl         String? @db.Text
-  supportEmail    String?
+  inviteEmailData  Json?   @db.Json
+  embedData        Json?   @db.Json
+  resources        Json?   @db.Json
+  referralFormData Json?   @db.Json
+  termsUrl         String? @db.Text
+  helpUrl          String? @db.Text
+  supportEmail     String?
 
   messagingEnabledAt      DateTime?
   partnerNetworkEnabledAt DateTime?
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
   startedAt               DateTime?
+  deactivatedAt           DateTime?
 
   addedToMarketplaceAt    DateTime?
   featuredOnMarketplaceAt DateTime?
   marketplaceHeaderImage  String?
+  marketplaceRanking      Int       @default(2147483647)
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
   customDomain             Domain?                   @relation(fields: [domain], references: [slug])
@@ -84,6 +87,7 @@ model Program {
   fraudRules               FraudRule[]
   fraudEventGroups         FraudEventGroup[]
   sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
+  referrals                PartnerReferral[]
 
   partnerTags        PartnerTag[]
   programPartnerTags ProgramPartnerTag[]
@@ -147,6 +151,7 @@ model ProgramEnrollment {
   payouts            Payout[]
   messages           Message[]
   fraudEventGroups   FraudEventGroup[]
+  referrals         PartnerReferral[]
   programPartnerTags ProgramPartnerTag[]
 
   // unique constraints

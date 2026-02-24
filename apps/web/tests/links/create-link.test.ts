@@ -584,6 +584,7 @@ describe.sequential("POST /links?workspaceId=xxx", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
+      query: { workspaceId },
       body: {
         url,
         domain,

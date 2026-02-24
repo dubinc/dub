@@ -9,7 +9,7 @@ export default function Custom() {
         <a
           href="https://dub.co/help/article/choosing-a-custom-domain"
           target="_blank"
-          className="underline transition-colors hover:text-neutral-700"
+          className="cursor-alias underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-700"
         >
           Read our guide for best practices
         </a>

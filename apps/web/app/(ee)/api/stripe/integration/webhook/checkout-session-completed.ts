@@ -7,6 +7,7 @@ import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-sta
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
 import {
   getClickEvent,
   getLeadEvent,
@@ -22,7 +23,7 @@ import {
   transformSaleEventData,
 } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { Customer, Project, WorkflowTrigger } from "@dub/prisma/client";
+import { Customer, Project } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -269,14 +270,15 @@ export async function checkoutSessionCompleted(
 
     // if leadEvent is not defined yet, we need to pull it from Tinybird
     if (!leadEvent) {
-      leadEvent = await getLeadEvent({ customerId: customer.id }).then(
-        (res) => res.data[0],
-      );
-      if (!leadEvent) {
+      const leadEventData = await getLeadEvent({ customerId: customer.id });
+      if (!leadEventData) {
         return `No lead event found for customer ${customer.id}, skipping...`;
       }
-
-      linkId = leadEvent.link_id as string;
+      leadEvent = {
+        ...leadEventData,
+        workspace_id: leadEventData.workspace_id || customer.projectId, // in case for some reason the lead event doesn't have workspace_id
+      };
+      linkId = leadEvent.link_id;
     }
   } else {
     return "No stripeCustomerId or dubCustomerExternalId found in Stripe checkout session metadata, skipping...";
@@ -431,6 +433,8 @@ export async function checkoutSessionCompleted(
         saleAmount: {
           increment: chargeAmountTotal,
         },
+        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+        subscriptionCanceledAt: null,
       },
     }),
   ]);
@@ -474,10 +478,14 @@ export async function checkoutSessionCompleted(
     waitUntil(
       Promise.allSettled([
         executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          context: {
+          trigger: "partnerMetricsUpdated",
+          reason: "sale",
+          identity: {
+            workspaceId: workspace.id,
             programId: link.programId,
             partnerId: link.partnerId,
+          },
+          metrics: {
             current: {
               saleAmount: saleData.amount,
               conversions: firstConversionFlag ? 1 : 0,
@@ -505,20 +513,36 @@ export async function checkoutSessionCompleted(
     );
   }
 
-  // send workspace webhook
   waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "sale.created",
-      workspace,
-      data: transformSaleEventData({
-        ...saleData,
-        clickedAt: customer.clickedAt || customer.createdAt,
-        link: linkUpdated,
-        customer,
-        partner: createdCommission?.webhookPartner,
-        metadata: null,
+    Promise.allSettled([
+      sendWorkspaceWebhook({
+        trigger: "sale.created",
+        workspace,
+        data: transformSaleEventData({
+          ...saleData,
+          clickedAt: customer.clickedAt || customer.createdAt,
+          link: linkUpdated,
+          customer,
+          partner: createdCommission?.webhookPartner,
+          metadata: null,
+        }),
       }),
-    }),
+
+      ...(link?.partnerId
+        ? [
+            sendPartnerPostback({
+              partnerId: link.partnerId,
+              event: "sale.created",
+              data: {
+                ...saleData,
+                clickedAt: customer.clickedAt || customer.createdAt,
+                link: linkUpdated,
+                customer,
+              },
+            }),
+          ]
+        : []),
+    ]),
   );
 
   return `Checkout session completed for customer with external ID ${dubCustomerExternalId} and invoice ID ${invoiceId}`;
@@ -622,7 +646,7 @@ async function attributeViaPromoCode({
     ...rest,
     workspace_id: clickEvent.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
     event_id: nanoid(16),
-    event_name: "Sign up",
+    event_name: "Checkout with discount code",
     customer_id: customer.id,
     metadata: "",
   };
@@ -656,10 +680,14 @@ async function attributeViaPromoCode({
 
         await Promise.allSettled([
           executeWorkflows({
-            trigger: WorkflowTrigger.leadRecorded,
-            context: {
+            trigger: "partnerMetricsUpdated",
+            reason: "lead",
+            identity: {
+              workspaceId: workspace.id,
               programId: link.programId,
               partnerId: link.partnerId,
+            },
+            metrics: {
               current: {
                 leads: 1,
               },
@@ -674,18 +702,35 @@ async function attributeViaPromoCode({
         ]);
       }
 
-      await sendWorkspaceWebhook({
-        trigger: "lead.created",
-        workspace,
-        data: transformLeadEventData({
-          ...leadEvent,
-          eventName: "Checkout session completed",
-          link: linkUpdated,
-          customer,
-          partner: createdCommission?.webhookPartner,
-          metadata: null,
+      await Promise.allSettled([
+        sendWorkspaceWebhook({
+          trigger: "lead.created",
+          workspace,
+          data: transformLeadEventData({
+            ...leadEvent,
+            eventName: "Checkout session completed",
+            link: linkUpdated,
+            customer,
+            partner: createdCommission?.webhookPartner,
+            metadata: null,
+          }),
         }),
-      });
+
+        ...(link.partnerId
+          ? [
+              sendPartnerPostback({
+                partnerId: link.partnerId,
+                event: "lead.created",
+                data: {
+                  ...leadEvent,
+                  eventName: "Checkout session completed",
+                  link: linkUpdated,
+                  customer,
+                },
+              }),
+            ]
+          : []),
+      ]);
     })(),
   );
 

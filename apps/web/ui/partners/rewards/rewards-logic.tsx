@@ -1,24 +1,20 @@
 "use client";
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
-  ATTRIBUTE_LABELS,
-  CONDITION_ATTRIBUTES,
-  CONDITION_CUSTOMER_ATTRIBUTES,
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
-  CONDITION_PARTNER_ATTRIBUTES,
-  CONDITION_SALE_ATTRIBUTES,
-  ENTITY_ATTRIBUTE_TYPES,
   NUMBER_CONDITION_OPERATORS,
+  REWARD_CONDITIONS,
+  RewardConditionEntityAttribute,
   STRING_CONDITION_OPERATORS,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import { RewardStructure } from "@dub/prisma/client";
 import {
   ArrowTurnRight2,
   Button,
@@ -41,11 +37,12 @@ import {
 import { Command } from "cmdk";
 import { Package } from "lucide-react";
 import { motion } from "motion/react";
-import { Fragment, useContext, useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
+import { v4 as uuid } from "uuid";
 import {
   InlineBadgePopover,
-  InlineBadgePopoverContext,
+  InlineBadgePopoverAmountInput,
   InlineBadgePopoverInput,
   InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
@@ -97,27 +94,12 @@ export function RewardsLogic({
       <Button
         className="h-8 rounded-lg"
         icon={<ArrowTurnRight2 className="size-4" />}
-        text={
-          <div className="flex items-center gap-2">
-            <span>Add condition</span>
-            {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
-              <div
-                className={cn(
-                  "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
-                  isDefaultReward
-                    ? "bg-violet-500/50 text-violet-200"
-                    : "bg-violet-50 text-violet-600",
-                )}
-              >
-                Upgrade required
-              </div>
-            )}
-          </div>
-        }
+        text="Add condition"
         onClick={() => {
           const type = getValues("type");
 
           appendModifier({
+            id: uuid(),
             operator: "AND",
             conditions: [{}],
             amountInCents:
@@ -215,28 +197,12 @@ function ConditionalGroup({
   );
 }
 
-const ENTITIES = {
-  customer: {
-    attributes: CONDITION_CUSTOMER_ATTRIBUTES,
-  },
-  sale: {
-    attributes: CONDITION_SALE_ATTRIBUTES,
-  },
-  partner: {
-    attributes: CONDITION_PARTNER_ATTRIBUTES,
-  },
-} as const;
-
-const EVENT_ENTITIES: Record<EventType, (keyof typeof ENTITIES)[]> = {
-  sale: ["sale", "customer", "partner"],
-  lead: ["customer", "partner"],
-  click: ["customer"],
-};
-
 const formatValue = (
   value: string | number | string[] | number[] | undefined,
-  type: "number" | "currency" | "string" = "string",
+  attribute?: Pick<RewardConditionEntityAttribute, "type" | "options">,
 ) => {
+  const type = attribute?.type ?? "string";
+
   if (
     ["number", "currency"].includes(type)
       ? value === "" || isNaN(Number(value))
@@ -251,10 +217,23 @@ const formatValue = (
 
     return (
       filtered
-        .map((v) => truncate(v.toString(), 16))
+        .map((v) =>
+          truncate(
+            attribute?.options
+              ? attribute.options.find((o) => o.id === v)?.label ?? v.toString()
+              : v.toString(),
+            16,
+          ),
+        )
         .slice(0, 2)
         .join(", ") + (filtered.length > 2 ? ` +${filtered.length - 2}` : "")
     );
+  }
+
+  // Return matching option label
+  if (attribute?.options) {
+    const option = attribute.options.find((o) => o.id === value);
+    if (option) return option.label;
   }
 
   // For numeric values, show the number as is
@@ -279,6 +258,7 @@ function ConditionLogic({
   conditionIndex: number;
   onRemove?: () => void;
 }) {
+  const { program } = useProgram();
   const modifierKey = `modifiers.${modifierIndex}` as const;
   const conditionKey = `${modifierKey}.conditions.${conditionIndex}` as const;
 
@@ -288,20 +268,51 @@ function ConditionLogic({
     name: ["event", conditionKey, `${modifierKey}.operator`],
   });
 
-  const attributeType =
-    condition.entity && condition.attribute
-      ? ENTITY_ATTRIBUTE_TYPES[condition.entity]?.[condition.attribute] ??
-        "string"
-      : "string";
+  const entities = REWARD_CONDITIONS[event].entities;
+  const entity = condition.entity
+    ? entities.find((e) => e.id === condition.entity)
+    : undefined;
 
-  const icon = condition.entity
-    ? { customer: User, sale: InvoiceDollar, partner: Users }[condition.entity]
+  const attribute =
+    entity && condition.attribute
+      ? entity.attributes.find((a) => a.id === condition.attribute)
+      : undefined;
+
+  const attributeType = attribute?.type ?? "string";
+
+  const icon = entity
+    ? { customer: User, sale: InvoiceDollar, partner: Users }[entity.id] ?? User
     : ArrowTurnRight2;
 
   const isArrayValue =
     condition.operator && ["in", "not_in"].includes(condition.operator);
 
   const [displayProductLabel, setDisplayProductLabel] = useState(false);
+
+  // Auto-set operator to "equals_to" for customer.source
+  const isCustomerSourceCondition =
+    condition.entity === "customer" && condition.attribute === "source";
+
+  useEffect(() => {
+    if (isCustomerSourceCondition && condition.operator !== "equals_to") {
+      setValue(
+        conditionKey,
+        {
+          ...condition,
+          operator: "equals_to",
+        },
+        {
+          shouldDirty: true,
+        },
+      );
+    }
+  }, [
+    isCustomerSourceCondition,
+    condition.operator,
+    condition,
+    conditionKey,
+    setValue,
+  ]);
 
   return (
     <div className="flex w-full flex-col">
@@ -320,7 +331,7 @@ function ConditionLogic({
                   setValue(
                     conditionKey,
                     {
-                      entity: value as keyof typeof ENTITIES,
+                      entity: value,
                       // Clear dependent fields when entity changes
                       attribute: undefined,
                       operator: undefined,
@@ -331,23 +342,20 @@ function ConditionLogic({
                     },
                   )
                 }
-                items={Object.keys(ENTITIES)
-                  .filter((e) =>
-                    EVENT_ENTITIES[event]?.includes(e as keyof typeof ENTITIES),
-                  )
-                  .map((entity) => ({
-                    text: capitalize(entity) || entity,
-                    value: entity,
-                  }))}
+                items={entities.map((entity) => ({
+                  text: entity.label,
+                  value: entity.id,
+                }))}
               />
             </InlineBadgePopover>{" "}
-            {condition.entity && (
+            {entity && (
               <>
                 <InlineBadgePopover
                   text={
                     condition.attribute
-                      ? ATTRIBUTE_LABELS?.[condition.attribute] ||
-                        capitalize(condition.attribute)
+                      ? entity.attributes.find(
+                          (a) => a.id === condition.attribute,
+                        )?.label || capitalize(condition.attribute)
                       : "Detail"
                   }
                   invalid={!condition.attribute}
@@ -359,73 +367,71 @@ function ConditionLogic({
                         conditionKey,
                         {
                           entity: condition.entity,
-                          attribute:
-                            value as (typeof CONDITION_ATTRIBUTES)[number],
+                          attribute: value,
                         },
                         {
                           shouldDirty: true,
                         },
                       )
                     }
-                    items={ENTITIES[condition.entity].attributes.map(
-                      (attribute) => ({
-                        text:
-                          ATTRIBUTE_LABELS?.[attribute] ||
-                          capitalize(attribute) ||
-                          attribute,
-                        value: attribute,
-                      }),
-                    )}
-                  />
-                </InlineBadgePopover>{" "}
-                <InlineBadgePopover
-                  text={
-                    condition.operator
-                      ? CONDITION_OPERATOR_LABELS[condition.operator]
-                      : "Condition"
-                  }
-                  invalid={!condition.operator}
-                >
-                  <InlineBadgePopoverMenu
-                    selectedValue={condition.operator}
-                    onSelect={(value) =>
-                      setValue(
-                        conditionKey,
-                        {
-                          ...condition,
-                          operator:
-                            value as (typeof CONDITION_OPERATORS)[number],
-                          // Update value to array / string / number if needed
-                          ...(["in", "not_in"].includes(value)
-                            ? !Array.isArray(condition.value)
-                              ? { value: [] }
-                              : null
-                            : ["number", "currency"].includes(attributeType)
-                              ? typeof condition.value !== "number"
-                                ? { value: "" }
-                                : null
-                              : typeof condition.value !== "string"
-                                ? { value: "" }
-                                : null),
-                        },
-                        {
-                          shouldDirty: true,
-                        },
-                      )
-                    }
-                    items={(["number", "currency"].includes(attributeType)
-                      ? NUMBER_CONDITION_OPERATORS
-                      : STRING_CONDITION_OPERATORS
-                    ).map((operator) => ({
-                      text: CONDITION_OPERATOR_LABELS[operator],
-                      value: operator,
+                    items={entity.attributes.map((attribute) => ({
+                      text: attribute.label,
+                      value: attribute.id,
                     }))}
                   />
                 </InlineBadgePopover>{" "}
+                {isCustomerSourceCondition ? (
+                  <span className="text-content-emphasis font-medium">is </span>
+                ) : (
+                  <InlineBadgePopover
+                    text={
+                      condition.operator
+                        ? CONDITION_OPERATOR_LABELS[condition.operator]
+                        : "Condition"
+                    }
+                    invalid={!condition.operator}
+                  >
+                    <InlineBadgePopoverMenu
+                      selectedValue={condition.operator}
+                      onSelect={(value) =>
+                        setValue(
+                          conditionKey,
+                          {
+                            ...condition,
+                            operator:
+                              value as (typeof CONDITION_OPERATORS)[number],
+                            // Update value to array / string / number if needed
+                            ...(["in", "not_in"].includes(value)
+                              ? !Array.isArray(condition.value)
+                                ? { value: [] }
+                                : null
+                              : ["number", "currency"].includes(attributeType)
+                                ? typeof condition.value !== "number"
+                                  ? { value: "" }
+                                  : null
+                                : typeof condition.value !== "string"
+                                  ? { value: "" }
+                                  : null),
+                          },
+                          {
+                            shouldDirty: true,
+                          },
+                        )
+                      }
+                      items={(["number", "currency"].includes(attributeType)
+                        ? NUMBER_CONDITION_OPERATORS
+                        : STRING_CONDITION_OPERATORS
+                      ).map((operator) => ({
+                        text: CONDITION_OPERATOR_LABELS[operator],
+                        value: operator,
+                      }))}
+                    />
+                  </InlineBadgePopover>
+                )}{" "}
                 {condition.operator && (
                   <>
                     <InlineBadgePopover
-                      text={formatValue(condition.value, attributeType)}
+                      text={formatValue(condition.value, attribute)}
                       invalid={
                         Array.isArray(condition.value)
                           ? condition.value.filter(Boolean).length === 0
@@ -443,6 +449,7 @@ function ConditionLogic({
                       !["starts_with", "ends_with"].includes(
                         condition.operator,
                       ) ? (
+                        // Country selector
                         <InlineBadgePopoverMenu
                           search
                           selectedValue={
@@ -479,6 +486,48 @@ function ConditionLogic({
                             });
                           }}
                         />
+                      ) : attribute?.options &&
+                        !["starts_with", "ends_with"].includes(
+                          condition.operator,
+                        ) ? (
+                        // Select option selector
+                        <InlineBadgePopoverMenu
+                          search={attribute.options.length > 4}
+                          selectedValue={
+                            (condition.value as string[] | undefined) ??
+                            (isArrayValue ? [] : undefined)
+                          }
+                          items={attribute.options
+                            .filter(
+                              (attribute) =>
+                                isCustomerSourceCondition &&
+                                (attribute.id !== "submitted" ||
+                                  (program &&
+                                    REFERRAL_ENABLED_PROGRAM_IDS.includes(
+                                      program.id,
+                                    ))),
+                            )
+                            .map(({ id, label }) => ({
+                              text: label,
+                              value: id,
+                            }))}
+                          onSelect={(value) => {
+                            setValue(conditionKey, {
+                              ...condition,
+                              value: isArrayValue
+                                ? Array.isArray(condition.value)
+                                  ? (condition.value as string[]).includes(
+                                      value,
+                                    )
+                                    ? (condition.value.filter(
+                                        (v) => v !== value,
+                                      ) as string[])
+                                    : ([...condition.value, value] as string[])
+                                  : [value]
+                                : value,
+                            });
+                          }}
+                        />
                       ) : isArrayValue ? (
                         // String array input
                         <InlineBadgePopoverInputs
@@ -497,6 +546,7 @@ function ConditionLogic({
                           }}
                         />
                       ) : ["number", "currency"].includes(attributeType) ? (
+                        // Number/currency input
                         <AmountInput
                           fieldKey={`${conditionKey}.value`}
                           type={attributeType as "number" | "currency"}
@@ -510,6 +560,10 @@ function ConditionLogic({
                         />
                       )}
                     </InlineBadgePopover>
+
+                    {condition.attribute === "subscriptionDurationMonths" && (
+                      <span> months</span>
+                    )}
 
                     {condition.attribute === "productId" && condition.value && (
                       <button
@@ -797,43 +851,17 @@ function AmountInput({
   type: "currency" | "percentage" | "number";
 }) {
   const { register } = useAddEditRewardForm();
-  const { setIsOpen } = useContext(InlineBadgePopoverContext);
 
   return (
-    <div className="relative rounded-md shadow-sm">
-      {type === "currency" && (
-        <span className="absolute inset-y-0 left-0 flex items-center pl-1.5 text-sm text-neutral-400">
-          $
-        </span>
-      )}
-      <input
-        className={cn(
-          "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
-          type === "currency" && "pl-4 pr-12",
-          type === "percentage" && "pr-7",
-        )}
-        {...register(fieldKey, {
-          required: true,
-          setValueAs: (value: string) => (value === "" ? undefined : +value),
-          min: 0,
-          max: type === "percentage" ? 100 : undefined,
-          onChange: handleMoneyInputChange,
-        })}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            e.preventDefault();
-            setIsOpen(false);
-          }
-
-          handleMoneyKeyDown(e);
-        }}
-      />
-      {["currency", "percentage"].includes(type) && (
-        <span className="absolute inset-y-0 right-0 flex items-center pr-1.5 text-sm text-neutral-400">
-          {type === "currency" ? "USD" : "%"}
-        </span>
-      )}
-    </div>
+    <InlineBadgePopoverAmountInput
+      type={type}
+      {...register(fieldKey, {
+        required: true,
+        setValueAs: (value: string) => (value === "" ? undefined : +value),
+        min: 0,
+        max: type === "percentage" ? 100 : undefined,
+      })}
+    />
   );
 }
 

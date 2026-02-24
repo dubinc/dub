@@ -162,7 +162,7 @@ export const createAndEnrollPartner = async ({
 
   const upsertedPartner = await prisma.partner.upsert({
     where: {
-      email: partner.email ?? "",
+      email: partner.email,
     },
     update: payload,
     create: {

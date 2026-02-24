@@ -1,10 +1,20 @@
 "use client";
 
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useCustomersCount from "@/lib/swr/use-customers-count";
 import useDomainsCount from "@/lib/swr/use-domains-count";
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
-import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
-import { Button, Popover, useLocalStorage, useMediaQuery } from "@dub/ui";
+import { useAnalyticsConnectedStatus } from "@/ui/analytics/use-analytics-connected-status";
+import { CheckCircleFill } from "@/ui/shared/icons";
+import {
+  Button,
+  Popover,
+  ProgressCircle,
+  useLocalStorage,
+  useMediaQuery,
+} from "@dub/ui";
 import { CircleDotted, ExpandingArrow } from "@dub/ui/icons";
 import { ChevronDown } from "lucide-react";
 import Link from "next/link";
@@ -29,45 +39,96 @@ function OnboardingButtonInner({
   onHideForever: () => void;
 }) {
   const { slug } = useParams() as { slug: string };
-  const { totalLinks } = useWorkspace();
+  const { plan, totalLinks, defaultProgramId } = useWorkspace();
+
+  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const { data: domainsCount, loading: domainsLoading } = useDomainsCount({
     ignoreParams: true,
   });
   const { users, loading: usersLoading } = useWorkspaceUsers();
-  const { users: invites, loading: invitesLoading } = useWorkspaceUsers({
-    invites: true,
-  });
 
-  const loading = domainsLoading || usersLoading || invitesLoading;
+  const { isConnected: connectedAnalytics } = useAnalyticsConnectedStatus();
+  const { data: customersCount, loading: customersCountLoading } =
+    useCustomersCount<number>({
+      includeParams: [],
+      enabled: canTrackConversions && !connectedAnalytics,
+    });
+
+  const { partnersCount, loading: partnersCountLoading } =
+    usePartnersCount<number>({
+      ignoreParams: true,
+      enabled: Boolean(defaultProgramId),
+    });
+
+  const loading =
+    domainsLoading ||
+    usersLoading ||
+    customersCountLoading ||
+    partnersCountLoading;
 
   const tasks = useMemo(() => {
     return [
       {
-        display: "Create your first short link",
-        cta: `/${slug}/links`,
-        checked: totalLinks === 0 ? false : true,
-        recommended: true,
-      },
-      {
-        display: "Set up your custom domain",
+        display: "Connect a domain",
         cta: `/${slug}/settings/domains`,
         checked: domainsCount && domainsCount > 0,
         recommended: true,
       },
-      {
-        display: "Invite your teammates",
-        cta: `/${slug}/settings/people`,
-        checked: (users && users.length > 1) || (invites && invites.length > 0),
-        recommended: false,
-      },
+      ...(defaultProgramId
+        ? [
+            {
+              display: "Create a program",
+              cta: `/${slug}/program`,
+              checked: true,
+              recommended: true,
+            },
+            {
+              display: "Set up conversion tracking",
+              cta: `/${slug}/settings/analytics`,
+              checked:
+                connectedAnalytics || (customersCount && customersCount > 0),
+              recommended: true,
+            },
+            {
+              display: "Invite your partners",
+              cta: `/${slug}/program/partners`,
+              checked: partnersCount && partnersCount > 0,
+              recommended: true,
+            },
+          ]
+        : [
+            {
+              display: "Create a short link",
+              cta: `/${slug}/links`,
+              checked: totalLinks && totalLinks > 0,
+              recommended: true,
+            },
+            {
+              display: "Invite your team",
+              cta: `/${slug}/settings/people`,
+              checked: users && users.length > 1,
+              recommended: false,
+            },
+          ]),
     ];
-  }, [slug, domainsCount, totalLinks, users, invites]);
+  }, [
+    slug,
+    defaultProgramId,
+    domainsCount,
+    connectedAnalytics,
+    customersCount,
+    partnersCount,
+    totalLinks,
+    users,
+  ]);
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const remainingRecommendedTasks = tasks.filter(
-    (task) => task.recommended && !task.checked,
+  const recommendedTasks = tasks.filter((task) => task.recommended);
+
+  const remainingRecommendedTasks = recommendedTasks.filter(
+    (task) => !task.checked,
   ).length;
 
   return loading || remainingRecommendedTasks === 0 ? null : (
@@ -79,20 +140,15 @@ function OnboardingButtonInner({
           <div className="rounded-t-xl bg-black p-4 text-white">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <span className="text-base font-medium">Getting Started</span>
+                <span className="text-base font-medium">Complete setup</span>
                 <p className="mt-1 text-sm text-neutral-300">
-                  Get familiar with Dub by completing the{" "}
+                  Finish setting up your{" "}
+                  {defaultProgramId ? "program" : "workspace"}
                   <br className="hidden sm:block" />
-                  following tasks
+                  to get the most out of Dub
                 </p>
               </div>
               <div className="flex items-center gap-1">
-                <OnboardingMenu
-                  onHideForever={() => {
-                    onHideForever();
-                    setIsOpen(false);
-                  }}
-                />
                 <MiniButton onClick={() => setIsOpen(false)}>
                   <ChevronDown className="size-4" />
                 </MiniButton>
@@ -106,7 +162,7 @@ function OnboardingButtonInner({
                   <Link
                     key={display}
                     href={cta}
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => setTimeout(() => setIsOpen(false), 500)}
                   >
                     <div className="group flex items-center justify-between gap-3 p-3 sm:gap-10">
                       <div className="flex items-center gap-2">
@@ -125,6 +181,16 @@ function OnboardingButtonInner({
                 );
               })}
             </div>
+
+            <Button
+              text="Dismiss guide"
+              variant="outline"
+              onClick={() => {
+                onHideForever();
+                setIsOpen(false);
+              }}
+              className="mt-3 h-7 rounded-lg bg-black/[0.04] duration-75 hover:bg-black/[0.07] active:scale-[0.98]"
+            />
           </div>
         </div>
       }
@@ -133,13 +199,14 @@ function OnboardingButtonInner({
     >
       <button
         type="button"
-        className="animate-slide-up-fade -mt-1 flex h-12 flex-col items-center justify-center rounded-full border border-neutral-950 bg-neutral-950 px-6 text-xs font-medium leading-tight text-white shadow-md transition-all [--offset:10px] hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
+        className="animate-slide-up-fade flex h-8 items-center justify-center gap-1.5 rounded-full border border-neutral-950 bg-neutral-950 px-3 text-xs font-medium leading-tight text-white shadow-md transition-all [--offset:10px] hover:bg-neutral-800 hover:ring-4 hover:ring-neutral-200"
       >
-        <span>Getting Started</span>
-        <span className="text-neutral-400">
-          {Math.round((remainingRecommendedTasks / tasks.length) * 100)}%
-          complete
-        </span>
+        <span>Complete setup</span>
+        <ProgressCircle
+          progress={1 - remainingRecommendedTasks / recommendedTasks.length}
+          className="size-3 text-white/80 [--track-color:#fff3]"
+          strokeWidth={14}
+        />
       </button>
     </Popover>
   );
@@ -157,29 +224,3 @@ const MiniButton = forwardRef(
     );
   },
 );
-
-function OnboardingMenu({ onHideForever }: { onHideForever: () => void }) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <Popover
-      align="end"
-      content={
-        <div className="p-1">
-          <Button
-            onClick={onHideForever}
-            variant="outline"
-            text="Dismiss forever"
-            className="h-9"
-          />
-        </div>
-      }
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-    >
-      <MiniButton>
-        <ThreeDots className="size-4" />
-      </MiniButton>
-    </Popover>
-  );
-}

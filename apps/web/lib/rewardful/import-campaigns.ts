@@ -162,6 +162,8 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       );
     }
 
+    // Note: Interestingly, Rewardful's API can sometimes return `stripe_coupon_id: null`
+    // even when the campaign has a valid Stripe coupon. In these cases we'd need to manually recreate the discount on Dub.
     if (!createdGroup.discountId && campaign.stripe_coupon_id) {
       let dubDiscountAttrs: DubDiscountAttributes | undefined;
 

@@ -348,7 +348,7 @@ const mergeAccounts = async ({ userId }: { userId: string }) => {
   const { sourceEmail, targetEmail } = accounts;
 
   await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/merge-partner-accounts`,
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/merge-accounts`,
     body: {
       userId,
       sourceEmail,

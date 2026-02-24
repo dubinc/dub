@@ -128,11 +128,12 @@ export const CommissionStatusBadges = {
       return title;
     },
   },
+  // extra status for hold (not in OpenAPI spec)
   hold: {
     label: "On Hold",
     variant: "error",
     className: "text-red-600 bg-red-100",
-    icon: CircleXmark,
+    icon: ShieldAlert,
     tooltip: (data: CommissionTooltipDataProps) => {
       if (data.variant === "partner") {
         const title =

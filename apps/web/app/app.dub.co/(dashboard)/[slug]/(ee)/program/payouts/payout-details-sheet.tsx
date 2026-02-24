@@ -1,8 +1,5 @@
-import {
-  INVOICE_AVAILABLE_PAYOUT_STATUSES,
-  PAYOUTS_SHEET_ITEMS_LIMIT,
-} from "@/lib/constants/payouts";
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -143,21 +140,20 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             </Tooltip>
           )}
 
-          {payout.mode === "internal" &&
-            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
-              <Tooltip content="View invoice">
-                <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
-                  <Link
-                    href={`${APP_DOMAIN}/invoices/${payout.invoiceId || payout.id}`}
-                    className="text-neutral-700"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <InvoiceDollar className="size-4" />
-                  </Link>
-                </div>
-              </Tooltip>
-            )}
+          {payout.mode === "internal" && payout.status !== "failed" && (
+            <Tooltip content="View invoice">
+              <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
+                <Link
+                  href={`${APP_DOMAIN}/invoices/${payout.invoiceId || payout.id}`}
+                  className="text-neutral-700"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <InvoiceDollar className="size-4" />
+                </Link>
+              </div>
+            </Tooltip>
+          )}
         </div>
       ),
 
@@ -327,27 +323,41 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
         <div className="flex items-center justify-between gap-2 p-5">
           {payout.status === "pending" ? (
-            <Button
-              type="button"
-              text="Confirm payout"
-              disabledTooltip={
-                !payout.partner.payoutsEnabledAt
-                  ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-                  : (
-                      permissionsError || undefined
-                    )
-              }
-              onClick={() => {
-                queryParams({
-                  set: {
-                    confirmPayouts: "true",
-                    selectedPayoutId: payout.id,
-                  },
-                  del: "payoutId",
-                  scroll: false,
-                });
-              }}
-            />
+            <div className="flex w-full flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                text="Confirm this payout"
+                variant="secondary"
+                disabledTooltip={
+                  !payout.partner.payoutsEnabledAt
+                    ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+                    : permissionsError || undefined
+                }
+                onClick={() => {
+                  queryParams({
+                    set: {
+                      confirmPayouts: "true",
+                      selectedPayoutId: payout.id,
+                    },
+                    del: "payoutId",
+                    scroll: false,
+                  });
+                }}
+              />
+              <Button
+                type="button"
+                text="Confirm all pending payouts"
+                onClick={() => {
+                  queryParams({
+                    set: {
+                      confirmPayouts: "true",
+                    },
+                    del: "payoutId",
+                    scroll: false,
+                  });
+                }}
+              />
+            </div>
           ) : (
             <ViewAllPayoutsLink />
           )}

@@ -40,7 +40,7 @@ export const programInvitePartnersSchema = z.object({
       PROGRAM_ONBOARDING_PARTNERS_LIMIT,
       `You can only invite up to ${PROGRAM_ONBOARDING_PARTNERS_LIMIT} partners.`,
     )
-    .nullable()
+    .nullish()
     .transform(
       (partners) => partners?.filter((partner) => partner.email.trim()) || null,
     ),

@@ -1,11 +1,9 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { onboardProgramSchema } from "@/lib/zod/schemas/program-onboarding";
 import { prisma } from "@dub/prisma";
 import { Project } from "@dub/prisma/client";
-import { isLegacyBusinessPlan } from "@dub/utils";
 import { redirect } from "next/navigation";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
@@ -28,19 +26,12 @@ export const onboardProgramAction = authActionClient
       );
     }
 
-    if (
-      !getPlanCapabilities(workspace.plan).canManageProgram ||
-      isLegacyBusinessPlan(workspace)
-    ) {
-      throw new Error(
-        "Your current plan does not support creating a program. Please upgrade to a higher plan to proceed.",
-      );
-    }
-
     if (data.step === "create-program") {
       await createProgram({
         workspace,
         user,
+        redirectTo: `/${workspace.slug}/program?onboarded-program=true`,
+        sendProgramWelcomeEmail: true,
       });
       return;
     }

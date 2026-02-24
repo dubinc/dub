@@ -14,11 +14,24 @@ export async function customerUpdated(event: Stripe.Event) {
     return "External ID not found in Stripe customer metadata, skipping...";
   }
 
+  const workspace = await prisma.project.findUnique({
+    where: {
+      stripeConnectId: stripeAccountId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!workspace) {
+    return "Workspace not found, skipping...";
+  }
+
   const customer = await prisma.customer.findFirst({
     where: {
       OR: [
         {
-          projectConnectId: stripeAccountId,
+          projectId: workspace.id,
           externalId: dubCustomerExternalId,
         },
         {
@@ -35,10 +48,11 @@ export async function customerUpdated(event: Stripe.Event) {
           id: customer.id,
         },
         data: {
-          externalId: dubCustomerExternalId,
-          stripeCustomerId: stripeCustomer.id,
           name: stripeCustomer.name,
           email: stripeCustomer.email,
+          externalId: dubCustomerExternalId,
+          stripeCustomerId: stripeCustomer.id,
+          projectConnectId: stripeAccountId,
         },
       });
 

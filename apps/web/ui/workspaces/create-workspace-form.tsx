@@ -7,7 +7,6 @@ import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useSession } from "next-auth/react";
 import { usePlausible } from "next-plausible";
-import posthog from "posthog-js";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -85,11 +84,6 @@ export function CreateWorkspaceForm({
             const { id: workspaceId } = await res.json();
             plausible("Created Workspace");
             // track workspace creation event
-            posthog.capture("workspace_created", {
-              workspace_id: workspaceId,
-              workspace_name: data.name,
-              workspace_slug: data.slug,
-            });
             await Promise.all([mutate("/api/workspaces"), update()]);
             onSuccess?.(data);
           } else {
@@ -133,6 +127,9 @@ export function CreateWorkspaceForm({
             })}
           />
         </div>
+        <p className="text-content-subtle mt-1.5 text-xs">
+          This is the name of your company or product.
+        </p>
       </div>
 
       <div>
@@ -195,8 +192,8 @@ export function CreateWorkspaceForm({
             {errors.slug.message}
           </p>
         ) : (
-          <p className="mt-1.5 text-xs text-neutral-500">
-            You can change this later in your workspace settings.
+          <p className="text-content-subtle mt-1.5 text-xs">
+            This is used for your workspace and partner program.
           </p>
         )}
       </div>

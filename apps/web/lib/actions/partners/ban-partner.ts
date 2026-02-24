@@ -122,7 +122,7 @@ export const banPartner = async ({
       }),
 
       queue.enqueueJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/ban/process`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/ban`,
         deduplicationId: `ban-${programId}-${partnerId}`,
         method: "POST",
         body: {

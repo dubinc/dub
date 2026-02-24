@@ -36,23 +36,11 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
-import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
 import { ReactNode, useEffect, useState } from "react";
 
 export default function WorkspaceLinksClient() {
-  const { data: session } = useSession();
   const { folderId } = useCurrentFolderId();
-
-  useEffect(() => {
-    if (session?.user) {
-      posthog.identify(session.user["id"], {
-        email: session.user.email,
-        name: session.user.name,
-      });
-    }
-  }, [session?.user]);
 
   return (
     <PageContentWithSidePanel
@@ -105,6 +93,7 @@ function WorkspaceLinks() {
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     setSearch,
     setSelectedFilter,
@@ -240,10 +229,7 @@ function WorkspaceLinks() {
               </div>
 
               {isLoading ? (
-                <div className="flex grow-0 animate-pulse items-center space-x-2">
-                  <div className="h-10 w-24 rounded-md bg-neutral-200" />
-                  <div className="h-10 w-10 rounded-md bg-neutral-200" />
-                </div>
+                <div className="h-10 w-[2.125rem] animate-pulse rounded-md bg-neutral-200" />
               ) : canCreateLinks ? (
                 <MoreLinkOptions />
               ) : (
@@ -262,6 +248,7 @@ function WorkspaceLinks() {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
             onRemoveAll={onRemoveAll}
           />
         </PageWidthWrapper>

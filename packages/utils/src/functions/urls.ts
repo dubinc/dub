@@ -117,6 +117,14 @@ export const paramsMetadata = [
   { display: "Referral (ref)", key: "ref", examples: "google, twitter" },
 ];
 
+export const getUTMParamsFromURL = (url: string) => {
+  return Object.fromEntries(
+    Object.entries(getParamsFromURL(url)).filter(([key]) =>
+      UTMTags.includes(key as (typeof UTMTags)[number]),
+    ),
+  );
+};
+
 export const getUrlWithoutUTMParams = (url: string) => {
   try {
     const newURL = new URL(url);

@@ -3,13 +3,6 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-type UserWithTokens = WorkspaceUserProps & {
-  restrictedTokens: {
-    name: string;
-    lastUsed: Date;
-  }[];
-};
-
 export default function useWorkspaceUsers({
   invites,
 }: { invites?: boolean } = {}) {

@@ -11,7 +11,7 @@ import { CustomerTabs } from "@/ui/customers/customer-tabs";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { Button } from "@dub/ui";
-import { ChevronRight, UserCheck } from "@dub/ui/icons";
+import { ChevronRight, User } from "@dub/ui/icons";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { ReactNode } from "react";
@@ -43,7 +43,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
             title="Back to customers"
             className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
           >
-            <UserCheck className="size-4" />
+            <User className="size-4" />
           </Link>
           <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
           <div>

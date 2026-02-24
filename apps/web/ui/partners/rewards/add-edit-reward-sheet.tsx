@@ -14,7 +14,7 @@ import { RewardConditionsArray, RewardProps } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   createOrUpdateRewardSchema,
-  ENTITY_ATTRIBUTE_TYPES,
+  REWARD_CONDITION_ATTRIBUTES,
   REWARD_DESCRIPTION_MAX_LENGTH,
   REWARD_TOOLTIP_DESCRIPTION_MAX_LENGTH,
   rewardConditionsArraySchema,
@@ -26,13 +26,16 @@ import { EventType, RewardStructure } from "@dub/prisma/client";
 import {
   Button,
   Gift,
+  Grid,
   MoneyBills2,
   Pen2,
   Sheet,
   Tooltip,
   TooltipContent,
+  useLocalStorage,
   useRouterStuff,
 } from "@dub/ui";
+import { CursorRays, InvoiceDollar, UserPlus } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -49,6 +52,7 @@ import {
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { v4 as uuid } from "uuid";
 import * as z from "zod/v4";
 import {
   InlineBadgePopover,
@@ -96,12 +100,14 @@ export const getRewardPayload = ({ data }: { data: FormData }) => {
 
         return {
           ...m,
+          id: m.id ?? uuid(),
           conditions: m.conditions.map((c) => ({
             ...c,
             value:
               c.entity &&
               c.attribute &&
-              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency"
+              REWARD_CONDITION_ATTRIBUTES.find((a) => a.id === c.attribute)
+                ?.type === "currency"
                 ? c.value === "" ||
                   c.value == null ||
                   Number.isNaN(Number(c.value))
@@ -191,7 +197,8 @@ function RewardSheetContent({
           conditions: m.conditions.map((c) => ({
             ...c,
             value:
-              ENTITY_ATTRIBUTE_TYPES[c.entity]?.[c.attribute] === "currency" &&
+              REWARD_CONDITION_ATTRIBUTES.find((a) => a.id === c.attribute)
+                ?.type === "currency" &&
               c.value !== "" &&
               c.value != null &&
               !Number.isNaN(Number(c.value))
@@ -365,6 +372,7 @@ function RewardSheetContent({
         </div>
 
         <div className="flex flex-1 flex-col overflow-y-auto p-6">
+          {!reward && <RewardHelperBlock event={event} />}
           <RewardSheetCard
             title={
               <div className="w-full">
@@ -564,6 +572,7 @@ function RewardSheetContent({
                 type="button"
                 variant="outline"
                 text="Remove reward"
+                className="h-9 w-fit"
                 onClick={onDelete}
                 loading={isDeleting}
                 disabled={isCreating || isUpdating}
@@ -577,7 +586,7 @@ function RewardSheetContent({
               variant="secondary"
               onClick={() => setIsOpen(false)}
               text="Cancel"
-              className="w-fit"
+              className="h-9 w-fit"
               disabled={isCreating || isUpdating || isDeleting}
             />
 
@@ -585,7 +594,7 @@ function RewardSheetContent({
               type="submit"
               variant="primary"
               text={reward ? "Update reward" : "Create reward"}
-              className="w-fit"
+              className="h-9 w-fit"
               loading={isCreating || isUpdating}
               disabled={
                 amount == null || isDeleting || isCreating || isUpdating
@@ -605,6 +614,87 @@ function RewardSheetContent({
         </div>
       </form>
     </FormProvider>
+  );
+}
+
+const REWARD_HELPER_CONTENT: Record<
+  EventType,
+  {
+    icon: typeof InvoiceDollar;
+    title: string;
+    description: string;
+  }
+> = {
+  sale: {
+    icon: InvoiceDollar,
+    title: "Sale rewards",
+    description:
+      "Reward when revenue is generated. Best for partners, creators, and long term partnerships.",
+  },
+  lead: {
+    icon: UserPlus,
+    title: "Lead rewards",
+    description:
+      "Reward for sign ups or demos. Best for B2B, demos, waitlists, or longer sales cycles.",
+  },
+  click: {
+    icon: CursorRays,
+    title: "Click rewards",
+    description:
+      "Reward for traffic and reach. Best for publishers and trusted partners only.",
+  },
+};
+
+function RewardHelperBlock({ event }: { event: EventType }) {
+  const [dismissed, setDismissed] = useLocalStorage<boolean>(
+    `reward-helper-${event}-dismissed`,
+    false,
+  );
+
+  const content = REWARD_HELPER_CONTENT[event];
+  const Icon = content.icon;
+
+  return (
+    <motion.div
+      animate={
+        dismissed
+          ? { opacity: 0, height: 0, marginBottom: 0 }
+          : { opacity: 1, height: "auto", marginBottom: 16 }
+      }
+      initial={false}
+      className="overflow-hidden"
+      inert={dismissed}
+    >
+      <div className="relative overflow-hidden rounded-xl bg-neutral-100 p-4">
+        <div className="absolute right-0 top-0 flex h-full w-1/2 items-start justify-end opacity-30 mix-blend-hard-light blur-[50px] [mask-image:linear-gradient(90deg,transparent,black)] [transform:translateZ(0)]">
+          <div className="h-32 w-80 -translate-y-4 translate-x-4 bg-[conic-gradient(from_220deg_at_50%_50%,#FF0000_0%,#EAB308_17%,#1E00FF_31%,#5CFF80_46%,#855AFC_60%,#3A8BFD_78%,#FF0000_100%)]" />
+        </div>
+        <Grid
+          cellSize={60}
+          patternOffset={[33, 28]}
+          className="inset-[unset] right-0 top-0 h-full w-1/2 text-neutral-300 [mask-image:linear-gradient(90deg,transparent,black)]"
+        />
+
+        <div className="relative flex flex-col gap-2">
+          <Icon className="size-5 text-neutral-600" />
+          <div className="flex flex-col pt-2">
+            <span className="text-sm font-medium text-neutral-900">
+              {content.title}
+            </span>
+            <span className="text-sm text-neutral-500">
+              {content.description}
+            </span>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            text="Dismiss"
+            className="mt-1 h-8 w-fit px-3"
+            onClick={() => setDismissed(true)}
+          />
+        </div>
+      </div>
+    </motion.div>
   );
 }
 

@@ -56,6 +56,7 @@ export async function getPartners(filters: PartnerFilters) {
                     : {
                         email: { search: sanitizeFullTextSearch(search) },
                         name: { search: sanitizeFullTextSearch(search) },
+                        companyName: { search: sanitizeFullTextSearch(search) },
                       }
                   : {}),
             },

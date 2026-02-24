@@ -166,11 +166,9 @@ export async function recordClick({
   };
 
   if (shouldCacheClickId) {
-    // cache the click ID and its corresponding click data in Redis for 1 day
+    // cache the click ID and its corresponding click data in Redis for 5 minutes
     // we're doing this because ingested click events are not available immediately in Tinybird
-    await redis.set(`clickIdCache:${clickId}`, clickData, {
-      ex: 60 * 60 * 24, // cache for 1 day
-    });
+    await redis.set(`clickIdCache:${clickId}`, clickData, { ex: 60 * 5 });
   }
 
   waitUntil(

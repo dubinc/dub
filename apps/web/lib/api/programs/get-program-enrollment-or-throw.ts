@@ -23,15 +23,6 @@ export async function getProgramEnrollmentOrThrow<
           },
         }
       : false,
-    discountCodes: include.discountCodes
-      ? {
-          where: {
-            discountId: {
-              not: null,
-            },
-          },
-        }
-      : false,
   };
 
   const programEnrollment = programId.startsWith("prog_")

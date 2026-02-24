@@ -12,6 +12,7 @@ import {
   getPartnerCustomersQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { CommissionType } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -64,13 +65,11 @@ export const GET = withPartnerProfile(
         commissions: {
           where: {
             partnerId: partner.id,
+            type: CommissionType.sale,
           },
           take: 1,
           orderBy: {
             createdAt: "asc",
-          },
-          select: {
-            createdAt: true,
           },
         },
       },
@@ -83,16 +82,15 @@ export const GET = withPartnerProfile(
 
     // Map customers with their data
     const customersWithData = customers.map((customer) => {
-      const timeToLead =
-        customer.clickedAt && customer.createdAt
-          ? customer.createdAt.getTime() - customer.clickedAt.getTime()
-          : null;
+      const firstSaleAt =
+        customer.commissions[0]?.createdAt ?? customer.firstSaleAt;
 
       return PartnerProfileCustomerSchema.extend({
         ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
       }).parse({
         ...transformCustomer({
           ...customer,
+          firstSaleAt,
           email: customer.email
             ? customerDataSharingEnabledAt
               ? customer.email
@@ -100,10 +98,7 @@ export const GET = withPartnerProfile(
             : customer.name || generateRandomName(),
         }),
         activity: {
-          ltv: customer.saleAmount,
-          timeToLead,
-          timeToSale: null,
-          firstSaleDate: customer.commissions[0]?.createdAt ?? null,
+          ...customer,
           events: [],
           link: customer.link,
         },

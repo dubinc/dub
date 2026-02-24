@@ -156,8 +156,10 @@ export const LinksToolbar = memo(
           label: "Delete",
           icon: Trash,
           action: () => setShowDeleteLinkModal(true),
-          disabledTooltip: selectedLinks.some(({ programId }) => programId)
-            ? "You can't delete a link that's part of a program."
+          disabledTooltip: selectedLinks.some(
+            ({ programId, clicks }) => programId && clicks > 0,
+          )
+            ? "You can't delete partner links that have active stats on them."
             : undefined,
           keyboardShortcut: "x",
         },

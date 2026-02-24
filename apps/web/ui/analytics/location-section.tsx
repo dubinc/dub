@@ -39,7 +39,7 @@ export function LocationSection() {
       selectedTabId={tab}
       onSelectTab={setTab}
       expandLimit={8}
-      hasMore={(data?.length ?? 0) > 8}
+      dataLength={data?.length}
     >
       {({ limit, setShowModal }) =>
         data ? (
@@ -53,7 +53,7 @@ export function LocationSection() {
                       tab === "continents" ? (
                         <ContinentIcon
                           display={d.continent}
-                          className="size-3"
+                          className="size-4 rounded-full border border-cyan-500"
                         />
                       ) : (
                         <img

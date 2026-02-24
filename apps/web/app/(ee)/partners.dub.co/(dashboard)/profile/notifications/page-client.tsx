@@ -6,6 +6,7 @@ import {
   CircleCheck,
   Flag6,
   InvoiceDollar,
+  MoneyBills2,
   Msgs,
   Switch,
   useOptimisticUpdate,
@@ -40,6 +41,13 @@ const notifications = [
     icon: Flag6,
     title: "Marketing campaigns",
     description: "Receive marketing emails from your programs.",
+  },
+  {
+    type: "connectPayoutReminder",
+    icon: MoneyBills2,
+    title: "Connect payout reminder",
+    description:
+      "Reminder email to connect your payout details for receiving earnings from your programs.",
   },
 ] as const;
 

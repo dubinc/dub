@@ -79,6 +79,12 @@ export function WorkspaceMembersClient() {
     },
   );
 
+  const { data: invitesForCount } = useSWR<WorkspaceUserProps[]>(
+    workspaceId ? `/api/workspaces/${workspaceId}/invites` : null,
+    fetcher,
+  );
+  const inviteCount = invitesForCount?.length ?? 0;
+
   const availableRolesForPlan = useMemo(() => {
     return getAvailableRolesForPlan(plan);
   }, [plan]);
@@ -279,14 +285,33 @@ export function WorkspaceMembersClient() {
           </div>
         }
       >
-        <PageWidthWrapper className="mb-20 flex flex-col gap-4">
+        <PageWidthWrapper className="mb-20 flex flex-col gap-2">
           <div className="flex justify-between gap-3">
-            <Filter.Select
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-            />
+            <div className="flex items-center gap-2">
+              <Filter.Select
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+              />
+              {inviteCount > 0 && status !== "invited" && (
+                <Button
+                  text="View pending invites"
+                  variant="secondary"
+                  className="w-fit"
+                  right={
+                    inviteCount > 0 ? (
+                      <span className="rounded-full bg-neutral-200 px-1.5 py-0.5 text-xs font-medium text-neutral-700">
+                        {inviteCount}
+                      </span>
+                    ) : undefined
+                  }
+                  onClick={() =>
+                    queryParams({ set: { status: "invited" }, del: "page" })
+                  }
+                />
+              )}
+            </div>
             <SearchBoxPersisted
               placeholder="Search by name or email"
               inputClassName="w-full md:w-[20rem]"

@@ -11,15 +11,20 @@ export const DiscountSchema = z.object({
   couponTestId: z.string().nullable(),
   description: z.string().nullish(),
   partnersCount: z.number().nullish(),
+  autoProvisionEnabledAt: z.coerce.date().nullish(),
 });
 
-export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
-  duration: z
-    .number()
-    .nullish()
-    .describe("Deprecated: Use `maxDuration` instead"),
-  interval: z.string().nullish().describe("Deprecated: Defaults to `month`"),
-}).nullish();
+export const DiscountSchemaWithDeprecatedFields = DiscountSchema.omit({
+  autoProvisionEnabledAt: true,
+})
+  .extend({
+    duration: z
+      .number()
+      .nullish()
+      .describe("Deprecated: Use `maxDuration` instead"),
+    interval: z.string().nullish().describe("Deprecated: Defaults to `month`"),
+  })
+  .nullish();
 
 export const createDiscountSchema = z.object({
   workspaceId: z.string(),
@@ -29,12 +34,14 @@ export const createDiscountSchema = z.object({
   couponId: z.string(),
   couponTestId: z.string().nullish(),
   groupId: z.string(),
+  autoProvision: z.boolean().optional(),
 });
 
 export const updateDiscountSchema = createDiscountSchema
   .pick({
     workspaceId: true,
     couponTestId: true,
+    autoProvision: true,
   })
   .extend({
     discountId: z.string(),

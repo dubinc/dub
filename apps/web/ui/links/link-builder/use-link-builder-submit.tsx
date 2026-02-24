@@ -2,7 +2,6 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button, useCopyToClipboard } from "@dub/ui";
 import { useRouter } from "next/navigation";
-import posthog from "posthog-js";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
@@ -80,7 +79,6 @@ export function useLinkBuilderSubmit({
             // if updating root domain link, mutate domains as well
             ...(getValues("key") === "_root" ? ["/api/domains"] : []),
           ]);
-          posthog.capture(props ? "link_updated" : "link_created", data);
 
           // copy shortlink to clipboard when adding a new link
           if (!props) {

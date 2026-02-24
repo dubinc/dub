@@ -10,10 +10,11 @@ import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
-import { ChevronRight, MoneyBill2, Tooltip, UserCheck } from "@dub/ui";
+import { ChevronRight, MoneyBill2, Tooltip, User } from "@dub/ui";
 import { cn, fetcher, formatDate } from "@dub/utils";
 import { addMonths, isBefore } from "date-fns";
 import { AlertCircle } from "lucide-react";
+import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { memo, useMemo } from "react";
 import useSWR from "swr";
@@ -30,8 +31,7 @@ export function ProgramCustomerPageClient() {
   });
 
   const rewardPeriodEndDate = useMemo(() => {
-    if (!programEnrollment?.rewards || !customer?.activity?.firstSaleDate)
-      return null;
+    if (!programEnrollment?.rewards || !customer?.firstSaleAt) return null;
     const saleReward = programEnrollment?.rewards.find(
       (r) => r.event === "sale",
     );
@@ -42,7 +42,7 @@ export function ProgramCustomerPageClient() {
       return null;
 
     // add the max duration to the first sale date
-    return addMonths(customer.activity.firstSaleDate, saleReward.maxDuration);
+    return addMonths(customer.firstSaleAt, saleReward.maxDuration);
   }, [programEnrollment, customer]);
 
   if ((!customer && !isLoading) || !showDetailedAnalytics) {
@@ -53,17 +53,17 @@ export function ProgramCustomerPageClient() {
     <PageContent
       title={
         <div className="flex items-center gap-1.5">
-          <div
-            // href={`/programs/${programSlug}/customers`}
-            // aria-label="Back to customers"
-            // title="Back to customers"
+          <Link
+            href={`/programs/${programSlug}/customers`}
+            aria-label="Back to customers"
+            title="Back to customers"
             className={cn(
               "bg-bg-subtle flex size-8 shrink-0 items-center justify-center rounded-lg",
-              // "hover:bg-bg-emphasis transition-[transform,background-color] duration-150 active:scale-95",
+              "hover:bg-bg-emphasis transition-[transform,background-color] duration-150 active:scale-95",
             )}
           >
-            <UserCheck className="size-4" />
-          </div>
+            <User className="size-4" />
+          </Link>
           <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
           <div>
             {customer ? (
@@ -79,7 +79,15 @@ export function ProgramCustomerPageClient() {
         <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] grid grid-cols-1 gap-6">
           <div className="@3xl/page:order-2">
             <CustomerDetailsColumn
-              customer={customer}
+              customer={
+                customer && customer.id
+                  ? {
+                      ...customer,
+                      name: customer.name || "",
+                      externalId: "",
+                    }
+                  : undefined
+              }
               customerActivity={customer?.activity}
               isCustomerActivityLoading={!customer}
             />

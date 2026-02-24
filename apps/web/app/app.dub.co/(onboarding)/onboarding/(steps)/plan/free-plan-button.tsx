@@ -10,12 +10,12 @@ export function FreePlanButton({
   className,
   ...rest
 }: Omit<HTMLProps<HTMLButtonElement>, "type">) {
-  const { finish, isLoading, isSuccessful } = useOnboardingProgress();
+  const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
 
   return (
     <button
       type="button"
-      onClick={finish}
+      onClick={() => continueTo("success")}
       className={cn(
         "inline-block text-neutral-500 transition-colors enabled:hover:text-neutral-700",
         className,

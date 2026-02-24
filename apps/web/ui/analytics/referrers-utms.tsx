@@ -91,7 +91,7 @@ export function ReferrersUTMs() {
       onSelectTab={handleTabChange}
       {...subTabProps}
       expandLimit={8}
-      hasMore={(data?.length ?? 0) > 8}
+      dataLength={data?.length}
     >
       {({ limit, setShowModal }) => (
         <>

@@ -12,6 +12,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { MarkdownDescription } from "../shared/markdown-description";
 
 function ImportPartnerStackModal({
   showImportPartnerStackModal,
@@ -52,12 +53,13 @@ function ImportPartnerStackModal({
           <Logo />
         </div>
         <h3 className="text-lg font-medium">
-          Import Your PartnerStack Program
+          Import your PartnerStack program
         </h3>
-        <p className="text-center text-sm text-neutral-500">
-          Import your existing PartnerStack program into{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
-        </p>
+        <MarkdownDescription className="text-center text-sm text-neutral-500">
+          [Migrate your existing PartnerStack
+          program](https://dub.co/help/article/migrating-from-partnerstack),
+          partners, and historical stats into Dub.
+        </MarkdownDescription>
       </div>
 
       <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">

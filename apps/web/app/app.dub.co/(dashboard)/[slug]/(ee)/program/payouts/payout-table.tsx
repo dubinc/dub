@@ -2,7 +2,7 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupCountByPartner, PayoutResponse } from "@/lib/types";
@@ -64,7 +64,7 @@ const PayoutTableInner = memo(
       isLoading,
     } = useSWR<PayoutResponse[]>(
       defaultProgramId
-        ? `/api/programs/${defaultProgramId}/payouts${getQueryString(
+        ? `/api/payouts${getQueryString(
             { workspaceId },
             {
               exclude: ["payoutId", "selectedPayoutId", "excludedPayoutIds"],
@@ -103,6 +103,7 @@ const PayoutTableInner = memo(
         groupBy: "partnerId",
         status: "pending",
       },
+      ignoreParams: true,
     });
 
     // Memoized map of partner IDs with pending fraud events

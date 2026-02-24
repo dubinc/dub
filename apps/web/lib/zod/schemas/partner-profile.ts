@@ -8,10 +8,15 @@ import {
   PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
+  ReferralStatus,
 } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
-import { BountySchema, BountySubmissionSchema } from "./bounties";
+import {
+  bountyPerformanceConditionSchema,
+  BountySchema,
+  BountySubmissionSchema,
+} from "./bounties";
 import {
   CommissionSchema,
   getCommissionsCountQuerySchema,
@@ -22,7 +27,7 @@ import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
-import { workflowConditionSchema } from "./workflows";
+import { referralFormDataSchema } from "./referral-form";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
@@ -98,6 +103,8 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   email: true,
   country: true,
   createdAt: true,
+  firstSaleAt: true,
+  subscriptionCanceledAt: true,
 }).extend({
   activity: customerActivityResponseSchema,
 });
@@ -135,13 +142,16 @@ export const partnerNotificationTypes = z.enum([
   "applicationApproved",
   "newMessageFromProgram",
   "marketingCampaign",
+  "connectPayoutReminder",
 ]);
 
 export const PartnerBountySchema = BountySchema.omit({
   groups: true,
 }).extend({
   submission: BountySubmissionSchema.nullable(),
-  performanceCondition: workflowConditionSchema.nullable().default(null),
+  performanceCondition: bountyPerformanceConditionSchema
+    .nullable()
+    .default(null),
   partner: z.object({
     totalClicks: z.number(),
     totalLeads: z.number(),
@@ -189,6 +199,7 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
 );
 
 export const partnerProfilePayoutsQuerySchema = payoutsQuerySchema.extend({
+  programId: z.string().optional(),
   sortBy: payoutsQuerySchema.shape.sortBy.default("initiatedAt"),
 });
 
@@ -240,3 +251,46 @@ export const getPartnerCustomersCountQuerySchema =
     .extend({
       groupBy: z.enum(["country", "linkId"]).optional(),
     });
+
+export const partnerProfileReferralSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.email(),
+  company: z.string(),
+  status: z.enum(ReferralStatus),
+  customerId: z.string().nullable(),
+  formData: z.array(referralFormDataSchema).nullable().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export type PartnerProfileReferral = z.infer<
+  typeof partnerProfileReferralSchema
+>;
+
+export const getPartnerReferralsQuerySchema = z
+  .object({
+    status: z.enum(ReferralStatus).optional(),
+    search: z.string().optional(),
+  })
+  .extend(getPaginationQuerySchema({ pageSize: 100 }));
+
+export const getPartnerReferralsCountQuerySchema =
+  getPartnerReferralsQuerySchema
+    .omit({
+      page: true,
+      pageSize: true,
+    })
+    .extend({
+      groupBy: z.enum(["status"]).optional(),
+    });
+
+export const partnerReferralsCountByStatusSchema = z.object({
+  status: z.enum(ReferralStatus),
+  _count: z.number(),
+});
+
+export const partnerReferralsCountResponseSchema = z.union([
+  z.array(partnerReferralsCountByStatusSchema),
+  z.number(),
+]);

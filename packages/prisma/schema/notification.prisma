@@ -39,8 +39,6 @@ model UserNotificationPreferences {
   partnerAccount Boolean @default(true)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index(userId)
 }
 
 // TODO: update this to WorkspaceNotificationPreferences
@@ -50,7 +48,7 @@ model NotificationPreference {
   linkUsageSummary           Boolean @default(true)
   domainConfigurationUpdates Boolean @default(true)
   newPartnerSale             Boolean @default(true)
-  newPartnerApplication      Boolean @default(true)
+  newPartnerApplication      Boolean @default(false)
   pendingApplicationsSummary Boolean @default(true)
   newBountySubmitted         Boolean @default(true)
   newMessageFromPartner      Boolean @default(true)
@@ -67,6 +65,7 @@ model PartnerNotificationPreferences {
   applicationApproved   Boolean @default(true)
   newMessageFromProgram Boolean @default(true)
   marketingCampaign     Boolean @default(true)
+  connectPayoutReminder Boolean @default(true)
 
   partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
 }

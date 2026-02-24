@@ -5,7 +5,7 @@ import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-par
 import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { isStored, storage } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import {
@@ -19,7 +19,7 @@ import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
 import { Program, Project, User } from "@dub/prisma/client";
-import { getDomainWithoutWWW, nanoid, R2_URL } from "@dub/utils";
+import { getDomainWithoutWWW, isLegacyBusinessPlan, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
@@ -27,13 +27,39 @@ import { redirect } from "next/navigation";
 export const createProgram = async ({
   workspace,
   user,
+  redirectTo,
+  sendProgramWelcomeEmail = false,
 }: {
   workspace: Pick<
     Project,
-    "id" | "slug" | "plan" | "store" | "webhookEnabled" | "invoicePrefix"
+    | "id"
+    | "slug"
+    | "plan"
+    | "payoutsLimit"
+    | "store"
+    | "webhookEnabled"
+    | "invoicePrefix"
   >;
   user: Pick<User, "id" | "email">;
+  redirectTo?: string;
+  sendProgramWelcomeEmail?: boolean;
 }) => {
+  const { canManageProgram, canMessagePartners } = getPlanCapabilities(
+    workspace.plan,
+  );
+
+  if (
+    !canManageProgram ||
+    isLegacyBusinessPlan({
+      plan: workspace.plan,
+      payoutsLimit: workspace.payoutsLimit,
+    })
+  ) {
+    throw new Error(
+      "Your current plan does not have access to create a partner program. Please upgrade to a higher plan to proceed.",
+    );
+  }
+
   const store = workspace.store as Record<string, any>;
   if (!store.programOnboarding) {
     throw new Error("Program onboarding data not found");
@@ -109,10 +135,7 @@ export const createProgram = async ({
         supportEmail,
         helpUrl,
         termsUrl,
-        messagingEnabledAt: getPlanCapabilities(workspace.plan)
-          .canMessagePartners
-          ? new Date()
-          : null,
+        messagingEnabledAt: canMessagePartners ? new Date() : null,
         ...(type &&
           (amountInCents != null || amountInPercentage != null) && {
             rewards: {
@@ -215,21 +238,17 @@ export const createProgram = async ({
           )
         : []),
 
-      // delete the temporary uploaded logo
-      uploadedLogo &&
-        isStored(uploadedLogo) &&
-        storage.delete({ key: uploadedLogo.replace(`${R2_URL}/`, "") }),
-
       // send email about the new program
-      sendEmail({
-        subject: `Your program ${program.name} is created and ready to share with your partners.`,
-        to: user.email!,
-        react: ProgramWelcome({
-          email: user.email!,
-          workspace,
-          program,
+      sendProgramWelcomeEmail &&
+        sendEmail({
+          subject: `Your program ${program.name} is created and ready to share with your partners.`,
+          to: user.email!,
+          react: ProgramWelcome({
+            email: user.email!,
+            workspace,
+            program,
+          }),
         }),
-      }),
 
       // delete the workspace product cache
       redis.del(`workspace:product:${workspace.slug}`),
@@ -252,7 +271,7 @@ export const createProgram = async ({
     ]),
   );
 
-  redirect(`/${workspace.slug}/program?onboarded-program=true`);
+  if (redirectTo) redirect(redirectTo);
 };
 
 // Invite a partner to the program

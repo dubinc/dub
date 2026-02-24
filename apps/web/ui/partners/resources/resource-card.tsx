@@ -13,6 +13,7 @@ import {
   Trash,
   useCopyToClipboard,
 } from "@dub/ui";
+import { Pen2 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ReactNode, useState } from "react";
 import { toast } from "sonner";
@@ -34,6 +35,7 @@ export function ResourceCard({
   title,
   description,
   icon,
+  onEdit,
   onDelete,
   downloadUrl,
   copyText,
@@ -43,6 +45,7 @@ export function ResourceCard({
   title: string;
   description: string;
   icon: ReactNode;
+  onEdit?: () => void;
   onDelete?: () => Promise<boolean>;
   downloadUrl?: string;
   copyText?: string;
@@ -69,7 +72,7 @@ export function ResourceCard({
         </div>
       </div>
       <div className="relative">
-        {onDelete || (downloadUrl && copyText && visitUrl) ? (
+        {onEdit || onDelete || (downloadUrl && copyText && visitUrl) ? (
           <Popover
             content={
               <div className="grid w-full grid-cols-1 gap-px p-2 sm:w-48">
@@ -123,6 +126,19 @@ export function ResourceCard({
                     <Link className="size-4" />
                     Visit {resourceType}
                   </a>
+                )}
+
+                {onEdit && (
+                  <Button
+                    text={`Edit ${resourceType}`}
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      onEdit();
+                    }}
+                    icon={<Pen2 className="size-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
                 )}
 
                 {onDelete && (

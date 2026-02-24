@@ -38,7 +38,7 @@ model Commission {
 
   program           Program           @relation(fields: [programId], references: [id])
   partner           Partner           @relation(fields: [partnerId], references: [id])
-  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId]) // used in cron/payouts/aggregate-due-commissions
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
   payout            Payout?           @relation(fields: [payoutId], references: [id])
   link              Link?             @relation(fields: [linkId], references: [id])
   customer          Customer?         @relation(fields: [customerId], references: [id])
@@ -46,8 +46,10 @@ model Commission {
   bountySubmission  BountySubmission?
 
   @@unique([invoiceId, programId])
-  @@index([earnings, programId, partnerId, status])
-  @@index([programId, createdAt, status, amount, earnings])
+  @@index([earnings, programId, partnerId, status]) // old index
+  @@index([programId, partnerId]) // for programEnrollment relation (used in cron/payouts/aggregate-due-commissions)
+  @@index([programId, status, createdAt, amount, earnings]) // for program/commissions (scoped by programId)
+  @@index([createdAt, status, programId, earnings]) // for admin/commissions
   @@index([partnerId, customerId])
   @@index(payoutId)
   @@index(customerId)

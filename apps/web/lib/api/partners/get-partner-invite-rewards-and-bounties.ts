@@ -31,6 +31,7 @@ export async function getPartnerInviteRewardsAndBounties({
       groupId,
       includeExpandedFields: true,
     }),
+
     prisma.bounty.findMany({
       where: {
         programId,
@@ -93,5 +94,6 @@ export async function getPartnerInviteRewardsAndBounties({
       icon: BOUNTY_ICONS[bounty.type],
       label: bounty.name,
     })),
+    group,
   };
 }

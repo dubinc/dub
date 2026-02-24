@@ -15,7 +15,13 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
-import { workflowConditionSchema } from "./workflows";
+import { WORKFLOW_ATTRIBUTES } from "./workflows";
+
+export const bountyPerformanceConditionSchema = z.object({
+  attribute: z.enum(WORKFLOW_ATTRIBUTES),
+  operator: z.literal("gte").default("gte"),
+  value: z.number(),
+});
 
 // Object format with image and url keys
 export const submissionRequirementsSchema = z.object({
@@ -67,7 +73,7 @@ export const createBountySchema = z.object({
     .nullish(),
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
-  performanceCondition: workflowConditionSchema.nullish(),
+  performanceCondition: bountyPerformanceConditionSchema.nullish(),
   performanceScope: z.enum(BountyPerformanceScope).nullish(),
   sendNotificationEmails: z.boolean().optional(),
 });
@@ -81,9 +87,9 @@ export const updateBountySchema = createBountySchema
   .partial();
 
 export const BountySubmissionFileSchema = z.object({
-  url: z.string(),
-  fileName: z.string(),
-  size: z.number(),
+  url: z.string().describe("The URL of the uploaded file."),
+  fileName: z.string().describe("The original file name."),
+  size: z.number().describe("The file size in bytes."),
 });
 
 // used in POST, PATCH, DELETE /bounties + bounty.created, bounty.updated webhooks
@@ -97,7 +103,9 @@ export const BountySchema = z.object({
   submissionsOpenAt: z.date().nullable(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
-  performanceCondition: workflowConditionSchema.nullable().default(null),
+  performanceCondition: bountyPerformanceConditionSchema
+    .nullable()
+    .default(null),
   performanceScope: z.enum(BountyPerformanceScope).nullable(),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
@@ -121,19 +129,47 @@ export const BountyListSchema = BountySchema.extend({
 
 // used in GET /bounties/{bountyId}/submissions
 export const BountySubmissionSchema = z.object({
-  id: z.string(),
-  bountyId: z.string(),
-  partnerId: z.string(),
-  description: z.string().nullable(),
-  urls: z.array(z.string()).nullable(),
-  files: z.array(BountySubmissionFileSchema).nullable(),
-  status: z.enum(BountySubmissionStatus),
-  performanceCount: z.number().nullable(),
-  createdAt: z.date(),
-  completedAt: z.date().nullable(),
-  reviewedAt: z.date().nullable(),
-  rejectionReason: z.string().nullable(),
-  rejectionNote: z.string().nullable(),
+  id: z.string().meta({ description: "The ID of the bounty submission" }),
+  bountyId: z.string().meta({ description: "The ID of the bounty" }),
+  partnerId: z.string().meta({ description: "The ID of the partner" }),
+  description: z
+    .string()
+    .nullable()
+    .meta({ description: "The description of the submission" }),
+  urls: z
+    .array(z.string())
+    .nullable()
+    .meta({ description: "The URLs submitted for the submission" }),
+  files: z
+    .array(BountySubmissionFileSchema)
+    .nullable()
+    .meta({ description: "The files uploaded for the submission" }),
+  status: z
+    .enum(BountySubmissionStatus)
+    .meta({ description: "The status of the submission" }),
+  performanceCount: z
+    .number()
+    .nullable()
+    .meta({ description: "The performance count of the submission" }),
+  createdAt: z
+    .date()
+    .meta({ description: "The date and time the submission was created" }),
+  completedAt: z
+    .date()
+    .nullable()
+    .meta({ description: "The date and time the submission was completed" }),
+  reviewedAt: z
+    .date()
+    .nullable()
+    .meta({ description: "The date and time the submission was reviewed" }),
+  rejectionReason: z
+    .string()
+    .nullable()
+    .meta({ description: "The reason for rejecting the submission" }),
+  rejectionNote: z
+    .string()
+    .nullable()
+    .meta({ description: "The note for rejecting the submission" }),
 });
 
 export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
@@ -164,7 +200,10 @@ export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
 });
 
 export const approveBountySubmissionBodySchema = z.object({
-  rewardAmount: z.number().nullish(),
+  rewardAmount: z.number().nullish().meta({
+    description:
+      "The reward amount for the performance-based bounty. Applicable if the bounty reward amount is not set.",
+  }),
 });
 
 export const rejectBountySubmissionBodySchema = z.object({

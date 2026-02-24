@@ -6,7 +6,12 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, isFulfilled, log } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  isFulfilled,
+  log,
+  prettyPrint,
+} from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { remapPartnerGroupDefaultLinks } from "./utils";
@@ -16,7 +21,7 @@ const schema = z.object({
   programId: z.string(),
   groupId: z.string(),
   partnerIds: z.array(z.string()).min(1),
-  userId: z.string(),
+  userId: z.string().nullish(),
   isGroupDeleted: z.boolean().optional(),
 });
 
@@ -153,7 +158,7 @@ export async function POST(req: Request) {
                 tenantId: programEnrollment?.tenantId ?? undefined,
                 partnerGroupDefaultLinkId: link.partnerGroupDefaultLinkId,
               },
-              userId,
+              userId: userId ?? undefined,
             });
           }),
         )
@@ -217,15 +222,30 @@ export async function POST(req: Request) {
       );
     }
 
-    const res = await qstash.publishJSON({
+    const syncUtmJob = await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
       body: {
         groupId,
         partnerIds,
       },
     });
+
     console.log(
-      `Scheduled sync-utm job for group ${groupId}: ${JSON.stringify(res, null, 2)}`,
+      `Scheduled sync-utm job for group ${groupId}: ${prettyPrint(syncUtmJob)}`,
+    );
+
+    const remapDiscountCodesJob = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-discount-codes`,
+      body: {
+        programId,
+        partnerIds,
+        groupId,
+        isGroupDeleted,
+      },
+    });
+
+    console.log(
+      `Scheduled remap-discount-codes job for group ${groupId}: ${prettyPrint(remapDiscountCodesJob)}`,
     );
 
     return logAndRespond(`Finished creating default links for the partners.`);

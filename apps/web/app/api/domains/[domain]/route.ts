@@ -48,6 +48,7 @@ export const PATCH = withWorkspace(
       slug: domain,
       registeredDomain,
       logo: oldLogo,
+      partnerProgram,
     } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
@@ -208,7 +209,29 @@ export const PATCH = withWorkspace(
             queueDomainUpdate({
               oldDomain: domain,
               newDomain: newDomain,
+              ...(partnerProgram && { programId: partnerProgram.id }),
             }),
+
+            ...(partnerProgram
+              ? [
+                  prisma.program.update({
+                    where: {
+                      id: partnerProgram.id,
+                    },
+                    data: {
+                      domain,
+                    },
+                  }),
+                  prisma.partnerGroupDefaultLink.updateMany({
+                    where: {
+                      programId: partnerProgram.id,
+                    },
+                    data: {
+                      domain,
+                    },
+                  }),
+                ]
+              : []),
           ]);
         }
       })(),

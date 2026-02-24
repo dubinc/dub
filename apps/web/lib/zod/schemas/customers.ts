@@ -46,7 +46,12 @@ export const getCustomersQuerySchema = z
         "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
       ),
     sortBy: z
-      .enum(["createdAt", "saleAmount"])
+      .enum([
+        "createdAt",
+        "saleAmount",
+        "firstSaleAt",
+        "subscriptionCanceledAt",
+      ])
       .optional()
       .default("createdAt")
       .describe(
@@ -93,7 +98,7 @@ export const createCustomerBodySchema = z.object({
       "The customer's avatar URL. If not provided, a random avatar will be generated.",
     ),
   externalId: z
-    .string()
+    .string("External ID is required")
     .describe(
       "The customer's unique identifier your database. This is useful for associating subsequent conversion events from Dub's API to your internal systems.",
     ),
@@ -140,7 +145,23 @@ export const CustomerSchema = z.object({
     .number()
     .nullish()
     .describe("Total amount of sales for the customer."),
-  createdAt: z.date().describe("The date the customer was created."),
+  createdAt: z
+    .date()
+    .describe(
+      "The date the customer was created (usually the signup date or trial start date).",
+    ),
+  firstSaleAt: z
+    .date()
+    .nullish()
+    .describe(
+      "The date the customer made their first sale. Useful for calculating the time to first sale and LTV.",
+    ),
+  subscriptionCanceledAt: z
+    .date()
+    .nullish()
+    .describe(
+      "The date the customer canceled their subscription. Useful for calculating LTV and churn rate.",
+    ),
 });
 
 // An extended schema that includes the customer's link, partner, and discount.
@@ -160,5 +181,24 @@ export const CustomerEnrichedSchema = CustomerSchema.extend({
     email: true,
     image: true,
   }).nullish(),
-  discount: DiscountSchema.nullish(),
+  discount: DiscountSchema.omit({
+    autoProvisionEnabledAt: true,
+  }).nullish(),
+});
+
+export const StripeCustomerSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  country: z.string().nullable(),
+  subscriptions: z.number(),
+  dubCustomerId: z.string().nullable(),
+});
+
+export const StripeCustomerInvoiceSchema = z.object({
+  id: z.string(),
+  amount: z.number(),
+  createdAt: z.date(),
+  metadata: z.any(),
+  dubCommissionId: z.string().nullish(),
 });

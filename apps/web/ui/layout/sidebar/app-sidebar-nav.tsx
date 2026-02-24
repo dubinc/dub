@@ -1,14 +1,16 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
+import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { useRouterStuff } from "@dub/ui";
@@ -35,13 +37,13 @@ import {
   ShieldKeyhole,
   Sliders,
   Tag,
+  Trophy,
   UserCheck,
   UserPlus,
   Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
-import { Trophy } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
@@ -70,6 +72,7 @@ type SidebarNavData = {
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
+  pendingReferralsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
@@ -205,7 +208,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     pendingFraudEventsCount,
+    pendingReferralsCount,
     partnerNetworkEnabled,
+    pathname,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -289,8 +294,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Customers",
-            icon: UserCheck,
+            icon: User,
             href: `/${slug}/program/customers`,
+            badge: pendingReferralsCount
+              ? pendingReferralsCount > 99
+                ? "99+"
+                : pendingReferralsCount
+              : undefined,
           },
           {
             name: "Commissions",
@@ -559,6 +569,7 @@ export function AppSidebarNav({
   >({
     eligibility: "eligible",
     status: "pending",
+    ignoreParams: true,
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
@@ -591,6 +602,16 @@ export function AppSidebarNav({
     ignoreParams: true,
   });
 
+  const { data: pendingReferralsCount } = useProgramReferralsCount<number>({
+    query: { status: "pending" },
+    ignoreParams: true,
+    enabled: Boolean(
+      currentArea === "program" &&
+        defaultProgramId &&
+        REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+    ),
+  });
+
   const { canTrackConversions } = getPlanCapabilities(plan);
 
   return (
@@ -602,7 +623,7 @@ export function AppSidebarNav({
         slug: slug || "",
         pathname,
         queryString: getQueryString(undefined, {
-          include: ["folderId", "tagIds"],
+          include: ["folderId"],
         }),
         session: session || undefined,
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
@@ -612,6 +633,7 @@ export function AppSidebarNav({
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
+        pendingReferralsCount,
         showConversionGuides: canTrackConversions,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,

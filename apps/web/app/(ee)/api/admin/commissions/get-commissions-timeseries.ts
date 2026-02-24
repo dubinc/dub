@@ -32,10 +32,10 @@ export async function getCommissionsTimeseries({
           SUM(earnings) AS commissions
         FROM Commission
         WHERE 
-          ${programId ? Prisma.sql`programId = ${programId}` : Prisma.sql`programId != ${ACME_PROGRAM_ID}`}
-          AND createdAt >= ${startDate}
+          createdAt >= ${startDate}
           AND createdAt < ${endDate}
           AND status IN ("pending", "processed", "paid")
+          AND ${programId ? Prisma.sql`programId = ${programId}` : Prisma.sql`programId != ${ACME_PROGRAM_ID}`}
         GROUP BY start
         ORDER BY start ASC;`;
 

@@ -5,9 +5,9 @@ import { PartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import {
-  OnlinePresenceForm,
-  useOnlinePresenceForm,
-} from "@/ui/partners/online-presence-form";
+  PartnerPlatformsForm,
+  usePartnerPlatformsForm,
+} from "@/ui/partners/partner-platforms-form";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PartnerProfileType } from "@dub/prisma/client";
@@ -46,7 +46,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
     ? !hasPermission(partner.role, "partner_profile.update")
     : true;
   const basicInfoFormRef = useRef<HTMLFormElement>(null);
-  const onlinePresenceFormRef = useRef<HTMLFormElement>(null);
+  const partnerPlatformsFormRef = useRef<HTMLFormElement>(null);
 
   const basicInfoForm = useForm<BasicInfoFormData>({
     defaultValues: {
@@ -58,7 +58,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
       companyName: partner?.companyName ?? null,
     },
   });
-  const onlinePresenceForm = useOnlinePresenceForm({ partner });
+  const partnerPlatformsForm = usePartnerPlatformsForm({ partner });
 
   const {
     setShowConfirmModal: setShowStripeConfirmModal,
@@ -70,7 +70,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
     confirmText: "Continue",
     onConfirm: () => {
       basicInfoFormRef.current?.requestSubmit();
-      onlinePresenceFormRef.current?.requestSubmit();
+      partnerPlatformsFormRef.current?.requestSubmit();
     },
   });
 
@@ -87,6 +87,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
       </div>
 
       <SettingsRow
+        id="info"
         heading="Basic information"
         description="Your core details, and information that's required to set up your Dub Partner account."
       >
@@ -100,14 +101,14 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
       </SettingsRow>
 
       <SettingsRow
-        id="sites"
+        id="platforms"
         heading="Website and socials"
         description="Add your website and social accounts you use to share links. Verifying as many platforms as possible helps build trust with programs."
       >
-        <OnlinePresenceForm
-          ref={onlinePresenceFormRef}
+        <PartnerPlatformsForm
+          ref={partnerPlatformsFormRef}
           partner={partner}
-          form={onlinePresenceForm}
+          form={partnerPlatformsForm}
           variant="settings"
         />
       </SettingsRow>
@@ -119,7 +120,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
           disabled={disabled}
           loading={
             basicInfoForm.formState.isSubmitting ||
-            onlinePresenceForm.formState.isSubmitting
+            partnerPlatformsForm.formState.isSubmitting
           }
           onClick={() => {
             if (disabled) return;
@@ -133,7 +134,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
               setShowStripeConfirmModal(true);
             } else {
               basicInfoFormRef.current?.requestSubmit();
-              onlinePresenceFormRef.current?.requestSubmit();
+              partnerPlatformsFormRef.current?.requestSubmit();
             }
           }}
         />

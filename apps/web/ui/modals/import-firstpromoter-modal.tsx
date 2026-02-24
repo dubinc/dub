@@ -13,6 +13,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { MarkdownDescription } from "../shared/markdown-description";
 
 function ImportFirstPromoterModal({
   showImportFirstPromoterModal,
@@ -49,12 +50,13 @@ function ImportFirstPromoterModal({
           <Logo />
         </div>
         <h3 className="text-lg font-medium">
-          Import Your FirstPromoter Campaign
+          Import your FirstPromoter campaign
         </h3>
-        <p className="text-center text-sm text-neutral-500">
-          Import your existing FirstPromoter campaign into{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME}.
-        </p>
+        <MarkdownDescription className="text-center text-sm text-neutral-500">
+          [Migrate your existing FirstPromoter
+          campaign](https://dub.co/help/article/migrating-from-firstpromoter),
+          partners, and historical stats into Dub.
+        </MarkdownDescription>
       </div>
 
       <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">

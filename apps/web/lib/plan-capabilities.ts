@@ -18,5 +18,6 @@ export const getPlanCapabilities = (
     canSendEmailCampaigns: !!plan && ["enterprise", "advanced"].includes(plan),
     canDiscoverPartners: !!plan && ["enterprise", "advanced"].includes(plan),
     canManageFraudEvents: !!plan && ["enterprise", "advanced"].includes(plan),
+    canUseGroupMoveRule: !!plan && ["enterprise", "advanced"].includes(plan),
   };
 };

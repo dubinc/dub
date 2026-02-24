@@ -6,6 +6,8 @@ const PARTNERS_REDIRECTS = {
   "/profile/sites": "/profile",
   "/marketplace": "/programs/marketplace",
   "/rewind": "/rewind/2025",
+  "/onboarding/online-presence": "/onboarding/platforms",
+  "/onboarding/verify": "/onboarding/payouts",
 };
 
 export const partnersRedirect = (path: string) => {
@@ -13,6 +15,7 @@ export const partnersRedirect = (path: string) => {
 };
 
 const PARTNERS_PROGRAM_REDIRECTS = {
+  florafauna: "flora",
   "ship-30": "dwp",
   supercutai: "supercut",
   "teller-perps": "teller",

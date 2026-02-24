@@ -4,7 +4,6 @@ import { DomainSchema } from "../zod/schemas/domains";
 import { FolderSchema } from "../zod/schemas/folders";
 import { LinkErrorSchema, LinkSchema } from "../zod/schemas/links";
 import { LinkTagSchema } from "../zod/schemas/tags";
-import { WorkspaceSchema } from "../zod/schemas/workspaces";
 import { analyticsPath } from "./analytics";
 import { bountiesPaths } from "./bounties";
 import { commissionsPaths } from "./commissions";
@@ -15,11 +14,11 @@ import { eventsPath } from "./events";
 import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
 import { partnersPaths } from "./partners";
+import { payoutsPaths } from "./payouts";
 import { qrCodePaths } from "./qr";
 import { openApiErrorResponsesComponents } from "./responses";
 import { tagsPaths } from "./tags";
 import { trackPaths } from "./track";
-import { workspacesPaths } from "./workspaces";
 
 export const document = createDocument({
   openapi: "3.0.3",
@@ -55,7 +54,7 @@ export const document = createDocument({
     ...customersPaths,
     ...partnersPaths,
     ...commissionsPaths,
-    ...workspacesPaths,
+    ...payoutsPaths,
     ...embedTokensPaths,
     ...qrCodePaths,
     ...bountiesPaths,
@@ -63,7 +62,6 @@ export const document = createDocument({
   components: {
     schemas: {
       LinkSchema,
-      WorkspaceSchema,
       LinkTagSchema,
       FolderSchema,
       DomainSchema,

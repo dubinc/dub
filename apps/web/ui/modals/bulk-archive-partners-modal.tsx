@@ -52,9 +52,7 @@ function BulkArchivePartnersModal({
 
     setShowBulkArchivePartnersModal(false);
     await onConfirm?.();
-    toast.success(
-      `${partners.length} ${partnerWord} archived successfully!`,
-    );
+    toast.success(`${partners.length} ${partnerWord} archived successfully!`);
   }, [
     executeAsync,
     partners,

@@ -17,7 +17,7 @@ export const updateDiscountAction = authActionClient
   .inputSchema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { discountId, couponTestId } = parsedInput;
+    const { discountId, couponTestId, autoProvision } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -38,6 +38,11 @@ export const updateDiscountAction = authActionClient
         },
         data: {
           couponTestId: couponTestId || null,
+          ...(autoProvision !== undefined && {
+            autoProvisionEnabledAt: autoProvision
+              ? discount.autoProvisionEnabledAt ?? new Date()
+              : null,
+          }),
         },
         include: {
           program: true,
@@ -67,6 +72,17 @@ export const updateDiscountAction = authActionClient
                       revalidatePath(`/partners.dub.co/${program.slug}/apply`),
                     ]
                   : []),
+              ]
+            : []),
+
+          ...(updatedDiscount.autoProvisionEnabledAt
+            ? [
+                qstash.publishJSON({
+                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
+                  body: {
+                    discountId: discount.id,
+                  },
+                }),
               ]
             : []),
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -7,7 +8,6 @@ import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
-  buttonVariants,
   FileUpload,
   ToggleGroup,
   TooltipContent,
@@ -15,7 +15,7 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils/src/functions";
+import { cn } from "@dub/utils";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -93,10 +93,10 @@ export function OnboardingForm({
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
       setAccountCreated(true);
-      router.push("/onboarding/online-presence");
+      router.push("/onboarding/platforms");
     },
     onError: ({ error, input }) => {
-      toast.error(error.serverError);
+      toast.error(parseActionError(error, "An unknown error occurred."));
       reset(input);
     },
   });
@@ -111,7 +111,7 @@ export function OnboardingForm({
       className="flex w-full flex-col gap-6 text-left"
     >
       <label>
-        <span className="text-sm font-medium text-neutral-800">Full Name</span>
+        <span className="text-sm font-medium text-neutral-800">Name</span>
         <input
           type="text"
           className={cn(
@@ -129,22 +129,18 @@ export function OnboardingForm({
 
       <label>
         <span className="text-sm font-medium text-neutral-800">
-          Profile Image
+          Profile image
         </span>
         <div className="flex items-center gap-5">
           <Controller
             control={control}
             name="image"
-            rules={{ required: true }}
             render={({ field }) => (
               <FileUpload
                 accept="images"
-                className={cn(
-                  "mt-1.5 size-20 rounded-full border border-neutral-300",
-                  errors.image && "border-0 ring-2 ring-red-500",
-                )}
+                className="mt-1.5 size-20 rounded-full border border-neutral-300"
                 iconClassName="size-5"
-                previewClassName="size-10 rounded-full"
+                previewClassName="size-20 rounded-full"
                 variant="plain"
                 imageSrc={field.value}
                 readFile
@@ -156,16 +152,11 @@ export function OnboardingForm({
             )}
           />
           <div>
-            <div
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-7 w-fit cursor-pointer items-center rounded-md border px-2 text-xs",
-              )}
-            >
-              Upload image
-            </div>
-            <p className="mt-1.5 text-xs text-neutral-500">
-              Recommended size: 160x160px
+            <p className="text-xs text-neutral-500">
+              Square image recommended, up to 2 MB.
+            </p>
+            <p className="mt-0.5 text-xs font-medium text-neutral-500">
+              Adding an image can improve your approval rates.
             </p>
           </div>
         </div>

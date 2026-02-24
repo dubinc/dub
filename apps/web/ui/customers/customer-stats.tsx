@@ -1,4 +1,3 @@
-import useCustomerActivity from "@/lib/swr/use-customer-activity";
 import { CustomerEnriched } from "@/lib/types";
 import { TimestampTooltip } from "@dub/ui";
 import { ArrowUpRight2 } from "@dub/ui/icons";
@@ -7,6 +6,7 @@ import {
   currencyFormatter,
   formatDateTimeSmart,
   nFormatter,
+  pluralize,
 } from "@dub/utils";
 import { formatDistance } from "date-fns";
 import Link from "next/link";
@@ -16,12 +16,19 @@ import { CSSProperties, useMemo } from "react";
 export function CustomerStats({
   customer,
 }: {
-  customer?: Pick<CustomerEnriched, "sales" | "saleAmount" | "createdAt">;
+  customer?: Pick<
+    CustomerEnriched,
+    | "sales"
+    | "saleAmount"
+    | "createdAt"
+    | "firstSaleAt"
+    | "subscriptionCanceledAt"
+  >;
 }) {
-  const { customerId } = useParams<{ customerId: string }>();
-  const { customerActivity, isCustomerActivityLoading } = useCustomerActivity({
-    customerId,
-  });
+  const { slug: workspaceSlug, customerId } = useParams<{
+    slug: string;
+    customerId: string;
+  }>();
 
   const stats: {
     label: string;
@@ -30,48 +37,60 @@ export function CustomerStats({
   }[] = useMemo(
     () => [
       {
-        label: "Time to sale",
-        value:
-          !customer || isCustomerActivityLoading
-            ? undefined
-            : customerActivity?.firstSaleDate
-              ? formatDistance(
-                  customerActivity.firstSaleDate,
-                  customer.createdAt,
-                )
-              : "-",
-      },
-      {
         label: "First sale date",
-        value:
-          isCustomerActivityLoading ? undefined : customerActivity?.firstSaleDate ? (
-            <TimestampTooltip
-              timestamp={customerActivity.firstSaleDate}
-              side="right"
-              rows={["local", "utc"]}
-            >
-              <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-                {formatDateTimeSmart(customerActivity.firstSaleDate)}
-              </span>
-            </TimestampTooltip>
-          ) : (
-            "-"
-          ),
+        value: !customer ? undefined : customer.firstSaleAt ? (
+          <TimestampTooltip
+            timestamp={customer.firstSaleAt}
+            side="right"
+            rows={["local", "utc"]}
+          >
+            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+              {formatDateTimeSmart(customer.firstSaleAt)}
+            </span>
+          </TimestampTooltip>
+        ) : (
+          "-"
+        ),
       },
       {
-        label: "Sales",
-        value: customer
-          ? nFormatter(customer.sales ?? 0, { full: true })
-          : undefined,
+        label: "Time to sale",
+        value: !customer
+          ? undefined
+          : customer.firstSaleAt
+            ? formatDistance(customer.firstSaleAt, customer.createdAt)
+            : "-",
       },
       {
         label: "Lifetime value",
-        value: customer
-          ? currencyFormatter(customer.saleAmount ?? 0)
-          : undefined,
+        value: customer ? (
+          <div className="flex items-center gap-1">
+            {currencyFormatter(customer.saleAmount ?? 0)}
+            <span className="text-xs text-neutral-500">
+              ({nFormatter(customer.sales ?? 0, { full: true })}{" "}
+              {pluralize("sale", customer.sales ?? 0)})
+            </span>
+          </div>
+        ) : undefined,
+        href: `/${workspaceSlug}/events?event=sales&customerId=${customerId}&interval=1y`,
+      },
+      {
+        label: "Subscription canceled",
+        value: !customer ? undefined : customer.subscriptionCanceledAt ? (
+          <TimestampTooltip
+            timestamp={customer.subscriptionCanceledAt}
+            side="right"
+            rows={["local", "utc"]}
+          >
+            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+              {formatDateTimeSmart(customer.subscriptionCanceledAt)}
+            </span>
+          </TimestampTooltip>
+        ) : (
+          "-"
+        ),
       },
     ],
-    [customer, customerActivity, isCustomerActivityLoading],
+    [workspaceSlug, customer],
   );
 
   return (

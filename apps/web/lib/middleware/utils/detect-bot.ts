@@ -1,6 +1,6 @@
 import { ipAddress } from "@vercel/functions";
 import { userAgent } from "next/server";
-import { IP_BOTS, IP_RANGES_BOTS, UA_BOTS } from "./bots-list";
+import { IP_BOTS, IP_RANGES_BOTS, REFERRER_BOTS, UA_BOTS } from "./bots-list";
 import { isIpInRange } from "./is-ip-in-range";
 
 export const detectBot = (req: Request) => {
@@ -15,6 +15,15 @@ export const detectBot = (req: Request) => {
 
   if (ua) {
     return ua.isBot || UA_BOTS.some((bot) => new RegExp(bot, "i").test(ua.ua));
+  }
+
+  // Check referer
+  const referer = req.headers.get("referer");
+  if (
+    referer &&
+    REFERRER_BOTS.some((bot) => new RegExp(bot, "i").test(referer))
+  ) {
+    return true;
   }
 
   // Check ip

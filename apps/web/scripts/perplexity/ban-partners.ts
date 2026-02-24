@@ -95,7 +95,7 @@ async function main() {
         //       },
         //     });
         //     console.log(
-        //       `Cancelled ${res.count} commissions for partner ${enrollment.partnerId}`,
+        //       `Canceled ${res.count} commissions for partner ${enrollment.partnerId}`,
         //     );
         //   }
         // }
