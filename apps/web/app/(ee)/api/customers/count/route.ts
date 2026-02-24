@@ -7,17 +7,18 @@ import { NextResponse } from "next/server";
 
 // GET /api/customers/count
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
-  let { programId, partnerId, groupBy, ...filters } =
-    getCustomersCountQuerySchema.parse(searchParams);
+  const parsedFilters = getCustomersCountQuerySchema.parse(searchParams);
+
+  let { programId, partnerId, groupBy } = parsedFilters;
 
   if (programId || partnerId) {
     programId = getDefaultProgramIdOrThrow(workspace);
   }
 
   const commonWhere = buildCustomerCountWhere({
-    ...filters,
-    programId,
+    ...parsedFilters,
     workspaceId: workspace.id,
+    programId,
   });
 
   // Get customer count by country

@@ -22,17 +22,18 @@ import { NextResponse } from "next/server";
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    let { programId, partnerId, includeExpandedFields, ...filters } =
-      getCustomersQuerySchemaExtended.parse(searchParams);
+    const parsedFilters = getCustomersQuerySchemaExtended.parse(searchParams);
+
+    let { programId, partnerId, includeExpandedFields } = parsedFilters;
 
     if (programId || partnerId) {
       programId = getDefaultProgramIdOrThrow(workspace);
     }
 
     const customers = await getCustomers({
-      ...filters,
-      programId,
+      ...parsedFilters,
       workspaceId: workspace.id,
+      programId,
     });
 
     const responseSchema = includeExpandedFields

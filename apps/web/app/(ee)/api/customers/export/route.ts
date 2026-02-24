@@ -14,17 +14,18 @@ const MAX_CUSTOMERS_TO_EXPORT = 1000;
 
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
-    let { programId, partnerId, columns, ...filters } =
-      customersExportQuerySchema.parse(searchParams);
+    const parsedFilters = customersExportQuerySchema.parse(searchParams);
+
+    let { programId, partnerId, columns, ...filters } = parsedFilters;
 
     if (programId || partnerId) {
       programId = getDefaultProgramIdOrThrow(workspace);
     }
 
     const where = buildCustomerCountWhere({
-      ...filters,
-      programId,
+      ...parsedFilters,
       workspaceId: workspace.id,
+      programId,
     });
 
     const count = await prisma.customer.count({
@@ -35,7 +36,8 @@ export const GET = withWorkspace(
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/customers`,
         body: {
-          ...filters,
+          ...parsedFilters,
+          workspaceId: workspace.id,
           programId,
           userId: session.user.id,
           columns: columns.join(","),
@@ -46,9 +48,9 @@ export const GET = withWorkspace(
     }
 
     const customers = await getCustomers({
-      ...filters,
-      programId,
+      ...parsedFilters,
       workspaceId: workspace.id,
+      programId,
       page: 1,
       pageSize: MAX_CUSTOMERS_TO_EXPORT,
     });
