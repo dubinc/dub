@@ -26,6 +26,24 @@ interface CreateAndEnrollPartnerInput {
   userId: string;
 }
 
+type UpsertedPartner = Prisma.PartnerGetPayload<{
+  include: {
+    platforms: true;
+    programs: true;
+  };
+}>;
+
+type ExistingProgramEnrollment = Prisma.ProgramEnrollmentGetPayload<{
+  include: {
+    partner: {
+      include: {
+        platforms: true;
+      };
+    };
+    links: true;
+  };
+}>;
+
 export const createAndEnrollPartner = async ({
   workspace,
   program,
@@ -160,29 +178,100 @@ export const createAndEnrollPartner = async ({
     },
   };
 
-  const upsertedPartner = await prisma.partner.upsert({
-    where: {
-      email: partner.email,
-    },
-    update: payload,
-    create: {
-      ...payload,
-      id: createId({ prefix: "pn_" }),
-      name: partner.name || partner.email,
-      email: partner.email,
-      image: partner.image && !isStored(partner.image) ? null : partner.image,
-      country: partner.country,
-      description: partner.description,
-    },
-    include: {
-      platforms: true,
-      programs: {
-        where: {
-          programId: program.id,
+  let upsertedPartner: UpsertedPartner;
+
+  try {
+    upsertedPartner = await prisma.partner.upsert({
+      where: {
+        email: partner.email,
+      },
+      update: payload,
+      create: {
+        ...payload,
+        id: createId({ prefix: "pn_" }),
+        name: partner.name || partner.email,
+        email: partner.email,
+        image: partner.image && !isStored(partner.image) ? null : partner.image,
+        country: partner.country,
+        description: partner.description,
+      },
+      include: {
+        platforms: true,
+        programs: {
+          where: {
+            programId: program.id,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error) {
+    // Prisma upsert can race across concurrent requests for the same email.
+    // When another request wins and commits first (P2002 here), switch to a
+    // read path and return the currently visible enrollment state.
+    const isUniqueConstraintError =
+      typeof error === "object" &&
+      error !== null &&
+      "code" in error &&
+      error.code === "P2002";
+
+    if (isUniqueConstraintError) {
+      let existingProgramEnrollment: ExistingProgramEnrollment | null = null;
+
+      // Winner write may not be committed yet when we observe the conflict.
+      // Poll briefly for enrollment visibility before returning a 500.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt > 0) {
+          await new Promise((resolve) => setTimeout(resolve, 200));
+        }
+
+        existingProgramEnrollment = await prisma.programEnrollment.findFirst({
+          where: {
+            programId: program.id,
+            OR: [
+              ...(partner.tenantId
+                ? [
+                    {
+                      tenantId: partner.tenantId,
+                    },
+                  ]
+                : []),
+              {
+                partner: {
+                  email: partner.email,
+                },
+              },
+            ],
+          },
+          include: {
+            partner: {
+              include: {
+                platforms: true,
+              },
+            },
+            links: true,
+          },
+        });
+
+        if (existingProgramEnrollment) {
+          break;
+        }
+      }
+
+      if (existingProgramEnrollment) {
+        return EnrolledPartnerSchema.parse({
+          ...existingProgramEnrollment.partner,
+          ...existingProgramEnrollment,
+          id: existingProgramEnrollment.partner.id,
+          links: existingProgramEnrollment.links,
+          ...polyfillSocialMediaFields(
+            existingProgramEnrollment.partner.platforms,
+          ),
+        });
+      }
+    }
+
+    throw error;
+  }
 
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
