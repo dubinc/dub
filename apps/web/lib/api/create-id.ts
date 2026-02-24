@@ -42,6 +42,7 @@ const prefixes = [
   "fre_", // fraud event
   "frg_", // fraud event group
   "ref_", // referral
+  "pb_", // partner postback
 ] as const;
 
 // ULID uses base32 encoding

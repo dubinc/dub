@@ -37,13 +37,13 @@ import {
   ShieldKeyhole,
   Sliders,
   Tag,
+  Trophy,
   UserCheck,
   UserPlus,
   Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
-import { Trophy } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
@@ -96,10 +96,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
       pathname.startsWith(`/${slug}`) &&
       !pathname.startsWith(`/${slug}/program`) &&
       !pathname.startsWith(`/${slug}/settings`),
-
-    onClick: () => {
-      document.cookie = `dub_product:${slug}=links;path=/;max-age=${FIVE_YEARS_SECONDS}`;
-    },
   },
   {
     name: "Partner Program",
@@ -110,12 +106,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: slug ? `/${slug}/program` : "/program",
     active: pathname.startsWith(`/${slug}/program`),
     popup: DubPartnersPopup,
-
-    onClick: defaultProgramId
-      ? () => {
-          document.cookie = `dub_product:${slug}=program;path=/;max-age=${FIVE_YEARS_SECONDS}`;
-        }
-      : undefined,
   },
 ];
 

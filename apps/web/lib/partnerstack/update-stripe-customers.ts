@@ -182,8 +182,7 @@ async function searchStripeAndUpdateCustomer({
       } else {
         // look for the one with subscriptions
         const customerWithSubcription = stripeCustomers.data.find(
-          ({ subscriptions }) =>
-            subscriptions && subscriptions.data.length > 0,
+          ({ subscriptions }) => subscriptions && subscriptions.data.length > 0,
         );
 
         if (customerWithSubcription) {

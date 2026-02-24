@@ -98,14 +98,14 @@ export function ReferralsEmbedPageClient({
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
       "Earnings",
-      "Links",
+      ...(group.additionalLinks.length > 0 ? ["Links"] : []),
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
         : ["Leaderboard"]),
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
     ],
-    [showQuickstart, hasResources],
+    [showQuickstart, group.additionalLinks, programEmbedData, hasResources],
   );
 
   const [copied, copyToClipboard] = useCopyToClipboard();

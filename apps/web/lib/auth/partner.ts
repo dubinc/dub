@@ -1,11 +1,12 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
-import { PartnerProps } from "@/lib/types";
+import { PartnerBetaFeatures, PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { PartnerUser } from "@dub/prisma/client";
 import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
+import { getPartnerFeatureFlags } from "../edge-config";
 import { ratelimit } from "../upstash";
 import { partnerPlatformSchema } from "../zod/schemas/partners";
 import { hashToken } from "./hash-token";
@@ -37,6 +38,7 @@ interface WithPartnerProfileHandler {
 
 interface WithPartnerProfileOptions {
   requiredPermission?: Permission;
+  featureFlag?: PartnerBetaFeatures;
 }
 
 const RATE_LIMIT_FOR_PARTNERS = {
@@ -52,7 +54,7 @@ const RATE_LIMIT_FOR_PARTNERS = {
 
 export const withPartnerProfile = (
   handler: WithPartnerProfileHandler,
-  { requiredPermission }: WithPartnerProfileOptions = {},
+  { requiredPermission, featureFlag }: WithPartnerProfileOptions = {},
 ) => {
   return withAxiom(
     async (
@@ -238,6 +240,18 @@ export const withPartnerProfile = (
             role: partnerUser.role,
             permission: requiredPermission,
           });
+        }
+
+        // Beta feature checks
+        if (featureFlag) {
+          const flags = await getPartnerFeatureFlags(partnerUser.partner.id);
+
+          if (!flags[featureFlag]) {
+            throw new DubApiError({
+              code: "forbidden",
+              message: "Unauthorized: Beta feature.",
+            });
+          }
         }
 
         const {

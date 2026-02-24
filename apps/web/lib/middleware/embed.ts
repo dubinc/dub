@@ -1,14 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { parse } from "./utils/parse";
 
-const PUBLIC_EMBED_PATHS = ["/embed/supported-countries"];
-
 export function EmbedMiddleware(req: NextRequest) {
-  const { path, searchParamsObj, fullPath } = parse(req);
-
-  if (PUBLIC_EMBED_PATHS.includes(path)) {
-    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
-  }
+  const { searchParamsObj, fullPath } = parse(req);
 
   if (searchParamsObj.token) {
     return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
