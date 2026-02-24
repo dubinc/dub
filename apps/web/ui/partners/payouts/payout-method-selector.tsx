@@ -94,18 +94,24 @@ export function PayoutMethodSelector({
     payoutMethods.includes(m.id),
   );
 
-  const isSingleOption = filteredMethods.length === 1;
-  const cardVariant =
-    variantProp === "compact"
-      ? "compact"
-      : isSingleOption
-        ? "spotlight"
-        : "default";
-  const iconSize =
-    variantProp === "compact" ? "sm" : isSingleOption ? "lg" : "sm";
+  const methodCount = filteredMethods.length;
+  const isSingleOption = methodCount === 1;
+  const isCompact = variantProp === "compact";
+
+  const gridClassName = isSingleOption
+    ? "w-full"
+    : `grid gap-3 sm:grid-cols-${Math.min(methodCount, 3)}`;
+
+  const cardVariant = isCompact
+    ? "compact"
+    : isSingleOption
+      ? "spotlight"
+      : "default";
+
+  const iconSize = isCompact ? "sm" : isSingleOption ? "lg" : "sm";
 
   return (
-    <div className={isSingleOption ? "w-full" : "grid gap-3 sm:grid-cols-2"}>
+    <div className={gridClassName}>
       {filteredMethods.map((method) => (
         <PayoutMethodCard
           key={method.id}
@@ -125,7 +131,6 @@ export function PayoutMethodSelector({
           action={
             <ConnectPayoutButton
               payoutMethod={method.id}
-              text="Connect"
               className={cn(
                 "w-full rounded-lg",
                 isSingleOption ? "h-10" : "h-9",
