@@ -18,11 +18,13 @@ import { toast } from "sonner";
 
 interface ConnectPayoutButtonProps extends ButtonProps {
   payoutMethod?: PartnerPayoutMethod;
+  connected?: boolean;
   allowWhenPayoutsEnabled?: boolean;
 }
 
 export function ConnectPayoutButton({
   payoutMethod,
+  connected,
   allowWhenPayoutsEnabled,
   ...props
 }: ConnectPayoutButtonProps) {
@@ -146,7 +148,13 @@ export function ConnectPayoutButton({
       {StablecoinPayoutModal}
       <Button
         onClick={handleClick}
-        text={payoutMethod ? "Connect" : "Connect payout"}
+        text={
+          connected
+            ? "Manage"
+            : payoutMethod
+              ? "Connect"
+              : "Connect payout"
+        }
         loading={isPending}
         disabledTooltip={
           errorMessage && (

@@ -239,19 +239,26 @@ function PayoutMethodsSection() {
       ) : hasConnectedAccount ? (
         <div className="space-y-3">
           <PayoutMethodsDropdown />
-          {showStablecoinRecommended && (
-            <PayoutMethodSelector
-              payoutMethods={["stablecoin"]}
-              variant="compact"
-              allowConnectWhenPayoutsEnabled
-            />
-          )}
+          {showStablecoinRecommended &&
+            payoutMethodsData?.some((m) => m.type === "stablecoin") && (
+              <PayoutMethodSelector
+                payoutMethods={payoutMethodsData!.filter(
+                  (m) => m.type === "stablecoin",
+                )}
+                variant="compact"
+                allowConnectWhenPayoutsEnabled
+              />
+            )}
         </div>
       ) : (
         <PayoutMethodSelector
-          payoutMethods={currentMethod ? [currentMethod.id] : []}
+          payoutMethods={
+            currentMethod && payoutMethodsData
+              ? payoutMethodsData.filter((m) => m.type === currentMethod.id)
+              : []
+          }
           variant="compact"
-          actionFooter={() =>
+          actionFooter={(_setting) =>
             otherMethods.length > 0 ? (
               <div className="mt-1 flex justify-center">
                 {otherMethods.map((method) => (
@@ -322,10 +329,7 @@ function InvoiceDetailsSection({
       </div>
 
       <div>
-        <label
-          htmlFor="taxId"
-          className="text-sm font-medium text-neutral-900"
-        >
+        <label htmlFor="taxId" className="text-sm font-medium text-neutral-900">
           Business tax ID
         </label>
         <div className="relative mt-1.5 rounded-md shadow-sm">

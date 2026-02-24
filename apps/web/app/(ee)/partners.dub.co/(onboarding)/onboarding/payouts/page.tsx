@@ -81,7 +81,7 @@ async function PayoutRSC() {
   return (
     <>
       <PayoutMethodSelector
-        settings={payoutMethods}
+        payoutMethods={payoutMethods}
         allowConnectWhenPayoutsEnabled
       />
       <Link

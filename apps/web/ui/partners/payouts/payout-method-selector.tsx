@@ -1,5 +1,6 @@
 "use client";
 
+import type { PartnerPayoutMethodSetting } from "@/lib/types";
 import {
   Badge,
   CircleDollar,
@@ -85,13 +86,13 @@ export function PayoutMethodSelector({
   actionFooter,
   allowConnectWhenPayoutsEnabled,
 }: {
-  payoutMethods: string[];
+  payoutMethods: PartnerPayoutMethodSetting[];
   variant?: "default" | "compact";
-  actionFooter?: (methodId: string) => ReactNode;
+  actionFooter?: (setting: PartnerPayoutMethodSetting) => ReactNode;
   allowConnectWhenPayoutsEnabled?: boolean;
 }) {
   const filteredMethods = PAYOUT_METHODS.filter((m) =>
-    payoutMethods.includes(m.id),
+    payoutMethods.some((s) => s.type === m.id),
   );
 
   const methodCount = filteredMethods.length;
@@ -112,36 +113,40 @@ export function PayoutMethodSelector({
 
   return (
     <div className={gridClassName}>
-      {filteredMethods.map((method) => (
-        <PayoutMethodCard
-          key={method.id}
-          icon={
-            <PayoutMethodIcon
-              icon={method.icon}
-              wrapperClasses={method.iconWrapperClasses}
-              size={iconSize}
-              iconClassName={
-                "iconClassName" in method ? method.iconClassName : undefined
-              }
-            />
-          }
-          title={method.title}
-          features={method.features}
-          recommended={method.recommended}
-          action={
-            <ConnectPayoutButton
-              payoutMethod={method.id}
-              className={cn(
-                "w-full rounded-lg",
-                isSingleOption ? "h-10" : "h-9",
-              )}
-              allowWhenPayoutsEnabled={allowConnectWhenPayoutsEnabled}
-            />
-          }
-          actionFooter={actionFooter?.(method.id)}
-          variant={cardVariant}
-        />
-      ))}
+      {filteredMethods.map((method) => {
+        const setting = payoutMethods.find((s) => s.type === method.id)!;
+        return (
+          <PayoutMethodCard
+            key={method.id}
+            icon={
+              <PayoutMethodIcon
+                icon={method.icon}
+                wrapperClasses={method.iconWrapperClasses}
+                size={iconSize}
+                iconClassName={
+                  "iconClassName" in method ? method.iconClassName : undefined
+                }
+              />
+            }
+            title={method.title}
+            features={method.features}
+            recommended={method.recommended}
+            action={
+              <ConnectPayoutButton
+                payoutMethod={method.id}
+                connected={setting.connected}
+                className={cn(
+                  "w-full rounded-lg",
+                  isSingleOption ? "h-10" : "h-9",
+                )}
+                allowWhenPayoutsEnabled={allowConnectWhenPayoutsEnabled}
+              />
+            }
+            actionFooter={actionFooter?.(setting)}
+            variant={cardVariant}
+          />
+        );
+      })}
     </div>
   );
 }

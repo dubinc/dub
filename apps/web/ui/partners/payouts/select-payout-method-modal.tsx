@@ -67,9 +67,7 @@ function SelectPayoutMethodModal({
         {isPayoutMethodsLoading ? (
           <PayoutMethodSelectorSkeleton />
         ) : (
-          <PayoutMethodSelector
-            payoutMethods={payoutMethods.map((m) => m.type)}
-          />
+          <PayoutMethodSelector payoutMethods={payoutMethods} />
         )}
       </div>
     </Modal>
