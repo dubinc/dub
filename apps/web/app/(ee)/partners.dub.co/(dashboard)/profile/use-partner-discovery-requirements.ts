@@ -12,7 +12,6 @@ export function usePartnerDiscoveryRequirements() {
 
     const checklistProgress = getPartnerProfileChecklistProgress({
       partner,
-      programEnrollments,
     });
 
     return checklistProgress.tasks;

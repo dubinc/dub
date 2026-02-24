@@ -28,6 +28,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const { data } = await stripe.customers.search(
     {
       query: `email~"${search}"`,
+      limit: 100,
       expand: ["data.subscriptions"],
     },
     {

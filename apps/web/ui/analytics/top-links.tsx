@@ -124,7 +124,7 @@ export function TopLinks() {
         { id: "urls", label: "Destination URLs", icon: Globe },
       ]}
       expandLimit={8}
-      hasMore={(data?.length ?? 0) > 8}
+      dataLength={data?.length}
       selectedTabId={tab}
       onSelectTab={handleTabChange}
       {...subTabProps}

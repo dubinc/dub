@@ -24,9 +24,6 @@ export const GET = withWorkspace(
       by: ["status"],
       where: {
         partnerId,
-        programId: {
-          not: programId,
-        },
       },
       _count: true,
     });

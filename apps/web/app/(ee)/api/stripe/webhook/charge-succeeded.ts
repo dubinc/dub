@@ -14,7 +14,29 @@ export async function chargeSucceeded(event: Stripe.Event) {
   const { transfer_group: invoiceId } = charge;
 
   if (!invoiceId) {
-    console.log("No transfer group found, skipping...");
+    // check if the customer's workspace has paymentFailedAt, if so, reset it to null
+    const stripeId = charge.customer as string;
+    if (stripeId) {
+      const workspace = await prisma.project.findUnique({
+        where: {
+          stripeId,
+        },
+      });
+      if (workspace?.paymentFailedAt) {
+        console.log("Workspace has paymentFailedAt, resetting it to null...");
+        await prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            paymentFailedAt: null,
+          },
+        });
+      }
+    }
+    console.log(
+      "No transfer_group (invoiceId) found, skipping invoice update flow...",
+    );
     return;
   }
 

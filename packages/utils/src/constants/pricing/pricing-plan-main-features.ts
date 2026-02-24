@@ -193,6 +193,26 @@ export const PRICING_PLAN_MAIN_FEATURES = {
             },
           },
           {
+            id: "bounties",
+            text: "Program bounties",
+            tooltip: {
+              title:
+                "Drive partner engagement by creating performance and submission bounties for your partner program.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/program-bounties",
+            },
+          },
+          {
+            id: "analytics",
+            text: "Real-time analytics",
+            tooltip: {
+              title:
+                "Get real-time insights into your partner program's performance and engagement.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/program-analytics",
+            },
+          },
+          {
             id: "ailandingpage",
             text: "AI landing page generator",
             tooltip: {
@@ -234,13 +254,13 @@ export const PRICING_PLAN_MAIN_FEATURES = {
             },
           },
           {
-            id: "embeddedreferrals",
-            text: "Embedded referral dashboard",
+            id: "email",
+            text: "Email campaigns",
             tooltip: {
               title:
-                "Create an embedded referral dashboard directly in your app in just a few lines of code.",
+                "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
               cta: "Learn more.",
-              href: "https://dub.co/docs/partners/embedded-referrals",
+              href: "https://dub.co/help/article/email-campaigns",
             },
           },
           {
@@ -249,6 +269,26 @@ export const PRICING_PLAN_MAIN_FEATURES = {
             tooltip: {
               title:
                 "Easily communicate with your partners using our messaging center.",
+            },
+          },
+          {
+            id: "frauddetection",
+            text: "Fraud detection",
+            tooltip: {
+              title:
+                "Safeguard your partner program by automatically flagging, reviewing, and resolving suspicious activity.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/fraud-detection",
+            },
+          },
+          {
+            id: "embeddedreferrals",
+            text: "Embedded referral dashboard",
+            tooltip: {
+              title:
+                "Create an embedded referral dashboard directly in your app in just a few lines of code.",
+              cta: "Learn more.",
+              href: "https://dub.co/docs/partners/embedded-referrals",
             },
           },
           {
@@ -278,6 +318,14 @@ export const PRICING_PLAN_MAIN_FEATURES = {
             tooltip: {
               title:
                 "Get access to our network of 5,000+ active affiliate partners.",
+            },
+          },
+          {
+            id: "volume",
+            text: "Volume discounts",
+            tooltip: {
+              title:
+                "Get access to volume discounts for payout fees and tracked events usage.",
             },
           },
           {

@@ -137,28 +137,34 @@ export function PartnerRowItem({
   const As = showPermalink ? Link : "div";
 
   return (
-    <div className="flex items-center gap-2">
-      <DynamicTooltipWrapper
-        tooltipProps={{
-          content: <PartnerPayoutStatusTooltip statusKey={statusKey} />,
-        }}
-      >
-        <div className="relative shrink-0">
-          <img
-            src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-            alt={partner.id}
-            className="size-5 shrink-0 rounded-full"
-          />
-          {showPayoutsEnabled && statusKey && (
-            <div
-              className={cn(
-                "absolute -bottom-0.5 -right-0.5 size-2 rounded-full",
-                PAYOUT_STATUS_CONFIG[statusKey].indicatorColor,
-              )}
+    <div className="flex min-w-0 items-center gap-2">
+      <div className="shrink-0">
+        <DynamicTooltipWrapper
+          tooltipProps={
+            statusKey
+              ? {
+                  content: <PartnerPayoutStatusTooltip statusKey={statusKey} />,
+                }
+              : undefined
+          }
+        >
+          <div className="relative shrink-0">
+            <img
+              src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
+              alt={partner.id}
+              className="size-5 shrink-0 rounded-full"
             />
-          )}
-        </div>
-      </DynamicTooltipWrapper>
+            {showPayoutsEnabled && statusKey && (
+              <div
+                className={cn(
+                  "absolute -bottom-0.5 -right-0.5 size-2 rounded-full",
+                  PAYOUT_STATUS_CONFIG[statusKey].indicatorColor,
+                )}
+              />
+            )}
+          </div>
+        </DynamicTooltipWrapper>
+      </div>
 
       <As
         href={`/${slug}/program/partners/${partner.id}`}

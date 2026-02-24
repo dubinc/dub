@@ -178,6 +178,9 @@ function CreateCommissionSheetContent({
   );
 
   const stripeInvoices = stripeInvoicesData?.invoices ?? [];
+  const unimportedStripeInvoices = stripeInvoices.filter(
+    (inv) => !inv.dubCommissionId,
+  );
   const noStripeCustomerId = stripeInvoicesData?.noStripeCustomerId ?? false;
   const noStripeCustomerMessage = stripeInvoicesData?.message;
 
@@ -279,8 +282,8 @@ function CreateCommissionSheetContent({
           return "This customer doesn't have a Stripe customer ID. Add one in the customer profile before proceeding.";
         }
 
-        if (stripeInvoices.length === 0) {
-          return "No paid Stripe invoices found for this customer.";
+        if (unimportedStripeInvoices.length === 0) {
+          return "No unimported Stripe invoices found for this customer.";
         }
       } else {
         if (!saleAmount) {
@@ -299,7 +302,7 @@ function CreateCommissionSheetContent({
     saleAmount, // sale commission amount
     useExistingEvents,
     noStripeCustomerId,
-    stripeInvoices.length,
+    unimportedStripeInvoices.length,
     isStripeInvoicesLoading,
   ]);
 
@@ -652,22 +655,47 @@ function CreateCommissionSheetContent({
                                 {stripeInvoices.map((inv) => (
                                   <div
                                     key={inv.id}
-                                    className="flex items-center justify-between gap-3 rounded-md px-3 py-2.5"
+                                    className={cn(
+                                      "flex items-center justify-between gap-3 rounded-md px-3 py-2.5",
+                                      inv.dubCommissionId &&
+                                        "bg-neutral-50/80 opacity-75",
+                                    )}
                                   >
                                     <div className="min-w-0 flex-1">
                                       <a
                                         href={`https://dashboard.stripe.com/invoices/${inv.id}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="cursor-alias font-mono text-sm font-medium text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                                        className={cn(
+                                          "cursor-alias font-mono text-sm font-medium decoration-dotted underline-offset-2 hover:underline",
+                                          inv.dubCommissionId
+                                            ? "text-neutral-500"
+                                            : "text-neutral-800",
+                                        )}
                                       >
                                         {inv.id}
                                       </a>
-                                      <p className="mt-0.5 text-xs text-neutral-500">
+                                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
                                         {formatDate(inv.createdAt)}
+                                        {inv.dubCommissionId && (
+                                          <a
+                                            href={`/${slug}/program/commissions?partnerId=${partnerId}&customerId=${customerId}`}
+                                            target="_blank"
+                                            className="rounded bg-neutral-200/80 px-1.5 py-0.5 text-neutral-500 hover:bg-neutral-200 hover:text-neutral-900"
+                                          >
+                                            Already imported
+                                          </a>
+                                        )}
                                       </p>
                                     </div>
-                                    <span className="shrink-0 text-sm font-medium text-neutral-700">
+                                    <span
+                                      className={cn(
+                                        "shrink-0 text-sm font-medium",
+                                        inv.dubCommissionId
+                                          ? "text-neutral-500"
+                                          : "text-neutral-700",
+                                      )}
+                                    >
                                       {currencyFormatter(inv.amount)}
                                     </span>
                                   </div>
@@ -978,7 +1006,7 @@ function CreateCommissionSheetContent({
           <Button
             type="submit"
             variant="primary"
-            text={`Create commission${stripeInvoices.length > 0 ? "s" : ""}`}
+            text={`Create commission${unimportedStripeInvoices.length > 0 ? "s" : ""}`}
             className="w-fit"
             loading={isPending}
             disabledTooltip={submitDisabledMessage}

@@ -58,17 +58,11 @@ export class FirstPromoterApi {
   }
 
   async listPartners({ page }: { page?: number }) {
-    const searchParams = new URLSearchParams({
-      filters: JSON.stringify({
-        archived: false,
-        state: "accepted",
-        referrals_count: {
-          from: 1,
-        },
-      }),
-      per_page: PAGE_LIMIT.toString(),
-      ...(page ? { page: page.toString() } : {}),
-    });
+    const searchParams = new URLSearchParams();
+    searchParams.set("filters[state]", "accepted");
+    searchParams.set("filters[referrals_count][from]", "1");
+    searchParams.set("per_page", PAGE_LIMIT.toString());
+    if (page) searchParams.set("page", page.toString());
 
     const response = await this.fetch(`/promoters?${searchParams.toString()}`);
 

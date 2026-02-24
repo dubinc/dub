@@ -50,6 +50,7 @@ model Partner {
   payouts                    Payout[]
   commissions                Commission[]
   bountySubmissions          BountySubmission[]
+  postbacks                  Postback[]
   messages                   Message[]
   sentMessages               Message[]                          @relation("SenderPartner")
   comments                   PartnerComment[]
