@@ -63,7 +63,7 @@ export const customersExportQuerySchema = getCustomersQuerySchema
 export const customersExportCronInputSchema = customersExportQuerySchema.extend(
   {
     workspaceId: z.string(),
-    programId: z.string(),
+    programId: z.string().optional(),
     userId: z.string(),
   },
 );
