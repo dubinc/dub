@@ -16,6 +16,8 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   const h = new IntegrationHarness();
 
   test("root", async () => {
+    console.log({baseUrl: h.baseUrl})
+
     const response = await fetch(h.baseUrl, fetchOptions);
 
     // the location should start with "https://dub.co"
