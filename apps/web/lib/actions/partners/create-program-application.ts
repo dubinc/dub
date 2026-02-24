@@ -192,7 +192,6 @@ export const createProgramApplicationAction = actionClient
             ({ salesChannel }) => salesChannel,
           ),
         },
-        programEnrollments: existingPartner.programs,
       });
 
       if (!isComplete) {

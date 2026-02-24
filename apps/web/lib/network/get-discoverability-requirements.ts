@@ -29,7 +29,6 @@ export const partnerIsNotBanned = (
 
 export function getDiscoverabilityRequirements({
   partner,
-  programEnrollments,
 }: {
   partner: Pick<
     PartnerProps,
@@ -40,10 +39,6 @@ export function getDiscoverabilityRequirements({
     | "salesChannels"
     | "platforms"
   >;
-  programEnrollments: Pick<
-    EnrolledPartnerProps,
-    "programId" | "status" | "totalCommissions"
-  >[];
 }) {
   return [
     {
@@ -78,10 +73,6 @@ export function getDiscoverabilityRequirements({
       label: "Choose your sales channels",
       href: "#channels",
       completed: Boolean(partner.salesChannels?.length),
-    },
-    {
-      label: "Maintain a healthy partner profile",
-      completed: partnerIsNotBanned(programEnrollments),
     },
   ];
 }
