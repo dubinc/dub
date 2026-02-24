@@ -4,10 +4,8 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { buildCustomerCountWhere } from "@/lib/customers/api/customer-count-where";
 import { getCustomers } from "@/lib/customers/api/get-customers";
-import {
-  customersExportQuerySchema,
-  formatCustomersForExport,
-} from "@/lib/customers/export";
+import { formatCustomersForExport } from "@/lib/customers/export/format-customers-export";
+import { customersExportQuerySchema } from "@/lib/customers/export/schema";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -39,7 +37,6 @@ export const GET = withWorkspace(
         body: {
           ...otherFilters,
           programId,
-          workspaceId: workspace.id,
           userId: session.user.id,
           columns: columns.join(","),
         },
@@ -54,9 +51,6 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
       page: 1,
       pageSize: MAX_CUSTOMERS_TO_EXPORT,
-      sortBy: "createdAt",
-      sortOrder: "asc",
-      includeExpandedFields: true,
     });
 
     const rows = formatCustomersForExport(customers, columns);

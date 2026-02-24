@@ -3,8 +3,8 @@
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import {
   CUSTOMER_EXPORT_COLUMNS,
-  DEFAULT_CUSTOMER_EXPORT_COLUMNS,
-} from "@/lib/customers/export";
+  CUSTOMER_EXPORT_DEFAULT_COLUMNS,
+} from "@/lib/customers/export/schema";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Checkbox, Logo, Modal, Switch, useRouterStuff } from "@dub/ui";
@@ -45,7 +45,7 @@ function ExportCustomersModal({
     formState: { isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
-      columns: DEFAULT_CUSTOMER_EXPORT_COLUMNS,
+      columns: CUSTOMER_EXPORT_DEFAULT_COLUMNS,
       useFilters: true,
     },
   });
