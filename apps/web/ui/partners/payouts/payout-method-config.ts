@@ -1,5 +1,5 @@
 import type { PartnerPayoutMethod } from "@dub/prisma/client";
-import { CircleDollar, CircleDollar3, GreekTemple, Paypal } from "@dub/ui";
+import { CircleDollar, GreekTemple, Paypal, Stablecoin } from "@dub/ui";
 import { Calendar, Globe, MapPin, Zap } from "lucide-react";
 import type { ComponentType } from "react";
 
@@ -8,7 +8,7 @@ export const PAYOUT_METHODS = [
     id: "stablecoin" as const,
     title: "Stablecoin",
     recommended: true,
-    icon: CircleDollar3,
+    icon: Stablecoin,
     iconWrapperClass: "border-[#1717170D] bg-blue-100",
     features: [
       { icon: CircleDollar, text: "Paid in USDC" },
