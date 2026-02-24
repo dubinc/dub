@@ -111,7 +111,7 @@ function ValueInput() {
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
 
   const attribute = watch("performanceCondition.attribute");
-  const isCurrency = isCurrencyAttribute(attribute);
+  const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
 
   return (
     <div className="relative rounded-md shadow-sm">

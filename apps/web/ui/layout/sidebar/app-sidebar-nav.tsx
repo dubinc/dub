@@ -13,7 +13,7 @@ import useProgram from "@/lib/swr/use-program";
 import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import { useRouterStuff } from "@dub/ui";
+import { type Icon, useRouterStuff } from "@dub/ui";
 import {
   Bell,
   Brush,
@@ -89,7 +89,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     description:
       "Create, organize, and measure the performance of your short links.",
     learnMoreHref: "https://dub.co/links",
-    icon: Compass,
+    icon: Compass as Icon,
     href: slug ? `/${slug}/links` : "/links",
     active:
       !!slug &&
@@ -102,7 +102,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     description:
       "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
     learnMoreHref: "https://dub.co/partners",
-    icon: ConnectedDots4,
+    icon: ConnectedDots4 as Icon,
     href: slug ? `/${slug}/program` : "/program",
     active: pathname.startsWith(`/${slug}/program`),
     popup: DubPartnersPopup,
@@ -120,7 +120,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "Links",
-            icon: Hyperlink,
+            icon: Hyperlink as Icon,
             href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
             isActive: (pathname: string, href: string) => {
               const basePath = href.split("?")[0];
@@ -151,17 +151,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "Analytics",
-            icon: LinesY,
+            icon: LinesY as Icon,
             href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
           },
           {
             name: "Events",
-            icon: CursorRays,
+            icon: CursorRays as Icon,
             href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
           },
           {
             name: "Customers",
-            icon: User,
+            icon: User as Icon,
             href: `/${slug}/customers`,
           },
         ],
@@ -284,7 +284,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Customers",
-            icon: User,
+            icon: User as Icon,
             href: `/${slug}/program/customers`,
             badge: pendingReferralsCount
               ? pendingReferralsCount > 99
@@ -409,7 +409,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "Analytics",
-            icon: LinesY,
+            icon: LinesY as Icon,
             href: `/${slug}/settings/analytics`,
           },
           {
