@@ -373,9 +373,6 @@ export function BountySubmissionsTable() {
       {
         id: "menu",
         enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
         cell: ({ row }) => <BountySubmissionRowMenu row={row} />,
       },
     ],

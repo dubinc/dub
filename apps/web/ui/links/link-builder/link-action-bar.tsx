@@ -23,7 +23,7 @@ export function LinkActionBar({ children }: PropsWithChildren) {
   return (
     <div
       className={cn(
-        "sticky bottom-0 w-full overflow-hidden lg:bottom-4 lg:[filter:drop-shadow(0_5px_8px_#222A351d)]",
+        "sticky bottom-0 z-10 w-full overflow-hidden lg:bottom-4 lg:[filter:drop-shadow(0_5px_8px_#222A351d)]",
       )}
     >
       <div

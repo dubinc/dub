@@ -153,9 +153,6 @@ export function GroupsTable() {
       {
         id: "menu",
         enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
         header: () => <EditColumnsButton table={table} />,
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
