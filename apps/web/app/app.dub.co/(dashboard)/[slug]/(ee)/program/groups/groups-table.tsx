@@ -153,9 +153,6 @@ export function GroupsTable() {
       {
         id: "menu",
         enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
         header: () => <EditColumnsButton table={table} />,
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
@@ -323,7 +320,7 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
       >
         <Button
           type="button"
-          className="h-8 whitespace-nowrap px-2"
+          className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
           variant="outline"
           icon={<Dots className="h-4 w-4 shrink-0" />}
         />

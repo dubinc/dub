@@ -4,6 +4,7 @@ import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program
 import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { NetworkProgramProps } from "@/lib/types";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
@@ -50,32 +51,25 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
     });
 
   const { partner } = usePartnerProfile();
-  const { programEnrollments } = useProgramEnrollments();
 
-  const programEnrollment = useMemo(
-    () =>
-      programEnrollments?.find(
-        (programEnrollment) => programEnrollment.program.slug === program.slug,
-      ),
-    [programEnrollments, program.slug],
-  );
+  const { programEnrollment } = useProgramEnrollment();
 
   const checklistProgress = useMemo(() => {
-    return partner && programEnrollments
+    return partner
       ? getPartnerProfileChecklistProgress({
           partner,
-          programEnrollments,
         })
       : undefined;
-  }, [partner, programEnrollments]);
+  }, [partner]);
 
   const disabledTooltip: ReactNode =
-    programEnrollment?.status === "banned" ? (
-      "You are banned from this program"
-    ) : programEnrollment?.status === "pending" ? (
+    programEnrollment?.status === "pending" ? (
       "Your application is under review"
-    ) : programEnrollment?.status === "rejected" ? (
-      "Your application was rejected"
+    ) : programEnrollment?.status &&
+      ["banned", "rejected", "deactivated"].includes(
+        programEnrollment.status,
+      ) ? (
+      `You were ${programEnrollment.status} from this program`
     ) : checklistProgress && !checklistProgress.isComplete ? (
       <div className="max-w-xs p-4">
         <div className="text-content-default text-sm leading-5">

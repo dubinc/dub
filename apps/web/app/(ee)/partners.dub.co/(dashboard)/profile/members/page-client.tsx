@@ -171,9 +171,6 @@ export function ProfileMembersPageClient() {
       {
         id: "menu",
         enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
         header: () => null,
         cell: ({ row }) => (
           <RowMenuButton row={row} isCurrentUserOwner={isCurrentUserOwner} />

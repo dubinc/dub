@@ -159,6 +159,7 @@ export function CommissionsTable() {
         {
           id: "customer",
           header: "Customer",
+          maxSize: 250,
           cell: ({ row }) =>
             row.original.customer ? (
               <CustomerRowItem
@@ -183,7 +184,7 @@ export function CommissionsTable() {
           cell: ({ row }) => {
             return <PartnerRowItem partner={row.original.partner} />;
           },
-          size: 200,
+          maxSize: 200,
           meta: {
             filterParams: ({ row }) => ({
               partnerId: row.original.partner.id,
@@ -313,9 +314,6 @@ export function CommissionsTable() {
         {
           id: "menu",
           enableHiding: false,
-          minSize: 43,
-          size: 43,
-          maxSize: 43,
           header: ({ table }) => <EditColumnsButton table={table} />,
           cell: ({ row }) => <CommissionRowMenu row={row} />,
         },

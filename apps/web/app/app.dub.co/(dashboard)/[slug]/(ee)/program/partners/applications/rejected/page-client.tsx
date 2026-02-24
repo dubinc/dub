@@ -312,9 +312,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       {
         id: "menu",
         enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
         header: ({ table }) => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
           <PartnerRowMenuButton row={row} workspaceId={workspaceId!} />
@@ -512,7 +509,7 @@ function PartnerRowMenuButton({
       >
         <Button
           type="button"
-          className="h-8 whitespace-nowrap px-2"
+          className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
           variant="outline"
           icon={
             isApprovingPartner ? (
