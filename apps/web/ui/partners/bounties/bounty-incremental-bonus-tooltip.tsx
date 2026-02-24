@@ -1,6 +1,6 @@
 import { PartnerBountyProps } from "@/lib/types";
 import { InfoTooltip } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, nFormatter } from "@dub/utils";
 
 export function BountyIncrementalBonusTooltip({
   bounty,
@@ -51,5 +51,6 @@ function getBountyIncrementalBonusDescription(
     trailingZeroDisplay: "stripIfInteger",
   });
 
-  return `For each additional ${incrementCount} ${socialMetrics.metric} earn ${formattedBonus}, up to ${maxCount} ${socialMetrics.metric}`;
+  // Eg: For each additional 1000 views, earn $1, up to 10000 views
+  return `For each additional ${nFormatter(incrementCount, { full: true })} ${socialMetrics.metric} earn ${formattedBonus}, up to ${nFormatter(maxCount, { full: true })} ${socialMetrics.metric}`;
 }
