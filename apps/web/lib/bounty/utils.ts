@@ -3,7 +3,7 @@ import {
   PlatformType,
   Prisma,
 } from "@dub/prisma/client";
-import { currencyFormatter, isValidUrl } from "@dub/utils";
+import { currencyFormatter, isValidUrl, nFormatter } from "@dub/utils";
 import { addDays, addMonths, addWeeks } from "date-fns";
 import {
   BountySocialPlatform,
@@ -180,7 +180,7 @@ export function getBountyRewardCriteriaTexts(
   const { minCount, metric, incrementalBonus } = bountyInfo.socialMetrics;
 
   const texts: string[] = [
-    `Get ${minCount} ${metric} on your ${socialPlatform.label}, earn ${formattedAmount}`,
+    `Get ${nFormatter(minCount, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedAmount}`,
   ];
 
   if (incrementalBonus) {
@@ -192,7 +192,7 @@ export function getBountyRewardCriteriaTexts(
       });
 
       texts.push(
-        `For each additional ${incrementCount} ${metric} on your ${socialPlatform.label}, earn ${formattedBonus}, up to ${maxCount} ${metric}`,
+        `For each additional ${nFormatter(incrementCount, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedBonus}, up to ${nFormatter(maxCount, { full: true })} ${metric}`,
       );
     }
   }
