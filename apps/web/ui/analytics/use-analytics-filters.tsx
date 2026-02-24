@@ -529,18 +529,6 @@ export function useAnalyticsFilters({
                   })) ?? null,
               },
               {
-                key: "partnerTagIds",
-                icon: Tag,
-                label: "Tag",
-                multiple: true,
-                options:
-                  partnerTags?.map(({ partnerTag, ...rest }) => ({
-                    value: partnerTag.id,
-                    label: partnerTag.name,
-                    right: getFilterOptionTotal(rest),
-                  })) ?? null,
-              },
-              {
                 key: "partnerId",
                 icon: Users,
                 label: "Partner",
@@ -559,6 +547,18 @@ export function useAnalyticsFilters({
                       right: getFilterOptionTotal(rest),
                     };
                   }) ?? null,
+              },
+              {
+                key: "partnerTagIds",
+                icon: Tag,
+                label: "Partner tag",
+                multiple: true,
+                options:
+                  partnerTags?.map(({ partnerTag, ...rest }) => ({
+                    value: partnerTag.id,
+                    label: partnerTag.name,
+                    right: getFilterOptionTotal(rest),
+                  })) ?? null,
               },
               SaleTypeFilterItem,
             ]
