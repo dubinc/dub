@@ -17,9 +17,56 @@ import {
   nFormatter,
   parseFilterValue,
   type FilterOperator,
+  type ParsedFilter,
 } from "@dub/utils";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
+
+const SINGLE_VALUE_FILTER_KEYS = ["status"] as const;
+const MULTI_VALUE_FILTER_KEYS = ["partnerTagId", "groupId", "country"] as const;
+
+function buildMultiValueParam(
+  parsed: ParsedFilter | undefined,
+  values: string[],
+): string {
+  return buildFilterValue({
+    operator: parsed?.operator ?? (values.length > 1 ? "IS_ONE_OF" : "IS"),
+    sqlOperator: parsed?.sqlOperator ?? "IN",
+    values,
+  });
+}
+
+function activeFiltersToSearchParams(
+  activeFilters: Array<
+    | { key: string; values: string[]; operator: FilterOperator }
+    | { key: string; value: string }
+  >,
+): Record<string, string> {
+  return Object.fromEntries(
+    activeFilters.flatMap((f) => {
+      if ("values" in f && Array.isArray(f.values) && "operator" in f) {
+        const values = f.values as string[];
+        const op: FilterOperator =
+          (f as { operator?: FilterOperator }).operator ??
+          (values.length > 1 ? "IS_ONE_OF" : "IS");
+        return [
+          [
+            f.key,
+            buildFilterValue({
+              operator: op,
+              sqlOperator: op.includes("NOT") ? "NOT IN" : "IN",
+              values,
+            }),
+          ],
+        ];
+      }
+      if ("value" in f && f.value != null) {
+        return [[f.key, f.value]];
+      }
+      return [];
+    }),
+  );
+}
 
 export function usePartnerFilters(
   extraSearchParams: Record<string, string>,
@@ -138,6 +185,7 @@ export function usePartnerFilters(
               key: "status",
               icon: CircleDotted,
               label: "Status",
+              singleSelect: true,
               options:
                 statusCount
                   ?.filter(
@@ -213,129 +261,92 @@ export function usePartnerFilters(
     [searchParamsObj.country],
   );
 
-  const selectedTagIds = partnerTagIdParsed?.values ?? [];
+  const parsedByKey = useMemo(
+    () => ({
+      partnerTagId: partnerTagIdParsed,
+      groupId: groupIdParsed,
+      country: countryParsed,
+    }),
+    [partnerTagIdParsed, groupIdParsed, countryParsed],
+  );
 
   const activeFilters = useMemo(() => {
-    const { status } = searchParamsObj;
+    const multiValueFilters = MULTI_VALUE_FILTER_KEYS.flatMap((key) => {
+      if (!enabledFilters.includes(key)) return [];
+      const parsed = parsedByKey[key];
+      if (!parsed) return [];
+      return [{ key, values: parsed.values, operator: parsed.operator }];
+    });
+    const singleValueFilters = SINGLE_VALUE_FILTER_KEYS.flatMap((key) => {
+      if (!enabledFilters.includes(key)) return [];
+      const value = searchParamsObj[key];
+      if (!value) return [];
+      return [{ key, value }];
+    });
+    return [...multiValueFilters, ...singleValueFilters];
+  }, [searchParamsObj, enabledFilters, parsedByKey]);
 
-    return [
-      ...(enabledFilters.includes("groupId") && groupIdParsed
-        ? [
-            {
-              key: "groupId",
-              values: groupIdParsed.values,
-              operator: groupIdParsed.operator,
-            },
-          ]
-        : []),
-      ...(enabledFilters.includes("partnerTagId") && partnerTagIdParsed
-        ? [
-            {
-              key: "partnerTagId",
-              values: partnerTagIdParsed.values,
-              operator: partnerTagIdParsed.operator,
-            },
-          ]
-        : []),
-      ...(enabledFilters.includes("status") && status
-        ? [{ key: "status", value: status }]
-        : []),
-      ...(enabledFilters.includes("country") && countryParsed
-        ? [
-            {
-              key: "country",
-              values: countryParsed.values,
-              operator: countryParsed.operator,
-            },
-          ]
-        : []),
-    ];
-  }, [
-    searchParamsObj,
-    enabledFilters,
-    partnerTagIdParsed,
-    groupIdParsed,
-    countryParsed,
-  ]);
-
-  const onSelect = (key: string, value: any) => {
-    if (key === "partnerTagId") {
-      const newValues = selectedTagIds.includes(value)
-        ? selectedTagIds
-        : [...selectedTagIds, value];
-      const newParam = buildFilterValue({
-        operator: partnerTagIdParsed?.operator ?? "IS_ONE_OF",
-        sqlOperator: partnerTagIdParsed?.sqlOperator ?? "IN",
-        values: newValues,
-      });
-      return queryParams({ set: { partnerTagId: newParam }, del: "page" });
-    }
-    if (key === "groupId" || key === "country") {
-      const parsed = key === "groupId" ? groupIdParsed : countryParsed;
-      const newValues = parsed?.values.includes(value)
-        ? parsed.values
-        : [...(parsed?.values ?? []), value];
-      const newParam = buildFilterValue({
-        operator:
-          parsed?.operator ?? (newValues.length > 1 ? "IS_ONE_OF" : "IS"),
-        sqlOperator: parsed?.sqlOperator ?? "IN",
-        values: newValues,
-      });
-      return queryParams({ set: { [key]: newParam }, del: "page" });
-    }
-    return queryParams({ set: { [key]: value }, del: "page" });
-  };
-
-  const onRemove = (key: string, value?: any) => {
-    if (key === "partnerTagId" && value) {
-      const newValues = selectedTagIds.filter((id) => id !== value);
-      if (newValues.length === 0) {
-        return queryParams({ del: [key, "page"] });
+  const onSelect = useCallback(
+    (key: string, value: any) => {
+      if (
+        MULTI_VALUE_FILTER_KEYS.includes(
+          key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
+        )
+      ) {
+        const parsed = parsedByKey[key as keyof typeof parsedByKey];
+        const currentValues = parsed?.values ?? [];
+        const newValues = currentValues.includes(value)
+          ? currentValues
+          : [...currentValues, value];
+        const newParam = buildMultiValueParam(parsed, newValues);
+        return queryParams({ set: { [key]: newParam }, del: "page" });
       }
-      const newParam = buildFilterValue({
-        operator: partnerTagIdParsed?.operator ?? "IS_ONE_OF",
-        sqlOperator: partnerTagIdParsed?.sqlOperator ?? "IN",
-        values: newValues,
-      });
-      return queryParams({ set: { partnerTagId: newParam }, del: "page" });
-    }
-    if ((key === "groupId" || key === "country") && value) {
-      const parsed = key === "groupId" ? groupIdParsed : countryParsed;
-      const newValues = parsed?.values.filter((v) => v !== value) ?? [];
-      if (newValues.length === 0) {
-        return queryParams({ del: [key, "page"] });
+      return queryParams({ set: { [key]: value }, del: "page" });
+    },
+    [queryParams, parsedByKey],
+  );
+
+  const onRemove = useCallback(
+    (key: string, value?: any) => {
+      if (
+        MULTI_VALUE_FILTER_KEYS.includes(
+          key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
+        ) &&
+        value
+      ) {
+        const parsed = parsedByKey[key as keyof typeof parsedByKey];
+        const newValues = (parsed?.values ?? []).filter((v) => v !== value);
+        if (newValues.length === 0) {
+          return queryParams({ del: [key, "page"] });
+        }
+        const newParam = buildMultiValueParam(parsed, newValues);
+        return queryParams({ set: { [key]: newParam }, del: "page" });
       }
-      const newParam = buildFilterValue({
-        operator:
-          parsed?.operator ?? (newValues.length > 1 ? "IS_ONE_OF" : "IS"),
-        sqlOperator: parsed?.sqlOperator ?? "IN",
-        values: newValues,
-      });
-      return queryParams({ set: { [key]: newParam }, del: "page" });
-    }
-    return queryParams({ del: [key, "page"] });
-  };
+      return queryParams({ del: [key, "page"] });
+    },
+    [queryParams, parsedByKey],
+  );
 
-  const onToggleOperator = (key: string) => {
-    const paramKey =
-      key === "partnerTagId"
-        ? "partnerTagId"
-        : key === "groupId"
-          ? "groupId"
-          : key === "country"
-            ? "country"
-            : null;
-    if (!paramKey) return;
+  const onToggleOperator = useCallback(
+    (key: string) => {
+      if (
+        !MULTI_VALUE_FILTER_KEYS.includes(
+          key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
+        )
+      ) {
+        return;
+      }
+      const raw = searchParamsObj[key];
+      if (!raw) return;
 
-    const raw = searchParamsObj[paramKey];
-    if (!raw) return;
+      const isNegated = raw.startsWith("-");
+      const cleanValue = isNegated ? raw.slice(1) : raw;
+      const newParam = isNegated ? cleanValue : `-${cleanValue}`;
 
-    const isNegated = raw.startsWith("-");
-    const cleanValue = isNegated ? raw.slice(1) : raw;
-    const newParam = isNegated ? cleanValue : `-${cleanValue}`;
-
-    queryParams({ set: { [paramKey]: newParam }, del: "page" });
-  };
+      queryParams({ set: { [key]: newParam }, del: "page" });
+    },
+    [queryParams, searchParamsObj],
+  );
 
   const onRemoveAll = () =>
     queryParams({
@@ -345,35 +356,12 @@ export function usePartnerFilters(
   const searchQuery = useMemo(
     () =>
       new URLSearchParams({
-        ...Object.fromEntries(
-          activeFilters.flatMap((f) => {
-            if ("values" in f && Array.isArray(f.values) && "operator" in f) {
-              const values = f.values as string[];
-              const op: FilterOperator =
-                (f as { operator?: FilterOperator }).operator ??
-                (values.length > 1 ? "IS_ONE_OF" : "IS");
-              return [
-                [
-                  f.key,
-                  buildFilterValue({
-                    operator: op,
-                    sqlOperator: op.includes("NOT") ? "NOT IN" : "IN",
-                    values,
-                  }),
-                ],
-              ];
-            }
-            if ("value" in f && f.value != null) {
-              return [[f.key, f.value]];
-            }
-            return [];
-          }),
-        ),
+        ...activeFiltersToSearchParams(activeFilters),
         ...(searchParamsObj.search && { search: searchParamsObj.search }),
         workspaceId: workspaceId || "",
         ...extraSearchParams,
       }).toString(),
-    [activeFilters, workspaceId, extraSearchParams],
+    [activeFilters, searchParamsObj.search, workspaceId, extraSearchParams],
   );
 
   const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
