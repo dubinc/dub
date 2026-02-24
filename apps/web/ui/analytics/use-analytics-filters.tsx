@@ -3,6 +3,7 @@ import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { LinkProps } from "@/lib/types";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import {
@@ -105,9 +106,26 @@ export function useAnalyticsFilters({
     [searchParamsObj.tagIds],
   );
 
-  const selectedPartnerTagIds = useMemo(
-    () => searchParamsObj.partnerTagIds?.split(",")?.filter(Boolean) ?? [],
+  const partnerTagIdsParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.partnerTagIds),
     [searchParamsObj.partnerTagIds],
+  );
+
+  const { partnerTags: partnerTagsById } = usePartnerTags(
+    {
+      query: { ids: partnerTagIdsParsed?.values },
+      enabled:
+        !!partnerTagIdsParsed?.values?.length && !!programPage,
+    },
+    { keepPreviousData: true },
+  );
+
+  const partnerTagIdToName = useMemo(
+    () =>
+      new Map(
+        (partnerTagsById ?? []).map((t) => [t.id, t.name]),
+      ),
+    [partnerTagsById],
   );
 
   const selectedCustomerId = searchParamsObj.customerId;
@@ -165,12 +183,12 @@ export function useAnalyticsFilters({
           ]
         : []),
       // Handle partnerTagIds special case
-      ...(selectedPartnerTagIds.length > 0
+      ...(partnerTagIdsParsed?.values?.length
         ? [
             {
               key: "partnerTagIds",
-              operator: "IS_ONE_OF" as FilterOperator,
-              values: selectedPartnerTagIds,
+              operator: partnerTagIdsParsed.operator as FilterOperator,
+              values: partnerTagIdsParsed.values,
             },
           ]
         : []),
@@ -250,7 +268,7 @@ export function useAnalyticsFilters({
   }, [
     searchParamsObj,
     selectedTagIds,
-    selectedPartnerTagIds,
+    partnerTagIdsParsed,
     partnerPage,
     selectedCustomerId,
     selectedCustomer,
@@ -553,6 +571,8 @@ export function useAnalyticsFilters({
                 icon: Tag,
                 label: "Partner tag",
                 multiple: true,
+                getOptionLabel: (value) =>
+                  partnerTagIdToName.get(value) ?? null,
                 options:
                   partnerTags?.map(({ partnerTag, ...rest }) => ({
                     value: partnerTag.id,
@@ -927,8 +947,9 @@ export function useAnalyticsFilters({
       folders,
       groups,
       partnerTags,
+      partnerTagIdToName,
       selectedTagIds,
-      selectedPartnerTagIds,
+      partnerTagIdsParsed,
       selectedCustomerId,
       countries,
       cities,

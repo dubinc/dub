@@ -135,7 +135,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
   const partnerTagIdsFilter = ensureParsedFilter(params.partnerTagIds);
 
-  const {
+  let {
     domain: domainParam,
     domainOperator,
     linkId: linkIdParam,
@@ -159,6 +159,29 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     linkId: normalizedLinkId,
     folderId: folderIdFilter,
   });
+
+  if (partnerTagIdParam?.length && params.programId && workspaceId) {
+    const isNotIn = partnerTagIdOperator === "NOT IN";
+    const links = await prisma.link.findMany({
+      where: {
+        projectId: workspaceId,
+        programId: params.programId,
+        partnerId: { not: null },
+        programEnrollment: {
+          programPartnerTags: isNotIn
+            ? { none: { partnerTagId: { in: partnerTagIdParam } } }
+            : { some: { partnerTagId: { in: partnerTagIdParam } } },
+        },
+      },
+      select: { id: true },
+    });
+    const resolvedLinkIds = links.map((l) => l.id);
+    const mergedLinkIds = linkIdParam?.length
+      ? resolvedLinkIds.filter((id) => linkIdParam!.includes(id))
+      : resolvedLinkIds;
+    linkIdParam = mergedLinkIds.length > 0 ? mergedLinkIds : ["__no_match__"];
+    linkIdOperator = "IN";
+  }
 
   const tinybirdParams: any = {
     workspaceId,
@@ -315,30 +338,38 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     const partnerIdFields = groupByFields.filter((id) => id.startsWith("pn_"));
     const partnerIdToTag =
       partnerIdFields.length > 0 && params.programId
-        ? await prisma.programPartnerTag.findMany({
-            where: {
-              programId: params.programId,
-              partnerId: { in: partnerIdFields },
-            },
-            select: {
-              partnerId: true,
-              partnerTag: { select: { id: true, name: true } },
-            },
-          }).then((rows) => {
-            const map = new Map<string, { id: string; name: string }>();
-            for (const r of rows) {
-              if (!map.has(r.partnerId)) {
-                map.set(r.partnerId, r.partnerTag);
+        ? await prisma.programPartnerTag
+            .findMany({
+              where: {
+                programId: params.programId,
+                partnerId: { in: partnerIdFields },
+              },
+              select: {
+                partnerId: true,
+                partnerTag: { select: { id: true, name: true } },
+              },
+            })
+            .then((rows) => {
+              const map = new Map<string, { id: string; name: string }>();
+              for (const r of rows) {
+                if (!map.has(r.partnerId)) {
+                  map.set(r.partnerId, r.partnerTag);
+                }
               }
-            }
-            return map;
-          })
+              return map;
+            })
         : new Map<string, { id: string; name: string }>();
 
     // Resolve each row to partnerTag; aggregate by tag when multiple partners share a tag
     const byTagId = new Map<
       string,
-      { partnerTag: { id: string; name: string }; clicks: number; leads: number; sales: number; saleAmount: number }
+      {
+        partnerTag: { id: string; name: string };
+        clicks: number;
+        leads: number;
+        sales: number;
+        saleAmount: number;
+      }
     >();
     for (const item of response.data) {
       let partnerTag = partnerTags.find((t) => t.id === item.groupByField);
