@@ -11,13 +11,42 @@ import {
   getPartnersQuerySchemaExtended,
   partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
+import { parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+
+function parsePartnerFilterParams(searchParams: Record<string, string | undefined>) {
+  const partnerTagIdsParsed = parseFilterValue(searchParams.partnerTagIds);
+  const groupIdParsed = parseFilterValue(searchParams.groupId);
+  const countryParsed = parseFilterValue(searchParams.country);
+
+  return {
+    partnerTagIds: partnerTagIdsParsed?.values,
+    partnerTagIdsOperator: partnerTagIdsParsed?.sqlOperator,
+    groupId: groupIdParsed?.values?.[0],
+    groupIdOperator: groupIdParsed?.sqlOperator,
+    country: countryParsed?.values?.[0],
+    countryOperator: countryParsed?.sqlOperator,
+  };
+}
 
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const filterOverrides = parsePartnerFilterParams(searchParams);
+    const paramsToParse = {
+      ...searchParams,
+      ...(filterOverrides.partnerTagIds && {
+        partnerTagIds: filterOverrides.partnerTagIds.join(","),
+      }),
+      ...(filterOverrides.groupId !== undefined && {
+        groupId: filterOverrides.groupId ?? undefined,
+      }),
+      ...(filterOverrides.country !== undefined && {
+        country: filterOverrides.country ?? undefined,
+      }),
+    };
     const {
       sortBy: sortByWithOldFields,
       includePartnerPlatforms,
@@ -36,7 +65,7 @@ export const GET = withWorkspace(
           ]),
         ),
       })
-      .parse(searchParams);
+      .parse(paramsToParse);
 
     // get the final sortBy field (replace old fields with new fields)
     const sortBy =
@@ -52,6 +81,12 @@ export const GET = withWorkspace(
     console.time("getPartners");
     const partners = await getPartners({
       ...parsedParams,
+      partnerTagIds: filterOverrides.partnerTagIds ?? parsedParams.partnerTagIds,
+      partnerTagIdsOperator: filterOverrides.partnerTagIdsOperator,
+      groupId: filterOverrides.groupId ?? parsedParams.groupId,
+      groupIdOperator: filterOverrides.groupIdOperator,
+      country: filterOverrides.country ?? parsedParams.country,
+      countryOperator: filterOverrides.countryOperator,
       sortBy,
       programId,
     });

@@ -5,6 +5,9 @@ import * as z from "zod/v4";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
   programId: string;
+  partnerTagIdsOperator?: "IN" | "NOT IN";
+  groupIdOperator?: "IN" | "NOT IN";
+  countryOperator?: "IN" | "NOT IN";
 };
 
 export async function getPartnersCount<T>(
@@ -20,7 +23,14 @@ export async function getPartnersCount<T>(
     partnerTagIds,
     groupId,
     programId,
+    partnerTagIdsOperator = "IN",
+    groupIdOperator = "IN",
+    countryOperator = "IN",
   } = filters;
+
+  const partnerTagIdsNotIn = partnerTagIdsOperator === "NOT IN";
+  const groupIdNotIn = groupIdOperator === "NOT IN";
+  const countryNotIn = countryOperator === "NOT IN";
 
   const commonWhere: Prisma.PartnerWhereInput = {
     ...(email
@@ -39,11 +49,30 @@ export async function getPartnersCount<T>(
     }),
     ...(partnerTagIds && {
       programPartnerTags: {
-        some: {
-          partnerTagId: { in: partnerTagIds },
-        },
+        ...(partnerTagIdsNotIn
+          ? {
+              none: {
+                programId,
+                partnerTagId: { in: partnerTagIds },
+              },
+            }
+          : {
+              some: {
+                programId,
+                partnerTagId: { in: partnerTagIds },
+              },
+            }),
       },
     }),
+  };
+
+  const programsWhere = {
+    some: {
+      programId,
+      ...(groupId && !groupIdNotIn && { groupId }),
+    },
+    every: { status },
+    ...(groupId && groupIdNotIn && { none: { groupId } }),
   };
 
   // Get partner count by country
@@ -51,17 +80,10 @@ export async function getPartnersCount<T>(
     const partners = await prisma.partner.groupBy({
       by: ["country"],
       where: {
-        programs: {
-          some: {
-            programId,
-            ...(groupId && {
-              groupId,
-            }),
-          },
-          every: {
-            status,
-          },
-        },
+        programs: programsWhere,
+        ...(country && {
+          country: countryNotIn ? { not: country } : country,
+        }),
         ...commonWhere,
       },
       _count: true,
@@ -81,12 +103,11 @@ export async function getPartnersCount<T>(
       by: ["status"],
       where: {
         programId,
-        ...(groupId && {
-          groupId,
-        }),
+        ...(groupId &&
+          (groupIdNotIn ? { groupId: { not: groupId } } : { groupId })),
         partner: {
           ...(country && {
-            country,
+            country: countryNotIn ? { not: country } : country,
           }),
           ...commonWhere,
         },
@@ -118,9 +139,13 @@ export async function getPartnersCount<T>(
       by: ["groupId"],
       where: {
         programId,
+        ...(groupId &&
+          groupIdNotIn && {
+            groupId: { not: groupId },
+          }),
         partner: {
           ...(country && {
-            country,
+            country: countryNotIn ? { not: country } : country,
           }),
           ...commonWhere,
         },
@@ -159,12 +184,11 @@ export async function getPartnersCount<T>(
     where: {
       programId,
       status,
-      ...(groupId && {
-        groupId,
-      }),
+      ...(groupId &&
+        (groupIdNotIn ? { groupId: { not: groupId } } : { groupId })),
       partner: {
         ...(country && {
-          country,
+          country: countryNotIn ? { not: country } : country,
         }),
         ...commonWhere,
       },

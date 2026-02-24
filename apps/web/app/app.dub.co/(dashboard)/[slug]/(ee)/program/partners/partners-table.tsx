@@ -140,7 +140,10 @@ export function PartnersTable() {
     onSelect,
     onRemove,
     onRemoveAll,
+    onToggleOperator,
     isFiltered,
+    setSelectedFilter,
+    setSearch,
   } = usePartnerFilters({ sortBy, sortOrder, status });
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
@@ -618,6 +621,9 @@ export function PartnersTable() {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            isAdvancedFilter
+            onSearchChange={setSearch}
+            onSelectedFilterChange={setSelectedFilter}
           />
           <SearchBoxPersisted
             placeholder="Search by name, email, or company"
@@ -634,6 +640,8 @@ export function PartnersTable() {
                   onSelect={onSelect}
                   onRemove={onRemove}
                   onRemoveAll={onRemoveAll}
+                  onToggleOperator={onToggleOperator}
+                  isAdvancedFilter
                 />
               </div>
             )}

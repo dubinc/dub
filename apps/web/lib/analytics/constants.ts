@@ -117,7 +117,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   top_base_urls: "url",
   top_groups: "groupId",
   top_partners: "partnerId",
-  top_partner_tags: "partnerTagIds",
+  top_partner_tags: "partnerTagId",
 };
 
 export const VALID_ANALYTICS_FILTERS = [

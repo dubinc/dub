@@ -4,20 +4,24 @@ SQL >
     %
     SELECT
         link_id,
-        -- here we split tag_ids out of the multiIf because arrayJoin explodes rows
+        -- here we split tag_ids/partner_tag_ids out of the multiIf because arrayJoin explodes rows
         if(
             {{ String(groupBy) }} = 'top_link_tags',
             arrayJoin(tag_ids),
-            multiIf(
-                {{ String(groupBy) }} = 'top_folders',
-                folder_id,
-                {{ String(groupBy) }} = 'top_domains',
-                domain,
-                {{ String(groupBy) }} = 'top_partners',
-                partner_id,
-               {{ String(groupBy) }} = 'top_groups',
-                partner_group_id,
-                partner_id
+            if(
+                {{ String(groupBy) }} = 'top_partner_tags',
+                arrayJoin(partner_tag_ids),
+                multiIf(
+                    {{ String(groupBy) }} = 'top_folders',
+                    folder_id,
+                    {{ String(groupBy) }} = 'top_domains',
+                    domain,
+                    {{ String(groupBy) }} = 'top_partners',
+                    partner_id,
+                   {{ String(groupBy) }} = 'top_groups',
+                    partner_group_id,
+                    partner_id
+                )
             )
         ) AS groupByField
     FROM dub_links_metadata_latest FINAL
@@ -39,6 +43,8 @@ SQL >
             domain != '',
             {{ String(groupBy) }} = 'top_link_tags',
             length(tag_ids) > 0,
+            {{ String(groupBy) }} = 'top_partner_tags',
+            length(partner_tag_ids) > 0,
             {{ String(groupBy) }} = 'top_partners',
             partner_id != '',
             {{ String(groupBy) }} = 'top_groups',
@@ -79,6 +85,13 @@ SQL >
                 AND length(arrayFilter(x -> x NOT IN {{ Array(tagId, 'String') }}, tag_ids)) = length(tag_ids)
             {% else %}
                 AND arrayIntersect(tag_ids, {{ Array(tagId, 'String') }}) != []
+            {% end %}
+        {% end %}
+        {% if defined(partnerTagId) %}
+            {% if defined(partnerTagIdOperator) and String(partnerTagIdOperator) == 'NOT IN' %}
+                AND length(arrayFilter(x -> x NOT IN {{ Array(partnerTagId, 'String') }}, partner_tag_ids)) = length(partner_tag_ids)
+            {% else %}
+                AND arrayIntersect(partner_tag_ids, {{ Array(partnerTagId, 'String') }}) != []
             {% end %}
         {% end %}
         {% if defined(folderId) %}

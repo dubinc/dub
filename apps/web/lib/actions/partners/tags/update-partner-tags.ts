@@ -1,8 +1,12 @@
 "use server";
 
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { updatePartnerTagsSchema } from "@/lib/zod/schemas/partner-tags";
+import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../../safe-action";
 
 // Update a partner's tags
@@ -77,4 +81,23 @@ export const updatePartnerTagsAction = authActionClient
         }),
       ]);
     });
+
+    // Sync updated partner tags to Tinybird for analytics (top_partner_tags)
+    waitUntil(
+      (async () => {
+        const links = await prisma.link.findMany({
+          where: {
+            programId,
+            partnerId: { in: partnerIds },
+          },
+          include: {
+            ...includeTags,
+            ...includeProgramEnrollment,
+          },
+        });
+        if (links.length > 0) {
+          await recordLink(links);
+        }
+      })(),
+    );
   });

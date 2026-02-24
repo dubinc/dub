@@ -10,7 +10,14 @@ import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, FlagWavy, Tag, Users6 } from "@dub/ui/icons";
-import { cn, COUNTRIES, nFormatter } from "@dub/utils";
+import {
+  buildFilterValue,
+  cn,
+  COUNTRIES,
+  nFormatter,
+  parseFilterValue,
+  type FilterOperator,
+} from "@dub/utils";
 import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -193,64 +200,140 @@ export function usePartnerFilters(
     ],
   );
 
-  const selectedTagIds = useMemo(
-    () => searchParamsObj["partnerTagIds"]?.split(",")?.filter(Boolean) ?? [],
-    [searchParamsObj],
+  const partnerTagIdsParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.partnerTagIds),
+    [searchParamsObj.partnerTagIds],
+  );
+  const groupIdParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.groupId),
+    [searchParamsObj.groupId],
+  );
+  const countryParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.country),
+    [searchParamsObj.country],
   );
 
+  const selectedTagIds = partnerTagIdsParsed?.values ?? [];
+
   const activeFilters = useMemo(() => {
-    const { groupId, partnerTagIds, status, country } = searchParamsObj;
+    const { status } = searchParamsObj;
 
     return [
-      ...(enabledFilters.includes("groupId") && groupId
-        ? [{ key: "groupId", value: groupId }]
+      ...(enabledFilters.includes("groupId") && groupIdParsed
+        ? [
+            {
+              key: "groupId",
+              values: groupIdParsed.values,
+              operator: groupIdParsed.operator,
+            },
+          ]
         : []),
-      ...(enabledFilters.includes("partnerTagIds") && partnerTagIds
-        ? [{ key: "partnerTagIds", value: selectedTagIds }]
+      ...(enabledFilters.includes("partnerTagIds") && partnerTagIdsParsed
+        ? [
+            {
+              key: "partnerTagIds",
+              values: partnerTagIdsParsed.values,
+              operator: partnerTagIdsParsed.operator,
+            },
+          ]
         : []),
       ...(enabledFilters.includes("status") && status
         ? [{ key: "status", value: status }]
         : []),
-      ...(enabledFilters.includes("country") && country
-        ? [{ key: "country", value: country }]
+      ...(enabledFilters.includes("country") && countryParsed
+        ? [
+            {
+              key: "country",
+              values: countryParsed.values,
+              operator: countryParsed.operator,
+            },
+          ]
         : []),
     ];
-  }, [searchParamsObj, enabledFilters, selectedTagIds]);
+  }, [
+    searchParamsObj,
+    enabledFilters,
+    partnerTagIdsParsed,
+    groupIdParsed,
+    countryParsed,
+  ]);
 
-  const onSelect = (key: string, value: any) =>
-    queryParams(
+  const onSelect = (key: string, value: any) => {
+    if (key === "partnerTagIds") {
+      const newValues = selectedTagIds.includes(value)
+        ? selectedTagIds
+        : [...selectedTagIds, value];
+      const newParam = buildFilterValue({
+        operator: partnerTagIdsParsed?.operator ?? "IS_ONE_OF",
+        sqlOperator: partnerTagIdsParsed?.sqlOperator ?? "IN",
+        values: newValues,
+      });
+      return queryParams({ set: { partnerTagIds: newParam }, del: "page" });
+    }
+    if (key === "groupId" || key === "country") {
+      const parsed = key === "groupId" ? groupIdParsed : countryParsed;
+      const newValues = parsed?.values.includes(value)
+        ? parsed.values
+        : [...(parsed?.values ?? []), value];
+      const newParam = buildFilterValue({
+        operator: parsed?.operator ?? (newValues.length > 1 ? "IS_ONE_OF" : "IS"),
+        sqlOperator: parsed?.sqlOperator ?? "IN",
+        values: newValues,
+      });
+      return queryParams({ set: { [key]: newParam }, del: "page" });
+    }
+    return queryParams({ set: { [key]: value }, del: "page" });
+  };
+
+  const onRemove = (key: string, value?: any) => {
+    if (key === "partnerTagIds" && value) {
+      const newValues = selectedTagIds.filter((id) => id !== value);
+      if (newValues.length === 0) {
+        return queryParams({ del: [key, "page"] });
+      }
+      const newParam = buildFilterValue({
+        operator: partnerTagIdsParsed?.operator ?? "IS_ONE_OF",
+        sqlOperator: partnerTagIdsParsed?.sqlOperator ?? "IN",
+        values: newValues,
+      });
+      return queryParams({ set: { partnerTagIds: newParam }, del: "page" });
+    }
+    if ((key === "groupId" || key === "country") && value) {
+      const parsed = key === "groupId" ? groupIdParsed : countryParsed;
+      const newValues = parsed?.values.filter((v) => v !== value) ?? [];
+      if (newValues.length === 0) {
+        return queryParams({ del: [key, "page"] });
+      }
+      const newParam = buildFilterValue({
+        operator: parsed?.operator ?? (newValues.length > 1 ? "IS_ONE_OF" : "IS"),
+        sqlOperator: parsed?.sqlOperator ?? "IN",
+        values: newValues,
+      });
+      return queryParams({ set: { [key]: newParam }, del: "page" });
+    }
+    return queryParams({ del: [key, "page"] });
+  };
+
+  const onToggleOperator = (key: string) => {
+    const paramKey =
       key === "partnerTagIds"
-        ? {
-            set: {
-              partnerTagIds: selectedTagIds.concat(value).join(","),
-            },
-            del: "page",
-          }
-        : {
-            set: {
-              [key]: value,
-            },
-            del: "page",
-          },
-    );
+        ? "partnerTagIds"
+        : key === "groupId"
+          ? "groupId"
+          : key === "country"
+            ? "country"
+            : null;
+    if (!paramKey) return;
 
-  const onRemove = (key: string, value?: any) =>
-    queryParams(
-      key === "partnerTagIds" &&
-        value &&
-        !(selectedTagIds.length === 1 && selectedTagIds[0] === value)
-        ? {
-            set: {
-              partnerTagIds: selectedTagIds
-                .filter((id) => id !== value)
-                .join(","),
-            },
-            del: "page",
-          }
-        : {
-            del: [key, "page"],
-          },
-    );
+    const raw = searchParamsObj[paramKey];
+    if (!raw) return;
+
+    const isNegated = raw.startsWith("-");
+    const cleanValue = isNegated ? raw.slice(1) : raw;
+    const newParam = isNegated ? cleanValue : `-${cleanValue}`;
+
+    queryParams({ set: { [paramKey]: newParam }, del: "page" });
+  };
 
   const onRemoveAll = () =>
     queryParams({
@@ -261,7 +344,28 @@ export function usePartnerFilters(
     () =>
       new URLSearchParams({
         ...Object.fromEntries(
-          activeFilters.map(({ key, value }) => [key, value]),
+          activeFilters.flatMap((f) => {
+            if ("values" in f && Array.isArray(f.values) && "operator" in f) {
+              const values = f.values as string[];
+              const op: FilterOperator =
+                (f as { operator?: FilterOperator }).operator ??
+                (values.length > 1 ? "IS_ONE_OF" : "IS");
+              return [
+                [
+                  f.key,
+                  buildFilterValue({
+                    operator: op,
+                    sqlOperator: op.includes("NOT") ? "NOT IN" : "IN",
+                    values,
+                  }),
+                ],
+              ];
+            }
+            if ("value" in f && f.value != null) {
+              return [[f.key, f.value]];
+            }
+            return [];
+          }),
         ),
         ...(searchParamsObj.search && { search: searchParamsObj.search }),
         workspaceId: workspaceId || "",
@@ -278,6 +382,7 @@ export function usePartnerFilters(
     onSelect,
     onRemove,
     onRemoveAll,
+    onToggleOperator,
     setSelectedFilter,
     setSearch,
     searchQuery,
@@ -294,10 +399,10 @@ function usePartnerTagFilterOptions({
 }) {
   const { searchParamsObj } = useRouterStuff();
 
-  const tagIds = useMemo(
-    () => searchParamsObj.partnerTagIds?.split(",")?.filter(Boolean) ?? [],
-    [searchParamsObj.partnerTagIds],
-  );
+  const tagIds = useMemo(() => {
+    const parsed = parseFilterValue(searchParamsObj.partnerTagIds);
+    return parsed?.values ?? [];
+  }, [searchParamsObj.partnerTagIds]);
 
   const { partnerTagsCount } = usePartnerTagsCount({ enabled });
   const useAsync = Boolean(

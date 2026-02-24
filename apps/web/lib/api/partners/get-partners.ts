@@ -4,6 +4,9 @@ import * as z from "zod/v4";
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
   programId: string;
+  partnerTagIdsOperator?: "IN" | "NOT IN";
+  groupIdOperator?: "IN" | "NOT IN";
+  countryOperator?: "IN" | "NOT IN";
 };
 
 export async function getPartners(filters: PartnerFilters) {
@@ -21,7 +24,12 @@ export async function getPartners(filters: PartnerFilters) {
     programId,
     groupId,
     partnerTagIds,
+    partnerTagIdsOperator = "IN",
+    groupIdOperator = "IN",
+    countryOperator = "IN",
   } = filters;
+
+  const partnerTagIdsNotIn = partnerTagIdsOperator === "NOT IN";
 
   const partners = await prisma.programEnrollment.findMany({
     where: {
@@ -32,36 +40,51 @@ export async function getPartners(filters: PartnerFilters) {
           in: partnerIds,
         },
       }),
-      ...(partnerTagIds && {
+      ...((partnerTagIds || country || search || email) && {
         partner: {
-          programPartnerTags: {
-            some: {
-              programId,
-              partnerTagId: { in: partnerTagIds },
+          ...(partnerTagIds && {
+            programPartnerTags: {
+              ...(partnerTagIdsNotIn
+                ? {
+                    none: {
+                      programId,
+                      partnerTagId: { in: partnerTagIds },
+                    },
+                  }
+                : {
+                    some: {
+                      programId,
+                      partnerTagId: { in: partnerTagIds },
+                    },
+                  }),
             },
-          },
+          }),
+          ...(country && {
+            country:
+              countryOperator === "NOT IN"
+                ? { not: country }
+                : country,
+          }),
+          ...(email
+            ? { email }
+            : search
+              ? search.includes("@")
+                ? { email: search }
+                : {
+                    email: { search: sanitizeFullTextSearch(search) },
+                    name: { search: sanitizeFullTextSearch(search) },
+                    companyName: { search: sanitizeFullTextSearch(search) },
+                  }
+              : {}),
         },
       }),
       status,
-      groupId,
-      ...(country || search || email
-        ? {
-            partner: {
-              country,
-              ...(email
-                ? { email }
-                : search
-                  ? search.includes("@")
-                    ? { email: search }
-                    : {
-                        email: { search: sanitizeFullTextSearch(search) },
-                        name: { search: sanitizeFullTextSearch(search) },
-                        companyName: { search: sanitizeFullTextSearch(search) },
-                      }
-                  : {}),
-            },
-          }
-        : {}),
+      ...(groupId && {
+        groupId:
+          groupIdOperator === "NOT IN"
+            ? { not: groupId }
+            : groupId,
+      }),
     },
     include: {
       partner: {
