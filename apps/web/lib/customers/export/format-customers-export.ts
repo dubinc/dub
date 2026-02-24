@@ -1,9 +1,23 @@
 import { generateRandomName } from "@/lib/names";
+import type { Customer, Link, ProgramEnrollment } from "@dub/prisma/client";
 import {
   CUSTOMER_EXPORT_COLUMNS,
   CUSTOMER_EXPORT_DEFAULT_COLUMNS,
 } from "./schema";
-import type { CustomerForExport } from "./types";
+
+type CustomerForExport = Customer & {
+  link?: Pick<Link, "shortLink" | "url"> | null;
+  programEnrollment?:
+    | (ProgramEnrollment & {
+        partner: {
+          id: string;
+          name: string | null;
+          email: string | null;
+          image: string | null;
+        };
+      })
+    | null;
+};
 
 const dateToIso = (d: Date | null) => (d ? d.toISOString() : "");
 
