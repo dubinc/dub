@@ -96,10 +96,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
       pathname.startsWith(`/${slug}`) &&
       !pathname.startsWith(`/${slug}/program`) &&
       !pathname.startsWith(`/${slug}/settings`),
-
-    onClick: () => {
-      document.cookie = `dub_product:${slug}=links;path=/;max-age=${FIVE_YEARS_SECONDS}`;
-    },
   },
   {
     name: "Partner Program",
@@ -110,12 +106,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: slug ? `/${slug}/program` : "/program",
     active: pathname.startsWith(`/${slug}/program`),
     popup: DubPartnersPopup,
-
-    onClick: defaultProgramId
-      ? () => {
-          document.cookie = `dub_product:${slug}=program;path=/;max-age=${FIVE_YEARS_SECONDS}`;
-        }
-      : undefined,
   },
 ];
 
