@@ -147,7 +147,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "partnerId",
   "folderId",
   "groupId",
-  "partnerTagIds",
+  "partnerTagId",
   "tagId",
   "tagIds",
   "customerId",

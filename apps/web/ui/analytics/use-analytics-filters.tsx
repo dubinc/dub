@@ -106,16 +106,16 @@ export function useAnalyticsFilters({
     [searchParamsObj.tagIds],
   );
 
-  const partnerTagIdsParsed = useMemo(
-    () => parseFilterValue(searchParamsObj.partnerTagIds),
-    [searchParamsObj.partnerTagIds],
+  const partnerTagIdParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.partnerTagId),
+    [searchParamsObj.partnerTagId],
   );
 
   const { partnerTags: partnerTagsById } = usePartnerTags(
     {
-      query: { ids: partnerTagIdsParsed?.values },
+      query: { ids: partnerTagIdParsed?.values },
       enabled:
-        !!partnerTagIdsParsed?.values?.length && !!programPage,
+        !!partnerTagIdParsed?.values?.length && !!programPage,
     },
     { keepPreviousData: true },
   );
@@ -182,13 +182,13 @@ export function useAnalyticsFilters({
             },
           ]
         : []),
-      // Handle partnerTagIds special case
-      ...(partnerTagIdsParsed?.values?.length
+      // Handle partnerTagId special case
+      ...(partnerTagIdParsed?.values?.length
         ? [
             {
-              key: "partnerTagIds",
-              operator: partnerTagIdsParsed.operator as FilterOperator,
-              values: partnerTagIdsParsed.values,
+              key: "partnerTagId",
+              operator: partnerTagIdParsed.operator as FilterOperator,
+              values: partnerTagIdParsed.values,
             },
           ]
         : []),
@@ -237,7 +237,7 @@ export function useAnalyticsFilters({
           "key",
           "tagId",
           "tagIds",
-          "partnerTagIds",
+          "partnerTagId",
           "root",
           "customerId",
         ].includes(filter)
@@ -268,7 +268,7 @@ export function useAnalyticsFilters({
   }, [
     searchParamsObj,
     selectedTagIds,
-    partnerTagIdsParsed,
+    partnerTagIdParsed,
     partnerPage,
     selectedCustomerId,
     selectedCustomer,
@@ -313,7 +313,7 @@ export function useAnalyticsFilters({
     context,
   });
   const { data: partnerTags } = useAnalyticsFilterOption("top_partner_tags", {
-    disabled: !isRequested("partnerTagIds"),
+    disabled: !isRequested("partnerTagId"),
     omitGroupByFilterKey: true,
     context,
   });
@@ -567,7 +567,7 @@ export function useAnalyticsFilters({
                   }) ?? null,
               },
               {
-                key: "partnerTagIds",
+                key: "partnerTagId",
                 icon: Tag,
                 label: "Partner tag",
                 multiple: true,
@@ -949,7 +949,7 @@ export function useAnalyticsFilters({
       partnerTags,
       partnerTagIdToName,
       selectedTagIds,
-      partnerTagIdsParsed,
+      partnerTagIdParsed,
       selectedCustomerId,
       countries,
       cities,

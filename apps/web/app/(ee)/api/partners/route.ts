@@ -16,13 +16,13 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 function parsePartnerFilterParams(searchParams: Record<string, string | undefined>) {
-  const partnerTagIdsParsed = parseFilterValue(searchParams.partnerTagIds);
+  const partnerTagIdParsed = parseFilterValue(searchParams.partnerTagId);
   const groupIdParsed = parseFilterValue(searchParams.groupId);
   const countryParsed = parseFilterValue(searchParams.country);
 
   return {
-    partnerTagIds: partnerTagIdsParsed?.values,
-    partnerTagIdsOperator: partnerTagIdsParsed?.sqlOperator,
+    partnerTagId: partnerTagIdParsed?.values,
+    partnerTagIdOperator: partnerTagIdParsed?.sqlOperator,
     groupId: groupIdParsed?.values?.[0],
     groupIdOperator: groupIdParsed?.sqlOperator,
     country: countryParsed?.values?.[0],
@@ -33,12 +33,15 @@ function parsePartnerFilterParams(searchParams: Record<string, string | undefine
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const programId = getDefaultProgramIdOrThrow(workspace);
+    const programId = getDefaultProgramIdOrThrow({
+      defaultProgramId: (workspace as { defaultProgramId?: string | null })
+        .defaultProgramId,
+    }) as string;
     const filterOverrides = parsePartnerFilterParams(searchParams);
     const paramsToParse = {
       ...searchParams,
-      ...(filterOverrides.partnerTagIds && {
-        partnerTagIds: filterOverrides.partnerTagIds.join(","),
+      ...(filterOverrides.partnerTagId && {
+        partnerTagId: filterOverrides.partnerTagId.join(","),
       }),
       ...(filterOverrides.groupId !== undefined && {
         groupId: filterOverrides.groupId ?? undefined,
@@ -81,8 +84,8 @@ export const GET = withWorkspace(
     console.time("getPartners");
     const partners = await getPartners({
       ...parsedParams,
-      partnerTagIds: filterOverrides.partnerTagIds ?? parsedParams.partnerTagIds,
-      partnerTagIdsOperator: filterOverrides.partnerTagIdsOperator,
+      partnerTagId: filterOverrides.partnerTagId ?? parsedParams.partnerTagId,
+      partnerTagIdOperator: filterOverrides.partnerTagIdOperator,
       groupId: filterOverrides.groupId ?? parsedParams.groupId,
       groupIdOperator: filterOverrides.groupIdOperator,
       country: filterOverrides.country ?? parsedParams.country,
@@ -136,19 +139,24 @@ export const GET = withWorkspace(
 // POST /api/partners - add a partner for a program
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const programId = getDefaultProgramIdOrThrow(workspace);
+    const programId = getDefaultProgramIdOrThrow({
+      defaultProgramId: (workspace as { defaultProgramId?: string | null })
+        .defaultProgramId,
+    }) as string;
 
     const { linkProps: link, ...partner } = createPartnerSchema.parse(
       await parseRequestBody(req),
     );
 
     const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
+      workspaceId: (workspace as unknown as { id: string }).id,
       programId,
     });
 
     const enrolledPartner = await createAndEnrollPartner({
-      workspace,
+      workspace: workspace as unknown as Parameters<
+        typeof createAndEnrollPartner
+      >[0]["workspace"],
       program,
       partner,
       link,

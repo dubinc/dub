@@ -185,7 +185,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
-  partnerTagIds: z
+  partnerTagId: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),

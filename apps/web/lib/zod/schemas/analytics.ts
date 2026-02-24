@@ -132,7 +132,7 @@ export const analyticsQuerySchema = z.object({
         "Supports advanced filtering: single value, multiple values (comma-separated), or exclusion (prefix with `-`). " +
         "Examples: `pn_123`, `pn_123,pn_456`, `-pn_789`.",
     ),
-  partnerTagIds: z
+  partnerTagId: z
     .string()
     .optional()
     .transform(parseFilterValue)

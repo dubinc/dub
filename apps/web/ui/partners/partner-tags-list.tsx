@@ -88,7 +88,7 @@ function TagButton({
       onClick={() => {
         queryParams({
           set: {
-            partnerTagIds: id,
+            partnerTagId: id,
           },
         });
       }}
@@ -98,7 +98,7 @@ function TagButton({
     </button>
   ) : (
     <Link
-      href={`/${workspaceSlug}/program/partners?partnerTagIds=${id}`}
+      href={`/${workspaceSlug}/program/partners?partnerTagId=${id}`}
       className={cn(tagPillClassName, "active:bg-bg-inverted/15")}
     >
       <span className="min-w-0 truncate">{name}</span>

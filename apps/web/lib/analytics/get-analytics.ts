@@ -1,6 +1,7 @@
+import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
 import { tb } from "@/lib/tinybird";
+import { FolderAccessLevel } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FolderAccessLevel } from "@dub/prisma/client";
 import { linkConstructor, punyEncode } from "@dub/utils";
 import * as z from "zod/v4";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
@@ -133,7 +134,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const folderIdFilter = ensureParsedFilter(params.folderId);
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
-  const partnerTagIdsFilter = ensureParsedFilter(params.partnerTagIds);
+  const partnerTagIdFilter = ensureParsedFilter(params.partnerTagId);
 
   let {
     domain: domainParam,
@@ -155,7 +156,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   } = extractWorkspaceLinkFilters({
     ...params,
     partnerId: partnerIdFilter,
-    partnerTagIds: partnerTagIdsFilter,
+    partnerTagId: partnerTagIdFilter,
     linkId: normalizedLinkId,
     folderId: folderIdFilter,
   });
@@ -419,7 +420,14 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         return analyticsResponse.top_folders
           .extend({
             folder: analyticsResponse.top_folders.shape.folder.extend({
-              accessLevel: z.enum(FolderAccessLevel).nullish(),
+              accessLevel: z
+                .enum(
+                  Object.keys(FOLDER_WORKSPACE_ACCESS) as [
+                    FolderAccessLevel,
+                    ...FolderAccessLevel[],
+                  ],
+                )
+                .nullish(),
             }),
           })
           .parse({

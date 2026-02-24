@@ -4,7 +4,7 @@ import * as z from "zod/v4";
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
   programId: string;
-  partnerTagIdsOperator?: "IN" | "NOT IN";
+  partnerTagIdOperator?: "IN" | "NOT IN";
   groupIdOperator?: "IN" | "NOT IN";
   countryOperator?: "IN" | "NOT IN";
 };
@@ -23,13 +23,13 @@ export async function getPartners(filters: PartnerFilters) {
     sortOrder,
     programId,
     groupId,
-    partnerTagIds,
-    partnerTagIdsOperator = "IN",
+    partnerTagId,
+    partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
   } = filters;
 
-  const partnerTagIdsNotIn = partnerTagIdsOperator === "NOT IN";
+  const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
 
   const partners = await prisma.programEnrollment.findMany({
     where: {
@@ -40,21 +40,21 @@ export async function getPartners(filters: PartnerFilters) {
           in: partnerIds,
         },
       }),
-      ...((partnerTagIds || country || search || email) && {
+      ...((partnerTagId || country || search || email) && {
         partner: {
-          ...(partnerTagIds && {
+          ...(partnerTagId && {
             programPartnerTags: {
-              ...(partnerTagIdsNotIn
+              ...(partnerTagIdNotIn
                 ? {
                     none: {
                       programId,
-                      partnerTagId: { in: partnerTagIds },
+                      partnerTagId: { in: partnerTagId },
                     },
                   }
                 : {
                     some: {
                       programId,
-                      partnerTagId: { in: partnerTagIds },
+                      partnerTagId: { in: partnerTagId },
                     },
                   }),
             },

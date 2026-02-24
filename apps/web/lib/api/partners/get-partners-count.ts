@@ -5,7 +5,7 @@ import * as z from "zod/v4";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
   programId: string;
-  partnerTagIdsOperator?: "IN" | "NOT IN";
+  partnerTagIdOperator?: "IN" | "NOT IN";
   groupIdOperator?: "IN" | "NOT IN";
   countryOperator?: "IN" | "NOT IN";
 };
@@ -20,15 +20,15 @@ export async function getPartnersCount<T>(
     search,
     email,
     partnerIds,
-    partnerTagIds,
+    partnerTagId,
     groupId,
     programId,
-    partnerTagIdsOperator = "IN",
+    partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
   } = filters;
 
-  const partnerTagIdsNotIn = partnerTagIdsOperator === "NOT IN";
+  const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
   const groupIdNotIn = groupIdOperator === "NOT IN";
   const countryNotIn = countryOperator === "NOT IN";
 
@@ -47,19 +47,19 @@ export async function getPartnersCount<T>(
     ...(partnerIds && {
       id: { in: partnerIds },
     }),
-    ...(partnerTagIds && {
+    ...(partnerTagId && {
       programPartnerTags: {
-        ...(partnerTagIdsNotIn
+        ...(partnerTagIdNotIn
           ? {
               none: {
                 programId,
-                partnerTagId: { in: partnerTagIds },
+                partnerTagId: { in: partnerTagId },
               },
             }
           : {
               some: {
                 programId,
-                partnerTagId: { in: partnerTagIds },
+                partnerTagId: { in: partnerTagId },
               },
             }),
       },
