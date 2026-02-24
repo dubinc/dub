@@ -13,8 +13,8 @@ import { AnimatePresence, motion } from "motion/react";
 import {
   CSSProperties,
   HTMLAttributes,
-  MouseEvent,
   memo,
+  MouseEvent,
   useEffect,
   useMemo,
   useRef,
@@ -77,11 +77,6 @@ export function useTable<T extends any>(
 
   const selectionEnabled =
     !!props.onRowSelectionChange || !!props.selectionControls;
-  const hasUtilityColumns = columns.some((column: any) =>
-    FIXED_UTILITY_COLUMN_IDS.has(column?.id),
-  );
-  const useFixedColumnSizing =
-    enableColumnResizing || selectionEnabled || hasUtilityColumns;
 
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
     props.columnVisibility ?? {},
@@ -169,7 +164,7 @@ export function useTable<T extends any>(
                   title="Select all"
                 >
                   <Checkbox
-                    className="pointer-events-none border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                    className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                     checked={
                       table.getIsAllRowsSelected()
                         ? true
@@ -250,7 +245,7 @@ export function useTable<T extends any>(
                     title="Select"
                   >
                     <Checkbox
-                      className="pointer-events-none border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                      className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                       checked={row.getIsSelected()}
                     />
                   </button>
@@ -269,9 +264,9 @@ export function useTable<T extends any>(
     rowCount,
     columns: tableColumns,
     defaultColumn: {
-      minSize: 120,
-      size: useFixedColumnSizing ? 120 : 0,
-      maxSize: 300,
+      minSize: enableColumnResizing ? 120 : 0,
+      size: enableColumnResizing ? 120 : 0,
+      maxSize: enableColumnResizing ? 300 : undefined,
       enableResizing: enableColumnResizing,
       ...defaultColumn,
     },
@@ -394,7 +389,9 @@ const ResizableTableRow = memo(
                 <div
                   className={cn(
                     "flex items-center",
-                    isUtilityColumn ? "justify-center" : "w-full justify-between",
+                    isUtilityColumn
+                      ? "justify-center"
+                      : "w-full justify-between",
                     !isUtilityColumn &&
                       (disableTruncate
                         ? "overflow-visible"
@@ -405,7 +402,9 @@ const ResizableTableRow = memo(
                     className={cn(
                       disableTruncate ? "whitespace-nowrap" : "truncate",
                       isUtilityColumn ? "shrink-0" : "min-w-0 shrink grow",
-                      disableTruncate && !isUtilityColumn && "min-w-max shrink-0",
+                      disableTruncate &&
+                        !isUtilityColumn &&
+                        "min-w-max shrink-0",
                     )}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -466,71 +465,10 @@ export function Table<T>({
       columnsAfterSelect.add(visibleColumns[i].id);
     }
   }
-  const utilityFixedSizingMode =
-    !enableColumnResizing &&
-    visibleColumns.some((column) => FIXED_UTILITY_COLUMN_IDS.has(column.id));
-
   const scrollWrapperRef = useRef<HTMLDivElement>(null);
-  const [scrollWrapperWidth, setScrollWrapperWidth] = useState<number | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (!utilityFixedSizingMode) return;
-    const el = scrollWrapperRef.current;
-    if (!el) return;
-
-    const updateWidth = () => setScrollWrapperWidth(el.clientWidth);
-    updateWidth();
-
-    const observer = new ResizeObserver(updateWidth);
-    observer.observe(el);
-
-    return () => observer.disconnect();
-  }, [utilityFixedSizingMode]);
-
-  const baseColumnWidths = visibleColumns.map((column) => ({
-    id: column.id,
-    width: column.getSize(),
-  }));
-
   const utilityColumnWidths = new Map(
-    baseColumnWidths.map(({ id, width }) => [id, width]),
+    visibleColumns.map((column) => [column.id, column.getSize()]),
   );
-
-  let utilityTableWidth = baseColumnWidths.reduce(
-    (acc, { width }) => acc + width,
-    0,
-  );
-
-  if (
-    utilityFixedSizingMode &&
-    scrollWrapperWidth !== null &&
-    utilityTableWidth < scrollWrapperWidth
-  ) {
-    const fixedWidth = baseColumnWidths
-      .filter(({ id }) => FIXED_UTILITY_COLUMN_IDS.has(id))
-      .reduce((acc, { width }) => acc + width, 0);
-
-    const flexibleColumns = baseColumnWidths.filter(
-      ({ id }) => !FIXED_UTILITY_COLUMN_IDS.has(id),
-    );
-    const flexibleBaseWidth = flexibleColumns.reduce(
-      (acc, { width }) => acc + width,
-      0,
-    );
-
-    const flexibleTargetWidth = Math.max(scrollWrapperWidth - fixedWidth, 0);
-    const scale =
-      flexibleBaseWidth > 0 ? flexibleTargetWidth / flexibleBaseWidth : 1;
-
-    flexibleColumns.forEach(({ id, width }) => {
-      utilityColumnWidths.set(id, width * scale);
-    });
-
-    utilityTableWidth = scrollWrapperWidth;
-  }
-
   const getUtilityColumnWidth = (columnId: string, fallback: number) =>
     utilityColumnWidths.get(columnId) ?? fallback;
 
@@ -571,37 +509,15 @@ export function Table<T>({
                 className,
               )}
               style={{
-                width: utilityFixedSizingMode
-                  ? `${utilityTableWidth}px`
+                width: "100%",
+                tableLayout: enableColumnResizing ? "fixed" : "auto",
+                minWidth: enableColumnResizing
+                  ? table
+                      .getVisibleLeafColumns()
+                      .reduce((acc, column) => acc + column.getSize(), 0)
                   : "100%",
-                tableLayout:
-                  enableColumnResizing || utilityFixedSizingMode
-                    ? "fixed"
-                    : "auto",
-                minWidth: utilityFixedSizingMode
-                  ? `${utilityTableWidth}px`
-                  : enableColumnResizing
-                    ? table
-                        .getVisibleLeafColumns()
-                        .reduce((acc, column) => acc + column.getSize(), 0)
-                    : "100%",
               }}
             >
-              {utilityFixedSizingMode && (
-                <colgroup>
-                  {visibleColumns.map((column) => (
-                    <col
-                      key={column.id}
-                      style={{
-                        width: getUtilityColumnWidth(
-                          column.id,
-                          column.getSize(),
-                        ),
-                      }}
-                    />
-                  ))}
-                </colgroup>
-              )}
               <thead className="relative">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <tr key={headerGroup.id}>
@@ -635,12 +551,16 @@ export function Table<T>({
                             enableColumnResizing && "relative",
                           )}
                           style={{
-                            width: utilityFixedSizingMode
+                            width: FIXED_UTILITY_COLUMN_IDS.has(
+                              header.column.id,
+                            )
                               ? getUtilityColumnWidth(
                                   header.column.id,
                                   header.getSize(),
                                 )
-                              : header.getSize(),
+                              : enableColumnResizing
+                                ? header.getSize()
+                                : undefined,
                             ...getCommonPinningStyles(header.column),
                           }}
                         >
@@ -775,8 +695,9 @@ export function Table<T>({
                         const isColumnAfterSelect = columnsAfterSelect.has(
                           cell.column.id,
                         );
-                        const disableTruncate = !!(cell.column.columnDef
-                          .meta as any)?.disableTruncate;
+                        const disableTruncate = !!(
+                          cell.column.columnDef.meta as any
+                        )?.disableTruncate;
 
                         return (
                           <td
@@ -790,8 +711,8 @@ export function Table<T>({
                               "text-content-default group",
                               getCommonPinningClassNames(
                                 cell.column,
-                                row.index === table.getRowModel().rows.length -
-                                  1,
+                                row.index ===
+                                  table.getRowModel().rows.length - 1,
                               ),
                               typeof tdClassName === "function"
                                 ? tdClassName(cell.column.id, row)
@@ -800,12 +721,16 @@ export function Table<T>({
                             style={{
                               minWidth: cell.column.columnDef.minSize,
                               maxWidth: cell.column.columnDef.maxSize,
-                              width: utilityFixedSizingMode
+                              width: FIXED_UTILITY_COLUMN_IDS.has(
+                                cell.column.id,
+                              )
                                 ? getUtilityColumnWidth(
                                     cell.column.id,
                                     cell.column.getSize(),
                                   )
-                                : cell.column.columnDef.size || "auto",
+                                : enableColumnResizing
+                                  ? cell.column.columnDef.size
+                                  : "auto",
                               ...getCommonPinningStyles(cell.column),
                             }}
                           >
@@ -831,7 +756,9 @@ export function Table<T>({
                               >
                                 <div
                                   className={cn(
-                                    disableTruncate ? "whitespace-nowrap" : "truncate",
+                                    disableTruncate
+                                      ? "whitespace-nowrap"
+                                      : "truncate",
                                     isUtilityColumn
                                       ? "shrink-0"
                                       : "min-w-0 shrink grow",
