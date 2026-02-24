@@ -9,10 +9,16 @@ import { defineFraudRule } from "../define-fraud-rule";
 
 const configSchema = z.object({
   platforms: z.array(z.enum(PAID_TRAFFIC_PLATFORMS)).optional().default([]),
+  google: z
+    .object({
+      whitelistedCampaignIds: z.array(z.string()).optional().default([]),
+    })
+    .optional(),
 });
 
 const defaultConfig: z.infer<typeof configSchema> = {
   platforms: ["google"],
+  google: { whitelistedCampaignIds: [] },
 };
 
 export const checkPaidTrafficDetected = defineFraudRule({
@@ -64,6 +70,27 @@ export const checkPaidTrafficDetected = defineFraudRule({
         if (foundPlatform.queryParams.includes(queryParamKey)) {
           source = foundPlatform.id;
           break;
+        }
+      }
+    }
+
+    // Check if the source is Google and if the campaign ID is in the allowlist
+    if (source === "google") {
+      const whitelistedCampaignIds =
+        config.google?.whitelistedCampaignIds?.filter(Boolean) ?? [];
+
+      if (whitelistedCampaignIds.length > 0) {
+        const paramsToCheck = ["gad_campaignid", "utm_campaign"];
+
+        const matched = paramsToCheck.some((param) => {
+          const value = queryParams[param]?.trim();
+          return value && whitelistedCampaignIds.includes(value);
+        });
+
+        if (matched) {
+          return {
+            triggered: false,
+          };
         }
       }
     }
