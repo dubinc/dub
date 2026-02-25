@@ -1,6 +1,6 @@
 "use client";
 
-import { useCustomerExportModal } from "@/ui/modals/customer-export-modal";
+import { useExportCustomersModal } from "@/ui/modals/export-customers-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Download, IconMenu, Popover } from "@dub/ui";
 import { useState } from "react";
@@ -8,12 +8,12 @@ import { useState } from "react";
 export function ExportCustomersButton() {
   const [openPopover, setOpenPopover] = useState(false);
 
-  const { CustomerExportModal, setShowCustomerExportModal } =
-    useCustomerExportModal();
+  const { ExportCustomersModal, setShowExportCustomersModal } =
+    useExportCustomersModal();
 
   return (
     <>
-      <CustomerExportModal />
+      <ExportCustomersModal />
       <Popover
         content={
           <div className="w-full md:w-52">
@@ -24,7 +24,7 @@ export function ExportCustomersButton() {
               <button
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowCustomerExportModal(true);
+                  setShowExportCustomersModal(true);
                 }}
                 className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
               >

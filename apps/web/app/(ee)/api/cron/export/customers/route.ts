@@ -5,7 +5,7 @@ import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { withCron } from "@/lib/cron/with-cron";
 import { fetchCustomersBatch } from "@/lib/customers/api/fetch-customers-batch";
 import { formatCustomersForExport } from "@/lib/customers/api/format-customers-export";
-import { customersExportCronInputSchema } from "@/lib/customers/schema";
+import { customersExportCronInputSchema } from "@/lib/zod/schemas/customers";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
