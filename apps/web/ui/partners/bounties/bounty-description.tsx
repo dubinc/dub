@@ -61,7 +61,7 @@ export function BountyDescription({
           <div className="text-content-subtle mt-2 text-sm font-medium leading-5">
             {submissionTexts.map((text) => (
               <div className="flex items-start gap-1.5" key={text}>
-                <Check2 className="size-3 shrink-0 text-green-600" />
+                <Check2 className="mt-1 size-3 shrink-0 text-green-600" />
                 <span>{text}</span>
               </div>
             ))}
@@ -78,7 +78,7 @@ export function BountyDescription({
           <div className="text-content-subtle mt-2 text-sm font-medium leading-5">
             {rewardTexts.map((text) => (
               <div className="flex items-start gap-1.5" key={text}>
-                <Check2 className="size-3 shrink-0 text-green-600" />
+                <Check2 className="mt-1 size-3 shrink-0 text-green-600" />
                 <span>{text}</span>
               </div>
             ))}
