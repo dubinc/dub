@@ -1,6 +1,5 @@
 "use client";
 
-import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import {
@@ -13,7 +12,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useConfirmApproveBountySubmissionModal } from "@/ui/modals/confirm-approve-bounty-submission-modal";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
 import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
@@ -42,14 +41,7 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Linkify from "linkify-react";
-import { useAction } from "next-safe-action/hooks";
-import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 type BountySubmissionDetailsSheetProps = {
@@ -71,6 +63,13 @@ function BountySubmissionDetailsSheetContent({
   const { setShowRejectModal, RejectBountySubmissionModal } =
     useRejectBountySubmissionModal(submission, onNext);
 
+  const {
+    openConfirmApproveBountySubmissionModal,
+    ConfirmApproveBountySubmissionModal,
+  } = useConfirmApproveBountySubmissionModal({
+    onApproveSuccess: () => (onNext ? onNext() : setIsOpen(false)),
+  });
+
   const [rewardAmount, setRewardAmount] = useState<number | null>(null);
 
   const { isSubmitting: isRefreshingSocialMetrics, makeRequest } =
@@ -91,42 +90,6 @@ function BountySubmissionDetailsSheetContent({
       },
     });
   }, [bounty?.id, submission?.id, makeRequest]);
-
-  const {
-    executeAsync: approveBountySubmission,
-    isPending: isApprovingBountySubmission,
-  } = useAction(approveBountySubmissionAction, {
-    onSuccess: () => {
-      toast.success("Bounty submission approved successfully!");
-      onNext ? onNext() : setIsOpen(false);
-      mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
-    },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
-
-  const {
-    setShowConfirmModal: setShowApproveBountySubmissionModal,
-    confirmModal: approveBountySubmissionModal,
-  } = useConfirmModal({
-    title: "Approve Bounty Submission",
-    description: "Are you sure you want to approve this bounty submission?",
-    confirmText: "Approve",
-    confirmShortcut: "a",
-    confirmShortcutOptions: { sheet: true, modal: true },
-    onConfirm: async () => {
-      if (!workspaceId || !submission?.id) {
-        return;
-      }
-
-      await approveBountySubmission({
-        workspaceId,
-        submissionId: submission.id,
-        rewardAmount: rewardAmount ? rewardAmount * 100 : null,
-      });
-    },
-  });
 
   // right arrow key onNext
   useKeyboardShortcut(
@@ -154,7 +117,11 @@ function BountySubmissionDetailsSheetContent({
     "a",
     () => {
       if (isValidForm && submission.status !== "draft") {
-        setShowApproveBountySubmissionModal(true);
+        openConfirmApproveBountySubmissionModal(
+          submission,
+          bounty ?? null,
+          rewardAmount,
+        );
       }
     },
     { sheet: true },
@@ -563,19 +530,23 @@ function BountySubmissionDetailsSheetContent({
                           : undefined
                     }
                     disabled={
-                      isApprovingBountySubmission ||
                       submission.status === "draft"
                     }
                     onClick={() => setShowRejectModal(true)}
                   />
 
                   <Button
-                    type="submit"
+                    type="button"
                     variant="primary"
                     text="Approve"
                     shortcut="A"
-                    loading={isApprovingBountySubmission}
-                    onClick={() => setShowApproveBountySubmissionModal(true)}
+                    onClick={() =>
+                      openConfirmApproveBountySubmissionModal(
+                        submission,
+                        bounty ?? null,
+                        rewardAmount,
+                      )
+                    }
                     disabledTooltip={
                       submission.status === "draft"
                         ? "Bounty submission is in progress."
@@ -591,7 +562,7 @@ function BountySubmissionDetailsSheetContent({
       </div>
 
       <RejectBountySubmissionModal />
-      {approveBountySubmissionModal}
+      <ConfirmApproveBountySubmissionModal />
     </div>
   );
 }

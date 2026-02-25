@@ -36,7 +36,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
-import { BountyDescription } from "./bounty-description";
+import { BountyDescription, bountyHasDetails } from "./bounty-description";
 import { BountyPerformance } from "./bounty-performance";
 import { BountyRewardDescription } from "./bounty-reward-description";
 import {
@@ -453,9 +453,11 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     )}
                   </div>
 
-                  <div className="border-border-subtle border-t p-6 max-sm:px-4">
-                    <BountyDescription bounty={bounty} />
-                  </div>
+                  {bountyHasDetails(bounty) && (
+                    <div className="border-border-subtle border-t p-6 max-sm:px-4">
+                      <BountyDescription bounty={bounty} />
+                    </div>
+                  )}
 
                   {/* Form */}
                   <motion.div
