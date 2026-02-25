@@ -9,6 +9,7 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
+  ENUM_CONDITION_OPERATORS,
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
@@ -391,10 +392,17 @@ function ConditionLogic({
                         },
                       )
                     }
-                    items={entity.attributes.map((attribute) => ({
-                      text: attribute.label,
-                      value: attribute.id,
-                    }))}
+                    items={entity.attributes
+                      .filter(
+                        (attribute) =>
+                          attribute.id !== "source" ||
+                          (program &&
+                            REFERRAL_ENABLED_PROGRAM_IDS.includes(program.id)),
+                      )
+                      .map((attribute) => ({
+                        text: attribute.label,
+                        value: attribute.id,
+                      }))}
                   />
                 </InlineBadgePopover>{" "}
                 {isCustomerSourceCondition ? (
@@ -437,7 +445,9 @@ function ConditionLogic({
                       }
                       items={(["number", "currency"].includes(attributeType)
                         ? NUMBER_CONDITION_OPERATORS
-                        : STRING_CONDITION_OPERATORS
+                        : attributeType === "enum"
+                          ? ENUM_CONDITION_OPERATORS
+                          : STRING_CONDITION_OPERATORS
                       ).map((operator) => ({
                         text: CONDITION_OPERATOR_LABELS[operator],
                         value: operator,
@@ -462,10 +472,7 @@ function ConditionLogic({
                       )}
                     >
                       {/* Country selection */}
-                      {condition.attribute === "country" &&
-                      !["starts_with", "ends_with"].includes(
-                        condition.operator,
-                      ) ? (
+                      {condition.attribute === "country" ? (
                         // Country selector
                         <InlineBadgePopoverMenu
                           search
@@ -503,10 +510,7 @@ function ConditionLogic({
                             });
                           }}
                         />
-                      ) : attribute?.options &&
-                        !["starts_with", "ends_with"].includes(
-                          condition.operator,
-                        ) ? (
+                      ) : attribute?.options ? (
                         // Select option selector
                         <InlineBadgePopoverMenu
                           search={attribute.options.length > 4}
@@ -514,20 +518,10 @@ function ConditionLogic({
                             (condition.value as string[] | undefined) ??
                             (isArrayValue ? [] : undefined)
                           }
-                          items={attribute.options
-                            .filter(
-                              (attribute) =>
-                                isCustomerSourceCondition &&
-                                (attribute.id !== "submitted" ||
-                                  (program &&
-                                    REFERRAL_ENABLED_PROGRAM_IDS.includes(
-                                      program.id,
-                                    ))),
-                            )
-                            .map(({ id, label }) => ({
-                              text: label,
-                              value: id,
-                            }))}
+                          items={attribute.options.map(({ id, label }) => ({
+                            text: label,
+                            value: id,
+                          }))}
                           onSelect={(value) => {
                             setValue(conditionKey, {
                               ...condition,
