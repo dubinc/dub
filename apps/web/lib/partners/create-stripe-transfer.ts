@@ -9,6 +9,7 @@ import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processe
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
+import { createPayoutsIdempotencyKey } from "../payouts/api/create-payouts-idempotency-key";
 import { markPayoutsAsProcessed } from "../payouts/api/mark-payouts-as-processed";
 
 export const createStripeTransfer = async ({
@@ -59,6 +60,9 @@ export const createStripeTransfer = async ({
           stripeTransferId: null,
           method: "connect",
         },
+        orderBy: {
+          id: "asc",
+        },
         include: commonInclude,
       }),
       prisma.payout.findMany({
@@ -67,6 +71,9 @@ export const createStripeTransfer = async ({
           invoiceId,
           status: "processing",
           method: "connect",
+        },
+        orderBy: {
+          id: "asc",
         },
         include: commonInclude,
       }),
@@ -148,8 +155,14 @@ export const createStripeTransfer = async ({
     );
   }
 
-  // will be used for transfer_group and idempotencyKey
+  // will be used for transfer_group
   const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;
+
+  const idempotencyKey = createPayoutsIdempotencyKey({
+    partnerId: partner.id,
+    invoiceId,
+    payoutIds: allPayouts.map((p) => p.id),
+  });
 
   // Create a transfer for the partner combined payouts and update it as sent
   const transfer = await stripe.transfers.create(
@@ -169,7 +182,7 @@ export const createStripeTransfer = async ({
         }),
     },
     {
-      idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,
+      idempotencyKey,
     },
   );
 

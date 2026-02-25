@@ -145,7 +145,7 @@ export function PayoutStats() {
       error: !!error,
     },
 
-    ...(partner?.defaultPayoutMethod === "connect"
+    ...(["stablecoin", "connect"].includes(partner?.defaultPayoutMethod ?? "")
       ? [
           {
             label: "Processed",

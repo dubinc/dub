@@ -1,8 +1,10 @@
 import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { currencyFormatter, prettyPrint } from "@dub/utils";
 import { STABLECOIN_PAYOUT_FEE_RATE } from "../constants/payouts";
+import { createPayoutsIdempotencyKey } from "../payouts/api/create-payouts-idempotency-key";
 import { markPayoutsAsProcessed } from "../payouts/api/mark-payouts-as-processed";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
 import { fundFinancialAccount } from "../stripe/fund-financial-account";
@@ -43,6 +45,15 @@ export const createStablecoinPayout = async ({
     return;
   }
 
+  const commonInclude: Prisma.PayoutInclude = {
+    program: {
+      select: {
+        name: true,
+        logo: true,
+      },
+    },
+  };
+
   const [previouslyProcessedPayouts, currentInvoicePayouts] = await Promise.all(
     [
       forceWithdrawal
@@ -55,14 +66,10 @@ export const createStablecoinPayout = async ({
                 in: ["stablecoin", "connect"],
               },
             },
-            include: {
-              program: {
-                select: {
-                  name: true,
-                  logo: true,
-                },
-              },
+            orderBy: {
+              id: "asc",
             },
+            include: commonInclude,
           })
         : Promise.resolve([]),
 
@@ -70,19 +77,15 @@ export const createStablecoinPayout = async ({
         ? prisma.payout.findMany({
             where: {
               partnerId: partner.id,
-              invoiceId,
-              stripePayoutId: null,
               status: "processing",
+              stripePayoutId: null,
               method: "stablecoin",
+              invoiceId,
             },
-            include: {
-              program: {
-                select: {
-                  name: true,
-                  logo: true,
-                },
-              },
+            orderBy: {
+              id: "asc",
             },
+            include: commonInclude,
           })
         : Promise.resolve([]),
     ],
@@ -97,11 +100,15 @@ export const createStablecoinPayout = async ({
   const allPayouts = [...previouslyProcessedPayouts, ...currentInvoicePayouts];
 
   if (allPayouts.length === 0) {
-    console.warn(
-      `No available payouts found for partner ${partner.email} in invoice ${invoiceId}.`,
-    );
+    console.warn(`No available payouts found for partner ${partner.email}.`);
     return;
   }
+
+  const idempotencyKey = createPayoutsIdempotencyKey({
+    partnerId: partner.id,
+    invoiceId,
+    payoutIds: allPayouts.map((p) => p.id),
+  });
 
   let totalTransferableAmount = allPayouts.reduce(
     (acc, payout) => acc + payout.amount,
@@ -110,7 +117,7 @@ export const createStablecoinPayout = async ({
 
   if (totalTransferableAmount <= 0) {
     console.warn(
-      `Total transferable amount for partner ${partner.email} in invoice ${invoiceId} is less than 0.`,
+      `Total transferable amount for partner ${partner.email} is less than 0.`,
     );
     return;
   }
@@ -124,7 +131,7 @@ export const createStablecoinPayout = async ({
 
   if (totalTransferableAmount <= 0) {
     console.warn(
-      `Total transferable amount for partner ${partner.email} in invoice ${invoiceId} is less than 0.`,
+      `Total transferable amount for partner ${partner.email} is less than 0.`,
     );
     return;
   }
@@ -187,12 +194,10 @@ export const createStablecoinPayout = async ({
     }
   }
 
-  const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;
-
   if (amountToTransferToFA > 0) {
     await fundFinancialAccount({
       amount: amountToTransferToFA,
-      idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,
+      idempotencyKey,
     });
   }
 
@@ -200,12 +205,12 @@ export const createStablecoinPayout = async ({
     stripeRecipientId: partner.stripeRecipientId,
     amount: totalTransferableAmount,
     description: `Dub Partners payout (${allPayoutsProgramNames.join(", ")})`,
-    idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,
+    idempotencyKey,
   });
 
   if (!outboundPayment.id) {
     console.error(
-      `Failed to create outbound payment for partner ${partner.email} in invoice ${invoiceId}.`,
+      `Failed to create outbound payment for partner ${partner.email}.`,
     );
     return;
   }
