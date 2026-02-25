@@ -99,7 +99,7 @@ export async function POST(req: Request) {
       try {
         await fundFinancialAccount({
           amount: stablecoinFundingAmount,
-          idempotencyKey: `fund-financial-account-${invoiceId}`,
+          idempotencyKey: invoiceId,
         });
       } catch (error) {
         await log({
