@@ -2,13 +2,19 @@ import { getCustomersQuerySchema } from "@/lib/zod/schemas/customers";
 import * as z from "zod/v4";
 
 export const CUSTOMER_EXPORT_COLUMNS = [
-  { id: "id", label: "ID", type: "string", default: false },
+  { id: "id", label: "ID", type: "string", default: true },
   { id: "name", label: "Name", type: "string", default: true },
   { id: "email", label: "Email", type: "string", default: true },
+  { id: "avatar", label: "Avatar", type: "string", default: true },
+  { id: "externalId", label: "External ID", type: "string", default: true },
+  {
+    id: "stripeCustomerId",
+    label: "Stripe customer ID",
+    type: "string",
+    default: true,
+  },
   { id: "country", label: "Country", type: "string", default: true },
-  { id: "partner", label: "Partner", type: "string", default: true },
-  { id: "link", label: "Link", type: "string", default: true },
-  { id: "sales", label: "Sales", type: "number", default: false },
+  { id: "sales", label: "Sales", type: "number", default: true },
   { id: "saleAmount", label: "Sale amount", type: "number", default: true },
   { id: "createdAt", label: "Created at", type: "date", default: true },
   { id: "firstSaleAt", label: "First sale at", type: "date", default: true },
@@ -18,13 +24,8 @@ export const CUSTOMER_EXPORT_COLUMNS = [
     type: "date",
     default: true,
   },
-  { id: "externalId", label: "External ID", type: "string", default: true },
-  {
-    id: "stripeCustomerId",
-    label: "Stripe customer ID",
-    type: "string",
-    default: false,
-  },
+  { id: "link", label: "Link", type: "string", default: false },
+  { id: "partner", label: "Partner", type: "string", default: false },
 ] as const;
 
 type CustomerExportColumnId = (typeof CUSTOMER_EXPORT_COLUMNS)[number]["id"];

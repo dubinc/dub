@@ -38,7 +38,7 @@ function ExportCustomersModal({
   const { program } = useProgram();
   const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
-  const { getQueryString, searchParams } = useRouterStuff();
+  const { getQueryString } = useRouterStuff();
 
   const columnCheckboxId = useId();
 
@@ -55,6 +55,14 @@ function ExportCustomersModal({
 
   const scope = pathname.includes("/program") ? "program" : "workspace";
 
+  const visibleColumns = useMemo(
+    () =>
+      scope === "program"
+        ? CUSTOMER_EXPORT_COLUMNS
+        : CUSTOMER_EXPORT_COLUMNS.filter((col) => col.id !== "partner"),
+    [scope],
+  );
+
   const onSubmit = handleSubmit(async (data) => {
     if (!workspaceId) {
       return;
@@ -65,10 +73,15 @@ function ExportCustomersModal({
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+      const columns =
+        scope === "program"
+          ? data.columns
+          : data.columns.filter((c) => c !== "partner");
+
       let baseParams: Record<string, string> = {
         timezone,
         workspaceId,
-        ...(data.columns.length ? { columns: data.columns.join(",") } : {}),
+        ...(columns.length ? { columns: columns.join(",") } : {}),
       };
 
       if (scope === "program" && program?.id) {
@@ -78,26 +91,16 @@ function ExportCustomersModal({
         };
       }
 
-      let searchParamsStr = "";
+      const queryString = data.useFilters
+        ? getQueryString(baseParams)
+        : `?${new URLSearchParams(baseParams).toString()}`;
 
-      if (data.useFilters) {
-        const current = Object.fromEntries(searchParams.entries());
-
-        searchParamsStr = getQueryString({
-          ...current,
-          ...baseParams,
-        });
-      }
-
-      const response = await fetch(
-        `/api/customers/export?${new URLSearchParams(baseParams).toString()}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+      const response = await fetch(`/api/customers/export${queryString}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+      });
 
       if (!response.ok) {
         const body = await response.json();
@@ -161,7 +164,7 @@ function ExportCustomersModal({
             control={control}
             render={({ field }) => (
               <div className="xs:grid-cols-2 mt-2 grid grid-cols-1 gap-x-4 gap-y-2">
-                {CUSTOMER_EXPORT_COLUMNS.map(({ id, label }) => (
+                {visibleColumns.map(({ id, label }) => (
                   <div key={id} className="group flex gap-2">
                     <Checkbox
                       value={id}

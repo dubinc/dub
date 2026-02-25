@@ -24,8 +24,6 @@ export async function getCustomers(filters: GetCustomersInput) {
     includeExpandedFields,
   } = filters;
 
-  console.log(filters);
-
   return await prisma.customer.findMany({
     where: {
       ...(customerIds

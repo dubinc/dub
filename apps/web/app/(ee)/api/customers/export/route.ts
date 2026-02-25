@@ -12,18 +12,19 @@ import { NextResponse } from "next/server";
 
 const MAX_CUSTOMERS_TO_EXPORT = 1000;
 
+// GET /api/customers/export – export customers to CSV
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
-    const parsedFilters = customersExportQuerySchema.parse(searchParams);
+    const filters = customersExportQuerySchema.parse(searchParams);
 
-    let { programId, partnerId, columns, ...filters } = parsedFilters;
+    let { programId, partnerId, columns } = filters;
 
     if (programId || partnerId) {
       programId = getDefaultProgramIdOrThrow(workspace);
     }
 
     const where = buildCustomerCountWhere({
-      ...parsedFilters,
+      ...filters,
       workspaceId: workspace.id,
       programId,
     });
@@ -36,7 +37,7 @@ export const GET = withWorkspace(
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/customers`,
         body: {
-          ...parsedFilters,
+          ...filters,
           workspaceId: workspace.id,
           programId,
           userId: session.user.id,
@@ -48,7 +49,7 @@ export const GET = withWorkspace(
     }
 
     const customers = await getCustomers({
-      ...parsedFilters,
+      ...filters,
       workspaceId: workspace.id,
       programId,
       page: 1,
