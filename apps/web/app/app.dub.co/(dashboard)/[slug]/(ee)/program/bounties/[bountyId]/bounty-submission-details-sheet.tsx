@@ -41,7 +41,13 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Linkify from "linkify-react";
-import { Dispatch, SetStateAction, useCallback, useMemo, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useMemo,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 type BountySubmissionDetailsSheetProps = {
@@ -529,9 +535,7 @@ function BountySubmissionDetailsSheetContent({
                           ? "Bounty submission already rejected."
                           : undefined
                     }
-                    disabled={
-                      submission.status === "draft"
-                    }
+                    disabled={submission.status === "draft"}
                     onClick={() => setShowRejectModal(true)}
                   />
 
