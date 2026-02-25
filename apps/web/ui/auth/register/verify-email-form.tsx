@@ -1,6 +1,7 @@
 "use client";
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { AnimatedSizeContainer, Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { OTPInput } from "input-otp";
@@ -32,8 +33,11 @@ export const VerifyEmailForm = () => {
         redirect: false,
       });
 
-      // preserve the next query param if present
-      const next = searchParams.get("next");
+      // preserve the next query param if present (and valid)
+      const next = getValidInternalRedirectPath({
+        redirectPath: searchParams.get("next"),
+        currentUrl: window.location.href,
+      });
 
       if (response?.ok) {
         router.push(

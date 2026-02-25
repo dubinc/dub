@@ -1,5 +1,6 @@
 "use client";
 
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { Button, Github, Google } from "@dub/ui";
 import { signIn } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
@@ -11,7 +12,10 @@ export const SignUpOAuth = ({
   methods: ("email" | "google" | "github")[];
 }) => {
   const searchParams = useSearchParams();
-  const next = searchParams?.get("next");
+  const next = getValidInternalRedirectPath({
+    redirectPath: searchParams.get("next"),
+    currentUrl: window.location.href,
+  });
   const [clickedGoogle, setClickedGoogle] = useState(false);
   const [clickedGithub, setClickedGithub] = useState(false);
 

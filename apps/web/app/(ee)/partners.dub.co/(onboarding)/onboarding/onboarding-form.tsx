@@ -3,6 +3,7 @@
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { Partner } from "@dub/prisma/client";
@@ -94,7 +95,10 @@ export function OnboardingForm({
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
       setAccountCreated(true);
-      const next = searchParams.get("next");
+      const next = getValidInternalRedirectPath({
+        redirectPath: searchParams.get("next"),
+        currentUrl: window.location.href,
+      });
       router.push(
         `/onboarding/platforms${next ? `?next=${encodeURIComponent(next)}` : ""}`,
       );

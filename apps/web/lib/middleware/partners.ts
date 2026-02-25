@@ -77,7 +77,10 @@ export async function PartnersMiddleware(req: NextRequest) {
     // (omit /onboarding from the check to make sure onboarding is completed)
     if (
       searchParamsObj.next &&
-      isValidInternalRedirect(searchParamsObj.next, req.url) &&
+      isValidInternalRedirect({
+        redirectPath: searchParamsObj.next,
+        currentUrl: req.url,
+      }) &&
       !path.startsWith("/onboarding")
     ) {
       return NextResponse.redirect(new URL(searchParamsObj.next, req.url));

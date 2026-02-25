@@ -1,5 +1,6 @@
 "use client";
 
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -10,7 +11,10 @@ export function PayoutProvider({
   provider: "stripe" | "paypal";
 }) {
   const searchParams = useSearchParams();
-  const next = searchParams.get("next");
+  const next = getValidInternalRedirectPath({
+    redirectPath: searchParams.get("next"),
+    currentUrl: window.location.href,
+  });
 
   const providers = {
     stripe: {

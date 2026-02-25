@@ -1,5 +1,6 @@
 "use client";
 
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { PartnerProps } from "@/lib/types";
 import { PartnerPlatformsForm } from "@/ui/partners/partner-platforms-form";
 import Link from "next/link";
@@ -12,7 +13,10 @@ export function OnboardingPlatformsPageClient({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next");
+  const next = getValidInternalRedirectPath({
+    redirectPath: searchParams.get("next"),
+    currentUrl: window.location.href,
+  });
 
   return (
     <>
