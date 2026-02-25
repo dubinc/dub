@@ -22,10 +22,16 @@ export const evaluateRewardConditions = ({
   for (const conditionGroup of conditions) {
     // Evaluate each condition in the group
     const conditionResults = conditionGroup.conditions.map((condition) => {
-      let fieldValue = undefined;
+      let fieldValue: string | number | string[] | number[] | Date | undefined =
+        undefined;
 
       if (condition.entity === "customer") {
-        fieldValue = context.customer?.[condition.attribute];
+        const key = condition.nestedAttribute ?? condition.attribute;
+        const raw = context.customer?.[
+          key as keyof NonNullable<typeof context.customer>
+        ];
+        fieldValue =
+          raw !== undefined && raw !== null ? raw : undefined;
       } else if (condition.entity === "sale") {
         fieldValue = context.sale?.[condition.attribute];
       } else if (condition.entity === "partner") {
@@ -75,13 +81,49 @@ export const evaluateRewardConditions = ({
   )[0];
 };
 
+const toTimestamp = (v: string | number | Date): number => {
+  if (v instanceof Date) return v.getTime();
+  if (typeof v === "number") return v;
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? NaN : d.getTime();
+};
+
 const evaluateCondition = ({
   condition,
   fieldValue,
 }: {
   condition: RewardCondition;
-  fieldValue: string | number | string[] | number[];
+  fieldValue: string | number | string[] | number[] | Date;
 }) => {
+  // Date comparison: compare timestamps
+  const fieldIsDate =
+    fieldValue instanceof Date ||
+    (typeof fieldValue === "string" && !isNaN(new Date(fieldValue).getTime()));
+  const valueIsDate =
+    typeof condition.value === "string" &&
+    !isNaN(new Date(condition.value).getTime());
+  if (fieldIsDate && valueIsDate) {
+    const t1 = toTimestamp(fieldValue as string | Date);
+    const t2 = toTimestamp(condition.value as string);
+    if (isNaN(t1) || isNaN(t2)) return false;
+    switch (condition.operator) {
+      case "equals_to":
+        return t1 === t2;
+      case "not_equals":
+        return t1 !== t2;
+      case "greater_than":
+        return t1 > t2;
+      case "greater_than_or_equal":
+        return t1 >= t2;
+      case "less_than":
+        return t1 < t2;
+      case "less_than_or_equal":
+        return t1 <= t2;
+      default:
+        return false;
+    }
+  }
+
   switch (condition.operator) {
     case "equals_to":
       return fieldValue === condition.value;
