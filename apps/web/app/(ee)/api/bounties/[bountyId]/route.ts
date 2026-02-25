@@ -148,8 +148,8 @@ export const PATCH = withWorkspace(
       const submissionCount = bounty._count.submissions;
 
       const currentSocialMetrics = bounty.submissionRequirements
-        ? (submissionRequirementsSchema.parse(bounty.submissionRequirements)
-            .socialMetrics ?? {})
+        ? submissionRequirementsSchema.parse(bounty.submissionRequirements)
+            .socialMetrics ?? {}
         : {};
 
       const incomingSocialMetrics =
