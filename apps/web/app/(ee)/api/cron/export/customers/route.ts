@@ -11,6 +11,8 @@ import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
 import { logAndRespond } from "../../utils";
 
+const MAX_CUSTOMERS_EXPORT_LIMIT = 100_000;
+
 export const dynamic = "force-dynamic";
 
 // POST /api/cron/export/customers - QStash worker for processing large customer exports
@@ -54,7 +56,14 @@ export const POST = withCron(async ({ rawBody }) => {
   const allRows: Record<string, string | number>[] = [];
 
   for await (const { customers } of fetchCustomersBatch(parsedFilters)) {
-    allRows.push(...formatCustomersForExport(customers, columns));
+    const formatted = formatCustomersForExport(customers, columns);
+    const remaining = MAX_CUSTOMERS_EXPORT_LIMIT - allRows.length;
+
+    if (remaining <= 0) {
+      break;
+    }
+
+    allRows.push(...formatted.slice(0, remaining));
   }
 
   const csvData = convertToCSV(allRows);
@@ -79,7 +88,12 @@ export const POST = withCron(async ({ rawBody }) => {
     }),
   });
 
+  const capped =
+    allRows.length >= MAX_CUSTOMERS_EXPORT_LIMIT
+      ? ` (capped at ${MAX_CUSTOMERS_EXPORT_LIMIT})`
+      : "";
+
   return logAndRespond(
-    `Export (${allRows.length} customers) generated and email sent to user.`,
+    `Export (${allRows.length} customers${capped}) generated and email sent to user.`,
   );
 });
