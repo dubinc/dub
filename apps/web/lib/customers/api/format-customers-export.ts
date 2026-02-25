@@ -1,4 +1,3 @@
-import { generateRandomName } from "@/lib/names";
 import {
   CUSTOMER_EXPORT_COLUMNS,
   CUSTOMER_EXPORT_DEFAULT_COLUMNS,
@@ -39,7 +38,7 @@ export function formatCustomersForExport(
 
     const full: Record<string, string | number> = {
       id: c.id,
-      name: c.name || c.email || generateRandomName(),
+      name: c.name || c.email || "",
       email: c.email ?? "",
       avatar: c.avatar ?? "",
       externalId: c.externalId ?? "",
