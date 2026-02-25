@@ -90,6 +90,7 @@ export async function getEligiblePayouts({
 
   const eligiblePayouts = payouts.map(({ partner, ...payout }) => ({
     ...payout,
+    traceId: payout.stripePayoutTraceId,
     partner: {
       ...partner,
       ...partner.programs[0],

@@ -2,7 +2,7 @@ import { rejectBountySubmissionAction } from "@/lib/actions/partners/reject-boun
 import {
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
   REJECT_BOUNTY_SUBMISSION_REASONS,
-} from "@/lib/constants/bounties";
+} from "@/lib/bounty/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";

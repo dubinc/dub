@@ -1,6 +1,4 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
-import { validateBounty } from "@/lib/api/bounties/validate-bounty";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -8,6 +6,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { validateBounty } from "@/lib/bounty/api/validate-bounty";
 import { qstash } from "@/lib/cron";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkflowAction } from "@/lib/types";
@@ -156,6 +156,8 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    const parsedBody = createBountySchema.parse(await parseRequestBody(req));
+
     let {
       name,
       description,
@@ -170,20 +172,22 @@ export const POST = withWorkspace(
       performanceCondition,
       performanceScope,
       sendNotificationEmails,
-    } = createBountySchema.parse(await parseRequestBody(req));
+    } = parsedBody;
 
     // Use current date as default if startsAt is not provided
     startsAt = startsAt || new Date();
 
-    validateBounty({
-      type,
-      startsAt,
-      endsAt,
-      submissionsOpenAt,
-      rewardAmount,
-      rewardDescription,
-      performanceScope,
-    });
+    validateBounty(parsedBody);
+
+    const { canUseBountySocialMetrics, canSendEmailCampaigns } =
+      getPlanCapabilities(workspace.plan);
+
+    if (submissionRequirements?.socialMetrics && !canUseBountySocialMetrics) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Social metrics criteria require Advanced plan or above.",
+      });
+    }
 
     const partnerGroups = await throwIfInvalidGroupIds({
       programId,
@@ -240,7 +244,7 @@ export const POST = withWorkspace(
           name: bountyName,
           description,
           type,
-          startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
+          startsAt,
           endsAt,
           submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
           rewardAmount,
@@ -275,8 +279,6 @@ export const POST = withWorkspace(
 
     const shouldScheduleDraftSubmissions =
       bounty.type === "performance" && bounty.performanceScope === "lifetime";
-
-    const { canSendEmailCampaigns } = getPlanCapabilities(workspace.plan);
 
     waitUntil(
       Promise.allSettled([

@@ -23,13 +23,14 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       })
       .parse(searchParams);
 
-  const timeseries = await getPartnerEarningsTimeseries({
-    partnerId: partner.id,
-    programId,
-    filters,
-  });
-
-  const interSemibold = await loadGoogleFont("Inter:wght@600");
+  const [interSemibold, timeseries] = await Promise.all([
+    loadGoogleFont("Inter:wght@600"),
+    getPartnerEarningsTimeseries({
+      partnerId: partner.id,
+      programId,
+      filters,
+    }),
+  ]);
 
   const total = timeseries.reduce((acc, { earnings }) => acc + earnings, 0);
 

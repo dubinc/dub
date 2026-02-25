@@ -44,7 +44,7 @@ export function ReferralLeadDetails({
   return (
     <>
       {isInteractive && <EditReferralModal />}
-      {isInteractive && !isControlled && <ConfirmReferralStatusChangeModal />}
+      {isInteractive && !isControlled && ConfirmReferralStatusChangeModal}
       <div className="border-border-subtle overflow-hidden rounded-xl border bg-white">
         <div className="flex items-start justify-between px-4 pt-4">
           <div className="relative w-fit shrink-0">

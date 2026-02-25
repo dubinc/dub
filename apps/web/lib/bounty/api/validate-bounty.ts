@@ -1,16 +1,17 @@
-import { createBountySchema } from "@/lib/zod/schemas/bounties";
-import * as z from "zod/v4";
-import { DubApiError } from "../errors";
+import { DubApiError } from "@/lib/api/errors";
+import { CreateBountyInput } from "@/lib/types";
 
 export function validateBounty({
   type,
   startsAt,
   endsAt,
   submissionsOpenAt,
+  submissionFrequency,
+  maxSubmissions,
   rewardAmount,
   rewardDescription,
   performanceScope,
-}: Partial<z.infer<typeof createBountySchema>>) {
+}: Partial<CreateBountyInput>) {
   startsAt = startsAt || new Date();
 
   if (endsAt && endsAt < startsAt) {
@@ -53,7 +54,9 @@ export function validateBounty({
         code: "bad_request",
         message: "Reward amount is required for performance bounties.",
       });
-    } else if (!rewardDescription) {
+    }
+
+    if (!rewardDescription) {
       throw new DubApiError({
         code: "bad_request",
         message:
@@ -62,17 +65,20 @@ export function validateBounty({
     }
   }
 
-  if (rewardAmount && rewardAmount < 0) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Reward amount cannot be negative.",
-    });
-  }
-
   if (!performanceScope && type === "performance") {
     throw new DubApiError({
       code: "bad_request",
       message: "performanceScope must be set for performance bounties.",
     });
+  }
+
+  // submission bounty checks
+  if (type === "submission") {
+    if (submissionFrequency && maxSubmissions == null) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "maxSubmissions is required when submissionFrequency is set.",
+      });
+    }
   }
 }
