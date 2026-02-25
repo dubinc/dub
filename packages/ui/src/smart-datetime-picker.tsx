@@ -1,4 +1,9 @@
-import { formatDateTime, getDateTimeLocal, parseDateTime } from "@dub/utils";
+import {
+  cn,
+  formatDateTime,
+  getDateTimeLocal,
+  parseDateTime,
+} from "@dub/utils";
 import { useEffect, useId, useRef } from "react";
 
 interface SmartDateTimePickerProps {
@@ -33,7 +38,7 @@ export function SmartDateTimePicker({
   }, [autoFocus]);
 
   return (
-    <div className={className}>
+    <div className="flex flex-col gap-2">
       {label && (
         <div className="flex items-center gap-2">
           <label
@@ -44,7 +49,12 @@ export function SmartDateTimePicker({
           </label>
         </div>
       )}
-      <div className="mt-2 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500">
+      <div
+        className={cn(
+          "flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500",
+          className,
+        )}
+      >
         <input
           ref={inputRef}
           id={`${id}-datetime`}
