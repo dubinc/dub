@@ -9,7 +9,7 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
-  DATE_CONDITION_OPERATORS,
+  ENUM_CONDITION_OPERATORS,
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
@@ -435,10 +435,17 @@ function ConditionLogic({
                         },
                       )
                     }
-                    items={entity.attributes.map((attribute) => ({
-                      text: attribute.label,
-                      value: attribute.id,
-                    }))}
+                    items={entity.attributes
+                      .filter(
+                        (attribute) =>
+                          attribute.id !== "source" ||
+                          (program &&
+                            REFERRAL_ENABLED_PROGRAM_IDS.includes(program.id)),
+                      )
+                      .map((attribute) => ({
+                        text: attribute.label,
+                        value: attribute.id,
+                      }))}
                   />
                 </InlineBadgePopover>{" "}
                 {selectedAttribute?.nestedAttributes?.length ? (
@@ -532,10 +539,12 @@ function ConditionLogic({
                                 },
                               )
                             }
-                            items={(attributeType === "date"
-                              ? DATE_CONDITION_OPERATORS
-                              : ["number", "currency"].includes(attributeType)
-                                ? NUMBER_CONDITION_OPERATORS
+                            items={(["number", "currency", "date"].includes(
+                              attributeType,
+                            )
+                              ? NUMBER_CONDITION_OPERATORS
+                              : attributeType === "enum"
+                                ? ENUM_CONDITION_OPERATORS
                                 : STRING_CONDITION_OPERATORS
                             ).map((op) => ({
                               text: CONDITION_OPERATOR_LABELS[op],
