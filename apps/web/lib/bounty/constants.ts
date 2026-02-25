@@ -44,7 +44,7 @@ export const BOUNTY_SOCIAL_PLATFORMS = [
   },
   {
     value: "twitter",
-    label: "Twitter",
+    label: "X/Twitter",
     postType: "tweet",
     metrics: ["likes", "views"],
     placeholder: "https://x.com/username/status/",

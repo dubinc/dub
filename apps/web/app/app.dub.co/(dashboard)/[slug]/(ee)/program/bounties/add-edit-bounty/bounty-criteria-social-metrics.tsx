@@ -22,6 +22,7 @@ import {
   Tooltip,
 } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
+import { nFormatter } from "@dub/utils/src";
 import { HelpCircle } from "lucide-react";
 import { useContext } from "react";
 import { BountyAmountInput } from "./bounty-amount-input";
@@ -128,7 +129,11 @@ export function BountyCriteriaSocialMetrics() {
             </InlineBadgePopover>{" "}
             has{" "}
             <InlineBadgePopover
-              text={hasMinCount ? String(socialMetrics!.minCount) : "metrics"}
+              text={
+                hasMinCount
+                  ? String(nFormatter(socialMetrics!.minCount, { full: true }))
+                  : "metrics"
+              }
               invalid={!hasMinCount}
               buttonClassName={
                 hasMinCount
@@ -331,7 +336,11 @@ function SocialMetricsIncrementalBonus({
                 text={
                   variableBonus.incrementCount != null &&
                   variableBonus.incrementCount >= 1
-                    ? String(variableBonus.incrementCount)
+                    ? String(
+                        nFormatter(variableBonus.incrementCount, {
+                          full: true,
+                        }),
+                      )
                     : "amount"
                 }
                 invalid={
@@ -418,7 +427,7 @@ function SocialMetricsIncrementalBonus({
               <InlineBadgePopover
                 text={
                   variableBonus.maxCount != null && variableBonus.maxCount >= 1
-                    ? String(variableBonus.maxCount)
+                    ? String(nFormatter(variableBonus.maxCount, { full: true }))
                     : "amount"
                 }
                 invalid={

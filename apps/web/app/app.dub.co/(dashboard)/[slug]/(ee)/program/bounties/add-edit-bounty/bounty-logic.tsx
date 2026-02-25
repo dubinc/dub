@@ -8,7 +8,7 @@ import {
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { Trophy } from "@dub/ui/icons";
-import { cn, currencyFormatter } from "@dub/utils";
+import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
 import { useBountyFormContext } from "./bounty-form-context";
@@ -86,7 +86,7 @@ export function BountyLogic({ className }: { className?: string }) {
                     ? currencyFormatter(value * 100, {
                         trailingZeroDisplay: "stripIfInteger",
                       })
-                    : value
+                    : nFormatter(value, { full: true })
                   : "amount"
               }
               invalid={!value}

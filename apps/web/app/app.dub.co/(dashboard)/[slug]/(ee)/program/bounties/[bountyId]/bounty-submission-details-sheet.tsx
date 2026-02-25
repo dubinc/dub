@@ -3,7 +3,11 @@
 import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  calculateSocialMetricsRewardAmount,
+  getBountyRewardCriteriaTexts,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
@@ -21,12 +25,16 @@ import {
   ChevronLeft,
   ChevronRight,
   CopyButton,
+  DynamicTooltipWrapper,
   Sheet,
   StatusBadge,
+  Tooltip,
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
+import { CircleHalfDottedClock } from "@dub/ui/icons";
 import {
+  cn,
   currencyFormatter,
   formatDate,
   getPrettyUrl,
@@ -179,6 +187,7 @@ function BountySubmissionDetailsSheetContent({
   }
 
   const bountyInfo = resolveBountyDetails(bounty);
+  const criteriaTexts = bounty ? getBountyRewardCriteriaTexts(bounty) : [];
 
   const hasSocialContent =
     bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;
@@ -287,7 +296,27 @@ function BountySubmissionDetailsSheetContent({
                   ? [
                       {
                         label: "Criteria",
-                        value: `${bountyInfo?.socialMetrics.minCount} ${bountyInfo?.socialMetrics.metric}`,
+                        value:
+                          criteriaTexts.length > 1 ? (
+                            <DynamicTooltipWrapper
+                              tooltipProps={{
+                                // remove first item from criteriaTexts
+                                content: criteriaTexts.slice(1).join("\n"),
+                                align: "end",
+                              }}
+                            >
+                              <div
+                                className={cn(
+                                  "w-fit text-sm font-medium text-neutral-800",
+                                  "cursor-help underline decoration-dotted underline-offset-2",
+                                )}
+                              >
+                                {`${bountyInfo.socialMetrics.minCount} ${bountyInfo.socialMetrics.metric}`}
+                              </div>
+                            </DynamicTooltipWrapper>
+                          ) : (
+                            `${bountyInfo.socialMetrics.minCount} ${bountyInfo.socialMetrics.metric}`
+                          ),
                       },
                     ]
                   : []),
@@ -305,9 +334,32 @@ function BountySubmissionDetailsSheetContent({
                   : [
                       {
                         label: "Reward",
-                        value: submission.commission?.earnings
-                          ? currencyFormatter(submission.commission.earnings)
-                          : "-",
+                        value: (() => {
+                          if (submission.commission?.earnings != null) {
+                            return currencyFormatter(
+                              submission.commission.earnings,
+                            );
+                          }
+                          const estimatedEarnings =
+                            calculateSocialMetricsRewardAmount({
+                              bounty,
+                              submission,
+                            });
+                          if (
+                            estimatedEarnings != null &&
+                            estimatedEarnings > 0
+                          ) {
+                            return (
+                              <Tooltip content="Estimated earnings based on reached reward tiers">
+                                <div className="hover:text-content-emphasis text-content-muted flex w-fit cursor-help items-center gap-1 underline decoration-dotted underline-offset-2">
+                                  <CircleHalfDottedClock className="size-3.5 shrink-0" />{" "}
+                                  {currencyFormatter(estimatedEarnings)}
+                                </div>
+                              </Tooltip>
+                            );
+                          }
+                          return "-";
+                        })(),
                       },
                     ]),
               ].map((item, index) => (

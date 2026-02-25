@@ -41,7 +41,7 @@ function getSocialContentEmbedAspectRatio({
     }
 
     if (platform === "twitter") {
-      return "aspect-[2/1]";
+      return "aspect-square";
     }
 
     return "aspect-video";

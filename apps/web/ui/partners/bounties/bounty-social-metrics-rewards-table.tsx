@@ -17,8 +17,8 @@ const displayStatusMap = {
     variant: "success",
   },
   pending: {
-    label: "Pending",
-    variant: "pending",
+    label: "Pending approval",
+    variant: "new",
   },
   inProgress: {
     label: "In progress",

@@ -2,8 +2,10 @@
 
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
-import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
-import { resolveBountyDetails } from "@/lib/bounty/utils";
+import {
+  calculateSocialMetricsRewardAmount,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import { BountyDescription } from "@/ui/partners/bounties/bounty-description";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
@@ -18,12 +20,13 @@ import {
   Button,
   Sheet,
   StatusBadge,
+  Tooltip,
 } from "@dub/ui";
+import { CircleHalfDottedClock } from "@dub/ui/icons";
 import { currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
 import Linkify from "linkify-react";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
-import { BountyIncrementalBonusTooltip } from "./bounty-incremental-bonus-tooltip";
 
 interface PartnerBountySubmissionDetailsSheetProps {
   bounty: PartnerBountyProps;
@@ -38,7 +41,6 @@ function PartnerBountySubmissionDetailsSheetContent({
 
   const submission = bounty.submission! as BountySubmissionProps;
   const bountyInfo = resolveBountyDetails(bounty);
-  const rewardDescription = getBountyRewardDescription(bounty);
 
   const hasSocialContent =
     bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;
@@ -120,23 +122,33 @@ function PartnerBountySubmissionDetailsSheetContent({
                   : [
                       {
                         label: "Reward",
-                        value: (
-                          <div className="flex items-center gap-2">
-                            <span>{rewardDescription}</span>
-                            <BountyIncrementalBonusTooltip bounty={bounty} />
-                          </div>
-                        ),
+                        value: (() => {
+                          if (submission.commission?.earnings != null) {
+                            return currencyFormatter(
+                              submission.commission.earnings,
+                            );
+                          }
+                          const estimatedEarnings =
+                            calculateSocialMetricsRewardAmount({
+                              bounty,
+                              submission,
+                            });
+                          if (
+                            estimatedEarnings != null &&
+                            estimatedEarnings > 0
+                          ) {
+                            return (
+                              <Tooltip content="Estimated earnings based on reached reward tiers">
+                                <div className="hover:text-content-emphasis text-content-muted flex w-fit cursor-help items-center gap-1 underline decoration-dotted underline-offset-2">
+                                  <CircleHalfDottedClock className="size-3.5 shrink-0" />{" "}
+                                  {currencyFormatter(estimatedEarnings)}
+                                </div>
+                              </Tooltip>
+                            );
+                          }
+                          return "-";
+                        })(),
                       },
-                      ...(submission.commission?.earnings != null
-                        ? [
-                            {
-                              label: "Commission",
-                              value: currencyFormatter(
-                                submission.commission.earnings,
-                              ),
-                            },
-                          ]
-                        : []),
                     ]),
               ].map((item, index) => (
                 <div key={index} className="grid grid-cols-2 gap-6">

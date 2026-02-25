@@ -160,7 +160,7 @@ export function getBountySubmissionRequirementTexts(
 }
 
 export function getBountyRewardCriteriaTexts(
-  bounty: PartnerBountyProps,
+  bounty: PartnerBountyProps | Parameters<typeof resolveBountyDetails>[0],
 ): string[] {
   const bountyInfo = resolveBountyDetails(bounty);
 
@@ -192,7 +192,7 @@ export function getBountyRewardCriteriaTexts(
       });
 
       texts.push(
-        `For each additional ${nFormatter(incrementCount, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedBonus}, up to ${nFormatter(maxCount, { full: true })} ${metric}`,
+        `For each additional ${nFormatter(incrementCount, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedBonus} – up to ${nFormatter(maxCount, { full: true })} ${metric}`,
       );
     }
   }
