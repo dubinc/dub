@@ -1,6 +1,6 @@
-import { getBountyOrThrow } from "@/lib/api/bounties/get-bounty-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import {
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
@@ -14,7 +14,7 @@ export const GET = withWorkspace(
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bounty = await getBountyOrThrow({
+    await getBountyOrThrow({
       bountyId,
       programId,
       include: {
@@ -47,8 +47,7 @@ export const GET = withWorkspace(
         programEnrollment: true,
       },
       orderBy: {
-        [sortBy === "completedAt" ? "completedAt" : "performanceCount"]:
-          sortOrder,
+        [sortBy]: sortOrder,
       },
       skip: (page - 1) * pageSize,
       take: pageSize,

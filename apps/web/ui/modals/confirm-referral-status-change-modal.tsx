@@ -364,10 +364,10 @@ export function useConfirmReferralStatusChangeModal(options?: {
     options?.onClose?.();
   }
 
-  function ConfirmReferralStatusChangeModalWrapper() {
-    if (!state) return null;
-
-    return (
+  return {
+    openConfirmReferralStatusChangeModal,
+    closeConfirmReferralStatusChangeModal,
+    ConfirmReferralStatusChangeModal: state ? (
       <ConfirmReferralStatusChangeModal
         referral={state.referral}
         newStatus={state.newStatus}
@@ -376,13 +376,7 @@ export function useConfirmReferralStatusChangeModal(options?: {
           if (!show) closeConfirmReferralStatusChangeModal();
         }}
       />
-    );
-  }
-
-  return {
-    openConfirmReferralStatusChangeModal,
-    closeConfirmReferralStatusChangeModal,
-    ConfirmReferralStatusChangeModal: ConfirmReferralStatusChangeModalWrapper,
+    ) : null,
     isConfirmReferralStatusChangeModalOpen: state !== null,
   };
 }

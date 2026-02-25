@@ -27,7 +27,7 @@ export const SOCIAL_PLATFORM_CONFIGS: Record<
     ],
     allowedChars: /[^\w]/g,
     maxLength: 15,
-    name: "Twitter",
+    name: "X/Twitter",
   },
   linkedin: {
     patterns: [/^(?:.*\.)?linkedin\.com\/(?:in\/)?([^\/\?]+)/i],

@@ -1,17 +1,17 @@
 import { PartnerPlatform, PlatformType } from "@dub/prisma/client";
 import { scrapeCreatorsFetch } from "./client";
 
-type FetchSocialProfileParams = {
-  platform: PlatformType;
-  handle: string;
-};
-
 type SocialProfile = Pick<
   PartnerPlatform,
-  "platformId" | "subscribers" | "posts" | "views"
+  "platformId" | "subscribers" | "posts" | "views" | "avatarUrl"
 > & {
   description: string | null;
 };
+
+interface GetSocialProfileParams {
+  platform: PlatformType;
+  handle: string;
+}
 
 export class AccountNotFoundError extends Error {
   constructor(message: string) {
@@ -20,10 +20,10 @@ export class AccountNotFoundError extends Error {
   }
 }
 
-export async function fetchSocialProfile({
+export async function getSocialProfile({
   platform,
   handle,
-}: FetchSocialProfileParams) {
+}: GetSocialProfileParams) {
   const { data, error } = await scrapeCreatorsFetch(
     "/v1/:platform/:handleType",
     {
@@ -56,15 +56,21 @@ export async function fetchSocialProfile({
     subscribers: BigInt(0),
     posts: BigInt(0),
     views: BigInt(0),
+    avatarUrl: null,
   };
 
   switch (data.platform) {
     case "youtube": {
+      const largestAvatar = data.avatar.image.sources.sort(
+        (a, b) => b.width - a.width,
+      )[0];
+
       socialProfile.description = data.description;
       socialProfile.platformId = data.channelId;
       socialProfile.subscribers = BigInt(data.subscriberCount);
       socialProfile.posts = BigInt(data.videoCount);
       socialProfile.views = BigInt(data.viewCount);
+      socialProfile.avatarUrl = largestAvatar?.url ?? null;
       break;
     }
 
@@ -74,6 +80,7 @@ export async function fetchSocialProfile({
       socialProfile.posts = BigInt(
         data.data.user.edge_owner_to_timeline_media.count,
       );
+      socialProfile.avatarUrl = data.data.user.profile_pic_url;
       break;
     }
 
@@ -82,6 +89,7 @@ export async function fetchSocialProfile({
       socialProfile.platformId = data.user.id;
       socialProfile.subscribers = BigInt(data.stats.followerCount);
       socialProfile.posts = BigInt(data.stats.videoCount);
+      socialProfile.avatarUrl = data.user.avatarThumb;
       break;
     }
 
@@ -90,6 +98,7 @@ export async function fetchSocialProfile({
       socialProfile.platformId = data.rest_id;
       socialProfile.subscribers = BigInt(data.legacy.followers_count);
       socialProfile.posts = BigInt(data.legacy.statuses_count);
+      socialProfile.avatarUrl = data.avatar.image_url;
       break;
     }
   }
