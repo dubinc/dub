@@ -12,7 +12,7 @@ import {
   InlineBadgePopoverInput,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
-import { Button, ImageIcon, NumberStepper, Switch } from "@dub/ui";
+import { Button, MoneyBills2, NumberStepper, Switch } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
@@ -312,7 +312,7 @@ export function BountyCriteriaManualSubmission() {
 
       <div className="rounded-lg border border-neutral-200 bg-neutral-50/50 p-2.5 shadow-sm">
         <div className="flex items-center gap-2.5">
-          <RewardIconSquare icon={ImageIcon} />
+          <RewardIconSquare icon={MoneyBills2} />
           <span className="text-content-default text-sm leading-relaxed">
             On approval, pay a{" "}
             <RewardTypeBadge
