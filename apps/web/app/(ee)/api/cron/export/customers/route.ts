@@ -13,6 +13,7 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
+// POST /api/cron/export/customers - QStash worker for processing large customer exports
 export const POST = withCron(async ({ rawBody }) => {
   const parsedFilters = customersExportCronInputSchema.parse(
     JSON.parse(rawBody),

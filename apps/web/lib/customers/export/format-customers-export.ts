@@ -21,8 +21,8 @@ type CustomerForExport = Customer & {
 
 const dateToIso = (d: Date | null) => (d ? d.toISOString() : "");
 
-const COLUMN_ORDER = new Map<string, number>(
-  CUSTOMER_EXPORT_COLUMNS.map((col, i) => [col.id, i + 1]),
+const columnOrderById = new Map<string, number>(
+  CUSTOMER_EXPORT_COLUMNS.map((col) => [col.id, col.order]),
 );
 
 export function formatCustomersForExport(
@@ -30,7 +30,7 @@ export function formatCustomersForExport(
   columns: string[] = CUSTOMER_EXPORT_DEFAULT_COLUMNS,
 ) {
   const sortedColumns = [...columns].sort(
-    (a, b) => (COLUMN_ORDER.get(a) ?? 999) - (COLUMN_ORDER.get(b) ?? 999),
+    (a, b) => (columnOrderById.get(a) ?? 999) - (columnOrderById.get(b) ?? 999),
   );
 
   return customers.map((c) => {
@@ -41,16 +41,20 @@ export function formatCustomersForExport(
       id: c.id,
       name: c.name || c.email || generateRandomName(),
       email: c.email ?? "",
+      avatar: c.avatar ?? "",
+      externalId: c.externalId ?? "",
+      stripeCustomerId: c.stripeCustomerId ?? "",
       country: c.country ?? "",
-      partner: partner?.name ?? partner?.id ?? "",
-      link: link?.shortLink ?? link?.url ?? "",
       sales: c.sales ?? 0,
       saleAmount: c.saleAmount ?? 0,
       createdAt: dateToIso(c.createdAt),
       firstSaleAt: dateToIso(c.firstSaleAt),
       subscriptionCanceledAt: dateToIso(c.subscriptionCanceledAt),
-      externalId: c.externalId ?? "",
-      stripeCustomerId: c.stripeCustomerId ?? "",
+      link: link?.shortLink ?? link?.url ?? "",
+      partnerId: partner?.id ?? "",
+      partnerName: partner?.name ?? "",
+      partnerEmail: partner?.email ?? "",
+      partnerTenantId: c.programEnrollment?.tenantId ?? "",
     };
 
     return sortedColumns.reduce<Record<string, string | number>>((acc, key) => {

@@ -26,12 +26,12 @@ interface FormData {
   useFilters: boolean;
 }
 
-function ExportCustomersModal({
-  showExportCustomersModal,
-  setShowExportCustomersModal,
+function CustomerExportModal({
+  showCustomerExportModal,
+  setShowCustomerExportModal,
 }: {
-  showExportCustomersModal: boolean;
-  setShowExportCustomersModal: Dispatch<SetStateAction<boolean>>;
+  showCustomerExportModal: boolean;
+  setShowCustomerExportModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const pathname = usePathname();
 
@@ -55,13 +55,14 @@ function ExportCustomersModal({
 
   const scope = pathname.includes("/program") ? "program" : "workspace";
 
-  const visibleColumns = useMemo(
-    () =>
+  const visibleColumns = useMemo(() => {
+    const cols =
       scope === "program"
-        ? CUSTOMER_EXPORT_COLUMNS
-        : CUSTOMER_EXPORT_COLUMNS.filter((col) => col.id !== "partner"),
-    [scope],
-  );
+        ? [...CUSTOMER_EXPORT_COLUMNS]
+        : CUSTOMER_EXPORT_COLUMNS.filter((col) => !col.programOnly);
+
+    return cols.sort((a, b) => a.order - b.order);
+  }, [scope]);
 
   const onSubmit = handleSubmit(async (data) => {
     if (!workspaceId) {
@@ -73,10 +74,16 @@ function ExportCustomersModal({
     try {
       const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+      const programOnlyIds = new Set<string>(
+        CUSTOMER_EXPORT_COLUMNS.filter((col) => col.programOnly).map(
+          (col) => col.id,
+        ),
+      );
+
       const columns =
         scope === "program"
           ? data.columns
-          : data.columns.filter((c) => c !== "partner");
+          : data.columns.filter((c) => !programOnlyIds.has(c));
 
       let baseParams: Record<string, string> = {
         timezone,
@@ -111,7 +118,7 @@ function ExportCustomersModal({
         toast.success(
           `Your export is being processed and we'll send you an email (${session?.user?.email}) when it's ready to download.`,
         );
-        setShowExportCustomersModal(false);
+        setShowCustomerExportModal(false);
         return;
       }
 
@@ -125,7 +132,7 @@ function ExportCustomersModal({
       window.URL.revokeObjectURL(url);
 
       toast.success("Customers exported successfully");
-      setShowExportCustomersModal(false);
+      setShowCustomerExportModal(false);
     } catch (error) {
       toast.error(
         error instanceof Error ? error.message : "Customer export failed",
@@ -137,8 +144,8 @@ function ExportCustomersModal({
 
   return (
     <Modal
-      showModal={showExportCustomersModal}
-      setShowModal={setShowExportCustomersModal}
+      showModal={showCustomerExportModal}
+      setShowModal={setShowCustomerExportModal}
       className="max-w-lg"
     >
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
@@ -211,24 +218,23 @@ function ExportCustomersModal({
   );
 }
 
-export function useExportCustomersModal() {
-  const [showExportCustomersModal, setShowExportCustomersModal] =
-    useState(false);
+export function useCustomerExportModal() {
+  const [showCustomerExportModal, setShowCustomerExportModal] = useState(false);
 
-  const ExportCustomersModalCallback = useCallback(() => {
+  const CustomerExportModalCallback = useCallback(() => {
     return (
-      <ExportCustomersModal
-        showExportCustomersModal={showExportCustomersModal}
-        setShowExportCustomersModal={setShowExportCustomersModal}
+      <CustomerExportModal
+        showCustomerExportModal={showCustomerExportModal}
+        setShowCustomerExportModal={setShowCustomerExportModal}
       />
     );
-  }, [showExportCustomersModal, setShowExportCustomersModal]);
+  }, [showCustomerExportModal, setShowCustomerExportModal]);
 
   return useMemo(
     () => ({
-      setShowExportCustomersModal,
-      ExportCustomersModal: ExportCustomersModalCallback,
+      setShowCustomerExportModal,
+      CustomerExportModal: CustomerExportModalCallback,
     }),
-    [setShowExportCustomersModal, ExportCustomersModalCallback],
+    [setShowCustomerExportModal, CustomerExportModalCallback],
   );
 }
