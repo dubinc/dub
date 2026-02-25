@@ -13,7 +13,7 @@ export const AuthLayout = ({
   return (
     <div
       className={cn(
-        "flex min-h-screen min-h-[100dvh] w-full flex-col items-center justify-between",
+        "flex min-h-[100dvh] w-full flex-col items-center justify-between",
         className,
       )}
     >

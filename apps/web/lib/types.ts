@@ -30,7 +30,10 @@ import {
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
-import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./constants/bounties";
+import {
+  BOUNTY_SOCIAL_PLATFORMS,
+  BOUNTY_SUBMISSION_REQUIREMENTS,
+} from "./bounty/constants";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
@@ -49,8 +52,12 @@ import {
   BountyListSchema,
   bountyPerformanceConditionSchema,
   BountySchema,
+  bountySocialContentIncrementalBonusSchema,
   BountySubmissionExtendedSchema,
+  createBountySchema,
   getBountySubmissionsQuerySchema,
+  socialContentOutputSchema,
+  submissionRequirementsSchema,
 } from "./zod/schemas/bounties";
 import {
   CampaignListSchema,
@@ -662,10 +669,17 @@ export type BountySubmissionProps = z.infer<
 export type BountySubmissionRequirement =
   (typeof BOUNTY_SUBMISSION_REQUIREMENTS)[number];
 
+export type SocialMetricsChannel =
+  (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["value"];
+
 export type WorkflowCondition = z.infer<typeof workflowConditionSchema>;
 
 export type BountyPerformanceCondition = z.infer<
   typeof bountyPerformanceConditionSchema
+>;
+
+export type BountySocialMetricsIncrementalBonus = z.infer<
+  typeof bountySocialContentIncrementalBonusSchema
 >;
 
 export type CampaignTriggerCondition = z.infer<
@@ -830,6 +844,19 @@ export type ChangeSet = Record<string, FieldDiff>;
 
 export type ActivityLog = z.infer<typeof activityLogSchema>;
 
+export type CreateBountyInput = z.infer<typeof createBountySchema>;
+
+export type SocialContent = z.infer<typeof socialContentOutputSchema>;
+
+export type SubmissionRequirements = z.infer<
+  typeof submissionRequirementsSchema
+>;
+
+export type BountySocialPlatform =
+  (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["value"];
+
+export type BountySocialPlatformMetric =
+  (typeof BOUNTY_SOCIAL_PLATFORMS)[number]["metrics"][number];
 export type PostbackProps = z.infer<typeof postbackSchema>;
 
 export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;

@@ -72,9 +72,7 @@ function WebhookEventDetailsSheetContent({
           </Sheet.Close>
         </div>
         <div className="group flex items-center gap-2">
-          <p className="font-mono text-sm text-neutral-500">
-            {event.event_id}
-          </p>
+          <p className="font-mono text-sm text-neutral-500">{event.event_id}</p>
           <ButtonTooltip
             tooltipProps={{
               content: "Copy event ID",
