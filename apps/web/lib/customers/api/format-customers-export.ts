@@ -3,7 +3,7 @@ import type { Customer, Link, ProgramEnrollment } from "@dub/prisma/client";
 import {
   CUSTOMER_EXPORT_COLUMNS,
   CUSTOMER_EXPORT_DEFAULT_COLUMNS,
-} from "./schema";
+} from "../schema";
 
 type CustomerForExport = Customer & {
   link?: Pick<Link, "shortLink" | "url"> | null;

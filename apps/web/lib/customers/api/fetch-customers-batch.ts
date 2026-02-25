@@ -1,6 +1,6 @@
 import { getCustomers } from "@/lib/customers/api/get-customers";
 import * as z from "zod/v4";
-import { customersExportCronInputSchema } from "./schema";
+import { customersExportCronInputSchema } from "../schema";
 
 type CustomersExportFilters = z.infer<typeof customersExportCronInputSchema>;
 

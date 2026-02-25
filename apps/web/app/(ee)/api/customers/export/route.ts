@@ -3,9 +3,9 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { buildCustomerCountWhere } from "@/lib/customers/api/customer-count-where";
+import { formatCustomersForExport } from "@/lib/customers/api/format-customers-export";
 import { getCustomers } from "@/lib/customers/api/get-customers";
-import { formatCustomersForExport } from "@/lib/customers/export/format-customers-export";
-import { customersExportQuerySchema } from "@/lib/customers/export/schema";
+import { customersExportQuerySchema } from "@/lib/customers/schema";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
