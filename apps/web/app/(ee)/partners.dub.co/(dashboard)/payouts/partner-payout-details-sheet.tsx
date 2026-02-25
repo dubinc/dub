@@ -313,7 +313,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             {invoiceData.map(({ key, value, tooltip }) => (
               <Fragment key={key}>
                 <DynamicTooltipWrapper
-                  tooltipProps={tooltip ? { content: tooltip } : undefined}
+                  tooltipProps={
+                    tooltip ? { content: tooltip, side: "left" } : undefined
+                  }
                 >
                   <div
                     className={cn(

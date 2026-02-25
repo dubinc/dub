@@ -12,7 +12,8 @@ import {
   InlineBadgePopoverInput,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
-import { Button, ImageIcon, NumberStepper, Switch } from "@dub/ui";
+import { Button, MoneyBills2, NumberStepper, Switch } from "@dub/ui";
+import { motion } from "motion/react";
 import { cn, currencyFormatter } from "@dub/utils";
 import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
@@ -168,36 +169,28 @@ export function BountyCriteriaManualSubmission() {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Switch
-            fn={handleRequireImageToggle}
-            checked={requireImage}
-            trackDimensions="w-8 h-4"
-            thumbDimensions="w-3 h-3"
-            thumbTranslate="translate-x-4"
-          />
-          <span className="text-sm font-medium text-neutral-700">
-            Require at least one image
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Switch
-            fn={handleRequireUrlToggle}
-            checked={requireUrl}
-            trackDimensions="w-8 h-4"
-            thumbDimensions="w-3 h-3"
-            thumbTranslate="translate-x-4"
-          />
-          <span className="text-sm font-medium text-neutral-700">
-            Require at least one URL
-          </span>
-        </div>
-      </div>
-
-      {(requireImage || requireUrl) && (
-        <div className="space-y-4">
-          {requireImage && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-4">
+            <Switch
+              fn={handleRequireImageToggle}
+              checked={requireImage}
+              trackDimensions="w-8 h-4"
+              thumbDimensions="w-3 h-3"
+              thumbTranslate="translate-x-4"
+            />
+            <span className="text-sm font-medium text-neutral-700">
+              Require at least one image
+            </span>
+          </div>
+          <motion.div
+            className="overflow-hidden"
+            initial={false}
+            animate={{ height: requireImage ? "auto" : 0, opacity: requireImage ? 1 : 0 }}
+            transition={{
+              height: { duration: 0.25, ease: [0.32, 0.72, 0, 1] },
+              opacity: { duration: 0.2 },
+            }}
+          >
             <div className="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4">
               <label className="text-sm font-medium text-neutral-700">
                 Maximum images
@@ -217,9 +210,31 @@ export function BountyCriteriaManualSubmission() {
                 Set a maximum number of images partners can submit
               </p>
             </div>
-          )}
+          </motion.div>
+        </div>
 
-          {requireUrl && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-4">
+            <Switch
+              fn={handleRequireUrlToggle}
+              checked={requireUrl}
+              trackDimensions="w-8 h-4"
+              thumbDimensions="w-3 h-3"
+              thumbTranslate="translate-x-4"
+            />
+            <span className="text-sm font-medium text-neutral-700">
+              Require at least one URL
+            </span>
+          </div>
+          <motion.div
+            className="overflow-hidden"
+            initial={false}
+            animate={{ height: requireUrl ? "auto" : 0, opacity: requireUrl ? 1 : 0 }}
+            transition={{
+              height: { duration: 0.25, ease: [0.32, 0.72, 0, 1] },
+              opacity: { duration: 0.2 },
+            }}
+          >
             <div className="space-y-4">
               <div className="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4">
                 <label className="text-sm font-medium text-neutral-700">
@@ -306,13 +321,13 @@ export function BountyCriteriaManualSubmission() {
                 </p>
               </div>
             </div>
-          )}
+          </motion.div>
         </div>
-      )}
+      </div>
 
       <div className="rounded-lg border border-neutral-200 bg-neutral-50/50 p-2.5 shadow-sm">
         <div className="flex items-center gap-2.5">
-          <RewardIconSquare icon={ImageIcon} />
+          <RewardIconSquare icon={MoneyBills2} />
           <span className="text-content-default text-sm leading-relaxed">
             On approval, pay a{" "}
             <RewardTypeBadge

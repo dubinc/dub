@@ -4,9 +4,9 @@ import { generateExportFilename } from "@/lib/api/utils/generate-export-filename
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
-  COMMISSION_EXPORT_COLUMNS,
-  DEFAULT_COMMISSION_EXPORT_COLUMNS,
-} from "@/lib/zod/schemas/commissions";
+  CUSTOMER_EXPORT_COLUMNS,
+  CUSTOMER_EXPORT_DEFAULT_COLUMNS,
+} from "@/lib/zod/schemas/customers";
 import {
   Button,
   Checkbox,
@@ -16,6 +16,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -32,18 +33,21 @@ interface FormData {
   useFilters: boolean;
 }
 
-function ExportCommissionsModal({
-  showExportCommissionsModal,
-  setShowExportCommissionsModal,
+function ExportCustomersModal({
+  showExportCustomersModal,
+  setShowExportCustomersModal,
 }: {
-  showExportCommissionsModal: boolean;
-  setShowExportCommissionsModal: Dispatch<SetStateAction<boolean>>;
+  showExportCustomersModal: boolean;
+  setShowExportCustomersModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { data: session } = useSession();
-  const columnCheckboxId = useId();
+  const pathname = usePathname();
+
   const { program } = useProgram();
+  const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
+
+  const columnCheckboxId = useId();
 
   const {
     control,
@@ -51,38 +55,65 @@ function ExportCommissionsModal({
     formState: { isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
-      columns: DEFAULT_COMMISSION_EXPORT_COLUMNS,
+      columns: CUSTOMER_EXPORT_DEFAULT_COLUMNS,
       useFilters: true,
     },
   });
 
+  const scope = pathname.includes("/program") ? "program" : "workspace";
+
+  const visibleColumns = useMemo(() => {
+    const cols =
+      scope === "program"
+        ? [...CUSTOMER_EXPORT_COLUMNS]
+        : CUSTOMER_EXPORT_COLUMNS.filter((col) => !col.programOnly);
+
+    return cols.sort((a, b) => a.order - b.order);
+  }, [scope]);
+
   const onSubmit = handleSubmit(async (data) => {
-    if (!workspaceId || !program?.id) {
+    if (!workspaceId) {
       return;
     }
 
-    const lid = toast.loading("Exporting commissions...");
+    if (scope === "program" && !program?.id) {
+      return;
+    }
+
+    const lid = toast.loading("Exporting customers...");
 
     try {
-      const params = {
+      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+      const programOnlyIds = new Set<string>(
+        CUSTOMER_EXPORT_COLUMNS.filter((col) => col.programOnly).map(
+          (col) => col.id,
+        ),
+      );
+
+      const columns =
+        scope === "program"
+          ? data.columns
+          : data.columns.filter((c) => !programOnlyIds.has(c));
+
+      let baseParams: Record<string, string> = {
+        timezone,
         workspaceId,
-        ...(data.columns.length
-          ? { columns: data.columns.join(",") }
-          : undefined),
+        ...(columns.length ? { columns: columns.join(",") } : {}),
       };
 
-      const searchParams = data.useFilters
-        ? getQueryString({
-            ...params,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          })
-        : "?" +
-          new URLSearchParams({
-            ...params,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          });
+      if (scope === "program" && program?.id) {
+        baseParams = {
+          ...baseParams,
+          programId: program?.id,
+        };
+      }
 
-      const response = await fetch(`/api/commissions/export${searchParams}`, {
+      const queryString = data.useFilters
+        ? getQueryString(baseParams)
+        : `?${new URLSearchParams(baseParams).toString()}`;
+
+      const response = await fetch(`/api/customers/export${queryString}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -91,14 +122,14 @@ function ExportCommissionsModal({
 
       if (!response.ok) {
         const body = await response.json();
-        throw new Error(body.error?.message ?? "Commission export failed");
+        throw new Error(body.error?.message ?? "Customer export failed");
       }
 
       if (response.status === 202) {
         toast.success(
           `Your export is being processed and we'll send you an email (${session?.user?.email}) when it's ready to download.`,
         );
-        setShowExportCommissionsModal(false);
+        setShowExportCustomersModal(false);
         return;
       }
 
@@ -106,14 +137,16 @@ function ExportCommissionsModal({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = generateExportFilename("commissions");
-      a.click();
 
-      toast.success("Commissions exported successfully");
-      setShowExportCommissionsModal(false);
+      a.download = generateExportFilename("customers");
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      toast.success("Customers exported successfully");
+      setShowExportCustomersModal(false);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Commission export failed",
+        error instanceof Error ? error.message : "Customer export failed",
       );
     } finally {
       toast.dismiss(lid);
@@ -122,11 +155,11 @@ function ExportCommissionsModal({
 
   return (
     <Modal
-      showModal={showExportCommissionsModal}
-      setShowModal={setShowExportCommissionsModal}
+      showModal={showExportCustomersModal}
+      setShowModal={setShowExportCustomersModal}
     >
       <div className="border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Export commissions</h3>
+        <h3 className="text-lg font-medium leading-none">Export customers</h3>
       </div>
 
       <form onSubmit={onSubmit}>
@@ -141,7 +174,7 @@ function ExportCommissionsModal({
                 control={control}
                 render={({ field }) => (
                   <div className="xs:grid-cols-2 grid grid-cols-1 gap-x-4 gap-y-2">
-                    {COMMISSION_EXPORT_COLUMNS.map(({ id, label }) => (
+                    {visibleColumns.map(({ id, label }) => (
                       <div key={id} className="group flex gap-2">
                         <Checkbox
                           value={id}
@@ -178,7 +211,7 @@ function ExportCommissionsModal({
               <div className="flex items-center justify-between gap-2">
                 <span className="flex select-none items-center gap-2 text-sm font-medium text-neutral-600 group-hover:text-neutral-800">
                   Apply current filters
-                  <InfoTooltip content="Filter exported commissions by your currently selected filters" />
+                  <InfoTooltip content="Filter exported customers by your currently selected filters" />
                 </span>
                 <Switch checked={field.value} fn={field.onChange} />
               </div>
@@ -188,7 +221,7 @@ function ExportCommissionsModal({
 
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
           <Button
-            onClick={() => setShowExportCommissionsModal(false)}
+            onClick={() => setShowExportCustomersModal(false)}
             variant="secondary"
             text="Cancel"
             className="h-8 w-fit px-3"
@@ -197,7 +230,7 @@ function ExportCommissionsModal({
           <Button
             type="submit"
             loading={isSubmitting}
-            text="Export commissions"
+            text="Export customers"
             className="h-8 w-fit px-3"
           />
         </div>
@@ -206,24 +239,24 @@ function ExportCommissionsModal({
   );
 }
 
-export function useExportCommissionsModal() {
-  const [showExportCommissionsModal, setShowExportCommissionsModal] =
+export function useExportCustomersModal() {
+  const [showExportCustomersModal, setShowExportCustomersModal] =
     useState(false);
 
-  const ExportCommissionsModalCallback = useCallback(() => {
+  const ExportCustomersModalCallback = useCallback(() => {
     return (
-      <ExportCommissionsModal
-        showExportCommissionsModal={showExportCommissionsModal}
-        setShowExportCommissionsModal={setShowExportCommissionsModal}
+      <ExportCustomersModal
+        showExportCustomersModal={showExportCustomersModal}
+        setShowExportCustomersModal={setShowExportCustomersModal}
       />
     );
-  }, [showExportCommissionsModal, setShowExportCommissionsModal]);
+  }, [showExportCustomersModal, setShowExportCustomersModal]);
 
   return useMemo(
     () => ({
-      setShowExportCommissionsModal,
-      ExportCommissionsModal: ExportCommissionsModalCallback,
+      setShowExportCustomersModal,
+      ExportCustomersModal: ExportCustomersModalCallback,
     }),
-    [setShowExportCommissionsModal, ExportCommissionsModalCallback],
+    [setShowExportCustomersModal, ExportCustomersModalCallback],
   );
 }
