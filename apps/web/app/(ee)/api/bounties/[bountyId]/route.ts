@@ -147,11 +147,14 @@ export const PATCH = withWorkspace(
     if (submissionRequirements) {
       const submissionCount = bounty._count.submissions;
 
-      const { socialMetrics: currentSocialMetrics = {} } =
-        submissionRequirementsSchema.parse(bounty.submissionRequirements);
+      const currentSocialMetrics = bounty.submissionRequirements
+        ? (submissionRequirementsSchema.parse(bounty.submissionRequirements)
+            .socialMetrics ?? {})
+        : {};
 
-      const { socialMetrics: incomingSocialMetrics = {} } =
-        submissionRequirementsSchema.parse(submissionRequirements);
+      const incomingSocialMetrics =
+        submissionRequirementsSchema.parse(submissionRequirements)
+          .socialMetrics ?? {};
 
       if (
         !deepEqual(currentSocialMetrics, incomingSocialMetrics) &&

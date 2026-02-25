@@ -136,7 +136,6 @@ export const POST = withWorkspace(
 
       const { socialMetricCount, socialMetricsLastSyncedAt } = update;
       const submission = bounty.submissions![0];
-      const minCount = bountyInfo.socialMetrics?.minCount ?? 0;
 
       const updateData: Prisma.BountySubmissionUpdateInput = {
         socialMetricCount,
@@ -144,7 +143,9 @@ export const POST = withWorkspace(
       };
 
       const hasMetCriteria =
-        socialMetricCount != null && socialMetricCount >= minCount;
+        socialMetricCount != null &&
+        bountyInfo.socialMetrics?.minCount != null &&
+        socialMetricCount >= bountyInfo.socialMetrics.minCount;
 
       const shouldTransitionToSubmitted =
         submission.status === "draft" && hasMetCriteria;

@@ -127,7 +127,7 @@ export function BountyCriteriaSocialMetrics() {
                 }}
               />
             </InlineBadgePopover>{" "}
-            has{" "}
+            has at least{" "}
             <InlineBadgePopover
               text={
                 hasMinCount

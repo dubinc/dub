@@ -179,10 +179,10 @@ export const POST = withWorkspace(
 
     validateBounty(parsedBody);
 
-    if (
-      submissionRequirements?.socialMetrics &&
-      !getPlanCapabilities(workspace.plan).canUseBountySocialMetrics
-    ) {
+    const { canUseBountySocialMetrics, canSendEmailCampaigns } =
+      getPlanCapabilities(workspace.plan);
+
+    if (submissionRequirements?.socialMetrics && !canUseBountySocialMetrics) {
       throw new DubApiError({
         code: "forbidden",
         message: "Social metrics criteria require Advanced plan or above.",
@@ -279,8 +279,6 @@ export const POST = withWorkspace(
 
     const shouldScheduleDraftSubmissions =
       bounty.type === "performance" && bounty.performanceScope === "lifetime";
-
-    const { canSendEmailCampaigns } = getPlanCapabilities(workspace.plan);
 
     waitUntil(
       Promise.allSettled([

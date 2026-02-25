@@ -30,7 +30,7 @@ export const GET = withPartnerProfile(
       });
     }
 
-    const programEnrollment = getProgramEnrollmentOrThrow({
+    const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId,
       include: {},
@@ -38,7 +38,7 @@ export const GET = withPartnerProfile(
 
     const bounty = await getBountyOrThrow({
       bountyId,
-      programId: (await programEnrollment).programId,
+      programId: programEnrollment.programId,
     });
 
     const bountyInfo = resolveBountyDetails(bounty);

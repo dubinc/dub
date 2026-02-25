@@ -1,5 +1,7 @@
 import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/bounty/constants";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps, CreateBountyInput } from "@/lib/types";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
@@ -22,6 +24,7 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
+  TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -50,6 +53,7 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
 
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { program } = useProgram();
+  const { plan, slug: workspaceSlug } = useWorkspace();
 
   const {
     form,
@@ -76,6 +80,16 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     onSubmit,
     isSubmitting,
   } = useAddEditBountyForm({ bounty, setIsOpen });
+
+  const submissionRequirements = watch("submissionRequirements");
+  const hasSocialMetrics =
+    submissionRequirements &&
+    typeof submissionRequirements === "object" &&
+    "socialMetrics" in submissionRequirements;
+  const canUseBountySocialMetrics =
+    getPlanCapabilities(plan).canUseBountySocialMetrics;
+  const showBountySocialMetricsUpsell =
+    hasSocialMetrics && !canUseBountySocialMetrics;
 
   return (
     <form onSubmit={onSubmit} className="flex h-full flex-col">
@@ -436,8 +450,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               loading={isSubmitting}
               disabled={Boolean(validationError) || (bounty && !isDirty)}
               disabledTooltip={
-                validationError ||
-                (bounty && !isDirty ? "No changes to save" : undefined)
+                showBountySocialMetricsUpsell ? (
+                  <TooltipContent
+                    title="[Social metrics bounties](https://dub.co/help/article/program-bounties#social-metrics-bounties) are only available on the Advanced plan and above."
+                    cta="Upgrade to Advanced"
+                    href={`/${workspaceSlug}/upgrade?showPartnersUpgradeModal=true`}
+                    target="_blank"
+                  />
+                ) : (
+                  validationError ||
+                  (bounty && !isDirty ? "No changes to save" : undefined)
+                )
               }
             />
           </div>

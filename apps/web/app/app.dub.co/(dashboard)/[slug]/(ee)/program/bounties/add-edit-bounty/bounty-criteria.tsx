@@ -156,11 +156,6 @@ export function BountyCriteria() {
                 options={submissionTypeOptions}
                 selected={submissionCriteriaType}
                 selectAction={(id: BountySubmissionType) => {
-                  if (id === "socialMetrics" && !canUseBountySocialMetrics) {
-                    setShowPartnersUpgradeModal(true);
-                    return;
-                  }
-
                   setValue("submissionCriteriaType", id);
 
                   if (id === "socialMetrics") {
