@@ -41,5 +41,7 @@ export async function fundFinancialAccount({
 
   console.log("Money sent to Dub's financial account", prettyPrint(data));
 
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+
   return data;
 }

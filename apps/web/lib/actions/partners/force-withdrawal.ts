@@ -1,6 +1,7 @@
 "use server";
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
+import { createStablecoinPayout } from "@/lib/partners/create-stablecoin-payout";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { ratelimit } from "@/lib/upstash";
 import { authPartnerActionClient } from "../safe-action";
@@ -15,7 +16,7 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
       permission: "payout_settings.update",
     });
 
-    const { success } = await ratelimit(10, "24 h").limit(
+    const { success } = await ratelimit(1, "1 h").limit(
       `force-withdrawal:${partner.id}`,
     );
 
@@ -25,9 +26,30 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
       );
     }
 
-    await createStripeTransfer({
-      partnerId: partner.id,
-      forceWithdrawal: true,
-    });
+    if (!partner.defaultPayoutMethod) {
+      throw new Error(
+        "No default payout method found. Please contact support to set one.",
+      );
+    }
+
+    if (partner.defaultPayoutMethod === "connect") {
+      await createStripeTransfer({
+        partnerId: partner.id,
+        forceWithdrawal: true,
+      });
+      return;
+    }
+
+    if (partner.defaultPayoutMethod === "stablecoin") {
+      await createStablecoinPayout({
+        partnerId: partner.id,
+        forceWithdrawal: true,
+      });
+      return;
+    }
+
+    throw new Error(
+      "Invalid default payout method found. Please contact support to set one.",
+    );
   },
 );

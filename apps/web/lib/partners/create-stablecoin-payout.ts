@@ -5,16 +5,19 @@ import { currencyFormatter, prettyPrint } from "@dub/utils";
 import { STABLECOIN_PAYOUT_FEE_RATE } from "../constants/payouts";
 import { markPayoutsAsProcessed } from "../payouts/api/mark-payouts-as-processed";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
+import { fundFinancialAccount } from "../stripe/fund-financial-account";
 import { getStripeRecipientAccount } from "../stripe/get-stripe-recipient-account";
 
 interface CreateStablecoinPayoutParams {
   partnerId: string;
   invoiceId?: string;
+  forceWithdrawal?: boolean;
 }
 
 export const createStablecoinPayout = async ({
   partnerId,
   invoiceId,
+  forceWithdrawal = false,
 }: CreateStablecoinPayoutParams) => {
   const partner = await prisma.partner.findUniqueOrThrow({
     where: {
@@ -40,32 +43,67 @@ export const createStablecoinPayout = async ({
     return;
   }
 
-  const payouts = await prisma.payout.findMany({
-    where: {
-      partnerId: partner.id,
-      invoiceId,
-      stripePayoutId: null,
-      status: "processing",
-      method: "stablecoin",
-    },
-    include: {
-      program: {
-        select: {
-          name: true,
-          logo: true,
-        },
-      },
-    },
-  });
+  const [previouslyProcessedPayouts, currentInvoicePayouts] = await Promise.all(
+    [
+      forceWithdrawal
+        ? prisma.payout.findMany({
+            where: {
+              partnerId: partner.id,
+              status: "processed",
+              stripePayoutId: null,
+              method: {
+                in: ["stablecoin", "connect"],
+              },
+            },
+            include: {
+              program: {
+                select: {
+                  name: true,
+                  logo: true,
+                },
+              },
+            },
+          })
+        : Promise.resolve([]),
 
-  if (payouts.length === 0) {
+      !forceWithdrawal
+        ? prisma.payout.findMany({
+            where: {
+              partnerId: partner.id,
+              invoiceId,
+              stripePayoutId: null,
+              status: "processing",
+              method: "stablecoin",
+            },
+            include: {
+              program: {
+                select: {
+                  name: true,
+                  logo: true,
+                },
+              },
+            },
+          })
+        : Promise.resolve([]),
+    ],
+  );
+
+  if (forceWithdrawal && previouslyProcessedPayouts.length === 0) {
+    throw new Error(
+      "No previously processed payouts found. Please try again or contact support.",
+    );
+  }
+
+  const allPayouts = [...previouslyProcessedPayouts, ...currentInvoicePayouts];
+
+  if (allPayouts.length === 0) {
     console.warn(
       `No available payouts found for partner ${partner.email} in invoice ${invoiceId}.`,
     );
     return;
   }
 
-  let totalTransferableAmount = payouts.reduce(
+  let totalTransferableAmount = allPayouts.reduce(
     (acc, payout) => acc + payout.amount,
     0,
   );
@@ -107,7 +145,7 @@ export const createStablecoinPayout = async ({
       },
     });
 
-    await markPayoutsAsProcessed(payouts);
+    await markPayoutsAsProcessed(allPayouts);
 
     console.warn(
       `Stripe recipient account for partner ${partner.email} is closed.`,
@@ -129,7 +167,7 @@ export const createStablecoinPayout = async ({
       },
     });
 
-    await markPayoutsAsProcessed(payouts);
+    await markPayoutsAsProcessed(allPayouts);
 
     throw new Error(
       `Stripe recipient account for partner ${partner.email} does not have crypto wallet capabilities.`,
@@ -137,14 +175,32 @@ export const createStablecoinPayout = async ({
   }
 
   const allPayoutsProgramNames = [
-    ...new Set(payouts.map((p) => p.program.name)),
+    ...new Set(allPayouts.map((p) => p.program.name)),
   ];
+
+  // Find the total amount to transfer to Dub's FA
+  let amountToTransferToFA = 0;
+
+  for (const payout of previouslyProcessedPayouts) {
+    if (payout.method === "connect") {
+      amountToTransferToFA += payout.amount;
+    }
+  }
+
+  const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;
+
+  if (amountToTransferToFA > 0) {
+    await fundFinancialAccount({
+      amount: amountToTransferToFA,
+      idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,
+    });
+  }
 
   const outboundPayment = await createStripeOutboundPayment({
     stripeRecipientId: partner.stripeRecipientId,
     amount: totalTransferableAmount,
     description: `Dub Partners payout (${allPayoutsProgramNames.join(", ")})`,
-    idempotencyKey: `${invoiceId}-${partner.id}`,
+    idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,
   });
 
   if (!outboundPayment.id) {
@@ -158,7 +214,7 @@ export const createStablecoinPayout = async ({
     prisma.payout.updateMany({
       where: {
         id: {
-          in: payouts.map((p) => p.id),
+          in: allPayouts.map((p) => p.id),
         },
       },
       data: {
@@ -171,7 +227,7 @@ export const createStablecoinPayout = async ({
     prisma.commission.updateMany({
       where: {
         payoutId: {
-          in: payouts.map((p) => p.id),
+          in: allPayouts.map((p) => p.id),
         },
       },
       data: {
@@ -187,7 +243,7 @@ export const createStablecoinPayout = async ({
     return;
   }
 
-  const payout = payouts[0];
+  const payout = allPayouts[0];
 
   const emailResponse = await sendEmail({
     variant: "notifications",
