@@ -226,6 +226,7 @@ export const createStablecoinPayout = async ({
         stripePayoutId: outboundPayment.id,
         status: "sent",
         paidAt: new Date(),
+        method: "stablecoin",
       },
     }),
 

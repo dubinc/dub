@@ -204,6 +204,7 @@ export const createStripeTransfer = async ({
         stripeTransferId: transfer.id,
         status: "sent",
         paidAt: new Date(),
+        method: "connect",
       },
     }),
 
