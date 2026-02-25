@@ -54,6 +54,7 @@ export const GET = withWorkspace(
       programId,
       page: 1,
       pageSize: MAX_CUSTOMERS_TO_EXPORT,
+      includeExpandedFields: true,
     });
 
     const rows = formatCustomersForExport(customers, columns);
