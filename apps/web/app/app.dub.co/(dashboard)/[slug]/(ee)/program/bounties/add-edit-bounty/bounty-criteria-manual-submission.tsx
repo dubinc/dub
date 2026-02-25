@@ -168,35 +168,19 @@ export function BountyCriteriaManualSubmission() {
   return (
     <>
       <div className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Switch
-            fn={handleRequireImageToggle}
-            checked={requireImage}
-            trackDimensions="w-8 h-4"
-            thumbDimensions="w-3 h-3"
-            thumbTranslate="translate-x-4"
-          />
-          <span className="text-sm font-medium text-neutral-700">
-            Require at least one image
-          </span>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <Switch
-            fn={handleRequireUrlToggle}
-            checked={requireUrl}
-            trackDimensions="w-8 h-4"
-            thumbDimensions="w-3 h-3"
-            thumbTranslate="translate-x-4"
-          />
-          <span className="text-sm font-medium text-neutral-700">
-            Require at least one URL
-          </span>
-        </div>
-      </div>
-
-      {(requireImage || requireUrl) && (
-        <div className="space-y-4">
+        <div className="space-y-3">
+          <div className="flex items-center gap-4">
+            <Switch
+              fn={handleRequireImageToggle}
+              checked={requireImage}
+              trackDimensions="w-8 h-4"
+              thumbDimensions="w-3 h-3"
+              thumbTranslate="translate-x-4"
+            />
+            <span className="text-sm font-medium text-neutral-700">
+              Require at least one image
+            </span>
+          </div>
           {requireImage && (
             <div className="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4">
               <label className="text-sm font-medium text-neutral-700">
@@ -218,7 +202,21 @@ export function BountyCriteriaManualSubmission() {
               </p>
             </div>
           )}
+        </div>
 
+        <div className="space-y-3">
+          <div className="flex items-center gap-4">
+            <Switch
+              fn={handleRequireUrlToggle}
+              checked={requireUrl}
+              trackDimensions="w-8 h-4"
+              thumbDimensions="w-3 h-3"
+              thumbTranslate="translate-x-4"
+            />
+            <span className="text-sm font-medium text-neutral-700">
+              Require at least one URL
+            </span>
+          </div>
           {requireUrl && (
             <div className="space-y-4">
               <div className="space-y-3 rounded-lg border border-neutral-200 bg-neutral-50/50 p-4">
@@ -308,7 +306,7 @@ export function BountyCriteriaManualSubmission() {
             </div>
           )}
         </div>
-      )}
+      </div>
 
       <div className="rounded-lg border border-neutral-200 bg-neutral-50/50 p-2.5 shadow-sm">
         <div className="flex items-center gap-2.5">
