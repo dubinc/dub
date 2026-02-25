@@ -25,7 +25,10 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   const step = REWIND_STEPS.find((step) => step.id === stepRaw)!;
 
-  const rewind = await getPartnerRewind({ partnerId: partner.id });
+  const [interBold, rewind] = await Promise.all([
+    loadGoogleFont("Inter:wght@700"),
+    getPartnerRewind({ partnerId: partner.id }),
+  ]);
 
   if (!rewind) {
     throw new DubApiError({
@@ -42,9 +45,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     step.valueType === "currency"
       ? Math.floor(rewind[step.id] / 100)
       : Math.floor(rewind[step.id]);
-
-  // Load Inter font (full character set)
-  const interBold = await loadGoogleFont("Inter:wght@700");
 
   return new ImageResponse(
     (

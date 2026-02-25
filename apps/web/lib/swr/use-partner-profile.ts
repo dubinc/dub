@@ -26,6 +26,12 @@ export default function usePartnerProfile() {
     },
   );
 
+  const platformsVerified = partner?.platforms?.length
+    ? Object.fromEntries(
+        partner.platforms.map((p) => [p.type, p.verifiedAt != null]),
+      )
+    : undefined;
+
   const availablePayoutMethods = getPayoutMethodsForCountry({
     country: partner?.country,
     stablecoinEnabled: Boolean(partner?.featureFlags?.stablecoin),
@@ -33,6 +39,7 @@ export default function usePartnerProfile() {
 
   return {
     partner,
+    platformsVerified,
     error,
     loading: status === "loading" || isLoading,
     mutate,
