@@ -236,6 +236,7 @@ export function PartnersTable() {
           id: "partner",
           header: "Partner",
           enableHiding: false,
+          minSize: 150,
           maxSize: 250,
           cell: ({ row }) => {
             return (

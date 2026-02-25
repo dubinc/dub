@@ -3,7 +3,11 @@ import type { PublishBatchRequest } from "@upstash/qstash";
 import { qstash } from ".";
 
 type EnqueueBatchJobsProps = PublishBatchRequest<unknown> & {
-  queueName: "ban-partner" | "send-partner-summary" | "create-discount-code";
+  queueName:
+    | "ban-partner"
+    | "send-partner-summary"
+    | "create-discount-code"
+    | "sync-bounty-social-metrics";
 };
 
 // Generic helper to enqueue a batch of QStash jobs.

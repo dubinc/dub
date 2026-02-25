@@ -85,6 +85,7 @@ export const PayoutSchema = z.object({
   paidAt: z.date().nullable(),
   failureReason: z.string().nullish(),
   mode: z.enum(PayoutMode).nullable(),
+  traceId: z.string().nullish(),
 });
 
 export const PayoutResponseSchema = PayoutSchema.extend({
@@ -112,7 +113,6 @@ export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
     minPayoutAmount: true,
     payoutMode: true,
   }),
-  traceId: z.string().nullish(),
 });
 
 export const payoutWebhookEventSchema = PayoutSchema.omit({

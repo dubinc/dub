@@ -1,6 +1,5 @@
 "use client";
 
-import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import useBounty from "@/lib/swr/use-bounty";
 import {
   SubmissionsCountByStatus,
@@ -9,10 +8,11 @@ import {
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { ScrollableTooltipContent, Tooltip } from "@dub/ui";
-import { Calendar6, Gift, Users, Users6 } from "@dub/ui/icons";
+import { Calendar6, Users, Users6 } from "@dub/ui/icons";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import { useMemo } from "react";
 import { BountyActionButton } from "../bounty-action-button";
@@ -87,14 +87,7 @@ export function BountyInfo() {
           </span>
         </div>
 
-        {getBountyRewardDescription(bounty) && (
-          <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
-            <Gift className="size-4 shrink-0" />
-            <span className="text-ellipsis">
-              {getBountyRewardDescription(bounty)}
-            </span>
-          </div>
-        )}
+        <BountyRewardDescription bounty={bounty} className="font-regular" />
 
         <div className="text-content-subtle font-regular flex items-center gap-2 text-sm">
           <Users className="size-4 shrink-0" />

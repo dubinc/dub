@@ -13,6 +13,7 @@ import {
   Button,
   buttonVariants,
   CircleArrowRight,
+  CopyText,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -90,40 +91,6 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
       Period: formatPeriod(payout),
 
-      Status: (
-        <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
-          {statusBadge.label}
-        </StatusBadge>
-      ),
-
-      Initiated: payout.initiatedAt ? (
-        <TimestampTooltip
-          timestamp={payout.initiatedAt}
-          side="right"
-          rows={["local", "utc"]}
-        >
-          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-            {formatDateTimeSmart(payout.initiatedAt)}
-          </span>
-        </TimestampTooltip>
-      ) : (
-        "-"
-      ),
-
-      Paid: payout.paidAt ? (
-        <TimestampTooltip
-          timestamp={payout.paidAt}
-          side="right"
-          rows={["local", "utc"]}
-        >
-          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-            {formatDateTimeSmart(payout.paidAt)}
-          </span>
-        </TimestampTooltip>
-      ) : (
-        "-"
-      ),
-
       Amount: (
         <div className="flex items-center gap-2">
           <strong>{currencyFormatter(payout.amount)}</strong>
@@ -157,6 +124,42 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         </div>
       ),
 
+      Description: payout.description || "-",
+
+      Status: (
+        <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
+          {statusBadge.label}
+        </StatusBadge>
+      ),
+
+      Initiated: payout.initiatedAt ? (
+        <TimestampTooltip
+          timestamp={payout.initiatedAt}
+          side="left"
+          rows={["local", "utc"]}
+        >
+          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+            {formatDateTimeSmart(payout.initiatedAt)}
+          </span>
+        </TimestampTooltip>
+      ) : (
+        "-"
+      ),
+
+      Paid: payout.paidAt ? (
+        <TimestampTooltip
+          timestamp={payout.paidAt}
+          side="left"
+          rows={["local", "utc"]}
+        >
+          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+            {formatDateTimeSmart(payout.paidAt)}
+          </span>
+        </TimestampTooltip>
+      ) : (
+        "-"
+      ),
+
       ...(payout.invoiceId && {
         Invoice: (
           <ConditionalLink
@@ -168,7 +171,16 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         ),
       }),
 
-      Description: payout.description || "-",
+      ...(payout.traceId && {
+        "Trace ID": (
+          <CopyText
+            value={payout.traceId}
+            className="text-left font-mono text-sm text-neutral-500"
+          >
+            {payout.traceId}
+          </CopyText>
+        ),
+      }),
     };
   }, [payout, slug]);
 

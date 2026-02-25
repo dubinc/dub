@@ -1,7 +1,7 @@
 import {
   AccountNotFoundError,
-  fetchSocialProfile,
-} from "@/lib/api/scrape-creators/fetch-social-profile";
+  getSocialProfile,
+} from "@/lib/api/scrape-creators/get-social-profile";
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { prisma } from "@dub/prisma";
@@ -83,7 +83,7 @@ export const POST = withCron(async ({ rawBody }) => {
       }
 
       try {
-        const socialProfile = await fetchSocialProfile({
+        const socialProfile = await getSocialProfile({
           platform: verifiedProfile.type,
           handle: verifiedProfile.identifier,
         });
@@ -91,6 +91,7 @@ export const POST = withCron(async ({ rawBody }) => {
         const newStats = {
           subscribers: socialProfile.subscribers,
           posts: socialProfile.posts,
+          avatarUrl: socialProfile.avatarUrl,
         };
 
         await prisma.partnerPlatform.update({

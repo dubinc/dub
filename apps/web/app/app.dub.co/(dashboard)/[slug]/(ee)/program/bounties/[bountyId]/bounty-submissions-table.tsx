@@ -1,7 +1,11 @@
 "use client";
 
-import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
 import {
   SubmissionsCountByStatus,
@@ -16,6 +20,7 @@ import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { UserRowItem } from "@/ui/users/user-row-item";
 import {
   AnimatedSizeContainer,
+  Button,
   Filter,
   ProgressCircle,
   StatusBadge,
@@ -32,14 +37,15 @@ import {
   fetcher,
   formatDate,
   nFormatter,
+  timeAgo,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
 import { BountySubmissionRowMenu } from "./bounty-submission-row-menu";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
 
 export function BountySubmissionsTable() {
@@ -62,10 +68,17 @@ export function BountySubmissionsTable() {
       columns.push("performanceMetrics");
     }
 
+    if (
+      bounty.type === "submission" &&
+      bounty.submissionRequirements?.socialMetrics
+    ) {
+      columns.push("socialMetrics");
+    }
+
     return columns;
   }, [bounty]);
 
-  // Performance based bounty columns
+  const bountyInfo = resolveBountyDetails(bounty);
   const performanceCondition = bounty?.performanceCondition;
 
   const metricColumnLabel = performanceCondition?.attribute
@@ -76,6 +89,13 @@ export function BountySubmissionsTable() {
     if (searchParams.get("sortBy")) return searchParams.get("sortBy") as string;
 
     if (bounty?.type === "performance") return "performanceCount";
+
+    if (
+      bounty?.type === "submission" &&
+      bounty?.submissionRequirements?.socialMetrics
+    ) {
+      return "socialMetricCount";
+    }
 
     return "completedAt";
   }, [searchParams, bounty]);
@@ -121,6 +141,24 @@ export function BountySubmissionsTable() {
     | { open: false; submission: BountySubmissionProps | null }
     | { open: true; submission: BountySubmissionProps }
   >({ open: false, submission: null });
+
+  const { isSubmitting: isRefreshingStats, makeRequest } = useApiMutation();
+
+  const refreshStats = useCallback(() => {
+    if (!bountyId) return;
+
+    makeRequest(`/api/bounties/${bountyId}/sync-social-metrics`, {
+      method: "POST",
+      body: {},
+      onSuccess: async () => {
+        toast.success("Stats sync in progress. Updates will appear shortly.");
+        await mutatePrefix(`/api/bounties/${bountyId}`);
+      },
+      onError: (error) => {
+        toast.error(error);
+      },
+    });
+  }, [bountyId, makeRequest]);
 
   // Open the details sheet if submissionId is set in params
   useEffect(() => {
@@ -281,6 +319,32 @@ export function BountySubmissionsTable() {
           ]
         : []),
 
+      ...(showColumns.includes("socialMetrics") &&
+      bountyInfo?.socialPlatform &&
+      bountyInfo?.socialMetrics
+        ? [
+            {
+              id: "socialMetricCount",
+              header: `${bountyInfo.socialPlatform.label} ${capitalize(bountyInfo.socialMetrics.metric)}`,
+              cell: ({ row }: { row: Row<BountySubmissionProps> }) => {
+                const value = row.original.socialMetricCount ?? 0;
+                const minCount = bountyInfo.socialMetrics?.minCount ?? 0;
+                const target = Math.max(minCount, 1);
+                const progress = Math.min(1, value / target);
+
+                return (
+                  <div className="flex items-center gap-2">
+                    <ProgressCircle progress={progress} />
+                    <span className="min-w-0 text-sm font-medium leading-5 text-neutral-600">
+                      {nFormatter(value, { full: true })}
+                    </span>
+                  </div>
+                );
+              },
+            },
+          ]
+        : []),
+
       ...(showColumns.includes("reviewedAt")
         ? [
             {
@@ -318,6 +382,7 @@ export function BountySubmissionsTable() {
       showColumns,
       metricColumnLabel,
       performanceCondition,
+      bountyInfo,
       workspaceId,
     ],
   );
@@ -341,6 +406,7 @@ export function BountySubmissionsTable() {
     sortableColumns: [
       "completedAt",
       ...(bounty?.type === "performance" ? ["performanceCount"] : []),
+      ...(showColumns.includes("socialMetrics") ? ["socialMetricCount"] : []),
     ],
     sortBy,
     sortOrder,
@@ -386,15 +452,36 @@ export function BountySubmissionsTable() {
 
       <div className="flex flex-col gap-6">
         <div>
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
+          <div className="flex w-full items-center justify-between gap-4">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+              onSearchChange={setSearch}
+              onSelectedFilterChange={setSelectedFilter}
+            />
+            {bountyInfo?.hasSocialMetrics && (submissions?.length ?? 0) > 0 && (
+              <div className="flex shrink-0 items-center gap-3">
+                {bounty?.socialMetricsLastSyncedAt ? (
+                  <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
+                    Last sync{" "}
+                    {timeAgo(bounty.socialMetricsLastSyncedAt, {
+                      withAgo: true,
+                    })}
+                  </span>
+                ) : null}
+                <Button
+                  variant="secondary"
+                  text="Refresh stats"
+                  loading={isRefreshingStats}
+                  onClick={refreshStats}
+                  className="h-8 rounded-lg px-3"
+                />
+              </div>
+            )}
+          </div>
           <AnimatedSizeContainer height>
             <div>
               {activeFilters.length > 0 && (

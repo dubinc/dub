@@ -29,8 +29,15 @@ export default function usePartnerProfile() {
     },
   );
 
+  const platformsVerified = partner?.platforms?.length
+    ? Object.fromEntries(
+        partner.platforms.map((p) => [p.type, p.verifiedAt != null]),
+      )
+    : undefined;
+
   return {
     partner,
+    platformsVerified,
     payoutMethod: partner?.country
       ? PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)
         ? "paypal"
