@@ -148,8 +148,8 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   submissionsOpenAt: z.date().nullable(),
-  submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
-  maxSubmissions: z.number().nullable(),
+  // submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
+  // maxSubmissions: z.number().nullable(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
   performanceCondition: bountyPerformanceConditionSchema
