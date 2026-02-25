@@ -119,6 +119,26 @@ export const DELETE = withWorkspace(
       requiredPermission: "folders.write",
     });
 
+    // check if the folder is the default folder of a program
+    if (workspace.defaultProgramId) {
+      const program = await prisma.program.findUniqueOrThrow({
+        where: {
+          id: workspace.defaultProgramId,
+        },
+        select: {
+          defaultFolderId: true,
+        },
+      });
+
+      if (program.defaultFolderId === folderId) {
+        throw new DubApiError({
+          code: "forbidden",
+          message:
+            "You cannot delete the default folder for your partner program.",
+        });
+      }
+    }
+
     const linksCount = await prisma.link.count({
       where: {
         folderId,
