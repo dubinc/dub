@@ -19,7 +19,7 @@ import { cn } from "@dub/utils";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
@@ -45,6 +45,7 @@ export function OnboardingForm({
   > | null;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
   const { data: session, update: refreshSession } = useSession();
@@ -93,7 +94,10 @@ export function OnboardingForm({
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
       setAccountCreated(true);
-      router.push("/onboarding/platforms");
+      const next = searchParams.get("next");
+      router.push(
+        `/onboarding/platforms${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+      );
     },
     onError: ({ error, input }) => {
       toast.error(parseActionError(error, "An unknown error occurred."));

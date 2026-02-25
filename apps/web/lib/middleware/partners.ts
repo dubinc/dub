@@ -65,13 +65,20 @@ export async function PartnersMiddleware(req: NextRequest) {
       !isPartnerInvite &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p))
     ) {
-      return NextResponse.redirect(new URL("/onboarding", req.url));
+      return NextResponse.redirect(
+        new URL(
+          `/onboarding${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
+          req.url,
+        ),
+      );
     }
 
     // Handle ?next= query param with proper validation to prevent open redirects
+    // (omit /onboarding from the check to make sure onboarding is completed)
     if (
       searchParamsObj.next &&
-      isValidInternalRedirect(searchParamsObj.next, req.url)
+      isValidInternalRedirect(searchParamsObj.next, req.url) &&
+      !path.startsWith("/onboarding")
     ) {
       return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
     }
