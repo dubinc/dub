@@ -2,14 +2,16 @@
 
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
-import {
-  calculateSocialMetricsRewardAmount,
-  resolveBountyDetails,
-} from "@/lib/bounty/utils";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
-import { BountyDescription } from "@/ui/partners/bounties/bounty-description";
+import {
+  BountyDescription,
+  bountyHasDetails,
+} from "@/ui/partners/bounties/bounty-description";
+import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
+import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { X } from "@/ui/shared/icons";
 import {
@@ -20,10 +22,9 @@ import {
   Button,
   Sheet,
   StatusBadge,
-  Tooltip,
 } from "@dub/ui";
-import { CircleHalfDottedClock } from "@dub/ui/icons";
-import { currencyFormatter, formatDate, getPrettyUrl } from "@dub/utils";
+import { Calendar6 } from "@dub/ui/icons";
+import { formatDate, getPrettyUrl } from "@dub/utils";
 import Linkify from "linkify-react";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -47,178 +48,146 @@ function PartnerBountySubmissionDetailsSheetContent({
 
   const statusBadge = BOUNTY_SUBMISSION_STATUS_BADGES[submission.status];
 
-  return (
-    <div className="flex size-full flex-col">
-      <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <Sheet.Title className="text-lg font-semibold">
-          Bounty submission
-        </Sheet.Title>
-        <Sheet.Close asChild>
-          <Button
-            variant="outline"
-            icon={<X className="size-5" />}
-            className="h-auto w-fit p-1"
-          />
-        </Sheet.Close>
-      </div>
+  const statusDate =
+    submission.status === "approved"
+      ? submission.reviewedAt
+      : submission.status === "submitted"
+        ? submission.completedAt
+        : submission.status === "rejected"
+          ? submission.reviewedAt
+          : null;
+  const statusLabelWithDate =
+    statusDate != null
+      ? `${statusBadge.label} ${formatDate(statusDate, { month: "short", day: "numeric", year: "numeric" })}`
+      : statusBadge.label;
 
-      <div className="flex min-h-0 flex-1 flex-col">
-        <div className="scrollbar-hide flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
-          <div className="space-y-6 p-5">
-            <Accordion
-              type="single"
-              collapsible
-              className="w-full rounded-xl bg-neutral-100 p-4"
+  return (
+    <div className="relative flex size-full flex-col">
+      <Sheet.Close asChild>
+        <Button
+          variant="outline"
+          icon={<X className="size-5" />}
+          className="absolute right-4 top-4 z-10 h-auto w-fit p-1"
+        />
+      </Sheet.Close>
+      <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto">
+        {/* Thumbnail header (matches claim-bounty-modal) */}
+        <div className="flex h-[132px] shrink-0 items-center justify-center bg-neutral-100 py-3">
+          <div className="relative size-full">
+            <BountyThumbnailImage bounty={bounty} />
+          </div>
+        </div>
+
+        <div className="flex min-h-0 flex-1 flex-col divide-y divide-neutral-200">
+          {/* Bounty title, ends at, earn, status */}
+          <div className="flex flex-col gap-1 p-5">
+            <Sheet.Title className="text-content-emphasis truncate text-sm font-semibold">
+              {bounty.name ?? "Bounty"}
+            </Sheet.Title>
+            <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+              <Calendar6 className="size-3.5 shrink-0" />
+              {bounty.endsAt
+                ? `Ends ${formatDate(bounty.endsAt, { month: "short", day: "numeric", year: "numeric" })}`
+                : "No end date"}
+            </div>
+            <BountyRewardDescription bounty={bounty} className="font-medium" />
+            <StatusBadge
+              variant={statusBadge.variant}
+              icon={statusBadge.icon}
+              className="w-fit rounded-lg py-1.5"
             >
-              <AccordionItem value="details" className="border-none py-0">
-                <AccordionTrigger className="py-1.5 text-base font-semibold text-neutral-900 hover:no-underline [&[data-state=open]>svg]:rotate-180">
+              {statusLabelWithDate}
+            </StatusBadge>
+          </div>
+
+          {/* Details accordion (only when there is content; open by default to match design) */}
+          {bountyHasDetails(bounty) && (
+            <Accordion type="single" collapsible className="w-full p-5">
+              <AccordionItem
+                value="details"
+                className="border-none bg-transparent py-0"
+              >
+                <AccordionTrigger className="!text-base font-semibold text-neutral-900">
                   Details
                 </AccordionTrigger>
-                <AccordionContent className="space-y-3 pb-0 pt-2">
+                <AccordionContent>
                   <BountyDescription bounty={bounty} hideHeading />
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+          )}
 
-            <div className="max-w-md space-y-2">
-              {[
-                {
-                  label: "Status",
-                  value: (
-                    <StatusBadge
-                      variant={statusBadge.variant}
-                      icon={statusBadge.icon}
-                    >
-                      {statusBadge.label}
-                    </StatusBadge>
-                  ),
-                },
-                {
-                  label:
-                    bounty?.type === "performance" ? "Completed" : "Submitted",
-                  value: submission.completedAt
-                    ? formatDate(submission.completedAt, { month: "short" })
-                    : "-",
-                },
-                ...(bountyInfo?.socialMetrics
-                  ? [
-                      {
-                        label: "Criteria",
-                        value: `${bountyInfo.socialMetrics.minCount} ${bountyInfo.socialMetrics.metric}`,
-                      },
-                    ]
-                  : []),
-                ...(submission.status === "rejected"
-                  ? [
-                      {
-                        label: "Rejection reason",
-                        value:
-                          submission.rejectionReason &&
-                          REJECT_BOUNTY_SUBMISSION_REASONS[
-                            submission.rejectionReason
-                          ],
-                      },
-                    ]
-                  : [
-                      {
-                        label: "Reward",
-                        value: (() => {
-                          if (submission.commission?.earnings != null) {
-                            return currencyFormatter(
-                              submission.commission.earnings,
-                            );
-                          }
-                          const estimatedEarnings =
-                            calculateSocialMetricsRewardAmount({
-                              bounty,
-                              submission,
-                            });
-                          if (
-                            estimatedEarnings != null &&
-                            estimatedEarnings > 0
-                          ) {
-                            return (
-                              <Tooltip content="Estimated earnings based on reached reward tiers">
-                                <div className="hover:text-content-emphasis text-content-muted flex w-fit cursor-help items-center gap-1 underline decoration-dotted underline-offset-2">
-                                  <CircleHalfDottedClock className="size-3.5 shrink-0" />{" "}
-                                  {currencyFormatter(estimatedEarnings)}
-                                </div>
-                              </Tooltip>
-                            );
-                          }
-                          return "-";
-                        })(),
-                      },
-                    ]),
-              ].map((item, index) => (
-                <div key={index} className="grid grid-cols-2 gap-6">
-                  <span className="text-sm font-medium text-neutral-500">
-                    {item.label}
-                  </span>
-                  <span className="text-sm font-medium text-neutral-800">
-                    {item.value}
-                  </span>
+          {submission.status === "rejected" && (
+            <div className="p-5">
+              {submission.rejectionNote && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+                  <Linkify
+                    as="p"
+                    options={{
+                      target: "_blank",
+                      rel: "noopener noreferrer nofollow",
+                      format: (href) => getPrettyUrl(href),
+                      className:
+                        "underline underline-offset-4 text-red-400 hover:text-red-700",
+                    }}
+                    className="mt-1 whitespace-pre-wrap text-sm text-red-800"
+                  >
+                    {submission.rejectionNote}
+                  </Linkify>
                 </div>
-              ))}
-            </div>
+              )}
 
-            {submission.status === "rejected" && submission.rejectionNote && (
-              <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                <Linkify
-                  as="p"
-                  options={{
-                    target: "_blank",
-                    rel: "noopener noreferrer nofollow",
-                    format: (href) => getPrettyUrl(href),
-                    className:
-                      "underline underline-offset-4 text-red-400 hover:text-red-700",
-                  }}
-                  className="mt-1 whitespace-pre-wrap text-sm text-red-800"
-                >
-                  {submission.rejectionNote}
-                </Linkify>
+              {submission.rejectionReason && (
+                <p className="text-content-subtle text-sm">
+                  <span className="font-medium text-neutral-700">
+                    Rejection reason:{" "}
+                  </span>
+                  {REJECT_BOUNTY_SUBMISSION_REASONS[submission.rejectionReason]}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Submission section */}
+          {bounty?.type === "submission" && hasSocialContent && (
+            <div className="p-5">
+              <h2 className="text-base font-semibold text-neutral-900">
+                Submission
+              </h2>
+              <div className="mt-3">
+                <BountySocialContentPreview
+                  bounty={bounty}
+                  submission={submission}
+                />
+              </div>
+            </div>
+          )}
+
+          {bounty?.type === "submission" &&
+            bountyInfo?.hasSocialMetrics &&
+            bounty && (
+              <div className="p-5">
+                <BountySocialMetricsRewardsTable
+                  bounty={bounty}
+                  submission={submission}
+                  titleText="Earnings"
+                />
               </div>
             )}
 
-            {bounty?.type === "submission" && (
-              <>
-                {hasSocialContent && (
-                  <div>
-                    <h2 className="text-base font-semibold text-neutral-900">
-                      Submission
-                    </h2>
-                    <div className="mt-3">
-                      <BountySocialContentPreview
-                        bounty={bounty}
-                        submission={submission}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {bountyInfo?.hasSocialMetrics && bounty && (
-                  <BountySocialMetricsRewardsTable
-                    bounty={bounty}
-                    submission={submission}
-                  />
-                )}
-              </>
-            )}
-          </div>
+          {submission.status === "approved" && (
+            <div className="mt-auto p-5 pt-2">
+              <ButtonLink
+                href={`/programs/${programSlug}/earnings?type=custom`}
+                target="_blank"
+                variant="secondary"
+                className="mt-3 w-full justify-center text-sm font-medium"
+              >
+                View earnings
+              </ButtonLink>
+            </div>
+          )}
         </div>
-
-        {submission.status === "approved" && programSlug ? (
-          <div className="shrink-0 border-t border-neutral-200 p-5">
-            <ButtonLink
-              href={`/programs/${programSlug}/earnings?type=custom`}
-              target="_blank"
-              variant="secondary"
-              className="w-full justify-center text-sm font-medium"
-            >
-              View earnings
-            </ButtonLink>
-          </div>
-        ) : null}
       </div>
     </div>
   );

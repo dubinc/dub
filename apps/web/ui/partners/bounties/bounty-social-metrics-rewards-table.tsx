@@ -51,6 +51,7 @@ function getDisplayStatus(
 export function BountySocialMetricsRewardsTable({
   bounty,
   submission,
+  titleText = "Rewards",
 }: {
   bounty: Pick<
     PartnerBountyProps,
@@ -60,6 +61,7 @@ export function BountySocialMetricsRewardsTable({
     BountySubmissionProps,
     "socialMetricCount" | "commission" | "status"
   >;
+  titleText?: string;
 }) {
   const tiers = getSocialMetricsRewardTiers({
     bounty,
@@ -127,7 +129,7 @@ export function BountySocialMetricsRewardsTable({
 
   return (
     <div>
-      <h2 className="text-base font-semibold text-neutral-900">Rewards</h2>
+      <h2 className="text-base font-semibold text-neutral-900">{titleText}</h2>
       <div className="mt-3">
         <Table {...table} />
       </div>

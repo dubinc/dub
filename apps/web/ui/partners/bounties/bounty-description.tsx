@@ -7,6 +7,15 @@ import { Markdown } from "@/ui/shared/markdown";
 import { Check2, PROSE_STYLES } from "@dub/ui";
 import { cn } from "@dub/utils";
 
+export function bountyHasDetails(bounty: PartnerBountyProps): boolean {
+  const submissionTexts = getBountySubmissionRequirementTexts(bounty);
+  const rewardTexts = getBountyRewardCriteriaTexts(bounty);
+  const hasDescription = Boolean(bounty.description?.trim());
+  const hasSubmissionRequirements = submissionTexts.length > 0;
+  const hasRewardCriteria = rewardTexts.length > 0;
+  return hasDescription || hasSubmissionRequirements || hasRewardCriteria;
+}
+
 export function BountyDescription({
   bounty,
   hideHeading = false,
@@ -26,7 +35,7 @@ export function BountyDescription({
   }
 
   return (
-    <>
+    <div className="flex flex-col space-y-3 text-sm">
       {hasDescription && (
         <div>
           {!hideHeading && (
@@ -76,6 +85,6 @@ export function BountyDescription({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

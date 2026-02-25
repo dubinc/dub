@@ -453,7 +453,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     )}
                   </div>
 
-                  <div className="border-border-subtle flex flex-col space-y-3 border-t p-6 text-sm max-sm:px-4">
+                  <div className="border-border-subtle border-t p-6 max-sm:px-4">
                     <BountyDescription bounty={bounty} />
                   </div>
 
