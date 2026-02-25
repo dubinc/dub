@@ -76,6 +76,10 @@ function ExportCustomersModal({
       return;
     }
 
+    if (scope === "program" && !program?.id) {
+      return;
+    }
+
     const lid = toast.loading("Exporting customers...");
 
     try {
