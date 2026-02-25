@@ -180,7 +180,7 @@ export function getBountyRewardCriteriaTexts(
   const { minCount, metric, incrementalBonus } = bountyInfo.socialMetrics;
 
   const texts: string[] = [
-    `Get ${nFormatter(minCount, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedAmount}`,
+    `Get ${nFormatter(minCount ?? 0, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedAmount}`,
   ];
 
   if (incrementalBonus) {

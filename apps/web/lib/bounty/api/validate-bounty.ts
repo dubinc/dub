@@ -72,15 +72,8 @@ export function validateBounty({
     });
   }
 
+  // submission bounty checks
   if (type === "submission") {
-    if (maxSubmissions != null && !submissionFrequency) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "submissionFrequency is required when maxSubmissions is set (e.g. per day, per week, per month).",
-      });
-    }
-
     if (submissionFrequency && maxSubmissions == null) {
       throw new DubApiError({
         code: "bad_request",

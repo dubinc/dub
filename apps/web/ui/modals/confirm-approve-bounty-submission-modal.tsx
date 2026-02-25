@@ -179,10 +179,10 @@ export function useConfirmApproveBountySubmissionModal(options?: {
     setState(null);
   }
 
-  function ConfirmApproveBountySubmissionModalWrapper() {
-    if (!state) return null;
-
-    return (
+  return {
+    openConfirmApproveBountySubmissionModal,
+    closeConfirmApproveBountySubmissionModal,
+    ConfirmApproveBountySubmissionModal: state ? (
       <ConfirmApproveBountySubmissionModal
         submission={state.submission}
         bounty={state.bounty}
@@ -193,14 +193,7 @@ export function useConfirmApproveBountySubmissionModal(options?: {
         }}
         onApproveSuccess={options?.onApproveSuccess}
       />
-    );
-  }
-
-  return {
-    openConfirmApproveBountySubmissionModal,
-    closeConfirmApproveBountySubmissionModal,
-    ConfirmApproveBountySubmissionModal:
-      ConfirmApproveBountySubmissionModalWrapper,
+    ) : null,
     isConfirmApproveBountySubmissionModalOpen: state !== null,
   };
 }
