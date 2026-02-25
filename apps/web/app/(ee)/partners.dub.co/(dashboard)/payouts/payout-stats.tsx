@@ -5,6 +5,7 @@ import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
+  STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
@@ -13,7 +14,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descriptions";
 import { AlertCircleFill } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PartnerPayoutMethod, PayoutStatus } from "@dub/prisma/client";
 import { Button, Tooltip } from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
@@ -206,28 +207,10 @@ export function PayoutStats() {
   } = useConfirmModal({
     title: "Pay out funds instantly",
     description: (
-      <>
-        Since your total processed earnings (
-        <strong className="text-black">{processedPayoutAmountInUsd}</strong>)
-        are below the minimum requirement of{" "}
-        <strong className="text-black">
-          {currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS, {
-            trailingZeroDisplay: "stripIfInteger",
-          })}
-        </strong>
-        , you will be charged a fee of{" "}
-        <strong className="text-black">
-          {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)}
-        </strong>{" "}
-        for this payout, which means you will receive{" "}
-        <strong className="text-black">
-          {currencyFormatter(
-            payoutStatusMap?.processed?.amount - BELOW_MIN_WITHDRAWAL_FEE_CENTS,
-            { trailingZeroDisplay: "stripIfInteger" },
-          )}
-        </strong>
-        .
-      </>
+      <ForceWithdrawalModalDescription
+        defaultPayoutMethod={partner?.defaultPayoutMethod}
+        processedAmount={payoutStatusMap?.processed?.amount}
+      />
     ),
     onConfirm: async () => {
       await executeForceWithdrawal();
@@ -266,7 +249,8 @@ export function PayoutStats() {
       <div
         className={cn(
           "hidden divide-x divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white md:grid",
-          partner?.defaultPayoutMethod === "connect"
+          partner?.defaultPayoutMethod === "connect" ||
+            partner?.defaultPayoutMethod === "stablecoin"
             ? "md:grid-cols-5"
             : "md:grid-cols-3",
         )}
@@ -279,6 +263,65 @@ export function PayoutStats() {
           />
         ))}
       </div>
+    </>
+  );
+}
+
+function ForceWithdrawalModalDescription({
+  defaultPayoutMethod,
+  processedAmount,
+}: {
+  defaultPayoutMethod: PartnerPayoutMethod | null | undefined;
+  processedAmount: number | undefined;
+}) {
+  const processedPayoutAmountInUsd = currencyFormatter(processedAmount ?? 0, {
+    trailingZeroDisplay: "stripIfInteger",
+  });
+
+  if (defaultPayoutMethod === "stablecoin") {
+    const finalAmount =
+      processedAmount != null
+        ? Math.floor(processedAmount * (1 - STABLECOIN_PAYOUT_FEE_RATE))
+        : 0;
+
+    return (
+      <>
+        Your processed earnings (
+        <strong className="text-black">{processedPayoutAmountInUsd}</strong>)
+        will be sent to your crypto wallet. A 1% fee applies, so you will
+        receive{" "}
+        <strong className="text-black">
+          {currencyFormatter(finalAmount, {
+            trailingZeroDisplay: "stripIfInteger",
+          })}
+        </strong>
+        .
+      </>
+    );
+  }
+
+  return (
+    <>
+      Since your total processed earnings (
+      <strong className="text-black">{processedPayoutAmountInUsd}</strong>) are
+      below the minimum requirement of{" "}
+      <strong className="text-black">
+        {currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS, {
+          trailingZeroDisplay: "stripIfInteger",
+        })}
+      </strong>
+      , you will be charged a fee of{" "}
+      <strong className="text-black">
+        {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)}
+      </strong>{" "}
+      for this payout, which means you will receive{" "}
+      <strong className="text-black">
+        {currencyFormatter(
+          (processedAmount ?? 0) - BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+          { trailingZeroDisplay: "stripIfInteger" },
+        )}
+      </strong>
+      .
     </>
   );
 }

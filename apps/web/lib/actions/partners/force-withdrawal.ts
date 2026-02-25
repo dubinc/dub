@@ -32,11 +32,11 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
       `force-withdrawal:${partner.id}`,
     );
 
-    if (!success) {
-      throw new Error(
-        "You've reached the maximum number of force withdrawal attempts for the past hour. Please wait and try again later.",
-      );
-    }
+    // if (!success) {
+    //   throw new Error(
+    //     "You've reached the maximum number of force withdrawal attempts for the past hour. Please wait and try again later.",
+    //   );
+    // }
 
     const lockKey = `force-withdrawal:lock:${partner.id}`;
     const acquired = await redis.set(lockKey, "1", { nx: true, ex: 60 });
