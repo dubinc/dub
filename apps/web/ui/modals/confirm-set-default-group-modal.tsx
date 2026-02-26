@@ -2,9 +2,7 @@
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import useGroup from "@/lib/swr/use-group";
 import { GroupExtendedProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { Button, Modal } from "@dub/ui";
@@ -17,24 +15,22 @@ type GroupForModal = Pick<GroupExtendedProps, "id" | "name" | "color">;
 interface ConfirmSetDefaultGroupModalProps {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
-  newGroup: GroupForModal;
+  currentDefaultGroup: GroupForModal;
+  newDefaultGroup: GroupForModal;
 }
 
 function ConfirmSetDefaultGroupModal({
   showModal,
   setShowModal,
-  newGroup,
+  currentDefaultGroup,
+  newDefaultGroup,
 }: ConfirmSetDefaultGroupModalProps) {
   const { makeRequest, isSubmitting } = useApiMutation();
-
-  const { group: currentDefaultGroup } = useGroup({
-    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
-  });
 
   const onSubmit = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
-      await makeRequest(`/api/groups/${newGroup.id}/default`, {
+      await makeRequest(`/api/groups/${newDefaultGroup.id}/default`, {
         method: "POST",
         onSuccess: async () => {
           setShowModal(false);
@@ -43,7 +39,7 @@ function ConfirmSetDefaultGroupModal({
         },
       });
     },
-    [makeRequest, newGroup.id, setShowModal],
+    [makeRequest, newDefaultGroup.id, setShowModal],
   );
 
   return (
@@ -68,22 +64,22 @@ function ConfirmSetDefaultGroupModal({
             <div className="relative flex items-center justify-center gap-4">
               <div className="flex items-center gap-2">
                 <GroupColorCircle
-                  group={currentDefaultGroup ?? DEFAULT_PARTNER_GROUP}
+                  group={currentDefaultGroup}
                 />
                 <span className="text-content-emphasis text-sm font-medium">
-                  {currentDefaultGroup?.name ?? DEFAULT_PARTNER_GROUP.name}
+                  {currentDefaultGroup.name}
                 </span>
               </div>
               <ArrowRight className="size-4 text-neutral-400" />
               <div className="flex items-center gap-2">
-                <GroupColorCircle group={newGroup} />
+                <GroupColorCircle group={newDefaultGroup} />
                 <span className="text-content-emphasis text-sm font-medium">
-                  {newGroup.name}
+                  {newDefaultGroup.name}
                 </span>
               </div>
             </div>
             <MarkdownDescription className="text-content-subtle relative mt-3 text-center text-xs">
-              {`This will set **"${newGroup.name}"** as the new default group and update your [public landing page](https://dub.co/help/article/program-landing-page) and [application form](https://dub.co/help/article/program-application-form).`}
+              {`This will set **"${newDefaultGroup.name}"** as the new default group and update your [public landing page](https://dub.co/help/article/program-landing-page) and [application form](https://dub.co/help/article/program-application-form).`}
             </MarkdownDescription>
           </div>
         </div>
@@ -112,28 +108,35 @@ function ConfirmSetDefaultGroupModal({
 }
 
 export function useConfirmSetDefaultGroupModal() {
-  const [newGroup, setNewGroup] = useState<GroupForModal | null>(null);
+  const [state, setState] = useState<{
+    currentDefaultGroup: GroupForModal;
+    newDefaultGroup: GroupForModal;
+  } | null>(null);
 
   const openConfirmSetDefaultGroupModal = useCallback(
-    (group: GroupForModal) => {
-      setNewGroup(group);
+    ({
+      currentDefaultGroup,
+      newDefaultGroup,
+    }: {
+      currentDefaultGroup: GroupForModal;
+      newDefaultGroup: GroupForModal;
+    }) => {
+      setState({ currentDefaultGroup, newDefaultGroup });
     },
     [],
   );
 
-  const closeConfirmSetDefaultGroupModal = useCallback(
-    () => setNewGroup(null),
-    [],
-  );
+  const closeConfirmSetDefaultGroupModal = useCallback(() => setState(null), []);
 
   return {
     openConfirmSetDefaultGroupModal,
     closeConfirmSetDefaultGroupModal,
-    ConfirmSetDefaultGroupModal: newGroup ? (
+    ConfirmSetDefaultGroupModal: state ? (
       <ConfirmSetDefaultGroupModal
         showModal
-        setShowModal={(show) => !show && setNewGroup(null)}
-        newGroup={newGroup}
+        setShowModal={(show) => !show && setState(null)}
+        currentDefaultGroup={state.currentDefaultGroup}
+        newDefaultGroup={state.newDefaultGroup}
       />
     ) : null,
   };
