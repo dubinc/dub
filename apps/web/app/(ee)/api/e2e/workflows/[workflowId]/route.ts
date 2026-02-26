@@ -1,6 +1,6 @@
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
-import { ACME_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { assertE2EWorkspace } from "../../guard";
 
@@ -10,10 +10,11 @@ export const PATCH = withWorkspace(
     assertE2EWorkspace(workspace);
 
     const { workflowId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
     const body = await req.json();
 
     const workflow = await prisma.workflow.update({
-      where: { id: workflowId, programId: ACME_PROGRAM_ID },
+      where: { id: workflowId, programId },
       data: {
         disabledAt: body.disabledAt ? new Date(body.disabledAt) : null,
       },

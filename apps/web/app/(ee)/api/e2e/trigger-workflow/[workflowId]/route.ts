@@ -1,10 +1,10 @@
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { executeSendCampaignWorkflow } from "@/lib/api/workflows/execute-send-campaign-workflow";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { withWorkspace } from "@/lib/auth";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { ACME_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { assertE2EWorkspace } from "../../guard";
 
@@ -14,10 +14,11 @@ export const POST = withWorkspace(async ({ workspace, params }) => {
   assertE2EWorkspace(workspace);
 
   const { workflowId } = params;
+  const programId = getDefaultProgramIdOrThrow(workspace);
 
   try {
     const workflow = await prisma.workflow.findUnique({
-      where: { id: workflowId, programId: ACME_PROGRAM_ID },
+      where: { id: workflowId, programId },
     });
 
     if (!workflow) {
