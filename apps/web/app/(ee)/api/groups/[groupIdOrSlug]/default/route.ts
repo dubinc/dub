@@ -37,6 +37,11 @@ export const POST = withWorkspace(
       }),
     ]);
 
+    // return the current default group if it's already the default group
+    if (group.id === currentDefaultGroup.id) {
+      return NextResponse.json(GroupSchema.parse(currentDefaultGroup));
+    }
+
     const updatedGroup = await prisma.$transaction(async (tx) => {
       // set current default group's slug to a slugified version of its name
       // and assign a random color if it doesn't have one
@@ -62,7 +67,7 @@ export const POST = withWorkspace(
               : undefined,
         },
       });
-      await prisma.program.update({
+      await tx.program.update({
         where: {
           id: programId,
         },
