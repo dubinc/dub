@@ -62,13 +62,15 @@ export const createBountySubmissionAction = authPartnerActionClient
       throw new Error("This bounty is not for this program.");
     }
 
+    const bountyInfo = resolveBountyDetails(bounty);
     let submission: BountySubmission | null = null;
 
-    // Validate the partner has not already created a submission for this bounty
     if (bounty.submissions.length > 0) {
       submission = bounty.submissions[0];
 
-      if (submission.status !== "draft") {
+      // if there's an existing submission, only throw an error
+      // if submission is not a draft and is not for a social metrics bounty
+      if (submission.status !== "draft" && !bountyInfo?.hasSocialMetrics) {
         throw new Error(
           `You already have a ${submission.status} submission for this bounty.`,
         );
@@ -117,8 +119,6 @@ export const createBountySubmissionAction = authPartnerActionClient
         `Submissions are not open yet. You can submit ${waitTime}.`,
       );
     }
-
-    const bountyInfo = resolveBountyDetails(bounty);
 
     if (bountyInfo?.hasSocialMetrics && isDraft) {
       throw new Error(
