@@ -1,3 +1,4 @@
+import { ApplicationTrackingProvider } from "@/lib/application-tracker/application-tracking-provider";
 import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
@@ -41,34 +42,34 @@ export default async function ApplicationPage(props: {
   );
 
   return (
-    <div
-      className="relative"
-      style={
-        {
-          "--brand": program.group.brandColor || "#000000",
-          "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
-        } as CSSProperties
-      }
-    >
-      <ApplyHeader group={program.group} showApply={false} />
-      <div className="p-6">
-        {/* Hero section */}
-        <ApplicationFormHero
-          program={program}
-          applicationFormData={applicationFormData}
-        />
+    <ApplicationTrackingProvider programIdOrSlug={program.id}>
+      <div
+        className="relative"
+        style={
+          {
+            "--brand": program.group.brandColor || "#000000",
+            "--brand-ring": "rgb(from var(--brand) r g b / 0.2)",
+          } as CSSProperties
+        }
+      >
+        <ApplyHeader group={program.group} showApply={false} />
+        <div className="p-6">
+          <ApplicationFormHero
+            program={program}
+            applicationFormData={applicationFormData}
+          />
 
-        <LanderRewards
-          className="mt-10"
-          rewards={program.rewards}
-          discount={program.discount}
-        />
+          <LanderRewards
+            className="mt-10"
+            rewards={program.rewards}
+            discount={program.discount}
+          />
 
-        {/* Application form */}
-        <div className="mt-10">
-          <ProgramApplicationForm program={program} group={program.group} />
+          <div className="mt-10">
+            <ProgramApplicationForm program={program} group={program.group} />
+          </div>
         </div>
       </div>
-    </div>
+    </ApplicationTrackingProvider>
   );
 }

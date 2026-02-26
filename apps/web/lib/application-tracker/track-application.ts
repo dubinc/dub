@@ -6,7 +6,7 @@ import type {
 
 type ApplicationTrackingParams = Pick<
   TrackApplicationInput,
-  "referrerUsername" | "programId" | "programSlug" | "source"
+  "referrerUsername" | "programIdOrSlug"
 >;
 
 function buildPayload(
@@ -15,22 +15,14 @@ function buildPayload(
     applicationId?: string;
   },
 ): Record<string, string> {
-  const {
-    eventName,
-    applicationId,
-    referrerUsername,
-    programId,
-    programSlug,
-    source,
-  } = params;
+  const { eventName, applicationId, referrerUsername, programIdOrSlug } =
+    params;
 
   return {
     eventName,
     ...(applicationId && { applicationId }),
     ...(referrerUsername && { referrerUsername }),
-    ...(programId && { programId }),
-    ...(programSlug && { programSlug }),
-    ...(source && { source }),
+    ...(programIdOrSlug && { programIdOrSlug }),
   };
 }
 
@@ -55,12 +47,7 @@ function getApplicationIdFromCookie(): string | null {
 }
 
 function hasTrackingContext(params: ApplicationTrackingParams): boolean {
-  return !!(
-    params.referrerUsername ||
-    params.programId ||
-    params.programSlug ||
-    params.source
-  );
+  return !!(params.referrerUsername || params.programIdOrSlug);
 }
 
 async function getOrCreateApplicationId(
@@ -97,9 +84,7 @@ export async function trackApplicationEvent(
 ): Promise<string | null> {
   const context: ApplicationTrackingParams = {
     referrerUsername: params.referrerUsername,
-    programId: params.programId,
-    programSlug: params.programSlug,
-    source: params.source,
+    programIdOrSlug: params.programIdOrSlug,
   };
 
   let applicationId: string | null = params.applicationId ?? null;
