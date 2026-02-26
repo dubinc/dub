@@ -15,6 +15,7 @@ import {
   capitalize,
   cn,
   currencyFormatter,
+  formatDateTime,
   pluralize,
 } from "@dub/utils";
 import { formatDuration } from "date-fns";
@@ -162,9 +163,25 @@ const RewardItem = ({
             const entity = REWARD_CONDITIONS[reward.event].entities.find(
               (e) => e.id === condition.entity,
             );
-            const attribute = entity?.attributes?.find(
-              (a) => a.id === condition.attribute,
-            );
+            const attribute = (() => {
+              if (!entity) return undefined;
+              const top = entity.attributes.find(
+                (a) => a.id === condition.attribute,
+              );
+              if (top?.nestedAttributes?.length && condition.nestedAttribute) {
+                return top.nestedAttributes.find(
+                  (n) => n.id === condition.nestedAttribute,
+                );
+              }
+              if (top) return top;
+              for (const a of entity.attributes) {
+                const nested = a.nestedAttributes?.find(
+                  (n) => n.id === condition.attribute,
+                );
+                if (nested) return nested;
+              }
+              return undefined;
+            })();
 
             return (
               <li key={idx} className="flex items-start gap-1">
@@ -182,32 +199,53 @@ const RewardItem = ({
                             .join(", ")
                         : COUNTRIES[condition.value?.toString()] ??
                           condition.value
-                      : condition.attribute === "subscriptionDurationMonths"
+                      : (condition.nestedAttribute ?? condition.attribute) ===
+                          "subscriptionDurationMonths"
                         ? formatSubscriptionDuration(Number(condition.value))
-                        : // Non-country value(s)
-                          Array.isArray(condition.value)
-                          ? // Basic array
-                            (attribute?.options
-                              ? (condition.value as string[] | number[]).map(
-                                  (v) =>
-                                    attribute.options?.find((o) => o.id === v)
-                                      ?.label ?? v,
-                                )
-                              : condition.value
-                            ).join(", ")
-                          : condition.attribute === "productId" &&
-                              condition.label
-                            ? // Product label
-                              condition.label
-                            : attribute?.type === "currency"
-                              ? // Currency value
-                                currencyFormatter(Number(condition.value))
-                              : // Everything else
-                                attribute?.options
-                                ? attribute.options.find(
-                                    (o) => o.id === condition.value,
-                                  )?.label ?? condition.value.toString()
-                                : condition.value.toString())}
+                          : attribute?.type === "date"
+                            ? (() => {
+                                try {
+                                  const val = condition.value;
+                                  const d =
+                                    typeof val === "string"
+                                      ? new Date(val)
+                                      : val instanceof Date
+                                        ? val
+                                        : Array.isArray(val)
+                                          ? null
+                                          : new Date(Number(val));
+                                  if (!d || isNaN(d.getTime()))
+                                    return String(condition.value);
+                                  return formatDateTime(d);
+                                } catch {
+                                  return String(condition.value);
+                                }
+                              })()
+                          : // Non-country value(s)
+                            Array.isArray(condition.value)
+                            ? // Basic array
+                              (attribute?.options
+                                ? (condition.value as string[] | number[]).map(
+                                    (v) =>
+                                      attribute.options?.find(
+                                        (o) => o.id === v,
+                                      )?.label ?? v,
+                                  )
+                                : condition.value
+                              ).join(", ")
+                            : (condition.nestedAttribute ?? condition
+                                  .attribute) === "productId" && condition.label
+                              ? // Product label
+                                condition.label
+                              : attribute?.type === "currency"
+                                ? // Currency value
+                                  currencyFormatter(Number(condition.value))
+                                : // Everything else
+                                  attribute?.options
+                                  ? attribute.options.find(
+                                      (o) => o.id === condition.value,
+                                    )?.label ?? condition.value.toString()
+                                  : condition.value.toString())}
                 </span>
               </li>
             );

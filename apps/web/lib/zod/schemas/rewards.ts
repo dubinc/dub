@@ -20,11 +20,12 @@ export const COMMISSION_TYPES = [
 export type RewardConditionEntityAttribute = {
   id: string;
   label: string;
-  type: "string" | "enum" | "number" | "currency";
+  type: "string" | "enum" | "number" | "currency" | "date";
   options?: {
     id: string;
     label: string;
   }[];
+  nestedAttributes?: RewardConditionEntityAttribute[];
 };
 
 export type RewardConditionEntity = {
@@ -148,9 +149,21 @@ export const REWARD_CONDITIONS: Record<
             ],
           },
           {
-            id: "subscriptionDurationMonths",
-            label: "Subscription duration",
-            type: "number",
+            id: "subscription",
+            label: "Subscription",
+            type: "string",
+            nestedAttributes: [
+              {
+                id: "subscriptionDurationMonths",
+                label: "duration",
+                type: "number",
+              },
+              {
+                id: "subscriptionStartDate",
+                label: "start date",
+                type: "date",
+              },
+            ],
           },
         ],
       },
@@ -188,6 +201,21 @@ export const REWARD_CONDITION_ATTRIBUTES = [
     ),
   ),
 ];
+
+/** All attribute IDs including nested (e.g. subscriptionStartedBefore). Used for schema enum. */
+export const REWARD_CONDITION_ATTRIBUTE_IDS = [
+  ...new Set(
+    Object.values(REWARD_CONDITIONS).flatMap(({ entities }) =>
+      entities.flatMap(({ attributes }) =>
+        attributes.flatMap((a) =>
+          a.nestedAttributes?.length
+            ? a.nestedAttributes.map((n) => n.id)
+            : [a.id],
+        ),
+      ),
+    ),
+  ),
+] as [string, ...string[]];
 
 export const CONDITION_OPERATORS = [
   "equals_to",
@@ -238,6 +266,7 @@ export const rewardConditionSchema = z.object({
   attribute: z.enum(
     REWARD_CONDITION_ATTRIBUTES.map(({ id }) => id) as [string, ...string[]],
   ),
+  nestedAttribute: z.string().optional(),
   operator: z.enum(CONDITION_OPERATORS),
   value: z.union([
     z.string(),
@@ -356,6 +385,12 @@ export const rewardContextSchema = z.object({
       country: z.string().nullish(),
       source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
       subscriptionDurationMonths: z.number().nullish(),
+      subscriptionStartedBefore: z
+        .union([z.string(), z.coerce.date()])
+        .nullish(),
+      subscriptionStartedAfter: z
+        .union([z.string(), z.coerce.date()])
+        .nullish(),
     })
     .optional(),
 
