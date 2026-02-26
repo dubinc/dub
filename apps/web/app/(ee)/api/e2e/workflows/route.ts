@@ -4,7 +4,7 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { assertE2EWorkspace } from "../guard";
 
-// GET /api/e2e/workflows - Find workflow by bountyId, campaignId, or groupId
+// GET /api/e2e/workflows - Find workflow by bountyId, campaignId or groupId
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   assertE2EWorkspace(workspace);
 
