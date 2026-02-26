@@ -120,7 +120,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
         usersLimit: FREE_PLAN.limits.users!,
         paymentFailedAt: null,
-        foldersUsage: 0,
       },
     }),
 
@@ -226,11 +225,10 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
 
   await webhookCache.mset(webhooks);
 
-  if (workspace.foldersUsage > 0) {
-    await deleteWorkspaceFolders({
-      workspaceId: workspace.id,
-    });
-  }
+  await deleteWorkspaceFolders({
+    workspaceId: workspace.id,
+    defaultProgramId: workspace.defaultProgramId,
+  });
 
   // Deactivate the program if the workspace had partner access
   if (workspace.defaultProgramId) {
