@@ -23,10 +23,7 @@ function parsePartnerFilterParams(searchParams: Record<string, string | undefine
 // GET /api/partners/count - get the count of partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const programId = getDefaultProgramIdOrThrow({
-      defaultProgramId: (workspace as { defaultProgramId?: string | null })
-        .defaultProgramId,
-    });
+    const programId = getDefaultProgramIdOrThrow(workspace);
     const filterOverrides = parsePartnerFilterParams(searchParams);
     const parsedParams = partnersCountQuerySchema.parse(searchParams);
 

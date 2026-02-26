@@ -33,10 +33,7 @@ function parsePartnerFilterParams(searchParams: Record<string, string | undefine
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const programId = getDefaultProgramIdOrThrow({
-      defaultProgramId: (workspace as { defaultProgramId?: string | null })
-        .defaultProgramId,
-    }) as string;
+    const programId = getDefaultProgramIdOrThrow(workspace);
     const filterOverrides = parsePartnerFilterParams(searchParams);
     const paramsToParse = {
       ...searchParams,
@@ -139,10 +136,7 @@ export const GET = withWorkspace(
 // POST /api/partners - add a partner for a program
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    const programId = getDefaultProgramIdOrThrow({
-      defaultProgramId: (workspace as { defaultProgramId?: string | null })
-        .defaultProgramId,
-    }) as string;
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { linkProps: link, ...partner } = createPartnerSchema.parse(
       await parseRequestBody(req),
