@@ -228,11 +228,13 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
-      path: `/partners/${partner.id}`,
-      query: ws(),
+    const { data: partnersAfter } = await http.get<EnrolledPartnerProps[]>({
+      path: "/partners",
+      query: ws({ partnerIds: partner.id }),
     });
 
+    expect(partnersAfter.length).toBeGreaterThan(0);
+    const partnerAfter = partnersAfter[0];
     expect(partnerAfter.groupId).toBe(sourceGroup.id);
   });
 
