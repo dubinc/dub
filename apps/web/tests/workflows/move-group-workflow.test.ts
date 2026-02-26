@@ -6,6 +6,7 @@ import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_WORKSPACE_ID } from "../utils/resource";
+import { ensurePartnerLink } from "./utils/ensure-partner-link";
 import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyPartnerGroupMove } from "./utils/verify-partner-group-move";
 
@@ -222,11 +223,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
       });
 
     expect(partnerStatus).toEqual(201);
-    expect(partner.links).toBeDefined();
-    expect(partner.links!.length).toBeGreaterThan(0);
-
-    const partnerLink = partner.links![0];
-
+    const partnerLink = await ensurePartnerLink(http, partner, ws());
     await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -296,11 +293,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
       });
 
     expect(partnerStatus).toEqual(201);
-    expect(partner.links).toBeDefined();
-    expect(partner.links!.length).toBeGreaterThan(0);
-
-    const partnerLink = partner.links![0];
-
+    const partnerLink = await ensurePartnerLink(http, partner, ws());
     await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -373,12 +366,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
         });
 
       expect(partnerStatus).toEqual(201);
-      expect(partner.links).toBeDefined();
-      expect(partner.links!.length).toBeGreaterThan(0);
       expect(partner.groupId).toBe(sourceGroup.id);
-
-      const partnerLink = partner.links![0];
-
+      const partnerLink = await ensurePartnerLink(http, partner, ws());
       await trackE2ELead(http, partnerLink);
 
       await verifyPartnerGroupMove({
@@ -450,11 +439,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
         });
 
       expect(partnerStatus).toEqual(201);
-      expect(partner.links).toBeDefined();
-      expect(partner.links!.length).toBeGreaterThan(0);
-
-      const partnerLink = partner.links![0];
-
+      const partnerLink = await ensurePartnerLink(http, partner, ws());
       await trackE2ELead(http, partnerLink);
 
       await verifyPartnerGroupMove({

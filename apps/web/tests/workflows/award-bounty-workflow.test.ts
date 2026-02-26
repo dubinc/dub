@@ -5,6 +5,7 @@ import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { deleteBountyAndSubmissions } from "./utils/delete-bounty-and-submissions";
+import { ensurePartnerLink } from "./utils/ensure-partner-link";
 import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyBountySubmission } from "./utils/verify-bounty-submission";
 
@@ -75,11 +76,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         });
 
       expect(partnerStatus).toEqual(201);
-      expect(partner.links).toBeDefined();
-      expect(partner.links!.length).toBeGreaterThan(0);
-
-      const partnerLink = partner.links![0];
-
+      const partnerLink = await ensurePartnerLink(http, partner, ws());
       await trackE2ELead(http, partnerLink);
 
       const submission = await verifyBountySubmission({
@@ -141,10 +138,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
       });
 
     expect(partnerStatus).toEqual(201);
-    expect(partner.links).toBeDefined();
-
-    const partnerLink = partner.links![0];
-
+    const partnerLink = await ensurePartnerLink(http, partner, ws());
     await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -220,10 +214,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
       });
 
     expect(partnerStatus).toEqual(201);
-    expect(partner.links).toBeDefined();
-
-    const partnerLink = partner.links![0];
-
+    const partnerLink = await ensurePartnerLink(http, partner, ws());
     await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -283,10 +274,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         });
 
       expect(partnerStatus).toEqual(201);
-      expect(partner.links).toBeDefined();
-
-      const partnerLink = partner.links![0];
-
+      const partnerLink = await ensurePartnerLink(http, partner, ws());
       await trackE2ELead(http, partnerLink);
 
       await verifyBountySubmission({
