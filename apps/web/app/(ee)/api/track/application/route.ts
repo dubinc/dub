@@ -3,24 +3,17 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
+import {
+  APPLICATION_ID_COOKIE,
+  APPLICATION_ID_COOKIE_MAX_AGE,
+} from "@/lib/application-tracker/constants";
 import { recordApplicationEvent } from "@/lib/application-tracker/record-application-event";
+import { trackApplicationInputSchema } from "@/lib/application-tracker/schema";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
-
-const trackApplicationSchema = z.object({
-  eventName: z.enum(["visit", "started", "submitted"]),
-  applicationId: z.string().optional(),
-  referrerUsername: z.string().optional(),
-  programId: z.string().optional(),
-  programSlug: z.string().optional(),
-  source: z.string().optional(),
-});
-
-const DUB_APPLICATION_ID_COOKIE_MAX_AGE = 30 * 24 * 60 * 60;
 
 export const POST = withAxiom(async (req) => {
   try {
@@ -44,7 +37,7 @@ export const POST = withAxiom(async (req) => {
     }
 
     const { eventName, applicationId, referrerUsername, programId, source } =
-      trackApplicationSchema.parse(await parseRequestBody(req));
+      trackApplicationInputSchema.parse(await parseRequestBody(req));
 
     const isVisit = eventName === "visit";
 
@@ -93,7 +86,7 @@ export const POST = withAxiom(async (req) => {
     // If it's a visit event and an application ID is generated, set the cookie
     if (isVisit && resolvedApplicationId) {
       const secure = process.env.NODE_ENV === "production";
-      const cookieHeader = `dub_application_id=${resolvedApplicationId}; Path=/; Max-Age=${DUB_APPLICATION_ID_COOKIE_MAX_AGE}; SameSite=Lax${secure ? "; Secure" : ""}`;
+      const cookieHeader = `${APPLICATION_ID_COOKIE}=${resolvedApplicationId}; Path=/; Max-Age=${APPLICATION_ID_COOKIE_MAX_AGE}; SameSite=Lax${secure ? "; Secure" : ""}`;
 
       responseHeaders.append("Set-Cookie", cookieHeader);
     }
