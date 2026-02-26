@@ -35,6 +35,7 @@ export const resolveFraudGroupAction = authActionClient
         id: true,
         programId: true,
         partnerId: true,
+        type: true,
       },
     });
 
@@ -44,7 +45,7 @@ export const resolveFraudGroupAction = authActionClient
       );
     }
 
-    const count = await resolveFraudGroups({
+    const { resolvedGroupIds } = await resolveFraudGroups({
       where: {
         id: groupId,
       },
@@ -53,13 +54,18 @@ export const resolveFraudGroupAction = authActionClient
     });
 
     // Add the resolution reason as a comment to the partner
-    if (resolutionReason && count > 0) {
+    if (resolutionReason && resolvedGroupIds.includes(fraudGroup.id)) {
       await prisma.partnerComment.create({
         data: {
           programId,
           partnerId: fraudGroup.partnerId,
           userId: user.id,
           text: resolutionReason,
+          metadata: {
+            source: "fraudResolution",
+            groupId: fraudGroup.id,
+            type: fraudGroup.type,
+          },
         },
       });
     }

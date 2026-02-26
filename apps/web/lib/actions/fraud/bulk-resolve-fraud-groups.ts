@@ -38,6 +38,7 @@ export const bulkResolveFraudGroupsAction = authActionClient
         id: true,
         programId: true,
         partnerId: true,
+        type: true,
       },
     });
 
@@ -56,7 +57,7 @@ export const bulkResolveFraudGroupsAction = authActionClient
       );
     }
 
-    const count = await resolveFraudGroups({
+    const { resolvedGroupIds } = await resolveFraudGroups({
       where: {
         id: {
           in: fraudGroups.map(({ id }) => id),
@@ -66,18 +67,44 @@ export const bulkResolveFraudGroupsAction = authActionClient
       ...(resolutionReason && { resolutionReason }),
     });
 
-    // Add the resolution reason as a comment to each unique partner
-    if (resolutionReason && count > 0) {
-      const uniquePartnerIds = Array.from(
-        new Set(fraudGroups.map((group) => group.partnerId)),
+    // Add the resolution reason as a comment for resolved groups only (deduped per partner).
+    if (resolutionReason && resolvedGroupIds.length > 0) {
+      const resolvedGroupsById = new Map(
+        fraudGroups.map((group) => [group.id, group]),
       );
 
+      const resolvedGroups = resolvedGroupIds
+        .map((id) => resolvedGroupsById.get(id))
+        .filter((group): group is (typeof fraudGroups)[number] =>
+          Boolean(group),
+        );
+
+      const uniquePartners = new Map<
+        string,
+        { partnerId: string; groupId: string; type: (typeof fraudGroups)[number]["type"] }
+      >();
+
+      for (const group of resolvedGroups) {
+        if (!uniquePartners.has(group.partnerId)) {
+          uniquePartners.set(group.partnerId, {
+            partnerId: group.partnerId,
+            groupId: group.id,
+            type: group.type,
+          });
+        }
+      }
+
       await prisma.partnerComment.createMany({
-        data: uniquePartnerIds.map((partnerId) => ({
+        data: Array.from(uniquePartners.values()).map((entry) => ({
           programId,
-          partnerId,
+          partnerId: entry.partnerId,
           userId: user.id,
           text: resolutionReason,
+          metadata: {
+            source: "fraudResolution",
+            groupId: entry.groupId,
+            type: entry.type,
+          },
         })),
       });
     }

@@ -1,8 +1,10 @@
 "use client";
 
+import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { createPartnerCommentAction } from "@/lib/actions/partners/create-partner-comment";
 import { deletePartnerCommentAction } from "@/lib/actions/partners/delete-partner-comment";
 import { updatePartnerCommentAction } from "@/lib/actions/partners/update-partner-comment";
+import { parseFraudResolutionComment } from "@/lib/fraud-resolution-comment";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { usePartnerComments } from "@/lib/swr/use-partner-comments";
 import useUser from "@/lib/swr/use-user";
@@ -20,6 +22,7 @@ import {
   Trash,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
+import { useParams, useRouter } from "next/navigation";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
@@ -27,6 +30,41 @@ import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { KeyedMutator } from "swr";
 import { v4 as uuid } from "uuid";
+
+function getFraudResolutionCommentData(
+  comment?: PartnerCommentProps & { delivered?: false },
+) {
+  if (!comment) return { metadata: null, note: "" };
+
+  const metadata = comment.metadata;
+  const legacy = parseFraudResolutionComment(comment.text);
+
+  if (
+    metadata &&
+    typeof metadata === "object" &&
+    "source" in metadata &&
+    metadata.source === "fraudResolution" &&
+    "groupId" in metadata &&
+    typeof metadata.groupId === "string" &&
+    "type" in metadata &&
+    typeof metadata.type === "string"
+  ) {
+    const structuredMetadata = {
+      groupId: metadata.groupId,
+      type: metadata.type as keyof typeof FRAUD_RULES_BY_TYPE,
+    } as const;
+
+    return {
+      metadata: structuredMetadata,
+      note: comment.text,
+    };
+  }
+
+  return {
+    metadata: legacy.metadata,
+    note: legacy.note,
+  };
+}
 
 export function PartnerComments({ partnerId }: { partnerId: string }) {
   const { user } = useUser();
@@ -63,6 +101,7 @@ export function PartnerComments({ partnerId }: { partnerId: string }) {
               image: user.image || null,
             },
             text,
+            metadata: null,
             delivered: false,
           };
 
@@ -140,6 +179,8 @@ function CommentCard({
 }) {
   const { user } = useUser();
   const { id: workspaceId } = useWorkspace();
+  const { slug } = useParams() as { slug?: string };
+  const router = useRouter();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -169,6 +210,11 @@ function CommentCard({
   const [openPopover, setOpenPopover] = useState(false);
 
   const timestamp = comment ? new Date(comment.createdAt) : undefined;
+  const parsedComment = getFraudResolutionCommentData(comment);
+  const fraudMetadata = parsedComment.metadata;
+  const fraudRuleName = fraudMetadata
+    ? FRAUD_RULES_BY_TYPE[fraudMetadata.type]?.name
+    : null;
 
   return (
     <div
@@ -293,7 +339,7 @@ function CommentCard({
             <div className="p-0.5">
               {isEditing ? (
                 <MessageInput
-                  defaultValue={comment.text}
+                  defaultValue={parsedComment.note}
                   onCancel={() => setIsEditing(false)}
                   onSendMessage={(text) => {
                     if (!user) return false;
@@ -354,35 +400,61 @@ function CommentCard({
                   sendButtonText="Save"
                 />
               ) : (
-                <ReactMarkdown
-                  className={cn(
-                    "prose prose-sm text-content-default break-words font-normal",
-                    PROSE_STYLES.condensed,
-                    "prose-a:font-medium prose-a:underline-offset-4",
+                <div className="space-y-3">
+                  {parsedComment.note.length > 0 && (
+                    <ReactMarkdown
+                      className={cn(
+                        "prose prose-sm text-content-default break-words font-normal",
+                        PROSE_STYLES.condensed,
+                        "prose-a:font-medium prose-a:underline-offset-4",
+                      )}
+                      allowedElements={[
+                        "p",
+                        "a",
+                        "code",
+                        "strong",
+                        "em",
+                        "ul",
+                        "ol",
+                        "li",
+                      ]}
+                      components={{
+                        a: ({ node, ...props }) => (
+                          <a
+                            {...props}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                          />
+                        ),
+                      }}
+                      remarkPlugins={[remarkGfm]}
+                    >
+                      {parsedComment.note}
+                    </ReactMarkdown>
                   )}
-                  allowedElements={[
-                    "p",
-                    "a",
-                    "code",
-                    "strong",
-                    "em",
-                    "ul",
-                    "ol",
-                    "li",
-                  ]}
-                  components={{
-                    a: ({ node, ...props }) => (
-                      <a
-                        {...props}
-                        target="_blank"
-                        rel="noopener noreferrer nofollow"
+                  {parsedComment.metadata && fraudRuleName && slug && (
+                    <div className="bg-neutral-50 border-neutral-100 flex items-center justify-between rounded-xl border p-2 pl-3">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="bg-neutral-200 text-neutral-700 rounded-md border px-1.5 py-0.5 text-xs font-semibold">
+                          Resolved
+                        </span>
+                        <span className="text-content-default truncate text-sm font-medium">
+                          {fraudRuleName}
+                        </span>
+                      </div>
+                      <Button
+                        text="View"
+                        variant="secondary"
+                        className="h-7 w-fit px-2.5"
+                        onClick={() =>
+                          router.push(
+                            `/${slug}/program/fraud/resolved?groupId=${encodeURIComponent(parsedComment.metadata.groupId)}`,
+                          )
+                        }
                       />
-                    ),
-                  }}
-                  remarkPlugins={[remarkGfm]}
-                >
-                  {comment?.text}
-                </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           </AnimatedSizeContainer>
