@@ -77,8 +77,6 @@ type SidebarNavData = {
   partnerNetworkEnabled?: boolean;
 };
 
-const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
-
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
   pathname,
