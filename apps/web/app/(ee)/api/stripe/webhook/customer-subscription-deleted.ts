@@ -229,6 +229,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   if (workspace.foldersUsage > 0) {
     await deleteWorkspaceFolders({
       workspaceId: workspace.id,
+      defaultProgramId: workspace.defaultProgramId,
     });
   }
 

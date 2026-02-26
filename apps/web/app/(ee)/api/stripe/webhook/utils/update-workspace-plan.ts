@@ -41,6 +41,9 @@ export async function updateWorkspacePlan({
   const shouldDeleteFolders =
     newPlanName === "free" && workspace.foldersUsage > 0;
 
+  const { canManageProgram, canMessagePartners } =
+    getPlanCapabilities(newPlanName);
+
   // If a workspace upgrades/downgrades their subscription
   // or if the payouts limit increases and the updated price ID is a new business price ID
   // update their usage limit in the database
@@ -100,7 +103,7 @@ export async function updateWorkspacePlan({
         ),
       }),
 
-      // disable/enable program messaging if workspace has a program
+      // if workspace has a program, need to update deactivatedAt and messagingEnabledAt columns based on the plan capabilities
       ...(workspace.defaultProgramId
         ? [
             prisma.program.update({
@@ -108,10 +111,8 @@ export async function updateWorkspacePlan({
                 id: workspace.defaultProgramId,
               },
               data: {
-                messagingEnabledAt: getPlanCapabilities(newPlanName)
-                  .canMessagePartners
-                  ? new Date()
-                  : null,
+                deactivatedAt: canManageProgram ? null : undefined,
+                messagingEnabledAt: canMessagePartners ? new Date() : null,
               },
             }),
           ]
@@ -162,6 +163,7 @@ export async function updateWorkspacePlan({
     if (shouldDeleteFolders) {
       await deleteWorkspaceFolders({
         workspaceId: workspace.id,
+        defaultProgramId: workspace.defaultProgramId,
       });
     }
 
