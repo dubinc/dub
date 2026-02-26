@@ -3,7 +3,7 @@ import { queueFolderDeletion } from "./queue-folder-deletion";
 
 export async function deleteWorkspaceFolders({
   workspaceId,
-  defaultProgramId, // if defaultProgamId is passed, exclude the default folder of the program from deletion
+  defaultProgramId, // if defaultProgramId is passed, exclude the default folder of the program from deletion
 }: {
   workspaceId: string;
   defaultProgramId?: string | null;
@@ -33,6 +33,11 @@ export async function deleteWorkspaceFolders({
       id: true,
     },
   });
+
+  if (folders.length === 0) {
+    console.log(`No folders found to delete for workspace ${workspaceId}`);
+    return;
+  }
 
   return await Promise.all([
     ...folders.map(({ id }) =>
