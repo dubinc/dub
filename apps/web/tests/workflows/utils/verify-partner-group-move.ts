@@ -6,6 +6,7 @@ interface VerifyPartnerGroupMoveProps {
   http: HttpClient;
   partnerId: string;
   expectedGroupId: string;
+  query?: Record<string, string>;
 }
 
 const POLL_INTERVAL_MS = 5000; // 5 seconds
@@ -15,6 +16,7 @@ export const verifyPartnerGroupMove = async ({
   http,
   partnerId,
   expectedGroupId,
+  query = {},
 }: VerifyPartnerGroupMoveProps) => {
   const startTime = Date.now();
   let lastGroupId: string | null = null;
@@ -22,6 +24,7 @@ export const verifyPartnerGroupMove = async ({
   while (Date.now() - startTime < TIMEOUT_MS) {
     const { data: partner } = await http.get<EnrolledPartnerProps>({
       path: `/partners/${partnerId}`,
+      query,
     });
 
     lastGroupId = partner?.groupId ?? null;

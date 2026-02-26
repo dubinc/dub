@@ -1,12 +1,17 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Bounty } from "@dub/prisma/client";
-import { E2E_PARTNER_GROUP } from "tests/utils/resource";
+import { E2E_PARTNER_GROUP, E2E_WORKSPACE_ID } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { deleteBountyAndSubmissions } from "./utils/delete-bounty-and-submissions";
 import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyBountySubmission } from "./utils/verify-bounty-submission";
+
+const ws = (q: Record<string, string> = {}) => ({
+  ...q,
+  workspaceId: E2E_WORKSPACE_ID,
+});
 
 describe.sequential("Workflow - AwardBounty", async () => {
   const h = new IntegrationHarness();
@@ -18,6 +23,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
     async () => {
       const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
         path: "/bounties",
+        query: ws(),
         body: {
           name: "E2E Performance Bounty - Goal Reached",
           description: "Get 2 leads to earn $10",
@@ -41,12 +47,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
         await deleteBountyAndSubmissions({
           http,
           bountyId: bounty.id,
+          query: ws(),
         });
       });
 
       const { status: partnerStatus, data: partner } =
         await http.post<EnrolledPartnerProps>({
           path: "/partners",
+          query: ws(),
           body: {
             name: "E2E Test Partner - Goal",
             email: randomEmail(),
@@ -68,6 +76,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         partnerId: partner.id,
         expectedStatus: "submitted",
         minPerformanceCount: 1,
+        query: ws(),
       });
 
       expect(submission.status).toBe("submitted");
@@ -79,6 +88,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
   test("Workflow doesn't execute when goal not reached", async () => {
     const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
+      query: ws(),
       body: {
         name: "E2E Performance Bounty - Not Reached",
         description: "Get 2 leads to earn $10",
@@ -102,12 +112,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
       await deleteBountyAndSubmissions({
         http,
         bountyId: bounty.id,
+        query: ws(),
       });
     });
 
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
         path: "/partners",
+        query: ws(),
         body: {
           name: "E2E Test Partner - Not Reached",
           email: randomEmail(),
@@ -126,7 +138,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const { data: submissions } = await http.get<any[]>({
       path: `/bounties/${bounty.id}/submissions`,
-      query: { partnerId: partner.id },
+      query: ws({ partnerId: partner.id }),
     });
 
     expect(submissions.length).toBeGreaterThan(0);
@@ -140,6 +152,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
   test("Disabled workflow doesn't execute", async () => {
     const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
+      query: ws(),
       body: {
         name: "E2E Performance Bounty - Disabled",
         description: "Get 2 leads to earn $10",
@@ -163,25 +176,28 @@ describe.sequential("Workflow - AwardBounty", async () => {
       await deleteBountyAndSubmissions({
         http,
         bountyId: bounty.id,
+        query: ws(),
       });
     });
 
     // Find workflow via E2E endpoint and disable it
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: { bountyId: bounty.id },
+      query: ws({ bountyId: bounty.id }),
     });
 
     expect(workflow).not.toBeNull();
 
     await http.patch({
       path: `/e2e/workflows/${workflow.id}`,
+      query: ws(),
       body: { disabledAt: new Date().toISOString() },
     });
 
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
         path: "/partners",
+        query: ws(),
         body: {
           name: "E2E Test Partner - Disabled",
           email: randomEmail(),
@@ -200,7 +216,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const { data: submissions } = await http.get<any[]>({
       path: `/bounties/${bounty.id}/submissions`,
-      query: { partnerId: partner.id },
+      query: ws({ partnerId: partner.id }),
     });
 
     expect(submissions).toHaveLength(0);
@@ -212,6 +228,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
     async () => {
       const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
         path: "/bounties",
+        query: ws(),
         body: {
           name: "E2E Performance Bounty - No Duplicates",
           description: "Get 2 leads to earn $10",
@@ -235,12 +252,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
         await deleteBountyAndSubmissions({
           http,
           bountyId: bounty.id,
+          query: ws(),
         });
       });
 
       const { status: partnerStatus, data: partner } =
         await http.post<EnrolledPartnerProps>({
           path: "/partners",
+          query: ws(),
           body: {
             name: "E2E Test Partner - No Dup",
             email: randomEmail(),
@@ -261,11 +280,12 @@ describe.sequential("Workflow - AwardBounty", async () => {
         partnerId: partner.id,
         expectedStatus: "submitted",
         minPerformanceCount: 1,
+        query: ws(),
       });
 
       const { data: submissions } = await http.get<any[]>({
         path: `/bounties/${bounty.id}/submissions`,
-        query: { partnerId: partner.id },
+        query: ws({ partnerId: partner.id }),
       });
 
       expect(submissions).toHaveLength(1);

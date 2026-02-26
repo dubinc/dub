@@ -7,6 +7,7 @@ interface VerifyBountySubmissionProps {
   partnerId: string;
   expectedStatus?: "draft" | "submitted" | "approved" | "rejected";
   minPerformanceCount?: number;
+  query?: Record<string, string>;
 }
 
 const POLL_INTERVAL_MS = 5000; // 5 seconds
@@ -18,6 +19,7 @@ export const verifyBountySubmission = async ({
   partnerId,
   expectedStatus = "submitted",
   minPerformanceCount,
+  query: extraQuery = {},
 }: VerifyBountySubmissionProps) => {
   const startTime = Date.now();
 
@@ -26,7 +28,7 @@ export const verifyBountySubmission = async ({
   while (Date.now() - startTime < TIMEOUT_MS) {
     const { data: submissions } = await http.get<any[]>({
       path: `/bounties/${bountyId}/submissions`,
-      query: { partnerId },
+      query: { partnerId, ...extraQuery },
     });
 
     const submission = submissions?.[0];
