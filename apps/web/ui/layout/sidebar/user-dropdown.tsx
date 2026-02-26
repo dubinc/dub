@@ -74,10 +74,11 @@ export function UserDropdown() {
       type: "button",
       label: "Log out",
       icon: LogOut,
-      onClick: () =>
+      onClick: () => {
         signOut({
           callbackUrl: "/login",
-        }),
+        });
+      },
     });
 
     return options;

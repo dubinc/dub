@@ -1,11 +1,11 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
+import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
@@ -13,7 +13,6 @@ import {
   ToggleGroup,
   TooltipContent,
   useEnterSubmit,
-  useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -49,7 +48,9 @@ export function OnboardingForm({
   const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
+  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
   const { data: session, update: refreshSession } = useSession();
+  const countryChangeWarning = useCountryChangeWarningModal();
 
   const {
     register,
@@ -70,20 +71,14 @@ export function OnboardingForm({
     },
   });
 
-  const { name, image, country, profileType } = watch();
-
-  const [partnerData] = useLocalStorage<PartnerData | null>(
-    `application-form-partner-data`,
-    null,
-  );
+  const { name, image, profileType } = watch();
 
   useEffect(() => {
     if (session?.user) {
-      !name && setValue("name", partnerData?.name ?? session.user.name ?? "");
+      !name && setValue("name", session.user.name ?? "");
       !image && setValue("image", session.user.image ?? "");
-      !country && setValue("country", partnerData?.country ?? "");
     }
-  }, [session?.user, name, image, country, partnerData]);
+  }, [session?.user, name, image, setValue]);
 
   // refresh the session after the Partner account is created
   useEffect(() => {
@@ -118,6 +113,7 @@ export function OnboardingForm({
       onSubmit={handleSubmit(async (data) => await executeAsync(data))}
       className="flex w-full flex-col gap-6 text-left"
     >
+      {countryChangeWarning.modal}
       <label>
         <span className="text-sm font-medium text-neutral-800">Name</span>
         <input
@@ -180,6 +176,25 @@ export function OnboardingForm({
             <CountryCombobox
               {...field}
               error={errors.country ? true : false}
+              open={isCountryComboboxOpen}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setIsCountryComboboxOpen(false);
+                  return;
+                }
+
+                const shouldShowCountryChangeWarning =
+                  !partner?.payoutsEnabledAt;
+
+                if (shouldShowCountryChangeWarning) {
+                  countryChangeWarning.acknowledgeAndContinue(() => {
+                    setIsCountryComboboxOpen(true);
+                  });
+                  return;
+                }
+
+                setIsCountryComboboxOpen(true);
+              }}
               disabledTooltip={
                 partner?.payoutsEnabledAt ? (
                   <TooltipContent
