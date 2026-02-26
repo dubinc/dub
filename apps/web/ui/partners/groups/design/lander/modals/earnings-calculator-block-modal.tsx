@@ -127,10 +127,10 @@ function EarningsCalculatorBlockModalInner({
                   </div>
                 </div>
 
-                {/* Earnings time toggle */}
+                {/* Billing period toggle */}
                 <div>
                   <label className="text-sm font-medium text-neutral-700">
-                    Earnings time
+                    Billing period
                   </label>
                   <div className="mt-2">
                     <Controller
@@ -141,10 +141,11 @@ function EarningsCalculatorBlockModalInner({
                           options={[
                             { value: "monthly", label: "Monthly" },
                             { value: "yearly", label: "Yearly" },
+                            { value: "one-time", label: "One-time" },
                           ]}
                           selected={field.value ?? "monthly"}
                           selectAction={(value) => field.onChange(value)}
-                          className="grid w-full grid-cols-2 rounded-lg border-none bg-neutral-100 p-0.5"
+                          className="grid w-full grid-cols-3 rounded-lg border-none bg-neutral-100 p-0.5"
                           optionClassName="flex h-9 justify-center"
                           indicatorClassName="rounded-md border-none bg-white shadow-[0px_0px_2px_0px_rgba(0,0,0,0.05),0px_2px_6px_0px_rgba(0,0,0,0.1)]"
                         />

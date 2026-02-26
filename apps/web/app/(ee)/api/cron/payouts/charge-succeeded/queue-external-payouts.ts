@@ -4,7 +4,7 @@ import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, log } from "@dub/utils";
 
 export async function queueExternalPayouts(
   invoice: Pick<
@@ -31,6 +31,7 @@ export async function queueExternalPayouts(
     select: {
       id: true,
       name: true,
+      slug: true,
       logo: true,
       supportEmail: true,
     },
@@ -86,9 +87,11 @@ export async function queueExternalPayouts(
   });
 
   if (webhooks.length === 0) {
-    console.log(
-      `No webhooks found for workspace ${invoice.workspaceId} for invoice ${invoice.id}. Skipping...`,
-    );
+    await log({
+      message: `No payout.confirmed webhook found for workspace ${invoice.workspaceId} (program: ${program.slug}, invoice: ${invoice.id}). Skipping external payouts...`,
+      type: "errors",
+      mention: true,
+    });
     return;
   }
 

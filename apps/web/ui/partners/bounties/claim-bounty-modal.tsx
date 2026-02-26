@@ -179,10 +179,14 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const fileUploading = files.some(({ uploading }) => uploading);
 
   // Get max values from bounty submission requirements, fallback to constants
+  const imageMax = bounty.submissionRequirements?.image?.max;
   const maxFiles =
-    bounty.submissionRequirements?.image?.max ?? BOUNTY_MAX_SUBMISSION_FILES;
+    imageMax ?? BOUNTY_MAX_SUBMISSION_FILES;
+  const urlMax = bounty.submissionRequirements?.url?.max;
   const maxUrls =
-    bounty.submissionRequirements?.url?.max ?? BOUNTY_MAX_SUBMISSION_URLS;
+    urlMax ?? BOUNTY_MAX_SUBMISSION_URLS;
+  const formatRequirementText = (max?: number | null) =>
+    max != null && max > 1 ? ` (1 required, max of ${max})` : " (1 required)";
 
   // Get placeholder URL from domain if available
   const placeholderUrl = (() => {
@@ -474,8 +478,8 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                         <div>
                           <div className="flex items-center space-x-2">
                             <h2 className="text-sm font-medium text-neutral-900">
-                              Files
-                              {imageRequired && " (at least 1 required)"}
+                              Images
+                              {imageRequired && formatRequirementText(imageMax)}
                             </h2>
                           </div>
                           <div
@@ -553,7 +557,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                           <div className="flex items-center justify-between">
                             <h2 className="text-sm font-medium text-neutral-900">
                               URLs
-                              {urlRequired && " (at least 1 required)"}
+                              {urlRequired && formatRequirementText(urlMax)}
                             </h2>
                             <span className="text-xs font-medium text-neutral-500">
                               {
