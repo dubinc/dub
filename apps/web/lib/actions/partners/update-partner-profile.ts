@@ -12,7 +12,6 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Partner, PartnerProfileType } from "@dub/prisma/client";
-import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   COUNTRIES,
@@ -28,10 +27,11 @@ import { authPartnerActionClient } from "../safe-action";
 const usernameSchema = z
   .string()
   .trim()
+  .toLowerCase()
   .min(3, "Username must be at least 3 characters")
   .max(30, "Username must be at most 30 characters")
   .regex(
-    /^[a-zA-Z0-9_]+$/,
+    /^[a-z0-9_]+$/,
     "Username can only contain letters, numbers, and underscores",
   )
   .nullish();
@@ -93,6 +93,24 @@ export const updatePartnerProfileAction = authPartnerActionClient
     let imageUrl: string | null = null;
     let needsEmailVerification = false;
     const emailChanged = newEmail !== undefined && partner.email !== newEmail;
+    const usernameChanged = newUsername && partner.username !== newUsername;
+
+    if (usernameChanged && newUsername) {
+      const usernameExists = await prisma.partner.findUnique({
+        where: {
+          username: newUsername,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (usernameExists && usernameExists.id !== partner.id) {
+        throw new Error(
+          "This username is already taken. Please choose another.",
+        );
+      }
+    }
 
     // Upload the new image
     if (image) {
@@ -115,7 +133,9 @@ export const updatePartnerProfileAction = authPartnerActionClient
           country,
           profileType,
           companyName,
-          ...(newUsername !== undefined && { username: newUsername || null }),
+          ...(newUsername !== undefined && {
+            username: newUsername,
+          }),
           monthlyTraffic,
           ...(industryInterests && {
             industryInterests: {
@@ -211,15 +231,9 @@ export const updatePartnerProfileAction = authPartnerActionClient
     } catch (error) {
       console.error(error);
 
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002" &&
-        (error.meta?.target as string[] | undefined)?.includes("username")
-      ) {
-        throw new Error("This username is already taken. Please choose another.");
-      }
-
-      throw new Error(error instanceof Error ? error.message : "Something went wrong.");
+      throw new Error(
+        error instanceof Error ? error.message : "Something went wrong.",
+      );
     }
   });
 
