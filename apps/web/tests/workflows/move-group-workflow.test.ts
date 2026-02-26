@@ -307,11 +307,13 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
-      path: `/partners/${partner.id}`,
-      query: ws(),
-    });
+    const { status: fetchStatus, data: partnerAfter } =
+      await http.get<EnrolledPartnerProps>({
+        path: `/e2e/partners/${partner.id}`,
+        query: ws(),
+      });
 
+    expect(fetchStatus).toBe(200);
     expect(partnerAfter.groupId).toBe(sourceGroup.id);
   });
 
@@ -458,11 +460,13 @@ describe.sequential("Workflow - MoveGroup", async () => {
         query: ws(),
       });
 
-      const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
-        path: `/partners/${partner.id}`,
-        query: ws(),
-      });
+      const { status: fetchStatus, data: partnerAfter } =
+        await http.get<EnrolledPartnerProps>({
+          path: `/e2e/partners/${partner.id}`,
+          query: ws(),
+        });
 
+      expect(fetchStatus).toBe(200);
       expect(partnerAfter.groupId).toBe(targetGroup.id);
     },
   );
