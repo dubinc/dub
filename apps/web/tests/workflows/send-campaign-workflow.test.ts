@@ -1,10 +1,9 @@
-import { EnrolledPartnerProps } from "@/lib/types";
-import { Campaign } from "@dub/prisma/client";
+import { Campaign, EnrolledPartnerProps } from "@/lib/types";
 import { subHours } from "date-fns";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_USER_ID } from "../utils/resource";
+import { E2E_PARTNER_GROUP, E2E_USER_ID } from "../utils/resource";
 
 describe.sequential("Workflow - SendCampaign", async () => {
   const h = new IntegrationHarness();
@@ -320,6 +319,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
         body: {
           name: "E2E Test Partner - Campaign Send",
           email: randomEmail(),
+          groupId: E2E_PARTNER_GROUP.id,
         },
       });
 
@@ -397,6 +397,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
         body: {
           name: "E2E Test Partner - No Match",
           email: randomEmail(),
+          groupId: E2E_PARTNER_GROUP.id,
         },
       });
 
@@ -475,6 +476,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
         body: {
           name: "E2E Test Partner - No Dup Campaign",
           email: randomEmail(),
+          groupId: E2E_PARTNER_GROUP.id,
         },
       });
 
