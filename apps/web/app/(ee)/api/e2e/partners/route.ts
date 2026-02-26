@@ -29,6 +29,8 @@ export const POST = withWorkspace(
         id: true,
         defaultGroupId: true,
         defaultFolderId: true,
+        domain: true,
+        url: true,
       },
     });
 
@@ -157,7 +159,42 @@ export const POST = withWorkspace(
         });
         links = createdLinks.map((l) => ({ domain: l.domain, key: l.key }));
       } catch {
-        // If link creation fails (e.g. domain config), return partner without links
+        // If link creation fails (e.g. domain config), fall through to fallback
+      }
+    }
+    // Fallback: create a link using program domain/url when group has no default links (e.g. CI)
+    if (links.length === 0 && program.domain && program.url && programWithFolder) {
+      try {
+        const { generatePartnerLink } = await import(
+          "@/lib/api/partners/generate-partner-link"
+        );
+        const { bulkCreateLinks } = await import("@/lib/api/links");
+        const [createdLink] = await bulkCreateLinks({
+          links: [
+            await generatePartnerLink({
+              workspace: { id: ws.id, plan: ws.plan },
+              program: programWithFolder,
+              partner: {
+                id: partner!.id,
+                name: partner!.name ?? "",
+                email: partner!.email ?? "",
+                username: undefined,
+                tenantId: partner!.programs[0]?.tenantId ?? undefined,
+              },
+              link: {
+                domain: program.domain,
+                url: program.url,
+              },
+              userId: session.user.id,
+            }),
+          ],
+          skipRedisCache: true,
+        });
+        if (createdLink) {
+          links = [{ domain: createdLink.domain, key: createdLink.key }];
+        }
+      } catch {
+        // If fallback fails, return partner without links
       }
     }
 
