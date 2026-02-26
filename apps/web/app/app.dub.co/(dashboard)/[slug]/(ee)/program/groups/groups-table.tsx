@@ -6,6 +6,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupExtendedProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { useConfirmSetDefaultGroupModal } from "@/ui/modals/confirm-set-default-group-modal";
 import { useDeleteGroupModal } from "@/ui/modals/delete-group-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -28,6 +29,7 @@ import {
   Dots,
   LinesY,
   PenWriting,
+  Star,
   Tick,
   Trash,
   Users,
@@ -243,6 +245,9 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
     row.original,
   );
 
+  const { openConfirmSetDefaultGroupModal, ConfirmSetDefaultGroupModal } =
+    useConfirmSetDefaultGroupModal();
+
   const permissionsError = clientAccessCheck({
     action: "groups.write",
     role,
@@ -253,66 +258,82 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
   return (
     <>
       <DeleteGroupModal />
+      {ConfirmSetDefaultGroupModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              <MenuItem
-                icon={PenWriting}
-                label="Edit group"
-                variant="default"
-                onSelect={() =>
-                  router.push(
-                    `/${slug}/program/groups/${row.original.slug}/settings`,
-                  )
-                }
-                disabledTooltip={permissionsError || undefined}
-              />
-
-              <MenuItem
-                icon={Users}
-                label="View partners"
-                variant="default"
-                onSelect={() =>
-                  router.push(
-                    `/${slug}/program/partners?groupId=${row.original.id}`,
-                  )
-                }
-              />
-
-              <MenuItem
-                icon={LinesY}
-                label="View analytics"
-                variant="default"
-                onSelect={() =>
-                  router.push(
-                    `/${slug}/program/analytics?groupId=${row.original.id}`,
-                  )
-                }
-              />
-
-              <MenuItem
-                icon={copiedGroupId ? Tick : Copy}
-                label="Copy group ID"
-                variant="default"
-                onSelect={() => {
-                  toast.promise(copyToClipboard(row.original.id), {
-                    success: "Group ID copied!",
-                  });
-                }}
-              />
-
-              {row.original.slug !== DEFAULT_PARTNER_GROUP.slug && (
+            <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <Command.Group className="grid gap-px p-1.5">
                 <MenuItem
-                  icon={Trash}
-                  label="Delete group"
-                  variant="danger"
-                  onSelect={() => setShowDeleteGroupModal(true)}
+                  icon={PenWriting}
+                  label="Edit group"
+                  variant="default"
+                  onSelect={() =>
+                    router.push(
+                      `/${slug}/program/groups/${row.original.slug}/settings`,
+                    )
+                  }
                   disabledTooltip={permissionsError || undefined}
                 />
-              )}
+
+                <MenuItem
+                  icon={Users}
+                  label="View partners"
+                  variant="default"
+                  onSelect={() =>
+                    router.push(
+                      `/${slug}/program/partners?groupId=${row.original.id}`,
+                    )
+                  }
+                />
+
+                <MenuItem
+                  icon={LinesY}
+                  label="View analytics"
+                  variant="default"
+                  onSelect={() =>
+                    router.push(
+                      `/${slug}/program/analytics?groupId=${row.original.id}`,
+                    )
+                  }
+                />
+              </Command.Group>
+              <Command.Separator className="border-t border-neutral-200" />
+              <Command.Group className="grid gap-px p-1.5">
+                <MenuItem
+                  icon={copiedGroupId ? Tick : Copy}
+                  label="Copy group ID"
+                  variant="default"
+                  onSelect={() => {
+                    toast.promise(copyToClipboard(row.original.id), {
+                      success: "Group ID copied!",
+                    });
+                  }}
+                />
+                {row.original.slug !== DEFAULT_PARTNER_GROUP.slug && (
+                  <>
+                    <MenuItem
+                      icon={Star}
+                      label="Set as default"
+                      variant="default"
+                      onSelect={() => {
+                        setIsOpen(false);
+                        openConfirmSetDefaultGroupModal(row.original);
+                      }}
+                      disabledTooltip={permissionsError || undefined}
+                    />
+                    <MenuItem
+                      icon={Trash}
+                      label="Delete group"
+                      variant="danger"
+                      onSelect={() => setShowDeleteGroupModal(true)}
+                      disabledTooltip={permissionsError || undefined}
+                    />
+                  </>
+                )}
+              </Command.Group>
             </Command.List>
           </Command>
         }
