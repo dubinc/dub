@@ -22,10 +22,16 @@ export const verifyPartnerGroupMove = async ({
   let lastGroupId: string | null = null;
 
   while (Date.now() - startTime < TIMEOUT_MS) {
-    const { data: partner } = await http.get<EnrolledPartnerProps>({
-      path: `/partners/${partnerId}`,
+    const { status, data: partner } = await http.get<EnrolledPartnerProps>({
+      path: `/e2e/partners/${partnerId}`,
       query,
     });
+
+    if (status !== 200) {
+      throw new Error(
+        `Failed to fetch partner: status=${status}, partnerId=${partnerId}`,
+      );
+    }
 
     lastGroupId = partner?.groupId ?? null;
 

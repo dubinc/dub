@@ -228,14 +228,14 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const { data: partnersAfter } = await http.get<EnrolledPartnerProps[]>({
-      path: "/partners",
-      query: ws({ partnerIds: partner.id }),
-    });
+    const { status: fetchStatus, data: partnerAfter } =
+      await http.get<EnrolledPartnerProps>({
+        path: `/e2e/partners/${partner.id}`,
+        query: ws(),
+      });
 
-    expect(partnersAfter.length).toBeGreaterThan(0);
-    const partnerAfter = partnersAfter[0];
-    expect(partnerAfter.groupId).toBe(sourceGroup.id);
+    expect(fetchStatus).toBe(200);
+    expect(partnerAfter?.groupId).toBe(sourceGroup.id);
   });
 
   test("Workflow doesn't execute when conditions are not met", async () => {
