@@ -72,7 +72,7 @@ export async function recordApplicationEvent(
   const finalBot = req ? (detectBot(req) ? 1 : 0) : bot ?? 0;
   const finalQr = qr ?? 0;
 
-  await ingestApplicationEvent({
+  const eventData = {
     timestamp: new Date(Date.now()).toISOString(),
     application_id: applicationId,
     event_name: eventName,
@@ -82,5 +82,11 @@ export async function recordApplicationEvent(
     referer: finalReferer,
     bot: finalBot,
     qr: finalQr,
-  });
+  };
+
+  console.log("recordApplicationEvent eventData", eventData);
+
+  const result = await ingestApplicationEvent(eventData);
+
+  console.log("recordApplicationEvent result", result);
 }
