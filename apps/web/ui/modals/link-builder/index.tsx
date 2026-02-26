@@ -7,6 +7,7 @@ import { LinkBuilderDestinationUrlInput } from "@/ui/links/link-builder/controls
 import { LinkBuilderFolderSelector } from "@/ui/links/link-builder/controls/link-builder-folder-selector";
 import { LinkBuilderShortLinkInput } from "@/ui/links/link-builder/controls/link-builder-short-link-input";
 import { LinkCommentsInput } from "@/ui/links/link-builder/controls/link-comments-input";
+import { VideoTimestampInput } from "@/ui/links/link-builder/controls/video-timestamp-input";
 import { ConversionTrackingToggle } from "@/ui/links/link-builder/conversion-tracking-toggle";
 import {
   DraftControls,
@@ -199,6 +200,8 @@ function LinkBuilderInner({
             <div className="scrollbar-hide px-6 md:overflow-auto">
               <div className="flex min-h-full flex-col gap-6 py-4">
                 <LinkBuilderDestinationUrlInput />
+
+                <VideoTimestampInput />
 
                 <LinkBuilderShortLinkInput />
 
