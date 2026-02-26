@@ -89,6 +89,10 @@ export function GroupsTable() {
 
   const isFiltered = !!searchParams.get("search");
 
+  const currentDefaultGroup = groups?.find(
+    (g) => g.slug === DEFAULT_PARTNER_GROUP.slug,
+  );
+
   const { table, ...tableProps } = useTable({
     data: groups
       ? groups.map((group) => {
@@ -156,7 +160,12 @@ export function GroupsTable() {
         id: "menu",
         enableHiding: false,
         header: () => <EditColumnsButton table={table} />,
-        cell: ({ row }) => <RowMenuButton row={row} />,
+        cell: ({ row }) => (
+          <RowMenuButton
+            row={row}
+            currentDefaultGroup={currentDefaultGroup}
+          />
+        ),
       },
     ],
     columnPinning: { right: ["menu"] },
@@ -235,7 +244,13 @@ export function GroupsTable() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
+function RowMenuButton({
+  row,
+  currentDefaultGroup,
+}: {
+  row: Row<GroupExtendedProps>;
+  currentDefaultGroup: GroupExtendedProps | undefined;
+}) {
   const router = useRouter();
   const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
@@ -312,18 +327,22 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
                     });
                   }}
                 />
-                {row.original.slug !== DEFAULT_PARTNER_GROUP.slug && (
-                  <>
-                    <MenuItem
-                      icon={Star}
-                      label="Set as default"
-                      variant="default"
-                      onSelect={() => {
-                        setIsOpen(false);
-                        openConfirmSetDefaultGroupModal(row.original);
-                      }}
-                      disabledTooltip={permissionsError || undefined}
-                    />
+                {currentDefaultGroup &&
+                  row.original.slug !== DEFAULT_PARTNER_GROUP.slug && (
+                    <>
+                      <MenuItem
+                        icon={Star}
+                        label="Set as default"
+                        variant="default"
+                        onSelect={() => {
+                          setIsOpen(false);
+                          openConfirmSetDefaultGroupModal({
+                            currentDefaultGroup,
+                            newDefaultGroup: row.original,
+                          });
+                        }}
+                        disabledTooltip={permissionsError || undefined}
+                      />
                     <MenuItem
                       icon={Trash}
                       label="Delete group"

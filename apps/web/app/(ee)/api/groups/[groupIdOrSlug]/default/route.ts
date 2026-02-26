@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { DEFAULT_PARTNER_GROUP, GroupSchema } from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
-import { randomValue } from "@dub/utils";
+import { nanoid, randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
@@ -43,6 +43,10 @@ export const POST = withWorkspace(
     }
 
     const updatedGroup = await prisma.$transaction(async (tx) => {
+      const DEFAULT_GROUP_NAME_OLD = "Default Group (old)";
+      const isStandardDefaultGroupName =
+        currentDefaultGroup.name.toLowerCase() ===
+        DEFAULT_PARTNER_GROUP.name.toLowerCase();
       // set current default group's slug to a slugified version of its name
       // and assign a random color if it doesn't have one
       await tx.partnerGroup.update({
@@ -53,14 +57,12 @@ export const POST = withWorkspace(
           },
         },
         data: {
-          name:
-            currentDefaultGroup.name === DEFAULT_PARTNER_GROUP.name
-              ? "Default group (old)"
-              : undefined,
-          slug:
-            currentDefaultGroup.name === DEFAULT_PARTNER_GROUP.name
+          name: isStandardDefaultGroupName ? DEFAULT_GROUP_NAME_OLD : undefined,
+          slug: `${
+            isStandardDefaultGroupName
               ? "old-default-group"
-              : slugify(currentDefaultGroup.name),
+              : slugify(currentDefaultGroup.name)
+          }-${nanoid(4)}`,
           color:
             currentDefaultGroup.color === DEFAULT_PARTNER_GROUP.color
               ? randomValue(RESOURCE_COLORS)
@@ -80,6 +82,10 @@ export const POST = withWorkspace(
           id: group.id,
         },
         data: {
+          name:
+            group.name === DEFAULT_GROUP_NAME_OLD
+              ? DEFAULT_PARTNER_GROUP.name
+              : undefined,
           slug: DEFAULT_PARTNER_GROUP.slug,
           color: DEFAULT_PARTNER_GROUP.color,
         },
