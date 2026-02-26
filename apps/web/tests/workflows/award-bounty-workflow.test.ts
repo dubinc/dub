@@ -65,14 +65,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
       const { status: partnerStatus, data: partner } =
         await http.post<EnrolledPartnerProps>({
-          path: "/partners",
+          path: "/e2e/partners",
           query: ws(),
-        body: {
-          name: "E2E Test Partner - Goal",
-          email: randomEmail(),
-          groupId,
-        },
-      });
+          body: {
+            name: "E2E Test Partner - Goal",
+            email: randomEmail(),
+            groupId,
+          },
+        });
 
       expect(partnerStatus).toEqual(201);
       expect(partner.links).toBeDefined();
@@ -131,7 +131,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
-        path: "/partners",
+        path: "/e2e/partners",
         query: ws(),
         body: {
           name: "E2E Test Partner - Not Reached",
@@ -210,7 +210,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
-        path: "/partners",
+        path: "/e2e/partners",
         query: ws(),
         body: {
           name: "E2E Test Partner - Disabled",
@@ -273,14 +273,14 @@ describe.sequential("Workflow - AwardBounty", async () => {
 
       const { status: partnerStatus, data: partner } =
         await http.post<EnrolledPartnerProps>({
-          path: "/partners",
+          path: "/e2e/partners",
           query: ws(),
-        body: {
-          name: "E2E Test Partner - No Dup",
-          email: randomEmail(),
-          groupId,
-        },
-      });
+          body: {
+            name: "E2E Test Partner - No Dup",
+            email: randomEmail(),
+            groupId,
+          },
+        });
 
       expect(partnerStatus).toEqual(201);
       expect(partner.links).toBeDefined();

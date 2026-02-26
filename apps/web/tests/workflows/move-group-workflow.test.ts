@@ -212,7 +212,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
-        path: "/partners",
+        path: "/e2e/partners",
         query: ws(),
         body: {
           name: "E2E Test Partner - Disabled Move",
@@ -286,7 +286,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
-        path: "/partners",
+        path: "/e2e/partners",
         query: ws(),
         body: {
           name: "E2E Test Partner - Not Met",
@@ -363,7 +363,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
       const { status: partnerStatus, data: partner } =
         await http.post<EnrolledPartnerProps>({
-          path: "/partners",
+          path: "/e2e/partners",
           query: ws(),
           body: {
             name: "E2E Test Partner - Move Execution",
@@ -440,7 +440,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
       const { status: partnerStatus, data: partner } =
         await http.post<EnrolledPartnerProps>({
-          path: "/partners",
+          path: "/e2e/partners",
           query: ws(),
           body: {
             name: "E2E Test Partner - No Dup Move",
