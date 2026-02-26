@@ -36,7 +36,7 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const { eventName, applicationId, referrerUsername, programId, source } =
+    const { eventName, applicationId, referrerUsername, programIdOrSlug } =
       trackApplicationInputSchema.parse(await parseRequestBody(req));
 
     const isVisit = eventName === "visit";
@@ -46,6 +46,26 @@ export const POST = withAxiom(async (req) => {
         code: "bad_request",
         message: "applicationId is required for started and submitted events",
       });
+    }
+
+    let programId: string | null = null;
+
+    if (programIdOrSlug) {
+      const program = await prisma.program.findFirst({
+        where: {
+          OR: [
+            {
+              id: programIdOrSlug,
+            },
+            {
+              slug: programIdOrSlug,
+            },
+          ],
+        },
+        select: { id: true },
+      });
+
+      programId = program?.id ?? null;
     }
 
     // Resolve partner ID from referrer username if provided
@@ -76,7 +96,6 @@ export const POST = withAxiom(async (req) => {
         partnerId,
         programId,
         eventName,
-        source,
         req,
       });
     }
