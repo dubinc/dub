@@ -162,7 +162,7 @@ export async function createLink(link: ProcessedLinkProps) {
               ...(partner?.groupId && {
                 groupId: partner.groupId,
               }),
-              programPartnerTags: partner?.tagIds.map((id: string) => ({
+              programPartnerTags: partner?.tagIds?.map((id: string) => ({
                 partnerTag: {
                   id,
                 },
