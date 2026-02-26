@@ -20,6 +20,15 @@ export const POST = withAdmin(async ({ req }) => {
           program: true,
           links: true,
           groupId: true,
+          programPartnerTags: {
+            select: {
+              partnerTag: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -92,7 +101,12 @@ export const POST = withAdmin(async ({ req }) => {
     }
 
     if (partner.programs.length > 0) {
-      for (const { program, links, groupId } of partner.programs) {
+      for (const {
+        program,
+        links,
+        groupId,
+        programPartnerTags,
+      } of partner.programs) {
         if (links.length > 0) {
           await Promise.allSettled([
             prisma.link.deleteMany({
@@ -105,7 +119,7 @@ export const POST = withAdmin(async ({ req }) => {
             recordLink(
               links.map((link) => ({
                 ...link,
-                programEnrollment: { groupId },
+                programEnrollment: { groupId, programPartnerTags },
               })),
               { deleted: true },
             ),

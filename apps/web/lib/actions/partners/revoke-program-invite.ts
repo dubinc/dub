@@ -45,6 +45,11 @@ export const revokeProgramInviteAction = authActionClient
               // so we can just polyfill below
             },
           },
+          programPartnerTags: {
+            include: {
+              partnerTag: true,
+            },
+          },
         },
       });
 
@@ -83,7 +88,10 @@ export const revokeProgramInviteAction = authActionClient
     const deletedPartnerLinksToRecord: ExpandedLink[] = partnerLinks.map(
       (link) => ({
         ...link,
-        programEnrollment: { groupId: programEnrollment.groupId },
+        programEnrollment: {
+          groupId: programEnrollment.groupId,
+          programPartnerTags: programEnrollment.programPartnerTags,
+        },
       }),
     );
 

@@ -89,6 +89,9 @@ model Program {
   sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
   referrals                PartnerReferral[]
 
+  partnerTags        PartnerTag[]
+  programPartnerTags ProgramPartnerTag[]
+
   @@index(workspaceId)
   @@index(addedToMarketplaceAt)
 }
@@ -132,23 +135,24 @@ model ProgramEnrollment {
   bannedAt                     DateTime?
   bannedReason                 PartnerBannedReason?
 
-  partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links             Link[]
-  customers         Customer[]
-  partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
-  application       ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
-  discount          Discount?           @relation(fields: [discountId], references: [id])
-  bountySubmissions BountySubmission[]
-  discountCodes     DiscountCode[]
-  commissions       Commission[]
-  payouts           Payout[]
-  messages          Message[]
-  fraudEventGroups  FraudEventGroup[]
+  partner            Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program            Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links              Link[]
+  customers          Customer[]
+  partnerGroup       PartnerGroup?       @relation(fields: [groupId], references: [id])
+  application        ProgramApplication? @relation(fields: [applicationId], references: [id])
+  clickReward        Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward         Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward         Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  discount           Discount?           @relation(fields: [discountId], references: [id])
+  bountySubmissions  BountySubmission[]
+  discountCodes      DiscountCode[]
+  commissions        Commission[]
+  payouts            Payout[]
+  messages           Message[]
+  fraudEventGroups   FraudEventGroup[]
   referrals         PartnerReferral[]
+  programPartnerTags ProgramPartnerTag[]
 
   // unique constraints
   @@unique([partnerId, programId])
@@ -199,4 +203,33 @@ model ProgramApplication {
   @@index(programId)
   @@index(groupId)
   @@index(email)
+}
+
+model PartnerTag {
+  id        String   @id @default(cuid())
+  programId String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program            Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programPartnerTags ProgramPartnerTag[]
+
+  @@unique([programId, name])
+  @@index(programId)
+}
+
+model ProgramPartnerTag {
+  id           String @id @default(cuid())
+  programId    String
+  partnerId    String
+  partnerTagId String
+
+  program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  partnerTag        PartnerTag        @relation(fields: [partnerTagId], references: [id], onDelete: Cascade)
+  partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerTagId, partnerId])
+  @@index(partnerId)
 }

@@ -31,6 +31,7 @@ import Link from "next/link";
 import { ReactNode } from "react";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
+import { useEditPartnerTagsModal } from "./edit-partner-tags-modal";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import {
   PartnerApplicationFraudBanner,
@@ -41,6 +42,7 @@ import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
+import { PartnerTagsList } from "./partner-tags-list";
 import { ProgramRewardList } from "./program-reward-list";
 import { TrustedPartnerBadge } from "./trusted-partner-badge";
 
@@ -292,6 +294,7 @@ export function PartnerInfoCards({
                 </Wrapper>
               ))}
           </div>
+          {isEnrolled && partner && <TagsList partner={partner} />}
 
           {partner && isEnrolled && showApplicationRiskAnalysis && (
             <PartnerApplicationRiskSummary partner={partner} />
@@ -411,6 +414,38 @@ export function PartnerInfoCards({
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function TagsList({ partner }: { partner: EnrolledPartnerExtendedProps }) {
+  const { EditPartnerTagsModal, setShowEditPartnerTagsModal } =
+    useEditPartnerTagsModal({
+      partners: [partner],
+    });
+
+  return (
+    <div className="border-border-subtle flex flex-col border-t p-4">
+      <EditPartnerTagsModal />
+      <div className="mb-2 flex justify-between gap-2">
+        <span className="text-content-emphasis block text-xs font-semibold">
+          Tags
+        </span>
+
+        <button
+          type="button"
+          onClick={() => setShowEditPartnerTagsModal(true)}
+          className="text-content-subtle hover:text-content-default text-xs font-medium"
+        >
+          Manage
+        </button>
+      </div>
+      <PartnerTagsList
+        tags={partner?.tags}
+        wrap
+        onAddTag={() => setShowEditPartnerTagsModal(true)}
+        mode="link"
+      />
     </div>
   );
 }

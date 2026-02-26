@@ -186,8 +186,17 @@ export async function updateLink({
         // Record link in Tinybird
         recordLink({
           ...response,
-          ...(partner?.groupId && {
-            programEnrollment: { groupId: partner.groupId },
+          ...((partner?.groupId || partner?.tagIds) && {
+            programEnrollment: {
+              ...(partner?.groupId && {
+                groupId: partner.groupId,
+              }),
+              programPartnerTags: partner?.tagIds?.map((id: string) => ({
+                partnerTag: {
+                  id,
+                },
+              })),
+            },
           }),
         }),
 

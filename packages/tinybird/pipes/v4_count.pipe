@@ -57,6 +57,13 @@ SQL >
                 AND arrayIntersect(tag_ids, {{ Array(tagId, 'String') }}) != []
             {% end %}
         {% end %}
+        {% if defined(partnerTagId) %}
+            {% if defined(partnerTagIdOperator) and String(partnerTagIdOperator) == 'NOT IN' %}
+                AND length(arrayFilter(x -> x NOT IN {{ Array(partnerTagId, 'String') }}, partner_tag_ids)) = length(partner_tag_ids)
+            {% else %}
+                AND arrayIntersect(partner_tag_ids, {{ Array(partnerTagId, 'String') }}) != []
+            {% end %}
+        {% end %}
         {% if defined(folderId) %}
             {% if defined(folderIdOperator) and String(folderIdOperator) == 'NOT IN' %}
                 AND folder_id NOT IN {{ Array(folderId, 'String') }}
@@ -95,7 +102,7 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+        {% elif defined(programId) or defined(partnerId) or defined(partnerTagId) or defined(groupId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -241,7 +248,7 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+        {% elif defined(programId) or defined(partnerId) or defined(partnerTagId) or defined(groupId) or defined(
             tenantId
         ) or defined(folderId) or defined(domain) or defined(
             tagId
@@ -444,7 +451,7 @@ SQL >
                     {% else %}
                         AND se.link_id IN {{ Array(linkId, 'String') }}
                     {% end %}
-                {% elif defined(programId) or defined(partnerId) or defined(groupId) or defined(
+                {% elif defined(programId) or defined(partnerId) or defined(partnerTagId) or defined(groupId) or defined(
                     tenantId
                 ) or defined(folderId) or defined(domain) or defined(
                     tagId

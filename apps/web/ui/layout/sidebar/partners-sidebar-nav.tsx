@@ -6,7 +6,7 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { ProgramMarketplaceCard } from "@/ui/partners/program-marketplace/program-marketplace-card";
-import { useRouterStuff } from "@dub/ui";
+import { type Icon, useRouterStuff } from "@dub/ui";
 import {
   Bell,
   CircleDollar,
@@ -194,7 +194,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Links",
-            icon: Hyperlink,
+            icon: Hyperlink as Icon,
             href: `/programs/${programSlug}/links`,
             locked: isUnapproved,
           },
@@ -220,19 +220,19 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             ? [
                 {
                   name: "Analytics",
-                  icon: LinesY,
+                  icon: LinesY as Icon,
                   href: `/programs/${programSlug}/analytics` as `/${string}`,
                   locked: isUnapproved,
                 },
                 {
                   name: "Events",
-                  icon: CursorRays,
+                  icon: CursorRays as Icon,
                   href: `/programs/${programSlug}/events` as `/${string}`,
                   locked: isUnapproved,
                 },
                 {
                   name: "Customers",
-                  icon: User,
+                  icon: User as Icon,
                   href: `/programs/${programSlug}/customers` as `/${string}`,
                   locked: isUnapproved,
                 },

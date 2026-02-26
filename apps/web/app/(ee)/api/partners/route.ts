@@ -11,13 +11,42 @@ import {
   getPartnersQuerySchemaExtended,
   partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
+import { parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+
+function parsePartnerFilterParams(searchParams: Record<string, string | undefined>) {
+  const partnerTagIdParsed = parseFilterValue(searchParams.partnerTagId);
+  const groupIdParsed = parseFilterValue(searchParams.groupId);
+  const countryParsed = parseFilterValue(searchParams.country);
+
+  return {
+    partnerTagId: partnerTagIdParsed?.values,
+    partnerTagIdOperator: partnerTagIdParsed?.sqlOperator,
+    groupId: groupIdParsed?.values?.[0],
+    groupIdOperator: groupIdParsed?.sqlOperator,
+    country: countryParsed?.values?.[0],
+    countryOperator: countryParsed?.sqlOperator,
+  };
+}
 
 // GET /api/partners - get all partners for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const filterOverrides = parsePartnerFilterParams(searchParams);
+    const paramsToParse = {
+      ...searchParams,
+      ...(filterOverrides.partnerTagId && {
+        partnerTagId: filterOverrides.partnerTagId.join(","),
+      }),
+      ...(filterOverrides.groupId !== undefined && {
+        groupId: filterOverrides.groupId ?? undefined,
+      }),
+      ...(filterOverrides.country !== undefined && {
+        country: filterOverrides.country ?? undefined,
+      }),
+    };
     const {
       sortBy: sortByWithOldFields,
       includePartnerPlatforms,
@@ -36,7 +65,7 @@ export const GET = withWorkspace(
           ]),
         ),
       })
-      .parse(searchParams);
+      .parse(paramsToParse);
 
     // get the final sortBy field (replace old fields with new fields)
     const sortBy =
@@ -52,6 +81,12 @@ export const GET = withWorkspace(
     console.time("getPartners");
     const partners = await getPartners({
       ...parsedParams,
+      partnerTagId: filterOverrides.partnerTagId ?? parsedParams.partnerTagId,
+      partnerTagIdOperator: filterOverrides.partnerTagIdOperator,
+      groupId: filterOverrides.groupId ?? parsedParams.groupId,
+      groupIdOperator: filterOverrides.groupIdOperator,
+      country: filterOverrides.country ?? parsedParams.country,
+      countryOperator: filterOverrides.countryOperator,
       sortBy,
       programId,
     });
@@ -108,12 +143,14 @@ export const POST = withWorkspace(
     );
 
     const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
+      workspaceId: (workspace as unknown as { id: string }).id,
       programId,
     });
 
     const enrolledPartner = await createAndEnrollPartner({
-      workspace,
+      workspace: workspace as unknown as Parameters<
+        typeof createAndEnrollPartner
+      >[0]["workspace"],
       program,
       partner,
       link,

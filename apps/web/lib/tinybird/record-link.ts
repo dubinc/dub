@@ -66,7 +66,10 @@ const transformLinkTB = (link: ExpandedLink) => {
     program_id: link.programId ?? "",
     partner_id: link.partnerId ?? "",
     partner_group_id: link.programEnrollment?.groupId ?? "",
-    partner_tag_ids: [],
+    partner_tag_ids:
+      link.programEnrollment?.programPartnerTags?.map(
+        ({ partnerTag }) => partnerTag.id,
+      ) ?? [],
     workspace_id: link.projectId,
     created_at: link.createdAt,
   };

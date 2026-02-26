@@ -4,6 +4,9 @@ import * as z from "zod/v4";
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
   programId: string;
+  partnerTagIdOperator?: "IN" | "NOT IN";
+  groupIdOperator?: "IN" | "NOT IN";
+  countryOperator?: "IN" | "NOT IN";
 };
 
 export async function getPartners(filters: PartnerFilters) {
@@ -20,7 +23,13 @@ export async function getPartners(filters: PartnerFilters) {
     sortOrder,
     programId,
     groupId,
+    partnerTagId,
+    partnerTagIdOperator = "IN",
+    groupIdOperator = "IN",
+    countryOperator = "IN",
   } = filters;
+
+  const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
 
   const partners = await prisma.programEnrollment.findMany({
     where: {
@@ -31,30 +40,63 @@ export async function getPartners(filters: PartnerFilters) {
           in: partnerIds,
         },
       }),
-      status,
-      groupId,
-      ...(country || search || email
-        ? {
-            partner: {
-              country,
-              ...(email
-                ? { email }
-                : search
-                  ? search.includes("@")
-                    ? { email: search }
-                    : {
-                        email: { search: sanitizeFullTextSearch(search) },
-                        name: { search: sanitizeFullTextSearch(search) },
-                        companyName: { search: sanitizeFullTextSearch(search) },
-                      }
-                  : {}),
+      ...((partnerTagId || country || search || email) && {
+        partner: {
+          ...(partnerTagId && {
+            programPartnerTags: {
+              ...(partnerTagIdNotIn
+                ? {
+                    none: {
+                      programId,
+                      partnerTagId: { in: partnerTagId },
+                    },
+                  }
+                : {
+                    some: {
+                      programId,
+                      partnerTagId: { in: partnerTagId },
+                    },
+                  }),
             },
-          }
-        : {}),
+          }),
+          ...(country && {
+            country:
+              countryOperator === "NOT IN"
+                ? { not: country }
+                : country,
+          }),
+          ...(email
+            ? { email }
+            : search
+              ? search.includes("@")
+                ? { email: search }
+                : {
+                    email: { search: sanitizeFullTextSearch(search) },
+                    name: { search: sanitizeFullTextSearch(search) },
+                    companyName: { search: sanitizeFullTextSearch(search) },
+                  }
+              : {}),
+        },
+      }),
+      status,
+      ...(groupId && {
+        groupId:
+          groupIdOperator === "NOT IN"
+            ? { not: groupId }
+            : groupId,
+      }),
     },
     include: {
       partner: {
         include: {
+          programPartnerTags: {
+            where: {
+              programId,
+            },
+            include: {
+              partnerTag: true,
+            },
+          },
           platforms: true,
         },
       },
@@ -72,6 +114,7 @@ export async function getPartners(filters: PartnerFilters) {
     ...programEnrollment,
     id: partner.id,
     createdAt: new Date(programEnrollment.createdAt),
+    tags: partner.programPartnerTags.map(({ partnerTag }) => partnerTag),
     links,
     netRevenue:
       programEnrollment.totalSaleAmount - programEnrollment.totalCommissions,

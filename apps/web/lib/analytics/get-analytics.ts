@@ -1,6 +1,7 @@
+import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
 import { tb } from "@/lib/tinybird";
+import { FolderAccessLevel } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FolderAccessLevel } from "@dub/prisma/client";
 import { linkConstructor, punyEncode } from "@dub/utils";
 import * as z from "zod/v4";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
@@ -103,6 +104,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             "top_link_tags",
             "top_domains",
             "top_partners",
+            "top_partner_tags",
             "top_groups",
           ].includes(groupBy!)
         ? "v4_group_by_link_metadata"
@@ -132,8 +134,9 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
 
   const folderIdFilter = ensureParsedFilter(params.folderId);
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
+  const partnerTagIdFilter = ensureParsedFilter(params.partnerTagId);
 
-  const {
+  let {
     domain: domainParam,
     domainOperator,
     linkId: linkIdParam,
@@ -144,6 +147,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     tagIdOperator,
     partnerId: partnerIdParam,
     partnerIdOperator,
+    partnerTagId: partnerTagIdParam,
+    partnerTagIdOperator,
     groupId: groupIdParam,
     groupIdOperator,
     tenantId: tenantIdParam,
@@ -151,9 +156,33 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   } = extractWorkspaceLinkFilters({
     ...params,
     partnerId: partnerIdFilter,
+    partnerTagId: partnerTagIdFilter,
     linkId: normalizedLinkId,
     folderId: folderIdFilter,
   });
+
+  if (partnerTagIdParam?.length && params.programId && workspaceId) {
+    const isNotIn = partnerTagIdOperator === "NOT IN";
+    const links = await prisma.link.findMany({
+      where: {
+        projectId: workspaceId,
+        programId: params.programId,
+        partnerId: { not: null },
+        programEnrollment: {
+          programPartnerTags: isNotIn
+            ? { none: { partnerTagId: { in: partnerTagIdParam } } }
+            : { some: { partnerTagId: { in: partnerTagIdParam } } },
+        },
+      },
+      select: { id: true },
+    });
+    const resolvedLinkIds = links.map((l) => l.id);
+    const mergedLinkIds = linkIdParam?.length
+      ? resolvedLinkIds.filter((id) => linkIdParam!.includes(id))
+      : resolvedLinkIds;
+    linkIdParam = mergedLinkIds.length > 0 ? mergedLinkIds : ["__no_match__"];
+    linkIdOperator = "IN";
+  }
 
   const tinybirdParams: any = {
     workspaceId,
@@ -161,6 +190,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     programId: params.programId,
     partnerId: partnerIdParam,
     partnerIdOperator,
+    partnerTagId: partnerTagIdParam,
+    partnerTagIdOperator,
     tenantId: tenantIdParam,
     tenantIdOperator,
     groupId: groupIdParam,
@@ -291,6 +322,83 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         });
       })
       .filter((d) => d !== null);
+  } else if (groupBy === "top_partner_tags") {
+    const groupByFields = response.data.map((item) => item.groupByField);
+    const partnerTags = await prisma.partnerTag.findMany({
+      where: {
+        id: { in: groupByFields },
+      },
+      select: {
+        id: true,
+        name: true,
+      },
+    });
+
+    // Fallback: Tinybird may return partner_id (pn_*) instead of partner_tag_id (cuid)
+    // when dub_links_metadata has stale/wrong partner_tag_ids. Resolve via ProgramPartnerTag.
+    const partnerIdFields = groupByFields.filter((id) => id.startsWith("pn_"));
+    const partnerIdToTag =
+      partnerIdFields.length > 0 && params.programId
+        ? await prisma.programPartnerTag
+            .findMany({
+              where: {
+                programId: params.programId,
+                partnerId: { in: partnerIdFields },
+              },
+              select: {
+                partnerId: true,
+                partnerTag: { select: { id: true, name: true } },
+              },
+            })
+            .then((rows) => {
+              const map = new Map<string, { id: string; name: string }>();
+              for (const r of rows) {
+                if (!map.has(r.partnerId)) {
+                  map.set(r.partnerId, r.partnerTag);
+                }
+              }
+              return map;
+            })
+        : new Map<string, { id: string; name: string }>();
+
+    // Resolve each row to partnerTag; aggregate by tag when multiple partners share a tag
+    const byTagId = new Map<
+      string,
+      {
+        partnerTag: { id: string; name: string };
+        clicks: number;
+        leads: number;
+        sales: number;
+        saleAmount: number;
+      }
+    >();
+    for (const item of response.data) {
+      let partnerTag = partnerTags.find((t) => t.id === item.groupByField);
+      if (!partnerTag && item.groupByField.startsWith("pn_")) {
+        partnerTag = partnerIdToTag.get(item.groupByField) ?? undefined;
+      }
+      if (!partnerTag) continue;
+      const existing = byTagId.get(partnerTag.id);
+      const clicks = (item.clicks ?? 0) + (existing?.clicks ?? 0);
+      const leads = (item.leads ?? 0) + (existing?.leads ?? 0);
+      const sales = (item.sales ?? 0) + (existing?.sales ?? 0);
+      const saleAmount = (item.saleAmount ?? 0) + (existing?.saleAmount ?? 0);
+      byTagId.set(partnerTag.id, {
+        partnerTag,
+        clicks,
+        leads,
+        sales,
+        saleAmount,
+      });
+    }
+    return Array.from(byTagId.entries())
+      .map(([partnerTagId, agg]) =>
+        analyticsResponse[groupBy].parse({
+          ...agg,
+          partnerTagId,
+        }),
+      )
+      .sort((a, b) => (b.clicks ?? 0) - (a.clicks ?? 0));
   } else if (groupBy === "top_folders") {
     const folders = await prisma.folder.findMany({
       where: {
@@ -312,7 +420,14 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         return analyticsResponse.top_folders
           .extend({
             folder: analyticsResponse.top_folders.shape.folder.extend({
-              accessLevel: z.enum(FolderAccessLevel).nullish(),
+              accessLevel: z
+                .enum(
+                  Object.keys(FOLDER_WORKSPACE_ACCESS) as [
+                    FolderAccessLevel,
+                    ...FolderAccessLevel[],
+                  ],
+                )
+                .nullish(),
             }),
           })
           .parse({

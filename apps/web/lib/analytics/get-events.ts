@@ -1,6 +1,6 @@
 import { tb } from "@/lib/tinybird";
+import { LinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { Link } from "@dub/prisma/client";
 import { OG_AVATAR_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
@@ -95,6 +95,7 @@ export const getEvents = async (params: EventsFilters) => {
   const allFilters = [...metadataFilters, ...advancedFilters];
 
   const partnerIdFilter = ensureParsedFilter(params.partnerId);
+  const partnerTagIdFilter = ensureParsedFilter(params.partnerTagId);
   const linkIdFilter = ensureParsedFilter(params.linkId);
   const folderIdFilter = ensureParsedFilter(params.folderId);
 
@@ -109,6 +110,8 @@ export const getEvents = async (params: EventsFilters) => {
     folderIdOperator,
     partnerId: partnerIdParam,
     partnerIdOperator,
+    partnerTagId: partnerTagIdParam,
+    partnerTagIdOperator,
     groupId: groupIdParam,
     groupIdOperator,
     tenantId: tenantIdParam,
@@ -116,6 +119,7 @@ export const getEvents = async (params: EventsFilters) => {
   } = extractWorkspaceLinkFilters({
     ...params,
     partnerId: partnerIdFilter,
+    partnerTagId: partnerTagIdFilter,
     linkId: linkIdFilter,
     folderId: folderIdFilter,
   });
@@ -131,6 +135,8 @@ export const getEvents = async (params: EventsFilters) => {
     folderIdOperator,
     partnerId: partnerIdParam,
     partnerIdOperator,
+    partnerTagId: partnerTagIdParam,
+    partnerTagIdOperator,
     tenantId: tenantIdParam,
     tenantIdOperator,
     groupId: groupIdParam,
@@ -261,7 +267,7 @@ const getLinksMap = async (linkIds: string[]) => {
       acc[link.id] = link;
       return acc;
     },
-    {} as Record<string, Link>,
+    {} as Record<string, LinkProps>,
   );
 };
 

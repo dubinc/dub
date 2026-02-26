@@ -37,7 +37,7 @@ const TAB_CONFIG: Record<
     },
     getGroupBy: (subtab): { groupBy: AnalyticsGroupByOptions } => {
       if (subtab === "groups") return { groupBy: "top_groups" };
-      return { groupBy: "top_link_tags" };
+      return { groupBy: "top_partner_tags" };
     },
   },
   links: {
@@ -98,7 +98,7 @@ export function PartnerSection() {
         return d.group?.name || "Unknown";
       }
       if (subtab === "tags") {
-        return d.tag?.name || "Unknown";
+        return d.tag?.name || d.partnerTag?.name || "Unknown";
       }
 
       return "Unknown";
