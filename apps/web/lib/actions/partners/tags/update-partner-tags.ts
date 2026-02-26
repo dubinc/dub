@@ -1,6 +1,5 @@
 "use server";
 
-import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { updatePartnerTagsSchema } from "@/lib/zod/schemas/partner-tags";
@@ -92,7 +91,20 @@ export const updatePartnerTagsAction = authActionClient
           },
           include: {
             ...includeTags,
-            ...includeProgramEnrollment,
+            programEnrollment: {
+              select: {
+                groupId: true,
+                programPartnerTags: {
+                  select: {
+                    partnerTag: {
+                      select: {
+                        id: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
           },
         });
         if (links.length > 0) {

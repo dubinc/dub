@@ -26,7 +26,7 @@ export type ExpandedLink = Link & {
   > | null;
   programEnrollment?:
     | (Pick<ProgramEnrollmentProps, "groupId"> & {
-        programPartnerTags:
+        programPartnerTags?:
           | { partnerTag: Pick<PartnerTagProps, "id"> }[]
           | null;
       })
