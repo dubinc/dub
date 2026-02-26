@@ -30,6 +30,11 @@ async function main() {
   });
 
   for (const program of deactivatedPrograms) {
+    if (program.workspace.users.length === 0) {
+      console.log(`No users found for workspace ${program.workspaceId}`);
+      continue;
+    }
+
     await prisma.folder.upsert({
       where: {
         id: program.defaultFolderId,
