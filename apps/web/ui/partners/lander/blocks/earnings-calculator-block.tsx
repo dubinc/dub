@@ -63,9 +63,11 @@ export function EarningsCalculatorBlock({
               className="text-5xl font-medium leading-[48px] tracking-[-0.96px] text-neutral-800"
               prefix="$"
             />
-            <span className="text-base font-semibold leading-6 tracking-[-0.32px] text-neutral-700">
-              / {isYearly ? "yr" : "mo"}
-            </span>
+            {block.data.billingPeriod !== "one-time" && (
+              <span className="text-base font-semibold leading-6 tracking-[-0.32px] text-neutral-700">
+                / {isYearly ? "year" : "month"}
+              </span>
+            )}
           </div>
         </div>
 
