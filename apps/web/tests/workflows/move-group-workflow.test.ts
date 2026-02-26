@@ -55,7 +55,10 @@ describe.sequential("Workflow - MoveGroup", async () => {
         },
       });
 
-    expect(targetStatus).toEqual(201);
+    expect(
+      targetStatus,
+      `POST /groups failed: ${JSON.stringify(targetGroup)}`,
+    ).toEqual(201);
 
     onTestFinished(async () => {
       await http.delete({ path: `/groups/${targetGroup.id}`, query: ws() });
