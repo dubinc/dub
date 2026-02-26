@@ -5,15 +5,8 @@ import { randomValue } from "@dub/utils";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_WORKSPACE_ID } from "../utils/resource";
-import { ensurePartnerLink } from "./utils/ensure-partner-link";
 import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyPartnerGroupMove } from "./utils/verify-partner-group-move";
-
-const ws = (q: Record<string, string> = {}) => ({
-  ...q,
-  workspaceId: E2E_WORKSPACE_ID,
-});
 
 async function cleanupOrphanedGroup(
   http: any,
@@ -21,7 +14,7 @@ async function cleanupOrphanedGroup(
   allGroups: PartnerGroup[],
 ) {
   const orphan = allGroups.find((g) => g.slug === slug);
-  if (orphan) await http.delete({ path: `/groups/${orphan.id}`, query: ws() });
+  if (orphan) await http.delete({ path: `/groups/${orphan.id}` });
 }
 
 describe.sequential("Workflow - MoveGroup", async () => {
@@ -30,37 +23,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
   const { data: allGroupsForCleanup } = await http.get<PartnerGroup[]>({
     path: "/groups",
-    query: ws(),
   });
-
-  // Clean up all e2e- prefixed groups upfront so orphaned groups from previous
-  await Promise.all(
-    allGroupsForCleanup
-      .filter((g) => g.slug.startsWith("e2e-"))
-      .map((g) => http.delete({ path: `/groups/${g.id}`, query: ws() })),
-  );
-
-  const { status: dbCheckStatus, data: dbCheckGroup } =
-    await http.post<PartnerGroup>({
-      path: "/groups",
-      query: ws(),
-      body: {
-        name: "E2E DB Check",
-        slug: "e2e-db-check",
-        color: randomValue(RESOURCE_COLORS),
-      },
-    });
-
-  if (dbCheckStatus !== 201) {
-    test.todo(
-      "MoveGroup workflow tests skipped: POST /groups returned " +
-        dbCheckStatus +
-        " — database may need schema migration (PartnerTag/ProgramPartnerTag tables).",
-    );
-    return;
-  }
-
-  await http.delete({ path: `/groups/${dbCheckGroup.id}`, query: ws() });
 
   test("Workflow is created when move rules are configured", async () => {
     const slug = "e2e-target-config";
@@ -69,7 +32,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
     const { status: targetStatus, data: targetGroup } =
       await http.post<PartnerGroup>({
         path: "/groups",
-        query: ws(),
         body: {
           name: "E2E Target Group - Config Test",
           slug,
@@ -80,12 +42,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
     expect(targetStatus).toEqual(201);
 
     onTestFinished(async () => {
-      await http.delete({ path: `/groups/${targetGroup.id}`, query: ws() });
+      await http.delete({ path: `/groups/${targetGroup.id}` });
     });
 
     const { status: patchStatus } = await http.patch({
       path: `/groups/${targetGroup.id}`,
-      query: ws(),
       body: {
         moveRules: [
           {
@@ -101,7 +62,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ groupId: targetGroup.id }),
+      query: { groupId: targetGroup.id },
     });
 
     expect(workflow).not.toBeNull();
@@ -126,7 +87,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { status: groupStatus, data: group } = await http.post<PartnerGroup>({
       path: "/groups",
-      query: ws(),
       body: {
         name: "E2E Group - Remove Rules",
         slug,
@@ -137,12 +97,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
     expect(groupStatus).toEqual(201);
 
     onTestFinished(async () => {
-      await http.delete({ path: `/groups/${group.id}`, query: ws() });
+      await http.delete({ path: `/groups/${group.id}` });
     });
 
     const { status: addStatus } = await http.patch({
       path: `/groups/${group.id}`,
-      query: ws(),
       body: {
         moveRules: [
           {
@@ -158,14 +117,13 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ groupId: group.id }),
+      query: { groupId: group.id },
     });
 
     expect(workflow).not.toBeNull();
 
     const { status: removeStatus } = await http.patch({
       path: `/groups/${group.id}`,
-      query: ws(),
       body: {
         moveRules: [],
       },
@@ -175,7 +133,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { data: deletedWorkflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ groupId: group.id }),
+      query: { groupId: group.id },
     });
 
     expect(deletedWorkflow).toBeNull();
@@ -187,7 +145,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",
-      query: ws(),
     });
 
     expect(existingGroups.length).toBeGreaterThan(0);
@@ -196,7 +153,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
     const { status: targetStatus, data: targetGroup } =
       await http.post<PartnerGroup>({
         path: "/groups",
-        query: ws(),
         body: {
           name: "E2E Target Group - Disabled Move",
           slug,
@@ -207,12 +163,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
     expect(targetStatus).toEqual(201);
 
     onTestFinished(async () => {
-      await http.delete({ path: `/groups/${targetGroup.id}`, query: ws() });
+      await http.delete({ path: `/groups/${targetGroup.id}` });
     });
 
     const { status: patchStatus } = await http.patch({
       path: `/groups/${targetGroup.id}`,
-      query: ws(),
       body: {
         moveRules: [
           {
@@ -228,22 +183,20 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ groupId: targetGroup.id }),
+      query: { groupId: targetGroup.id },
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow.disabledAt == null).toBe(true);
+    expect(workflow.disabledAt).toBeNull();
 
     await http.patch({
       path: `/e2e/workflows/${workflow.id}`,
-      query: ws(),
       body: { disabledAt: new Date().toISOString() },
     });
 
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
-        path: "/e2e/partners",
-        query: ws(),
+        path: "/partners",
         body: {
           name: "E2E Test Partner - Disabled Move",
           email: randomEmail(),
@@ -252,19 +205,19 @@ describe.sequential("Workflow - MoveGroup", async () => {
       });
 
     expect(partnerStatus).toEqual(201);
-    const partnerLink = await ensurePartnerLink(http, partner, ws());
+    expect(partner.links).not.toBeNull();
+
+    const partnerLink = partner.links![0];
+
     await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const { status: fetchStatus, data: partnerAfter } =
-      await http.get<EnrolledPartnerProps>({
-        path: `/e2e/partners/${partner.id}`,
-        query: ws(),
-      });
+    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+      path: `/partners/${partner.id}`,
+    });
 
-    expect(fetchStatus).toBe(200);
-    expect(partnerAfter?.groupId).toBe(sourceGroup.id);
+    expect(partnerAfter.groupId).toBe(sourceGroup.id);
   });
 
   test("Workflow doesn't execute when conditions are not met", async () => {
@@ -273,7 +226,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { data: existingGroups } = await http.get<PartnerGroup[]>({
       path: "/groups",
-      query: ws(),
     });
 
     expect(existingGroups.length).toBeGreaterThan(0);
@@ -282,7 +234,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
     const { status: targetStatus, data: targetGroup } =
       await http.post<PartnerGroup>({
         path: "/groups",
-        query: ws(),
         body: {
           name: "E2E Target Group - Not Met",
           slug,
@@ -293,12 +244,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
     expect(targetStatus).toEqual(201);
 
     onTestFinished(async () => {
-      await http.delete({ path: `/groups/${targetGroup.id}`, query: ws() });
+      await http.delete({ path: `/groups/${targetGroup.id}` });
     });
 
     const { status: patchStatus } = await http.patch({
       path: `/groups/${targetGroup.id}`,
-      query: ws(),
       body: {
         moveRules: [
           {
@@ -314,8 +264,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
-        path: "/e2e/partners",
-        query: ws(),
+        path: "/partners",
         body: {
           name: "E2E Test Partner - Not Met",
           email: randomEmail(),
@@ -324,18 +273,18 @@ describe.sequential("Workflow - MoveGroup", async () => {
       });
 
     expect(partnerStatus).toEqual(201);
-    const partnerLink = await ensurePartnerLink(http, partner, ws());
+    expect(partner.links).not.toBeNull();
+
+    const partnerLink = partner.links![0];
+
     await trackE2ELead(http, partnerLink);
 
     await new Promise((resolve) => setTimeout(resolve, 10000));
 
-    const { status: fetchStatus, data: partnerAfter } =
-      await http.get<EnrolledPartnerProps>({
-        path: `/e2e/partners/${partner.id}`,
-        query: ws(),
-      });
+    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+      path: `/partners/${partner.id}`,
+    });
 
-    expect(fetchStatus).toBe(200);
     expect(partnerAfter.groupId).toBe(sourceGroup.id);
   });
 
@@ -348,7 +297,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
       const { data: existingGroups } = await http.get<PartnerGroup[]>({
         path: "/groups",
-        query: ws(),
       });
 
       expect(existingGroups.length).toBeGreaterThan(0);
@@ -357,7 +305,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
       const { status: targetStatus, data: targetGroup } =
         await http.post<PartnerGroup>({
           path: "/groups",
-          query: ws(),
           body: {
             name: "E2E Target Group - Move Execution",
             slug,
@@ -368,12 +315,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
       expect(targetStatus).toEqual(201);
 
       onTestFinished(async () => {
-        await http.delete({ path: `/groups/${targetGroup.id}`, query: ws() });
+        await http.delete({ path: `/groups/${targetGroup.id}` });
       });
 
       const { status: patchStatus } = await http.patch({
         path: `/groups/${targetGroup.id}`,
-        query: ws(),
         body: {
           moveRules: [
             {
@@ -389,8 +335,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
       const { status: partnerStatus, data: partner } =
         await http.post<EnrolledPartnerProps>({
-          path: "/e2e/partners",
-          query: ws(),
+          path: "/partners",
           body: {
             name: "E2E Test Partner - Move Execution",
             email: randomEmail(),
@@ -399,15 +344,17 @@ describe.sequential("Workflow - MoveGroup", async () => {
         });
 
       expect(partnerStatus).toEqual(201);
+      expect(partner.links).not.toBeNull();
       expect(partner.groupId).toBe(sourceGroup.id);
-      const partnerLink = await ensurePartnerLink(http, partner, ws());
+
+      const partnerLink = partner.links![0];
+
       await trackE2ELead(http, partnerLink);
 
       await verifyPartnerGroupMove({
         http,
         partnerId: partner.id,
         expectedGroupId: targetGroup.id,
-        query: ws(),
       });
     },
   );
@@ -421,7 +368,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
       const { data: existingGroups } = await http.get<PartnerGroup[]>({
         path: "/groups",
-        query: ws(),
       });
 
       expect(existingGroups.length).toBeGreaterThan(0);
@@ -430,7 +376,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
       const { status: targetStatus, data: targetGroup } =
         await http.post<PartnerGroup>({
           path: "/groups",
-          query: ws(),
           body: {
             name: "E2E Target Group - No Dup Move",
             slug,
@@ -441,12 +386,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
       expect(targetStatus).toEqual(201);
 
       onTestFinished(async () => {
-        await http.delete({ path: `/groups/${targetGroup.id}`, query: ws() });
+        await http.delete({ path: `/groups/${targetGroup.id}` });
       });
 
       const { status: patchStatus } = await http.patch({
         path: `/groups/${targetGroup.id}`,
-        query: ws(),
         body: {
           moveRules: [
             {
@@ -462,8 +406,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
       const { status: partnerStatus, data: partner } =
         await http.post<EnrolledPartnerProps>({
-          path: "/e2e/partners",
-          query: ws(),
+          path: "/partners",
           body: {
             name: "E2E Test Partner - No Dup Move",
             email: randomEmail(),
@@ -472,23 +415,22 @@ describe.sequential("Workflow - MoveGroup", async () => {
         });
 
       expect(partnerStatus).toEqual(201);
-      const partnerLink = await ensurePartnerLink(http, partner, ws());
+      expect(partner.links).not.toBeNull();
+
+      const partnerLink = partner.links![0];
+
       await trackE2ELead(http, partnerLink);
 
       await verifyPartnerGroupMove({
         http,
         partnerId: partner.id,
         expectedGroupId: targetGroup.id,
-        query: ws(),
       });
 
-      const { status: fetchStatus, data: partnerAfter } =
-        await http.get<EnrolledPartnerProps>({
-          path: `/e2e/partners/${partner.id}`,
-          query: ws(),
-        });
+      const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+        path: `/partners/${partner.id}`,
+      });
 
-      expect(fetchStatus).toBe(200);
       expect(partnerAfter.groupId).toBe(targetGroup.id);
     },
   );
@@ -499,7 +441,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { status: groupStatus, data: group } = await http.post<PartnerGroup>({
       path: "/groups",
-      query: ws(),
       body: {
         name: "E2E Group - Multiple Rules",
         slug,
@@ -510,12 +451,11 @@ describe.sequential("Workflow - MoveGroup", async () => {
     expect(groupStatus).toEqual(201);
 
     onTestFinished(async () => {
-      await http.delete({ path: `/groups/${group.id}`, query: ws() });
+      await http.delete({ path: `/groups/${group.id}` });
     });
 
     const { status: patchStatus } = await http.patch({
       path: `/groups/${group.id}`,
-      query: ws(),
       body: {
         moveRules: [
           {
@@ -536,7 +476,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ groupId: group.id }),
+      query: { groupId: group.id },
     });
 
     expect(workflow).not.toBeNull();

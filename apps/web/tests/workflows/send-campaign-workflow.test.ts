@@ -1,40 +1,20 @@
-import { Campaign, EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps } from "@/lib/types";
+import { Campaign } from "@dub/prisma/client";
 import { subHours } from "date-fns";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import {
-  E2E_PARTNER_GROUP,
-  E2E_USER_ID,
-  E2E_WORKSPACE_ID,
-} from "../utils/resource";
+import { E2E_USER_ID } from "../utils/resource";
 
 describe.sequential("Workflow - SendCampaign", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
-
-  const ws = (q: Record<string, string> = {}) => ({
-    ...q,
-    workspaceId: E2E_WORKSPACE_ID,
-  });
-
-  const getDefaultGroupId = async (): Promise<string> => {
-    const { data: groups } = await http.get<{ id: string }[]>({
-      path: "/groups",
-      query: ws(),
-    });
-    if (!groups?.length) {
-      return E2E_PARTNER_GROUP.id;
-    }
-    return groups[0].id;
-  };
 
   test("Workflow is created when transactional campaign is published", async () => {
     const { status: createStatus, data: campaign } = await http.post<{
       id: string;
     }>({
       path: "/campaigns",
-      query: ws(),
       body: {
         type: "transactional",
       },
@@ -51,7 +31,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { status: updateStatus } = await http.patch<Campaign>({
       path: `/campaigns/${campaignId}`,
-      query: ws(),
       body: {
         name: "E2E Test Campaign",
         subject: "Welcome to our program!",
@@ -82,7 +61,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
     const { status: publishStatus, data: publishedCampaign } =
       await http.patch<Campaign>({
         path: `/campaigns/${campaignId}`,
-        query: ws(),
         body: {
           status: "active",
         },
@@ -93,7 +71,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
@@ -110,7 +88,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
       id: string;
     }>({
       path: "/campaigns",
-      query: ws(),
       body: {
         type: "transactional",
       },
@@ -157,7 +134,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
@@ -169,7 +146,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
       id: string;
     }>({
       path: "/campaigns",
-      query: ws(),
       body: {
         type: "transactional",
       },
@@ -185,7 +161,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     await http.patch({
       path: `/campaigns/${campaignId}`,
-      query: ws(),
       body: {
         name: "E2E Cron Campaign",
         subject: "Welcome!",
@@ -209,14 +184,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
 
     const { status, data } = await http.post<{ message: string }>({
       path: `/e2e/trigger-workflow/${workflow.id}`,
-      query: ws(),
     });
 
     expect(status).toEqual(200);
@@ -228,7 +202,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
       id: string;
     }>({
       path: "/campaigns",
-      query: ws(),
       body: {
         type: "transactional",
       },
@@ -244,7 +217,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     await http.patch({
       path: `/campaigns/${campaignId}`,
-      query: ws(),
       body: {
         name: "E2E Disabled Cron Campaign",
         subject: "Should not be sent",
@@ -268,7 +240,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
@@ -276,13 +248,11 @@ describe.sequential("Workflow - SendCampaign", async () => {
     // Disable workflow via E2E endpoint
     await http.patch({
       path: `/e2e/workflows/${workflow.id}`,
-      query: ws(),
       body: { disabledAt: new Date().toISOString() },
     });
 
     const { status, data } = await http.post<{ message: string }>({
       path: `/e2e/trigger-workflow/${workflow.id}`,
-      query: ws(),
     });
 
     expect(status).toEqual(200);
@@ -290,7 +260,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: emailsSent } = await http.get<any[]>({
       path: "/e2e/notification-emails",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(emailsSent).toHaveLength(0);
@@ -301,7 +271,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
       id: string;
     }>({
       path: "/campaigns",
-      query: ws(),
       body: {
         type: "transactional",
       },
@@ -317,7 +286,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     await http.patch({
       path: `/campaigns/${campaignId}`,
-      query: ws(),
       body: {
         name: "E2E Send Campaign",
         subject: "Welcome partner!",
@@ -341,20 +309,17 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
 
-    const groupId = await getDefaultGroupId();
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
-        path: "/e2e/partners",
-        query: ws(),
+        path: "/partners",
         body: {
           name: "E2E Test Partner - Campaign Send",
           email: randomEmail(),
-          groupId,
         },
       });
 
@@ -363,7 +328,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
     // Backdate the enrollment to 18h ago so it falls in the cron window
     await http.patch({
       path: "/e2e/enrollments",
-      query: ws(),
       body: {
         partnerId: partner.id,
         createdAt: subHours(new Date(), 18).toISOString(),
@@ -372,7 +336,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { status, data } = await http.post<{ message: string }>({
       path: `/e2e/trigger-workflow/${workflow.id}`,
-      query: ws(),
     });
 
     expect(status).toEqual(200);
@@ -384,7 +347,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
       id: string;
     }>({
       path: "/campaigns",
-      query: ws(),
       body: {
         type: "transactional",
       },
@@ -400,7 +362,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     await http.patch({
       path: `/campaigns/${campaignId}`,
-      query: ws(),
       body: {
         name: "E2E No Match Campaign",
         subject: "Should not be sent",
@@ -424,21 +385,18 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
 
-    const groupId = await getDefaultGroupId();
     // Create a partner enrolled just now — doesn't match the 12-24h window
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
-        path: "/e2e/partners",
-        query: ws(),
+        path: "/partners",
         body: {
           name: "E2E Test Partner - No Match",
           email: randomEmail(),
-          groupId,
         },
       });
 
@@ -446,7 +404,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { status, data: triggerData } = await http.post<{ message: string }>({
       path: `/e2e/trigger-workflow/${workflow.id}`,
-      query: ws(),
     });
 
     expect(status).toEqual(200);
@@ -454,7 +411,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: emailsSent } = await http.get<any[]>({
       path: "/e2e/notification-emails",
-      query: ws({ campaignId, partnerId: partner.id }),
+      query: { campaignId, partnerId: partner.id },
     });
 
     expect(emailsSent).toHaveLength(0);
@@ -465,7 +422,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
       id: string;
     }>({
       path: "/campaigns",
-      query: ws(),
       body: {
         type: "transactional",
       },
@@ -478,14 +434,13 @@ describe.sequential("Workflow - SendCampaign", async () => {
     onTestFinished(async () => {
       await http.delete({
         path: "/e2e/notification-emails",
-        query: ws({ campaignId }),
+        query: { campaignId },
       });
       await h.deleteCampaign(campaignId);
     });
 
     await http.patch({
       path: `/campaigns/${campaignId}`,
-      query: ws(),
       body: {
         name: "E2E No Dup Campaign",
         subject: "No duplicates!",
@@ -509,20 +464,17 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
 
-    const groupId = await getDefaultGroupId();
     const { status: partnerStatus, data: partner } =
       await http.post<EnrolledPartnerProps>({
-        path: "/e2e/partners",
-        query: ws(),
+        path: "/partners",
         body: {
           name: "E2E Test Partner - No Dup Campaign",
           email: randomEmail(),
-          groupId,
         },
       });
 
@@ -531,7 +483,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
     // Backdate enrollment to match the cron window
     await http.patch({
       path: "/e2e/enrollments",
-      query: ws(),
       body: {
         partnerId: partner.id,
         createdAt: subHours(new Date(), 18).toISOString(),
@@ -541,7 +492,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
     // Pre-insert a notification email to simulate a previous send
     const { data: existingEmail } = await http.post<any>({
       path: "/e2e/notification-emails",
-      query: ws(),
       body: {
         campaignId,
         partnerId: partner.id,
@@ -554,7 +504,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
     // Trigger the workflow — should skip this partner (already sent)
     const { status, data: triggerData } = await http.post<{ message: string }>({
       path: `/e2e/trigger-workflow/${workflow.id}`,
-      query: ws(),
     });
 
     expect(status).toEqual(200);
@@ -563,7 +512,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
     // Verify still only 1 notification email (no duplicate)
     const { data: emails } = await http.get<any[]>({
       path: "/e2e/notification-emails",
-      query: ws({ campaignId, partnerId: partner.id }),
+      query: { campaignId, partnerId: partner.id },
     });
 
     expect(emails).toHaveLength(1);
@@ -575,7 +524,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
       id: string;
     }>({
       path: "/campaigns",
-      query: ws(),
       body: {
         type: "transactional",
       },
@@ -591,7 +539,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     await http.patch({
       path: `/campaigns/${campaignId}`,
-      query: ws(),
       body: {
         name: "E2E Campaign Config Test",
         subject: "Test",
@@ -615,7 +562,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: workflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(workflow).not.toBeNull();
@@ -625,7 +572,6 @@ describe.sequential("Workflow - SendCampaign", async () => {
     const { status: pauseStatus, data: pausedCampaign } =
       await http.patch<Campaign>({
         path: `/campaigns/${campaignId}`,
-        query: ws(),
         body: {
           status: "paused",
         },
@@ -636,7 +582,7 @@ describe.sequential("Workflow - SendCampaign", async () => {
 
     const { data: pausedWorkflow } = await http.get<any>({
       path: "/e2e/workflows",
-      query: ws({ campaignId }),
+      query: { campaignId },
     });
 
     expect(pausedWorkflow.disabledAt).not.toBeNull();
