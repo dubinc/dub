@@ -20,6 +20,7 @@ model Partner {
   id          String             @id @default(cuid())
   name        String
   companyName String?
+  username    String?            @unique
   profileType PartnerProfileType @default(individual)
   email       String?            @unique
   image       String?

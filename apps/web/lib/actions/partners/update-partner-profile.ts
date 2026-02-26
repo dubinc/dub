@@ -12,6 +12,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Partner, PartnerProfileType } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   COUNTRIES,
@@ -24,10 +25,22 @@ import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/misc";
 import { authPartnerActionClient } from "../safe-action";
 
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username must be at least 3 characters")
+  .max(30, "Username must be at most 30 characters")
+  .regex(
+    /^[a-zA-Z0-9_]+$/,
+    "Username can only contain letters, numbers, and underscores",
+  )
+  .nullish();
+
 const updatePartnerProfileSchema = z
   .object({
     name: z.string().optional(),
     email: z.email().optional(),
+    username: usernameSchema,
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
@@ -54,6 +67,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
     const {
       name,
       email: newEmail,
+      username: newUsername,
       image,
       description,
       country,
@@ -101,6 +115,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
           country,
           profileType,
           companyName,
+          ...(newUsername !== undefined && { username: newUsername || null }),
           monthlyTraffic,
           ...(industryInterests && {
             industryInterests: {
@@ -196,7 +211,15 @@ export const updatePartnerProfileAction = authPartnerActionClient
     } catch (error) {
       console.error(error);
 
-      throw new Error(error.message);
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002" &&
+        (error.meta?.target as string[] | undefined)?.includes("username")
+      ) {
+        throw new Error("This username is already taken. Please choose another.");
+      }
+
+      throw new Error(error instanceof Error ? error.message : "Something went wrong.");
     }
   });
 
