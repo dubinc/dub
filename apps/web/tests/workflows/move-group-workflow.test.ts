@@ -33,6 +33,13 @@ describe.sequential("Workflow - MoveGroup", async () => {
     query: ws(),
   });
 
+  // Clean up all e2e- prefixed groups upfront so orphaned groups from previous
+  await Promise.all(
+    allGroupsForCleanup
+      .filter((g) => g.slug.startsWith("e2e-"))
+      .map((g) => http.delete({ path: `/groups/${g.id}`, query: ws() })),
+  );
+
   test("Workflow is created when move rules are configured", async () => {
     const slug = "e2e-target-config";
     await cleanupOrphanedGroup(http, slug, allGroupsForCleanup);
