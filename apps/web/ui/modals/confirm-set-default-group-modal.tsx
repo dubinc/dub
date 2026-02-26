@@ -6,6 +6,7 @@ import useGroup from "@/lib/swr/use-group";
 import { GroupExtendedProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { Button, Modal } from "@dub/ui";
 import { ArrowRight } from "lucide-react";
 import { useCallback, useState } from "react";
@@ -81,10 +82,9 @@ function ConfirmSetDefaultGroupModal({
                 </span>
               </div>
             </div>
-            <p className="text-content-subtle relative mt-3 text-center text-xs">
-              The current default group will become a regular group. The new
-              default will use the &quot;default&quot; slug.
-            </p>
+            <MarkdownDescription className="text-content-subtle relative mt-3 text-center text-xs">
+              {`This will set **"${newGroup.name}"** as the new default group and update your [public landing page](https://dub.co/help/article/program-landing-page) and [application form](https://dub.co/help/article/program-application-form).`}
+            </MarkdownDescription>
           </div>
         </div>
 
@@ -114,11 +114,17 @@ function ConfirmSetDefaultGroupModal({
 export function useConfirmSetDefaultGroupModal() {
   const [newGroup, setNewGroup] = useState<GroupForModal | null>(null);
 
-  const openConfirmSetDefaultGroupModal = useCallback((group: GroupForModal) => {
-    setNewGroup(group);
-  }, []);
+  const openConfirmSetDefaultGroupModal = useCallback(
+    (group: GroupForModal) => {
+      setNewGroup(group);
+    },
+    [],
+  );
 
-  const closeConfirmSetDefaultGroupModal = useCallback(() => setNewGroup(null), []);
+  const closeConfirmSetDefaultGroupModal = useCallback(
+    () => setNewGroup(null),
+    [],
+  );
 
   return {
     openConfirmSetDefaultGroupModal,
