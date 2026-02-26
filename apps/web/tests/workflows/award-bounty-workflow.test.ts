@@ -17,10 +17,22 @@ describe.sequential("Workflow - AwardBounty", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
+  const getDefaultGroupId = async (): Promise<string> => {
+    const { data: groups } = await http.get<{ id: string }[]>({
+      path: "/groups",
+      query: ws(),
+    });
+    if (!groups?.length) {
+      return E2E_PARTNER_GROUP.id;
+    }
+    return groups[0].id;
+  };
+
   test(
     "Workflow executes when partner reaches goal",
     { timeout: 90000 },
     async () => {
+      const groupId = await getDefaultGroupId();
       const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
         path: "/bounties",
         query: ws(),
@@ -32,7 +44,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           endsAt: null,
           rewardAmount: 1000,
           performanceScope: "new",
-          groupIds: [E2E_PARTNER_GROUP.id],
+          groupIds: [groupId],
           performanceCondition: {
             attribute: "totalLeads",
             operator: "gte",
@@ -55,15 +67,15 @@ describe.sequential("Workflow - AwardBounty", async () => {
         await http.post<EnrolledPartnerProps>({
           path: "/partners",
           query: ws(),
-          body: {
-            name: "E2E Test Partner - Goal",
-            email: randomEmail(),
-            groupId: E2E_PARTNER_GROUP.id,
-          },
-        });
+        body: {
+          name: "E2E Test Partner - Goal",
+          email: randomEmail(),
+          groupId,
+        },
+      });
 
       expect(partnerStatus).toEqual(201);
-      expect(partner.links).not.toBeNull();
+      expect(partner.links).toBeDefined();
       expect(partner.links!.length).toBeGreaterThan(0);
 
       const partnerLink = partner.links![0];
@@ -86,6 +98,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
   );
 
   test("Workflow doesn't execute when goal not reached", async () => {
+    const groupId = await getDefaultGroupId();
     const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
       query: ws(),
@@ -97,7 +110,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         endsAt: null,
         rewardAmount: 1000,
         performanceScope: "new",
-        groupIds: [E2E_PARTNER_GROUP.id],
+        groupIds: [groupId],
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
@@ -123,12 +136,12 @@ describe.sequential("Workflow - AwardBounty", async () => {
         body: {
           name: "E2E Test Partner - Not Reached",
           email: randomEmail(),
-          groupId: E2E_PARTNER_GROUP.id,
+          groupId,
         },
       });
 
     expect(partnerStatus).toEqual(201);
-    expect(partner.links).not.toBeNull();
+    expect(partner.links).toBeDefined();
 
     const partnerLink = partner.links![0];
 
@@ -150,6 +163,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
   });
 
   test("Disabled workflow doesn't execute", async () => {
+    const groupId = await getDefaultGroupId();
     const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
       query: ws(),
@@ -161,7 +175,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         endsAt: null,
         rewardAmount: 1000,
         performanceScope: "new",
-        groupIds: [E2E_PARTNER_GROUP.id],
+        groupIds: [groupId],
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
@@ -201,12 +215,12 @@ describe.sequential("Workflow - AwardBounty", async () => {
         body: {
           name: "E2E Test Partner - Disabled",
           email: randomEmail(),
-          groupId: E2E_PARTNER_GROUP.id,
+          groupId,
         },
       });
 
     expect(partnerStatus).toEqual(201);
-    expect(partner.links).not.toBeNull();
+    expect(partner.links).toBeDefined();
 
     const partnerLink = partner.links![0];
 
@@ -226,6 +240,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
     "No duplicate execution on multiple triggers",
     { timeout: 90000 },
     async () => {
+      const groupId = await getDefaultGroupId();
       const { status: bountyStatus, data: bounty } = await http.post<Bounty>({
         path: "/bounties",
         query: ws(),
@@ -237,7 +252,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           endsAt: null,
           rewardAmount: 1000,
           performanceScope: "new",
-          groupIds: [E2E_PARTNER_GROUP.id],
+          groupIds: [groupId],
           performanceCondition: {
             attribute: "totalLeads",
             operator: "gte",
@@ -260,15 +275,15 @@ describe.sequential("Workflow - AwardBounty", async () => {
         await http.post<EnrolledPartnerProps>({
           path: "/partners",
           query: ws(),
-          body: {
-            name: "E2E Test Partner - No Dup",
-            email: randomEmail(),
-            groupId: E2E_PARTNER_GROUP.id,
-          },
-        });
+        body: {
+          name: "E2E Test Partner - No Dup",
+          email: randomEmail(),
+          groupId,
+        },
+      });
 
       expect(partnerStatus).toEqual(201);
-      expect(partner.links).not.toBeNull();
+      expect(partner.links).toBeDefined();
 
       const partnerLink = partner.links![0];
 

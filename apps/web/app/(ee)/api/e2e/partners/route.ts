@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -6,9 +7,9 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { assertE2EWorkspace } from "../guard";
 
-// POST /api/e2e/partners - Create a partner for E2E testing (minimal setup, no links)
+// POST /api/e2e/partners - Create a partner for E2E testing (minimal setup, optionally with default links)
 export const POST = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     assertE2EWorkspace(workspace);
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -24,7 +25,11 @@ export const POST = withWorkspace(
 
     const program = await prisma.program.findUniqueOrThrow({
       where: { id: programId },
-      select: { id: true, defaultGroupId: true },
+      select: {
+        id: true,
+        defaultGroupId: true,
+        defaultFolderId: true,
+      },
     });
 
     const finalGroupId = groupId || program.defaultGroupId;
@@ -38,7 +43,7 @@ export const POST = withWorkspace(
     const group = await getGroupOrThrow({
       programId,
       groupId: finalGroupId,
-      includeExpandedFields: false,
+      includeExpandedFields: true,
     });
 
     const existingEnrollment = await prisma.programEnrollment.findFirst({
@@ -46,7 +51,7 @@ export const POST = withWorkspace(
         programId,
         partner: { email },
       },
-      include: { partner: true },
+      include: { partner: true, links: true },
     });
 
     if (existingEnrollment) {
@@ -54,7 +59,7 @@ export const POST = withWorkspace(
         ...existingEnrollment.partner,
         ...existingEnrollment,
         id: existingEnrollment.partner.id,
-        links: [],
+        links: existingEnrollment.links ?? [],
       };
       return NextResponse.json(enrolledPartner, { status: 201 });
     }
@@ -118,11 +123,49 @@ export const POST = withWorkspace(
         { status: 500 },
       );
     }
+
+    let links: { domain: string; key: string }[] = [];
+    const ws = workspace as {
+      id: string;
+      plan: "free" | "pro" | "business" | "advanced" | "enterprise";
+    };
+    const programWithFolder = program.defaultFolderId
+      ? { id: program.id, defaultFolderId: program.defaultFolderId }
+      : null;
+    if (
+      programWithFolder &&
+      group.partnerGroupDefaultLinks &&
+      group.partnerGroupDefaultLinks.length > 0
+    ) {
+      try {
+        const enrollmentData = partner!.programs[0];
+        const createdLinks = await createPartnerDefaultLinks({
+          workspace: { id: ws.id, plan: ws.plan },
+          program: programWithFolder,
+          partner: {
+            id: partner!.id,
+            name: partner!.name ?? "",
+            email: partner!.email ?? "",
+            username: undefined,
+            tenantId: enrollmentData?.tenantId ?? undefined,
+          },
+          group: {
+            defaultLinks: group.partnerGroupDefaultLinks,
+            utmTemplate: group.utmTemplate ?? null,
+          },
+          userId: session.user.id,
+        });
+        links = createdLinks.map((l) => ({ domain: l.domain, key: l.key }));
+      } catch {
+        // If link creation fails (e.g. domain config), return partner without links
+      }
+    }
+
     const enrolledPartner = {
       ...partner,
       ...enrollment,
       id: partner!.id,
-      links: [],
+      links,
     };
 
     return NextResponse.json(enrolledPartner, { status: 201 });

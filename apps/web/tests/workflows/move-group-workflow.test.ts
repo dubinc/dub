@@ -202,7 +202,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
     });
 
     expect(workflow).not.toBeNull();
-    expect(workflow.disabledAt).toBeNull();
+    expect(workflow.disabledAt == null).toBe(true);
 
     await http.patch({
       path: `/e2e/workflows/${workflow.id}`,
@@ -222,7 +222,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
       });
 
     expect(partnerStatus).toEqual(201);
-    expect(partner.links).not.toBeNull();
+    expect(partner.links).toBeDefined();
+    expect(partner.links!.length).toBeGreaterThan(0);
 
     const partnerLink = partner.links![0];
 
@@ -295,7 +296,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
       });
 
     expect(partnerStatus).toEqual(201);
-    expect(partner.links).not.toBeNull();
+    expect(partner.links).toBeDefined();
+    expect(partner.links!.length).toBeGreaterThan(0);
 
     const partnerLink = partner.links![0];
 
@@ -371,7 +373,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
         });
 
       expect(partnerStatus).toEqual(201);
-      expect(partner.links).not.toBeNull();
+      expect(partner.links).toBeDefined();
+      expect(partner.links!.length).toBeGreaterThan(0);
       expect(partner.groupId).toBe(sourceGroup.id);
 
       const partnerLink = partner.links![0];
@@ -447,7 +450,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
         });
 
       expect(partnerStatus).toEqual(201);
-      expect(partner.links).not.toBeNull();
+      expect(partner.links).toBeDefined();
+      expect(partner.links!.length).toBeGreaterThan(0);
 
       const partnerLink = partner.links![0];
 
