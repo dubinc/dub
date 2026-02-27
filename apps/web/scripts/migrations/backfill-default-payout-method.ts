@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Partner } from "@dub/prisma/client";
+import { Partner, PartnerPayoutMethod } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
 const BATCH_SIZE = 500;
@@ -55,7 +55,7 @@ async function main() {
               defaultPayoutMethod: null,
             },
             data: {
-              defaultPayoutMethod: "connect",
+              defaultPayoutMethod: PartnerPayoutMethod.connect,
             },
           })
         : Promise.resolve({ count: 0 });
@@ -70,7 +70,7 @@ async function main() {
               defaultPayoutMethod: null,
             },
             data: {
-              defaultPayoutMethod: "paypal",
+              defaultPayoutMethod: PartnerPayoutMethod.paypal,
             },
           })
         : Promise.resolve({ count: 0 });

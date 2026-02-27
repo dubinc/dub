@@ -1,5 +1,6 @@
 "use client";
 
+import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { Badge, Button, CircleDollar3, Modal } from "@dub/ui";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
@@ -50,19 +51,12 @@ function StablecoinPayoutModal({
             Stablecoin payouts are here!
           </h3>
 
-          <p className="text-sm leading-5 text-neutral-600">
-            You can now connect your crypto wallet for payouts. With Stablecoin,
-            you can get paid USDC worldwide in seconds, instead of waiting days
-            with a bank account.{" "}
-            <a
-              href="https://dub.co/help/article/receiving-payouts"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2"
-            >
-              Learn more
-            </a>
-          </p>
+          <MarkdownDescription className="text-sm leading-5 text-neutral-600">
+            You can now connect your crypto wallet for payouts. With [stablecoin
+            payouts](https://dub.co/help/article/receiving-payouts), you can get
+            paid USDC worldwide in seconds, instead of waiting days with a bank
+            account.
+          </MarkdownDescription>
 
           <div className="mt-4">
             <Button
