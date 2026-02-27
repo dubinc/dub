@@ -116,6 +116,76 @@ describe.concurrent("Sale rewards with conditions", async () => {
     });
   });
 
+  test("when {Customer} {Signup Date} is {greater than} {Jan 1, 2020}", async () => {
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: E2E_TRACK_CLICK_HEADERS,
+      body: {
+        domain: "getacme.link",
+        key: "marvin",
+      },
+    });
+    expect(clickResponse.status).toEqual(200);
+    const trackedClickId = clickResponse.data.clickId;
+    const newCustomer = randomCustomer();
+    const sale = randomSale("E2E customer signup date condition");
+
+    const trackSaleResponse = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...sale,
+        clickId: trackedClickId,
+        customerExternalId: newCustomer.externalId,
+        customerName: newCustomer.name,
+        customerEmail: newCustomer.email,
+        customerAvatar: newCustomer.avatar,
+      },
+    });
+
+    expect(trackSaleResponse.status).toEqual(200);
+
+    await verifyCommission({
+      http,
+      invoiceId: sale.invoiceId,
+      expectedEarnings: E2E_SALE_REWARD.modifiers[4].amountInCents!,
+    });
+  });
+
+  test("when {Customer} {Subscription Start Date} is {greater than} {Jan 1, 2020}", async () => {
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: E2E_TRACK_CLICK_HEADERS,
+      body: {
+        domain: "getacme.link",
+        key: "marvin",
+      },
+    });
+    expect(clickResponse.status).toEqual(200);
+    const trackedClickId = clickResponse.data.clickId;
+    const newCustomer = randomCustomer();
+    const sale = randomSale("E2E customer subscription start date condition");
+
+    const trackSaleResponse = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...sale,
+        clickId: trackedClickId,
+        customerExternalId: newCustomer.externalId,
+        customerName: newCustomer.name,
+        customerEmail: newCustomer.email,
+        customerAvatar: newCustomer.avatar,
+      },
+    });
+
+    expect(trackSaleResponse.status).toEqual(200);
+
+    await verifyCommission({
+      http,
+      invoiceId: sale.invoiceId,
+      expectedEarnings: E2E_SALE_REWARD.modifiers[5].amountInCents!,
+    });
+  });
+
   test("when {Customer} {Subscription Duration} is {less than or equal to} {3}", async () => {
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",
