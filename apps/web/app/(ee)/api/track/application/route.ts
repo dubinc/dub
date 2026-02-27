@@ -7,10 +7,10 @@ import { recordApplicationEvent } from "@/lib/application-tracker/record-applica
 import { trackApplicationInputSchema } from "@/lib/application-tracker/schema";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
-import { addDays } from "date-fns";
+import { addMonths } from "date-fns";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -78,20 +78,29 @@ export const POST = withAxiom(async (req) => {
       const cookieStore = await cookies();
 
       cookieStore.set(APPLICATION_ID_COOKIE, applicationId, {
-        expires: addDays(new Date(), 7),
+        expires: addMonths(new Date(), 1), // 30 days
         path: `/${program.slug}`,
       });
     }
 
-    const partnerId = "";
-
-    await recordApplicationEvent({
-      applicationId,
-      programId: program.id,
-      partnerId,
-      eventName,
-      req,
+    // Dedupe the events
+    const redisKey = `applicationEvent:${applicationId}:${eventName}`;
+    const isFirstTime = await redis.set(redisKey, "1", {
+      nx: true,
+      ex: 30 * 24 * 60 * 60, // 30 days
     });
+
+    console.log({ isFirstTime, redisKey });
+
+    if (isFirstTime) {
+      await recordApplicationEvent({
+        applicationId,
+        programId: program.id,
+        partnerId: "",
+        eventName,
+        req,
+      });
+    }
 
     return NextResponse.json(
       { applicationId },
