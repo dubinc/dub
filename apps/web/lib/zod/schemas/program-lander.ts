@@ -67,7 +67,7 @@ export const programLanderEarningsCalculatorBlockSchema =
     type: z.literal("earnings-calculator"),
     data: z.object({
       productPrice: z.number().describe("Average product price in cents"),
-      billingPeriod: z.enum(["monthly", "yearly"]).optional(),
+      billingPeriod: z.enum(["monthly", "yearly", "one-time"]).optional(),
     }),
   });
 

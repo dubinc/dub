@@ -43,14 +43,9 @@ export function getPayoutEligibilityFilter({
     case "external":
       return {
         ...commonWhere,
-        partner: {
-          programs: {
-            some: {
-              programId: program.id,
-              tenantId: {
-                not: null,
-              },
-            },
+        programEnrollment: {
+          tenantId: {
+            not: null,
           },
         },
       };
@@ -59,26 +54,22 @@ export function getPayoutEligibilityFilter({
     case "hybrid":
       return {
         ...commonWhere,
-        partner: {
-          OR: [
-            {
+        OR: [
+          {
+            partner: {
               payoutsEnabledAt: {
                 not: null,
               },
             },
-            {
-              payoutsEnabledAt: null,
-              programs: {
-                some: {
-                  programId: program.id,
-                  tenantId: {
-                    not: null,
-                  },
-                },
+          },
+          {
+            programEnrollment: {
+              tenantId: {
+                not: null,
               },
             },
-          ],
-        },
+          },
+        ],
       };
 
     default:

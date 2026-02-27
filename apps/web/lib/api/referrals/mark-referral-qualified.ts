@@ -27,6 +27,10 @@ export const markReferralQualified = async ({
     orderBy: {
       partnerGroupDefaultLinkId: "asc",
     },
+    take: 1,
+    include: {
+      partner: true,
+    },
   });
 
   if (links.length === 0) {
@@ -38,9 +42,14 @@ export const markReferralQualified = async ({
 
   const partnerLink = links[0];
 
-  // Record a fake click
+  // Record a fake click (use the partner's country if available)
   const clickEvent = await recordFakeClick({
     link: pick(partnerLink, ["id", "url", "domain", "key", "projectId"]),
+    ...(partnerLink.partner?.country && {
+      customer: {
+        country: partnerLink.partner.country,
+      },
+    }),
   });
 
   // Track the qualified lead
@@ -48,6 +57,8 @@ export const markReferralQualified = async ({
     clickId: clickEvent.click_id,
     eventName: "Qualified Lead",
     customerExternalId: externalId || referral.email,
+    customerName: referral.name,
+    customerEmail: referral.email,
     mode: "wait",
     rawBody: {},
     workspace: pick(workspace, ["id", "stripeConnectId", "webhookEnabled"]),
