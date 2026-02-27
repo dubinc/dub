@@ -2,30 +2,31 @@ import { prisma } from "@dub/prisma";
 import { Partner } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 500;
 
 async function main() {
-  let cursor: string | undefined;
-
   while (true) {
     const partners = await prisma.partner.findMany({
+      where: {
+        defaultPayoutMethod: null,
+        OR: [
+          {
+            stripeConnectId: {
+              not: null,
+            },
+          },
+          {
+            paypalEmail: {
+              not: null,
+            },
+          },
+        ],
+      },
       select: {
         id: true,
         stripeConnectId: true,
-        stripeRecipientId: true,
         paypalEmail: true,
       },
-      orderBy: {
-        id: "asc",
-      },
-      ...(cursor
-        ? {
-            skip: 1,
-            cursor: {
-              id: cursor,
-            },
-          }
-        : {}),
       take: BATCH_SIZE,
     });
 
@@ -33,14 +34,11 @@ async function main() {
       break;
     }
 
-    const stablecoinPartners: Pick<Partner, "id" | "stripeRecipientId">[] = [];
     const connectPartners: Pick<Partner, "id" | "stripeConnectId">[] = [];
     const paypalPartners: Pick<Partner, "id" | "paypalEmail">[] = [];
 
     for (const partner of partners) {
-      if (partner.stripeRecipientId) {
-        stablecoinPartners.push(partner);
-      } else if (partner.stripeConnectId) {
+      if (partner.stripeConnectId) {
         connectPartners.push(partner);
       } else if (partner.paypalEmail) {
         paypalPartners.push(partner);
@@ -48,21 +46,6 @@ async function main() {
     }
 
     const promise1 =
-      stablecoinPartners.length > 0
-        ? prisma.partner.updateMany({
-            where: {
-              id: {
-                in: stablecoinPartners.map((partner) => partner.id),
-              },
-              defaultPayoutMethod: null,
-            },
-            data: {
-              defaultPayoutMethod: "stablecoin",
-            },
-          })
-        : Promise.resolve({ count: 0 });
-
-    const promise2 =
       connectPartners.length > 0
         ? prisma.partner.updateMany({
             where: {
@@ -77,7 +60,7 @@ async function main() {
           })
         : Promise.resolve({ count: 0 });
 
-    const promise3 =
+    const promise2 =
       paypalPartners.length > 0
         ? prisma.partner.updateMany({
             where: {
@@ -92,17 +75,11 @@ async function main() {
           })
         : Promise.resolve({ count: 0 });
 
-    const [stablecoinRes, connectRes, paypalRes] = await Promise.all([
-      promise1,
-      promise2,
-      promise3,
-    ]);
+    const [connectRes, paypalRes] = await Promise.all([promise1, promise2]);
 
     console.log(
-      `Updated ${stablecoinRes.count} stablecoin partners, ${connectRes.count} connect partners, and ${paypalRes.count} paypal partners`,
+      `Updated ${connectRes.count} connect partners and ${paypalRes.count} paypal partners`,
     );
-
-    cursor = partners[partners.length - 1].id;
   }
 }
 
