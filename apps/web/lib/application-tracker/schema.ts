@@ -2,9 +2,9 @@ import * as z from "zod/v4";
 
 export const trackApplicationInputSchema = z.object({
   eventName: z.enum(["visit", "start", "submit"]),
-  applicationId: z.string().optional(),
-  referrerUsername: z.string().optional(),
-  programIdOrSlug: z.string().optional(),
+  pathname: z.string(),
+  applicationId: z.string().nullish(),
+  referrerUsername: z.string().nullish(),
 });
 
 export type TrackApplicationInput = z.infer<typeof trackApplicationInputSchema>;

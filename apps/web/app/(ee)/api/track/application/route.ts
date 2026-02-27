@@ -2,10 +2,7 @@ import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
-import {
-  APPLICATION_ID_COOKIE,
-  APPLICATION_ID_COOKIE_MAX_AGE,
-} from "@/lib/application-tracker/constants";
+import { APPLICATION_ID_COOKIE } from "@/lib/application-tracker/constants";
 import { recordApplicationEvent } from "@/lib/application-tracker/record-application-event";
 import { trackApplicationInputSchema } from "@/lib/application-tracker/schema";
 import { withAxiom } from "@/lib/axiom/server";
@@ -13,8 +10,15 @@ import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { addDays } from "date-fns";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+function extractProgramFromPathname(pathname: string) {
+  return pathname.split("/").filter(Boolean)[0]?.toLowerCase() ?? null;
+}
+
+// POST /api/track/application – Track an application event
 export const POST = withAxiom(async (req) => {
   try {
     if (detectBot(req)) {
@@ -36,83 +40,62 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const { eventName, applicationId, referrerUsername, programIdOrSlug } =
+    let { eventName, pathname, applicationId, referrerUsername } =
       trackApplicationInputSchema.parse(await parseRequestBody(req));
 
-    const isVisit = eventName === "visit";
+    // Extract the program slug from pathname
+    const programSlug = extractProgramFromPathname(pathname);
 
-    if (!isVisit && !applicationId) {
+    if (!programSlug) {
       throw new DubApiError({
         code: "bad_request",
-        message: "applicationId is required for start and submit events",
+        message: "Couldn't extract program slug from pathname.",
       });
     }
 
-    let programId: string | null = null;
+    // Find the program
+    const program = await prisma.program.findUnique({
+      where: {
+        slug: programSlug,
+      },
+      select: {
+        id: true,
+        slug: true,
+      },
+    });
 
-    if (programIdOrSlug) {
-      const program = await prisma.program.findFirst({
-        where: {
-          OR: [
-            {
-              id: programIdOrSlug,
-            },
-            {
-              slug: programIdOrSlug,
-            },
-          ],
-        },
-        select: { id: true },
-      });
-
-      programId = program?.id ?? null;
-    }
-
-    // Resolve partner ID from referrer username if provided
-    let resolvedApplicationId = applicationId ?? null;
-    let partnerId: string | null = null;
-
-    if (referrerUsername) {
-      const partner = await prisma.partner.findUnique({
-        where: {
-          username: referrerUsername,
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      partnerId = partner?.id ?? null;
-    }
-
-    // If it's a visit event and no application ID is provided, generate a new one
-    if (isVisit && !resolvedApplicationId) {
-      resolvedApplicationId = nanoid(14);
-    }
-
-    if (resolvedApplicationId) {
-      await recordApplicationEvent({
-        applicationId: resolvedApplicationId,
-        partnerId,
-        programId,
-        eventName,
-        req,
+    if (!program) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Program not found.",
       });
     }
 
-    const responseHeaders = new Headers(COMMON_CORS_HEADERS);
+    // Set or create cookie
+    if (!applicationId) {
+      applicationId = nanoid(16);
 
-    // If it's a visit event and an application ID is generated, set the cookie
-    if (isVisit && resolvedApplicationId) {
-      const secure = process.env.NODE_ENV === "production";
-      const cookieHeader = `${APPLICATION_ID_COOKIE}=${resolvedApplicationId}; Path=/; Max-Age=${APPLICATION_ID_COOKIE_MAX_AGE}; SameSite=Lax${secure ? "; Secure" : ""}`;
+      const cookieStore = await cookies();
 
-      responseHeaders.append("Set-Cookie", cookieHeader);
+      cookieStore.set(APPLICATION_ID_COOKIE, applicationId, {
+        expires: addDays(new Date(), 7),
+        path: `/${program.slug}`,
+      });
     }
+
+    const partnerId = "";
+
+    await recordApplicationEvent({
+      applicationId,
+      programId: program.id,
+      partnerId,
+      eventName,
+      req,
+    });
 
     return NextResponse.json(
-      { applicationId: resolvedApplicationId },
-      { status: 202, headers: responseHeaders },
+      { applicationId },
+      { status: 202, headers: COMMON_CORS_HEADERS },
     );
   } catch (error) {
     return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);

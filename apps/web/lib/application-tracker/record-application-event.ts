@@ -189,7 +189,7 @@ export async function recordApplicationEvent({
   try {
     await ingestApplicationEvent(eventData);
 
-    console.log("Application event ingested successfully", eventData);
+    // console.log("Application event ingested successfully", eventData);
   } catch (error) {
     console.error("Failed to ingest application event", error);
   }

@@ -1,6 +1,5 @@
 "use client";
 
-import { ApplicationTrackingProvider } from "@/lib/application-tracker/application-tracking-provider";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import {
@@ -30,17 +29,15 @@ export default function RegisterPageClient({
   const searchEmailResult = emailSchema.safeParse(searchParams.get("email"));
 
   return (
-    <ApplicationTrackingProvider programIdOrSlug={program?.id}>
-      <RegisterProvider
-        email={
-          (searchEmailResult.success ? searchEmailResult.data : undefined) ??
-          email
-        }
-        lockEmail={searchEmailResult.success || lockEmail}
-      >
-        <RegisterFlow program={program} />
-      </RegisterProvider>
-    </ApplicationTrackingProvider>
+    <RegisterProvider
+      email={
+        (searchEmailResult.success ? searchEmailResult.data : undefined) ??
+        email
+      }
+      lockEmail={searchEmailResult.success || lockEmail}
+    >
+      <RegisterFlow program={program} />
+    </RegisterProvider>
   );
 }
 
