@@ -7,7 +7,6 @@ import { useEffect } from "react";
 
 interface TrackEventParams {
   eventName: TrackApplicationEventName;
-  pathname: string;
 }
 
 function getCookie(name: string) {
@@ -19,8 +18,9 @@ function getCookie(name: string) {
   );
 }
 
-async function trackEvent({ eventName, pathname }: TrackEventParams) {
+export async function trackApplicationEvent({ eventName }: TrackEventParams) {
   const applicationId = getCookie(APPLICATION_ID_COOKIE);
+  const pathname = window.location.pathname;
 
   const payload = {
     eventName,
@@ -37,9 +37,11 @@ async function trackEvent({ eventName, pathname }: TrackEventParams) {
   const result = await response.json();
 
   if (!response.ok) {
-    console.error(result.error.message);
+    console.error(`[trackApplicationEvent] ${result.error.message}`);
     return;
   }
+
+  console.debug(`[trackApplicationEvent] ${result}`);
 
   return result;
 }
@@ -48,9 +50,8 @@ export function useApplicationTracking() {
   const pathname = usePathname();
 
   useEffect(() => {
-    trackEvent({
+    trackApplicationEvent({
       eventName: "visit",
-      pathname,
     });
   }, [pathname]);
 }
