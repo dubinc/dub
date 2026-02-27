@@ -3,10 +3,11 @@ import { NewBackground } from "@/ui/shared/new-background";
 import { prismaEdge } from "@dub/prisma/edge";
 import { BlurImage, Wordmark } from "@dub/ui";
 import { constructMetadata, createHref, isDubDomain } from "@dub/utils";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import PasswordForm from "./form";
+import { getLanguage, getTranslations } from "./translations";
 
 export const dynamic = "force-dynamic";
 export const runtime = "edge";
@@ -59,6 +60,13 @@ export default async function PasswordProtectedLinkPage(props: {
   params: Promise<{ linkId: string }>;
 }) {
   const params = await props.params;
+
+  // Detect language from Accept-Language header
+  const headersList = await headers();
+  const acceptLanguage = headersList.get("accept-language");
+  const language = getLanguage(acceptLanguage);
+  const t = getTranslations(language);
+
   const link = await prismaEdge.link.findUnique({
     where: {
       id: params.linkId,
@@ -110,12 +118,12 @@ export default async function PasswordProtectedLinkPage(props: {
                 <Lock className="size-4 text-neutral-600" />
               </div>
             )}
-            <h3 className="mt-1 text-lg font-semibold">Password required</h3>
+            <h3 className="mt-1 text-lg font-semibold">{t.passwordRequired}</h3>
             <p className="w-full max-w-xs text-pretty text-sm text-neutral-500">
-              {description}
+              {t.description}
             </p>
           </div>
-          <PasswordForm />
+          <PasswordForm language={language} />
         </div>
         <Link
           href={createHref("/links", link.domain, {
@@ -127,7 +135,7 @@ export default async function PasswordProtectedLinkPage(props: {
           target="_blank"
           className="mt-4 block text-sm font-medium text-neutral-600 underline transition-colors duration-75 hover:text-neutral-800"
         >
-          What is Dub?
+          {t.whatIsDub}
         </Link>
       </main>
     </>

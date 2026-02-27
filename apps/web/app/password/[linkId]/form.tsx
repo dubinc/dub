@@ -6,16 +6,18 @@ import { useParams } from "next/navigation";
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { verifyPassword } from "./action";
+import { getTranslations, Language } from "./translations";
 
 const initialState = {
   error: null,
 };
 
-export default function PasswordForm() {
+export default function PasswordForm({ language }: { language: Language }) {
   const { linkId } = useParams() as {
     linkId: string;
   };
   const [state, formAction] = useActionState(verifyPassword, initialState);
+  const t = getTranslations(language);
 
   const { isMobile } = useMediaQuery();
 
@@ -27,7 +29,7 @@ export default function PasswordForm() {
     >
       <div>
         <label htmlFor="password" className="block text-sm text-neutral-800">
-          Password
+          {t.passwordLabel}
         </label>
         <div className="relative mt-1 rounded-md shadow-sm">
           <input type="hidden" name="linkId" value={linkId} />
@@ -54,17 +56,17 @@ export default function PasswordForm() {
         </div>
         {state.error && (
           <p className="mt-2 text-sm text-red-600" id="slug-error">
-            Incorrect password
+            {t.incorrectPassword}
           </p>
         )}
       </div>
 
-      <FormButton />
+      <FormButton text={t.viewPage} />
     </form>
   );
 }
 
-const FormButton = () => {
+const FormButton = ({ text }: { text: string }) => {
   const { pending } = useFormStatus();
-  return <Button text="View page" loading={pending} />;
+  return <Button text={text} loading={pending} />;
 };
