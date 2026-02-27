@@ -28,7 +28,7 @@ export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
       paypalEmail: true,
       payoutsEnabledAt: true,
       defaultPayoutMethod: true,
-      payoutWalletAddress: true,
+      cryptoWalletAddress: true,
     },
   });
 
@@ -54,7 +54,7 @@ export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
     data: {
       payoutsEnabledAt,
       defaultPayoutMethod,
-      payoutWalletAddress: cryptoWalletAddress,
+      cryptoWalletAddress: cryptoWalletAddress,
     },
   });
 
@@ -67,7 +67,7 @@ export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
   if (
     partner.email &&
     cryptoWalletAddress &&
-    cryptoWalletAddress !== partner.payoutWalletAddress
+    cryptoWalletAddress !== partner.cryptoWalletAddress
   ) {
     await sendEmail({
       variant: "notifications",
@@ -86,7 +86,7 @@ export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
 
   if (cryptoWalletAddress) {
     await detectDuplicatePayoutMethodFraud({
-      payoutWalletAddress: cryptoWalletAddress,
+      cryptoWalletAddress: cryptoWalletAddress,
     });
   }
 

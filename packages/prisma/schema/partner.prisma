@@ -33,14 +33,14 @@ model Partner {
   country     String?
 
   // payout fields
+  defaultPayoutMethod          PartnerPayoutMethod?
+  payoutsEnabledAt             DateTime?
+  connectPayoutsLastRemindedAt DateTime?
   paypalEmail                  String?              @unique
   stripeConnectId              String?              @unique
   stripeRecipientId            String?              @unique
-  payoutsEnabledAt             DateTime?
   payoutMethodHash             String?
-  payoutWalletAddress          String?
-  connectPayoutsLastRemindedAt DateTime?
-  defaultPayoutMethod          PartnerPayoutMethod?
+  cryptoWalletAddress          String?
 
   // timestamp fields
   createdAt      DateTime  @default(now())
