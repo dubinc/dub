@@ -45,6 +45,13 @@ export type CreatePartnerCommissionProps = {
   skipWorkflow?: boolean;
 };
 
+interface FirstCommission
+  extends Pick<Commission, "rewardId" | "status" | "createdAt"> {
+  customer: {
+    createdAt: Date;
+  } | null;
+}
+
 const constructWebhookPartner = (
   programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
   { totalCommissions }: { totalCommissions: number } = { totalCommissions: 0 },
@@ -91,10 +98,7 @@ export const createPartnerCommission = async ({
     },
   });
 
-  let firstCommission: Pick<
-    Commission,
-    "rewardId" | "status" | "createdAt"
-  > | null = null;
+  let firstCommission: FirstCommission | null = null;
 
   if (event === "custom") {
     earnings = amount;
@@ -114,13 +118,21 @@ export const createPartnerCommission = async ({
           rewardId: true,
           status: true,
           createdAt: true,
+          customer: {
+            select: {
+              createdAt: true,
+            },
+          },
         },
       });
 
-      const subscriptionDurationMonths = firstCommission
+      const signupDate = firstCommission?.customer?.createdAt;
+      const subscriptionStartDate = firstCommission?.createdAt;
+
+      const subscriptionDurationMonths = subscriptionStartDate
         ? differenceInMonths(
             createdAt ?? new Date(), // account for custom commission creation date
-            firstCommission.createdAt,
+            subscriptionStartDate,
           )
         : 0;
 
@@ -128,6 +140,8 @@ export const createPartnerCommission = async ({
         ...context,
         customer: {
           ...context?.customer,
+          signupDate,
+          subscriptionStartDate,
           subscriptionDurationMonths,
         },
       };

@@ -20,7 +20,7 @@ export const COMMISSION_TYPES = [
 export type RewardConditionEntityAttribute = {
   id: string;
   label: string;
-  type: "string" | "enum" | "number" | "currency";
+  type: "string" | "enum" | "number" | "currency" | "date";
   options?: {
     id: string;
     label: string;
@@ -152,6 +152,16 @@ export const REWARD_CONDITIONS: Record<
             label: "Subscription duration",
             type: "number",
           },
+          {
+            id: "subscriptionStartDate",
+            label: "Subscription start date",
+            type: "date",
+          },
+          {
+            id: "signupDate",
+            label: "Customer signup date",
+            type: "date",
+          },
         ],
       },
       PARTNER_ENTITY,
@@ -217,6 +227,9 @@ export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] 
     "less_than",
     "less_than_or_equal",
   ];
+
+export const DATE_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  ["greater_than", "greater_than_or_equal", "less_than", "less_than_or_equal"];
 
 export const CONDITION_OPERATOR_LABELS = {
   equals_to: "is",
@@ -355,6 +368,8 @@ export const rewardContextSchema = z.object({
     .object({
       country: z.string().nullish(),
       source: z.enum(CUSTOMER_SOURCES).default("tracked").nullish(),
+      signupDate: z.date().nullish(),
+      subscriptionStartDate: z.date().nullish(),
       subscriptionDurationMonths: z.number().nullish(),
     })
     .optional(),
