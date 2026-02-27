@@ -337,7 +337,7 @@ async function createApplicationAndEnrollment({
       if (dubApplicationId) {
         await recordApplicationEvent({
           applicationId: dubApplicationId,
-          eventName: "submitted",
+          eventName: "submit",
           programId: program.id,
         });
       }
@@ -393,7 +393,7 @@ async function createApplication({
     waitUntil(
       recordApplicationEvent({
         applicationId: dubApplicationId,
-        eventName: "submitted",
+        eventName: "submit",
         programId: program.id,
       }),
     );

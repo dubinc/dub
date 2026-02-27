@@ -38,7 +38,7 @@ export function useApplicationTracking({
 
   const trackStarted = useCallback(() => {
     trackApplicationEvent({
-      eventName: "started",
+      eventName: "start",
       applicationId: applicationId ?? undefined,
       referrerUsername: referrerUsername ?? undefined,
       programIdOrSlug: programIdOrSlug ?? undefined,

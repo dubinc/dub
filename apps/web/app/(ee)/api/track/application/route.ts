@@ -1,5 +1,4 @@
 import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
-import { createId } from "@/lib/api/create-id";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
@@ -13,6 +12,7 @@ import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const POST = withAxiom(async (req) => {
@@ -44,7 +44,7 @@ export const POST = withAxiom(async (req) => {
     if (!isVisit && !applicationId) {
       throw new DubApiError({
         code: "bad_request",
-        message: "applicationId is required for started and submitted events",
+        message: "applicationId is required for start and submit events",
       });
     }
 
@@ -87,7 +87,7 @@ export const POST = withAxiom(async (req) => {
 
     // If it's a visit event and no application ID is provided, generate a new one
     if (isVisit && !resolvedApplicationId) {
-      resolvedApplicationId = createId({ prefix: "pga_" });
+      resolvedApplicationId = nanoid(14);
     }
 
     if (resolvedApplicationId) {

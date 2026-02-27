@@ -29,7 +29,7 @@ SCHEMA >
     `os_version` String,
     `engine` LowCardinality(String),
     `engine_version` String,
-    `cpu_architecture` LowCardinality(String),
+    `cpu_architecture` LowCardinality(String)
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
