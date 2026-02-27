@@ -17,8 +17,8 @@ export async function createStripeRecipientAccountLink({
         type: useCase,
         [useCase]: {
           configurations: ["recipient"],
-          return_url: `${PARTNERS_DOMAIN}/payouts`,
-          refresh_url: `${PARTNERS_DOMAIN}/payouts`,
+          return_url: `${PARTNERS_DOMAIN}/payouts?settings=true`,
+          refresh_url: `${PARTNERS_DOMAIN}/payouts?settings=true`,
           collection_options: {
             fields: "eventually_due",
           },
