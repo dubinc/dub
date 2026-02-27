@@ -23,6 +23,7 @@ export async function outboundPaymentPosted(event: Stripe.ThinEvent) {
     data: {
       status: "completed",
       paidAt: new Date(),
+      failureReason: null,
       ...(stripePayoutTraceId && {
         stripePayoutTraceId: stripePayoutTraceId,
       }),

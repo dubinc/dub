@@ -288,7 +288,8 @@ function ForceWithdrawalModalDescription({
       <>
         Your processed earnings (
         <strong className="text-black">{processedPayoutAmountInUsd}</strong>)
-        will be sent to your crypto wallet. A 1% fee applies, so you will
+        will be sent to your crypto wallet. A{" "}
+        {STABLECOIN_PAYOUT_FEE_RATE * 100}% fee applies, so you will
         receive{" "}
         <strong className="text-black">
           {currencyFormatter(finalAmount, {
