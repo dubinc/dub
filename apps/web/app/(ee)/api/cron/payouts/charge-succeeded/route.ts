@@ -1,5 +1,4 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { STABLECOIN_PAYOUT_FEE_RATE } from "@/lib/constants/payouts";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { prisma } from "@dub/prisma";
@@ -85,11 +84,7 @@ export async function POST(req: Request) {
           return total;
         }
 
-        const stablecoinPayoutFee = Math.round(
-          partnerPayoutAmount * STABLECOIN_PAYOUT_FEE_RATE,
-        );
-
-        return total + (partnerPayoutAmount - stablecoinPayoutFee);
+        return total + partnerPayoutAmount;
       },
       0,
     );
