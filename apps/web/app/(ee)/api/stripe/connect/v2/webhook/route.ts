@@ -16,7 +16,7 @@ const relevantEvents = new Set([
   "v2.money_management.outbound_payment.failed",
 ]);
 
-const webhookSecret = process.env.STRIPE_STABLECOIN_WEBHOOK_SECRET;
+const webhookSecret = process.env.STRIPE_CONNECT_V2_WEBHOOK_SECRET;
 
 // POST /api/stripe/connect/v2/webhook – Stripe Connect Account v2 webhooks
 export const POST = async (req: Request) => {
@@ -29,7 +29,7 @@ export const POST = async (req: Request) => {
 
   if (!webhookSecret) {
     return logAndRespond(
-      "STRIPE_STABLECOIN_WEBHOOK_SECRET environment variable is not set.",
+      "STRIPE_CONNECT_V2_WEBHOOK_SECRET environment variable is not set.",
       {
         status: 500,
       },
