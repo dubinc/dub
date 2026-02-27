@@ -18,7 +18,7 @@ const relevantEvents = new Set([
 
 const webhookSecret = process.env.STRIPE_STABLECOIN_WEBHOOK_SECRET;
 
-// POST /api/stripe/stablecoin/webhook – Stripe Stablecoin webhooks
+// POST /api/stripe/connect/v2/webhook – Stripe Connect Account v2 webhooks
 export const POST = async (req: Request) => {
   const body = await req.text();
   const signature = req.headers.get("Stripe-Signature");
@@ -79,7 +79,7 @@ export const POST = async (req: Request) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     await log({
-      message: `/api/stripe/stablecoin/webhook webhook failed (${event.type}). Error: ${message}`,
+      message: `/api/stripe/connect/v2/webhook webhook failed (${event.type}). Error: ${message}`,
       type: "errors",
     });
 
