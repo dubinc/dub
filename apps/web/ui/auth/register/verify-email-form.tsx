@@ -61,12 +61,19 @@ export const VerifyEmailForm = () => {
     return;
   }
 
+  const handleVerify = (completedCode?: string) => {
+  if (isPending || isRedirecting) return;
+  const finalCode = (completedCode ?? code).trim();
+  if (!finalCode || finalCode.length < 6) return;
+  executeAsync({ email, password, code: finalCode });
+};
+
   return (
     <div className="flex flex-col gap-3">
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          executeAsync({ email, password, code });
+          handleVerify();
         }}
       >
         <div>
@@ -75,7 +82,7 @@ export const VerifyEmailForm = () => {
             value={code}
             onChange={(code) => {
               setIsInvalidCode(false);
-              setCode(code);
+              setCode(code.trim());
             }}
             autoFocus={!isMobile}
             render={({ slots }) => (
@@ -95,14 +102,14 @@ export const VerifyEmailForm = () => {
                     {hasFakeCaret && (
                       <div className="animate-caret-blink pointer-events-none absolute inset-0 flex items-center justify-center">
                         <div className="h-5 w-px bg-black" />
-                      </div>
+                       </div>
                     )}
                   </div>
                 ))}
               </div>
             )}
-            onComplete={() => {
-              executeAsync({ email, password, code });
+            onComplete={(completedCode) => {
+              handleVerify(completedCode);
             }}
           />
           <AnimatedSizeContainer height>
@@ -118,7 +125,7 @@ export const VerifyEmailForm = () => {
             text={isPending ? "Verifying..." : "Continue"}
             type="submit"
             loading={isPending || isRedirecting}
-            disabled={!code || code.length < 6}
+            disabled={isPending || isRedirecting || code.length < 6}
           />
         </div>
       </form>
