@@ -1,7 +1,7 @@
 import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { PartnerPayoutMethod, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, prettyPrint } from "@dub/utils";
 import { STABLECOIN_PAYOUT_FEE_RATE } from "../constants/payouts";
 import { createPayoutsIdempotencyKey } from "../payouts/api/create-payouts-idempotency-key";
@@ -62,7 +62,7 @@ export const createStablecoinPayout = async ({
           status: "processed",
           stripePayoutId: null,
           method: {
-            in: ["stablecoin", "connect"],
+            in: [PartnerPayoutMethod.stablecoin, PartnerPayoutMethod.connect],
           },
         },
         orderBy: {

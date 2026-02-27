@@ -21,9 +21,6 @@ export async function fundFinancialAccount({
     throw new Error("STRIPE_FINANCIAL_ACCOUNT_ID is not configured.");
   }
 
-  // TODO:
-  // Should we check the available payment balance before funding?
-
   const { data, error } = await stripeV2Fetch("/v1/payouts", {
     body: {
       amount,

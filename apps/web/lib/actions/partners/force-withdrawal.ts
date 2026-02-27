@@ -3,7 +3,7 @@
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { createStablecoinPayout } from "@/lib/partners/create-stablecoin-payout";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
-import { ratelimit, redis } from "@/lib/upstash";
+import { redis } from "@/lib/upstash";
 import { authPartnerActionClient } from "../safe-action";
 
 // Force a withdrawal for a partner (even if the total amount is below the minimum withdrawal amount)
@@ -25,16 +25,6 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
     if (!["connect", "stablecoin"].includes(partner.defaultPayoutMethod)) {
       throw new Error(
         "Invalid default payout method found. Please contact support to set one.",
-      );
-    }
-
-    const { success } = await ratelimit(1, "1 h").limit(
-      `force-withdrawal:${partner.id}`,
-    );
-
-    if (!success) {
-      throw new Error(
-        "You've reached the maximum number of force withdrawal attempts for the past hour. Please wait and try again later.",
       );
     }
 

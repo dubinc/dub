@@ -135,7 +135,7 @@ export const STABLECOIN_SUPPORTED_COUNTRIES = [
   "SR", // Suriname
   "ST", // Sao Tome and Principe
   "SV", // El Salvador
-  "SZ", // Swaziland
+  "SZ", // Eswatini
   "TG", // Togo
   "TH", // Thailand
   "TJ", // Tajikistan
