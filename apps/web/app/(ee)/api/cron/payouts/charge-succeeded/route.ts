@@ -54,7 +54,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Set the payout method to the partner's default payout method
+    // Set the method for each payout in the invoice to the corresponding partner's default payout method
     await prisma.$executeRaw`
       UPDATE Payout p
       INNER JOIN Partner pr ON p.partnerId = pr.id

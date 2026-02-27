@@ -2,13 +2,26 @@ import { prisma } from "@dub/prisma";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
-const BATCH_SIZE = 100;
+const BATCH_SIZE = 500;
 
 async function main() {
-  let cursor: string | undefined;
-
   while (true) {
     const payouts = await prisma.payout.findMany({
+      where: {
+        method: null,
+        OR: [
+          {
+            stripeTransferId: {
+              not: null,
+            },
+          },
+          {
+            paypalTransferId: {
+              not: null,
+            },
+          },
+        ],
+      },
       select: {
         id: true,
         stripeTransferId: true,
@@ -16,17 +29,6 @@ async function main() {
         paypalTransferId: true,
       },
       take: BATCH_SIZE,
-      orderBy: {
-        id: "asc",
-      },
-      ...(cursor
-        ? {
-            skip: 1,
-            cursor: {
-              id: cursor,
-            },
-          }
-        : {}),
     });
 
     if (payouts.length === 0) {
@@ -75,8 +77,6 @@ async function main() {
     console.log(
       `Updated ${connectRes.count} connect payouts and ${paypalRes.count} paypal payouts`,
     );
-
-    cursor = payouts[payouts.length - 1].id;
   }
 
   console.log("Backfill finished.");

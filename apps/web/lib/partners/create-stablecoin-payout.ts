@@ -56,24 +56,22 @@ export const createStablecoinPayout = async ({
 
   const [previouslyProcessedPayouts, currentInvoicePayouts] = await Promise.all(
     [
-      forceWithdrawal
-        ? prisma.payout.findMany({
-            where: {
-              partnerId: partner.id,
-              status: "processed",
-              stripePayoutId: null,
-              method: {
-                in: ["stablecoin", "connect"],
-              },
-            },
-            orderBy: {
-              id: "asc",
-            },
-            include: commonInclude,
-          })
-        : Promise.resolve([]),
+      prisma.payout.findMany({
+        where: {
+          partnerId: partner.id,
+          status: "processed",
+          stripePayoutId: null,
+          method: {
+            in: ["stablecoin", "connect"],
+          },
+        },
+        orderBy: {
+          id: "asc",
+        },
+        include: commonInclude,
+      }),
 
-      !forceWithdrawal
+      invoiceId
         ? prisma.payout.findMany({
             where: {
               partnerId: partner.id,
