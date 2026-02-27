@@ -1,123 +1,160 @@
-// @see: https://docs.stripe.com/global-payouts/send-money
-// @see: https://docs.stripe.com/financial-accounts/connect/moving-money/out-of/outbound-payments
 export const STABLECOIN_SUPPORTED_COUNTRIES = [
-  "AL", // Albania
-  "DZ", // Algeria
-  "AO", // Angola
-  "AG", // Antigua & Barbuda
-  "AR", // Argentina
+  "AD", // Andorra
+  "AE", // United Arab Emirates
+  "AG", // Antigua and Barbuda
   "AM", // Armenia
-  "AU", // Australia
+  "AO", // Angola
+  "AR", // Argentina
   "AT", // Austria
+  "AU", // Australia
   "AZ", // Azerbaijan
-  "BS", // Bahamas
-  "BH", // Bahrain
-  "BD", // Bangladesh
+  "BA", // Bosnia and Herzegovina
+  "BB", // Barbados
   "BE", // Belgium
-  "BJ", // Benin
-  "BT", // Bhutan
-  "BO", // Bolivia
-  "BA", // Bosnia & Herzegovina
-  "BW", // Botswana
-  "BN", // Brunei
   "BG", // Bulgaria
-  "KH", // Cambodia
+  "BH", // Bahrain
+  "BJ", // Benin
+  "BN", // Brunei Darussalam
+  "BR", // Brazil
+  "BS", // Bahamas
+  "BT", // Bhutan
+  "BW", // Botswana
+  "BZ", // Belize
   "CA", // Canada
+  "CH", // Switzerland
+  "CI", // Côte d'Ivoire
   "CL", // Chile
+  "CM", // Cameroon
   "CO", // Colombia
   "CR", // Costa Rica
-  "CI", // Côte d'Ivoire
-  "HR", // Croatia
+  "CV", // Cabo Verde
   "CY", // Cyprus
   "CZ", // Czech Republic
+  "DE", // Germany
+  "DJ", // Djibouti
   "DK", // Denmark
+  "DM", // Dominica
   "DO", // Dominican Republic
   "EC", // Ecuador
-  "EG", // Egypt
-  "SV", // El Salvador
   "EE", // Estonia
-  "ET", // Ethiopia
+  "EG", // Egypt
+  "ES", // Spain
   "FI", // Finland
+  "FJ", // Fiji
+  "FM", // Micronesia
   "FR", // France
   "GA", // Gabon
-  "GM", // Gambia
-  "DE", // Germany
+  "GB", // United Kingdom
+  "GG", // Guernsey
   "GH", // Ghana
+  "GI", // Gibraltar
+  "GM", // Gambia
+  "GN", // Guinea
+  "GQ", // Equatorial Guinea
   "GR", // Greece
   "GT", // Guatemala
+  "GW", // Guinea-Bissau
   "GY", // Guyana
   "HK", // Hong Kong
+  "HN", // Honduras
+  "HR", // Croatia
+  "HT", // Haiti
   "HU", // Hungary
-  "IS", // Iceland
-  "IN", // India
   "ID", // Indonesia
   "IE", // Ireland
   "IL", // Israel
+  "IM", // Isle of Man
+  "IS", // Iceland
   "IT", // Italy
+  "JE", // Jersey
   "JM", // Jamaica
-  "JP", // Japan
   "JO", // Jordan
-  "KZ", // Kazakhstan
+  "JP", // Japan
   "KE", // Kenya
+  "KG", // Kyrgyzstan
+  "KH", // Cambodia
+  "KI", // Kiribati
+  "KM", // Comoros
+  "KN", // Saint Kitts and Nevis
+  "KR", // Korea, Republic of
   "KW", // Kuwait
-  "LA", // Laos
-  "LV", // Latvia
+  "KY", // Cayman Islands
+  "KZ", // Kazakhstan
+  "LA", // Lao PDR
+  "LC", // Saint Lucia
   "LI", // Liechtenstein
+  "LK", // Sri Lanka
+  "LR", // Liberia
+  "LS", // Lesotho
   "LT", // Lithuania
   "LU", // Luxembourg
-  "MO", // Macao SAR China
+  "LV", // Latvia
+  "MA", // Morocco
+  "MC", // Monaco
+  "MD", // Moldova
+  "ME", // Montenegro
   "MG", // Madagascar
-  "MY", // Malaysia
+  "MN", // Mongolia
+  "MR", // Mauritania
   "MT", // Malta
   "MU", // Mauritius
+  "MV", // Maldives
+  "MW", // Malawi
   "MX", // Mexico
-  "MD", // Moldova
-  "MC", // Monaco
-  "MN", // Mongolia
-  "MA", // Morocco
+  "MY", // Malaysia
   "MZ", // Mozambique
   "NA", // Namibia
-  "NL", // Netherlands
-  "NZ", // New Zealand
-  "NE", // Niger
   "NG", // Nigeria
-  "MK", // North Macedonia
+  "NL", // Netherlands
   "NO", // Norway
+  "NR", // Nauru
+  "NZ", // New Zealand
   "OM", // Oman
-  "PK", // Pakistan
   "PA", // Panama
-  "PY", // Paraguay
   "PE", // Peru
+  "PG", // Papua New Guinea
   "PH", // Philippines
   "PL", // Poland
   "PT", // Portugal
+  "PW", // Palau
+  "PY", // Paraguay
   "QA", // Qatar
   "RO", // Romania
-  "RW", // Rwanda
-  "SM", // San Marino
-  "SA", // Saudi Arabia
-  "SN", // Senegal
   "RS", // Serbia
-  "SG", // Singapore
-  "SK", // Slovakia
-  "SI", // Slovenia
-  "ZA", // South Africa
-  "KR", // South Korea
-  "ES", // Spain
-  "LK", // Sri Lanka
-  "LC", // St. Lucia
+  "RW", // Rwanda
+  "SA", // Saudi Arabia
+  "SB", // Solomon Islands
+  "SC", // Seychelles
   "SE", // Sweden
-  "CH", // Switzerland
-  "TW", // Taiwan
-  "TZ", // Tanzania
+  "SG", // Singapore
+  "SI", // Slovenia
+  "SK", // Slovakia
+  "SL", // Sierra Leone
+  "SM", // San Marino
+  "SN", // Senegal
+  "SR", // Suriname
+  "ST", // Sao Tome and Principe
+  "SV", // El Salvador
+  "SZ", // Swaziland
+  "TG", // Togo
   "TH", // Thailand
-  "TT", // Trinidad & Tobago
-  "TN", // Tunisia
+  "TJ", // Tajikistan
+  "TL", // Timor-Leste
+  "TM", // Turkmenistan
+  "TO", // Tonga
   "TR", // Turkey
-  "AE", // United Arab Emirates
-  "GB", // United Kingdom
+  "TT", // Trinidad and Tobago
+  "TV", // Tuvalu
+  "TZ", // Tanzania
+  "UG", // Uganda
   "US", // United States
   "UY", // Uruguay
   "UZ", // Uzbekistan
-  "VN", // Vietnam
+  "VA", // Holy See
+  "VC", // St. Vincent & Grenadines
+  "VN", // Viet Nam
+  "VU", // Vanuatu
+  "WS", // Samoa
+  "ZA", // South Africa
+  "ZM", // Zambia
 ];
