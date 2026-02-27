@@ -16,6 +16,12 @@ enum MonthlyTraffic {
   OneHundredThousandPlus
 }
 
+enum PartnerPayoutMethod {
+  connect
+  stablecoin
+  paypal
+}
+
 model Partner {
   id          String             @id @default(cuid())
   name        String
@@ -27,11 +33,14 @@ model Partner {
   country     String?
 
   // payout fields
-  paypalEmail                  String?   @unique
-  stripeConnectId              String?   @unique
+  defaultPayoutMethod          PartnerPayoutMethod?
   payoutsEnabledAt             DateTime?
-  payoutMethodHash             String?
   connectPayoutsLastRemindedAt DateTime?
+  paypalEmail                  String?              @unique
+  stripeConnectId              String?              @unique
+  stripeRecipientId            String?              @unique
+  payoutMethodHash             String?
+  cryptoWalletAddress          String?
 
   // timestamp fields
   createdAt      DateTime  @default(now())

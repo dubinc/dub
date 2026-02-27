@@ -49,6 +49,7 @@ export * from "./circle-check";
 export * from "./circle-check-fill";
 export * from "./circle-dollar";
 export * from "./circle-dollar-out";
+export * from "./circle-dollar3";
 export * from "./circle-dotted";
 export * from "./circle-half-dotted-check";
 export * from "./circle-half-dotted-clock";

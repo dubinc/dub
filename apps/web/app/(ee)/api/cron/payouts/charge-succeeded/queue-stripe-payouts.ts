@@ -8,6 +8,10 @@ const stripeChargeMetadataSchema = z.object({
   id: z.string(), // Stripe charge id
 });
 
+const queue = qstash.queue({
+  queueName: "send-stripe-payout",
+});
+
 export async function queueStripePayouts(
   invoice: Pick<
     Invoice,
@@ -45,18 +49,26 @@ export async function queueStripePayouts(
       invoiceId,
       status: "processing",
       mode: "internal",
+      method: {
+        in: ["connect", "stablecoin"],
+      },
       partner: {
-        stripeConnectId: {
-          not: null,
-        },
+        OR: [
+          {
+            stripeConnectId: {
+              not: null,
+            },
+          },
+          {
+            stripeRecipientId: {
+              not: null,
+            },
+          },
+        ],
         // here we're not checking for payoutsEnabledAt since we want visiblity
         // if a stripe.transfers.create fails due to restricted Stripe account
       },
     },
-  });
-
-  const queue = qstash.queue({
-    queueName: "send-stripe-payout",
   });
 
   const chunkedPartners = chunk(partnersInCurrentInvoice, 100);

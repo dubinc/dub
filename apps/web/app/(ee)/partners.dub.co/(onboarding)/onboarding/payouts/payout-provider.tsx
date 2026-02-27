@@ -1,7 +1,7 @@
 "use client";
 
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
-import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
+import { ConnectPayoutButton } from "@/ui/partners/payouts/connect-payout-button";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 

@@ -19,20 +19,28 @@ import { Footer } from "../components/footer";
 export default function ConnectedPayoutMethod({
   email = "panic@thedis.co",
   payoutMethod = {
+    type: "stablecoin",
     account_holder_name: "Brendon Urie",
     bank_name: "BANK OF AMERICA, N.A.",
     last4: "1234",
     routing_number: "1234567890",
+    wallet_address: "0x1234567890123456789012345678901234567890",
+    wallet_network: "Ethereum",
   },
 }: {
   email: string;
   payoutMethod: {
-    account_holder_name: string | null;
-    bank_name: string | null;
-    last4: string;
-    routing_number: string | null;
+    type?: "connect" | "stablecoin";
+    account_holder_name?: string | null;
+    bank_name?: string | null;
+    last4?: string | null;
+    routing_number?: string | null;
+    wallet_address?: string | null;
+    wallet_network?: string | null;
   };
 }) {
+  const isStablecoin = payoutMethod.type === "stablecoin";
+
   return (
     <Html>
       <Head />
@@ -49,8 +57,9 @@ export default function ConnectedPayoutMethod({
             </Heading>
 
             <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              Great news! Your bank account has been successfully connected to
-              your Dub partner account. You're all set to receive payouts.
+              {isStablecoin
+                ? "Great news! Your stablecoin wallet has been successfully connected to your Dub partner account. You're all set to receive USDC payouts."
+                : "Great news! Your bank account has been successfully connected to your Dub partner account. You're all set to receive payouts."}
             </Text>
 
             {/* Payout Method Details Card */}
@@ -59,46 +68,75 @@ export default function ConnectedPayoutMethod({
                 Connected payout method
               </Text>
 
-              {payoutMethod.account_holder_name && (
-                <Row className="mb-2">
-                  <Column className="text-sm text-neutral-600">
-                    Account Holder
-                  </Column>
-                  <Column className="text-right text-sm font-medium text-neutral-800">
-                    {payoutMethod.account_holder_name}
-                  </Column>
-                </Row>
-              )}
+              {isStablecoin ? (
+                <>
+                  {payoutMethod.wallet_network && (
+                    <Row className="mb-2">
+                      <Column className="text-sm text-neutral-600">
+                        Network
+                      </Column>
+                      <Column className="text-right text-sm font-medium text-neutral-800">
+                        {payoutMethod.wallet_network}
+                      </Column>
+                    </Row>
+                  )}
+                  {payoutMethod.wallet_address && (
+                    <Row>
+                      <Column className="text-sm text-neutral-600">
+                        Wallet Address
+                      </Column>
+                      <Column className="text-right text-sm font-medium text-neutral-800">
+                        {payoutMethod.wallet_address}
+                      </Column>
+                    </Row>
+                  )}
+                </>
+              ) : (
+                <>
+                  {payoutMethod.account_holder_name && (
+                    <Row className="mb-2">
+                      <Column className="text-sm text-neutral-600">
+                        Account Holder
+                      </Column>
+                      <Column className="text-right text-sm font-medium text-neutral-800">
+                        {payoutMethod.account_holder_name}
+                      </Column>
+                    </Row>
+                  )}
 
-              {payoutMethod.bank_name && (
-                <Row className="mb-2">
-                  <Column className="text-sm text-neutral-600">
-                    Bank Name
-                  </Column>
-                  <Column className="text-right text-sm font-medium text-neutral-800">
-                    {payoutMethod.bank_name}
-                  </Column>
-                </Row>
-              )}
+                  {payoutMethod.bank_name && (
+                    <Row className="mb-2">
+                      <Column className="text-sm text-neutral-600">
+                        Bank Name
+                      </Column>
+                      <Column className="text-right text-sm font-medium text-neutral-800">
+                        {payoutMethod.bank_name}
+                      </Column>
+                    </Row>
+                  )}
 
-              <Row className="mb-2">
-                <Column className="text-sm text-neutral-600">
-                  Account Number
-                </Column>
-                <Column className="text-right text-sm font-medium text-neutral-800">
-                  •••• {payoutMethod.last4}
-                </Column>
-              </Row>
+                  {payoutMethod.last4 && (
+                    <Row className="mb-2">
+                      <Column className="text-sm text-neutral-600">
+                        Account Number
+                      </Column>
+                      <Column className="text-right text-sm font-medium text-neutral-800">
+                        •••• {payoutMethod.last4}
+                      </Column>
+                    </Row>
+                  )}
 
-              {payoutMethod.routing_number && (
-                <Row>
-                  <Column className="text-sm text-neutral-600">
-                    Routing Number
-                  </Column>
-                  <Column className="text-right text-sm font-medium text-neutral-800">
-                    {payoutMethod.routing_number}
-                  </Column>
-                </Row>
+                  {payoutMethod.routing_number && (
+                    <Row>
+                      <Column className="text-sm text-neutral-600">
+                        Routing Number
+                      </Column>
+                      <Column className="text-right text-sm font-medium text-neutral-800">
+                        {payoutMethod.routing_number}
+                      </Column>
+                    </Row>
+                  )}
+                </>
               )}
             </Section>
 

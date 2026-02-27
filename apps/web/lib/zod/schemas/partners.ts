@@ -313,6 +313,12 @@ export const PartnerSchema = z
       .describe(
         "The partner's Stripe Connect ID (for receiving payouts via Stripe).",
       ),
+    stripeRecipientId: z
+      .string()
+      .nullable()
+      .describe(
+        "The partner's Stripe Recipient ID (for stablecoin/outbound payouts).",
+      ),
     paypalEmail: z
       .string()
       .nullable()
