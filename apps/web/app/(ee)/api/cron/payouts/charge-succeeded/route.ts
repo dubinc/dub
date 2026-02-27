@@ -63,31 +63,15 @@ export async function POST(req: Request) {
       AND p.status = 'processing'
     `;
 
-    // Fund only the net amount we actually pay out (after the 1% stablecoin fee).
-    // We compute this per partner to match the rounding used in `createStripeTransfer`.
-    const stablecoinPayoutsByPartner = await prisma.payout.groupBy({
-      by: ["partnerId"],
-      _sum: {
-        amount: true,
-      },
+    // Fund the total stablecoin payout amount for this invoice
+    const { _sum } = await prisma.payout.aggregate({
+      _sum: { amount: true },
       where: {
         invoiceId: invoice.id,
         method: "stablecoin",
       },
     });
-
-    const stablecoinFundingAmount = stablecoinPayoutsByPartner.reduce(
-      (total, payout) => {
-        const partnerPayoutAmount = payout._sum.amount ?? 0;
-
-        if (partnerPayoutAmount <= 0) {
-          return total;
-        }
-
-        return total + partnerPayoutAmount;
-      },
-      0,
-    );
+    const stablecoinFundingAmount = _sum.amount ?? 0;
 
     // Send money to Dub's Financial Account to handle Stablecoin payouts
     if (stablecoinFundingAmount > 0) {

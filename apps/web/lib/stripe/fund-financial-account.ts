@@ -1,4 +1,4 @@
-import { prettyPrint } from "@dub/utils";
+import { currencyFormatter, prettyPrint } from "@dub/utils";
 import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
 const financialAccountId = process.env.STRIPE_FINANCIAL_ACCOUNT_ID;
@@ -42,7 +42,10 @@ export async function fundFinancialAccount({
     throw new Error(`Failed to fund Dub's financial account: ${error.message}`);
   }
 
-  console.log("Money sent to Dub's financial account", prettyPrint(data));
+  console.log(
+    `Transferred ${currencyFormatter(amount)} to Dub's financial account`,
+    prettyPrint(data),
+  );
 
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
