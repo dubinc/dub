@@ -1,7 +1,7 @@
 "use client";
 
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
-import { Badge, Button, CircleDollar3, Modal } from "@dub/ui";
+import { Badge, Button, CircleDollar3, Modal, ShimmerDots } from "@dub/ui";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 
 function StablecoinPayoutModal({
@@ -22,17 +22,55 @@ function StablecoinPayoutModal({
       className="max-w-md"
     >
       <div className="relative flex flex-col overflow-hidden rounded-t-2xl">
-        <div className="relative flex h-40 items-center justify-center overflow-hidden bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-600">
+        <div className="relative flex h-48 items-center justify-center overflow-hidden">
+          {/* Background image */}
           <div
-            className="absolute inset-0 opacity-30"
+            className="absolute inset-0 bg-cover bg-center"
             style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
-              backgroundSize: "24px 24px",
+              backgroundImage: `url(https://assets.dub.co/misc/stablecoin-payouts-modal-bg.jpg)`,
             }}
           />
-          <div className="relative flex size-20 shrink-0 items-center justify-center rounded-2xl bg-white shadow-lg">
-            <div className="flex size-12 items-center justify-center rounded-full bg-[#635BFF]">
-              <CircleDollar3 className="size-7 text-white" />
+          {/* Shimmer overlay */}
+          <ShimmerDots
+            dotSize={1}
+            cellSize={4}
+            speed={3}
+            color={[1, 1, 1]}
+            className="opacity-50"
+          />
+          {/* Pay Methods card stack – centered, matching design specs */}
+          <div
+            className="relative flex size-[132px] shrink-0 items-center justify-center rounded-[31px] bg-white"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(238, 221, 238, 0.025) 0%, rgba(74, 0, 74, 0.025) 100%), #FFFFFF",
+              boxShadow:
+                "0px 114px 46px rgba(0, 0, 0, 0.01), 0px 64px 39px rgba(0, 0, 0, 0.05), 0px 29px 29px rgba(0, 0, 0, 0.09), 0px 7px 16px rgba(0, 0, 0, 0.1), inset 0px -4px 2px #FFFFFF",
+            }}
+          >
+            {/* Middle ellipse */}
+            <div
+              className="flex size-[82px] shrink-0 items-center justify-center rounded-full"
+              style={{
+                background: "linear-gradient(180deg, #F0F0F0 0%, #F0F0F0 100%)",
+                boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.01)",
+              }}
+            >
+              {/* Inner circle (stablecoin icon container) */}
+              <div
+                className="flex size-[70px] shrink-0 items-center justify-center rounded-full"
+                style={{
+                  background: "#155DFC",
+                  boxShadow:
+                    "0px 2px 2px rgba(0, 0, 0, 0.08), inset 0px 4px 6px rgba(255, 255, 255, 0.25), inset 0px -3px 10px rgba(0, 0, 0, 0.25)",
+                }}
+              >
+                <CircleDollar3
+                  className="size-14 text-white"
+                  strokeWidth={2.5}
+                  aria-hidden
+                />
+              </div>
             </div>
           </div>
         </div>
