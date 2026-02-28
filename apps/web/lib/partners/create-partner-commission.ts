@@ -363,6 +363,7 @@ export const createPartnerCommission = async ({
 
           sendPartnerPostback({
             partnerId,
+            programId,
             event: "commission.created",
             data: {
               ...commission,

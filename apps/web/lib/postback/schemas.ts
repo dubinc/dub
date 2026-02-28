@@ -56,6 +56,7 @@ const postbackLinkSchema = LinkSchema.pick({
 
 const postbackCustomerSchema = CustomerEnrichedSchema.pick({
   id: true,
+  email: true,
   country: true,
   createdAt: true,
   firstSaleAt: true,

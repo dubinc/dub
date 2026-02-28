@@ -213,10 +213,11 @@ export async function createShopifySale({
         }),
       }),
 
-      ...(link?.partnerId
+      ...(link?.partnerId && link?.programId
         ? [
             sendPartnerPostback({
               partnerId: link.partnerId,
+              programId: link.programId,
               event: "sale.created",
               data: {
                 ...saleData,

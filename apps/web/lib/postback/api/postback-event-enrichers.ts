@@ -1,4 +1,5 @@
 import { transformLink } from "@/lib/api/links";
+import { generateRandomName } from "@/lib/names";
 import { PostbackTrigger } from "@/lib/types";
 import { toCamelCase } from "@dub/utils";
 import {
@@ -7,8 +8,15 @@ import {
   saleEventPostbackSchema,
 } from "../schemas";
 
+export interface PostbackEnricherContext {
+  customerDataSharingEnabledAt?: Date | null | undefined;
+}
+
 interface PostbackEventEnricher {
-  enrich(data: Record<string, unknown>): Record<string, unknown>;
+  enrich(
+    data: Record<string, any>,
+    context?: PostbackEnricherContext,
+  ): Record<string, unknown>;
 }
 
 class PostbackEventEnrichers {
@@ -26,7 +34,11 @@ class PostbackEventEnrichers {
     return this;
   }
 
-  enrich(event: PostbackTrigger, data: Record<string, unknown>) {
+  enrich(
+    event: PostbackTrigger,
+    data: Record<string, unknown>,
+    context?: PostbackEnricherContext,
+  ) {
     const enricher = this.enrichers.get(event);
 
     if (!enricher) {
@@ -35,7 +47,7 @@ class PostbackEventEnrichers {
       );
     }
 
-    return enricher.enrich(data);
+    return enricher.enrich(data, context);
   }
 
   has(event: PostbackTrigger) {
@@ -43,11 +55,34 @@ class PostbackEventEnrichers {
   }
 }
 
+function transformCustomer({
+  customer,
+  customerDataSharingEnabledAt,
+}: {
+  customer: Record<string, any>;
+  customerDataSharingEnabledAt: PostbackEnricherContext["customerDataSharingEnabledAt"];
+}) {
+  if (!customer) {
+    return null;
+  }
+
+  const email = customer?.email
+    ? customerDataSharingEnabledAt
+      ? customer.email
+      : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+    : customer?.name || generateRandomName();
+
+  return {
+    ...customer,
+    email,
+  };
+}
+
 // Register event enrichers for each event type
 export const postbackEventEnrichers = new PostbackEventEnrichers();
 
 postbackEventEnrichers.register("lead.created", {
-  enrich: (data) => {
+  enrich: (data, context) => {
     const lead: any = Object.fromEntries(
       Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
     );
@@ -60,13 +95,16 @@ postbackEventEnrichers.register("lead.created", {
         id: lead.clickId,
         timestamp: new Date(lead.timestamp + "Z"),
       },
-      customer: lead.customer,
+      customer: transformCustomer({
+        customer: lead.customer,
+        customerDataSharingEnabledAt: context?.customerDataSharingEnabledAt,
+      }),
     });
   },
 });
 
 postbackEventEnrichers.register("sale.created", {
-  enrich: (data) => {
+  enrich: (data, context) => {
     const sale: any = Object.fromEntries(
       Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
     );
@@ -79,7 +117,10 @@ postbackEventEnrichers.register("sale.created", {
         id: sale.clickId,
         timestamp: new Date(sale.clickedAt + "Z"),
       },
-      customer: sale.customer,
+      customer: transformCustomer({
+        customer: sale.customer,
+        customerDataSharingEnabledAt: context?.customerDataSharingEnabledAt,
+      }),
       sale: {
         amount: sale.amount,
         currency: sale.currency,
@@ -89,5 +130,13 @@ postbackEventEnrichers.register("sale.created", {
 });
 
 postbackEventEnrichers.register("commission.created", {
-  enrich: (data) => commissionEventPostbackSchema.parse(data),
+  enrich: (data, context) => {
+    return commissionEventPostbackSchema.parse({
+      ...data,
+      customer: transformCustomer({
+        customer: data.customer,
+        customerDataSharingEnabledAt: context?.customerDataSharingEnabledAt,
+      }),
+    });
+  },
 });
