@@ -138,7 +138,7 @@ function PayoutMethodItem({
         </div>
       </div>
       <Button
-        variant={method.connected ? "primary" : "secondary"}
+        variant={method.connected ? "secondary" : "primary"}
         text={method.connected ? "Manage" : "Connect"}
         onClick={() => onAction(method.type, method.connected)}
         loading={isActionPending}
