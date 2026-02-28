@@ -65,10 +65,7 @@ export default function PartnerPayoutProcessed({
 
   let statusMessage = "";
 
-  if (payout.method === "stablecoin") {
-    statusMessage =
-      "Your USDC has been sent to your connected crypto wallet. You should receive it within minutes.";
-  } else if (payout.method === "connect") {
+  if (payout.method === "connect") {
     statusMessage =
       payout.amount >= 1000
         ? "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way."
@@ -126,26 +123,24 @@ export default function PartnerPayoutProcessed({
               ) : (
                 "."
               )}
+            </Text>
+
+            <Text className="text-sm leading-6 text-neutral-600">
               {payout.method === "stablecoin" ? (
                 <>
                   {" "}
-                  Since you're using stablecoin payouts, a{" "}
-                  {STABLECOIN_PAYOUT_FEE_RATE * 100}% fee will be deducted from
-                  your payout, resulting in a final amount of{" "}
+                  After a {STABLECOIN_PAYOUT_FEE_RATE * 100}% stablecoin fee,{" "}
                   <strong className="text-black">
                     {currencyFormatter(
                       payout.amount * (1 - STABLECOIN_PAYOUT_FEE_RATE),
                     )}
-                  </strong>
-                  .
+                  </strong>{" "}
+                  will be transferred to your connected crypto wallet. You
+                  should receive it within minutes.
                 </>
               ) : (
-                ""
+                statusMessage
               )}
-            </Text>
-
-            <Text className="text-sm leading-6 text-neutral-600">
-              {statusMessage}
             </Text>
 
             <Section className="mb-10 mt-8">
