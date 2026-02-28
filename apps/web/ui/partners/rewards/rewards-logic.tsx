@@ -9,6 +9,7 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
+  DATE_CONDITION_OPERATORS,
   ENUM_CONDITION_OPERATORS,
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
@@ -25,6 +26,7 @@ import {
   InvoiceDollar,
   MoneyBills2,
   Popover,
+  SmartDateTimePicker,
   User,
   Users,
 } from "@dub/ui";
@@ -33,18 +35,20 @@ import {
   cn,
   COUNTRIES,
   currencyFormatter,
+  formatDateTime,
   pluralize,
   truncate,
 } from "@dub/utils";
 import { Command } from "cmdk";
 import { Package } from "lucide-react";
 import { motion } from "motion/react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useContext, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import {
   InlineBadgePopover,
   InlineBadgePopoverAmountInput,
+  InlineBadgePopoverContext,
   InlineBadgePopoverInput,
   InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
@@ -254,6 +258,15 @@ const formatValue = (
     if (option) return option.label;
   }
 
+  // For date values, format timestamp as readable date + time
+  if (type === "date") {
+    if (!value || isNaN(Number(value))) {
+      return "Value";
+    }
+
+    return formatDateTime(new Date(Number(value)));
+  }
+
   // For numeric values, show the number as is
   if (["number", "currency"].includes(type)) {
     return type === "number"
@@ -434,9 +447,13 @@ function ConditionLogic({
                                 ? typeof condition.value !== "number"
                                   ? { value: "" }
                                   : null
-                                : typeof condition.value !== "string"
-                                  ? { value: "" }
-                                  : null),
+                                : attributeType === "date"
+                                  ? typeof condition.value !== "number"
+                                    ? { value: undefined }
+                                    : null
+                                  : typeof condition.value !== "string"
+                                    ? { value: "" }
+                                    : null),
                           },
                           {
                             shouldDirty: true,
@@ -447,7 +464,9 @@ function ConditionLogic({
                         ? NUMBER_CONDITION_OPERATORS
                         : attributeType === "enum"
                           ? ENUM_CONDITION_OPERATORS
-                          : STRING_CONDITION_OPERATORS
+                          : attributeType === "date"
+                            ? DATE_CONDITION_OPERATORS
+                            : STRING_CONDITION_OPERATORS
                       ).map((operator) => ({
                         text: CONDITION_OPERATOR_LABELS[operator],
                         value: operator,
@@ -561,6 +580,16 @@ function ConditionLogic({
                         <AmountInput
                           fieldKey={`${conditionKey}.value`}
                           type={attributeType as "number" | "currency"}
+                        />
+                      ) : attributeType === "date" ? (
+                        <DateConditionPicker
+                          value={condition.value as number | undefined}
+                          onChange={(timestamp) =>
+                            setValue(conditionKey, {
+                              ...condition,
+                              value: timestamp,
+                            })
+                          }
                         />
                       ) : (
                         // String input
@@ -872,6 +901,28 @@ function AmountInput({
         min: 0,
         max: type === "percentage" ? 100 : undefined,
       })}
+    />
+  );
+}
+
+function DateConditionPicker({
+  value,
+  onChange,
+}: {
+  value: number | undefined;
+  onChange: (timestamp: number | undefined) => void;
+}) {
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
+  const date = value ? new Date(value) : null;
+
+  return (
+    <SmartDateTimePicker
+      value={date}
+      autoFocus
+      onChange={(newDate) => {
+        onChange(newDate ? newDate.getTime() : undefined);
+        if (newDate) setIsOpen(false);
+      }}
     />
   );
 }

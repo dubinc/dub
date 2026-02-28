@@ -465,6 +465,7 @@ export async function checkoutSessionCompleted(
       context: {
         customer: {
           country: customer.country,
+          signupDate: customer.createdAt,
         },
         sale: {
           productId,

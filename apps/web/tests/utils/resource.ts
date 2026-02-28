@@ -111,6 +111,36 @@ export const E2E_SALE_REWARD = {
       maxDuration: null,
       amountInCents: 2000,
     },
+    {
+      id: "e3a7f1b2-dc44-4e89-b231-19a8420f1c05",
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: new Date("2020-01-01").getTime(),
+          entity: "customer",
+          operator: "greater_than",
+          attribute: "signupDate",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 2500,
+    },
+    {
+      id: "f4b8c2d3-ed55-4f9a-c342-20b9531g2d16",
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: new Date("2020-01-01").getTime(),
+          entity: "customer",
+          operator: "greater_than",
+          attribute: "subscriptionStartDate",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 3500,
+    },
   ],
 };
 
