@@ -2,7 +2,6 @@ export const STABLECOIN_SUPPORTED_COUNTRIES = [
   "AD", // Andorra
   "AE", // United Arab Emirates
   "AG", // Antigua and Barbuda
-  "AL", // Albania
   "AM", // Armenia
   "AO", // Angola
   "AR", // Argentina
@@ -65,7 +64,6 @@ export const STABLECOIN_SUPPORTED_COUNTRIES = [
   "IE", // Ireland
   "IL", // Israel
   "IM", // Isle of Man
-  "IN", // India
   "IS", // Iceland
   "IT", // Italy
   "JE", // Jersey
@@ -143,7 +141,6 @@ export const STABLECOIN_SUPPORTED_COUNTRIES = [
   "TJ", // Tajikistan
   "TL", // Timor-Leste
   "TM", // Turkmenistan
-  "TN", // Tunisia
   "TO", // Tonga
   "TR", // Turkey
   "TT", // Trinidad and Tobago
