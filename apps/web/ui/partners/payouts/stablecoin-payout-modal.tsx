@@ -53,9 +53,9 @@ function StablecoinPayoutModal({
 
           <MarkdownDescription className="text-sm leading-5 text-neutral-600">
             You can now connect your crypto wallet for payouts. With [stablecoin
-            payouts](https://dub.co/help/article/receiving-payouts), you can get
-            paid USDC worldwide in seconds, instead of waiting days with a bank
-            account.
+            payouts](https://dub.co/help/article/receiving-payouts#stablecoin-payouts),
+            you can get paid USDC worldwide in seconds, instead of waiting days
+            with a bank account.
           </MarkdownDescription>
 
           <div className="mt-4">

@@ -1,6 +1,7 @@
 import {
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
   PAYOUTS_SHEET_ITEMS_LIMIT,
+  STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
@@ -130,6 +131,25 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
           </div>
         ),
       },
+
+      ...(payout.method === "stablecoin"
+        ? [
+            {
+              key: "Fee",
+              value: (
+                <Tooltip
+                  content={`Stablecoin payouts on Dub are subject to a ${STABLECOIN_PAYOUT_FEE_RATE * 100}% fee. [Learn more](https://dub.co/help/article/receiving-payouts#stablecoin-payouts).`}
+                >
+                  <span className="hover:text-content-emphasis cursor-help underline decoration-dotted underline-offset-2">
+                    {currencyFormatter(
+                      payout.amount * STABLECOIN_PAYOUT_FEE_RATE,
+                    )}
+                  </span>
+                </Tooltip>
+              ),
+            },
+          ]
+        : []),
 
       {
         key: "Description",

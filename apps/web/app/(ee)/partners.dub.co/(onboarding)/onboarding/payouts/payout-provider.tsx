@@ -63,7 +63,7 @@ export function PayoutProvider({
 
         <Link
           href={next ?? "/programs"}
-          className="text-sm font-medium text-neutral-800 transition-colors hover:text-neutral-950"
+          className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
         >
           I'll complete this later
         </Link>

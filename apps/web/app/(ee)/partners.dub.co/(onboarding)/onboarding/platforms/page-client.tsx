@@ -31,7 +31,7 @@ export function OnboardingPlatformsPageClient({
       />
       <Link
         href={`/onboarding/payouts${next ? `?next=${encodeURIComponent(next)}` : ""}`}
-        className="text-sm font-medium text-neutral-800 transition-colors hover:text-neutral-950"
+        className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
       >
         I'll complete this later
       </Link>

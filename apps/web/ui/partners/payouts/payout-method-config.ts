@@ -1,6 +1,14 @@
+import { STABLECOIN_PAYOUT_FEE_RATE } from "@/lib/constants/payouts";
 import type { PartnerPayoutMethod } from "@dub/prisma/client";
-import { CircleDollar, GreekTemple, Paypal, Stablecoin } from "@dub/ui";
-import { Calendar, Globe, MapPin, Zap } from "lucide-react";
+import {
+  Calendar6,
+  CircleDollar,
+  Globe,
+  GreekTemple,
+  Paypal,
+  Stablecoin,
+} from "@dub/ui";
+import { MapPin, Zap } from "lucide-react";
 import type { ComponentType } from "react";
 
 export const PAYOUT_METHODS = [
@@ -11,9 +19,12 @@ export const PAYOUT_METHODS = [
     icon: Stablecoin,
     iconWrapperClass: "border-[#1717170D] bg-blue-100",
     features: [
-      { icon: CircleDollar, text: "Paid in USDC" },
-      { icon: Globe, text: "No local bank required" },
-      { icon: Zap, text: "Payouts deposited instantly" },
+      {
+        icon: CircleDollar,
+        text: `Paid in USDC (${STABLECOIN_PAYOUT_FEE_RATE * 100}% fee)`,
+      },
+      { icon: Zap, text: "Payouts deposited in minutes" },
+      { icon: Globe, text: "No local bank account required" },
     ],
   },
   {
@@ -23,9 +34,9 @@ export const PAYOUT_METHODS = [
     icon: GreekTemple,
     iconWrapperClass: "border-[#1717171A] bg-white text-content-emphasis",
     features: [
-      { icon: MapPin, text: "Paid in local currency" },
-      { icon: GreekTemple, text: "Local bank required" },
-      { icon: Calendar, text: "Payouts deposited in days" },
+      { icon: MapPin, text: "Paid in local currency (1% FX fee)" },
+      { icon: Calendar6, text: "Payouts take up to 15 business days" },
+      { icon: GreekTemple, text: "Local bank account required" },
     ],
   },
   {
@@ -35,9 +46,12 @@ export const PAYOUT_METHODS = [
     icon: Paypal,
     iconWrapperClass: "border-[#1717171A] bg-white p-2",
     features: [
-      { icon: MapPin, text: "Paid in local currency" },
-      { icon: GreekTemple, text: "May require a linked bank" },
-      { icon: Zap, text: "Payouts deposited instantly" },
+      { icon: MapPin, text: "Paid in local currency (3% FX fee)" },
+      { icon: Zap, text: "Payouts deposited in minutes" },
+      {
+        icon: GreekTemple,
+        text: "PayPal + local bank account required",
+      },
     ],
   },
 ] as const;

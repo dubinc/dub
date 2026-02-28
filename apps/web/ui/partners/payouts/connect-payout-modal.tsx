@@ -22,7 +22,7 @@ function ConnectPayoutModal({
     <Modal
       showModal={showModal}
       setShowModal={setShowModal}
-      className="max-w-xl"
+      className="max-w-2xl"
     >
       <div className="relative flex items-start justify-between gap-4 px-4 py-4 sm:px-6">
         <div className="flex min-w-0 flex-1 flex-col gap-4">
