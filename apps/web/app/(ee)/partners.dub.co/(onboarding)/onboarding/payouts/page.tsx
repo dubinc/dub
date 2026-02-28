@@ -1,20 +1,21 @@
 import { getSession } from "@/lib/auth";
+import { getPartnerPayoutMethods } from "@/lib/payouts/api/get-partner-payout-methods";
+import { PayoutMethodSelector } from "@/ui/partners/payouts/payout-method-cards";
 import { prisma } from "@dub/prisma";
-import {
-  CONNECT_SUPPORTED_COUNTRIES,
-  PAYPAL_SUPPORTED_COUNTRIES,
-} from "@dub/utils";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
-import { PayoutProvider } from "./payout-provider";
 
 export default function OnboardingVerificationPage() {
   return (
-    <div className="relative mx-auto my-10 flex w-full max-w-[416px] flex-col items-center text-center md:mt-6">
-      <h1 className="animate-slide-up-fade text-content-emphasis text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+    <div className="relative mx-auto my-10 flex w-full max-w-[600px] flex-col items-center px-4 text-center sm:px-6 md:mt-6">
+      <h1 className="animate-slide-up-fade text-content-emphasis text-xl font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
         Payout information
       </h1>
-      <div className="animate-slide-up-fade relative mt-8 w-full [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
+      <p className="animate-slide-up-fade mt-1 text-base font-medium text-neutral-500 [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+        Connect your preferred payout method to receive payments.
+      </p>
+      <div className="animate-slide-up-fade relative mt-12 w-full [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
         <Suspense fallback={<PayoutSkeleton />}>
           <PayoutRSC />
         </Suspense>
@@ -52,24 +53,43 @@ function PayoutSkeleton() {
 
 async function PayoutRSC() {
   const { user } = await getSession();
+
   const partner = await prisma.partner.findUnique({
     where: {
       email: user.email,
     },
+    select: {
+      id: true,
+      country: true,
+      stripeConnectId: true,
+      stripeRecipientId: true,
+      paypalEmail: true,
+      defaultPayoutMethod: true,
+    },
   });
+
   if (!partner?.country) {
     redirect("/");
   }
 
-  const provider = CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
-    ? "stripe"
-    : PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)
-      ? "paypal"
-      : null;
+  const payoutMethods = await getPartnerPayoutMethods(partner);
 
-  if (!provider) {
+  if (payoutMethods.length === 0) {
     redirect("/");
   }
 
-  return <PayoutProvider provider={provider} />;
+  return (
+    <>
+      <PayoutMethodSelector
+        payoutMethods={payoutMethods}
+        allowConnectWhenPayoutsEnabled
+      />
+      <Link
+        href="/programs"
+        className="mt-6 block text-center text-sm font-semibold text-neutral-800 transition-colors hover:text-neutral-950"
+      >
+        I'll complete this later
+      </Link>
+    </>
+  );
 }

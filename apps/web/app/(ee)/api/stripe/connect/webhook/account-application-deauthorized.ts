@@ -1,3 +1,4 @@
+import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
 import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
@@ -12,11 +13,26 @@ export async function accountApplicationDeauthorized(event: Stripe.Event) {
     where: {
       stripeConnectId: stripeAccount,
     },
+    select: {
+      id: true,
+      email: true,
+      stripeConnectId: true,
+      stripeRecipientId: true,
+      paypalEmail: true,
+      payoutsEnabledAt: true,
+      defaultPayoutMethod: true,
+    },
   });
 
   if (!partner) {
     return `Partner with stripeConnectId ${stripeAccount} not found, skipping...`;
   }
+
+  const { payoutsEnabledAt, defaultPayoutMethod } =
+    await recomputePartnerPayoutState({
+      ...partner,
+      stripeConnectId: null,
+    });
 
   await prisma.partner.update({
     where: {
@@ -24,8 +40,8 @@ export async function accountApplicationDeauthorized(event: Stripe.Event) {
     },
     data: {
       stripeConnectId: null,
-      payoutsEnabledAt: null,
-      payoutMethodHash: null,
+      payoutsEnabledAt,
+      defaultPayoutMethod,
     },
   });
 

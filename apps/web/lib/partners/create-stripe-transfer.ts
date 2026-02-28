@@ -7,17 +7,10 @@ import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { Payout, Prisma } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
-
-export type PayoutWithProgramName = Pick<
-  Payout,
-  "id" | "amount" | "invoiceId"
-> & {
-  program: {
-    name: string;
-  };
-};
+import { createPayoutsIdempotencyKey } from "../payouts/api/create-payouts-idempotency-key";
+import { markPayoutsAsProcessed } from "../payouts/api/mark-payouts-as-processed";
 
 export const createStripeTransfer = async ({
   partnerId,
@@ -65,6 +58,10 @@ export const createStripeTransfer = async ({
           partnerId: partner.id,
           status: "processed",
           stripeTransferId: null,
+          method: "connect",
+        },
+        orderBy: {
+          id: "asc",
         },
         include: commonInclude,
       }),
@@ -73,6 +70,10 @@ export const createStripeTransfer = async ({
           partnerId: partner.id,
           invoiceId,
           status: "processing",
+          method: "connect",
+        },
+        orderBy: {
+          id: "asc",
         },
         include: commonInclude,
       }),
@@ -104,7 +105,7 @@ export const createStripeTransfer = async ({
       withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
       // else, we will just update current invoice payouts to "processed" status
     } else {
-      await updateCurrentInvoicePayoutsToProcessed(currentInvoicePayouts);
+      await markPayoutsAsProcessed(currentInvoicePayouts);
 
       console.log(
         `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
@@ -147,15 +148,21 @@ export const createStripeTransfer = async ({
     });
     console.log(`Updated partner ${partner.email} with payoutsEnabledAt null`);
 
-    await updateCurrentInvoicePayoutsToProcessed(currentInvoicePayouts);
+    await markPayoutsAsProcessed(currentInvoicePayouts);
 
     throw new Error(
       `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`,
     );
   }
 
-  // will be used for transfer_group and idempotencyKey
+  // will be used for transfer_group
   const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;
+
+  const idempotencyKey = createPayoutsIdempotencyKey({
+    partnerId: partner.id,
+    invoiceId,
+    payoutIds: allPayouts.map((p) => p.id),
+  });
 
   // Create a transfer for the partner combined payouts and update it as sent
   const transfer = await stripe.transfers.create(
@@ -175,7 +182,7 @@ export const createStripeTransfer = async ({
         }),
     },
     {
-      idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,
+      idempotencyKey,
     },
   );
 
@@ -197,6 +204,7 @@ export const createStripeTransfer = async ({
         stripeTransferId: transfer.id,
         status: "sent",
         paidAt: new Date(),
+        method: "connect",
       },
     }),
 
@@ -222,7 +230,6 @@ export const createStripeTransfer = async ({
         email: partner.email,
         program: payout.program,
         payout,
-        variant: "stripe",
       }),
     });
 
@@ -230,25 +237,4 @@ export const createStripeTransfer = async ({
   }
 
   return transfer;
-};
-
-const updateCurrentInvoicePayoutsToProcessed = async (
-  currentInvoicePayouts: Pick<Payout, "id">[],
-) => {
-  if (currentInvoicePayouts.length > 0) {
-    const res = await prisma.payout.updateMany({
-      where: {
-        id: {
-          in: currentInvoicePayouts.map((p) => p.id),
-        },
-      },
-      data: {
-        status: "processed",
-        paidAt: new Date(),
-      },
-    });
-    console.log(
-      `Updated ${res.count} payouts in current invoice to "processed" status`,
-    );
-  }
 };
