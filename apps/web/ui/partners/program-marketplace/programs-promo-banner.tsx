@@ -10,10 +10,16 @@ import { ProgramMarketplaceBanner } from "@/ui/partners/program-marketplace/prog
  * program marketplace banner.
  */
 export function ProgramsPromoBanner() {
-  const { availablePayoutMethods } = usePartnerProfile();
-  const hasStablecoinAccess = availablePayoutMethods?.includes("stablecoin");
+  const { partner, availablePayoutMethods } = usePartnerProfile();
 
-  if (hasStablecoinAccess) {
+  if (!partner) {
+    return null;
+  }
+
+  if (
+    availablePayoutMethods.includes("stablecoin") &&
+    !partner.stripeRecipientId
+  ) {
     return <StablecoinPayoutBanner />;
   }
 

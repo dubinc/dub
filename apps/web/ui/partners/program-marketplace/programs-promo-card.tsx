@@ -10,10 +10,16 @@ import { ProgramMarketplaceCard } from "@/ui/partners/program-marketplace/progra
  * yet; otherwise show the program marketplace card.
  */
 export function ProgramsPromoCard() {
-  const { availablePayoutMethods } = usePartnerProfile();
-  const hasStablecoinAccess = availablePayoutMethods?.includes("stablecoin");
+  const { partner, availablePayoutMethods } = usePartnerProfile();
 
-  if (hasStablecoinAccess) {
+  if (!partner) {
+    return null;
+  }
+
+  if (
+    availablePayoutMethods.includes("stablecoin") &&
+    !partner.stripeRecipientId
+  ) {
     return <StablecoinPayoutCard />;
   }
 
