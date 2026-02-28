@@ -52,7 +52,7 @@ export default function Layout({ children }: PropsWithChildren) {
           </div>
         </div>
 
-        <div className="w-full py-16">{children}</div>
+        <div className="w-full pt-16 pb-0 lg:pb-16">{children}</div>
 
         {/* Empty div to center main content */}
         <div className="grow basis-0" />
