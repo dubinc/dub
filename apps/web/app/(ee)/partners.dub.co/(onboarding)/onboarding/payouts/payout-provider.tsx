@@ -42,7 +42,7 @@ export function PayoutProvider({
         <div className="bg-white px-6 py-4 text-sm text-neutral-600">
           We use {label} to ensure you get paid on time and to keep your
           personal bank details secure. Click <strong>Connect payouts</strong>{" "}
-          to connect your bank account.
+          to connect your payout account.
           <br />
           <br />
           You can complete this at a later date, but won't be able to collect

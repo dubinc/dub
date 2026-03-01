@@ -73,7 +73,7 @@ function PayoutStatsCard({
             <div className="flex items-center gap-2">
               {partner && !partner.payoutsEnabledAt && (
                 <Tooltip
-                  content="You need to connect your bank account to be able to receive payouts from the programs you are enrolled in."
+                  content="You need to connect your payout account to be able to receive payouts from the programs you are enrolled in."
                   side="right"
                 >
                   <div>
@@ -288,9 +288,8 @@ function ForceWithdrawalModalDescription({
       <>
         Your processed earnings (
         <strong className="text-black">{processedPayoutAmountInUsd}</strong>)
-        will be sent to your crypto wallet. A{" "}
-        {STABLECOIN_PAYOUT_FEE_RATE * 100}% fee applies, so you will
-        receive{" "}
+        will be sent to your crypto wallet. A {STABLECOIN_PAYOUT_FEE_RATE * 100}
+        % fee applies, so you will receive{" "}
         <strong className="text-black">
           {currencyFormatter(finalAmount, {
             trailingZeroDisplay: "stripIfInteger",
