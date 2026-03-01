@@ -1,5 +1,8 @@
 "use server";
 
+import {
+  parseFraudResolutionComment,
+} from "@/lib/fraud-resolution-comment";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
 import {
@@ -23,6 +26,23 @@ export const updatePartnerCommentAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    // Preserve fraud resolution metadata from the existing comment
+    const existing = await prisma.partnerComment.findUniqueOrThrow({
+      where: { id, programId, userId: user.id },
+      select: { text: true, metadata: true },
+    });
+
+    const parsedLegacy = parseFraudResolutionComment(existing.text);
+    const metadata =
+      existing.metadata ??
+      (parsedLegacy.metadata
+        ? {
+            source: "fraudResolution",
+            groupId: parsedLegacy.metadata.groupId,
+            type: parsedLegacy.metadata.type,
+          }
+        : null);
+
     const comment = await prisma.partnerComment.update({
       where: {
         id,
@@ -31,6 +51,7 @@ export const updatePartnerCommentAction = authActionClient
       },
       data: {
         text,
+        metadata,
       },
       include: {
         user: true,
