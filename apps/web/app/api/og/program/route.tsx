@@ -16,9 +16,6 @@ const DARK_CELLS = [
 ];
 
 export async function GET(req: NextRequest) {
-  // Load Inter Semibold font (weight 600)
-  const interSemibold = await loadGoogleFont("Inter:wght@600");
-
   const slug = req.nextUrl.searchParams.get("slug");
   const groupSlug = req.nextUrl.searchParams.get("groupSlug");
 
@@ -27,24 +24,26 @@ export async function GET(req: NextRequest) {
       status: 400,
     });
   }
-
-  const program = await prisma.program.findUnique({
-    where: {
-      slug,
-    },
-    include: {
-      groups: {
-        where: {
-          slug: groupSlug ?? DEFAULT_PARTNER_GROUP.slug,
-        },
-        include: {
-          clickReward: true,
-          saleReward: true,
-          leadReward: true,
+  const [interSemibold, program] = await Promise.all([
+    loadGoogleFont("Inter:wght@600"),
+    prisma.program.findUnique({
+      where: {
+        slug,
+      },
+      include: {
+        groups: {
+          where: {
+            slug: groupSlug ?? DEFAULT_PARTNER_GROUP.slug,
+          },
+          include: {
+            clickReward: true,
+            saleReward: true,
+            leadReward: true,
+          },
         },
       },
-    },
-  });
+    }),
+  ]);
 
   if (!program) {
     return new Response(`Program not found`, {

@@ -1,6 +1,7 @@
 "use client";
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -8,6 +9,7 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
+  ENUM_CONDITION_OPERATORS,
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
@@ -94,7 +96,23 @@ export function RewardsLogic({
       <Button
         className="h-8 rounded-lg"
         icon={<ArrowTurnRight2 className="size-4" />}
-        text="Add condition"
+        text={
+          <div className="flex items-center gap-2">
+            <span>Add condition</span>
+            {!getPlanCapabilities(plan).canUseAdvancedRewardLogic && (
+              <div
+                className={cn(
+                  "rounded-sm px-1.5 py-1 text-[0.625rem] uppercase leading-none",
+                  isDefaultReward
+                    ? "bg-violet-500/50 text-violet-200"
+                    : "bg-violet-50 text-violet-600",
+                )}
+              >
+                Upgrade required
+              </div>
+            )}
+          </div>
+        }
         onClick={() => {
           const type = getValues("type");
 
@@ -374,10 +392,17 @@ function ConditionLogic({
                         },
                       )
                     }
-                    items={entity.attributes.map((attribute) => ({
-                      text: attribute.label,
-                      value: attribute.id,
-                    }))}
+                    items={entity.attributes
+                      .filter(
+                        (attribute) =>
+                          attribute.id !== "source" ||
+                          (program &&
+                            REFERRAL_ENABLED_PROGRAM_IDS.includes(program.id)),
+                      )
+                      .map((attribute) => ({
+                        text: attribute.label,
+                        value: attribute.id,
+                      }))}
                   />
                 </InlineBadgePopover>{" "}
                 {isCustomerSourceCondition ? (
@@ -420,7 +445,9 @@ function ConditionLogic({
                       }
                       items={(["number", "currency"].includes(attributeType)
                         ? NUMBER_CONDITION_OPERATORS
-                        : STRING_CONDITION_OPERATORS
+                        : attributeType === "enum"
+                          ? ENUM_CONDITION_OPERATORS
+                          : STRING_CONDITION_OPERATORS
                       ).map((operator) => ({
                         text: CONDITION_OPERATOR_LABELS[operator],
                         value: operator,
@@ -445,10 +472,7 @@ function ConditionLogic({
                       )}
                     >
                       {/* Country selection */}
-                      {condition.attribute === "country" &&
-                      !["starts_with", "ends_with"].includes(
-                        condition.operator,
-                      ) ? (
+                      {condition.attribute === "country" ? (
                         // Country selector
                         <InlineBadgePopoverMenu
                           search
@@ -486,10 +510,7 @@ function ConditionLogic({
                             });
                           }}
                         />
-                      ) : attribute?.options &&
-                        !["starts_with", "ends_with"].includes(
-                          condition.operator,
-                        ) ? (
+                      ) : attribute?.options ? (
                         // Select option selector
                         <InlineBadgePopoverMenu
                           search={attribute.options.length > 4}
@@ -497,20 +518,10 @@ function ConditionLogic({
                             (condition.value as string[] | undefined) ??
                             (isArrayValue ? [] : undefined)
                           }
-                          items={attribute.options
-                            .filter(
-                              (attribute) =>
-                                isCustomerSourceCondition &&
-                                (attribute.id !== "submitted" ||
-                                  (program &&
-                                    REFERRAL_ENABLED_PROGRAM_IDS.includes(
-                                      program.id,
-                                    ))),
-                            )
-                            .map(({ id, label }) => ({
-                              text: label,
-                              value: id,
-                            }))}
+                          items={attribute.options.map(({ id, label }) => ({
+                            text: label,
+                            value: id,
+                          }))}
                           onSelect={(value) => {
                             setValue(conditionKey, {
                               ...condition,

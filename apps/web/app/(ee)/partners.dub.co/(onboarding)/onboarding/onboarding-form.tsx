@@ -2,6 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
@@ -18,7 +19,7 @@ import { cn } from "@dub/utils";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
@@ -44,6 +45,7 @@ export function OnboardingForm({
   > | null;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
   const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
@@ -88,7 +90,13 @@ export function OnboardingForm({
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
       setAccountCreated(true);
-      router.push("/onboarding/platforms");
+      const next = getValidInternalRedirectPath({
+        redirectPath: searchParams.get("next"),
+        currentUrl: window.location.href,
+      });
+      router.push(
+        `/onboarding/platforms${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+      );
     },
     onError: ({ error, input }) => {
       toast.error(parseActionError(error, "An unknown error occurred."));

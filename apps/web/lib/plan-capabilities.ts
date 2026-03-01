@@ -19,5 +19,7 @@ export const getPlanCapabilities = (
     canDiscoverPartners: !!plan && ["enterprise", "advanced"].includes(plan),
     canManageFraudEvents: !!plan && ["enterprise", "advanced"].includes(plan),
     canUseGroupMoveRule: !!plan && ["enterprise", "advanced"].includes(plan),
+    canUseBountySocialMetrics:
+      !!plan && ["enterprise", "advanced"].includes(plan),
   };
 };

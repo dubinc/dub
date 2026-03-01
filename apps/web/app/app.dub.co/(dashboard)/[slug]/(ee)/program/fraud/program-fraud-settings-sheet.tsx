@@ -3,7 +3,11 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudRuleProps, UpdateFraudRuleSettings } from "@/lib/types";
+import {
+  FraudRuleProps,
+  PaidTrafficPlatform,
+  UpdateFraudRuleSettings,
+} from "@/lib/types";
 import {
   getRulesBeingDisabled,
   useDisableFraudRulesModal,
@@ -44,7 +48,7 @@ function ProgramFraudSettingsSheetContent({
       },
       paidTrafficDetected: {
         enabled: false,
-        config: { platforms: [] },
+        config: { platforms: [], google: { whitelistedCampaignIds: [] } },
       },
     },
   });
@@ -65,6 +69,11 @@ function ProgramFraudSettingsSheetContent({
       (rule) => rule.type === "paidTrafficDetected",
     );
 
+    const paidTrafficConfig = (paidTrafficDetectedRule?.config ?? {}) as {
+      platforms?: PaidTrafficPlatform[];
+      google?: { whitelistedCampaignIds?: string[] };
+    };
+
     form.reset({
       referralSourceBanned: {
         enabled: referralSourceBannedRule?.enabled ?? false,
@@ -72,7 +81,13 @@ function ProgramFraudSettingsSheetContent({
       },
       paidTrafficDetected: {
         enabled: paidTrafficDetectedRule?.enabled ?? false,
-        config: paidTrafficDetectedRule?.config ?? { platforms: [] },
+        config: {
+          platforms: paidTrafficConfig.platforms ?? [],
+          google: {
+            whitelistedCampaignIds:
+              paidTrafficConfig.google?.whitelistedCampaignIds ?? [],
+          },
+        },
       },
     });
   }, [fraudRules, form]);

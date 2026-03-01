@@ -64,7 +64,7 @@ export default async function PartnerAuthLayout(props: {
     redirect("/register");
   }
   return (
-    <div className="relative grid min-h-screen min-h-[100dvh] grid-cols-1 min-[900px]:grid-cols-[440px_minmax(0,1fr)] lg:grid-cols-[595px_minmax(0,1fr)]">
+    <div className="relative grid min-h-[100dvh] min-h-screen grid-cols-1 min-[900px]:grid-cols-[440px_minmax(0,1fr)] lg:grid-cols-[595px_minmax(0,1fr)]">
       <PartnerBanner program={program} />
       <SidePanel program={program} />
 
@@ -105,7 +105,7 @@ export default async function PartnerAuthLayout(props: {
             </div>
           ))}
         </div>
-        <div className="relative flex min-h-screen min-h-[100dvh] w-full justify-center">
+        <div className="relative flex min-h-[100dvh] min-h-screen w-full justify-center">
           <Logo className="min-[900px]:hidden" />
           {props.children}
         </div>

@@ -86,7 +86,7 @@ function ReferralSheetContent({
 
   return (
     <>
-      <ConfirmReferralStatusChangeModal />
+      {ConfirmReferralStatusChangeModal}
       <div className="flex size-full flex-col">
         <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
           <Sheet.Title className="text-lg font-semibold">

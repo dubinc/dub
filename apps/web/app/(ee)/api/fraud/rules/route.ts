@@ -29,7 +29,10 @@ export const GET = withWorkspace(
         return {
           type,
           enabled: true,
-          config: { platforms: ["google"] },
+          config: {
+            platforms: ["google"],
+            google: { whitelistedCampaignIds: [] },
+          },
         };
       }
 

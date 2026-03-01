@@ -62,6 +62,6 @@ export const verifyBountySubmission = async ({
 
   throw new Error(
     `Bounty submission did not reach status "${expectedStatus}" within ${TIMEOUT_MS / 1000} seconds. ` +
-    `bountyId: ${bountyId}, partnerId: ${partnerId}. ${lastState}`,
+      `bountyId: ${bountyId}, partnerId: ${partnerId}. ${lastState}`,
   );
 };

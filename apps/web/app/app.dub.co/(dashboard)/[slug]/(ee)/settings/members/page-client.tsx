@@ -196,9 +196,6 @@ export function WorkspaceMembersClient() {
       {
         id: "menu",
         enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
         header: () => null,
         cell: ({ row }) => (
           <RowMenuButton row={row} isCurrentUserOwner={isCurrentUserOwner} />
@@ -294,7 +291,7 @@ export function WorkspaceMembersClient() {
                 onSelect={onSelect}
                 onRemove={onRemove}
               />
-              {inviteCount > 0 && status !== "invited" && (
+              {inviteCount && status !== "invited" ? (
                 <Button
                   text="View pending invites"
                   variant="secondary"
@@ -310,7 +307,7 @@ export function WorkspaceMembersClient() {
                     queryParams({ set: { status: "invited" }, del: "page" })
                   }
                 />
-              )}
+              ) : undefined}
             </div>
             <SearchBoxPersisted
               placeholder="Search by name or email"

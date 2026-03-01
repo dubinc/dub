@@ -104,5 +104,7 @@ export const GET = async (req: Request) => {
     }
   }
 
-  redirect(`/payouts${error ? `?error=${encodeURIComponent(error)}` : ""}`);
+  redirect(
+    `/payouts?settings=true${error ? `&error=${encodeURIComponent(error)}` : ""}`,
+  );
 };

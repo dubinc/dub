@@ -5,6 +5,7 @@ import {
 import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
 import {
   CommissionType,
+  PartnerPayoutMethod,
   PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
@@ -148,7 +149,16 @@ export const partnerNotificationTypes = z.enum([
 export const PartnerBountySchema = BountySchema.omit({
   groups: true,
 }).extend({
-  submission: BountySubmissionSchema.nullable(),
+  submission: BountySubmissionSchema.extend({
+    commission: PartnerEarningsSchema.pick({
+      id: true,
+      earnings: true,
+      status: true,
+      createdAt: true,
+    })
+      .nullable()
+      .default(null),
+  }).nullable(),
   performanceCondition: bountyPerformanceConditionSchema
     .nullable()
     .default(null),
@@ -197,6 +207,14 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
     }),
   ]),
 );
+
+export const partnerPayoutMethodSchema = z.object({
+  type: z.enum(PartnerPayoutMethod),
+  label: z.string(),
+  default: z.boolean(),
+  connected: z.boolean(),
+  identifier: z.string().nullable(),
+});
 
 export const partnerProfilePayoutsQuerySchema = payoutsQuerySchema.extend({
   programId: z.string().optional(),

@@ -1,3 +1,4 @@
+import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { qstash } from "@/lib/cron";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
@@ -9,7 +10,6 @@ import {
   trackActivityLog,
   TrackActivityLogInput,
 } from "../activity-log/track-activity-log";
-import { triggerDraftBountySubmissionCreation } from "../bounties/trigger-draft-bounty-submissions";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { includeProgramEnrollment } from "../links/include-program-enrollment";
 import { includeTags } from "../links/include-tags";

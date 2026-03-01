@@ -13,6 +13,7 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../components/footer";
+import { PartnerPayoutMethod } from "../types";
 
 export default function PartnerPayoutProcessed({
   email = "panic@thedis.co",
@@ -22,11 +23,11 @@ export default function PartnerPayoutProcessed({
   },
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
-    amount: 490,
-    periodStart: new Date("2024-11-01"),
-    periodEnd: new Date("2024-11-30"),
+    amount: 12000,
+    periodStart: new Date("2026-02-01"),
+    periodEnd: new Date("2026-02-01"),
+    method: "stablecoin",
   },
-  variant = "stripe",
 }: {
   email: string;
   program: {
@@ -38,12 +39,11 @@ export default function PartnerPayoutProcessed({
     amount: number;
     periodStart?: Date | null;
     periodEnd?: Date | null;
+    method: PartnerPayoutMethod | null;
   };
-  variant: "stripe" | "paypal";
 }) {
-  const payoutAmountInDollars = currencyFormatter(payout.amount, {
-    trailingZeroDisplay: "stripIfInteger",
-  });
+  const payoutAmountInDollars = currencyFormatter(payout.amount);
+  const STABLECOIN_PAYOUT_FEE_RATE = 0.005;
 
   const startDate = payout.periodStart
     ? formatDate(payout.periodStart, {
@@ -62,6 +62,18 @@ export default function PartnerPayoutProcessed({
         timeZone: "UTC",
       })
     : null;
+
+  let statusMessage = "";
+
+  if (payout.method === "connect") {
+    statusMessage =
+      payout.amount >= 1000
+        ? "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way."
+        : "Since this payout is below the minimum withdrawal amount of $10, it will remain in processed status.";
+  } else if (payout.method === "paypal") {
+    statusMessage =
+      "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete.";
+  }
 
   return (
     <Html>
@@ -95,16 +107,43 @@ export default function PartnerPayoutProcessed({
               {startDate && endDate ? (
                 <>
                   {" "}
-                  for affiliate commissions made from{" "}
-                  <strong className="text-black">{startDate}</strong> to{" "}
-                  <strong className="text-black">{endDate}</strong>.
+                  for affiliate commissions made
+                  {startDate === endDate ? (
+                    <>
+                      {" "}
+                      on <strong className="text-black">{startDate}</strong>.
+                    </>
+                  ) : (
+                    <>
+                      from <strong className="text-black">{startDate}</strong>{" "}
+                      to <strong className="text-black">{endDate}</strong>.
+                    </>
+                  )}
                 </>
               ) : (
                 "."
               )}
             </Text>
 
-            <Section className="my-8">
+            <Text className="text-sm leading-6 text-neutral-600">
+              {payout.method === "stablecoin" ? (
+                <>
+                  {" "}
+                  After a {STABLECOIN_PAYOUT_FEE_RATE * 100}% stablecoin fee,{" "}
+                  <strong className="text-black">
+                    {currencyFormatter(
+                      payout.amount * (1 - STABLECOIN_PAYOUT_FEE_RATE),
+                    )}
+                  </strong>{" "}
+                  will be transferred to your connected crypto wallet. You
+                  should receive it within minutes.
+                </>
+              ) : (
+                statusMessage
+              )}
+            </Text>
+
+            <Section className="mb-10 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
                 href={`https://partners.dub.co/payouts?payoutId=${payout.id}`}
@@ -113,15 +152,7 @@ export default function PartnerPayoutProcessed({
               </Link>
             </Section>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              {variant === "stripe"
-                ? payout.amount >= 1000
-                  ? "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way."
-                  : "Since this payout is below the minimum withdrawal amount of $10, it will remain in processed status."
-                : "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete."}
-            </Text>
-
-            {variant === "stripe" && payout.amount < 1000 && (
+            {payout.method === "connect" && payout.amount < 1000 && (
               <Text className="text-sm leading-6 text-neutral-600">
                 If you'd like to receive your payout right away, please{" "}
                 <Link

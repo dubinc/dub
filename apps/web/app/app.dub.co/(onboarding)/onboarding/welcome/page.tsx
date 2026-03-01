@@ -9,7 +9,7 @@ export default function Welcome() {
     <>
       <TrackSignup />
       <NewBackground showAnimation showGradient={false} />
-      <div className="relative flex min-h-screen min-h-[100dvh] flex-col items-center justify-center">
+      <div className="relative flex min-h-[100dvh] min-h-screen flex-col items-center justify-center">
         <div className="flex max-w-sm flex-col items-center px-4 py-16 text-center">
           <div className="animate-slide-up-fade relative flex w-auto items-center justify-center px-6 py-2 [--offset:20px] [animation-duration:1.3s] [animation-fill-mode:both]">
             <Gradient className="opacity-10 mix-blend-overlay" />

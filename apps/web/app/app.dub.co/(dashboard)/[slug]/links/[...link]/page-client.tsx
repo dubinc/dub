@@ -139,7 +139,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   const [isChangingLink, setIsChangingLink] = useState(false);
 
   return (
-    <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
+    <div className="flex min-h-[calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] flex-col rounded-t-[inherit] bg-white">
       <div className="py-2 pl-4 pr-5">
         <LinkBuilderHeader
           onSelectLink={(selectedLink) => {
@@ -308,7 +308,7 @@ const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
 
 function LoadingSkeleton() {
   return (
-    <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
+    <div className="flex min-h-[calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] flex-col rounded-t-[inherit] bg-white">
       <div className="flex items-center justify-between gap-4 py-2.5 pl-4 pr-5">
         <div className="h-8 w-64 max-w-full animate-pulse rounded-md bg-neutral-100" />
         <div className="h-7 w-32 max-w-full animate-pulse rounded-md bg-neutral-100" />

@@ -13,7 +13,10 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
   // Handle ?next= query param with proper validation to prevent open redirects
   if (
     searchParamsObj.next &&
-    isValidInternalRedirect(searchParamsObj.next, req.url)
+    isValidInternalRedirect({
+      redirectPath: searchParamsObj.next,
+      currentUrl: req.url,
+    })
   ) {
     return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
   }

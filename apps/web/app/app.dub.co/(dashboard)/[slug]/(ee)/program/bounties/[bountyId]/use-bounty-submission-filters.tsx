@@ -1,3 +1,4 @@
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
@@ -12,7 +13,6 @@ import { Users, Users6 } from "@dub/ui/icons";
 import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
 export function useBountySubmissionFilters({
   bounty,

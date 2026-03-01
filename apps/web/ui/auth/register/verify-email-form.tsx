@@ -1,12 +1,13 @@
 "use client";
 
 import { createUserAccountAction } from "@/lib/actions/create-user-account";
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { AnimatedSizeContainer, Button, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { OTPInput } from "input-otp";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRegisterContext } from "./context";
@@ -14,6 +15,7 @@ import { ResendOtp } from "./resend-otp";
 
 export const VerifyEmailForm = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
   const [code, setCode] = useState("");
   const { email, password } = useRegisterContext();
@@ -31,8 +33,16 @@ export const VerifyEmailForm = () => {
         redirect: false,
       });
 
+      // preserve the next query param if present (and valid)
+      const next = getValidInternalRedirectPath({
+        redirectPath: searchParams.get("next"),
+        currentUrl: window.location.href,
+      });
+
       if (response?.ok) {
-        router.push("/onboarding");
+        router.push(
+          `/onboarding${next ? `?next=${encodeURIComponent(next)}` : ""}`,
+        );
       } else {
         toast.error(
           "Failed to sign in with credentials. Please try again or contact support.",

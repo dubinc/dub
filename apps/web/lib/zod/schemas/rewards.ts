@@ -20,7 +20,7 @@ export const COMMISSION_TYPES = [
 export type RewardConditionEntityAttribute = {
   id: string;
   label: string;
-  type: "string" | "number" | "currency";
+  type: "string" | "enum" | "number" | "currency";
   options?: {
     id: string;
     label: string;
@@ -40,7 +40,7 @@ const PARTNER_ENTITY: RewardConditionEntity = {
     {
       id: "country",
       label: "Country",
-      type: "string",
+      type: "enum",
     },
     {
       id: "totalClicks",
@@ -77,7 +77,7 @@ const CUSTOMER_ENTITY: RewardConditionEntity = {
     {
       id: "country",
       label: "Country",
-      type: "string",
+      type: "enum",
     },
   ],
 };
@@ -204,6 +204,9 @@ export const CONDITION_OPERATORS = [
 
 export const STRING_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
   ["equals_to", "not_equals", "starts_with", "ends_with", "in", "not_in"];
+
+export const ENUM_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
+  ["equals_to", "not_equals", "in", "not_in"];
 
 export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] =
   [

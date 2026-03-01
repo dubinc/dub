@@ -219,7 +219,8 @@ export function PartnersTable() {
           id: "partner",
           header: "Partner",
           enableHiding: false,
-          minSize: 250,
+          minSize: 150,
+          maxSize: 250,
           cell: ({ row }) => {
             return (
               <PartnerRowItem partner={row.original} showPermalink={false} />
@@ -229,6 +230,7 @@ export function PartnersTable() {
         {
           id: "group",
           header: "Group",
+          maxSize: 250,
           cell: ({ row }) => {
             if (!groups) return "-";
 
@@ -447,9 +449,6 @@ export function PartnersTable() {
         {
           id: "menu",
           enableHiding: false,
-          minSize: 43,
-          size: 43,
-          maxSize: 43,
           header: ({ table }) => <EditColumnsButton table={table} />,
           cell: ({ row }) => (
             <RowMenuButton row={row} workspaceId={workspaceId!} />

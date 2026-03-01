@@ -9,7 +9,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
     <>
       <Toolbar />
 
-      <div className="relative grid min-h-screen min-h-[100dvh] grid-cols-1 min-[900px]:grid-cols-[minmax(0,1fr)_440px] lg:grid-cols-[minmax(0,1fr)_595px]">
+      <div className="relative grid min-h-[100dvh] min-h-screen grid-cols-1 min-[900px]:grid-cols-[minmax(0,1fr)_440px] lg:grid-cols-[minmax(0,1fr)_595px]">
         {/* Left: Main auth content */}
         <div className="relative">
           <div className="absolute inset-0 isolate overflow-hidden bg-white">
@@ -49,7 +49,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
             ))}
           </div>
 
-          <div className="relative flex min-h-screen min-h-[100dvh] w-full justify-center">
+          <div className="relative flex min-h-[100dvh] min-h-screen w-full justify-center">
             <a
               href="https://dub.co"
               target="_blank"

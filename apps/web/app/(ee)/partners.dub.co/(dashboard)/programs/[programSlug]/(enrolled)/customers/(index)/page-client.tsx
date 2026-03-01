@@ -243,9 +243,6 @@ export function ProgramCustomersPageClient() {
         {
           id: "menu",
           enableHiding: false,
-          minSize: 43,
-          size: 43,
-          maxSize: 43,
           header: () => <EditColumnsButton table={table} />,
         },
       ].filter((c) => c.id === "menu" || customersColumns.all.includes(c.id)),

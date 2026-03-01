@@ -1,9 +1,15 @@
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
+  BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
+  BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
-} from "@/lib/constants/bounties";
+  BOUNTY_MAX_SUBMISSION_URLS,
+  BOUNTY_SOCIAL_PLATFORM_METRICS,
+  BOUNTY_SOCIAL_PLATFORM_VALUES,
+} from "@/lib/bounty/constants";
 import {
   BountyPerformanceScope,
+  BountySubmissionFrequency,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
   BountyType,
@@ -23,7 +29,44 @@ export const bountyPerformanceConditionSchema = z.object({
   value: z.number(),
 });
 
-// Object format with image and url keys
+// Eg: for each additional 1000 views, earn $1, up to $100
+export const bountySocialContentIncrementalBonusSchema = z
+  .object({
+    incrementCount: z.number().int().positive().optional(),
+    bonusPerIncrement: z.number().min(0).optional(),
+    maxCount: z.number().int().positive().optional(),
+  })
+  .refine(
+    ({ incrementCount, maxCount }) => {
+      if (
+        incrementCount != null &&
+        maxCount != null &&
+        !Number.isNaN(incrementCount) &&
+        !Number.isNaN(maxCount)
+      ) {
+        return maxCount >= incrementCount;
+      }
+
+      return true;
+    },
+    {
+      message: "Cap must be at least the increment count",
+      path: ["maxCount"],
+    },
+  );
+
+export const bountySocialContentRequirementsSchema = z.object({
+  platform: z.enum(BOUNTY_SOCIAL_PLATFORM_VALUES),
+  metric: z.enum(BOUNTY_SOCIAL_PLATFORM_METRICS),
+  minCount: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Minimum metric required for eligibility"),
+  incrementalBonus: bountySocialContentIncrementalBonusSchema.optional(),
+});
+
 export const submissionRequirementsSchema = z.object({
   image: z
     .object({
@@ -36,12 +79,8 @@ export const submissionRequirementsSchema = z.object({
       domains: z.array(z.string()).optional(),
     })
     .optional(),
+  socialMetrics: bountySocialContentRequirementsSchema.optional(),
 });
-
-// Type exports for TypeScript
-export type SubmissionRequirements = z.infer<
-  typeof submissionRequirementsSchema
->;
 
 export const createBountySchema = z.object({
   name: z
@@ -61,8 +100,16 @@ export const createBountySchema = z.object({
   startsAt: parseDateSchema.nullish(),
   endsAt: parseDateSchema.nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
+  submissionFrequency: z.enum(BountySubmissionFrequency).nullish(),
+  maxSubmissions: z
+    .number()
+    .int()
+    .min(2, "Total submissions allowed must be at least 2")
+    .max(10)
+    .nullish(),
   rewardAmount: z
     .number()
+    .positive()
     .min(1, "Reward amount must be greater than 1")
     .nullable(),
   rewardDescription: z
@@ -101,6 +148,8 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   submissionsOpenAt: z.date().nullable(),
+  // submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
+  // maxSubmissions: z.number().nullable(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
   performanceCondition: bountyPerformanceConditionSchema
@@ -108,6 +157,7 @@ export const BountySchema = z.object({
     .default(null),
   performanceScope: z.enum(BountyPerformanceScope).nullable(),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
+  socialMetricsLastSyncedAt: z.date().nullable().optional(),
   groups: z.array(GroupSchema.pick({ id: true })),
 });
 
@@ -151,6 +201,14 @@ export const BountySubmissionSchema = z.object({
     .number()
     .nullable()
     .meta({ description: "The performance count of the submission" }),
+  socialMetricCount: z.number().int().nullable().meta({
+    description:
+      "The social metric count (views or likes) for the social content",
+  }),
+  socialMetricsLastSyncedAt: z.date().nullable().optional().meta({
+    description:
+      "The date and time the submission's social metrics were last synced",
+  }),
   createdAt: z
     .date()
     .meta({ description: "The date and time the submission was created" }),
@@ -232,7 +290,7 @@ export const getBountySubmissionsQuerySchema = z
       description: "The ID of the partner to list submissions for.",
     }),
     sortBy: z
-      .enum(["completedAt", "performanceCount"])
+      .enum(["completedAt", "performanceCount", "socialMetricCount"])
       .default("completedAt")
       .meta({
         description: "The field to sort the submissions by.",
@@ -242,3 +300,35 @@ export const getBountySubmissionsQuerySchema = z
     }),
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
+
+export const socialContentOutputSchema = z.object({
+  likes: z.number(),
+  views: z.number(),
+  handle: z.string().nullable(),
+  platformId: z.string().nullable(),
+  publishedAt: z.date().nullable(),
+  title: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  thumbnailUrl: z.string().nullable().optional(),
+  mediaType: z.enum(["image", "video", "carousel"]).optional(),
+  thumbnailUrls: z.array(z.string()).optional(),
+});
+
+export const createBountySubmissionInputSchema = z.object({
+  programId: z.string(),
+  bountyId: z.string(),
+  files: z
+    .array(BountySubmissionFileSchema)
+    .max(BOUNTY_MAX_SUBMISSION_FILES)
+    .default([]),
+  urls: z.array(z.url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
+  description: z
+    .string()
+    .trim()
+    .max(BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH)
+    .optional(),
+  isDraft: z
+    .boolean()
+    .default(false)
+    .describe("Whether to create a draft submission or a final submission."),
+});

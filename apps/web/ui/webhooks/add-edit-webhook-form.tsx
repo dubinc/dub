@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { EXTERNAL_PAYOUTS_PROGRAM_IDS } from "@/lib/constants/program";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
@@ -128,11 +129,11 @@ export default function AddEditWebhookForm({
         ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS.filter(
             (trigger) =>
               trigger !== "payout.confirmed" ||
-              program?.payoutMode !== "internal",
+              EXTERNAL_PAYOUTS_PROGRAM_IDS.includes(defaultProgramId),
           )
         : []),
     ],
-    [defaultProgramId, program?.payoutMode],
+    [defaultProgramId],
   );
 
   return (

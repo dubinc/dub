@@ -175,6 +175,24 @@ export const updateFraudRuleSettingsSchema = z.object({
       config: z
         .object({
           platforms: z.array(z.enum(PAID_TRAFFIC_PLATFORMS)).optional(),
+          google: z
+            .object({
+              whitelistedCampaignIds: z
+                .array(z.string())
+                .optional()
+                .transform((ids) => {
+                  if (!ids || ids.length === 0) {
+                    return [];
+                  }
+
+                  return Array.from(
+                    new Set(
+                      ids.map((id) => id.trim()).filter((id) => id !== ""),
+                    ),
+                  );
+                }),
+            })
+            .optional(),
         })
         .optional(),
     })
@@ -192,6 +210,19 @@ export const updateFraudRuleSettingsSchema = z.object({
           data.config.platforms.length === 0)
       ) {
         return { ...data, enabled: false, config: undefined };
+      }
+
+      const platforms = data.config?.platforms ?? [];
+      const hasGoogle = platforms.includes("google");
+      const googleConfig = data.config?.google;
+
+      if (!hasGoogle && googleConfig?.whitelistedCampaignIds?.length) {
+        const { google: _google, ...configWithoutGoogle } = data.config ?? {};
+
+        return {
+          ...data,
+          config: { ...configWithoutGoogle, platforms },
+        };
       }
 
       return data;

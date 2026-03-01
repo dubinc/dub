@@ -238,12 +238,13 @@ export const createAndEnrollPartner = async ({
             });
           }),
 
-      // send partner.enrolled webhook
-      sendWorkspaceWebhook({
-        workspace,
-        trigger: "partner.enrolled",
-        data: enrolledPartner,
-      }),
+      // send partner.enrolled webhook (for approved partners)
+      status === "approved" &&
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "partner.enrolled",
+          data: enrolledPartner,
+        }),
     ]),
   );
 

@@ -102,6 +102,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       return {
         ...payout,
         mode,
+        traceId: payout.stripePayoutTraceId,
         partner: {
           ...partner,
           tenantId: programEnrollment.tenantId,

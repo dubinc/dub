@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, useKeyboardShortcut, useMediaQuery } from "@dub/ui";
-import { useBountySheet } from "./add-edit-bounty-sheet";
+import { useBountySheet } from "./add-edit-bounty/add-edit-bounty-sheet";
 
 export function CreateBountyButton() {
   const { isMobile } = useMediaQuery();
