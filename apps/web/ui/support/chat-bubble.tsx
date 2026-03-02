@@ -6,33 +6,18 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { ChatInterface } from "./chat-interface";
 
-export function SupportChatBubble({
-  context = "app",
-  // When true: panel starts open, no bubble button rendered.
-  // The parent page controls open/close via postMessage.
-  externalTrigger = false,
-}: {
-  context?: SupportChatContext;
-  externalTrigger?: boolean;
-}) {
-  const [isOpen, setIsOpen] = useState(externalTrigger);
+export function SupportChatBubble({ context = "app" }: { context?: SupportChatContext }) {
+  const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const handleClose = () => {
     setIsOpen(false);
-    if (externalTrigger && window.parent !== window) {
-      window.parent.postMessage({ type: "dub-support-chat", isOpen: false }, "*");
-    }
   };
 
   useEffect(() => {
-    if (!externalTrigger) return;
-    const handler = (e: MessageEvent) => {
-      if (e.data?.type === "dub-support-open") setIsOpen(true);
-    };
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
-  }, [externalTrigger]);
+    if (window.parent === window) return;
+    window.parent.postMessage({ type: "dub-support-chat", isOpen }, "*");
+  }, [isOpen]);
 
   const handleOpen = () => {
     setIsOpen(true);
@@ -48,7 +33,7 @@ export function SupportChatBubble({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-auto mb-4 flex h-[660px] max-h-[calc(100vh-6rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-2xl shadow-neutral-900/15 sm:w-[560px]"
+            className="pointer-events-auto mb-4 flex h-[660px] max-h-[calc(100vh-6rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl bg-white shadow-2xl shadow-neutral-900/15 sm:w-[560px]"
           >
             <div className="flex shrink-0 items-center justify-between bg-neutral-900 px-4 py-3">
               <div className="flex items-center gap-2.5">
@@ -83,7 +68,7 @@ export function SupportChatBubble({
         )}
       </AnimatePresence>
 
-      {!externalTrigger && <button
+      <button
         type="button"
         onClick={isOpen ? handleClose : handleOpen}
         className="pointer-events-auto relative flex size-14 items-center justify-center rounded-full bg-neutral-900 shadow-lg shadow-neutral-900/30 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:shadow-neutral-900/30 active:scale-95"
@@ -112,7 +97,7 @@ export function SupportChatBubble({
             </motion.div>
           )}
         </AnimatePresence>
-      </button>}
+      </button>
     </div>
   );
 }
