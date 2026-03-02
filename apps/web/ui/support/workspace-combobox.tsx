@@ -48,6 +48,7 @@ export function WorkspaceCombobox({
       forceDropdown
       options={workspaces === undefined ? undefined : options}
       setSelected={(opt) => {
+        if (!opt) return;
         const ws = workspaces?.find((w) => w.slug === opt.value);
         if (ws) onSelect(ws);
       }}

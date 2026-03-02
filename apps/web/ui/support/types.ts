@@ -16,5 +16,5 @@ export function parseSupportChatVariant(
 export function parseSupportChatContext(
   value: string | undefined,
 ): SupportChatContext {
-  return value ? CONTEXT_MAP[value] : CONTEXT_MAP.docs;
+  return (value && CONTEXT_MAP[value]) || CONTEXT_MAP.docs;
 }

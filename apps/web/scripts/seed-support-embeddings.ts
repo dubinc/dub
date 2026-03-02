@@ -13,8 +13,12 @@ async function main() {
   const args = process.argv.slice(2);
   const urlFlagIdx = args.indexOf("--url");
 
-  if (urlFlagIdx !== -1 && args[urlFlagIdx + 1]) {
+  if (urlFlagIdx !== -1) {
     const url = args[urlFlagIdx + 1];
+    if (!url) {
+      console.error("Error: --url requires a value (e.g. --url https://dub.co/docs/...)");
+      process.exit(1);
+    }
     console.log(`Seeding single article: ${url}`);
     const result = await seedArticle(url);
     console.log(`  → ${result.chunks} chunks${result.skipped ? " (skipped)" : ""}`);

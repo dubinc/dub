@@ -2,6 +2,8 @@ import { ratelimit } from "@/lib/upstash/ratelimit";
 import { vectorIndex } from "@/lib/upstash/vector";
 import { anthropic } from "@ai-sdk/anthropic";
 import { SupportChatContext } from "@/ui/support/types";
+
+const VALID_CONTEXTS: SupportChatContext[] = ["app", "partners", "docs"];
 import { convertToModelMessages, jsonSchema, stepCountIs, streamText, tool, UIMessage } from "ai";
 import { getSession } from "@/lib/auth/utils";
 import { createPlainThread } from "@/lib/plain/create-plain-thread";
@@ -35,7 +37,17 @@ function buildSystemPrompt(context: SupportChatContext): string {
 }
 
 export const POST = async (req: Request) => {
-  const { messages, context = "app" } = (await req.json()) as {
+  const body = await req.json().catch(() => null);
+  if (
+    !body ||
+    !Array.isArray(body.messages) ||
+    (body.context !== undefined &&
+      !VALID_CONTEXTS.includes(body.context as SupportChatContext))
+  ) {
+    return new Response("Invalid request body.", { status: 400 });
+  }
+
+  const { messages, context = "app" } = body as {
     messages: UIMessage[];
     context?: SupportChatContext;
   };
@@ -69,6 +81,7 @@ export const POST = async (req: Request) => {
         .filter((p) => p.type === "text")
         .map((p) => (p as { type: "text"; text: string }).text)
         .join(" ")
+        .slice(0, 2000)
     : "";
 
   let contextChunks = "";
@@ -81,6 +94,8 @@ export const POST = async (req: Request) => {
       });
 
       if (results.length > 0) {
+        const MAX_CHUNK_CHARS = 1200;
+        const MAX_CONTEXT_CHARS = 6000;
         contextChunks = results
           .map((r) => {
             const meta = r.metadata as {
@@ -90,13 +105,14 @@ export const POST = async (req: Request) => {
             };
             return [
               meta.heading ? `### ${meta.heading}` : "",
-              meta.content || "",
+              (meta.content || "").slice(0, MAX_CHUNK_CHARS),
               meta.url ? `Source: ${meta.url}` : "",
             ]
               .filter(Boolean)
               .join("\n");
           })
-          .join("\n\n---\n\n");
+          .join("\n\n---\n\n")
+          .slice(0, MAX_CONTEXT_CHARS);
       }
     } catch (err) {
       console.error("Vector search error:", err);

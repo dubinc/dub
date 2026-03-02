@@ -25,23 +25,34 @@ export const POST = async (req: Request) => {
     return new Response("Missing or invalid `url` field", { status: 400 });
   }
 
-  // Only allow dub.co docs and help URLs
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    return new Response("Invalid URL", { status: 400 });
+  }
+
+  const allowedHostnames = ["dub.co", "www.dub.co"];
+  const allowedPathPrefixes = ["/docs/", "/help/"];
   if (
-    !url.startsWith("https://dub.co/docs/") &&
-    !url.startsWith("https://dub.co/help/")
+    parsedUrl.protocol !== "https:" ||
+    !allowedHostnames.includes(parsedUrl.hostname) ||
+    !allowedPathPrefixes.some((p) => parsedUrl.pathname.startsWith(p))
   ) {
     return new Response("URL must be a dub.co/docs or dub.co/help URL", {
       status: 400,
     });
   }
 
+  const normalizedUrl = parsedUrl.toString();
+
   try {
-    const result = await seedArticle(url);
-    return Response.json({ success: true, url, ...result });
+    const result = await seedArticle(normalizedUrl);
+    return Response.json({ success: true, url: normalizedUrl, ...result });
   } catch (err) {
-    console.error(`Failed to seed ${url}:`, err);
+    console.error("Failed to seed URL:", normalizedUrl, err);
     return Response.json(
-      { success: false, url, error: String(err) },
+      { success: false, url: normalizedUrl, error: "Failed to seed embedding" },
       { status: 500 },
     );
   }

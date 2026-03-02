@@ -91,17 +91,25 @@ export function chunkByHeadings(
   const chunks: ArticleChunk[] = [];
   let currentHeading = "Introduction";
   let currentLines: string[] = [];
+  const seenSlugs = new Map<string, number>();
 
   const type: "docs" | "help" = url.includes("/help/") ? "help" : "docs";
 
   const flush = () => {
     const text = currentLines.join("\n").trim();
-    if (text.length < 50) return;
+    if (text.length < 50) {
+      currentLines = [];
+      return;
+    }
 
-    const slug = currentHeading
+    const baseSlug = currentHeading
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+
+    const count = (seenSlugs.get(baseSlug) ?? 0) + 1;
+    seenSlugs.set(baseSlug, count);
+    const slug = count === 1 ? baseSlug : `${baseSlug}-${count}`;
 
     const id = `${url}#${slug}`;
     chunks.push({
@@ -129,11 +137,14 @@ export function chunkByHeadings(
   flush();
 
   if (chunks.length === 0 && content.length > 50) {
-    const slug = url.split("/").pop() || "article";
+    const baseSlug = url.split("/").pop() || "article";
+    const count = (seenSlugs.get(baseSlug) ?? 0) + 1;
+    seenSlugs.set(baseSlug, count);
+    const slug = count === 1 ? baseSlug : `${baseSlug}-${count}`;
     chunks.push({
       id: `${url}#${slug}`,
       content,
-      url,
+      url: `${url}#${slug}`,
       heading: "Overview",
       type,
     });
@@ -199,11 +210,20 @@ export async function fetchArticleUrls(): Promise<string[]> {
     );
     if (linkMatch) {
       urls.push(linkMatch[1].replace(/\.md$/, ""));
-    } else if (
-      trimmed.startsWith("http") &&
-      (trimmed.includes("/docs/") || trimmed.includes("/help/"))
-    ) {
-      urls.push(trimmed.replace(/\.md$/, ""));
+    } else if (trimmed.startsWith("http")) {
+      try {
+        const parsed = new URL(trimmed);
+        const allowedHostnames = ["dub.co", "www.dub.co"];
+        const allowedPathPrefixes = ["/docs/", "/help/"];
+        if (
+          allowedHostnames.includes(parsed.hostname) &&
+          allowedPathPrefixes.some((p) => parsed.pathname.startsWith(p))
+        ) {
+          urls.push(trimmed.replace(/\.md$/, ""));
+        }
+      } catch {
+        // Invalid URL, skip
+      }
     }
   }
 
