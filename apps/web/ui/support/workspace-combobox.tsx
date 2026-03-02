@@ -45,6 +45,7 @@ export function WorkspaceCombobox({
 
   return (
     <Combobox
+      forceDropdown
       options={workspaces === undefined ? undefined : options}
       setSelected={(opt) => {
         const ws = workspaces?.find((w) => w.slug === opt.value);

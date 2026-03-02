@@ -48,6 +48,7 @@ export function ProgramCombobox({
 
   return (
     <Combobox
+      forceDropdown
       options={isReady ? options : undefined}
       setSelected={(opt) => {
         const enrollment = enrollments?.find((e) => e.program.slug === opt.value);
