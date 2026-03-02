@@ -39,6 +39,9 @@ export function ConnectPayoutButton({
     if (payoutMethod) {
       connect(payoutMethod);
       return;
+    } else if (availablePayoutMethods.length === 1) {
+      connect(availablePayoutMethods[0]);
+      return;
     }
     setShowConnectPayoutModal(true);
   }, [payoutMethod, connect, setShowConnectPayoutModal]);

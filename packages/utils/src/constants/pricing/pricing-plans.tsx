@@ -362,7 +362,7 @@ export const PLANS: PlanDetails[] = [
       domains: 250,
       tags: INFINITY_NUMBER,
       folders: 50,
-      groups: 10,
+      groups: INFINITY_NUMBER,
       networkInvites: 0,
       users: 20,
       ai: 1_000,

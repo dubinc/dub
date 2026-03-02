@@ -1,6 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
+import {
+  INVOICE_AVAILABLE_PAYOUT_STATUSES,
+  STABLECOIN_PAYOUT_FEE_RATE,
+} from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
 import {
   currencyFormatter,
@@ -120,6 +123,18 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         </Text>
       ),
     },
+    ...(payout.method === "stablecoin"
+      ? [
+          {
+            label: "Stablecoin payout fee",
+            value: (
+              <Text style={tw("text-neutral-800 w-2/3")}>
+                {currencyFormatter(payout.amount * STABLECOIN_PAYOUT_FEE_RATE)}
+              </Text>
+            ),
+          },
+        ]
+      : []),
     {
       label: "Payout reference number",
       value: <Text style={tw("text-neutral-800 w-2/3")}>{payout.id}</Text>,
