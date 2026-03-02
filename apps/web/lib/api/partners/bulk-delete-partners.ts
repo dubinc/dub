@@ -1,5 +1,5 @@
+import { conn } from "@/lib/planetscale";
 import { prisma } from "@dub/prisma";
-import { ACME_PROGRAM_ID } from "@dub/utils";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 const BATCH_SIZE = 250;
@@ -15,7 +15,6 @@ export async function bulkDeletePartners({
 }) {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
-      programId: ACME_PROGRAM_ID,
       partnerId: {
         in: partnerIds,
       },
@@ -24,6 +23,10 @@ export async function bulkDeletePartners({
       links: true,
     },
   });
+
+  console.log(
+    `Found ${programEnrollments.length} program enrollments to delete`,
+  );
 
   const linksToDelete = programEnrollments.flatMap((pe) => pe.links);
   const programEnrollmentIds = programEnrollments.map((pe) => pe.id);
@@ -137,18 +140,7 @@ export async function bulkDeletePartners({
       },
     });
     console.log(`Deleted ${deletedActivityLogs.count} activity logs`);
-  }
 
-  if (deletePartners) {
-    const deletedPartners = await prisma.partner.deleteMany({
-      where: {
-        id: {
-          in: partnerIds,
-        },
-      },
-    });
-    console.log(`Deleted ${deletedPartners.count} partners`);
-  } else if (programEnrollmentIds.length > 0) {
     const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany(
       {
         where: {
@@ -161,5 +153,16 @@ export async function bulkDeletePartners({
     console.log(
       `Deleted ${deletedProgramEnrollments.count} program enrollments`,
     );
+  }
+
+  if (deletePartners) {
+    // using conn.execute here since Prisma is throwing a weird error
+    const res = await conn.execute(
+      `DELETE FROM Partner WHERE id IN (${partnerIds.map(() => "?").join(",")})`,
+      partnerIds,
+    );
+    console.log(JSON.stringify(res, null, 2));
+
+    console.log(`Deleted ${partnerIds.length} partners`);
   }
 }
