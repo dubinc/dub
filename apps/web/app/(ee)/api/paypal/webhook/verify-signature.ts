@@ -19,6 +19,13 @@ async function downloadAndCache(url: string) {
   }
 
   const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(
+      `[PayPal] Failed to download certificate ${response.status}`,
+    );
+  }
+
   const certPem = await response.text();
 
   waitUntil(
