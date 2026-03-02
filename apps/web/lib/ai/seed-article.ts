@@ -189,7 +189,7 @@ export async function seedArticle(
   const pathname = parsedUrl.pathname;
   const pathnameWithMd = pathname.endsWith(".md") ? pathname : `${pathname}.md`;
   const normalizedUrl = `${origin}${pathname}`;
-  const mdUrl = `${origin}${pathnameWithMd}${parsedUrl.search}${parsedUrl.hash}`;
+  const mdUrl = `${origin}${pathnameWithMd}`;
 
   const res = await fetch(mdUrl);
   if (!res.ok) {
@@ -237,18 +237,24 @@ export async function fetchArticleUrls(): Promise<string[]> {
     const linkMatch = trimmed.match(
       /\(?(https?:\/\/dub\.co\/(?:docs|help)[^\s)]*)\)?/,
     );
-    if (linkMatch) {
-      urls.push(linkMatch[1].replace(/\.md$/, ""));
-    } else if (trimmed.startsWith("http")) {
+    const candidate = linkMatch ? linkMatch[1] : trimmed;
+
+    if (candidate.startsWith("http")) {
       try {
-        const parsed = new URL(trimmed);
-        const allowedHostnames = ["dub.co", "www.dub.co"];
-        const allowedPathPrefixes = ["/docs/", "/help/"];
+        const parsed = new URL(candidate);
         if (
-          allowedHostnames.includes(parsed.hostname) &&
-          allowedPathPrefixes.some((p) => parsed.pathname.startsWith(p))
+          ALLOWED_HOSTNAMES.includes(parsed.hostname) &&
+          ALLOWED_PATH_PREFIXES.some((p) => parsed.pathname.startsWith(p))
         ) {
-          urls.push(trimmed.replace(/\.md$/, ""));
+          const origin =
+            parsed.hostname === "www.dub.co"
+              ? "https://www.dub.co"
+              : "https://dub.co";
+          const pathname = parsed.pathname.endsWith(".md")
+            ? parsed.pathname.slice(0, -3)
+            : parsed.pathname;
+          const normalizedUrl = `${origin}${pathname}`;
+          urls.push(normalizedUrl);
         }
       } catch {
         // Invalid URL, skip

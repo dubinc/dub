@@ -29,7 +29,7 @@ export function WorkspaceCombobox({
         label: ws.name,
         icon: (
           <img
-            src={ws.logo || `${OG_AVATAR_URL}${ws.name}`}
+            src={ws.logo || `${OG_AVATAR_URL}${encodeURIComponent(ws.name)}`}
             alt={ws.name}
             className="size-4 rounded-full"
           />

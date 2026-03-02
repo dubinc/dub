@@ -30,7 +30,10 @@ export function ProgramCombobox({
         label: e.program.name,
         icon: (
           <img
-            src={e.program.logo || `${OG_AVATAR_URL}${e.program.name}`}
+            src={
+              e.program.logo ||
+              `${OG_AVATAR_URL}${encodeURIComponent(e.program.name)}`
+            }
             alt={e.program.name}
             className="size-4 rounded-full"
           />
