@@ -153,24 +153,48 @@ export function chunkByHeadings(
   return chunks;
 }
 
+const ALLOWED_HOSTNAMES = ["dub.co", "www.dub.co"];
+const ALLOWED_PATH_PREFIXES = ["/docs/", "/help/"];
+
 /**
  * Fetch, clean, chunk, and upsert a single article URL into Upstash Vector.
  * Uses heading-level chunks directly — no sentence-level fragmentation.
+ * Validates URL to restrict fetches to dub.co docs/help (SSRF guard).
  */
 export async function seedArticle(
   url: string,
 ): Promise<{ chunks: number; skipped?: boolean }> {
-  const mdUrl = url.endsWith(".md") ? url : `${url}.md`;
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(url);
+  } catch {
+    console.warn(`Skipping (invalid URL): ${url}`);
+    return { chunks: 0, skipped: true };
+  }
+
+  if (
+    parsedUrl.protocol !== "https:" ||
+    !ALLOWED_HOSTNAMES.includes(parsedUrl.hostname) ||
+    !ALLOWED_PATH_PREFIXES.some((p) => parsedUrl.pathname.startsWith(p))
+  ) {
+    console.warn(`Skipping (disallowed URL): ${url}`);
+    return { chunks: 0, skipped: true };
+  }
+
+  const normalizedUrl = parsedUrl.toString();
+  const mdUrl = normalizedUrl.endsWith(".md")
+    ? normalizedUrl
+    : `${normalizedUrl}.md`;
 
   const res = await fetch(mdUrl);
   if (!res.ok) {
-    console.warn(`Skipping (${res.status}): ${url}`);
+    console.warn(`Skipping (${res.status}): ${normalizedUrl}`);
     return { chunks: 0, skipped: true };
   }
 
   const raw = await res.text();
   const cleaned = await cleanMdx(raw);
-  const chunks = chunkByHeadings(cleaned, url);
+  const chunks = chunkByHeadings(cleaned, normalizedUrl);
 
   // Upstash Vector has a 48KB metadata size limit per vector.
   const MAX_METADATA_CONTENT = 4000;
