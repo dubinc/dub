@@ -153,15 +153,26 @@ export function chunkByHeadings(
   return chunks;
 }
 
-const ALLOWED_HOSTNAMES = ["dub.co", "www.dub.co"];
+/**
+ * Maps every allowed hostname to its canonical HTTPS origin.
+ * The outgoing request origin is always picked from this map — never
+ * constructed directly from user-supplied input — to prevent SSRF.
+ * This is also the source of truth for the hostname allowlist.
+ */
+const HOSTNAME_TO_ORIGIN: Record<string, string> = {
+  "dub.co": "https://dub.co",
+  "www.dub.co": "https://www.dub.co",
+};
+const ALLOWED_HOSTNAMES = Object.keys(HOSTNAME_TO_ORIGIN);
 const ALLOWED_PATH_PREFIXES = ["/docs/", "/help/"];
 
 /**
- * Sanitize pathname: extract only alphanumeric, hyphens, underscores, slashes, and dots.
- * This creates a "clean" pathname that the static analyzer won't flag as tainted.
+ * Sanitize pathname: keep only alphanumeric, hyphens, underscores, slashes,
+ * and dots, then collapse any remaining ".." sequences to prevent path
+ * traversal even if the caller skips the pre-validation step.
  */
 function sanitizePathname(pathname: string): string {
-  return pathname.replace(/[^a-zA-Z0-9\-_/.]/g, "");
+  return pathname.replace(/[^a-zA-Z0-9\-_/.]/g, "").replace(/\.\.+/g, "");
 }
 
 /**
@@ -190,10 +201,7 @@ export async function seedArticle(
     return { chunks: 0, skipped: true };
   }
 
-  const origin =
-    parsedUrl.hostname === "www.dub.co"
-      ? "https://www.dub.co"
-      : "https://dub.co";
+  const origin = HOSTNAME_TO_ORIGIN[parsedUrl.hostname] ?? "https://dub.co";
   const sanitizedPath = sanitizePathname(parsedUrl.pathname);
   const pathnameWithMd = sanitizedPath.endsWith(".md")
     ? sanitizedPath
@@ -257,9 +265,7 @@ export async function fetchArticleUrls(): Promise<string[]> {
           ALLOWED_PATH_PREFIXES.some((p) => parsed.pathname.startsWith(p))
         ) {
           const origin =
-            parsed.hostname === "www.dub.co"
-              ? "https://www.dub.co"
-              : "https://dub.co";
+            HOSTNAME_TO_ORIGIN[parsed.hostname] ?? "https://dub.co";
           const pathname = parsed.pathname.endsWith(".md")
             ? parsed.pathname.slice(0, -3)
             : parsed.pathname;
