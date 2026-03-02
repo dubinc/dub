@@ -15,8 +15,14 @@ export default async function SupportChatEmbedPage(props: {
   }>;
 }) {
   const searchParams = await props.searchParams;
-  const variant = parseSupportChatVariant(searchParams.variant);
-  const context = parseSupportChatContext(searchParams.context);
+  const variantParam = Array.isArray(searchParams.variant)
+    ? searchParams.variant[0]
+    : searchParams.variant;
+  const contextParam = Array.isArray(searchParams.context)
+    ? searchParams.context[0]
+    : searchParams.context;
+  const variant = parseSupportChatVariant(variantParam);
+  const context = parseSupportChatContext(contextParam);
 
   if (variant === "embedded") {
     return (

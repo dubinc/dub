@@ -36,6 +36,13 @@ function buildSystemPrompt(context: SupportChatContext): string {
   return [CONTEXT_SYSTEM_PROMPTS[context], BASE_SYSTEM_PROMPT].join("\n\n");
 }
 
+const MAX_MESSAGES = 20;
+
+function truncateMessages(messages: UIMessage[]): UIMessage[] {
+  if (messages.length <= MAX_MESSAGES) return messages;
+  return messages.slice(-MAX_MESSAGES);
+}
+
 export const POST = async (req: Request) => {
   const body = await req.json().catch(() => null);
   if (
@@ -123,10 +130,12 @@ export const POST = async (req: Request) => {
     ? `${buildSystemPrompt(context)}\n\n## Relevant Documentation\n\n${contextChunks}`
     : buildSystemPrompt(context);
 
+  const truncatedMessages = truncateMessages(messages);
+
   const result = streamText({
     model: anthropic("claude-sonnet-4-20250514"),
     system: systemPrompt,
-    messages: await convertToModelMessages(messages),
+    messages: await convertToModelMessages(truncatedMessages),
     stopWhen: stepCountIs(5),
     tools: {
       createSupportTicket: tool({
@@ -160,7 +169,7 @@ export const POST = async (req: Request) => {
             };
           }
 
-          const chatHistory = messages
+          const chatHistory = truncatedMessages
             .map((msg) => {
               const text = msg.parts
                 .filter((p) => p.type === "text")

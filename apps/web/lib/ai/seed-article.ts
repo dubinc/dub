@@ -175,16 +175,21 @@ export async function seedArticle(
   if (
     parsedUrl.protocol !== "https:" ||
     !ALLOWED_HOSTNAMES.includes(parsedUrl.hostname) ||
-    !ALLOWED_PATH_PREFIXES.some((p) => parsedUrl.pathname.startsWith(p))
+    !ALLOWED_PATH_PREFIXES.some((p) => parsedUrl.pathname.startsWith(p)) ||
+    parsedUrl.pathname.includes("..")
   ) {
     console.warn(`Skipping (disallowed URL): ${url}`);
     return { chunks: 0, skipped: true };
   }
 
-  const normalizedUrl = parsedUrl.toString();
-  const mdUrl = normalizedUrl.endsWith(".md")
-    ? normalizedUrl
-    : `${normalizedUrl}.md`;
+  const origin =
+    parsedUrl.hostname === "www.dub.co"
+      ? "https://www.dub.co"
+      : "https://dub.co";
+  const pathname = parsedUrl.pathname;
+  const pathnameWithMd = pathname.endsWith(".md") ? pathname : `${pathname}.md`;
+  const normalizedUrl = `${origin}${pathname}`;
+  const mdUrl = `${origin}${pathnameWithMd}${parsedUrl.search}${parsedUrl.hash}`;
 
   const res = await fetch(mdUrl);
   if (!res.ok) {
