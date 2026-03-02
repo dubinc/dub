@@ -161,6 +161,9 @@ export async function seedArticle(
   const cleaned = await cleanMdx(raw);
   const chunks = chunkByHeadings(cleaned, url);
 
+  // Upstash Vector has a 48KB metadata size limit per vector.
+  const MAX_METADATA_CONTENT = 4000;
+
   for (const chunk of chunks) {
     await vectorIndex.upsert([
       {
@@ -170,7 +173,7 @@ export async function seedArticle(
           url: chunk.url,
           heading: chunk.heading,
           type: chunk.type,
-          content: chunk.content,
+          content: chunk.content.slice(0, MAX_METADATA_CONTENT),
         },
       },
     ]);
