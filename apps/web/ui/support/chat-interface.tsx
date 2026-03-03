@@ -12,6 +12,7 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import "streamdown/styles.css";
+import { MarkdownCodeBlock } from "./code-block";
 import useSWR from "swr";
 import { SupportMessage } from "./message";
 import { ProgramCombobox } from "./program-combobox";
@@ -412,6 +413,7 @@ export function ChatInterface({
                       key={index}
                       isAnimating={status === "streaming"}
                       className="text-content-emphasis"
+                      controls={false}
                       components={{
                         h1: () => null,
                         h2: () => null,
@@ -441,6 +443,7 @@ export function ChatInterface({
                             </ul>
                           );
                         },
+                        code: MarkdownCodeBlock,
                       }}
                     >
                       {textContent}
