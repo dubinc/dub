@@ -342,18 +342,12 @@ export function ChatInterface({
               </span>{" "}
               (Partner Program). How can I help you today?
             </p>
-            {showStarterQuestions && (
-              <StarterQuestions
-                context={context === "docs" ? "docs" : "partners"}
-                onSelect={handleSend}
-                className="mt-3"
-              />
-            )}
           </SupportMessage>
         )}
 
         {context === "docs" &&
           showStarterQuestions &&
+          effectiveAccountType !== "partner" &&
           !selection.selectedWorkspace &&
           !selection.selectedProgram && (
             <StarterQuestions
