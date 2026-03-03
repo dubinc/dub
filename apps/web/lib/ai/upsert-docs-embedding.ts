@@ -144,7 +144,7 @@ const HOSTNAME_TO_ORIGIN: Record<string, string> = {
   "www.dub.co": "https://www.dub.co",
 };
 const ALLOWED_HOSTNAMES = Object.keys(HOSTNAME_TO_ORIGIN);
-const ALLOWED_PATH_PREFIXES = ["/docs/", "/help/"];
+const ALLOWED_PATH_PREFIXES = ["/docs", "/help"];
 
 /**
  * Sanitize pathname: keep only alphanumeric, hyphens, underscores, slashes,
@@ -174,7 +174,8 @@ export async function upsertDocsEmbeddings(
   if (
     parsedUrl.protocol !== "https:" ||
     !ALLOWED_HOSTNAMES.includes(parsedUrl.hostname) ||
-    !ALLOWED_PATH_PREFIXES.some((p) => parsedUrl.pathname.startsWith(p)) ||
+    (!ALLOWED_HOSTNAMES.includes(parsedUrl.pathname) &&
+      !ALLOWED_PATH_PREFIXES.some((p) => parsedUrl.pathname.startsWith(p))) ||
     parsedUrl.pathname.includes("..")
   ) {
     console.warn(`Skipping (disallowed URL): ${url}`);
@@ -202,20 +203,22 @@ export async function upsertDocsEmbeddings(
   // Upstash Vector has a 48KB metadata size limit per vector.
   const MAX_METADATA_CONTENT = 4000;
 
-  for (const chunk of chunks) {
-    await vectorIndex.upsert([
-      {
-        id: chunk.id,
-        data: chunk.content,
-        metadata: {
-          url: chunk.url,
-          heading: chunk.heading,
-          type: chunk.type,
-          content: chunk.content.slice(0, MAX_METADATA_CONTENT),
+  await Promise.all(
+    chunks.map(async (chunk) => {
+      await vectorIndex.upsert([
+        {
+          id: chunk.id,
+          data: chunk.content,
+          metadata: {
+            url: chunk.url,
+            heading: chunk.heading,
+            type: chunk.type,
+            content: chunk.content.slice(0, MAX_METADATA_CONTENT),
+          },
         },
-      },
-    ]);
-  }
+      ]);
+    }),
+  );
 
   return { chunks: chunks.length };
 }

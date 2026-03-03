@@ -7,6 +7,7 @@
  *   pnpm tsx scripts/seed-support-embeddings.ts --url <url>  # re-seed a single article
  */
 
+import "dotenv-flow/config";
 import { upsertDocsEmbeddings } from "../lib/ai/upsert-docs-embedding";
 
 /**
