@@ -1,9 +1,8 @@
 import { PartnerBountyProps } from "@/lib/types";
-import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import {
-  BountyProgressBarRow,
-  EmphasisNumber,
-} from "@/ui/partners/bounties/bounty-progress-bar-row";
+  PerformanceBountyProgress,
+  SubmissionBountyProgress,
+} from "@/ui/partners/bounties/bounty-performance";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
@@ -47,9 +46,9 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
 
       <div className="border-t border-neutral-200 px-5 py-4">
         {bounty.type === "performance" ? (
-          <BountyPerformance bounty={bounty} />
+          <PerformanceBountyProgress bounty={bounty} />
         ) : (
-          <BountySubmissionProgress bounty={bounty} />
+          <SubmissionBountyProgress bounty={bounty} />
         )}
       </div>
     </Link>
@@ -85,40 +84,13 @@ function BountyEndDate({ bounty }: { bounty: PartnerBountyProps }) {
   );
 }
 
-function BountySubmissionProgress({ bounty }: { bounty: PartnerBountyProps }) {
-  const submittedCount = bounty.submissions.filter(
-    ({ status }) => status !== "draft",
-  ).length;
-
-  const approvedCount = bounty.submissions.filter(
-    ({ status }) => status === "approved",
-  ).length;
-
-  const submittedPercent = (submittedCount / bounty.maxSubmissions) * 100;
-  const approvedPercent = (approvedCount / bounty.maxSubmissions) * 100;
-
-  return (
-    <div className="flex gap-4">
-      <BountyProgressBarRow progress={submittedPercent}>
-        <EmphasisNumber>{submittedCount}</EmphasisNumber> of{" "}
-        <EmphasisNumber>{bounty.maxSubmissions}</EmphasisNumber> submitted
-      </BountyProgressBarRow>
-      <BountyProgressBarRow progress={approvedPercent}>
-        <EmphasisNumber>{approvedCount}</EmphasisNumber> approved
-      </BountyProgressBarRow>
-    </div>
-  );
-}
-
 export const PartnerBountyCardSkeleton = () => {
   return (
     <div className="border-border-subtle rounded-xl border bg-white p-5">
       <div className="flex flex-col gap-5">
         <div className="flex h-[132px] animate-pulse items-center justify-center rounded-lg bg-neutral-100 px-32 py-4" />
-
         <div className="flex flex-col gap-1.5">
           <div className="h-5 w-48 animate-pulse rounded-md bg-neutral-200" />
-
           <div className="flex h-5 items-center space-x-2">
             <div className="size-4 animate-pulse rounded bg-neutral-200" />
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />

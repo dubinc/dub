@@ -37,7 +37,7 @@ import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { BountyDescription, bountyHasDetails } from "./bounty-description";
-import { BountyPerformance } from "./bounty-performance";
+import { PerformanceBountyProgress } from "./bounty-performance";
 import { BountyRewardDescription } from "./bounty-reward-description";
 import {
   SocialAccountNotVerifiedWarning,
@@ -449,7 +449,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                     ) : (
                       bounty.type === "performance" && (
                         <div className="mt-5">
-                          <BountyPerformance bounty={bounty} />
+                          <PerformanceBountyProgress bounty={bounty} />
                         </div>
                       )
                     )}
