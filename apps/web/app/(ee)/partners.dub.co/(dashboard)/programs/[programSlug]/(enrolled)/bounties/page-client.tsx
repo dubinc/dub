@@ -1,15 +1,12 @@
 "use client";
 
-import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
+import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Heart, Trophy } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useMemo, useState } from "react";
-import {
-  PartnerBountyCard,
-  PartnerBountyCardSkeleton,
-} from "./partner-bounty-card";
+import { PartnerBountyCard, PartnerBountyCardSkeleton } from "./bounty-card";
 
 const tabs = [
   {

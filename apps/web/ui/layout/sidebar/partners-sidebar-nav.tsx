@@ -1,7 +1,7 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
+import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
