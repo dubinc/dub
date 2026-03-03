@@ -11,6 +11,7 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
       invoiceId: invoice.id,
       status: "processing",
       mode: "internal",
+      method: "paypal",
       partner: {
         payoutsEnabledAt: {
           not: null,
@@ -71,7 +72,6 @@ export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
         email: payout.partner.email!,
         program: payout.program,
         payout,
-        variant: "paypal",
       },
     })),
   );

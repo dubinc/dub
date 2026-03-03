@@ -1,6 +1,7 @@
 import {
   PartnerBountySchema,
   PartnerEarningsSchema,
+  partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
   partnerReferralsCountByStatusSchema,
@@ -15,6 +16,7 @@ import {
   FraudRuleType,
   Link,
   PartnerGroup,
+  PartnerPayoutMethod,
   PartnerReferral,
   PartnerRole,
   PayoutStatus,
@@ -245,7 +247,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
 
-export type PartnerBetaFeatures = "postbacks";
+export type PartnerBetaFeatures = "postbacks" | "stablecoin";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -491,6 +493,7 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
   platforms: PartnerPlatformProps[];
+  defaultPayoutMethod: PartnerPayoutMethod | null;
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
@@ -501,6 +504,10 @@ export type PartnerProfileCustomerProps = z.infer<
 >;
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
+
+export type PartnerPayoutMethodSetting = z.infer<
+  typeof partnerPayoutMethodSchema
+>;
 
 export type PartnerProfileReferralsCountByStatus = z.infer<
   typeof partnerReferralsCountByStatusSchema

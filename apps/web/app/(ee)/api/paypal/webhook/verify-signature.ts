@@ -4,19 +4,37 @@ import { waitUntil } from "@vercel/functions";
 import crc32 from "buffer-crc32";
 import crypto from "crypto";
 
-const CERT_CACHE_KEY = "paypal:cert";
+const CERT_CACHE_KEY_PREFIX = "paypal:cert:";
+const CERT_CACHE_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
 
 async function downloadAndCache(url: string) {
-  const cachedCertPem = await redis.get<string>(CERT_CACHE_KEY);
+  const urlHash = crypto.createHash("sha256").update(url).digest("hex");
+  const cacheKey = `${CERT_CACHE_KEY_PREFIX}${urlHash}`;
+
+  const cachedCertPem = await redis.get<string>(cacheKey);
 
   if (cachedCertPem) {
+    console.info(`[PayPal] Using cached certificate.`);
     return cachedCertPem;
   }
 
   const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(
+      `[PayPal] Failed to download certificate ${response.status}`,
+    );
+  }
+
   const certPem = await response.text();
 
-  waitUntil(redis.set(CERT_CACHE_KEY, certPem));
+  waitUntil(
+    redis.set(cacheKey, certPem, {
+      ex: CERT_CACHE_TTL_SECONDS,
+    }),
+  );
+
+  console.info(`[PayPal] Downloaded and cached certificate.`);
 
   return certPem;
 }

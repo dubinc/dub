@@ -1,10 +1,7 @@
-import {
-  CONNECT_SUPPORTED_COUNTRIES,
-  fetcher,
-  PAYPAL_SUPPORTED_COUNTRIES,
-} from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
+import { getPayoutMethodsForCountry } from "../partners/get-payout-methods-for-country";
 import { PartnerBetaFeatures, PartnerProps } from "../types";
 
 interface PartnerProfile extends PartnerProps {
@@ -35,18 +32,17 @@ export default function usePartnerProfile() {
       )
     : undefined;
 
+  const availablePayoutMethods = getPayoutMethodsForCountry({
+    country: partner?.country,
+    stablecoinEnabled: Boolean(partner?.featureFlags?.stablecoin),
+  });
+
   return {
     partner,
     platformsVerified,
-    payoutMethod: partner?.country
-      ? PAYPAL_SUPPORTED_COUNTRIES.includes(partner.country)
-        ? "paypal"
-        : CONNECT_SUPPORTED_COUNTRIES.includes(partner.country)
-          ? "stripe"
-          : undefined
-      : undefined,
     error,
     loading: status === "loading" || isLoading,
     mutate,
+    availablePayoutMethods,
   };
 }

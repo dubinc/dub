@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
@@ -50,6 +51,41 @@ export async function POST(req: Request) {
       return logAndRespond(
         `No payouts found with status 'processing' for invoice ${invoiceId}, skipping...`,
       );
+    }
+
+    // Set the method for each payout in the invoice to the corresponding partner's default payout method
+    await prisma.$executeRaw`
+      UPDATE Payout p
+      INNER JOIN Partner pr ON p.partnerId = pr.id
+      SET p.method = pr.defaultPayoutMethod
+      WHERE p.invoiceId = ${invoice.id}
+      AND pr.defaultPayoutMethod IS NOT NULL
+      AND p.status = 'processing'
+    `;
+
+    // Fund the total stablecoin payout amount for this invoice
+    const { _sum } = await prisma.payout.aggregate({
+      _sum: { amount: true },
+      where: {
+        invoiceId: invoice.id,
+        method: "stablecoin",
+      },
+    });
+    const stablecoinFundingAmount = _sum.amount ?? 0;
+
+    // Send money to Dub's Financial Account to handle Stablecoin payouts
+    if (stablecoinFundingAmount > 0) {
+      try {
+        await fundFinancialAccount({
+          amount: stablecoinFundingAmount,
+          idempotencyKey: invoiceId,
+        });
+      } catch (error) {
+        await log({
+          message: `Failed to fund Dub's financial account for stablecoin payouts: ${error.message}`,
+          type: "errors",
+        });
+      }
     }
 
     await Promise.allSettled([

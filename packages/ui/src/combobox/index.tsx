@@ -75,6 +75,7 @@ export type ComboboxProps<
   optionClassName?: string;
   matchTriggerWidth?: boolean;
   hideSearch?: boolean;
+  forceDropdown?: boolean;
 }>;
 
 function isMultipleSelection(
@@ -116,6 +117,7 @@ export function Combobox({
   optionClassName,
   matchTriggerWidth,
   hideSearch = false,
+  forceDropdown = false,
   children,
 }: ComboboxProps<boolean | undefined, any>) {
   const isMultiple = isMultipleSelection(multiple, setSelected);
@@ -241,6 +243,7 @@ export function Combobox({
       setOpenPopover={setIsOpen}
       align="start"
       side={side}
+      forceDropdown={forceDropdown}
       onWheel={(e) => {
         // Allows scrolling to work when the popover's in a modal
         e.stopPropagation();

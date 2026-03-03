@@ -14,6 +14,13 @@ import {
 } from "@react-email/components";
 import { addBusinessDays } from "date-fns";
 import { Footer } from "../components/footer";
+import { PartnerPayoutMethod } from "../types";
+
+const PAYOUT_METHOD_LABELS: Record<PartnerPayoutMethod, string> = {
+  connect: "Stripe Express",
+  stablecoin: "USDC wallet",
+  paypal: "PayPal",
+} as const;
 
 // Send this email when the payout is confirmed when payment is send using ACH
 export default function PartnerPayoutConfirmed({
@@ -31,7 +38,7 @@ export default function PartnerPayoutConfirmed({
     endDate: new Date("2024-11-30"),
     mode: "internal",
     paymentMethod: "ach",
-    payoutMethod: "stripe",
+    payoutMethod: "connect",
   },
 }: {
   email: string;
@@ -48,7 +55,7 @@ export default function PartnerPayoutConfirmed({
     endDate?: Date | null;
     mode: "internal" | "external" | null;
     paymentMethod: string;
-    payoutMethod: "stripe" | "paypal";
+    payoutMethod: PartnerPayoutMethod | null;
   };
 }) {
   const payoutAmountInDollars = currencyFormatter(payout.amount);
@@ -72,6 +79,11 @@ export default function PartnerPayoutConfirmed({
     : null;
 
   const etaDays = payout.paymentMethod === "ach_fast" ? 2 : 5;
+
+  const payoutDestination =
+    payout.payoutMethod === null
+      ? `${program.name} account`
+      : PAYOUT_METHOD_LABELS[payout.payoutMethod];
 
   return (
     <Html>
@@ -118,13 +130,7 @@ export default function PartnerPayoutConfirmed({
             <Text className="text-sm leading-6 text-neutral-600">
               The payout is currently being processed and is expected to be
               transferred to your{" "}
-              <strong className="text-black">
-                {payout.mode === "external"
-                  ? program.name
-                  : payout.payoutMethod === "paypal"
-                    ? "PayPal"
-                    : "Stripe Express"}
-              </strong>{" "}
+              <strong className="text-black">{payoutDestination}</strong>{" "}
               account in{" "}
               <strong className="text-black">{etaDays} business days</strong>{" "}
               (excluding weekends and public holidays).
