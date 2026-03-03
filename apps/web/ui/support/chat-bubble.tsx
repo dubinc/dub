@@ -5,13 +5,8 @@ import { MsgsFill, Trash, Xmark } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { ChatInterface } from "./chat-interface";
-import { SupportChatContext } from "./types";
 
-export function SupportChatBubble({
-  context,
-}: {
-  context?: SupportChatContext;
-}) {
+export function SupportChatBubble() {
   const [isOpen, setIsOpen] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -76,7 +71,6 @@ export function SupportChatBubble({
 
             <ChatInterface
               key={resetKey}
-              context={context}
               onReset={handleReset}
               className="flex-1 overflow-hidden"
             />

@@ -4,13 +4,8 @@ import { Tooltip } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { useState } from "react";
 import { ChatInterface } from "./chat-interface";
-import { SupportChatContext } from "./types";
 
-export function EmbeddedSupportChat({
-  context = "app",
-}: {
-  context?: SupportChatContext;
-}) {
+export function EmbeddedSupportChat() {
   const [resetKey, setResetKey] = useState(0);
   const handleReset = () => setResetKey((k) => k + 1);
 
@@ -48,7 +43,6 @@ export function EmbeddedSupportChat({
 
       <ChatInterface
         key={resetKey}
-        context={context}
         onReset={handleReset}
         className="flex-1 px-1"
         embedded

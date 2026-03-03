@@ -20,18 +20,15 @@ import { ProgramCombobox, ProgramSummary } from "./program-combobox";
 import { extractSources, SourceCitations } from "./source-citations";
 import { StatusIndicator } from "./status-indicator";
 import { StarterQuestions } from "./starter-questions";
-import { SupportChatContext } from "./types";
 import { WorkspaceCombobox, WorkspaceSummary } from "./workspace-combobox";
 
 type AccountType = "workspace" | "partner";
 
 export function ChatInterface({
-  context,
   className,
   embedded,
   onReset,
 }: {
-  context?: SupportChatContext;
   className?: string;
   embedded?: boolean;
   onReset?: () => void;
@@ -42,14 +39,7 @@ export function ChatInterface({
   const [ticketSubmitted, setTicketSubmitted] = useState(false);
   const [selection, setSelection] = useState<GlobalChatContext>({});
 
-  const preselectedAccountType: AccountType | undefined =
-    context === "app"
-      ? "workspace"
-      : context === "partners"
-        ? "partner"
-        : undefined;
-
-  const effectiveAccountType = selection.accountType ?? preselectedAccountType;
+  const effectiveAccountType = selection.accountType;
 
   const { data: workspaces } = useSWR<WorkspaceSummary[]>(
     effectiveAccountType === "workspace" ? "/api/workspaces" : null,
@@ -60,18 +50,10 @@ export function ChatInterface({
     useProgramEnrollments();
   const hasPartnerProfile = !!session?.user?.["defaultPartnerId"];
 
-  const isDocsContext = context === "docs" || context === undefined;
-  const requiresWorkspace =
-    context === "app" ||
-    (isDocsContext && effectiveAccountType === "workspace");
-  const requiresPartner =
-    context === "partners" ||
-    (isDocsContext && effectiveAccountType === "partner");
-
   let canChat: boolean;
-  if (requiresWorkspace) canChat = !!selection.selectedWorkspace;
-  else if (requiresPartner) canChat = !!selection.selectedProgram;
-  else canChat = !isDocsContext;
+  if (effectiveAccountType === "workspace") canChat = !!selection.selectedWorkspace;
+  else if (effectiveAccountType === "partner") canChat = !!selection.selectedProgram;
+  else canChat = false;
 
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
@@ -100,7 +82,8 @@ export function ChatInterface({
         body: {
           globalContext: {
             ...selection,
-            chatLocation: context,
+            chatLocation:
+              effectiveAccountType === "partner" ? "partners" : "app",
             accountType: effectiveAccountType,
           },
         },
@@ -223,86 +206,47 @@ export function ChatInterface({
       >
         <SupportMessage avatar={assistantAvatar} animate={false}>
           <p className="text-sm text-neutral-700">
-            Hi there! I'm Dub's AI support assistant.{" "}
-            {context === "app"
-              ? "Which workspace is this about?"
-              : context === "partners"
-                ? "Which program would you like help with?"
-                : "Which account would you like help with today?"}
+            Hi there! I'm Dub's AI support assistant. Which account would you
+            like help with today?
           </p>
-
-          {isDocsContext && (
-            <div className="mt-3 w-full max-w-72">
-              <Combobox
-                forceDropdown
-                selected={
-                  accountTypeOptions.find(
-                    (o) => o.value === effectiveAccountType,
-                  ) ?? null
-                }
-                setSelected={(opt) => {
-                  if (opt && opt.value !== effectiveAccountType)
-                    handleAccountTypeChange(opt.value as AccountType);
-                }}
-                options={accountTypeOptions}
-                icon={
-                  accountTypeOptions.find((o) => o.value === effectiveAccountType)
-                    ?.icon
-                }
-                caret
-                placeholder="Select account type"
-                hideSearch
-                matchTriggerWidth
-                popoverProps={{
-                  contentClassName: "w-[var(--radix-popover-trigger-width)]",
-                }}
-                buttonProps={{
-                  className: cn(
-                    "w-full max-w-72 justify-start border-neutral-300 px-2.5 h-9 text-sm",
-                    "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
-                    "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
-                  ),
-                }}
-                labelProps={{ className: "text-sm text-neutral-600" }}
-                optionClassName="h-8"
-              />
-            </div>
-          )}
-
-          {context === "app" && (
-            <div className="mt-3 w-full max-w-72">
-              <WorkspaceCombobox
-                workspaces={workspaces}
-                selectedSlug={selection.selectedWorkspace?.slug}
-                onSelect={handleWorkspaceSelect}
-              />
-            </div>
-          )}
-
-          {context === "partners" && (
-            <div className="mt-3 w-full max-w-72">
-              {!hasPartnerProfile ? (
-                <a
-                  href="https://partners.dub.co"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:bg-neutral-50"
-                >
-                  Go to partners.dub.co ↗
-                </a>
-              ) : (
-                <ProgramCombobox
-                  enrollments={programEnrollments}
-                  isLoading={isLoadingPrograms}
-                  selectedSlug={selection.selectedProgram?.slug}
-                  onSelect={handleProgramSelect}
-                />
-              )}
-            </div>
-          )}
+          <div className="mt-3 w-full max-w-72">
+            <Combobox
+              forceDropdown
+              selected={
+                accountTypeOptions.find(
+                  (o) => o.value === effectiveAccountType,
+                ) ?? null
+              }
+              setSelected={(opt) => {
+                if (opt && opt.value !== effectiveAccountType)
+                  handleAccountTypeChange(opt.value as AccountType);
+              }}
+              options={accountTypeOptions}
+              icon={
+                accountTypeOptions.find((o) => o.value === effectiveAccountType)
+                  ?.icon
+              }
+              caret
+              placeholder="Select account type"
+              hideSearch
+              matchTriggerWidth
+              popoverProps={{
+                contentClassName: "w-[var(--radix-popover-trigger-width)]",
+              }}
+              buttonProps={{
+                className: cn(
+                  "w-full max-w-72 justify-start border-neutral-300 px-2.5 h-9 text-sm",
+                  "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                  "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                ),
+              }}
+              labelProps={{ className: "text-sm text-neutral-600" }}
+              optionClassName="h-8"
+            />
+          </div>
         </SupportMessage>
 
-        {isDocsContext && effectiveAccountType === "workspace" && (
+        {effectiveAccountType === "workspace" && (
           <SupportMessage avatar={assistantAvatar} animate>
             <p className="text-sm text-neutral-700">
               Which workspace is this about?
@@ -316,7 +260,8 @@ export function ChatInterface({
             </div>
           </SupportMessage>
         )}
-        {isDocsContext && effectiveAccountType === "partner" && (
+
+        {effectiveAccountType === "partner" && (
           <SupportMessage avatar={assistantAvatar} animate>
             {!hasPartnerProfile ? (
               <>
@@ -358,9 +303,7 @@ export function ChatInterface({
             </p>
             {effectiveAccountType !== "partner" && (
               <StarterQuestions
-                context={
-                  context === "docs" || context === undefined ? "docs" : "app"
-                }
+                context="app"
                 onSelect={handleSend}
                 className="mt-3"
               />
@@ -493,9 +436,7 @@ export function ChatInterface({
                   ? "Select an account above to start chatting..."
                   : effectiveAccountType === "partner"
                     ? "Ask about payouts, referrals, or commissions..."
-                    : context === "docs"
-                      ? "Ask about API, SDK, webhooks..."
-                      : "Ask about links, analytics, or your account..."
+                    : "Ask about links, analytics, or your account..."
               }
               value={input}
               disabled={
