@@ -1,21 +1,5 @@
-import { vectorIndex } from "@/lib/upstash/vector";
-
-const PAYOUT_COUNTRIES_URL = "https://app.dub.co/api/supported-countries";
-
-let payoutCountriesCache: string | null = null;
-async function getPayoutCountriesText(): Promise<string> {
-  if (payoutCountriesCache) return payoutCountriesCache;
-  try {
-    const res = await fetch(PAYOUT_COUNTRIES_URL);
-    const countries = (await res.json()) as { code: string; name: string }[];
-    payoutCountriesCache = countries.map((c) => `- ${c.name}`).join("\n");
-  } catch {
-    payoutCountriesCache =
-      "See https://dub.co/help/article/partner-payouts for the full list.";
-  }
-  return payoutCountriesCache;
-}
-
+import { vectorIndex } from "../../lib/upstash/vector";
+import { PAYOUT_SUPPORTED_COUNTRIES } from "../constants/payouts-supported-countries";
 /**
  * Clean raw MDX fetched from Mintlify's .md endpoint.
  * Strips frontmatter, imports, images, JSX components.
@@ -25,14 +9,13 @@ export async function cleanMdx(raw: string): Promise<string> {
   let content = raw;
 
   content = content.replace(/^---[\s\S]*?---\s*/m, "");
-  content = content.replace(
-    /^import\s+.*from\s+['"][^'"]*['"]\s*;?\s*$/gm,
-    "",
-  );
+  content = content.replace(/^import\s+.*from\s+['"][^'"]*['"]\s*;?\s*$/gm, "");
   content = content.replace(/!\[.*?\]\(.*?\)/g, "");
 
-  const countries = await getPayoutCountriesText();
-  content = content.replace(/<PayoutSupportedCountries\s*\/>/g, countries);
+  content = content.replace(
+    /<PayoutSupportedCountries\s*\/>/g,
+    PAYOUT_SUPPORTED_COUNTRIES.map((c) => `- ${c.name} (${c.code})`).join("\n"),
+  );
 
   content = content.replace(/<[A-Z][A-Za-z]*\s*\/>/g, "");
 
@@ -83,10 +66,7 @@ type ArticleChunk = {
  * Split cleaned markdown into chunks at H2/H3 heading boundaries.
  * Each chunk carries the section URL + heading as metadata.
  */
-export function chunkByHeadings(
-  content: string,
-  url: string,
-): ArticleChunk[] {
+export function chunkByHeadings(content: string, url: string): ArticleChunk[] {
   const lines = content.split("\n");
   const chunks: ArticleChunk[] = [];
   let currentHeading = "Introduction";
@@ -180,7 +160,7 @@ function sanitizePathname(pathname: string): string {
  * Uses heading-level chunks directly — no sentence-level fragmentation.
  * Validates URL to restrict fetches to dub.co docs/help (SSRF guard).
  */
-export async function seedArticle(
+export async function upsertDocsEmbeddings(
   url: string,
 ): Promise<{ chunks: number; skipped?: boolean }> {
   let parsedUrl: URL;
@@ -238,45 +218,4 @@ export async function seedArticle(
   }
 
   return { chunks: chunks.length };
-}
-
-/**
- * Fetch all article URLs from dub.co/llms.txt.
- */
-export async function fetchArticleUrls(): Promise<string[]> {
-  const res = await fetch("https://dub.co/docs/llms.txt");
-  if (!res.ok) throw new Error(`Failed to fetch llms.txt: ${res.status}`);
-
-  const text = await res.text();
-  const urls: string[] = [];
-
-  for (const line of text.split("\n")) {
-    const trimmed = line.trim();
-    const linkMatch = trimmed.match(
-      /\(?(https?:\/\/dub\.co\/(?:docs|help)[^\s)]*)\)?/,
-    );
-    const candidate = linkMatch ? linkMatch[1] : trimmed;
-
-    if (candidate.startsWith("http")) {
-      try {
-        const parsed = new URL(candidate);
-        if (
-          ALLOWED_HOSTNAMES.includes(parsed.hostname) &&
-          ALLOWED_PATH_PREFIXES.some((p) => parsed.pathname.startsWith(p))
-        ) {
-          const origin =
-            HOSTNAME_TO_ORIGIN[parsed.hostname] ?? "https://dub.co";
-          const pathname = parsed.pathname.endsWith(".md")
-            ? parsed.pathname.slice(0, -3)
-            : parsed.pathname;
-          const normalizedUrl = `${origin}${pathname}`;
-          urls.push(normalizedUrl);
-        }
-      } catch {
-        // Invalid URL, skip
-      }
-    }
-  }
-
-  return [...new Set(urls)];
 }

@@ -1,4 +1,4 @@
-import { seedArticle } from "@/lib/ai/seed-article";
+import { upsertDocsEmbeddings } from "@/lib/ai/upsert-docs-embedding";
 
 // POST /api/ai/sync-embeddings
 // Triggers re-embedding of a single docs/help article.
@@ -47,7 +47,7 @@ export const POST = async (req: Request) => {
   const normalizedUrl = parsedUrl.toString();
 
   try {
-    const result = await seedArticle(normalizedUrl);
+    const result = await upsertDocsEmbeddings(normalizedUrl);
     return Response.json({ success: true, url: normalizedUrl, ...result });
   } catch (err) {
     console.error("Failed to seed URL:", normalizedUrl, err);
