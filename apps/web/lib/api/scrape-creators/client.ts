@@ -7,7 +7,7 @@ export const scrapeCreatorsFetch = createFetch({
   baseURL: "https://api.scrapecreators.com",
   retry: {
     type: "linear",
-    attempts: 2,
+    attempts: 1,
     delay: 3000,
   },
   headers: {
