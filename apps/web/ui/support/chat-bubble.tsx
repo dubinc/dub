@@ -1,31 +1,24 @@
 "use client";
 
-import { MsgsFill, Xmark } from "@dub/ui/icons";
+import { Tooltip } from "@dub/ui";
+import { MsgsFill, Trash, Xmark } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { ChatInterface } from "./chat-interface";
-import { SupportChatContext } from "./types";
 
-export function SupportChatBubble({
-  context,
-}: {
-  context?: SupportChatContext;
-}) {
+export function SupportChatBubble() {
   const [isOpen, setIsOpen] = useState(false);
+  const [resetKey, setResetKey] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
 
-  const handleClose = () => {
-    setIsOpen(false);
-  };
+  const handleClose = () => setIsOpen(false);
+  const handleOpen = () => setIsOpen(true);
+  const handleReset = () => setResetKey((k) => k + 1);
 
   useEffect(() => {
     if (window.parent === window) return;
     window.parent.postMessage({ type: "dub-support-chat", isOpen }, "*");
   }, [isOpen]);
-
-  const handleOpen = () => {
-    setIsOpen(true);
-  };
 
   return (
     <div className="pointer-events-none fixed bottom-0 right-0 z-50 flex flex-col items-end p-3 sm:p-6">
@@ -52,18 +45,33 @@ export function SupportChatBubble({
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={handleClose}
-                className="flex size-7 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
-                aria-label="Close chat"
-              >
-                <Xmark className="size-3.5" />
-              </button>
+              <div className="flex items-center gap-0.5">
+                <Tooltip content="Clear chat">
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="flex size-7 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
+                    aria-label="Clear chat"
+                  >
+                    <Trash className="size-3.5" />
+                  </button>
+                </Tooltip>
+                <Tooltip content="Close">
+                  <button
+                    type="button"
+                    onClick={handleClose}
+                    className="flex size-7 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
+                    aria-label="Close chat"
+                  >
+                    <Xmark className="size-3.5" />
+                  </button>
+                </Tooltip>
+              </div>
             </div>
 
             <ChatInterface
-              context={context}
+              key={resetKey}
+              onReset={handleReset}
               className="flex-1 overflow-hidden"
             />
           </motion.div>

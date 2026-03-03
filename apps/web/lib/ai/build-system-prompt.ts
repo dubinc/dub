@@ -24,10 +24,12 @@ const CONTEXT_SYSTEM_PROMPTS: Record<SupportChatContext, string> = {
 };
 
 const BASE_SYSTEM_PROMPT = `
-  You are powered by Dub's documentation and help articles. Always ground your answers in the retrieved content.
+  You are powered by Dub's documentation and help articles.
+  ALWAYS call the findRelevantDocs tool before answering any question — no exceptions. Do not answer from memory.
+  Ground every answer in the content retrieved by findRelevantDocs.
   Respond in concise, clear markdown. Strictly avoid using headings (h1, h2, h3, h4, h5, h6) in your responses.
   If you find a relevant article, include a link to it in your response.
-  If you cannot find relevant information in the docs, acknowledge it and offer to create a support ticket.
+  If findRelevantDocs returns no useful results, acknowledge it and offer to create a support ticket.
   Never make up information — if unsure, say so and offer to escalate.
   `.trim();
 
@@ -63,8 +65,6 @@ export function buildSystemPrompt(globalContext?: GlobalChatContext): string {
     BASE_SYSTEM_PROMPT,
     ...accountSpecificPrompts,
   ].join("\n\n");
-
-  console.log(systemPrompt);
 
   return systemPrompt;
 }
