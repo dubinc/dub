@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
+import "streamdown/styles.css";
 import useSWR from "swr";
 import { SupportMessage } from "./message";
 import { ProgramCombobox } from "./program-combobox";
@@ -189,12 +190,11 @@ export function ChatInterface({
       <div
         ref={scrollContainerRef}
         className={cn(
-          "flex-1 space-y-5 p-4",
+          "flex flex-1 flex-col gap-6 px-4 py-8",
           embedded ? "overflow-visible" : "overflow-y-auto",
         )}
       >
         <SupportMessage
-          name="Dub Support"
           avatar="https://assets.dub.co/misc/dub-avatar.svg"
           animate={false}
         >
@@ -240,7 +240,6 @@ export function ChatInterface({
         {effectiveAccountType === "workspace" &&
           !selection.selectedWorkspace && (
             <SupportMessage
-              name="Dub Support"
               avatar="https://assets.dub.co/misc/dub-avatar.svg"
               animate
             >
@@ -268,7 +267,6 @@ export function ChatInterface({
         {effectiveAccountType === "workspace" &&
           selection.selectedWorkspace && (
             <SupportMessage
-              name="Dub Support"
               avatar="https://assets.dub.co/misc/dub-avatar.svg"
               animate
             >
@@ -291,7 +289,6 @@ export function ChatInterface({
 
         {effectiveAccountType === "partner" && !selection.selectedProgram && (
           <SupportMessage
-            name="Dub Support"
             avatar="https://assets.dub.co/misc/dub-avatar.svg"
             animate
           >
@@ -338,7 +335,6 @@ export function ChatInterface({
 
         {effectiveAccountType === "partner" && selection.selectedProgram && (
           <SupportMessage
-            name="Dub Support"
             avatar="https://assets.dub.co/misc/dub-avatar.svg"
             animate
           >
@@ -383,7 +379,6 @@ export function ChatInterface({
             return (
               <SupportMessage
                 key={message.id}
-                name={isUser ? "You" : "Dub Support"}
                 avatar={
                   isUser
                     ? userAvatar
@@ -400,6 +395,12 @@ export function ChatInterface({
                     isAnimating={status === "streaming"}
                     className="text-content-emphasis"
                     components={{
+                      h1: () => null,
+                      h2: () => null,
+                      h3: () => null,
+                      h4: () => null,
+                      h5: () => null,
+                      h6: () => null,
                       a: ({ children, href }) => (
                         <a
                           href={href}
@@ -432,10 +433,7 @@ export function ChatInterface({
           })}
 
         {status === "submitted" && (
-          <SupportMessage
-            name="Dub Support"
-            avatar="https://assets.dub.co/misc/dub-avatar.svg"
-          >
+          <SupportMessage avatar="https://assets.dub.co/misc/dub-avatar.svg">
             <div className="flex gap-1 py-1">
               {[0, 1, 2].map((i) => (
                 <span
@@ -461,7 +459,7 @@ export function ChatInterface({
       <div className="shrink-0 border-t border-neutral-100 bg-white p-3">
         <div className="relative">
           <TextareaAutosize
-            minRows={2}
+            minRows={3}
             maxRows={6}
             placeholder={
               !canChat

@@ -1,18 +1,15 @@
 "use client";
 
-import { Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
 
 export function SupportMessage({
-  name,
   avatar,
   content,
   animate = false,
   children,
   isUser = false,
 }: PropsWithChildren<{
-  name: string;
   avatar: string;
   content?: string;
   animate?: boolean;
@@ -22,20 +19,16 @@ export function SupportMessage({
     <div
       className={cn(
         "flex origin-top-left items-start gap-3",
-        isUser && "flex-row-reverse",
+        isUser && "flex-row-reverse items-end",
         animate && "animate-scale-in-fade",
       )}
     >
-      <Tooltip content={name}>
-        <div className="relative shrink-0">
-          <img
-            src={avatar}
-            alt={`${name} avatar`}
-            className="size-8 rounded-full"
-            draggable={false}
-          />
-        </div>
-      </Tooltip>
+      <img
+        src={avatar}
+        alt={`${name} avatar`}
+        className={cn("size-8 shrink-0 rounded-full", isUser && "mb-1")}
+        draggable={false}
+      />
 
       <div
         className={cn(
@@ -46,10 +39,8 @@ export function SupportMessage({
         {content && (
           <p
             className={cn(
-              "rounded-2xl px-3 py-2 text-sm",
-              isUser
-                ? "bg-neutral-900 text-white"
-                : "text-neutral-800",
+              "rounded-2xl rounded-br px-3 py-2 text-sm",
+              isUser ? "bg-neutral-900 text-white" : "text-neutral-800",
             )}
           >
             {content}
@@ -59,7 +50,8 @@ export function SupportMessage({
           <div
             className={cn(
               "text-sm",
-              isUser && "bg-neutral-900 text-white rounded-2xl px-3 py-2",
+              isUser &&
+                "rounded-2xl rounded-br bg-neutral-900 px-3 py-2 text-white",
             )}
           >
             {children}

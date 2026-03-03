@@ -47,14 +47,9 @@ export function SupportChatBubble({
                   className="size-7 rounded-full"
                   draggable={false}
                 />
-                <div>
-                  <p className="text-sm font-semibold leading-none text-white">
-                    Dub Support
-                  </p>
-                  <p className="mt-0.5 text-[11px] leading-none text-neutral-400">
-                    Escalates to human when needed
-                  </p>
-                </div>
+                <p className="text-sm font-semibold leading-none text-white">
+                  Dub Support
+                </p>
               </div>
 
               <button
