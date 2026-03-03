@@ -5,6 +5,7 @@ import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useMemo, useState } from "react";
 
 export type ProgramSummary = {
+  id: string;
   name: string;
   slug: string;
   logo?: string | null;
@@ -55,7 +56,9 @@ export function ProgramCombobox({
       options={isReady ? options : undefined}
       setSelected={(opt) => {
         if (!opt) return;
-        const enrollment = enrollments?.find((e) => e.program.slug === opt.value);
+        const enrollment = enrollments?.find(
+          (e) => e.program.slug === opt.value,
+        );
         if (enrollment) onSelect(enrollment.program);
       }}
       selected={selected}

@@ -1,11 +1,6 @@
-import {
-  SupportChatContext,
-  SupportChatVariant,
-  parseSupportChatContext,
-  parseSupportChatVariant,
-} from "@/ui/support/types";
 import { SupportChatBubble } from "@/ui/support/chat-bubble";
 import { EmbeddedSupportChat } from "@/ui/support/embedded-chat";
+import { SupportChatContext, SupportChatVariant } from "@/ui/support/types";
 import { SupportChatDynamicHeightMessenger } from "./dynamic-height-messenger";
 
 export default async function SupportChatEmbedPage(props: {
@@ -14,15 +9,7 @@ export default async function SupportChatEmbedPage(props: {
     context?: SupportChatContext;
   }>;
 }) {
-  const searchParams = await props.searchParams;
-  const variantParam = Array.isArray(searchParams.variant)
-    ? searchParams.variant[0]
-    : searchParams.variant;
-  const contextParam = Array.isArray(searchParams.context)
-    ? searchParams.context[0]
-    : searchParams.context;
-  const variant = parseSupportChatVariant(variantParam);
-  const context = parseSupportChatContext(contextParam);
+  const { variant, context } = await props.searchParams;
 
   if (variant === "embedded") {
     return (

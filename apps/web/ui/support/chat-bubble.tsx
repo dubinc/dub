@@ -1,12 +1,16 @@
 "use client";
 
-import { SupportChatContext } from "./types";
 import { MsgsFill, Xmark } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { ChatInterface } from "./chat-interface";
+import { SupportChatContext } from "./types";
 
-export function SupportChatBubble({ context = "app" }: { context?: SupportChatContext }) {
+export function SupportChatBubble({
+  context,
+}: {
+  context?: SupportChatContext;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -63,7 +67,10 @@ export function SupportChatBubble({ context = "app" }: { context?: SupportChatCo
               </button>
             </div>
 
-            <ChatInterface context={context} className="flex-1 overflow-hidden" />
+            <ChatInterface
+              context={context}
+              className="flex-1 overflow-hidden"
+            />
           </motion.div>
         )}
       </AnimatePresence>
