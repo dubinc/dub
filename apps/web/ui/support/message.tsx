@@ -10,7 +10,7 @@ export function SupportMessage({
   children,
   isUser = false,
 }: PropsWithChildren<{
-  avatar: string;
+  avatar?: string;
   content?: string;
   animate?: boolean;
   isUser?: boolean;
@@ -23,12 +23,14 @@ export function SupportMessage({
         animate && "animate-scale-in-fade",
       )}
     >
-      <img
-        src={avatar}
-        alt={`${name} avatar`}
-        className={cn("size-8 shrink-0 rounded-full", isUser && "mb-1")}
-        draggable={false}
-      />
+      {avatar && (
+        <img
+          src={avatar}
+          alt="avatar"
+          className={cn("size-8 shrink-0 rounded-full", isUser && "mb-1")}
+          draggable={false}
+        />
+      )}
 
       <div
         className={cn(

@@ -125,6 +125,9 @@ export function ChatInterface({
 
   const userAvatar =
     session?.user?.image || `${OG_AVATAR_URL}${session?.user?.email}`;
+  const assistantAvatar = embedded
+    ? "https://assets.dub.co/misc/dub-avatar.svg"
+    : undefined;
   const showStarterQuestions = canChat && messages.length === 0;
   const canEscalate =
     canChat && messages.length >= 2 && status === "ready" && !ticketSubmitted;
@@ -183,12 +186,12 @@ export function ChatInterface({
       <div
         ref={scrollContainerRef}
         className={cn(
-          "flex flex-1 flex-col gap-6 px-4 py-8",
+          "flex flex-1 flex-col gap-6 p-4",
           embedded ? "overflow-visible" : "overflow-y-auto",
         )}
       >
         <SupportMessage
-          avatar="https://assets.dub.co/misc/dub-avatar.svg"
+          avatar={assistantAvatar}
           animate={false}
         >
           <p className="text-sm text-neutral-700">
@@ -233,7 +236,7 @@ export function ChatInterface({
         {effectiveAccountType === "workspace" &&
           !selection.selectedWorkspace && (
             <SupportMessage
-              avatar="https://assets.dub.co/misc/dub-avatar.svg"
+              avatar={assistantAvatar}
               animate
             >
               <p className="text-sm text-neutral-700">
@@ -260,7 +263,7 @@ export function ChatInterface({
         {effectiveAccountType === "workspace" &&
           selection.selectedWorkspace && (
             <SupportMessage
-              avatar="https://assets.dub.co/misc/dub-avatar.svg"
+              avatar={assistantAvatar}
               animate
             >
               <p className="text-sm text-neutral-700">
@@ -282,7 +285,7 @@ export function ChatInterface({
 
         {effectiveAccountType === "partner" && !selection.selectedProgram && (
           <SupportMessage
-            avatar="https://assets.dub.co/misc/dub-avatar.svg"
+            avatar={assistantAvatar}
             animate
           >
             {!hasPartnerProfile ? (
@@ -328,7 +331,7 @@ export function ChatInterface({
 
         {effectiveAccountType === "partner" && selection.selectedProgram && (
           <SupportMessage
-            avatar="https://assets.dub.co/misc/dub-avatar.svg"
+            avatar={assistantAvatar}
             animate
           >
             <p className="text-sm text-neutral-700">
@@ -383,11 +386,7 @@ export function ChatInterface({
             return (
               <SupportMessage
                 key={message.id}
-                avatar={
-                  isUser
-                    ? userAvatar
-                    : "https://assets.dub.co/misc/dub-avatar.svg"
-                }
+                avatar={isUser ? userAvatar : assistantAvatar}
                 isUser={isUser}
                 animate
               >
@@ -454,7 +453,7 @@ export function ChatInterface({
           })}
 
         {status === "submitted" && (
-          <SupportMessage avatar="https://assets.dub.co/misc/dub-avatar.svg">
+          <SupportMessage avatar={assistantAvatar}>
             <StatusIndicator label="Thinking..." className="py-0.5" />
           </SupportMessage>
         )}
