@@ -25,10 +25,12 @@ export function ChatInterface({
   context,
   className,
   embedded,
+  onReset,
 }: {
   context?: SupportChatContext;
   className?: string;
   embedded?: boolean;
+  onReset?: () => void;
 }) {
   const { data: session, status: sessionStatus } = useSession();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -460,7 +462,7 @@ export function ChatInterface({
           </p>
           <button
             type="button"
-            onClick={() => window.location.reload()}
+            onClick={onReset ?? (() => window.location.reload())}
             className="mt-3 rounded-lg bg-neutral-900 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-neutral-700"
           >
             Start new session
