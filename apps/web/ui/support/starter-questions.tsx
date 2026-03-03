@@ -5,11 +5,11 @@ import { SupportChatContext } from "./types";
 
 const STARTER_QUESTIONS: Record<SupportChatContext, string[]> = {
   app: [
-    "How do I set up custom domains?",
-    "How does link click tracking work?",
-    "How do I view my analytics?",
+    "How do I set up custom domain?",
+    "How do I set up conversion tracking?",
+    "How does attribution work?",
     "How do I use the Dub API?",
-    "How do I manage my workspace team?",
+    "How do I set up a partner program?",
     "How do I update my billing information?",
   ],
   partners: [

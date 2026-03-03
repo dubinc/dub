@@ -481,7 +481,10 @@ export function ChatInterface({
                 handleSend();
               }
             }}
-            className="w-full resize-none rounded-xl border border-neutral-200 bg-neutral-50 py-2.5 pl-3 pr-[72px] text-sm text-neutral-900 placeholder-neutral-400 transition-colors focus:border-neutral-400 focus:bg-white focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
+            className={cn(
+              "w-full resize-none rounded-xl border border-neutral-200 py-2.5 pl-3 pr-[72px] text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-colors",
+              "focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:opacity-60",
+            )}
           />
           <button
             type="button"
