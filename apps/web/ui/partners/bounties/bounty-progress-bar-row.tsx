@@ -10,15 +10,24 @@ export function EmphasisNumber({ children }: { children: ReactNode }) {
 export function BountyProgressBarRow({
   progress,
   children,
+  labelClassName,
+  wrapperClassName,
 }: {
   progress: number;
   children: ReactNode;
+  labelClassName?: string;
+  wrapperClassName?: string;
 }) {
   const percent = Math.min(Math.max(progress, 0), 100);
   const isComplete = percent >= 100;
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col gap-2">
+    <div
+      className={cn(
+        "flex min-w-0 flex-1 flex-col",
+        wrapperClassName ?? "gap-2",
+      )}
+    >
       <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-200">
         <div
           className={cn(
@@ -28,7 +37,11 @@ export function BountyProgressBarRow({
           style={{ width: `${percent}%` }}
         />
       </div>
-      <p className="text-content-subtle text-xs font-medium">{children}</p>
+      <p
+        className={labelClassName ?? "text-content-subtle text-xs font-medium"}
+      >
+        {children}
+      </p>
     </div>
   );
 }
