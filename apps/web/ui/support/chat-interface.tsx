@@ -431,18 +431,16 @@ export function ChatInterface({
                             {children}
                           </a>
                         ),
-                        ul: ({ children }) => {
-                          return (
-                            <ul
-                              style={{
-                                listStylePosition: "inside",
-                              }}
-                              className="list-disc"
-                            >
-                              {children}
-                            </ul>
-                          );
-                        },
+                        ul: ({ children }) => (
+                          <ul className="list-disc list-outside pl-6">
+                            {children}
+                          </ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal list-outside pl-6">
+                            {children}
+                          </ol>
+                        ),
                         code: MarkdownCodeBlock,
                       }}
                     >
