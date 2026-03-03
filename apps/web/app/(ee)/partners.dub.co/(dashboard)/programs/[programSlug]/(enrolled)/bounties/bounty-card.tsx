@@ -8,11 +8,17 @@ import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { TimestampTooltip } from "@dub/ui";
 import { Calendar6 } from "@dub/ui/icons";
-import { formatDate, formatDateTimeSmart } from "@dub/utils";
+import { cn, formatDate, formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
-export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
+export function PartnerBountyCard({
+  bounty,
+  showFullTitle = false,
+}: {
+  bounty: PartnerBountyProps;
+  showFullTitle?: boolean;
+}) {
   const { programSlug } = useParams();
 
   return (
@@ -31,7 +37,12 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
       </div>
 
       <div className="flex min-w-0 flex-col gap-1 px-5 py-4">
-        <h3 className="text-content-emphasis text-sm font-semibold sm:truncate">
+        <h3
+          className={cn(
+            "text-content-emphasis text-sm font-semibold",
+            !showFullTitle && "sm:truncate",
+          )}
+        >
           {bounty.name}
         </h3>
 

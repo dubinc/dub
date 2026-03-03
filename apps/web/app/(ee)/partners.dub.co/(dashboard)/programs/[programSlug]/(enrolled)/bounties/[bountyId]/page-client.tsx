@@ -56,7 +56,7 @@ export function PartnerBountyPageClient() {
             <PartnerBountyCardSkeleton />
           ) : bounty ? (
             <div className="@3xl/page:w-[360px] @3xl/page:shrink-0 w-full">
-              <PartnerBountyCard bounty={bounty} />
+              <PartnerBountyCard bounty={bounty} showFullTitle />
             </div>
           ) : null}
         </div>
