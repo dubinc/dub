@@ -28,7 +28,7 @@ model Partner {
   companyName String?
   profileType PartnerProfileType @default(individual)
   email       String?            @unique
-  image       String?
+  image       String?            @db.Text
   description String?            @db.Text
   country     String?
 
