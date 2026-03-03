@@ -14,6 +14,7 @@ import { cn, truncate } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { PartnerBountyCard, PartnerBountyCardSkeleton } from "../bounty-card";
+import { BountySubmissionsTable } from "./bounty-submissions-table";
 
 export function PartnerBountyPageClient() {
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -43,6 +44,9 @@ export function PartnerBountyPageClient() {
                   )}
                 </div>
               </div>
+
+              <BountySubmissionsTable bounty={bounty} />
+
               <div className="flex flex-col gap-6 text-sm">
                 <BountySubmissionRequirements bounty={bounty} />
                 <BountyRewardCriteria bounty={bounty} />
