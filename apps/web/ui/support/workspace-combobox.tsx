@@ -31,7 +31,7 @@ export function WorkspaceCombobox({
           <img
             src={ws.logo || `${OG_AVATAR_URL}${encodeURIComponent(ws.name)}`}
             alt={ws.name}
-            className="size-4 rounded-full"
+            className="size-3.5 rounded-full"
           />
         ),
       })),
@@ -62,21 +62,26 @@ export function WorkspaceCombobox({
       onOpenChange={setOpen}
       buttonProps={{
         className: cn(
-          "w-full justify-start border-neutral-300 px-3",
+          "w-full max-w-[360px] justify-start border-neutral-300 px-2.5 h-9 text-sm",
           "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
         ),
       }}
+      labelProps={{
+        className: "text-sm text-neutral-600",
+      }}
+      inputClassName="text-sm h-10"
+      optionClassName="h-8"
       emptyState={
-        <div className="flex w-full flex-col items-center gap-2 py-4 text-sm text-neutral-500">
+        <div className="flex w-full flex-col items-center gap-2 py-3 text-xs text-neutral-500">
           No workspaces found
         </div>
       }
     >
       {workspaces === undefined ? (
-        <div className="flex items-center gap-2">
-          <div className="size-4 animate-pulse rounded-full bg-neutral-200" />
-          <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+        <div className="flex items-center gap-1.5 text-sm">
+          <div className="size-3.5 animate-pulse rounded-full bg-neutral-200" />
+          <div className="h-3.5 w-24 animate-pulse rounded bg-neutral-200" />
         </div>
       ) : (
         selected?.label

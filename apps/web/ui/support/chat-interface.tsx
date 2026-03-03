@@ -226,7 +226,7 @@ export function ChatInterface({
                     key={type}
                     type="button"
                     onClick={() => handleAccountTypeChange(type)}
-                    className="flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white py-1.5 pl-2.5 pr-3 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-800"
+                    className="flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white py-1.5 pl-2.5 pr-3 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-800"
                   >
                     {icon}
                     <span>{label}</span>
