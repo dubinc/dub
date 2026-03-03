@@ -14,7 +14,7 @@ const userId = "user_xxx";
 async function main() {
   const program = await prisma.program.findUniqueOrThrow({
     where: {
-      id: "prog_xxx",
+      id: programId,
     },
   });
 
