@@ -198,7 +198,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     pendingFraudEventsCount,
     pendingReferralsCount,
     partnerNetworkEnabled,
-    pathname,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -614,7 +613,7 @@ export function AppSidebarNav({
           include: ["folderId"],
         }),
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
+        showNews: true,
         defaultProgramId: defaultProgramId || undefined,
         pendingPayoutsCount,
         applicationsCount,
@@ -622,7 +621,8 @@ export function AppSidebarNav({
         unreadMessagesCount,
         pendingFraudEventsCount,
         pendingReferralsCount,
-        showConversionGuides: canTrackConversions,
+        showConversionGuides:
+          canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}
