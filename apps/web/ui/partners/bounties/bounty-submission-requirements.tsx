@@ -28,15 +28,15 @@ export function BountySubmissionRequirements({
 
   return (
     <div>
-      <span className="text-content-emphasis font-semibold">
+      <h3 className="text-content-emphasis text-lg font-semibold">
         Submission requirements
-      </span>
+      </h3>
 
-      <div className="text-content-subtle mt-2 text-sm font-medium leading-5">
+      <div className="mt-2 flex flex-col gap-1">
         {submissionTexts.map((text) => (
-          <div className="flex items-start gap-1.5" key={text}>
-            <Check2 className="mt-1 size-3 shrink-0 text-green-600" />
-            <span>{text}</span>
+          <div className="flex items-center gap-1.5" key={text}>
+            <Check2 className="size-3 shrink-0 text-green-600" />
+            <span className="text-sm font-normal text-neutral-600">{text}</span>
           </div>
         ))}
       </div>
