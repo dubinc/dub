@@ -1,12 +1,12 @@
 import { PageContent } from "@/ui/layout/page-content";
 import {
   PartnerBountyPageClient,
-  PartnerBountyPageHeaderTitle,
+  PartnerBountyPageHeader,
 } from "./page-client";
 
 export default function PartnerBountyPage() {
   return (
-    <PageContent title={<PartnerBountyPageHeaderTitle />}>
+    <PageContent title={<PartnerBountyPageHeader />}>
       <PartnerBountyPageClient />
     </PageContent>
   );

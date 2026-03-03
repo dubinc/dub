@@ -10,9 +10,10 @@ import {
 import { BountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-criteria";
 import { BountySubmissionRequirements } from "@/ui/partners/bounties/bounty-submission-requirements";
 import { ChevronRight, Trophy } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, truncate } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
+import { PartnerBountyCard, PartnerBountyCardSkeleton } from "../bounty-card";
 
 export function PartnerBountyPageClient() {
   const { programSlug } = useParams<{ programSlug: string }>();
@@ -50,7 +51,15 @@ export function PartnerBountyPageClient() {
             </>
           ) : null}
         </div>
-        <div />
+        <div className="@3xl/page:contents flex flex-col gap-6">
+          {isLoading ? (
+            <PartnerBountyCardSkeleton />
+          ) : bounty ? (
+            <div className="@3xl/page:w-[360px] @3xl/page:shrink-0 w-full">
+              <PartnerBountyCard bounty={bounty} />
+            </div>
+          ) : null}
+        </div>
       </div>
     </PageWidthWrapper>
   );
@@ -72,7 +81,7 @@ function BountyDetailsProgressSkeleton() {
   );
 }
 
-export function PartnerBountyPageHeaderTitle() {
+export function PartnerBountyPageHeader() {
   const { programSlug } = useParams<{ programSlug: string }>();
   const { bounty } = usePartnerBounty();
 
@@ -90,9 +99,9 @@ export function PartnerBountyPageHeaderTitle() {
         <Trophy className="size-4" />
       </Link>
       <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-      <div>
+      <div className="min-w-0 truncate">
         {bounty ? (
-          bounty.name
+          truncate(bounty.name, 70)
         ) : (
           <div className="h-6 w-48 animate-pulse rounded-md bg-neutral-200" />
         )}

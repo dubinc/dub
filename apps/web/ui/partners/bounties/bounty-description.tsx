@@ -16,7 +16,7 @@ export function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
         Bounty details
       </h3>
 
-      <div className="mt-2 flex flex-col gap-1">
+      <div className="flex flex-col gap-1">
         <Markdown
           className={cn(
             PROSE_STYLES.default,
