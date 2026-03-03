@@ -3,6 +3,7 @@
 import { GlobalChatContext } from "@/lib/ai/build-system-prompt";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useChat } from "@ai-sdk/react";
+import { Combobox } from "@dub/ui";
 import { OfficeBuilding, PaperPlane, Users2 } from "@dub/ui/icons";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { DefaultChatTransport } from "ai";
@@ -15,7 +16,7 @@ import "streamdown/styles.css";
 import { MarkdownCodeBlock } from "./code-block";
 import useSWR from "swr";
 import { SupportMessage } from "./message";
-import { ProgramCombobox } from "./program-combobox";
+import { ProgramCombobox, ProgramSummary } from "./program-combobox";
 import { extractSources, SourceCitations } from "./source-citations";
 import { StatusIndicator } from "./status-indicator";
 import { StarterQuestions } from "./starter-questions";
@@ -120,6 +121,35 @@ export function ChatInterface({
     setMessages([]);
   };
 
+  const handleWorkspaceSelect = (ws: WorkspaceSummary) => {
+    if (selection.selectedWorkspace?.slug !== ws.slug) setMessages([]);
+    setSelection((s) => ({
+      ...s,
+      selectedWorkspace: { id: ws.id, slug: ws.slug, name: ws.name },
+    }));
+  };
+
+  const handleProgramSelect = (program: ProgramSummary) => {
+    if (selection.selectedProgram?.slug !== program.slug) setMessages([]);
+    setSelection((s) => ({
+      ...s,
+      selectedProgram: { id: program.id, slug: program.slug, name: program.name },
+    }));
+  };
+
+  const accountTypeOptions = [
+    {
+      value: "workspace",
+      label: "Workspace (app.dub.co)",
+      icon: <OfficeBuilding className="size-3.5 shrink-0" />,
+    },
+    {
+      value: "partner",
+      label: "Partner (partners.dub.co)",
+      icon: <Users2 className="size-3.5 shrink-0" />,
+    },
+  ];
+
   const requiresAuth = true;
   const isLoadingSession = requiresAuth && sessionStatus === "loading";
   const isUnauthenticated = requiresAuth && sessionStatus === "unauthenticated";
@@ -191,104 +221,103 @@ export function ChatInterface({
           embedded ? "overflow-visible" : "overflow-y-auto",
         )}
       >
-        <SupportMessage
-          avatar={assistantAvatar}
-          animate={false}
-        >
+        <SupportMessage avatar={assistantAvatar} animate={false}>
           <p className="text-sm text-neutral-700">
             Hi there! I'm Dub's AI support assistant.{" "}
-            {context === "docs"
-              ? "I can help with SDK setup, API authentication, webhooks, conversion tracking, and more. What can I help you with today?"
-              : "Which account would you like help with today?"}
+            {context === "app"
+              ? "Which workspace is this about?"
+              : context === "partners"
+                ? "Which program would you like help with?"
+                : "Which account would you like help with today?"}
           </p>
 
-          {(context === "docs" || context === undefined) &&
-            !effectiveAccountType && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {[
-                  {
-                    type: "workspace" as AccountType,
-                    label: "Dub workspace",
-                    sublabel: "app.dub.co",
-                    icon: <OfficeBuilding className="size-3.5" />,
-                  },
-                  {
-                    type: "partner" as AccountType,
-                    label: "Partner account",
-                    sublabel: "partners.dub.co",
-                    icon: <Users2 className="size-3.5" />,
-                  },
-                ].map(({ type, label, sublabel, icon }) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleAccountTypeChange(type)}
-                    className="flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white py-1.5 pl-2.5 pr-3 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-800"
-                  >
-                    {icon}
-                    <span>{label}</span>
-                    <span className="text-neutral-400">· {sublabel}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-        </SupportMessage>
-
-        {effectiveAccountType === "workspace" &&
-          !selection.selectedWorkspace && (
-            <SupportMessage
-              avatar={assistantAvatar}
-              animate
-            >
-              <p className="text-sm text-neutral-700">
-                Which workspace is this about?
-              </p>
-              <div className="mt-3 w-full max-w-72">
-                <WorkspaceCombobox
-                  workspaces={workspaces}
-                  onSelect={(ws) =>
-                    setSelection((s) => ({
-                      ...s,
-                      selectedWorkspace: {
-                        id: ws.id,
-                        slug: ws.slug,
-                        name: ws.name,
-                      },
-                    }))
-                  }
-                />
-              </div>
-            </SupportMessage>
+          {isDocsContext && (
+            <div className="mt-3 w-full max-w-72">
+              <Combobox
+                forceDropdown
+                selected={
+                  accountTypeOptions.find(
+                    (o) => o.value === effectiveAccountType,
+                  ) ?? null
+                }
+                setSelected={(opt) => {
+                  if (opt && opt.value !== effectiveAccountType)
+                    handleAccountTypeChange(opt.value as AccountType);
+                }}
+                options={accountTypeOptions}
+                icon={
+                  accountTypeOptions.find((o) => o.value === effectiveAccountType)
+                    ?.icon
+                }
+                caret
+                placeholder="Select account type"
+                hideSearch
+                matchTriggerWidth
+                popoverProps={{
+                  contentClassName: "w-[var(--radix-popover-trigger-width)]",
+                }}
+                buttonProps={{
+                  className: cn(
+                    "w-full max-w-72 justify-start border-neutral-300 px-2.5 h-9 text-sm",
+                    "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                    "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                  ),
+                }}
+                labelProps={{ className: "text-sm text-neutral-600" }}
+                optionClassName="h-8"
+              />
+            </div>
           )}
 
-        {effectiveAccountType === "workspace" &&
-          selection.selectedWorkspace && (
-            <SupportMessage
-              avatar={assistantAvatar}
-              animate
-            >
-              <p className="text-sm text-neutral-700">
-                Got it —{" "}
-                <span className="font-medium">
-                  {selection.selectedWorkspace.name}
-                </span>{" "}
-                (Dub workspace). How can I help you today?
-              </p>
-              {showStarterQuestions && (
-                <StarterQuestions
-                  context={context === "docs" ? "docs" : "app"}
-                  onSelect={handleSend}
-                  className="mt-3"
+          {context === "app" && (
+            <div className="mt-3 w-full max-w-72">
+              <WorkspaceCombobox
+                workspaces={workspaces}
+                selectedSlug={selection.selectedWorkspace?.slug}
+                onSelect={handleWorkspaceSelect}
+              />
+            </div>
+          )}
+
+          {context === "partners" && (
+            <div className="mt-3 w-full max-w-72">
+              {!hasPartnerProfile ? (
+                <a
+                  href="https://partners.dub.co"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:bg-neutral-50"
+                >
+                  Go to partners.dub.co ↗
+                </a>
+              ) : (
+                <ProgramCombobox
+                  enrollments={programEnrollments}
+                  isLoading={isLoadingPrograms}
+                  selectedSlug={selection.selectedProgram?.slug}
+                  onSelect={handleProgramSelect}
                 />
               )}
-            </SupportMessage>
+            </div>
           )}
+        </SupportMessage>
 
-        {effectiveAccountType === "partner" && !selection.selectedProgram && (
-          <SupportMessage
-            avatar={assistantAvatar}
-            animate
-          >
+        {isDocsContext && effectiveAccountType === "workspace" && (
+          <SupportMessage avatar={assistantAvatar} animate>
+            <p className="text-sm text-neutral-700">
+              Which workspace is this about?
+            </p>
+            <div className="mt-3 w-full max-w-72">
+              <WorkspaceCombobox
+                workspaces={workspaces}
+                selectedSlug={selection.selectedWorkspace?.slug}
+                onSelect={handleWorkspaceSelect}
+              />
+            </div>
+          </SupportMessage>
+        )}
+        {isDocsContext && effectiveAccountType === "partner" && (
+          <SupportMessage avatar={assistantAvatar} animate>
             {!hasPartnerProfile ? (
               <>
                 <p className="text-sm text-neutral-700">
@@ -313,16 +342,8 @@ export function ChatInterface({
                   <ProgramCombobox
                     enrollments={programEnrollments}
                     isLoading={isLoadingPrograms}
-                    onSelect={(program) =>
-                      setSelection((s) => ({
-                        ...s,
-                        selectedProgram: {
-                          id: program.id,
-                          slug: program.slug,
-                          name: program.name,
-                        },
-                      }))
-                    }
+                    selectedSlug={selection.selectedProgram?.slug}
+                    onSelect={handleProgramSelect}
                   />
                 </div>
               </>
@@ -330,32 +351,22 @@ export function ChatInterface({
           </SupportMessage>
         )}
 
-        {effectiveAccountType === "partner" && selection.selectedProgram && (
-          <SupportMessage
-            avatar={assistantAvatar}
-            animate
-          >
+        {showStarterQuestions && (
+          <SupportMessage avatar={assistantAvatar} animate>
             <p className="text-sm text-neutral-700">
-              Got it —{" "}
-              <span className="font-medium">
-                {selection.selectedProgram.name}
-              </span>{" "}
-              (Partner Program). How can I help you today?
+              How can I help you today?
             </p>
+            {effectiveAccountType !== "partner" && (
+              <StarterQuestions
+                context={
+                  context === "docs" || context === undefined ? "docs" : "app"
+                }
+                onSelect={handleSend}
+                className="mt-3"
+              />
+            )}
           </SupportMessage>
         )}
-
-        {context === "docs" &&
-          showStarterQuestions &&
-          effectiveAccountType !== "partner" &&
-          !selection.selectedWorkspace &&
-          !selection.selectedProgram && (
-            <StarterQuestions
-              context="docs"
-              onSelect={handleSend}
-              className="px-1"
-            />
-          )}
 
         {canChat &&
           messages.map((message, index) => {
