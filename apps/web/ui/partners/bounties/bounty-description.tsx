@@ -1,18 +1,15 @@
-import {
-  getBountyRewardCriteriaTexts,
-  getBountySubmissionRequirementTexts,
-} from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
+import { getBountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-criteria";
+import { getBountySubmissionRequirements } from "@/ui/partners/bounties/bounty-submission-requirements";
 import { Markdown } from "@/ui/shared/markdown";
-import { Check2, PROSE_STYLES } from "@dub/ui";
+import { PROSE_STYLES } from "@dub/ui";
 import { cn } from "@dub/utils";
 
 export function bountyHasDetails(bounty: PartnerBountyProps): boolean {
-  const submissionTexts = getBountySubmissionRequirementTexts(bounty);
-  const rewardTexts = getBountyRewardCriteriaTexts(bounty);
   const hasDescription = Boolean(bounty.description?.trim());
-  const hasSubmissionRequirements = submissionTexts.length > 0;
-  const hasRewardCriteria = rewardTexts.length > 0;
+  const hasSubmissionRequirements =
+    getBountySubmissionRequirements(bounty).length > 0;
+  const hasRewardCriteria = getBountyRewardCriteria(bounty).length > 0;
   return hasDescription || hasSubmissionRequirements || hasRewardCriteria;
 }
 
@@ -23,65 +20,30 @@ export function BountyDescription({
   bounty: PartnerBountyProps;
   hideHeading?: boolean;
 }) {
-  const submissionTexts = getBountySubmissionRequirementTexts(bounty);
-  const rewardTexts = getBountyRewardCriteriaTexts(bounty);
-
   const hasDescription = Boolean(bounty.description?.trim());
-  const hasSubmissionRequirements = submissionTexts.length > 0;
-  const hasRewardCriteria = rewardTexts.length > 0;
 
-  if (!hasDescription && !hasSubmissionRequirements && !hasRewardCriteria) {
+  if (!hasDescription) {
     return null;
   }
 
   return (
-    <div className="flex flex-col space-y-3 text-sm">
+    <div className="flex flex-col text-sm">
       {hasDescription && (
         <div>
           {!hideHeading && (
-            <span className="text-content-emphasis font-semibold">Details</span>
+            <span className="text-content-emphasis font-semibold">
+              Bounty details
+            </span>
           )}
-          <Markdown
+          <div
             className={cn(
-              PROSE_STYLES.default,
+              !hideHeading && "mt-2",
               "text-content-subtle text-sm font-medium leading-5",
             )}
           >
-            {bounty.description!.trim()}
-          </Markdown>
-        </div>
-      )}
-
-      {hasSubmissionRequirements && (
-        <div>
-          <span className="text-content-emphasis font-semibold">
-            Submission requirements
-          </span>
-
-          <div className="text-content-subtle mt-2 text-sm font-medium leading-5">
-            {submissionTexts.map((text) => (
-              <div className="flex items-start gap-1.5" key={text}>
-                <Check2 className="mt-1 size-3 shrink-0 text-green-600" />
-                <span>{text}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {hasRewardCriteria && (
-        <div>
-          <span className="text-content-emphasis font-semibold">
-            Reward criteria
-          </span>
-
-          <div className="text-content-subtle mt-2 text-sm font-medium leading-5">
-            {rewardTexts.map((text) => (
-              <div className="flex items-start gap-1.5" key={text}>
-                <Check2 className="mt-1 size-3 shrink-0 text-green-600" />
-                <span>{text}</span>
-              </div>
-            ))}
+            <Markdown className={cn(PROSE_STYLES.default)}>
+              {bounty.description!.trim()}
+            </Markdown>
           </div>
         </div>
       )}

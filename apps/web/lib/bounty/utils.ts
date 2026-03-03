@@ -1,36 +1,8 @@
-import {
-  BountySubmissionFrequency,
-  PlatformType,
-  Prisma,
-} from "@dub/prisma/client";
-import { currencyFormatter, isValidUrl, nFormatter } from "@dub/utils";
-import { addDays, addMonths, addWeeks } from "date-fns";
-import {
-  BountySocialPlatform,
-  BountySubmissionProps,
-  PartnerBountyProps,
-} from "../types";
+import { PlatformType, Prisma } from "@dub/prisma/client";
+import { isValidUrl } from "@dub/utils";
+import { BountySocialPlatform, BountySubmissionProps } from "../types";
 import { bountySocialContentRequirementsSchema } from "../zod/schemas/bounties";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./constants";
-
-export function getNextBountySubmissionEligibleAt({
-  submissionFrequency,
-  lastSubmissionAt,
-}: {
-  submissionFrequency: BountySubmissionFrequency;
-  lastSubmissionAt: Date;
-}): Date {
-  switch (submissionFrequency) {
-    case "day":
-      return addDays(lastSubmissionAt, 1);
-    case "week":
-      return addWeeks(lastSubmissionAt, 1);
-    case "month":
-      return addMonths(lastSubmissionAt, 1);
-    default:
-      throw new Error("Invalid submission frequency");
-  }
-}
 
 const SOCIAL_URL_HOST_TO_PLATFORM: Record<string, PlatformType> = {
   "youtube.com": "youtube",
@@ -142,62 +114,6 @@ export function getSocialContentEmbedUrl({
   } catch {
     return null;
   }
-}
-
-export function getBountySubmissionRequirementTexts(
-  bounty: PartnerBountyProps,
-): string[] {
-  const bountyInfo = resolveBountyDetails(bounty);
-
-  if (!bountyInfo?.hasSocialMetrics || !bountyInfo.socialPlatform) {
-    return [];
-  }
-
-  return [
-    `Submit a ${bountyInfo.socialPlatform.label} link from your connected account`,
-    "The content shared is posted after this bounty started",
-  ];
-}
-
-export function getBountyRewardCriteriaTexts(
-  bounty: PartnerBountyProps | Parameters<typeof resolveBountyDetails>[0],
-): string[] {
-  const bountyInfo = resolveBountyDetails(bounty);
-
-  if (
-    !bountyInfo?.socialMetrics ||
-    !bountyInfo.socialPlatform ||
-    !bountyInfo.rewardAmount
-  ) {
-    return [];
-  }
-
-  const formattedAmount = currencyFormatter(bountyInfo.rewardAmount, {
-    trailingZeroDisplay: "stripIfInteger",
-  });
-
-  const socialPlatform = bountyInfo.socialPlatform;
-  const { minCount, metric, incrementalBonus } = bountyInfo.socialMetrics;
-
-  const texts: string[] = [
-    `Get ${nFormatter(minCount ?? 0, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedAmount}`,
-  ];
-
-  if (incrementalBonus) {
-    const { incrementCount, bonusPerIncrement, maxCount } = incrementalBonus;
-
-    if (incrementCount && bonusPerIncrement && maxCount) {
-      const formattedBonus = currencyFormatter(bonusPerIncrement, {
-        trailingZeroDisplay: "stripIfInteger",
-      });
-
-      texts.push(
-        `For each additional ${nFormatter(incrementCount, { full: true })} ${metric} on your ${socialPlatform.label} content, earn ${formattedBonus} – up to ${nFormatter(maxCount, { full: true })} ${metric}`,
-      );
-    }
-  }
-
-  return texts;
 }
 
 interface BountyInfoInput {

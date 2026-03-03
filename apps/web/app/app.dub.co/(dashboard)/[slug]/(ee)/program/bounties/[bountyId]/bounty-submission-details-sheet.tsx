@@ -4,7 +4,6 @@ import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import {
   calculateSocialMetricsRewardAmount,
-  getBountyRewardCriteriaTexts,
   resolveBountyDetails,
 } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -13,6 +12,7 @@ import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { useConfirmApproveBountySubmissionModal } from "@/ui/modals/confirm-approve-bounty-submission-modal";
+import { getBountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-criteria";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
 import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
@@ -160,7 +160,7 @@ function BountySubmissionDetailsSheetContent({
   }
 
   const bountyInfo = resolveBountyDetails(bounty);
-  const criteriaTexts = bounty ? getBountyRewardCriteriaTexts(bounty) : [];
+  const criteriaTexts = bounty ? getBountyRewardCriteria(bounty) : [];
 
   const hasSocialContent =
     bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;
