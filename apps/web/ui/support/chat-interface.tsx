@@ -15,6 +15,8 @@ import "streamdown/styles.css";
 import useSWR from "swr";
 import { SupportMessage } from "./message";
 import { ProgramCombobox } from "./program-combobox";
+import { extractSources, SourceCitations } from "./source-citations";
+import { StatusIndicator } from "./status-indicator";
 import { StarterQuestions } from "./starter-questions";
 import { SupportChatContext } from "./types";
 import { WorkspaceCombobox, WorkspaceSummary } from "./workspace-combobox";
@@ -365,6 +367,14 @@ export function ChatInterface({
               .map((p) => (p as { type: "text"; text: string }).text)
               .join("\n\n");
 
+            const sources =
+              !isUser && status !== "streaming"
+                ? extractSources(
+                  message.parts as { type: string;[key: string]: unknown }[],
+                )
+                : [];
+
+
             // Skip user messages with no text, but keep assistant messages
             // visible during tool calls (they temporarily have no text parts)
             if (isUser && !textContent) return null;
@@ -384,53 +394,60 @@ export function ChatInterface({
                 {isUser ? (
                   <p className="text-sm">{textContent}</p>
                 ) : !textContent ? (
-                  <div className="flex gap-1 py-1">
-                    {[0, 1, 2].map((i) => (
-                      <span
-                        key={i}
-                        className="size-1.5 animate-bounce rounded-full bg-neutral-400"
-                        style={{ animationDelay: `${i * 150}ms` }}
+                  (() => {
+                    const isSearching = message.parts?.some(
+                      (p: any) =>
+                        p.type === "tool-findRelevantDocs" &&
+                        p.state !== "output-available",
+                    );
+                    return (
+                      <StatusIndicator
+                        label={isSearching ? "Searching docs..." : "Thinking..."}
+                        className="py-0.5"
                       />
-                    ))}
-                  </div>
+                    );
+                  })()
                 ) : (
-                  <Streamdown
-                    key={index}
-                    isAnimating={status === "streaming"}
-                    className="text-content-emphasis"
-                    components={{
-                      h1: () => null,
-                      h2: () => null,
-                      h3: () => null,
-                      h4: () => null,
-                      h5: () => null,
-                      h6: () => null,
-                      a: ({ children, href }) => (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="cursor-help font-medium text-neutral-900 underline decoration-dotted underline-offset-2 hover:text-neutral-600"
-                        >
-                          {children}
-                        </a>
-                      ),
-                      ul: ({ children }) => {
-                        return (
-                          <ul
-                            style={{
-                              listStylePosition: "inside",
-                            }}
-                            className="list-disc"
+                  <>
+                    <Streamdown
+                      key={index}
+                      isAnimating={status === "streaming"}
+                      className="text-content-emphasis"
+                      components={{
+                        h1: () => null,
+                        h2: () => null,
+                        h3: () => null,
+                        h4: () => null,
+                        h5: () => null,
+                        h6: () => null,
+                        a: ({ children, href }) => (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="cursor-help font-medium text-neutral-900 underline decoration-dotted underline-offset-2 hover:text-neutral-600"
                           >
                             {children}
-                          </ul>
-                        );
-                      },
-                    }}
-                  >
-                    {textContent}
-                  </Streamdown>
+                          </a>
+                        ),
+                        ul: ({ children }) => {
+                          return (
+                            <ul
+                              style={{
+                                listStylePosition: "inside",
+                              }}
+                              className="list-disc"
+                            >
+                              {children}
+                            </ul>
+                          );
+                        },
+                      }}
+                    >
+                      {textContent}
+                    </Streamdown>
+                    <SourceCitations sources={sources} />
+                  </>
                 )}
               </SupportMessage>
             );
@@ -438,15 +455,7 @@ export function ChatInterface({
 
         {status === "submitted" && (
           <SupportMessage avatar="https://assets.dub.co/misc/dub-avatar.svg">
-            <div className="flex gap-1 py-1">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="size-1.5 animate-bounce rounded-full bg-neutral-400"
-                  style={{ animationDelay: `${i * 150}ms` }}
-                />
-              ))}
-            </div>
+            <StatusIndicator label="Thinking..." className="py-0.5" />
           </SupportMessage>
         )}
         <div />
