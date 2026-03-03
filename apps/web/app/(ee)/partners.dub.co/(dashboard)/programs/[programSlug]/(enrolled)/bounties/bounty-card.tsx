@@ -5,6 +5,7 @@ import {
   EmphasisNumber,
 } from "@/ui/partners/bounties/bounty-progress-bar-row";
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
+import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { TimestampTooltip } from "@dub/ui";
 import { Calendar6 } from "@dub/ui/icons";
@@ -14,9 +15,6 @@ import { useParams } from "next/navigation";
 
 export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
   const { programSlug } = useParams();
-
-  const isExpired =
-    bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
 
   return (
     <Link
@@ -29,13 +27,7 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
             <BountyThumbnailImage bounty={bounty} />
           </div>
 
-          {isExpired && (
-            <div className="absolute left-2 top-2 z-10">
-              <div className="flex h-5 items-center gap-1 rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-600">
-                Expired {formatDate(bounty.endsAt!, { month: "short" })}
-              </div>
-            </div>
-          )}
+          <BountyStatusBadge bounty={bounty} />
         </div>
       </div>
 
