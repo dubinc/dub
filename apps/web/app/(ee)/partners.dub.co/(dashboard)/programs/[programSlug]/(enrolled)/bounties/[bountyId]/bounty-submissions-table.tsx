@@ -2,6 +2,7 @@
 
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { PartnerBountyProps } from "@/lib/types";
+import { useClaimBountySheet } from "@/ui/partners/bounties/claim-bounty-sheet";
 import { Lock } from "@/ui/shared/icons";
 import { BountySubmissionFrequency } from "@dub/prisma/client";
 import { Button, StatusBadge, Table, useTable } from "@dub/ui";
@@ -188,13 +189,9 @@ export function BountySubmissionsTable({
 }: {
   bounty: PartnerBountyProps;
 }) {
-  const bountyWithSubmission = useMemo<PartnerBountyProps>(
-    () => ({
-      ...bounty,
-      submission: bounty.submissions?.[0] ?? null,
-    }),
-    [bounty],
-  );
+  const { claimBountySheet, setShowClaimBountySheet } = useClaimBountySheet({
+    bounty,
+  });
 
   const periods = getSubmissionPeriods<PartnerBountySubmission>({
     startsAt: bounty.startsAt,
@@ -286,6 +283,7 @@ export function BountySubmissionsTable({
                   ? "bg-bg-inverted text-content-inverted hover:bg-bg-inverted/90 h-7 rounded-lg px-2.5 py-2"
                   : "bg-bg-subtle border-border-subtle text-content-muted h-7 rounded-lg border px-2.5 py-2"
               }
+              onClick={() => setShowClaimBountySheet(true)}
             >
               Submit
             </Button>
@@ -310,6 +308,7 @@ export function BountySubmissionsTable({
 
   return (
     <>
+      {claimBountySheet}
       <div className="flex flex-col gap-3">
         <h2 className="text-content-emphasis text-lg font-semibold leading-7 tracking-[-0.36px]">
           Submissions

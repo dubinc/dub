@@ -47,7 +47,7 @@ export function PartnerBountyPageClient() {
 
               <BountySubmissionsTable bounty={bounty} />
 
-              <div className="flex flex-col gap-6 text-sm">
+              <div className="flex max-w-[700px] flex-col gap-6 text-sm">
                 <BountySubmissionRequirements bounty={bounty} />
                 <BountyRewardCriteria bounty={bounty} />
                 <BountyDescription bounty={bounty} />
