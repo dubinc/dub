@@ -319,11 +319,13 @@ export function ChatInterface({
               .map((p) => (p as { type: "text"; text: string }).text)
               .join("\n\n");
 
+            const isCurrentlyStreaming =
+              status === "streaming" && index === messages.length - 1;
             const sources =
-              !isUser && status !== "streaming"
+              !isUser && !isCurrentlyStreaming
                 ? extractSources(
-                  message.parts as { type: string;[key: string]: unknown }[],
-                )
+                    message.parts as { type: string; [key: string]: unknown }[],
+                  )
                 : [];
 
 

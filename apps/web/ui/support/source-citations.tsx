@@ -74,10 +74,13 @@ export function extractSources(
     if (part.type !== "tool-findRelevantDocs") continue;
     if ((part as any).state !== "output-available") continue;
 
-    const results: any[] = (part as any).output ?? [];
-    for (const r of results) {
-      const meta = r.metadata;
-      if (!meta?.url || !meta?.heading) continue;
+    const output = (part as any).output;
+    if (!Array.isArray(output)) continue;
+
+    for (const r of output) {
+      const meta = r?.metadata;
+      if (typeof meta?.url !== "string" || typeof meta?.heading !== "string")
+        continue;
 
       const baseUrl = meta.url.split("#")[0];
       if (seen.has(baseUrl)) continue;

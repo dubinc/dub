@@ -106,7 +106,8 @@ function DownloadButton({
   language: string;
 }) {
   const handleDownload = useCallback(() => {
-    const ext = LANG_EXTENSIONS[language?.toLowerCase()] ?? language ?? "txt";
+    const trimmed = language?.trim().toLowerCase();
+    const ext = (trimmed && (LANG_EXTENSIONS[trimmed] ?? trimmed)) || "txt";
     const blob = new Blob([code], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

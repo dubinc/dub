@@ -66,7 +66,5 @@ export function buildSystemPrompt(globalContext?: GlobalChatContext): string {
     ...accountSpecificPrompts,
   ].join("\n\n");
 
-  console.log(systemPrompt);
-
   return systemPrompt;
 }
