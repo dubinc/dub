@@ -24,10 +24,23 @@ import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/misc";
 import { authPartnerActionClient } from "../safe-action";
 
+const usernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .min(3, "Username must be at least 3 characters")
+  .max(30, "Username must be at most 30 characters")
+  .regex(
+    /^[a-z0-9_]+$/,
+    "Username can only contain letters, numbers, and underscores",
+  )
+  .nullish();
+
 const updatePartnerProfileSchema = z
   .object({
     name: z.string().optional(),
     email: z.email().optional(),
+    username: usernameSchema,
     image: uploadedImageSchema.nullish(),
     description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
@@ -54,6 +67,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
     const {
       name,
       email: newEmail,
+      username: newUsername,
       image,
       description,
       country,
@@ -79,6 +93,24 @@ export const updatePartnerProfileAction = authPartnerActionClient
     let imageUrl: string | null = null;
     let needsEmailVerification = false;
     const emailChanged = newEmail !== undefined && partner.email !== newEmail;
+    const usernameChanged = newUsername && partner.username !== newUsername;
+
+    if (usernameChanged && newUsername) {
+      const usernameExists = await prisma.partner.findUnique({
+        where: {
+          username: newUsername,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (usernameExists && usernameExists.id !== partner.id) {
+        throw new Error(
+          "This username is already taken. Please choose another.",
+        );
+      }
+    }
 
     // Upload the new image
     if (image) {
@@ -101,6 +133,9 @@ export const updatePartnerProfileAction = authPartnerActionClient
           country,
           profileType,
           companyName,
+          ...(newUsername !== undefined && {
+            username: newUsername,
+          }),
           monthlyTraffic,
           ...(industryInterests && {
             industryInterests: {
@@ -196,7 +231,9 @@ export const updatePartnerProfileAction = authPartnerActionClient
     } catch (error) {
       console.error(error);
 
-      throw new Error(error.message);
+      throw new Error(
+        error instanceof Error ? error.message : "Something went wrong.",
+      );
     }
   });
 

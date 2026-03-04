@@ -4,6 +4,8 @@ import { createId } from "@/lib/api/create-id";
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils/get-ip";
+import { APPLICATION_ID_COOKIE } from "@/lib/application-tracker/constants";
+import { recordApplicationEvent } from "@/lib/application-tracker/record-application-event";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
@@ -327,6 +329,18 @@ async function createApplicationAndEnrollment({
           },
         }),
       ]);
+
+      const cookieStore = await cookies();
+
+      const dubApplicationId = cookieStore.get("dub_application_id")?.value;
+
+      if (dubApplicationId) {
+        await recordApplicationEvent({
+          applicationId: dubApplicationId,
+          eventName: "submit",
+          programId: program.id,
+        });
+      }
     })(),
   );
 
@@ -372,6 +386,18 @@ async function createApplication({
       expires: addDays(new Date(), 7), // persist for 7 days
     },
   );
+
+  const dubApplicationId = cookieStore.get(APPLICATION_ID_COOKIE)?.value;
+
+  if (dubApplicationId) {
+    waitUntil(
+      recordApplicationEvent({
+        applicationId: dubApplicationId,
+        eventName: "submit",
+        programId: program.id,
+      }),
+    );
+  }
 
   return {
     programApplicationId: application.id,
