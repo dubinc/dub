@@ -20,6 +20,7 @@ import { ProgramCombobox, ProgramSummary } from "./program-combobox";
 import { extractSources, SourceCitations } from "./source-citations";
 import { StarterQuestions } from "./starter-questions";
 import { StatusIndicator } from "./status-indicator";
+import { TicketUpload } from "./ticket-upload";
 import { WorkspaceCombobox, WorkspaceSummary } from "./workspace-combobox";
 
 type AccountType = "workspace" | "partner";
@@ -35,9 +36,15 @@ export function ChatInterface({
 }) {
   const { data: session, status: sessionStatus } = useSession();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState("");
   const [ticketSubmitted, setTicketSubmitted] = useState(false);
   const [selection, setSelection] = useState<GlobalChatContext>({});
+
+  const storageKey = session?.user?.["id"]
+    ? `dub-support-chat:${session.user["id"]}`
+    : null;
+  const restoredRef = useRef(false);
 
   const effectiveAccountType = selection.accountType;
 
@@ -75,6 +82,61 @@ export function ChatInterface({
     container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
   }, [messages, status, embedded]);
 
+  useEffect(() => {
+    if (status === "ready") {
+      textareaRef.current?.focus();
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (!storageKey || restoredRef.current) return;
+    restoredRef.current = true;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+
+      const stored = JSON.parse(raw);
+      if (stored.selection) setSelection(stored.selection);
+      if (stored.messages?.length) setMessages(stored.messages);
+      if (stored.ticketSubmitted) setTicketSubmitted(true);
+    } catch { }
+  }, [storageKey, setMessages]);
+
+  useEffect(() => {
+    if (!storageKey || !restoredRef.current) return;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const stored = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({ ...stored, selection }),
+      );
+    } catch { }
+  }, [selection, storageKey]);
+
+  useEffect(() => {
+    if (!storageKey || !restoredRef.current || status === "streaming") return;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const stored = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({ ...stored, messages, ticketSubmitted }),
+      );
+    } catch { }
+  }, [messages, ticketSubmitted, status, storageKey]);
+
+  const clearPersistedSession = () => {
+    if (storageKey) {
+      try {
+        localStorage.removeItem(storageKey);
+      } catch { }
+    }
+  };
+
   const handleSend = (text?: string) => {
     const messageText = text ?? input;
     if (!messageText.trim() || status === "streaming" || !canChat) return;
@@ -92,13 +154,15 @@ export function ChatInterface({
       },
     );
     setInput("");
+    textareaRef.current?.focus();
   };
 
-  const handleEscalate = () => {
+  const handleEscalateViaForm = (
+    attachmentIds: string[] = [],
+    details: string = "",
+  ) => {
     sendMessage(
-      {
-        text: "I'd like to speak with a human support agent and create a support ticket.",
-      },
+      { text: "Please create my support ticket now." },
       {
         body: {
           globalContext: {
@@ -107,6 +171,8 @@ export function ChatInterface({
               effectiveAccountType === "partner" ? "partners" : "app",
             accountType: effectiveAccountType,
           },
+          ...(attachmentIds.length ? { attachmentIds } : {}),
+          ...(details ? { ticketDetails: details } : {}),
         },
       },
     );
@@ -161,8 +227,15 @@ export function ChatInterface({
     ? "https://assets.dub.co/misc/dub-avatar.svg"
     : undefined;
   const showStarterQuestions = canChat && messages.length === 0;
+  const hasRequestedTicket = messages.some((m) =>
+    m.parts?.some((p: any) => p.type === "tool-requestSupportTicket"),
+  );
   const canEscalate =
-    canChat && messages.length >= 2 && status === "ready" && !ticketSubmitted;
+    canChat &&
+    messages.length >= 2 &&
+    status === "ready" &&
+    !ticketSubmitted &&
+    !hasRequestedTicket;
 
   if (isLoadingSession) {
     return (
@@ -331,36 +404,59 @@ export function ChatInterface({
         {canChat &&
           messages.map((message, index) => {
             const isUser = message.role === "user";
-            const textContent = message.parts
-              .filter((p) => p.type === "text")
-              .map((p) => (p as { type: "text"; text: string }).text)
-              .join("\n\n");
 
+            if (isUser) {
+              const textContent = message.parts
+                .filter((p) => p.type === "text")
+                .map((p) => (p as { type: "text"; text: string }).text)
+                .join("\n\n");
+              if (!textContent) return null;
+              return (
+                <SupportMessage
+                  key={message.id}
+                  avatar={userAvatar}
+                  isUser
+                  animate
+                >
+                  <p className="text-sm">{textContent}</p>
+                </SupportMessage>
+              );
+            }
+
+            // --- Assistant message ---
             const isCurrentlyStreaming =
               status === "streaming" && index === messages.length - 1;
-            const sources =
-              !isUser && !isCurrentlyStreaming
-                ? extractSources(
-                    message.parts as { type: string; [key: string]: unknown }[],
-                  )
-                : [];
+            const sources = !isCurrentlyStreaming
+              ? extractSources(
+                message.parts as { type: string;[key: string]: unknown }[],
+              )
+              : [];
 
-            // Skip user messages with no text, but keep assistant messages
-            // visible during tool calls (they temporarily have no text parts)
-            if (isUser && !textContent) return null;
-            if (!isUser && !textContent && !message.parts?.length) return null;
+            const hasTextPart = message.parts?.some(
+              (p: any) => p.type === "text" && p.text,
+            );
+            const hasTicketForm = message.parts?.some(
+              (p: any) =>
+                p.type === "tool-requestSupportTicket" &&
+                p.state === "output-available",
+            );
+            const hasVisibleContent = hasTextPart || hasTicketForm;
+
+            if (!hasVisibleContent && !message.parts?.length) return null;
 
             return (
               <SupportMessage
                 key={message.id}
-                avatar={isUser ? userAvatar : assistantAvatar}
-                isUser={isUser}
+                avatar={assistantAvatar}
                 animate
               >
-                {isUser ? (
-                  <p className="text-sm">{textContent}</p>
-                ) : !textContent ? (
+                {!hasVisibleContent ? (
                   (() => {
+                    const isCreatingTicket = message.parts?.some(
+                      (p: any) =>
+                        p.type === "tool-createSupportTicket" &&
+                        p.state === "input-available",
+                    );
                     const isSearching = message.parts?.some(
                       (p: any) =>
                         p.type === "tool-findRelevantDocs" &&
@@ -369,53 +465,84 @@ export function ChatInterface({
                     return (
                       <StatusIndicator
                         label={
-                          isSearching ? "Searching docs..." : "Thinking..."
+                          isCreatingTicket
+                            ? "Creating your ticket..."
+                            : isSearching
+                              ? "Searching docs..."
+                              : "Thinking..."
                         }
                         className="py-0.5"
                       />
                     );
                   })()
                 ) : (
-                  <>
-                    <Streamdown
-                      key={index}
-                      isAnimating={status === "streaming"}
-                      className="text-content-emphasis"
-                      controls={false}
-                      components={{
-                        h1: () => null,
-                        h2: () => null,
-                        h3: () => null,
-                        h4: () => null,
-                        h5: () => null,
-                        h6: () => null,
-                        a: ({ children, href }) => (
-                          <a
-                            href={href}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="cursor-help font-medium text-neutral-900 underline decoration-dotted underline-offset-2 hover:text-neutral-600"
+                  <div className="flex flex-col gap-3">
+                    {message.parts?.map((part: any, partIndex: number) => {
+                      if (part.type === "text" && part.text) {
+                        return (
+                          <Streamdown
+                            key={partIndex}
+                            isAnimating={isCurrentlyStreaming}
+                            className="text-content-emphasis"
+                            controls={false}
+                            components={{
+                              h1: () => null,
+                              h2: () => null,
+                              h3: () => null,
+                              h4: () => null,
+                              h5: () => null,
+                              h6: () => null,
+                              a: ({ children, href }) => (
+                                <a
+                                  href={href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="cursor-help font-medium text-neutral-900 underline decoration-dotted underline-offset-2 hover:text-neutral-600"
+                                >
+                                  {children}
+                                </a>
+                              ),
+                              ul: ({ children }) => (
+                                <ul className="list-outside list-disc pl-6">
+                                  {children}
+                                </ul>
+                              ),
+                              ol: ({ children }) => (
+                                <ol className="list-outside list-decimal pl-6">
+                                  {children}
+                                </ol>
+                              ),
+                              code: MarkdownCodeBlock,
+                            }}
                           >
-                            {children}
-                          </a>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="list-outside list-disc pl-6">
-                            {children}
-                          </ul>
-                        ),
-                        ol: ({ children }) => (
-                          <ol className="list-outside list-decimal pl-6">
-                            {children}
-                          </ol>
-                        ),
-                        code: MarkdownCodeBlock,
-                      }}
-                    >
-                      {textContent}
-                    </Streamdown>
+                            {part.text}
+                          </Streamdown>
+                        );
+                      }
+
+                      if (
+                        part.type === "tool-requestSupportTicket" &&
+                        part.state === "output-available"
+                      ) {
+                        return (
+                          <div
+                            key={partIndex}
+                            className="rounded-xl border border-neutral-200 pt-3"
+                          >
+                            <TicketUpload
+                              onSubmit={(ids, details) =>
+                                handleEscalateViaForm(ids, details)
+                              }
+                              submitted={ticketSubmitted}
+                            />
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })}
                     <SourceCitations sources={sources} />
-                  </>
+                  </div>
                 )}
               </SupportMessage>
             );
@@ -439,16 +566,20 @@ export function ChatInterface({
           </p>
           <button
             type="button"
-            onClick={onReset ?? (() => window.location.reload())}
+            onClick={() => {
+              clearPersistedSession();
+              (onReset ?? (() => window.location.reload()))();
+            }}
             className="mt-3 rounded-lg bg-neutral-900 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-neutral-700"
           >
             Start new session
           </button>
         </div>
-      ) : (
+      ) : hasRequestedTicket ? null : (
         <div className="shrink-0 border-t border-neutral-100 bg-white p-3">
           <div className="relative">
             <TextareaAutosize
+              ref={textareaRef}
               minRows={3}
               maxRows={6}
               placeholder={
@@ -464,7 +595,7 @@ export function ChatInterface({
               }
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSend();
                 }
@@ -502,7 +633,11 @@ export function ChatInterface({
             {canEscalate && (
               <button
                 type="button"
-                onClick={handleEscalate}
+                onClick={() =>
+                  handleSend(
+                    "I'd like to create a support ticket and speak with a human agent.",
+                  )
+                }
                 className="text-xs font-medium text-neutral-500 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
               >
                 Convert to support ticket →

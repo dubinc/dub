@@ -1,19 +1,29 @@
 "use client";
 
 import { Tooltip } from "@dub/ui";
-import { MsgsFill, Trash, Xmark } from "@dub/ui/icons";
+import { MsgsFill, Xmark } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
+import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { ChatInterface } from "./chat-interface";
+import { ClearChatButton } from "./clear-chat-button";
 
 export function SupportChatBubble() {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const handleClose = () => setIsOpen(false);
   const handleOpen = () => setIsOpen(true);
-  const handleReset = () => setResetKey((k) => k + 1);
+  const handleReset = () => {
+    if (session?.user?.["id"]) {
+      try {
+        localStorage.removeItem(`dub-support-chat:${session.user["id"]}`);
+      } catch { }
+    }
+    setResetKey((k) => k + 1);
+  };
 
   useEffect(() => {
     if (window.parent === window) return;
@@ -46,16 +56,11 @@ export function SupportChatBubble() {
               </div>
 
               <div className="flex items-center gap-0.5">
-                <Tooltip content="Clear chat">
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="flex size-7 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-white/10 hover:text-white"
-                    aria-label="Clear chat"
-                  >
-                    <Trash className="size-3.5" />
-                  </button>
-                </Tooltip>
+                <ClearChatButton
+                  onConfirm={handleReset}
+                  triggerClassName="size-7 text-neutral-400 hover:bg-white/10 hover:text-white"
+                  iconClassName="size-3.5"
+                />
                 <Tooltip content="Close">
                   <button
                     type="button"

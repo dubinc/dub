@@ -1,13 +1,21 @@
 "use client";
 
-import { Tooltip } from "@dub/ui";
-import { Trash } from "@dub/ui/icons";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { ChatInterface } from "./chat-interface";
+import { ClearChatButton } from "./clear-chat-button";
 
 export function EmbeddedSupportChat() {
+  const { data: session } = useSession();
   const [resetKey, setResetKey] = useState(0);
-  const handleReset = () => setResetKey((k) => k + 1);
+  const handleReset = () => {
+    if (session?.user?.["id"]) {
+      try {
+        localStorage.removeItem(`dub-support-chat:${session.user["id"]}`);
+      } catch {}
+    }
+    setResetKey((k) => k + 1);
+  };
 
   return (
     <div className="flex min-h-[500px] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
@@ -29,16 +37,11 @@ export function EmbeddedSupportChat() {
           </div>
         </div>
 
-        <Tooltip content="Clear chat">
-          <button
-            type="button"
-            onClick={handleReset}
-            className="flex size-8 items-center justify-center rounded-lg text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-700"
-            aria-label="Clear chat"
-          >
-            <Trash className="size-4" />
-          </button>
-        </Tooltip>
+        <ClearChatButton
+          onConfirm={handleReset}
+          triggerClassName="size-8 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700"
+          iconClassName="size-4"
+        />
       </div>
 
       <ChatInterface
