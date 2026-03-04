@@ -7,6 +7,7 @@ import {
   BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_URLS,
+  REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/bounty/constants";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -26,7 +27,7 @@ import {
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -345,40 +346,91 @@ function SubmissionDetailsView({
   const statusBadge = BOUNTY_SUBMISSION_STATUS_BADGES[submission.status];
   const submittedDate = submission.completedAt ?? submission.createdAt;
 
+  const textValue = (text: string) => (
+    <span className="text-sm font-medium text-neutral-900">{text}</span>
+  );
+
+  const details: { label: string; value: ReactNode }[] = [];
+
+  if (statusBadge) {
+    details.push({
+      label: "Status",
+      value: (
+        <StatusBadge
+          variant={statusBadge.variant}
+          icon={statusBadge.icon}
+          className="w-fit rounded-lg py-1"
+        >
+          {statusBadge.label}
+        </StatusBadge>
+      ),
+    });
+  }
+
+  if (submittedDate) {
+    details.push({
+      label: "Submitted",
+      value: textValue(
+        formatDate(submittedDate, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+      ),
+    });
+  }
+
+  if (submission.reviewedAt) {
+    details.push({
+      label: "Reviewed",
+      value: textValue(
+        formatDate(submission.reviewedAt, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+      ),
+    });
+  }
+
+  if (submission.rejectionReason) {
+    details.push({
+      label: "Rejection reason",
+      value: textValue(
+        REJECT_BOUNTY_SUBMISSION_REASONS[submission.rejectionReason] ??
+          submission.rejectionReason,
+      ),
+    });
+  }
+
   return (
     <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto">
       <div className="flex flex-col gap-5 p-5">
-        <div className="flex flex-col gap-3">
-          <h2 className="text-base font-semibold text-neutral-900">Details</h2>
-          <div className="grid grid-cols-[auto_1fr] items-center gap-x-6 gap-y-3">
-            <span className="text-sm text-neutral-500">Status</span>
-            {statusBadge && (
-              <StatusBadge
-                variant={statusBadge.variant}
-                icon={statusBadge.icon}
-                className="w-fit rounded-lg py-1"
-              >
-                {statusBadge.label}
-              </StatusBadge>
-            )}
-            {submittedDate && (
-              <>
-                <span className="text-sm text-neutral-500">Submitted</span>
-                <span className="text-sm font-medium text-neutral-900">
-                  {formatDate(submittedDate, {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+        <div>
+          <h2 className="text-base font-semibold text-neutral-800">Details</h2>
+          <div className="mt-3 grid grid-cols-2 items-center gap-x-16 gap-y-2">
+            {details.map(({ label, value }) => (
+              <Fragment key={label}>
+                <span className="text-sm font-medium text-neutral-500">
+                  {label}
                 </span>
-              </>
-            )}
+                <div>{value}</div>
+              </Fragment>
+            ))}
           </div>
         </div>
 
+        {submission.rejectionNote && (
+          <div className="rounded-lg bg-orange-50 p-4">
+            <p className="whitespace-pre-wrap text-sm text-orange-800">
+              {submission.rejectionNote}
+            </p>
+          </div>
+        )}
+
         {Boolean(submission.files?.length) && (
           <div>
-            <h2 className="text-base font-semibold text-neutral-900">Images</h2>
+            <h2 className="text-base font-semibold text-neutral-800">Images</h2>
             <div className="mt-2 flex flex-wrap gap-3">
               {submission.files!.map((file, idx) => (
                 <a
@@ -406,7 +458,7 @@ function SubmissionDetailsView({
 
         {Boolean(submission.urls?.length) && (
           <div>
-            <h2 className="text-base font-semibold text-neutral-900">URLs</h2>
+            <h2 className="text-base font-semibold text-neutral-800">URLs</h2>
             <div className="mt-2 flex flex-col gap-2">
               {submission.urls?.map((url, idx) => (
                 <div
@@ -444,8 +496,8 @@ function SubmissionDetailsView({
 
         {submission.description && (
           <div>
-            <h2 className="text-sm font-semibold text-neutral-900">
-              Provide any additional details (optional)
+            <h2 className="text-base font-semibold text-neutral-800">
+              Additional details
             </h2>
             <p className="mt-2 whitespace-pre-wrap text-sm text-neutral-600">
               {submission.description}

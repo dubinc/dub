@@ -112,20 +112,31 @@ export function BountySubmissionsTable({
         minSize: 98,
         size: 98,
         cell: ({ row: { original } }) => {
-          const canSubmit =
-            original.status === "notSubmitted" || original.status === "draft";
+          const { status } = original;
+
+          let buttonText = "View";
+
+          if (status === "draft") {
+            buttonText = "Continue";
+          } else if (status === "notSubmitted") {
+            buttonText = "Submit";
+          }
+
+          const isDisabled = status === "notOpen";
+          const isPrimary = status === "notSubmitted" || status === "draft";
 
           return (
             <Button
-              disabled={!canSubmit}
-              className="h-7 rounded-lg px-2.5 py-2"
-              text="Submit"
+              variant={isPrimary ? "primary" : "secondary"}
+              disabled={isDisabled}
+              className="h-7 w-fit rounded-lg px-2.5 py-2"
+              text={buttonText}
               onClick={() => {
                 setActivePeriodNumber(original.periodNumber);
                 setShowClaimBountySheet(true);
               }}
               disabledTooltip={
-                !canSubmit ? "You cannot submit this period." : undefined
+                isDisabled ? "This period is not open yet." : undefined
               }
             />
           );
