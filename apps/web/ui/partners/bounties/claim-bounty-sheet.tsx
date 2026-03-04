@@ -467,13 +467,19 @@ interface ClaimBountySheetProps {
   bounty: PartnerBountyProps;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  periodNumber?: number;
 }
 
 function ClaimBountySheetContent({
   bounty,
   setIsOpen,
+  periodNumber,
 }: Omit<ClaimBountySheetProps, "isOpen">) {
-  const submission = bounty.submissions?.[0] ?? null;
+  const effectivePeriodNumber = periodNumber ?? 1;
+  const submission =
+    bounty.submissions?.find(
+      (s) => s.periodNumber === effectivePeriodNumber,
+    ) ?? null;
   const { programEnrollment } = useProgramEnrollment();
   const { socialContentVerifying, socialContentRequirementsMet } =
     useClaimBountyContext();
@@ -591,6 +597,7 @@ function ClaimBountySheetContent({
         files: finalFiles,
         urls: formUrls,
         description,
+        periodNumber: effectivePeriodNumber,
         ...(isDraft && { isDraft }),
       });
     } catch (error) {
@@ -701,25 +708,42 @@ export function ClaimBountySheet({
   bounty,
   isOpen,
   setIsOpen,
+  periodNumber,
 }: ClaimBountySheetProps) {
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <ClaimBountyProvider>
-        <ClaimBountySheetContent bounty={bounty} setIsOpen={setIsOpen} />
+        <ClaimBountySheetContent
+          bounty={bounty}
+          setIsOpen={setIsOpen}
+          periodNumber={periodNumber}
+        />
       </ClaimBountyProvider>
     </Sheet>
   );
 }
 
 export function useClaimBountySheet(
-  props: Omit<ClaimBountySheetProps, "isOpen" | "setIsOpen">,
+  props: Omit<
+    ClaimBountySheetProps,
+    "isOpen" | "setIsOpen" | "periodNumber"
+  >,
 ) {
   const [isOpen, setIsOpen] = useState(false);
+  const [activePeriodNumber, setActivePeriodNumber] = useState<
+    number | undefined
+  >();
 
   return {
     claimBountySheet: (
-      <ClaimBountySheet {...props} isOpen={isOpen} setIsOpen={setIsOpen} />
+      <ClaimBountySheet
+        {...props}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+        periodNumber={activePeriodNumber}
+      />
     ),
     setShowClaimBountySheet: setIsOpen,
+    setActivePeriodNumber,
   };
 }

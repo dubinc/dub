@@ -228,6 +228,9 @@ export const BountySubmissionSchema = z.object({
     .string()
     .nullable()
     .meta({ description: "The note for rejecting the submission" }),
+  periodNumber: z.number().int().min(1).meta({
+    description: "The period number for this submission (1-indexed)",
+  }),
 });
 
 export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
@@ -331,4 +334,12 @@ export const createBountySubmissionInputSchema = z.object({
     .boolean()
     .default(false)
     .describe("Whether to create a draft submission or a final submission."),
+  periodNumber: z
+    .number()
+    .int()
+    .min(1)
+    .optional()
+    .describe(
+      "The period number to submit for. Required for multi-submission bounties.",
+    ),
 });

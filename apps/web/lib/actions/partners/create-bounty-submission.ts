@@ -5,6 +5,7 @@ import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
+import { addFrequency, getCurrentPeriodNumber } from "@/lib/bounty/periods";
 import {
   getPlatformFromSocialUrl,
   resolveBountyDetails,
@@ -27,8 +28,15 @@ export const createBountySubmissionAction = authPartnerActionClient
   .inputSchema(createBountySubmissionInputSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { programId, bountyId, files, urls, description, isDraft } =
-      parsedInput;
+    const {
+      programId,
+      bountyId,
+      files,
+      urls,
+      description,
+      isDraft,
+      periodNumber: inputPeriodNumber,
+    } = parsedInput;
 
     const [programEnrollment, bounty] = await Promise.all([
       getProgramEnrollmentOrThrow({
@@ -63,16 +71,55 @@ export const createBountySubmissionAction = authPartnerActionClient
     }
 
     const bountyInfo = resolveBountyDetails(bounty);
-    let submission: BountySubmission | null = null;
 
-    if (bounty.submissions.length > 0) {
-      submission = bounty.submissions[0];
+    // Determine the period number for this submission
+    const isMultiSubmission =
+      (bounty.maxSubmissions ?? 1) > 1 && !!bounty.submissionFrequency;
 
+    let periodNumber: number;
+    if (isMultiSubmission) {
+      if (inputPeriodNumber) {
+        periodNumber = inputPeriodNumber;
+      } else {
+        const current = getCurrentPeriodNumber({
+          startsAt: bounty.startsAt,
+          endsAt: bounty.endsAt,
+          submissionFrequency: bounty.submissionFrequency,
+          maxSubmissions: bounty.maxSubmissions ?? 1,
+        });
+        if (!current) {
+          throw new Error("No active submission period for this bounty.");
+        }
+        periodNumber = current;
+      }
+
+      if (periodNumber < 1 || periodNumber > (bounty.maxSubmissions ?? 1)) {
+        throw new Error("Invalid period number.");
+      }
+
+      // Validate the period has started
+      const periodStart = addFrequency(
+        bounty.startsAt,
+        bounty.submissionFrequency!,
+        periodNumber - 1,
+      );
+      if (new Date() < periodStart) {
+        throw new Error("This submission period hasn't started yet.");
+      }
+    } else {
+      periodNumber = 1;
+    }
+
+    // Find existing submission for this specific period
+    let submission: BountySubmission | null =
+      bounty.submissions.find((s) => s.periodNumber === periodNumber) ?? null;
+
+    if (submission) {
       // if there's an existing submission, only throw an error
       // if submission is not a draft and is not for a social metrics bounty
       if (submission.status !== "draft" && !bountyInfo?.hasSocialMetrics) {
         throw new Error(
-          `You already have a ${submission.status} submission for this bounty.`,
+          `You already have a ${submission.status} submission for this period.`,
         );
       }
     }
@@ -334,6 +381,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           programId: bounty.programId,
           bountyId: bounty.id,
           partnerId: partner.id,
+          periodNumber,
         },
       });
     }
