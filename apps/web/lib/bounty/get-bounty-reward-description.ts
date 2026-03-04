@@ -16,15 +16,21 @@ export function getBountyRewardDescription(
     incrementalBonus?.bonusPerIncrement != null &&
     incrementalBonus?.maxCount
   ) {
-    const earningsCapCents =
+    const baseRewardCents = bounty.rewardAmount ?? 0;
+
+    const incrementalCapCents =
       Math.floor(incrementalBonus.maxCount / incrementalBonus.incrementCount) *
       incrementalBonus.bonusPerIncrement;
 
-    const formattedEarningsCap = currencyFormatter(earningsCapCents, {
-      trailingZeroDisplay: "stripIfInteger",
-    });
+    const earningsCapCents = baseRewardCents + incrementalCapCents;
 
-    return `Earn up to ${formattedEarningsCap}`;
+    if (earningsCapCents > 0) {
+      const formattedEarningsCap = currencyFormatter(earningsCapCents, {
+        trailingZeroDisplay: "stripIfInteger",
+      });
+
+      return `Earn up to ${formattedEarningsCap}`;
+    }
   }
 
   if (bounty.rewardAmount) {
