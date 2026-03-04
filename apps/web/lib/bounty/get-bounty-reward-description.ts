@@ -3,12 +3,15 @@ import { BountyProps } from "../types";
 import { resolveBountyDetails } from "./utils";
 
 export function getBountyRewardDescription(
-  bounty: Pick<
-    BountyProps,
-    "rewardAmount" | "rewardDescription" | "submissionRequirements"
-  >,
+  bounty: Pick<BountyProps, "rewardAmount" | "rewardDescription"> & {
+    submissionRequirements?: BountyProps["submissionRequirements"];
+  },
 ) {
-  const bountyInfo = resolveBountyDetails(bounty);
+  const bountyInfo = resolveBountyDetails({
+    rewardAmount: bounty.rewardAmount,
+    submissionRequirements: bounty.submissionRequirements ?? null,
+  });
+
   const incrementalBonus = bountyInfo?.socialMetrics?.incrementalBonus;
 
   if (
