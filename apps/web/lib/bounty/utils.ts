@@ -201,7 +201,7 @@ export function getBountyRewardCriteriaTexts(
 }
 
 interface BountyInfoInput {
-  submissionRequirements: Prisma.JsonValue;
+  submissionRequirements?: Prisma.JsonValue | undefined | null;
   rewardAmount?: number | undefined | null;
 }
 
