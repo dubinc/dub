@@ -2,6 +2,7 @@
 
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
+import { getPeriodLabel } from "@/lib/bounty/periods";
 import { PartnerBountyProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, CopyButton, Sheet, StatusBadge } from "@dub/ui";
@@ -81,7 +82,7 @@ function SubmissionDetailsView({
       <div className="flex flex-col gap-5 p-5">
         <div>
           <h2 className="text-base font-semibold text-neutral-800">Details</h2>
-          <div className="mt-3 grid grid-cols-2 items-center gap-x-16 gap-y-2">
+          <div className="mt-3 grid grid-cols-2 items-center gap-x-16 gap-y-1">
             {details.map(({ label, value }) => (
               <Fragment key={label}>
                 <span className="text-sm font-medium text-neutral-500">
@@ -183,22 +184,29 @@ function SubmissionDetailsView({
 }
 
 interface BountySubmissionDetailsSheetProps {
+  bounty: PartnerBountyProps;
   submission: PartnerBountySubmission;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export function BountySubmissionDetailsSheet({
+  bounty,
   submission,
   isOpen,
   setIsOpen,
 }: BountySubmissionDetailsSheetProps) {
+  const title =
+    bounty.maxSubmissions > 1
+      ? `Submission (${getPeriodLabel(bounty.submissionFrequency, submission.periodNumber - 1)})`
+      : "Submission";
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <div className="relative flex size-full flex-col">
         <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-neutral-200 bg-white px-5 py-4">
           <Sheet.Title className="text-base font-semibold text-neutral-900">
-            Submission
+            {title}
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
@@ -232,6 +240,7 @@ export function useBountySubmissionDetailsSheet({
   return {
     bountySubmissionDetailsSheet: submission ? (
       <BountySubmissionDetailsSheet
+        bounty={bounty}
         submission={submission}
         isOpen={isOpen}
         setIsOpen={setIsOpen}

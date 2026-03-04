@@ -7,6 +7,7 @@ import {
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_URLS,
 } from "@/lib/bounty/constants";
+import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -506,7 +507,9 @@ function ClaimBountySheetContent({
         {/* Sticky header */}
         <div className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b border-neutral-200 bg-white px-5 py-4">
           <Sheet.Title className="text-base font-semibold text-neutral-900">
-            Submission
+            {bounty.maxSubmissions > 1
+              ? `Submission (${getPeriodLabel(bounty.submissionFrequency, effectivePeriodNumber - 1)})`
+              : "Submission"}
           </Sheet.Title>
           <Sheet.Close asChild>
             <Button
