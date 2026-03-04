@@ -8,7 +8,10 @@
  */
 
 import "dotenv-flow/config";
-import { upsertDocsEmbeddings } from "../lib/ai/upsert-docs-embedding";
+import {
+  fetchPlausiblePageviews,
+  upsertDocsEmbeddings,
+} from "../lib/ai/upsert-docs-embedding";
 
 /**
  * Fetch all article URLs from dub.co/llms.txt.
@@ -58,7 +61,8 @@ async function main() {
       process.exit(1);
     }
     console.log(`Seeding single article: ${url}`);
-    const result = await upsertDocsEmbeddings(url);
+    const pageviewsMap = await fetchPlausiblePageviews();
+    const result = await upsertDocsEmbeddings(url, pageviewsMap);
     console.log(
       `  → ${result.chunks} chunks${result.skipped ? " (skipped)" : ""}`,
     );
@@ -70,6 +74,10 @@ async function main() {
   const urls = await fetchArticleUrls();
   console.log(`Found ${urls.length} articles to embed.\n`);
 
+  console.log("Fetching pageviews from Plausible...");
+  const pageviewsMap = await fetchPlausiblePageviews();
+  console.log(`Loaded pageviews for ${pageviewsMap.size} pages.\n`);
+
   let success = 0;
   let skipped = 0;
   let failed = 0;
@@ -77,7 +85,7 @@ async function main() {
   for (const url of urls) {
     try {
       process.stdout.write(`Processing: ${url} ... `);
-      const result = await upsertDocsEmbeddings(url);
+      const result = await upsertDocsEmbeddings(url, pageviewsMap);
       if (result.skipped) {
         process.stdout.write(`skipped\n`);
         skipped++;
