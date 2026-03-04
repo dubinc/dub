@@ -6,7 +6,7 @@ import { getPeriodLabel } from "@/lib/bounty/periods";
 import { PartnerBountyProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, CopyButton, Sheet, StatusBadge } from "@dub/ui";
-import { formatDate } from "@dub/utils";
+import { currencyFormatter, formatDate } from "@dub/utils";
 import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 
@@ -67,6 +67,13 @@ function SubmissionDetailsView({
     });
   }
 
+  if (submission.commission?.earnings) {
+    details.push({
+      label: "Earnings",
+      value: textValue(currencyFormatter(submission.commission.earnings)),
+    });
+  }
+
   if (submission.rejectionReason) {
     details.push({
       label: "Rejection reason",
@@ -82,7 +89,7 @@ function SubmissionDetailsView({
       <div className="flex flex-col gap-5 p-5">
         <div>
           <h2 className="text-base font-semibold text-neutral-800">Details</h2>
-          <div className="mt-3 grid grid-cols-2 items-center gap-x-16 gap-y-1">
+          <div className="mt-3 grid grid-cols-2 items-center gap-x-14 gap-y-1">
             {details.map(({ label, value }) => (
               <Fragment key={label}>
                 <span className="text-sm font-medium text-neutral-500">
@@ -96,7 +103,7 @@ function SubmissionDetailsView({
 
         {submission.rejectionNote && (
           <div className="rounded-lg bg-orange-50 p-4">
-            <p className="whitespace-pre-wrap text-sm text-orange-800">
+            <p className="whitespace-pre-wrap text-sm leading-6 text-orange-800">
               {submission.rejectionNote}
             </p>
           </div>
