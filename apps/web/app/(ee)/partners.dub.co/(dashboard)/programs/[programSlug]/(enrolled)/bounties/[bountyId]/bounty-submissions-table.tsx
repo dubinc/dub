@@ -122,36 +122,40 @@ export function BountySubmissionsTable({
         cell: ({ row: { original } }) => {
           const { status } = original;
 
-          let buttonText = "View";
+          let buttonText = "Submit";
 
           if (status === "draft") {
             buttonText = "Continue";
-          } else if (status === "notSubmitted") {
-            buttonText = "Submit";
+          } else if (["submitted", "approved", "rejected"].includes(status)) {
+            buttonText = "View";
           }
 
           const isDisabled = status === "notOpen";
           const isPrimary = status === "notSubmitted" || status === "draft";
 
+          const disabledTooltip = isDisabled
+            ? `Opens ${original.startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} at ${original.startDate.toLocaleTimeString("en-US", { hour: "numeric", hour12: true })}`
+            : undefined;
+
           return (
-            <Button
-              variant={isPrimary ? "primary" : "secondary"}
-              disabled={isDisabled}
-              className="h-7 w-fit rounded-lg px-2.5 py-2"
-              text={buttonText}
-              onClick={() => {
-                if (status === "notSubmitted" || status === "draft") {
-                  setClaimPeriodNumber(original.periodNumber);
-                  setShowClaimBountySheet(true);
-                } else {
-                  setViewPeriodNumber(original.periodNumber);
-                  setShowBountySubmissionDetailsSheet(true);
-                }
-              }}
-              disabledTooltip={
-                isDisabled ? "This period is not open yet." : undefined
-              }
-            />
+            <div className="flex justify-end">
+              <Button
+                variant={isPrimary ? "primary" : "secondary"}
+                disabled={isDisabled}
+                className="h-7 w-fit rounded-lg px-2.5 py-2"
+                text={buttonText}
+                onClick={() => {
+                  if (status === "notSubmitted" || status === "draft") {
+                    setClaimPeriodNumber(original.periodNumber);
+                    setShowClaimBountySheet(true);
+                  } else {
+                    setViewPeriodNumber(original.periodNumber);
+                    setShowBountySubmissionDetailsSheet(true);
+                  }
+                }}
+                disabledTooltip={disabledTooltip}
+              />
+            </div>
           );
         },
       },

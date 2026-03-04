@@ -476,11 +476,28 @@ function ClaimBountySheetContent({
     }
   };
 
+  const submissionsOpenAt = bounty.submissionsOpenAt
+    ? new Date(bounty.submissionsOpenAt)
+    : null;
+
+  const submissionsNotOpenYet =
+    submissionsOpenAt !== null && submissionsOpenAt > new Date();
+
+  const formattedSubmissionsOpenAt = submissionsOpenAt
+    ? `${submissionsOpenAt.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })} at ${submissionsOpenAt.toLocaleTimeString("en-US", { hour: "numeric", hour12: true })}`
+    : null;
+
   const isBusy =
     fileUploading ||
     isDraft === false ||
     socialContentVerifying ||
     (!!socialPlatform && !socialContentRequirementsMet);
+
+  const isDisabled = submissionsNotOpenYet || isBusy;
 
   return (
     <>
@@ -521,6 +538,14 @@ function ClaimBountySheetContent({
             }}
           >
             <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
+              {formattedSubmissionsOpenAt && (
+                <div className="p-5 pb-0">
+                  <div className="rounded-lg bg-orange-50 p-2 text-center text-sm font-medium text-orange-800">
+                    Submissions open {formattedSubmissionsOpenAt}
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-col gap-5 p-5">
                 {imageRequired && (
                   <ImagesField
@@ -552,7 +577,7 @@ function ClaimBountySheetContent({
                     type="submit"
                     name="draft"
                     loading={isDraft === true}
-                    disabled={isBusy}
+                    disabled={isDisabled}
                   />
                 )}
 
@@ -563,7 +588,7 @@ function ClaimBountySheetContent({
                   type="submit"
                   name="submit"
                   loading={isDraft === false}
-                  disabled={isBusy}
+                  disabled={isDisabled}
                 />
               </div>
             </div>
