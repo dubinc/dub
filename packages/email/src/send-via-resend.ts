@@ -24,7 +24,7 @@ const resendEmailForOptions = (
   // Build base options without rendered outputs (react/text)
   // CreateEmailOptions requires at least one of react or text
   const baseOptions = {
-    to,
+    to: process.env.VERCEL_ENV === "preview" ? "delivered@resend.dev" : to,
     from: from || VARIANT_TO_FROM_MAP[variant],
     subject: subject!,
     bcc,
