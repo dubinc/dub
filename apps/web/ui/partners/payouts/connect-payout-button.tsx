@@ -72,7 +72,11 @@ export function ConnectPayoutButton({
       <Button
         onClick={handleClick}
         text={
-          connected ? "Manage" : payoutMethod ? "Connect" : "Connect payout"
+          connected
+            ? "Manage"
+            : payoutMethod
+              ? "Connect"
+              : "Connect payout method"
         }
         loading={isPending}
         disabledTooltip={
