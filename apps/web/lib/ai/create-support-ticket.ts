@@ -14,10 +14,13 @@ export type CreateSupportTicketOptions = {
     parts: Array<{ type: string; text?: string }>;
   }>;
   globalContext: GlobalChatContext;
+  attachmentIds?: string[];
+  ticketDetails?: string;
 };
 
 export function createSupportTicketTool(options: CreateSupportTicketOptions) {
-  const { globalContext, session, messages } = options;
+  const { globalContext, session, messages, attachmentIds, ticketDetails } =
+    options;
 
   return tool({
     description:
@@ -45,6 +48,20 @@ export function createSupportTicketTool(options: CreateSupportTicketOptions) {
       );
 
       const components: Array<Record<string, unknown>> = [
+        ...(ticketDetails
+          ? [
+            {
+              componentText: {
+                text: `User description: ${ticketDetails}`,
+              },
+            },
+            {
+              componentDivider: {
+                dividerSpacingSize: ComponentDividerSpacingSize.M,
+              },
+            },
+          ]
+          : []),
         {
           componentText: {
             text: chatHistory.slice(0, 5000),
@@ -84,6 +101,7 @@ export function createSupportTicketTool(options: CreateSupportTicketOptions) {
           },
           priority,
           components,
+          ...(attachmentIds?.length ? { attachmentIds } : {}),
         });
 
         return {
