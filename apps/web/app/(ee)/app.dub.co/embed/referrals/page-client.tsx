@@ -359,9 +359,17 @@ function ReferralLinkDisplay({
           <>
             <Combobox
               selected={selectedOption}
-              setSelected={(option) =>
-                option && setSelectedLinkId(option.value)
-              }
+              setSelected={(option) => {
+                if (!option) return;
+               
+                setSelectedLinkId(option.value);
+               
+                const link = links.find((l) => l.id === option.value);
+               
+                if (link) {
+                  copyToClipboard(constructPartnerLink({ group, link }));
+                }
+              }}
               options={options}
               hideSearch
               forceDropdown
