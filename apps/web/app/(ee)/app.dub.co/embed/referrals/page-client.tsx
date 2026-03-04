@@ -13,6 +13,7 @@ import { Partner, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
+  Combobox,
   Copy,
   Directions,
   Popover,
@@ -22,6 +23,7 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
+import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
@@ -108,20 +110,11 @@ export function ReferralsEmbedPageClient({
     [showQuickstart, group.additionalLinks, programEmbedData, hasResources],
   );
 
-  const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   useEffect(() => {
     if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
   }, [tabs, selectedTab]);
-
-  const partnerLink =
-    links.length > 0
-      ? constructPartnerLink({
-          group,
-          link: links[0],
-        })
-      : undefined;
 
   return (
     <div
@@ -131,60 +124,12 @@ export function ReferralsEmbedPageClient({
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground logo={group.logo} color={group.brandColor} embed />
-          <span className="text-content-emphasis text-base font-semibold">
-            Referral link
-          </span>
-          <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 sm:max-w-[50%]">
-            <input
-              type="text"
-              readOnly
-              value={
-                partnerLink ? getPrettyUrl(partnerLink) : "No referral link"
-              }
-              className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
-            />
-            {partnerLink ? (
-              <Button
-                icon={
-                  <div className="relative size-4">
-                    <div
-                      className={cn(
-                        "absolute inset-0 transition-[transform,opacity]",
-                        copied && "translate-y-1 opacity-0",
-                      )}
-                    >
-                      <Copy className="size-4" />
-                    </div>
-                    <div
-                      className={cn(
-                        "absolute inset-0 transition-[transform,opacity]",
-                        !copied && "translate-y-1 opacity-0",
-                      )}
-                    >
-                      <Check className="size-4" />
-                    </div>
-                  </div>
-                }
-                text={copied ? "Copied link" : "Copy link"}
-                className="xs:w-fit"
-                onClick={() => {
-                  copyToClipboard(partnerLink);
-                }}
-              />
-            ) : (
-              <Button
-                text="Create a link"
-                onClick={() => {
-                  setSelectedTab("Links");
-                }}
-                className="xs:w-fit"
-              />
-            )}
-          </div>
 
-          {partnerLink && group.linkStructure === "query" && (
-            <QueryLinkStructureHelpText link={links[0]} />
-          )}
+          <ReferralLinkDisplay
+            links={links}
+            group={group}
+            onSelectTab={setSelectedTab}
+          />
 
           <div className="mt-12 sm:max-w-[50%]">
             <div className="flex items-end justify-between">
@@ -289,6 +234,155 @@ export function ReferralsEmbedPageClient({
         <ReferralsReferralsEmbedToken />
       </div>
     </div>
+  );
+}
+
+function ReferralLinkDisplay({
+  links,
+  group,
+  onSelectTab,
+}: {
+  links: ReferralsEmbedLink[];
+  group: Pick<
+    PartnerGroupProps,
+    | "id"
+    | "logo"
+    | "wordmark"
+    | "brandColor"
+    | "additionalLinks"
+    | "maxPartnerLinks"
+    | "linkStructure"
+    | "holdingPeriodDays"
+  >;
+  onSelectTab: (tab: string) => void;
+}) {
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
+  const [selectedLinkId, setSelectedLinkId] = useState<string | null>(
+    links[0]?.id ?? null,
+  );
+
+  useEffect(() => {
+    const stillInList = links.some((l) => l.id === selectedLinkId);
+
+    if (!stillInList) {
+      setSelectedLinkId(links[0]?.id ?? null);
+    }
+  }, [links, selectedLinkId]);
+
+  const selectedLink = useMemo(
+    () => links.find((l) => l.id === selectedLinkId) ?? links[0],
+    [links, selectedLinkId],
+  );
+
+  const partnerLink = selectedLink
+    ? constructPartnerLink({ group, link: selectedLink })
+    : undefined;
+
+  const options = useMemo(
+    () =>
+      links.map((link) => ({
+        value: link.id,
+        label: getPrettyUrl(constructPartnerLink({ group, link })),
+      })),
+    [links, group],
+  );
+
+  const selectedOption = useMemo(
+    () =>
+      selectedLink && partnerLink
+        ? { value: selectedLink.id, label: getPrettyUrl(partnerLink) }
+        : null,
+    [selectedLink, partnerLink],
+  );
+
+  const copyButton = partnerLink ? (
+    <Button
+      icon={
+        <div className="relative size-4">
+          <div
+            className={cn(
+              "absolute inset-0 transition-[transform,opacity]",
+              copied && "translate-y-1 opacity-0",
+            )}
+          >
+            <Copy className="size-4" />
+          </div>
+          <div
+            className={cn(
+              "absolute inset-0 transition-[transform,opacity]",
+              !copied && "translate-y-1 opacity-0",
+            )}
+          >
+            <Check className="size-4" />
+          </div>
+        </div>
+      }
+      text={copied ? "Copied link" : "Copy link"}
+      className="xs:w-fit"
+      onClick={() => copyToClipboard(partnerLink)}
+    />
+  ) : links.length <= 1 ? (
+    <Button
+      text="Create a link"
+      onClick={() => onSelectTab("Links")}
+      className="xs:w-fit"
+    />
+  ) : null;
+
+  return (
+    <>
+      <span className="text-content-emphasis text-base font-semibold">
+        Referral link
+      </span>
+      <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 sm:max-w-[50%]">
+        {links.length <= 1 ? (
+          <>
+            <input
+              type="text"
+              readOnly
+              value={
+                partnerLink ? getPrettyUrl(partnerLink) : "No referral link"
+              }
+              className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+            />
+            {copyButton}
+          </>
+        ) : (
+          <>
+            <Combobox
+              selected={selectedOption}
+              setSelected={(option) =>
+                option && setSelectedLinkId(option.value)
+              }
+              options={options}
+              hideSearch
+              forceDropdown
+              matchTriggerWidth
+              placeholder="No referral link"
+              trigger={
+                <button
+                  type="button"
+                  className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 min-w-0 shrink grow items-center gap-2 rounded-md border px-3 text-left text-sm outline-none focus:ring-neutral-500"
+                >
+                  <span className="min-w-0 shrink grow truncate">
+                    {partnerLink
+                      ? getPrettyUrl(partnerLink)
+                      : "No referral link"}
+                  </span>
+                  <ChevronDown className="size-4 shrink-0 text-neutral-400" />
+                </button>
+              }
+            />
+            {copyButton}
+          </>
+        )}
+      </div>
+
+      {partnerLink && group.linkStructure === "query" && (
+        <QueryLinkStructureHelpText link={selectedLink} />
+      )}
+    </>
   );
 }
 
