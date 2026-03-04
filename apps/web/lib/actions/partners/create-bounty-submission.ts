@@ -77,6 +77,7 @@ export const createBountySubmissionAction = authPartnerActionClient
       (bounty.maxSubmissions ?? 1) > 1 && !!bounty.submissionFrequency;
 
     let periodNumber: number;
+
     if (isMultiSubmission) {
       if (inputPeriodNumber) {
         periodNumber = inputPeriodNumber;
@@ -87,22 +88,25 @@ export const createBountySubmissionAction = authPartnerActionClient
           submissionFrequency: bounty.submissionFrequency,
           maxSubmissions: bounty.maxSubmissions ?? 1,
         });
+
         if (!current) {
           throw new Error("No active submission period for this bounty.");
         }
+
         periodNumber = current;
       }
 
       if (periodNumber < 1 || periodNumber > (bounty.maxSubmissions ?? 1)) {
-        throw new Error("Invalid period number.");
+        throw new Error("Invalid submission period number.");
       }
 
       // Validate the period has started
-      const periodStart = addFrequency(
-        bounty.startsAt,
-        bounty.submissionFrequency!,
-        periodNumber - 1,
-      );
+      const periodStart = addFrequency({
+        date: bounty.startsAt,
+        frequency: bounty.submissionFrequency!,
+        amount: periodNumber - 1,
+      });
+
       if (new Date() < periodStart) {
         throw new Error("This submission period hasn't started yet.");
       }
