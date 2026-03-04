@@ -15,9 +15,11 @@ import { useParams } from "next/navigation";
 export function PartnerBountyCard({
   bounty,
   showFullTitle = false,
+  hideFooter = false,
 }: {
   bounty: PartnerBountyProps;
   showFullTitle?: boolean;
+  hideFooter?: boolean;
 }) {
   const { programSlug } = useParams();
 
@@ -55,13 +57,15 @@ export function PartnerBountyCard({
         />
       </div>
 
-      <div className="border-t border-neutral-200 px-5 py-4">
-        {bounty.type === "performance" ? (
-          <PerformanceBountyProgress bounty={bounty} />
-        ) : (
-          <SubmissionBountyProgress bounty={bounty} />
-        )}
-      </div>
+      {!hideFooter && (
+        <div className="border-t border-neutral-200 px-5 py-4">
+          {bounty.type === "performance" ? (
+            <PerformanceBountyProgress bounty={bounty} />
+          ) : (
+            <SubmissionBountyProgress bounty={bounty} />
+          )}
+        </div>
+      )}
     </Link>
   );
 }
