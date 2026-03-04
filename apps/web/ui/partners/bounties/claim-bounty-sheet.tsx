@@ -534,14 +534,21 @@ function ClaimBountySheetContent({
               </div>
             </div>
 
-            {/* Sticky footer */}
-            {bounty.type !== "performance" && (
-              <div className="flex shrink-0 items-center justify-end gap-2 border-t border-neutral-200 bg-white p-4">
+            <div className="flex shrink-0 items-center justify-between gap-2 border-t border-neutral-200 bg-white p-4">
+              <Button
+                variant="outline"
+                text="Cancel"
+                className="h-10 w-fit rounded-lg"
+                type="button"
+                onClick={() => setIsOpen(false)}
+              />
+
+              <div className="flex items-center gap-2">
                 {!isSocialMetricsBounty && (
                   <Button
                     variant="secondary"
                     text="Save progress"
-                    className="h-9 rounded-lg px-3"
+                    className="h-10 w-fit rounded-lg"
                     type="submit"
                     name="draft"
                     loading={isDraft === true}
@@ -552,14 +559,14 @@ function ClaimBountySheetContent({
                 <Button
                   variant="primary"
                   text="Submit"
-                  className="h-9 rounded-lg px-3"
+                  className="h-10 w-fit rounded-lg"
                   type="submit"
                   name="submit"
                   loading={isDraft === false}
                   disabled={isBusy}
                 />
               </div>
-            )}
+            </div>
           </form>
         </FormProvider>
       </div>
