@@ -18,6 +18,7 @@ import {
   Button,
   CopyButton,
   FileUpload,
+  Label,
   LoadingSpinner,
   Sheet,
   StatusBadge,
@@ -153,9 +154,7 @@ function ImagesField({
 
   return (
     <div>
-      <h2 className="text-sm font-medium text-neutral-900">
-        Images{formatRequirementText(imageMax)}
-      </h2>
+      <Label>Images{formatRequirementText(imageMax)}</Label>
       <div
         className={cn(
           "mt-2 flex h-12 items-center gap-2 transition-[height]",
@@ -241,9 +240,7 @@ function UrlsField({ bounty }: { bounty: PartnerBountyProps }) {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-neutral-900">
-          URL{formatRequirementText(urlMax)}
-        </h2>
+        <Label>URL{formatRequirementText(urlMax)}</Label>
         <span className="text-xs font-medium text-neutral-500">
           {formUrls.filter(Boolean).length} / {maxUrls}
         </span>
@@ -312,12 +309,9 @@ function DescriptionField() {
 
   return (
     <div>
-      <label
-        htmlFor="bounty-submission-description"
-        className="text-sm font-medium text-neutral-900"
-      >
+      <Label htmlFor="bounty-submission-description">
         Provide any additional details (optional)
-      </label>
+      </Label>
       <ReactTextareaAutosize
         id="bounty-submission-description"
         className={cn(
@@ -477,9 +471,8 @@ function ClaimBountySheetContent({
 }: Omit<ClaimBountySheetProps, "isOpen">) {
   const effectivePeriodNumber = periodNumber ?? 1;
   const submission =
-    bounty.submissions?.find(
-      (s) => s.periodNumber === effectivePeriodNumber,
-    ) ?? null;
+    bounty.submissions?.find((s) => s.periodNumber === effectivePeriodNumber) ??
+    null;
   const { programEnrollment } = useProgramEnrollment();
   const { socialContentVerifying, socialContentRequirementsMet } =
     useClaimBountyContext();
@@ -724,10 +717,7 @@ export function ClaimBountySheet({
 }
 
 export function useClaimBountySheet(
-  props: Omit<
-    ClaimBountySheetProps,
-    "isOpen" | "setIsOpen" | "periodNumber"
-  >,
+  props: Omit<ClaimBountySheetProps, "isOpen" | "setIsOpen" | "periodNumber">,
 ) {
   const [isOpen, setIsOpen] = useState(false);
   const [activePeriodNumber, setActivePeriodNumber] = useState<
