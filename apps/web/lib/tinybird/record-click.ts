@@ -32,6 +32,7 @@ export async function recordClick({
   clickId,
   workspaceId,
   linkId,
+  aliasLinkId,
   domain,
   key,
   url,
@@ -47,6 +48,7 @@ export async function recordClick({
   req: Request;
   clickId?: string;
   linkId: string;
+  aliasLinkId?: string; // For redirect rules: stores the matched path as a pseudo-link ID
   workspaceId?: string;
   domain: string;
   key: string;
@@ -134,6 +136,7 @@ export async function recordClick({
     click_id: clickId,
     workspace_id: workspaceId || "",
     link_id: linkId,
+    alias_link_id: aliasLinkId || null, // For redirect rules: the matched path
     domain,
     key,
     url: url || "",

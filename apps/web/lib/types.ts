@@ -228,6 +228,8 @@ export interface RedisLinkProps {
   >;
   testVariants?: z.infer<typeof ABTestVariantsSchema>;
   testCompletedAt?: Date;
+  isRule?: boolean;
+  rulePattern?: string;
 }
 
 export type ResourceColorsEnum = (typeof RESOURCE_COLORS)[number];
