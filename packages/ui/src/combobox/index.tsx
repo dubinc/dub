@@ -469,13 +469,15 @@ function Option({
             <span
               className={cn(
                 "grow",
-                hasDescription ? "text-base text-neutral-900" : "truncate text-neutral-700",
+                hasDescription
+                  ? "text-neutral-900"
+                  : "truncate text-neutral-700",
               )}
             >
               {option.label}
             </span>
             {hasDescription && (
-              <span className="text-neutral-500 text-sm">{description}</span>
+              <span className="text-sm text-neutral-500">{description}</span>
             )}
           </div>
           {right}

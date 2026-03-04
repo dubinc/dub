@@ -102,12 +102,14 @@ export function ReferralsEmbedLinksList({
                 </span>
                 <div className="flex min-w-0 max-w-[300px] items-center gap-1">
                   <ArrowTurnRight2 className="size-3 shrink-0 text-neutral-400" />
-                  <span
-                    className="min-w-0 truncate text-xs font-normal text-neutral-600"
-                    title={destinationUrl}
+                  <a
+                    className="min-w-0 cursor-alias truncate text-xs font-normal text-neutral-600 decoration-dotted underline-offset-2 hover:underline"
+                    href={destinationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
                   >
                     {destinationUrl ? getApexDomain(destinationUrl) : ""}
-                  </span>
+                  </a>
                 </div>
               </div>
             </div>

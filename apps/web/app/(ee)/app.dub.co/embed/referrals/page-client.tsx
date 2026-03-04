@@ -361,20 +361,20 @@ function ReferralLinkDisplay({
               selected={selectedOption}
               setSelected={(option) => {
                 if (!option) return;
-               
+
                 setSelectedLinkId(option.value);
-               
+
                 const link = links.find((l) => l.id === option.value);
-               
+
                 if (link) {
                   copyToClipboard(constructPartnerLink({ group, link }));
                 }
               }}
               options={options}
-              hideSearch
               forceDropdown
               matchTriggerWidth
               placeholder="No referral link"
+              inputClassName="text-sm h-10"
               optionDescription={(option) => (
                 <span className="flex min-w-0 items-center gap-1">
                   <ArrowTurnRight2 className="size-3 shrink-0 text-neutral-400" />
