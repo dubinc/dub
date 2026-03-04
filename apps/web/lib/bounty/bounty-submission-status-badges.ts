@@ -1,11 +1,25 @@
 import {
   CircleCheck,
+  CircleDotted,
   CircleHalfDottedCheck,
   CircleHalfDottedClock,
   CircleXmark,
+  Lock,
 } from "@dub/ui/icons";
 
 export const BOUNTY_SUBMISSION_STATUS_BADGES = {
+  notSubmitted: {
+    label: "Not submitted",
+    variant: "neutral",
+    icon: CircleDotted,
+    iconClassName: "text-neutral-700",
+  },
+  notOpen: {
+    label: "Not open",
+    variant: "neutral",
+    icon: Lock,
+    iconClassName: "text-neutral-700",
+  },
   draft: {
     label: "In progress",
     variant: "pending",

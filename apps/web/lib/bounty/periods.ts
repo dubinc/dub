@@ -1,6 +1,23 @@
 import { BountySubmissionFrequency } from "@dub/prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
 
+export type SubmissionPeriodStatus =
+  | "notSubmitted"
+  | "notOpen"
+  | "draft"
+  | "submitted"
+  | "approved"
+  | "rejected";
+
+export interface SubmissionPeriod<TSubmission = unknown> {
+  periodNumber: number;
+  label: string;
+  startDate: Date;
+  endDate: Date;
+  status: SubmissionPeriodStatus;
+  submission: TSubmission | null;
+}
+
 // Add a frequency-based duration to a date.
 export function addFrequency({
   date,
@@ -25,10 +42,15 @@ export function addFrequency({
 
 // Get a human-readable label for a period (0-indexed input).
 export function getPeriodLabel(
-  frequency: BountySubmissionFrequency,
+  frequency: BountySubmissionFrequency | null,
   index: number,
 ): string {
   const n = index + 1;
+
+  if (!frequency) {
+    return `Submission ${n}`;
+  }
+
   switch (frequency) {
     case "day":
       return `Day ${n}`;
@@ -61,8 +83,18 @@ export function getCurrentPeriodNumber({
   const now = new Date();
   const start = new Date(startsAt);
 
-  if (now < start) return null;
-  if (!submissionFrequency || maxSubmissions < 2) return 1;
+  if (now < start) {
+    return null;
+  }
+
+  if (maxSubmissions < 2) {
+    return 1;
+  }
+
+  // all periods open, caller picks
+  if (!submissionFrequency) {
+    return null;
+  }
 
   for (let i = 0; i < maxSubmissions; i++) {
     const periodStart = addFrequency({
@@ -70,6 +102,7 @@ export function getCurrentPeriodNumber({
       frequency: submissionFrequency,
       amount: i,
     });
+
     let periodEnd: Date;
 
     if (i < maxSubmissions - 1) {
@@ -96,23 +129,6 @@ export function getCurrentPeriodNumber({
   return null;
 }
 
-export type SubmissionPeriodStatus =
-  | "not_submitted"
-  | "not_open"
-  | "draft"
-  | "submitted"
-  | "approved"
-  | "rejected";
-
-export interface SubmissionPeriod<TSubmission = unknown> {
-  periodNumber: number;
-  label: string;
-  startDate: Date;
-  endDate: Date;
-  status: SubmissionPeriodStatus;
-  submission: TSubmission | null;
-}
-
 // Build the list of submission periods, matching submissions by periodNumber.
 export function getSubmissionPeriods<
   TSubmission extends { periodNumber: number; status: string },
@@ -133,17 +149,17 @@ export function getSubmissionPeriods<
   const start = new Date(startsAt);
   const end = endsAt ? new Date(endsAt) : null;
 
-  // If the bounty is a single-submission bounty, return a single period.
-  if (!submissionFrequency || maxSubmissions < 2) {
+  // Case 1: Single-submission bounty
+  if (maxSubmissions < 2) {
     let status: SubmissionPeriodStatus;
     const submission = submissions.find((s) => s.periodNumber === 1) ?? null;
 
     if (submission) {
       status = submission.status as SubmissionPeriodStatus;
     } else if (now < start) {
-      status = "not_open";
+      status = "notOpen";
     } else {
-      status = "not_submitted";
+      status = "notSubmitted";
     }
 
     return [
@@ -158,7 +174,39 @@ export function getSubmissionPeriods<
     ];
   }
 
-  // If the bounty is a multi-submission bounty, return a list of periods.
+  // Case 2: Multi-submission WITHOUT frequency — all periods open immediately
+  if (!submissionFrequency) {
+    const periods: SubmissionPeriod<TSubmission>[] = [];
+
+    for (let i = 0; i < maxSubmissions; i++) {
+      const periodNumber = i + 1;
+      const submissionForPeriod =
+        submissions.find((s) => s.periodNumber === periodNumber) ?? null;
+
+      let status: SubmissionPeriodStatus;
+
+      if (submissionForPeriod) {
+        status = submissionForPeriod.status as SubmissionPeriodStatus;
+      } else if (now < start) {
+        status = "notOpen";
+      } else {
+        status = "notSubmitted";
+      }
+
+      periods.push({
+        periodNumber,
+        label: getPeriodLabel(null, i),
+        startDate: start,
+        endDate: end ?? start,
+        status,
+        submission: submissionForPeriod,
+      });
+    }
+
+    return periods;
+  }
+
+  // Case 3: Multi-submission WITH frequency — time-gated periods
   // All periods share the same end date (bounty end) so partners can submit
   // for any period up until the final deadline.
   const periods: SubmissionPeriod<TSubmission>[] = [];
@@ -187,9 +235,9 @@ export function getSubmissionPeriods<
     if (submissionForPeriod) {
       status = submissionForPeriod.status as SubmissionPeriodStatus;
     } else if (now < startDate) {
-      status = "not_open";
+      status = "notOpen";
     } else {
-      status = "not_submitted";
+      status = "notSubmitted";
     }
 
     periods.push({
