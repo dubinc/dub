@@ -34,12 +34,12 @@ export const POST = withSession(async ({ req, session }) => {
       getProgramPerformance: getProgramPerformanceTool,
       getWorkspaceDetails: getWorkspaceDetailsTool,
       createSupportTicket: createSupportTicketTool({
-        context: globalContext?.chatLocation ?? "docs",
         session,
         messages: messages.map((msg) => ({
           role: msg.role,
           parts: "parts" in msg ? msg.parts : [],
         })),
+        globalContext: globalContext || {},
       }),
     },
   });

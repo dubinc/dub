@@ -13,13 +13,13 @@ import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import "streamdown/styles.css";
-import { MarkdownCodeBlock } from "./code-block";
 import useSWR from "swr";
+import { MarkdownCodeBlock } from "./code-block";
 import { SupportMessage } from "./message";
 import { ProgramCombobox, ProgramSummary } from "./program-combobox";
 import { extractSources, SourceCitations } from "./source-citations";
-import { StatusIndicator } from "./status-indicator";
 import { StarterQuestions } from "./starter-questions";
+import { StatusIndicator } from "./status-indicator";
 import { WorkspaceCombobox, WorkspaceSummary } from "./workspace-combobox";
 
 type AccountType = "workspace" | "partner";
@@ -51,8 +51,10 @@ export function ChatInterface({
   const hasPartnerProfile = !!session?.user?.["defaultPartnerId"];
 
   let canChat: boolean;
-  if (effectiveAccountType === "workspace") canChat = !!selection.selectedWorkspace;
-  else if (effectiveAccountType === "partner") canChat = !!selection.selectedProgram;
+  if (effectiveAccountType === "workspace")
+    canChat = !!selection.selectedWorkspace;
+  else if (effectiveAccountType === "partner")
+    canChat = !!selection.selectedProgram;
   else canChat = false;
 
   const { messages, sendMessage, status, setMessages } = useChat({
@@ -93,9 +95,21 @@ export function ChatInterface({
   };
 
   const handleEscalate = () => {
-    sendMessage({
-      text: "I'd like to speak with a human support agent and create a support ticket.",
-    });
+    sendMessage(
+      {
+        text: "I'd like to speak with a human support agent and create a support ticket.",
+      },
+      {
+        body: {
+          globalContext: {
+            ...selection,
+            chatLocation:
+              effectiveAccountType === "partner" ? "partners" : "app",
+            accountType: effectiveAccountType,
+          },
+        },
+      },
+    );
     setTicketSubmitted(true);
   };
 
@@ -116,7 +130,11 @@ export function ChatInterface({
     if (selection.selectedProgram?.slug !== program.slug) setMessages([]);
     setSelection((s) => ({
       ...s,
-      selectedProgram: { id: program.id, slug: program.slug, name: program.name },
+      selectedProgram: {
+        id: program.id,
+        slug: program.slug,
+        name: program.name,
+      },
     }));
   };
 
@@ -145,7 +163,6 @@ export function ChatInterface({
   const showStarterQuestions = canChat && messages.length === 0;
   const canEscalate =
     canChat && messages.length >= 2 && status === "ready" && !ticketSubmitted;
-
 
   if (isLoadingSession) {
     return (
@@ -328,7 +345,6 @@ export function ChatInterface({
                   )
                 : [];
 
-
             // Skip user messages with no text, but keep assistant messages
             // visible during tool calls (they temporarily have no text parts)
             if (isUser && !textContent) return null;
@@ -352,7 +368,9 @@ export function ChatInterface({
                     );
                     return (
                       <StatusIndicator
-                        label={isSearching ? "Searching docs..." : "Thinking..."}
+                        label={
+                          isSearching ? "Searching docs..." : "Thinking..."
+                        }
                         className="py-0.5"
                       />
                     );
@@ -382,12 +400,12 @@ export function ChatInterface({
                           </a>
                         ),
                         ul: ({ children }) => (
-                          <ul className="list-disc list-outside pl-6">
+                          <ul className="list-outside list-disc pl-6">
                             {children}
                           </ul>
                         ),
                         ol: ({ children }) => (
-                          <ol className="list-decimal list-outside pl-6">
+                          <ol className="list-outside list-decimal pl-6">
                             {children}
                           </ol>
                         ),
