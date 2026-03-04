@@ -1,14 +1,16 @@
 import { BountySubmissionFrequency } from "@dub/prisma/client";
 import { addDays, addMonths, addWeeks } from "date-fns";
 
-/**
- * Add a frequency-based duration to a date.
- */
-export function addFrequency(
-  date: Date,
-  frequency: BountySubmissionFrequency,
-  amount: number,
-): Date {
+// Add a frequency-based duration to a date.
+export function addFrequency({
+  date,
+  frequency,
+  amount,
+}: {
+  date: Date;
+  frequency: BountySubmissionFrequency;
+  amount: number;
+}): Date {
   switch (frequency) {
     case "day":
       return addDays(date, amount);
@@ -21,9 +23,7 @@ export function addFrequency(
   }
 }
 
-/**
- * Get a human-readable label for a period (0-indexed input).
- */
+// Get a human-readable label for a period (0-indexed input).
 export function getPeriodLabel(
   frequency: BountySubmissionFrequency,
   index: number,
@@ -65,13 +65,28 @@ export function getCurrentPeriodNumber({
   if (!submissionFrequency || maxSubmissions < 2) return 1;
 
   for (let i = 0; i < maxSubmissions; i++) {
-    const periodStart = addFrequency(start, submissionFrequency, i);
-    const periodEnd =
-      i < maxSubmissions - 1
-        ? addFrequency(start, submissionFrequency, i + 1)
-        : endsAt
-          ? new Date(endsAt)
-          : addFrequency(start, submissionFrequency, i + 1);
+    const periodStart = addFrequency({
+      date: start,
+      frequency: submissionFrequency,
+      amount: i,
+    });
+    let periodEnd: Date;
+
+    if (i < maxSubmissions - 1) {
+      periodEnd = addFrequency({
+        date: start,
+        frequency: submissionFrequency,
+        amount: i + 1,
+      });
+    } else if (endsAt) {
+      periodEnd = new Date(endsAt);
+    } else {
+      periodEnd = addFrequency({
+        date: start,
+        frequency: submissionFrequency,
+        amount: i + 1,
+      });
+    }
 
     if (now >= periodStart && now < periodEnd) {
       return i + 1;
@@ -80,8 +95,6 @@ export function getCurrentPeriodNumber({
 
   return null;
 }
-
-// --- Types ---
 
 export type SubmissionPeriodStatus =
   | "not_submitted"
@@ -100,9 +113,7 @@ export interface SubmissionPeriod<TSubmission = unknown> {
   submission: TSubmission | null;
 }
 
-/**
- * Build the list of submission periods, matching submissions by periodNumber.
- */
+// Build the list of submission periods, matching submissions by periodNumber.
 export function getSubmissionPeriods<
   TSubmission extends { periodNumber: number; status: string },
 >({
@@ -122,9 +133,11 @@ export function getSubmissionPeriods<
   const start = new Date(startsAt);
   const end = endsAt ? new Date(endsAt) : null;
 
+  // If the bounty is a single-submission bounty, return a single period.
   if (!submissionFrequency || maxSubmissions < 2) {
-    const submission = submissions.find((s) => s.periodNumber === 1) ?? null;
     let status: SubmissionPeriodStatus;
+    const submission = submissions.find((s) => s.periodNumber === 1) ?? null;
+
     if (submission) {
       status = submission.status as SubmissionPeriodStatus;
     } else if (now < start) {
@@ -132,6 +145,7 @@ export function getSubmissionPeriods<
     } else {
       status = "not_submitted";
     }
+
     return [
       {
         periodNumber: 1,
@@ -144,20 +158,32 @@ export function getSubmissionPeriods<
     ];
   }
 
+  // If the bounty is a multi-submission bounty, return a list of periods.
+  // All periods share the same end date (bounty end) so partners can submit
+  // for any period up until the final deadline.
   const periods: SubmissionPeriod<TSubmission>[] = [];
+  const periodEndDate =
+    end ??
+    addFrequency({
+      date: start,
+      frequency: submissionFrequency,
+      amount: maxSubmissions,
+    });
 
   for (let i = 0; i < maxSubmissions; i++) {
     const periodNumber = i + 1;
-    const startDate = addFrequency(start, submissionFrequency, i);
-    const endDate =
-      i < maxSubmissions - 1
-        ? addFrequency(start, submissionFrequency, i + 1)
-        : end ?? addFrequency(start, submissionFrequency, i + 1);
+    const startDate = addFrequency({
+      date: start,
+      frequency: submissionFrequency,
+      amount: i,
+    });
+    const endDate = periodEndDate;
 
     const submissionForPeriod =
       submissions.find((s) => s.periodNumber === periodNumber) ?? null;
 
     let status: SubmissionPeriodStatus;
+
     if (submissionForPeriod) {
       status = submissionForPeriod.status as SubmissionPeriodStatus;
     } else if (now < startDate) {
