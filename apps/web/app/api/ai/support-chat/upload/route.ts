@@ -3,6 +3,20 @@ import { plain } from "@/lib/plain/client";
 import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
 import { AttachmentType } from "@team-plain/typescript-sdk";
 
+const MAX_UPLOAD_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_FILE_NAME_LENGTH = 255;
+
+const ACCEPTED_EXTENSIONS = new Set([
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".pdf",
+  ".txt",
+  ".csv",
+]);
+
 // POST /api/ai/support-chat/upload
 // Generates a Plain attachment upload URL for the authenticated user.
 // The client uses the returned URL + form fields to POST the file directly
@@ -20,10 +34,35 @@ export const POST = withSession(async ({ req, session }) => {
     return new Response("Invalid JSON body", { status: 400 });
   }
 
-  if (!fileName || typeof fileSizeBytes !== "number" || fileSizeBytes <= 0) {
-    return new Response("Missing or invalid fileName / fileSizeBytes", {
-      status: 400,
-    });
+  if (
+    !fileName ||
+    typeof fileName !== "string" ||
+    fileName.length > MAX_FILE_NAME_LENGTH ||
+    // Reject path traversal and null bytes
+    fileName.includes("..") ||
+    fileName.includes("/") ||
+    fileName.includes("\0")
+  ) {
+    return new Response("Invalid fileName", { status: 400 });
+  }
+
+  if (
+    typeof fileSizeBytes !== "number" ||
+    fileSizeBytes <= 0 ||
+    fileSizeBytes > MAX_UPLOAD_SIZE_BYTES
+  ) {
+    return new Response(
+      `Invalid fileSizeBytes: must be between 1 and ${MAX_UPLOAD_SIZE_BYTES} bytes`,
+      { status: 400 },
+    );
+  }
+
+  const ext = fileName.slice(fileName.lastIndexOf(".")).toLowerCase();
+  if (!ext || !ACCEPTED_EXTENSIONS.has(ext)) {
+    return new Response(
+      `Unsupported file type. Accepted: ${[...ACCEPTED_EXTENSIONS].join(", ")}`,
+      { status: 400 },
+    );
   }
 
   // Ensure the Plain customer exists and get their Plain-scoped ID

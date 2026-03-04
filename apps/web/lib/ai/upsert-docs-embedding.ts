@@ -167,7 +167,7 @@ export async function fetchPlausiblePageviews(): Promise<Map<string, number>> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        site_id: "pedroladeira.com",
+        site_id: "dub.co",
         metrics: ["pageviews"],
         date_range: "12mo",
         dimensions: ["event:page"],
@@ -245,9 +245,8 @@ export async function upsertDocsEmbeddings(
   if (
     parsedUrl.protocol !== "https:" ||
     !ALLOWED_HOSTNAMES.includes(parsedUrl.hostname) ||
-    (!ALLOWED_HOSTNAMES.includes(parsedUrl.pathname) &&
-      !ALLOWED_PATH_PREFIXES.some((p) => parsedUrl.pathname.startsWith(p))) ||
-    parsedUrl.pathname.includes("..")
+    parsedUrl.pathname.includes("..") ||
+    !ALLOWED_PATH_PREFIXES.some((p) => parsedUrl.pathname.startsWith(p))
   ) {
     console.warn(`Skipping (disallowed URL): ${url}`);
     return { chunks: 0, skipped: true };

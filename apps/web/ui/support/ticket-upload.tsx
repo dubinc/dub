@@ -102,12 +102,14 @@ export function TicketUpload({
       status: "uploading",
     }));
 
+    let allowedEntries: FileEntry[] = [];
     setFiles((prev) => {
       const combined = [...prev, ...entries].slice(0, MAX_FILES);
+      allowedEntries = combined.slice(prev.length);
       return combined;
     });
 
-    entries.forEach((entry) => {
+    allowedEntries.forEach((entry) => {
       uploadToPlain(entry.file).then((result) => {
         setFiles((prev) =>
           prev.map((f) =>
@@ -192,6 +194,8 @@ export function TicketUpload({
 
       {files.length < MAX_FILES && (
         <div
+          role="button"
+          tabIndex={0}
           onDragOver={(e) => {
             e.preventDefault();
             setIsDragging(true);
@@ -199,8 +203,14 @@ export function TicketUpload({
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
           className={cn(
-            "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed py-5 transition-colors",
+            "flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed py-5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400",
             isDragging
               ? "border-neutral-400 bg-neutral-50"
               : "border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50",

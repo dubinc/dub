@@ -13,13 +13,39 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { convertToModelMessages, stepCountIs, streamText, UIMessage } from "ai";
 
 export const POST = withSession(async ({ req, session }) => {
-  const { messages, globalContext, attachmentIds, ticketDetails } =
-    (await req.json()) as {
-      messages: UIMessage[];
-      globalContext?: GlobalChatContext;
-      attachmentIds?: string[];
-      ticketDetails?: string;
-    };
+  const body = await req.json();
+  const { messages, globalContext } = body as {
+    messages: UIMessage[];
+    globalContext?: GlobalChatContext;
+  };
+
+  const MAX_ATTACHMENTS = 5;
+  const MAX_ATTACHMENT_ID_LENGTH = 128;
+  const rawAttachmentIds = body.attachmentIds;
+  if (rawAttachmentIds !== undefined) {
+    if (
+      !Array.isArray(rawAttachmentIds) ||
+      rawAttachmentIds.length > MAX_ATTACHMENTS ||
+      rawAttachmentIds.some(
+        (id) => typeof id !== "string" || id.length > MAX_ATTACHMENT_ID_LENGTH,
+      )
+    ) {
+      return new Response("Invalid attachmentIds", { status: 400 });
+    }
+  }
+  const attachmentIds: string[] | undefined = rawAttachmentIds;
+
+  const MAX_TICKET_DETAILS_LENGTH = 2000;
+  const rawTicketDetails = body.ticketDetails;
+  if (rawTicketDetails !== undefined) {
+    if (
+      typeof rawTicketDetails !== "string" ||
+      rawTicketDetails.length > MAX_TICKET_DETAILS_LENGTH
+    ) {
+      return new Response("Invalid ticketDetails", { status: 400 });
+    }
+  }
+  const ticketDetails: string | undefined = rawTicketDetails;
 
   const { success } = await ratelimit(5, "30 s").limit(
     `support-chat:${session.user.id}`,

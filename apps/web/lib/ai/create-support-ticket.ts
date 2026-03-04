@@ -47,20 +47,28 @@ export function createSupportTicketTool(options: CreateSupportTicketOptions) {
         session.user.id,
       );
 
+      const DETAILS_LIMIT = 1000;
+      const rawDetails = ticketDetails?.trim();
+      const boundedDetails = rawDetails
+        ? rawDetails.length > DETAILS_LIMIT
+          ? `${rawDetails.slice(0, DETAILS_LIMIT)}… (truncated)`
+          : rawDetails
+        : undefined;
+
       const components: Array<Record<string, unknown>> = [
-        ...(ticketDetails
+        ...(boundedDetails
           ? [
-            {
-              componentText: {
-                text: `User description: ${ticketDetails}`,
+              {
+                componentText: {
+                  text: `User description: ${boundedDetails}`,
+                },
               },
-            },
-            {
-              componentDivider: {
-                dividerSpacingSize: ComponentDividerSpacingSize.M,
+              {
+                componentDivider: {
+                  dividerSpacingSize: ComponentDividerSpacingSize.M,
+                },
               },
-            },
-          ]
+            ]
           : []),
         {
           componentText: {
