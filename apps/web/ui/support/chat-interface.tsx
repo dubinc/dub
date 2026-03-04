@@ -35,6 +35,7 @@ export function ChatInterface({
 }) {
   const { data: session, status: sessionStatus } = useSession();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState("");
   const [ticketSubmitted, setTicketSubmitted] = useState(false);
   const [selection, setSelection] = useState<GlobalChatContext>({});
@@ -75,6 +76,12 @@ export function ChatInterface({
     container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
   }, [messages, status, embedded]);
 
+  useEffect(() => {
+    if (status === "ready") {
+      textareaRef.current?.focus();
+    }
+  }, [status]);
+
   const handleSend = (text?: string) => {
     const messageText = text ?? input;
     if (!messageText.trim() || status === "streaming" || !canChat) return;
@@ -92,6 +99,7 @@ export function ChatInterface({
       },
     );
     setInput("");
+    textareaRef.current?.focus();
   };
 
   const handleEscalate = () => {
@@ -449,6 +457,7 @@ export function ChatInterface({
         <div className="shrink-0 border-t border-neutral-100 bg-white p-3">
           <div className="relative">
             <TextareaAutosize
+              ref={textareaRef}
               minRows={3}
               maxRows={6}
               placeholder={
@@ -464,7 +473,7 @@ export function ChatInterface({
               }
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSend();
                 }
