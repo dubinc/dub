@@ -6,6 +6,7 @@ import {
   getSubmissionPeriods,
 } from "@/lib/bounty/periods";
 import { PartnerBountyProps } from "@/lib/types";
+import { useBountySubmissionDetailsSheet } from "@/ui/partners/bounties/bounty-submission-details-sheet";
 import { useClaimBountySheet } from "@/ui/partners/bounties/claim-bounty-sheet";
 import { Button, StatusBadge, Table, useTable } from "@dub/ui";
 import { formatDate } from "@dub/utils";
@@ -19,10 +20,17 @@ export function BountySubmissionsTable({
 }: {
   bounty: PartnerBountyProps;
 }) {
-  const { claimBountySheet, setShowClaimBountySheet, setActivePeriodNumber } =
-    useClaimBountySheet({
-      bounty,
-    });
+  const {
+    claimBountySheet,
+    setShowClaimBountySheet,
+    setActivePeriodNumber: setClaimPeriodNumber,
+  } = useClaimBountySheet({ bounty });
+
+  const {
+    bountySubmissionDetailsSheet,
+    setShowBountySubmissionDetailsSheet,
+    setActivePeriodNumber: setViewPeriodNumber,
+  } = useBountySubmissionDetailsSheet({ bounty });
 
   const periods = getSubmissionPeriods({
     startsAt: bounty.startsAt,
@@ -132,8 +140,13 @@ export function BountySubmissionsTable({
               className="h-7 w-fit rounded-lg px-2.5 py-2"
               text={buttonText}
               onClick={() => {
-                setActivePeriodNumber(original.periodNumber);
-                setShowClaimBountySheet(true);
+                if (status === "notSubmitted" || status === "draft") {
+                  setClaimPeriodNumber(original.periodNumber);
+                  setShowClaimBountySheet(true);
+                } else {
+                  setViewPeriodNumber(original.periodNumber);
+                  setShowBountySubmissionDetailsSheet(true);
+                }
               }}
               disabledTooltip={
                 isDisabled ? "This period is not open yet." : undefined
@@ -161,6 +174,7 @@ export function BountySubmissionsTable({
   return (
     <>
       {claimBountySheet}
+      {bountySubmissionDetailsSheet}
       <div className="flex flex-col gap-3">
         <h2 className="text-content-emphasis text-lg font-semibold leading-7 tracking-[-0.36px]">
           Submissions
