@@ -262,14 +262,6 @@ function ReferralLinkDisplay({
     links[0]?.id ?? null,
   );
 
-  useEffect(() => {
-    const stillInList = links.some((l) => l.id === selectedLinkId);
-
-    if (!stillInList) {
-      setSelectedLinkId(links[0]?.id ?? null);
-    }
-  }, [links, selectedLinkId]);
-
   const selectedLink = useMemo(
     () => links.find((l) => l.id === selectedLinkId) ?? links[0],
     [links, selectedLinkId],
@@ -288,47 +280,50 @@ function ReferralLinkDisplay({
     [links, group],
   );
 
-  const selectedOption = useMemo(
-    () =>
-      selectedLink && partnerLink
-        ? { value: selectedLink.id, label: getPrettyUrl(partnerLink) }
-        : null,
-    [selectedLink, partnerLink],
-  );
+  const selectedOption =
+    selectedLink && partnerLink
+      ? { value: selectedLink.id, label: getPrettyUrl(partnerLink) }
+      : null;
 
-  const copyButton = partnerLink ? (
-    <Button
-      icon={
-        <div className="relative size-4">
-          <div
-            className={cn(
-              "absolute inset-0 transition-[transform,opacity]",
-              copied && "translate-y-1 opacity-0",
-            )}
-          >
-            <Copy className="size-4" />
+  let actionButton: React.ReactNode = null;
+
+  if (partnerLink) {
+    actionButton = (
+      <Button
+        icon={
+          <div className="relative size-4">
+            <div
+              className={cn(
+                "absolute inset-0 transition-[transform,opacity]",
+                copied && "translate-y-1 opacity-0",
+              )}
+            >
+              <Copy className="size-4" />
+            </div>
+            <div
+              className={cn(
+                "absolute inset-0 transition-[transform,opacity]",
+                !copied && "translate-y-1 opacity-0",
+              )}
+            >
+              <Check className="size-4" />
+            </div>
           </div>
-          <div
-            className={cn(
-              "absolute inset-0 transition-[transform,opacity]",
-              !copied && "translate-y-1 opacity-0",
-            )}
-          >
-            <Check className="size-4" />
-          </div>
-        </div>
-      }
-      text={copied ? "Copied link" : "Copy link"}
-      className="xs:w-fit"
-      onClick={() => copyToClipboard(partnerLink)}
-    />
-  ) : links.length <= 1 ? (
-    <Button
-      text="Create a link"
-      onClick={() => onSelectTab("Links")}
-      className="xs:w-fit"
-    />
-  ) : null;
+        }
+        text={copied ? "Copied link" : "Copy link"}
+        className="xs:w-fit"
+        onClick={() => copyToClipboard(partnerLink)}
+      />
+    );
+  } else if (links.length === 0) {
+    actionButton = (
+      <Button
+        text="Create a link"
+        onClick={() => onSelectTab("Links")}
+        className="xs:w-fit"
+      />
+    );
+  }
 
   return (
     <>
@@ -346,7 +341,7 @@ function ReferralLinkDisplay({
               }
               className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
             />
-            {copyButton}
+            {actionButton}
           </>
         ) : (
           <>
@@ -374,7 +369,7 @@ function ReferralLinkDisplay({
                 </button>
               }
             />
-            {copyButton}
+            {actionButton}
           </>
         )}
       </div>
