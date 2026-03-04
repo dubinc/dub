@@ -2,12 +2,21 @@
 
 import { Tooltip } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
+import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { ChatInterface } from "./chat-interface";
 
 export function EmbeddedSupportChat() {
+  const { data: session } = useSession();
   const [resetKey, setResetKey] = useState(0);
-  const handleReset = () => setResetKey((k) => k + 1);
+  const handleReset = () => {
+    if (session?.user?.["id"]) {
+      try {
+        localStorage.removeItem(`dub-support-chat:${session.user["id"]}`);
+      } catch {}
+    }
+    setResetKey((k) => k + 1);
+  };
 
   return (
     <div className="flex min-h-[500px] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">

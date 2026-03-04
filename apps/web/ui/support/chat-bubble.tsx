@@ -3,17 +3,26 @@
 import { Tooltip } from "@dub/ui";
 import { MsgsFill, Trash, Xmark } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
+import { useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { ChatInterface } from "./chat-interface";
 
 export function SupportChatBubble() {
+  const { data: session } = useSession();
   const [isOpen, setIsOpen] = useState(false);
   const [resetKey, setResetKey] = useState(0);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const handleClose = () => setIsOpen(false);
   const handleOpen = () => setIsOpen(true);
-  const handleReset = () => setResetKey((k) => k + 1);
+  const handleReset = () => {
+    if (session?.user?.["id"]) {
+      try {
+        localStorage.removeItem(`dub-support-chat:${session.user["id"]}`);
+      } catch {}
+    }
+    setResetKey((k) => k + 1);
+  };
 
   useEffect(() => {
     if (window.parent === window) return;

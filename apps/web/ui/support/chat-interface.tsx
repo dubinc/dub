@@ -40,6 +40,11 @@ export function ChatInterface({
   const [ticketSubmitted, setTicketSubmitted] = useState(false);
   const [selection, setSelection] = useState<GlobalChatContext>({});
 
+  const storageKey = session?.user?.["id"]
+    ? `dub-support-chat:${session.user["id"]}`
+    : null;
+  const restoredRef = useRef(false);
+
   const effectiveAccountType = selection.accountType;
 
   const { data: workspaces } = useSWR<WorkspaceSummary[]>(
@@ -81,6 +86,55 @@ export function ChatInterface({
       textareaRef.current?.focus();
     }
   }, [status]);
+
+  useEffect(() => {
+    if (!storageKey || restoredRef.current) return;
+    restoredRef.current = true;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+
+      const stored = JSON.parse(raw);
+      if (stored.selection) setSelection(stored.selection);
+      if (stored.messages?.length) setMessages(stored.messages);
+      if (stored.ticketSubmitted) setTicketSubmitted(true);
+    } catch { }
+  }, [storageKey, setMessages]);
+
+  useEffect(() => {
+    if (!storageKey || !restoredRef.current) return;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const stored = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({ ...stored, selection }),
+      );
+    } catch { }
+  }, [selection, storageKey]);
+
+  useEffect(() => {
+    if (!storageKey || !restoredRef.current || status === "streaming") return;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const stored = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({ ...stored, messages, ticketSubmitted }),
+      );
+    } catch { }
+  }, [messages, ticketSubmitted, status, storageKey]);
+
+  const clearPersistedSession = () => {
+    if (storageKey) {
+      try {
+        localStorage.removeItem(storageKey);
+      } catch { }
+    }
+  };
 
   const handleSend = (text?: string) => {
     const messageText = text ?? input;
@@ -349,8 +403,8 @@ export function ChatInterface({
             const sources =
               !isUser && !isCurrentlyStreaming
                 ? extractSources(
-                    message.parts as { type: string; [key: string]: unknown }[],
-                  )
+                  message.parts as { type: string;[key: string]: unknown }[],
+                )
                 : [];
 
             // Skip user messages with no text, but keep assistant messages
@@ -447,7 +501,10 @@ export function ChatInterface({
           </p>
           <button
             type="button"
-            onClick={onReset ?? (() => window.location.reload())}
+            onClick={() => {
+              clearPersistedSession();
+              (onReset ?? (() => window.location.reload()))();
+            }}
             className="mt-3 rounded-lg bg-neutral-900 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-neutral-700"
           >
             Start new session
