@@ -1,5 +1,6 @@
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@dub/prisma";
+import { deleteDiscountCodes } from "../discounts/delete-discount-code";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
 const BATCH_SIZE = 250;
@@ -54,6 +55,23 @@ export async function bulkDeletePartners({
         },
       });
       console.log(`Deleted ${deletedCustomers.count} customers`);
+    }
+
+    const discountCodesToDelete = await prisma.discountCode.findMany({
+      where: {
+        linkId: {
+          in: linksToDelete.map((link) => link.id),
+        },
+      },
+      select: {
+        id: true,
+        code: true,
+        programId: true,
+      },
+    });
+
+    if (discountCodesToDelete.length > 0) {
+      await deleteDiscountCodes(discountCodesToDelete);
     }
 
     await bulkDeleteLinks(linksToDelete);

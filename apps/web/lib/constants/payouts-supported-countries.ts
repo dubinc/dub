@@ -1,0 +1,16 @@
+import {
+  CONNECT_SUPPORTED_COUNTRIES,
+  COUNTRIES,
+  PAYPAL_SUPPORTED_COUNTRIES,
+  STABLECOIN_SUPPORTED_COUNTRIES,
+} from "@dub/utils";
+
+export const PAYOUT_SUPPORTED_COUNTRIES = [
+  ...new Set([
+    ...STABLECOIN_SUPPORTED_COUNTRIES,
+    ...CONNECT_SUPPORTED_COUNTRIES,
+    ...PAYPAL_SUPPORTED_COUNTRIES,
+  ]),
+]
+  .sort((a, b) => COUNTRIES[a].localeCompare(COUNTRIES[b]))
+  .map((code) => ({ code, name: COUNTRIES[code] }));
