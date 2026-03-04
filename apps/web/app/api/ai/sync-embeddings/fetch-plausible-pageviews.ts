@@ -21,7 +21,12 @@ export async function fetchPlausiblePageviews(): Promise<Map<string, number>> {
         metrics: ["pageviews"],
         date_range: "12mo",
         dimensions: ["event:page"],
-        pagination: { limit: 10000 },
+        filters: [
+          ["or", [
+            ["contains", "event:page", ["/docs"]],
+            ["contains", "event:page", ["/help"]],
+          ]],
+        ],
       }),
     });
 
