@@ -7,11 +7,9 @@
  *   pnpm tsx scripts/seed-support-embeddings.ts --url <url>  # re-seed a single article
  */
 
+import { fetchPlausiblePageviews } from "app/api/ai/sync-embeddings/fetch-plausible-pageviews";
 import "dotenv-flow/config";
-import {
-  fetchPlausiblePageviews,
-  upsertDocsEmbeddings,
-} from "../lib/ai/upsert-docs-embedding";
+import { upsertDocsEmbeddings } from "../lib/ai/upsert-docs-embedding";
 
 /**
  * Fetch all article URLs from dub.co/llms.txt.
