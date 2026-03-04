@@ -22,7 +22,8 @@ import {
   useLocalStorage,
   Wordmark,
 } from "@dub/ui";
-import { cn, getPrettyUrl } from "@dub/utils";
+import { ArrowTurnRight2 } from "@dub/ui/icons";
+import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
@@ -276,13 +277,24 @@ function ReferralLinkDisplay({
       links.map((link) => ({
         value: link.id,
         label: getPrettyUrl(constructPartnerLink({ group, link })),
+        meta: {
+          destination: link.url ? getApexDomain(link.url) : null,
+        },
       })),
     [links, group],
   );
 
   const selectedOption =
     selectedLink && partnerLink
-      ? { value: selectedLink.id, label: getPrettyUrl(partnerLink) }
+      ? {
+          value: selectedLink.id,
+          label: getPrettyUrl(partnerLink),
+          meta: {
+            destination: selectedLink.url
+              ? getApexDomain(selectedLink.url)
+              : null,
+          },
+        }
       : null;
 
   let actionButton: React.ReactNode = null;
@@ -355,6 +367,17 @@ function ReferralLinkDisplay({
               forceDropdown
               matchTriggerWidth
               placeholder="No referral link"
+              optionDescription={(option) => (
+                <span className="flex min-w-0 items-center gap-1">
+                  <ArrowTurnRight2 className="size-3 shrink-0 text-neutral-400" />
+                  <span className="min-w-0 truncate text-xs text-neutral-600">
+                    {option.meta.destination}
+                  </span>
+                </span>
+              )}
+              popoverProps={{
+                contentClassName: "rounded-lg border border-neutral-200 p-1",
+              }}
               trigger={
                 <button
                   type="button"

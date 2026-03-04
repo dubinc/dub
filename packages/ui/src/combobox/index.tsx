@@ -73,6 +73,7 @@ export type ComboboxProps<
   inputClassName?: string;
   optionRight?: (option: ComboboxOption) => ReactNode;
   optionClassName?: string;
+  optionDescription?: (option: ComboboxOption<TMeta>) => ReactNode;
   matchTriggerWidth?: boolean;
   hideSearch?: boolean;
   forceDropdown?: boolean;
@@ -115,6 +116,7 @@ export function Combobox({
   inputClassName,
   optionRight,
   optionClassName,
+  optionDescription,
   matchTriggerWidth,
   hideSearch = false,
   forceDropdown = false,
@@ -318,6 +320,7 @@ export function Combobox({
                               selected.length >= maxSelected,
                           )}
                           right={optionRight?.(option)}
+                          description={optionDescription?.(option)}
                           className={optionClassName}
                         />
                       );
@@ -410,6 +413,7 @@ function Option({
   selected,
   disabled,
   right,
+  description,
   className,
 }: {
   option: ComboboxOption;
@@ -418,14 +422,17 @@ function Option({
   selected: boolean;
   disabled?: boolean;
   right?: ReactNode;
+  description?: ReactNode;
   className?: string;
 }) {
+  const hasDescription = Boolean(description);
   return (
     <>
       <DisabledTooltip disabledTooltip={option.disabledTooltip}>
         <Command.Item
           className={cn(
-            "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
+            "flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-left text-sm",
+            hasDescription ? "whitespace-normal py-2.5" : "whitespace-nowrap",
             "data-[selected=true]:bg-neutral-100",
             Boolean(disabled || option.disabledTooltip) &&
               "cursor-not-allowed opacity-50",
@@ -444,7 +451,12 @@ function Option({
               )}
             </div>
           )}
-          <div className="flex min-w-0 grow items-center gap-2">
+          <div
+            className={cn(
+              "flex min-w-0 grow items-center gap-2",
+              hasDescription && "flex-col items-start gap-0.5",
+            )}
+          >
             {option.icon && (
               <span className="shrink-0 text-neutral-600">
                 {isReactNode(option.icon) ? (
@@ -454,7 +466,17 @@ function Option({
                 )}
               </span>
             )}
-            <span className="grow truncate">{option.label}</span>
+            <span
+              className={cn(
+                "grow",
+                hasDescription ? "text-base text-neutral-900" : "truncate text-neutral-700",
+              )}
+            >
+              {option.label}
+            </span>
+            {hasDescription && (
+              <span className="text-neutral-500 text-sm">{description}</span>
+            )}
           </div>
           {right}
           {!multiple && selected && (

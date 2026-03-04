@@ -14,6 +14,7 @@ import { ArrowTurnRight2, Pen2, Plus2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
   fetcher,
+  getApexDomain,
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
@@ -100,12 +101,12 @@ export function ReferralsEmbedLinksList({
                   {getPrettyUrl(partnerLink)}
                 </span>
                 <div className="flex min-w-0 max-w-[300px] items-center gap-1">
-                  <ArrowTurnRight2 className="size-3 shrink-0 text-neutral-500" />
+                  <ArrowTurnRight2 className="size-3 shrink-0 text-neutral-400" />
                   <span
-                    className="min-w-0 truncate text-xs font-normal text-neutral-600"
+                    className="min-w-0 truncate text-xs font-normal text-neutral-500"
                     title={destinationUrl}
                   >
-                    {destinationUrl}
+                    {destinationUrl ? getApexDomain(destinationUrl) : ""}
                   </span>
                 </div>
               </div>
