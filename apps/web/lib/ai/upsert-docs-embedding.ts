@@ -6,7 +6,7 @@ import { PAYOUT_SUPPORTED_COUNTRIES } from "../constants/payouts-supported-count
  * Replaces <PayoutSupportedCountries /> with the actual country list.
  * Returns the cleaned content and the article title extracted from the H1 heading.
  */
-export async function cleanMdx(
+async function cleanMdx(
   raw: string,
 ): Promise<{ content: string; title: string }> {
   let content = raw;
@@ -75,7 +75,7 @@ type ArticleChunk = {
  * Split cleaned markdown into chunks at H2/H3 heading boundaries.
  * Each chunk carries the section URL + heading as metadata.
  */
-export function chunkByHeadings(
+function chunkByHeadings(
   content: string,
   url: string,
   title: string,
@@ -146,57 +146,6 @@ export function chunkByHeadings(
   }
 
   return chunks;
-}
-
-/**
- * Fetch per-page pageview counts from Plausible for the last 12 months.
- * Returns a map of pathname → pageview count.
- */
-export async function fetchPlausiblePageviews(): Promise<Map<string, number>> {
-  const apiKey = process.env.PLAUSIBLE_API_KEY;
-  if (!apiKey) {
-    console.warn("PLAUSIBLE_API_KEY not set - pageviews will be stored as 0");
-    return new Map();
-  }
-
-  try {
-    const res = await fetch("https://plausible.io/api/v2/query", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        site_id: "dub.co",
-        metrics: ["pageviews"],
-        date_range: "12mo",
-        dimensions: ["event:page"],
-        pagination: { limit: 10000 },
-      }),
-    });
-
-    if (!res.ok) {
-      console.warn(`Plausible API error ${res.status}: ${await res.text()}`);
-      return new Map();
-    }
-
-    const data = await res.json();
-    const map = new Map<string, number>();
-
-    for (const row of data.results ?? []) {
-      const page: string = row.dimensions?.[0];
-      const pageviews: number = row.metrics?.[0];
-
-      if (typeof page === "string" && typeof pageviews === "number") {
-        map.set(page, pageviews);
-      }
-    }
-
-    return map;
-  } catch (err) {
-    console.warn("Failed to fetch Plausible pageviews:", err);
-    return new Map();
-  }
 }
 
 /**
