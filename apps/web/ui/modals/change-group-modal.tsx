@@ -2,8 +2,8 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Button, Modal } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { Button, Modal, Switch } from "@dub/ui";
+import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -34,6 +34,7 @@ function ChangeGroupModal({
   const { id: workspaceId } = useWorkspace();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [groupMoveDisabled, setGroupMoveDisabled] = useState(false);
 
   useEffect(() => {
     if (partners.length === 1) {
@@ -49,6 +50,9 @@ function ChangeGroupModal({
       body: {
         workspaceId,
         partnerIds: partners.map((p) => p.id),
+        groupMoveDisabledAt: groupMoveDisabled
+          ? new Date().toISOString()
+          : null,
       },
       onSuccess: () => {
         mutatePrefix("/api/partners");
@@ -56,7 +60,14 @@ function ChangeGroupModal({
         setShowChangeGroupModal(false);
       },
     });
-  }, [changeGroup, selectedGroupId, partners]);
+  }, [
+    changeGroup,
+    selectedGroupId,
+    partners,
+    groupMoveDisabled,
+    workspaceId,
+    setShowChangeGroupModal,
+  ]);
 
   return (
     <Modal
@@ -120,6 +131,20 @@ function ChangeGroupModal({
               setSelectedGroupId={setSelectedGroupId}
             />
           </div>
+        </div>
+
+        <div className="flex items-start gap-4">
+          <Switch
+            fn={setGroupMoveDisabled}
+            checked={groupMoveDisabled}
+            trackDimensions="w-8 h-4"
+            thumbDimensions="w-3 h-3"
+            thumbTranslate="translate-x-4"
+          />
+          <h3 className="text-sm font-medium leading-none text-neutral-700">
+            Disable future group move rules for{" "}
+            {pluralize("partner", partners.length)}
+          </h3>
         </div>
       </div>
 
