@@ -1,3 +1,5 @@
+"use client";
+
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
