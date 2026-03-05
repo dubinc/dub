@@ -64,11 +64,10 @@ export function SourceCitations({ sources }: { sources: SourceCitation[] }) {
 }
 
 export function extractSources(
-  parts: { type: string;[key: string]: unknown }[],
+  parts: { type: string; [key: string]: unknown }[],
 ): SourceCitation[] {
   const seen = new Set<string>();
   const sources: SourceCitation[] = [];
-
 
   for (const part of parts) {
     if (part.type !== "tool-findRelevantDocs") continue;

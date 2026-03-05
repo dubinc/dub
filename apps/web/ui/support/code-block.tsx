@@ -1,7 +1,7 @@
 "use client";
 
-import { cn } from "@dub/utils";
 import { Check, Copy, Download } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
 import {
   isValidElement,
   useCallback,
@@ -52,20 +52,43 @@ async function highlightCode(
 }
 
 const LANG_EXTENSIONS: Record<string, string> = {
-  javascript: "js", js: "js",
-  typescript: "ts", ts: "ts",
-  tsx: "tsx", jsx: "jsx",
-  python: "py", py: "py",
-  bash: "sh", sh: "sh", shell: "sh", shellscript: "sh", zsh: "zsh",
-  ruby: "rb", rb: "rb",
-  go: "go", rust: "rs", rs: "rs",
-  css: "css", scss: "scss", sass: "sass",
-  html: "html", xml: "xml",
-  json: "json", yaml: "yaml", yml: "yml",
-  toml: "toml", sql: "sql",
-  php: "php", java: "java", kotlin: "kt", swift: "swift",
-  c: "c", cpp: "cpp", cs: "cs",
-  markdown: "md", md: "md",
+  javascript: "js",
+  js: "js",
+  typescript: "ts",
+  ts: "ts",
+  tsx: "tsx",
+  jsx: "jsx",
+  python: "py",
+  py: "py",
+  bash: "sh",
+  sh: "sh",
+  shell: "sh",
+  shellscript: "sh",
+  zsh: "zsh",
+  ruby: "rb",
+  rb: "rb",
+  go: "go",
+  rust: "rs",
+  rs: "rs",
+  css: "css",
+  scss: "scss",
+  sass: "sass",
+  html: "html",
+  xml: "xml",
+  json: "json",
+  yaml: "yaml",
+  yml: "yml",
+  toml: "toml",
+  sql: "sql",
+  php: "php",
+  java: "java",
+  kotlin: "kt",
+  swift: "swift",
+  c: "c",
+  cpp: "cpp",
+  cs: "cs",
+  markdown: "md",
+  md: "md",
 };
 
 function CopyButton({ code }: { code: string }) {
