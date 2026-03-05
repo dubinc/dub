@@ -117,14 +117,12 @@ export const createPartnerCommission = async ({
         },
       });
 
-      const subscriptionStartDate = firstCommission?.createdAt;
+      const subscriptionStartDate = firstCommission?.createdAt ?? new Date();
 
-      const subscriptionDurationMonths = subscriptionStartDate
-        ? differenceInMonths(
-            createdAt ?? new Date(), // account for custom commission creation date
-            subscriptionStartDate,
-          )
-        : 0;
+      const subscriptionDurationMonths = differenceInMonths(
+        createdAt ?? new Date(), // account for custom commission creation date
+        subscriptionStartDate,
+      );
 
       context = {
         ...context,
