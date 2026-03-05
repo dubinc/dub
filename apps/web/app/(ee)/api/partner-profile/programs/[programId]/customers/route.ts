@@ -1,5 +1,6 @@
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
@@ -94,7 +95,7 @@ export const GET = withPartnerProfile(
           email: customer.email
             ? customerDataSharingEnabledAt
               ? customer.email
-              : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+              : obfuscateCustomerEmail(customer.email)
             : customer.name || generateRandomName(),
         }),
         activity: {

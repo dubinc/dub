@@ -562,6 +562,7 @@ const _trackSale = async ({
           context: {
             customer: {
               country: customer.country,
+              signupDate: customer.createdAt,
               source,
             },
             sale: {
