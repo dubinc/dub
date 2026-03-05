@@ -3,6 +3,7 @@ import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 import { referralFormDataSchema } from "./referral-form";
+import { centsSchema } from "./utils";
 
 export const referralSchema = z.object({
   id: z.string(),
@@ -105,9 +106,10 @@ export const updateReferralStatusSchema = z.discriminatedUnion("status", [
 
   updateReferralStatusBaseSchema.extend({
     status: z.literal("closedWon"),
-    saleAmount: z
-      .number()
-      .min(0, "Sale amount must be greater than or equal to 0"),
+    saleAmount: centsSchema.min(
+      0,
+      "Sale amount must be greater than or equal to 0",
+    ),
     stripeCustomerId: z.string().optional(),
   }),
 

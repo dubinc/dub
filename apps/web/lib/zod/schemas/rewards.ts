@@ -1,6 +1,7 @@
 import { EventType, RewardStructure } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
+import { centsSchema } from "./utils";
 
 export const COMMISSION_TYPES = [
   {
@@ -372,8 +373,8 @@ export const rewardContextSchema = z.object({
       totalClicks: z.number().nullish(),
       totalLeads: z.number().nullish(),
       totalConversions: z.number().nullish(),
-      totalSaleAmount: z.number().nullish(),
-      totalCommissions: z.number().nullish(),
+      totalSaleAmount: centsSchema.nullish(),
+      totalCommissions: centsSchema.nullish(),
     })
     .optional(),
 });

@@ -1,4 +1,5 @@
 import { withAdmin } from "@/lib/auth";
+import { serializeForJson } from "@/lib/utils/serialize-for-json";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -16,5 +17,5 @@ export const GET = withAdmin(async ({ params }) => {
     return NextResponse.json({ error: "Link not found" }, { status: 404 });
   }
 
-  return NextResponse.json(link);
+  return NextResponse.json(serializeForJson(link));
 });

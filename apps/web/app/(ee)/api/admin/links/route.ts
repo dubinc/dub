@@ -1,4 +1,5 @@
 import { withAdmin } from "@/lib/auth";
+import { serializeForJson } from "@/lib/utils/serialize-for-json";
 import { prisma } from "@dub/prisma";
 import { DUB_DOMAINS_ARRAY, LEGAL_USER_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -85,5 +86,5 @@ export const GET = withAdmin(async ({ searchParams }) => {
     tags: link.tags.map(({ tag }) => tag),
   }));
 
-  return NextResponse.json(links);
+  return NextResponse.json(serializeForJson(links));
 });

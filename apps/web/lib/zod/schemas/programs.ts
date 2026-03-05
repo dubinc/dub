@@ -23,7 +23,7 @@ import { programInviteEmailDataSchema } from "./program-invite-email";
 import { referralFormSchema } from "./referral-form";
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
-import { parseDateSchema } from "./utils";
+import { parseDateSchema, centsSchema } from "./utils";
 
 export const ProgramSchema = z.object({
   id: z.string(),
@@ -111,7 +111,7 @@ export const ProgramEnrollmentSchema = z.object({
     .array(ProgramPartnerLinkSchema)
     .nullable()
     .describe("The partner's referral links in this program."),
-  totalCommissions: z.number().default(0),
+  totalCommissions: centsSchema.default(0),
   rewards: z.array(RewardSchema).nullish(),
   clickRewardId: z.string().nullish(),
   leadRewardId: z.string().nullish(),

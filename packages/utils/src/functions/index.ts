@@ -5,6 +5,7 @@ export * from "./chunk";
 export * from "./cn";
 export * from "./combine-words";
 export * from "./construct-metadata";
+export * from "./cents";
 export * from "./currency-formatter";
 export * from "./currency-zero-decimal";
 export * from "./datetime";
