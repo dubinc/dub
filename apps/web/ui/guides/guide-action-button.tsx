@@ -198,7 +198,7 @@ export const GuideActionButton = ({
     <div className="border-border-subtle flex h-8 items-center overflow-hidden rounded-lg border">
       <Link href={guide.url} target="_blank" rel="noopener noreferrer">
         <Button
-          text="Read full guide"
+          text="View docs"
           variant="secondary"
           className="rounded-none border-0 px-3"
           icon={<BookOpen className="size-3.5" />}
@@ -230,7 +230,7 @@ export const GuideActionButton = ({
               <div className="flex flex-col items-start">
                 <span className="font-medium">Copy content</span>
                 <span className="text-xs text-neutral-500">
-                  Copy section as Markdown for LLMs
+                  Copy as Markdown for LLMs
                 </span>
               </div>
             </button>
@@ -292,7 +292,7 @@ export const GuideActionButton = ({
                   <ArrowUpRight className="size-3.5 text-neutral-600" />
                 </div>
                 <span className="text-xs text-neutral-500">
-                  Preview prompt and open in Cursor
+                  Ask questions about this step
                 </span>
               </div>
             </button>
@@ -312,7 +312,7 @@ export const GuideActionButton = ({
                   <ArrowUpRight className="size-3.5 text-neutral-600" />
                 </div>
                 <span className="text-xs text-neutral-500">
-                  Open the prompt in Codex
+                  Ask questions about this step
                 </span>
               </div>
             </button>
