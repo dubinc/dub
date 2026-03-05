@@ -377,14 +377,14 @@ function ReferralLinkDisplay({
               inputClassName="text-sm h-10"
               optionDescription={(option) => (
                 <span className="flex min-w-0 items-center gap-1">
-                  <ArrowTurnRight2 className="size-3 shrink-0 text-neutral-400" />
-                  <span className="min-w-0 truncate text-xs text-neutral-600">
+                  <ArrowTurnRight2 className="text-content-muted size-3 shrink-0" />
+                  <span className="text-content-subtle min-w-0 truncate text-xs">
                     {option.meta.destination}
                   </span>
                 </span>
               )}
               popoverProps={{
-                contentClassName: "rounded-lg border border-neutral-200 p-1",
+                contentClassName: "rounded-lg border border-border-subtle p-1",
               }}
               trigger={
                 <button
@@ -396,7 +396,7 @@ function ReferralLinkDisplay({
                       ? getPrettyUrl(partnerLink)
                       : "No referral link"}
                   </span>
-                  <ChevronDown className="size-4 shrink-0 text-neutral-400" />
+                  <ChevronDown className="text-content-muted size-4 shrink-0" />
                 </button>
               }
             />
