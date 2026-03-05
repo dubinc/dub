@@ -14,7 +14,11 @@ export default function usePartnerBounty({
   const programSlug = params?.programSlug;
   const bountyIdParam = bountyId ?? params?.bountyId;
 
-  const { data: bounty, isLoading, error } = useSWR<PartnerBountyProps>(
+  const {
+    data: bounty,
+    isLoading,
+    error,
+  } = useSWR<PartnerBountyProps>(
     enabled &&
       programSlug &&
       bountyIdParam &&
