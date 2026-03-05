@@ -4,7 +4,6 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import { addFrequency, getCurrentPeriodNumber } from "@/lib/bounty/periods";
-import { getPlatformFromSocialUrl } from "@/lib/bounty/social-content";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import {
   createBountySubmissionInputSchema,
@@ -17,13 +16,15 @@ import { prisma } from "@dub/prisma";
 import {
   BountySubmission,
   Partner,
+  PlatformType,
   Prisma,
   WorkspaceRole,
 } from "@dub/prisma/client";
-import { getDomainWithoutWWW } from "@dub/utils";
+import { getDomainWithoutWWW, isValidUrl } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow, isBefore } from "date-fns";
 import * as z from "zod/v4";
+import { SOCIAL_URL_HOST_TO_PLATFORM } from "../social-content";
 
 type CreateBountySubmissionParams = z.infer<
   typeof createBountySubmissionInputSchema
@@ -585,5 +586,22 @@ export class BountySubmissionHandler {
         }
       })(),
     );
+  }
+}
+
+function getPlatformFromSocialUrl(url: string): PlatformType | null {
+  const trimmed = url?.trim();
+
+  if (!trimmed || !isValidUrl(trimmed)) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    const host = parsed.hostname.replace(/^www\./, "");
+
+    return SOCIAL_URL_HOST_TO_PLATFORM[host] ?? null;
+  } catch {
+    return null;
   }
 }

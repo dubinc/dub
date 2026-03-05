@@ -4,9 +4,11 @@ import {
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
   BOUNTY_MAX_SUBMISSION_URLS,
+} from "@/lib/bounty/constants";
+import {
   BOUNTY_SOCIAL_PLATFORM_METRICS,
   BOUNTY_SOCIAL_PLATFORM_VALUES,
-} from "@/lib/bounty/constants";
+} from "@/lib/bounty/social-content";
 import {
   BountyPerformanceScope,
   BountySubmissionFrequency,

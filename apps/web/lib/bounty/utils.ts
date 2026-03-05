@@ -1,6 +1,6 @@
 import { Prisma } from "@dub/prisma/client";
 import { bountySocialContentRequirementsSchema } from "../zod/schemas/bounties";
-import { BOUNTY_SOCIAL_PLATFORMS } from "./constants";
+import { BOUNTY_SOCIAL_PLATFORMS } from "./social-content";
 
 interface BountyInfoInput {
   submissionRequirements?: Prisma.JsonValue | undefined | null;
