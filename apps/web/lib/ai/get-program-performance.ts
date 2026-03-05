@@ -130,7 +130,6 @@ export const getProgramPerformanceTool = tool({
       payouts,
     });
 
-    console.log(data);
     return data;
   },
 });
