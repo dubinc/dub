@@ -501,6 +501,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
 
     expect(partnerStatus).toEqual(200);
     expect(partner).not.toBeNull();
+    expect(partner.groupMoveDisabledAt).not.toBeNull();
 
     const partnerLink = partner.links![0];
 
