@@ -13,6 +13,7 @@ import {
   capitalize,
   cn,
   currencyFormatter,
+  formatDateTime,
   pluralize,
 } from "@dub/utils";
 import { formatDuration } from "date-fns";
@@ -199,12 +200,17 @@ const RewardItem = ({
                             : attribute?.type === "currency"
                               ? // Currency value
                                 currencyFormatter(Number(condition.value))
-                              : // Everything else
-                                attribute?.options
-                                ? attribute.options.find(
-                                    (o) => o.id === condition.value,
-                                  )?.label ?? condition.value.toString()
-                                : condition.value.toString())}
+                              : attribute?.type === "date"
+                                ? // Date+time value
+                                  formatDateTime(
+                                    new Date(Number(condition.value)),
+                                  )
+                                : // Everything else
+                                  attribute?.options
+                                  ? attribute.options.find(
+                                      (o) => o.id === condition.value,
+                                    )?.label ?? condition.value.toString()
+                                  : condition.value.toString())}
                 </span>
               </li>
             );

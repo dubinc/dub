@@ -43,6 +43,8 @@ export const E2E_CUSTOMER_SALE_CONDITIONS_EXTERNAL_ID =
   "cus_pqc8qRtofpu6ZqvutyNDGAU2";
 export const E2E_CUSTOMER_COUNTRY_CONDITIONS_EXTERNAL_ID =
   "cus_LnZbkb8boLsOn1YGLPxZGZMU";
+export const E2E_CUSTOMER_SIGNUP_DATE_CONDITIONS_EXTERNAL_ID =
+  "cus_VsvO2EmMis3LiMeR6tGty9Wy";
 
 // Rewards specific
 export const E2E_SALE_REWARD = {
@@ -110,6 +112,27 @@ export const E2E_SALE_REWARD = {
       ],
       maxDuration: null,
       amountInCents: 2000,
+    },
+    {
+      id: "4968d41e-faf2-438d-847e-eda43116492a",
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: 1771228800000,
+          entity: "customer",
+          operator: "greater_than",
+          attribute: "signupDate",
+        },
+        {
+          value: 1771401600000,
+          entity: "customer",
+          operator: "less_than",
+          attribute: "signupDate",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 3300,
     },
   ],
 };
