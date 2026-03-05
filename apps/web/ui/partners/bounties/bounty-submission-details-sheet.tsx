@@ -1,140 +1,27 @@
 "use client";
 
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import {
-  BountySocialPlatform,
-  PartnerBountyProps,
-  SocialContent,
-} from "@/lib/types";
+import { PartnerBountyProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import {
-  Button,
-  CopyButton,
-  Instagram,
-  Sheet,
-  StatusBadge,
-  TikTok,
-  Twitter,
-  YouTube,
-} from "@dub/ui";
+import { Button, CopyButton, Sheet, StatusBadge } from "@dub/ui";
 import { cn, currencyFormatter, formatDate, nFormatter } from "@dub/utils";
 import { formatDistanceToNow } from "date-fns";
-import {
-  ComponentType,
-  Dispatch,
-  Fragment,
-  ReactNode,
-  SetStateAction,
-  useState,
-} from "react";
+import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { toast } from "sonner";
+import { PLATFORM_ICONS } from "./bounty-platform-icons";
 import { EmphasisNumber } from "./bounty-progress-bar-row";
-import { useSocialContent } from "./use-social-content";
-
-const PLATFORM_ICONS: Record<
-  BountySocialPlatform,
-  ComponentType<{ className?: string }>
-> = {
-  youtube: YouTube,
-  tiktok: TikTok,
-  instagram: Instagram,
-  twitter: Twitter,
-};
+import { BountySocialContentPreview } from "./bounty-social-content-preview";
 
 type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
 
-function SocialContentCard({
-  url,
-  socialContent,
-  isLoading,
-  PlatformIcon,
-}: {
-  url: string;
-  socialContent: SocialContent | null;
-  isLoading: boolean;
-  PlatformIcon: ComponentType<{ className?: string }>;
-}) {
-  return (
-    <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-2">
-      {/* Channel row */}
-      <div className="flex items-center gap-2 px-2 py-1">
-        <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-100">
-          <PlatformIcon className="size-3.5" />
-        </div>
-        <div className="flex min-w-0 flex-1 items-center gap-1">
-          {isLoading ? (
-            <div className="h-5 w-24 animate-pulse rounded bg-neutral-200" />
-          ) : (
-            socialContent?.handle && (
-              <span className="truncate text-sm font-semibold text-neutral-800">
-                {socialContent.handle}
-              </span>
-            )
-          )}
-        </div>
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-7 shrink-0 items-center rounded-lg border border-neutral-200 bg-white px-2.5 text-sm font-medium text-neutral-900"
-        >
-          View
-        </a>
-      </div>
-
-      {/* Thumbnail */}
-      {isLoading ? (
-        <div className="aspect-[336/188] w-full animate-pulse rounded-md bg-neutral-200" />
-      ) : (
-        socialContent?.thumbnailUrl && (
-          <img
-            src={socialContent.thumbnailUrl}
-            alt={socialContent.title ?? ""}
-            className="aspect-[336/188] w-full rounded-md border border-black/10 object-cover"
-          />
-        )
-      )}
-
-      {/* Content */}
-      <div className="flex flex-col gap-2 px-2 py-1">
-        {isLoading ? (
-          <div className="flex flex-col gap-1">
-            <div className="h-5 w-3/4 animate-pulse rounded bg-neutral-200" />
-            <div className="h-10 w-full animate-pulse rounded bg-neutral-200" />
-          </div>
-        ) : (
-          <>
-            {(socialContent?.title || socialContent?.description) && (
-              <div className="flex flex-col gap-1">
-                {socialContent?.title && (
-                  <p className="line-clamp-1 text-sm font-semibold text-neutral-800">
-                    {socialContent.title}
-                  </p>
-                )}
-                {socialContent?.description && (
-                  <p className="line-clamp-2 text-sm text-neutral-600">
-                    {socialContent.description}
-                  </p>
-                )}
-              </div>
-            )}
-            {socialContent?.publishedAt && (
-              <span className="text-xs font-medium text-neutral-400">
-                {formatDate(socialContent.publishedAt, {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </span>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  );
+interface BountySubmissionDetailsSheetProps {
+  bounty: PartnerBountyProps;
+  submission: PartnerBountySubmission;
+  isOpen: boolean;
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 function SocialContentPreview({
@@ -148,11 +35,6 @@ function SocialContentPreview({
   const { socialMetrics, socialPlatform } = bountyInfo ?? {};
 
   const url = submission.urls?.[0] ?? "";
-
-  const { data: socialContent, isValidating } = useSocialContent({
-    bountyId: bounty.id,
-    url,
-  });
 
   if (!socialMetrics || !socialPlatform || !url) {
     return null;
@@ -209,13 +91,7 @@ function SocialContentPreview({
           </div>
         </div>
 
-        {/* Social content card */}
-        <SocialContentCard
-          url={url}
-          socialContent={socialContent}
-          isLoading={isValidating && !socialContent}
-          PlatformIcon={PlatformIcon}
-        />
+        <BountySocialContentPreview bounty={bounty} submission={submission} />
       </div>
     </div>
   );
@@ -402,13 +278,6 @@ function SubmissionDetailsView({
       </div>
     </div>
   );
-}
-
-interface BountySubmissionDetailsSheetProps {
-  bounty: PartnerBountyProps;
-  submission: PartnerBountySubmission;
-  isOpen: boolean;
-  setIsOpen: Dispatch<SetStateAction<boolean>>;
 }
 
 export function BountySubmissionDetailsSheet({

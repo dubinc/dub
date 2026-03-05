@@ -1,10 +1,10 @@
 "use client";
 
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import {
   type SubmissionPeriod,
   getSubmissionPeriods,
 } from "@/lib/bounty/periods";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { PartnerBountyProps } from "@/lib/types";
 import { useBountySubmissionDetailsSheet } from "@/ui/partners/bounties/bounty-submission-details-sheet";
 import { useClaimBountySheet } from "@/ui/partners/bounties/claim-bounty-sheet";

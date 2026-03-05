@@ -4,10 +4,8 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import { addFrequency, getCurrentPeriodNumber } from "@/lib/bounty/periods";
-import {
-  getPlatformFromSocialUrl,
-  resolveBountyDetails,
-} from "@/lib/bounty/utils";
+import { getPlatformFromSocialUrl } from "@/lib/bounty/social-content";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import {
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,

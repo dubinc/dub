@@ -1,17 +1,17 @@
 "use client";
 
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
-import {
-  calculateSocialMetricsRewardAmount,
-  resolveBountyDetails,
-} from "@/lib/bounty/utils";
+import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { useConfirmApproveBountySubmissionModal } from "@/ui/modals/confirm-approve-bounty-submission-modal";
+import { PLATFORM_ICONS } from "@/ui/partners/bounties/bounty-platform-icons";
+import { EmphasisNumber } from "@/ui/partners/bounties/bounty-progress-bar-row";
 import { getBountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-criteria";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
@@ -37,6 +37,7 @@ import {
   currencyFormatter,
   formatDate,
   getPrettyUrl,
+  nFormatter,
   OG_AVATAR_URL,
   timeAgo,
 } from "@dub/utils";
@@ -164,6 +165,18 @@ function BountySubmissionDetailsSheetContent({
 
   const hasSocialContent =
     bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;
+
+  const socialPlatform = bountyInfo?.socialPlatform;
+  const SocialPlatformIcon = socialPlatform
+    ? PLATFORM_ICONS[socialPlatform.value]
+    : null;
+  const socialMetricCount = submission.socialMetricCount ?? 0;
+  const socialMinCount = bountyInfo?.socialMetrics?.minCount ?? 0;
+  const socialMetricPercent =
+    socialMinCount > 0
+      ? Math.min((socialMetricCount / socialMinCount) * 100, 100)
+      : 100;
+  const socialMetricComplete = socialMetricPercent >= 100;
 
   return (
     <div className="flex h-full flex-col">
@@ -396,10 +409,41 @@ function BountySubmissionDetailsSheetContent({
 
               <div className="mt-3 flex flex-col gap-6">
                 {hasSocialContent && (
-                  <BountySocialContentPreview
-                    bounty={bounty}
-                    submission={submission}
-                  />
+                  <div className="rounded-xl border border-neutral-200 bg-neutral-50">
+                    <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
+                      <div className="h-1 w-full rounded-full bg-neutral-200">
+                        <div
+                          className={cn(
+                            "h-full rounded-full",
+                            socialMetricComplete
+                              ? "bg-green-600"
+                              : "bg-amber-600",
+                          )}
+                          style={{ width: `${socialMetricPercent}%` }}
+                        />
+                      </div>
+
+                      {SocialPlatformIcon && bountyInfo?.socialMetrics && (
+                        <div className="flex items-center gap-2">
+                          <SocialPlatformIcon className="size-4 shrink-0" />
+                          <p className="text-sm font-medium text-neutral-600">
+                            <EmphasisNumber>
+                              {nFormatter(socialMetricCount, { full: true })}
+                            </EmphasisNumber>
+                            {" of "}
+                            <EmphasisNumber>
+                              {nFormatter(socialMinCount, { full: true })}
+                            </EmphasisNumber>
+                            {` ${bountyInfo.socialMetrics.metric} generated`}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <BountySocialContentPreview
+                      bounty={bounty}
+                      submission={submission}
+                    />
+                  </div>
                 )}
 
                 {bountyInfo?.hasSocialMetrics && bounty && (

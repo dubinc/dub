@@ -2,9 +2,9 @@
 
 import {
   getSocialMetricsRewardTiers,
-  resolveBountyDetails,
   SocialMetricsRewardTier,
-} from "@/lib/bounty/utils";
+} from "@/lib/bounty/rewards";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import { StatusBadge, Table, useTable } from "@dub/ui";
 import { capitalize, currencyFormatter } from "@dub/utils";

@@ -1,53 +1,18 @@
 "use client";
 
 import {
+  getSocialContentEmbedAspectRatio,
   getSocialContentEmbedUrl,
-  resolveBountyDetails,
-} from "@/lib/bounty/utils";
-import {
-  BountySocialPlatform,
-  BountySubmissionProps,
-  PartnerBountyProps,
-} from "@/lib/types";
+} from "@/lib/bounty/social-content";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { useState } from "react";
+import { PLATFORM_ICONS } from "./bounty-platform-icons";
 
 interface BountySocialContentPreviewProps {
   bounty: Pick<PartnerBountyProps, "id" | "submissionRequirements">;
   submission: Pick<BountySubmissionProps, "urls"> | null | undefined;
-}
-
-export function getSocialContentEmbedAspectRatio({
-  platform,
-  url,
-}: {
-  platform: BountySocialPlatform;
-  url: string;
-}): string {
-  try {
-    const parsed = new URL(url);
-    const pathname = parsed.pathname;
-
-    if (platform === "youtube") {
-      return pathname.includes("/shorts/") ? "aspect-[9/16]" : "aspect-video";
-    }
-
-    if (platform === "tiktok") {
-      return "aspect-[9/16]";
-    }
-
-    if (platform === "instagram") {
-      return pathname.includes("/reel/") ? "aspect-[9/16]" : "aspect-square";
-    }
-
-    if (platform === "twitter") {
-      return "aspect-square";
-    }
-
-    return "aspect-video";
-  } catch {
-    return "aspect-video";
-  }
 }
 
 export function BountySocialContentPreview({
@@ -79,11 +44,30 @@ export function BountySocialContentPreview({
     url,
   });
 
+  const PlatformIcon = PLATFORM_ICONS[platform.value];
+
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white p-2">
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-2">
+      {/* Channel row */}
+      <div className="flex items-center gap-2 px-2 py-1">
+        <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-100">
+          <PlatformIcon className="size-3.5" />
+        </div>
+        <div className="min-w-0 flex-1" />
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-7 shrink-0 items-center rounded-lg border border-neutral-200 bg-white px-2.5 text-sm font-medium text-neutral-900"
+        >
+          View
+        </a>
+      </div>
+
+      {/* Native embed */}
       <div
         className={cn(
-          "relative mx-auto flex max-h-[700px] w-full items-center justify-center overflow-hidden rounded-lg",
+          "relative flex max-h-[700px] w-full items-center justify-center overflow-hidden rounded-md border border-black/10",
           aspectClass,
         )}
       >
