@@ -106,9 +106,8 @@ export const updateReferralStatusSchema = z.discriminatedUnion("status", [
 
   updateReferralStatusBaseSchema.extend({
     status: z.literal("closedWon"),
-    saleAmount: centsSchema.min(
-      0,
-      "Sale amount must be greater than or equal to 0",
+    saleAmount: centsSchema.pipe(
+      z.number().min(0, "Sale amount must be greater than or equal to 0"),
     ),
     stripeCustomerId: z.string().optional(),
   }),

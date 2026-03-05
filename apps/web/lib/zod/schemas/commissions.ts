@@ -146,7 +146,7 @@ export const createCommissionSchema = z.object({
 
   // Sale
   saleEventDate: parseDateSchema.nullish(),
-  saleAmount: centsSchema.min(0).nullish(),
+  saleAmount: centsSchema.pipe(z.number().min(0)).nullish(),
   invoiceId: z.string().nullish(),
   productId: z.string().nullish(),
 });

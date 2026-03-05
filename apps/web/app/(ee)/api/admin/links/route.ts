@@ -1,5 +1,5 @@
+import { transformLink } from "@/lib/api/links";
 import { withAdmin } from "@/lib/auth";
-import { serializeForJson } from "@/lib/utils/serialize-for-json";
 import { prisma } from "@dub/prisma";
 import { DUB_DOMAINS_ARRAY, LEGAL_USER_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -81,10 +81,5 @@ export const GET = withAdmin(async ({ searchParams }) => {
     }),
   });
 
-  const links = response.map((link) => ({
-    ...link,
-    tags: link.tags.map(({ tag }) => tag),
-  }));
-
-  return NextResponse.json(serializeForJson(links));
+  return NextResponse.json(response.map((link) => transformLink(link)));
 });
