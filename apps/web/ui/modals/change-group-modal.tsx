@@ -19,7 +19,7 @@ type ChangeGroupModalProps = {
   showChangeGroupModal: boolean;
   setShowChangeGroupModal: Dispatch<SetStateAction<boolean>>;
   partners: (Pick<EnrolledPartnerProps, "id" | "groupId" | "name" | "image"> &
-    Partial<Pick<EnrolledPartnerProps, "email">>)[];
+    Partial<Pick<EnrolledPartnerProps, "email" | "groupMoveDisabledAt">>)[];
 
   /** Called when the selection is confirmed. Return false to prevent persisting the group change. */
   onChangeGroup?: (groupId: string) => void | boolean;
@@ -34,13 +34,19 @@ function ChangeGroupModal({
   const { id: workspaceId } = useWorkspace();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [groupMoveDisabled, setGroupMoveDisabled] = useState(false);
+  const [groupMoveDisabled, setGroupMoveDisabled] = useState(
+    partners.length === 1 ? !!partners[0].groupMoveDisabledAt : false,
+  );
 
+  // Sync state from the DB value whenever the modal opens or partners change
   useEffect(() => {
     if (partners.length === 1) {
       setSelectedGroupId(partners[0].groupId ?? null);
+      setGroupMoveDisabled(!!partners[0].groupMoveDisabledAt);
+    } else {
+      setGroupMoveDisabled(false);
     }
-  }, [partners]);
+  }, [showChangeGroupModal, partners]);
 
   const { makeRequest: changeGroup, isSubmitting } = useApiMutation();
 
@@ -50,9 +56,11 @@ function ChangeGroupModal({
       body: {
         workspaceId,
         partnerIds: partners.map((p) => p.id),
-        groupMoveDisabledAt: groupMoveDisabled
-          ? new Date().toISOString()
-          : null,
+        ...(partners.length === 1 && {
+          groupMoveDisabledAt: groupMoveDisabled
+            ? partners[0].groupMoveDisabledAt ?? new Date().toISOString()
+            : null,
+        }),
       },
       onSuccess: () => {
         mutatePrefix("/api/partners");
@@ -69,6 +77,8 @@ function ChangeGroupModal({
     setShowChangeGroupModal,
   ]);
 
+  const isSinglePartner = partners.length === 1;
+
   return (
     <Modal
       showModal={showChangeGroupModal}
@@ -80,7 +90,7 @@ function ChangeGroupModal({
 
       <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
         <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
-          {partners.length === 1 ? (
+          {isSinglePartner ? (
             <div className="flex items-center gap-4">
               <img
                 src={partners[0].image || `${OG_AVATAR_URL}${partners[0].name}`}
@@ -137,11 +147,22 @@ function ChangeGroupModal({
           <Switch
             fn={setGroupMoveDisabled}
             checked={groupMoveDisabled}
+            disabled={!isSinglePartner}
+            disabledTooltip={
+              !isSinglePartner
+                ? "Not available for bulk group changes"
+                : undefined
+            }
             trackDimensions="w-8 h-4"
             thumbDimensions="w-3 h-3"
             thumbTranslate="translate-x-4"
           />
-          <h3 className="text-sm font-medium leading-none text-neutral-700">
+          <h3
+            className={cn(
+              "text-sm font-medium leading-none",
+              isSinglePartner ? "text-neutral-700" : "text-neutral-400",
+            )}
+          >
             Disable future group move rules for{" "}
             {pluralize("partner", partners.length)}
           </h3>

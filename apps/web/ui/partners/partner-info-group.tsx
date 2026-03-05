@@ -17,7 +17,7 @@ export function PartnerInfoGroup({
   setSelectedGroupId,
 }: {
   partner: Pick<EnrolledPartnerProps, "id" | "groupId" | "name" | "image"> &
-    Partial<Pick<EnrolledPartnerProps, "email">>;
+    Partial<Pick<EnrolledPartnerProps, "email" | "groupMoveDisabledAt">>;
   changeButtonText?: string;
   hideChangeButton?: boolean;
   className?: string;
