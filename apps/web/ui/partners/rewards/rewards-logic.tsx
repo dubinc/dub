@@ -23,10 +23,10 @@ import {
   Button,
   Check2,
   ChevronRight,
+  DatePicker,
   InvoiceDollar,
   MoneyBills2,
   Popover,
-  SmartDateTimePicker,
   User,
   Users,
 } from "@dub/ui";
@@ -35,20 +35,19 @@ import {
   cn,
   COUNTRIES,
   currencyFormatter,
-  formatDateTime,
+  formatDate,
   pluralize,
   truncate,
 } from "@dub/utils";
 import { Command } from "cmdk";
 import { Package } from "lucide-react";
 import { motion } from "motion/react";
-import { Fragment, useContext, useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import {
   InlineBadgePopover,
   InlineBadgePopoverAmountInput,
-  InlineBadgePopoverContext,
   InlineBadgePopoverInput,
   InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
@@ -264,7 +263,7 @@ const formatValue = (
       return "Value";
     }
 
-    return formatDateTime(new Date(Number(value)));
+    return formatDate(new Date(Number(value)));
   }
 
   // For numeric values, show the number as is
@@ -476,130 +475,159 @@ function ConditionLogic({
                 )}{" "}
                 {condition.operator && (
                   <>
-                    <InlineBadgePopover
-                      text={formatValue(condition.value, attribute)}
-                      invalid={
-                        Array.isArray(condition.value)
-                          ? condition.value.filter(Boolean).length === 0
-                          : ["number", "currency"].includes(attributeType)
-                            ? condition.value === "" ||
-                              isNaN(Number(condition.value))
-                            : !condition.value
-                      }
-                      buttonClassName={cn(
-                        condition.attribute === "productId" && "rounded-r-none",
-                      )}
-                    >
-                      {/* Country selection */}
-                      {condition.attribute === "country" ? (
-                        // Country selector
-                        <InlineBadgePopoverMenu
-                          search
-                          selectedValue={
-                            (condition.value as string[] | undefined) ??
-                            (isArrayValue ? [] : undefined)
-                          }
-                          items={Object.entries(COUNTRIES).map(
-                            ([key, name]) => ({
-                              text: name,
-                              value: key,
-                              icon: (
-                                <img
-                                  alt={`${key} flag`}
-                                  src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
-                                  className="size-3 shrink-0"
-                                />
-                              ),
-                            }),
-                          )}
-                          onSelect={(value) => {
-                            setValue(conditionKey, {
-                              ...condition,
-                              value: isArrayValue
+                    {attributeType === "date" ? (
+                      <DatePicker
+                        value={
+                          condition.value
+                            ? new Date(condition.value as number)
+                            : undefined
+                        }
+                        onChange={(date) =>
+                          setValue(conditionKey, {
+                            ...condition,
+                            value: date ? date.getTime() : undefined,
+                          })
+                        }
+                        placeholder={condition.label || "Select date"}
+                        invalid={!condition.value}
+                        trigger={({ displayValue, placeholder, invalid }) => (
+                          <button
+                            type="button"
+                            className={cn(
+                              "inline-block rounded px-1.5 text-left text-sm font-semibold transition-colors",
+                              invalid
+                                ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
+                                : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
+                            )}
+                          >
+                            {displayValue ?? placeholder}
+                          </button>
+                        )}
+                        showYearNavigation
+                      />
+                    ) : (
+                      <InlineBadgePopover
+                        text={formatValue(condition.value, attribute)}
+                        invalid={
+                          Array.isArray(condition.value)
+                            ? condition.value.filter(Boolean).length === 0
+                            : ["number", "currency"].includes(attributeType)
+                              ? condition.value === "" ||
+                                isNaN(Number(condition.value))
+                              : !condition.value
+                        }
+                        buttonClassName={cn(
+                          condition.attribute === "productId" &&
+                            "rounded-r-none",
+                        )}
+                      >
+                        {/* Country selection */}
+                        {condition.attribute === "country" ? (
+                          // Country selector
+                          <InlineBadgePopoverMenu
+                            search
+                            selectedValue={
+                              (condition.value as string[] | undefined) ??
+                              (isArrayValue ? [] : undefined)
+                            }
+                            items={Object.entries(COUNTRIES).map(
+                              ([key, name]) => ({
+                                text: name,
+                                value: key,
+                                icon: (
+                                  <img
+                                    alt={`${key} flag`}
+                                    src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
+                                    className="size-3 shrink-0"
+                                  />
+                                ),
+                              }),
+                            )}
+                            onSelect={(value) => {
+                              setValue(conditionKey, {
+                                ...condition,
+                                value: isArrayValue
+                                  ? Array.isArray(condition.value)
+                                    ? (condition.value as string[]).includes(
+                                        value,
+                                      )
+                                      ? (condition.value.filter(
+                                          (v) => v !== value,
+                                        ) as string[])
+                                      : ([
+                                          ...condition.value,
+                                          value,
+                                        ] as string[])
+                                    : [value]
+                                  : value,
+                              });
+                            }}
+                          />
+                        ) : attribute?.options ? (
+                          // Select option selector
+                          <InlineBadgePopoverMenu
+                            search={attribute.options.length > 4}
+                            selectedValue={
+                              (condition.value as string[] | undefined) ??
+                              (isArrayValue ? [] : undefined)
+                            }
+                            items={attribute.options.map(({ id, label }) => ({
+                              text: label,
+                              value: id,
+                            }))}
+                            onSelect={(value) => {
+                              setValue(conditionKey, {
+                                ...condition,
+                                value: isArrayValue
+                                  ? Array.isArray(condition.value)
+                                    ? (condition.value as string[]).includes(
+                                        value,
+                                      )
+                                      ? (condition.value.filter(
+                                          (v) => v !== value,
+                                        ) as string[])
+                                      : ([
+                                          ...condition.value,
+                                          value,
+                                        ] as string[])
+                                    : [value]
+                                  : value,
+                              });
+                            }}
+                          />
+                        ) : isArrayValue ? (
+                          // String array input
+                          <InlineBadgePopoverInputs
+                            values={
+                              condition.value
                                 ? Array.isArray(condition.value)
-                                  ? (condition.value as string[]).includes(
-                                      value,
-                                    )
-                                    ? (condition.value.filter(
-                                        (v) => v !== value,
-                                      ) as string[])
-                                    : ([...condition.value, value] as string[])
-                                  : [value]
-                                : value,
-                            });
-                          }}
-                        />
-                      ) : attribute?.options ? (
-                        // Select option selector
-                        <InlineBadgePopoverMenu
-                          search={attribute.options.length > 4}
-                          selectedValue={
-                            (condition.value as string[] | undefined) ??
-                            (isArrayValue ? [] : undefined)
-                          }
-                          items={attribute.options.map(({ id, label }) => ({
-                            text: label,
-                            value: id,
-                          }))}
-                          onSelect={(value) => {
-                            setValue(conditionKey, {
-                              ...condition,
-                              value: isArrayValue
-                                ? Array.isArray(condition.value)
-                                  ? (condition.value as string[]).includes(
-                                      value,
-                                    )
-                                    ? (condition.value.filter(
-                                        (v) => v !== value,
-                                      ) as string[])
-                                    : ([...condition.value, value] as string[])
-                                  : [value]
-                                : value,
-                            });
-                          }}
-                        />
-                      ) : isArrayValue ? (
-                        // String array input
-                        <InlineBadgePopoverInputs
-                          values={
-                            condition.value
-                              ? Array.isArray(condition.value)
-                                ? condition.value.map(String)
-                                : [condition.value.toString()]
-                              : [""]
-                          }
-                          onChange={(values) => {
-                            setValue(conditionKey, {
-                              ...condition,
-                              value: values,
-                            });
-                          }}
-                        />
-                      ) : ["number", "currency"].includes(attributeType) ? (
-                        // Number/currency input
-                        <AmountInput
-                          fieldKey={`${conditionKey}.value`}
-                          type={attributeType as "number" | "currency"}
-                        />
-                      ) : attributeType === "date" ? (
-                        <DateConditionPicker
-                          value={condition.value as number | undefined}
-                          onChange={(timestamp) =>
-                            setValue(conditionKey, {
-                              ...condition,
-                              value: timestamp,
-                            })
-                          }
-                        />
-                      ) : (
-                        // String input
-                        <InlineBadgePopoverInput
-                          {...register(`${conditionKey}.value`, {
-                            required: true,
-                          })}
-                        />
-                      )}
-                    </InlineBadgePopover>
+                                  ? condition.value.map(String)
+                                  : [condition.value.toString()]
+                                : [""]
+                            }
+                            onChange={(values) => {
+                              setValue(conditionKey, {
+                                ...condition,
+                                value: values,
+                              });
+                            }}
+                          />
+                        ) : ["number", "currency"].includes(attributeType) ? (
+                          // Number/currency input
+                          <AmountInput
+                            fieldKey={`${conditionKey}.value`}
+                            type={attributeType as "number" | "currency"}
+                          />
+                        ) : (
+                          // String input
+                          <InlineBadgePopoverInput
+                            {...register(`${conditionKey}.value`, {
+                              required: true,
+                            })}
+                          />
+                        )}
+                      </InlineBadgePopover>
+                    )}
 
                     {condition.attribute === "subscriptionDurationMonths" && (
                       <span> months</span>
@@ -901,28 +929,6 @@ function AmountInput({
         min: 0,
         max: type === "percentage" ? 100 : undefined,
       })}
-    />
-  );
-}
-
-function DateConditionPicker({
-  value,
-  onChange,
-}: {
-  value: number | undefined;
-  onChange: (timestamp: number | undefined) => void;
-}) {
-  const { setIsOpen } = useContext(InlineBadgePopoverContext);
-  const date = value ? new Date(value) : null;
-
-  return (
-    <SmartDateTimePicker
-      value={date}
-      autoFocus
-      onChange={(newDate) => {
-        onChange(newDate ? newDate.getTime() : undefined);
-        if (newDate) setIsOpen(false);
-      }}
     />
   );
 }
