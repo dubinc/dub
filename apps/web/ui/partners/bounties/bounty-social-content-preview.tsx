@@ -17,7 +17,7 @@ interface BountySocialContentPreviewProps {
   submission: Pick<BountySubmissionProps, "urls"> | null | undefined;
 }
 
-function getSocialContentEmbedAspectRatio({
+export function getSocialContentEmbedAspectRatio({
   platform,
   url,
 }: {

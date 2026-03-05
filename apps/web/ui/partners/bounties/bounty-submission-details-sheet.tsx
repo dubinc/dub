@@ -3,20 +3,171 @@
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
-import { PartnerBountyProps } from "@/lib/types";
+import {
+  getSocialContentEmbedUrl,
+  resolveBountyDetails,
+} from "@/lib/bounty/utils";
+import { BountySocialPlatform, PartnerBountyProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Button, CopyButton, Sheet, StatusBadge } from "@dub/ui";
-import { currencyFormatter, formatDate } from "@dub/utils";
-import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
+import {
+  Button,
+  CopyButton,
+  Instagram,
+  Sheet,
+  StatusBadge,
+  TikTok,
+  Twitter,
+  YouTube,
+} from "@dub/ui";
+import { cn, currencyFormatter, formatDate, nFormatter } from "@dub/utils";
+import { formatDistanceToNow } from "date-fns";
+import {
+  ComponentType,
+  Dispatch,
+  Fragment,
+  ReactNode,
+  SetStateAction,
+  useState,
+} from "react";
 import { toast } from "sonner";
+import { EmphasisNumber } from "./bounty-progress-bar-row";
+import { getSocialContentEmbedAspectRatio } from "./bounty-social-content-preview";
+
+const PLATFORM_ICONS: Record<
+  BountySocialPlatform,
+  ComponentType<{ className?: string }>
+> = {
+  youtube: YouTube,
+  tiktok: TikTok,
+  instagram: Instagram,
+  twitter: Twitter,
+};
 
 type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
 
-function SubmissionDetailsView({
+function SocialContentPreview({
+  bounty,
   submission,
 }: {
+  bounty: PartnerBountyProps;
   submission: PartnerBountySubmission;
 }) {
+  const [iframeLoaded, setIframeLoaded] = useState(false);
+
+  const bountyInfo = resolveBountyDetails(bounty);
+  const { socialMetrics, socialPlatform } = bountyInfo ?? {};
+
+  const url = submission.urls?.[0] ?? "";
+
+  if (!socialMetrics || !socialPlatform || !url) {
+    return null;
+  }
+
+  const embedUrl = getSocialContentEmbedUrl({
+    platform: socialPlatform.value,
+    url,
+  });
+
+  if (!embedUrl) {
+    return null;
+  }
+
+  const socialMetricCount = submission.socialMetricCount ?? 0;
+  const minCount = socialMetrics.minCount ?? 0;
+  const percent =
+    minCount > 0 ? Math.min((socialMetricCount / minCount) * 100, 100) : 100;
+  const isComplete = percent >= 100;
+
+  const aspectClass = getSocialContentEmbedAspectRatio({
+    platform: socialPlatform.value,
+    url,
+  });
+
+  const PlatformIcon = PLATFORM_ICONS[socialPlatform.value];
+  const lastSyncedAt = submission.socialMetricsLastSyncedAt;
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-semibold text-neutral-800">
+          Submitted content
+        </h2>
+        {lastSyncedAt && (
+          <span className="text-xs text-neutral-400">
+            Last sync{" "}
+            {formatDistanceToNow(new Date(lastSyncedAt), { addSuffix: true })}
+          </span>
+        )}
+      </div>
+
+      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+        {/* Progress bar — flush with card top */}
+        <div className="h-1 w-full bg-neutral-200">
+          <div
+            className={cn(
+              "h-full",
+              isComplete ? "bg-green-600" : "bg-amber-600",
+            )}
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+
+        {/* Metric label row */}
+        <div className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-neutral-600">
+          <PlatformIcon className="size-3.5 shrink-0" />
+          <span>
+            <EmphasisNumber>
+              {nFormatter(socialMetricCount, { full: true })}
+            </EmphasisNumber>
+            {" of "}
+            <EmphasisNumber>
+              {nFormatter(minCount, { full: true })}
+            </EmphasisNumber>
+            {` ${socialMetrics.metric} generated`}
+          </span>
+        </div>
+
+        {/* Native iframe embed */}
+        <div className="p-2 pt-0">
+          <div
+            className={cn(
+              "relative mx-auto flex max-h-[700px] w-full items-center justify-center overflow-hidden rounded-lg",
+              aspectClass,
+            )}
+          >
+            {!iframeLoaded && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-neutral-100">
+                <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600" />
+              </div>
+            )}
+            <iframe
+              src={embedUrl}
+              title={`${socialPlatform.label} content preview`}
+              aria-label={`${socialPlatform.label} content preview`}
+              className={cn(
+                "absolute inset-0 size-full",
+                !iframeLoaded && "opacity-0",
+              )}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              loading="lazy"
+              onLoad={() => setIframeLoaded(true)}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SubmissionDetailsView({
+  bounty,
+  submission,
+}: {
+  bounty: PartnerBountyProps;
+  submission: PartnerBountySubmission;
+}) {
+  const bountyInfo = resolveBountyDetails(bounty);
   const statusBadge = BOUNTY_SUBMISSION_STATUS_BADGES[submission.status];
   const submittedDate = submission.completedAt ?? submission.createdAt;
 
@@ -109,6 +260,8 @@ function SubmissionDetailsView({
           </div>
         )}
 
+        <SocialContentPreview bounty={bounty} submission={submission} />
+
         {Boolean(submission.files?.length) && (
           <div>
             <h2 className="text-base font-semibold text-neutral-800">Images</h2>
@@ -137,7 +290,7 @@ function SubmissionDetailsView({
           </div>
         )}
 
-        {Boolean(submission.urls?.length) && (
+        {Boolean(submission.urls?.length) && !bountyInfo?.hasSocialMetrics && (
           <div>
             <h2 className="text-base font-semibold text-neutral-800">URLs</h2>
             <div className="mt-2 flex flex-col gap-2">
@@ -178,7 +331,7 @@ function SubmissionDetailsView({
         {submission.description && (
           <div>
             <h2 className="text-base font-semibold text-neutral-800">
-              Additional details
+              Provide any additional details (optional)
             </h2>
             <p className="mt-2 whitespace-pre-wrap text-sm text-neutral-600">
               {submission.description}
@@ -223,7 +376,7 @@ export function BountySubmissionDetailsSheet({
             />
           </Sheet.Close>
         </div>
-        <SubmissionDetailsView submission={submission} />
+        <SubmissionDetailsView bounty={bounty} submission={submission} />
       </div>
     </Sheet>
   );

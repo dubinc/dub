@@ -26,7 +26,7 @@ export function PartnerBountyCard({
   return (
     <Link
       href={`/programs/${programSlug}/bounties/${bounty.id}`}
-      className="border-border-subtle group relative flex w-full flex-col overflow-hidden rounded-xl border bg-white text-left transition-shadow duration-200 hover:shadow-md"
+      className="border-border-subtle group relative flex w-full flex-col overflow-hidden rounded-xl border bg-white text-left"
     >
       <div className="p-3 pb-0">
         <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100">
