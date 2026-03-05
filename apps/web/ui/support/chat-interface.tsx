@@ -3,6 +3,7 @@
 import { GlobalChatContext } from "@/lib/ai/build-system-prompt";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { useChat } from "@ai-sdk/react";
+import { Combobox } from "@dub/ui";
 import { OfficeBuilding, PaperPlane, Users2 } from "@dub/ui/icons";
 import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { DefaultChatTransport } from "ai";
@@ -13,37 +14,39 @@ import { toast } from "sonner";
 import { Streamdown } from "streamdown";
 import "streamdown/styles.css";
 import useSWR from "swr";
+import { MarkdownCodeBlock } from "./code-block";
 import { SupportMessage } from "./message";
-import { ProgramCombobox } from "./program-combobox";
+import { ProgramCombobox, ProgramSummary } from "./program-combobox";
+import { extractSources, SourceCitations } from "./source-citations";
 import { StarterQuestions } from "./starter-questions";
-import { SupportChatContext } from "./types";
+import { StatusIndicator } from "./status-indicator";
+import { TicketUpload } from "./ticket-upload";
 import { WorkspaceCombobox, WorkspaceSummary } from "./workspace-combobox";
 
 type AccountType = "workspace" | "partner";
 
 export function ChatInterface({
-  context,
   className,
   embedded,
+  onReset,
 }: {
-  context?: SupportChatContext;
   className?: string;
   embedded?: boolean;
+  onReset?: () => void;
 }) {
   const { data: session, status: sessionStatus } = useSession();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [input, setInput] = useState("");
   const [ticketSubmitted, setTicketSubmitted] = useState(false);
   const [selection, setSelection] = useState<GlobalChatContext>({});
 
-  const preselectedAccountType: AccountType | undefined =
-    context === "app"
-      ? "workspace"
-      : context === "partners"
-        ? "partner"
-        : undefined;
+  const storageKey = session?.user?.["id"]
+    ? `dub-support-chat:${session.user["id"]}`
+    : null;
+  const restoredRef = useRef(false);
 
-  const effectiveAccountType = selection.accountType ?? preselectedAccountType;
+  const effectiveAccountType = selection.accountType;
 
   const { data: workspaces } = useSWR<WorkspaceSummary[]>(
     effectiveAccountType === "workspace" ? "/api/workspaces" : null,
@@ -54,18 +57,12 @@ export function ChatInterface({
     useProgramEnrollments();
   const hasPartnerProfile = !!session?.user?.["defaultPartnerId"];
 
-  const isDocsContext = context === "docs" || context === undefined;
-  const requiresWorkspace =
-    context === "app" ||
-    (isDocsContext && effectiveAccountType === "workspace");
-  const requiresPartner =
-    context === "partners" ||
-    (isDocsContext && effectiveAccountType === "partner");
-
   let canChat: boolean;
-  if (requiresWorkspace) canChat = !!selection.selectedWorkspace;
-  else if (requiresPartner) canChat = !!selection.selectedProgram;
-  else canChat = !isDocsContext;
+  if (effectiveAccountType === "workspace")
+    canChat = !!selection.selectedWorkspace;
+  else if (effectiveAccountType === "partner")
+    canChat = !!selection.selectedProgram;
+  else canChat = false;
 
   const { messages, sendMessage, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
@@ -85,6 +82,61 @@ export function ChatInterface({
     container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
   }, [messages, status, embedded]);
 
+  useEffect(() => {
+    if (status === "ready") {
+      textareaRef.current?.focus();
+    }
+  }, [status]);
+
+  useEffect(() => {
+    if (!storageKey || restoredRef.current) return;
+    restoredRef.current = true;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return;
+
+      const stored = JSON.parse(raw);
+      if (stored.selection) setSelection(stored.selection);
+      if (stored.messages?.length) setMessages(stored.messages);
+      if (stored.ticketSubmitted) setTicketSubmitted(true);
+    } catch { }
+  }, [storageKey, setMessages]);
+
+  useEffect(() => {
+    if (!storageKey || !restoredRef.current) return;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const stored = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({ ...stored, selection }),
+      );
+    } catch { }
+  }, [selection, storageKey]);
+
+  useEffect(() => {
+    if (!storageKey || !restoredRef.current || status === "streaming") return;
+
+    try {
+      const raw = localStorage.getItem(storageKey);
+      const stored = raw ? JSON.parse(raw) : {};
+      localStorage.setItem(
+        storageKey,
+        JSON.stringify({ ...stored, messages, ticketSubmitted }),
+      );
+    } catch { }
+  }, [messages, ticketSubmitted, status, storageKey]);
+
+  const clearPersistedSession = () => {
+    if (storageKey) {
+      try {
+        localStorage.removeItem(storageKey);
+      } catch { }
+    }
+  };
+
   const handleSend = (text?: string) => {
     const messageText = text ?? input;
     if (!messageText.trim() || status === "streaming" || !canChat) return;
@@ -94,19 +146,36 @@ export function ChatInterface({
         body: {
           globalContext: {
             ...selection,
-            chatLocation: context,
+            chatLocation:
+              effectiveAccountType === "partner" ? "partners" : "app",
             accountType: effectiveAccountType,
           },
         },
       },
     );
     setInput("");
+    textareaRef.current?.focus();
   };
 
-  const handleEscalate = () => {
-    sendMessage({
-      text: "I'd like to speak with a human support agent and create a support ticket.",
-    });
+  const handleEscalateViaForm = (
+    attachmentIds: string[] = [],
+    details: string = "",
+  ) => {
+    sendMessage(
+      { text: "Please create my support ticket now." },
+      {
+        body: {
+          globalContext: {
+            ...selection,
+            chatLocation:
+              effectiveAccountType === "partner" ? "partners" : "app",
+            accountType: effectiveAccountType,
+          },
+          ...(attachmentIds.length ? { attachmentIds } : {}),
+          ...(details ? { ticketDetails: details } : {}),
+        },
+      },
+    );
     setTicketSubmitted(true);
   };
 
@@ -115,27 +184,58 @@ export function ChatInterface({
     setMessages([]);
   };
 
+  const handleWorkspaceSelect = (ws: WorkspaceSummary) => {
+    if (selection.selectedWorkspace?.slug !== ws.slug) setMessages([]);
+    setSelection((s) => ({
+      ...s,
+      selectedWorkspace: { id: ws.id, slug: ws.slug, name: ws.name },
+    }));
+  };
+
+  const handleProgramSelect = (program: ProgramSummary) => {
+    if (selection.selectedProgram?.slug !== program.slug) setMessages([]);
+    setSelection((s) => ({
+      ...s,
+      selectedProgram: {
+        id: program.id,
+        slug: program.slug,
+        name: program.name,
+      },
+    }));
+  };
+
+  const accountTypeOptions = [
+    {
+      value: "workspace",
+      label: "Workspace (app.dub.co)",
+      icon: <OfficeBuilding className="size-3.5 shrink-0" />,
+    },
+    {
+      value: "partner",
+      label: "Partner (partners.dub.co)",
+      icon: <Users2 className="size-3.5 shrink-0" />,
+    },
+  ];
+
   const requiresAuth = true;
   const isLoadingSession = requiresAuth && sessionStatus === "loading";
   const isUnauthenticated = requiresAuth && sessionStatus === "unauthenticated";
 
   const userAvatar =
     session?.user?.image || `${OG_AVATAR_URL}${session?.user?.email}`;
+  const assistantAvatar = embedded
+    ? "https://assets.dub.co/misc/dub-avatar.svg"
+    : undefined;
   const showStarterQuestions = canChat && messages.length === 0;
-  const canEscalate =
-    canChat && messages.length >= 2 && status === "ready" && !ticketSubmitted;
-
-  const ticketCreated = messages.some(
-    (m) =>
-      m.role === "assistant" &&
-      m.parts?.some(
-        (p) =>
-          p.type === "tool-invocation" &&
-          (p as any).toolName === "createSupportTicket" &&
-          (p as any).state === "result" &&
-          (p as any).result?.success === true,
-      ),
+  const hasRequestedTicket = messages.some((m) =>
+    m.parts?.some((p: any) => p.type === "tool-requestSupportTicket"),
   );
+  const canEscalate =
+    canChat &&
+    messages.length >= 2 &&
+    status === "ready" &&
+    !ticketSubmitted &&
+    !hasRequestedTicket;
 
   if (isLoadingSession) {
     return (
@@ -190,108 +290,69 @@ export function ChatInterface({
       <div
         ref={scrollContainerRef}
         className={cn(
-          "flex flex-1 flex-col gap-6 px-4 py-8",
+          "flex flex-1 flex-col gap-6 p-4",
           embedded ? "overflow-visible" : "overflow-y-auto",
         )}
       >
-        <SupportMessage
-          avatar="https://assets.dub.co/misc/dub-avatar.svg"
-          animate={false}
-        >
+        <SupportMessage avatar={assistantAvatar} animate={false}>
           <p className="text-sm text-neutral-700">
-            Hi there! I'm Dub's AI support assistant.{" "}
-            {context === "docs"
-              ? "I can help with SDK setup, API authentication, webhooks, conversion tracking, and more. What can I help you with today?"
-              : "Which account would you like help with today?"}
+            Hi there! I'm Dub's AI support assistant. Which account would you
+            like help with today?
           </p>
-
-          {(context === "docs" || context === undefined) &&
-            !effectiveAccountType && (
-              <div className="mt-3 flex flex-wrap gap-2">
-                {[
-                  {
-                    type: "workspace" as AccountType,
-                    label: "Dub workspace",
-                    sublabel: "app.dub.co",
-                    icon: <OfficeBuilding className="size-3.5" />,
-                  },
-                  {
-                    type: "partner" as AccountType,
-                    label: "Partner account",
-                    sublabel: "partners.dub.co",
-                    icon: <Users2 className="size-3.5" />,
-                  },
-                ].map(({ type, label, sublabel, icon }) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => handleAccountTypeChange(type)}
-                    className="flex items-center gap-1.5 rounded-lg border border-neutral-200 bg-white py-1.5 pl-2.5 pr-3 text-xs font-medium text-neutral-600 shadow-sm transition-colors hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-800"
-                  >
-                    {icon}
-                    <span>{label}</span>
-                    <span className="text-neutral-400">· {sublabel}</span>
-                  </button>
-                ))}
-              </div>
-            )}
+          <div className="mt-3 w-full max-w-72">
+            <Combobox
+              forceDropdown
+              selected={
+                accountTypeOptions.find(
+                  (o) => o.value === effectiveAccountType,
+                ) ?? null
+              }
+              setSelected={(opt) => {
+                if (opt && opt.value !== effectiveAccountType)
+                  handleAccountTypeChange(opt.value as AccountType);
+              }}
+              options={accountTypeOptions}
+              icon={
+                accountTypeOptions.find((o) => o.value === effectiveAccountType)
+                  ?.icon
+              }
+              caret
+              placeholder="Select account type"
+              hideSearch
+              matchTriggerWidth
+              popoverProps={{
+                contentClassName: "w-[var(--radix-popover-trigger-width)]",
+              }}
+              buttonProps={{
+                className: cn(
+                  "w-full max-w-72 justify-start border-neutral-300 px-2.5 h-9 text-sm",
+                  "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                  "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                ),
+              }}
+              labelProps={{ className: "text-sm text-neutral-600" }}
+              optionClassName="h-8"
+            />
+          </div>
         </SupportMessage>
 
-        {effectiveAccountType === "workspace" &&
-          !selection.selectedWorkspace && (
-            <SupportMessage
-              avatar="https://assets.dub.co/misc/dub-avatar.svg"
-              animate
-            >
-              <p className="text-sm text-neutral-700">
-                Which workspace is this about?
-              </p>
-              <div className="mt-3 w-full max-w-72">
-                <WorkspaceCombobox
-                  workspaces={workspaces}
-                  onSelect={(ws) =>
-                    setSelection((s) => ({
-                      ...s,
-                      selectedWorkspace: {
-                        id: ws.id,
-                        slug: ws.slug,
-                        name: ws.name,
-                      },
-                    }))
-                  }
-                />
-              </div>
-            </SupportMessage>
-          )}
+        {effectiveAccountType === "workspace" && (
+          <SupportMessage avatar={assistantAvatar} animate>
+            <p className="text-sm text-neutral-700">
+              Which workspace is this about?
+            </p>
+            <div className="mt-3 w-full max-w-72">
+              <WorkspaceCombobox
+                workspaces={workspaces}
+                selectedSlug={selection.selectedWorkspace?.slug}
+                onSelect={handleWorkspaceSelect}
+              />
+            </div>
+          </SupportMessage>
+        )}
 
-        {effectiveAccountType === "workspace" &&
-          selection.selectedWorkspace && (
-            <SupportMessage
-              avatar="https://assets.dub.co/misc/dub-avatar.svg"
-              animate
-            >
-              <p className="text-sm text-neutral-700">
-                Got it —{" "}
-                <span className="font-medium">
-                  {selection.selectedWorkspace.name}
-                </span>{" "}
-                (Dub workspace). How can I help you today?
-              </p>
-              {showStarterQuestions && (
-                <StarterQuestions
-                  context={context === "docs" ? "docs" : "app"}
-                  onSelect={handleSend}
-                  className="mt-3"
-                />
-              )}
-            </SupportMessage>
-          )}
-
-        {effectiveAccountType === "partner" && !selection.selectedProgram && (
-          <SupportMessage
-            avatar="https://assets.dub.co/misc/dub-avatar.svg"
-            animate
-          >
+        {effectiveAccountType === "partner" && (
+          <SupportMessage avatar={assistantAvatar} animate>
             {!hasPartnerProfile ? (
               <>
                 <p className="text-sm text-neutral-700">
@@ -316,16 +377,8 @@ export function ChatInterface({
                   <ProgramCombobox
                     enrollments={programEnrollments}
                     isLoading={isLoadingPrograms}
-                    onSelect={(program) =>
-                      setSelection((s) => ({
-                        ...s,
-                        selectedProgram: {
-                          id: program.id,
-                          slug: program.slug,
-                          name: program.name,
-                        },
-                      }))
-                    }
+                    selectedSlug={selection.selectedProgram?.slug}
+                    onSelect={handleProgramSelect}
                   />
                 </div>
               </>
@@ -333,21 +386,14 @@ export function ChatInterface({
           </SupportMessage>
         )}
 
-        {effectiveAccountType === "partner" && selection.selectedProgram && (
-          <SupportMessage
-            avatar="https://assets.dub.co/misc/dub-avatar.svg"
-            animate
-          >
+        {showStarterQuestions && (
+          <SupportMessage avatar={assistantAvatar} animate>
             <p className="text-sm text-neutral-700">
-              Got it —{" "}
-              <span className="font-medium">
-                {selection.selectedProgram.name}
-              </span>{" "}
-              (Partner Program). How can I help you today?
+              How can I help you today?
             </p>
-            {showStarterQuestions && (
+            {effectiveAccountType !== "partner" && (
               <StarterQuestions
-                context={context === "docs" ? "docs" : "partners"}
+                context="app"
                 onSelect={handleSend}
                 className="mt-3"
               />
@@ -355,173 +401,251 @@ export function ChatInterface({
           </SupportMessage>
         )}
 
-        {context === "docs" &&
-          showStarterQuestions &&
-          !selection.selectedWorkspace &&
-          !selection.selectedProgram && (
-            <StarterQuestions
-              context="docs"
-              onSelect={handleSend}
-              className="px-1"
-            />
-          )}
-
         {canChat &&
           messages.map((message, index) => {
             const isUser = message.role === "user";
-            const textContent = message.parts
-              .filter((p) => p.type === "text")
-              .map((p) => (p as { type: "text"; text: string }).text)
-              .join("");
 
-            if (!textContent) return null;
+            if (isUser) {
+              const textContent = message.parts
+                .filter((p) => p.type === "text")
+                .map((p) => (p as { type: "text"; text: string }).text)
+                .join("\n\n");
+              if (!textContent) return null;
+              return (
+                <SupportMessage
+                  key={message.id}
+                  avatar={userAvatar}
+                  isUser
+                  animate
+                >
+                  <p className="text-sm">{textContent}</p>
+                </SupportMessage>
+              );
+            }
+
+            // --- Assistant message ---
+            const isCurrentlyStreaming =
+              status === "streaming" && index === messages.length - 1;
+            const sources = !isCurrentlyStreaming
+              ? extractSources(
+                message.parts as { type: string;[key: string]: unknown }[],
+              )
+              : [];
+
+            const hasTextPart = message.parts?.some(
+              (p: any) => p.type === "text" && p.text,
+            );
+            const hasTicketForm = message.parts?.some(
+              (p: any) =>
+                p.type === "tool-requestSupportTicket" &&
+                p.state === "output-available",
+            );
+            const hasVisibleContent = hasTextPart || hasTicketForm;
+
+            if (!hasVisibleContent && !message.parts?.length) return null;
 
             return (
               <SupportMessage
                 key={message.id}
-                avatar={
-                  isUser
-                    ? userAvatar
-                    : "https://assets.dub.co/misc/dub-avatar.svg"
-                }
-                isUser={isUser}
+                avatar={assistantAvatar}
                 animate
               >
-                {isUser ? (
-                  <p className="text-sm">{textContent}</p>
+                {!hasVisibleContent ? (
+                  (() => {
+                    const isCreatingTicket = message.parts?.some(
+                      (p: any) =>
+                        p.type === "tool-createSupportTicket" &&
+                        p.state === "input-available",
+                    );
+                    const isSearching = message.parts?.some(
+                      (p: any) =>
+                        p.type === "tool-findRelevantDocs" &&
+                        p.state !== "output-available",
+                    );
+                    return (
+                      <StatusIndicator
+                        label={
+                          isCreatingTicket
+                            ? "Creating your ticket..."
+                            : isSearching
+                              ? "Searching docs..."
+                              : "Thinking..."
+                        }
+                        className="py-0.5"
+                      />
+                    );
+                  })()
                 ) : (
-                  <Streamdown
-                    key={index}
-                    isAnimating={status === "streaming"}
-                    className="text-content-emphasis"
-                    components={{
-                      h1: () => null,
-                      h2: () => null,
-                      h3: () => null,
-                      h4: () => null,
-                      h5: () => null,
-                      h6: () => null,
-                      a: ({ children, href }) => (
-                        <a
-                          href={href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="cursor-help font-medium text-neutral-900 underline decoration-dotted underline-offset-2 hover:text-neutral-600"
-                        >
-                          {children}
-                        </a>
-                      ),
-                      ul: ({ children }) => {
+                  <div className="flex flex-col gap-3">
+                    {message.parts?.map((part: any, partIndex: number) => {
+                      if (part.type === "text" && part.text) {
                         return (
-                          <ul
-                            style={{
-                              listStylePosition: "inside",
+                          <Streamdown
+                            key={partIndex}
+                            isAnimating={isCurrentlyStreaming}
+                            className="text-content-emphasis"
+                            controls={false}
+                            components={{
+                              h1: () => null,
+                              h2: () => null,
+                              h3: () => null,
+                              h4: () => null,
+                              h5: () => null,
+                              h6: () => null,
+                              a: ({ children, href }) => (
+                                <a
+                                  href={href}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="cursor-help font-medium text-neutral-900 underline decoration-dotted underline-offset-2 hover:text-neutral-600"
+                                >
+                                  {children}
+                                </a>
+                              ),
+                              ul: ({ children }) => (
+                                <ul className="list-outside list-disc pl-6">
+                                  {children}
+                                </ul>
+                              ),
+                              ol: ({ children }) => (
+                                <ol className="list-outside list-decimal pl-6">
+                                  {children}
+                                </ol>
+                              ),
+                              code: MarkdownCodeBlock,
                             }}
-                            className="list-disc"
                           >
-                            {children}
-                          </ul>
+                            {part.text}
+                          </Streamdown>
                         );
-                      },
-                    }}
-                  >
-                    {textContent}
-                  </Streamdown>
+                      }
+
+                      if (
+                        part.type === "tool-requestSupportTicket" &&
+                        part.state === "output-available"
+                      ) {
+                        return (
+                          <div
+                            key={partIndex}
+                            className="rounded-xl border border-neutral-200 pt-3"
+                          >
+                            <TicketUpload
+                              onSubmit={(ids, details) =>
+                                handleEscalateViaForm(ids, details)
+                              }
+                              submitted={ticketSubmitted}
+                            />
+                          </div>
+                        );
+                      }
+
+                      return null;
+                    })}
+                    <SourceCitations sources={sources} />
+                  </div>
                 )}
               </SupportMessage>
             );
           })}
 
         {status === "submitted" && (
-          <SupportMessage avatar="https://assets.dub.co/misc/dub-avatar.svg">
-            <div className="flex gap-1 py-1">
-              {[0, 1, 2].map((i) => (
-                <span
-                  key={i}
-                  className="size-1.5 animate-bounce rounded-full bg-neutral-400"
-                  style={{ animationDelay: `${i * 150}ms` }}
-                />
-              ))}
-            </div>
+          <SupportMessage avatar={assistantAvatar}>
+            <StatusIndicator label="Thinking..." className="py-0.5" />
           </SupportMessage>
         )}
-
-        {ticketCreated && (
-          <div className="rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-sm text-green-800">
-            ✓ Your support ticket has been created. Our team will get back to
-            you shortly.
-          </div>
-        )}
-
         <div />
       </div>
 
-      <div className="shrink-0 border-t border-neutral-100 bg-white p-3">
-        <div className="relative">
-          <TextareaAutosize
-            minRows={3}
-            maxRows={6}
-            placeholder={
-              !canChat
-                ? "Select an account above to start chatting..."
-                : effectiveAccountType === "partner"
-                  ? "Ask about payouts, referrals, or commissions..."
-                  : context === "docs"
-                    ? "Ask about API, SDK, webhooks..."
-                    : "Ask about links, analytics, or your account..."
-            }
-            value={input}
-            disabled={
-              !canChat || status === "streaming" || status === "submitted"
-            }
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                handleSend();
-              }
-            }}
-            className={cn(
-              "w-full resize-none rounded-xl border border-neutral-200 py-2.5 pl-3 pr-[72px] text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-colors",
-              "focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:opacity-60",
-            )}
-          />
+      {ticketSubmitted ? (
+        <div className="shrink-0 border-t border-neutral-100 bg-neutral-50 px-4 py-4 text-center">
+          <p className="text-sm font-medium text-neutral-700">
+            Your ticket has been submitted.
+          </p>
+          <p className="mt-0.5 text-xs text-neutral-500">
+            To ask more questions, please start a new session.
+          </p>
           <button
             type="button"
-            onClick={() => handleSend()}
-            disabled={
-              !canChat ||
-              status === "streaming" ||
-              status === "submitted" ||
-              !input.trim()
-            }
-            className={cn(
-              "absolute bottom-4 right-3 flex size-8 items-center justify-center rounded-full transition-all",
-              canChat && input.trim() && status === "ready"
-                ? "bg-neutral-900 text-white hover:bg-neutral-700"
-                : "cursor-not-allowed bg-neutral-200 text-neutral-400",
-            )}
-            aria-label="Send message"
+            onClick={() => {
+              clearPersistedSession();
+              (onReset ?? (() => window.location.reload()))();
+            }}
+            className="mt-3 rounded-lg bg-neutral-900 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-neutral-700"
           >
-            <PaperPlane className="size-4" />
+            Start new session
           </button>
         </div>
-
-        <div className="mt-px flex flex-col items-center gap-1">
-          <p className="text-center text-xs text-neutral-400">
-            AI may make mistakes. Verify important information.
-          </p>
-          {canEscalate && (
+      ) : hasRequestedTicket ? null : (
+        <div className="shrink-0 border-t border-neutral-100 bg-white p-3">
+          <div className="relative">
+            <TextareaAutosize
+              ref={textareaRef}
+              minRows={3}
+              maxRows={6}
+              placeholder={
+                !canChat
+                  ? "Select an account above to start chatting..."
+                  : effectiveAccountType === "partner"
+                    ? "Ask about payouts, referrals, or commissions..."
+                    : "Ask about links, analytics, or your account..."
+              }
+              value={input}
+              disabled={
+                !canChat || status === "streaming" || status === "submitted"
+              }
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSend();
+                }
+              }}
+              className={cn(
+                "w-full resize-none rounded-xl border border-neutral-200 py-2.5 pl-3 pr-[72px] text-sm text-neutral-900 placeholder-neutral-400 shadow-sm transition-colors",
+                "focus:border-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-200 disabled:cursor-not-allowed disabled:bg-neutral-50 disabled:opacity-60",
+              )}
+            />
             <button
               type="button"
-              onClick={handleEscalate}
-              className="text-xs font-medium text-neutral-500 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+              onClick={() => handleSend()}
+              disabled={
+                !canChat ||
+                status === "streaming" ||
+                status === "submitted" ||
+                !input.trim()
+              }
+              className={cn(
+                "absolute bottom-4 right-3 flex size-8 items-center justify-center rounded-full transition-all",
+                canChat && input.trim() && status === "ready"
+                  ? "bg-neutral-900 text-white hover:bg-neutral-700"
+                  : "cursor-not-allowed bg-neutral-200 text-neutral-400",
+              )}
+              aria-label="Send message"
             >
-              Convert to support ticket →
+              <PaperPlane className="size-4" />
             </button>
-          )}
+          </div>
+
+          <div className="mt-px flex flex-col items-center gap-1">
+            <p className="text-center text-xs text-neutral-400">
+              AI may make mistakes. Verify important information.
+            </p>
+            {canEscalate && (
+              <button
+                type="button"
+                onClick={() =>
+                  handleSend(
+                    "I'd like to create a support ticket and speak with a human agent.",
+                  )
+                }
+                className="text-xs font-medium text-neutral-500 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+              >
+                Convert to support ticket →
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

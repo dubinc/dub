@@ -4,9 +4,17 @@ import { PAYOUT_SUPPORTED_COUNTRIES } from "../constants/payouts-supported-count
  * Clean raw MDX fetched from Mintlify's .md endpoint.
  * Strips frontmatter, imports, images, JSX components.
  * Replaces <PayoutSupportedCountries /> with the actual country list.
+ * Returns the cleaned content and the article title extracted from the H1 heading.
  */
-export async function cleanMdx(raw: string): Promise<string> {
+async function cleanMdx(
+  raw: string,
+): Promise<{ content: string; title: string }> {
   let content = raw;
+
+  content = content.replace(/^> ## Documentation Index\n(?:> [^\n]*\n)*/m, "");
+
+  const h1Match = content.match(/^# (.+)$/m);
+  const title = h1Match ? h1Match[1].trim() : "";
 
   content = content.replace(/^---[\s\S]*?---\s*/m, "");
   content = content.replace(/^import\s+.*from\s+['"][^'"]*['"]\s*;?\s*$/gm, "");
@@ -51,7 +59,7 @@ export async function cleanMdx(raw: string): Promise<string> {
   content = content.replace(/<img[^>]*>/g, "");
   content = content.replace(/\n{3,}/g, "\n\n");
 
-  return content.trim();
+  return { content: content.trim(), title };
 }
 
 type ArticleChunk = {
@@ -59,6 +67,7 @@ type ArticleChunk = {
   content: string;
   url: string;
   heading: string;
+  title: string;
   type: "docs" | "help";
 };
 
@@ -66,7 +75,11 @@ type ArticleChunk = {
  * Split cleaned markdown into chunks at H2/H3 heading boundaries.
  * Each chunk carries the section URL + heading as metadata.
  */
-export function chunkByHeadings(content: string, url: string): ArticleChunk[] {
+function chunkByHeadings(
+  content: string,
+  url: string,
+  title: string,
+): ArticleChunk[] {
   const lines = content.split("\n");
   const chunks: ArticleChunk[] = [];
   let currentHeading = "Introduction";
@@ -97,6 +110,7 @@ export function chunkByHeadings(content: string, url: string): ArticleChunk[] {
       content: `## ${currentHeading}\n\n${text}`,
       url: `${url}#${slug}`,
       heading: currentHeading,
+      title,
       type,
     });
     currentLines = [];
@@ -126,6 +140,7 @@ export function chunkByHeadings(content: string, url: string): ArticleChunk[] {
       content,
       url: `${url}#${slug}`,
       heading: "Overview",
+      title,
       type,
     });
   }
@@ -159,9 +174,14 @@ function sanitizePathname(pathname: string): string {
  * Fetch, clean, chunk, and upsert a single article URL into Upstash Vector.
  * Uses heading-level chunks directly — no sentence-level fragmentation.
  * Validates URL to restrict fetches to dub.co docs/help (SSRF guard).
+ *
+ * @param pageviewsMap
+ *
+ *
  */
 export async function upsertDocsEmbeddings(
   url: string,
+  pageviewsMap?: Map<string, number>,
 ): Promise<{ chunks: number; skipped?: boolean }> {
   let parsedUrl: URL;
   try {
@@ -174,9 +194,8 @@ export async function upsertDocsEmbeddings(
   if (
     parsedUrl.protocol !== "https:" ||
     !ALLOWED_HOSTNAMES.includes(parsedUrl.hostname) ||
-    (!ALLOWED_HOSTNAMES.includes(parsedUrl.pathname) &&
-      !ALLOWED_PATH_PREFIXES.some((p) => parsedUrl.pathname.startsWith(p))) ||
-    parsedUrl.pathname.includes("..")
+    parsedUrl.pathname.includes("..") ||
+    !ALLOWED_PATH_PREFIXES.some((p) => parsedUrl.pathname.startsWith(p))
   ) {
     console.warn(`Skipping (disallowed URL): ${url}`);
     return { chunks: 0, skipped: true };
@@ -197,8 +216,12 @@ export async function upsertDocsEmbeddings(
   }
 
   const raw = await res.text();
-  const cleaned = await cleanMdx(raw);
-  const chunks = chunkByHeadings(cleaned, normalizedUrl);
+  const { content: cleaned, title } = await cleanMdx(raw);
+  const chunks = chunkByHeadings(cleaned, normalizedUrl, title);
+
+  // Look up pageviews for this article (keyed by pathname, not full URL)
+  const pathname = new URL(normalizedUrl).pathname;
+  const pageviews = pageviewsMap?.get(pathname) ?? 0;
 
   // Upstash Vector has a 48KB metadata size limit per vector.
   const MAX_METADATA_CONTENT = 4000;
@@ -212,7 +235,9 @@ export async function upsertDocsEmbeddings(
           metadata: {
             url: chunk.url,
             heading: chunk.heading,
+            title: chunk.title || chunk.heading,
             type: chunk.type,
+            pageviews,
             content: chunk.content.slice(0, MAX_METADATA_CONTENT),
           },
         },

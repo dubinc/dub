@@ -1,5 +1,6 @@
 import { conn } from "@/lib/planetscale";
 import { prisma } from "@dub/prisma";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 import { deleteDiscountCodes } from "../discounts/delete-discount-code";
 import { bulkDeleteLinks } from "../links/bulk-delete-links";
 
@@ -16,6 +17,7 @@ export async function bulkDeletePartners({
 }) {
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
+      programId: ACME_PROGRAM_ID,
       partnerId: {
         in: partnerIds,
       },
