@@ -117,7 +117,7 @@ export function getSocialContentEmbedUrl({
 }
 
 interface BountyInfoInput {
-  submissionRequirements: Prisma.JsonValue;
+  submissionRequirements?: Prisma.JsonValue | undefined | null;
   rewardAmount?: number | undefined | null;
 }
 

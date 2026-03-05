@@ -19,6 +19,7 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   "ship-30": "dwp",
   supercutai: "supercut",
   "teller-perps": "teller",
+  "hundred-health": "hundred",
 };
 
 export const partnersProgramRedirects = (path: string) => {

@@ -4,6 +4,8 @@ import X from "@/ui/shared/icons/x";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import {
   Badge,
+  Button,
+  CalendarRefresh,
   Check,
   DubProductIcon,
   PLAN_FEATURE_ICONS,
@@ -14,6 +16,7 @@ import {
   ADVANCED_PLAN,
   BUSINESS_PLAN,
   cn,
+  ENTERPRISE_PLAN,
   PRICING_PLAN_MAIN_FEATURES,
   PRICING_PLAN_TAGLINES,
   PRO_PLAN,
@@ -26,7 +29,7 @@ import { OnboardingProduct } from "../../use-onboarding-product";
 export function PlanSelector({ product }: { product: OnboardingProduct }) {
   const plans =
     product === "partners"
-      ? [BUSINESS_PLAN, ADVANCED_PLAN]
+      ? [BUSINESS_PLAN, ADVANCED_PLAN, ENTERPRISE_PLAN]
       : [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
@@ -82,48 +85,63 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                     )}
                   </div>
                   <div className="mt-1">
-                    <div>
-                      <NumberFlow
-                        value={plan.price[period]!}
-                        className="text-base tabular-nums text-neutral-700"
-                        format={{
-                          style: "currency",
-                          currency: "USD",
-                          minimumFractionDigits: 0,
-                        }}
-                        continuous
-                      />
-                      <span className="text-sm text-neutral-400">
-                        {" "}
-                        per month
+                    {plan.name === "Enterprise" ? (
+                      <span className="block text-base text-neutral-700">
+                        Custom
                       </span>
-                    </div>
+                    ) : (
+                      <>
+                        <NumberFlow
+                          value={plan.price[period]!}
+                          className="text-base tabular-nums text-neutral-700"
+                          format={{
+                            style: "currency",
+                            currency: "USD",
+                            minimumFractionDigits: 0,
+                          }}
+                          continuous
+                        />
+                        <span className="text-sm text-neutral-400">
+                          {" "}
+                          per month
+                        </span>
+                      </>
+                    )}
                   </div>
 
-                  <label className="mt-4 flex items-center gap-1.5">
-                    <Switch
-                      checked={period === "yearly"}
-                      fn={(checked) =>
-                        setPeriod(checked ? "yearly" : "monthly")
-                      }
-                      trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20 w-7 h-4"
-                      thumbDimensions="size-3"
-                      thumbTranslate="translate-x-3"
-                    />
-                    <div className="flex items-center gap-1 text-sm font-medium text-neutral-600">
-                      <span>Billed yearly</span>
-                      <Badge
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                          "animate-in fade-in-0 slide-in-from-right-2 duration-150",
-                          period === "monthly" && "-translate-x-2 opacity-0",
-                        )}
-                      >
-                        Save 17%
-                      </Badge>
+                  {plan.name === "Enterprise" ? (
+                    <div className="mt-4 flex items-center gap-1.5 text-neutral-400">
+                      <CalendarRefresh className="size-4 shrink-0" />
+                      <span className="text-sm font-medium">
+                        Tailored pricing terms
+                      </span>
                     </div>
-                  </label>
+                  ) : (
+                    <label className="mt-4 flex items-center gap-1.5">
+                      <Switch
+                        checked={period === "yearly"}
+                        fn={(checked) =>
+                          setPeriod(checked ? "yearly" : "monthly")
+                        }
+                        trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20 w-7 h-4"
+                        thumbDimensions="size-3"
+                        thumbTranslate="translate-x-3"
+                      />
+                      <div className="flex items-center gap-1 text-sm font-medium text-neutral-600">
+                        <span>Billed yearly</span>
+                        <Badge
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "animate-in fade-in-0 slide-in-from-right-2 duration-150",
+                            period === "monthly" && "-translate-x-2 opacity-0",
+                          )}
+                        >
+                          Save 17%
+                        </Badge>
+                      </div>
+                    </label>
+                  )}
                 </div>
 
                 <p className="min-h-10 text-sm text-neutral-600">
@@ -139,12 +157,25 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                   >
                     <ChevronLeft className="size-5 text-neutral-800" />
                   </button>
-                  <UpgradePlanButton
-                    plan={plan.name.toLowerCase()}
-                    period={period}
-                    text="Get started"
-                    className="h-10 rounded-lg shadow-sm"
-                  />
+                  {plan.name === "Enterprise" ? (
+                    <a
+                      href="https://dub.co/contact/sales"
+                      target="_blank"
+                      className="w-full"
+                    >
+                      <Button
+                        text="Contact us"
+                        className="h-10 rounded-lg shadow-sm"
+                      />
+                    </a>
+                  ) : (
+                    <UpgradePlanButton
+                      plan={plan.name.toLowerCase()}
+                      period={period}
+                      text="Get started"
+                      className="h-10 rounded-lg shadow-sm"
+                    />
+                  )}
                   <button
                     type="button"
                     className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 active:bg-neutral-200 disabled:opacity-30 lg:hidden"
@@ -194,7 +225,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                                       typeof tooltip === "string" ||
                                       isReactNode(tooltip)
                                         ? tooltip
-                                        : `${tooltip.title} [${tooltip.cta}](${tooltip.href})`
+                                        : `${tooltip.title}${tooltip.cta && tooltip.href ? ` [${tooltip.cta}](${tooltip.href})` : ""}`
                                     }
                                   >
                                     <p className="cursor-help underline decoration-dotted underline-offset-2">

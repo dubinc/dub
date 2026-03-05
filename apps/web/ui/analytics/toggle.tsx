@@ -90,7 +90,7 @@ export function AnalyticsToggle({
 
   const dateRangePicker = (
     <DateRangePicker
-      className="w-full sm:min-w-[160px] md:w-fit lg:min-w-[200px]"
+      className="w-full md:w-fit"
       align={dashboardProps ? "end" : "center"}
       value={
         start && end

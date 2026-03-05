@@ -80,8 +80,19 @@ function CopyButton({ code }: { code: string }) {
   );
 
   const handleCopy = useCallback(async () => {
-    if (copied || !navigator?.clipboard?.writeText) return;
-    await navigator.clipboard.writeText(code);
+    if (copied) return;
+    try {
+      await navigator.clipboard.writeText(code);
+    } catch {
+      // Fallback for iframe contexts where clipboard API is restricted
+      const ta = document.createElement("textarea");
+      ta.value = code;
+      ta.style.cssText = "position:fixed;opacity:0;pointer-events:none";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    }
     setCopied(true);
     timerRef.current = setTimeout(() => setCopied(false), 2000);
   }, [code, copied]);

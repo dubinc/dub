@@ -68,16 +68,17 @@ async function main() {
           id: payoutId,
         },
       });
+    } else {
+      console.log(`Updating payout ${payoutId} with amount ${payoutAmount}`);
+      await prisma.payout.update({
+        where: {
+          id: payoutId,
+        },
+        data: {
+          amount: payoutAmount,
+        },
+      });
     }
-    console.log(`Updating payout ${payoutId} with amount ${payoutAmount}`);
-    await prisma.payout.update({
-      where: {
-        id: payoutId,
-      },
-      data: {
-        amount: payoutAmount,
-      },
-    });
   }
 
   console.log(

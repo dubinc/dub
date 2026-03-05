@@ -1,6 +1,7 @@
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getEvents } from "@/lib/analytics/get-events";
 import { DubApiError } from "@/lib/api/errors";
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
@@ -128,7 +129,7 @@ export const GET = withPartnerProfile(
               email: customer.email
                 ? customerDataSharingEnabledAt
                   ? customer.email
-                  : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+                  : obfuscateCustomerEmail(customer.email)
                 : customer.name || generateRandomName(),
               ...(customerDataSharingEnabledAt && {
                 name: customer.name || generateRandomName(),
