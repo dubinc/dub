@@ -5,9 +5,16 @@ import * as z from "zod/v4";
 export const DESTINATION_URL_MAX_LENGTH = 32000;
 
 /** Accepts number (before migration) or bigint (after), outputs number. */
-export const centsSchema = z
-  .union([z.number(), z.bigint()])
-  .transform((n) => (typeof n === "bigint" ? Number(n) : n));
+export const centsSchema = z.preprocess(
+  (n) => (typeof n === "bigint" ? Number(n) : n),
+  z.number(),
+);
+
+/** Accepts number or bigint or null (e.g. from Prisma BigInt?), outputs number | null. */
+export const nullableCountSchema = z.preprocess(
+  (n) => (typeof n === "bigint" ? Number(n) : n),
+  z.number().nullable(),
+);
 
 export const parseUrlSchema = z
   .string()
