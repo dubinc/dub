@@ -7,6 +7,7 @@ import {
 import {
   E2E_CUSTOMER_COUNTRY_CONDITIONS_EXTERNAL_ID,
   E2E_CUSTOMER_SALE_CONDITIONS_EXTERNAL_ID,
+  E2E_CUSTOMER_SIGNUP_DATE_CONDITIONS_EXTERNAL_ID,
   E2E_SALE_REWARD,
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
@@ -150,6 +151,26 @@ describe.concurrent("Sale rewards with conditions", async () => {
       http,
       invoiceId: sale.invoiceId,
       expectedEarnings: E2E_SALE_REWARD.modifiers[3].amountInCents!,
+    });
+  });
+
+  test("when {Customer} {Signup Date} is {greater than} {Feb 16, 2026} AND {less than} {Feb 18, 2026}", async () => {
+    const sale = randomSale("E2E customer signup date condition");
+
+    const trackSaleResponse = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...sale,
+        customerExternalId: E2E_CUSTOMER_SIGNUP_DATE_CONDITIONS_EXTERNAL_ID,
+      },
+    });
+
+    expect(trackSaleResponse.status).toEqual(200);
+
+    await verifyCommission({
+      http,
+      invoiceId: sale.invoiceId,
+      expectedEarnings: E2E_SALE_REWARD.modifiers[4].amountInCents!,
     });
   });
 });

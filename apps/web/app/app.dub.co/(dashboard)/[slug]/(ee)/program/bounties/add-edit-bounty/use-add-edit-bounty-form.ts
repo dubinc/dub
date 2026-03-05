@@ -215,13 +215,6 @@ export function useAddEditBountyForm({
   const validationError = useMemo(() => {
     const now = new Date();
 
-    if (startsAt && startsAt !== bounty?.startsAt) {
-      const startDate = new Date(startsAt);
-      if (startDate < now) {
-        return "Please choose a start date that is in the future.";
-      }
-    }
-
     const effectiveStartDate = startsAt ? new Date(startsAt) : now;
 
     if (endsAt) {
