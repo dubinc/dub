@@ -3,11 +3,12 @@
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import {
-  getSocialContentEmbedUrl,
-  resolveBountyDetails,
-} from "@/lib/bounty/utils";
-import { BountySocialPlatform, PartnerBountyProps } from "@/lib/types";
+  BountySocialPlatform,
+  PartnerBountyProps,
+  SocialContent,
+} from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -31,7 +32,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { EmphasisNumber } from "./bounty-progress-bar-row";
-import { getSocialContentEmbedAspectRatio } from "./bounty-social-content-preview";
+import { useSocialContent } from "./use-social-content";
 
 const PLATFORM_ICONS: Record<
   BountySocialPlatform,
@@ -45,6 +46,97 @@ const PLATFORM_ICONS: Record<
 
 type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
 
+function SocialContentCard({
+  url,
+  socialContent,
+  isLoading,
+  PlatformIcon,
+}: {
+  url: string;
+  socialContent: SocialContent | null;
+  isLoading: boolean;
+  PlatformIcon: ComponentType<{ className?: string }>;
+}) {
+  return (
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-2">
+      {/* Channel row */}
+      <div className="flex items-center gap-2 px-2 py-1">
+        <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-100">
+          <PlatformIcon className="size-3.5" />
+        </div>
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          {isLoading ? (
+            <div className="h-5 w-24 animate-pulse rounded bg-neutral-200" />
+          ) : (
+            socialContent?.handle && (
+              <span className="truncate text-sm font-semibold text-neutral-800">
+                {socialContent.handle}
+              </span>
+            )
+          )}
+        </div>
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex h-7 shrink-0 items-center rounded-lg border border-neutral-200 bg-white px-2.5 text-sm font-medium text-neutral-900"
+        >
+          View
+        </a>
+      </div>
+
+      {/* Thumbnail */}
+      {isLoading ? (
+        <div className="aspect-[336/188] w-full animate-pulse rounded-md bg-neutral-200" />
+      ) : (
+        socialContent?.thumbnailUrl && (
+          <img
+            src={socialContent.thumbnailUrl}
+            alt={socialContent.title ?? ""}
+            className="aspect-[336/188] w-full rounded-md border border-black/10 object-cover"
+          />
+        )
+      )}
+
+      {/* Content */}
+      <div className="flex flex-col gap-2 px-2 py-1">
+        {isLoading ? (
+          <div className="flex flex-col gap-1">
+            <div className="h-5 w-3/4 animate-pulse rounded bg-neutral-200" />
+            <div className="h-10 w-full animate-pulse rounded bg-neutral-200" />
+          </div>
+        ) : (
+          <>
+            {(socialContent?.title || socialContent?.description) && (
+              <div className="flex flex-col gap-1">
+                {socialContent?.title && (
+                  <p className="line-clamp-1 text-sm font-semibold text-neutral-800">
+                    {socialContent.title}
+                  </p>
+                )}
+                {socialContent?.description && (
+                  <p className="line-clamp-2 text-sm text-neutral-600">
+                    {socialContent.description}
+                  </p>
+                )}
+              </div>
+            )}
+            {socialContent?.publishedAt && (
+              <span className="text-xs font-medium text-neutral-400">
+                {formatDate(socialContent.publishedAt, {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function SocialContentPreview({
   bounty,
   submission,
@@ -52,23 +144,17 @@ function SocialContentPreview({
   bounty: PartnerBountyProps;
   submission: PartnerBountySubmission;
 }) {
-  const [iframeLoaded, setIframeLoaded] = useState(false);
-
   const bountyInfo = resolveBountyDetails(bounty);
   const { socialMetrics, socialPlatform } = bountyInfo ?? {};
 
   const url = submission.urls?.[0] ?? "";
 
-  if (!socialMetrics || !socialPlatform || !url) {
-    return null;
-  }
-
-  const embedUrl = getSocialContentEmbedUrl({
-    platform: socialPlatform.value,
+  const { data: socialContent, isValidating } = useSocialContent({
+    bountyId: bounty.id,
     url,
   });
 
-  if (!embedUrl) {
+  if (!socialMetrics || !socialPlatform || !url) {
     return null;
   }
 
@@ -77,11 +163,6 @@ function SocialContentPreview({
   const percent =
     minCount > 0 ? Math.min((socialMetricCount / minCount) * 100, 100) : 100;
   const isComplete = percent >= 100;
-
-  const aspectClass = getSocialContentEmbedAspectRatio({
-    platform: socialPlatform.value,
-    url,
-  });
 
   const PlatformIcon = PLATFORM_ICONS[socialPlatform.value];
   const lastSyncedAt = submission.socialMetricsLastSyncedAt;
@@ -93,68 +174,48 @@ function SocialContentPreview({
           Submitted content
         </h2>
         {lastSyncedAt && (
-          <span className="text-xs text-neutral-400">
+          <span className="text-xs font-medium text-neutral-400">
             Last sync{" "}
             {formatDistanceToNow(new Date(lastSyncedAt), { addSuffix: true })}
           </span>
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-        {/* Progress bar — flush with card top */}
-        <div className="h-1 w-full bg-neutral-200">
-          <div
-            className={cn(
-              "h-full",
-              isComplete ? "bg-green-600" : "bg-amber-600",
-            )}
-            style={{ width: `${percent}%` }}
-          />
-        </div>
-
-        {/* Metric label row */}
-        <div className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-neutral-600">
-          <PlatformIcon className="size-3.5 shrink-0" />
-          <span>
-            <EmphasisNumber>
-              {nFormatter(socialMetricCount, { full: true })}
-            </EmphasisNumber>
-            {" of "}
-            <EmphasisNumber>
-              {nFormatter(minCount, { full: true })}
-            </EmphasisNumber>
-            {` ${socialMetrics.metric} generated`}
-          </span>
-        </div>
-
-        {/* Native iframe embed */}
-        <div className="p-2 pt-0">
-          <div
-            className={cn(
-              "relative mx-auto flex max-h-[700px] w-full items-center justify-center overflow-hidden rounded-lg",
-              aspectClass,
-            )}
-          >
-            {!iframeLoaded && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-neutral-100">
-                <div className="h-8 w-8 animate-spin rounded-full border-2 border-neutral-300 border-t-neutral-600" />
-              </div>
-            )}
-            <iframe
-              src={embedUrl}
-              title={`${socialPlatform.label} content preview`}
-              aria-label={`${socialPlatform.label} content preview`}
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50">
+        {/* Progress section */}
+        <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
+          <div className="h-1 w-full rounded-full bg-neutral-200">
+            <div
               className={cn(
-                "absolute inset-0 size-full",
-                !iframeLoaded && "opacity-0",
+                "h-full rounded-full",
+                isComplete ? "bg-green-600" : "bg-amber-600",
               )}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              loading="lazy"
-              onLoad={() => setIframeLoaded(true)}
+              style={{ width: `${percent}%` }}
             />
           </div>
+
+          <div className="flex items-center gap-2">
+            <PlatformIcon className="size-4 shrink-0" />
+            <p className="text-sm font-medium text-neutral-600">
+              <EmphasisNumber>
+                {nFormatter(socialMetricCount, { full: true })}
+              </EmphasisNumber>
+              {" of "}
+              <EmphasisNumber>
+                {nFormatter(minCount, { full: true })}
+              </EmphasisNumber>
+              {` ${socialMetrics.metric} generated`}
+            </p>
+          </div>
         </div>
+
+        {/* Social content card */}
+        <SocialContentCard
+          url={url}
+          socialContent={socialContent}
+          isLoading={isValidating && !socialContent}
+          PlatformIcon={PlatformIcon}
+        />
       </div>
     </div>
   );
