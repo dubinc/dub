@@ -20,7 +20,7 @@ export function SupportChatBubble() {
     if (session?.user?.["id"]) {
       try {
         localStorage.removeItem(`dub-support-chat:${session.user["id"]}`);
-      } catch { }
+      } catch {}
     }
     setResetKey((k) => k + 1);
   };
