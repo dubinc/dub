@@ -55,22 +55,37 @@ export const PATCH = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { referralSourceBanned, paidTrafficDetected } =
-      updateFraudRuleSettingsSchema.parse(await parseRequestBody(req));
+    const {
+      referralSourceBanned,
+      paidTrafficDetected,
+      customerEmailMatch,
+      customerEmailSuspiciousDomain,
+    } = updateFraudRuleSettingsSchema.parse(await parseRequestBody(req));
 
     const rulesToUpdate = [
       {
-        type: "referralSourceBanned" as FraudRuleType,
+        type: FraudRuleType.referralSourceBanned,
         payload: referralSourceBanned,
       },
       {
-        type: "paidTrafficDetected" as FraudRuleType,
+        type: FraudRuleType.paidTrafficDetected,
         payload: paidTrafficDetected,
+      },
+      {
+        type: FraudRuleType.customerEmailMatch,
+        payload: customerEmailMatch,
+      },
+      {
+        type: FraudRuleType.customerEmailSuspiciousDomain,
+        payload: customerEmailSuspiciousDomain,
       },
     ].filter((r) => r.payload);
 
     for (const { type, payload } of rulesToUpdate) {
       if (!payload) continue;
+
+      const config =
+        "config" in payload ? payload.config ?? Prisma.DbNull : Prisma.DbNull;
 
       await prisma.fraudRule.upsert({
         where: {
@@ -83,11 +98,11 @@ export const PATCH = withWorkspace(
           id: createId({ prefix: "fr_" }),
           programId,
           type,
-          config: payload.config ?? Prisma.DbNull,
+          config,
           disabledAt: payload.enabled ? null : new Date(),
         },
         update: {
-          config: payload.config ?? Prisma.DbNull,
+          config,
           disabledAt: payload.enabled ? null : new Date(),
         },
       });
