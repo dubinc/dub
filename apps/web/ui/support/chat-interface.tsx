@@ -100,7 +100,7 @@ export function ChatInterface({
       if (stored.selection) setSelection(stored.selection);
       if (stored.messages?.length) setMessages(stored.messages);
       if (stored.ticketSubmitted) setTicketSubmitted(true);
-    } catch { }
+    } catch {}
   }, [storageKey, setMessages]);
 
   useEffect(() => {
@@ -113,7 +113,7 @@ export function ChatInterface({
         storageKey,
         JSON.stringify({ ...stored, selection }),
       );
-    } catch { }
+    } catch {}
   }, [selection, storageKey]);
 
   useEffect(() => {
@@ -126,14 +126,14 @@ export function ChatInterface({
         storageKey,
         JSON.stringify({ ...stored, messages, ticketSubmitted }),
       );
-    } catch { }
+    } catch {}
   }, [messages, ticketSubmitted, status, storageKey]);
 
   const clearPersistedSession = () => {
     if (storageKey) {
       try {
         localStorage.removeItem(storageKey);
-      } catch { }
+      } catch {}
     }
   };
 
@@ -428,8 +428,8 @@ export function ChatInterface({
               status === "streaming" && index === messages.length - 1;
             const sources = !isCurrentlyStreaming
               ? extractSources(
-                message.parts as { type: string;[key: string]: unknown }[],
-              )
+                  message.parts as { type: string; [key: string]: unknown }[],
+                )
               : [];
 
             const hasTextPart = message.parts?.some(
@@ -445,11 +445,7 @@ export function ChatInterface({
             if (!hasVisibleContent && !message.parts?.length) return null;
 
             return (
-              <SupportMessage
-                key={message.id}
-                avatar={assistantAvatar}
-                animate
-              >
+              <SupportMessage key={message.id} avatar={assistantAvatar} animate>
                 {!hasVisibleContent ? (
                   (() => {
                     const isCreatingTicket = message.parts?.some(

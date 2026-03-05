@@ -143,7 +143,7 @@ export function TicketUpload({
 
   if (submitted) {
     return (
-      <div className="flex items-center gap-3 pb-3 px-3">
+      <div className="flex items-center gap-3 px-3 pb-3">
         <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-green-100 text-xs font-bold text-green-600">
           ✓
         </div>
@@ -184,9 +184,7 @@ export function TicketUpload({
       </div>
 
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-neutral-500">
-          Attachments
-        </p>
+        <p className="text-xs font-medium text-neutral-500">Attachments</p>
         <p className="text-xs text-neutral-400">
           Images, PDF · max {MAX_FILE_SIZE_MB}MB · up to {MAX_FILES} files
         </p>

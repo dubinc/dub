@@ -9,12 +9,7 @@ type StatusIndicatorProps = {
 
 export function StatusIndicator({ label, className }: StatusIndicatorProps) {
   return (
-    <span
-      className={cn(
-        "animate-pulse text-xs text-neutral-400",
-        className,
-      )}
-    >
+    <span className={cn("animate-pulse text-xs text-neutral-400", className)}>
       {label}
     </span>
   );

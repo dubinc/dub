@@ -4,11 +4,11 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
-import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import {
   PartnerPlatformsForm,
   usePartnerPlatformsForm,
 } from "@/ui/partners/partner-platforms-form";
+import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PartnerProfileType } from "@dub/prisma/client";

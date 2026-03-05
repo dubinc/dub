@@ -161,10 +161,7 @@ export function GroupsTable() {
         enableHiding: false,
         header: () => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
-          <RowMenuButton
-            row={row}
-            currentDefaultGroup={currentDefaultGroup}
-          />
+          <RowMenuButton row={row} currentDefaultGroup={currentDefaultGroup} />
         ),
       },
     ],
@@ -343,15 +340,15 @@ function RowMenuButton({
                         }}
                         disabledTooltip={permissionsError || undefined}
                       />
-                    <MenuItem
-                      icon={Trash}
-                      label="Delete group"
-                      variant="danger"
-                      onSelect={() => setShowDeleteGroupModal(true)}
-                      disabledTooltip={permissionsError || undefined}
-                    />
-                  </>
-                )}
+                      <MenuItem
+                        icon={Trash}
+                        label="Delete group"
+                        variant="danger"
+                        onSelect={() => setShowDeleteGroupModal(true)}
+                        disabledTooltip={permissionsError || undefined}
+                      />
+                    </>
+                  )}
               </Command.Group>
             </Command.List>
           </Command>
