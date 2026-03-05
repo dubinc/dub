@@ -65,7 +65,7 @@ export const withCron = (handler: WithCronHandler) => {
 
         await log({
           message: `Cron job "${url.pathname}" failed during execution. Error: ${errorMessage}`,
-          type: "cron",
+          type: "errors",
         });
 
         return logAndRespond(errorMessage, { status: 500 });
