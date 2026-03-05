@@ -257,3 +257,7 @@ export const E2E_FRAUD_PARTNER = {
 
 export const E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN =
   "test-hostname-for-referral-source-banned-do-not-delete.com";
+
+export const E2E_GROUP_MOVE_DISABLED_PARTNER = {
+  id: "pn_1K2J9DRWPPJ2F1RX53N92TSGG", // TODO: Update this
+} as const;
