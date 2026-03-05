@@ -47,7 +47,11 @@ export const POST = async (req: Request) => {
   const normalizedUrl = parsedUrl.toString();
 
   try {
-    const result = await upsertDocsEmbeddings(normalizedUrl);
+    // const pageviewsMap = await fetchPlausiblePageviews();
+    const result = await upsertDocsEmbeddings(
+      normalizedUrl,
+      // pageviewsMap // TODO: add pageviewsMap back in once we support it
+    );
     return Response.json({ success: true, url: normalizedUrl, ...result });
   } catch (err) {
     console.error("Failed to seed URL:", normalizedUrl, err);
