@@ -1,10 +1,9 @@
 export type SupportChatVariant = "embedded" | "bubble";
-export type SupportChatContext = "app" | "partners" | "docs";
+export type SupportChatContext = "app" | "partners";
 
-const CONTEXT_MAP: Record<string, Exclude<SupportChatContext, undefined>> = {
+const CONTEXT_MAP: Record<string, SupportChatContext> = {
   app: "app",
   partners: "partners",
-  docs: "docs",
 };
 
 export function parseSupportChatVariant(
@@ -16,5 +15,5 @@ export function parseSupportChatVariant(
 export function parseSupportChatContext(
   value: string | undefined,
 ): SupportChatContext {
-  return (value && CONTEXT_MAP[value]) || CONTEXT_MAP.docs;
+  return (value && CONTEXT_MAP[value]) || "app";
 }
