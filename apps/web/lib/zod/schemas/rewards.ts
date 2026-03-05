@@ -159,7 +159,7 @@ export const REWARD_CONDITIONS: Record<
           },
           {
             id: "signupDate",
-            label: "Customer signup date",
+            label: "Signup date",
             type: "date",
           },
         ],
