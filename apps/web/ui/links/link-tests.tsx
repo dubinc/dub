@@ -107,7 +107,6 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
                         sales: analytics?.sales ?? 0,
                         saleAmount: analytics?.saleAmount ?? 0,
                       }}
-                      url={test.url}
                       sharingEnabled={false}
                     />
                   )}
