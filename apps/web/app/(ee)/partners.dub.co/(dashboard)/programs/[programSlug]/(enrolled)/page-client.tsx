@@ -202,33 +202,27 @@ export default function ProgramPageClient() {
                   <QueryLinkStructureHelpText link={defaultProgramLink} />
                 )}
 
-                {((programEnrollment?.rewards &&
-                  programEnrollment?.rewards.length > 0) ||
-                  programEnrollment?.discount) && (
-                  <>
-                    <span className="mt-12 text-base font-semibold text-neutral-800">
-                      Rewards
-                    </span>
-                    <div className="relative mt-2 text-lg text-neutral-900 md:max-w-[50%]">
-                      {program && programEnrollment?.rewards ? (
-                        <>
-                          <ProgramRewardList
-                            rewards={programEnrollment?.rewards}
-                            discount={programEnrollment?.discount}
-                          />
-                          <ProgramRewardTerms
-                            minPayoutAmount={program.minPayoutAmount}
-                            holdingPeriodDays={
-                              programEnrollment.group?.holdingPeriodDays ?? 0
-                            }
-                          />
-                        </>
-                      ) : (
-                        <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
-                      )}
-                    </div>
-                  </>
-                )}
+                <span className="mt-12 text-base font-semibold text-neutral-800">
+                  Rewards
+                </span>
+                <div className="relative mt-2 text-lg text-neutral-900 md:max-w-[50%]">
+                  {programEnrollment?.rewards ? (
+                    <>
+                      <ProgramRewardList
+                        rewards={programEnrollment.rewards}
+                        discount={programEnrollment.discount}
+                      />
+                      <ProgramRewardTerms
+                        minPayoutAmount={program.minPayoutAmount}
+                        holdingPeriodDays={
+                          programEnrollment.group?.holdingPeriodDays ?? 0
+                        }
+                      />
+                    </>
+                  ) : (
+                    <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
+                  )}
+                </div>
               </div>
             </motion.div>
           )}
