@@ -552,5 +552,6 @@ describe.sequential("Workflow - MoveGroup", async () => {
     });
 
     expect(partnerAfter.groupId).toBe(partner.groupId);
+    expect(partnerAfter.groupMoveDisabledAt).not.toBeNull();
   });
 });
