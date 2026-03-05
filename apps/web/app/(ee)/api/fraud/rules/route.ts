@@ -19,6 +19,11 @@ export const GET = withWorkspace(
       where: {
         programId,
       },
+      select: {
+        type: true,
+        config: true,
+        disabledAt: true,
+      },
     });
 
     const mergedFraudRules = CONFIGURABLE_FRAUD_RULES.map(({ type }) => {
@@ -33,6 +38,19 @@ export const GET = withWorkspace(
             platforms: ["google"],
             google: { whitelistedCampaignIds: [] },
           },
+        };
+      }
+
+      if (
+        ["customerEmailMatch", "customerEmailSuspiciousDomain"].includes(
+          type,
+        ) &&
+        !fraudRule
+      ) {
+        return {
+          type,
+          enabled: true,
+          config: {},
         };
       }
 
