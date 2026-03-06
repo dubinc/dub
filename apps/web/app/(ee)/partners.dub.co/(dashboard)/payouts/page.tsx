@@ -15,7 +15,7 @@ export default function PartnersPayoutsSettings() {
       }}
       controls={<PartnerPayoutSettingsButton />}
     >
-      <PageWidthWrapper className="grid grid-cols-1 gap-4 pb-10">
+      <PageWidthWrapper className="grid grid-cols-1 gap-6 pb-10">
         <PayoutStats />
         <PayoutTable />
       </PageWidthWrapper>

@@ -25,6 +25,7 @@ import {
   MoneyBill2,
 } from "@dub/ui/icons";
 import {
+  cn,
   OG_AVATAR_URL,
   currencyFormatter,
   formatDateSmart,
@@ -233,8 +234,13 @@ export function PayoutTable() {
           payout={detailsSheetState.payout}
         />
       )}
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3">
+      <div className="flex flex-col">
+        <div
+          className={cn(
+            activeFilters.length ? "pb-0" : "pb-3 lg:pb-6",
+          )}
+        >
+          <div className="flex flex-col">
           <Filter.Select
             className="w-full md:w-fit"
             filters={filters}
@@ -244,15 +250,19 @@ export function PayoutTable() {
           />
           <AnimatedSizeContainer height>
             {activeFilters.length > 0 && (
-              <Filter.List
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-                onRemoveAll={onRemoveAll}
-              />
+              <div className="pt-2">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+                <div className="h-3 lg:h-6" />
+              </div>
             )}
           </AnimatedSizeContainer>
+        </div>
         </div>
         {payouts?.length !== 0 ? (
           <Table {...table} />

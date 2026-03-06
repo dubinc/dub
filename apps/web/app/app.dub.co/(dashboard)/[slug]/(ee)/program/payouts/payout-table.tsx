@@ -230,8 +230,12 @@ const PayoutTableInner = memo(
             payout={detailsSheetState.payout}
           />
         )}
-        <div className="flex flex-col gap-3">
-          <div>
+        <div className="flex flex-col">
+          <div
+            className={cn(
+              activeFilters.length ? "pb-0" : "pb-3 lg:pb-6",
+            )}
+          >
             <Filter.Select
               className="w-full md:w-fit"
               filters={filters}
@@ -244,7 +248,7 @@ const PayoutTableInner = memo(
             <AnimatedSizeContainer height>
               <div>
                 {activeFilters.length > 0 && (
-                  <div className="pt-3">
+                  <div className="pt-2">
                     <Filter.List
                       filters={filters}
                       activeFilters={activeFilters}
@@ -252,6 +256,7 @@ const PayoutTableInner = memo(
                       onRemove={onRemove}
                       onRemoveAll={onRemoveAll}
                     />
+                    <div className="h-3 lg:h-6" />
                   </div>
                 )}
               </div>
