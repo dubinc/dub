@@ -89,6 +89,9 @@ export const POST = withCron(async ({ rawBody }) => {
         });
 
         const newStats = {
+          ...(socialProfile.platformId && {
+            platformId: socialProfile.platformId,
+          }),
           subscribers: socialProfile.subscribers,
           posts: socialProfile.posts,
           avatarUrl: socialProfile.avatarUrl,
