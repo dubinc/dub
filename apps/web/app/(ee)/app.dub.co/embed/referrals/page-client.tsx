@@ -23,11 +23,15 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import { cn, fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
+import useSWR from "swr";
+import { useEmbedToken } from "../use-embed-token";
 import { ReferralsEmbedActivity } from "./activity";
+import { ReferralsEmbedBounties } from "./bounties";
+import { ReferralsEmbedBountyDetail } from "./bounty-detail";
 import { ReferralsEmbedEarnings } from "./earnings";
 import { ReferralsEmbedEarningsSummary } from "./earnings-summary";
 import { ReferralsEmbedFAQ } from "./faq";
@@ -97,6 +101,24 @@ export function ReferralsEmbedPageClient({
     true,
   );
 
+  const [selectedBountyId, setSelectedBountyId] = useState<string | null>(null);
+
+  const embedToken = useEmbedToken();
+  const { data: bounties } = useSWR<{ id: string; endsAt: string | null }[]>(
+    "/api/embed/referrals/bounties",
+    (url) =>
+      fetcher(url, {
+        headers: { Authorization: `Bearer ${embedToken}` },
+      }),
+    { keepPreviousData: true },
+  );
+
+  const activeBountiesCount = useMemo(() => {
+    if (!bounties) return 0;
+    const now = new Date();
+    return bounties.filter((b) => !b.endsAt || new Date(b.endsAt) > now).length;
+  }, [bounties]);
+
   const tabs = useMemo(
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
@@ -105,6 +127,7 @@ export function ReferralsEmbedPageClient({
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
         : ["Leaderboard"]),
+      "Bounties",
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
     ],
@@ -183,11 +206,22 @@ export function ReferralsEmbedPageClient({
             <TabSelect
               options={tabs.map((tab) => ({
                 id: tab,
-                label: tab,
+                label:
+                  tab === "Bounties" && activeBountiesCount > 0 ? (
+                    <span className="flex items-center gap-2">
+                      Bounties
+                      <span className="rounded-md bg-blue-500 px-1.5 py-0.5 text-xs font-semibold text-white">
+                        {activeBountiesCount > 99 ? "99+" : activeBountiesCount}
+                      </span>
+                    </span>
+                  ) : (
+                    tab
+                  ),
               }))}
               selected={selectedTab}
               onSelect={(option) => {
                 setSelectedTab(option);
+                if (option !== "Bounties") setSelectedBountyId(null);
               }}
               className="scrollbar-hide min-w-0 grow overflow-x-auto"
             />
@@ -224,6 +258,18 @@ export function ReferralsEmbedPageClient({
               ) : selectedTab === "Leaderboard" &&
                 programEmbedData?.leaderboard?.mode !== "disabled" ? (
                 <ReferralsEmbedLeaderboard />
+              ) : selectedTab === "Bounties" ? (
+                selectedBountyId ? (
+                  <ReferralsEmbedBountyDetail
+                    key={selectedBountyId}
+                    bountyId={selectedBountyId}
+                    onBack={() => setSelectedBountyId(null)}
+                  />
+                ) : (
+                  <ReferralsEmbedBounties
+                    onSelectBounty={(id) => setSelectedBountyId(id)}
+                  />
+                )
               ) : selectedTab === "FAQ" ? (
                 <ReferralsEmbedFAQ program={program} reward={rewards[0]} />
               ) : selectedTab === "Resources" ? (
