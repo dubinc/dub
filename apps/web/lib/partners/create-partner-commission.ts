@@ -47,9 +47,12 @@ export type CreatePartnerCommissionProps = {
 
 const constructWebhookPartner = (
   programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
-  { totalCommissions: totalCommissionsParam }: { totalCommissions?: number } = {},
+  {
+    totalCommissions: totalCommissionsParam,
+  }: { totalCommissions?: number } = {},
 ) => {
-  const totalCommissions = totalCommissionsParam ?? toCentsNumber(programEnrollment.totalCommissions);
+  const totalCommissions =
+    totalCommissionsParam ?? toCentsNumber(programEnrollment.totalCommissions);
   return {
     ...programEnrollment.partner,
     groupId: programEnrollment.groupId,

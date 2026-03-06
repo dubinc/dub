@@ -194,7 +194,7 @@ const processPartnerActivityStreamBatch = () =>
           enrollment.leadToConversionRate = totalConversions / totalLeads;
         }
 
-        // Calculate return on AdSpend (totalSaleAmount / totalCommissions)
+        // Calculate return on ad spend (totalSaleAmount / totalCommissions)
         if (totalSaleAmountNum !== undefined && totalCommissionsNum) {
           enrollment.returnOnAdSpend = totalSaleAmountNum / totalCommissionsNum;
         }

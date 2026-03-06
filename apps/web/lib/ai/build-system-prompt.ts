@@ -19,7 +19,6 @@ const CONTEXT_SYSTEM_PROMPTS: Record<SupportChatContext, string> = {
   When the user asks about their specific program data — such as earnings, commissions, payouts, minimum payout amount, holding period, or payout history — call getProgramPerformance with the program's ID before answering. Use this real data in your response instead of guessing or citing generic documentation.
   When a user has a payout dispute, tax compliance issue, or a problem that can't be resolved through documentation, first call requestSupportTicket (to show them an upload form), then after the user confirms, call createSupportTicket.
   Always try to provide the program's support email for program-specific issues.`,
-
 };
 
 const BASE_SYSTEM_PROMPT = `
