@@ -4,9 +4,9 @@ import {
   ProgramEnrollmentProps,
 } from "@/lib/types";
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
+import { toCentsNumber } from "@dub/utils";
 import { prefixWorkspaceId } from "../../workspaces/workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
-import { toCentsNumber } from "@dub/utils";
 
 // used in API (e.g. transformLink)
 // TODO: standardize this with ExpandedLinkProps

@@ -35,7 +35,10 @@ export const POST = withSession(async ({ req, session }) => {
   }
   const attachmentIds: string[] | undefined = rawAttachmentIds;
 
-  if (body.ticketDetails !== undefined && typeof body.ticketDetails !== "string") {
+  if (
+    body.ticketDetails !== undefined &&
+    typeof body.ticketDetails !== "string"
+  ) {
     return new Response("Invalid ticketDetails", { status: 400 });
   }
   const ticketDetails: string | undefined = body.ticketDetails?.slice(0, 4982);

@@ -47,8 +47,7 @@ export const GET = withSession(async ({ session }) => {
       !(
         partnerHasEarnedCommissions(
           programEnrollments as ProgramEnrollmentsForDiscoverability,
-        ) &&
-        partnerIsNotBanned(programEnrollments)
+        ) && partnerIsNotBanned(programEnrollments)
       )
     ) {
       return NextResponse.json({ publicToken: null });

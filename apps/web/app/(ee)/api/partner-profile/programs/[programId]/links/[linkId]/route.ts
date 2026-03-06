@@ -192,11 +192,7 @@ export const DELETE = withPartnerProfile(async ({ partner, params }) => {
   }
 
   // Check if link has any clicks, leads, or sales
-  if (
-    link.clicks > 0 ||
-    link.leads > 0 ||
-    toCentsNumber(link.saleAmount) > 0
-  ) {
+  if (link.clicks > 0 || link.leads > 0 || toCentsNumber(link.saleAmount) > 0) {
     throw new DubApiError({
       code: "bad_request",
       message:
