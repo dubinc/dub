@@ -480,6 +480,7 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
   lastConversionAt: z.date().nullish(),
   customerDataSharingEnabledAt: z.date().nullish(),
+  groupMoveDisabledAt: z.date().nullish(),
   platforms: z.array(partnerPlatformSchema).nullable(),
 })
   .extend(

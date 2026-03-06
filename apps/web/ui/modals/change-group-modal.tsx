@@ -1,7 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { Button, InfoTooltip, Modal, Switch } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import {
@@ -18,8 +18,10 @@ import { GroupSelector } from "../partners/groups/group-selector";
 type ChangeGroupModalProps = {
   showChangeGroupModal: boolean;
   setShowChangeGroupModal: Dispatch<SetStateAction<boolean>>;
-  partners: (Pick<EnrolledPartnerProps, "id" | "groupId" | "name" | "image"> &
-    Partial<Pick<EnrolledPartnerProps, "email" | "groupMoveDisabledAt">>)[];
+  partners: Pick<
+    EnrolledPartnerExtendedProps,
+    "id" | "groupId" | "name" | "image" | "email" | "groupMoveDisabledAt"
+  >[];
 
   /** Called when the selection is confirmed. Return false to prevent persisting the group change. */
   onChangeGroup?: (groupId: string) => void | boolean;
