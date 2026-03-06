@@ -99,8 +99,7 @@ export default function UnresolvedFraudEventsSummary({
               {displayedGroups.map((group, index) => {
                 const isLastDisplayedItem =
                   index === displayedGroups.length - 1;
-                const shouldShowBottomBorder =
-                  !isLastDisplayedItem || hiddenCount === 0;
+                const shouldShowBottomBorder = !isLastDisplayedItem;
                 return (
                   <Row
                     key={group.id}
