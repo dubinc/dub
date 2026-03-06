@@ -7,7 +7,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 // Called by the docs GitHub Action when a .mdx file changes.
 //
 // Auth: Authorization: Bearer <EMBEDDING_SYNC_SECRET>
-// Body: { url: string; sleep?: number }
+// Body: { url: string; delay?: number }
 export const POST = async (req: Request) => {
   const authHeader = req.headers.get("Authorization");
   const secret = process.env.EMBEDDING_SYNC_SECRET;
@@ -17,9 +17,9 @@ export const POST = async (req: Request) => {
   }
 
   let url: string;
-  let sleep: number | undefined;
+  let delay: number | undefined;
   try {
-    ({ url, sleep } = await req.json());
+    ({ url, delay } = await req.json());
   } catch {
     return new Response("Invalid JSON body", { status: 400 });
   }
@@ -28,8 +28,8 @@ export const POST = async (req: Request) => {
     return new Response("Missing or invalid `url` field", { status: 400 });
   }
 
-  if (sleep !== undefined && (typeof sleep !== "number" || sleep <= 0)) {
-    return new Response("`sleep` must be a positive number (seconds)", {
+  if (delay !== undefined && (typeof delay !== "number" || delay <= 0)) {
+    return new Response("`delay` must be a positive number (seconds)", {
       status: 400,
     });
   }
@@ -55,19 +55,19 @@ export const POST = async (req: Request) => {
 
   const normalizedUrl = parsedUrl.toString();
 
-  if (sleep !== undefined) {
+  if (delay !== undefined) {
     const response = await qstash.publishJSON({
+      delay,
       url: `${APP_DOMAIN_WITH_NGROK}/api/ai/sync-embeddings`,
       method: "POST",
-      delay: sleep,
       headers: { Authorization: `Bearer ${secret}` },
       body: { url: normalizedUrl },
     });
 
     return Response.json({
+      delay,
       scheduled: true,
       url: normalizedUrl,
-      delay: sleep,
       messageId: response.messageId,
     });
   }
