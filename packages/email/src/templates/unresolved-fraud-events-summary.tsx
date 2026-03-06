@@ -32,7 +32,7 @@ export default function UnresolvedFraudEventsSummary({
       count: 2,
       partner: {
         name: "Lauren Anderson",
-        image: `${OG_AVATAR_URL}/Lauren Anderson`,
+        image: `${OG_AVATAR_URL}Lauren Anderson`,
       },
     },
     {
@@ -41,7 +41,7 @@ export default function UnresolvedFraudEventsSummary({
       count: 1,
       partner: {
         name: "Charlie Anderson",
-        image: `${OG_AVATAR_URL}/Charlie Anderson`,
+        image: `${OG_AVATAR_URL}Charlie Anderson`,
       },
     },
   ],
@@ -113,7 +113,7 @@ export default function UnresolvedFraudEventsSummary({
                             <Img
                               src={
                                 group.partner.image ||
-                                `${OG_AVATAR_URL}/${group.partner.name}`
+                                `${OG_AVATAR_URL}${group.partner.name}`
                               }
                               width={32}
                               height={32}
