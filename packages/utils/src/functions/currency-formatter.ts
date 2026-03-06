@@ -1,5 +1,5 @@
-import { toCentsNumber } from "./cents";
 import { isZeroDecimalCurrency } from "./currency-zero-decimal";
+import { toCentsNumber } from "./to-cents-number";
 
 interface CurrencyFormatterOptions extends Intl.NumberFormatOptions {
   trailingZeroDisplay?: "auto" | "stripIfInteger";
