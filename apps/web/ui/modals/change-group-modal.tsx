@@ -18,9 +18,11 @@ import { GroupSelector } from "../partners/groups/group-selector";
 type ChangeGroupModalProps = {
   showChangeGroupModal: boolean;
   setShowChangeGroupModal: Dispatch<SetStateAction<boolean>>;
-  partners: Pick<
-    EnrolledPartnerExtendedProps,
-    "id" | "groupId" | "name" | "image" | "email" | "groupMoveDisabledAt"
+  partners: Partial<
+    Pick<
+      EnrolledPartnerExtendedProps,
+      "id" | "groupId" | "name" | "image" | "email" | "groupMoveDisabledAt"
+    >
   >[];
 
   /** Called when the selection is confirmed. Return false to prevent persisting the group change. */
