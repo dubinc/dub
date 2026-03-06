@@ -1,6 +1,6 @@
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -16,8 +16,10 @@ export function PartnerInfoGroup({
   selectedGroupId,
   setSelectedGroupId,
 }: {
-  partner: Pick<EnrolledPartnerProps, "id" | "groupId" | "name" | "image"> &
-    Partial<Pick<EnrolledPartnerProps, "email" | "groupMoveDisabledAt">>;
+  partner: Pick<
+    EnrolledPartnerExtendedProps,
+    "id" | "groupId" | "name" | "image" | "email" | "groupMoveDisabledAt"
+  >;
   changeButtonText?: string;
   hideChangeButton?: boolean;
   className?: string;
