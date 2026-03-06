@@ -18,10 +18,12 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { MarkdownDescription } from "../shared/markdown-description";
 
 type FormData = {
   tenantId: string | null;
   customerDataSharingEnabledAt: Date | null;
+  groupMoveDisabledAt: Date | null;
 };
 
 function PartnerAdvancedSettingsModal({
@@ -33,13 +35,17 @@ function PartnerAdvancedSettingsModal({
   setShowPartnerAdvancedSettingsModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<
     EnrolledPartnerExtendedProps,
-    "id" | "tenantId" | "customerDataSharingEnabledAt"
+    "id" | "tenantId" | "customerDataSharingEnabledAt" | "groupMoveDisabledAt"
   >;
 }) {
   const { id: workspaceId } = useWorkspace();
 
   const [hasCustomerDataSharing, setHasCustomerDataSharing] = useState(
     !!partner.customerDataSharingEnabledAt,
+  );
+
+  const [hasGroupMoveDisabled, setHasGroupMoveDisabled] = useState(
+    !!partner.groupMoveDisabledAt,
   );
 
   const { executeAsync } = useAction(updatePartnerEnrollmentAction, {
@@ -60,12 +66,21 @@ function PartnerAdvancedSettingsModal({
     defaultValues: {
       tenantId: partner.tenantId,
       customerDataSharingEnabledAt: partner.customerDataSharingEnabledAt,
+      groupMoveDisabledAt: partner.groupMoveDisabledAt ?? null,
     },
   });
 
   const handleCustomerDataSharingToggle = (checked: boolean) => {
     setHasCustomerDataSharing(checked);
     setValue("customerDataSharingEnabledAt", checked ? new Date() : null, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  };
+
+  const handleGroupMoveDisabledToggle = (checked: boolean) => {
+    setHasGroupMoveDisabled(checked);
+    setValue("groupMoveDisabledAt", checked ? new Date() : null, {
       shouldDirty: true,
       shouldValidate: true,
     });
@@ -89,6 +104,7 @@ function PartnerAdvancedSettingsModal({
             partnerId: partner.id,
             tenantId: data.tenantId || null,
             customerDataSharingEnabledAt: data.customerDataSharingEnabledAt,
+            groupMoveDisabledAt: data.groupMoveDisabledAt,
           });
 
           if (result?.serverError || result?.validationErrors) {
@@ -133,7 +149,7 @@ function PartnerAdvancedSettingsModal({
 
           {/* Customer Data Sharing */}
           <div className="mt-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-start gap-4">
               <Switch
                 fn={handleCustomerDataSharingToggle}
                 checked={hasCustomerDataSharing}
@@ -141,13 +157,35 @@ function PartnerAdvancedSettingsModal({
                 thumbDimensions="w-3 h-3"
                 thumbTranslate="translate-x-4"
               />
-              <div className="flex flex-col gap-1">
-                <h3 className="text-sm font-medium text-neutral-700">
+              <div className="flex flex-col gap-1.5">
+                <h3 className="text-sm font-medium leading-none text-neutral-700">
                   Enable customer data sharing
                 </h3>
                 <p className="text-xs text-neutral-500">
                   Allow this partner to access customer data and analytics
                 </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <div className="flex items-start gap-4">
+              <Switch
+                fn={handleGroupMoveDisabledToggle}
+                checked={hasGroupMoveDisabled}
+                trackDimensions="w-8 h-4"
+                thumbDimensions="w-3 h-3"
+                thumbTranslate="translate-x-4"
+              />
+              <div className="flex flex-col gap-1.5">
+                <h3 className="text-sm font-medium leading-none text-neutral-700">
+                  Ignore group move rules
+                </h3>
+                <MarkdownDescription className="text-xs text-neutral-500">
+                  When enabled, this partner will remain in their current group
+                  and won't be subject to [group move
+                  rules](https://dub.co/help/article/partner-groups#group-move-rules).
+                </MarkdownDescription>
               </div>
             </div>
           </div>

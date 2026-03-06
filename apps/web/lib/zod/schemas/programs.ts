@@ -147,6 +147,7 @@ export const ProgramEnrollmentSchema = z.object({
     linkStructure: true,
   }).nullish(),
   customerDataSharingEnabledAt: z.date().nullable(),
+  groupMoveDisabledAt: z.date().nullable(),
   referralFormData: referralFormSchema.nullish(),
 });
 

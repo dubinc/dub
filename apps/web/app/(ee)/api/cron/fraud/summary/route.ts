@@ -14,12 +14,15 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-const PROGRAMS_BATCH_SIZE = 5;
+const PROGRAMS_BATCH_SIZE = 10;
 
 const schema = z.object({
   startingAfter: z.string().optional(),
 });
 
+// POST /api/cron/fraud/summary
+// This route sends a daily summary of unresolved fraud events to program owners
+// Runs daily at 4:00 PM UTC
 async function handler(req: Request) {
   try {
     let { startingAfter } = schema.parse({});

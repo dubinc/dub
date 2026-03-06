@@ -58,7 +58,9 @@ export function WorkspaceCombobox({
       placeholder={workspaces === undefined ? "" : "Select workspace"}
       searchPlaceholder="Search workspaces..."
       matchTriggerWidth
-      popoverProps={{ contentClassName: "w-[var(--radix-popover-trigger-width)]" }}
+      popoverProps={{
+        contentClassName: "w-[var(--radix-popover-trigger-width)]",
+      }}
       open={open}
       onOpenChange={setOpen}
       buttonProps={{

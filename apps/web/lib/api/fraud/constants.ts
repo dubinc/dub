@@ -8,7 +8,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "Partner's email matches a customer's email and could be a self referral.",
     scope: "conversionEvent",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "customerEmailSuspiciousDomain",
@@ -16,7 +16,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "Customer's email uses a disposable or temporary domain which could be a fraud attempt.",
     scope: "conversionEvent",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "referralSourceBanned",

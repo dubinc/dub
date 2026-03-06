@@ -53,7 +53,7 @@ export function SupportMessage({
             className={cn(
               "text-sm",
               isUser &&
-              "rounded-2xl rounded-br bg-neutral-900 px-3 py-2 text-white",
+                "rounded-2xl rounded-br bg-neutral-900 px-3 py-2 text-white",
             )}
           >
             {children}

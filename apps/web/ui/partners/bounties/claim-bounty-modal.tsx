@@ -180,11 +180,9 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
 
   // Get max values from bounty submission requirements, fallback to constants
   const imageMax = bounty.submissionRequirements?.image?.max;
-  const maxFiles =
-    imageMax ?? BOUNTY_MAX_SUBMISSION_FILES;
+  const maxFiles = imageMax ?? BOUNTY_MAX_SUBMISSION_FILES;
   const urlMax = bounty.submissionRequirements?.url?.max;
-  const maxUrls =
-    urlMax ?? BOUNTY_MAX_SUBMISSION_URLS;
+  const maxUrls = urlMax ?? BOUNTY_MAX_SUBMISSION_URLS;
   const formatRequirementText = (max?: number | null) =>
     max != null && max > 1 ? ` (1 required, max of ${max})` : " (1 required)";
 

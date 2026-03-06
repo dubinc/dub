@@ -1,6 +1,5 @@
 import { prisma } from "@dub/prisma";
 import { getPlanAndTierFromPriceId } from "@dub/utils";
-import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
 import { updateWorkspacePlan } from "./utils/update-workspace-plan";
@@ -12,10 +11,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const { plan } = getPlanAndTierFromPriceId({ priceId });
 
   if (!plan) {
-    console.log(
-      `Invalid price ID in customer.subscription.updated event: ${priceId}`,
-    );
-    return;
+    return `Invalid price ID in customer.subscription.updated event: ${priceId}`;
   }
 
   const stripeId = subscriptionUpdated.customer.toString();
@@ -57,12 +53,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   });
 
   if (!workspace) {
-    console.log(
-      "Workspace with Stripe ID *`" +
-        stripeId +
-        "`* not found in Stripe webhook `customer.subscription.updated` callback",
-    );
-    return NextResponse.json({ received: true });
+    return `Workspace with Stripe ID ${stripeId} not found in customer.subscription.updated callback.`;
   }
 
   await updateWorkspacePlan({
@@ -82,5 +73,8 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
       owners,
       reason: cancelReason,
     });
+    return `Updated workspace ${workspace.id} plan; cancellation at period end requested.`;
   }
+
+  return `Updated workspace ${workspace.id} plan to ${plan.name}.`;
 }

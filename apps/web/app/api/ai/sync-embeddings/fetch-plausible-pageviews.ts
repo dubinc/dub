@@ -22,10 +22,13 @@ export async function fetchPlausiblePageviews(): Promise<Map<string, number>> {
         date_range: "12mo",
         dimensions: ["event:page"],
         filters: [
-          ["or", [
-            ["contains", "event:page", ["/docs"]],
-            ["contains", "event:page", ["/help"]],
-          ]],
+          [
+            "or",
+            [
+              ["contains", "event:page", ["/docs"]],
+              ["contains", "event:page", ["/help"]],
+            ],
+          ],
         ],
       }),
     });
