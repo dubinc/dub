@@ -20,14 +20,6 @@ const STARTER_QUESTIONS: Record<SupportChatContext, string[]> = {
     "How do I track my referral clicks?",
     "How do I update my partner profile?",
   ],
-  docs: [
-    "How do I install the Dub SDK?",
-    "How do webhooks work?",
-    "How do I track conversions?",
-    "What are the API rate limits?",
-    "How do I authenticate with the API?",
-    "How do I shorten links programmatically?",
-  ],
 };
 
 export function StarterQuestions({

@@ -14,6 +14,8 @@ import useSWR from "swr";
 export const CONFIGURABLE_RULE_TYPES = [
   "referralSourceBanned",
   "paidTrafficDetected",
+  "customerEmailMatch",
+  "customerEmailSuspiciousDomain",
 ] as const;
 
 export type ConfigurableRuleType = (typeof CONFIGURABLE_RULE_TYPES)[number];
@@ -29,6 +31,14 @@ const RULE_DETAILS: Record<
   paidTrafficDetected: {
     title: "Paid traffic",
     description: "Flag paid advertising traffic",
+  },
+  customerEmailMatch: {
+    title: "Matching customer email",
+    description: "Flag when a partner's email matches a customer's email",
+  },
+  customerEmailSuspiciousDomain: {
+    title: "Suspicious customer email domain",
+    description: "Flag customers using disposable or temporary email domains",
   },
 };
 
@@ -200,12 +210,22 @@ export function getRulesBeingDisabled({
     paidTrafficDetected:
       previousFraudRules?.find((r) => r.type === "paidTrafficDetected")
         ?.enabled ?? false,
+    customerEmailMatch:
+      previousFraudRules?.find((r) => r.type === "customerEmailMatch")
+        ?.enabled ?? false,
+    customerEmailSuspiciousDomain:
+      previousFraudRules?.find(
+        (r) => r.type === "customerEmailSuspiciousDomain",
+      )?.enabled ?? false,
   };
 
   // Build "next" map from form
   const next: Record<ConfigurableRuleType, boolean> = {
     referralSourceBanned: nextFraudRules.referralSourceBanned?.enabled ?? false,
     paidTrafficDetected: nextFraudRules.paidTrafficDetected?.enabled ?? false,
+    customerEmailMatch: nextFraudRules.customerEmailMatch?.enabled ?? false,
+    customerEmailSuspiciousDomain:
+      nextFraudRules.customerEmailSuspiciousDomain?.enabled ?? false,
   };
 
   // Detect rule disable transitions

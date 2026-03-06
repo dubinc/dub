@@ -204,7 +204,10 @@ export default function UnresolvedFraudEventsSummary({
               </Link>
             </Section>
 
-            <Footer email={email} />
+            <Footer
+              email={email}
+              notificationSettingsUrl={`https://app.dub.co/${workspace.slug}/settings/notifications`}
+            />
           </Container>
         </Body>
       </Tailwind>

@@ -67,7 +67,9 @@ export function ProgramCombobox({
       placeholder={isReady ? "Select program" : ""}
       searchPlaceholder="Search programs..."
       matchTriggerWidth
-      popoverProps={{ contentClassName: "w-[var(--radix-popover-trigger-width)]" }}
+      popoverProps={{
+        contentClassName: "w-[var(--radix-popover-trigger-width)]",
+      }}
       open={open}
       onOpenChange={setOpen}
       buttonProps={{

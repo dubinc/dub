@@ -26,7 +26,7 @@ export function useCountryChangeWarningModal() {
       setShowModal={setShowModalState}
       onClose={handleCancel}
     >
-      <div className="border-border-subtle bg-white border-b p-5 text-left">
+      <div className="border-border-subtle border-b bg-white p-5 text-left">
         <h3 className="text-content-emphasis text-base font-semibold">
           Updating your country
         </h3>
@@ -34,9 +34,9 @@ export function useCountryChangeWarningModal() {
 
       <div className="text-content-subtle bg-neutral-50 p-5 text-sm">
         <p>
-          You must select the country where you legally reside for tax
-          purposes. Providing incorrect information may result in account
-          suspension, loss of payouts, and legal action.
+          You must select the country where you legally reside for tax purposes.
+          Providing incorrect information may result in account suspension, loss
+          of payouts, and legal action.
         </p>
         <p className="mt-4">
           Dub is not responsible for legal or tax consequences resulting from
@@ -44,7 +44,7 @@ export function useCountryChangeWarningModal() {
         </p>
       </div>
 
-      <div className="border-border-subtle bg-neutral-50 flex items-center justify-end gap-2 border-t px-5 py-4">
+      <div className="border-border-subtle flex items-center justify-end gap-2 border-t bg-neutral-50 px-5 py-4">
         <Button
           variant="secondary"
           className="h-8 w-fit px-3"
@@ -66,13 +66,10 @@ export function useCountryChangeWarningModal() {
     setShowModalState(true);
   }, []);
 
-  const acknowledgeAndContinue = useCallback(
-    (callback?: () => void) => {
-      onAcknowledgeRef.current = callback ?? null;
-      setShowModalState(true);
-    },
-    [],
-  );
+  const acknowledgeAndContinue = useCallback((callback?: () => void) => {
+    onAcknowledgeRef.current = callback ?? null;
+    setShowModalState(true);
+  }, []);
 
   return {
     modal,

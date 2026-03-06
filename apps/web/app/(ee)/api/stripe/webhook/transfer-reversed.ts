@@ -17,7 +17,9 @@ export async function transferReversed(event: Stripe.Event) {
   const updatedPayouts = await prisma.payout.updateMany({
     where: {
       stripeTransferId: stripeTransfer.id,
-      status: "sent",
+      status: {
+        in: ["sent", "failed"],
+      },
     },
     data: {
       status: "processed",
