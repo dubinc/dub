@@ -90,8 +90,12 @@ export function ProgramAnalyticsPageClient() {
   });
 
   return (
-    <div className="flex flex-col gap-3 pb-12">
-      <div>
+    <div className="flex flex-col pb-12">
+      <div
+        className={cn(
+          streaming || activeFilters.length ? "pb-0" : "pb-3 lg:pb-6",
+        )}
+      >
         <div className="flex items-center gap-2">
           <Filter.Select
             className="w-full md:w-fit"
@@ -120,12 +124,7 @@ export function ProgramAnalyticsPageClient() {
           </div>
         </div>
         <div>
-          <div
-            className={cn(
-              "transition-[height] duration-[300ms]",
-              streaming || activeFilters.length ? "h-3" : "h-0",
-            )}
-          />
+          <div className={cn(streaming || activeFilters.length ? "pt-2" : "pt-0")} />
           <Filter.List
             filters={filters}
             activeFilters={activeFiltersWithStreaming}
@@ -135,6 +134,12 @@ export function ProgramAnalyticsPageClient() {
             onRemoveAll={onRemoveAll}
             onToggleOperator={onToggleOperator}
             isAdvancedFilter
+          />
+          <div
+            className={cn(
+              "transition-[height] duration-[300ms]",
+              streaming || activeFilters.length ? "h-3 lg:h-6" : "h-0",
+            )}
           />
         </div>
       </div>

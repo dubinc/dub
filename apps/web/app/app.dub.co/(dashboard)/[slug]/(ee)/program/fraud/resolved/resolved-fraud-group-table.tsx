@@ -258,7 +258,11 @@ export function ResolvedFraudGroupTable() {
           }
         />
       )}
-      <div>
+      <div
+        className={cn(
+          activeFilters.length ? "pb-0" : "pb-3 lg:pb-6",
+        )}
+      >
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
             className="w-full md:w-fit"
@@ -273,7 +277,7 @@ export function ResolvedFraudGroupTable() {
         <AnimatedSizeContainer height>
           <div>
             {activeFilters.length > 0 && (
-              <div className="pt-3">
+              <div className="pt-2">
                 <Filter.List
                   filters={filters}
                   activeFilters={activeFilters}
@@ -281,6 +285,7 @@ export function ResolvedFraudGroupTable() {
                   onRemove={onRemove}
                   onRemoveAll={onRemoveAll}
                 />
+                <div className="h-3 lg:h-6" />
               </div>
             )}
           </div>

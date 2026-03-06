@@ -47,7 +47,7 @@ export default function WorkspaceTagsClient() {
   const [openMenuTagId, setOpenMenuTagId] = useState<string | null>(null);
 
   return (
-    <div className="grid grid-cols-1 gap-4 pb-10">
+    <div className="grid grid-cols-1 gap-3 pb-10 lg:gap-6">
       <AddEditTagModal />
       <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:w-auto">
         <SearchBoxPersisted

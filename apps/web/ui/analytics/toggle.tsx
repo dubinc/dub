@@ -169,11 +169,18 @@ export function AnalyticsToggle({
   return (
     <>
       <div
-        className={cn("py-3 md:py-3", isAppPage && "pt-0 md:pt-0", {
+        className={cn(
+          "py-3",
+          isAppPage &&
+            (streaming || activeFilters.length
+              ? "pt-0 pb-0"
+              : "pt-0 pb-3 lg:pb-6"),
+          {
           "sticky top-14 z-10 bg-neutral-50": dashboardProps,
           "sticky top-16 z-10 bg-neutral-50": adminPage,
           "shadow-md": scrolled && dashboardProps,
-        })}
+          },
+        )}
       >
         <div
           className={cn(
@@ -286,20 +293,22 @@ export function AnalyticsToggle({
           isAppPage && "lg:px-6",
         )}
       >
-        <Filter.List
-          filters={filters}
-          activeFilters={activeFiltersWithStreaming}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          onRemoveFilter={onRemoveFilter}
-          onRemoveAll={onRemoveAll}
-          onToggleOperator={onToggleOperator}
-          isAdvancedFilter
-        />
+        <div className={cn(streaming || activeFilters.length ? "pt-2" : "pt-0")}>
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFiltersWithStreaming}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
+            onRemoveAll={onRemoveAll}
+            onToggleOperator={onToggleOperator}
+            isAdvancedFilter
+          />
+        </div>
         <div
           className={cn(
             "transition-[height] duration-[300ms]",
-            streaming || activeFilters.length ? "h-3" : "h-0",
+            streaming || activeFilters.length ? "h-3 lg:h-6" : "h-0",
           )}
         />
       </div>

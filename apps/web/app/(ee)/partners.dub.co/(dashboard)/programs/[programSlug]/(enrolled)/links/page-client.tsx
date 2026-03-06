@@ -86,7 +86,7 @@ export function ProgramLinksPageClient() {
     !showDetailedAnalytics || displayOption === "cards";
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3 lg:gap-5">
       <PartnerLinkModal />
       <div className="flex items-center justify-between">
         <SimpleDateRangePicker
