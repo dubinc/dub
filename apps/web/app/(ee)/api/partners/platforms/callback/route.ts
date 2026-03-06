@@ -151,8 +151,9 @@ export async function GET(req: Request) {
 
   let socialStats: Pick<
     PartnerPlatform,
-    "subscribers" | "posts" | "views" | "avatarUrl"
+    "platformId" | "subscribers" | "posts" | "views" | "avatarUrl"
   > = {
+    platformId: null,
     subscribers: BigInt(0),
     posts: BigInt(0),
     views: BigInt(0),
@@ -167,6 +168,7 @@ export async function GET(req: Request) {
       });
 
       socialStats = {
+        platformId: socialProfile.platformId,
         subscribers: socialProfile.subscribers,
         posts: socialProfile.posts,
         views: socialProfile.views,
@@ -190,6 +192,7 @@ export async function GET(req: Request) {
     data: {
       verifiedAt: new Date(),
       ...(metadata && { metadata }),
+      ...(socialStats.platformId && { platformId: socialStats.platformId }),
       subscribers: socialStats.subscribers,
       posts: socialStats.posts,
       views: socialStats.views,
