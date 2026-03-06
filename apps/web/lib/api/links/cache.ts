@@ -92,6 +92,7 @@ class LinkCache {
 
     if (cachedLink) {
       console.log(`[Vercel Cache HIT] ${cacheKey}`);
+      linkLRUCache.set(cacheKey, cachedLink);
       return cachedLink;
     }
 
@@ -108,7 +109,7 @@ class LinkCache {
         linkLRUCache.set(cacheKey, cachedLink);
         waitUntil(
           vercelCache.set(cacheKey, cachedLink, {
-            ttl: 15, // cache for 15 seconds
+            ttl: 5, // cache for 5 seconds
           }),
         );
       } else {
