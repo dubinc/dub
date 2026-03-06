@@ -72,6 +72,7 @@ export default function UnresolvedFraudEventsSummary({
 
   const displayedGroups = fraudGroups.slice(0, MAX_DISPLAYED_GROUPS);
   const remainingCount = fraudGroups.length - MAX_DISPLAYED_GROUPS;
+  const hiddenCount = Math.max(0, remainingCount);
 
   return (
     <Html>
@@ -99,7 +100,7 @@ export default function UnresolvedFraudEventsSummary({
                 const isLastDisplayedItem =
                   index === displayedGroups.length - 1;
                 const shouldShowBottomBorder =
-                  !isLastDisplayedItem || remainingCount === 0;
+                  !isLastDisplayedItem || hiddenCount === 0;
                 return (
                   <Row
                     key={group.id}
@@ -153,7 +154,7 @@ export default function UnresolvedFraudEventsSummary({
                 );
               })}
 
-              {remainingCount > 0 && (
+              {hiddenCount > 0 && (
                 <Row className="h-11 rounded-b-xl border-t border-solid border-neutral-200 bg-neutral-50">
                   <Column
                     className="px-4"
@@ -162,7 +163,7 @@ export default function UnresolvedFraudEventsSummary({
                     colSpan={2}
                   >
                     <Text className="m-0 text-sm font-medium text-neutral-600">
-                      Plus {remainingCount} more
+                      Plus {hiddenCount} more
                     </Text>
                   </Column>
                 </Row>
