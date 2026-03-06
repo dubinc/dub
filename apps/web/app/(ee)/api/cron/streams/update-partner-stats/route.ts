@@ -194,11 +194,8 @@ const processPartnerActivityStreamBatch = () =>
           enrollment.leadToConversionRate = totalConversions / totalLeads;
         }
 
-        // Calculate return on AdSpend (totalSaleAmount / totalCommissions)
-        if (
-          totalSaleAmountNum !== undefined &&
-          totalCommissionsNum !== undefined
-        ) {
+        // Calculate return on ad spend (totalSaleAmount / totalCommissions)
+        if (totalSaleAmountNum !== undefined && totalCommissionsNum) {
           enrollment.returnOnAdSpend = totalSaleAmountNum / totalCommissionsNum;
         }
 
@@ -280,7 +277,9 @@ const processPartnerActivityStreamBatch = () =>
           batch.map(async (programEnrollment) => {
             const { programId, partnerId, ...stats } = programEnrollment;
             const finalStatsToUpdate = Object.entries(stats).filter(
-              ([_, value]) => value !== undefined,
+              ([_, value]) =>
+                value !== undefined &&
+                (typeof value !== "number" || Number.isFinite(value)),
             );
 
             try {
