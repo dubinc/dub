@@ -2,7 +2,10 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
-import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/bounty/constants";
+import {
+  BOUNTY_DESCRIPTION_MAX_LENGTH,
+  BOUNTY_MAX_SUBMISSIONS,
+} from "@/lib/bounty/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -241,8 +244,7 @@ export function useAddEditBountyForm({
   };
 
   const maxAllowedSubmissions = useMemo(() => {
-    const schemaMax = 10;
-    if (!submissionFrequency || !endsAt) return schemaMax;
+    if (!submissionFrequency || !endsAt) return BOUNTY_MAX_SUBMISSIONS;
 
     const start = startsAt ? new Date(startsAt) : new Date();
     const end = new Date(endsAt);
@@ -261,11 +263,11 @@ export function useAddEditBountyForm({
         computed = Math.floor(diffDays / 30);
         break;
       default:
-        computed = schemaMax;
+        computed = BOUNTY_MAX_SUBMISSIONS;
     }
 
     // Minimum of 2 when frequency is active since frequency requires allowedSubmissions > 1
-    return Math.min(schemaMax, Math.max(2, computed));
+    return Math.min(BOUNTY_MAX_SUBMISSIONS, Math.max(2, computed));
   }, [submissionFrequency, startsAt, endsAt]);
 
   useEffect(() => {

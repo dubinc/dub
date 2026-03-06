@@ -4,6 +4,7 @@ import {
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
   BOUNTY_MAX_SUBMISSION_URLS,
+  BOUNTY_MAX_SUBMISSIONS,
 } from "@/lib/bounty/constants";
 import {
   BOUNTY_SOCIAL_PLATFORM_METRICS,
@@ -107,7 +108,7 @@ export const createBountySchema = z.object({
     .number()
     .int()
     .min(2, "Total submissions allowed must be at least 2")
-    .max(10)
+    .max(BOUNTY_MAX_SUBMISSIONS)
     .nullish(),
   rewardAmount: z
     .number()

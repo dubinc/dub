@@ -36,7 +36,7 @@ export const getBountyWithDetails = async ({
           WHERE bountyId = b.id
         ),
         JSON_ARRAY()
-      ) AS groups
+      ) AS \`groups\`
 
     FROM Bounty b
     LEFT JOIN Workflow wf ON wf.id = b.workflowId

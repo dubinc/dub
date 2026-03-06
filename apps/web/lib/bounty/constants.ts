@@ -2,6 +2,8 @@ import { BountySubmissionFrequency } from "@dub/prisma/client";
 
 export const BOUNTY_DESCRIPTION_MAX_LENGTH = 5000;
 
+export const BOUNTY_MAX_SUBMISSIONS = 10;
+
 export const BOUNTY_MAX_SUBMISSION_FILES = 4;
 
 export const BOUNTY_DEFAULT_SUBMISSION_URLS = 10;
