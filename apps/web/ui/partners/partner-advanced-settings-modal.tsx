@@ -179,11 +179,11 @@ function PartnerAdvancedSettingsModal({
               />
               <div className="flex flex-col gap-1.5">
                 <h3 className="text-sm font-medium leading-none text-neutral-700">
-                  Disable automatic group moves
+                  Ignore group move rules
                 </h3>
                 <MarkdownDescription className="text-xs text-neutral-500">
-                  When disabled, this partner will not be automatically moved
-                  between groups by [group move
+                  When enabled, this partner will remain in their current group
+                  and won't be subject to [group move
                   rules](https://dub.co/help/article/partner-groups#group-move-rules).
                 </MarkdownDescription>
               </div>
