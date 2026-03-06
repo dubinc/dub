@@ -120,9 +120,10 @@ export const executeCompleteBountyWorkflow = async ({
   // Create or update the submission
   const bountySubmission = await prisma.bountySubmission.upsert({
     where: {
-      bountyId_partnerId: {
+      bountyId_partnerId_periodNumber: {
         bountyId,
         partnerId,
+        periodNumber: 1,
       },
     },
     create: {

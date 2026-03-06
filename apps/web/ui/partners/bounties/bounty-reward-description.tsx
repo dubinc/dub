@@ -1,4 +1,4 @@
-import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
+import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { BountyProps } from "@/lib/types";
 import { Gift } from "@dub/ui";
 import { cn } from "@dub/utils";

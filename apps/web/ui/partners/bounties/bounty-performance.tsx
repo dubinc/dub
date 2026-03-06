@@ -2,102 +2,89 @@ import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import { PartnerBountyProps } from "@/lib/types";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
+import {
+  BountyProgressBarRow,
+  EmphasisNumber,
+} from "./bounty-progress-bar-row";
 
-type PerformanceDisplay = {
-  value: number;
-  target: number;
-  formattedValue: string;
-  formattedTarget: string;
-  metricLabel: string;
-};
-
-function getPerformanceDisplay(
-  bounty: PartnerBountyProps,
-): PerformanceDisplay | null {
+export function PerformanceBountyProgress({
+  bounty,
+}: {
+  bounty: PartnerBountyProps;
+}) {
   const performanceCondition = bounty.performanceCondition;
-  const socialMetrics = bounty.submissionRequirements?.socialMetrics;
 
-  if (performanceCondition) {
-    const attribute = performanceCondition.attribute;
-    const target = performanceCondition.value;
-    const value = bounty.submission?.performanceCount ?? 0;
-    const isCurrency = isCurrencyAttribute(attribute);
-
-    return {
-      value,
-      target,
-      formattedValue:
-        value === undefined
-          ? "-"
-          : isCurrency
-            ? currencyFormatter(value, {
-                trailingZeroDisplay: "stripIfInteger",
-              })
-            : nFormatter(value, { full: true }),
-      formattedTarget: isCurrency
-        ? currencyFormatter(target, { trailingZeroDisplay: "stripIfInteger" })
-        : nFormatter(target, { full: true }),
-      metricLabel:
-        PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[
-          performanceCondition.attribute
-        ].toLowerCase(),
-    };
-  }
-
-  if (socialMetrics?.metric && socialMetrics.minCount != null) {
-    const target = socialMetrics.minCount;
-    const value = bounty.submission?.socialMetricCount ?? 0;
-
-    return {
-      value,
-      target,
-      formattedValue: nFormatter(value, { full: true }),
-      formattedTarget: nFormatter(target, { full: true }),
-      metricLabel: socialMetrics.metric.toLowerCase(),
-    };
-  }
-
-  return null;
-}
-
-export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
-  const display = getPerformanceDisplay(bounty);
-
-  if (!display) {
+  if (!performanceCondition) {
     return null;
   }
 
-  const { value, target, formattedValue, formattedTarget, metricLabel } =
-    display;
-  const expiredBounty =
-    bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
+  const { attribute } = performanceCondition;
+
+  // Current value
+  const value = bounty.submissions?.[0]?.performanceCount ?? 0;
+  const formattedValue = isCurrencyAttribute(attribute)
+    ? currencyFormatter(value, { trailingZeroDisplay: "stripIfInteger" })
+    : nFormatter(value, { full: true });
+
+  // Target value
+  const target = performanceCondition.value;
+  const formattedTarget = isCurrencyAttribute(attribute)
+    ? currencyFormatter(target, { trailingZeroDisplay: "stripIfInteger" })
+    : nFormatter(target, { full: true });
+
+  const metricLabel =
+    PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[attribute].toLowerCase();
+
+  const percent =
+    target > 0 ? Math.min(Math.max(value / target, 0), 1) * 100 : 0;
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="h-1.5 w-full overflow-hidden rounded-full bg-neutral-200">
-        {value > 0 && target > 0 && (
-          <div
-            style={{
-              width: Math.min(Math.max(value / target, 0), 1) * 100 + "%",
-            }}
-            className={cn(
-              "h-full rounded-full bg-orange-600",
-              expiredBounty && "bg-neutral-400",
-            )}
-          />
-        )}
-      </div>
-      <span className="text-content-default text-xs font-medium">
-        <strong className="text-content-emphasis font-semibold">
-          {formattedValue}
-        </strong>{" "}
-        of{" "}
-        <strong className="text-content-emphasis font-semibold">
-          {formattedTarget}
-        </strong>{" "}
-        {metricLabel}
-        {bounty.type === "performance" ? " generated" : ""}
-      </span>
+    <BountyProgressBarRow progress={percent}>
+      <EmphasisNumber>{formattedValue}</EmphasisNumber> of{" "}
+      <EmphasisNumber>{formattedTarget}</EmphasisNumber> {metricLabel} generated
+    </BountyProgressBarRow>
+  );
+}
+
+export function SubmissionBountyProgress({
+  bounty,
+  labelClassName,
+  wrapperClassName,
+  className,
+}: {
+  bounty: PartnerBountyProps;
+  labelClassName?: string;
+  wrapperClassName?: string;
+  className?: string;
+}) {
+  const submittedCount = bounty.submissions.filter(
+    ({ status }) => status !== "draft",
+  ).length;
+
+  const approvedCount = bounty.submissions.filter(
+    ({ status }) => status === "approved",
+  ).length;
+
+  const submittedPercent = (submittedCount / bounty.maxSubmissions) * 100;
+  const approvedPercent = (approvedCount / bounty.maxSubmissions) * 100;
+
+  return (
+    <div className={cn("flex gap-4", className)}>
+      <BountyProgressBarRow
+        progress={submittedPercent}
+        labelClassName={labelClassName}
+        wrapperClassName={wrapperClassName}
+      >
+        <EmphasisNumber>{submittedCount}</EmphasisNumber> of{" "}
+        <EmphasisNumber>{bounty.maxSubmissions}</EmphasisNumber> submitted
+      </BountyProgressBarRow>
+      <BountyProgressBarRow
+        progress={approvedPercent}
+        labelClassName={labelClassName}
+        wrapperClassName={wrapperClassName}
+      >
+        <EmphasisNumber>{approvedCount}</EmphasisNumber> approved
+      </BountyProgressBarRow>
     </div>
   );
 }

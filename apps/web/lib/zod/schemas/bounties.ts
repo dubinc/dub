@@ -4,9 +4,11 @@ import {
   BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
   BOUNTY_MAX_SUBMISSION_URLS,
+} from "@/lib/bounty/constants";
+import {
   BOUNTY_SOCIAL_PLATFORM_METRICS,
   BOUNTY_SOCIAL_PLATFORM_VALUES,
-} from "@/lib/bounty/constants";
+} from "@/lib/bounty/social-content";
 import {
   BountyPerformanceScope,
   BountySubmissionFrequency,
@@ -148,8 +150,8 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   submissionsOpenAt: z.date().nullable(),
-  // submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
-  // maxSubmissions: z.number().nullable(),
+  submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
+  maxSubmissions: z.number(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
   performanceCondition: bountyPerformanceConditionSchema
@@ -227,6 +229,9 @@ export const BountySubmissionSchema = z.object({
     .string()
     .nullable()
     .meta({ description: "The note for rejecting the submission" }),
+  periodNumber: z.number().int().min(1).meta({
+    description: "The period number for this submission (1-indexed)",
+  }),
 });
 
 export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
@@ -330,4 +335,12 @@ export const createBountySubmissionInputSchema = z.object({
     .boolean()
     .default(false)
     .describe("Whether to create a draft submission or a final submission."),
+  periodNumber: z
+    .number()
+    .int()
+    .min(1)
+    .optional()
+    .describe(
+      "The period number to submit for. Required for multi-submission bounties.",
+    ),
 });
