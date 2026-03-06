@@ -18,6 +18,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { MarkdownDescription } from "../shared/markdown-description";
 
 type FormData = {
   tenantId: string | null;
@@ -178,12 +179,13 @@ function PartnerAdvancedSettingsModal({
               />
               <div className="flex flex-col gap-1.5">
                 <h3 className="text-sm font-medium leading-none text-neutral-700">
-                  Disable future group move rules for partner
+                  Disable automatic group moves
                 </h3>
-                <p className="text-xs text-neutral-500">
-                  Prevent this partner from being automatically moved between
-                  groups
-                </p>
+                <MarkdownDescription className="text-xs text-neutral-500">
+                  When disabled, this partner will not be automatically moved
+                  between groups by [group move
+                  rules](https://dub.co/help/article/partner-groups#group-move-rules).
+                </MarkdownDescription>
               </div>
             </div>
           </div>

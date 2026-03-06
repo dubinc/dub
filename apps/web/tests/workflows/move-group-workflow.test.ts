@@ -2,7 +2,7 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerGroup } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
-import { E2E_GROUP_MOVE_DISABLED_PARTNER } from "tests/utils/resource";
+import { E2E_PARTNER } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { randomEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
@@ -493,10 +493,10 @@ describe.sequential("Workflow - MoveGroup", async () => {
   test("Workflow skips partner with groupMoveDisabledAt set", async () => {
     const slug = "e2e-target-skip-partner-move";
 
-    // Get the current group of E2E_GROUP_MOVE_DISABLED_PARTNER
+    // Get the current group of E2E_PARTNER
     const { data: partner, status: partnerStatus } =
       await http.get<EnrolledPartnerProps>({
-        path: `/partners/${E2E_GROUP_MOVE_DISABLED_PARTNER.id}`,
+        path: `/partners/${E2E_PARTNER.id}`,
       });
 
     expect(partnerStatus).toEqual(200);
@@ -530,8 +530,8 @@ describe.sequential("Workflow - MoveGroup", async () => {
         moveRules: [
           {
             attribute: "totalLeads",
-            operator: "between",
-            value: { min: 1, max: 2 },
+            operator: "gte",
+            value: 1000,
           },
         ],
       },

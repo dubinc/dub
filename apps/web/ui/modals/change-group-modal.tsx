@@ -2,8 +2,8 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Button, Modal, Switch } from "@dub/ui";
-import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
+import { Button, InfoTooltip, Modal, Switch } from "@dub/ui";
+import { cn, OG_AVATAR_URL } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -143,30 +143,23 @@ function ChangeGroupModal({
           </div>
         </div>
 
-        <div className="flex items-start gap-4">
-          <Switch
-            fn={setGroupMoveDisabled}
-            checked={groupMoveDisabled}
-            disabled={!isSinglePartner}
-            disabledTooltip={
-              !isSinglePartner
-                ? "Not available for bulk group changes"
-                : undefined
-            }
-            trackDimensions="w-8 h-4"
-            thumbDimensions="w-3 h-3"
-            thumbTranslate="translate-x-4"
-          />
-          <h3
-            className={cn(
-              "text-sm font-medium leading-none",
-              isSinglePartner ? "text-neutral-700" : "text-neutral-400",
-            )}
-          >
-            Disable future group move rules for{" "}
-            {pluralize("partner", partners.length)}
-          </h3>
-        </div>
+        {isSinglePartner && (
+          <div className="flex items-center gap-3">
+            <Switch
+              fn={setGroupMoveDisabled}
+              checked={groupMoveDisabled}
+              trackDimensions="w-8 h-4"
+              thumbDimensions="w-3 h-3"
+              thumbTranslate="translate-x-4"
+            />
+            <div className="flex gap-1.5">
+              <h3 className="text-sm font-medium leading-none text-neutral-700">
+                Disable automatic group moves
+              </h3>
+              <InfoTooltip content="When disabled, this partner will not be automatically moved between groups by [group move rules](https://dub.co/help/article/partner-groups#group-move-rules)." />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center justify-end gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
