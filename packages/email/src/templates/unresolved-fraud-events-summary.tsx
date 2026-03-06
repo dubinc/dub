@@ -110,14 +110,14 @@ export default function UnresolvedFraudEventsSummary({
                     <Column className="px-3 py-3" valign="middle">
                       <Row>
                         <Column width="32" valign="middle">
-                          <Img
-                            src={
-                              group.partner.image ||
-                              `${OG_AVATAR_URL}${group.partner.name}`
-                            }
-                            width={32}
-                            height={32}
-                            alt={group.partner.name}
+                            <Img
+                              src={
+                                group.partner.image ||
+                                `${OG_AVATAR_URL}/${group.partner.name}`
+                              }
+                              width={32}
+                              height={32}
+                              alt={group.partner.name}
                             className="rounded-full"
                           />
                         </Column>
@@ -128,13 +128,13 @@ export default function UnresolvedFraudEventsSummary({
                           </Text>
 
                           <div className="mt-0">
-                            <Text className="m-0 inline text-xs font-medium text-neutral-500">
+                            <span className="m-0 inline text-xs font-medium text-neutral-500">
                               {group.name}
-                            </Text>
+                            </span>
                             {group.count > 1 && (
-                              <Text className="m-0 ml-1 inline rounded-md bg-neutral-100 px-1 py-0 text-xs font-semibold text-neutral-700">
+                              <span className="m-0 ml-1 inline rounded-md bg-neutral-100 px-1 py-0 text-xs font-semibold text-neutral-700">
                                 {group.count}
-                              </Text>
+                              </span>
                             )}
                           </div>
                         </Column>
