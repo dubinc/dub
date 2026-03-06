@@ -146,7 +146,9 @@ export const POST = withCron(async ({ rawBody }) => {
   const result = await prisma.partnerEngagement.aggregate({
     where: {
       partnerPlatformId,
-      date: { gte: thirtyDaysAgo },
+      date: {
+        gte: thirtyDaysAgo,
+      },
     },
     _avg: {
       engagementRate: true,
