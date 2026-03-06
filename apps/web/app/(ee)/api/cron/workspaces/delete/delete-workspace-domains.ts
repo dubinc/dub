@@ -26,19 +26,21 @@ export async function deleteWorkspaceDomains(payload: DeleteWorkspacePayload) {
     take: MAX_DOMAINS_PER_BATCH,
   });
 
+  // Delete registered domains
+  const deletedRegisteredDomains = await prisma.registeredDomain.deleteMany({
+    where: {
+      projectId: workspaceId,
+    },
+  });
+
+  if (deletedRegisteredDomains.count > 0) {
+    console.log(
+      `Deleted ${deletedRegisteredDomains.count} registered domains for workspace ${workspaceId}.`,
+    );
+  }
+
+  // Delete other domains
   if (domains.length > 0) {
-    const deletedRegisteredDomains = await prisma.registeredDomain.deleteMany({
-      where: {
-        projectId: workspaceId,
-      },
-    });
-
-    if (deletedRegisteredDomains.count > 0) {
-      console.log(
-        `Deleted ${deletedRegisteredDomains.count} registered domains for workspace ${workspaceId}.`,
-      );
-    }
-
     const deletedDomains = await prisma.domain.deleteMany({
       where: {
         id: {
