@@ -129,6 +129,7 @@ model ProgramEnrollment {
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
   customerDataSharingEnabledAt DateTime?
+  groupMoveDisabledAt          DateTime?
   bannedAt                     DateTime?
   bannedReason                 PartnerBannedReason?
 

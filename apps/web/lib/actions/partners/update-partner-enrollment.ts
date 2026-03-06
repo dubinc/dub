@@ -18,6 +18,7 @@ const updatePartnerEnrollmentSchema = z.object({
   partnerId: z.string(),
   tenantId: z.string().nullable(),
   customerDataSharingEnabledAt: z.coerce.date().nullable(),
+  groupMoveDisabledAt: z.coerce.date().nullable(),
 });
 
 // Update a partner's program enrollment data
@@ -25,7 +26,12 @@ export const updatePartnerEnrollmentAction = authActionClient
   .inputSchema(updatePartnerEnrollmentSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, tenantId, customerDataSharingEnabledAt } = parsedInput;
+    const {
+      partnerId,
+      tenantId,
+      customerDataSharingEnabledAt,
+      groupMoveDisabledAt,
+    } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -70,10 +76,14 @@ export const updatePartnerEnrollmentAction = authActionClient
         data: {
           tenantId,
           customerDataSharingEnabledAt,
+          groupMoveDisabledAt,
         },
         include: {
           links: {
-            include: { ...includeTags, ...includeProgramEnrollment },
+            include: {
+              ...includeTags,
+              ...includeProgramEnrollment,
+            },
           },
         },
       });
