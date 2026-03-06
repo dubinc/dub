@@ -165,8 +165,8 @@ importers:
         specifier: ^0.4.1
         version: 0.4.1
       '@vercel/functions':
-        specifier: ^1.4.2
-        version: 1.4.2(@aws-sdk/credential-provider-web-identity@3.817.0)
+        specifier: ^3.4.3
+        version: 3.4.3(@aws-sdk/credential-provider-web-identity@3.817.0)
       '@vercel/og':
         specifier: ^0.6.5
         version: 0.6.5
@@ -6057,9 +6057,9 @@ packages:
     engines: {node: '>=14.6'}
     deprecated: This version is no longer supported. Please upgrade to the latest version.
 
-  '@vercel/functions@1.4.2':
-    resolution: {integrity: sha512-WLY3g6NT1SVJDAoAqz5pJfJ8uyOmEejZkatZn0q57Dn6qXNrh/pjbeffolQy9npWRYJPcfwjgqw8tUqolTEyuw==}
-    engines: {node: '>= 16'}
+  '@vercel/functions@3.4.3':
+    resolution: {integrity: sha512-kA14KIUVgAY6VXbhZ5jjY+s0883cV3cZqIU3WhrSRxuJ9KvxatMjtmzl0K23HK59oOUjYl7HaE/eYMmhmqpZzw==}
+    engines: {node: '>= 20'}
     peerDependencies:
       '@aws-sdk/credential-provider-web-identity': '*'
     peerDependenciesMeta:
@@ -6072,6 +6072,10 @@ packages:
 
   '@vercel/oidc@3.0.5':
     resolution: {integrity: sha512-fnYhv671l+eTTp48gB4zEsTW/YtRgRPnkI2nT7x6qw5rkI1Lq2hTmQIpHPgyThI0znLK+vX2n9XxKdXZ7BUbbw==}
+    engines: {node: '>= 20'}
+
+  '@vercel/oidc@3.2.0':
+    resolution: {integrity: sha512-UycprH3T6n3jH0k44NHMa7pnFHGu/N05MjojYr+Mc6I7obkoLIJujSWwin1pCvdy/eOxrI/l3uDLQsmcrOb4ug==}
     engines: {node: '>= 20'}
 
   '@visx/axis@2.14.0':
@@ -19772,7 +19776,9 @@ snapshots:
     dependencies:
       '@vercel/edge-config-fs': 0.1.0
 
-  '@vercel/functions@1.4.2(@aws-sdk/credential-provider-web-identity@3.817.0)':
+  '@vercel/functions@3.4.3(@aws-sdk/credential-provider-web-identity@3.817.0)':
+    dependencies:
+      '@vercel/oidc': 3.2.0
     optionalDependencies:
       '@aws-sdk/credential-provider-web-identity': 3.817.0
 
@@ -19783,6 +19789,8 @@ snapshots:
       yoga-wasm-web: 0.3.3
 
   '@vercel/oidc@3.0.5': {}
+
+  '@vercel/oidc@3.2.0': {}
 
   '@visx/axis@2.14.0(react@19.1.3)':
     dependencies:
