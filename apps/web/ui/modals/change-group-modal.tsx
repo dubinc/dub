@@ -1,3 +1,4 @@
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -35,22 +36,28 @@ function ChangeGroupModal({
   partners,
   onChangeGroup,
 }: ChangeGroupModalProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+
+  const { canUseGroupMoveRule } = getPlanCapabilities(plan);
   const [groupMoveDisabled, setGroupMoveDisabled] = useState(
-    partners.length === 1 ? !!partners[0].groupMoveDisabledAt : false,
+    partners.length === 1 && canUseGroupMoveRule
+      ? !!partners[0].groupMoveDisabledAt
+      : false,
   );
 
   // Sync state from the DB value whenever the modal opens or partners change
   useEffect(() => {
     if (partners.length === 1) {
       setSelectedGroupId(partners[0].groupId ?? null);
-      setGroupMoveDisabled(!!partners[0].groupMoveDisabledAt);
+      if (canUseGroupMoveRule) {
+        setGroupMoveDisabled(!!partners[0].groupMoveDisabledAt);
+      }
     } else {
       setGroupMoveDisabled(false);
     }
-  }, [showChangeGroupModal, partners]);
+  }, [showChangeGroupModal, partners, canUseGroupMoveRule]);
 
   const { makeRequest: changeGroup, isSubmitting } = useApiMutation();
 
@@ -147,7 +154,7 @@ function ChangeGroupModal({
           </div>
         </div>
 
-        {isSinglePartner && (
+        {isSinglePartner && canUseGroupMoveRule && (
           <div className="flex items-center gap-3">
             <Switch
               fn={setGroupMoveDisabled}
