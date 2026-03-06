@@ -37,31 +37,34 @@ async function main() {
       break;
     }
 
-    const results = await Promise.allSettled(
-      partnerPlatforms.map(async (pp) => {
-        const socialProfile = await getSocialProfile({
-          platform: "twitter",
-          handle: pp.identifier,
-        });
+    const promises = partnerPlatforms.map(async (pp) => {
+      const socialProfile = await getSocialProfile({
+        platform: "twitter",
+        handle: pp.identifier,
+      });
 
-        if (!socialProfile.platformId) {
-          console.warn(
-            `No platformId returned for @${pp.identifier}, skipping`,
-          );
-          return null;
-        }
+      if (!socialProfile.platformId) {
+        console.warn(`No platformId returned for @${pp.identifier}, skipping`);
+        return null;
+      }
 
-        await prisma.partnerPlatform.update({
-          where: { id: pp.id },
-          data: { platformId: socialProfile.platformId },
-        });
+      // I prefer this
+      await prisma.partnerPlatform.update({
+        where: {
+          id: pp.id,
+        },
+        data: {
+          platformId: socialProfile.platformId,
+        },
+      });
 
-        console.log(
-          `Updated platformId for @${pp.identifier} (${socialProfile.platformId})`,
-        );
-        return pp.identifier;
-      }),
-    );
+      console.log(
+        `Updated platformId for @${pp.identifier} (${socialProfile.platformId})`,
+      );
+      return pp.identifier;
+    });
+
+    const results = await Promise.allSettled(promises);
 
     for (const result of results) {
       if (result.status === "fulfilled" && result.value !== null) {
