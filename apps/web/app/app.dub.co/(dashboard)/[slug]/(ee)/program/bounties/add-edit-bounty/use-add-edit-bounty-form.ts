@@ -8,8 +8,9 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
 import { bountyPerformanceConditionSchema } from "@/lib/zod/schemas/bounties";
+import { BountySubmissionFrequency } from "@dub/prisma/client";
 import { formatDate } from "@dub/utils";
-import { Dispatch, SetStateAction, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { CreateBountyInputExtended } from "./bounty-form-context";
@@ -38,6 +39,13 @@ export function useAddEditBountyForm({
   const [hasStartDate, setHasStartDate] = useState(!!bounty?.startsAt);
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
+  const [allowedSubmissions, setAllowedSubmissions] = useState<number>(
+    bounty?.maxSubmissions ?? 1,
+  );
+  const [submissionFrequency, setSubmissionFrequency] =
+    useState<BountySubmissionFrequency | null>(
+      bounty?.submissionFrequency ?? null,
+    );
 
   const [submissionWindow, setSubmissionWindow] = useState<number | null>(
     () => {
@@ -199,6 +207,80 @@ export function useAddEditBountyForm({
       setValue("submissionsOpenAt", null, { shouldDirty: true });
     }
   };
+
+  const handleSubmissionFrequencyToggle = (checked: boolean) => {
+    if (checked) {
+      setSubmissionFrequency(BountySubmissionFrequency.day);
+      setValue("submissionFrequency", BountySubmissionFrequency.day, {
+        shouldDirty: true,
+      });
+    } else {
+      setSubmissionFrequency(null);
+      setValue("submissionFrequency", null, { shouldDirty: true });
+    }
+  };
+
+  const handleSubmissionFrequencyChange = (
+    value: BountySubmissionFrequency,
+  ) => {
+    setSubmissionFrequency(value);
+    setValue("submissionFrequency", value, { shouldDirty: true });
+  };
+
+  const handleAllowedSubmissionsChange = (value: number) => {
+    setAllowedSubmissions(value);
+    setValue("maxSubmissions", value > 1 ? value : null, { shouldDirty: true });
+    if (value > 1 && submissionWindow != null) {
+      setSubmissionWindow(null);
+      setValue("submissionsOpenAt", null, { shouldDirty: true });
+    }
+    if (value === 1 && submissionFrequency != null) {
+      setSubmissionFrequency(null);
+      setValue("submissionFrequency", null, { shouldDirty: true });
+    }
+  };
+
+  const maxAllowedSubmissions = useMemo(() => {
+    const schemaMax = 10;
+    if (!submissionFrequency || !endsAt) return schemaMax;
+
+    const start = startsAt ? new Date(startsAt) : new Date();
+    const end = new Date(endsAt);
+    const diffMs = end.getTime() - start.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    let computed: number;
+    switch (submissionFrequency) {
+      case BountySubmissionFrequency.day:
+        computed = diffDays;
+        break;
+      case BountySubmissionFrequency.week:
+        computed = Math.floor(diffDays / 7);
+        break;
+      case BountySubmissionFrequency.month:
+        computed = Math.floor(diffDays / 30);
+        break;
+      default:
+        computed = schemaMax;
+    }
+
+    // Minimum of 2 when frequency is active since frequency requires allowedSubmissions > 1
+    return Math.min(schemaMax, Math.max(2, computed));
+  }, [submissionFrequency, startsAt, endsAt]);
+
+  useEffect(() => {
+    if (allowedSubmissions > maxAllowedSubmissions) {
+      const clamped = maxAllowedSubmissions;
+      setAllowedSubmissions(clamped);
+      setValue("maxSubmissions", clamped > 1 ? clamped : null, {
+        shouldDirty: true,
+      });
+      if (clamped === 1 && submissionFrequency != null) {
+        setSubmissionFrequency(null);
+        setValue("submissionFrequency", null, { shouldDirty: true });
+      }
+    }
+  }, [maxAllowedSubmissions]);
 
   const handleSubmissionWindowChange = (value: number) => {
     setSubmissionWindow(value);
@@ -384,8 +466,6 @@ export function useAddEditBountyForm({
       data.submissionsOpenAt = null;
     } else if (data.type === "submission") {
       data.performanceCondition = null;
-      data.submissionFrequency = undefined;
-      data.maxSubmissions = undefined;
 
       if ((formRewardType ?? "flat") === "custom") {
         data.rewardAmount = null;
@@ -477,6 +557,12 @@ export function useAddEditBountyForm({
     isDirty,
     handleStartDateToggle,
     handleEndDateChange,
+    allowedSubmissions,
+    handleAllowedSubmissionsChange,
+    maxAllowedSubmissions,
+    submissionFrequency,
+    handleSubmissionFrequencyToggle,
+    handleSubmissionFrequencyChange,
     submissionWindow,
     handleSubmissionWindowToggle,
     handleSubmissionWindowChange,

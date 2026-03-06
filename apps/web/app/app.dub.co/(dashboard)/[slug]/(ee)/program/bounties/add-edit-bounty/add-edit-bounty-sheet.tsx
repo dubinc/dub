@@ -1,4 +1,7 @@
-import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/bounty/constants";
+import {
+  BOUNTY_DESCRIPTION_MAX_LENGTH,
+  SUBMISSION_FREQUENCY_OPTIONS,
+} from "@/lib/bounty/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -10,13 +13,22 @@ import {
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
+import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
+import {
+  InlineBadgePopover,
+  InlineBadgePopoverInput,
+} from "@/ui/shared/inline-badge-popover";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
+import { BountySubmissionFrequency } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
+  CalendarIcon,
   CardSelector,
   CardSelectorOption,
+  Combobox,
+  ComboboxOption,
   NumberStepper,
   RichTextArea,
   RichTextProvider,
@@ -24,6 +36,7 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
+  Tooltip,
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
@@ -64,9 +77,15 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     hasEndDate,
     handleEndDateToggle,
     handleEndDateChange,
+    allowedSubmissions,
+    handleAllowedSubmissionsChange,
+    maxAllowedSubmissions,
     submissionWindow,
     handleSubmissionWindowToggle,
     handleSubmissionWindowChange,
+    submissionFrequency,
+    handleSubmissionFrequencyToggle,
+    handleSubmissionFrequencyChange,
     type,
     name,
     control,
@@ -146,9 +165,90 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
                   <div className="space-y-6">
-                    <p className="text-content-default text-sm">
-                      Set the schedule, reward and additional details.
-                    </p>
+                    {type === "submission" && (
+                      <>
+                        <div>
+                          <label
+                            htmlFor="name"
+                            className="text-sm font-medium text-neutral-800"
+                          >
+                            Name
+                          </label>
+                          <div className="mt-2">
+                            <input
+                              id="name"
+                              type="text"
+                              maxLength={100}
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                errors.name &&
+                                  "border-red-600 focus:border-red-500 focus:ring-red-600",
+                              )}
+                              placeholder={`Create a YouTube video about${program?.name ? ` ${program.name}` : ""}...`}
+                              {...register("name", {
+                                setValueAs: (value) =>
+                                  value === "" ? null : value,
+                              })}
+                            />
+                            <div className="mt-1 text-left">
+                              <span className="text-xs text-neutral-400">
+                                {name?.length || 0}/100
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    <div>
+                      <label className="text-sm font-medium text-neutral-800">
+                        Description
+                        <span className="ml-1 font-normal text-neutral-500">
+                          (optional)
+                        </span>
+                      </label>
+                      <div className="mt-2">
+                        <Controller
+                          control={control}
+                          name="description"
+                          render={({ field }) => (
+                            <RichTextProvider
+                              features={["bold", "italic", "links"]}
+                              markdown
+                              placeholder="Provide any bounty requirements to the partner"
+                              editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
+                              initialValue={field.value}
+                              onChange={(editor: any) =>
+                                field.onChange(editor.getMarkdown() || null)
+                              }
+                            >
+                              <div
+                                className={cn(
+                                  "overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
+                                  errors.description &&
+                                    "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
+                                )}
+                              >
+                                <div className="flex flex-col">
+                                  <RichTextArea />
+                                  <RichTextToolbar className="px-1 pb-1" />
+                                </div>
+                              </div>
+                            </RichTextProvider>
+                          )}
+                        />
+
+                        <div className="mt-1 text-left">
+                          <MaxCharactersCounter
+                            name="description"
+                            control={control}
+                            maxLength={BOUNTY_DESCRIPTION_MAX_LENGTH}
+                            spaced
+                            className="text-content-muted"
+                          />
+                        </div>
+                      </div>
+                    </div>
 
                     <AnimatedSizeContainer
                       height
@@ -285,125 +385,145 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
                     {type === "submission" && (
                       <>
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={handleSubmissionWindowToggle}
-                            checked={submissionWindow != null}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                            disabled={!hasEndDate}
-                          />
+                        <div>
                           <div className="flex flex-col gap-1">
                             <h3 className="text-sm font-medium text-neutral-700">
-                              Submission window
+                              Allowed submissions
                             </h3>
                           </div>
-                        </div>
 
-                        {submissionWindow != null && (
-                          <div className="mt-3 space-y-2">
+                          <div className="mt-1 space-y-2">
                             <NumberStepper
-                              value={submissionWindow}
-                              onChange={handleSubmissionWindowChange}
-                              min={2}
-                              max={14}
+                              value={allowedSubmissions}
+                              onChange={handleAllowedSubmissionsChange}
+                              min={1}
+                              max={maxAllowedSubmissions}
                               step={1}
                               className="w-full"
                             />
-                            <p className="text-sm text-neutral-500">
-                              Submissions open {submissionWindow} days before
-                              the end date. Drafts can be saved until then.
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    )}
-
-                    {type === "submission" && (
-                      <>
-                        <div>
-                          <label
-                            htmlFor="name"
-                            className="text-sm font-medium text-neutral-800"
-                          >
-                            Name
-                          </label>
-                          <div className="mt-2">
-                            <input
-                              id="name"
-                              type="text"
-                              maxLength={100}
-                              className={cn(
-                                "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                                errors.name &&
-                                  "border-red-600 focus:border-red-500 focus:ring-red-600",
-                              )}
-                              placeholder={`Create a YouTube video about${program?.name ? ` ${program.name}` : ""}...`}
-                              {...register("name", {
-                                setValueAs: (value) =>
-                                  value === "" ? null : value,
-                              })}
-                            />
-                            <div className="mt-1 text-left">
-                              <span className="text-xs text-neutral-400">
-                                {name?.length || 0}/100
-                              </span>
-                            </div>
                           </div>
                         </div>
-                      </>
-                    )}
 
-                    <div>
-                      <label className="text-sm font-medium text-neutral-800">
-                        Description
-                        <span className="ml-1 font-normal text-neutral-500">
-                          (optional)
-                        </span>
-                      </label>
-                      <div className="mt-2">
-                        <Controller
-                          control={control}
-                          name="description"
-                          render={({ field }) => (
-                            <RichTextProvider
-                              features={["bold", "italic", "links"]}
-                              markdown
-                              placeholder="Provide any bounty requirements to the partner"
-                              editorClassName="block max-h-48 overflow-auto scrollbar-hide w-full resize-none border-none p-3 text-base sm:text-sm"
-                              initialValue={field.value}
-                              onChange={(editor: any) =>
-                                field.onChange(editor.getMarkdown() || null)
-                              }
-                            >
-                              <div
-                                className={cn(
-                                  "overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500",
-                                  errors.description &&
-                                    "border-red-600 focus-within:border-red-500 focus-within:ring-red-600",
-                                )}
+                        <AnimatedSizeContainer
+                          height
+                          transition={{ ease: "easeInOut", duration: 0.2 }}
+                        >
+                          {hasEndDate && (
+                            <div>
+                              <Tooltip
+                                content={
+                                  allowedSubmissions > 1
+                                    ? "Decrease allowed submissions to 1 to use submission window."
+                                    : undefined
+                                }
                               >
-                                <div className="flex flex-col">
-                                  <RichTextArea />
-                                  <RichTextToolbar className="px-1 pb-1" />
+                                <div
+                                  className={cn(
+                                    "flex items-center gap-4 transition-opacity",
+                                    allowedSubmissions > 1 && "opacity-30",
+                                  )}
+                                >
+                                  <Switch
+                                    fn={handleSubmissionWindowToggle}
+                                    checked={submissionWindow != null}
+                                    trackDimensions="w-8 h-4"
+                                    thumbDimensions="w-3 h-3"
+                                    thumbTranslate="translate-x-4"
+                                    disabled={allowedSubmissions > 1}
+                                  />
+                                  <div className="flex flex-col gap-1">
+                                    <h3 className="text-sm font-medium text-neutral-700">
+                                      Submission window
+                                    </h3>
+                                  </div>
                                 </div>
-                              </div>
-                            </RichTextProvider>
-                          )}
-                        />
+                              </Tooltip>
 
-                        <div className="mt-1 text-left">
-                          <MaxCharactersCounter
-                            name="description"
-                            control={control}
-                            maxLength={BOUNTY_DESCRIPTION_MAX_LENGTH}
-                            spaced
-                            className="text-content-muted"
-                          />
+                              {submissionWindow != null && (
+                                <div className="mt-3 space-y-2">
+                                  <div className="rounded-lg border border-neutral-200 bg-neutral-50/50 p-2.5 shadow-sm">
+                                    <div className="flex items-center gap-2.5">
+                                      <RewardIconSquare icon={CalendarIcon} />
+                                      <span className="text-content-default text-sm leading-relaxed">
+                                        Partners can submit{" "}
+                                        <SubmissionWindowBadge
+                                          value={submissionWindow}
+                                          onChange={
+                                            handleSubmissionWindowChange
+                                          }
+                                        />{" "}
+                                        days before the end date
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </AnimatedSizeContainer>
+
+                        <div>
+                          <Tooltip
+                            content={
+                              allowedSubmissions === 1
+                                ? "Increase allowed submissions to 2 or more to use submission frequency."
+                                : undefined
+                            }
+                          >
+                            <div
+                              className={cn(
+                                "flex items-center gap-4 transition-opacity",
+                                allowedSubmissions === 1 && "opacity-30",
+                              )}
+                            >
+                              <Switch
+                                fn={handleSubmissionFrequencyToggle}
+                                checked={submissionFrequency != null}
+                                trackDimensions="w-8 h-4"
+                                thumbDimensions="w-3 h-3"
+                                thumbTranslate="translate-x-4"
+                                disabled={allowedSubmissions === 1}
+                              />
+                              <div className="flex flex-col gap-1">
+                                <h3 className="text-sm font-medium text-neutral-700">
+                                  Submission frequency
+                                </h3>
+                              </div>
+                            </div>
+                          </Tooltip>
+
+                          {submissionFrequency != null && (
+                            <div className="mt-3 space-y-2">
+                              <Combobox
+                                selected={
+                                  SUBMISSION_FREQUENCY_OPTIONS.find(
+                                    (option) =>
+                                      option.value === submissionFrequency,
+                                  ) ?? null
+                                }
+                                setSelected={(option) =>
+                                  handleSubmissionFrequencyChange(
+                                    option?.value as BountySubmissionFrequency,
+                                  )
+                                }
+                                options={
+                                  SUBMISSION_FREQUENCY_OPTIONS as unknown as ComboboxOption<BountySubmissionFrequency>[]
+                                }
+                                caret
+                                matchTriggerWidth
+                                buttonProps={{
+                                  className: cn(
+                                    "w-full justify-start border-neutral-300 px-3",
+                                    "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                                    "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 focus:border-[var(--brand)] focus:ring-[var(--brand)] transition-none",
+                                  ),
+                                }}
+                              />
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </div>
+                      </>
+                    )}
                   </div>
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>
@@ -468,6 +588,42 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       </FormProvider>
       {!bounty && confirmCreateBountyModal}
     </form>
+  );
+}
+
+function SubmissionWindowBadge({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number | undefined) => void;
+}) {
+  return (
+    <InlineBadgePopover
+      text={
+        value != null && !isNaN(value) ? String(value) : "Submission window"
+      }
+      invalid={value == null || isNaN(value)}
+    >
+      <InlineBadgePopoverInput
+        type="number"
+        min={1}
+        value={value == null || value === 0 ? "" : String(value)}
+        onChange={(e) => {
+          const raw = (e.target as HTMLInputElement).value;
+
+          if (raw === "") {
+            onChange(undefined);
+            return;
+          }
+
+          const num = parseInt(raw, 10);
+
+          onChange(Number.isNaN(num) ? undefined : Math.max(1, num));
+        }}
+        placeholder="days"
+      />
+    </InlineBadgePopover>
   );
 }
 
