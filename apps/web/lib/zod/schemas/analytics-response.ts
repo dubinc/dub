@@ -2,7 +2,7 @@ import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import { CONTINENT_CODES } from "@dub/utils";
 import * as z from "zod/v4";
 import { LinkTagSchema } from "./tags";
-import { centsSchema } from "./utils";
+import { centsSchemaWithDefault } from "./utils";
 
 const analyticsTriggersResponse = z.object({
   trigger: z
@@ -20,9 +20,9 @@ const analyticsTriggersResponse = z.object({
     .number()
     .describe("The number of sales from this trigger method")
     .default(0),
-  saleAmount: centsSchema
-    .describe("The total amount of sales from this trigger method, in cents")
-    .default(0),
+  saleAmount: centsSchemaWithDefault.describe(
+    "The total amount of sales from this trigger method, in cents",
+  ),
 });
 
 export const analyticsResponse = {
@@ -30,9 +30,9 @@ export const analyticsResponse = {
     clicks: z.coerce.number().describe("The total number of clicks").default(0),
     leads: z.coerce.number().describe("The total number of leads").default(0),
     sales: z.coerce.number().describe("The total number of sales").default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales, in cents",
+    ),
   }),
 
   timeseries: z.object({
@@ -49,9 +49,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales in the interval")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales in the interval, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales in the interval, in cents",
+    ),
   }),
 
   continents: z.object({
@@ -72,9 +72,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales from this continent")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this continent, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this continent, in cents",
+    ),
   }),
 
   countries: z.object({
@@ -97,9 +97,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales from this country")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this country, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this country, in cents",
+    ),
   }),
 
   regions: z.object({
@@ -124,9 +124,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales from this region")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this region, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this region, in cents",
+    ),
   }),
 
   cities: z.object({
@@ -147,9 +147,9 @@ export const analyticsResponse = {
       .default(0),
     leads: z.number().describe("The number of leads from this city").default(0),
     sales: z.number().describe("The number of sales from this city").default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this city, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this city, in cents",
+    ),
   }),
 
   devices: z.object({
@@ -166,9 +166,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales from this device")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this device, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this device, in cents",
+    ),
   }),
 
   browsers: z.object({
@@ -185,9 +185,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales from this browser")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this browser, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this browser, in cents",
+    ),
   }),
 
   os: z.object({
@@ -195,9 +195,9 @@ export const analyticsResponse = {
     clicks: z.number().describe("The number of clicks from this OS").default(0),
     leads: z.number().describe("The number of leads from this OS").default(0),
     sales: z.number().describe("The number of sales from this OS").default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this OS, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this OS, in cents",
+    ),
   }),
 
   triggers: analyticsTriggersResponse,
@@ -219,9 +219,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales from this referer")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this referer, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this referer, in cents",
+    ),
   }),
 
   referer_urls: z.object({
@@ -242,11 +242,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales from this referer to this URL")
       .default(0),
-    saleAmount: centsSchema
-      .describe(
-        "The total amount of sales from this referer to this URL, in cents",
-      )
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this referer to this URL, in cents",
+    ),
   }),
 
   top_links: z.object({
@@ -283,9 +281,9 @@ export const analyticsResponse = {
       .default(0),
     leads: z.number().describe("The number of leads from this link").default(0),
     sales: z.number().describe("The number of sales from this link").default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this link, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this link, in cents",
+    ),
   }),
 
   top_urls: z.object({
@@ -298,9 +296,9 @@ export const analyticsResponse = {
       .default(0),
     leads: z.number().describe("The number of leads from this URL").default(0),
     sales: z.number().describe("The number of sales from this URL").default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this URL, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this URL, in cents",
+    ),
   }),
 
   top_base_urls: z.object({
@@ -319,9 +317,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales from this base URL")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this base URL, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this base URL, in cents",
+    ),
   }),
 
   utm_sources: z.object({
@@ -338,9 +336,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales with this UTM source")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales with this UTM source, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales with this UTM source, in cents",
+    ),
   }),
 
   utm_mediums: z.object({
@@ -357,9 +355,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales with this UTM medium")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales with this UTM medium, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales with this UTM medium, in cents",
+    ),
   }),
 
   utm_campaigns: z.object({
@@ -376,9 +374,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales with this UTM campaign")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales with this UTM campaign, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales with this UTM campaign, in cents",
+    ),
   }),
 
   utm_terms: z.object({
@@ -395,9 +393,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales with this UTM term")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales with this UTM term, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales with this UTM term, in cents",
+    ),
   }),
 
   utm_contents: z.object({
@@ -414,9 +412,9 @@ export const analyticsResponse = {
       .number()
       .describe("The number of sales with this UTM content")
       .default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales with this UTM content, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales with this UTM content, in cents",
+    ),
   }),
 
   top_folders: z.object({
@@ -428,9 +426,9 @@ export const analyticsResponse = {
     clicks: z.number().describe("The total number of clicks").default(0),
     leads: z.number().describe("The total number of leads").default(0),
     sales: z.number().describe("The total number of sales").default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this link folder, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this link folder, in cents",
+    ),
   }),
 
   top_link_tags: z.object({
@@ -439,9 +437,9 @@ export const analyticsResponse = {
     clicks: z.number().describe("The total number of clicks").default(0),
     leads: z.number().describe("The total number of leads").default(0),
     sales: z.number().describe("The total number of sales").default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this link tag, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this link tag, in cents",
+    ),
   }),
 
   top_domains: z.object({
@@ -449,9 +447,9 @@ export const analyticsResponse = {
     clicks: z.number().describe("The total number of clicks").default(0),
     leads: z.number().describe("The total number of leads").default(0),
     sales: z.number().describe("The total number of sales").default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this domain, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this domain, in cents",
+    ),
   }),
 
   top_partners: z.object({
@@ -469,11 +467,9 @@ export const analyticsResponse = {
     clicks: z.number().describe("The total number of clicks").default(0),
     leads: z.number().describe("The total number of leads").default(0),
     sales: z.number().describe("The total number of sales").default(0),
-    saleAmount: centsSchema
-      .describe(
-        "The total amount of sales from this partner for this program, in cents",
-      )
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this partner for this program, in cents",
+    ),
   }),
 
   top_groups: z.object({
@@ -487,8 +483,8 @@ export const analyticsResponse = {
     clicks: z.number().describe("The total number of clicks").default(0),
     leads: z.number().describe("The total number of leads").default(0),
     sales: z.number().describe("The total number of sales").default(0),
-    saleAmount: centsSchema
-      .describe("The total amount of sales from this group, in cents")
-      .default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this group, in cents",
+    ),
   }),
 } as const;

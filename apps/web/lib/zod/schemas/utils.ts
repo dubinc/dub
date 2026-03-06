@@ -10,6 +10,13 @@ export const centsSchema = z.preprocess(
   z.number(),
 );
 
+/** Same as centsSchema but with a default of 0. The default is on the inner z.number()
+ *  so code generators (e.g. Speakeasy) can introspect it through the preprocess layer. */
+export const centsSchemaWithDefault = z.preprocess(
+  (n) => (typeof n === "bigint" ? Number(n) : n),
+  z.number().default(0),
+);
+
 /** Accepts number or bigint or null (e.g. from Prisma BigInt?), outputs number | null. */
 export const nullableCountSchema = z.preprocess(
   (n) => (typeof n === "bigint" ? Number(n) : n),

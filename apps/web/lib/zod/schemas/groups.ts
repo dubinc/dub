@@ -10,7 +10,7 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { programApplicationFormSchema } from "./program-application-form";
 import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
-import { parseUrlSchema, centsSchema } from "./utils";
+import { centsSchemaWithDefault, parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
 import { workflowConditionSchema } from "./workflows";
 
@@ -86,10 +86,10 @@ export const GroupSchemaExtended = GroupSchema.extend({
   totalClicks: z.number().default(0),
   totalLeads: z.number().default(0),
   totalSales: z.number().default(0),
-  totalSaleAmount: centsSchema.default(0),
+  totalSaleAmount: centsSchemaWithDefault,
   totalConversions: z.number().default(0),
-  totalCommissions: centsSchema.default(0),
-  netRevenue: centsSchema.default(0),
+  totalCommissions: centsSchemaWithDefault,
+  netRevenue: centsSchemaWithDefault,
 });
 
 export const PartnerProgramGroupSchema = GroupWithFormDataSchema.pick({
