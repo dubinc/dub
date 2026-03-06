@@ -3,7 +3,6 @@ import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
-import { LinkProps } from "@/lib/types";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
@@ -364,20 +363,12 @@ export function useAnalyticsFilters({
       return <LinkIcon url={url} />;
     },
     options:
-      links?.map(
-        ({
-          id,
-          domain,
-          key,
-          url,
-          ...rest
-        }: LinkProps & { id?: string; count?: number }) => ({
-          value: id,
-          label: linkConstructor({ domain, key, pretty: true }),
-          right: getFilterOptionTotal(rest),
-          data: { url, domain, key },
-        }),
-      ) ?? null,
+      links?.map(({ id, domain, key, url, ...rest }) => ({
+        value: id,
+        label: linkConstructor({ domain, key, pretty: true }),
+        right: getFilterOptionTotal(rest),
+        data: { url, domain, key },
+      })) ?? null,
   };
 
   const DomainFilterItem = {

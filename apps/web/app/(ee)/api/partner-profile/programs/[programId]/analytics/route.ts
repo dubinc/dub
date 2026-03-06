@@ -9,7 +9,7 @@ import {
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { parseFilterValue } from "@dub/utils";
+import { parseFilterValue, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/analytics – get analytics for a program enrollment link
@@ -83,7 +83,7 @@ export const GET = withPartnerProfile(
 
     const response = await getAnalytics({
       ...(LARGE_PROGRAM_IDS.includes(program.id) &&
-      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+      toCentsNumber(totalCommissions) < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
         ? { event: parsedParams.event, groupBy: "count", interval: "all" }
         : parsedParams),
       workspaceId: program.workspaceId,

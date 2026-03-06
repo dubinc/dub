@@ -11,7 +11,7 @@ import {
   MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING,
 } from "@/lib/constants/partner-profile";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { parseFilterValue } from "@dub/utils";
+import { parseFilterValue, toCentsNumber } from "@dub/utils";
 import JSZip from "jszip";
 
 // GET /api/partner-profile/programs/[programId]/analytics/export – get export data for partner profile analytics
@@ -29,7 +29,7 @@ export const GET = withPartnerProfile(
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
-      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+      toCentsNumber(totalCommissions) < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
     ) {
       throw new DubApiError({
         code: "forbidden",

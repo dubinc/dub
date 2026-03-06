@@ -3,6 +3,7 @@ import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
+import { centsSchema } from "./utils";
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
 
@@ -141,8 +142,7 @@ export const CustomerSchema = z.object({
     .number()
     .nullish()
     .describe("Total number of sales for the customer."),
-  saleAmount: z
-    .number()
+  saleAmount: centsSchema
     .nullish()
     .describe("Total amount of sales for the customer."),
   createdAt: z

@@ -7,7 +7,7 @@ import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-lin
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log, toCentsNumber } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -137,11 +137,11 @@ export async function POST(req: Request) {
       .parse(bounty.workflow.triggerConditions)[0];
 
     // Partners with their link metrics
-    const partners = programEnrollments.map((partner) => {
+    const partners = programEnrollments.map((programEnrollment) => {
       return {
-        id: partner.partnerId,
-        ...aggregatePartnerLinksStats(partner.links),
-        totalCommissions: partner.totalCommissions,
+        id: programEnrollment.partnerId,
+        ...aggregatePartnerLinksStats(programEnrollment.links),
+        totalCommissions: toCentsNumber(programEnrollment.totalCommissions),
       };
     });
 

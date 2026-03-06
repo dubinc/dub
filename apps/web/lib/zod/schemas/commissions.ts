@@ -5,7 +5,7 @@ import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
-import { parseDateSchema } from "./utils";
+import { centsSchema, parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").meta({
@@ -146,7 +146,7 @@ export const createCommissionSchema = z.object({
 
   // Sale
   saleEventDate: parseDateSchema.nullish(),
-  saleAmount: z.number().min(0).nullish(),
+  saleAmount: centsSchema.pipe(z.number().min(0)).nullish(),
   invoiceId: z.string().nullish(),
   productId: z.string().nullish(),
 });

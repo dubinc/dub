@@ -25,6 +25,7 @@ import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,
   parseFilterValue,
+  toCentsNumber,
 } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -46,7 +47,7 @@ export const GET = withPartnerProfile(
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
-      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+      toCentsNumber(totalCommissions) < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
     ) {
       throw new DubApiError({
         code: "forbidden",

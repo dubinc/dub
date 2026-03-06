@@ -11,7 +11,7 @@ import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
-import { log, prettyPrint, R2_URL } from "@dub/utils";
+import { log, prettyPrint, R2_URL, toCentsNumber } from "@dub/utils";
 import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";
@@ -264,8 +264,8 @@ export async function POST(req: Request) {
         .then((res) => ({
           totalClicks: res._sum.totalClicks ?? 0,
           totalLeads: res._sum.totalLeads ?? 0,
-          totalRevenue: res._sum.totalSaleAmount ?? 0,
-          totalEarnings: res._sum.totalCommissions ?? 0,
+          totalRevenue: toCentsNumber(res._sum.totalSaleAmount ?? 0),
+          totalEarnings: toCentsNumber(res._sum.totalCommissions ?? 0),
         }));
 
       await prisma.partnerRewind.upsert({

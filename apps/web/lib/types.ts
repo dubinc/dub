@@ -177,16 +177,18 @@ import {
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
-export type LinkProps = Link;
+export type LinkProps = Omit<Link, "saleAmount"> & {
+  saleAmount: number;
+};
 
 // used on client side (e.g. Link builder)
 // TODO: standardize this with ExpandedLink
-export interface ExpandedLinkProps extends LinkProps {
+export type ExpandedLinkProps = LinkProps & {
   tags: TagProps[];
   webhookIds: string[];
   dashboardId: string | null;
   user?: UserProps;
-}
+};
 
 export interface SimpleLinkProps {
   domain: string;

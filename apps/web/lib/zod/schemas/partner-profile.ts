@@ -29,6 +29,7 @@ import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
 import { referralFormDataSchema } from "./referral-form";
+import { centsSchema } from "./utils";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
@@ -167,8 +168,8 @@ export const PartnerBountySchema = BountySchema.omit({
     totalLeads: z.number(),
     totalConversions: z.number(),
     totalSales: z.number(),
-    totalSaleAmount: z.number(),
-    totalCommissions: z.number(),
+    totalSaleAmount: centsSchema,
+    totalCommissions: centsSchema,
   }),
 });
 

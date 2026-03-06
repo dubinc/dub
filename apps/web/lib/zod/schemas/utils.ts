@@ -4,6 +4,18 @@ import * as z from "zod/v4";
 // This is the default max length for URL validation
 export const DESTINATION_URL_MAX_LENGTH = 32000;
 
+/** Accepts number (before migration) or bigint (after), outputs number. */
+export const centsSchema = z.preprocess(
+  (n) => (typeof n === "bigint" ? Number(n) : n),
+  z.number(),
+);
+
+/** Accepts number or bigint or null (e.g. from Prisma BigInt?), outputs number | null. */
+export const nullableCountSchema = z.preprocess(
+  (n) => (typeof n === "bigint" ? Number(n) : n),
+  z.number().nullable(),
+);
+
 export const parseUrlSchema = z
   .string()
   .max(DESTINATION_URL_MAX_LENGTH, {

@@ -6,6 +6,7 @@ import {
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
 import { prefixWorkspaceId } from "../../workspaces/workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
+import { toCentsNumber } from "@dub/utils";
 
 // used in API (e.g. transformLink)
 // TODO: standardize this with ExpandedLinkProps
@@ -52,6 +53,7 @@ export const transformLink = (
 
   return {
     ...rest,
+    saleAmount: toCentsNumber(rest.saleAmount),
     identifier: null, // backwards compatibility
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,
