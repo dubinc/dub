@@ -30,7 +30,7 @@ import {
 } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 
 type PerformanceAttribute = keyof typeof PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES;
@@ -43,12 +43,13 @@ const ATTRIBUTE_TO_ANALYTICS_FIELD: Partial<
   totalSaleAmount: "saleAmount",
 };
 
-const ATTRIBUTE_TO_TYPE_FILTER: Partial<Record<PerformanceAttribute, string>> =
-  {
-    totalLeads: "lead",
-    totalConversions: "sale",
-    totalSaleAmount: "sale",
-  };
+const ATTRIBUTE_TO_EVENT_PARAMS: Partial<
+  Record<PerformanceAttribute, { event: string; saleType?: string }>
+> = {
+  totalLeads: { event: "leads" },
+  totalConversions: { event: "sales", saleType: "new" },
+  totalSaleAmount: { event: "sales" },
+};
 
 const ATTRIBUTE_TO_TABLE_TITLE: Record<PerformanceAttribute, string> = {
   totalLeads: "Leads generated",
@@ -56,6 +57,20 @@ const ATTRIBUTE_TO_TABLE_TITLE: Record<PerformanceAttribute, string> = {
   totalSaleAmount: "Revenue generated",
   totalCommissions: "Commissions earned",
 };
+
+function getEventCount(analyticsCount: any, attribute?: PerformanceAttribute) {
+  if (!analyticsCount || !attribute) {
+    return 0;
+  }
+
+  const field = ATTRIBUTE_TO_ANALYTICS_FIELD[attribute];
+
+  if (!field) {
+    return 0;
+  }
+
+  return analyticsCount[field] ?? 0;
+}
 
 export function BountyPerformanceSection({
   bounty,
@@ -90,9 +105,6 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
       event: "composite",
       enabled: !isCommissions,
     });
-
-  // TODO (CC):
-  // Should fetch the analytics based on BountyPerformanceScope
 
   const { data: earningsTimeseries, error: earningsError } =
     usePartnerEarningsTimeseries({
@@ -186,12 +198,23 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
   );
 }
 
+interface PerformanceRow {
+  id: string;
+  date: string;
+  customer: { id: string; email: string; country?: string | null } | null;
+  link: { id: string; shortLink: string; url: string } | null;
+  amount?: number;
+}
+
+const PAGE_SIZE = 5;
+
 function BountyPerformanceTable({ bounty }: { bounty: PartnerBountyProps }) {
   const { programSlug } = useParams<{ programSlug: string }>();
   const attribute = bounty.performanceCondition?.attribute as
     | PerformanceAttribute
     | undefined;
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
+  const isCommissions = attribute === "totalCommissions";
   const metricLabel = attribute
     ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[attribute].toLowerCase()
     : "entries";
@@ -204,53 +227,129 @@ function BountyPerformanceTable({ bounty }: { bounty: PartnerBountyProps }) {
       ? UserPlus
       : CircleDollar;
 
-  const typeFilter = attribute
-    ? ATTRIBUTE_TO_TYPE_FILTER[attribute]
+  const eventParams = attribute
+    ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
     : undefined;
 
-  const earningsParams = new URLSearchParams({ pageSize: "5" });
-  if (typeFilter) earningsParams.set("type", typeFilter);
+  const [page, setPage] = useState(1);
 
-  const countParams = new URLSearchParams();
-  if (typeFilter) countParams.set("type", typeFilter);
+  const pagination = useMemo(
+    () => ({ pageIndex: page, pageSize: PAGE_SIZE }),
+    [page],
+  );
 
-  const viewAllHref = `/programs/${programSlug}/earnings${typeFilter ? `?type=${typeFilter}` : ""}`;
+  const setPagination = (
+    updater:
+      | { pageIndex: number; pageSize: number }
+      | ((prev: { pageIndex: number; pageSize: number }) => {
+          pageIndex: number;
+          pageSize: number;
+        }),
+  ) => {
+    const next = typeof updater === "function" ? updater(pagination) : updater;
+    setPage(next.pageIndex);
+  };
 
+  // Build events endpoint URL for non-commission attributes
+  const eventsUrl = useMemo(() => {
+    if (!programSlug || !eventParams) return null;
+    const params = new URLSearchParams({
+      event: eventParams.event,
+      limit: String(PAGE_SIZE),
+      page: String(page),
+    });
+    if (eventParams.saleType) {
+      params.set("saleType", eventParams.saleType);
+    }
+    return `/api/partner-profile/programs/${programSlug}/events?${params.toString()}`;
+  }, [programSlug, eventParams, page]);
+
+  // Fetch events for leads/conversions/saleAmount
+  const {
+    data: events,
+    isValidating: eventsValidating,
+    error: eventsError,
+  } = useSWR<any[]>(!isCommissions ? eventsUrl : null, fetcher, {
+    keepPreviousData: true,
+  });
+
+  // Fetch event count via analytics endpoint
+  const { data: analyticsCount } = usePartnerAnalytics({
+    event: "composite",
+    groupBy: "count",
+    enabled: !isCommissions,
+  });
+
+  // Fetch earnings for commissions
   const {
     data: earnings,
-    isLoading,
-    error,
+    isValidating: earningsValidating,
+    error: earningsError,
   } = useSWR<PartnerEarningsResponse[]>(
-    programSlug &&
-      `/api/partner-profile/programs/${programSlug}/earnings?${earningsParams.toString()}`,
+    isCommissions && programSlug
+      ? `/api/partner-profile/programs/${programSlug}/earnings?pageSize=${PAGE_SIZE}&page=${page}`
+      : null,
     fetcher,
     { keepPreviousData: true },
   );
 
   const { data: earningsCount } = useSWR<{ count: number }>(
-    programSlug &&
-      `/api/partner-profile/programs/${programSlug}/earnings/count?${countParams.toString()}`,
+    isCommissions && programSlug
+      ? `/api/partner-profile/programs/${programSlug}/earnings/count`
+      : null,
     fetcher,
     { keepPreviousData: true },
   );
 
+  const isLoading = isCommissions ? earningsValidating : eventsValidating;
+  const error = isCommissions ? earningsError : eventsError;
+
+  // Normalize data into a common row shape
+  const rows: PerformanceRow[] = useMemo(() => {
+    if (isCommissions) {
+      if (!earnings) return [];
+      return earnings.map((earning) => ({
+        id: earning.id,
+        date: earning.createdAt,
+        customer: earning.customer,
+        link: earning.link ?? null,
+        amount: earning.earnings,
+      }));
+    }
+
+    if (!events) return [];
+    return events.map((event) => ({
+      id: event.eventId,
+      date: event.timestamp,
+      customer: event.customer ?? null,
+      link: event.link ?? null,
+      ...(attribute === "totalSaleAmount" && {
+        amount: event.sale?.amount ?? event.saleAmount ?? 0,
+      }),
+    }));
+  }, [isCommissions, earnings, events, attribute]);
+
+  const viewAllHref = isCommissions
+    ? `/programs/${programSlug}/earnings`
+    : `/programs/${programSlug}/events`;
+
   const { table, ...tableProps } = useTable({
-    data: earnings || [],
+    data: rows,
     loading: isLoading,
     error: error ? "Failed to fetch data." : undefined,
     columns: [
       {
-        id: "createdAt",
+        id: "date",
         header: "Date",
-        accessorKey: "createdAt",
+        accessorKey: "date",
         minSize: 140,
         cell: ({ row }) => (
           <TimestampTooltip
-            timestamp={row.original.createdAt}
+            timestamp={row.original.date}
             side="right"
             rows={["local"]}
           >
-            <span>{formatDateTimeSmart(row.original.createdAt)}</span>
+            <span>{formatDateTimeSmart(row.original.date)}</span>
           </TimestampTooltip>
         ),
       },
@@ -297,17 +396,23 @@ function BountyPerformanceTable({ bounty }: { bounty: PartnerBountyProps }) {
       ...(isCurrency
         ? [
             {
-              id: "earnings",
-              header: "Earnings",
-              accessorKey: "earnings",
+              id: "amount",
+              header: isCommissions ? "Earnings" : "Amount",
+              accessorKey: "amount",
               cell: ({ row }: { row: any }) =>
-                currencyFormatter(row.original.earnings),
+                currencyFormatter(row.original.amount ?? 0),
             },
           ]
         : []),
     ],
-    rowCount: earningsCount?.count || 0,
-    tdClassName: (columnId) => (columnId === "customer" ? "p-0" : ""),
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: isCommissions
+      ? earningsCount?.count || 0
+      : getEventCount(analyticsCount, attribute) || 0,
+    thClassName: "border-l-transparent",
+    tdClassName: (columnId) =>
+      cn("border-l-transparent", columnId === "customer" && "p-0"),
     resourceName: () => metricLabel,
     emptyState: (
       <AnimatedEmptyState
@@ -339,11 +444,12 @@ function BountyPerformanceTable({ bounty }: { bounty: PartnerBountyProps }) {
           View all
         </Link>
       </div>
-      {isLoading || earnings?.length ? (
+      {isLoading || rows.length ? (
         <Table
           {...tableProps}
           table={table}
           containerClassName="border-neutral-200"
+          scrollWrapperClassName="min-h-[315px]"
         />
       ) : (
         <AnimatedEmptyState
