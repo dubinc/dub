@@ -4,22 +4,22 @@ import * as z from "zod/v4";
 // This is the default max length for URL validation
 export const DESTINATION_URL_MAX_LENGTH = 32000;
 
+const coerceToNumber = (n: unknown) =>
+  typeof n === "bigint" || typeof n === "string" ? Number(n) : n;
+
 /** Accepts number (before migration) or bigint (after), outputs number. */
-export const centsSchema = z.preprocess(
-  (n) => (typeof n === "bigint" ? Number(n) : n),
-  z.number(),
-);
+export const centsSchema = z.preprocess(coerceToNumber, z.number());
 
 /** Same as centsSchema but with a default of 0. The default is on the inner z.number()
  *  so code generators (e.g. Speakeasy) can introspect it through the preprocess layer. */
 export const centsSchemaWithDefault = z.preprocess(
-  (n) => (typeof n === "bigint" ? Number(n) : n),
+  coerceToNumber,
   z.number().default(0),
 );
 
 /** Accepts number or bigint or null (e.g. from Prisma BigInt?), outputs number | null. */
 export const nullableCountSchema = z.preprocess(
-  (n) => (typeof n === "bigint" ? Number(n) : n),
+  coerceToNumber,
   z.number().nullable(),
 );
 
