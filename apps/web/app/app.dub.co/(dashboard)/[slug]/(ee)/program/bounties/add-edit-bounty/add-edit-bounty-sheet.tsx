@@ -511,6 +511,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 }
                                 caret
                                 matchTriggerWidth
+                                hideSearch
                                 buttonProps={{
                                   className: cn(
                                     "w-full justify-start border-neutral-300 px-3",
