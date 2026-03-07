@@ -257,6 +257,7 @@ export const createStablecoinPayout = async ({
       email: partner.email,
       program: payout.program,
       payout,
+      forceWithdrawal,
     }),
   });
 

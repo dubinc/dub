@@ -28,6 +28,7 @@ export default function PartnerPayoutProcessed({
     periodEnd: new Date("2026-02-01"),
     method: "stablecoin",
   },
+  forceWithdrawal,
 }: {
   email: string;
   program: {
@@ -41,6 +42,7 @@ export default function PartnerPayoutProcessed({
     periodEnd?: Date | null;
     method: PartnerPayoutMethod | null;
   };
+  forceWithdrawal?: boolean;
 }) {
   const payoutAmountInDollars = currencyFormatter(payout.amount);
   const STABLECOIN_PAYOUT_FEE_RATE = 0.005;
@@ -67,9 +69,9 @@ export default function PartnerPayoutProcessed({
 
   if (payout.method === "connect") {
     statusMessage =
-      payout.amount >= 1000
-        ? "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way."
-        : "Since this payout is below the minimum withdrawal amount of $10, it will remain in processed status.";
+      payout.amount < 20_00 && !forceWithdrawal
+        ? "Since this payout is below the minimum withdrawal amount of $20, it will remain in processed status."
+        : "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way.";
   } else if (payout.method === "paypal") {
     statusMessage =
       "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete.";

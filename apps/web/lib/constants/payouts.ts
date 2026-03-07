@@ -14,7 +14,7 @@ export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
 export const FOREX_MARKUP_RATE = 0.005; // 0.5%
 
 export const INVOICE_MIN_PAYOUT_AMOUNT_CENTS = 1000; // $10
-export const MIN_WITHDRAWAL_AMOUNT_CENTS = 1000; // $10
+export const MIN_WITHDRAWAL_AMOUNT_CENTS = 2000; // $20
 export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50; // $0.50
 export const MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS = 100; // $1 (doesn't make sense to force a withdrawal for less than $1)
 
