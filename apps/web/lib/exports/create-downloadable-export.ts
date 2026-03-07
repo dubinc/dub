@@ -1,4 +1,5 @@
 import { storage } from "../storage";
+import { SIGNED_URL_EXPIRY } from "./export-csv-to-storage";
 
 interface CreateDownloadableExportOptions {
   fileKey: string;
@@ -7,9 +8,6 @@ interface CreateDownloadableExportOptions {
   contentType: string;
 }
 
-const expiresIn = 7 * 24 * 3600; // 7 days
-
-// Upload the .csv file to R2 and return a signed link to download it
 export async function createDownloadableExport({
   fileKey,
   fileName,
@@ -18,7 +16,6 @@ export async function createDownloadableExport({
 }: CreateDownloadableExportOptions) {
   const blob = new Blob([body], { type: contentType });
 
-  // Upload
   const uploadResult = await storage.upload({
     key: fileKey,
     body: blob,
@@ -35,10 +32,9 @@ export async function createDownloadableExport({
     throw new Error(`Failed to upload ${contentType} file.`);
   }
 
-  // Generate a signed download URL
   const downloadUrl = await storage.getSignedDownloadUrl({
     key: fileKey,
-    expiresIn,
+    expiresIn: SIGNED_URL_EXPIRY,
   });
 
   if (!downloadUrl) {

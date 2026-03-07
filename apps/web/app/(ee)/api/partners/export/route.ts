@@ -1,4 +1,4 @@
-import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
+import { convertToCSV } from "@/lib/exports/convert-to-csv";
 import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
 import { getPartners } from "@/lib/api/partners/get-partners";
 import { getPartnersCount } from "@/lib/api/partners/get-partners-count";
