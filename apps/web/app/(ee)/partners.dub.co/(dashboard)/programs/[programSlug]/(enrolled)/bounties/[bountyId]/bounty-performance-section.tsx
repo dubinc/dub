@@ -91,12 +91,21 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
       enabled: !isCommissions,
     });
 
+  // TODO (CC):
+  // Should fetch the analytics based on BountyPerformanceScope
+
   const { data: earningsTimeseries, error: earningsError } =
-    usePartnerEarningsTimeseries({ interval: "30d", enabled: isCommissions });
+    usePartnerEarningsTimeseries({
+      interval: "30d",
+      enabled: isCommissions,
+    });
 
   const data = useMemo(() => {
     if (isCommissions) {
-      if (!earningsTimeseries) return undefined;
+      if (!earningsTimeseries) {
+        return undefined;
+      }
+
       return earningsTimeseries.map(
         ({ start, earnings }: { start: string; earnings: number }) => ({
           date: new Date(start),
@@ -105,9 +114,14 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
       );
     }
 
-    if (!analyticsTimeseries || !attribute) return undefined;
+    if (!analyticsTimeseries || !attribute) {
+      return undefined;
+    }
+
     const field = ATTRIBUTE_TO_ANALYTICS_FIELD[attribute];
-    if (!field) return undefined;
+    if (!field) {
+      return undefined;
+    }
 
     return analyticsTimeseries.map((d: Record<string, any>) => ({
       date: new Date(d.start),
@@ -120,6 +134,7 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
   const chartData = useMemo(() => {
     if (data === undefined) return undefined;
     if (data.length > 0) return data;
+
     const now = new Date();
     return Array.from({ length: 30 }, (_, i) => ({
       date: new Date(now.getTime() - (29 - i) * 24 * 60 * 60 * 1000),
