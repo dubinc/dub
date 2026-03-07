@@ -1,4 +1,4 @@
-import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
+import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
 
 import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
