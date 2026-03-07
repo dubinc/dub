@@ -5,7 +5,12 @@ import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
-import { PartnerBountyProps, PartnerEarningsResponse } from "@/lib/types";
+import {
+  LeadEvent,
+  PartnerBountyProps,
+  PartnerEarningsResponse,
+  SaleEvent,
+} from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
@@ -28,12 +33,30 @@ import {
   getPrettyUrl,
   nFormatter,
 } from "@dub/utils";
+import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 
 type PerformanceAttribute = keyof typeof PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES;
+
+interface PerformanceRow {
+  id: string;
+  date: string | Date;
+  customer: {
+    id: string;
+    email?: string | null;
+    name?: string | null;
+    avatar?: string | null;
+  } | null;
+  link: {
+    id: string;
+    shortLink: string;
+    url: string;
+  } | null;
+  amount?: number;
+}
 
 const ATTRIBUTE_TO_ANALYTICS_FIELD: Partial<
   Record<PerformanceAttribute, "leads" | "sales" | "saleAmount">
@@ -57,20 +80,6 @@ const ATTRIBUTE_TO_TABLE_TITLE: Record<PerformanceAttribute, string> = {
   totalSaleAmount: "Revenue generated",
   totalCommissions: "Commissions earned",
 };
-
-function getEventCount(analyticsCount: any, attribute?: PerformanceAttribute) {
-  if (!analyticsCount || !attribute) {
-    return 0;
-  }
-
-  const field = ATTRIBUTE_TO_ANALYTICS_FIELD[attribute];
-
-  if (!field) {
-    return 0;
-  }
-
-  return analyticsCount[field] ?? 0;
-}
 
 export function BountyPerformanceSection({
   bounty,
@@ -98,17 +107,21 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
     | undefined;
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
   const isCommissions = attribute === "totalCommissions";
+  const startDate =
+    bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined;
 
   const { data: analyticsTimeseries, error: analyticsError } =
     usePartnerAnalytics({
       groupBy: "timeseries",
       event: "composite",
+      ...(startDate && { start: startDate, end: new Date() }),
       enabled: !isCommissions,
     });
 
   const { data: earningsTimeseries, error: earningsError } =
     usePartnerEarningsTimeseries({
       interval: "30d",
+      ...(startDate && { start: startDate, end: new Date() }),
       enabled: isCommissions,
     });
 
@@ -116,6 +129,10 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
     if (isCommissions) {
       if (!earningsTimeseries) {
         return undefined;
+      }
+
+      if (!Array.isArray(earningsTimeseries)) {
+        return [];
       }
 
       return earningsTimeseries.map(
@@ -126,13 +143,17 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
       );
     }
 
-    if (!analyticsTimeseries || !attribute) {
+    if (!attribute) {
+      return [];
+    }
+
+    if (!analyticsTimeseries) {
       return undefined;
     }
 
     const field = ATTRIBUTE_TO_ANALYTICS_FIELD[attribute];
-    if (!field) {
-      return undefined;
+    if (!field || !Array.isArray(analyticsTimeseries)) {
+      return [];
     }
 
     return analyticsTimeseries.map((d: Record<string, any>) => ({
@@ -198,47 +219,16 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
   );
 }
 
-interface PerformanceRow {
-  id: string;
-  date: string;
-  customer: { id: string; email: string; country?: string | null } | null;
-  link: { id: string; shortLink: string; url: string } | null;
-  amount?: number;
-}
-
 const PAGE_SIZE = 5;
 
-function BountyPerformanceTable({ bounty }: { bounty: PartnerBountyProps }) {
-  const { programSlug } = useParams<{ programSlug: string }>();
-  const attribute = bounty.performanceCondition?.attribute as
-    | PerformanceAttribute
-    | undefined;
-  const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
-  const isCommissions = attribute === "totalCommissions";
-  const metricLabel = attribute
-    ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[attribute].toLowerCase()
-    : "entries";
-  const tableTitle = attribute
-    ? ATTRIBUTE_TO_TABLE_TITLE[attribute]
-    : "Performance";
-
-  const EmptyIcon =
-    attribute === "totalLeads" || attribute === "totalConversions"
-      ? UserPlus
-      : CircleDollar;
-
-  const eventParams = attribute
-    ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
-    : undefined;
-
+function usePaginationState() {
   const [page, setPage] = useState(1);
-
   const pagination = useMemo(
     () => ({ pageIndex: page, pageSize: PAGE_SIZE }),
     [page],
   );
 
-  const setPagination = (
+  const onPaginationChange = (
     updater:
       | { pageIndex: number; pageSize: number }
       | ((prev: { pageIndex: number; pageSize: number }) => {
@@ -250,94 +240,143 @@ function BountyPerformanceTable({ bounty }: { bounty: PartnerBountyProps }) {
     setPage(next.pageIndex);
   };
 
-  // Build events endpoint URL for non-commission attributes
+  return { page, pagination, onPaginationChange };
+}
+
+function PerformanceTableShell({
+  title,
+  viewAllHref,
+  children,
+}: {
+  title: string;
+  viewAllHref: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <h2 className="text-content-emphasis text-lg font-semibold leading-7 tracking-[-0.36px]">
+          {title}
+        </h2>
+        <Link
+          href={viewAllHref}
+          className={cn(
+            buttonVariants({ variant: "secondary" }),
+            "flex h-7 items-center rounded-lg border px-2 text-sm",
+          )}
+        >
+          View all
+        </Link>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function BountyPerformanceTable({ bounty }: { bounty: PartnerBountyProps }) {
+  const attribute = bounty.performanceCondition?.attribute as
+    | PerformanceAttribute
+    | undefined;
+
+  if (attribute === "totalCommissions") {
+    return <BountyPerformanceCommissionsTable bounty={bounty} />;
+  }
+
+  return <BountyPerformanceEventsTable bounty={bounty} />;
+}
+
+function BountyPerformanceEventsTable({
+  bounty,
+}: {
+  bounty: PartnerBountyProps;
+}) {
+  const { programSlug } = useParams<{ programSlug: string }>();
+  const attribute = bounty.performanceCondition?.attribute as
+    | PerformanceAttribute
+    | undefined;
+
+  const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
+  const metricLabel = attribute
+    ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[attribute].toLowerCase()
+    : "entries";
+  const tableTitle = attribute
+    ? ATTRIBUTE_TO_TABLE_TITLE[attribute]
+    : "Performance";
+  const EmptyIcon =
+    attribute === "totalLeads" || attribute === "totalConversions"
+      ? UserPlus
+      : CircleDollar;
+
+  const eventParams = attribute
+    ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
+    : undefined;
+
+  const startDate =
+    bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined;
+
+  const { page, pagination, onPaginationChange } = usePaginationState();
+
   const eventsUrl = useMemo(() => {
-    if (!programSlug || !eventParams) return null;
+    if (!programSlug || !eventParams) {
+      return null;
+    }
+
     const params = new URLSearchParams({
       event: eventParams.event,
       limit: String(PAGE_SIZE),
       page: String(page),
     });
+
     if (eventParams.saleType) {
       params.set("saleType", eventParams.saleType);
     }
-    return `/api/partner-profile/programs/${programSlug}/events?${params.toString()}`;
-  }, [programSlug, eventParams, page]);
 
-  // Fetch events for leads/conversions/saleAmount
+    if (startDate) {
+      params.set("start", startDate.toISOString());
+    }
+    return `/api/partner-profile/programs/${programSlug}/events?${params.toString()}`;
+  }, [programSlug, eventParams, page, startDate]);
+
   const {
     data: events,
-    isValidating: eventsValidating,
-    error: eventsError,
-  } = useSWR<any[]>(!isCommissions ? eventsUrl : null, fetcher, {
+    isValidating: isLoading,
+    error,
+  } = useSWR<(LeadEvent | SaleEvent)[]>(eventsUrl, fetcher, {
     keepPreviousData: true,
   });
 
-  // Fetch event count via analytics endpoint
   const { data: analyticsCount } = usePartnerAnalytics({
     event: "composite",
     groupBy: "count",
-    enabled: !isCommissions,
+    ...(startDate && { start: startDate, end: new Date() }),
+    enabled: true,
   });
 
-  // Fetch earnings for commissions
-  const {
-    data: earnings,
-    isValidating: earningsValidating,
-    error: earningsError,
-  } = useSWR<PartnerEarningsResponse[]>(
-    isCommissions && programSlug
-      ? `/api/partner-profile/programs/${programSlug}/earnings?pageSize=${PAGE_SIZE}&page=${page}`
-      : null,
-    fetcher,
-    { keepPreviousData: true },
-  );
-
-  const { data: earningsCount } = useSWR<{ count: number }>(
-    isCommissions && programSlug
-      ? `/api/partner-profile/programs/${programSlug}/earnings/count`
-      : null,
-    fetcher,
-    { keepPreviousData: true },
-  );
-
-  const isLoading = isCommissions ? earningsValidating : eventsValidating;
-  const error = isCommissions ? earningsError : eventsError;
-
-  // Normalize data into a common row shape
-  const rows: PerformanceRow[] = useMemo(() => {
-    if (isCommissions) {
-      if (!earnings) return [];
-      return earnings.map((earning) => ({
-        id: earning.id,
-        date: earning.createdAt,
-        customer: earning.customer,
-        link: earning.link ?? null,
-        amount: earning.earnings,
-      }));
+  const rows = useMemo<PerformanceRow[]>(() => {
+    if (!events) {
+      return [];
     }
 
-    if (!events) return [];
     return events.map((event) => ({
       id: event.eventId,
       date: event.timestamp,
       customer: event.customer ?? null,
       link: event.link ?? null,
       ...(attribute === "totalSaleAmount" && {
-        amount: event.sale?.amount ?? event.saleAmount ?? 0,
+        amount:
+          ("sale" in event ? event.sale?.amount : undefined) ??
+          ("saleAmount" in event ? event.saleAmount : 0),
       }),
     }));
-  }, [isCommissions, earnings, events, attribute]);
+  }, [events, attribute]);
 
-  const viewAllHref = isCommissions
-    ? `/programs/${programSlug}/earnings`
-    : `/programs/${programSlug}/events`;
+  const analyticsField = attribute
+    ? ATTRIBUTE_TO_ANALYTICS_FIELD[attribute]
+    : undefined;
+  const totalCount = analyticsField ? analyticsCount?.[analyticsField] ?? 0 : 0;
 
-  const { table, ...tableProps } = useTable({
-    data: rows,
-    loading: isLoading,
-    error: error ? "Failed to fetch data." : undefined,
-    columns: [
+  const columns = useMemo<ColumnDef<PerformanceRow, any>[]>(() => {
+    const base: ColumnDef<PerformanceRow, any>[] = [
       {
         id: "date",
         header: "Date",
@@ -393,25 +432,30 @@ function BountyPerformanceTable({ bounty }: { bounty: PartnerBountyProps }) {
             "-"
           ),
       },
-      ...(isCurrency
-        ? [
-            {
-              id: "amount",
-              header: isCommissions ? "Earnings" : "Amount",
-              accessorKey: "amount",
-              cell: ({ row }: { row: any }) =>
-                currencyFormatter(row.original.amount ?? 0),
-            },
-          ]
-        : []),
-    ],
+    ];
+
+    if (isCurrency) {
+      base.push({
+        id: "amount",
+        header: "Amount",
+        accessorKey: "amount",
+        cell: ({ row }) => currencyFormatter(row.original.amount ?? 0),
+      });
+    }
+
+    return base;
+  }, [isCurrency]);
+
+  const { table, ...tableProps } = useTable({
+    data: rows,
+    loading: isLoading,
+    error: error ? "Failed to fetch data." : undefined,
+    columns,
     pagination,
-    onPaginationChange: setPagination,
-    rowCount: isCommissions
-      ? earningsCount?.count || 0
-      : getEventCount(analyticsCount, attribute) || 0,
+    onPaginationChange,
+    rowCount: totalCount,
     thClassName: "border-l-transparent",
-    tdClassName: (columnId) =>
+    tdClassName: (columnId: string) =>
       cn("border-l-transparent", columnId === "customer" && "p-0"),
     resourceName: () => metricLabel,
     emptyState: (
@@ -429,40 +473,172 @@ function BountyPerformanceTable({ bounty }: { bounty: PartnerBountyProps }) {
   });
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h2 className="text-content-emphasis text-lg font-semibold leading-7 tracking-[-0.36px]">
-          {tableTitle}
-        </h2>
-        <Link
-          href={viewAllHref}
-          className={cn(
-            buttonVariants({ variant: "secondary" }),
-            "flex h-7 items-center rounded-lg border px-2 text-sm",
-          )}
-        >
-          View all
-        </Link>
-      </div>
-      {isLoading || rows.length ? (
-        <Table
-          {...tableProps}
-          table={table}
-          containerClassName="border-neutral-200"
-          scrollWrapperClassName="min-h-[315px]"
-        />
-      ) : (
-        <AnimatedEmptyState
-          title={`No ${metricLabel} recorded yet`}
-          description={`${tableTitle} will appear here once you start generating activity.`}
-          cardContent={() => (
-            <>
-              <EmptyIcon className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
-      )}
-    </div>
+    <PerformanceTableShell
+      title={tableTitle}
+      viewAllHref={`/programs/${programSlug}/events`}
+    >
+      <Table
+        {...tableProps}
+        table={table}
+        containerClassName="border-neutral-200"
+        scrollWrapperClassName="min-h-[315px]"
+      />
+    </PerformanceTableShell>
+  );
+}
+
+function BountyPerformanceCommissionsTable({
+  bounty,
+}: {
+  bounty: PartnerBountyProps;
+}) {
+  const { programSlug } = useParams<{ programSlug: string }>();
+
+  const startDate =
+    bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined;
+
+  const { page, pagination, onPaginationChange } = usePaginationState();
+
+  const startParam = startDate ? `&start=${startDate.toISOString()}` : "";
+
+  const {
+    data: earnings,
+    isValidating: isLoading,
+    error,
+  } = useSWR<PartnerEarningsResponse[]>(
+    programSlug
+      ? `/api/partner-profile/programs/${programSlug}/earnings?pageSize=${PAGE_SIZE}&page=${page}${startParam}`
+      : null,
+    fetcher,
+    { keepPreviousData: true },
+  );
+
+  const { data: earningsCount } = useSWR<{ count: number }>(
+    programSlug
+      ? `/api/partner-profile/programs/${programSlug}/earnings/count${startDate ? `?start=${startDate.toISOString()}` : ""}`
+      : null,
+    fetcher,
+    { keepPreviousData: true },
+  );
+
+  const rows = useMemo<PerformanceRow[]>(() => {
+    if (!earnings) {
+      return [];
+    }
+
+    return earnings.map((earning) => ({
+      id: earning.id,
+      date: earning.createdAt,
+      customer: earning.customer,
+      link: earning.link ?? null,
+      amount: earning.earnings,
+    }));
+  }, [earnings]);
+
+  const columns = useMemo<ColumnDef<PerformanceRow, any>[]>(
+    () => [
+      {
+        id: "date",
+        header: "Date",
+        accessorKey: "date",
+        minSize: 140,
+        cell: ({ row }) => (
+          <TimestampTooltip
+            timestamp={row.original.date}
+            side="right"
+            rows={["local"]}
+          >
+            <span>{formatDateTimeSmart(row.original.date)}</span>
+          </TimestampTooltip>
+        ),
+      },
+      {
+        id: "customer",
+        header: "Customer",
+        minSize: 220,
+        cell: ({ row }) =>
+          row.original.customer ? (
+            <CustomerRowItem
+              customer={row.original.customer}
+              className="px-4 py-2.5"
+            />
+          ) : (
+            <p className="px-4 py-2.5">-</p>
+          ),
+      },
+      {
+        id: "link",
+        header: "Link",
+        accessorKey: "link",
+        size: 200,
+        cell: ({ row }) =>
+          row.original.link ? (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(row.original.link.url)}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={row.original.link.shortLink}
+                successMessage="Copied link to clipboard!"
+                className="truncate"
+              >
+                <span className="truncate" title={row.original.link.shortLink}>
+                  {getPrettyUrl(row.original.link.shortLink)}
+                </span>
+              </CopyText>
+            </div>
+          ) : (
+            "-"
+          ),
+      },
+      {
+        id: "earnings",
+        header: "Earnings",
+        accessorKey: "amount",
+        cell: ({ row }) => currencyFormatter(row.original.amount ?? 0),
+      },
+    ],
+    [],
+  );
+
+  const { table, ...tableProps } = useTable({
+    data: rows,
+    loading: isLoading,
+    error: error ? "Failed to fetch data." : undefined,
+    columns,
+    pagination,
+    onPaginationChange,
+    rowCount: earningsCount?.count || 0,
+    thClassName: "border-l-transparent",
+    tdClassName: (columnId: string) =>
+      cn("border-l-transparent", columnId === "customer" && "p-0"),
+    resourceName: () => "commissions",
+    emptyState: (
+      <AnimatedEmptyState
+        title="No commissions recorded yet"
+        description="Commissions earned will appear here once you start generating activity."
+        cardContent={() => (
+          <>
+            <CircleDollar className="size-4 text-neutral-700" />
+            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+          </>
+        )}
+      />
+    ),
+  });
+
+  return (
+    <PerformanceTableShell
+      title="Commissions earned"
+      viewAllHref={`/programs/${programSlug}/earnings`}
+    >
+      <Table
+        {...tableProps}
+        table={table}
+        containerClassName="border-neutral-200"
+        scrollWrapperClassName="min-h-[315px]"
+      />
+    </PerformanceTableShell>
   );
 }
