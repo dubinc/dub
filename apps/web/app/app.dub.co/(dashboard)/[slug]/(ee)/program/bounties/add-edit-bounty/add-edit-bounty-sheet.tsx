@@ -29,6 +29,7 @@ import {
   CardSelectorOption,
   Combobox,
   ComboboxOption,
+  Label,
   NumberStepper,
   RichTextArea,
   RichTextProvider,
@@ -168,12 +169,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     {type === "submission" && (
                       <>
                         <div>
-                          <label
-                            htmlFor="name"
-                            className="text-sm font-medium text-neutral-800"
-                          >
-                            Name
-                          </label>
+                          <Label htmlFor="name">Name</Label>
                           <div className="mt-2">
                             <input
                               id="name"
@@ -201,12 +197,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     )}
 
                     <div>
-                      <label className="text-sm font-medium text-neutral-800">
+                      <Label>
                         Description
                         <span className="ml-1 font-normal text-neutral-500">
                           (optional)
                         </span>
-                      </label>
+                      </Label>
                       <div className="mt-2">
                         <Controller
                           control={control}
@@ -267,11 +263,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                           thumbTranslate="translate-x-4"
                           disabled={Boolean(bounty?.startsAt)}
                         />
-                        <div className="flex flex-col gap-1">
-                          <h3 className="text-sm font-medium text-neutral-700">
-                            Start date
-                          </h3>
-                        </div>
+                        <Label>Start date</Label>
                       </div>
 
                       {hasStartDate && (
@@ -311,11 +303,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                             thumbTranslate="translate-x-4"
                             disabled={Boolean(bounty?.endsAt)}
                           />
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-sm font-medium text-neutral-700">
-                              End date
-                            </h3>
-                          </div>
+                          <Label>End date</Label>
                         </div>
 
                         {hasEndDate && (
@@ -356,11 +344,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                             thumbTranslate="translate-x-4"
                             disabled={Boolean(bounty?.endsAt)}
                           />
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-sm font-medium text-neutral-700">
-                              End date
-                            </h3>
-                          </div>
+                          <Label>End date</Label>
                         </div>
 
                         {hasEndDate && (
@@ -386,13 +370,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     {type === "submission" && (
                       <>
                         <div>
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-sm font-medium text-neutral-700">
-                              Allowed submissions
-                            </h3>
-                          </div>
-
-                          <div className="mt-1 space-y-2">
+                          <Label>Allowed submissions</Label>
+                          <div className="mt-2">
                             <NumberStepper
                               value={allowedSubmissions}
                               onChange={handleAllowedSubmissionsChange}
@@ -404,63 +383,53 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                           </div>
                         </div>
 
-                        <AnimatedSizeContainer
-                          height
-                          transition={{ ease: "easeInOut", duration: 0.2 }}
-                        >
-                          {hasEndDate && (
-                            <div>
-                              <Tooltip
-                                content={
-                                  allowedSubmissions > 1
-                                    ? "Decrease allowed submissions to 1 to use submission window."
-                                    : undefined
-                                }
-                              >
-                                <div
-                                  className={cn(
-                                    "flex items-center gap-4 transition-opacity",
-                                    allowedSubmissions > 1 && "opacity-30",
-                                  )}
-                                >
-                                  <Switch
-                                    fn={handleSubmissionWindowToggle}
-                                    checked={submissionWindow != null}
-                                    trackDimensions="w-8 h-4"
-                                    thumbDimensions="w-3 h-3"
-                                    thumbTranslate="translate-x-4"
-                                    disabled={allowedSubmissions > 1}
-                                  />
-                                  <div className="flex flex-col gap-1">
-                                    <h3 className="text-sm font-medium text-neutral-700">
-                                      Submission window
-                                    </h3>
-                                  </div>
-                                </div>
-                              </Tooltip>
-
-                              {submissionWindow != null && (
-                                <div className="mt-3 space-y-2">
-                                  <div className="rounded-lg border border-neutral-200 bg-neutral-50/50 p-2.5 shadow-sm">
-                                    <div className="flex items-center gap-2.5">
-                                      <RewardIconSquare icon={CalendarIcon} />
-                                      <span className="text-content-default text-sm leading-relaxed">
-                                        Partners can submit{" "}
-                                        <SubmissionWindowBadge
-                                          value={submissionWindow}
-                                          onChange={
-                                            handleSubmissionWindowChange
-                                          }
-                                        />{" "}
-                                        days before the end date
-                                      </span>
-                                    </div>
-                                  </div>
-                                </div>
+                        <div>
+                          <Tooltip
+                            content={
+                              !hasEndDate
+                                ? "Set an end date to use submission window."
+                                : allowedSubmissions > 1
+                                  ? "Decrease allowed submissions to 1 to use submission window."
+                                  : undefined
+                            }
+                          >
+                            <div
+                              className={cn(
+                                "flex items-center gap-4 transition-opacity",
+                                (!hasEndDate || allowedSubmissions > 1) &&
+                                  "opacity-30",
                               )}
+                            >
+                              <Switch
+                                fn={handleSubmissionWindowToggle}
+                                checked={submissionWindow != null}
+                                trackDimensions="w-8 h-4"
+                                thumbDimensions="w-3 h-3"
+                                thumbTranslate="translate-x-4"
+                                disabled={!hasEndDate || allowedSubmissions > 1}
+                              />
+                              <Label>Submission window</Label>
+                            </div>
+                          </Tooltip>
+
+                          {submissionWindow != null && (
+                            <div className="mt-3 space-y-2">
+                              <div className="rounded-lg border border-neutral-200 bg-neutral-50/50 p-2.5 shadow-sm">
+                                <div className="flex items-center gap-2.5">
+                                  <RewardIconSquare icon={CalendarIcon} />
+                                  <span className="text-content-default text-sm leading-relaxed">
+                                    Partners can submit{" "}
+                                    <SubmissionWindowBadge
+                                      value={submissionWindow}
+                                      onChange={handleSubmissionWindowChange}
+                                    />{" "}
+                                    days before the end date
+                                  </span>
+                                </div>
+                              </div>
                             </div>
                           )}
-                        </AnimatedSizeContainer>
+                        </div>
 
                         <div>
                           <Tooltip
@@ -484,11 +453,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 thumbTranslate="translate-x-4"
                                 disabled={allowedSubmissions === 1}
                               />
-                              <div className="flex flex-col gap-1">
-                                <h3 className="text-sm font-medium text-neutral-700">
-                                  Submission frequency
-                                </h3>
-                              </div>
+                              <Label>Submission frequency</Label>
                             </div>
                           </Tooltip>
 
