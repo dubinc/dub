@@ -633,9 +633,9 @@ function EmailPreview({
             </div>
             <div className="grid grid-cols-1 gap-3 p-4 pb-8">
               <BlurImage
-                src={program?.logo || "https://assets.dub.co/logo.png"}
+                src={program?.logo || "https://assets.dub.co/wordmark.png"}
                 alt={program?.name || "Dub"}
-                className="my-1 size-8 rounded-full"
+                className="my-1 h-8 rounded-full"
                 width={48}
                 height={48}
               />
