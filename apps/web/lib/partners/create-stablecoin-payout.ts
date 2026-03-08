@@ -157,7 +157,7 @@ export const createStablecoinPayout = async ({
       },
     });
 
-    await markPayoutsAsProcessed(allPayouts);
+    await markPayoutsAsProcessed(currentInvoicePayouts);
 
     console.warn(
       `Stripe recipient account for partner ${partner.email} is closed.`,
@@ -179,7 +179,7 @@ export const createStablecoinPayout = async ({
       },
     });
 
-    await markPayoutsAsProcessed(allPayouts);
+    await markPayoutsAsProcessed(currentInvoicePayouts);
 
     throw new Error(
       `Stripe recipient account for partner ${partner.email} does not have crypto wallet capabilities.`,
@@ -190,7 +190,7 @@ export const createStablecoinPayout = async ({
     ...new Set(allPayouts.map((p) => p.program.name)),
   ];
 
-  // Find the total amount to transfer to Dub's FA
+  // Transfer the total of previously processed payouts to Dub's FA
   const amountToTransferToFA = previouslyProcessedPayouts.reduce(
     (acc, payout) => acc + payout.amount,
     0,

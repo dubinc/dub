@@ -70,8 +70,11 @@ export async function POST(req: Request) {
       where: {
         invoiceId: invoice.id,
         method: "stablecoin",
+        // only transfer funds for stablecoin payouts >= minimum withdrawal amount
+        // for payouts below the minimum withdrawal amount, we will just mark them as processed
+        // and users can force withdraw them manually later (which triggers another fundFinancialAccount call)
         amount: {
-          gte: MIN_WITHDRAWAL_AMOUNT_CENTS, // only transfer funds for stablecoin payouts >= minimum withdrawal amount
+          gte: MIN_WITHDRAWAL_AMOUNT_CENTS,
         },
       },
     });
