@@ -7,7 +7,7 @@ import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import { Button, CopyButton, Sheet, StatusBadge } from "@dub/ui";
-import { cn, currencyFormatter, formatDate, nFormatter } from "@dub/utils";
+import { cn, formatDate, nFormatter } from "@dub/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { toast } from "sonner";
@@ -154,13 +154,6 @@ function SubmissionDetailsView({
           year: "numeric",
         }),
       ),
-    });
-  }
-
-  if (submission.commission?.earnings) {
-    details.push({
-      label: "Earnings",
-      value: textValue(currencyFormatter(submission.commission.earnings)),
     });
   }
 

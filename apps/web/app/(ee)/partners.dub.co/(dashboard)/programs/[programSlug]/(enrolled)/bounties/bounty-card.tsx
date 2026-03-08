@@ -6,9 +6,15 @@ import {
 import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-description";
 import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { TimestampTooltip } from "@dub/ui";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { buttonVariants, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { Calendar6 } from "@dub/ui/icons";
-import { cn, formatDate, formatDateTimeSmart } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  formatDate,
+  formatDateTimeSmart,
+} from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -16,10 +22,12 @@ export function PartnerBountyCard({
   bounty,
   showFullTitle = false,
   hideFooter = false,
+  showRewards = false,
 }: {
   bounty: PartnerBountyProps;
   showFullTitle?: boolean;
   hideFooter?: boolean;
+  showRewards?: boolean;
 }) {
   const { programSlug } = useParams();
 
@@ -66,7 +74,101 @@ export function PartnerBountyCard({
           )}
         </div>
       )}
+
+      {showRewards && (
+        <BountyRewardsSection
+          bounty={bounty}
+          programSlug={programSlug as string}
+        />
+      )}
     </Link>
+  );
+}
+
+function BountyRewardsSection({
+  bounty,
+  programSlug,
+}: {
+  bounty: PartnerBountyProps;
+  programSlug: string;
+}) {
+  const rewards = bounty.submissions
+    .filter((s) => s.commission !== null)
+    .map((s) => s.commission!);
+
+  const { table, ...tableProps } = useTable({
+    data: rewards,
+    columns: [
+      {
+        id: "amount",
+        header: "Amount",
+        cell: ({ row }) => currencyFormatter(row.original.earnings),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const badge = CommissionStatusBadges[row.original.status];
+
+          return badge ? (
+            <span
+              className={cn(
+                "rounded-md px-2 py-0.5 text-xs font-semibold",
+                badge.className,
+              )}
+            >
+              {badge.label}
+            </span>
+          ) : null;
+        },
+      },
+      {
+        id: "date",
+        header: "Date",
+        cell: ({ row }) => (
+          <TimestampTooltip
+            timestamp={row.original.createdAt}
+            side="right"
+            rows={["local", "utc"]}
+          >
+            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+              {formatDateTimeSmart(row.original.createdAt)}
+            </span>
+          </TimestampTooltip>
+        ),
+      },
+    ],
+    thClassName: "border-l-transparent",
+    tdClassName: "border-l-transparent",
+  });
+
+  if (rewards.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="relative flex flex-col gap-4 border-t border-neutral-200 p-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-neutral-900">Rewards</h3>
+        <Link
+          href={`/programs/${programSlug}/earnings?type=custom`}
+          onClick={(e) => e.stopPropagation()}
+          className={cn(
+            buttonVariants({ variant: "secondary" }),
+            "border-border-subtle flex h-6 items-center rounded-md border px-2 text-xs",
+          )}
+        >
+          View all
+        </Link>
+      </div>
+      <Table
+        {...tableProps}
+        table={table}
+        containerClassName="border-neutral-200"
+        scrollWrapperClassName="min-h-0"
+        className="[&_tbody_tr:last-child_td]:border-b-0"
+      />
+    </div>
   );
 }
 
