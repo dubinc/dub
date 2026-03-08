@@ -11,8 +11,8 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { BELOW_MIN_WITHDRAWAL_FEE_CENTS } from "src/types";
 import { Footer } from "../../components/footer";
+import { BELOW_MIN_WITHDRAWAL_FEE_CENTS } from "../../types";
 
 export default function PayoutAutoWithdrawals({
   email = "panic@thedis.co",
