@@ -23,12 +23,12 @@ export default function PartnerPayoutProcessed({
   },
   payout = {
     id: "po_8VuCr2i7WnG65d4TNgZO19fT",
-    amount: 12000,
+    amount: 200,
     periodStart: new Date("2026-02-01"),
     periodEnd: new Date("2026-02-01"),
     method: "stablecoin",
   },
-  forceWithdrawal,
+  forceWithdrawal = true,
 }: {
   email: string;
   program: {
@@ -65,16 +65,92 @@ export default function PartnerPayoutProcessed({
       })
     : null;
 
-  let statusMessage = "";
+  const MIN_WITHDRAWAL_AMOUNT_CENTS = 20_00;
+  const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50;
+  const isBelowMinimumWithdrawalAmount =
+    payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS;
 
-  if (payout.method === "connect") {
-    statusMessage =
-      payout.amount < 20_00 && !forceWithdrawal
-        ? "Since this payout is below the minimum withdrawal amount of $20, it will remain in processed status."
-        : "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way.";
-  } else if (payout.method === "paypal") {
+  let statusMessage: string | React.ReactNode = "";
+
+  if (payout.method === "paypal") {
     statusMessage =
       "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete.";
+  } else if (isBelowMinimumWithdrawalAmount && !forceWithdrawal) {
+    statusMessage = (
+      <>
+        Since this payout is below the{" "}
+        <a
+          href="https://dub.co/help/article/receiving-payouts#what-is-the-minimum-withdrawal-amount-and-how-does-it-work"
+          target="_blank"
+          className="font-medium text-black underline decoration-dotted underline-offset-2"
+        >
+          minimum withdrawal amount
+        </a>{" "}
+        of {currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, it will remain in{" "}
+        <code className="rounded bg-indigo-100 px-1.5 py-0.5 text-indigo-600">
+          processed
+        </code>{" "}
+        status.
+        <br />
+        <br />
+        If you'd like to receive your payout right away, please{" "}
+        <Link
+          href="https://partners.dub.co/payouts"
+          target="_blank"
+          className="font-medium text-black underline decoration-dotted underline-offset-2"
+        >
+          go to your Payouts page
+        </Link>{" "}
+        and select <strong className="text-black">"Pay out now"</strong> to
+        receive your payout with a $0.50 withdrawal fee.
+        <br />
+        <br />
+        Note:{" "}
+        <code className="rounded bg-indigo-100 px-1.5 py-0.5 text-indigo-600">
+          processed
+        </code>{" "}
+        payouts will remain in your account for up to 90 days, after which it
+        will be automatically withdrawn (with a $0.50 withdrawal fee).
+      </>
+    );
+  } else if (payout.method === "stablecoin") {
+    statusMessage = (
+      <>
+        After a {STABLECOIN_PAYOUT_FEE_RATE * 100}% stablecoin fee
+        {isBelowMinimumWithdrawalAmount
+          ? ` + a ${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} withdrawal fee`
+          : ""}
+        ,{" "}
+        <strong className="text-black">
+          {currencyFormatter(
+            payout.amount * (1 - STABLECOIN_PAYOUT_FEE_RATE) -
+              (isBelowMinimumWithdrawalAmount
+                ? BELOW_MIN_WITHDRAWAL_FEE_CENTS
+                : 0),
+          )}
+        </strong>{" "}
+        will be transferred to your connected crypto wallet. You should receive
+        it within minutes.
+      </>
+    );
+  } else {
+    statusMessage = (
+      <>
+        {isBelowMinimumWithdrawalAmount
+          ? `After a ${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} withdrawal fee, `
+          : ""}
+        <strong className="text-black">
+          {currencyFormatter(
+            payout.amount -
+              (isBelowMinimumWithdrawalAmount
+                ? BELOW_MIN_WITHDRAWAL_FEE_CENTS
+                : 0),
+          )}
+        </strong>{" "}
+        will begin transferring to your connected bank account shortly. You will
+        receive another email when the funds are on their way.
+      </>
+    );
   }
 
   return (
@@ -83,7 +159,11 @@ export default function PartnerPayoutProcessed({
       <Preview>
         {program.name} has sent you a {payoutAmountInDollars} payout
         {startDate && endDate
-          ? ` for affiliate commissions made from ${startDate} to ${endDate}`
+          ? ` for affiliate commissions made ${
+              startDate === endDate
+                ? `on ${startDate}`
+                : `from ${startDate} to ${endDate}`
+            }`
           : ""}
         .
       </Preview>
@@ -105,14 +185,20 @@ export default function PartnerPayoutProcessed({
             <Text className="text-sm leading-6 text-neutral-600">
               Good news! <strong className="text-black">{program.name}</strong>{" "}
               has sent you{" "}
-              <strong className="text-black">{payoutAmountInDollars}</strong>
+              <strong className="text-black">{payoutAmountInDollars}</strong>{" "}
+              for affiliate commissions made via{" "}
+              <Link
+                href="https://partners.dub.co"
+                target="_blank"
+                className="font-medium text-black underline decoration-dotted underline-offset-2"
+              >
+                Dub Partners
+              </Link>
               {startDate && endDate ? (
                 <>
                   {" "}
-                  for affiliate commissions made
                   {startDate === endDate ? (
                     <>
-                      {" "}
                       on <strong className="text-black">{startDate}</strong>.
                     </>
                   ) : (
@@ -127,25 +213,7 @@ export default function PartnerPayoutProcessed({
               )}
             </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              {payout.method === "stablecoin" ? (
-                <>
-                  {" "}
-                  After a {STABLECOIN_PAYOUT_FEE_RATE * 100}% stablecoin fee,{" "}
-                  <strong className="text-black">
-                    {currencyFormatter(
-                      payout.amount * (1 - STABLECOIN_PAYOUT_FEE_RATE),
-                    )}
-                  </strong>{" "}
-                  will be transferred to your connected crypto wallet. You
-                  should receive it within minutes.
-                </>
-              ) : (
-                statusMessage
-              )}
-            </Text>
-
-            <Section className="mb-10 mt-8">
+            <Section className="my-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
                 href={`https://partners.dub.co/payouts?payoutId=${payout.id}`}
@@ -154,19 +222,9 @@ export default function PartnerPayoutProcessed({
               </Link>
             </Section>
 
-            {payout.method === "connect" && payout.amount < 1000 && (
-              <Text className="text-sm leading-6 text-neutral-600">
-                If you'd like to receive your payout right away, please{" "}
-                <Link
-                  href="https://partners.dub.co/payouts"
-                  className="font-medium text-black underline"
-                >
-                  go to your Payouts page
-                </Link>{" "}
-                and select <strong className="text-black">"Pay out now"</strong>{" "}
-                to receive your payout with a $0.50 withdrawal fee.
-              </Text>
-            )}
+            <Text className="text-sm leading-6 text-neutral-600">
+              {statusMessage}
+            </Text>
             <Footer email={email} />
           </Container>
         </Body>

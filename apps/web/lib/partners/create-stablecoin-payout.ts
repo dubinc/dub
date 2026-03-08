@@ -3,7 +3,12 @@ import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processe
 import { prisma } from "@dub/prisma";
 import { PartnerPayoutMethod, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, prettyPrint } from "@dub/utils";
-import { STABLECOIN_PAYOUT_FEE_RATE } from "../constants/payouts";
+import {
+  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
+  STABLECOIN_PAYOUT_FEE_RATE,
+} from "../constants/payouts";
 import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
 import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
@@ -113,26 +118,35 @@ export const createStablecoinPayout = async ({
     0,
   );
 
-  if (totalTransferableAmount <= 0) {
+  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
     console.warn(
-      `Total transferable amount for partner ${partner.email} is less than 0.`,
+      `Total transferable amount for partner ${partner.email} is less than the minimum force withdrawal amount (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`,
     );
     return;
   }
 
-  // Stablecoin payouts incur an outbound fee that is passed along to partners.
+  let withdrawalFee = 0;
+
+  // If the total transferable amount is less than the minimum withdrawal amount
+  if (totalTransferableAmount < MIN_WITHDRAWAL_AMOUNT_CENTS) {
+    // if we're forcing a withdrawal, we need to charge a withdrawal fee
+    if (forceWithdrawal) {
+      withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
+      // else, we will just update current invoice payouts to "processed" status
+    } else {
+      await markPayoutsAsProcessed(currentInvoicePayouts);
+
+      console.log(
+        `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
+      );
+
+      return;
+    }
+  }
+
+  // remove the stablecoin payout fee (0.5%) and withdrawal fee (if applicable) from the total amount
   totalTransferableAmount -=
-    totalTransferableAmount * STABLECOIN_PAYOUT_FEE_RATE;
-
-  // Round down to the nearest integer
-  totalTransferableAmount = Math.floor(totalTransferableAmount);
-
-  if (totalTransferableAmount <= 0) {
-    console.warn(
-      `Total transferable amount for partner ${partner.email} is less than 0.`,
-    );
-    return;
-  }
+    totalTransferableAmount * STABLECOIN_PAYOUT_FEE_RATE + withdrawalFee;
 
   const stripeRecipientAccount = await getStripeRecipientAccount(
     partner.stripeRecipientId,
