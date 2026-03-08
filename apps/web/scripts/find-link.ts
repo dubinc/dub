@@ -2,19 +2,32 @@ import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
 async function main() {
-  const links = await prisma.link.findMany({
-    where: {
-      projectId: "xxx",
-      url: "https://example.com",
-    },
-    select: {
-      id: true,
-      shortLink: true,
-      url: true,
-    },
-  });
+  while (true) {
+    const users = await prisma.user.findMany({
+      where: {
+        sentMail: true,
+      },
+      take: 250,
+    });
 
-  console.table(links);
+    if (users.length === 0) {
+      console.log("No users found");
+      break;
+    }
+
+    const res = await prisma.user.updateMany({
+      where: {
+        id: {
+          in: users.map((user) => user.id),
+        },
+      },
+      data: {
+        sentMail: false,
+      },
+    });
+
+    console.log(`Updated ${res.count} users`);
+  }
 }
 
 main();

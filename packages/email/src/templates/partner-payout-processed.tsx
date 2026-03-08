@@ -13,7 +13,12 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../components/footer";
-import { PartnerPayoutMethod } from "../types";
+import {
+  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
+  PartnerPayoutMethod,
+  STABLECOIN_PAYOUT_FEE_RATE,
+} from "../types";
 
 export default function PartnerPayoutProcessed({
   email = "panic@thedis.co",
@@ -42,9 +47,6 @@ export default function PartnerPayoutProcessed({
     method: PartnerPayoutMethod | null;
   };
 }) {
-  const STABLECOIN_PAYOUT_FEE_RATE = 0.005;
-  const MIN_WITHDRAWAL_AMOUNT_CENTS = 10_00;
-  const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50;
   const isBelowMinimumWithdrawalAmount =
     payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS;
   const payoutAmountInDollars = currencyFormatter(payout.amount);
@@ -99,7 +101,8 @@ export default function PartnerPayoutProcessed({
           go to your Payouts page
         </Link>{" "}
         and select <strong className="text-black">"Pay out now"</strong> to
-        receive your payout with a $0.50 withdrawal fee.
+        withdraw your payout for a{" "}
+        {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} fee.
         <br />
         <br />
         Note:{" "}
@@ -107,7 +110,8 @@ export default function PartnerPayoutProcessed({
           processed
         </code>{" "}
         payouts will remain in your account for up to 90 days, after which it
-        will be automatically withdrawn (with a $0.50 withdrawal fee).
+        will be automatically withdrawn (for a{" "}
+        {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} withdrawal fee).
       </>
     );
   } else if (payout.method === "stablecoin") {

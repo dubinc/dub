@@ -17,7 +17,8 @@ const schema = z.object({
 });
 
 // This route is used to force withdrawals for partners that haven't withdrew their earnings for than 90 days
-// Runs once a day at 5AM PST + calls itself recursively to process all partners in batches
+// Runs once a day at 5AM PST (0 12 * * *) + calls itself recursively to process all partners in batches
+// TODO: Add cron to vercel.json starting Mar 9, 2026
 async function handler(req: Request) {
   try {
     let rawBody: string | undefined;
