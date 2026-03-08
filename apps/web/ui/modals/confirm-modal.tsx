@@ -10,6 +10,7 @@ type PromptModelProps = {
 
   onConfirm: () => Promise<void> | void;
   confirmText?: string;
+  confirmVariant?: "primary" | "danger";
 
   confirmShortcut?: string;
   confirmShortcutOptions?: {
@@ -30,6 +31,7 @@ function ConfirmModal({
   cancelText = "Cancel",
   onConfirm,
   confirmText = "Confirm",
+  confirmVariant = "primary",
   confirmShortcut,
   confirmShortcutOptions = { modal: true },
 }: {
@@ -77,7 +79,7 @@ function ConfirmModal({
           }}
         />
         <Button
-          variant="primary"
+          variant={confirmVariant}
           className="h-8 w-fit px-3"
           text={confirmText}
           loading={isLoading}

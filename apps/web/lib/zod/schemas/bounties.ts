@@ -1,9 +1,15 @@
 import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
+  BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH,
+  BOUNTY_MAX_SUBMISSION_FILES,
   BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH,
-} from "@/lib/constants/bounties";
+  BOUNTY_MAX_SUBMISSION_URLS,
+  BOUNTY_SOCIAL_PLATFORM_METRICS,
+  BOUNTY_SOCIAL_PLATFORM_VALUES,
+} from "@/lib/bounty/constants";
 import {
   BountyPerformanceScope,
+  BountySubmissionFrequency,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
   BountyType,
@@ -14,10 +20,53 @@ import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
-import { parseDateSchema } from "./utils";
-import { workflowConditionSchema } from "./workflows";
+import { nullableCountSchema, parseDateSchema } from "./utils";
+import { WORKFLOW_ATTRIBUTES } from "./workflows";
 
-// Object format with image and url keys
+export const bountyPerformanceConditionSchema = z.object({
+  attribute: z.enum(WORKFLOW_ATTRIBUTES),
+  operator: z.literal("gte").default("gte"),
+  value: z.number(),
+});
+
+// Eg: for each additional 1000 views, earn $1, up to $100
+export const bountySocialContentIncrementalBonusSchema = z
+  .object({
+    incrementCount: z.number().int().positive().optional(),
+    bonusPerIncrement: z.number().min(0).optional(),
+    maxCount: z.number().int().positive().optional(),
+  })
+  .refine(
+    ({ incrementCount, maxCount }) => {
+      if (
+        incrementCount != null &&
+        maxCount != null &&
+        !Number.isNaN(incrementCount) &&
+        !Number.isNaN(maxCount)
+      ) {
+        return maxCount >= incrementCount;
+      }
+
+      return true;
+    },
+    {
+      message: "Cap must be at least the increment count",
+      path: ["maxCount"],
+    },
+  );
+
+export const bountySocialContentRequirementsSchema = z.object({
+  platform: z.enum(BOUNTY_SOCIAL_PLATFORM_VALUES),
+  metric: z.enum(BOUNTY_SOCIAL_PLATFORM_METRICS),
+  minCount: z
+    .number()
+    .int()
+    .positive()
+    .optional()
+    .describe("Minimum metric required for eligibility"),
+  incrementalBonus: bountySocialContentIncrementalBonusSchema.optional(),
+});
+
 export const submissionRequirementsSchema = z.object({
   image: z
     .object({
@@ -30,12 +79,8 @@ export const submissionRequirementsSchema = z.object({
       domains: z.array(z.string()).optional(),
     })
     .optional(),
+  socialMetrics: bountySocialContentRequirementsSchema.optional(),
 });
-
-// Type exports for TypeScript
-export type SubmissionRequirements = z.infer<
-  typeof submissionRequirementsSchema
->;
 
 export const createBountySchema = z.object({
   name: z
@@ -55,8 +100,16 @@ export const createBountySchema = z.object({
   startsAt: parseDateSchema.nullish(),
   endsAt: parseDateSchema.nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
+  submissionFrequency: z.enum(BountySubmissionFrequency).nullish(),
+  maxSubmissions: z
+    .number()
+    .int()
+    .min(2, "Total submissions allowed must be at least 2")
+    .max(10)
+    .nullish(),
   rewardAmount: z
     .number()
+    .positive()
     .min(1, "Reward amount must be greater than 1")
     .nullable(),
   rewardDescription: z
@@ -67,7 +120,7 @@ export const createBountySchema = z.object({
     .nullish(),
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
-  performanceCondition: workflowConditionSchema.nullish(),
+  performanceCondition: bountyPerformanceConditionSchema.nullish(),
   performanceScope: z.enum(BountyPerformanceScope).nullish(),
   sendNotificationEmails: z.boolean().optional(),
 });
@@ -81,9 +134,9 @@ export const updateBountySchema = createBountySchema
   .partial();
 
 export const BountySubmissionFileSchema = z.object({
-  url: z.string(),
-  fileName: z.string(),
-  size: z.number(),
+  url: z.string().describe("The URL of the uploaded file."),
+  fileName: z.string().describe("The original file name."),
+  size: z.number().describe("The file size in bytes."),
 });
 
 // used in POST, PATCH, DELETE /bounties + bounty.created, bounty.updated webhooks
@@ -95,11 +148,16 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   submissionsOpenAt: z.date().nullable(),
+  // submissionFrequency: z.enum(BountySubmissionFrequency).nullable(),
+  // maxSubmissions: z.number().nullable(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
-  performanceCondition: workflowConditionSchema.nullable().default(null),
+  performanceCondition: bountyPerformanceConditionSchema
+    .nullable()
+    .default(null),
   performanceScope: z.enum(BountyPerformanceScope).nullable(),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
+  socialMetricsLastSyncedAt: z.date().nullable().optional(),
   groups: z.array(GroupSchema.pick({ id: true })),
 });
 
@@ -119,19 +177,56 @@ export const BountyListSchema = BountySchema.extend({
     .optional(),
 });
 
+// used in GET /bounties/{bountyId}/submissions
 export const BountySubmissionSchema = z.object({
-  id: z.string(),
-  description: z.string().nullable(),
-  urls: z.array(z.string()).nullable(),
-  files: z.array(BountySubmissionFileSchema).nullable(),
-  status: z.enum(BountySubmissionStatus),
-  performanceCount: z.number().nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  completedAt: z.date().nullable(),
-  reviewedAt: z.date().nullable(),
-  rejectionReason: z.string().nullable(),
-  rejectionNote: z.string().nullable(),
+  id: z.string().meta({ description: "The ID of the bounty submission" }),
+  bountyId: z.string().meta({ description: "The ID of the bounty" }),
+  partnerId: z.string().meta({ description: "The ID of the partner" }),
+  description: z
+    .string()
+    .nullable()
+    .meta({ description: "The description of the submission" }),
+  urls: z
+    .array(z.string())
+    .nullable()
+    .meta({ description: "The URLs submitted for the submission" }),
+  files: z
+    .array(BountySubmissionFileSchema)
+    .nullable()
+    .meta({ description: "The files uploaded for the submission" }),
+  status: z
+    .enum(BountySubmissionStatus)
+    .meta({ description: "The status of the submission" }),
+  performanceCount: nullableCountSchema.meta({
+    description: "The performance count of the submission",
+  }),
+  socialMetricCount: z.number().int().nullable().meta({
+    description:
+      "The social metric count (views or likes) for the social content",
+  }),
+  socialMetricsLastSyncedAt: z.date().nullable().optional().meta({
+    description:
+      "The date and time the submission's social metrics were last synced",
+  }),
+  createdAt: z
+    .date()
+    .meta({ description: "The date and time the submission was created" }),
+  completedAt: z
+    .date()
+    .nullable()
+    .meta({ description: "The date and time the submission was completed" }),
+  reviewedAt: z
+    .date()
+    .nullable()
+    .meta({ description: "The date and time the submission was reviewed" }),
+  rejectionReason: z
+    .string()
+    .nullable()
+    .meta({ description: "The reason for rejecting the submission" }),
+  rejectionNote: z
+    .string()
+    .nullable()
+    .meta({ description: "The note for rejecting the submission" }),
 });
 
 export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
@@ -161,23 +256,78 @@ export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
   }).nullable(),
 });
 
-export const rejectBountySubmissionSchema = z.object({
-  workspaceId: z.string(),
-  submissionId: z.string(),
-  rejectionReason: z.enum(BountySubmissionRejectionReason),
+export const approveBountySubmissionBodySchema = z.object({
+  rewardAmount: z.number().nullish().meta({
+    description:
+      "The reward amount for the performance-based bounty. Applicable if the bounty reward amount is not set.",
+  }),
+});
+
+export const rejectBountySubmissionBodySchema = z.object({
+  rejectionReason: z.enum(BountySubmissionRejectionReason).optional().meta({
+    description: "The reason for rejecting the submission.",
+  }),
   rejectionNote: z
     .string()
     .trim()
     .max(BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH)
-    .optional(),
+    .optional()
+    .meta({
+      description: "The note for rejecting the submission.",
+    }),
 });
 
 export const getBountySubmissionsQuerySchema = z
   .object({
-    status: z.enum(BountySubmissionStatus).optional(),
-    groupId: z.string().optional(),
-    partnerId: z.string().optional(),
-    sortBy: z.enum(["completedAt", "performanceCount"]).default("completedAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("asc"),
+    status: z.enum(BountySubmissionStatus).optional().meta({
+      description: "The status of the submissions to list.",
+    }),
+    groupId: z.string().optional().meta({
+      description: "The ID of the group to list submissions for.",
+    }),
+    partnerId: z.string().optional().meta({
+      description: "The ID of the partner to list submissions for.",
+    }),
+    sortBy: z
+      .enum(["completedAt", "performanceCount", "socialMetricCount"])
+      .default("completedAt")
+      .meta({
+        description: "The field to sort the submissions by.",
+      }),
+    sortOrder: z.enum(["asc", "desc"]).default("asc").meta({
+      description: "The order to sort the submissions by.",
+    }),
   })
   .extend(getPaginationQuerySchema({ pageSize: 100 }));
+
+export const socialContentOutputSchema = z.object({
+  likes: z.number(),
+  views: z.number(),
+  handle: z.string().nullable(),
+  platformId: z.string().nullable(),
+  publishedAt: z.date().nullable(),
+  title: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  thumbnailUrl: z.string().nullable().optional(),
+  mediaType: z.enum(["image", "video", "carousel"]).optional(),
+  thumbnailUrls: z.array(z.string()).optional(),
+});
+
+export const createBountySubmissionInputSchema = z.object({
+  programId: z.string(),
+  bountyId: z.string(),
+  files: z
+    .array(BountySubmissionFileSchema)
+    .max(BOUNTY_MAX_SUBMISSION_FILES)
+    .default([]),
+  urls: z.array(z.url()).max(BOUNTY_MAX_SUBMISSION_URLS).default([]),
+  description: z
+    .string()
+    .trim()
+    .max(BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH)
+    .optional(),
+  isDraft: z
+    .boolean()
+    .default(false)
+    .describe("Whether to create a draft submission or a final submission."),
+});

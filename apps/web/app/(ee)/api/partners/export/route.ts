@@ -28,7 +28,7 @@ export const GET = withWorkspace(
     // Process the export in the background if the number of partners is greater than MAX_PARTNERS_TO_EXPORT
     if (partnersCount > MAX_PARTNERS_TO_EXPORT) {
       await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/export`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/partners`,
         body: {
           ...parsedParams,
           columns: columns.join(","),

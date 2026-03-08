@@ -9,17 +9,22 @@ const schema = z.object({
 });
 
 // POST /api/workspaces/[idOrSlug]/upload-url – get a signed URL to upload a file to a workspace
-export const POST = withWorkspace(async ({ req }) => {
-  const { folder } = schema.parse(await req.json());
+export const POST = withWorkspace(
+  async ({ req }) => {
+    const { folder } = schema.parse(await req.json());
 
-  const key = `${folder}/${nanoid(16)}`;
-  const signedUrl = await storage.getSignedUploadUrl({
-    key,
-  });
+    const key = `${folder}/${nanoid(16)}`;
+    const signedUrl = await storage.getSignedUploadUrl({
+      key,
+    });
 
-  return NextResponse.json({
-    key,
-    signedUrl,
-    destinationUrl: `${R2_URL}/${key}`,
-  });
-});
+    return NextResponse.json({
+      key,
+      signedUrl,
+      destinationUrl: `${R2_URL}/${key}`,
+    });
+  },
+  {
+    requiredRoles: ["owner", "member"],
+  },
+);

@@ -8,6 +8,7 @@ import { partnerStackImporter } from "@/lib/partnerstack/importer";
 import { partnerStackCredentialsSchema } from "@/lib/partnerstack/schemas";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = partnerStackCredentialsSchema.extend({
   workspaceId: z.string(),
@@ -18,6 +19,11 @@ export const startPartnerStackImportAction = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { publicKey, secretKey } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

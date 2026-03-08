@@ -13,7 +13,10 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
   // Handle ?next= query param with proper validation to prevent open redirects
   if (
     searchParamsObj.next &&
-    isValidInternalRedirect(searchParamsObj.next, req.url)
+    isValidInternalRedirect({
+      redirectPath: searchParamsObj.next,
+      currentUrl: req.url,
+    })
   ) {
     return NextResponse.redirect(new URL(searchParamsObj.next, req.url));
   }
@@ -42,13 +45,10 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
     );
   }
 
-  // Redirect user to the accept invite modal if they have a pending invite
+  // Redirect user to the accept invite page if they have a pending invite
   const projectInvite = await prismaEdge.projectInvite.findFirst({
     where: {
       email: user.email,
-      expires: {
-        gte: new Date(),
-      },
     },
     select: {
       project: {
@@ -61,7 +61,7 @@ export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
 
   if (projectInvite) {
     return NextResponse.redirect(
-      new URL(`/${projectInvite.project.slug}?invite=1`, req.url),
+      new URL(`/${projectInvite.project.slug}/invite`, req.url),
     );
   }
 

@@ -1,20 +1,18 @@
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
-import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps, EnrolledPartnerProps } from "@/lib/types";
-import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Users, Users6 } from "@dub/ui/icons";
 import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
 export function useBountySubmissionFilters({
   bounty,
@@ -33,7 +31,7 @@ export function useBountySubmissionFilters({
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { partners, partnersAsync } = usePartnerFilterOptions(
+  const { partners } = usePartnerFilterOptions(
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
 
@@ -43,7 +41,7 @@ export function useBountySubmissionFilters({
         key: "partnerId",
         icon: Users,
         label: "Partner",
-        shouldFilter: !partnersAsync,
+        shouldFilter: false,
         options:
           partners?.map(({ id, name, image }) => {
             return {
@@ -106,7 +104,7 @@ export function useBountySubmissionFilters({
           : null,
       },
     ],
-    [groups, bounty, submissionsCount, slug, partners, partnersAsync],
+    [groups, bounty, submissionsCount, slug, partners],
   );
 
   const activeFilters = useMemo(() => {
@@ -170,16 +168,8 @@ export function useBountySubmissionFilters({
 function usePartnerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { partnersCount } = usePartnersCount<number>({
-    ignoreParams: true,
-  });
-
-  const partnersAsync = Boolean(
-    partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
-  );
-
   const { partners, loading: partnersLoading } = usePartners({
-    query: { search: partnersAsync ? search : "" },
+    query: { search },
   });
 
   const { partners: selectedPartners } = usePartners({
@@ -188,7 +178,6 @@ function usePartnerFilterOptions(search: string) {
         ? [searchParamsObj.partnerId]
         : undefined,
     },
-    enabled: partnersAsync,
   });
 
   const result = useMemo(() => {
@@ -208,5 +197,5 @@ function usePartnerFilterOptions(search: string) {
         ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]);
   }, [partnersLoading, partners, selectedPartners, searchParamsObj.partnerId]);
 
-  return { partners: result, partnersAsync };
+  return { partners: result };
 }

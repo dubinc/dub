@@ -5,6 +5,7 @@ import { validateDomain } from "@/lib/api/domains/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
+import { isNonEmptyJson } from "@/lib/api/utils/is-non-empty-json";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { storage } from "@/lib/storage";
@@ -108,7 +109,7 @@ export const POST = withWorkspace(
         notFoundUrl ||
         assetLinks ||
         appleAppSiteAssociation ||
-        deepviewData
+        isNonEmptyJson(deepviewData)
       ) {
         const proFeaturesString = combineWords(
           [
@@ -117,7 +118,7 @@ export const POST = withWorkspace(
             notFoundUrl && "not found URLs",
             assetLinks && "Asset Links",
             appleAppSiteAssociation && "Apple App Site Association",
-            deepviewData && "Deep View",
+            isNonEmptyJson(deepviewData) && "Deep View",
           ].filter(Boolean) as string[],
         );
 

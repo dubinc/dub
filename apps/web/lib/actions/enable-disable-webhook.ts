@@ -6,6 +6,7 @@ import * as z from "zod/v4";
 import { webhookCache } from "../webhook/cache";
 import { toggleWebhooksForWorkspace } from "../webhook/update-webhook";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -18,6 +19,11 @@ export const enableOrDisableWebhook = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { webhookId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["webhooks.write"],
+    });
 
     if (["free", "pro"].includes(workspace.plan)) {
       throw new Error("You must upgrade your plan to enable webhooks.");

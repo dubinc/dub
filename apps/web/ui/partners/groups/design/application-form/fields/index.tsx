@@ -1,5 +1,6 @@
 import { programApplicationFormFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import * as z from "zod/v4";
+import { ImageUploadField } from "./image-upload-field";
 import { LongTextField } from "./long-text-field";
 import { MultipleChoiceField } from "./multiple-choice-field";
 import { SelectField } from "./select-field";
@@ -15,16 +16,19 @@ const FIELD_COMPONENTS: Record<
   "long-text": LongTextField,
   select: SelectField,
   "website-and-socials": WebsiteAndSocialsField,
+  "image-upload": ImageUploadField,
 };
 
 export const ProgramApplicationFormField = ({
   field,
   keyPath,
   preview,
+  onStatusChange,
 }: {
   field: z.infer<typeof programApplicationFormFieldSchema>;
   keyPath?: string;
   preview?: boolean;
+  onStatusChange?: (loading: boolean) => void;
 }) => {
   const Component = FIELD_COMPONENTS[field.type];
 
@@ -32,5 +36,12 @@ export const ProgramApplicationFormField = ({
     return null;
   }
 
-  return <Component field={field} keyPath={keyPath} preview={preview} />;
+  return (
+    <Component
+      field={field}
+      keyPath={keyPath}
+      preview={preview}
+      onStatusChange={onStatusChange}
+    />
+  );
 };

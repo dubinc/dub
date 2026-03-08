@@ -1,17 +1,17 @@
-export type SocialPlatform =
-  | "youtube"
-  | "twitter"
-  | "linkedin"
-  | "instagram"
-  | "tiktok";
+import { PlatformType } from "@dub/prisma/client";
+import { getUrlFromStringIfValid } from "@dub/utils";
 
 interface SocialPlatformConfig {
   patterns: RegExp[];
   allowedChars: RegExp;
   maxLength?: number;
+  name: string;
 }
 
-const PLATFORM_CONFIGS: Record<SocialPlatform, SocialPlatformConfig> = {
+export const SOCIAL_PLATFORM_CONFIGS: Record<
+  Exclude<PlatformType, "website">,
+  SocialPlatformConfig
+> = {
   youtube: {
     patterns: [
       /^(?:.*\.)?(?:youtube\.com|youtu\.be)\/(?:channel\/|c\/|user\/|@)?([^\/\?]+)/i,
@@ -19,6 +19,7 @@ const PLATFORM_CONFIGS: Record<SocialPlatform, SocialPlatformConfig> = {
     ],
     allowedChars: /[^\w.-]/g,
     maxLength: 30,
+    name: "YouTube",
   },
   twitter: {
     patterns: [
@@ -27,21 +28,25 @@ const PLATFORM_CONFIGS: Record<SocialPlatform, SocialPlatformConfig> = {
     ],
     allowedChars: /[^\w]/g,
     maxLength: 15,
+    name: "X/Twitter",
   },
   linkedin: {
     patterns: [/^(?:.*\.)?linkedin\.com\/(?:in\/)?([^\/\?]+)/i],
     allowedChars: /[^\w-]/g,
     maxLength: 30,
+    name: "LinkedIn",
   },
   instagram: {
     patterns: [/^(?:.*\.)?instagram\.com\/([^\/\?]+)/i, /^@([^\/\?]+)/i],
     allowedChars: /[^\w.]/g,
     maxLength: 30,
+    name: "Instagram",
   },
   tiktok: {
     patterns: [/^(?:.*\.)?tiktok\.com\/(?:@)?([^\/\?]+)/i, /^@([^\/\?]+)/i],
     allowedChars: /[^\w.]/g,
     maxLength: 24,
+    name: "TikTok",
   },
 };
 
@@ -50,22 +55,14 @@ export const sanitizeWebsite = (input: string | null | undefined) => {
 
   let website = input.trim();
   if (!website) return null;
+  if (!website.includes(".") || website.includes(" ")) return null;
 
-  if (!website.startsWith("http")) website = `https://${website}`;
-
-  try {
-    const url = new URL(website);
-    url.search = "";
-
-    return url.toString();
-  } catch (e) {
-    return null;
-  }
+  return getUrlFromStringIfValid(website);
 };
 
 export const sanitizeSocialHandle = (
   input: string | null | undefined,
-  platform: SocialPlatform,
+  platform: PlatformType,
 ) => {
   if (!input || typeof input !== "string") {
     return null;
@@ -76,9 +73,15 @@ export const sanitizeSocialHandle = (
     return null;
   }
 
-  handle = handle.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+  handle = handle
+    .replace(/^https?:\/\//i, "")
+    .replace(/^https?$/i, "") // standalone "http" or "https"
+    .replace(/^www\./i, "") // www. prefix
+    .replace(/\?.*$/, "") // query params (e.g. ?s=21&t=...)
+    .replace(/#.*$/, ""); // hash/fragment (e.g. #section)
 
-  const { patterns, allowedChars, maxLength } = PLATFORM_CONFIGS[platform];
+  const { patterns, allowedChars, allowedDomains, maxLength } =
+    SOCIAL_PLATFORM_CONFIGS[platform];
 
   for (const pattern of patterns) {
     const match = handle.match(pattern);
@@ -89,10 +92,7 @@ export const sanitizeSocialHandle = (
     }
   }
 
-  handle = handle
-    .replace(/\/.*$/, "")
-    .replace(/\?.*$/, "")
-    .replace(allowedChars, "");
+  handle = handle.replace(/\/.*$/, "").replace(allowedChars, "");
 
   if (maxLength) {
     handle = handle.substring(0, maxLength);
@@ -100,3 +100,40 @@ export const sanitizeSocialHandle = (
 
   return handle || null;
 };
+
+// Converts an array of platform objects into a key-value object
+// for easy lookup by platform name. Returns null for platforms not found.
+export function buildSocialPlatformLookup<T extends { type: PlatformType }>(
+  platforms: T[],
+): Record<PlatformType, T | null> {
+  const result = {
+    website: null,
+    youtube: null,
+    twitter: null,
+    linkedin: null,
+    instagram: null,
+    tiktok: null,
+  } as Record<PlatformType, T | null>;
+
+  for (const platform of platforms) {
+    result[platform.type] = platform;
+  }
+
+  return result;
+}
+
+// Polyfills social media fields from platforms array for backward compatibility
+export function polyfillSocialMediaFields<
+  T extends { type: PlatformType; identifier: string | null },
+>(platforms: T[]) {
+  const platformsMap = buildSocialPlatformLookup(platforms);
+
+  return {
+    website: platformsMap["website"]?.identifier ?? null,
+    youtube: platformsMap["youtube"]?.identifier ?? null,
+    twitter: platformsMap["twitter"]?.identifier ?? null,
+    linkedin: platformsMap["linkedin"]?.identifier ?? null,
+    instagram: platformsMap["instagram"]?.identifier ?? null,
+    tiktok: platformsMap["tiktok"]?.identifier ?? null,
+  };
+}

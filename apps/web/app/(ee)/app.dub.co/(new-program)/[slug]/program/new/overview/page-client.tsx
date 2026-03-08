@@ -53,7 +53,7 @@ export function PageClient() {
     return true;
   }, [data]);
 
-  const reward: Omit<RewardProps, "id"> = {
+  const reward: Omit<RewardProps, "id" | "updatedAt"> = {
     type: (data.type ?? "flat") as RewardStructure,
     amountInCents: data.amountInCents != null ? data.amountInCents * 100 : null,
     amountInPercentage: data.amountInPercentage,

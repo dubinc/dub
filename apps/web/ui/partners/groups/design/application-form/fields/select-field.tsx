@@ -58,6 +58,7 @@ export function SelectField({
             options={options}
             caret={true}
             placeholder="Select"
+            searchPlaceholder="Search options..."
             matchTriggerWidth
             buttonProps={{
               className: cn(
@@ -68,7 +69,6 @@ export function SelectField({
                 error && "border-red-500 ring-red-500 ring-1",
               ),
             }}
-            hideSearch
           />
         )}
       />

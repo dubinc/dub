@@ -59,6 +59,16 @@ export const GET = withPartnerProfile(
           where: {
             partnerId: partner.id,
           },
+          include: {
+            commission: {
+              select: {
+                id: true,
+                earnings: true,
+                status: true,
+                createdAt: true,
+              },
+            },
+          },
         },
       },
     });

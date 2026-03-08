@@ -7,6 +7,7 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const markCommissionFraudOrCanceledSchema = z.object({
   workspaceId: z.string(),
@@ -20,6 +21,11 @@ export const markCommissionFraudOrCanceledAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { commissionId, status } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -35,11 +41,13 @@ export const markCommissionFraudOrCanceledAction = authActionClient
 
     const { partnerId, customerId } = commission;
 
-    // for custom commissions, only update this commission
+    // for custom and click commissions, only update this commission
     // for all other commission types, update all historical commissions for the customer and partner combination
     const commissions = await prisma.commission.findMany({
       where: {
-        ...(commission.type === "custom" ? { id: commissionId } : {}),
+        ...(commission.type === "custom" || commission.type === "click"
+          ? { id: commissionId }
+          : {}),
         partnerId,
         customerId,
         status: {

@@ -1,5 +1,7 @@
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getEvents } from "@/lib/analytics/get-events";
 import { DubApiError } from "@/lib/api/errors";
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
@@ -12,6 +14,7 @@ import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
+import { parseFilterValue, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -30,7 +33,8 @@ export const GET = withPartnerProfile(
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
-      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+      toCentsNumber(totalCommissions) <
+        LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
     ) {
       throw new DubApiError({
         code: "forbidden",
@@ -38,42 +42,69 @@ export const GET = withPartnerProfile(
       });
     }
 
-    let { linkId, domain, key, ...rest } =
-      partnerProfileEventsQuerySchema.parse(searchParams);
-
-    if (linkId) {
-      if (!links.some((link) => link.id === linkId)) {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Link not found",
-        });
-      }
-    } else if (domain && key) {
-      const foundLink = links.find(
-        (link) => link.domain === domain && link.key === key,
-      );
-      if (!foundLink) {
-        throw new DubApiError({
-          code: "not_found",
-          message: "Link not found",
-        });
-      }
-
-      linkId = foundLink.id;
-    }
-
+    // early return if partner has no links
     if (links.length === 0) {
       return NextResponse.json([], { status: 200 });
     }
 
+    const parsedParams = partnerProfileEventsQuerySchema.parse(searchParams);
+    const { linkId, domain, key } = parsedParams;
+
+    if (linkId) {
+      // check to make sure all of the linkId.values are in the links
+      if (
+        !linkId.values.every((value) => links.some((link) => link.id === value))
+      ) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "One or more links are not found",
+        });
+      }
+
+      if (linkId.sqlOperator === "NOT IN") {
+        // if using NOT IN operator, we need to include all links except the ones in the linkId.values
+        const finalIncludedLinkIds = links
+          .filter((link) => !linkId.values.includes(link.id))
+          .map((link) => link.id);
+
+        // early return if no links are left
+        if (finalIncludedLinkIds.length === 0) {
+          return NextResponse.json([], { status: 200 });
+        }
+
+        parsedParams.linkId = {
+          operator: "IS",
+          sqlOperator: "IN",
+          values: finalIncludedLinkIds,
+        };
+      }
+    } else if (domain && key) {
+      const link = links.find(
+        (link) =>
+          link.domain === getFirstFilterValue(domain) && link.key === key,
+      );
+      if (!link) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found",
+        });
+      }
+
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
+    }
+
     const events = await getEvents({
-      ...rest,
+      ...parsedParams,
       workspaceId: program.workspaceId,
-      ...(linkId
-        ? { linkId }
+      ...(parsedParams.linkId
+        ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
           ? { partnerId: partner.id }
-          : { linkIds: links.map((link) => link.id) }),
+          : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 
@@ -99,7 +130,7 @@ export const GET = withPartnerProfile(
               email: customer.email
                 ? customerDataSharingEnabledAt
                   ? customer.email
-                  : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+                  : obfuscateCustomerEmail(customer.email)
                 : customer.name || generateRandomName(),
               ...(customerDataSharingEnabledAt && {
                 name: customer.name || generateRandomName(),

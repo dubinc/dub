@@ -1,10 +1,18 @@
+import { StripeMode } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import type Stripe from "stripe";
 
 // Handle event "account.application.deauthorized"
-export async function accountApplicationDeauthorized(event: Stripe.Event) {
+export async function accountApplicationDeauthorized(
+  event: Stripe.Event,
+  mode: StripeMode,
+) {
   const stripeAccountId = event.account;
+
+  if (mode === "test") {
+    return `Stripe Connect account ${stripeAccountId} deauthorized in test mode. Skipping...`;
+  }
 
   const workspace = await prisma.project.findUnique({
     where: {

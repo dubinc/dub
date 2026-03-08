@@ -64,6 +64,15 @@ async function main() {
         },
       });
 
+      const existingCommissions = await prisma.commission.findMany({
+        where: {
+          programId,
+          invoiceId: {
+            in: invoicesToProcess.map((invoice) => invoice.invoiceId),
+          },
+        },
+      });
+
       const salesMetadata = invoicesToProcess
         .map((invoice) => {
           // don't process invoices with amount 0
@@ -78,6 +87,14 @@ async function main() {
           }
           if (!customer.link) {
             console.log("Customer link not found:", invoice);
+            return null;
+          }
+          if (
+            existingCommissions.find(
+              (commission) => commission.invoiceId === invoice.invoiceId,
+            )
+          ) {
+            console.log("Commission already exists:", invoice.invoiceId);
             return null;
           }
           return {

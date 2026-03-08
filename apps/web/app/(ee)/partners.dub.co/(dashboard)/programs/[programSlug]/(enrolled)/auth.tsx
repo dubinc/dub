@@ -17,11 +17,12 @@ export function ProgramEnrollmentAuth({
     return <LayoutLoader />;
   }
 
-  if (
-    (error && error.status === 404) ||
-    (programEnrollment && programEnrollment.status === "invited")
-  ) {
+  if (error && error.status === 404) {
     redirect(`/programs/${programSlug}/apply`);
+  }
+
+  if (programEnrollment && programEnrollment.status === "invited") {
+    redirect(`/programs/${programSlug}/invite`);
   }
 
   if (

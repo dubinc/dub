@@ -29,11 +29,12 @@ export const POST = withAxiom(async (req) => {
     const identityHash = await getIdentityHash(req);
 
     if (!deepLinkUrl) {
+      // Probabilistic IP-based tracking
       if (ip) {
         // if ip address is present, check if there's a cached click
         console.log(`Checking cache for ${ip}:${dubDomain}:*`);
 
-        // Get all iOS click cache keys for this identity hash
+        // Get all iOS click cache keys for this IP address
         const [_, cacheKeysForDomain] = await redis.scan(0, {
           match: `deepLinkClickCache:${ip}:${dubDomain}:*`,
           count: 10,
@@ -105,9 +106,16 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
+    const linkData = {
+      id: cachedLink.id,
+      domain,
+      key,
+      url: cachedLink.url,
+    };
+
     // if there's no cached clickId, track the click event
     if (!cachedClickId) {
-      await recordClick({
+      const clickData = await recordClick({
         req,
         clickId,
         workspaceId: cachedLink.projectId,
@@ -121,16 +129,22 @@ export const POST = withAxiom(async (req) => {
         shouldCacheClickId: true,
         trigger: "deeplink",
       });
+
+      // return early with clickId = null if no click data was recorded (bot detected)
+      if (!clickData) {
+        return NextResponse.json(
+          trackOpenResponseSchema.parse({
+            clickId: null,
+            link: linkData,
+          }),
+          { headers: COMMON_CORS_HEADERS },
+        );
+      }
     }
 
     const response = trackOpenResponseSchema.parse({
       clickId,
-      link: {
-        id: cachedLink.id,
-        domain,
-        key,
-        url: cachedLink.url,
-      },
+      link: linkData,
     });
 
     return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });

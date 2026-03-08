@@ -88,7 +88,7 @@ export default function LinksLimitAlert({
                 >
                   upgrade to a higher plan
                 </Link>{" "}
-                to add more links.
+                to create more links.
               </Text>
             ) : (
               <Text className="text-sm leading-6 text-black">
@@ -99,7 +99,7 @@ export default function LinksLimitAlert({
                 >
                   upgrade to a higher plan
                 </Link>{" "}
-                to add more links.
+                to create more links.
               </Text>
             )}
             <Section className="mb-8">

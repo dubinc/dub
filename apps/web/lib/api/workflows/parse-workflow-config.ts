@@ -22,8 +22,8 @@ export function parseWorkflowConfig(
     throw new Error("No actions found in workflow.");
   }
 
-  // We only support one trigger and one action for now
   return {
+    conditions,
     condition: conditions[0],
     action: actions[0],
   };

@@ -25,7 +25,7 @@ const FEATURES = [
     icon: MoneyBills2,
     title: "Get paid how you want",
     description:
-      "Connect your bank account, PayPal, or other payout choices. Get paid in any country.",
+      "Connect your paoyut details and receive payouts from the programs you partner with.",
   },
   {
     icon: LinesY,
@@ -159,7 +159,7 @@ export default async function SuccessPage(props: {
           <div className="relative mt-16">
             <Screenshot
               program={{ name: program.name, logo: program.logo }}
-              className="h-auto w-full rounded border border-black/10 [mask-image:linear-gradient(black_80%,transparent)]"
+              className="h-auto w-full [mask-image:linear-gradient(black_80%,transparent)]"
             />
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2">
               <div className="absolute -inset-[50%] rounded-full bg-white blur-lg" />

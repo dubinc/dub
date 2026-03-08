@@ -1,4 +1,4 @@
-import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
+import { uploadCampaignImageAction } from "@/lib/actions/partners/upload-campaign-image";
 import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { useEmailDomains } from "@/lib/swr/use-email-domains";
@@ -234,7 +234,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   );
 
   const { executeAsync: executeImageUpload } = useAction(
-    uploadEmailImageAction,
+    uploadCampaignImageAction,
   );
 
   const statusBadge = CAMPAIGN_STATUS_BADGES[campaign.status];
@@ -418,7 +418,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                         value={field.value}
                         onChange={field.onChange}
                         placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
-                        className="[&>div]:hover:border-border-subtle [&>div]:mt-0 [&>div]:h-8 [&>div]:min-h-8 [&>div]:border-transparent [&>div]:shadow-none [&>div]:focus-within:border-black/75 [&>div]:focus-within:ring-black/75 [&>div]:hover:cursor-pointer [&>div]:hover:bg-neutral-100"
+                        className="hover:border-border-subtle mt-0 h-8 min-h-8 border-transparent shadow-none focus-within:border-black/75 focus-within:ring-black/75 hover:cursor-pointer hover:bg-neutral-100"
                       />
                     </DisabledInputWrapper>
                   )}

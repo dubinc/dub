@@ -6,12 +6,18 @@ import { bulkArchivePartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const bulkArchivePartnersAction = authActionClient
   .inputSchema(bulkArchivePartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerIds } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -54,24 +60,21 @@ export const bulkArchivePartnersAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        // Record audit log for each partner
-        await recordAuditLog(
-          programEnrollments.map(({ partner }) => ({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner.archived",
-            description: `Partner ${partner.id} archived`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partner.id,
-                metadata: partner,
-              },
-            ],
-          })),
-        );
-      })(),
+      recordAuditLog(
+        programEnrollments.map(({ partner }) => ({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner.archived",
+          description: `Partner ${partner.id} archived`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: partner.id,
+              metadata: partner,
+            },
+          ],
+        })),
+      ),
     );
   });

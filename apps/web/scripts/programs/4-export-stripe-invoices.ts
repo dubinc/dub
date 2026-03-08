@@ -21,8 +21,22 @@ async function main() {
     transformHeader: (header: string) =>
       header.trim().replace(/^["']|["']$/g, ""),
     step: (result: { data: CustomerData }) => {
-      if (result.data.stripeCustomerId) {
-        customersToImport.push(result.data);
+      const stripeCustomerId =
+        !result.data.stripeCustomerId || result.data.stripeCustomerId === "null"
+          ? undefined
+          : result.data.stripeCustomerId;
+      const customerExternalId =
+        !result.data.customerExternalId ||
+        result.data.customerExternalId === "null"
+          ? stripeCustomerId
+          : result.data.customerExternalId;
+
+      if (stripeCustomerId && customerExternalId) {
+        customersToImport.push({
+          ...result.data,
+          stripeCustomerId,
+          customerExternalId,
+        });
       }
     },
     complete: async () => {

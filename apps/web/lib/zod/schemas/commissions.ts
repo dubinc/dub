@@ -2,12 +2,13 @@ import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { CustomerSchema } from "./customers";
+import { LinkSchema } from "./links";
 import {
   getCursorPaginationQuerySchema,
   getPaginationQuerySchema,
 } from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
-import { parseDateSchema } from "./utils";
+import { centsSchema, parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").meta({
@@ -47,6 +48,12 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
 export const CommissionWebhookSchema = CommissionSchema.extend({
   partner: WebhookPartnerSchema,
   customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+  link: LinkSchema.pick({
+    id: true,
+    shortLink: true,
+    domain: true,
+    key: true,
+  }).nullable(),
 });
 
 export const COMMISSIONS_MAX_PAGE_SIZE = 100;
@@ -150,7 +157,7 @@ export const createCommissionSchema = z.object({
 
   // Sale
   saleEventDate: parseDateSchema.nullish(),
-  saleAmount: z.number().min(0).nullish(),
+  saleAmount: centsSchema.pipe(z.number().min(0)).nullish(),
   invoiceId: z.string().nullish(),
   productId: z.string().nullish(),
 });

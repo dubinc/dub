@@ -14,7 +14,11 @@ export const GET = withWorkspace(
       partnerId,
       programId,
       include: {
-        partner: true,
+        partner: {
+          include: {
+            platforms: true,
+          },
+        },
       },
     });
 

@@ -1,7 +1,5 @@
-import {
-  INVOICE_AVAILABLE_PAYOUT_STATUSES,
-  PAYOUTS_SHEET_ITEMS_LIMIT,
-} from "@/lib/constants/payouts";
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -15,6 +13,7 @@ import {
   Button,
   buttonVariants,
   CircleArrowRight,
+  CopyText,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -47,6 +46,12 @@ type PayoutDetailsSheetProps = {
 };
 
 function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
+  const { role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "payouts.write",
+    role,
+  }).error;
   const { id: workspaceId, slug } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
@@ -86,40 +91,6 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
       Period: formatPeriod(payout),
 
-      Status: (
-        <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
-          {statusBadge.label}
-        </StatusBadge>
-      ),
-
-      Initiated: payout.initiatedAt ? (
-        <TimestampTooltip
-          timestamp={payout.initiatedAt}
-          side="right"
-          rows={["local", "utc"]}
-        >
-          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-            {formatDateTimeSmart(payout.initiatedAt)}
-          </span>
-        </TimestampTooltip>
-      ) : (
-        "-"
-      ),
-
-      Paid: payout.paidAt ? (
-        <TimestampTooltip
-          timestamp={payout.paidAt}
-          side="right"
-          rows={["local", "utc"]}
-        >
-          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-            {formatDateTimeSmart(payout.paidAt)}
-          </span>
-        </TimestampTooltip>
-      ) : (
-        "-"
-      ),
-
       Amount: (
         <div className="flex items-center gap-2">
           <strong>{currencyFormatter(payout.amount)}</strong>
@@ -136,22 +107,57 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             </Tooltip>
           )}
 
-          {payout.mode === "internal" &&
-            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
-              <Tooltip content="View invoice">
-                <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
-                  <Link
-                    href={`${APP_DOMAIN}/invoices/${payout.invoiceId || payout.id}`}
-                    className="text-neutral-700"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <InvoiceDollar className="size-4" />
-                  </Link>
-                </div>
-              </Tooltip>
-            )}
+          {payout.mode === "internal" && payout.status !== "failed" && (
+            <Tooltip content="View invoice">
+              <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
+                <Link
+                  href={`${APP_DOMAIN}/invoices/${payout.invoiceId || payout.id}`}
+                  className="text-neutral-700"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <InvoiceDollar className="size-4" />
+                </Link>
+              </div>
+            </Tooltip>
+          )}
         </div>
+      ),
+
+      Description: payout.description || "-",
+
+      Status: (
+        <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
+          {statusBadge.label}
+        </StatusBadge>
+      ),
+
+      Initiated: payout.initiatedAt ? (
+        <TimestampTooltip
+          timestamp={payout.initiatedAt}
+          side="left"
+          rows={["local", "utc"]}
+        >
+          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+            {formatDateTimeSmart(payout.initiatedAt)}
+          </span>
+        </TimestampTooltip>
+      ) : (
+        "-"
+      ),
+
+      Paid: payout.paidAt ? (
+        <TimestampTooltip
+          timestamp={payout.paidAt}
+          side="left"
+          rows={["local", "utc"]}
+        >
+          <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+            {formatDateTimeSmart(payout.paidAt)}
+          </span>
+        </TimestampTooltip>
+      ) : (
+        "-"
       ),
 
       ...(payout.invoiceId && {
@@ -165,7 +171,16 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         ),
       }),
 
-      Description: payout.description || "-",
+      ...(payout.traceId && {
+        "Trace ID": (
+          <CopyText
+            value={payout.traceId}
+            className="text-left font-mono text-sm text-neutral-500"
+          >
+            {payout.traceId}
+          </CopyText>
+        ),
+      }),
     };
   }, [payout, slug]);
 
@@ -237,9 +252,6 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       {
         id: "menu",
         enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
         cell: ({ row }) => <CommissionRowMenu row={row} />,
       },
     ],
@@ -320,25 +332,41 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
         <div className="flex items-center justify-between gap-2 p-5">
           {payout.status === "pending" ? (
-            <Button
-              type="button"
-              text="Confirm payout"
-              disabledTooltip={
-                !payout.partner.payoutsEnabledAt
-                  ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-                  : undefined
-              }
-              onClick={() => {
-                queryParams({
-                  set: {
-                    confirmPayouts: "true",
-                    selectedPayoutId: payout.id,
-                  },
-                  del: "payoutId",
-                  scroll: false,
-                });
-              }}
-            />
+            <div className="flex w-full flex-col gap-2 sm:flex-row">
+              <Button
+                type="button"
+                text="Confirm this payout"
+                variant="secondary"
+                disabledTooltip={
+                  !payout.partner.payoutsEnabledAt
+                    ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+                    : permissionsError || undefined
+                }
+                onClick={() => {
+                  queryParams({
+                    set: {
+                      confirmPayouts: "true",
+                      selectedPayoutId: payout.id,
+                    },
+                    del: "payoutId",
+                    scroll: false,
+                  });
+                }}
+              />
+              <Button
+                type="button"
+                text="Confirm all pending payouts"
+                onClick={() => {
+                  queryParams({
+                    set: {
+                      confirmPayouts: "true",
+                    },
+                    del: "payoutId",
+                    scroll: false,
+                  });
+                }}
+              />
+            </div>
           ) : (
             <ViewAllPayoutsLink />
           )}

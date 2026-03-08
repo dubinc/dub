@@ -35,7 +35,12 @@ export function PartnerApplicationDetails({
         <div key={field.title}>
           <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
           <div className="mt-2">
-            {field.value || field.value === "" ? (
+            {field.images && field.images.length > 0 ? (
+              <ApplicationFormImageGrid
+                images={field.images}
+                fieldTitle={field.title}
+              />
+            ) : field.value || field.value === "" ? (
               <Linkify
                 as="p"
                 options={{
@@ -61,6 +66,39 @@ export function PartnerApplicationDetails({
   );
 
   return <div className="grid grid-cols-1 gap-5 text-sm">{content}</div>;
+}
+
+function ApplicationFormImageGrid({
+  images,
+  fieldTitle,
+}: {
+  images: string[];
+  fieldTitle: string;
+}) {
+  return (
+    <div className="flex flex-wrap gap-4">
+      {images.map((imageUrl, idx) => (
+        <a
+          key={idx}
+          className="border-border-subtle hover:border-border-default group relative flex size-14 items-center justify-center rounded-md border bg-white"
+          target="_blank"
+          href={imageUrl}
+          rel="noopener noreferrer"
+        >
+          <div className="relative size-full overflow-hidden rounded-md">
+            <img
+              src={imageUrl}
+              alt={`${fieldTitle} ${idx + 1}`}
+              className="size-full object-cover"
+            />
+          </div>
+          <span className="sr-only">
+            {fieldTitle} image {idx + 1}
+          </span>
+        </a>
+      ))}
+    </div>
+  );
 }
 
 function PartnerApplicationDetailsSkeleton() {

@@ -213,9 +213,9 @@ const PartnerDiscountCodes = ({
       {
         id: "menu",
         enableHiding: false,
-        minSize: 18,
-        size: 18,
-        maxSize: 18,
+        minSize: 28,
+        size: 28,
+        maxSize: 28,
         cell: ({ row }) => (
           <Button
             icon={<Trash className="size-3.5 shrink-0 text-neutral-600" />}

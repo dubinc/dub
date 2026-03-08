@@ -1,0 +1,24 @@
+DESCRIPTION >
+	Get partner postback events
+
+
+NODE endpoint
+SQL >
+
+    %
+            SELECT *
+            FROM dub_postback_events
+            WHERE
+                postback_id
+                = {{
+                    String(
+                        postbackId,
+                        'pb_fjs8YfXkgsFL7eF7LOBvbluDb',
+                        description="The ID of the postback",
+                        required=True,
+                    )
+                }}
+                ORDER BY timestamp DESC
+                limit 100
+
+

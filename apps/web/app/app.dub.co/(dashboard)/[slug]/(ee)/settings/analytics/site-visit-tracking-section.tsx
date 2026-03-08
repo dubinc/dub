@@ -1,7 +1,9 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { Button, InfoTooltip, Sitemap, Switch } from "@dub/ui";
+import { Button, InfoTooltip, LockSmall, Sitemap, Switch } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 import { motion } from "motion/react";
 import { useId } from "react";
@@ -9,6 +11,7 @@ import { toast } from "sonner";
 
 export function SiteVisitTrackingSection() {
   const id = useId();
+  const { role } = useWorkspace();
 
   const [enabled, setEnabled, { loading }] = useWorkspaceStore<boolean>(
     "analyticsSettingsSiteVisitTrackingEnabled",
@@ -16,6 +19,12 @@ export function SiteVisitTrackingSection() {
       mutateOnSet: true,
     },
   );
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "manage site visit tracking",
+  }).error;
 
   const sitemaps = [
     {
@@ -43,6 +52,16 @@ export function SiteVisitTrackingSection() {
 
         <Switch
           disabled={loading}
+          {...(permissionsError
+            ? {
+                disabledTooltip: permissionsError,
+                thumbIcon: (
+                  <div className="flex size-full items-center justify-center">
+                    <LockSmall className="size-[8px] text-black" />
+                  </div>
+                ),
+              }
+            : {})}
           checked={enabled || false}
           trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20 w-7 h-4"
           thumbDimensions="size-3"

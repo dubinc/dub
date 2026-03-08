@@ -1,8 +1,12 @@
+"use client";
+
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
-import { Gift, Icon } from "@dub/ui";
+import { Button, Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { PropsWithChildren } from "react";
 import { REWARD_EVENTS } from "./constants";
 import { formatDiscountDescription } from "./format-discount-description";
@@ -23,7 +27,28 @@ export function ProgramRewardList({
   iconClassName?: string;
   showModifiersTooltip?: boolean;
 }) {
+  const { programSlug } = useParams();
   const sortedFilteredRewards = rewards.filter((r) => getRewardAmount(r) >= 0);
+
+  if (sortedFilteredRewards.length === 0 && !discount) {
+    return (
+      <div className="border-border-subtle bg-bg-default flex items-center justify-between rounded-md border px-4 py-3">
+        <p className="text-content-subtle text-sm">
+          You are not eligible for any rewards at this time.
+        </p>
+
+        {programSlug && (
+          <Link href={`/messages/${programSlug}`}>
+            <Button
+              variant="secondary"
+              text="Contact program"
+              className="h-8 rounded-lg px-3"
+            />
+          </Link>
+        )}
+      </div>
+    );
+  }
 
   return (
     <ul

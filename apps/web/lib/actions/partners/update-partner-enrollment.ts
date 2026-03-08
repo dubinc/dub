@@ -11,12 +11,14 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const updatePartnerEnrollmentSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   tenantId: z.string().nullable(),
   customerDataSharingEnabledAt: z.coerce.date().nullable(),
+  groupMoveDisabledAt: z.coerce.date().nullable(),
 });
 
 // Update a partner's program enrollment data
@@ -24,7 +26,17 @@ export const updatePartnerEnrollmentAction = authActionClient
   .inputSchema(updatePartnerEnrollmentSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, tenantId, customerDataSharingEnabledAt } = parsedInput;
+    const {
+      partnerId,
+      tenantId,
+      customerDataSharingEnabledAt,
+      groupMoveDisabledAt,
+    } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -64,10 +76,14 @@ export const updatePartnerEnrollmentAction = authActionClient
         data: {
           tenantId,
           customerDataSharingEnabledAt,
+          groupMoveDisabledAt,
         },
         include: {
           links: {
-            include: { ...includeTags, ...includeProgramEnrollment },
+            include: {
+              ...includeTags,
+              ...includeProgramEnrollment,
+            },
           },
         },
       });

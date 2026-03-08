@@ -7,7 +7,6 @@ import { WorkflowTrigger } from "@dub/prisma/client";
 import * as z from "zod/v4";
 
 export const WORKFLOW_ATTRIBUTES = [
-  // "totalClicks",
   "totalLeads",
   "totalConversions",
   "totalSaleAmount",
@@ -20,24 +19,21 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   WorkflowConditionAttribute,
   WorkflowTrigger
 > = {
-  // totalClicks: WorkflowTrigger.clickRecorded,
-  totalLeads: WorkflowTrigger.leadRecorded,
-  totalConversions: WorkflowTrigger.saleRecorded,
-  totalSaleAmount: WorkflowTrigger.saleRecorded,
-  totalCommissions: WorkflowTrigger.commissionEarned,
+  totalLeads: WorkflowTrigger.partnerMetricsUpdated,
+  totalConversions: WorkflowTrigger.partnerMetricsUpdated,
+  totalSaleAmount: WorkflowTrigger.partnerMetricsUpdated,
+  totalCommissions: WorkflowTrigger.partnerMetricsUpdated,
   partnerEnrolledDays: WorkflowTrigger.partnerEnrolled,
   partnerJoined: WorkflowTrigger.partnerEnrolled,
 } as const;
 
-export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
+export const WORKFLOW_COMPARISON_OPERATORS = ["gte", "between"] as const;
 
 export const SCHEDULED_WORKFLOW_TRIGGERS: WorkflowTrigger[] = [
-  // "clickRecorded",
   "partnerEnrolled",
 ];
 
 export const WORKFLOW_SCHEDULES: Partial<Record<WorkflowTrigger, string>> = {
-  // clickRecorded: "*/5 * * * *", // every 5 minutes
   partnerEnrolled: "0 */12 * * *", // every 12 hours
 };
 
@@ -45,7 +41,26 @@ export const OPERATOR_FUNCTIONS: Record<
   WorkflowComparisonOperator,
   OperatorFn
 > = {
-  gte: (a, b) => a >= b,
+  gte: (aV, cV) => {
+    if (typeof cV !== "number") {
+      return false;
+    }
+
+    return aV >= cV;
+  },
+  between: (aV, cV) => {
+    if (typeof cV !== "object" || cV === null) {
+      return false;
+    }
+
+    const { min, max } = cV;
+
+    if (min == null || max == null) {
+      return false;
+    }
+
+    return aV >= min && aV <= max;
+  },
 };
 
 export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
@@ -53,11 +68,13 @@ export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
   string
 > = {
   gte: "more than",
+  between: "between",
 } as const;
 
 export enum WORKFLOW_ACTION_TYPES {
   AwardBounty = "awardBounty",
   SendCampaign = "sendCampaign",
+  MoveGroup = "moveGroup",
 }
 
 export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
@@ -66,7 +83,13 @@ export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 export const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_ATTRIBUTES),
   operator: z.enum(WORKFLOW_COMPARISON_OPERATORS).default("gte"),
-  value: z.number(),
+  value: z.union([
+    z.number(),
+    z.object({
+      min: z.number(),
+      max: z.number(),
+    }),
+  ]),
 });
 
 // Array of conditions with AND operator
@@ -88,6 +111,13 @@ export const workflowActionSchema = z.discriminatedUnion("type", [
     type: z.literal(WORKFLOW_ACTION_TYPES.SendCampaign),
     data: z.object({
       campaignId: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal(WORKFLOW_ACTION_TYPES.MoveGroup),
+    data: z.object({
+      groupId: z.string(),
     }),
   }),
 ]);

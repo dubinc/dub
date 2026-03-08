@@ -1,40 +1,52 @@
 import { prisma } from "@dub/prisma";
+import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
-  let batch = 0;
-  while (true) {
-    const partnerUserIds = await prisma.partnerUser.findMany({
-      select: {
-        userId: true,
+  const users = await prisma.user.findMany({
+    where: {
+      defaultPartnerId: null,
+      partners: {
+        some: {},
       },
-      take: 50000,
-      skip: batch * 50000,
-    });
-    if (partnerUserIds.length === 0) {
-      break;
-    }
-    const users = await prisma.user.findMany({
-      where: {
-        id: {
-          in: partnerUserIds.map((partnerUser) => partnerUser.userId),
+    },
+    include: {
+      partners: {
+        select: {
+          partner: {
+            select: {
+              id: true,
+              email: true,
+            },
+          },
         },
       },
-    });
-    const usersThatDontExist = partnerUserIds.filter(
-      (partnerUser) => !users.some((user) => user.id === partnerUser.userId),
-    );
-    console.log(usersThatDontExist);
+    },
+  });
 
-    const deletedPartnerUsers = await prisma.partnerUser.deleteMany({
-      where: {
-        userId: {
-          in: usersThatDontExist.map((partnerUser) => partnerUser.userId),
-        },
-      },
-    });
-    console.log(`Deleted ${deletedPartnerUsers.count} partner users`);
-    batch++;
+  console.log(`Found ${users.length} users with no default partner id`);
+  console.table(
+    users.map((user) => ({
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      partnerId: user.partners[0]?.partner.id,
+      partnerEmail: user.partners[0]?.partner.email,
+      matchingPartnerEmail:
+        user.partners[0]?.partner.email === user.email ? "Yes" : "No",
+    })),
+  );
+
+  const chunks = chunk(users, 20);
+  for (const chunk of chunks) {
+    await Promise.all(
+      chunk.map((user) =>
+        prisma.user.update({
+          where: { id: user.id },
+          data: { defaultPartnerId: user.partners[0]?.partner.id },
+        }),
+      ),
+    );
   }
 }
 

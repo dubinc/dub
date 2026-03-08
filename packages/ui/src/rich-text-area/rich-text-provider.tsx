@@ -31,6 +31,7 @@ const FEATURES = [
   "headings",
   "bold",
   "italic",
+  "strike",
 ] as const;
 
 type RichTextProviderProps = PropsWithChildren<{
@@ -133,6 +134,7 @@ export const RichTextProvider = forwardRef<
             : false,
           bold: features.includes("bold") ? undefined : false,
           italic: features.includes("italic") ? undefined : false,
+          strike: features.includes("strike") ? undefined : false,
           link: false,
         }),
 

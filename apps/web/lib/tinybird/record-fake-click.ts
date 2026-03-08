@@ -37,6 +37,7 @@ export async function recordFakeClick({
     key: link.key,
     url: link.url,
     skipRatelimit: true,
+    shouldCacheClickId: true,
     ...(timestamp && { timestamp: new Date(timestamp).toISOString() }),
   });
 

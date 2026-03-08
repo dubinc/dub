@@ -1,20 +1,10 @@
-import { EnrolledPartnerExtendedProps } from "@/lib/types";
+import { PartnerProps } from "@/lib/types";
 
 // Checks if the partner has neither a website nor any social media links
 export function checkPartnerNoSocialLinks(
-  partner: Pick<
-    EnrolledPartnerExtendedProps,
-    "website" | "youtube" | "twitter" | "linkedin" | "instagram" | "tiktok"
-  >,
+  partner: Pick<PartnerProps, "platforms">,
 ) {
-  const hasWebsite = partner.website && partner.website.trim().length > 0;
-
-  const hasSocialLinks =
-    (partner.youtube && partner.youtube.trim().length > 0) ||
-    (partner.twitter && partner.twitter.trim().length > 0) ||
-    (partner.linkedin && partner.linkedin.trim().length > 0) ||
-    (partner.instagram && partner.instagram.trim().length > 0) ||
-    (partner.tiktok && partner.tiktok.trim().length > 0);
-
-  return !hasWebsite && !hasSocialLinks;
+  return !partner.platforms.some(
+    (p) => typeof p.identifier === "string" && p.identifier.trim().length > 0,
+  );
 }

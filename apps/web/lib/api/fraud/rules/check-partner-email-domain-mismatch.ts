@@ -1,4 +1,4 @@
-import { EnrolledPartnerExtendedProps } from "@/lib/types";
+import { PartnerProps } from "@/lib/types";
 
 function normalizeDomain(domain: string) {
   return domain
@@ -9,9 +9,15 @@ function normalizeDomain(domain: string) {
 
 // Checks if the partner's email domain doesn't match their website domain
 export function checkPartnerEmailDomainMismatch(
-  partner: Pick<EnrolledPartnerExtendedProps, "email" | "website">,
+  partner: Pick<PartnerProps, "email" | "platforms">,
 ) {
-  if (!partner.email || !partner.website) {
+  if (!partner.email || partner.platforms.length === 0) {
+    return false;
+  }
+
+  const website = partner.platforms.find((p) => p.type === "website");
+
+  if (!website || !website.identifier) {
     return false;
   }
 
@@ -24,7 +30,7 @@ export function checkPartnerEmailDomainMismatch(
   let websiteDomain: string;
 
   try {
-    const websiteUrl = new URL(partner.website);
+    const websiteUrl = new URL(website.identifier);
     websiteDomain = normalizeDomain(websiteUrl.hostname);
   } catch (error) {
     return false;

@@ -1,10 +1,15 @@
 export function nFormatter(
-  num?: number,
+  number?: number | bigint,
   opts: { digits?: number; full?: boolean } = {
     digits: 1,
   },
 ) {
-  if (!num) return "0";
+  const num = number !== undefined ? Number(number) : undefined;
+
+  if (!num) {
+    return "0";
+  }
+
   if (opts.full) {
     return Intl.NumberFormat("en-US").format(num);
   }

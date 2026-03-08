@@ -33,8 +33,8 @@ export function ReferralsEmbedFAQ({
 
   const items = programEmbedData?.faq || [
     {
-      title: `What is the ${program.name} Affiliate Program?`,
-      content: `The ${program.name} Affiliate Program is a way for you to earn money by referring new customers to ${program.name}. ${rewardDescription}`,
+      title: `What is the ${program.name} Referral Program?`,
+      content: `The ${program.name} Referral Program is a way for you to earn money by referring new customers to ${program.name}. ${rewardDescription}`,
     },
 
     {

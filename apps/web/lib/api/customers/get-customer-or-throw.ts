@@ -31,14 +31,11 @@ export const getCustomerOrThrow = async (
     ...(includeExpandedFields
       ? {
           include: {
-            link: {
+            link: true,
+            programEnrollment: {
               include: {
-                programEnrollment: {
-                  include: {
-                    partner: true,
-                    discount: true,
-                  },
-                },
+                partner: true,
+                discount: true,
               },
             },
           },

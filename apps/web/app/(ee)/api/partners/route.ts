@@ -4,11 +4,14 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   getPartnersQuerySchemaExtended,
+  partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
+import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -18,7 +21,7 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const {
       sortBy: sortByWithOldFields,
-      includeOnlinePresenceVerification,
+      includePartnerPlatforms,
       ...parsedParams
     } = getPartnersQuerySchemaExtended
       .extend({
@@ -64,15 +67,9 @@ export const GET = withWorkspace(
       saleAmount: z.number().default(0),
     });
 
-    // Whether to include online presence verification fields (websiteVerifiedAt, youtubeVerifiedAt, etc.) in the response.
-    const responseSchema = includeOnlinePresenceVerification
+    const responseSchema = includePartnerPlatforms
       ? baseSchema.extend({
-          websiteVerifiedAt: z.date().nullish(),
-          youtubeVerifiedAt: z.date().nullish(),
-          twitterVerifiedAt: z.date().nullish(),
-          linkedinVerifiedAt: z.date().nullish(),
-          instagramVerifiedAt: z.date().nullish(),
-          tiktokVerifiedAt: z.date().nullish(),
+          platforms: z.array(partnerPlatformSchema),
         })
       : baseSchema;
 
@@ -84,7 +81,8 @@ export const GET = withWorkspace(
           leads: partner.totalLeads,
           conversions: partner.totalConversions,
           sales: partner.totalSales,
-          saleAmount: partner.totalSaleAmount,
+          saleAmount: toCentsNumber(partner.totalSaleAmount),
+          ...polyfillSocialMediaFields(partner.platforms),
         })),
       ),
     );
@@ -129,5 +127,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );

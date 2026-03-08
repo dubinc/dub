@@ -1,8 +1,6 @@
 import usePartners from "@/lib/swr/use-partners";
-import usePartnersCount from "@/lib/swr/use-partners-count";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import { EnrolledPartnerProps, PayoutsCount } from "@/lib/types";
-import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, InvoiceDollar, Users } from "@dub/ui/icons";
@@ -21,7 +19,7 @@ export function usePayoutFilters() {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { partners, partnersAsync } = usePartnerFilterOptions(
+  const { partners } = usePartnerFilterOptions(
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
 
@@ -31,7 +29,7 @@ export function usePayoutFilters() {
         key: "partnerId",
         icon: Users,
         label: "Partner",
-        shouldFilter: !partnersAsync,
+        shouldFilter: false,
         options:
           partners?.map(({ id, name, image }) => {
             return {
@@ -51,9 +49,8 @@ export function usePayoutFilters() {
         key: "status",
         icon: CircleDotted,
         label: "Status",
-        options: Object.entries(PayoutStatusBadges)
-          .filter(([key]) => key !== "hold")
-          .map(([value, { label }]) => {
+        options: Object.entries(PayoutStatusBadges).map(
+          ([value, { label }]) => {
             const Icon = PayoutStatusBadges[value].icon;
             const count = payoutsCount?.find((p) => p.status === value)?.count;
 
@@ -68,9 +65,12 @@ export function usePayoutFilters() {
                   )}
                 />
               ),
-              right: nFormatter(count || 0, { full: true }),
+              ...(value !== "hold" && {
+                right: nFormatter(count || 0, { full: true }),
+              }),
             };
-          }),
+          },
+        ),
       },
       {
         key: "invoiceId",
@@ -79,7 +79,7 @@ export function usePayoutFilters() {
         options: [],
       },
     ],
-    [payoutsCount, partners, partnersAsync],
+    [payoutsCount, partners],
   );
 
   const activeFilters = useMemo(() => {
@@ -139,16 +139,8 @@ export function usePayoutFilters() {
 function usePartnerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { partnersCount } = usePartnersCount<number>({
-    ignoreParams: true,
-  });
-
-  const partnersAsync = Boolean(
-    partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
-  );
-
   const { partners, loading: partnersLoading } = usePartners({
-    query: { search: partnersAsync ? search : "" },
+    query: { search },
   });
 
   const { partners: selectedPartners } = usePartners({
@@ -157,7 +149,6 @@ function usePartnerFilterOptions(search: string) {
         ? [searchParamsObj.partnerId]
         : undefined,
     },
-    enabled: partnersAsync,
   });
 
   const result = useMemo(() => {
@@ -177,5 +168,5 @@ function usePartnerFilterOptions(search: string) {
         ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]);
   }, [partnersLoading, partners, selectedPartners, searchParamsObj.partnerId]);
 
-  return { partners: result, partnersAsync };
+  return { partners: result };
 }

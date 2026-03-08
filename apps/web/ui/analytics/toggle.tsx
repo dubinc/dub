@@ -67,8 +67,10 @@ export function AnalyticsToggle({
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     onOpenFilter,
+    onToggleOperator,
     streaming,
     activeFiltersWithStreaming,
   } = useAnalyticsFilters({ partnerPage, dashboardProps });
@@ -81,13 +83,14 @@ export function AnalyticsToggle({
       onSelect={onSelect}
       onRemove={onRemove}
       onOpenFilter={onOpenFilter}
+      isAdvancedFilter
       askAI
     />
   );
 
   const dateRangePicker = (
     <DateRangePicker
-      className="w-full sm:min-w-[160px] md:w-fit lg:min-w-[200px]"
+      className="w-full md:w-fit"
       align={dashboardProps ? "end" : "center"}
       value={
         start && end
@@ -268,7 +271,7 @@ export function AnalyticsToggle({
                         </Link>
                       </>
                     )}
-                    {!partnerPage && <AnalyticsOptions page={page} />}
+                    <AnalyticsOptions page={page} />
                   </div>
                 )}
               </div>
@@ -288,7 +291,10 @@ export function AnalyticsToggle({
           activeFilters={activeFiltersWithStreaming}
           onSelect={onSelect}
           onRemove={onRemove}
+          onRemoveFilter={onRemoveFilter}
           onRemoveAll={onRemoveAll}
+          onToggleOperator={onToggleOperator}
+          isAdvancedFilter
         />
         <div
           className={cn(

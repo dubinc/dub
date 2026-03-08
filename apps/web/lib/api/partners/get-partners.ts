@@ -1,5 +1,6 @@
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { toCentsNumber } from "@dub/utils";
 import * as z from "zod/v4";
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
@@ -45,6 +46,7 @@ export async function getPartners(filters: PartnerFilters) {
                     : {
                         email: { search: sanitizeFullTextSearch(search) },
                         name: { search: sanitizeFullTextSearch(search) },
+                        companyName: { search: sanitizeFullTextSearch(search) },
                       }
                   : {}),
             },
@@ -52,7 +54,11 @@ export async function getPartners(filters: PartnerFilters) {
         : {}),
     },
     include: {
-      partner: true,
+      partner: {
+        include: {
+          platforms: true,
+        },
+      },
       links: true,
     },
     take: pageSize,
@@ -69,6 +75,7 @@ export async function getPartners(filters: PartnerFilters) {
     createdAt: new Date(programEnrollment.createdAt),
     links,
     netRevenue:
-      programEnrollment.totalSaleAmount - programEnrollment.totalCommissions,
+      toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
+      toCentsNumber(programEnrollment.totalCommissions ?? 0),
   }));
 }

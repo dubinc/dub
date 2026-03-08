@@ -3,13 +3,11 @@ import {
   Commission,
   CommissionStatus,
   CommissionType,
-  EventType,
   Link,
   Partner,
   ProgramEnrollment,
-  WorkflowTrigger,
 } from "@dub/prisma/client";
-import { currencyFormatter, log, prettyPrint } from "@dub/utils";
+import { currencyFormatter, log, prettyPrint, toCentsNumber } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
@@ -20,6 +18,7 @@ import { getProgramEnrollmentOrThrow } from "../api/programs/get-program-enrollm
 import { calculateSaleEarnings } from "../api/sales/calculate-sale-earnings";
 import { executeWorkflows } from "../api/workflows/execute-workflows";
 import { Session } from "../auth";
+import { sendPartnerPostback } from "../postback/api/send-partner-postback";
 import { RewardContext, RewardProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
@@ -48,13 +47,17 @@ export type CreatePartnerCommissionProps = {
 
 const constructWebhookPartner = (
   programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
-  { totalCommissions }: { totalCommissions: number } = { totalCommissions: 0 },
+  {
+    totalCommissions: totalCommissionsParam,
+  }: { totalCommissions?: number } = {},
 ) => {
+  const totalCommissions =
+    totalCommissionsParam ?? toCentsNumber(programEnrollment.totalCommissions);
   return {
     ...programEnrollment.partner,
     groupId: programEnrollment.groupId,
     ...aggregatePartnerLinksStats(programEnrollment.links),
-    totalCommissions: totalCommissions || programEnrollment.totalCommissions,
+    totalCommissions,
   };
 };
 
@@ -101,8 +104,45 @@ export const createPartnerCommission = async ({
     earnings = amount;
     amount = 0;
   } else {
+    if (["lead", "sale"].includes(event) && customerId) {
+      firstCommission = await prisma.commission.findFirst({
+        where: {
+          partnerId,
+          customerId,
+          type: event,
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          rewardId: true,
+          status: true,
+          createdAt: true,
+        },
+      });
+
+      const subscriptionStartDate =
+        event === "sale" ? firstCommission?.createdAt ?? new Date() : undefined;
+
+      const subscriptionDurationMonths = subscriptionStartDate
+        ? differenceInMonths(
+            createdAt ?? new Date(), // account for custom commission creation date
+            subscriptionStartDate,
+          )
+        : 0;
+
+      context = {
+        ...context,
+        customer: {
+          ...context?.customer,
+          subscriptionStartDate,
+          subscriptionDurationMonths,
+        },
+      };
+    }
+
     reward = determinePartnerReward({
-      event: event as EventType,
+      event,
       programEnrollment,
       context,
     });
@@ -128,22 +168,6 @@ export const createPartnerCommission = async ({
       // 1. if the partner has reached the max duration for the reward (if applicable)
       // 2. if the previous commission were marked as fraud or canceled
     } else {
-      firstCommission = await prisma.commission.findFirst({
-        where: {
-          partnerId,
-          customerId,
-          type: event,
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-        select: {
-          rewardId: true,
-          status: true,
-          createdAt: true,
-        },
-      });
-
       if (firstCommission) {
         // if first commission is fraud or canceled, skip commission creation
         if (["fraud", "canceled"].includes(firstCommission.status)) {
@@ -209,6 +233,7 @@ export const createPartnerCommission = async ({
               console.log(
                 `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
               );
+
               return {
                 commission: null,
                 programEnrollment,
@@ -218,15 +243,16 @@ export const createPartnerCommission = async ({
 
             // Recurring sale reward (maxDuration > 0)
             else {
-              const monthsDifference = differenceInMonths(
-                new Date(),
+              const subscriptionDurationMonths = differenceInMonths(
+                createdAt ?? new Date(), // account for custom commission creation date
                 firstCommission.createdAt,
               );
 
-              if (monthsDifference >= reward.maxDuration) {
+              if (subscriptionDurationMonths >= reward.maxDuration) {
                 console.log(
-                  `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
+                  `Partner ${partnerId} has reached max duration for ${event} event (subscription duration: ${subscriptionDurationMonths} months, max duration: ${reward.maxDuration} months), skipping commission creation...`,
                 );
+
                 return {
                   commission: null,
                   programEnrollment,
@@ -274,6 +300,14 @@ export const createPartnerCommission = async ({
       },
       include: {
         customer: true,
+        link: {
+          select: {
+            id: true,
+            shortLink: true,
+            domain: true,
+            key: true,
+          },
+        },
       },
     });
 
@@ -284,7 +318,7 @@ export const createPartnerCommission = async ({
     const webhookPartner = constructWebhookPartner(programEnrollment, {
       // check links metrics
       totalCommissions:
-        programEnrollment.totalCommissions + commission.earnings,
+        toCentsNumber(programEnrollment.totalCommissions) + commission.earnings,
     });
 
     waitUntil(
@@ -335,6 +369,15 @@ export const createPartnerCommission = async ({
             }),
           }),
 
+          sendPartnerPostback({
+            partnerId,
+            event: "commission.created",
+            data: {
+              ...commission,
+              customer: commission.customer,
+            },
+          }),
+
           syncTotalCommissions({
             partnerId,
             programId,
@@ -371,10 +414,14 @@ export const createPartnerCommission = async ({
 
           shouldTriggerWorkflow &&
             executeWorkflows({
-              trigger: WorkflowTrigger.commissionEarned,
-              context: {
+              trigger: "partnerMetricsUpdated",
+              reason: "commission",
+              identity: {
+                workspaceId: workspace.id,
                 programId,
                 partnerId,
+              },
+              metrics: {
                 current: {
                   commissions: commission.earnings,
                 },

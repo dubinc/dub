@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
 
 const MAX_COMMISSIONS_TO_EXPORT = 1000;
 
-// GET /api/commissions/export – export commissions to CSV
+// GET /api/commissions/export – export commissions to CSV (with async support if >1000 commissions)
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -28,7 +28,7 @@ export const GET = withWorkspace(
     // Process the export in the background if the number of commissions is greater than MAX_COMMISSIONS_TO_EXPORT
     if (counts.all.count > MAX_COMMISSIONS_TO_EXPORT) {
       await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/export`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/commissions`,
         body: {
           ...parsedParams,
           columns: columns.join(","),

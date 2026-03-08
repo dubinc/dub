@@ -15,8 +15,12 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  let { partnerId, tenantId, ...filters } =
-    getCommissionsQuerySchema.parse(searchParams);
+  const isHoldStatus = searchParams.status === "hold";
+  const { status: _status, ...restSearchParams } = searchParams;
+
+  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema.parse(
+    isHoldStatus ? restSearchParams : searchParams,
+  );
 
   if (tenantId && !partnerId) {
     const partner = await prisma.programEnrollment.findUnique({
@@ -45,6 +49,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     ...filters,
     partnerId,
     programId,
+    isHoldStatus,
   });
 
   return NextResponse.json(

@@ -41,7 +41,7 @@ function ExportPartnersModal({
   const columnCheckboxId = useId();
   const { program } = useProgram();
   const { id: workspaceId } = useWorkspace();
-  const { getQueryString } = useRouterStuff();
+  const { getQueryString, searchParamsObj } = useRouterStuff();
 
   const {
     control,
@@ -65,7 +65,7 @@ function ExportPartnersModal({
       const params = {
         workspaceId,
         programId: program.id,
-        status: "approved",
+        status: searchParamsObj.status || "approved",
         ...(data.columns.length
           ? { columns: data.columns.join(",") }
           : undefined),

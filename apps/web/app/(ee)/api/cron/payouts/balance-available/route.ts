@@ -36,6 +36,7 @@ export async function POST(req: Request) {
         stripeConnectId: stripeAccount,
       },
       select: {
+        id: true,
         email: true,
       },
     });
@@ -156,17 +157,29 @@ export async function POST(req: Request) {
       limit: 100,
     });
 
-    // update all payouts that match the following criteria to have the stripePayoutId:
+    // update all payouts for the partner that match the following criteria to have the stripePayoutId:
     // - in the "sent" status
-    // - have a stripe transfer id (meaning it was transferred to this connected account)
     // - no stripe payout id (meaning it was not yet withdrawn to the connected bank account)
+    // - have a stripe transfer id (meaning it was transferred to this connected account)
+    // OR: payouts that are in the "failed" status + have a stripePayoutId (failed to send before)
     const updatedPayouts = await prisma.payout.updateMany({
       where: {
-        status: "sent",
-        stripePayoutId: null,
-        stripeTransferId: {
-          in: transfers.data.map(({ id }) => id),
-        },
+        partnerId: partner.id,
+        OR: [
+          {
+            status: "sent",
+            stripePayoutId: null,
+            stripeTransferId: {
+              in: transfers.data.map(({ id }) => id),
+            },
+          },
+          {
+            status: "failed",
+            stripePayoutId: {
+              not: null,
+            },
+          },
+        ],
       },
       data: {
         stripePayoutId: stripePayout.id,

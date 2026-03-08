@@ -1,9 +1,11 @@
 "use client";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { HubSpotSettings } from "@/lib/integrations/hubspot/ui/settings";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
 import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
+import { StripeIntegrationSettings } from "@/lib/integrations/stripe/ui/settings";
 import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
@@ -45,6 +47,7 @@ import {
   getDomainWithoutWWW,
   SEGMENT_INTEGRATION_ID,
   SLACK_INTEGRATION_ID,
+  STRIPE_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
 import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src/constants/integrations";
@@ -58,6 +61,7 @@ const integrationSettings = {
   [SLACK_INTEGRATION_ID]: SlackSettings,
   [SEGMENT_INTEGRATION_ID]: SegmentSettings,
   [HUBSPOT_INTEGRATION_ID]: HubSpotSettings,
+  [STRIPE_INTEGRATION_ID]: StripeIntegrationSettings,
 };
 
 export default function IntegrationPageClient({
@@ -65,7 +69,12 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { id: workspaceId, slug, plan } = useWorkspace();
+  const { id: workspaceId, slug, plan, role } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "integrations.write",
+    role,
+  }).error;
   const { isMobile } = useMediaQuery();
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -138,16 +147,18 @@ export default function IntegrationPageClient({
                   onClick={() => {
                     setShowUninstallIntegrationModal(true);
                   }}
-                  {...(integration.slug === "stripe" && {
-                    disabledTooltip: (
+                  disabledTooltip={
+                    integration.slug === "stripe" ? (
                       <TooltipContent
                         title="You cannot uninstall the Stripe integration from here. Please visit the Stripe dashboard to uninstall the app."
                         cta="Go to Stripe"
                         href="https://dashboard.stripe.com/settings/apps/dub.co"
                         target="_blank"
                       />
-                    ),
-                  })}
+                    ) : (
+                      permissionsError || undefined
+                    )
+                  }
                 />
               </div>
             }
@@ -343,7 +354,9 @@ export default function IntegrationPageClient({
           </Carousel>
         ) : null}
 
-        {integration.readme && <Markdown>{integration.readme}</Markdown>}
+        {integration.readme && (
+          <Markdown className="p-6">{integration.readme}</Markdown>
+        )}
       </div>
 
       {SettingsComponent && <SettingsComponent {...integration} />}

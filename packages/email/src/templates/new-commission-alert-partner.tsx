@@ -159,7 +159,7 @@ export default function NewCommissionAlertPartner({
             </Section>
             <Footer
               email={email}
-              notificationSettingsUrl="https://partners.dub.co/settings/notifications"
+              notificationSettingsUrl="https://partners.dub.co/profile/notifications"
             />
           </Container>
         </Body>

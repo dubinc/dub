@@ -330,7 +330,7 @@ export function FraudGroupTable() {
   }, [fraudGroups, detailsSheetState.groupId]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       <BulkBanPartnersModal />
       <BulkResolveFraudGroupsModal />
       {detailsSheetState.groupId && currentFraudGroup && (
@@ -479,7 +479,7 @@ function RowMenuButton({ row }: { row: Row<FraudGroupProps> }) {
       >
         <Button
           type="button"
-          className="h-8 whitespace-nowrap px-2"
+          className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
           variant="outline"
           icon={<Dots className="h-4 w-4 shrink-0" />}
         />

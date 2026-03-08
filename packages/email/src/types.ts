@@ -5,4 +5,7 @@ export type WorkspaceProps = {
   usage: number;
   usageLimit: number;
   plan: string;
+  defaultProgramId: string | null;
 };
+
+export type PartnerPayoutMethod = "connect" | "stablecoin" | "paypal";

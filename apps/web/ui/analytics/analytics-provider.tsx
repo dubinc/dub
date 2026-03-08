@@ -68,7 +68,7 @@ export const AnalyticsContext = createContext<{
   start?: Date;
   end?: Date;
   interval?: string;
-  tagIds?: string;
+  tagId?: string;
   totalEvents?: {
     [key in AnalyticsResponseOptions]: number;
   };
@@ -206,7 +206,7 @@ export default function AnalyticsProvider({
     start,
     end,
     interval,
-    tagIds,
+    tagId,
     folderId,
     selectedTab,
   } = useAnalyticsQuery({
@@ -292,11 +292,11 @@ export default function AnalyticsProvider({
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: dashboardProps?.url, // url for the link (only for public stats pages)
-        folderId: folderId || undefined, // id of the folder to filter by
+        folderId: folderId || undefined, // id of the folder(s) to filter by
+        tagId, // ids of the tag(s) to filter by
         start, // start of time period
         end, // end of time period
         interval, /// time period interval
-        tagIds, // ids of the tags to filter by
         totalEvents, // totalEvents (clicks, leads, sales)
         totalEventsLoading: totalEventsLoading,
         adminPage, // whether the user is an admin

@@ -7,6 +7,7 @@ import {
 } from "@/lib/upstash/redis-streams";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollment } from "@dub/prisma/client";
+import { toCentsNumber } from "@dub/utils";
 import { differenceInDays, format } from "date-fns";
 import { NextResponse } from "next/server";
 
@@ -134,7 +135,7 @@ const processPartnerActivityStreamBatch = () =>
         const key = `${c.programId}:${c.partnerId}`;
         programEnrollmentsToUpdate[key] = {
           ...programEnrollmentsToUpdate[key],
-          totalCommissions: c._sum.earnings ?? 0,
+          totalCommissions: BigInt(c._sum.earnings ?? 0),
         };
       });
 
@@ -150,19 +151,32 @@ const processPartnerActivityStreamBatch = () =>
           totalCommissions,
         } = enrollment;
 
+        const totalSaleAmountNum =
+          totalSaleAmount != null ? toCentsNumber(totalSaleAmount) : undefined;
+        const totalCommissionsNum =
+          totalCommissions != null
+            ? toCentsNumber(totalCommissions)
+            : undefined;
+
         // Calculate netRevenue
-        if (totalSaleAmount && totalCommissions) {
-          enrollment.netRevenue = totalSaleAmount - totalCommissions;
+        if (
+          totalSaleAmountNum !== undefined &&
+          totalCommissionsNum !== undefined
+        ) {
+          enrollment.netRevenue = BigInt(
+            Math.round(totalSaleAmountNum - totalCommissionsNum),
+          );
         }
 
         // Calculate earningsPerClick
-        if (totalSaleAmount && totalClicks) {
-          enrollment.earningsPerClick = totalSaleAmount / totalClicks;
+        if (totalSaleAmountNum !== undefined && totalClicks) {
+          enrollment.earningsPerClick = totalSaleAmountNum / totalClicks;
         }
 
         // Calculate average lifetime value (totalSaleAmount / totalConversions)
-        if (totalConversions && totalSaleAmount) {
-          enrollment.averageLifetimeValue = totalSaleAmount / totalConversions;
+        if (totalConversions && totalSaleAmountNum !== undefined) {
+          enrollment.averageLifetimeValue =
+            totalSaleAmountNum / totalConversions;
         }
 
         // Calculate click to lead rate (totalLeads / totalClicks)
@@ -180,9 +194,9 @@ const processPartnerActivityStreamBatch = () =>
           enrollment.leadToConversionRate = totalConversions / totalLeads;
         }
 
-        // Calculate return on AdSpend (totalSaleAmount / totalCommissions)
-        if (totalSaleAmount && totalCommissions) {
-          enrollment.returnOnAdSpend = totalSaleAmount / totalCommissions;
+        // Calculate return on ad spend (totalSaleAmount / totalCommissions)
+        if (totalSaleAmountNum !== undefined && totalCommissionsNum) {
+          enrollment.returnOnAdSpend = totalSaleAmountNum / totalCommissionsNum;
         }
 
         // Calculate days since last conversion
@@ -263,7 +277,9 @@ const processPartnerActivityStreamBatch = () =>
           batch.map(async (programEnrollment) => {
             const { programId, partnerId, ...stats } = programEnrollment;
             const finalStatsToUpdate = Object.entries(stats).filter(
-              ([_, value]) => value !== undefined,
+              ([_, value]) =>
+                value !== undefined &&
+                (typeof value !== "number" || Number.isFinite(value)),
             );
 
             try {

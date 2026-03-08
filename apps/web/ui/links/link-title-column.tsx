@@ -180,11 +180,17 @@ function UnverifiedTooltip({
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(ref);
 
-  const { verified } = useDomain({ slug: domain, enabled: isVisible });
+  const { verified, loading, error } = useDomain({
+    slug: domain,
+    enabled: isVisible,
+  });
+
+  const isConfirmedUnverified =
+    !isDubDomain(domain) && !loading && !error && verified === false;
 
   return (
     <div ref={ref} className="min-w-0 truncate">
-      {!isDubDomain(domain) && verified === false ? (
+      {isConfirmedUnverified ? (
         <Tooltip
           content={
             <TooltipContent

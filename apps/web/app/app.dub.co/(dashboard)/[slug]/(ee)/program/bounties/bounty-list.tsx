@@ -7,7 +7,7 @@ import { Button } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Trophy } from "lucide-react";
 import useSWR from "swr";
-import { useBountySheet } from "./add-edit-bounty-sheet";
+import { useBountySheet } from "./add-edit-bounty/add-edit-bounty-sheet";
 import { BountyCard, BountyCardSkeleton } from "./bounty-card";
 
 export function BountyList() {

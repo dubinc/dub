@@ -2,6 +2,7 @@ import { ZodOpenApiPathsObject } from "zod-openapi";
 import { banPartner } from "./ban-partner";
 import { createPartner } from "./create-partner";
 import { createPartnerLink } from "./create-partner-link";
+import { deactivatePartner } from "./deactivate-partner";
 import { listPartners } from "./list-partners";
 import { retrievePartnerAnalytics } from "./retrieve-analytics";
 import { retrievePartnerLinks } from "./retrieve-partner-links";
@@ -24,5 +25,8 @@ export const partnersPaths: ZodOpenApiPathsObject = {
   },
   "/partners/ban": {
     post: banPartner,
+  },
+  "/partners/deactivate": {
+    post: deactivatePartner,
   },
 };

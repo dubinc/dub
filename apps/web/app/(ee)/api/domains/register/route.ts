@@ -20,7 +20,7 @@ export const POST = withWorkspace(
       throw new DubApiError({
         code: "forbidden",
         message:
-          "Your workspace is not eligible for domain registration. Contact support@dub.co for more information.",
+          "Your workspace is not eligible for domain registration. Contact our team for more information.",
       });
     }
 

@@ -1,10 +1,10 @@
 import { createId } from "@/lib/api/create-id";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
-import { getPaginationOptions } from "@/lib/api/pagination";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getCustomers } from "@/lib/customers/api/get-customers";
 import { generateRandomName } from "@/lib/names";
 import { isStored, storage } from "@/lib/storage";
 import {
@@ -14,7 +14,7 @@ import {
   getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -24,79 +24,16 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const filters = getCustomersQuerySchemaExtended.parse(searchParams);
 
-    let {
-      email,
-      externalId,
-      search,
-      country,
-      linkId,
-      programId,
-      partnerId,
-      includeExpandedFields,
-      customerIds,
-    } = filters;
+    let { programId, partnerId, includeExpandedFields } = filters;
 
     if (programId || partnerId) {
       programId = getDefaultProgramIdOrThrow(workspace);
     }
 
-    const customers = await prisma.customer.findMany({
-      where: {
-        ...(customerIds
-          ? {
-              id: { in: customerIds },
-            }
-          : {}),
-        ...(programId && {
-          programId,
-        }),
-        ...(partnerId && {
-          partnerId,
-        }),
-        projectId: workspace.id,
-        ...(email
-          ? { email }
-          : externalId
-            ? { externalId }
-            : search
-              ? search.includes("@")
-                ? { email: search }
-                : {
-                    email: { search: sanitizeFullTextSearch(search) },
-                    name: { search: sanitizeFullTextSearch(search) },
-                  }
-              : {}),
-        ...(country && {
-          country,
-        }),
-        ...(linkId && {
-          linkId,
-        }),
-      },
-      ...getPaginationOptions(filters),
-      ...(includeExpandedFields
-        ? {
-            include: {
-              link: {
-                include: {
-                  programEnrollment: {
-                    include: {
-                      partner: {
-                        select: {
-                          id: true,
-                          name: true,
-                          email: true,
-                          image: true,
-                        },
-                      },
-                      discount: true,
-                    },
-                  },
-                },
-              },
-            },
-          }
-        : {}),
+    const customers = await getCustomers({
+      ...filters,
+      workspaceId: workspace.id,
+      programId,
     });
 
     const responseSchema = includeExpandedFields
@@ -206,5 +143,6 @@ export const POST = withWorkspace(
       "advanced",
       "enterprise",
     ],
+    requiredRoles: ["owner", "member"],
   },
 );

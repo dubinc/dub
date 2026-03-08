@@ -91,7 +91,7 @@ export const FolderActions = ({
             setShowShareDashboardModal(true);
           break;
         case "e":
-          if (!unsortedLinks) {
+          if (!unsortedLinks && canUpdateFolder) {
             setShowFolderPermissionsPanel(true);
           }
           break;
@@ -145,6 +145,12 @@ export const FolderActions = ({
                   icon={<PenWriting className="h-4 w-4" />}
                   shortcut="E"
                   className="h-9 px-2 font-medium"
+                  disabled={!canUpdateFolder}
+                  disabledTooltip={
+                    !canUpdateFolder
+                      ? "Only folder owners can update the folder."
+                      : undefined
+                  }
                 />
                 <Button
                   text="Delete"

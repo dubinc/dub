@@ -182,7 +182,7 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const As = showDetailedAnalytics ? Link : "div";
   return (
     <As
-      href={`/programs/${programEnrollment?.program.slug}/analytics?domain=${link.domain}&key=${link.key}`}
+      href={`/programs/${programEnrollment?.program.slug}/analytics?linkId=${link.id}`}
       className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600"
     >
       {[
@@ -291,8 +291,7 @@ const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
           key={chart.key}
           href={`/programs/${programEnrollment?.program.slug}/analytics${getQueryString(
             {
-              domain: link.domain,
-              key: link.key,
+              linkId: link.id,
               event: chart.key === "saleAmount" ? "sales" : chart.key,
             },
           )}`}

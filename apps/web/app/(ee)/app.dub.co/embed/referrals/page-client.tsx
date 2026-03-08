@@ -7,11 +7,13 @@ import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
+import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Partner, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
+  Combobox,
   Copy,
   Directions,
   Popover,
@@ -20,7 +22,9 @@ import {
   useLocalStorage,
   Wordmark,
 } from "@dub/ui";
-import { cn, getPrettyUrl } from "@dub/utils";
+import { ArrowTurnRight2 } from "@dub/ui/icons";
+import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
@@ -71,6 +75,7 @@ export function ReferralsEmbedPageClient({
     | "additionalLinks"
     | "maxPartnerLinks"
     | "linkStructure"
+    | "holdingPeriodDays"
   >;
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;
@@ -96,30 +101,21 @@ export function ReferralsEmbedPageClient({
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
       "Earnings",
-      "Links",
+      ...(group.additionalLinks.length > 0 ? ["Links"] : []),
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
         : ["Leaderboard"]),
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
     ],
-    [showQuickstart, hasResources],
+    [showQuickstart, group.additionalLinks, programEmbedData, hasResources],
   );
 
-  const [copied, copyToClipboard] = useCopyToClipboard();
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
 
   useEffect(() => {
     if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
   }, [tabs, selectedTab]);
-
-  const partnerLink =
-    links.length > 0
-      ? constructPartnerLink({
-          group,
-          link: links[0],
-        })
-      : undefined;
 
   return (
     <div
@@ -129,60 +125,12 @@ export function ReferralsEmbedPageClient({
       <div className="relative z-0 p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground logo={group.logo} color={group.brandColor} embed />
-          <span className="text-content-emphasis text-base font-semibold">
-            Referral link
-          </span>
-          <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 sm:max-w-[50%]">
-            <input
-              type="text"
-              readOnly
-              value={
-                partnerLink ? getPrettyUrl(partnerLink) : "No referral link"
-              }
-              className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
-            />
-            {partnerLink ? (
-              <Button
-                icon={
-                  <div className="relative size-4">
-                    <div
-                      className={cn(
-                        "absolute inset-0 transition-[transform,opacity]",
-                        copied && "translate-y-1 opacity-0",
-                      )}
-                    >
-                      <Copy className="size-4" />
-                    </div>
-                    <div
-                      className={cn(
-                        "absolute inset-0 transition-[transform,opacity]",
-                        !copied && "translate-y-1 opacity-0",
-                      )}
-                    >
-                      <Check className="size-4" />
-                    </div>
-                  </div>
-                }
-                text={copied ? "Copied link" : "Copy link"}
-                className="xs:w-fit"
-                onClick={() => {
-                  copyToClipboard(partnerLink);
-                }}
-              />
-            ) : (
-              <Button
-                text="Create a link"
-                onClick={() => {
-                  setSelectedTab("Links");
-                }}
-                className="xs:w-fit"
-              />
-            )}
-          </div>
 
-          {partnerLink && group.linkStructure === "query" && (
-            <QueryLinkStructureHelpText link={links[0]} />
-          )}
+          <ReferralLinkDisplay
+            links={links}
+            group={group}
+            onSelectTab={setSelectedTab}
+          />
 
           <div className="mt-12 sm:max-w-[50%]">
             <div className="flex items-end justify-between">
@@ -201,6 +149,10 @@ export function ReferralsEmbedPageClient({
             </div>
             <div className="text-content-emphasis relative mt-4 text-lg">
               <ProgramRewardList rewards={rewards} discount={discount} />
+              <ProgramRewardTerms
+                minPayoutAmount={program.minPayoutAmount}
+                holdingPeriodDays={group.holdingPeriodDays ?? 0}
+              />
             </div>
           </div>
           {!programEmbedData?.hidePoweredByBadge && (
@@ -283,6 +235,180 @@ export function ReferralsEmbedPageClient({
         <ReferralsReferralsEmbedToken />
       </div>
     </div>
+  );
+}
+
+function ReferralLinkDisplay({
+  links,
+  group,
+  onSelectTab,
+}: {
+  links: ReferralsEmbedLink[];
+  group: Pick<
+    PartnerGroupProps,
+    | "id"
+    | "logo"
+    | "wordmark"
+    | "brandColor"
+    | "additionalLinks"
+    | "maxPartnerLinks"
+    | "linkStructure"
+    | "holdingPeriodDays"
+  >;
+  onSelectTab: (tab: string) => void;
+}) {
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
+  const [selectedLinkId, setSelectedLinkId] = useState<string | null>(
+    links[0]?.id ?? null,
+  );
+
+  const selectedLink = useMemo(
+    () => links.find((l) => l.id === selectedLinkId) ?? links[0],
+    [links, selectedLinkId],
+  );
+
+  const partnerLink = selectedLink
+    ? constructPartnerLink({ group, link: selectedLink })
+    : undefined;
+
+  const options = useMemo(
+    () =>
+      links.map((link) => ({
+        value: link.id,
+        label: getPrettyUrl(constructPartnerLink({ group, link })),
+        meta: {
+          destination: link.url ? getApexDomain(link.url) : null,
+        },
+      })),
+    [links, group],
+  );
+
+  const selectedOption =
+    selectedLink && partnerLink
+      ? {
+          value: selectedLink.id,
+          label: getPrettyUrl(partnerLink),
+          meta: {
+            destination: selectedLink.url
+              ? getApexDomain(selectedLink.url)
+              : null,
+          },
+        }
+      : null;
+
+  let actionButton: React.ReactNode = null;
+
+  if (partnerLink) {
+    actionButton = (
+      <Button
+        icon={
+          <div className="relative size-4">
+            <div
+              className={cn(
+                "absolute inset-0 transition-[transform,opacity]",
+                copied && "translate-y-1 opacity-0",
+              )}
+            >
+              <Copy className="size-4" />
+            </div>
+            <div
+              className={cn(
+                "absolute inset-0 transition-[transform,opacity]",
+                !copied && "translate-y-1 opacity-0",
+              )}
+            >
+              <Check className="size-4" />
+            </div>
+          </div>
+        }
+        text={copied ? "Copied link" : "Copy link"}
+        className="xs:w-fit"
+        onClick={() => copyToClipboard(partnerLink)}
+      />
+    );
+  } else if (links.length === 0) {
+    actionButton = (
+      <Button
+        text="Create a link"
+        onClick={() => onSelectTab("Links")}
+        className="xs:w-fit"
+      />
+    );
+  }
+
+  return (
+    <>
+      <span className="text-content-emphasis text-base font-semibold">
+        Referral link
+      </span>
+      <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 sm:max-w-[50%]">
+        {links.length <= 1 ? (
+          <>
+            <input
+              type="text"
+              readOnly
+              value={
+                partnerLink ? getPrettyUrl(partnerLink) : "No referral link"
+              }
+              className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+            />
+            {actionButton}
+          </>
+        ) : (
+          <>
+            <Combobox
+              selected={selectedOption}
+              setSelected={(option) => {
+                if (!option) return;
+
+                setSelectedLinkId(option.value);
+
+                const link = links.find((l) => l.id === option.value);
+
+                if (link) {
+                  copyToClipboard(constructPartnerLink({ group, link }));
+                }
+              }}
+              options={options}
+              forceDropdown
+              matchTriggerWidth
+              placeholder="No referral link"
+              inputClassName="text-sm h-10"
+              optionDescription={(option) => (
+                <span className="flex min-w-0 items-center gap-1">
+                  <ArrowTurnRight2 className="text-content-muted size-3 shrink-0" />
+                  <span className="text-content-subtle min-w-0 truncate text-xs">
+                    {option.meta.destination}
+                  </span>
+                </span>
+              )}
+              popoverProps={{
+                contentClassName: "rounded-lg border border-border-subtle p-1",
+              }}
+              trigger={
+                <button
+                  type="button"
+                  className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default flex h-10 min-w-0 shrink grow items-center gap-2 rounded-md border px-3 text-left text-sm outline-none focus:ring-neutral-500"
+                >
+                  <span className="min-w-0 shrink grow truncate">
+                    {partnerLink
+                      ? getPrettyUrl(partnerLink)
+                      : "No referral link"}
+                  </span>
+                  <ChevronDown className="text-content-muted size-4 shrink-0" />
+                </button>
+              }
+            />
+            {actionButton}
+          </>
+        )}
+      </div>
+
+      {partnerLink && group.linkStructure === "query" && (
+        <QueryLinkStructureHelpText link={selectedLink} />
+      )}
+    </>
   );
 }
 

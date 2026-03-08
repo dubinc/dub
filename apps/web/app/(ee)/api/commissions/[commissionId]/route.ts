@@ -201,4 +201,7 @@ export const PATCH = withWorkspace(
       }),
     );
   },
+  {
+    requiredRoles: ["owner", "member"],
+  },
 );

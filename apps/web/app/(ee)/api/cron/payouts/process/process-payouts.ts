@@ -1,6 +1,7 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
+import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -41,11 +42,13 @@ interface ProcessPayoutsProps {
     | "payoutsUsage"
     | "payoutsLimit"
     | "payoutFee"
+    | "payoutFeeWaiverLimit"
+    | "payoutFeeWaiverUsage"
     | "webhookEnabled"
   >;
   program: Pick<
     Program,
-    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail"
+    "id" | "name" | "logo" | "url" | "minPayoutAmount" | "supportEmail"
   > & {
     payoutMode: ProgramPayoutMode;
   };
@@ -155,9 +158,19 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
-  const fastAchFee =
-    invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
-  const invoiceFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
+  const {
+    fee: invoiceFee,
+    feeFreeAmount,
+    feeChargedAmount,
+    feeWaiverRemaining,
+  } = calculatePayoutFeeWithWaiver({
+    payoutAmount: totalPayoutAmount,
+    payoutFee,
+    payoutFeeWaiverLimit: workspace.payoutFeeWaiverLimit,
+    payoutFeeWaiverUsage: workspace.payoutFeeWaiverUsage,
+    fastAchFee: invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0,
+  });
+
   const invoiceTotal = totalPayoutAmount + invoiceFee;
 
   console.log({
@@ -166,6 +179,9 @@ export async function processPayouts({
     totalPayoutAmount,
     invoiceFee,
     invoiceTotal,
+    feeFreeAmount,
+    feeChargedAmount,
+    feeWaiverRemaining,
   });
 
   await prisma.invoice.update({
@@ -244,6 +260,9 @@ export async function processPayouts({
       payoutsUsage: {
         increment: totalPayoutAmount,
       },
+      payoutFeeWaiverUsage: {
+        increment: feeFreeAmount,
+      },
     },
     include: {
       users: {
@@ -262,7 +281,7 @@ export async function processPayouts({
   });
 
   await log({
-    message: `*${program.name}* just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    message: `<${program.url}|*${program.name}*> (\`${workspace.slug}\`) just sent a payout of *${currencyFormatter(totalPayoutAmount)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(invoiceFee)} (${payoutFee * 100}%)* :money_mouth_face:`,
     type: "payouts",
   });
 

@@ -34,17 +34,14 @@ function ModalInner({
   setShowModal,
   commission,
 }: Omit<ModalProps, "showModal">) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
 
   const { executeAsync, isExecuting, hasSucceeded } = useAction(
     markCommissionDuplicateAction,
     {
       onSuccess: async () => {
         toast.success("Successfully marked commission as duplicate.");
-        await mutatePrefix([
-          "/api/commissions",
-          `/api/programs/${defaultProgramId}/payouts`,
-        ]);
+        await mutatePrefix(["/api/commissions", "/api/payouts"]);
         setShowModal(false);
       },
       onError: () => {

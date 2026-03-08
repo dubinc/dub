@@ -10,6 +10,7 @@ import {
   ImageIcon,
   TextBold,
   TextItalic,
+  TextStrike,
 } from "../icons";
 import { useRichTextContext } from "./rich-text-provider";
 
@@ -30,6 +31,7 @@ export function RichTextToolbar({
     selector: ({ editor }) => ({
       isBold: Boolean(editor?.isActive("bold")),
       isItalic: Boolean(editor?.isActive("italic")),
+      isStrike: Boolean(editor?.isActive("strike")),
       isHeading1: Boolean(editor?.isActive("heading", { level: 1 })),
       isHeading2: Boolean(editor?.isActive("heading", { level: 2 })),
       isSelection: editor?.state.selection.from !== editor?.state.selection.to,
@@ -62,6 +64,14 @@ export function RichTextToolbar({
           label="Italic"
           isActive={editorState?.isItalic}
           onClick={() => editor?.chain().focus().toggleItalic().run()}
+        />
+      )}
+      {features?.includes("strike") && (
+        <RichTextToolbarButton
+          icon={TextStrike}
+          label="Strikethrough"
+          isActive={editorState?.isStrike}
+          onClick={() => editor?.chain().focus().toggleStrike().run()}
         />
       )}
       {features?.includes("headings") && (

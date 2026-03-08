@@ -136,6 +136,7 @@ function ProgramApplicationSheetForm({
       country: partner.country,
       programId: program.id,
       groupId: group.id,
+      inAppApplication: true,
     });
 
     if (result?.serverError || result?.validationErrors) {

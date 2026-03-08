@@ -4,21 +4,7 @@ import { generateErrorMessage } from "zod-error";
 import { ZodOpenApiResponseObject } from "zod-openapi";
 import * as z from "zod/v4";
 import { logger } from "../axiom/server";
-import { ErrorCode } from "./error-codes";
-
-const errorCodeToHttpStatus: Record<z.infer<typeof ErrorCode>, number> = {
-  bad_request: 400,
-  unauthorized: 401,
-  forbidden: 403,
-  exceeded_limit: 403,
-  not_found: 404,
-  conflict: 409,
-  invite_pending: 409,
-  invite_expired: 410,
-  unprocessable_entity: 422,
-  rate_limit_exceeded: 429,
-  internal_server_error: 500,
-};
+import { ErrorCode, ErrorCodes } from "./error-codes";
 
 const speakeasyErrorOverrides: Record<z.infer<typeof ErrorCode>, string> = {
   bad_request: "BadRequest",
@@ -114,7 +100,7 @@ function handleApiError(error: any): ErrorResponse & { status: number } {
   if (error instanceof z.ZodError) {
     return {
       ...fromZodError(error),
-      status: errorCodeToHttpStatus.unprocessable_entity,
+      status: ErrorCodes.unprocessable_entity,
     };
   }
 
@@ -126,7 +112,7 @@ function handleApiError(error: any): ErrorResponse & { status: number } {
         message: error.message,
         doc_url: error.docUrl,
       },
-      status: errorCodeToHttpStatus[error.code],
+      status: ErrorCodes[error.code],
     };
   }
 

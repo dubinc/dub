@@ -332,8 +332,7 @@ export default function EventsTable({
           maxSize: 400,
           meta: {
             filterParams: ({ getValue }) => ({
-              domain: getValue().domain,
-              key: getValue().key,
+              linkId: getValue().id,
             }),
           },
           cell: ({ getValue }) => {
@@ -395,7 +394,7 @@ export default function EventsTable({
         },
         {
           id: "referer",
-          header: "Referer",
+          header: "Referrer",
           accessorKey: "click.referer",
           meta: {
             filterParams: ({ getValue }) => ({ referer: getValue() }),
@@ -692,9 +691,6 @@ export default function EventsTable({
         {
           id: "menu",
           enableHiding: false,
-          minSize: 43,
-          size: 43,
-          maxSize: 43,
           header: ({ table }) => <EditColumnsButton table={table} />,
           cell: ({ row }) => <RowMenuButton row={row} />,
         },

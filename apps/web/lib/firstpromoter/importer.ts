@@ -35,6 +35,7 @@ class FirstPromoterImporter {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/firstpromoter`,
       body,
+      contentBasedDeduplication: true,
     });
   }
 }

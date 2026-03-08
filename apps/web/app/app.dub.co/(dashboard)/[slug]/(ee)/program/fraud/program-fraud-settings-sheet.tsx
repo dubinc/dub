@@ -3,7 +3,11 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { FraudRuleProps, UpdateFraudRuleSettings } from "@/lib/types";
+import {
+  FraudRuleProps,
+  PaidTrafficPlatform,
+  UpdateFraudRuleSettings,
+} from "@/lib/types";
 import {
   getRulesBeingDisabled,
   useDisableFraudRulesModal,
@@ -15,6 +19,8 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { FraudCustomerEmailMatchSettings } from "./fraud-customer-email-match-settings";
+import { FraudCustomerEmailSuspiciousDomainSettings } from "./fraud-customer-email-suspicious-domain-settings";
 import { FraudPaidTrafficSettings } from "./fraud-paid-traffic-settings";
 import { FraudReferralSourceSettings } from "./fraud-referral-source-settings";
 
@@ -44,7 +50,13 @@ function ProgramFraudSettingsSheetContent({
       },
       paidTrafficDetected: {
         enabled: false,
-        config: { platforms: [] },
+        config: { platforms: [], google: { whitelistedCampaignIds: [] } },
+      },
+      customerEmailMatch: {
+        enabled: true,
+      },
+      customerEmailSuspiciousDomain: {
+        enabled: true,
       },
     },
   });
@@ -65,6 +77,19 @@ function ProgramFraudSettingsSheetContent({
       (rule) => rule.type === "paidTrafficDetected",
     );
 
+    const customerEmailMatchRule = fraudRules.find(
+      (rule) => rule.type === "customerEmailMatch",
+    );
+
+    const customerEmailSuspiciousDomainRule = fraudRules.find(
+      (rule) => rule.type === "customerEmailSuspiciousDomain",
+    );
+
+    const paidTrafficConfig = (paidTrafficDetectedRule?.config ?? {}) as {
+      platforms?: PaidTrafficPlatform[];
+      google?: { whitelistedCampaignIds?: string[] };
+    };
+
     form.reset({
       referralSourceBanned: {
         enabled: referralSourceBannedRule?.enabled ?? false,
@@ -72,7 +97,19 @@ function ProgramFraudSettingsSheetContent({
       },
       paidTrafficDetected: {
         enabled: paidTrafficDetectedRule?.enabled ?? false,
-        config: paidTrafficDetectedRule?.config ?? { platforms: [] },
+        config: {
+          platforms: paidTrafficConfig.platforms ?? [],
+          google: {
+            whitelistedCampaignIds:
+              paidTrafficConfig.google?.whitelistedCampaignIds ?? [],
+          },
+        },
+      },
+      customerEmailMatch: {
+        enabled: customerEmailMatchRule?.enabled ?? true,
+      },
+      customerEmailSuspiciousDomain: {
+        enabled: customerEmailSuspiciousDomainRule?.enabled ?? true,
       },
     });
   }, [fraudRules, form]);
@@ -150,6 +187,10 @@ function ProgramFraudSettingsSheetContent({
             <div className="space-y-4">
               <FraudPaidTrafficSettings isConfigLoading={isLoading} />
               <FraudReferralSourceSettings isConfigLoading={isLoading} />
+              <FraudCustomerEmailMatchSettings isConfigLoading={isLoading} />
+              <FraudCustomerEmailSuspiciousDomainSettings
+                isConfigLoading={isLoading}
+              />
             </div>
           </div>
 

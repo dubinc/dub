@@ -1,6 +1,6 @@
 "use client";
 
-import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
+import { isValidDomainFormatWithLocalhost } from "@/lib/api/domains/is-valid-domain";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import {
@@ -143,7 +143,7 @@ function AddDestinationUrlModalContent({
   const validateForm = (data: PartnerGroupAdditionalLink): boolean => {
     const domainNormalized = data.domain.trim().toLowerCase();
 
-    if (!isValidDomainFormat(domainNormalized)) {
+    if (!isValidDomainFormatWithLocalhost(domainNormalized)) {
       const errorField = data.validationMode === "exact" ? "url" : "domain";
       setError(errorField, {
         type: "manual",

@@ -1,14 +1,16 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
+import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { useRouterStuff } from "@dub/ui";
@@ -35,13 +37,13 @@ import {
   ShieldKeyhole,
   Sliders,
   Tag,
+  Trophy,
   UserCheck,
   UserPlus,
   Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
-import { Trophy } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
@@ -70,11 +72,10 @@ type SidebarNavData = {
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   pendingFraudEventsCount?: number;
+  pendingReferralsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
-
-const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
@@ -93,10 +94,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
       pathname.startsWith(`/${slug}`) &&
       !pathname.startsWith(`/${slug}/program`) &&
       !pathname.startsWith(`/${slug}/settings`),
-
-    onClick: () => {
-      document.cookie = `dub_product:${slug}=links;path=/;max-age=${FIVE_YEARS_SECONDS}`;
-    },
   },
   {
     name: "Partner Program",
@@ -107,12 +104,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: slug ? `/${slug}/program` : "/program",
     active: pathname.startsWith(`/${slug}/program`),
     popup: DubPartnersPopup,
-
-    onClick: defaultProgramId
-      ? () => {
-          document.cookie = `dub_product:${slug}=program;path=/;max-age=${FIVE_YEARS_SECONDS}`;
-        }
-      : undefined,
   },
 ];
 
@@ -205,6 +196,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     pendingFraudEventsCount,
+    pendingReferralsCount,
     partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
@@ -289,8 +281,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Customers",
-            icon: UserCheck,
+            icon: User,
             href: `/${slug}/program/customers`,
+            badge: pendingReferralsCount
+              ? pendingReferralsCount > 99
+                ? "99+"
+                : pendingReferralsCount
+              : undefined,
           },
           {
             name: "Commissions",
@@ -559,6 +556,7 @@ export function AppSidebarNav({
   >({
     eligibility: "eligible",
     status: "pending",
+    ignoreParams: true,
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
@@ -591,6 +589,16 @@ export function AppSidebarNav({
     ignoreParams: true,
   });
 
+  const { data: pendingReferralsCount } = useProgramReferralsCount<number>({
+    query: { status: "pending" },
+    ignoreParams: true,
+    enabled: Boolean(
+      currentArea === "program" &&
+        defaultProgramId &&
+        REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+    ),
+  });
+
   const { canTrackConversions } = getPlanCapabilities(plan);
 
   return (
@@ -602,17 +610,19 @@ export function AppSidebarNav({
         slug: slug || "",
         pathname,
         queryString: getQueryString(undefined, {
-          include: ["folderId", "tagIds"],
+          include: ["folderId"],
         }),
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
+        showNews: true,
         defaultProgramId: defaultProgramId || undefined,
         pendingPayoutsCount,
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
-        showConversionGuides: canTrackConversions,
+        pendingReferralsCount,
+        showConversionGuides:
+          canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}

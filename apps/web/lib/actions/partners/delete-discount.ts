@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
@@ -10,6 +10,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const deleteDiscountSchema = z.object({
   workspaceId: z.string(),
@@ -21,6 +22,11 @@ export const deleteDiscountAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { discountId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -82,7 +88,7 @@ export const deleteDiscountAction = authActionClient
           },
         }),
 
-        queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
+        deleteDiscountCodes(discountCodes),
 
         recordAuditLog({
           workspaceId: workspace.id,

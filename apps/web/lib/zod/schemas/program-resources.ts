@@ -34,3 +34,8 @@ export const programResourcesSchema = z.object({
   files: z.array(programResourceFileSchema),
   links: z.array(programResourceLinkSchema).default([]),
 });
+
+export type ProgramResourceFile = z.infer<typeof programResourceFileSchema>;
+export type ProgramResourceColor = z.infer<typeof programResourceColorSchema>;
+export type ProgramResourceLink = z.infer<typeof programResourceLinkSchema>;
+export type ProgramResources = z.infer<typeof programResourcesSchema>;

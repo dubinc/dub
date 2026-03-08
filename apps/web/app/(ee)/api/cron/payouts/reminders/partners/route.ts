@@ -29,11 +29,13 @@ async function handler(req: Request) {
       });
     }
 
-    // Get pending payouts grouped by partner and program, ordered by amount desc
-    const pendingPayouts = await prisma.payout.groupBy({
+    // Get unsent payouts grouped by partner and program, ordered by amount desc
+    const unsentPayouts = await prisma.payout.groupBy({
       by: ["partnerId", "programId"],
       where: {
-        status: "pending",
+        status: {
+          in: ["pending", "processing", "processed", "failed"],
+        },
         programId: {
           not: ACME_PROGRAM_ID,
         },
@@ -63,29 +65,45 @@ async function handler(req: Request) {
       take: BATCH_SIZE,
     });
 
-    if (!pendingPayouts.length) {
+    if (!unsentPayouts.length) {
       return logAndRespond("No action needed.");
     }
 
-    const hasMoreToProcess = pendingPayouts.length === BATCH_SIZE;
+    const hasMoreToProcess = unsentPayouts.length === BATCH_SIZE;
 
     console.log(
-      `Found ${pendingPayouts.length} partner-program combinations needing reminders${hasMoreToProcess ? " (more to process)" : ""}`,
+      `Found ${unsentPayouts.length} partner-program combinations needing reminders${hasMoreToProcess ? " (more to process)" : ""}`,
     );
 
     const [partnerData, programData] = await Promise.all([
       prisma.partner.findMany({
         where: {
           id: {
-            in: pendingPayouts.map((payout) => payout.partnerId),
+            in: unsentPayouts.map((payout) => payout.partnerId),
           },
+          OR: [
+            {
+              users: {
+                none: {},
+              },
+            },
+            {
+              users: {
+                some: {
+                  notificationPreferences: {
+                    connectPayoutReminder: true,
+                  },
+                },
+              },
+            },
+          ],
         },
       }),
 
       prisma.program.findMany({
         where: {
           id: {
-            in: pendingPayouts.map((payout) => payout.programId),
+            in: unsentPayouts.map((payout) => payout.programId),
           },
         },
       }),
@@ -108,7 +126,7 @@ async function handler(req: Request) {
       }
     >();
 
-    for (const payout of pendingPayouts) {
+    for (const payout of unsentPayouts) {
       const { partnerId, programId } = payout;
       const { amount } = payout._sum;
 

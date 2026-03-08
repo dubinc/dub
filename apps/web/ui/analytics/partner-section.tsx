@@ -126,7 +126,7 @@ export function PartnerSection() {
         { id: "links", label: "Partner Links", icon: Hyperlink },
       ]}
       expandLimit={8}
-      hasMore={(data?.length ?? 0) > 8}
+      dataLength={data?.length}
       selectedTabId={tab}
       onSelectTab={handleTabChange}
       {...subTabProps}
@@ -212,13 +212,13 @@ export function PartnerSection() {
                         getNewPath: true,
                       }) as string;
                     } else if (isTagsSubtab) {
-                      const hasTagFilter = searchParams.has("tagIds");
+                      const hasTagFilter = searchParams.has("tagId");
                       href = queryParams({
                         ...(hasTagFilter
-                          ? { del: "tagIds" }
+                          ? { del: "tagId" }
                           : {
                               set: {
-                                tagIds: d.tagId,
+                                tagId: d.tagId,
                               },
                             }),
                         getNewPath: true,

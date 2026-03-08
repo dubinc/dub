@@ -16,15 +16,15 @@ export async function getTopProgramsByCommissions({
       earnings: true,
     },
     where: {
-      programId: programId || {
-        not: ACME_PROGRAM_ID,
-      },
       createdAt: {
         gte: startDate,
         lte: endDate,
       },
       status: {
         in: ["pending", "processed", "paid"],
+      },
+      programId: programId || {
+        not: ACME_PROGRAM_ID,
       },
     },
     orderBy: {

@@ -1,7 +1,8 @@
+import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import {
+  CampaignTriggerCondition,
   TiptapNode,
-  WorkflowCondition,
   WorkflowConditionAttribute,
   WorkflowContext,
 } from "@/lib/types";
@@ -14,7 +15,6 @@ import { chunk } from "@dub/utils";
 import { addHours, differenceInDays, subDays } from "date-fns";
 import { validateCampaignFromAddress } from "../campaigns/validate-campaign";
 import { createId } from "../create-id";
-import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 import { renderCampaignEmailHTML } from "./render-campaign-email-html";
 
@@ -35,7 +35,7 @@ export const executeSendCampaignWorkflow = async ({
   }
 
   const { campaignId } = action.data;
-  const { programId, partnerId } = context || {
+  const { programId, partnerId } = context?.identity || {
     programId: workflow.programId,
     partnerId: undefined,
   };
@@ -72,7 +72,7 @@ export const executeSendCampaignWorkflow = async ({
     programId,
     partnerId,
     groupIds: campaign.groups.map(({ groupId }) => groupId),
-    condition,
+    condition: condition as CampaignTriggerCondition,
   });
 
   if (programEnrollments.length === 0) {
@@ -230,7 +230,7 @@ async function getProgramEnrollments({
   programId: string;
   partnerId?: string;
   groupIds: string[];
-  condition: WorkflowCondition;
+  condition: CampaignTriggerCondition;
 }) {
   if (partnerId) {
     const { attribute } = condition;
@@ -295,8 +295,8 @@ async function getProgramEnrollments({
           : {}),
       };
 
-    const shouldExecute = evaluateWorkflowCondition({
-      condition,
+    const shouldExecute = evaluateWorkflowConditions({
+      conditions: [condition],
       attributes: {
         [condition.attribute]: context[condition.attribute],
       },

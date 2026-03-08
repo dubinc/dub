@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { toCentsNumber } from "@dub/utils";
 
 export async function getPartnerForProgram({
   partnerId,
@@ -20,6 +21,7 @@ export async function getPartnerForProgram({
           industryInterests: true,
           preferredEarningStructures: true,
           salesChannels: true,
+          platforms: true,
         },
       },
       links: true,
@@ -36,7 +38,8 @@ export async function getPartnerForProgram({
     ...partner,
     ...programEnrollment,
     netRevenue:
-      programEnrollment.totalSaleAmount - programEnrollment.totalCommissions,
+      toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
+      toCentsNumber(programEnrollment.totalCommissions ?? 0),
     id: partner.id,
     createdAt: new Date(programEnrollment.createdAt),
     links,

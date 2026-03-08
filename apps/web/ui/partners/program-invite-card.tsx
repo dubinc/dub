@@ -71,7 +71,7 @@ export function ProgramInviteCard({
               "flex h-8 items-center justify-center whitespace-nowrap rounded-md border px-2 text-sm",
               buttonVariants({ variant: "secondary" }),
             )}
-            href={`/programs/${program.slug}/apply`}
+            href={`/programs/${program.slug}/invite`}
           >
             Learn more
           </Link>

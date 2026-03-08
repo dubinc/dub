@@ -4,7 +4,6 @@ import {
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import { EventType } from "@/lib/analytics/types";
-import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useSearchParams } from "next/navigation";
@@ -30,14 +29,9 @@ export function useAnalyticsQuery({
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || defaultKey;
 
-  const tagIds = combineTagIds({
-    tagId: searchParams?.get("tagId"),
-    tagIds: searchParams?.get("tagIds")?.split(","),
-  })?.join(",");
-
   const folderId =
     searchParams?.get("folderId") ?? defaultFolderId ?? undefined;
-
+  const tagId = searchParams?.get("tagId") ?? undefined;
   const customerId = searchParams?.get("customerId") ?? undefined;
 
   // Default to last 24 hours
@@ -81,17 +75,17 @@ export function useAnalyticsQuery({
     );
     return new URLSearchParams({
       ...availableFilterParams,
+      event: selectedTab,
       ...(workspaceId && { workspaceId }),
       ...(domain && { domain }),
       ...(key && { key }),
       ...(start &&
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
-      ...(tagIds && { tagIds }),
-      ...(root && { root: root.toString() }),
-      event: selectedTab,
       ...(folderId && { folderId }),
+      ...(tagId && { tagId }),
       ...(customerId && { customerId }),
+      ...(root && { root: root.toString() }),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
   }, [
@@ -102,10 +96,10 @@ export function useAnalyticsQuery({
     start,
     end,
     interval,
-    tagIds,
+    folderId,
+    tagId,
     root,
     selectedTab,
-    folderId,
     customerId,
   ]);
 
@@ -116,10 +110,10 @@ export function useAnalyticsQuery({
     start,
     end,
     interval,
-    tagIds,
+    folderId,
+    tagId,
     root,
     selectedTab,
-    folderId,
     customerId,
   };
 }

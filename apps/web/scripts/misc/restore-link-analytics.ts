@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { chunk } from "@dub/utils";
+import { chunk, parseFilterValue } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
@@ -28,7 +28,7 @@ async function main() {
         const stats = await getAnalytics({
           event: "composite",
           groupBy: "top_links",
-          linkIds,
+          linkId: parseFilterValue(linkIds),
           interval: "1y",
         });
         if (stats.length === 0) {

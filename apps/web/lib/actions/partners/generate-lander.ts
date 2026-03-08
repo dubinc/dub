@@ -19,6 +19,7 @@ import FireCrawlApp, {
 import { generateObject } from "ai";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -32,6 +33,11 @@ export const generateLanderAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { websiteUrl, landerData, prompt } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     const program = await prisma.program.findUniqueOrThrow({

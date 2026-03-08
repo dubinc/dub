@@ -4,10 +4,11 @@ import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-e
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import { WorkspaceProps } from "@/lib/types";
+import { CustomerSource, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -16,7 +17,7 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Link, WorkflowTrigger } from "@dub/prisma/client";
+import { Link } from "@dub/prisma/client";
 import { nanoid, pick, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -26,6 +27,7 @@ import { executeWorkflows } from "../workflows/execute-workflows";
 type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
   rawBody: any;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
+  source?: CustomerSource; // default is "tracked"
 };
 
 export const trackLead = async ({
@@ -40,6 +42,7 @@ export const trackLead = async ({
   metadata,
   rawBody,
   workspace,
+  source = "tracked",
 }: TrackLeadParams) => {
   // try to find the customer to use if it exists
   let customer = await prisma.customer.findUnique({
@@ -312,18 +315,24 @@ export const trackLead = async ({
               context: {
                 customer: {
                   country: customer.country,
+                  source,
                 },
               },
             });
 
-            const { webhookPartner, programEnrollment } = createdCommission;
+            const { commission, webhookPartner, programEnrollment } =
+              createdCommission;
 
             await Promise.allSettled([
               executeWorkflows({
-                trigger: WorkflowTrigger.leadRecorded,
-                context: {
+                trigger: "partnerMetricsUpdated",
+                reason: "lead",
+                identity: {
+                  workspaceId: workspace.id,
                   programId: link.programId,
                   partnerId: link.partnerId,
+                },
+                metrics: {
                   current: {
                     leads: 1,
                   },
@@ -336,7 +345,9 @@ export const trackLead = async ({
                 eventType: "lead",
               }),
 
-              webhookPartner &&
+              // only run fraud checks if the commission was created
+              commission &&
+                webhookPartner &&
                 detectAndRecordFraudEvent({
                   program: { id: link.programId },
                   partner: pick(webhookPartner, ["id", "email", "name"]),
@@ -349,18 +360,35 @@ export const trackLead = async ({
             ]);
           }
 
-          await sendWorkspaceWebhook({
-            trigger: "lead.created",
-            data: transformLeadEventData({
-              ...clickData,
-              eventName,
-              link,
-              customer,
-              partner: createdCommission?.webhookPartner,
-              metadata,
+          await Promise.allSettled([
+            sendWorkspaceWebhook({
+              trigger: "lead.created",
+              data: transformLeadEventData({
+                ...clickData,
+                eventName,
+                link,
+                customer,
+                partner: createdCommission?.webhookPartner,
+                metadata,
+              }),
+              workspace,
             }),
-            workspace,
-          });
+
+            ...(link.partnerId
+              ? [
+                  sendPartnerPostback({
+                    partnerId: link.partnerId,
+                    event: "lead.created",
+                    data: {
+                      ...clickData,
+                      eventName,
+                      link,
+                      customer,
+                    },
+                  }),
+                ]
+              : []),
+          ]);
         }
       })(),
     );

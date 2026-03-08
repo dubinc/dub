@@ -1,7 +1,9 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Download, TooltipContent } from "@dub/ui";
+import { useSession } from "next-auth/react";
 import { Dispatch, SetStateAction, useContext } from "react";
 import { toast } from "sonner";
+import { AnalyticsContext } from "../analytics-provider";
 import { EventsContext } from "./events-provider";
 
 export function EventsExportButton({
@@ -10,20 +12,33 @@ export function EventsExportButton({
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
 }) {
   const { exportQueryString } = useContext(EventsContext);
+  const { eventsApiPath } = useContext(AnalyticsContext);
   const { slug, plan } = useWorkspace();
+  const { data: session } = useSession();
 
   const needsHigherPlan = plan === "free" || plan === "pro";
 
   async function exportData() {
-    const response = await fetch(`/api/events/export?${exportQueryString}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
+    const response = await fetch(
+      `${eventsApiPath}/export?${exportQueryString}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
       },
-    });
+    );
 
     if (!response.ok) {
       throw new Error(response.statusText);
+    }
+
+    if (response.status === 202) {
+      setOpenPopover(false);
+      return {
+        isAsync: true,
+        message: `Your export is being processed and we'll send you an email (${session?.user?.email}) when it's ready to download.`,
+      };
     }
 
     const blob = await response.blob();
@@ -32,6 +47,11 @@ export function EventsExportButton({
     a.href = url;
     a.download = `Dub Events Export - ${new Date().toISOString()}.csv`;
     a.click();
+    setOpenPopover(false);
+    return {
+      isAsync: false,
+      message: "Exported successfully",
+    };
   }
 
   return (
@@ -52,10 +72,9 @@ export function EventsExportButton({
       onClick={() => {
         toast.promise(exportData(), {
           loading: "Exporting file...",
-          success: "Exported successfully",
+          success: (data) => data.message,
           error: (error) => error,
         });
-        setOpenPopover(false);
       }}
     />
   );

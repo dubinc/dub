@@ -1,6 +1,6 @@
 import { EXCLUDED_PROGRAM_IDS } from "@/lib/constants/partner-profile";
 import { prisma } from "@dub/prisma";
-import { chunk } from "@dub/utils";
+import { chunk, toCentsNumber } from "@dub/utils";
 import "dotenv-flow/config";
 
 const REWIND_EARNINGS_MINIMUM = 1_00; // $1
@@ -35,8 +35,8 @@ async function main() {
     year: 2025,
     totalClicks: _sum.totalClicks ?? 0,
     totalLeads: _sum.totalLeads ?? 0,
-    totalRevenue: _sum.totalSaleAmount ?? 0,
-    totalEarnings: _sum.totalCommissions ?? 0,
+    totalRevenue: toCentsNumber(_sum.totalSaleAmount ?? 0),
+    totalEarnings: toCentsNumber(_sum.totalCommissions ?? 0),
   }));
 
   console.table(payloads.slice(0, 10));

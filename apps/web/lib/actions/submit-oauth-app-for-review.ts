@@ -6,6 +6,7 @@ import * as z from "zod/v4";
 import { createPlainThread } from "../plain/create-plain-thread";
 import { ratelimit } from "../upstash";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   message: z.string().max(1000),
@@ -19,6 +20,11 @@ export const submitOAuthAppForReview = authActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { user, workspace } = ctx;
     const { message, integrationId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["oauth_apps.write"],
+    });
 
     const integration = await prisma.integration.findFirstOrThrow({
       where: {

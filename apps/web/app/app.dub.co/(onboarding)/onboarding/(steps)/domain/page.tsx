@@ -7,8 +7,7 @@ export default function Domain() {
       title="Add a custom domain"
       description={
         <>
-          Make your links stand out and
-          <br />
+          Make your links stand out and{" "}
           <a
             href="https://dub.co/blog/custom-domains"
             target="_blank"

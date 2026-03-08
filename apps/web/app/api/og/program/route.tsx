@@ -6,6 +6,7 @@ import { Reward } from "@dub/prisma/client";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 import { SVGProps } from "react";
+import { loadGoogleFont } from "../load-google-font";
 
 const DARK_CELLS = [
   [2, 3],
@@ -15,11 +16,6 @@ const DARK_CELLS = [
 ];
 
 export async function GET(req: NextRequest) {
-  // Use only Inter-Semibold to reduce bundle size (~300KB savings)
-  const interSemibold = await fetch(
-    new URL("@/styles/Inter-Semibold.ttf", import.meta.url),
-  ).then((res) => res.arrayBuffer());
-
   const slug = req.nextUrl.searchParams.get("slug");
   const groupSlug = req.nextUrl.searchParams.get("groupSlug");
 
@@ -28,24 +24,26 @@ export async function GET(req: NextRequest) {
       status: 400,
     });
   }
-
-  const program = await prisma.program.findUnique({
-    where: {
-      slug,
-    },
-    include: {
-      groups: {
-        where: {
-          slug: groupSlug ?? DEFAULT_PARTNER_GROUP.slug,
-        },
-        include: {
-          clickReward: true,
-          saleReward: true,
-          leadReward: true,
+  const [interSemibold, program] = await Promise.all([
+    loadGoogleFont("Inter:wght@600"),
+    prisma.program.findUnique({
+      where: {
+        slug,
+      },
+      include: {
+        groups: {
+          where: {
+            slug: groupSlug ?? DEFAULT_PARTNER_GROUP.slug,
+          },
+          include: {
+            clickReward: true,
+            saleReward: true,
+            leadReward: true,
+          },
         },
       },
-    },
-  });
+    }),
+  ]);
 
   if (!program) {
     return new Response(`Program not found`, {
@@ -67,7 +65,7 @@ export async function GET(req: NextRequest) {
     (
       <div
         tw="flex flex-col bg-white w-full h-full"
-        style={{ fontFamily: "Inter Semibold" }}
+        style={{ fontFamily: "Inter" }}
       >
         {/* @ts-ignore */}
         <svg tw="absolute inset-0 text-black/10" width="1200" height="630">
@@ -134,7 +132,7 @@ export async function GET(req: NextRequest) {
               display: "block",
               lineClamp: 2,
               textOverflow: "ellipsis",
-              fontFamily: "Inter Semibold",
+              fontFamily: "Inter",
             }}
           >
             {`Join the ${program.name} affiliate program`}
@@ -161,7 +159,7 @@ export async function GET(req: NextRequest) {
           <div
             tw="mt-10 text-white px-4 h-16 flex items-center text-2xl justify-center rounded-lg border-2 border-white/30 shadow-xl"
             style={{
-              fontFamily: "Inter Semibold",
+              fontFamily: "Inter",
               backgroundColor: brandColor,
             }}
           >
@@ -173,12 +171,16 @@ export async function GET(req: NextRequest) {
     {
       width: 1200,
       height: 630,
-      fonts: [
-        {
-          name: "Inter Semibold",
-          data: interSemibold,
-        },
-      ],
+      fonts: interSemibold
+        ? [
+            {
+              name: "Inter",
+              data: interSemibold,
+              style: "normal",
+              weight: 600,
+            },
+          ]
+        : [],
     },
   );
 }

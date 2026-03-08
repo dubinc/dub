@@ -57,7 +57,8 @@ export default function WelcomeEmailPartner({
                 href="https://ship.dub.co/partner-profile"
                 className="font-semibold text-black underline underline-offset-4"
               >
-                completing your partner profile
+                filling out your partner profile and verifying your social
+                platforms
               </Link>
               . This will help you stand out from other partners in our partner
               network.
@@ -75,9 +76,7 @@ export default function WelcomeEmailPartner({
                 Connect a payout method
               </Link>{" "}
               to get paid for your referrals. Your payout bank account must
-              match your local currency for compliance reasons. E.g. if you're
-              based in the UK, you will need to connect a GBP bank account to
-              receive payouts.{" "}
+              match your local currency for compliance reasons.{" "}
               <Link
                 href="https://ship.dub.co/payouts-guide"
                 className="font-semibold text-black underline underline-offset-4"

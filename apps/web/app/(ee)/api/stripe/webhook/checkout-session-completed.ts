@@ -1,24 +1,25 @@
+import { createProgram } from "@/lib/actions/partners/create-program";
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
-import { inviteUser } from "@/lib/api/users";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { Invite } from "@/lib/zod/schemas/invites";
 import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
-import { User } from "@dub/prisma/client";
-import { getPlanAndTierFromPriceId, log } from "@dub/utils";
+import { Program, User } from "@dub/prisma/client";
+import { getPlanAndTierFromPriceId, log, prettyPrint } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
-  if (checkoutSession.mode === "setup") {
-    return;
+  if (
+    checkoutSession.mode === "setup" ||
+    checkoutSession.payment_status !== "paid"
+  ) {
+    return "Session is setup mode or not paid, skipping...";
   }
 
   if (
@@ -29,7 +30,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       message: "Missing items in Stripe webhook callback",
       type: "errors",
     });
-    return;
+    return "Missing client_reference_id or customer in checkout session.";
   }
 
   const subscription = await stripe.subscriptions.retrieve(
@@ -40,10 +41,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const { plan, planTier } = getPlanAndTierFromPriceId({ priceId });
 
   if (!plan) {
-    console.log(
-      `Invalid price ID in checkout.session.completed event: ${priceId}`,
-    );
-    return;
+    return `Invalid price ID in checkout.session.completed event: ${priceId}`;
   }
 
   const stripeId = checkoutSession.customer.toString();
@@ -137,29 +135,16 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
-
-    // enable program messaging if available
-    ...(workspace.defaultProgramId &&
-    getPlanCapabilities(workspace.plan).canMessagePartners
-      ? [
-          prisma.program.update({
-            where: {
-              id: workspace.defaultProgramId,
-            },
-            data: {
-              messagingEnabledAt: new Date(),
-            },
-          }),
-        ]
-      : []),
   ]);
+
+  return `Checkout completed for workspace ${workspaceId}, upgraded to ${plan.name}.`;
 }
 
 async function completeOnboarding({
   users,
   workspaceId,
 }: {
-  users: Pick<User, "id">[];
+  users: Pick<User, "id" | "email">[];
   workspaceId: string;
 }) {
   const workspace = (await prisma.project.findUnique({
@@ -168,8 +153,9 @@ async function completeOnboarding({
     },
     include: {
       users: true,
+      programs: true,
     },
-  })) as unknown as WorkspaceProps | null;
+  })) as unknown as (WorkspaceProps & { programs: Program[] }) | null;
 
   if (!workspace) {
     console.error("Failed to complete onboarding for workspace", workspaceId);
@@ -183,48 +169,48 @@ async function completeOnboarding({
       step: "completed",
     }),
 
-    // Send saved invite emails
     (async () => {
-      const invites = await redis.get<Invite[]>(`invites:${workspaceId}`);
-
-      if (!invites?.length) return;
-
-      if (!workspace) return;
-
-      await Promise.allSettled(
-        invites.map(({ email, role }) =>
-          inviteUser({
-            email,
-            role,
-            workspace,
-          }),
-        ),
-      );
-
-      await redis.del(`invites:${workspaceId}`);
-    })(),
-
-    // Register saved domain
-    (async () => {
+      // Register saved domain
       const data = await redis.get<{ domain: string; userId: string }>(
         `onboarding-domain:${workspaceId}`,
       );
-      if (!data || !data.domain || !data.userId) return;
-      const { domain, userId } = data;
+      if (data && data.domain && data.userId) {
+        const { domain, userId } = data;
 
-      try {
-        await claimDotLinkDomain({
-          domain,
-          userId,
-          workspace,
-        });
-        await redis.del(`onboarding-domain:${workspaceId}`);
-      } catch (e) {
-        console.error(
-          "Failed to register saved domain from onboarding",
-          { domain, userId, workspace },
-          e,
-        );
+        try {
+          await claimDotLinkDomain({
+            domain,
+            userId,
+            workspace,
+          });
+          await redis.del(`onboarding-domain:${workspaceId}`);
+        } catch (e) {
+          console.error(
+            "Failed to register saved domain from onboarding",
+            { domain, userId, workspace },
+            e,
+          );
+        }
+      }
+
+      // Create program
+      if (
+        users.length > 0 &&
+        workspace.programs.length === 0 &&
+        workspace.store?.programOnboarding
+      ) {
+        try {
+          await createProgram({
+            workspace,
+            user: users[0],
+          });
+        } catch (e) {
+          console.error(
+            "Failed to create program from onboarding",
+            prettyPrint({ workspace, user: users[0] }),
+            e,
+          );
+        }
       }
     })(),
   ]);

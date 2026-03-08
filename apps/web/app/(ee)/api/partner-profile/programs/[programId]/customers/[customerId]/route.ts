@@ -1,6 +1,7 @@
 import { getCustomerEvents } from "@/lib/analytics/get-customer-events";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
@@ -10,6 +11,8 @@ import {
 import { generateRandomName } from "@/lib/names";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
+import { CommissionType } from "@dub/prisma/client";
+import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -29,7 +32,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
   if (
     LARGE_PROGRAM_IDS.includes(program.id) &&
-    totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+    toCentsNumber(totalCommissions) < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
   ) {
     throw new DubApiError({
       code: "forbidden",
@@ -42,10 +45,11 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       id: customerId,
     },
     include: {
-      // find the first commission for this customer and partner
+      // find the first sale commission for this customer and partner
       commissions: {
         where: {
           partnerId: partner.id,
+          type: CommissionType.sale,
         },
         take: 1,
         orderBy: {
@@ -77,31 +81,8 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   // get the first partner link that this customer interacted with
   const firstLinkId = events[events.length - 1].link_id;
   const link = links.find((link) => link.id === firstLinkId);
-
-  // Find the LTV of the customer
-  // TODO: Calculate this from all events, not limited
-  const ltv = events.reduce((acc, event) => {
-    if (event.event === "sale" && event.saleAmount) {
-      acc += Number(event.saleAmount);
-    }
-
-    return acc;
-  }, 0);
-
-  // Find the time to lead of the customer
-  const timeToLead =
-    customer.clickedAt && customer.createdAt
-      ? customer.createdAt.getTime() - customer.clickedAt.getTime()
-      : null;
-
-  // Find the time to first sale of the customer
-  // TODO: Calculate this from all events, not limited
-  const firstSale = events.filter(({ event }) => event === "sale").pop();
-
-  const timeToSale =
-    firstSale && customer.createdAt
-      ? new Date(firstSale.timestamp).getTime() - customer.createdAt.getTime()
-      : null;
+  const firstSaleAt =
+    customer.commissions[0]?.createdAt ?? customer.firstSaleAt;
 
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
@@ -109,17 +90,15 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     }).parse({
       ...transformCustomer({
         ...customer,
+        firstSaleAt,
         email: customer.email
           ? customerDataSharingEnabledAt
             ? customer.email
-            : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+            : obfuscateCustomerEmail(customer.email)
           : customer.name || generateRandomName(),
       }),
       activity: {
-        ltv,
-        timeToLead,
-        timeToSale,
-        firstSaleDate: customer.commissions[0]?.createdAt ?? null,
+        ...customer,
         events,
         link,
       },

@@ -1,12 +1,9 @@
-import {
-  sanitizeSocialHandle,
-  sanitizeWebsite,
-  SocialPlatform,
-} from "@/lib/social-utils";
+import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import {
   programApplicationFormSiteSchema,
   programApplicationFormWebsiteAndSocialsFieldSchema,
 } from "@/lib/zod/schemas/program-application-form";
+import { PlatformType } from "@dub/prisma/client";
 import { cn } from "@dub/utils";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
@@ -36,7 +33,7 @@ const Field = ({
   const error = !!state.error;
 
   const onPasteSocial = useCallback(
-    (e: React.ClipboardEvent<HTMLInputElement>, platform: SocialPlatform) => {
+    (e: React.ClipboardEvent<HTMLInputElement>, platform: PlatformType) => {
       const text = e.clipboardData.getData("text/plain");
       const sanitized = sanitizeSocialHandle(text, platform);
 

@@ -1,3 +1,4 @@
+import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID } from "@dub/utils";
@@ -19,55 +20,40 @@ async function main() {
         },
       },
     },
-    OR: [
-      {
-        website: {
-          not: null,
-        },
-      },
-      {
-        youtube: {
-          not: null,
-        },
-      },
-      {
-        twitter: {
-          not: null,
-        },
-      },
-      {
-        linkedin: {
-          not: null,
-        },
-      },
-      {
-        instagram: {
-          not: null,
-        },
-      },
-      {
-        tiktok: {
-          not: null,
-        },
-      },
-    ],
+    platforms: {
+      some: {},
+    },
   };
+
   const partners = await prisma.partner.findMany({
     where,
+    include: {
+      platforms: true,
+    },
   });
-  console.table(partners, [
-    "name",
-    "email",
-    "website",
-    "youtube",
-    "twitter",
-    "linkedin",
-    "instagram",
-    "tiktok",
-  ]);
+
+  // Format partners for display with platform handles
+  const partnersForDisplay = partners.map((partner) => {
+    const platformsMap = buildSocialPlatformLookup(partner.platforms);
+
+    return {
+      name: partner.name,
+      email: partner.email,
+      website: platformsMap.website?.identifier || null,
+      youtube: platformsMap.youtube?.identifier || null,
+      twitter: platformsMap.twitter?.identifier || null,
+      linkedin: platformsMap.linkedin?.identifier || null,
+      instagram: platformsMap.instagram?.identifier || null,
+      tiktok: platformsMap.tiktok?.identifier || null,
+    };
+  });
+
+  console.table(partnersForDisplay);
+
   const count = await prisma.partner.count({
     where,
   });
+
   console.log(`Found ${count} partners to backfill`);
 
   const res = await prisma.partner.updateMany({

@@ -1,4 +1,4 @@
-import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
+import { isValidDomainFormatWithLocalhost } from "@/lib/api/domains/is-valid-domain";
 import { PAYOUT_HOLDING_PERIOD_DAYS } from "@/lib/constants/payouts";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerLinkStructure } from "@dub/prisma/client";
@@ -10,8 +10,9 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { programApplicationFormSchema } from "./program-application-form";
 import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
-import { parseUrlSchema } from "./utils";
+import { centsSchemaWithDefault, parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
+import { workflowConditionSchema } from "./workflows";
 
 export const DEFAULT_PARTNER_GROUP = {
   name: "Default Group",
@@ -31,8 +32,8 @@ export const GROUPS_MAX_PAGE_SIZE = 100;
 export const additionalPartnerLinkSchema = z.object({
   domain: z
     .string()
-    .refine((v) => isValidDomainFormat(v), {
-      message: "Please enter a valid domain (eg: acme.com).",
+    .refine((v) => isValidDomainFormatWithLocalhost(v), {
+      message: "Please enter a valid domain (eg: acme.com or localhost:3000).",
     })
     .transform((v) => v.toLowerCase()),
   path: z
@@ -70,6 +71,7 @@ export const GroupSchema = z.object({
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.enum(PartnerLinkStructure),
+  moveRules: z.array(workflowConditionSchema).nullish().default(null),
 });
 
 export const GroupWithFormDataSchema = GroupSchema.extend({
@@ -84,10 +86,10 @@ export const GroupSchemaExtended = GroupSchema.extend({
   totalClicks: z.number().default(0),
   totalLeads: z.number().default(0),
   totalSales: z.number().default(0),
-  totalSaleAmount: z.number().default(0),
+  totalSaleAmount: centsSchemaWithDefault,
   totalConversions: z.number().default(0),
-  totalCommissions: z.number().default(0),
-  netRevenue: z.number().default(0),
+  totalCommissions: centsSchemaWithDefault,
+  netRevenue: centsSchemaWithDefault,
 });
 
 export const PartnerProgramGroupSchema = GroupWithFormDataSchema.pick({
@@ -147,6 +149,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   autoApprovePartners: z.coerce.boolean().optional(),
   updateAutoApprovePartnersForAllGroups: z.coerce.boolean().optional(),
   updateHoldingPeriodDaysForAllGroups: z.coerce.boolean().optional(),
+  moveRules: z.array(workflowConditionSchema).optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({
@@ -183,3 +186,7 @@ export const getGroupsQuerySchema = z
 export const getGroupsCountQuerySchema = z.object({
   search: z.string().optional(),
 });
+
+export const groupRulesSchema = z.array(
+  GroupSchema.pick({ id: true, name: true, moveRules: true }),
+);

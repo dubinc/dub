@@ -16,47 +16,37 @@ enum MonthlyTraffic {
   OneHundredThousandPlus
 }
 
+enum PartnerPayoutMethod {
+  connect
+  stablecoin
+  paypal
+}
+
 model Partner {
   id          String             @id @default(cuid())
   name        String
   companyName String?
   profileType PartnerProfileType @default(individual)
   email       String?            @unique
-  image       String?
+  image       String?            @db.Text
   description String?            @db.Text
   country     String?
 
   // payout fields
-  paypalEmail                  String?   @unique
-  stripeConnectId              String?   @unique
+  defaultPayoutMethod          PartnerPayoutMethod?
   payoutsEnabledAt             DateTime?
-  payoutMethodHash             String?
   connectPayoutsLastRemindedAt DateTime?
+  paypalEmail                  String?              @unique
+  stripeConnectId              String?              @unique
+  stripeRecipientId            String?              @unique
+  payoutMethodHash             String?
+  cryptoWalletAddress          String?
 
   // timestamp fields
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   discoverableAt DateTime?
   trustedAt      DateTime?
-
-  // online presence fields
-  website                String?
-  websiteTxtRecord       String?
-  websiteVerifiedAt      DateTime?
-  youtube                String?
-  youtubeChannelId       String?
-  youtubeVerifiedAt      DateTime?
-  youtubeSubscriberCount Int       @default(0)
-  youtubeVideoCount      Int       @default(0)
-  youtubeViewCount       Int       @default(0)
-  twitter                String?
-  twitterVerifiedAt      DateTime?
-  linkedin               String?
-  linkedinVerifiedAt     DateTime?
-  instagram              String?
-  instagramVerifiedAt    DateTime?
-  tiktok                 String?
-  tiktokVerifiedAt       DateTime?
 
   // miscellaneous fields
   invoiceSettings  Json?
@@ -65,10 +55,12 @@ model Partner {
   programs                   ProgramEnrollment[]
   users                      PartnerUser[]
   invites                    PartnerInvite[]
+  links                      Link[]
   customers                  Customer[]
   payouts                    Payout[]
   commissions                Commission[]
   bountySubmissions          BountySubmission[]
+  postbacks                  Postback[]
   messages                   Message[]
   sentMessages               Message[]                          @relation("SenderPartner")
   comments                   PartnerComment[]
@@ -82,12 +74,14 @@ model Partner {
   fraudEventGroups           FraudEventGroup[]
   fraudEvents                FraudEvent[]
   partnerRewinds             PartnerRewind[]
+  platforms                  PartnerPlatform[]
+  referrals                  PartnerReferral[]
 
   @@index(country)
   @@index(discoverableAt)
   @@index(trustedAt)
   @@index(payoutMethodHash)
-  @@fulltext([email, name]) // For full-text search
+  @@fulltext([email, name, companyName]) // For full-text search
 }
 
 model PartnerInvite {

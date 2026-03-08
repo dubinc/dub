@@ -1,3 +1,5 @@
+import { UserCheck } from "@dub/ui";
+
 const RequiredFieldItemPreview = ({
   icon,
   label,
@@ -6,7 +8,7 @@ const RequiredFieldItemPreview = ({
   label: string;
 }) => {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-1.5 rounded-lg bg-blue-100 py-4">
+    <div className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border border-blue-200 bg-blue-100 py-2">
       <div className="relative h-4 w-4">{icon}</div>
       <div className="text-sm font-medium text-blue-900">{label}</div>
     </div>
@@ -15,18 +17,16 @@ const RequiredFieldItemPreview = ({
 
 const RequiredFieldsPreview = () => {
   return (
-    <div className="rounded-[10px] border border-blue-200 bg-blue-50 px-4 pb-2 pt-4">
-      <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-3">
+    <div className="rounded-xl bg-blue-50 px-1 pb-1.5 pt-1">
+      <div className="grid w-full grid-cols-1 gap-1 lg:grid-cols-3">
         <RequiredFieldItemPreview icon={<SignatureIcon />} label="Name" />
         <RequiredFieldItemPreview icon={<EmailIcon />} label="Email" />
         <RequiredFieldItemPreview icon={<CountryIcon />} label="Country" />
       </div>
-      <div className="mt-2 flex items-center justify-center gap-2">
-        <div className="relative h-4 w-4">
-          <LockIcon />
-        </div>
-        <div className="text-sm font-medium text-blue-900">
-          Mandatory fields
+      <div className="mt-1 flex items-center justify-center gap-2">
+        <UserCheck className="size-4 text-blue-500" />
+        <div className="text-xs font-medium text-blue-900">
+          Required applicant fields
         </div>
       </div>
     </div>
@@ -150,41 +150,6 @@ const CountryIcon = () => {
           />
         </clipPath>
       </defs>
-    </svg>
-  );
-};
-
-const LockIcon = () => {
-  return (
-    <svg
-      width="17"
-      height="16"
-      viewBox="0 0 17 16"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="size-[16px]"
-    >
-      <path
-        d="M5.61115 7.33344V4.44455C5.61115 2.849 6.90448 1.55566 8.50003 1.55566C10.0956 1.55566 11.3889 2.849 11.3889 4.44455V7.33344"
-        stroke="#2B7FFF"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M8.5 10.4446V11.3335"
-        stroke="#2B7FFF"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M11.8334 7.3335H5.16669C4.18485 7.3335 3.38892 8.12943 3.38892 9.11127V12.6668C3.38892 13.6487 4.18485 14.4446 5.16669 14.4446H11.8334C12.8152 14.4446 13.6111 13.6487 13.6111 12.6668V9.11127C13.6111 8.12943 12.8152 7.3335 11.8334 7.3335Z"
-        stroke="#2B7FFF"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
     </svg>
   );
 };

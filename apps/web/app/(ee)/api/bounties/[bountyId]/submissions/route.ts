@@ -1,14 +1,12 @@
-import { getBountySubmissions } from "@/lib/api/bounties/get-bounty-submissions";
-import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import {
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
 } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
 
 // GET /api/bounties/[bountyId]/submissions - get all submissions for a bounty
 export const GET = withWorkspace(
@@ -16,32 +14,61 @@ export const GET = withWorkspace(
     const { bountyId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const bounty = await prisma.bounty.findUniqueOrThrow({
-      where: {
-        id: bountyId,
-      },
+    await getBountyOrThrow({
+      bountyId,
+      programId,
       include: {
         groups: true,
       },
     });
 
-    if (bounty.programId !== programId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Bounty ${bountyId} not found.`,
-      });
-    }
+    const { status, groupId, partnerId, sortOrder, sortBy, page, pageSize } =
+      getBountySubmissionsQuerySchema.parse(searchParams);
 
-    const filters = getBountySubmissionsQuerySchema.parse(searchParams);
-
-    const bountySubmissions = await getBountySubmissions({
-      ...filters,
-      bountyId: bounty.id,
+    const submissions = await prisma.bountySubmission.findMany({
+      where: {
+        bountyId,
+        status: status ?? {
+          in: ["draft", "submitted", "approved"],
+        },
+        ...(groupId && {
+          programEnrollment: {
+            groupId,
+          },
+        }),
+        ...(partnerId && {
+          partnerId,
+        }),
+      },
+      include: {
+        user: true,
+        commission: true,
+        partner: true,
+        programEnrollment: true,
+      },
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
-    return NextResponse.json(
-      z.array(BountySubmissionExtendedSchema).parse(bountySubmissions),
+    const bountySubmissions = submissions.map(
+      ({ partner, programEnrollment, commission, user, ...submissionData }) =>
+        BountySubmissionExtendedSchema.parse({
+          ...submissionData,
+          partner: {
+            ...partner,
+            ...(programEnrollment || {}),
+            id: partner.id,
+            status: programEnrollment?.status ?? null,
+          },
+          commission,
+          user,
+        }),
     );
+
+    return NextResponse.json(bountySubmissions);
   },
   {
     requiredPlan: [

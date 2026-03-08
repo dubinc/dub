@@ -23,7 +23,7 @@ const mainLinks = [
     title: "Docs",
     description: "Platform documentation",
     thumbnail: "https://assets.dub.co/misc/docs-thumbnail.jpg",
-    href: "/docs/introduction",
+    href: "/docs",
   },
 ];
 

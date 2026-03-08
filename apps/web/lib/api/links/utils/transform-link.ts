@@ -4,6 +4,7 @@ import {
   ProgramEnrollmentProps,
 } from "@/lib/types";
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
+import { toCentsNumber } from "@dub/utils";
 import { prefixWorkspaceId } from "../../workspaces/workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 
@@ -52,6 +53,7 @@ export const transformLink = (
 
   return {
     ...rest,
+    saleAmount: toCentsNumber(rest.saleAmount),
     identifier: null, // backwards compatibility
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,

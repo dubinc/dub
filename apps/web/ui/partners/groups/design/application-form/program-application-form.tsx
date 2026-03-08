@@ -14,7 +14,7 @@ import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { CountryCombobox } from "../../../country-combobox";
@@ -64,6 +64,24 @@ export function ProgramApplicationForm({
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = form;
 
+  const [fieldStatuses, setFieldStatuses] = useState<Record<string, boolean>>(
+    {},
+  );
+
+  const handleFieldStatusChange = useCallback(
+    (fieldId: string, isLoading: boolean) => {
+      setFieldStatuses((prev) => ({
+        ...prev,
+        [fieldId]: isLoading,
+      }));
+    },
+    [],
+  );
+
+  const hasAnyLoadingStatus = Object.values(fieldStatuses).some(
+    (loading) => loading,
+  );
+
   useEffect(() => {
     if (preview || !session?.user) return;
 
@@ -109,7 +127,8 @@ export function ProgramApplicationForm({
     },
   );
 
-  const isLoading = isSubmitting || isSubmitSuccessful || isPending;
+  const isLoading =
+    isSubmitting || isSubmitSuccessful || isPending || hasAnyLoadingStatus;
 
   return (
     <FormProvider {...form}>
@@ -205,6 +224,9 @@ export function ProgramApplicationForm({
               key={field.id}
               field={field}
               keyPath={`formData.fields.${index}`}
+              onStatusChange={(loading) =>
+                handleFieldStatusChange(field.id, loading)
+              }
             />
           );
         })}

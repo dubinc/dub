@@ -29,12 +29,14 @@ export const onboardPartnerAction = authUserActionClient
       ? existingPartner.id
       : createId({ prefix: "pn_" });
 
-    const imageUrl = await storage
-      .upload({
-        key: `partners/${partnerId}/image_${nanoid(7)}`,
-        body: image,
-      })
-      .then(({ url }) => url);
+    const imageUrl = image
+      ? await storage
+          .upload({
+            key: `partners/${partnerId}/image_${nanoid(7)}`,
+            body: image,
+          })
+          .then(({ url }) => url)
+      : undefined;
 
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
@@ -79,7 +81,7 @@ export const onboardPartnerAction = authUserActionClient
             },
           }),
 
-      // only set the default partner ID if the user doesn't already have one
+      // if the user doesn't have a default partner id, set the new partner id as the user's default partner id
       !user.defaultPartnerId &&
         prisma.user.update({
           where: {
@@ -93,4 +95,23 @@ export const onboardPartnerAction = authUserActionClient
 
     // Complete any outstanding program application
     waitUntil(completeProgramApplications(user.email));
+
+    // if the user doesn't have an image, set the uploaded image as the user's image
+    if (!user.image && image) {
+      waitUntil(
+        storage
+          .upload({
+            key: `avatars/${user.id}`,
+            body: image,
+          })
+          .then(({ url }) => {
+            prisma.user.update({
+              where: {
+                id: user.id,
+              },
+              data: { image: url },
+            });
+          }),
+      );
+    }
   });

@@ -45,7 +45,7 @@ export const GET = withWorkspace(
     // Process the export in the background if the number of links is greater than MAX_LINKS_TO_EXPORT
     if (linksCount > MAX_LINKS_TO_EXPORT) {
       await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/export`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/export/links`,
         body: {
           ...searchParams,
           workspaceId: workspace.id,

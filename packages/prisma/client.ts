@@ -2,6 +2,7 @@ export * from "@prisma/client";
 
 export {
   BountyPerformanceScope,
+  BountySubmissionFrequency,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
   BountyType,
@@ -26,6 +27,7 @@ export {
   PartnerRole,
   PayoutMode,
   PayoutStatus,
+  PlatformType,
   PreferredEarningStructure,
   Prisma,
   ProgramEnrollmentStatus,

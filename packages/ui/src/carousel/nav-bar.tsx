@@ -89,8 +89,8 @@ export const CarouselNavBar = ({
                     transition={{
                       type: "tween",
                       duration:
-                        (autoplay?.options.delay ?? AUTOPLAY_DEFAULT_DELAY) /
-                        1000,
+                        ((autoplay?.options.delay ??
+                          AUTOPLAY_DEFAULT_DELAY) as number) / 1000,
                     }}
                     className="animate-fill-width h-full w-full rounded-full bg-black"
                   />

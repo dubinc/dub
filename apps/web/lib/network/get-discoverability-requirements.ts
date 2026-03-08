@@ -1,86 +1,66 @@
-import { currencyFormatter } from "@dub/utils";
+import { toCentsNumber } from "@dub/utils";
 import {
   EXCLUDED_PROGRAM_IDS,
   PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
 } from "../constants/partner-profile";
-import {
-  ONLINE_PRESENCE_FIELDS,
-  PartnerOnlinePresenceFields,
-} from "../partners/online-presence";
+import { PARTNER_PLATFORM_FIELDS } from "../partners/partner-platforms";
 import { EnrolledPartnerProps, PartnerProps } from "../types";
 
+/** Program enrollments with totalCommissions as number | bigint (Prisma returns bigint). */
+export type ProgramEnrollmentsForDiscoverability = (Pick<
+  EnrolledPartnerProps,
+  "programId" | "status"
+> & { totalCommissions: number | bigint })[];
+
 export const partnerHasEarnedCommissions = (
-  programEnrollments: Pick<
-    EnrolledPartnerProps,
-    "programId" | "status" | "totalCommissions"
-  >[],
+  programEnrollments: ProgramEnrollmentsForDiscoverability,
 ) => {
   return (
     programEnrollments.filter(
       (pe) =>
         !EXCLUDED_PROGRAM_IDS.includes(pe.programId) &&
         pe.status === "approved" &&
-        pe.totalCommissions >= PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
+        toCentsNumber(pe.totalCommissions) >=
+          PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
     ).length >= 1
   );
 };
 
-const partnerIsNotBanned = (
+export const partnerIsNotBanned = (
   programEnrollments: Pick<EnrolledPartnerProps, "programId" | "status">[],
 ) => {
   return programEnrollments.every((pe) => pe.status !== "banned");
 };
 
-export const partnerCanViewMarketplace = ({
-  partner,
-  programEnrollments,
-}: {
-  partner?: Pick<PartnerProps, "email">;
-  programEnrollments: Pick<
-    EnrolledPartnerProps,
-    "programId" | "status" | "totalCommissions"
-  >[];
-}) => {
-  if (partner?.email?.endsWith("@dub.co")) {
-    return true;
-  }
-  return (
-    partnerHasEarnedCommissions(programEnrollments) &&
-    partnerIsNotBanned(programEnrollments)
-  );
-};
-
 export function getDiscoverabilityRequirements({
   partner,
-  programEnrollments,
 }: {
   partner: Pick<
     PartnerProps,
-    | PartnerOnlinePresenceFields
+    | "image"
     | "description"
     | "monthlyTraffic"
     | "preferredEarningStructures"
     | "salesChannels"
+    | "platforms"
   >;
-  programEnrollments: Pick<
-    EnrolledPartnerProps,
-    "programId" | "status" | "totalCommissions"
-  >[];
 }) {
   return [
     {
-      label: "Add basic profile info",
-      completed: true,
+      label: "Upload your logo",
+      href: "#info",
+      completed: !!partner.image,
     },
     {
-      label: "Connect your website or social account",
-      href: "#sites",
-      completed: ONLINE_PRESENCE_FIELDS.some(
-        (field) => field.data(partner).value, // TODO: update this to also check for "verified" in the future
-      ),
+      label: "Verify at least 2 social accounts/website",
+      href: "#platforms",
+      completed:
+        PARTNER_PLATFORM_FIELDS.filter(
+          (field) => field.data(partner.platforms).verified,
+        ).length >= 2,
     },
     {
-      label: "Update your profile description",
+      label: "Fill out your profile description",
       href: "#about",
       completed: !!partner.description,
     },
@@ -98,14 +78,6 @@ export function getDiscoverabilityRequirements({
       label: "Choose your sales channels",
       href: "#channels",
       completed: Boolean(partner.salesChannels?.length),
-    },
-    {
-      label: "Maintain a healthy partner profile",
-      completed: partnerIsNotBanned(programEnrollments),
-    },
-    {
-      label: `Earn ${currencyFormatter(PARTNER_NETWORK_MIN_COMMISSIONS_CENTS, { trailingZeroDisplay: "stripIfInteger" })} in commissions`,
-      completed: partnerHasEarnedCommissions(programEnrollments),
     },
   ];
 }

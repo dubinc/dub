@@ -15,6 +15,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     where: {
       partnerId: partner.id,
       ...(status && { status }),
+      program: {
+        deactivatedAt: null,
+      },
     },
     include: {
       links: {

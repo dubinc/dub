@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useSCIM from "@/lib/swr/use-scim";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRemoveSCIMModal } from "@/ui/modals/remove-scim-modal";
@@ -11,11 +12,17 @@ import { FolderSync, ShieldOff } from "lucide-react";
 import { useMemo, useState } from "react";
 
 export function SCIM() {
-  const { plan } = useWorkspace();
+  const { plan, role } = useWorkspace();
   const { SCIMModal, setShowSCIMModal } = useSCIMModal();
   const { RemoveSCIMModal, setShowRemoveSCIMModal } = useRemoveSCIMModal();
 
   const { provider, configured, loading } = useSCIM();
+
+  const permissionsError = clientAccessCheck({
+    action: "workspaces.write",
+    role,
+    customPermissionDescription: "configure SCIM Directory Sync",
+  }).error;
 
   const data = useMemo(() => {
     if (loading) {
@@ -139,17 +146,18 @@ export function SCIM() {
                 ) : (
                   <Button
                     text="Configure"
-                    disabled={plan !== "enterprise"}
-                    {...(plan !== "enterprise" && {
-                      disabledTooltip: (
+                    disabledTooltip={
+                      plan !== "enterprise" ? (
                         <TooltipContent
                           title="SCIM Directory Sync is only available on Enterprise plans. Upgrade to get started."
                           cta="Contact sales"
                           href="https://dub.co/enterprise"
                           target="_blank"
                         />
-                      ),
-                    })}
+                      ) : (
+                        permissionsError || undefined
+                      )
+                    }
                     onClick={() => setShowSCIMModal(true)}
                   />
                 )}

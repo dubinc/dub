@@ -24,36 +24,27 @@ export const GET = withWorkspace(
       by: ["status"],
       where: {
         partnerId,
-        programId: {
-          not: programId,
-        },
-        status: {
-          not: "pending",
-        },
       },
       _count: true,
     });
 
-    const totalPrograms = programEnrollments.reduce(
-      (acc, enrollment) => acc + enrollment._count,
-      0,
-    );
-
     // approved and archived statuses
-    const trustedPrograms = programEnrollments
+    const activePrograms = programEnrollments
       .filter((enrollment) =>
         ACTIVE_ENROLLMENT_STATUSES.includes(enrollment.status),
       )
       .reduce((acc, enrollment) => acc + enrollment._count, 0);
 
-    // all other statuses
-    const removedPrograms = totalPrograms - trustedPrograms;
+    // banned statuses
+    const bannedPrograms =
+      programEnrollments.find((enrollment) => enrollment.status === "banned")
+        ?._count ?? 0;
 
     return NextResponse.json(
       partnerCrossProgramSummarySchema.parse({
-        totalPrograms,
-        trustedPrograms,
-        removedPrograms,
+        totalPrograms: activePrograms + bannedPrograms,
+        activePrograms,
+        bannedPrograms,
       }),
     );
   },

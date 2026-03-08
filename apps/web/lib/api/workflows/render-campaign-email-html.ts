@@ -78,6 +78,7 @@ const sanitizeHtmlBody = (body: string) => {
       "p",
       "strong",
       "em",
+      "s",
       "ul",
       "ol",
       "li",

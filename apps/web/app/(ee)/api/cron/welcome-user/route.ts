@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendEmail } from "@dub/email";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
 import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 /*
     This route is used to send a welcome email to new users + subscribe them to the corresponding Resend audience
-    It is called by QStash 15 minutes after a user is created.
+    It is called by QStash 45 minutes after a user is created.
 */
 export async function POST(req: Request) {
   try {
@@ -28,6 +29,34 @@ export async function POST(req: Request) {
         name: true,
         email: true,
         partners: true,
+
+        projects: {
+          select: {
+            project: {
+              select: {
+                slug: true,
+                name: true,
+                logo: true,
+                plan: true,
+                programs: {
+                  select: {
+                    slug: true,
+                    name: true,
+                    logo: true,
+                  },
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                  take: 1,
+                },
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+          take: 1,
+        },
       },
     });
 
@@ -57,7 +86,11 @@ export async function POST(req: Request) {
             })
           : WelcomeEmail({
               email: user.email,
-              name: user.name,
+              workspace: user.projects?.[0]?.project,
+              hasDubPartners: getPlanCapabilities(
+                user.projects?.[0]?.project?.plan || "free",
+              ).canManageProgram,
+              program: user.projects?.[0]?.project?.programs?.[0],
               unsubscribeUrl,
             }),
         variant: "marketing",

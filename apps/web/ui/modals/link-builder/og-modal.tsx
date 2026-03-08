@@ -17,7 +17,6 @@ import {
 } from "@dub/ui";
 import { LoadingCircle, Magic, Unsplash } from "@dub/ui/icons";
 import { resizeImage } from "@dub/utils";
-import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -120,12 +119,8 @@ function OGModalInner({
         toast.error(error.message);
       }
     },
-    onFinish: (_, completion) => {
+    onFinish: () => {
       mutate();
-      posthog.capture("ai_meta_title_generated", {
-        title: completion,
-        url,
-      });
     },
   });
 
@@ -170,12 +165,8 @@ function OGModalInner({
         toast.error(error.message);
       }
     },
-    onFinish: (_, completion) => {
+    onFinish: (_, __) => {
       mutate();
-      posthog.capture("ai_meta_description_generated", {
-        description: completion,
-        url,
-      });
     },
   });
 

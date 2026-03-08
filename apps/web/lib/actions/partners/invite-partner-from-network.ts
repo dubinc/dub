@@ -13,11 +13,17 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const invitePartnerFromNetworkAction = authActionClient
   .inputSchema(invitePartnerFromNetworkSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const networkInvitesUsage = await getNetworkInvitesUsage(workspace);
 
@@ -85,6 +91,10 @@ export const invitePartnerFromNetworkAction = authActionClient
       Promise.allSettled([
         (async () => {
           if (!partner.email) return;
+          const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
+            programId,
+            groupId: enrolledPartner.groupId || program.defaultGroupId,
+          });
           await sendEmail({
             subject: `${program.name} invited you to join on Dub Partners`,
             variant: "notifications",
@@ -97,10 +107,7 @@ export const invitePartnerFromNetworkAction = authActionClient
                 slug: program.slug,
                 logo: program.logo,
               },
-              ...(await getPartnerInviteRewardsAndBounties({
-                programId,
-                groupId: enrolledPartner.groupId || program.defaultGroupId,
-              })),
+              ...rewardsAndBounties,
             }),
           });
         })(),

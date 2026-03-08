@@ -97,7 +97,9 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
                   ],
                 }),
                 ...(searchMode === "exact" && {
-                  shortLink: { startsWith: search },
+                  [search.startsWith("https://") ? "shortLink" : "key"]: {
+                    startsWith: search,
+                  },
                 }),
               },
             ]

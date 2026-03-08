@@ -1,6 +1,6 @@
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
-import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import { MoneyBills2, Msgs, UserCheck } from "@dub/ui";
@@ -21,6 +21,7 @@ export function OverviewTasks() {
   } = usePayoutsCount<number | undefined>({
     eligibility: "eligible",
     status: "pending",
+    ignoreParams: true,
   });
 
   const { count: unreadMessagesCount, isLoading: unreadMessagesLoading } =

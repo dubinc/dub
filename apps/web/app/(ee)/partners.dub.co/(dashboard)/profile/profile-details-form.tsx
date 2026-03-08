@@ -5,9 +5,10 @@ import { PartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import {
-  OnlinePresenceForm,
-  useOnlinePresenceForm,
-} from "@/ui/partners/online-presence-form";
+  PartnerPlatformsForm,
+  usePartnerPlatformsForm,
+} from "@/ui/partners/partner-platforms-form";
+import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PartnerProfileType } from "@dub/prisma/client";
@@ -22,7 +23,7 @@ import {
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
-import { RefObject, useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -46,7 +47,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
     ? !hasPermission(partner.role, "partner_profile.update")
     : true;
   const basicInfoFormRef = useRef<HTMLFormElement>(null);
-  const onlinePresenceFormRef = useRef<HTMLFormElement>(null);
+  const partnerPlatformsFormRef = useRef<HTMLFormElement>(null);
 
   const basicInfoForm = useForm<BasicInfoFormData>({
     defaultValues: {
@@ -58,7 +59,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
       companyName: partner?.companyName ?? null,
     },
   });
-  const onlinePresenceForm = useOnlinePresenceForm({ partner });
+  const partnerPlatformsForm = usePartnerPlatformsForm({ partner });
 
   const {
     setShowConfirmModal: setShowStripeConfirmModal,
@@ -70,7 +71,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
     confirmText: "Continue",
     onConfirm: () => {
       basicInfoFormRef.current?.requestSubmit();
-      onlinePresenceFormRef.current?.requestSubmit();
+      partnerPlatformsFormRef.current?.requestSubmit();
     },
   });
 
@@ -87,6 +88,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
       </div>
 
       <SettingsRow
+        id="info"
         heading="Basic information"
         description="Your core details, and information that's required to set up your Dub Partner account."
       >
@@ -100,14 +102,14 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
       </SettingsRow>
 
       <SettingsRow
-        id="sites"
+        id="platforms"
         heading="Website and socials"
-        description="Add your website and social accounts you use to share links. Verifying at least one helps build trust with programs."
+        description="Add your website and social accounts you use to share links. Verifying as many platforms as possible helps build trust with programs."
       >
-        <OnlinePresenceForm
-          ref={onlinePresenceFormRef}
+        <PartnerPlatformsForm
+          ref={partnerPlatformsFormRef}
           partner={partner}
-          form={onlinePresenceForm}
+          form={partnerPlatformsForm}
           variant="settings"
         />
       </SettingsRow>
@@ -119,7 +121,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
           disabled={disabled}
           loading={
             basicInfoForm.formState.isSubmitting ||
-            onlinePresenceForm.formState.isSubmitting
+            partnerPlatformsForm.formState.isSubmitting
           }
           onClick={() => {
             if (disabled) return;
@@ -133,7 +135,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
               setShowStripeConfirmModal(true);
             } else {
               basicInfoFormRef.current?.requestSubmit();
-              onlinePresenceFormRef.current?.requestSubmit();
+              partnerPlatformsFormRef.current?.requestSubmit();
             }
           }}
         />
@@ -170,6 +172,8 @@ function BasicInfoForm({
   }, [isSubmitSuccessful, reset, getValues]);
 
   const { profileType } = watch();
+  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
+  const countryChangeWarning = useCountryChangeWarningModal();
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onSuccess: async ({ data }) => {
@@ -200,6 +204,12 @@ function BasicInfoForm({
     },
   });
 
+  const shouldShowCountryChangeWarning =
+    !disabled &&
+    !partner?.payoutsEnabledAt &&
+    !!partner?.country &&
+    !countryChangeWarning.isAcknowledged;
+
   return (
     <form
       ref={formRef}
@@ -212,6 +222,7 @@ function BasicInfoForm({
         });
       })}
     >
+      {countryChangeWarning.modal}
       <div className="flex flex-col gap-6">
         <label>
           <div className="flex items-center gap-5">
@@ -301,6 +312,22 @@ function BasicInfoForm({
                 value={field.value || ""}
                 onChange={field.onChange}
                 error={errors.country ? true : false}
+                open={isCountryComboboxOpen}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setIsCountryComboboxOpen(false);
+                    return;
+                  }
+
+                  if (shouldShowCountryChangeWarning) {
+                    countryChangeWarning.acknowledgeAndContinue(() => {
+                      setIsCountryComboboxOpen(true);
+                    });
+                    return;
+                  }
+
+                  setIsCountryComboboxOpen(true);
+                }}
                 disabledTooltip={
                   disabled ? (
                     "You don't have permission to update this field"

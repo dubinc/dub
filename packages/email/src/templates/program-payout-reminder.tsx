@@ -63,9 +63,10 @@ export default function ProgramPayoutReminder({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You have some partners awaiting their payout for {program.name}.
-              Completing these on time will keep your program running smooth and
-              your partners happy.
+              You have <strong>{payout.partnersCount}</strong> partners awaiting
+              their payout for <strong>{program.name}</strong>. Completing these
+              on time will keep your program running smoothly and your partners
+              happy.
             </Text>
 
             <Section className="rounded-lg border border-solid border-neutral-200 p-4">

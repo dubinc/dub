@@ -18,9 +18,10 @@ import {
   Copy,
   FolderBookmark,
   QRCode,
+  Trash,
 } from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid } from "@dub/utils";
-import { CopyPlus, Delete, FolderInput } from "lucide-react";
+import { CopyPlus, FolderInput } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -336,7 +337,7 @@ export function LinkControls({
                     setOpenPopover(false);
                     setShowDeleteLinkModal(true);
                   }}
-                  icon={<Delete className="size-4" />}
+                  icon={<Trash className="size-4" />}
                   shortcut="X"
                   className="h-9 px-2 font-medium"
                   disabled={isRootLink || isProgramLinkWithLeads}
@@ -358,7 +359,7 @@ export function LinkControls({
                     onClick={() => handleBanLink()}
                     className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
                   >
-                    <IconMenu text="Ban" icon={<Delete className="size-4" />} />
+                    <IconMenu text="Ban" icon={<Trash className="size-4" />} />
                     <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
                       B
                     </kbd>

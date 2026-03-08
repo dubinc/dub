@@ -7,6 +7,7 @@ import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { validateDomain } from "@/lib/api/domains/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
+import { isNonEmptyJson } from "@/lib/api/utils/is-non-empty-json";
 import { withWorkspace } from "@/lib/auth";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { storage } from "@/lib/storage";
@@ -47,6 +48,7 @@ export const PATCH = withWorkspace(
       slug: domain,
       registeredDomain,
       logo: oldLogo,
+      partnerProgram,
     } = await getDomainOrThrow({
       workspace,
       domain: params.domain,
@@ -75,7 +77,7 @@ export const PATCH = withWorkspace(
         notFoundUrl ||
         assetLinks ||
         appleAppSiteAssociation ||
-        deepviewData
+        isNonEmptyJson(deepviewData)
       ) {
         const proFeaturesString = combineWords(
           [
@@ -84,7 +86,7 @@ export const PATCH = withWorkspace(
             notFoundUrl && "not found URLs",
             assetLinks && "Asset Links",
             appleAppSiteAssociation && "Apple App Site Association",
-            deepviewData && "Deep View",
+            isNonEmptyJson(deepviewData) && "Deep View",
           ].filter(Boolean) as string[],
         );
 
@@ -207,7 +209,29 @@ export const PATCH = withWorkspace(
             queueDomainUpdate({
               oldDomain: domain,
               newDomain: newDomain,
+              ...(partnerProgram && { programId: partnerProgram.id }),
             }),
+
+            ...(partnerProgram
+              ? [
+                  prisma.program.update({
+                    where: {
+                      id: partnerProgram.id,
+                    },
+                    data: {
+                      domain,
+                    },
+                  }),
+                  prisma.partnerGroupDefaultLink.updateMany({
+                    where: {
+                      programId: partnerProgram.id,
+                    },
+                    data: {
+                      domain,
+                    },
+                  }),
+                ]
+              : []),
           ]);
         }
       })(),

@@ -6,10 +6,14 @@ import { PayoutsCount } from "../types";
 import { payoutsCountQuerySchema } from "../zod/schemas/payouts";
 import useWorkspace from "./use-workspace";
 
-export default function usePayoutsCount<T>({
+export function usePayoutsCount<T>({
+  ignoreParams,
   enabled = true,
   ...query
-}: z.input<typeof payoutsCountQuerySchema> & { enabled?: boolean } = {}) {
+}: z.input<typeof payoutsCountQuerySchema> & {
+  ignoreParams?: boolean;
+  enabled?: boolean;
+} = {}) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
@@ -17,13 +21,13 @@ export default function usePayoutsCount<T>({
     workspaceId &&
       defaultProgramId &&
       enabled &&
-      `/api/programs/${defaultProgramId}/payouts/count${getQueryString(
+      `/api/payouts/count${getQueryString(
         {
           ...query,
           workspaceId,
         },
         {
-          include: ["status", "partnerId", "invoiceId"],
+          include: ignoreParams ? [] : ["status", "partnerId", "invoiceId"],
         },
       )}`,
     fetcher,

@@ -11,12 +11,18 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const updateDiscountAction = authActionClient
   .inputSchema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { discountId, couponTestId } = parsedInput;
+    const { discountId, couponTestId, autoProvision } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -32,6 +38,11 @@ export const updateDiscountAction = authActionClient
         },
         data: {
           couponTestId: couponTestId || null,
+          ...(autoProvision !== undefined && {
+            autoProvisionEnabledAt: autoProvision
+              ? discount.autoProvisionEnabledAt ?? new Date()
+              : null,
+          }),
         },
         include: {
           program: true,
@@ -61,6 +72,17 @@ export const updateDiscountAction = authActionClient
                       revalidatePath(`/partners.dub.co/${program.slug}/apply`),
                     ]
                   : []),
+              ]
+            : []),
+
+          ...(updatedDiscount.autoProvisionEnabledAt
+            ? [
+                qstash.publishJSON({
+                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/create/queue-batches`,
+                  body: {
+                    discountId: discount.id,
+                  },
+                }),
               ]
             : []),
 

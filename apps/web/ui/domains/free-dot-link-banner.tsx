@@ -53,7 +53,7 @@ export function FreeDotLinkBanner() {
           </div>
           <button
             type="button"
-            className="absolute inset-y-0 right-2.5 p-1 text-sm text-green-700 underline transition-colors hover:text-green-900"
+            className="absolute right-2.5 top-2.5 p-1 text-sm text-green-700 underline transition-colors hover:text-green-900 sm:top-1/2 sm:-translate-y-1/2"
             onClick={() => setShow(false)}
           >
             <X className="size-[18px]" />

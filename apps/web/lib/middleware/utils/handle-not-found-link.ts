@@ -13,7 +13,7 @@ export const handleNotFoundLink = async (req: NextRequest) => {
       headers: {
         ...DUB_HEADERS,
         "X-Robots-Tag": "googlebot: noindex",
-        // pass the Referer value to the not found URL
+        // pass the Referer [sic] value to the not found URL
         Referer: req.url,
       },
       status: 302,

@@ -124,6 +124,7 @@ export const PATCH = withWorkspace(
       "advanced",
       "enterprise",
     ],
+    requiredRoles: ["owner", "member"],
   },
 );
 

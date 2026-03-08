@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Link, Project } from "@dub/prisma/client";
+import { Customer, Link, Project } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
@@ -125,6 +125,28 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
         {} as Record<string, Date>,
       );
 
+      const existingCustomers = await prisma.customer.findMany({
+        where: {
+          projectId: program.workspace.id,
+          OR: [
+            {
+              email: {
+                in: customers
+                  .map(({ email }) => email)
+                  .filter((e): e is string => e != null),
+              },
+            },
+            {
+              externalId: {
+                in: customers
+                  .map(({ customer_key }) => customer_key)
+                  .filter((c): c is string => c != null),
+              },
+            },
+          ],
+        },
+      });
+
       await Promise.allSettled(
         customers.map((customer) => {
           const partnerId = partnerKeysToId[customer.partnership_key];
@@ -134,6 +156,7 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
             workspace: program.workspace,
             links,
             customer,
+            existingCustomers,
             latestLeadAt: partnerKeysToLatestLeadAt[customer.partnership_key],
             importId,
           });
@@ -162,6 +185,7 @@ async function createCustomer({
   workspace,
   links,
   customer,
+  existingCustomers,
   latestLeadAt,
   importId,
 }: {
@@ -171,6 +195,7 @@ async function createCustomer({
     "id" | "key" | "domain" | "url" | "partnerId" | "programId" | "lastLeadAt"
   >[];
   customer: PartnerStackCustomer;
+  existingCustomers: Customer[];
   latestLeadAt: Date;
   importId: string;
 }) {
@@ -203,12 +228,9 @@ async function createCustomer({
   }
 
   // Find the customer by email address
-  const customerFound = await prisma.customer.findFirst({
-    where: {
-      projectId: workspace.id,
-      OR: [{ email: customer.email }, { externalId: customer.customer_key }],
-    },
-  });
+  const customerFound = existingCustomers.find(
+    (c) => c.email === customer.email || c.externalId === customer.customer_key,
+  );
 
   if (customerFound) {
     console.log(`A customer already exists with email ${customer.email}`);

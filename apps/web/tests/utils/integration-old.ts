@@ -3,7 +3,7 @@ import { type TestContext } from "vitest";
 import * as z from "zod/v4";
 import { env, integrationTestEnv } from "./env";
 import { HttpClient } from "./http";
-import { E2E_USER_ID, E2E_WORKSPACE_ID } from "./resource";
+import { E2E_USER_ID_MEMBER, E2E_WORKSPACE_ID } from "./resource";
 
 interface Resources {
   user: Pick<User, "id">;
@@ -25,14 +25,14 @@ export class IntegrationHarnessOld {
     this.http = new HttpClient({
       baseUrl: `${this.baseUrl}/api`,
       headers: {
-        Authorization: `Bearer ${this.env.E2E_TOKEN}`,
+        Authorization: `Bearer ${this.env.E2E_TOKEN_OLD}`,
       },
     });
   }
 
   async init() {
     const user = {
-      id: E2E_USER_ID,
+      id: E2E_USER_ID_MEMBER,
     };
 
     const apiKey = {

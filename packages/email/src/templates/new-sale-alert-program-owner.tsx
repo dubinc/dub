@@ -98,7 +98,9 @@ export default function NewSaleAlertProgramOwner({
   return (
     <Html>
       <Head />
-      <Preview>You received a sale from a customer referred! 💰</Preview>
+      <Preview>
+        You received a {saleAmountInDollars} sale from a new customer! 💰
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -111,11 +113,11 @@ export default function NewSaleAlertProgramOwner({
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-lg font-medium text-black">
-              Hi {finalName},
+              New customer referred by {partner.name}
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              <strong>{program.name}</strong> earned a sale from a customer
+              <strong>{program.name}</strong> earned a sale from a new customer
               referred by{" "}
               <strong>
                 {partner.name
@@ -173,14 +175,23 @@ export default function NewSaleAlertProgramOwner({
             {formattedDueDate && (
               <Text className="text-sm leading-6 text-neutral-600">
                 Payment for this commission will be due on{" "}
-                <strong>{formattedDueDate}</strong>, based on your campaign
-                settings.
+                <strong>{formattedDueDate}</strong>, as per this partner group's{" "}
+                <Link
+                  href="https://dub.co/help/article/partner-payouts#payout-holding-period"
+                  className="font-semibold text-black underline"
+                >
+                  holding period
+                </Link>
+                .
               </Text>
             )}
 
             <Text className="text-sm leading-6 text-neutral-600">
               You can view sales and commissions in the{" "}
-              <Link href={salesLink} className="text-blue-600 underline">
+              <Link
+                href={salesLink}
+                className="font-semibold text-black underline"
+              >
                 program dashboard
               </Link>
               .

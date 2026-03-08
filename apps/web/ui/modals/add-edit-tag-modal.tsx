@@ -1,3 +1,4 @@
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useTags from "@/lib/swr/use-tags";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -16,7 +17,6 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
-import posthog from "posthog-js";
 import {
   Dispatch,
   FormEvent,
@@ -119,11 +119,6 @@ function AddEditTagModal({
             }),
           }).then(async (res) => {
             if (res.status === 200 || res.status === 201) {
-              posthog.capture(props ? "tag_edited" : "tag_created", {
-                tag_id: data.id,
-                tag_name: data.name,
-                tag_color: data.color,
-              });
               await mutatePrefix(["/api/tags", "/api/links"]);
               toast.success(endpoint.successMessage);
               setShowAddEditTagModal(false);
@@ -211,12 +206,17 @@ function AddTagButton({
 }: {
   setShowAddEditTagModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug, plan, tagsLimit } = useWorkspace();
+  const { slug, plan, tagsLimit, role } = useWorkspace();
   const { tags } = useTags();
   const exceededTags = tags && tagsLimit && tags.length >= tagsLimit;
 
+  const permissionsError = clientAccessCheck({
+    action: "tags.write",
+    role,
+  }).error;
+
   useKeyboardShortcut("c", () => setShowAddEditTagModal(true), {
-    enabled: !exceededTags,
+    enabled: !exceededTags && !permissionsError,
   });
 
   return (
@@ -233,7 +233,9 @@ function AddTagButton({
               cta="Upgrade"
               href={`/${slug}/upgrade`}
             />
-          ) : undefined
+          ) : (
+            permissionsError || undefined
+          )
         }
         onClick={() => setShowAddEditTagModal(true)}
       />

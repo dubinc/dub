@@ -10,14 +10,13 @@ export function LaterButton({
   next,
   className,
   children,
-}: PropsWithChildren<{ next: OnboardingStep | "finish"; className?: string }>) {
-  const { continueTo, finish, isLoading, isSuccessful } =
-    useOnboardingProgress();
+}: PropsWithChildren<{ next: OnboardingStep; className?: string }>) {
+  const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
 
   return (
     <button
       type="button"
-      onClick={() => (next === "finish" ? finish() : continueTo(next))}
+      onClick={() => continueTo(next)}
       className={cn(
         "mx-auto flex w-fit items-center gap-2 text-center text-sm font-medium text-neutral-800 transition-colors enabled:hover:text-neutral-950",
         className,

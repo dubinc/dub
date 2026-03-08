@@ -26,6 +26,8 @@ export function ConversionTrackingToggle() {
   const permissionsError = clientAccessCheck({
     action: "workspaces.write",
     role,
+    customPermissionDescription:
+      "manage workspace-level conversion tracking settings",
   }).error;
 
   const [conversionEnabled, setConversionEnabled] = useState(
@@ -105,7 +107,8 @@ export function ConversionTrackingToggle() {
           "transition-colors duration-100 ease-out",
           conversionEnabled &&
             "bg-bg-inverted text-content-inverted border-bg-inverted",
-          !canTrackConversions && "cursor-not-allowed",
+          (!canTrackConversions || permissionsError) &&
+            "cursor-not-allowed opacity-50",
         )}
       >
         <span className="text-sm font-medium">Conversion tracking</span>

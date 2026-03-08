@@ -78,16 +78,6 @@ export function PartnersUpgradeModal({
             },
           },
           {
-            id: "messages",
-            text: "Messaging center",
-            tooltip: {
-              title:
-                "Easily communicate with your partners using our messaging center.",
-              cta: "Learn more.",
-              href: "https://dub.co/help/article/messaging-partners",
-            },
-          },
-          {
             id: "email",
             text: "Email campaigns",
             tooltip: {
@@ -98,8 +88,28 @@ export function PartnersUpgradeModal({
             },
           },
           {
+            id: "messages",
+            text: "Messaging center",
+            tooltip: {
+              title:
+                "Easily communicate with your partners using our messaging center.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/messaging-partners",
+            },
+          },
+          {
+            id: "sso",
+            text: "Fraud detection",
+            tooltip: {
+              title:
+                "Safeguard your partner program by automatically flagging, reviewing, and resolving suspicious activity.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/fraud-detection",
+            },
+          },
+          {
             id: "partnergroups",
-            text: `${plan.limits.groups} partner groups`,
+            text: `${plan.limits.groups < INFINITY_NUMBER ? plan.limits.groups : "Unlimited"} partner groups`,
             tooltip: {
               title:
                 "Learn how you can create partner groups to segment partners by rewards, discounts, performance, location, and more.",

@@ -16,6 +16,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { MarkdownDescription } from "../shared/markdown-description";
 
 type Step = "set-token" | "program-info";
 
@@ -59,11 +60,12 @@ function ImportToltModal({
           <ArrowRight className="h-5 w-5 text-neutral-600" />
           <Logo />
         </div>
-        <h3 className="text-lg font-medium">Import Your Tolt Program</h3>
-        <p className="text-center text-sm text-neutral-500">
-          Import your existing Tolt program into{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
-        </p>
+        <h3 className="text-lg font-medium">Import your Tolt program</h3>
+        <MarkdownDescription className="text-center text-sm text-neutral-500">
+          [Migrate your existing Tolt
+          program](https://dub.co/help/article/migrating-from-tolt), partners,
+          and historical stats into Dub in just a few clicks.
+        </MarkdownDescription>
       </div>
 
       <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">

@@ -64,74 +64,84 @@ export const GET = withWorkspace(async ({ workspace }) => {
 });
 
 // PUT /api/workspaces/[idOrSlug]/import/short - save Short.io API key
-export const PUT = withWorkspace(async ({ req, workspace }) => {
-  const { apiKey } = await req.json();
-  const response = await redis.set(`import:short:${workspace.id}`, apiKey);
-  return NextResponse.json(response);
-});
+export const PUT = withWorkspace(
+  async ({ req, workspace }) => {
+    const { apiKey } = await req.json();
+    const response = await redis.set(`import:short:${workspace.id}`, apiKey);
+    return NextResponse.json(response);
+  },
+  {
+    requiredPermissions: ["links.write"],
+  },
+);
 
 // POST /api/workspaces/[idOrSlug]/import/short - create job to import links from Short.io
-export const POST = withWorkspace(async ({ req, workspace, session }) => {
-  const { selectedDomains, importTags, folderId } = await req.json();
+export const POST = withWorkspace(
+  async ({ req, workspace, session }) => {
+    const { selectedDomains, importTags, folderId } = await req.json();
 
-  if (folderId) {
-    await verifyFolderAccess({
-      workspace,
-      userId: session.user.id,
-      folderId,
-      requiredPermission: "folders.links.write",
-    });
-  }
-
-  const domains = await prisma.domain.findMany({
-    where: { projectId: workspace.id },
-    select: { slug: true },
-  });
-
-  // check if there are domains that are not in the workspace
-  // if yes, add them to the workspace
-  const domainsNotInWorkspace = selectedDomains.filter(
-    ({ domain }) => !domains?.find((d) => d.slug === domain),
-  );
-  if (domainsNotInWorkspace.length > 0) {
-    await Promise.allSettled([
-      prisma.domain.createMany({
-        data: domainsNotInWorkspace.map(({ domain }) => ({
-          id: createId({ prefix: "dom_" }),
-          slug: domain,
-          projectId: workspace.id,
-          primary: false,
-        })),
-        skipDuplicates: true,
-      }),
-      domainsNotInWorkspace.map(({ domain }) => addDomainToVercel(domain)),
-    ]);
-    await bulkCreateLinks({
-      links: domainsNotInWorkspace.map(({ domain }) => ({
-        domain,
-        key: "_root",
-        url: "",
-        userId: session?.user?.id,
-        projectId: workspace.id,
+    if (folderId) {
+      await verifyFolderAccess({
+        workspace,
+        userId: session.user.id,
         folderId,
-      })),
-    });
-  }
+        requiredPermission: "folders.links.write",
+      });
+    }
 
-  const response = await Promise.all(
-    selectedDomains.map(({ id, domain }) =>
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/short`,
-        body: {
-          workspaceId: workspace.id,
-          userId: session?.user?.id,
-          domainId: id,
+    const domains = await prisma.domain.findMany({
+      where: { projectId: workspace.id },
+      select: { slug: true },
+    });
+
+    // check if there are domains that are not in the workspace
+    // if yes, add them to the workspace
+    const domainsNotInWorkspace = selectedDomains.filter(
+      ({ domain }) => !domains?.find((d) => d.slug === domain),
+    );
+    if (domainsNotInWorkspace.length > 0) {
+      await Promise.allSettled([
+        prisma.domain.createMany({
+          data: domainsNotInWorkspace.map(({ domain }) => ({
+            id: createId({ prefix: "dom_" }),
+            slug: domain,
+            projectId: workspace.id,
+            primary: false,
+          })),
+          skipDuplicates: true,
+        }),
+        domainsNotInWorkspace.map(({ domain }) => addDomainToVercel(domain)),
+      ]);
+      await bulkCreateLinks({
+        links: domainsNotInWorkspace.map(({ domain }) => ({
           domain,
+          key: "_root",
+          url: "",
+          userId: session?.user?.id,
+          projectId: workspace.id,
           folderId,
-          importTags,
-        },
-      }),
-    ),
-  );
-  return NextResponse.json(response);
-});
+        })),
+      });
+    }
+
+    const response = await Promise.all(
+      selectedDomains.map(({ id, domain }) =>
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/short`,
+          body: {
+            workspaceId: workspace.id,
+            userId: session?.user?.id,
+            domainId: id,
+            domain,
+            folderId,
+            importTags,
+          },
+        }),
+      ),
+    );
+    return NextResponse.json(response);
+  },
+  {
+    requiredPermissions: ["links.write"],
+  },
+);

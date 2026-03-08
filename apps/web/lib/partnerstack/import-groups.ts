@@ -38,11 +38,6 @@ export async function importGroups(payload: PartnerStackImportPayload) {
 
   if (groups.length > 0) {
     for (const group of groups) {
-      // Default group is already created in the program creation
-      if (group.default) {
-        continue;
-      }
-
       await prisma.partnerGroup.upsert({
         where: {
           programId_slug: {

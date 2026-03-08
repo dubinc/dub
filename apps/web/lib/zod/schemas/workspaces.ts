@@ -3,7 +3,12 @@ import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { DomainSchema } from "./domains";
-import { planSchema, roleSchema, uploadedImageSchema } from "./misc";
+import {
+  googleUserContentUrlSchema,
+  planSchema,
+  roleSchema,
+  uploadedImageSchema,
+} from "./misc";
 
 export const workspaceIdSchema = z.object({
   workspaceId: z
@@ -66,6 +71,16 @@ export const WorkspaceSchema = z
       .number()
       .describe(
         "The processing fee (in decimals) for partner payouts. For card payments, an additional 0.03 is added to the fee. Learn more: https://d.to/payouts",
+      ),
+    payoutFeeWaiverLimit: z
+      .number()
+      .describe(
+        "The amount in cents for which the payout fee will be waived. Applicable only to custom enterprise plans.",
+      ),
+    payoutFeeWaiverUsage: z
+      .number()
+      .describe(
+        "How much of `payoutFeeWaiverLimit` has been used. Applicable only to custom enterprise plans.",
       ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
@@ -149,7 +164,10 @@ export const createWorkspaceSchema = z.object({
         message: "Cannot use reserved slugs",
       },
     ),
-  logo: uploadedImageSchema.nullish(),
+  logo: z
+    .union([uploadedImageSchema, googleUserContentUrlSchema])
+    .transform((v) => v || null)
+    .nullish(),
   conversionEnabled: z.boolean().optional(),
 });
 
@@ -158,6 +176,7 @@ export const notificationTypes = z.enum([
   "domainConfigurationUpdates",
   "newPartnerSale",
   "newPartnerApplication",
+  "pendingApplicationsSummary",
   "newBountySubmitted",
   "newMessageFromPartner",
   "fraudEventsSummary",

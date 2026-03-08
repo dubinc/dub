@@ -44,8 +44,16 @@ export const GET = withWorkspace(
       });
     }
 
-    const { partnerIds, status, page, pageSize, country, starred } =
-      getNetworkPartnersQuerySchema.parse(searchParams);
+    const {
+      partnerIds,
+      status,
+      page,
+      pageSize,
+      country,
+      starred,
+      platform,
+      subscribers,
+    } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     const similarPrograms = program.similarPrograms.map((sp) => ({
       programId: sp.similarProgramId,
@@ -61,6 +69,8 @@ export const GET = withWorkspace(
       page,
       pageSize,
       starred: starred ?? undefined,
+      platform: platform ?? undefined,
+      subscribers: subscribers ?? undefined,
       similarPrograms,
     });
     console.timeEnd("calculatePartnerRanking");

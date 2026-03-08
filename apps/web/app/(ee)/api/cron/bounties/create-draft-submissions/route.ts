@@ -1,13 +1,13 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { evaluateWorkflowCondition } from "@/lib/api/workflows/execute-workflows";
+import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log, toCentsNumber } from "@dub/utils";
 import { differenceInMinutes } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -137,11 +137,11 @@ export async function POST(req: Request) {
       .parse(bounty.workflow.triggerConditions)[0];
 
     // Partners with their link metrics
-    const partners = programEnrollments.map((partner) => {
+    const partners = programEnrollments.map((programEnrollment) => {
       return {
-        id: partner.partnerId,
-        ...aggregatePartnerLinksStats(partner.links),
-        totalCommissions: partner.totalCommissions,
+        id: programEnrollment.partnerId,
+        ...aggregatePartnerLinksStats(programEnrollment.links),
+        totalCommissions: toCentsNumber(programEnrollment.totalCommissions),
       };
     });
 
@@ -152,8 +152,8 @@ export async function POST(req: Request) {
         .map((partner) => {
           const performanceCount = partner[condition.attribute];
 
-          const conditionMet = evaluateWorkflowCondition({
-            condition,
+          const conditionMet = evaluateWorkflowConditions({
+            conditions: [condition],
             attributes: {
               [condition.attribute]: performanceCount,
             },

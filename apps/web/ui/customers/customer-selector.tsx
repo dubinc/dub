@@ -4,7 +4,10 @@ import { Combobox } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-import { AddCustomerModal } from "../modals/add-customer-modal";
+import {
+  AddCustomerModal,
+  type AddCustomerInitialData,
+} from "../modals/add-customer-modal";
 
 interface CustomerSelectorProps {
   selectedCustomerId: string;
@@ -38,7 +41,9 @@ export function CustomerSelector({
   }, [customers, useAsync]);
 
   const [showAddCustomerModal, setShowAddCustomerModal] = useState(false);
-  const [newCustomerName, setNewCustomerName] = useState<string | undefined>();
+  const [initialData, setInitialData] = useState<
+    AddCustomerInitialData | undefined
+  >();
 
   const customerOptions = useMemo(() => {
     return (
@@ -101,7 +106,7 @@ export function CustomerSelector({
       <AddCustomerModal
         showModal={showAddCustomerModal}
         setShowModal={setShowAddCustomerModal}
-        initialName={newCustomerName}
+        initialData={initialData}
         onSuccess={(customer) => {
           setSelectedCustomerId(customer.id);
         }}
@@ -121,7 +126,14 @@ export function CustomerSelector({
           `Create ${search ? `"${search}"` : "new customer"}`
         }
         onCreate={async (search) => {
-          setNewCustomerName(search);
+          const trimmed = search?.trim() ?? "";
+          setInitialData(
+            trimmed
+              ? trimmed.includes("@")
+                ? { email: trimmed }
+                : { name: trimmed }
+              : undefined,
+          );
           setShowAddCustomerModal(true);
           return true;
         }}

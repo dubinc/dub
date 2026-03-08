@@ -1,8 +1,4 @@
-import useWorkspace from "@/lib/swr/use-workspace";
-import { Invite } from "@/lib/zod/schemas/invites";
 import { Modal } from "@dub/ui";
-import { LoadingSpinner } from "@dub/ui/icons";
-import { fetcher } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -10,7 +6,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import useSWR from "swr";
 import { InviteTeammatesForm } from "../workspaces/invite-teammates-form";
 
 function InviteWorkspaceUserModal({
@@ -22,19 +17,6 @@ function InviteWorkspaceUserModal({
   setShowInviteWorkspaceUserModal: Dispatch<SetStateAction<boolean>>;
   showSavedInvites: boolean;
 }) {
-  const { id: workspaceId, plan } = useWorkspace();
-
-  // we only need to fetch saved invites if the workspace is on the free plan
-  // (or else we would've already sent the invites)
-  const { data: invites, isLoading } = useSWR<Invite[]>(
-    showInviteWorkspaceUserModal &&
-      workspaceId &&
-      plan === "free" &&
-      showSavedInvites &&
-      `/api/workspaces/${workspaceId}/invites/saved`,
-    fetcher,
-  );
-
   return (
     <Modal
       showModal={showInviteWorkspaceUserModal}
@@ -55,17 +37,10 @@ function InviteWorkspaceUserModal({
           . Invitations will be valid for 14 days.
         </p>
       </div>
-      {isLoading ? (
-        <div className="flex items-center justify-center p-8">
-          <LoadingSpinner />
-        </div>
-      ) : (
-        <InviteTeammatesForm
-          onSuccess={() => setShowInviteWorkspaceUserModal(false)}
-          className="bg-neutral-50 px-4 py-4 sm:px-6"
-          invites={invites}
-        />
-      )}
+      <InviteTeammatesForm
+        onSuccess={() => setShowInviteWorkspaceUserModal(false)}
+        className="bg-neutral-50 px-4 py-4 sm:px-6"
+      />
     </Modal>
   );
 }
