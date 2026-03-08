@@ -5,9 +5,24 @@ import { getPeriodLabel } from "@/lib/bounty/periods";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { X } from "@/ui/shared/icons";
-import { Button, CopyButton, Sheet, StatusBadge } from "@dub/ui";
-import { cn, formatDate, nFormatter } from "@dub/utils";
+import {
+  Button,
+  CopyButton,
+  Sheet,
+  StatusBadge,
+  Table,
+  TimestampTooltip,
+  useTable,
+} from "@dub/ui";
+import {
+  cn,
+  currencyFormatter,
+  formatDate,
+  formatDateTimeSmart,
+  nFormatter,
+} from "@dub/utils";
 import { formatDistanceToNow } from "date-fns";
 import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { toast } from "sonner";
@@ -192,6 +207,8 @@ function SubmissionDetailsView({
           </div>
         )}
 
+        <SubmissionRewardTable submission={submission} />
+
         <SocialContentPreview bounty={bounty} submission={submission} />
 
         {Boolean(submission.files?.length) && (
@@ -270,6 +287,79 @@ function SubmissionDetailsView({
             </p>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function SubmissionRewardTable({
+  submission,
+}: {
+  submission: PartnerBountySubmission;
+}) {
+  const rewards = submission.commission ? [submission.commission] : [];
+
+  const { table, ...tableProps } = useTable({
+    data: rewards,
+    columns: [
+      {
+        id: "amount",
+        header: "Amount",
+        cell: ({ row }) => currencyFormatter(row.original.earnings),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const badge = CommissionStatusBadges[row.original.status];
+
+          return badge ? (
+            <span
+              className={cn(
+                "rounded-md px-2 py-0.5 text-xs font-semibold",
+                badge.className,
+              )}
+            >
+              {badge.label}
+            </span>
+          ) : null;
+        },
+      },
+      {
+        id: "date",
+        header: "Date",
+        cell: ({ row }) => (
+          <TimestampTooltip
+            timestamp={row.original.createdAt}
+            side="right"
+            rows={["local", "utc"]}
+          >
+            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+              {formatDateTimeSmart(row.original.createdAt)}
+            </span>
+          </TimestampTooltip>
+        ),
+      },
+    ],
+    thClassName: "border-l-transparent",
+    tdClassName: "border-l-transparent",
+  });
+
+  if (rewards.length === 0) {
+    return null;
+  }
+
+  return (
+    <div>
+      <h2 className="text-base font-semibold text-neutral-800">Rewards</h2>
+      <div className="mt-2">
+        <Table
+          {...tableProps}
+          table={table}
+          containerClassName="border-neutral-200"
+          scrollWrapperClassName="min-h-0"
+          className="[&_tbody_tr:last-child_td]:border-b-0"
+        />
       </div>
     </div>
   );
