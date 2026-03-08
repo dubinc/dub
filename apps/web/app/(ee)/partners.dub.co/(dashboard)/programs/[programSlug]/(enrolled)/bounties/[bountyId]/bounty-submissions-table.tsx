@@ -73,9 +73,12 @@ export function BountySubmissionsTable({
             return null;
           }
 
+          const label =
+            original.status === "submitted" ? "Pending review" : config.label;
+
           return (
             <StatusBadge variant={config.variant} icon={config.icon}>
-              {config.label}
+              {label}
             </StatusBadge>
           );
         },

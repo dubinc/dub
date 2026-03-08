@@ -123,7 +123,9 @@ function SubmissionDetailsView({
           icon={statusBadge.icon}
           className="w-fit rounded-lg py-1"
         >
-          {statusBadge.label}
+          {submission.status === "submitted"
+            ? "Pending review"
+            : statusBadge.label}
         </StatusBadge>
       ),
     });

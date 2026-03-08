@@ -84,7 +84,7 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
     return null;
   }
 
-  const { status, endsAtFormatted, completedAtFormatted } = state;
+  const { status, endsAtFormatted } = state;
 
   return (
     <div className="absolute left-2 top-2 z-10">
@@ -101,10 +101,8 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
       )}
 
       {status === "completed" && (
-        <div className="flex h-5 items-center gap-1 rounded-md bg-green-100 px-2 py-1 text-xs font-semibold text-green-700">
-          {completedAtFormatted
-            ? `Completed ${completedAtFormatted}`
-            : "Completed"}
+        <div className="flex h-5 items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
+          Pending review
         </div>
       )}
 
