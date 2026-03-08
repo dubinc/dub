@@ -65,7 +65,7 @@ export default function PartnerPayoutProcessed({
       })
     : null;
 
-  const MIN_WITHDRAWAL_AMOUNT_CENTS = 20_00;
+  const MIN_WITHDRAWAL_AMOUNT_CENTS = 10_00;
   const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50;
   const isBelowMinimumWithdrawalAmount =
     payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS;
