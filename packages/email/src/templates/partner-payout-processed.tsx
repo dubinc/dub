@@ -28,7 +28,6 @@ export default function PartnerPayoutProcessed({
     periodEnd: new Date("2026-02-01"),
     method: "stablecoin",
   },
-  forceWithdrawal = true,
 }: {
   email: string;
   program: {
@@ -42,10 +41,13 @@ export default function PartnerPayoutProcessed({
     periodEnd?: Date | null;
     method: PartnerPayoutMethod | null;
   };
-  forceWithdrawal?: boolean;
 }) {
-  const payoutAmountInDollars = currencyFormatter(payout.amount);
   const STABLECOIN_PAYOUT_FEE_RATE = 0.005;
+  const MIN_WITHDRAWAL_AMOUNT_CENTS = 10_00;
+  const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50;
+  const isBelowMinimumWithdrawalAmount =
+    payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS;
+  const payoutAmountInDollars = currencyFormatter(payout.amount);
 
   const startDate = payout.periodStart
     ? formatDate(payout.periodStart, {
@@ -65,17 +67,12 @@ export default function PartnerPayoutProcessed({
       })
     : null;
 
-  const MIN_WITHDRAWAL_AMOUNT_CENTS = 10_00;
-  const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50;
-  const isBelowMinimumWithdrawalAmount =
-    payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS;
-
   let statusMessage: string | React.ReactNode = "";
 
   if (payout.method === "paypal") {
     statusMessage =
       "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete.";
-  } else if (isBelowMinimumWithdrawalAmount && !forceWithdrawal) {
+  } else if (isBelowMinimumWithdrawalAmount) {
     statusMessage = (
       <>
         Since this payout is below the{" "}
@@ -116,11 +113,7 @@ export default function PartnerPayoutProcessed({
   } else if (payout.method === "stablecoin") {
     statusMessage = (
       <>
-        After a {STABLECOIN_PAYOUT_FEE_RATE * 100}% stablecoin fee
-        {isBelowMinimumWithdrawalAmount
-          ? ` + a ${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} withdrawal fee`
-          : ""}
-        ,{" "}
+        After a {STABLECOIN_PAYOUT_FEE_RATE * 100}% stablecoin fee,{" "}
         <strong className="text-black">
           {currencyFormatter(
             payout.amount * (1 - STABLECOIN_PAYOUT_FEE_RATE) -
@@ -136,19 +129,8 @@ export default function PartnerPayoutProcessed({
   } else {
     statusMessage = (
       <>
-        {isBelowMinimumWithdrawalAmount
-          ? `After a ${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} withdrawal fee, `
-          : ""}
-        <strong className="text-black">
-          {currencyFormatter(
-            payout.amount -
-              (isBelowMinimumWithdrawalAmount
-                ? BELOW_MIN_WITHDRAWAL_FEE_CENTS
-                : 0),
-          )}
-        </strong>{" "}
-        will begin transferring to your connected bank account shortly. You will
-        receive another email when the funds are on their way.
+        Your funds will begin transferring to your connected bank account
+        shortly. You will receive another email when the funds are on their way.
       </>
     );
   }

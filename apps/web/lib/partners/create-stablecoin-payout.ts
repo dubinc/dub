@@ -1,11 +1,11 @@
 import { sendEmail } from "@dub/email";
+import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { PartnerPayoutMethod, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, prettyPrint } from "@dub/utils";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
-  MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "../constants/payouts";
@@ -118,13 +118,6 @@ export const createStablecoinPayout = async ({
     0,
   );
 
-  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    console.warn(
-      `Total transferable amount for partner ${partner.email} is less than the minimum force withdrawal amount (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}).`,
-    );
-    return;
-  }
-
   let withdrawalFee = 0;
 
   // If the total transferable amount is less than the minimum withdrawal amount
@@ -198,13 +191,10 @@ export const createStablecoinPayout = async ({
   ];
 
   // Find the total amount to transfer to Dub's FA
-  let amountToTransferToFA = 0;
-
-  for (const payout of previouslyProcessedPayouts) {
-    if (payout.method === "connect") {
-      amountToTransferToFA += payout.amount;
-    }
-  }
+  const amountToTransferToFA = previouslyProcessedPayouts.reduce(
+    (acc, payout) => acc + payout.amount,
+    0,
+  );
 
   if (amountToTransferToFA > 0) {
     await fundFinancialAccount({
@@ -261,18 +251,27 @@ export const createStablecoinPayout = async ({
     return;
   }
 
-  const payout = allPayouts[0];
+  const firstPayout = allPayouts[0];
 
   const emailResponse = await sendEmail({
     variant: "notifications",
     to: partner.email,
-    subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
-    react: PartnerPayoutProcessed({
-      email: partner.email,
-      program: payout.program,
-      payout,
-      forceWithdrawal,
-    }),
+    subject: forceWithdrawal
+      ? `A withdrawal of ${currencyFormatter(amountToTransferToFA)} has been initiated from your Dub account`
+      : `You've received a ${currencyFormatter(firstPayout.amount)} payout from ${firstPayout.program.name}`,
+    react: forceWithdrawal
+      ? PartnerPayoutForceWithdrawal({
+          email: partner.email,
+          payout: {
+            amount: amountToTransferToFA,
+            method: "stablecoin",
+          },
+        })
+      : PartnerPayoutProcessed({
+          email: partner.email,
+          program: firstPayout.program,
+          payout: firstPayout,
+        }),
   });
 
   console.log(
