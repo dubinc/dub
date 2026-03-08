@@ -101,10 +101,6 @@ export default function PartnerPayoutForceWithdrawal({
                 View your payouts
               </Link>
             </Section>
-
-            <Text className="text-sm leading-6 text-neutral-600">
-              {statusMessage}
-            </Text>
             <Footer email={email} />
           </Container>
         </Body>
