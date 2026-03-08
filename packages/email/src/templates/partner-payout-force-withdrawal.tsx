@@ -25,16 +25,12 @@ export default function PartnerPayoutForceWithdrawal({
   email: string;
   payout: {
     amount: number;
-    method: PartnerPayoutMethod;
+    method: Extract<PartnerPayoutMethod, "stablecoin" | "connect">;
   };
 }) {
   const payoutAmountInDollars = currencyFormatter(payout.amount);
   const STABLECOIN_PAYOUT_FEE_RATE = 0.005;
-
-  const MIN_WITHDRAWAL_AMOUNT_CENTS = 10_00;
   const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50;
-  const isBelowMinimumWithdrawalAmount =
-    payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS;
 
   let statusMessage: string | React.ReactNode = "";
 
@@ -46,9 +42,7 @@ export default function PartnerPayoutForceWithdrawal({
         <strong className="text-black">
           {currencyFormatter(
             payout.amount * (1 - STABLECOIN_PAYOUT_FEE_RATE) -
-              (isBelowMinimumWithdrawalAmount
-                ? BELOW_MIN_WITHDRAWAL_FEE_CENTS
-                : 0),
+              BELOW_MIN_WITHDRAWAL_FEE_CENTS,
           )}
         </strong>{" "}
         will be transferred to your connected crypto wallet. You should receive
@@ -58,15 +52,10 @@ export default function PartnerPayoutForceWithdrawal({
   } else {
     statusMessage = (
       <>
-        After a ${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} withdrawal
+        After a {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} withdrawal
         fee,{" "}
         <strong className="text-black">
-          {currencyFormatter(
-            payout.amount -
-              (isBelowMinimumWithdrawalAmount
-                ? BELOW_MIN_WITHDRAWAL_FEE_CENTS
-                : 0),
-          )}
+          {currencyFormatter(payout.amount - BELOW_MIN_WITHDRAWAL_FEE_CENTS)}
         </strong>{" "}
         will begin transferring to your connected bank account shortly. You will
         receive another email when the funds are on their way.

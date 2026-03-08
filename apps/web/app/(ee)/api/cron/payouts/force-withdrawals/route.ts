@@ -92,7 +92,13 @@ async function handler(req: Request) {
     );
 
     await Promise.allSettled(
-      processedPayouts.map(({ partner }) => forceWithdrawal(partner)),
+      processedPayouts
+        .filter(
+          // filter out duplicate payouts for the same partner
+          (payout, index, self) =>
+            index === self.findIndex((t) => t.partnerId === payout.partnerId),
+        )
+        .map(({ partner }) => forceWithdrawal(partner)),
     );
 
     if (hasMoreToProcess) {
