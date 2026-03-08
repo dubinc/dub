@@ -218,7 +218,7 @@ export async function POST(req: NextRequest) {
           uiComponent.row({
             mainContent: [
               uiComponent.text({
-                text: "P   (UTC)",
+                text: "Payouts Enabled (UTC)",
               }),
             ],
             asideContent: [
