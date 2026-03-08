@@ -14,8 +14,10 @@ import {
   StatusBadge,
   Table,
   TimestampTooltip,
+  useKeyboardShortcut,
   useTable,
 } from "@dub/ui";
+import { ChevronLeft, ChevronRight } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -38,6 +40,8 @@ interface BountySubmissionDetailsSheetProps {
   submission: PartnerBountySubmission;
   isOpen: boolean;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  onNext?: () => void;
+  onPrevious?: () => void;
 }
 
 function SocialContentPreview({
@@ -378,11 +382,29 @@ export function BountySubmissionDetailsSheet({
   submission,
   isOpen,
   setIsOpen,
+  onNext,
+  onPrevious,
 }: BountySubmissionDetailsSheetProps) {
   const title =
     bounty.maxSubmissions > 1
       ? `Submission (${getPeriodLabel(bounty.submissionFrequency, submission.periodNumber - 1)})`
       : "Submission";
+
+  useKeyboardShortcut(
+    "ArrowRight",
+    () => {
+      if (onNext) onNext();
+    },
+    { sheet: true },
+  );
+
+  useKeyboardShortcut(
+    "ArrowLeft",
+    () => {
+      if (onPrevious) onPrevious();
+    },
+    { sheet: true },
+  );
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -391,13 +413,35 @@ export function BountySubmissionDetailsSheet({
           <Sheet.Title className="text-base font-semibold text-neutral-900">
             {title}
           </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
+          <div className="flex items-center gap-4">
+            {(onNext || onPrevious) && (
+              <div className="flex items-center">
+                <Button
+                  type="button"
+                  disabled={!onPrevious}
+                  onClick={onPrevious}
+                  variant="secondary"
+                  className="size-9 rounded-l-lg rounded-r-none p-0"
+                  icon={<ChevronLeft className="size-3.5" />}
+                />
+                <Button
+                  type="button"
+                  disabled={!onNext}
+                  onClick={onNext}
+                  variant="secondary"
+                  className="-ml-px size-9 rounded-l-none rounded-r-lg p-0"
+                  icon={<ChevronRight className="size-3.5" />}
+                />
+              </div>
+            )}
+            <Sheet.Close asChild>
+              <Button
+                variant="outline"
+                icon={<X className="size-5" />}
+                className="h-auto w-fit p-1"
+              />
+            </Sheet.Close>
+          </div>
         </div>
         <SubmissionDetailsView bounty={bounty} submission={submission} />
       </div>
@@ -420,6 +464,24 @@ export function useBountySubmissionDetailsSheet({
       (s) => s.periodNumber === (activePeriodNumber ?? 1),
     ) ?? null;
 
+  // Navigable submissions: non-draft, sorted by periodNumber
+  const submittedPeriodNumbers = (bounty.submissions ?? [])
+    .filter((s) => s.status !== "draft")
+    .map((s) => s.periodNumber)
+    .sort((a, b) => a - b);
+
+  const currentIndex = submittedPeriodNumbers.indexOf(activePeriodNumber ?? 1);
+
+  const onPrevious =
+    currentIndex > 0
+      ? () => setActivePeriodNumber(submittedPeriodNumbers[currentIndex - 1])
+      : undefined;
+
+  const onNext =
+    currentIndex < submittedPeriodNumbers.length - 1
+      ? () => setActivePeriodNumber(submittedPeriodNumbers[currentIndex + 1])
+      : undefined;
+
   return {
     bountySubmissionDetailsSheet: submission ? (
       <BountySubmissionDetailsSheet
@@ -427,6 +489,8 @@ export function useBountySubmissionDetailsSheet({
         submission={submission}
         isOpen={isOpen}
         setIsOpen={setIsOpen}
+        onNext={onNext}
+        onPrevious={onPrevious}
       />
     ) : null,
     setShowBountySubmissionDetailsSheet: setIsOpen,
