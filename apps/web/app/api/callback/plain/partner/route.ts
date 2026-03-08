@@ -1,7 +1,12 @@
 import { plain } from "@/lib/plain/client";
 import { upsertPlainCustomer } from "@/lib/plain/upsert-plain-customer";
 import { prisma } from "@dub/prisma";
-import { COUNTRIES, currencyFormatter, formatDate } from "@dub/utils";
+import {
+  COUNTRIES,
+  currencyFormatter,
+  formatDate,
+  formatDateTimeSmart,
+} from "@dub/utils";
 import { uiComponent } from "@team-plain/typescript-sdk";
 import { NextRequest, NextResponse } from "next/server";
 import {
@@ -97,6 +102,8 @@ export async function POST(req: NextRequest) {
     name,
     email,
     country,
+    stripeRecipientId,
+    cryptoWalletAddress,
     stripeConnectId,
     paypalEmail,
     payoutsEnabledAt,
@@ -139,6 +146,40 @@ export async function POST(req: NextRequest) {
             label: "Partner Country",
             value: country ? COUNTRIES[country] : "Unknown",
           }),
+          ...(stripeRecipientId
+            ? [
+                plainSpacer,
+                uiComponent.row({
+                  mainContent: [
+                    uiComponent.text({
+                      text: "Stripe Recipient Account",
+                      size: "M",
+                      color: "NORMAL",
+                    }),
+                    uiComponent.text({
+                      text: stripeRecipientId,
+                      size: "S",
+                      color: "MUTED",
+                    }),
+                  ],
+                  asideContent: [
+                    uiComponent.linkButton({
+                      url: `https://dashboard.stripe.com/global-payouts/recipients/${stripeRecipientId}`,
+                      label: "View in Stripe",
+                    }),
+                  ],
+                }),
+                ...(cryptoWalletAddress
+                  ? [
+                      plainSpacer,
+                      ...plainCopySection({
+                        label: "USDC Wallet Address",
+                        value: cryptoWalletAddress,
+                      }),
+                    ]
+                  : []),
+              ]
+            : []),
           ...(stripeConnectId
             ? [
                 plainSpacer,
@@ -177,12 +218,16 @@ export async function POST(req: NextRequest) {
           uiComponent.row({
             mainContent: [
               uiComponent.text({
-                text: "Payouts Enabled",
+                text: "Payouts Enabled (UTC)",
               }),
             ],
             asideContent: [
               uiComponent.badge({
-                label: payoutsEnabledAt ? "Yes" : "No",
+                label: payoutsEnabledAt
+                  ? formatDateTimeSmart(payoutsEnabledAt, {
+                      timeZone: "utc",
+                    })
+                  : "No",
                 color: payoutsEnabledAt ? "GREEN" : "RED",
               }),
             ],

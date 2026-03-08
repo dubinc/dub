@@ -8,6 +8,7 @@ import {
 import { getPartnerCustomersCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/:programId/customers/count – Get customer counts grouped by a field
@@ -28,7 +29,8 @@ export const GET = withPartnerProfile(
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
-      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+      toCentsNumber(totalCommissions) <
+        LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
     ) {
       throw new DubApiError({
         code: "forbidden",

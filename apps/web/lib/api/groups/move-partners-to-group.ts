@@ -30,6 +30,7 @@ interface MovePartnersToGroupParams {
     | "discountId"
   >;
   isGroupDeleted?: boolean;
+  groupMoveDisabledAt?: Date | null;
 }
 
 export async function movePartnersToGroup({
@@ -39,6 +40,7 @@ export async function movePartnersToGroup({
   userId,
   group,
   isGroupDeleted = false,
+  groupMoveDisabledAt,
 }: MovePartnersToGroupParams): Promise<number> {
   if (partnerIds.length === 0) {
     return 0;
@@ -82,6 +84,7 @@ export async function movePartnersToGroup({
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
       discountId: group.discountId,
+      ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
     },
   });
 

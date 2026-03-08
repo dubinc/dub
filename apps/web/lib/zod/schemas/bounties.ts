@@ -23,7 +23,7 @@ import { GroupSchema } from "./groups";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
-import { parseDateSchema } from "./utils";
+import { nullableCountSchema, parseDateSchema } from "./utils";
 import { WORKFLOW_ATTRIBUTES } from "./workflows";
 
 export const bountyPerformanceConditionSchema = z.object({
@@ -200,10 +200,9 @@ export const BountySubmissionSchema = z.object({
   status: z
     .enum(BountySubmissionStatus)
     .meta({ description: "The status of the submission" }),
-  performanceCount: z
-    .number()
-    .nullable()
-    .meta({ description: "The performance count of the submission" }),
+  performanceCount: nullableCountSchema.meta({
+    description: "The performance count of the submission",
+  }),
   socialMetricCount: z.number().int().nullable().meta({
     description:
       "The social metric count (views or likes) for the social content",

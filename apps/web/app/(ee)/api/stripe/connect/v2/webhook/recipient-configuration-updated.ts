@@ -1,5 +1,5 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
-import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
+import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
 import { getStripeStablecoinPayoutMethod } from "@/lib/stripe/get-stripe-recipient-payout-method";
 
 import { sendEmail } from "@dub/email";

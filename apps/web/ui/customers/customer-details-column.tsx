@@ -46,7 +46,14 @@ export function CustomerDetailsColumn({
       ? {
           id: "email",
           icon: <Envelope className="size-3.5 shrink-0" />,
-          text: customer.email,
+          text: (
+            <CopyText
+              value={customer.email}
+              className="min-w-0 truncate text-xs font-medium"
+            >
+              {customer.email}
+            </CopyText>
+          ),
         }
       : null,
 

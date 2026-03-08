@@ -9,6 +9,7 @@ import * as z from "zod/v4";
 
 const addPartnersToGroupSchema = z.object({
   partnerIds: z.array(z.string()).min(1).max(100), // max move 100 partners at a time
+  groupMoveDisabledAt: z.coerce.date().nullish(),
 });
 
 // POST /api/groups/[groupIdOrSlug]/partners - add partners to group
@@ -22,7 +23,7 @@ export const POST = withWorkspace(
       includeExpandedFields: true,
     });
 
-    let { partnerIds } = addPartnersToGroupSchema.parse(
+    let { partnerIds, groupMoveDisabledAt } = addPartnersToGroupSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -41,6 +42,7 @@ export const POST = withWorkspace(
       partnerIds,
       userId: session.user.id,
       group,
+      groupMoveDisabledAt,
     });
 
     return NextResponse.json({

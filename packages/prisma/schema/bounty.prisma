@@ -76,7 +76,7 @@ model BountySubmission {
   programId                 String
   partnerId                 String
   bountyId                  String
-  performanceCount          Int?
+  performanceCount          BigInt?
   socialMetricCount         Int?
   commissionId              String?                          @unique
   userId                    String?

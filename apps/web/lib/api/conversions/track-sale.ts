@@ -505,18 +505,9 @@ const _trackSale = async ({
             sales: {
               increment: 1,
             },
-            // temporarily exclude large links from saleAmount updates
-            ...([
-              "link_1K8ERD8CB84FABDB6XXG10P2C",
-              "link_1K7K0RPMWFS0ZA7Z2G2DJQEH9",
-              "link_1K75EMEGAP3ACJJ08MY341SYF",
-            ].includes(saleData.link_id)
-              ? {}
-              : {
-                  saleAmount: {
-                    increment: amount,
-                  },
-                }),
+            saleAmount: {
+              increment: amount,
+            },
           },
           include: includeTags,
         }),

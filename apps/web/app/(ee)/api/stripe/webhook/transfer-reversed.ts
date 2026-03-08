@@ -3,12 +3,6 @@ import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function transferReversed(event: Stripe.Event) {
-  const stripeAccount = event.account;
-
-  if (!stripeAccount) {
-    return "No stripeConnectId found in event. Skipping...";
-  }
-
   const stripeTransfer = event.data.object as Stripe.Transfer;
 
   // when transfer is reversed on Stripe, we update any sent payouts with matching stripeTransferId to:
@@ -17,7 +11,9 @@ export async function transferReversed(event: Stripe.Event) {
   const updatedPayouts = await prisma.payout.updateMany({
     where: {
       stripeTransferId: stripeTransfer.id,
-      status: "sent",
+      status: {
+        in: ["sent", "failed"],
+      },
     },
     data: {
       status: "processed",
@@ -31,5 +27,5 @@ export async function transferReversed(event: Stripe.Event) {
   return `Updated ${updatedPayouts.count} ${pluralize(
     "payout",
     updatedPayouts.count,
-  )} to "processed" status for partner ${stripeAccount}.`;
+  )} to "processed" status for Stripe transfer ${stripeTransfer.id}.`;
 }

@@ -19,7 +19,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     checkoutSession.mode === "setup" ||
     checkoutSession.payment_status !== "paid"
   ) {
-    return;
+    return "Session is setup mode or not paid, skipping...";
   }
 
   if (
@@ -30,7 +30,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       message: "Missing items in Stripe webhook callback",
       type: "errors",
     });
-    return;
+    return "Missing client_reference_id or customer in checkout session.";
   }
 
   const subscription = await stripe.subscriptions.retrieve(
@@ -41,10 +41,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const { plan, planTier } = getPlanAndTierFromPriceId({ priceId });
 
   if (!plan) {
-    console.log(
-      `Invalid price ID in checkout.session.completed event: ${priceId}`,
-    );
-    return;
+    return `Invalid price ID in checkout.session.completed event: ${priceId}`;
   }
 
   const stripeId = checkoutSession.customer.toString();
@@ -139,6 +136,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
   ]);
+
+  return `Checkout completed for workspace ${workspaceId}, upgraded to ${plan.name}.`;
 }
 
 async function completeOnboarding({

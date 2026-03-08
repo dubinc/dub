@@ -9,8 +9,8 @@ import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processe
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
-import { createPayoutsIdempotencyKey } from "../payouts/api/create-payouts-idempotency-key";
-import { markPayoutsAsProcessed } from "../payouts/api/mark-payouts-as-processed";
+import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
+import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 
 export const createStripeTransfer = async ({
   partnerId,

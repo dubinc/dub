@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { toCentsNumber } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
@@ -34,7 +35,11 @@ async function main() {
   );
 
   const commissionsNotMatching = commissions
-    .filter((c) => partnersMap.get(c.partnerId) !== c._sum.earnings)
+    .filter(
+      (c) =>
+        toCentsNumber(partnersMap.get(c.partnerId)) !==
+        toCentsNumber(c._sum.earnings),
+    )
     .map((c) => ({
       partnerId: c.partnerId,
       totalCommissions: partnersMap.get(c.partnerId),

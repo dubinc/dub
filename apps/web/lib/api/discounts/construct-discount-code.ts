@@ -12,7 +12,10 @@ export function constructDiscountCode({
   );
 
   const [firstName] = partner.name.trim().toUpperCase().split(" ");
-  const prefix = firstName || "PARTNER";
+
+  // Stripe promotion codes only allow alphanumeric characters and dashes
+  const sanitized = firstName?.replace(/[^A-Z0-9\-_]/g, "") || "";
+  const prefix = sanitized || "PARTNER";
 
   // account for edge case where the amount is 0
   return `${prefix}${amount > 0 ? `${amount}OFF` : ""}`;

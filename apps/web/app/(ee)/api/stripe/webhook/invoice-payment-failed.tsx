@@ -11,12 +11,7 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
   } = event.data.object as Stripe.Invoice;
 
   if (!stripeId) {
-    console.log(
-      "Invoice with Stripe ID *`" +
-        stripeId +
-        "`* not found in invoice.payment_failed event",
-    );
-    return;
+    return "No customer found in invoice.payment_failed event.";
   }
 
   const workspace = await prisma.project.findUnique({
@@ -48,12 +43,7 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
   });
 
   if (!workspace) {
-    console.log(
-      "Workspace with Stripe ID *`" +
-        stripeId +
-        "`* not found in invoice.payment_failed event",
-    );
-    return;
+    return `Workspace with Stripe ID ${stripeId} not found in invoice.payment_failed event.`;
   }
 
   await Promise.allSettled([
@@ -90,4 +80,6 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
       }),
     ),
   ]);
+
+  return `Recorded payment failure and sent ${workspace.users.length} notice(s) for workspace ${workspace.slug}.`;
 }
