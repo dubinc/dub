@@ -1,6 +1,7 @@
 import { getCustomersQuerySchemaExtended } from "@/lib/zod/schemas/customers";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import * as z from "zod/v4";
+import { getPaginationOptions } from "../../api/pagination";
 
 type GetCustomersInput = z.infer<typeof getCustomersQuerySchemaExtended> & {
   workspaceId: string;
@@ -17,10 +18,6 @@ export async function getCustomers(filters: GetCustomersInput) {
     search,
     country,
     linkId,
-    sortBy,
-    sortOrder,
-    page,
-    pageSize,
     includeExpandedFields,
   } = filters;
 
@@ -57,11 +54,7 @@ export async function getCustomers(filters: GetCustomersInput) {
         linkId,
       }),
     },
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
+    ...getPaginationOptions(filters),
     ...(includeExpandedFields
       ? {
           include: {
