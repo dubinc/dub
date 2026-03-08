@@ -26,12 +26,15 @@ const displayStatusMap = {
   },
 };
 
+interface SubmissionForRewards {
+  socialMetricCount: number | null;
+  commission: { earnings: number } | null;
+  status: BountySubmissionProps["status"];
+}
+
 function getDisplayStatus(
   tier: SocialMetricsRewardTier,
-  submission: Pick<
-    BountySubmissionProps,
-    "socialMetricCount" | "commission" | "status"
-  >,
+  submission: SubmissionForRewards,
 ) {
   if (tier.status === "unmet") {
     return "inProgress";
@@ -57,10 +60,7 @@ export function BountySocialMetricsRewardsTable({
     PartnerBountyProps,
     "id" | "submissionRequirements" | "rewardAmount"
   >;
-  submission: Pick<
-    BountySubmissionProps,
-    "socialMetricCount" | "commission" | "status"
-  >;
+  submission: SubmissionForRewards;
   titleText?: string;
 }) {
   const tiers = getSocialMetricsRewardTiers({

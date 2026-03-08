@@ -29,6 +29,7 @@ import { toast } from "sonner";
 import { PLATFORM_ICONS } from "./bounty-platform-icons";
 import { EmphasisNumber } from "./bounty-progress-bar-row";
 import { BountySocialContentPreview } from "./bounty-social-content-preview";
+import { BountySocialMetricsRewardsTable } from "./bounty-social-metrics-rewards-table";
 
 type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
 
@@ -210,6 +211,13 @@ function SubmissionDetailsView({
         <SubmissionRewardTable submission={submission} />
 
         <SocialContentPreview bounty={bounty} submission={submission} />
+
+        {bountyInfo?.hasSocialMetrics && (
+          <BountySocialMetricsRewardsTable
+            bounty={bounty}
+            submission={submission}
+          />
+        )}
 
         {Boolean(submission.files?.length) && (
           <div>
