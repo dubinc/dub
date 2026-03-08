@@ -27,6 +27,8 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
 
   const useCursorPagination = !!startingAfter || !!endingBefore;
 
+  // Cursor pagination validations
+
   if (startingAfter && endingBefore) {
     throw new DubApiError({
       code: "unprocessable_entity",
@@ -35,38 +37,52 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
     });
   }
 
-  if (page > MAX_PAGE_VALUE) {
+  if (useCursorPagination && sortBy !== "createdAt") {
     throw new DubApiError({
       code: "unprocessable_entity",
-      message: `Page is too big (cannot be more than ${MAX_PAGE_VALUE}), recommend using cursor-based pagination instead.`,
+      message:
+        "Cursor-based pagination only supports sorting by `createdAt`. Use offset-based pagination (page/pageSize) for other sort fields.",
     });
   }
 
-  const effectiveTake = useCursorPagination
-    ? endingBefore
-      ? -pageSize // Before cursor
-      : pageSize // After cursor
-    : pageSize;
+  if (useCursorPagination && page > 1) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message:
+        "You cannot use both page and startingAfter/endingBefore at the same time. Please use one pagination method.",
+    });
+  }
 
   if (useCursorPagination) {
+    const cursorId = startingAfter || endingBefore!;
+
     return {
       cursor: {
-        id: startingAfter || endingBefore!,
+        id: cursorId,
       },
-      // Use a two-field sort: primary sort by the requested field, then by id as a tiebreaker.
-      // This ensures deterministic ordering when multiple records have the same value for sortBy,
+      // Use a two-field sort: primary sort by createdAt, then by id as a tiebreaker.
+      // This ensures deterministic ordering when multiple records have the same createdAt,
       // which is critical for cursor-based pagination to work correctly and consistently.
       orderBy: [
         {
-          [sortBy]: sortOrder,
+          createdAt: sortOrder,
         },
         {
           id: sortOrder,
         },
       ],
-      take: effectiveTake,
+      take: endingBefore ? -pageSize : pageSize,
       skip: 1,
     };
+  }
+
+  // Offset pagination validations
+
+  if (page > MAX_PAGE_VALUE) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: `Page is too big (cannot be more than ${MAX_PAGE_VALUE}), recommend using cursor-based pagination instead.`,
+    });
   }
 
   return {
@@ -78,7 +94,7 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
         id: sortOrder,
       },
     ],
-    take: effectiveTake,
+    take: pageSize,
     skip: (page - 1) * pageSize,
   };
 }

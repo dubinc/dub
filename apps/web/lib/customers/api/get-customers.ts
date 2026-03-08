@@ -1,6 +1,7 @@
 import { getCustomersQuerySchemaExtended } from "@/lib/zod/schemas/customers";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import * as z from "zod/v4";
+import { DubApiError } from "../../api/errors";
 import { getPaginationOptions } from "../../api/pagination";
 
 type GetCustomersInput = z.infer<typeof getCustomersQuerySchemaExtended> & {
@@ -19,7 +20,29 @@ export async function getCustomers(filters: GetCustomersInput) {
     country,
     linkId,
     includeExpandedFields,
+    startingAfter,
+    endingBefore,
   } = filters;
+
+  const cursorId = startingAfter || endingBefore;
+
+  if (cursorId) {
+    const cursorRecord = await prisma.customer.findUnique({
+      where: {
+        id: cursorId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!cursorRecord) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+      });
+    }
+  }
 
   return await prisma.customer.findMany({
     where: {

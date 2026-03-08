@@ -114,51 +114,101 @@ describe.concurrent("/customers/** - pagination", async () => {
     });
   });
 
-  test("Invalid cursor ID (startingAfter) returns empty array", async () => {
-    const { status, data } = await http.get<Customer[]>({
+  test("Invalid cursor ID (startingAfter) returns error", async () => {
+    const { status, data: error } = await http.get({
       path: "/customers",
       query: { pageSize: "5", startingAfter: "cus_invalid_id_12345" },
     });
 
-    expect(status).toEqual(200);
-    expect(data).toEqual([]);
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
   });
 
-  test("Invalid cursor ID (endingBefore) returns empty array", async () => {
-    const { status, data } = await http.get<Customer[]>({
+  test("Invalid cursor ID (endingBefore) returns error", async () => {
+    const { status, data: error } = await http.get({
       path: "/customers",
       query: { pageSize: "5", endingBefore: "cus_invalid_id_12345" },
     });
 
-    expect(status).toEqual(200);
-    expect(data).toEqual([]);
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
   });
 
-  // When startingAfter is provided, page should be ignored and cursor pagination should be used
-  test("Mixing pagination methods - page with startingAfter ignores page", async () => {
+  test("Rejects mixing page with startingAfter", async () => {
     const firstPage = baseline.slice(0, 5);
     const lastId = firstPage[4].id;
 
-    const { status, data } = await http.get<Customer[]>({
+    const { status, data: error } = await http.get({
       path: "/customers",
       query: { page: "2", pageSize: "5", startingAfter: lastId },
     });
 
-    expect(status).toEqual(200);
-    expect(data.map((c) => c.id)).toEqual(baselineIds.slice(5, 10));
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "You cannot use both page and startingAfter/endingBefore at the same time. Please use one pagination method.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
   });
 
-  // When endingBefore is provided, page should be ignored and cursor pagination should be used
-  test("Mixing pagination methods - page with endingBefore ignores page", async () => {
+  test("Rejects mixing page with endingBefore", async () => {
     const beforeId = baseline[5].id;
 
-    const { status, data } = await http.get<Customer[]>({
+    const { status, data: error } = await http.get({
       path: "/customers",
       query: { page: "2", pageSize: "5", endingBefore: beforeId },
     });
 
-    expect(status).toEqual(200);
-    expect(data.map((c) => c.id)).toEqual(baselineIds.slice(0, 5));
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "You cannot use both page and startingAfter/endingBefore at the same time. Please use one pagination method.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
+  });
+
+  test("Rejects cursor pagination with non-createdAt sort", async () => {
+    const { status, data: error } = await http.get({
+      path: "/customers",
+      query: {
+        pageSize: "5",
+        startingAfter: baseline[0].id,
+        sortBy: "saleAmount",
+      },
+    });
+
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "Cursor-based pagination only supports sorting by `createdAt`. Use offset-based pagination (page/pageSize) for other sort fields.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
   });
 
   test("Sort order asc works correctly", async () => {

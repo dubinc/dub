@@ -1,6 +1,7 @@
 import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
+import { DubApiError } from "../errors";
 import { getPaginationOptions } from "../pagination";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
@@ -23,6 +24,7 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
     tagNames,
     search,
     searchMode,
+    sort,
     userId,
     showArchived,
     withTags,
@@ -37,6 +39,31 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
     startDate,
     endDate,
   } = filters;
+
+  // Support legacy sort param
+  if (sort && sort !== "createdAt") {
+    filters = { ...filters, sortBy: sort };
+  }
+
+  const cursorId = filters.startingAfter || filters.endingBefore;
+
+  if (cursorId) {
+    const cursorRecord = await prisma.link.findUnique({
+      where: {
+        id: cursorId,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!cursorRecord) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+      });
+    }
+  }
 
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
