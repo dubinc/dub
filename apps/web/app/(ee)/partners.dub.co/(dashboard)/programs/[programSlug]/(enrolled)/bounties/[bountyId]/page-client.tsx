@@ -14,6 +14,7 @@ import { cn, truncate } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { PartnerBountyCard, PartnerBountyCardSkeleton } from "../bounty-card";
+import { BountyPerformanceSection } from "./bounty-performance-section";
 import { BountySubmissionsTable } from "./bounty-submissions-table";
 
 export function PartnerBountyPageClient() {
@@ -45,7 +46,11 @@ export function PartnerBountyPageClient() {
                 </div>
               </div>
 
-              <BountySubmissionsTable bounty={bounty} />
+              {bounty.type === "performance" ? (
+                <BountyPerformanceSection bounty={bounty} />
+              ) : (
+                <BountySubmissionsTable bounty={bounty} />
+              )}
 
               <div className="flex max-w-[700px] flex-col gap-6 text-sm">
                 <BountySubmissionRequirements bounty={bounty} />
