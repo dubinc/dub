@@ -92,8 +92,12 @@ export const PATCH = withWorkspace(
       startsAt,
       endsAt: endsAt !== undefined ? endsAt : bounty.endsAt,
       submissionsOpenAt,
-      submissionFrequency,
-      maxSubmissions,
+      submissionFrequency:
+        submissionFrequency !== undefined
+          ? submissionFrequency
+          : bounty.submissionFrequency,
+      maxSubmissions:
+        maxSubmissions !== undefined ? maxSubmissions : bounty.maxSubmissions,
       submissionRequirements,
       rewardAmount,
       rewardDescription,
