@@ -6,23 +6,37 @@ export const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
 });
 
-// Special Redis instance with timeout
-export const redisWithTimeout = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || "",
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || "",
-  signal: () => AbortSignal.timeout(1000),
-});
-
-// This is a separate us-east-1 Redis instance that we use
-// for high-volume ratelimit operations (e.g. recordClick)
+// This is a separate global Redis instance that we use
+// for global operations (e.g. linkCache, recordClick)
 // so that if this redis goes down, it won't impact other endpoints
-export const redisUsEast = new Redis({
+const redisGlobalBase = new Redis({
   url:
-    process.env.UPSTASH_US_EAST_REDIS_REST_URL ||
+    process.env.UPSTASH_GLOBAL_REDIS_REST_URL ||
     process.env.UPSTASH_REDIS_REST_URL ||
     "",
   token:
-    process.env.UPSTASH_US_EAST_REDIS_REST_TOKEN ||
+    process.env.UPSTASH_GLOBAL_REDIS_REST_TOKEN ||
     process.env.UPSTASH_REDIS_REST_TOKEN ||
     "",
+  signal: () => AbortSignal.timeout(1000),
+});
+
+// On timeout (or other errors), method calls return null instead of throwing
+export const redisGlobal = new Proxy(redisGlobalBase, {
+  get(target, prop) {
+    const value = target[prop as keyof Redis];
+    if (typeof value === "function") {
+      return async (...args: unknown[]) => {
+        try {
+          return await (value as (...args: unknown[]) => unknown).apply(
+            target,
+            args,
+          );
+        } catch {
+          return null;
+        }
+      };
+    }
+    return value;
+  },
 });

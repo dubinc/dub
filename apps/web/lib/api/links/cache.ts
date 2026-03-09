@@ -1,5 +1,5 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis, redisWithTimeout } from "@/lib/upstash";
+import { formatRedisLink, redisGlobal } from "@/lib/upstash";
 import { LRUCache } from "lru-cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
@@ -15,8 +15,6 @@ const linkLRUCache = new LRUCache<string, RedisLinkProps>({
 
 /*
  * Link cache expiration is set to 24 hours by default for all links.
- * Caveat: we don't set expiration for links with webhooks since it's expensive
- * to fetch and set on-demand inside link middleware.
  */
 const CACHE_EXPIRATION = 60 * 60 * 24;
 
@@ -26,24 +24,12 @@ class LinkCache {
       return;
     }
 
-    const pipeline = redis.pipeline();
+    const pipeline = redisGlobal.pipeline();
 
-    const redisLinks = await Promise.all(
-      links.map((link) => ({
-        ...formatRedisLink(link),
-        cacheKey: this._createKey({ domain: link.domain, key: link.key }),
-      })),
-    );
-
-    redisLinks.map(({ cacheKey, ...redisLink }) => {
-      const hasWebhooks =
-        redisLink.webhookIds && redisLink.webhookIds.length > 0;
-
-      pipeline.set(
-        cacheKey,
-        redisLink,
-        hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
-      );
+    links.map((link) => {
+      const redisLink = formatRedisLink(link);
+      const cacheKey = this._createKey({ domain: link.domain, key: link.key });
+      pipeline.set(cacheKey, redisLink, { ex: CACHE_EXPIRATION });
     });
 
     return await pipeline.exec();
@@ -51,17 +37,12 @@ class LinkCache {
 
   async set(link: ExpandedLink) {
     const redisLink = formatRedisLink(link);
-    const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
     const cacheKey = this._createKey({ domain: link.domain, key: link.key });
 
     // Update LRU cache immediately to prevent stale reads
     linkLRUCache.set(cacheKey, redisLink);
 
-    return await redis.set(
-      cacheKey,
-      redisLink,
-      hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
-    );
+    return await redisGlobal.set(cacheKey, redisLink, { ex: CACHE_EXPIRATION });
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
@@ -78,35 +59,24 @@ class LinkCache {
       return cachedLink;
     }
 
-    console.log(`[LRU Cache MISS] ${cacheKey} - Checking Redis...`);
+    console.log(`[LRU Cache MISS] ${cacheKey} - Checking redisGlobal...`);
 
-    try {
-      // we're using the special redisWithTimeout client in case Redis times out
-      cachedLink = await redisWithTimeout.get<RedisLinkProps>(cacheKey);
+    // Fallback to redisGlobal if LRU cache miss
+    cachedLink = await redisGlobal.get<RedisLinkProps>(cacheKey);
 
-      if (cachedLink) {
-        console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU Cache...`);
+    if (cachedLink) {
+      console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU Cache...`);
 
-        linkLRUCache.set(cacheKey, cachedLink);
-      } else {
-        console.log(
-          `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
-        );
-      }
-
-      return cachedLink;
-    } catch (error) {
-      console.error(
-        "[LinkCache] – Timeout getting cached link from Redis, falling back to MySQL...",
-        error,
+      linkLRUCache.set(cacheKey, cachedLink);
+    } else {
+      console.log(
+        `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
       );
-
-      return null;
     }
   }
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    return await redis.del(this._createKey({ domain, key }));
+    return await redisGlobal.del(this._createKey({ domain, key }));
   }
 
   async deleteMany(links: Pick<LinkProps, "domain" | "key">[]) {
@@ -114,9 +84,9 @@ class LinkCache {
       return;
     }
 
-    const pipeline = redis.pipeline();
+    const pipeline = redisGlobal.pipeline();
 
-    links.forEach(({ domain, key }) => {
+    links.map(({ domain, key }) => {
       pipeline.del(this._createKey({ domain, key }));
     });
 
@@ -128,9 +98,9 @@ class LinkCache {
       return;
     }
 
-    const pipeline = redis.pipeline();
+    const pipeline = redisGlobal.pipeline();
 
-    links.forEach(({ domain, key }) => {
+    links.map(({ domain, key }) => {
       // expire the link cache key immediately
       pipeline.expire(this._createKey({ domain, key }), 1);
     });

@@ -1,4 +1,4 @@
-import { redisUsEast } from "@/lib/upstash";
+import { redisGlobal } from "@/lib/upstash";
 
 // Cache the click ID in Redis for 1 hour
 const CACHE_EXPIRATION = 60 * 60;
@@ -16,7 +16,7 @@ class RecordClickCache {
     identityHash,
     clickId,
   }: KeyProps & { clickId: string }) {
-    return await redisUsEast.set(
+    return await redisGlobal.set(
       this._createKey({ domain, key, identityHash }),
       clickId,
       {
@@ -26,7 +26,7 @@ class RecordClickCache {
   }
 
   async get({ domain, key, identityHash }: KeyProps) {
-    return await redisUsEast.get<string>(
+    return await redisGlobal.get<string>(
       this._createKey({ domain, key, identityHash }),
     );
   }
