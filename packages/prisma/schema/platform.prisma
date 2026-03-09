@@ -8,34 +8,57 @@ enum PlatformType {
 }
 
 model PartnerPlatform {
-  id                String       @id @default(cuid())
-  partnerId         String
-  type              PlatformType
-  identifier        String // The unique identifier for the platform (e.g., username for social platforms, domain for websites)
-  platformId        String? // Platform-specific immutable ID (e.g., YouTube channel ID)
-  avatarUrl         String?      @db.Text
-  subscribers       BigInt       @default(0) // Subscribers/followers for social platforms, also for newsletter subscribers
-  posts             BigInt       @default(0)
-  views             BigInt       @default(0) // Video views for YouTube, impressions for social platforms, pageviews for websites
-  avgEngagementRate Float? // 30-day rolling average engagement rate
-  metadata          Json?
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
-  verifiedAt        DateTime?
-  lastCheckedAt     DateTime?
+  id                   String       @id @default(cuid())
+  partnerId            String
+  type                 PlatformType
+  identifier           String // The unique identifier for the platform (e.g., username for social platforms, domain for websites)
+  platformId           String? // Platform-specific immutable ID (e.g., YouTube channel ID)
+  avatarUrl            String?      @db.Text
+  subscribers          BigInt       @default(0) // Subscribers/followers for social platforms, also for newsletter subscribers
+  posts                BigInt       @default(0)
+  views                BigInt       @default(0) // Video views for YouTube, impressions for social platforms, pageviews for websites
+  avgEngagementRate    Float? // 30-day rolling average engagement rate
+  medianViews          BigInt?
+  medianLikes          BigInt?
+  medianComments       BigInt?
+  medianEngagementRate Float?
+  metadata             Json?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  verifiedAt           DateTime?
+  lastCheckedAt        DateTime?
 
-  partner     Partner             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  engagements PartnerEngagement[]
+  partner             Partner                     @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  platformEngagements PartnerPlatformEngagement[]
+  platformPosts       PartnerPlatformPost[]
 
   @@unique([partnerId, type])
   @@index(type)
 }
 
-model PartnerEngagement {
+model PartnerPlatformPost {
+  id                String       @id @default(cuid())
+  partnerPlatformId String
+  postId            String // Tweet ID, YouTube video ID, etc.
+  publishedAt       DateTime
+  title             String?      @db.Text // Video title (YT), tweet text preview (X)
+  views             BigInt       @default(0) // impressions (X), views (YT)
+  likes             BigInt       @default(0)
+  comments          BigInt       @default(0) // replies (X), comments (YT)
+  engagementRate    Float        @default(0)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  partnerPlatform PartnerPlatform @relation(fields: [partnerPlatformId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerPlatformId, postId])
+  @@index(publishedAt)
+}
+
+model PartnerPlatformEngagement {
   id                String       @id @default(cuid())
   partnerPlatformId String
   date              DateTime     @db.Date
-  platform          PlatformType
   totalPosts        Int          @default(0)
   totalImpressions  BigInt       @default(0)
   totalLikes        BigInt       @default(0)

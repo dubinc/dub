@@ -1,6 +1,6 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { getPlatformAdapter } from "@/lib/social-platforms";
-import type { DailyEngagement } from "@/lib/social-platforms/base-adapter";
+import type { PostEngagement } from "@/lib/social-platforms/base-adapter";
 import { XApiError, XApiRateLimitError } from "@/lib/social-platforms/x/client";
 import { prisma } from "@dub/prisma";
 import { startOfDay, subDays } from "date-fns";
@@ -13,9 +13,26 @@ const bodySchema = z.object({
   partnerPlatformId: z.string(),
 });
 
+const MAX_POSTS_PER_PARTNER = 50;
+
+function computeMedian(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+
+  return sorted[mid];
+}
+
 // POST /api/cron/sync-social-engagement
-// Processes a single partner platform: fetches engagement data, upserts snapshots,
-// prunes old data, and recomputes the rolling average.
+// Processes a single partner platform: fetches engagement data, upserts daily
+// snapshots + individual posts, prunes old data, and recomputes baselines.
 export const POST = withCron(async ({ rawBody }) => {
   const { partnerPlatformId } = bodySchema.parse(JSON.parse(rawBody));
 
@@ -58,7 +75,7 @@ export const POST = withCron(async ({ rawBody }) => {
   const now = new Date();
   const todayStart = startOfDay(now);
 
-  const existingCount = await prisma.partnerEngagement.count({
+  const existingCount = await prisma.partnerPlatformEngagement.count({
     where: {
       partnerPlatformId,
     },
@@ -70,15 +87,17 @@ export const POST = withCron(async ({ rawBody }) => {
       : startOfDay(subDays(now, 1));
   const endTime = todayStart;
 
-  let dailyEngagements: DailyEngagement[];
+  const fetchParams = {
+    platformId: partnerPlatform.platformId,
+    identifier: partnerPlatform.identifier,
+    startTime,
+    endTime,
+  };
+
+  let postEngagements: PostEngagement[];
 
   try {
-    dailyEngagements = await adapter.fetchEngagement({
-      platformId: partnerPlatform.platformId,
-      identifier: partnerPlatform.identifier,
-      startTime,
-      endTime,
-    });
+    postEngagements = await adapter.fetchPosts(fetchParams);
   } catch (error) {
     // Rate limit — throw so QStash retries with backoff
     if (error instanceof XApiRateLimitError) {
@@ -88,12 +107,12 @@ export const POST = withCron(async ({ rawBody }) => {
     // Client errors — don't retry
     if (error instanceof XApiError) {
       console.error(
-        `[sync-social-engagement] X API error for @${partnerPlatform.identifier}:`,
+        `[sync-social-engagement] API error for @${partnerPlatform.identifier}:`,
         error.message,
       );
 
       return logAndRespond(
-        `X API error for @${partnerPlatform.identifier}: ${error.message}`,
+        `API error for @${partnerPlatform.identifier}: ${error.message}`,
         { logLevel: "error" },
       );
     }
@@ -101,9 +120,12 @@ export const POST = withCron(async ({ rawBody }) => {
     throw error;
   }
 
-  // Upsert engagement snapshots
+  const dailyEngagements = adapter.calculateDailyEngagement(postEngagements);
+
+  // --- Daily aggregate upserts (for historical chart) ---
+
   for (const day of dailyEngagements) {
-    await prisma.partnerEngagement.upsert({
+    await prisma.partnerPlatformEngagement.upsert({
       where: {
         partnerPlatformId_date: {
           partnerPlatformId,
@@ -113,7 +135,6 @@ export const POST = withCron(async ({ rawBody }) => {
       create: {
         partnerPlatformId,
         date: day.date,
-        platform: partnerPlatform.type,
         totalPosts: day.totalPosts,
         totalImpressions: BigInt(day.totalImpressions),
         totalLikes: BigInt(day.totalLikes),
@@ -130,8 +151,8 @@ export const POST = withCron(async ({ rawBody }) => {
     });
   }
 
-  // Prune old engagements (keep 31 days for timezone safety)
-  await prisma.partnerEngagement.deleteMany({
+  // Prune old daily engagements (keep 31 days for timezone safety)
+  await prisma.partnerPlatformEngagement.deleteMany({
     where: {
       partnerPlatformId,
       date: {
@@ -143,7 +164,7 @@ export const POST = withCron(async ({ rawBody }) => {
   // Recompute avgEngagementRate
   const thirtyDaysAgo = startOfDay(subDays(now, 30));
 
-  const result = await prisma.partnerEngagement.aggregate({
+  const avgResult = await prisma.partnerPlatformEngagement.aggregate({
     where: {
       partnerPlatformId,
       date: {
@@ -155,18 +176,111 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
-  const avgEngagementRate = result._avg.engagementRate ?? 0;
+  const avgEngagementRate = avgResult._avg.engagementRate ?? 0;
 
+  // --- Per-post upserts (for fraud detection baselines) ---
+
+  for (const post of postEngagements) {
+    await prisma.partnerPlatformPost.upsert({
+      where: {
+        partnerPlatformId_postId: {
+          partnerPlatformId,
+          postId: post.postId,
+        },
+      },
+      create: {
+        partnerPlatformId,
+        postId: post.postId,
+        publishedAt: post.publishedAt,
+        title: post.title,
+        views: BigInt(post.views),
+        likes: BigInt(post.likes),
+        comments: BigInt(post.comments),
+        engagementRate: post.engagementRate,
+      },
+      update: {
+        views: BigInt(post.views),
+        likes: BigInt(post.likes),
+        comments: BigInt(post.comments),
+        engagementRate: post.engagementRate,
+      },
+    });
+  }
+
+  // Prune to last N posts per partner
+  const postCount = await prisma.partnerPlatformPost.count({
+    where: {
+      partnerPlatformId,
+    },
+  });
+
+  if (postCount > MAX_POSTS_PER_PARTNER) {
+    const oldestToKeep = await prisma.partnerPlatformPost.findMany({
+      where: {
+        partnerPlatformId,
+      },
+      orderBy: {
+        publishedAt: "desc",
+      },
+      take: MAX_POSTS_PER_PARTNER,
+      select: {
+        publishedAt: true,
+      },
+    });
+
+    const cutoff = oldestToKeep[oldestToKeep.length - 1].publishedAt;
+
+    await prisma.partnerPlatformPost.deleteMany({
+      where: {
+        partnerPlatformId,
+        publishedAt: {
+          lt: cutoff,
+        },
+      },
+    });
+  }
+
+  // Compute median baselines from stored posts
+  const allPosts = await prisma.partnerPlatformPost.findMany({
+    where: {
+      partnerPlatformId,
+    },
+    select: {
+      views: true,
+      likes: true,
+      comments: true,
+      engagementRate: true,
+    },
+  });
+
+  const medianViews = computeMedian(allPosts.map((p) => Number(p.views)));
+  const medianLikes = computeMedian(allPosts.map((p) => Number(p.likes)));
+  const medianComments = computeMedian(
+    allPosts.map((p) => Number(p.comments)),
+  );
+  const medianEngagementRate = computeMedian(
+    allPosts.map((p) => p.engagementRate),
+  );
+
+  // Update PartnerPlatform with baselines
   await prisma.partnerPlatform.update({
     where: {
       id: partnerPlatformId,
     },
     data: {
       avgEngagementRate,
+      medianViews: BigInt(Math.round(medianViews)),
+      medianLikes: BigInt(Math.round(medianLikes)),
+      medianComments: BigInt(Math.round(medianComments)),
+      medianEngagementRate,
     },
   });
 
+  console.log(
+    `[sync-social-engagement] Synced @${partnerPlatform.identifier}: ${dailyEngagements.length} days, ${postEngagements.length} posts, avgRate=${avgEngagementRate.toFixed(6)}, medianViews=${medianViews}`,
+  );
+
   return logAndRespond(
-    `Synced engagement for @${partnerPlatform.identifier}: ${dailyEngagements.length} days, avgRate=${avgEngagementRate.toFixed(6)}`,
+    `Synced engagement for @${partnerPlatform.identifier}: ${dailyEngagements.length} days, ${postEngagements.length} posts`,
   );
 });
