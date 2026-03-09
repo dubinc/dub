@@ -1,9 +1,10 @@
+import "dotenv-flow/config";
+
 import {
   AccountNotFoundError,
   getSocialProfile,
 } from "@/lib/social-platforms/get-social-profile";
 import { prisma } from "@dub/prisma";
-import "dotenv-flow/config";
 
 const BATCH_SIZE = 10;
 
@@ -48,7 +49,6 @@ async function main() {
         return null;
       }
 
-      // I prefer this
       await prisma.partnerPlatform.update({
         where: {
           id: pp.id,
