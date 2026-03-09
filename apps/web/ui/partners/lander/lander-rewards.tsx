@@ -27,7 +27,12 @@ export function LanderRewards({
   bounties?: GroupBountySummaryProps[];
   className?: string;
 }) {
-  const sortedFilteredRewards = rewards.filter((r) => getRewardAmount(r) >= 0);
+  const sortedFilteredRewards = rewards.filter((reward) => {
+    const rawAmount =
+      reward.type === "flat" ? reward.amountInCents : reward.amountInPercentage;
+
+    return rawAmount != null && getRewardAmount(reward) > 0;
+  });
   const [showAllBounties, setShowAllBounties] = useState(false);
   const shouldCollapseBounties = bounties.length > MAX_VISIBLE_BOUNTIES;
   const visibleBounties =
