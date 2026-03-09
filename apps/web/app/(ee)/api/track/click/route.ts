@@ -14,7 +14,7 @@ import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink, redis, redisUsEast } from "@/lib/upstash";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { isValidUrl, nanoid } from "@dub/utils";
@@ -60,13 +60,18 @@ export const POST = withAxiom(async (req) => {
 
     const identityHash = await getIdentityHash(req);
 
-    let [cachedClickId, cachedLink, cachedAllowedHostnames] = await redis.mget<
-      [string, RedisLinkProps, string[]]
-    >([
-      recordClickCache._createKey({ domain, key, identityHash }),
-      linkCache._createKey({ domain, key }),
-      allowedHostnamesCache._createKey({ domain }),
+    const [cachedClickId, mgetResults] = await Promise.all([
+      redisUsEast.get<string>(
+        recordClickCache._createKey({ domain, key, identityHash }),
+      ),
+
+      redis.mget<[RedisLinkProps, string[]]>([
+        linkCache._createKey({ domain, key }),
+        allowedHostnamesCache._createKey({ domain }),
+      ]),
     ]);
+
+    let [cachedLink, cachedAllowedHostnames] = mgetResults;
 
     // assign a new clickId if there's no cached clickId
     // else, reuse the cached clickId

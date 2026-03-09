@@ -55,14 +55,23 @@ export function ProgramInviteCard({
 
       <p className="mt-3 font-medium text-neutral-900">{program.name}</p>
 
-      <p className="my-2 text-balance text-xs text-neutral-600">
-        <ProgramRewardDescription
-          reward={reward}
-          discount={discount}
-          amountClassName="font-light"
-          periodClassName="font-light"
-        />
-      </p>
+      <div className="my-2 flex flex-col gap-0.5 text-balance text-xs text-neutral-600">
+        <div>
+          <ProgramRewardDescription
+            reward={reward}
+            amountClassName="font-light"
+            periodClassName="font-light"
+          />
+        </div>
+
+        <div>
+          <ProgramRewardDescription
+            discount={discount}
+            amountClassName="font-light"
+            periodClassName="font-light"
+          />
+        </div>
+      </div>
 
       <div className="mt-2 flex grow flex-col justify-end">
         <div className="grid grid-cols-2 gap-2">

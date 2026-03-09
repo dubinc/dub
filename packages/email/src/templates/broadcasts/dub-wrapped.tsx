@@ -23,7 +23,7 @@ export default function DubWrapped({
   workspace = {
     name: "Dub",
     slug: "dub",
-    logo: "https://assets.dub.co/logo.png",
+    logo: "https://assets.dub.co/wordmark.png",
   },
   stats = {
     "Total Links": 1429,
