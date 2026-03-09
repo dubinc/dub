@@ -9,15 +9,17 @@ export const redis = new Redis({
 // This is a separate global Redis instance that we use
 // for global operations (e.g. linkCache, recordClick)
 // so that if this redis goes down, it won't impact other endpoints
+const hasGlobalRedisConfig =
+  !!process.env.UPSTASH_GLOBAL_REDIS_REST_URL &&
+  !!process.env.UPSTASH_GLOBAL_REDIS_REST_TOKEN;
+
 const redisGlobalBase = new Redis({
-  url:
-    process.env.UPSTASH_GLOBAL_REDIS_REST_URL ||
-    process.env.UPSTASH_REDIS_REST_URL ||
-    "",
-  token:
-    process.env.UPSTASH_GLOBAL_REDIS_REST_TOKEN ||
-    process.env.UPSTASH_REDIS_REST_TOKEN ||
-    "",
+  url: hasGlobalRedisConfig
+    ? process.env.UPSTASH_GLOBAL_REDIS_REST_URL
+    : process.env.UPSTASH_REDIS_REST_URL || "",
+  token: hasGlobalRedisConfig
+    ? process.env.UPSTASH_GLOBAL_REDIS_REST_TOKEN
+    : process.env.UPSTASH_REDIS_REST_TOKEN || "",
   signal: () => AbortSignal.timeout(1000),
 });
 
@@ -32,7 +34,11 @@ export const redisGlobal = new Proxy(redisGlobalBase, {
             target,
             args,
           );
-        } catch {
+        } catch (error) {
+          console.error(
+            "[redisGlobal] – Timeout getting value from Redis, returning null...",
+            error,
+          );
           return null;
         }
       };
