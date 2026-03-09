@@ -266,9 +266,9 @@ export class BountySubmissionHandler {
 
   // Validate the requirements of the submission
   private validateRequirements() {
-    const submissionRequirements = this.bounty.submissionRequirements
-      ? submissionRequirementsSchema.parse(this.bounty.submissionRequirements)
-      : null;
+    const submissionRequirements = submissionRequirementsSchema.parse(
+      this.bounty.submissionRequirements,
+    );
 
     const requireImage = !!submissionRequirements?.image;
     const requireUrl = !!submissionRequirements?.url;
@@ -472,9 +472,9 @@ export class BountySubmissionHandler {
   private mergeSubmissionData() {
     const bountyInfo = resolveBountyDetails(this.bounty);
 
-    const submissionRequirements = this.bounty.submissionRequirements
-      ? submissionRequirementsSchema.parse(this.bounty.submissionRequirements)
-      : null;
+    const submissionRequirements = submissionRequirementsSchema.parse(
+      this.bounty.submissionRequirements,
+    );
 
     const requireImage = !!submissionRequirements?.image;
     const requireUrl = !!submissionRequirements?.url;
@@ -486,10 +486,8 @@ export class BountySubmissionHandler {
         requireUrl && {
           urls: [...this.urls].slice(0, BOUNTY_MAX_SUBMISSION_URLS),
         }),
-      ...(this.description && { description: this.description }),
+      ...(this.description !== undefined && { description: this.description }),
     };
-
-    console.log("mergeSubmissionData", this.submissionData);
   }
 
   // Persist the submission

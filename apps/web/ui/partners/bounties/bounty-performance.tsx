@@ -65,8 +65,9 @@ export function SubmissionBountyProgress({
     ({ status }) => status === "approved",
   ).length;
 
-  const submittedPercent = (submittedCount / bounty.maxSubmissions) * 100;
-  const approvedPercent = (approvedCount / bounty.maxSubmissions) * 100;
+  const maxSubmissions = bounty.maxSubmissions || 1;
+  const submittedPercent = (submittedCount / maxSubmissions) * 100;
+  const approvedPercent = (approvedCount / maxSubmissions) * 100;
 
   return (
     <div className={cn("flex gap-4", className)}>

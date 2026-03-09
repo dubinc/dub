@@ -107,21 +107,33 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
     | undefined;
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
   const isCommissions = attribute === "totalCommissions";
-  const startDate =
-    bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined;
+  const startDate = useMemo(
+    () =>
+      bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined,
+    [bounty.performanceScope, bounty.startsAt],
+  );
+  const endDate = useMemo(
+    () =>
+      bounty.performanceScope === "new"
+        ? bounty.endsAt
+          ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
+          : new Date()
+        : undefined,
+    [bounty.performanceScope, bounty.endsAt],
+  );
 
   const { data: analyticsTimeseries, error: analyticsError } =
     usePartnerAnalytics({
       groupBy: "timeseries",
       event: "composite",
-      ...(startDate && { start: startDate, end: new Date() }),
+      ...(startDate && endDate && { start: startDate, end: endDate }),
       enabled: !isCommissions,
     });
 
   const { data: earningsTimeseries, error: earningsError } =
     usePartnerEarningsTimeseries({
       interval: "30d",
-      ...(startDate && { start: startDate, end: new Date() }),
+      ...(startDate && endDate && { start: startDate, end: endDate }),
       enabled: isCommissions,
     });
 
@@ -311,8 +323,20 @@ function BountyPerformanceEventsTable({
     ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
     : undefined;
 
-  const startDate =
-    bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined;
+  const startDate = useMemo(
+    () =>
+      bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined,
+    [bounty.performanceScope, bounty.startsAt],
+  );
+  const endDate = useMemo(
+    () =>
+      bounty.performanceScope === "new"
+        ? bounty.endsAt
+          ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
+          : new Date()
+        : undefined,
+    [bounty.performanceScope, bounty.endsAt],
+  );
 
   const { page, pagination, onPaginationChange } = usePaginationState();
 
@@ -334,8 +358,11 @@ function BountyPerformanceEventsTable({
     if (startDate) {
       params.set("start", startDate.toISOString());
     }
+    if (endDate) {
+      params.set("end", endDate.toISOString());
+    }
     return `/api/partner-profile/programs/${programSlug}/events?${params.toString()}`;
-  }, [programSlug, eventParams, page, startDate]);
+  }, [programSlug, eventParams, page, startDate, endDate]);
 
   const {
     data: events,
@@ -348,7 +375,7 @@ function BountyPerformanceEventsTable({
   const { data: analyticsCount } = usePartnerAnalytics({
     event: "composite",
     groupBy: "count",
-    ...(startDate && { start: startDate, end: new Date() }),
+    ...(startDate && endDate && { start: startDate, end: endDate }),
     enabled: true,
   });
 
@@ -373,7 +400,12 @@ function BountyPerformanceEventsTable({
   const analyticsField = attribute
     ? ATTRIBUTE_TO_ANALYTICS_FIELD[attribute]
     : undefined;
-  const totalCount = analyticsField ? analyticsCount?.[analyticsField] ?? 0 : 0;
+  const totalCount =
+    attribute === "totalSaleAmount"
+      ? analyticsCount?.sales ?? 0
+      : analyticsField
+        ? analyticsCount?.[analyticsField] ?? 0
+        : 0;
 
   const columns = useMemo<ColumnDef<PerformanceRow, any>[]>(() => {
     const base: ColumnDef<PerformanceRow, any>[] = [
@@ -468,6 +500,7 @@ function BountyPerformanceEventsTable({
             <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
           </>
         )}
+        className="border-none md:min-h-0"
       />
     ),
   });
@@ -494,12 +527,40 @@ function BountyPerformanceCommissionsTable({
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
 
-  const startDate =
-    bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined;
+  const startDate = useMemo(
+    () =>
+      bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined,
+    [bounty.performanceScope, bounty.startsAt],
+  );
+  const endDate = useMemo(
+    () =>
+      bounty.performanceScope === "new"
+        ? bounty.endsAt
+          ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
+          : new Date()
+        : undefined,
+    [bounty.performanceScope, bounty.endsAt],
+  );
 
   const { page, pagination, onPaginationChange } = usePaginationState();
 
-  const startParam = startDate ? `&start=${startDate.toISOString()}` : "";
+  const earningsUrlParams = useMemo(() => {
+    const params = new URLSearchParams({
+      pageSize: String(PAGE_SIZE),
+      page: String(page),
+    });
+    if (startDate) params.set("start", startDate.toISOString());
+    if (endDate) params.set("end", endDate.toISOString());
+    return params.toString();
+  }, [page, startDate, endDate]);
+
+  const earningsCountUrlParams = useMemo(() => {
+    const params = new URLSearchParams();
+    if (startDate) params.set("start", startDate.toISOString());
+    if (endDate) params.set("end", endDate.toISOString());
+    const qs = params.toString();
+    return qs ? `?${qs}` : "";
+  }, [startDate, endDate]);
 
   const {
     data: earnings,
@@ -507,7 +568,7 @@ function BountyPerformanceCommissionsTable({
     error,
   } = useSWR<PartnerEarningsResponse[]>(
     programSlug
-      ? `/api/partner-profile/programs/${programSlug}/earnings?pageSize=${PAGE_SIZE}&page=${page}${startParam}`
+      ? `/api/partner-profile/programs/${programSlug}/earnings?${earningsUrlParams}`
       : null,
     fetcher,
     { keepPreviousData: true },
@@ -515,7 +576,7 @@ function BountyPerformanceCommissionsTable({
 
   const { data: earningsCount } = useSWR<{ count: number }>(
     programSlug
-      ? `/api/partner-profile/programs/${programSlug}/earnings/count${startDate ? `?start=${startDate.toISOString()}` : ""}`
+      ? `/api/partner-profile/programs/${programSlug}/earnings/count${earningsCountUrlParams}`
       : null,
     fetcher,
     { keepPreviousData: true },
@@ -624,6 +685,7 @@ function BountyPerformanceCommissionsTable({
             <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
           </>
         )}
+        className="border-none md:min-h-0"
       />
     ),
   });

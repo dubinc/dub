@@ -282,7 +282,12 @@ export function useAddEditBountyForm({
         setValue("submissionFrequency", null, { shouldDirty: true });
       }
     }
-  }, [maxAllowedSubmissions]);
+  }, [
+    maxAllowedSubmissions,
+    allowedSubmissions,
+    setValue,
+    submissionFrequency,
+  ]);
 
   const handleSubmissionWindowChange = (value: number) => {
     setSubmissionWindow(value);
@@ -525,6 +530,7 @@ export function useAddEditBountyForm({
             endsAt: endsAt || null,
             rewardAmount: rewardAmount ? rewardAmount * 100 : null,
             rewardDescription: rewardDescription || null,
+            submissionRequirements: submissionRequirements ?? null,
             groups: groupIds?.map((id) => ({ id })) || [],
           }
         : undefined,
