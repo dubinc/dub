@@ -72,13 +72,13 @@ export function LanderRewards({
                         {" "}
                         for the customer's lifetime
                       </>
-                    ) : reward.maxDuration && reward.maxDuration > 1 ? (
+                    ) : reward.maxDuration && reward.maxDuration >= 1 ? (
                       <>
                         {" "}
                         for{" "}
                         {reward.maxDuration % 12 === 0
                           ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
-                          : `${reward.maxDuration} months`}
+                          : `${reward.maxDuration} month${reward.maxDuration > 1 ? "s" : ""}`}
                       </>
                     ) : null}
                   </>
