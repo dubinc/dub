@@ -1,7 +1,10 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { getPlatformAdapter } from "@/lib/social-platforms";
 import type { PostEngagement } from "@/lib/social-platforms/base-adapter";
-import { XApiError, XApiRateLimitError } from "@/lib/social-platforms/x/client";
+import {
+  XApiError,
+  XApiRateLimitError,
+} from "@/lib/social-platforms/x-adapter";
 import { prisma } from "@dub/prisma";
 import { startOfDay, subDays } from "date-fns";
 import * as z from "zod/v4";
@@ -255,9 +258,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const medianViews = computeMedian(allPosts.map((p) => Number(p.views)));
   const medianLikes = computeMedian(allPosts.map((p) => Number(p.likes)));
-  const medianComments = computeMedian(
-    allPosts.map((p) => Number(p.comments)),
-  );
+  const medianComments = computeMedian(allPosts.map((p) => Number(p.comments)));
   const medianEngagementRate = computeMedian(
     allPosts.map((p) => p.engagementRate),
   );

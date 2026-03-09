@@ -1,6 +1,6 @@
 import { PlatformType } from "@dub/prisma/client";
 import { BasePlatformAdapter } from "./base-adapter";
-import { XAdapter } from "./x/adapter";
+import { XAdapter } from "./x-adapter";
 
 const PLATFORM_ADAPTERS: Partial<Record<PlatformType, BasePlatformAdapter>> = {
   twitter: new XAdapter(),
