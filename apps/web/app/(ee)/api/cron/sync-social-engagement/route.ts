@@ -61,7 +61,6 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
-  // First run backfills 30 days of history; subsequent runs only fetch yesterday
   const startTime =
     existingCount === 0
       ? startOfDay(subDays(now, 30))
