@@ -1,3 +1,4 @@
+import { MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { currencyFormatter } from "@dub/utils";
@@ -7,7 +8,7 @@ async function main() {
   const where: Prisma.PayoutWhereInput = {
     status: "processed",
     amount: {
-      gt: 0,
+      gte: MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
     },
     partner: {
       payoutsEnabledAt: {
@@ -16,7 +17,7 @@ async function main() {
     },
   };
 
-  const processedPayouts = await prisma.payout.aggregate({
+  const totals = await prisma.payout.aggregate({
     where,
     _count: {
       id: true,
@@ -27,11 +28,11 @@ async function main() {
   });
 
   console.log({
-    count: processedPayouts._count.id,
-    amount: currencyFormatter(processedPayouts._sum.amount ?? 0),
+    totalProcessedPayouts: totals._count.id,
+    totalProcessedPayoutsAmount: currencyFormatter(totals._sum?.amount ?? 0),
   });
 
-  const listOfPayouts = await prisma.payout.findMany({
+  const processedPayouts = await prisma.payout.findMany({
     where,
     include: {
       partner: {
@@ -47,7 +48,7 @@ async function main() {
   });
 
   console.table(
-    listOfPayouts.map((payout) => ({
+    processedPayouts.map((payout) => ({
       id: payout.id,
       partner: payout.partner.email,
       amount: currencyFormatter(payout.amount),

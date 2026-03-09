@@ -1,5 +1,7 @@
 import {
+  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
   PAYOUTS_SHEET_ITEMS_LIMIT,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "@/lib/constants/payouts";
@@ -132,17 +134,35 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         ),
       },
 
-      ...(payout.method === "stablecoin"
+      ...(payout.method === "stablecoin" ||
+      payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS
         ? [
             {
               key: "Fee",
               value: (
                 <Tooltip
-                  content={`Stablecoin payouts on Dub are subject to a ${STABLECOIN_PAYOUT_FEE_RATE * 100}% fee. [Learn more](https://dub.co/help/article/receiving-payouts#stablecoin-payouts).`}
+                  content={[
+                    payout.method === "stablecoin" &&
+                      `Stablecoin payouts on Dub are subject to a [${STABLECOIN_PAYOUT_FEE_RATE * 100}% transaction fee](https://dub.co/help/article/receiving-payouts#stablecoin-payouts).`,
+                    payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS &&
+                      `Since this payout is below the [minimum withdrawal amount](https://dub.co/help/article/receiving-payouts#what-is-the-minimum-withdrawal-amount-and-how-does-it-work) of ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS, { trailingZeroDisplay: "stripIfInteger" })}, a ${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS, { trailingZeroDisplay: "stripIfInteger" })} withdrawal fee was applied.`,
+                  ]
+                    .filter(Boolean)
+                    .join(" ")
+                    // a bit hacky, but we want to make the second sentence a bit more natural with "Also, since" if both conditions are met
+                    .replace(
+                      "Since",
+                      payout.method === "stablecoin" ? "Also, since" : "Since",
+                    )}
                 >
                   <span className="hover:text-content-emphasis cursor-help underline decoration-dotted underline-offset-2">
                     {currencyFormatter(
-                      payout.amount * STABLECOIN_PAYOUT_FEE_RATE,
+                      (payout.method === "stablecoin"
+                        ? payout.amount * STABLECOIN_PAYOUT_FEE_RATE
+                        : 0) +
+                        (payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS
+                          ? BELOW_MIN_WITHDRAWAL_FEE_CENTS
+                          : 0),
                     )}
                   </span>
                 </Tooltip>

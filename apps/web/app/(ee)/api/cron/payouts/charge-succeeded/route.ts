@@ -1,4 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { MIN_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { prisma } from "@dub/prisma";
@@ -69,11 +70,17 @@ export async function POST(req: Request) {
       where: {
         invoiceId: invoice.id,
         method: "stablecoin",
+        // only transfer funds for stablecoin payouts >= minimum withdrawal amount
+        // for payouts below the minimum withdrawal amount, we will just mark them as processed
+        // and users can force withdraw them manually later (which triggers another fundFinancialAccount call)
+        amount: {
+          gte: MIN_WITHDRAWAL_AMOUNT_CENTS,
+        },
       },
     });
     const stablecoinFundingAmount = _sum.amount ?? 0;
 
-    // Send money to Dub's Financial Account to handle Stablecoin payouts
+    // Send money to Financial Account to handle stablecoin payouts
     if (stablecoinFundingAmount > 0) {
       try {
         await fundFinancialAccount({
