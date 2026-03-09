@@ -16,20 +16,18 @@ import {
   scrapeCreatorsFetch,
 } from "./scrape-creators";
 
-const xPublicMetricsSchema = z.object({
-  bookmark_count: z.number(),
-  impression_count: z.number(),
-  like_count: z.number(),
-  quote_count: z.number(),
-  reply_count: z.number(),
-  retweet_count: z.number(),
-});
-
 const xTweetSchema = z.object({
   id: z.string(),
   text: z.string(),
   created_at: z.string(),
-  public_metrics: xPublicMetricsSchema,
+  public_metrics: z.object({
+    bookmark_count: z.number(),
+    impression_count: z.number(),
+    like_count: z.number(),
+    quote_count: z.number(),
+    reply_count: z.number(),
+    retweet_count: z.number(),
+  }),
 });
 
 const xTweetsResponseSchema = z.object({
@@ -45,8 +43,6 @@ const xTweetsResponseSchema = z.object({
     .default({ result_count: 0 }),
 });
 
-type XTweet = z.infer<typeof xTweetSchema>;
-
 const xApiErrorSchema = z.object({
   errors: z
     .array(
@@ -60,75 +56,6 @@ const xApiErrorSchema = z.object({
   detail: z.string().optional(),
   type: z.string().optional(),
 });
-
-const xFetch = createFetch({
-  baseURL: "https://api.x.com/2",
-  headers: {
-    Authorization: `Bearer ${process.env.X_API_BEARER_TOKEN}`,
-  },
-  defaultError: xApiErrorSchema,
-  schema: createSchema(
-    {
-      "/users/:userId/tweets": {
-        method: "get",
-        params: z.object({
-          userId: z.string(),
-        }),
-        query: z.object({
-          "tweet.fields": z.string(),
-          exclude: z.string().optional(),
-          start_time: z.string(),
-          end_time: z.string(),
-          max_results: z.string(),
-          pagination_token: z.string().optional(),
-        }),
-        output: xTweetsResponseSchema,
-      },
-    },
-    {
-      strict: true,
-    },
-  ),
-  onError: ({ error }) => {
-    console.error("[X API] Error", error);
-  },
-});
-
-type XApiErrorResponse = z.infer<typeof xApiErrorSchema>;
-
-export class XApiError extends Error {
-  status: number;
-  statusText: string;
-  title?: string;
-  detail?: string;
-  type?: string;
-  errors?: XApiErrorResponse["errors"];
-
-  constructor(
-    error: XApiErrorResponse & { status: number; statusText: string },
-  ) {
-    const message =
-      error.detail ||
-      error.errors?.map((e) => e.message).join("; ") ||
-      error.statusText;
-
-    super(message);
-    this.name = "XApiError";
-    this.status = error.status;
-    this.statusText = error.statusText;
-    this.title = error.title;
-    this.detail = error.detail;
-    this.type = error.type;
-    this.errors = error.errors;
-  }
-}
-
-export class XApiRateLimitError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "XApiRateLimitError";
-  }
-}
 
 const xContentSchema = z.object({
   core: z.object({
@@ -174,6 +101,76 @@ const xProfileSchema = z.object({
   }),
 });
 
+const xFetch = createFetch({
+  baseURL: "https://api.x.com/2",
+  headers: {
+    Authorization: `Bearer ${process.env.X_API_BEARER_TOKEN}`,
+  },
+  schema: createSchema(
+    {
+      "/users/:userId/tweets": {
+        method: "get",
+        params: z.object({
+          userId: z.string(),
+        }),
+        query: z.object({
+          "tweet.fields": z.string(),
+          exclude: z.string().optional(),
+          start_time: z.string(),
+          end_time: z.string(),
+          max_results: z.string(),
+          pagination_token: z.string().optional(),
+        }),
+        output: xTweetsResponseSchema,
+      },
+    },
+    {
+      strict: true,
+    },
+  ),
+  defaultError: xApiErrorSchema,
+  onError: ({ error }) => {
+    console.error("[X API] Error", error);
+  },
+});
+
+type XTweet = z.infer<typeof xTweetSchema>;
+type XApiErrorResponse = z.infer<typeof xApiErrorSchema>;
+
+export class XApiError extends Error {
+  status: number;
+  statusText: string;
+  title?: string;
+  detail?: string;
+  type?: string;
+  errors?: XApiErrorResponse["errors"];
+
+  constructor(
+    error: XApiErrorResponse & { status: number; statusText: string },
+  ) {
+    const message =
+      error.detail ||
+      error.errors?.map((e) => e.message).join("; ") ||
+      error.statusText;
+
+    super(message);
+    this.name = "XApiError";
+    this.status = error.status;
+    this.statusText = error.statusText;
+    this.title = error.title;
+    this.detail = error.detail;
+    this.type = error.type;
+    this.errors = error.errors;
+  }
+}
+
+class XApiRateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "XApiRateLimitError";
+  }
+}
+
 export class XAdapter extends BasePlatformAdapter {
   platform: PlatformType = "twitter";
 
@@ -214,8 +211,14 @@ export class XAdapter extends BasePlatformAdapter {
     const { data: raw, error } = await scrapeCreatorsFetch(
       "/:version/:platform/:contentType",
       {
-        params: { version: "v1", platform: "twitter", contentType: "tweet" },
-        query: { url },
+        params: {
+          version: "v1",
+          platform: "twitter",
+          contentType: "tweet",
+        },
+        query: {
+          url,
+        },
       },
     );
 
@@ -240,7 +243,37 @@ export class XAdapter extends BasePlatformAdapter {
     };
   }
 
-  private async getUserTweets({
+  async fetchPosts({
+    platformId,
+    startTime,
+    endTime,
+  }: FetchEngagementParams): Promise<PostEngagement[]> {
+    const tweets = await this._getUserTweets({
+      userId: platformId,
+      startTime,
+      endTime,
+    });
+
+    return tweets.map((tweet) => {
+      const m = tweet.public_metrics;
+      const totalEngagements =
+        m.like_count + m.retweet_count + m.reply_count + m.quote_count;
+      const engagementRate =
+        m.impression_count > 0 ? totalEngagements / m.impression_count : 0;
+
+      return {
+        postId: tweet.id,
+        publishedAt: new Date(tweet.created_at),
+        title: tweet.text,
+        views: m.impression_count,
+        likes: m.like_count,
+        comments: m.reply_count + m.quote_count,
+        engagementRate,
+      };
+    });
+  }
+
+  private async _getUserTweets({
     userId,
     startTime,
     endTime,
@@ -289,35 +322,5 @@ export class XAdapter extends BasePlatformAdapter {
     }
 
     return allTweets;
-  }
-
-  async fetchPosts({
-    platformId,
-    startTime,
-    endTime,
-  }: FetchEngagementParams): Promise<PostEngagement[]> {
-    const tweets = await this.getUserTweets({
-      userId: platformId,
-      startTime,
-      endTime,
-    });
-
-    return tweets.map((tweet) => {
-      const m = tweet.public_metrics;
-      const totalEngagements =
-        m.like_count + m.retweet_count + m.reply_count + m.quote_count;
-      const engagementRate =
-        m.impression_count > 0 ? totalEngagements / m.impression_count : 0;
-
-      return {
-        postId: tweet.id,
-        publishedAt: new Date(tweet.created_at),
-        title: tweet.text.slice(0, 200),
-        views: m.impression_count,
-        likes: m.like_count,
-        comments: m.reply_count + m.quote_count,
-        engagementRate,
-      };
-    });
   }
 }
