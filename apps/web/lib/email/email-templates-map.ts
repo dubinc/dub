@@ -1,4 +1,5 @@
 import BountyApproved from "@dub/email/templates/bounty-approved";
+import PayoutAutoWithdrawals from "@dub/email/templates/broadcasts/payout-auto-withdrawals";
 import StablecoinPayoutsAnnouncement from "@dub/email/templates/broadcasts/stablecoin-payouts-announcement";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
@@ -23,6 +24,7 @@ export const EMAIL_TEMPLATES_MAP = {
   PartnerGroupChanged,
 
   // special promo emails
+  PayoutAutoWithdrawals,
   StablecoinPayoutsAnnouncement,
   // ProgramMarketplaceAnnouncement,
   // DubPartnerRewind,

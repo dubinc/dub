@@ -1,7 +1,7 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { qstash } from "@/lib/cron";
-import { recomputePartnerPayoutState } from "@/lib/partners/api/recompute-partner-payout-state";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
+import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";

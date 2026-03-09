@@ -32,7 +32,7 @@ export default function UnresolvedFraudEventsSummary({
       count: 2,
       partner: {
         name: "Lauren Anderson",
-        image: `${OG_AVATAR_URL}/Lauren Anderson`,
+        image: `${OG_AVATAR_URL}Lauren Anderson`,
       },
     },
     {
@@ -41,7 +41,7 @@ export default function UnresolvedFraudEventsSummary({
       count: 1,
       partner: {
         name: "Charlie Anderson",
-        image: `${OG_AVATAR_URL}/Charlie Anderson`,
+        image: `${OG_AVATAR_URL}Charlie Anderson`,
       },
     },
   ],
@@ -72,6 +72,7 @@ export default function UnresolvedFraudEventsSummary({
 
   const displayedGroups = fraudGroups.slice(0, MAX_DISPLAYED_GROUPS);
   const remainingCount = fraudGroups.length - MAX_DISPLAYED_GROUPS;
+  const hiddenCount = Math.max(0, remainingCount);
 
   return (
     <Html>
@@ -95,79 +96,52 @@ export default function UnresolvedFraudEventsSummary({
             </Text>
 
             <Section className="my-6 rounded-xl border border-solid border-neutral-200 bg-white p-0">
-              <Row className="h-11 border-b border-solid border-neutral-200">
-                <Column width="50%" className="px-4">
-                  <Text className="m-0 text-sm font-semibold tracking-wide text-neutral-900">
-                    Event
-                  </Text>
-                </Column>
-                <Column width="40%" className="px-4">
-                  <Text className="m-0 text-sm font-semibold tracking-wide text-neutral-900">
-                    Partner
-                  </Text>
-                </Column>
-                <Column width="10%" className="px-4">
-                  <Text className="m-0 text-sm font-semibold tracking-wide text-neutral-900"></Text>
-                </Column>
-              </Row>
-
               {displayedGroups.map((group, index) => {
-                const isLastItem =
-                  index === displayedGroups.length - 1 && remainingCount === 0;
+                const isLastDisplayedItem =
+                  index === displayedGroups.length - 1;
+                const shouldShowBottomBorder = !isLastDisplayedItem;
                 return (
                   <Row
                     key={group.id}
-                    className={`h-11 border-solid border-neutral-200 ${
-                      isLastItem ? "" : "border-b"
+                    className={`border-solid border-neutral-200 ${
+                      shouldShowBottomBorder ? "border-b" : ""
                     }`}
                   >
-                    <Column width="50%" className="w-1/2 px-4" valign="middle">
+                    <Column className="px-3 py-3" valign="middle">
                       <Row>
-                        <Column width="auto" className="flex">
-                          <Text className="m-0 text-sm font-medium text-neutral-600">
-                            {group.name}
-                          </Text>
-
-                          <div>
-                            {group.count > 1 && (
-                              <Text className="m-0 ml-2 rounded-md bg-neutral-100 px-1.5 py-0.5 text-xs font-semibold text-neutral-700">
-                                {group.count}
-                              </Text>
-                            )}
-                          </div>
-                        </Column>
-                      </Row>
-                    </Column>
-
-                    <Column width="50%" className="w-1/2 px-4" valign="middle">
-                      <Row>
-                        <Column width="auto">
-                          <Img
-                            src={
-                              group.partner.image ||
-                              `${OG_AVATAR_URL}${group.partner.name}`
-                            }
-                            width={20}
-                            height={20}
-                            alt={group.partner.name}
+                        <Column width="32" valign="middle">
+                            <Img
+                              src={
+                                group.partner.image ||
+                                `${OG_AVATAR_URL}${group.partner.name}`
+                              }
+                              width={32}
+                              height={32}
+                              alt={group.partner.name}
                             className="rounded-full"
                           />
                         </Column>
 
-                        <Column width="auto">
-                          <Text className="m-0 ml-1 text-sm font-medium text-neutral-600">
+                        <Column className="pl-2 pt-1" valign="middle">
+                          <Text className="m-0 text-sm font-medium leading-[16px] text-neutral-800">
                             {group.partner.name}
                           </Text>
+
+                          <div className="mt-0">
+                            <span className="m-0 inline text-xs font-medium text-neutral-500">
+                              {group.name}
+                            </span>
+                            {group.count > 1 && (
+                              <span className="m-0 ml-1 inline rounded-md bg-neutral-100 px-1 py-0 text-xs font-semibold text-neutral-700">
+                                {group.count}
+                              </span>
+                            )}
+                          </div>
                         </Column>
 
-                        <Column
-                          width="10%"
-                          className="px-4"
-                          align="right"
-                          valign="middle"
-                        >
+                        <Column align="right" valign="middle">
                           <Link
-                            className="rounded-lg border border-solid border-neutral-300 bg-white px-2.5 py-1.5 text-sm font-medium text-neutral-700 no-underline"
+                            className="inline-block rounded-lg border border-solid border-neutral-300 bg-white px-2.5 py-1.5 text-sm font-medium text-neutral-800 no-underline"
                             href={`https://app.dub.co/${workspace.slug}/program/fraud?groupId=${group.id}`}
                           >
                             View
@@ -179,7 +153,7 @@ export default function UnresolvedFraudEventsSummary({
                 );
               })}
 
-              {remainingCount > 0 && (
+              {hiddenCount > 0 && (
                 <Row className="h-11 rounded-b-xl border-t border-solid border-neutral-200 bg-neutral-50">
                   <Column
                     className="px-4"
@@ -188,7 +162,7 @@ export default function UnresolvedFraudEventsSummary({
                     colSpan={2}
                   >
                     <Text className="m-0 text-sm font-medium text-neutral-600">
-                      Plus {remainingCount} more
+                      Plus {hiddenCount} more
                     </Text>
                   </Column>
                 </Row>
@@ -200,7 +174,7 @@ export default function UnresolvedFraudEventsSummary({
                 href={`https://app.dub.co/${workspace.slug}/program/fraud`}
                 className="box-border block w-full rounded-md bg-black px-4 py-3 text-center text-sm font-medium leading-none text-white no-underline"
               >
-                Review events
+                Review all events
               </Link>
             </Section>
 

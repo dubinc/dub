@@ -33,7 +33,8 @@ export const GET = withPartnerProfile(
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
-      toCentsNumber(totalCommissions) < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+      toCentsNumber(totalCommissions) <
+        LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
     ) {
       throw new DubApiError({
         code: "forbidden",

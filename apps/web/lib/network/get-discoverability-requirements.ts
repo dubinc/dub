@@ -1,10 +1,10 @@
+import { toCentsNumber } from "@dub/utils";
 import {
   EXCLUDED_PROGRAM_IDS,
   PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
 } from "../constants/partner-profile";
 import { PARTNER_PLATFORM_FIELDS } from "../partners/partner-platforms";
 import { EnrolledPartnerProps, PartnerProps } from "../types";
-import { toCentsNumber } from "@dub/utils";
 
 /** Program enrollments with totalCommissions as number | bigint (Prisma returns bigint). */
 export type ProgramEnrollmentsForDiscoverability = (Pick<
@@ -20,7 +20,8 @@ export const partnerHasEarnedCommissions = (
       (pe) =>
         !EXCLUDED_PROGRAM_IDS.includes(pe.programId) &&
         pe.status === "approved" &&
-        toCentsNumber(pe.totalCommissions) >= PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
+        toCentsNumber(pe.totalCommissions) >=
+          PARTNER_NETWORK_MIN_COMMISSIONS_CENTS,
     ).length >= 1
   );
 };

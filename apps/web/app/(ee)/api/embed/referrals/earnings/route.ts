@@ -1,6 +1,6 @@
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/constants/misc";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { generateRandomName } from "@/lib/names";
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
