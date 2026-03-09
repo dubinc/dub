@@ -25,7 +25,7 @@ const redisGlobalBase = new Redis({
 export const redisGlobal = new Proxy(redisGlobalBase, {
   get(target, prop) {
     const value = target[prop as keyof Redis];
-    if (typeof value === "function") {
+    if (prop === "get" && typeof value === "function") {
       return async (...args: unknown[]) => {
         try {
           return await (value as (...args: unknown[]) => unknown).apply(
