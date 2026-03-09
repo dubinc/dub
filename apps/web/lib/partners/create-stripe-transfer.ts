@@ -5,6 +5,7 @@ import {
 } from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
+import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -225,12 +226,22 @@ export const createStripeTransfer = async ({
     const emailRes = await sendEmail({
       variant: "notifications",
       to: partner.email,
-      subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
-      react: PartnerPayoutProcessed({
-        email: partner.email,
-        program: payout.program,
-        payout,
-      }),
+      subject: forceWithdrawal
+        ? `A withdrawal of ${currencyFormatter(totalTransferableAmount)} has been initiated from your Dub account`
+        : `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
+      react: forceWithdrawal
+        ? PartnerPayoutForceWithdrawal({
+            email: partner.email,
+            payout: {
+              amount: totalTransferableAmount,
+              method: "connect",
+            },
+          })
+        : PartnerPayoutProcessed({
+            email: partner.email,
+            program: payout.program,
+            payout,
+          }),
     });
 
     console.log(`Resend email sent: ${JSON.stringify(emailRes, null, 2)}`);
