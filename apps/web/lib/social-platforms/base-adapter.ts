@@ -1,3 +1,4 @@
+import { SocialContent } from "@/lib/types";
 import { PlatformType } from "@dub/prisma/client";
 
 export interface DailyEngagement {
@@ -30,6 +31,8 @@ export abstract class BasePlatformAdapter {
   abstract platform: PlatformType;
 
   abstract fetchPosts(params: FetchEngagementParams): Promise<PostEngagement[]>;
+
+  abstract fetchPost(url: string): Promise<SocialContent>;
 
   /**
    * Groups posts by calendar day (UTC) and aggregates metrics.

@@ -1,3 +1,4 @@
+import { SocialContent } from "@/lib/types";
 import { createFetch, createSchema } from "@better-fetch/fetch";
 import { PlatformType } from "@dub/prisma/client";
 import * as z from "zod/v4";
@@ -7,6 +8,10 @@ import {
   type PostEngagement,
 } from "./base-adapter";
 import { checkXApiRateLimit } from "./rate-limiter";
+import {
+  ScrapeCreatorsContentError,
+  scrapeCreatorsFetch,
+} from "./scrape-creators";
 
 const xPublicMetricsSchema = z.object({
   bookmark_count: z.number(),
@@ -122,8 +127,64 @@ export class XApiRateLimitError extends Error {
   }
 }
 
+const xContentSchema = z.object({
+  core: z.object({
+    user_results: z.object({
+      result: z.object({
+        core: z.object({
+          screen_name: z.string(),
+        }),
+      }),
+    }),
+  }),
+  views: z.object({
+    count: z
+      .string()
+      .nullable()
+      .transform((val) => (val == null ? 0 : Number(val))),
+  }),
+  legacy: z.object({
+    created_at: z.string(),
+    favorite_count: z
+      .number()
+      .nullable()
+      .transform((val) => val ?? 0),
+    full_text: z.string().optional(),
+  }),
+});
+
 export class XAdapter extends BasePlatformAdapter {
   platform: PlatformType = "twitter";
+
+  async fetchPost(url: string): Promise<SocialContent> {
+    const { data: raw, error } = await scrapeCreatorsFetch(
+      "/:version/:platform/:contentType",
+      {
+        params: { version: "v1", platform: "twitter", contentType: "tweet" },
+        query: { url },
+      },
+    );
+
+    if (error) {
+      throw new ScrapeCreatorsContentError(
+        error.status ?? 500,
+        error.statusText ?? "Unknown error",
+      );
+    }
+
+    const data = xContentSchema.parse(raw);
+
+    return {
+      publishedAt: new Date(data.legacy.created_at),
+      handle: data.core.user_results.result.core.screen_name,
+      platformId: null,
+      views: data.views.count,
+      likes: data.legacy.favorite_count,
+      title: null,
+      description: data.legacy.full_text ?? null,
+      thumbnailUrl: null,
+    };
+  }
 
   private async getUserTweets({
     userId,
