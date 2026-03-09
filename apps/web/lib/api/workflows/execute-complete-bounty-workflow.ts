@@ -79,17 +79,13 @@ export const executeCompleteBountyWorkflow = async ({
 
   const { groups, submissions: allPartnerSubmissions } = bounty;
 
-  const currentPeriodNumber = getCurrentPeriodNumber({
-    startsAt: bounty.startsAt,
-    endsAt: bounty.endsAt,
-    submissionFrequency: bounty.submissionFrequency,
-    maxSubmissions: bounty.maxSubmissions,
-  });
-
-  if (!currentPeriodNumber) {
-    console.log(`Bounty ${bounty.id} has no active submission period.`);
-    return;
-  }
+  const currentPeriodNumber =
+    getCurrentPeriodNumber({
+      startsAt: bounty.startsAt,
+      endsAt: bounty.endsAt,
+      submissionFrequency: bounty.submissionFrequency,
+      maxSubmissions: bounty.maxSubmissions,
+    }) ?? 1;
 
   const submissions = allPartnerSubmissions.filter(
     (s) => s.periodNumber === currentPeriodNumber,
