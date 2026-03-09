@@ -88,7 +88,8 @@ export function getCurrentPeriodNumber({
   }
 
   if (maxSubmissions < 2) {
-    return 1;
+    const end = endsAt ? new Date(endsAt) : null;
+    return end && now >= end ? null : 1;
   }
 
   // all periods open, caller picks

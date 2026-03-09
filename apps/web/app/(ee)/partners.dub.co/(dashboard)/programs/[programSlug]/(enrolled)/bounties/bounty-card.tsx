@@ -16,7 +16,7 @@ import {
   formatDateTimeSmart,
 } from "@dub/utils";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export function PartnerBountyCard({
   bounty,
@@ -30,11 +30,21 @@ export function PartnerBountyCard({
   showRewards?: boolean;
 }) {
   const { programSlug } = useParams();
+  const router = useRouter();
 
   return (
-    <Link
-      href={`/programs/${programSlug}/bounties/${bounty.id}`}
-      className="border-border-subtle group relative flex w-full flex-col overflow-hidden rounded-xl border bg-white text-left"
+    <div
+      role="link"
+      tabIndex={0}
+      onClick={() =>
+        router.push(`/programs/${programSlug}/bounties/${bounty.id}`)
+      }
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          router.push(`/programs/${programSlug}/bounties/${bounty.id}`);
+        }
+      }}
+      className="border-border-subtle group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-white text-left"
     >
       <div className="p-3 pb-0">
         <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100">
@@ -83,7 +93,7 @@ export function PartnerBountyCard({
           />
         </div>
       )}
-    </Link>
+    </div>
   );
 }
 

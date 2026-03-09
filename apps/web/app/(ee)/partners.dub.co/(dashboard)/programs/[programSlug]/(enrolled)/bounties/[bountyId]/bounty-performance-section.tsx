@@ -236,7 +236,7 @@ const PAGE_SIZE = 5;
 function usePaginationState() {
   const [page, setPage] = useState(1);
   const pagination = useMemo(
-    () => ({ pageIndex: page, pageSize: PAGE_SIZE }),
+    () => ({ pageIndex: page - 1, pageSize: PAGE_SIZE }),
     [page],
   );
 
@@ -249,7 +249,7 @@ function usePaginationState() {
         }),
   ) => {
     const next = typeof updater === "function" ? updater(pagination) : updater;
-    setPage(next.pageIndex);
+    setPage(next.pageIndex + 1);
   };
 
   return { page, pagination, onPaginationChange };

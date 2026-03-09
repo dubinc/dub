@@ -4,15 +4,37 @@ import { Check2 } from "@dub/ui";
 
 export function getBountySubmissionRequirements(bounty: PartnerBountyProps) {
   const bountyInfo = resolveBountyDetails(bounty);
+  const requirements: string[] = [];
 
-  if (!bountyInfo?.hasSocialMetrics || !bountyInfo.socialPlatform) {
-    return [];
+  const reqs = bounty.submissionRequirements;
+
+  if (reqs?.image) {
+    requirements.push(
+      reqs.image.max
+        ? `Submit up to ${reqs.image.max} image${reqs.image.max === 1 ? "" : "s"}`
+        : "Submit an image",
+    );
   }
 
-  return [
-    `Submit a ${bountyInfo.socialPlatform.label} link from your connected account`,
-    "The content shared is posted after this bounty started",
-  ];
+  if (reqs?.url) {
+    requirements.push(
+      reqs.url.max
+        ? `Submit up to ${reqs.url.max} URL${reqs.url.max === 1 ? "" : "s"}`
+        : "Submit a URL",
+    );
+    if (reqs.url.domains?.length) {
+      requirements.push(`URL must be from: ${reqs.url.domains.join(", ")}`);
+    }
+  }
+
+  if (bountyInfo?.hasSocialMetrics && bountyInfo.socialPlatform) {
+    requirements.push(
+      `Submit a ${bountyInfo.socialPlatform.label} link from your connected account`,
+      "The content shared is posted after this bounty started",
+    );
+  }
+
+  return requirements;
 }
 
 export function BountySubmissionRequirements({

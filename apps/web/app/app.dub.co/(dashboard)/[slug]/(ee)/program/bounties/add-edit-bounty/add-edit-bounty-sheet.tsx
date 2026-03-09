@@ -436,13 +436,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                             content={
                               allowedSubmissions === 1
                                 ? "Increase allowed submissions to 2 or more to use submission frequency."
-                                : undefined
+                                : maxAllowedSubmissions < 2
+                                  ? "The selected date range is too short for submission frequency."
+                                  : undefined
                             }
                           >
                             <div
                               className={cn(
                                 "flex items-center gap-4 transition-opacity",
-                                allowedSubmissions === 1 && "opacity-30",
+                                (allowedSubmissions === 1 ||
+                                  maxAllowedSubmissions < 2) &&
+                                  "opacity-30",
                               )}
                             >
                               <Switch
@@ -451,7 +455,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 trackDimensions="w-8 h-4"
                                 thumbDimensions="w-3 h-3"
                                 thumbTranslate="translate-x-4"
-                                disabled={allowedSubmissions === 1}
+                                disabled={
+                                  allowedSubmissions === 1 ||
+                                  maxAllowedSubmissions < 2
+                                }
                               />
                               <Label>Submission frequency</Label>
                             </div>

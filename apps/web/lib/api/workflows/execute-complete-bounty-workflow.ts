@@ -1,4 +1,5 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
+import { getCurrentPeriodNumber } from "@/lib/bounty/periods";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
@@ -76,7 +77,23 @@ export const executeCompleteBountyWorkflow = async ({
     return;
   }
 
-  const { groups, submissions } = bounty;
+  const { groups, submissions: allPartnerSubmissions } = bounty;
+
+  const currentPeriodNumber = getCurrentPeriodNumber({
+    startsAt: bounty.startsAt,
+    endsAt: bounty.endsAt,
+    submissionFrequency: bounty.submissionFrequency,
+    maxSubmissions: bounty.maxSubmissions,
+  });
+
+  if (!currentPeriodNumber) {
+    console.log(`Bounty ${bounty.id} has no active submission period.`);
+    return;
+  }
+
+  const submissions = allPartnerSubmissions.filter(
+    (s) => s.periodNumber === currentPeriodNumber,
+  );
 
   // If the bounty is part of a group, check if the partner is in the group
   if (groups.length > 0) {
@@ -123,7 +140,7 @@ export const executeCompleteBountyWorkflow = async ({
       bountyId_partnerId_periodNumber: {
         bountyId,
         partnerId,
-        periodNumber: 1,
+        periodNumber: currentPeriodNumber,
       },
     },
     create: {
@@ -131,6 +148,7 @@ export const executeCompleteBountyWorkflow = async ({
       programId: bounty.programId,
       partnerId,
       bountyId: bounty.id,
+      periodNumber: currentPeriodNumber,
       status: "draft",
       performanceCount,
     },

@@ -447,7 +447,9 @@ function BountySubmissionDetailsSheetContent({
                 )}
 
                 {bountyInfo?.hasSocialMetrics &&
-                  ["draft", "submitted"].includes(submission.status) && (
+                  ["draft", "submitted", "approved"].includes(
+                    submission.status,
+                  ) && (
                     <BountySocialMetricsRewardsTable
                       bounty={bounty}
                       submission={submission}

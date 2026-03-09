@@ -46,33 +46,44 @@ export function BountySubmissionsTable({
     ColumnDef<SubmissionPeriod<PartnerBountySubmission>>[]
   >(
     () => [
-      {
-        id: "submission",
-        header: "Submission",
-        minSize: 200,
-        cell: ({ row: { original } }) => {
-          const config = BOUNTY_SUBMISSION_STATUS_BADGES[original.status];
-          const label =
-            original.status === "submitted" ? "Pending review" : config?.label;
+      ...(showSubmissionColumn
+        ? [
+            {
+              id: "submission",
+              header: "Submission",
+              minSize: 200,
+              cell: ({
+                row: { original },
+              }: {
+                row: { original: SubmissionPeriod<PartnerBountySubmission> };
+              }) => {
+                const config = BOUNTY_SUBMISSION_STATUS_BADGES[original.status];
+                const label =
+                  original.status === "submitted"
+                    ? "Pending review"
+                    : config?.label;
 
-          return (
-            <div className="flex items-center gap-3">
-              {showSubmissionColumn && (
-                <span className="min-w-[52px] text-sm font-medium leading-5 tracking-[-0.28px] text-neutral-600">
-                  {original.label}
-                </span>
-              )}
-              {config && (
-                <span className="sm:hidden">
-                  <StatusBadge variant={config.variant} icon={config.icon}>
-                    {label}
-                  </StatusBadge>
-                </span>
-              )}
-            </div>
-          );
-        },
-      },
+                return (
+                  <div className="flex items-center gap-3">
+                    <span className="min-w-[52px] text-sm font-medium leading-5 tracking-[-0.28px] text-neutral-600">
+                      {original.label}
+                    </span>
+                    {config && (
+                      <span className="sm:hidden">
+                        <StatusBadge
+                          variant={config.variant}
+                          icon={config.icon}
+                        >
+                          {label}
+                        </StatusBadge>
+                      </span>
+                    )}
+                  </div>
+                );
+              },
+            } satisfies ColumnDef<SubmissionPeriod<PartnerBountySubmission>>,
+          ]
+        : []),
       {
         id: "status",
         header: "Status",
@@ -173,7 +184,13 @@ export function BountySubmissionsTable({
     [bounty, showSubmissionColumn],
   );
 
-  const MOBILE_HIDDEN = new Set(["status", "submitted", "reviewed"]);
+  // When there is no "submission" column (single-submission bounty), the
+  // "status" column must be visible on mobile too since nothing else shows it.
+  const MOBILE_HIDDEN = new Set(
+    showSubmissionColumn
+      ? ["status", "submitted", "reviewed"]
+      : ["submitted", "reviewed"],
+  );
 
   const table = useTable({
     data: periods,

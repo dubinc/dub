@@ -6,6 +6,7 @@ import {
   BOUNTY_DESCRIPTION_MAX_LENGTH,
   BOUNTY_MAX_SUBMISSIONS,
 } from "@/lib/bounty/constants";
+import { addFrequency } from "@/lib/bounty/periods";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -213,6 +214,16 @@ export function useAddEditBountyForm({
 
   const handleSubmissionFrequencyToggle = (checked: boolean) => {
     if (checked) {
+      if (allowedSubmissions < 2) {
+        setAllowedSubmissions(2);
+        setValue("maxSubmissions", 2, { shouldDirty: true });
+      }
+
+      if (submissionWindow != null) {
+        setSubmissionWindow(null);
+        setValue("submissionsOpenAt", null, { shouldDirty: true });
+      }
+
       setSubmissionFrequency(BountySubmissionFrequency.day);
       setValue("submissionFrequency", BountySubmissionFrequency.day, {
         shouldDirty: true,
@@ -248,26 +259,19 @@ export function useAddEditBountyForm({
 
     const start = startsAt ? new Date(startsAt) : new Date();
     const end = new Date(endsAt);
-    const diffMs = end.getTime() - start.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    let computed: number;
-    switch (submissionFrequency) {
-      case BountySubmissionFrequency.day:
-        computed = diffDays;
-        break;
-      case BountySubmissionFrequency.week:
-        computed = Math.floor(diffDays / 7);
-        break;
-      case BountySubmissionFrequency.month:
-        computed = Math.floor(diffDays / 30);
-        break;
-      default:
-        computed = BOUNTY_MAX_SUBMISSIONS;
+    let count = 0;
+    for (let i = 0; i < BOUNTY_MAX_SUBMISSIONS; i++) {
+      const periodStart = addFrequency({
+        date: start,
+        frequency: submissionFrequency,
+        amount: i,
+      });
+      if (periodStart >= end) break;
+      count++;
     }
 
-    // Minimum of 2 when frequency is active since frequency requires allowedSubmissions > 1
-    return Math.min(BOUNTY_MAX_SUBMISSIONS, Math.max(2, computed));
+    return count;
   }, [submissionFrequency, startsAt, endsAt]);
 
   useEffect(() => {

@@ -53,7 +53,7 @@ function getBountyBadgeState(
       ? (bounty.submissions?.[0]?.performanceCount ?? 0) >=
         (bounty.performanceCondition?.value ?? 0)
       : (bounty.submissions?.filter((s) => s.status !== "draft").length ?? 0) >=
-        bounty.maxSubmissions;
+        (bounty.maxSubmissions ?? 1);
 
   if (isCompleted) {
     return {

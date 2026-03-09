@@ -498,10 +498,11 @@ describe.sequential(
     });
 
     test("PATCH /bounties/{bountyId} - submissionFrequency requires endsAt on the bounty", async () => {
-      await http.patch({
+      const { status: clearStatus } = await http.patch({
         path: `/bounties/${bountyId}`,
         body: { endsAt: null },
       });
+      expect(clearStatus).toEqual(200);
 
       const { status, data } = await http.patch({
         path: `/bounties/${bountyId}`,

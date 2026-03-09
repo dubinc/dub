@@ -77,7 +77,7 @@ export function SubmissionBountyProgress({
         wrapperClassName={wrapperClassName}
       >
         <EmphasisNumber>{submittedCount}</EmphasisNumber> of{" "}
-        <EmphasisNumber>{bounty.maxSubmissions}</EmphasisNumber> submitted
+        <EmphasisNumber>{maxSubmissions}</EmphasisNumber> submitted
       </BountyProgressBarRow>
       <BountyProgressBarRow
         progress={approvedPercent}

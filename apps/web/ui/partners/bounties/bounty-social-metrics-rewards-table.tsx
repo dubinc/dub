@@ -24,6 +24,14 @@ const displayStatusMap = {
     label: "In progress",
     variant: "pending",
   },
+  draft: {
+    label: "Draft",
+    variant: "pending",
+  },
+  rejected: {
+    label: "Rejected",
+    variant: "error",
+  },
 };
 
 interface SubmissionForRewards {
@@ -46,6 +54,14 @@ function getDisplayStatus(
     submission.commission.earnings != null
   ) {
     return "approved";
+  }
+
+  if (submission.status === "draft") {
+    return "draft";
+  }
+
+  if (submission.status === "rejected") {
+    return "rejected";
   }
 
   return "pending";

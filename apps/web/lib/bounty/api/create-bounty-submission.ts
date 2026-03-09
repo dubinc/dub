@@ -146,23 +146,23 @@ export class BountySubmissionHandler {
     }
 
     // Multi-submission WITH frequency — time-gated
+    const currentPeriod = getCurrentPeriodNumber({
+      startsAt: this.bounty.startsAt,
+      endsAt: this.bounty.endsAt,
+      submissionFrequency: this.bounty.submissionFrequency,
+      maxSubmissions: this.bounty.maxSubmissions,
+    });
+
     let periodNumber: number;
 
     if (this.periodNumber) {
       periodNumber = this.periodNumber;
     } else {
-      const current = getCurrentPeriodNumber({
-        startsAt: this.bounty.startsAt,
-        endsAt: this.bounty.endsAt,
-        submissionFrequency: this.bounty.submissionFrequency,
-        maxSubmissions: this.bounty.maxSubmissions,
-      });
-
-      if (!current) {
+      if (!currentPeriod) {
         throw new Error("No active submission period for this bounty.");
       }
 
-      periodNumber = current;
+      periodNumber = currentPeriod;
     }
 
     if (periodNumber < 1 || periodNumber > this.bounty.maxSubmissions) {
@@ -178,6 +178,10 @@ export class BountySubmissionHandler {
 
     if (new Date() < periodStart) {
       throw new Error("This submission period hasn't started yet.");
+    }
+
+    if (currentPeriod && periodNumber < currentPeriod) {
+      throw new Error("This submission period has already closed.");
     }
 
     this.finalPeriodNumber = periodNumber;
@@ -203,6 +207,16 @@ export class BountySubmissionHandler {
     const bountyInfo = resolveBountyDetails(this.bounty);
 
     if (existingSubmission) {
+      if (
+        existingSubmission.reviewedAt ||
+        existingSubmission.status === "approved" ||
+        existingSubmission.status === "rejected"
+      ) {
+        throw new Error(
+          `You already have a ${existingSubmission.status} submission for this period.`,
+        );
+      }
+
       if (
         existingSubmission.status !== "draft" &&
         !bountyInfo?.hasSocialMetrics
@@ -555,7 +569,7 @@ export class BountySubmissionHandler {
                   id: partner.id,
                   name: partner.name,
                   image: partner.image,
-                  email: partner.email!,
+                  email: partner.email ?? "",
                 },
                 submission: {
                   id: submission.id,
