@@ -227,6 +227,13 @@ export const BountySubmissionSchema = z.object({
     .string()
     .nullable()
     .meta({ description: "The note for rejecting the submission" }),
+  fraudRiskLevel: z
+    .string()
+    .nullable()
+    .meta({ description: "The fraud risk level of the submission" }),
+  fraudFlags: z.array(z.string()).nullable().default([]).meta({
+    description: "The fraud flags triggered for the submission",
+  }),
 });
 
 export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({

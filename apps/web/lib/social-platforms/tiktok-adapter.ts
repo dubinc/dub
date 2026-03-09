@@ -59,9 +59,7 @@ export class TikTokAdapter extends BasePlatformAdapter {
 
     // TikTok response wraps content in aweme_detail
     const unwrapped =
-      typeof raw === "object" &&
-      raw !== null &&
-      "aweme_detail" in (raw as any)
+      typeof raw === "object" && raw !== null && "aweme_detail" in (raw as any)
         ? (raw as any).aweme_detail
         : raw;
 

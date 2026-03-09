@@ -39,7 +39,10 @@ export const POST = async (req: Request) => {
 
   try {
     const body = await req.json().catch(() => {
-      throw new DubApiError({ code: "bad_request", message: "Invalid JSON body." });
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid JSON body.",
+      });
     });
     const { url, delay } = schema.parse(body);
     const normalizedUrl = new URL(url).toString();
