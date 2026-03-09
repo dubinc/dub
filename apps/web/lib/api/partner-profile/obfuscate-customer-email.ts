@@ -17,8 +17,12 @@ export function obfuscateCustomerEmail(email: string): string {
   const dotIndex = domain.indexOf(".");
   const domainName = dotIndex >= 0 ? domain.slice(0, dotIndex) : domain;
   const tld = dotIndex >= 0 ? domain.slice(dotIndex) : "";
-  const localAsterisks = approximateAsteriskCount(local.charCodeAt(0) + local.length);
-  const domainAsterisks = approximateAsteriskCount(domainName.charCodeAt(0) + domainName.length);
+  const localAsterisks = approximateAsteriskCount(
+    local.charCodeAt(0) + local.length,
+  );
+  const domainAsterisks = approximateAsteriskCount(
+    domainName.charCodeAt(0) + domainName.length,
+  );
   return (
     local[0] +
     "*".repeat(localAsterisks) +

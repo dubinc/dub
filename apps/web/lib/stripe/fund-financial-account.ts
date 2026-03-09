@@ -44,6 +44,7 @@ export async function fundFinancialAccount({
     prettyPrint(data),
   );
 
+  // small delay to make sure the funds are fully available in the financial account
   await new Promise((resolve) => setTimeout(resolve, 1000));
 
   return data;

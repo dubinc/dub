@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/auth";
+import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
 import { paypalOAuthProvider } from "@/lib/paypal/oauth";
 import { sendEmail } from "@dub/email";
 import ConnectedPaypalAccount from "@dub/email/templates/connected-paypal-account";
@@ -65,15 +66,20 @@ export const GET = async (req: Request) => {
       },
     });
 
+    const { payoutsEnabledAt, defaultPayoutMethod } =
+      await recomputePartnerPayoutState({
+        ...partner,
+        paypalEmail: paypalUser.email,
+      });
+
     const updatedPartner = await prisma.partner.update({
       where: {
         id: defaultPartnerId,
       },
       data: {
         paypalEmail: paypalUser.email,
-        ...(!partner.payoutsEnabledAt && {
-          payoutsEnabledAt: new Date(),
-        }),
+        payoutsEnabledAt,
+        defaultPayoutMethod,
       },
     });
 

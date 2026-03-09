@@ -74,6 +74,8 @@ export async function getPartners(filters: PartnerFilters) {
     id: partner.id,
     createdAt: new Date(programEnrollment.createdAt),
     links,
-    netRevenue: toCentsNumber(programEnrollment.totalSaleAmount ?? 0) - toCentsNumber(programEnrollment.totalCommissions ?? 0),
+    netRevenue:
+      toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
+      toCentsNumber(programEnrollment.totalCommissions ?? 0),
   }));
 }
