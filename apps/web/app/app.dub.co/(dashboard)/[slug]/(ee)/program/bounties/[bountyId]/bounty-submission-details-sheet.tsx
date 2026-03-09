@@ -446,12 +446,13 @@ function BountySubmissionDetailsSheetContent({
                   </div>
                 )}
 
-                {bountyInfo?.hasSocialMetrics && bounty && (
-                  <BountySocialMetricsRewardsTable
-                    bounty={bounty}
-                    submission={submission}
-                  />
-                )}
+                {bountyInfo?.hasSocialMetrics &&
+                  ["draft", "submitted"].includes(submission.status) && (
+                    <BountySocialMetricsRewardsTable
+                      bounty={bounty}
+                      submission={submission}
+                    />
+                  )}
 
                 {Boolean(submission.files?.length) && (
                   <div>
