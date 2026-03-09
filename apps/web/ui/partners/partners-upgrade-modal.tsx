@@ -109,7 +109,7 @@ export function PartnersUpgradeModal({
           },
           {
             id: "partnergroups",
-            text: `${plan.limits.groups} partner groups`,
+            text: `${plan.limits.groups < INFINITY_NUMBER ? plan.limits.groups : "Unlimited"} partner groups`,
             tooltip: {
               title:
                 "Learn how you can create partner groups to segment partners by rewards, discounts, performance, location, and more.",

@@ -12,7 +12,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 export function PayoutRowMenu({ row }: { row: Row<PartnerPayoutResponse> }) {
-  const { payoutMethod } = usePartnerProfile();
+  const { partner } = usePartnerProfile();
   const [isOpen, setIsOpen] = useState(false);
 
   const { executeAsync: executeRetryPayout, isPending: isRetryPayoutPending } =
@@ -42,7 +42,8 @@ export function PayoutRowMenu({ row }: { row: Row<PartnerPayoutResponse> }) {
   });
 
   const canRetry =
-    row.original.status === "failed" && payoutMethod === "paypal";
+    row.original.status === "failed" &&
+    partner?.defaultPayoutMethod === "paypal";
 
   if (!canRetry) {
     return null;

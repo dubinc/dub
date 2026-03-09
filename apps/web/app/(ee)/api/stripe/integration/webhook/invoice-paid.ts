@@ -233,6 +233,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       context: {
         customer: {
           country: customer.country,
+          signupDate: customer.createdAt,
         },
         sale: {
           productId: invoice.lines.data[0]?.pricing?.price_details?.product,

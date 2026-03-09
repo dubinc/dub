@@ -40,8 +40,7 @@ const AddDiscountCodeModal = ({
   const formRef = useRef<HTMLFormElement>(null);
   const [debouncedSearch] = useDebounce(search, 500);
   const [, copyToClipboard] = useCopyToClipboard();
-  const { makeRequest: createDiscountCode, isSubmitting } =
-    useApiMutation<DiscountCodeProps>();
+  const { makeRequest, isSubmitting } = useApiMutation<DiscountCodeProps>();
 
   const { register, handleSubmit, setValue, watch } = useForm<FormData>({
     defaultValues: {
@@ -75,7 +74,7 @@ const AddDiscountCodeModal = ({
   }, [partnerLinks, debouncedSearch]);
 
   const onSubmit = async (formData: FormData) => {
-    await createDiscountCode("/api/discount-codes", {
+    await makeRequest("/api/discount-codes", {
       method: "POST",
       body: {
         ...formData,

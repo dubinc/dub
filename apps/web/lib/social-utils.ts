@@ -1,4 +1,5 @@
 import { PlatformType } from "@dub/prisma/client";
+import { getUrlFromStringIfValid } from "@dub/utils";
 
 interface SocialPlatformConfig {
   patterns: RegExp[];
@@ -54,17 +55,9 @@ export const sanitizeWebsite = (input: string | null | undefined) => {
 
   let website = input.trim();
   if (!website) return null;
+  if (!website.includes(".") || website.includes(" ")) return null;
 
-  if (!website.startsWith("http")) website = `https://${website}`;
-
-  try {
-    const url = new URL(website);
-    url.search = "";
-
-    return url.toString();
-  } catch (e) {
-    return null;
-  }
+  return getUrlFromStringIfValid(website);
 };
 
 export const sanitizeSocialHandle = (
@@ -80,9 +73,14 @@ export const sanitizeSocialHandle = (
     return null;
   }
 
-  handle = handle.replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+  handle = handle
+    .replace(/^https?:\/\//i, "")
+    .replace(/^https?$/i, "") // standalone "http" or "https"
+    .replace(/^www\./i, "") // www. prefix
+    .replace(/\?.*$/, "") // query params (e.g. ?s=21&t=...)
+    .replace(/#.*$/, ""); // hash/fragment (e.g. #section)
 
-  const { patterns, allowedChars, maxLength } =
+  const { patterns, allowedChars, allowedDomains, maxLength } =
     SOCIAL_PLATFORM_CONFIGS[platform];
 
   for (const pattern of patterns) {
@@ -94,10 +92,7 @@ export const sanitizeSocialHandle = (
     }
   }
 
-  handle = handle
-    .replace(/\/.*$/, "")
-    .replace(/\?.*$/, "")
-    .replace(allowedChars, "");
+  handle = handle.replace(/\/.*$/, "").replace(allowedChars, "");
 
   if (maxLength) {
     handle = handle.substring(0, maxLength);

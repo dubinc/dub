@@ -1,5 +1,6 @@
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { CommissionType } from "@dub/prisma/client";
+import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -34,7 +36,8 @@ export const GET = withPartnerProfile(
 
     if (
       LARGE_PROGRAM_IDS.includes(program.id) &&
-      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+      toCentsNumber(totalCommissions) <
+        LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
     ) {
       throw new DubApiError({
         code: "forbidden",
@@ -94,7 +97,7 @@ export const GET = withPartnerProfile(
           email: customer.email
             ? customerDataSharingEnabledAt
               ? customer.email
-              : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+              : obfuscateCustomerEmail(customer.email)
             : customer.name || generateRandomName(),
         }),
         activity: {

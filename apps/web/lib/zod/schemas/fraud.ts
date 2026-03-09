@@ -228,6 +228,22 @@ export const updateFraudRuleSettingsSchema = z.object({
       return data;
     })
     .optional(),
+
+  // Customer email match rule (toggle-only)
+  customerEmailMatch: z
+    .object({
+      resolvePendingEvents: z.boolean().default(false),
+      enabled: z.boolean(),
+    })
+    .optional(),
+
+  // Customer email suspicious domain rule (toggle-only)
+  customerEmailSuspiciousDomain: z
+    .object({
+      resolvePendingEvents: z.boolean().default(false),
+      enabled: z.boolean(),
+    })
+    .optional(),
 });
 
 export const fraudEventSchemas = {

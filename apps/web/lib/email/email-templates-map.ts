@@ -1,8 +1,8 @@
 import BountyApproved from "@dub/email/templates/bounty-approved";
-import ProgramMarketplaceAnnouncement from "@dub/email/templates/broadcasts/program-marketplace-announcement";
+import PayoutAutoWithdrawals from "@dub/email/templates/broadcasts/payout-auto-withdrawals";
+import StablecoinPayoutsAnnouncement from "@dub/email/templates/broadcasts/stablecoin-payouts-announcement";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
-import DubPartnerRewind from "@dub/email/templates/dub-partner-rewind";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import PartnerGroupChanged from "@dub/email/templates/partner-group-changed";
@@ -24,6 +24,8 @@ export const EMAIL_TEMPLATES_MAP = {
   PartnerGroupChanged,
 
   // special promo emails
-  ProgramMarketplaceAnnouncement,
-  DubPartnerRewind,
+  PayoutAutoWithdrawals,
+  StablecoinPayoutsAnnouncement,
+  // ProgramMarketplaceAnnouncement,
+  // DubPartnerRewind,
 } as const;

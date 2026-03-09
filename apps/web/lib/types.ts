@@ -1,6 +1,7 @@
 import {
   PartnerBountySchema,
   PartnerEarningsSchema,
+  partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
   partnerReferralsCountByStatusSchema,
@@ -15,6 +16,7 @@ import {
   FraudRuleType,
   Link,
   PartnerGroup,
+  PartnerPayoutMethod,
   PartnerReferral,
   PartnerRole,
   PayoutStatus,
@@ -175,16 +177,18 @@ import {
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
-export type LinkProps = Link;
+export type LinkProps = Omit<Link, "saleAmount"> & {
+  saleAmount: number;
+};
 
 // used on client side (e.g. Link builder)
 // TODO: standardize this with ExpandedLink
-export interface ExpandedLinkProps extends LinkProps {
+export type ExpandedLinkProps = LinkProps & {
   tags: TagProps[];
   webhookIds: string[];
   dashboardId: string | null;
   user?: UserProps;
-}
+};
 
 export interface SimpleLinkProps {
   domain: string;
@@ -245,7 +249,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
 
-export type PartnerBetaFeatures = "postbacks";
+export type PartnerBetaFeatures = "postbacks" | "stablecoin";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -491,6 +495,7 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
   platforms: PartnerPlatformProps[];
+  defaultPayoutMethod: PartnerPayoutMethod | null;
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
@@ -501,6 +506,10 @@ export type PartnerProfileCustomerProps = z.infer<
 >;
 
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
+
+export type PartnerPayoutMethodSetting = z.infer<
+  typeof partnerPayoutMethodSchema
+>;
 
 export type PartnerProfileReferralsCountByStatus = z.infer<
   typeof partnerReferralsCountByStatusSchema

@@ -8,7 +8,8 @@ export const LinkSchema = LinkSchemaOld.extend({
   linkRetentionCleanupDisabledAt: z.null(),
 });
 
-export const expectedLink: Partial<Link> & {
+export const expectedLink: Omit<Partial<Link>, "saleAmount"> & {
+  saleAmount: number; // API coerces BigInt → number in response
   identifier: null;
   tagId: string | null;
   tags: [];

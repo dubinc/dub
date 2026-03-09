@@ -58,7 +58,7 @@ model Link {
   leads       Int     @default(0) // number of leads
   conversions Int     @default(0) // number of leads that converted to sales
   sales       Int     @default(0) // number of sales (includes recurring sales)
-  saleAmount  Int     @default(0) // total revenue from sales (in cents)
+  saleAmount  BigInt  @default(0) // total revenue from sales (in cents)
 
   lastClicked      DateTime? // when the link was last clicked
   lastLeadAt       DateTime? // when the link last brought in a new lead
@@ -83,6 +83,7 @@ model Link {
   programId                 String?
   program                   Program?                 @relation(fields: [programId], references: [id])
   partnerId                 String?
+  partner                   Partner?                 @relation(fields: [partnerId], references: [id])
   programEnrollment         ProgramEnrollment?       @relation(fields: [programId, partnerId], references: [programId, partnerId])
   partnerGroupDefaultLinkId String?
   partnerGroupDefaultLink   PartnerGroupDefaultLink? @relation(fields: [partnerGroupDefaultLinkId], references: [id])

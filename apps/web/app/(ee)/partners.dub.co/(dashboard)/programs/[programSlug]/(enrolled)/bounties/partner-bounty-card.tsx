@@ -29,15 +29,17 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
   const expiredBounty =
     bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
 
+  const submittedBounty =
+    bounty.submission &&
+    (bounty.submission.status !== "draft" ||
+      bounty.submissionRequirements?.socialMetrics);
+
   const handleCardClick = () => {
     if (expiredBounty) {
       return;
     }
 
-    const shouldOpenSheet =
-      bounty.submission && bounty.submission.status !== "draft";
-
-    if (shouldOpenSheet) {
+    if (submittedBounty) {
       setPartnerBountySubmissionDetailsSheetOpen(true);
     } else {
       setShowClaimBountyModal(true);
@@ -66,12 +68,14 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
         <button
           type="button"
           onClick={handleCardClick}
-          disabled={expiredBounty}
+          disabled={expiredBounty || bounty.type === "performance"}
           className={cn(
             "border-border-subtle group relative flex w-full cursor-pointer flex-col gap-2.5 overflow-hidden rounded-xl border bg-white p-3 text-left",
             expiredBounty
               ? "cursor-not-allowed"
-              : "hover:border-border-default transition-all hover:shadow-lg",
+              : bounty.type === "performance"
+                ? "cursor-default"
+                : "hover:border-border-default transition-all hover:shadow-lg",
           )}
         >
           <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100 py-3">
@@ -186,7 +190,8 @@ function renderSubmissionStatus({
 
   switch (submission.status) {
     case "draft":
-      return bounty.type === "performance" ? (
+      return bounty.type === "performance" ||
+        bounty.submissionRequirements?.socialMetrics ? (
         <BountyPerformance bounty={bounty} />
       ) : (
         <div

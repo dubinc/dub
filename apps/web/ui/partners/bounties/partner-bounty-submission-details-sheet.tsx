@@ -20,6 +20,7 @@ import {
   AccordionItem,
   AccordionTrigger,
   Button,
+  CopyButton,
   Sheet,
   StatusBadge,
 } from "@dub/ui";
@@ -28,6 +29,7 @@ import { formatDate, getPrettyUrl } from "@dub/utils";
 import Linkify from "linkify-react";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
+import { toast } from "sonner";
 
 interface PartnerBountySubmissionDetailsSheetProps {
   bounty: PartnerBountyProps;
@@ -91,13 +93,15 @@ function PartnerBountySubmissionDetailsSheetContent({
                 : "No end date"}
             </div>
             <BountyRewardDescription bounty={bounty} className="font-medium" />
-            <StatusBadge
-              variant={statusBadge.variant}
-              icon={statusBadge.icon}
-              className="w-fit rounded-lg py-1.5"
-            >
-              {statusLabelWithDate}
-            </StatusBadge>
+            {statusDate && (
+              <StatusBadge
+                variant={statusBadge.variant}
+                icon={statusBadge.icon}
+                className="w-fit rounded-lg py-1.5"
+              >
+                {statusLabelWithDate}
+              </StatusBadge>
+            )}
           </div>
 
           {/* Details accordion (only when there is content; open by default to match design) */}
@@ -148,21 +152,6 @@ function PartnerBountySubmissionDetailsSheetContent({
             </div>
           )}
 
-          {/* Submission section */}
-          {bounty?.type === "submission" && hasSocialContent && (
-            <div className="p-5">
-              <h2 className="text-base font-semibold text-neutral-900">
-                Submission
-              </h2>
-              <div className="mt-3">
-                <BountySocialContentPreview
-                  bounty={bounty}
-                  submission={submission}
-                />
-              </div>
-            </div>
-          )}
-
           {bounty?.type === "submission" &&
             bountyInfo?.hasSocialMetrics &&
             bounty && (
@@ -174,6 +163,100 @@ function PartnerBountySubmissionDetailsSheetContent({
                 />
               </div>
             )}
+
+          {/* Submission section */}
+          {bounty?.type === "submission" && (
+            <div className="p-5">
+              <h2 className="text-base font-semibold text-neutral-900">
+                Submission
+              </h2>
+              <div className="mt-3 flex flex-col gap-4">
+                {hasSocialContent && (
+                  <BountySocialContentPreview
+                    bounty={bounty}
+                    submission={submission}
+                  />
+                )}
+
+                {Boolean(submission.files?.length) && (
+                  <div>
+                    <h2 className="text-content-emphasis text-sm font-medium">
+                      Files
+                    </h2>
+                    <div className="mt-2 flex flex-wrap gap-4">
+                      {submission.files!.map((file, idx) => (
+                        <a
+                          key={idx}
+                          className="border-border-subtle hover:border-border-default group relative flex size-14 items-center justify-center rounded-md border bg-white"
+                          target="_blank"
+                          href={file.url}
+                          rel="noopener noreferrer"
+                        >
+                          <div className="relative size-full overflow-hidden rounded-md">
+                            <img src={file.url} alt="object-cover" />
+                          </div>
+                          <span className="sr-only">
+                            {file.fileName || `File ${idx + 1}`}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {Boolean(submission.urls?.length) && !hasSocialContent && (
+                  <div>
+                    <h2 className="text-content-emphasis text-sm font-medium">
+                      URLs
+                    </h2>
+                    <div className="mt-2 flex flex-col gap-2">
+                      {submission.urls?.map((url, idx) => (
+                        <div
+                          className="relative"
+                          key={`${submission.id}-${idx}-${url}`}
+                        >
+                          <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pl-10 pr-12">
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="block cursor-alias truncate text-sm font-normal text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                            >
+                              {url}
+                            </a>
+                          </div>
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-2.5">
+                            <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100 text-xs font-medium text-neutral-600">
+                              {idx + 1}
+                            </div>
+                          </div>
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                            <CopyButton
+                              value={url}
+                              onCopy={() => {
+                                toast.success("URL copied to clipboard!");
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {submission.description && (
+                  <div>
+                    <h2 className="text-content-emphasis text-sm font-medium">
+                      How did you complete this bounty?
+                    </h2>
+                    <span className="mt-2 whitespace-pre-wrap text-sm font-normal text-neutral-600">
+                      {submission.description}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {submission.status === "approved" && (
             <div className="mt-auto p-5 pt-2">
@@ -209,17 +292,15 @@ export function usePartnerBountySubmissionDetailsSheet(
   bounty: PartnerBountyProps | null,
 ) {
   const [isOpen, setIsOpen] = useState(false);
-  const canOpen = bounty?.submission && bounty.submission.status !== "draft";
 
   return {
-    partnerBountySubmissionDetailsSheet:
-      canOpen && bounty ? (
-        <PartnerBountySubmissionDetailsSheet
-          bounty={bounty}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-        />
-      ) : null,
+    partnerBountySubmissionDetailsSheet: bounty ? (
+      <PartnerBountySubmissionDetailsSheet
+        bounty={bounty}
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+      />
+    ) : null,
     setPartnerBountySubmissionDetailsSheetOpen: setIsOpen,
   };
 }

@@ -9,7 +9,7 @@ import { NewLinkProps } from "@/lib/types";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { getPrettyUrl } from "@dub/utils";
+import { getPrettyUrl, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
@@ -192,7 +192,7 @@ export const DELETE = withPartnerProfile(async ({ partner, params }) => {
   }
 
   // Check if link has any clicks, leads, or sales
-  if (link.clicks > 0 || link.leads > 0 || link.saleAmount > 0) {
+  if (link.clicks > 0 || link.leads > 0 || toCentsNumber(link.saleAmount) > 0) {
     throw new DubApiError({
       code: "bad_request",
       message:

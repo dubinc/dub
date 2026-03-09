@@ -19,6 +19,8 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { FraudCustomerEmailMatchSettings } from "./fraud-customer-email-match-settings";
+import { FraudCustomerEmailSuspiciousDomainSettings } from "./fraud-customer-email-suspicious-domain-settings";
 import { FraudPaidTrafficSettings } from "./fraud-paid-traffic-settings";
 import { FraudReferralSourceSettings } from "./fraud-referral-source-settings";
 
@@ -50,6 +52,12 @@ function ProgramFraudSettingsSheetContent({
         enabled: false,
         config: { platforms: [], google: { whitelistedCampaignIds: [] } },
       },
+      customerEmailMatch: {
+        enabled: true,
+      },
+      customerEmailSuspiciousDomain: {
+        enabled: true,
+      },
     },
   });
 
@@ -67,6 +75,14 @@ function ProgramFraudSettingsSheetContent({
 
     const paidTrafficDetectedRule = fraudRules.find(
       (rule) => rule.type === "paidTrafficDetected",
+    );
+
+    const customerEmailMatchRule = fraudRules.find(
+      (rule) => rule.type === "customerEmailMatch",
+    );
+
+    const customerEmailSuspiciousDomainRule = fraudRules.find(
+      (rule) => rule.type === "customerEmailSuspiciousDomain",
     );
 
     const paidTrafficConfig = (paidTrafficDetectedRule?.config ?? {}) as {
@@ -88,6 +104,12 @@ function ProgramFraudSettingsSheetContent({
               paidTrafficConfig.google?.whitelistedCampaignIds ?? [],
           },
         },
+      },
+      customerEmailMatch: {
+        enabled: customerEmailMatchRule?.enabled ?? true,
+      },
+      customerEmailSuspiciousDomain: {
+        enabled: customerEmailSuspiciousDomainRule?.enabled ?? true,
       },
     });
   }, [fraudRules, form]);
@@ -165,6 +187,10 @@ function ProgramFraudSettingsSheetContent({
             <div className="space-y-4">
               <FraudPaidTrafficSettings isConfigLoading={isLoading} />
               <FraudReferralSourceSettings isConfigLoading={isLoading} />
+              <FraudCustomerEmailMatchSettings isConfigLoading={isLoading} />
+              <FraudCustomerEmailSuspiciousDomainSettings
+                isConfigLoading={isLoading}
+              />
             </div>
           </div>
 

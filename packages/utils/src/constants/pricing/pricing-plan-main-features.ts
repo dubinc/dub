@@ -313,19 +313,29 @@ export const PRICING_PLAN_MAIN_FEATURES = {
         features: [
           ...getPartnersStandards(PLANS.find((p) => p.name === "Enterprise")!),
           {
-            id: "partners",
-            text: "Partner Network",
-            tooltip: {
-              title:
-                "Get access to our network of 5,000+ active affiliate partners.",
-            },
-          },
-          {
             id: "volume",
             text: "Volume discounts",
             tooltip: {
               title:
                 "Get access to volume discounts for payout fees and tracked events usage.",
+            },
+          },
+          {
+            id: "partnergroups",
+            text: "Access to Partner Network",
+            tooltip: {
+              title:
+                "Get access to our network of 10,000+ top affiliates to recruit from and grow your program.",
+            },
+          },
+          {
+            id: "partners",
+            text: "Featured in Program Marketplace",
+            tooltip: {
+              title:
+                "Get featured in front of our network of 500,000+ total affiliates and receive 10x more applications.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/program-marketplace",
             },
           },
           {

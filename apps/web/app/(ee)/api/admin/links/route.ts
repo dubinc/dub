@@ -1,3 +1,4 @@
+import { transformLink } from "@/lib/api/links";
 import { withAdmin } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { DUB_DOMAINS_ARRAY, LEGAL_USER_ID } from "@dub/utils";
@@ -80,10 +81,5 @@ export const GET = withAdmin(async ({ searchParams }) => {
     }),
   });
 
-  const links = response.map((link) => ({
-    ...link,
-    tags: link.tags.map(({ tag }) => tag),
-  }));
-
-  return NextResponse.json(links);
+  return NextResponse.json(response.map((link) => transformLink(link)));
 });

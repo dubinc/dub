@@ -1,11 +1,12 @@
 import { get } from "@vercel/edge-config";
 import { PartnerBetaFeatures } from "../types";
 
-type PartnerBetaFeaturesRecord = Record<PartnerBetaFeatures, string[]>;
+type PartnerBetaFeaturesRecord = Partial<Record<PartnerBetaFeatures, string[]>>;
 
 export const getPartnerFeatureFlags = async (partnerId: string) => {
   const partnerFeatures: Record<PartnerBetaFeatures, boolean> = {
     postbacks: false,
+    stablecoin: false,
   };
 
   // Return all features as true if edge config is not available
@@ -27,9 +28,10 @@ export const getPartnerFeatureFlags = async (partnerId: string) => {
     return partnerFeatures;
   }
 
-  // It should be in the format of { postbacks: ["pn_1", "pn_2"] }
+  // It should be in the format of
+  // { postbacks: ["pn_1", "pn_2"], stablecoin: ["pn_1"] }
   for (const [featureFlag, partnerIds] of Object.entries(betaFeatures)) {
-    if (partnerIds.includes(partnerId)) {
+    if (partnerIds?.includes(partnerId)) {
       partnerFeatures[featureFlag] = true;
     }
   }

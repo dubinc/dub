@@ -34,7 +34,7 @@ export const POST = withAxiom(async (req) => {
         // if ip address is present, check if there's a cached click
         console.log(`Checking cache for ${ip}:${dubDomain}:*`);
 
-        // Get all iOS click cache keys for this identity hash
+        // Get all iOS click cache keys for this IP address
         const [_, cacheKeysForDomain] = await redis.scan(0, {
           match: `deepLinkClickCache:${ip}:${dubDomain}:*`,
           count: 10,

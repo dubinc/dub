@@ -5,7 +5,7 @@ import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
-import { ProgramMarketplaceCard } from "@/ui/partners/program-marketplace/program-marketplace-card";
+import { ProgramsPromoCard } from "@/ui/partners/program-marketplace/programs-promo-card";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -374,7 +374,7 @@ export function PartnersSidebarNav({
           <ProgramHelpSupport />
         ) : (
           <>
-            <ProgramMarketplaceCard />
+            <ProgramsPromoCard />
             <PayoutStats />
           </>
         )

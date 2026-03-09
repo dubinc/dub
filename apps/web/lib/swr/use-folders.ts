@@ -21,7 +21,7 @@ export default function useFolders({
     isValidating,
     isLoading,
   } = useSWR<Folder[]>(
-    workspaceId && plan !== "free"
+    workspaceId
       ? `/api/folders${getQueryString(
           { workspaceId, ...query },
           { include: includeParams },

@@ -9,6 +9,8 @@ import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import {
   CONDITION_OPERATOR_LABELS,
   CONDITION_OPERATORS,
+  DATE_CONDITION_OPERATORS,
+  ENUM_CONDITION_OPERATORS,
   NUMBER_CONDITION_OPERATORS,
   REWARD_CONDITIONS,
   RewardConditionEntityAttribute,
@@ -21,6 +23,7 @@ import {
   Button,
   Check2,
   ChevronRight,
+  DatePicker,
   InvoiceDollar,
   MoneyBills2,
   Popover,
@@ -32,6 +35,7 @@ import {
   cn,
   COUNTRIES,
   currencyFormatter,
+  formatDate,
   pluralize,
   truncate,
 } from "@dub/utils";
@@ -253,6 +257,15 @@ const formatValue = (
     if (option) return option.label;
   }
 
+  // For date values, format timestamp as readable date + time
+  if (type === "date") {
+    if (!value || isNaN(Number(value))) {
+      return "Value";
+    }
+
+    return formatDate(new Date(Number(value)));
+  }
+
   // For numeric values, show the number as is
   if (["number", "currency"].includes(type)) {
     return type === "number"
@@ -391,10 +404,17 @@ function ConditionLogic({
                         },
                       )
                     }
-                    items={entity.attributes.map((attribute) => ({
-                      text: attribute.label,
-                      value: attribute.id,
-                    }))}
+                    items={entity.attributes
+                      .filter(
+                        (attribute) =>
+                          attribute.id !== "source" ||
+                          (program &&
+                            REFERRAL_ENABLED_PROGRAM_IDS.includes(program.id)),
+                      )
+                      .map((attribute) => ({
+                        text: attribute.label,
+                        value: attribute.id,
+                      }))}
                   />
                 </InlineBadgePopover>{" "}
                 {isCustomerSourceCondition ? (
@@ -426,9 +446,13 @@ function ConditionLogic({
                                 ? typeof condition.value !== "number"
                                   ? { value: "" }
                                   : null
-                                : typeof condition.value !== "string"
-                                  ? { value: "" }
-                                  : null),
+                                : attributeType === "date"
+                                  ? typeof condition.value !== "number"
+                                    ? { value: undefined }
+                                    : null
+                                  : typeof condition.value !== "string"
+                                    ? { value: "" }
+                                    : null),
                           },
                           {
                             shouldDirty: true,
@@ -437,7 +461,11 @@ function ConditionLogic({
                       }
                       items={(["number", "currency"].includes(attributeType)
                         ? NUMBER_CONDITION_OPERATORS
-                        : STRING_CONDITION_OPERATORS
+                        : attributeType === "enum"
+                          ? ENUM_CONDITION_OPERATORS
+                          : attributeType === "date"
+                            ? DATE_CONDITION_OPERATORS
+                            : STRING_CONDITION_OPERATORS
                       ).map((operator) => ({
                         text: CONDITION_OPERATOR_LABELS[operator],
                         value: operator,
@@ -447,136 +475,159 @@ function ConditionLogic({
                 )}{" "}
                 {condition.operator && (
                   <>
-                    <InlineBadgePopover
-                      text={formatValue(condition.value, attribute)}
-                      invalid={
-                        Array.isArray(condition.value)
-                          ? condition.value.filter(Boolean).length === 0
-                          : ["number", "currency"].includes(attributeType)
-                            ? condition.value === "" ||
-                              isNaN(Number(condition.value))
-                            : !condition.value
-                      }
-                      buttonClassName={cn(
-                        condition.attribute === "productId" && "rounded-r-none",
-                      )}
-                    >
-                      {/* Country selection */}
-                      {condition.attribute === "country" &&
-                      !["starts_with", "ends_with"].includes(
-                        condition.operator,
-                      ) ? (
-                        // Country selector
-                        <InlineBadgePopoverMenu
-                          search
-                          selectedValue={
-                            (condition.value as string[] | undefined) ??
-                            (isArrayValue ? [] : undefined)
-                          }
-                          items={Object.entries(COUNTRIES).map(
-                            ([key, name]) => ({
-                              text: name,
-                              value: key,
-                              icon: (
-                                <img
-                                  alt={`${key} flag`}
-                                  src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
-                                  className="size-3 shrink-0"
-                                />
-                              ),
-                            }),
-                          )}
-                          onSelect={(value) => {
-                            setValue(conditionKey, {
-                              ...condition,
-                              value: isArrayValue
-                                ? Array.isArray(condition.value)
-                                  ? (condition.value as string[]).includes(
-                                      value,
-                                    )
-                                    ? (condition.value.filter(
-                                        (v) => v !== value,
-                                      ) as string[])
-                                    : ([...condition.value, value] as string[])
-                                  : [value]
-                                : value,
-                            });
-                          }}
-                        />
-                      ) : attribute?.options &&
-                        !["starts_with", "ends_with"].includes(
-                          condition.operator,
-                        ) ? (
-                        // Select option selector
-                        <InlineBadgePopoverMenu
-                          search={attribute.options.length > 4}
-                          selectedValue={
-                            (condition.value as string[] | undefined) ??
-                            (isArrayValue ? [] : undefined)
-                          }
-                          items={attribute.options
-                            .filter(
-                              (attribute) =>
-                                isCustomerSourceCondition &&
-                                (attribute.id !== "submitted" ||
-                                  (program &&
-                                    REFERRAL_ENABLED_PROGRAM_IDS.includes(
-                                      program.id,
-                                    ))),
-                            )
-                            .map(({ id, label }) => ({
+                    {attributeType === "date" ? (
+                      <DatePicker
+                        value={
+                          condition.value
+                            ? new Date(condition.value as number)
+                            : undefined
+                        }
+                        onChange={(date) =>
+                          setValue(conditionKey, {
+                            ...condition,
+                            value: date ? date.getTime() : undefined,
+                          })
+                        }
+                        placeholder={condition.label || "Select date"}
+                        invalid={!condition.value}
+                        trigger={({ displayValue, placeholder, invalid }) => (
+                          <button
+                            type="button"
+                            className={cn(
+                              "inline-block rounded px-1.5 text-left text-sm font-semibold transition-colors",
+                              invalid
+                                ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
+                                : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
+                            )}
+                          >
+                            {displayValue ?? placeholder}
+                          </button>
+                        )}
+                        showYearNavigation
+                      />
+                    ) : (
+                      <InlineBadgePopover
+                        text={formatValue(condition.value, attribute)}
+                        invalid={
+                          Array.isArray(condition.value)
+                            ? condition.value.filter(Boolean).length === 0
+                            : ["number", "currency"].includes(attributeType)
+                              ? condition.value === "" ||
+                                isNaN(Number(condition.value))
+                              : !condition.value
+                        }
+                        buttonClassName={cn(
+                          condition.attribute === "productId" &&
+                            "rounded-r-none",
+                        )}
+                      >
+                        {/* Country selection */}
+                        {condition.attribute === "country" ? (
+                          // Country selector
+                          <InlineBadgePopoverMenu
+                            search
+                            selectedValue={
+                              (condition.value as string[] | undefined) ??
+                              (isArrayValue ? [] : undefined)
+                            }
+                            items={Object.entries(COUNTRIES).map(
+                              ([key, name]) => ({
+                                text: name,
+                                value: key,
+                                icon: (
+                                  <img
+                                    alt={`${key} flag`}
+                                    src={`https://hatscripts.github.io/circle-flags/flags/${key.toLowerCase()}.svg`}
+                                    className="size-3 shrink-0"
+                                  />
+                                ),
+                              }),
+                            )}
+                            onSelect={(value) => {
+                              setValue(conditionKey, {
+                                ...condition,
+                                value: isArrayValue
+                                  ? Array.isArray(condition.value)
+                                    ? (condition.value as string[]).includes(
+                                        value,
+                                      )
+                                      ? (condition.value.filter(
+                                          (v) => v !== value,
+                                        ) as string[])
+                                      : ([
+                                          ...condition.value,
+                                          value,
+                                        ] as string[])
+                                    : [value]
+                                  : value,
+                              });
+                            }}
+                          />
+                        ) : attribute?.options ? (
+                          // Select option selector
+                          <InlineBadgePopoverMenu
+                            search={attribute.options.length > 4}
+                            selectedValue={
+                              (condition.value as string[] | undefined) ??
+                              (isArrayValue ? [] : undefined)
+                            }
+                            items={attribute.options.map(({ id, label }) => ({
                               text: label,
                               value: id,
                             }))}
-                          onSelect={(value) => {
-                            setValue(conditionKey, {
-                              ...condition,
-                              value: isArrayValue
+                            onSelect={(value) => {
+                              setValue(conditionKey, {
+                                ...condition,
+                                value: isArrayValue
+                                  ? Array.isArray(condition.value)
+                                    ? (condition.value as string[]).includes(
+                                        value,
+                                      )
+                                      ? (condition.value.filter(
+                                          (v) => v !== value,
+                                        ) as string[])
+                                      : ([
+                                          ...condition.value,
+                                          value,
+                                        ] as string[])
+                                    : [value]
+                                  : value,
+                              });
+                            }}
+                          />
+                        ) : isArrayValue ? (
+                          // String array input
+                          <InlineBadgePopoverInputs
+                            values={
+                              condition.value
                                 ? Array.isArray(condition.value)
-                                  ? (condition.value as string[]).includes(
-                                      value,
-                                    )
-                                    ? (condition.value.filter(
-                                        (v) => v !== value,
-                                      ) as string[])
-                                    : ([...condition.value, value] as string[])
-                                  : [value]
-                                : value,
-                            });
-                          }}
-                        />
-                      ) : isArrayValue ? (
-                        // String array input
-                        <InlineBadgePopoverInputs
-                          values={
-                            condition.value
-                              ? Array.isArray(condition.value)
-                                ? condition.value.map(String)
-                                : [condition.value.toString()]
-                              : [""]
-                          }
-                          onChange={(values) => {
-                            setValue(conditionKey, {
-                              ...condition,
-                              value: values,
-                            });
-                          }}
-                        />
-                      ) : ["number", "currency"].includes(attributeType) ? (
-                        // Number/currency input
-                        <AmountInput
-                          fieldKey={`${conditionKey}.value`}
-                          type={attributeType as "number" | "currency"}
-                        />
-                      ) : (
-                        // String input
-                        <InlineBadgePopoverInput
-                          {...register(`${conditionKey}.value`, {
-                            required: true,
-                          })}
-                        />
-                      )}
-                    </InlineBadgePopover>
+                                  ? condition.value.map(String)
+                                  : [condition.value.toString()]
+                                : [""]
+                            }
+                            onChange={(values) => {
+                              setValue(conditionKey, {
+                                ...condition,
+                                value: values,
+                              });
+                            }}
+                          />
+                        ) : ["number", "currency"].includes(attributeType) ? (
+                          // Number/currency input
+                          <AmountInput
+                            fieldKey={`${conditionKey}.value`}
+                            type={attributeType as "number" | "currency"}
+                          />
+                        ) : (
+                          // String input
+                          <InlineBadgePopoverInput
+                            {...register(`${conditionKey}.value`, {
+                              required: true,
+                            })}
+                          />
+                        )}
+                      </InlineBadgePopover>
+                    )}
 
                     {condition.attribute === "subscriptionDurationMonths" && (
                       <span> months</span>

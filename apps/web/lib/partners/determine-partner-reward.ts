@@ -1,4 +1,5 @@
 import { EventType, Link, Prisma, Reward } from "@dub/prisma/client";
+import { toCentsNumber } from "@dub/utils";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { RewardContext } from "../types";
 import {
@@ -18,7 +19,7 @@ const REWARD_EVENT_COLUMN_MAPPING = {
 interface ProgramEnrollmentWithReward {
   partner: { country: string | null };
   links: Link[] | null;
-  totalCommissions: number;
+  totalCommissions: number | bigint;
   clickReward?: Reward | null;
   leadReward?: Reward | null;
   saleReward?: Reward | null;
@@ -48,7 +49,7 @@ export const determinePartnerReward = ({
     partner: {
       ...context?.partner,
       ...partnerLinksStats,
-      totalCommissions: programEnrollment.totalCommissions,
+      totalCommissions: toCentsNumber(programEnrollment.totalCommissions),
       country: programEnrollment.partner?.country,
     },
   };

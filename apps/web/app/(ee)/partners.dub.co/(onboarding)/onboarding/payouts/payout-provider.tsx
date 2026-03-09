@@ -1,7 +1,7 @@
 "use client";
 
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
-import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
+import { ConnectPayoutButton } from "@/ui/partners/payouts/connect-payout-button";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
@@ -42,7 +42,7 @@ export function PayoutProvider({
         <div className="bg-white px-6 py-4 text-sm text-neutral-600">
           We use {label} to ensure you get paid on time and to keep your
           personal bank details secure. Click <strong>Connect payouts</strong>{" "}
-          to connect your bank account.
+          to connect your payout account.
           <br />
           <br />
           You can complete this at a later date, but won't be able to collect
@@ -63,7 +63,7 @@ export function PayoutProvider({
 
         <Link
           href={next ?? "/programs"}
-          className="text-sm font-medium text-neutral-800 transition-colors hover:text-neutral-950"
+          className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
         >
           I'll complete this later
         </Link>

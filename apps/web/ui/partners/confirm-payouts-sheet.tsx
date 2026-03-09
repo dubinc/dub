@@ -147,9 +147,13 @@ function ConfirmPayoutsSheetContent() {
       return { holdPayoutsCount: 0, holdPayoutsAmount: 0 };
     }
 
+    const pendingPayoutsCount = payoutsCount.find(
+      (p) => p.status === "pending",
+    );
+
     return {
-      holdPayoutsCount: payoutsCount[0].count,
-      holdPayoutsAmount: payoutsCount[0].amount ?? 0,
+      holdPayoutsCount: pendingPayoutsCount?.count ?? 0,
+      holdPayoutsAmount: pendingPayoutsCount?.amount ?? 0,
     };
   }, [payoutsCount]);
 

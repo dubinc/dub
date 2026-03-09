@@ -3,6 +3,7 @@ import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
+import { centsSchema } from "./utils";
 
 export const trackSaleRequestSchema = z.object({
   customerExternalId: z
@@ -142,7 +143,7 @@ export const saleEventSchemaTBEndpoint = z.object({
   customer_id: z.string(),
   payment_processor: z.string(),
   invoice_id: z.string(),
-  saleAmount: z.number(),
+  saleAmount: centsSchema,
   click_id: z.string(),
   link_id: z.string(),
   url: z.string(),
@@ -182,8 +183,7 @@ export const saleEventResponseSchema = z
     click: clickEventSchema,
     customer: CustomerSchema,
     // deprecated fields
-    saleAmount: z
-      .number()
+    saleAmount: centsSchema
       .describe("Deprecated: Use `sale.amount` instead.")
       .meta({ deprecated: true }),
     invoice_id: z
