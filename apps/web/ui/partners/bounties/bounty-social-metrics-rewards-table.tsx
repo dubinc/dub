@@ -86,7 +86,7 @@ export function BountySocialMetricsRewardsTable({
       },
       {
         id: "reward",
-        header: "Reward",
+        header: "Amount",
         minSize: 100,
         size: 120,
         cell: ({ row: { original } }) =>
