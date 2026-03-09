@@ -9,7 +9,7 @@ import { PartnerBountyProps } from "@/lib/types";
 import { useBountySubmissionDetailsSheet } from "@/ui/partners/bounties/bounty-submission-details-sheet";
 import { useClaimBountySheet } from "@/ui/partners/bounties/claim-bounty-sheet";
 import { Button, StatusBadge, Table, useTable } from "@dub/ui";
-import { formatDate } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
@@ -46,21 +46,33 @@ export function BountySubmissionsTable({
     ColumnDef<SubmissionPeriod<PartnerBountySubmission>>[]
   >(
     () => [
-      ...(showSubmissionColumn
-        ? [
-            {
-              id: "submission",
-              header: "Submission",
-              minSize: 120,
-              size: 120,
-              cell: ({ row: { original } }) => (
-                <span className="text-sm font-medium leading-5 tracking-[-0.28px] text-neutral-600">
+      {
+        id: "submission",
+        header: "Submission",
+        minSize: 200,
+        cell: ({ row: { original } }) => {
+          const config = BOUNTY_SUBMISSION_STATUS_BADGES[original.status];
+          const label =
+            original.status === "submitted" ? "Pending review" : config?.label;
+
+          return (
+            <div className="flex items-center gap-3">
+              {showSubmissionColumn && (
+                <span className="min-w-[52px] text-sm font-medium leading-5 tracking-[-0.28px] text-neutral-600">
                   {original.label}
                 </span>
-              ),
-            },
-          ]
-        : []),
+              )}
+              {config && (
+                <span className="sm:hidden">
+                  <StatusBadge variant={config.variant} icon={config.icon}>
+                    {label}
+                  </StatusBadge>
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
       {
         id: "status",
         header: "Status",
@@ -68,14 +80,9 @@ export function BountySubmissionsTable({
         size: 160,
         cell: ({ row: { original } }) => {
           const config = BOUNTY_SUBMISSION_STATUS_BADGES[original.status];
-
-          if (!config) {
-            return null;
-          }
-
+          if (!config) return null;
           const label =
             original.status === "submitted" ? "Pending review" : config.label;
-
           return (
             <StatusBadge variant={config.variant} icon={config.icon}>
               {label}
@@ -166,14 +173,24 @@ export function BountySubmissionsTable({
     [bounty, showSubmissionColumn],
   );
 
+  const MOBILE_HIDDEN = new Set(["status", "submitted", "reviewed"]);
+
   const table = useTable({
     data: periods,
     columns,
     getRowId: (row) => String(row.periodNumber),
     resourceName: () => "submission period",
     scrollWrapperClassName: "min-h-0",
-    thClassName: "border-l-0 border-r-0",
-    tdClassName: "border-l-0 border-r-0",
+    thClassName: (columnId) =>
+      cn(
+        "border-l-0 border-r-0",
+        MOBILE_HIDDEN.has(columnId) && "hidden sm:table-cell",
+      ),
+    tdClassName: (columnId) =>
+      cn(
+        "border-l-0 border-r-0",
+        MOBILE_HIDDEN.has(columnId) && "hidden sm:table-cell",
+      ),
     className: "[&_tbody_tr:last-child_td]:border-b-0",
     containerClassName: "border-neutral-200",
   });

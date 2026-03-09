@@ -75,22 +75,26 @@ export function PartnerBountyCard({
         </div>
       )}
 
-      {showRewards && (
-        <BountyRewardsSection
-          bounty={bounty}
-          programSlug={programSlug as string}
-        />
+      {showRewards && bounty.submissions.some((s) => s.commission !== null) && (
+        <div className="@3xl/page:block hidden border-t border-neutral-200 p-4">
+          <BountyRewardsSection
+            bounty={bounty}
+            programSlug={programSlug as string}
+          />
+        </div>
       )}
     </Link>
   );
 }
 
-function BountyRewardsSection({
+export function BountyRewardsSection({
   bounty,
   programSlug,
+  className,
 }: {
   bounty: PartnerBountyProps;
   programSlug: string;
+  className?: string;
 }) {
   const rewards = bounty.submissions
     .filter((s) => s.commission !== null)
@@ -147,9 +151,11 @@ function BountyRewardsSection({
   }
 
   return (
-    <div className="relative flex flex-col gap-4 border-t border-neutral-200 p-4">
+    <div className={cn("relative flex flex-col gap-4", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-neutral-900">Rewards</h3>
+        <h3 className="@3xl/page:text-sm text-lg font-semibold text-neutral-900">
+          Rewards
+        </h3>
         <Link
           href={`/programs/${programSlug}/earnings?type=custom`}
           onClick={(e) => e.stopPropagation()}

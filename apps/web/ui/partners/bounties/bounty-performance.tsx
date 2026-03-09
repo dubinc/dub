@@ -70,7 +70,7 @@ export function SubmissionBountyProgress({
   const approvedPercent = (approvedCount / maxSubmissions) * 100;
 
   return (
-    <div className={cn("flex gap-4", className)}>
+    <div className={cn("flex flex-col gap-4 sm:flex-row", className)}>
       <BountyProgressBarRow
         progress={submittedPercent}
         labelClassName={labelClassName}

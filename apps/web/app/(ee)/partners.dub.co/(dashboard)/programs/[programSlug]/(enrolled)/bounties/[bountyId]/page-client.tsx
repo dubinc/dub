@@ -13,7 +13,11 @@ import { ChevronRight, Trophy } from "@dub/ui";
 import { cn, truncate } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { PartnerBountyCard, PartnerBountyCardSkeleton } from "../bounty-card";
+import {
+  BountyRewardsSection,
+  PartnerBountyCard,
+  PartnerBountyCardSkeleton,
+} from "../bounty-card";
 import { BountyPerformanceSection } from "./bounty-performance-section";
 import { BountySubmissionsTable } from "./bounty-submissions-table";
 
@@ -28,7 +32,28 @@ export function PartnerBountyPageClient() {
   return (
     <PageWidthWrapper className="flex flex-col gap-6 pb-10">
       <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] grid grid-cols-1 gap-6">
-        <div className="flex flex-col gap-6">
+        <div className="@3xl/page:contents flex flex-col gap-6">
+          {isLoading ? (
+            <PartnerBountyCardSkeleton />
+          ) : bounty ? (
+            <div className="@3xl/page:col-start-2 @3xl/page:row-start-1 @3xl/page:w-[360px] @3xl/page:shrink-0 flex w-full flex-col gap-4">
+              <PartnerBountyCard
+                bounty={bounty}
+                showFullTitle
+                hideFooter
+                showRewards
+              />
+
+              <BountyRewardsSection
+                bounty={bounty}
+                programSlug={programSlug}
+                className="@3xl/page:hidden"
+              />
+            </div>
+          ) : null}
+        </div>
+
+        <div className="@3xl/page:col-start-1 @3xl/page:row-start-1 flex flex-col gap-6">
           {isLoading ? (
             <BountyDetailsProgressSkeleton />
           ) : bounty ? (
@@ -58,20 +83,6 @@ export function PartnerBountyPageClient() {
                 <BountyDescription bounty={bounty} />
               </div>
             </>
-          ) : null}
-        </div>
-        <div className="@3xl/page:contents flex flex-col gap-6">
-          {isLoading ? (
-            <PartnerBountyCardSkeleton />
-          ) : bounty ? (
-            <div className="@3xl/page:w-[360px] @3xl/page:shrink-0 w-full">
-              <PartnerBountyCard
-                bounty={bounty}
-                showFullTitle
-                hideFooter
-                showRewards
-              />
-            </div>
           ) : null}
         </div>
       </div>
