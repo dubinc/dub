@@ -1,6 +1,7 @@
+import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/constants";
 import { getPlatformAdapter } from "@/lib/social-platforms";
 import { ContentNotFoundError } from "@/lib/social-platforms/scrape-creators";
-import { SocialContent } from "@/lib/types";
+import { BountySocialPlatform, SocialContent } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { PlatformType } from "@dub/prisma/client";
 import { hashStringSHA256, isValidUrl } from "@dub/utils";
@@ -73,7 +74,11 @@ export async function getSocialContent({
     return EMPTY_SOCIAL_CONTENT;
   }
 
-  waitUntil(redis.set(cacheKey, result, { ex: CACHE_TTL }));
+  if (
+    BOUNTY_SOCIAL_PLATFORM_VALUES.includes(platform as BountySocialPlatform)
+  ) {
+    waitUntil(redis.set(cacheKey, result, { ex: CACHE_TTL }));
+  }
 
   return result;
 }
