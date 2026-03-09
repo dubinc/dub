@@ -13,21 +13,6 @@ const bodySchema = z.object({
 
 const MAX_POSTS_PER_PARTNER = 50;
 
-function computeMedian(values: number[]): number {
-  if (values.length === 0) {
-    return 0;
-  }
-
-  const sorted = [...values].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-
-  if (sorted.length % 2 === 0) {
-    return (sorted[mid - 1] + sorted[mid]) / 2;
-  }
-
-  return sorted[mid];
-}
-
 // POST /api/cron/sync-social-engagement
 // Processes a single partner platform: fetches engagement data, upserts daily
 // snapshots + individual posts, prunes old data, and recomputes baselines.
@@ -49,23 +34,20 @@ export const POST = withCron(async ({ rawBody }) => {
   if (!partnerPlatform) {
     return logAndRespond(
       `Partner platform ${partnerPlatformId} not found. Skipping.`,
-      { logLevel: "warn" },
     );
   }
 
   if (!partnerPlatform.platformId) {
     return logAndRespond(
       `Partner platform ${partnerPlatformId} (@${partnerPlatform.identifier}) has no platformId. Skipping.`,
-      { logLevel: "warn" },
     );
   }
 
-  const platformAdapter = getPlatformAdapter(partnerPlatform.type);
+  const platform = getPlatformAdapter(partnerPlatform.type);
 
-  if (!platformAdapter) {
+  if (!platform) {
     return logAndRespond(
       `No engagement adapter for platform type "${partnerPlatform.type}". Skipping.`,
-      { logLevel: "warn" },
     );
   }
 
@@ -79,21 +61,21 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
+  // First run backfills 30 days of history; subsequent runs only fetch yesterday
   const startTime =
     existingCount === 0
       ? startOfDay(subDays(now, 30))
       : startOfDay(subDays(now, 1));
   const endTime = todayStart;
 
-  const postEngagements = await platformAdapter.fetchPosts({
+  const posts = await platform.fetchPosts({
     platformId: partnerPlatform.platformId,
     identifier: partnerPlatform.identifier,
     startTime,
     endTime,
   });
 
-  const dailyEngagements =
-    platformAdapter.calculateDailyEngagement(postEngagements);
+  const dailyEngagements = platform.calculateDailyEngagement(posts);
 
   // Daily aggregate upserts
   await prisma.$transaction(
@@ -135,26 +117,9 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
-  // Recompute avgEngagementRate
-  const thirtyDaysAgo = startOfDay(subDays(now, 30));
-
-  const avgResult = await prisma.partnerPlatformEngagement.aggregate({
-    where: {
-      partnerPlatformId,
-      date: {
-        gte: thirtyDaysAgo,
-      },
-    },
-    _avg: {
-      engagementRate: true,
-    },
-  });
-
-  const avgEngagementRate = avgResult._avg.engagementRate ?? 0;
-
   // Per-post upserts
   await prisma.$transaction(
-    postEngagements.map((post) =>
+    posts.map((post) =>
       prisma.partnerPlatformPost.upsert({
         where: {
           partnerPlatformId_postId: {
@@ -183,14 +148,18 @@ export const POST = withCron(async ({ rawBody }) => {
   );
 
   // Prune to last N posts per partner
-  const postCount = await prisma.partnerPlatformPost.count({
-    where: {
-      partnerPlatformId,
-    },
-  });
+  await prisma.$transaction(async (tx) => {
+    const postCount = await tx.partnerPlatformPost.count({
+      where: {
+        partnerPlatformId,
+      },
+    });
 
-  if (postCount > MAX_POSTS_PER_PARTNER) {
-    const postsToKeep = await prisma.partnerPlatformPost.findMany({
+    if (postCount <= MAX_POSTS_PER_PARTNER) {
+      return;
+    }
+
+    const postsToKeep = await tx.partnerPlatformPost.findMany({
       where: {
         partnerPlatformId,
       },
@@ -205,7 +174,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
     const keepIds = postsToKeep.map((p) => p.id);
 
-    await prisma.partnerPlatformPost.deleteMany({
+    await tx.partnerPlatformPost.deleteMany({
       where: {
         partnerPlatformId,
         id: {
@@ -213,7 +182,22 @@ export const POST = withCron(async ({ rawBody }) => {
         },
       },
     });
-  }
+  });
+
+  // Recompute avgEngagementRate
+  const avgResult = await prisma.partnerPlatformEngagement.aggregate({
+    where: {
+      partnerPlatformId,
+      date: {
+        gte: startOfDay(subDays(now, 30)),
+      },
+    },
+    _avg: {
+      engagementRate: true,
+    },
+  });
+
+  const avgEngagementRate = avgResult._avg.engagementRate ?? 0;
 
   // Compute median baselines from stored posts
   const allPosts = await prisma.partnerPlatformPost.findMany({
@@ -250,10 +234,25 @@ export const POST = withCron(async ({ rawBody }) => {
   });
 
   console.log(
-    `[sync-social-engagement] Synced @${partnerPlatform.identifier}: ${dailyEngagements.length} days, ${postEngagements.length} posts, avgRate=${avgEngagementRate.toFixed(6)}, medianViews=${medianViews}`,
+    `[sync-social-engagement] Synced @${partnerPlatform.identifier}: ${dailyEngagements.length} days, ${posts.length} posts, avgRate=${avgEngagementRate.toFixed(6)}, medianViews=${medianViews}`,
   );
 
   return logAndRespond(
-    `Synced engagement for @${partnerPlatform.identifier}: ${dailyEngagements.length} days, ${postEngagements.length} posts`,
+    `Synced engagement for @${partnerPlatform.identifier}: ${dailyEngagements.length} days, ${posts.length} posts`,
   );
 });
+
+function computeMedian(values: number[]): number {
+  if (values.length === 0) {
+    return 0;
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+
+  if (sorted.length % 2 === 0) {
+    return (sorted[mid - 1] + sorted[mid]) / 2;
+  }
+
+  return sorted[mid];
+}
