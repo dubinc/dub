@@ -61,7 +61,7 @@
       "schedule": "0 16 * * *"
     },
     {
-      "path": "/api/cron/queue-social-engagement",
+      "path": "/api/cron/queue-sync-social-engagement",
       "schedule": "0 7 * * *"
     }
   ],

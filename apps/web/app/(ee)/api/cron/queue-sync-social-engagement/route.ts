@@ -6,7 +6,7 @@ import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/cron/queue-social-engagement
+// GET /api/cron/queue-sync-social-engagement
 // Runs daily at 07:00 UTC. Queues one sync job per eligible partner platform.
 export const GET = withCron(async () => {
   const partnerPlatforms = await prisma.partnerPlatform.findMany({
