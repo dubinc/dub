@@ -88,7 +88,11 @@ class LinkCache {
 
     console.log(`[LRU Cache MISS] ${cacheKey} - Checking Vercel Cache...`);
 
-    cachedLink = (await vercelCache.get(cacheKey)) as RedisLinkProps | null;
+    try {
+      cachedLink = (await vercelCache.get(cacheKey)) as RedisLinkProps | null;
+    } catch (error) {
+      cachedLink = null;
+    }
 
     if (cachedLink) {
       console.log(`[Vercel Cache HIT] ${cacheKey}`);
@@ -106,6 +110,7 @@ class LinkCache {
         console.log(
           `[Redis Cache HIT] ${cacheKey} - Populating LRU Cache and Vercel Cache...`,
         );
+
         linkLRUCache.set(cacheKey, cachedLink);
         waitUntil(
           vercelCache.set(cacheKey, cachedLink, {

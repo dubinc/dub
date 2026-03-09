@@ -17,6 +17,12 @@ export const redisWithTimeout = new Redis({
 // for high-volume ratelimit operations (e.g. recordClick)
 // so that if this redis goes down, it won't impact other endpoints
 export const redisUsEast = new Redis({
-  url: process.env.UPSTASH_US_EAST_REDIS_REST_URL || "",
-  token: process.env.UPSTASH_US_EAST_REDIS_REST_TOKEN || "",
+  url:
+    process.env.UPSTASH_US_EAST_REDIS_REST_URL ||
+    process.env.UPSTASH_REDIS_REST_URL ||
+    "",
+  token:
+    process.env.UPSTASH_US_EAST_REDIS_REST_TOKEN ||
+    process.env.UPSTASH_REDIS_REST_TOKEN ||
+    "",
 });
