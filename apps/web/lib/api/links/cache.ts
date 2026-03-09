@@ -1,6 +1,5 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis, redisWithTimeout } from "@/lib/upstash";
-import { getCache, waitUntil } from "@vercel/functions";
 import { LRUCache } from "lru-cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
@@ -13,13 +12,6 @@ const linkLRUCache = new LRUCache<string, RedisLinkProps>({
   max: 5000, // max 5000 entries
   ttl: 3000, // 3 seconds
 });
-
-/*
- * When traffic spikes, new Fluid instances are spun up.
- * Since LRUCache is not shared between Fluid instances,
- * we fallback to Vercel cache if LRUCache is not available
- */
-const vercelCache = getCache();
 
 /*
  * Link cache expiration is set to 24 hours by default for all links.
@@ -86,37 +78,16 @@ class LinkCache {
       return cachedLink;
     }
 
-    console.log(`[LRU Cache MISS] ${cacheKey} - Checking Vercel Cache...`);
-
-    try {
-      cachedLink = (await vercelCache.get(cacheKey)) as RedisLinkProps | null;
-    } catch (error) {
-      cachedLink = null;
-    }
-
-    if (cachedLink) {
-      console.log(`[Vercel Cache HIT] ${cacheKey}`);
-      linkLRUCache.set(cacheKey, cachedLink);
-      return cachedLink;
-    }
-
-    console.log(`[Vercel Cache MISS] ${cacheKey} - Checking Redis...`);
+    console.log(`[LRU Cache MISS] ${cacheKey} - Checking Redis...`);
 
     try {
       // we're using the special redisWithTimeout client in case Redis times out
       cachedLink = await redisWithTimeout.get<RedisLinkProps>(cacheKey);
 
       if (cachedLink) {
-        console.log(
-          `[Redis Cache HIT] ${cacheKey} - Populating LRU Cache and Vercel Cache...`,
-        );
+        console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU Cache...`);
 
         linkLRUCache.set(cacheKey, cachedLink);
-        waitUntil(
-          vercelCache.set(cacheKey, cachedLink, {
-            ttl: 5, // cache for 5 seconds
-          }),
-        );
       } else {
         console.log(
           `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
