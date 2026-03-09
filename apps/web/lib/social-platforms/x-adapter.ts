@@ -39,11 +39,26 @@ const xTweetsResponseSchema = z.object({
 
 type XTweet = z.infer<typeof xTweetSchema>;
 
+const xApiErrorSchema = z.object({
+  errors: z
+    .array(
+      z.object({
+        parameters: z.record(z.string(), z.unknown()).optional(),
+        message: z.string(),
+      }),
+    )
+    .optional(),
+  title: z.string().optional(),
+  detail: z.string().optional(),
+  type: z.string().optional(),
+});
+
 const xFetch = createFetch({
   baseURL: "https://api.x.com/2",
   headers: {
     Authorization: `Bearer ${process.env.X_API_BEARER_TOKEN}`,
   },
+  defaultError: xApiErrorSchema,
   schema: createSchema(
     {
       "/users/:userId/tweets": {
@@ -71,13 +86,32 @@ const xFetch = createFetch({
   },
 });
 
-export class XApiError extends Error {
-  cause: unknown;
+type XApiErrorResponse = z.infer<typeof xApiErrorSchema>;
 
-  constructor(message: string, cause?: unknown) {
+export class XApiError extends Error {
+  status: number;
+  statusText: string;
+  title?: string;
+  detail?: string;
+  type?: string;
+  errors?: XApiErrorResponse["errors"];
+
+  constructor(
+    error: XApiErrorResponse & { status: number; statusText: string },
+  ) {
+    const message =
+      error.detail ||
+      error.errors?.map((e) => e.message).join("; ") ||
+      error.statusText;
+
     super(message);
     this.name = "XApiError";
-    this.cause = cause;
+    this.status = error.status;
+    this.statusText = error.statusText;
+    this.title = error.title;
+    this.detail = error.detail;
+    this.type = error.type;
+    this.errors = error.errors;
   }
 }
 
@@ -125,7 +159,7 @@ export class XAdapter extends BasePlatformAdapter {
       });
 
       if (error) {
-        throw new XApiError(`Failed to fetch tweets for user ${userId}`, error);
+        throw new XApiError(error);
       }
 
       if (data.data.length > 0) {
@@ -152,6 +186,8 @@ export class XAdapter extends BasePlatformAdapter {
       startTime,
       endTime,
     });
+
+    console.log("tweets", tweets);
 
     return tweets.map((tweet) => {
       const m = tweet.public_metrics;
