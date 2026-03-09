@@ -45,8 +45,7 @@ interface BountyFraudResult {
  * Detects potential botting/fraud signals on a bounty submission by comparing
  * the submission's engagement metrics against the partner's historical baselines.
  *
- * Signals based on industry standards:
- * - engagementSpike: metrics far exceed partner's median (purchased views/likes)
+ * - engagementSpike: metrics far exceed partner's median
  * - engagementRateAnomaly: engagement rate significantly above baseline
  * - noBaselineHistory: no historical data to benchmark against
  * - lowFollowerHighEngagement: disproportionate reach vs audience size
@@ -58,7 +57,7 @@ export function detectBountySubmissionFraud({
 }: DetectBountyFraudInput): BountyFraudResult {
   const flags: FraudFlag[] = [];
 
-  // Signal: no_baseline_history
+  // Signal: noBaselineHistory
   // New/unverified accounts with no historical posts synced
   if (!partnerPlatform || partnerPlatform.medianViews === null) {
     flags.push("noBaselineHistory");
@@ -74,13 +73,13 @@ export function detectBountySubmissionFraud({
       ? Number(partnerPlatform.medianViews)
       : Number(partnerPlatform.medianLikes);
 
-  // Signal: engagement_spike
+  // Signal: engagementSpike
   // Submission metrics far exceed the partner's historical median
   if (median > 0 && socialMetricCount > median * SPIKE_MULTIPLIER) {
     flags.push("engagementSpike");
   }
 
-  // Signal: engagement_rate_anomaly
+  // Signal: engagementRateAnomaly
   // When tracking views: check if the ratio of likes-to-views implied by the
   // submission is significantly higher than the partner's baseline engagement rate
   if (
@@ -96,6 +95,7 @@ export function detectBountySubmissionFraud({
       // Expected likes at this view count based on baseline engagement rate
       const expectedLikes =
         socialMetricCount * partnerPlatform.medianEngagementRate;
+
       // If views are growing but the view count implies an engagement pattern
       // that would require an abnormally high rate, flag it
       const currentRatio = socialMetricCount / medianViews;
@@ -109,7 +109,7 @@ export function detectBountySubmissionFraud({
     }
   }
 
-  // Signal: low_follower_high_engagement
+  // Signal: lowFollowerHighEngagement
   // Disproportionate reach relative to audience size
   const subscribers = Number(partnerPlatform.subscribers);
 
