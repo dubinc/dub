@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { detectBountySubmissionFraud } from "@/lib/bounty/api/detect-bounty-submission-fraud";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import {
   getPlatformFromSocialUrl,
@@ -235,6 +236,11 @@ export const createBountySubmissionAction = authPartnerActionClient
         select: {
           identifier: true,
           verifiedAt: true,
+          medianViews: true,
+          medianLikes: true,
+          medianComments: true,
+          medianEngagementRate: true,
+          subscribers: true,
         },
       });
 
@@ -295,6 +301,14 @@ export const createBountySubmissionAction = authPartnerActionClient
           socialMetricCount: metricValue,
           socialMetricsLastSyncedAt: new Date(),
         };
+
+        const fraudResult = detectBountySubmissionFraud({
+          socialMetricCount: metricValue,
+          bountyMetric: bountyInfo.socialMetrics.metric,
+          partnerPlatform: partnerPlatform,
+        });
+        submissionData.fraudRiskLevel = fraudResult.fraudRiskLevel;
+        submissionData.fraudFlags = fraudResult.fraudFlags;
 
         if (
           metricValue &&

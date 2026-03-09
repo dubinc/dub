@@ -1,3 +1,4 @@
+import { detectBountySubmissionFraud } from "@/lib/bounty/api/detect-bounty-submission-fraud";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { qstash } from "@/lib/cron";
@@ -70,6 +71,7 @@ export const POST = withCron(async ({ rawBody }) => {
       urls: true,
       socialMetricCount: true,
       status: true,
+      partnerId: true,
       partner: {
         select: {
           email: true,
@@ -98,6 +100,28 @@ export const POST = withCron(async ({ rawBody }) => {
     bounty,
     submissions,
   });
+
+  // Batch-fetch partner platform baselines for fraud detection
+  const partnerIds = [...new Set(submissions.map((s) => s.partnerId))];
+  const partnerPlatforms = await prisma.partnerPlatform.findMany({
+    where: {
+      partnerId: {
+        in: partnerIds,
+      },
+      type: bountyInfo.socialPlatform!.value,
+    },
+    select: {
+      partnerId: true,
+      medianViews: true,
+      medianLikes: true,
+      medianComments: true,
+      medianEngagementRate: true,
+      subscribers: true,
+    },
+  });
+  const baselineByPartnerId = new Map(
+    partnerPlatforms.map((p) => [p.partnerId, p]),
+  );
 
   const minCount = bountyInfo.socialMetrics?.minCount;
 
@@ -133,6 +157,17 @@ export const POST = withCron(async ({ rawBody }) => {
       socialMetricCount,
       socialMetricsLastSyncedAt,
     };
+
+    if (socialMetricCount != null) {
+      const fraudResult = detectBountySubmissionFraud({
+        socialMetricCount,
+        bountyMetric: bountyInfo.socialMetrics!.metric,
+        partnerPlatform:
+          baselineByPartnerId.get(submission.partnerId) ?? null,
+      });
+      updateData.fraudRiskLevel = fraudResult.fraudRiskLevel;
+      updateData.fraudFlags = fraudResult.fraudFlags;
+    }
 
     if (shouldTransitionToSubmitted) {
       updateData.status = "submitted";
