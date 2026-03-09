@@ -52,6 +52,12 @@ export function detectBountySubmissionFraud({
   bountyMetric,
   partnerPlatform,
 }: DetectBountyFraudInput): BountyFraudResult {
+  console.log("[detectBountySubmissionFraud] input", {
+    socialMetricCount,
+    bountyMetric,
+    partnerPlatform,
+  });
+
   // New/unverified accounts with no historical posts synced
   if (!partnerPlatform || partnerPlatform.medianViews === null) {
     return {
@@ -70,6 +76,10 @@ export function detectBountySubmissionFraud({
   // Signal: engagementSpike
   // Submission metrics far exceed the partner's historical median
   if (median > 0 && socialMetricCount > median * SPIKE_MULTIPLIER) {
+    console.log("[detectBountySubmissionFraud] engagementSpike detected", {
+      ratio: socialMetricCount / median,
+    });
+
     flags.push("engagementSpike");
   }
 
@@ -98,6 +108,16 @@ export function detectBountySubmissionFraud({
         currentRatio > ENGAGEMENT_RATE_MULTIPLIER &&
         expectedLikes > medianLikes * ENGAGEMENT_RATE_MULTIPLIER
       ) {
+        console.log(
+          "[detectBountySubmissionFraud] engagementRateAnomaly detected",
+          {
+            currentRatio,
+            expectedLikes,
+            medianLikes,
+            medianEngagementRate: partnerPlatform.medianEngagementRate,
+          },
+        );
+
         flags.push("engagementRateAnomaly");
       }
     }
@@ -111,6 +131,14 @@ export function detectBountySubmissionFraud({
     subscribers < LOW_FOLLOWER_THRESHOLD &&
     socialMetricCount > HIGH_ENGAGEMENT_THRESHOLD
   ) {
+    console.log(
+      "[detectBountySubmissionFraud] lowFollowerHighEngagement detected",
+      {
+        subscribers,
+        socialMetricCount,
+      },
+    );
+
     flags.push("lowFollowerHighEngagement");
   }
 
