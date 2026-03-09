@@ -18,7 +18,7 @@ export function EmbeddedSupportChat() {
   };
 
   return (
-    <div className="flex min-h-[500px] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white shadow-sm">
+    <div className="flex min-h-[500px] flex-col overflow-hidden rounded-xl border border-neutral-200 bg-white">
       <div className="flex shrink-0 items-center justify-between border-b border-neutral-100 bg-neutral-50 px-5 py-4">
         <div className="flex items-center gap-3">
           <img
