@@ -11,14 +11,12 @@ type FraudRiskLevel = "low" | "medium" | "high";
 type FraudFlag =
   | "engagementSpike"
   | "lowFollowerHighEngagement"
-  | "engagementRateAnomaly"
-  | "noBaselineHistory";
+  | "engagementRateAnomaly";
 
 const FRAUD_FLAG_SEVERITY: Record<FraudFlag, FraudRiskLevel> = {
   engagementSpike: "high",
   lowFollowerHighEngagement: "high",
   engagementRateAnomaly: "medium",
-  noBaselineHistory: "medium",
 };
 
 type PartnerPlatformBaseline = Pick<
@@ -47,7 +45,6 @@ interface BountyFraudResult {
  *
  * - engagementSpike: metrics far exceed partner's median
  * - engagementRateAnomaly: engagement rate significantly above baseline
- * - noBaselineHistory: no historical data to benchmark against
  * - lowFollowerHighEngagement: disproportionate reach vs audience size
  */
 export function detectBountySubmissionFraud({
@@ -55,18 +52,15 @@ export function detectBountySubmissionFraud({
   bountyMetric,
   partnerPlatform,
 }: DetectBountyFraudInput): BountyFraudResult {
-  const flags: FraudFlag[] = [];
-
-  // Signal: noBaselineHistory
   // New/unverified accounts with no historical posts synced
   if (!partnerPlatform || partnerPlatform.medianViews === null) {
-    flags.push("noBaselineHistory");
-
     return {
-      fraudRiskLevel: getHighestSeverity(flags),
-      fraudFlags: flags,
+      fraudRiskLevel: null,
+      fraudFlags: [],
     };
   }
+
+  const flags: FraudFlag[] = [];
 
   const median =
     bountyMetric === "views"
