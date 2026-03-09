@@ -85,8 +85,13 @@ export class InstagramAdapter extends BasePlatformAdapter {
     const { data: raw, error } = await scrapeCreatorsFetch(
       "/v1/:platform/:handleType",
       {
-        params: { platform: "instagram", handleType: "profile" },
-        query: { handle },
+        params: {
+          platform: "instagram",
+          handleType: "profile",
+        },
+        query: {
+          handle,
+        },
       },
     );
 
@@ -118,8 +123,14 @@ export class InstagramAdapter extends BasePlatformAdapter {
     const { data: raw, error } = await scrapeCreatorsFetch(
       "/:version/:platform/:contentType",
       {
-        params: { version: "v1", platform: "instagram", contentType: "post" },
-        query: { url },
+        params: {
+          version: "v1",
+          platform: "instagram",
+          contentType: "post",
+        },
+        query: {
+          url,
+        },
       },
     );
 

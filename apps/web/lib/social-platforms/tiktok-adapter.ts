@@ -71,8 +71,13 @@ export class TikTokAdapter extends BasePlatformAdapter {
     const { data: raw, error } = await scrapeCreatorsFetch(
       "/v1/:platform/:handleType",
       {
-        params: { platform: "tiktok", handleType: "profile" },
-        query: { handle },
+        params: {
+          platform: "tiktok",
+          handleType: "profile",
+        },
+        query: {
+          handle,
+        },
       },
     );
 
@@ -104,8 +109,14 @@ export class TikTokAdapter extends BasePlatformAdapter {
     const { data: raw, error } = await scrapeCreatorsFetch(
       "/:version/:platform/:contentType",
       {
-        params: { version: "v2", platform: "tiktok", contentType: "video" },
-        query: { url },
+        params: {
+          version: "v2",
+          platform: "tiktok",
+          contentType: "video",
+        },
+        query: {
+          url,
+        },
       },
     );
 

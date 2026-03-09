@@ -178,8 +178,13 @@ export class XAdapter extends BasePlatformAdapter {
     const { data: raw, error } = await scrapeCreatorsFetch(
       "/v1/:platform/:handleType",
       {
-        params: { platform: "twitter", handleType: "profile" },
-        query: { handle },
+        params: {
+          platform: "twitter",
+          handleType: "profile",
+        },
+        query: {
+          handle,
+        },
       },
     );
 

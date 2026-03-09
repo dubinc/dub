@@ -68,8 +68,13 @@ export class YouTubeAdapter extends BasePlatformAdapter {
     const { data: raw, error } = await scrapeCreatorsFetch(
       "/v1/:platform/:handleType",
       {
-        params: { platform: "youtube", handleType: "channel" },
-        query: { handle },
+        params: {
+          platform: "youtube",
+          handleType: "channel",
+        },
+        query: {
+          handle,
+        },
       },
     );
 
@@ -105,8 +110,14 @@ export class YouTubeAdapter extends BasePlatformAdapter {
     const { data: raw, error } = await scrapeCreatorsFetch(
       "/:version/:platform/:contentType",
       {
-        params: { version: "v1", platform: "youtube", contentType: "video" },
-        query: { url },
+        params: {
+          version: "v1",
+          platform: "youtube",
+          contentType: "video",
+        },
+        query: {
+          url,
+        },
       },
     );
 
