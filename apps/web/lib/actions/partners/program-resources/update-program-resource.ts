@@ -2,6 +2,7 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
+import { MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES } from "./constants";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
@@ -24,16 +25,14 @@ const baseUpdateSchema = z.object({
 const updateLogoSchema = baseUpdateSchema.extend({
   resourceType: z.literal("logo"),
   name: z.string().min(1).optional(),
-  url: z.url().optional(),
-  fileSize: z.number().int().positive().optional(),
+  key: z.string().optional(),
 });
 
 // Schema for file resources
 const updateFileSchema = baseUpdateSchema.extend({
   resourceType: z.literal("file"),
   name: z.string().min(1).optional(),
-  url: z.url().optional(),
-  fileSize: z.number().int().positive().optional(),
+  key: z.string().optional(),
 });
 
 // Schema for color resources
@@ -100,23 +99,33 @@ export const updateProgramResourceAction = authActionClient
 
     const existingResource = resourceArray[resourceIndex];
 
+    // Capture old URL before any mutation so we can delete it after a successful DB write
+    let oldFileUrl: string | null = null;
+
     if (resourceType === "logo" || resourceType === "file") {
-      const { name, url, fileSize } = parsedInput;
+      const { name, key } = parsedInput;
 
-      const newUrl = url || existingResource.url;
-      const newSize = fileSize ?? existingResource.size;
+      let newUrl = existingResource.url;
+      let newSize = existingResource.size;
 
-      // If a new URL was provided, delete the old file from storage (best-effort)
-      if (url && existingResource.url && existingResource.url !== url) {
-        try {
-          await storage.delete({
-            key: existingResource.url.replace(`${R2_URL}/`, ""),
-          });
-        } catch (error) {
-          console.error(
-            "Failed to delete old program resource file from storage:",
-            error,
+      // If a new file was uploaded, validate ownership, derive URL, fetch real size
+      if (key) {
+        if (!key.startsWith(`programs/${program.id}/`)) {
+          throw new Error("Invalid resource key");
+        }
+
+        newUrl = `${R2_URL}/${key}`;
+        newSize = await storage.getObjectSize({ key });
+
+        if (newSize > MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES) {
+          throw new Error(
+            `File size exceeds the maximum allowed size of ${MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES / 1024 / 1024}MB`,
           );
+        }
+
+        // Remember the old URL — we'll delete it after the DB update succeeds
+        if (existingResource.url) {
+          oldFileUrl = existingResource.url;
         }
       }
 
@@ -163,6 +172,20 @@ export const updateProgramResourceAction = authActionClient
         resources: programResourcesSchema.parse(updatedResources) as any,
       },
     });
+
+    // Delete the old file from storage only after the DB update succeeds (best-effort)
+    if (oldFileUrl) {
+      try {
+        await storage.delete({
+          key: oldFileUrl.replace(`${R2_URL}/`, ""),
+        });
+      } catch (error) {
+        console.error(
+          "Failed to delete old program resource file from storage:",
+          error,
+        );
+      }
+    }
 
     return {
       success: true,

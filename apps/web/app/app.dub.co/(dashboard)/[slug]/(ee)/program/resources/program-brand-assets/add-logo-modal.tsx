@@ -127,18 +127,16 @@ function LogoModalInner({
         onSubmit={handleSubmit(async (data: LogoFormData) => {
           try {
             if (isEditing && existingResource) {
-              let uploadedUrl: string | undefined;
-              let uploadedSize: number | undefined;
+              let uploadedKey: string | undefined;
 
               if (hasNewFile && rawFileRef.current) {
-                const { url, fileSize } = await upload({
+                const { key } = await upload({
                   file: rawFileRef.current,
                   resourceType: "logo",
                   name: data.name,
                   extension: data.extension ?? undefined,
                 });
-                uploadedUrl = url;
-                uploadedSize = fileSize;
+                uploadedKey = key;
               }
 
               await executeUpdate({
@@ -146,9 +144,7 @@ function LogoModalInner({
                 resourceId: existingResource.id,
                 resourceType: "logo",
                 name: data.name,
-                ...(uploadedUrl && uploadedSize !== undefined
-                  ? { url: uploadedUrl, fileSize: uploadedSize }
-                  : {}),
+                ...(uploadedKey ? { key: uploadedKey } : {}),
               });
             } else {
               if (!rawFileRef.current) {
@@ -156,7 +152,7 @@ function LogoModalInner({
                 return;
               }
 
-              const { url, fileSize } = await upload({
+              const { key } = await upload({
                 file: rawFileRef.current,
                 resourceType: "logo",
                 name: data.name,
@@ -167,8 +163,7 @@ function LogoModalInner({
                 workspaceId: workspaceId!,
                 name: data.name,
                 resourceType: "logo",
-                url,
-                fileSize,
+                key,
               });
             }
           } catch (err) {

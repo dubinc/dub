@@ -126,18 +126,16 @@ function FileModalInner({
         onSubmit={handleSubmit(async (data: FileFormData) => {
           try {
             if (isEditing && existingResource) {
-              let uploadedUrl: string | undefined;
-              let uploadedSize: number | undefined;
+              let uploadedKey: string | undefined;
 
               if (hasNewFile && rawFileRef.current) {
-                const { url, fileSize } = await upload({
+                const { key } = await upload({
                   file: rawFileRef.current,
                   resourceType: "file",
                   name: data.name,
                   extension: data.extension ?? undefined,
                 });
-                uploadedUrl = url;
-                uploadedSize = fileSize;
+                uploadedKey = key;
               }
 
               await executeUpdate({
@@ -145,9 +143,7 @@ function FileModalInner({
                 resourceId: existingResource.id,
                 resourceType: "file",
                 name: data.name,
-                ...(uploadedUrl && uploadedSize !== undefined
-                  ? { url: uploadedUrl, fileSize: uploadedSize }
-                  : {}),
+                ...(uploadedKey ? { key: uploadedKey } : {}),
               });
             } else {
               if (!rawFileRef.current) {
@@ -155,7 +151,7 @@ function FileModalInner({
                 return;
               }
 
-              const { url, fileSize } = await upload({
+              const { key } = await upload({
                 file: rawFileRef.current,
                 resourceType: "file",
                 name: data.name,
@@ -166,8 +162,7 @@ function FileModalInner({
                 workspaceId: workspaceId!,
                 name: data.name,
                 resourceType: "file",
-                url,
-                fileSize,
+                key,
               });
             }
           } catch (err) {

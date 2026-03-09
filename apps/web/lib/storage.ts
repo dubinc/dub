@@ -155,6 +155,25 @@ class StorageClient {
     });
   }
 
+  async getObjectSize({
+    key,
+    bucket = "public",
+  }: {
+    key: string;
+    bucket?: BucketType;
+  }) {
+    const response = await this.client.fetch(
+      `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
+      { method: "HEAD" },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Object not found or inaccessible: ${key}`);
+    }
+
+    return parseInt(response.headers.get("content-length") || "0", 10);
+  }
+
   async getSignedDownloadUrl(opts: {
     key: string;
     bucket?: BucketType;

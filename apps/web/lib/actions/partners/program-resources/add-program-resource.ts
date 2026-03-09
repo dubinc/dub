@@ -2,12 +2,15 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { storage } from "@/lib/storage";
+import { MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES } from "./constants";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
   programResourceLinkSchema,
 } from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
+import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";
@@ -21,15 +24,13 @@ const baseResourceSchema = z.object({
 // Schema for logo resources
 const logoResourceSchema = baseResourceSchema.extend({
   resourceType: z.literal("logo"),
-  url: z.url(),
-  fileSize: z.number().int().positive(),
+  key: z.string(),
 });
 
 // Schema for file resources
 const fileResourceSchema = baseResourceSchema.extend({
   resourceType: z.literal("file"),
-  url: z.url(),
-  fileSize: z.number().int().positive(),
+  key: z.string(),
 });
 
 // Schema for color resources
@@ -89,7 +90,20 @@ export const addProgramResourceAction = authActionClient
     const updatedResources = { ...currentResources };
 
     if (resourceType === "logo" || resourceType === "file") {
-      const { url, fileSize } = parsedInput;
+      const { key } = parsedInput;
+
+      if (!key.startsWith(`programs/${program.id}/`)) {
+        throw new Error("Invalid resource key");
+      }
+
+      const url = `${R2_URL}/${key}`;
+      const fileSize = await storage.getObjectSize({ key });
+
+      if (fileSize > MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES) {
+        throw new Error(
+          `File size exceeds the maximum allowed size of ${MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES / 1024 / 1024}MB`,
+        );
+      }
 
       const newResource = programResourceFileSchema.parse({
         id: createId({ prefix: "pgr_" }),
