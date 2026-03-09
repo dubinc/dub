@@ -21,7 +21,7 @@ const redisGlobalBase = new Redis({
   signal: () => AbortSignal.timeout(1000),
 });
 
-// On timeout (or other errors), method calls return null instead of throwing
+// On timeout (or other errors), get() method calls return null instead of throwing
 export const redisGlobal = new Proxy(redisGlobalBase, {
   get(target, prop) {
     const value = target[prop as keyof Redis];

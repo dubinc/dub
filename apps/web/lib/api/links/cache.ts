@@ -26,7 +26,7 @@ class LinkCache {
 
     const pipeline = redisGlobal.pipeline();
 
-    links.map((link) => {
+    links.forEach((link) => {
       const redisLink = formatRedisLink(link);
       const cacheKey = this._createKey({ domain: link.domain, key: link.key });
       pipeline.set(cacheKey, redisLink, { ex: CACHE_EXPIRATION });
@@ -87,7 +87,7 @@ class LinkCache {
 
     const pipeline = redisGlobal.pipeline();
 
-    links.map(({ domain, key }) => {
+    links.forEach(({ domain, key }) => {
       pipeline.del(this._createKey({ domain, key }));
     });
 
@@ -101,7 +101,7 @@ class LinkCache {
 
     const pipeline = redisGlobal.pipeline();
 
-    links.map(({ domain, key }) => {
+    links.forEach(({ domain, key }) => {
       // expire the link cache key immediately
       pipeline.expire(this._createKey({ domain, key }), 1);
     });
