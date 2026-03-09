@@ -145,8 +145,8 @@ export const POST = withWorkspace(
       };
 
       if (socialMetricCount != null) {
-        const partnerPlatformBaseline =
-          await prisma.partnerPlatform.findUnique({
+        const partnerPlatformBaseline = await prisma.partnerPlatform.findUnique(
+          {
             where: {
               partnerId_type: {
                 partnerId: submission.partnerId,
@@ -160,7 +160,8 @@ export const POST = withWorkspace(
               medianEngagementRate: true,
               subscribers: true,
             },
-          });
+          },
+        );
 
         const fraudResult = detectBountySubmissionFraud({
           socialMetricCount,

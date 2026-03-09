@@ -162,8 +162,7 @@ export const POST = withCron(async ({ rawBody }) => {
       const fraudResult = detectBountySubmissionFraud({
         socialMetricCount,
         bountyMetric: bountyInfo.socialMetrics!.metric,
-        partnerPlatform:
-          baselineByPartnerId.get(submission.partnerId) ?? null,
+        partnerPlatform: baselineByPartnerId.get(submission.partnerId) ?? null,
       });
       updateData.fraudRiskLevel = fraudResult.fraudRiskLevel;
       updateData.fraudFlags = fraudResult.fraudFlags;

@@ -17,11 +17,11 @@ model PartnerPlatform {
   subscribers          BigInt       @default(0) // Subscribers/followers for social platforms, also for newsletter subscribers
   posts                BigInt       @default(0)
   views                BigInt       @default(0) // Video views for YouTube, impressions for social platforms, pageviews for websites
-  avgEngagementRate    Float? // 30-day rolling average engagement rate
   medianViews          BigInt?
   medianLikes          BigInt?
   medianComments       BigInt?
   medianEngagementRate Float?
+  avgEngagementRate    Float? // 30-day rolling average engagement rate
   metadata             Json?
   createdAt            DateTime     @default(now())
   updatedAt            DateTime     @updatedAt
@@ -37,17 +37,17 @@ model PartnerPlatform {
 }
 
 model PartnerPlatformPost {
-  id                String       @id @default(cuid())
+  id                String   @id @default(cuid())
   partnerPlatformId String
   postId            String // Tweet ID, YouTube video ID, etc.
   publishedAt       DateTime
-  title             String?      @db.Text // Video title (YT), tweet text preview (X)
-  views             BigInt       @default(0) // impressions (X), views (YT)
-  likes             BigInt       @default(0)
-  comments          BigInt       @default(0) // replies (X), comments (YT)
-  engagementRate    Float        @default(0)
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  title             String?  @db.Text // Video title (YT), tweet text preview (X)
+  views             BigInt   @default(0) // impressions (X), views (YT)
+  likes             BigInt   @default(0)
+  comments          BigInt   @default(0) // replies (X), comments (YT)
+  engagementRate    Float    @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   partnerPlatform PartnerPlatform @relation(fields: [partnerPlatformId], references: [id], onDelete: Cascade)
 
@@ -56,16 +56,16 @@ model PartnerPlatformPost {
 }
 
 model PartnerPlatformEngagement {
-  id                String       @id @default(cuid())
+  id                String   @id @default(cuid())
   partnerPlatformId String
-  date              DateTime     @db.Date
-  totalPosts        Int          @default(0)
-  totalImpressions  BigInt       @default(0)
-  totalLikes        BigInt       @default(0)
-  totalComments     BigInt       @default(0) // replies on X, comments on IG/YT/TT
-  engagementRate    Float        @default(0) // platform-specific formula
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  date              DateTime @db.Date
+  totalPosts        Int      @default(0)
+  totalImpressions  BigInt   @default(0)
+  totalLikes        BigInt   @default(0)
+  totalComments     BigInt   @default(0) // replies on X, comments on IG/YT/TT
+  engagementRate    Float    @default(0) // platform-specific formula
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   partnerPlatform PartnerPlatform @relation(fields: [partnerPlatformId], references: [id], onDelete: Cascade)
 
