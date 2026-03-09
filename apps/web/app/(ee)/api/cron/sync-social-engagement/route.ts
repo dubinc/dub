@@ -1,10 +1,5 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { getPlatformAdapter } from "@/lib/social-platforms";
-import type { PostEngagement } from "@/lib/social-platforms/base-adapter";
-import {
-  XApiError,
-  XApiRateLimitError,
-} from "@/lib/social-platforms/x-adapter";
 import { prisma } from "@dub/prisma";
 import { startOfDay, subDays } from "date-fns";
 import * as z from "zod/v4";
@@ -65,9 +60,9 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const adapter = getPlatformAdapter(partnerPlatform.type);
+  const platformAdapter = getPlatformAdapter(partnerPlatform.type);
 
-  if (!adapter) {
+  if (!platformAdapter) {
     return logAndRespond(
       `No engagement adapter for platform type "${partnerPlatform.type}". Skipping.`,
       { logLevel: "warn" },
@@ -90,43 +85,17 @@ export const POST = withCron(async ({ rawBody }) => {
       : startOfDay(subDays(now, 1));
   const endTime = todayStart;
 
-  const fetchParams = {
+  const postEngagements = await platformAdapter.fetchPosts({
     platformId: partnerPlatform.platformId,
     identifier: partnerPlatform.identifier,
     startTime,
     endTime,
-  };
+  });
 
-  let postEngagements: PostEngagement[];
+  const dailyEngagements =
+    platformAdapter.calculateDailyEngagement(postEngagements);
 
-  try {
-    postEngagements = await adapter.fetchPosts(fetchParams);
-  } catch (error) {
-    // Rate limit — throw so QStash retries with backoff
-    if (error instanceof XApiRateLimitError) {
-      throw error;
-    }
-
-    // Client errors — don't retry
-    if (error instanceof XApiError) {
-      console.error(
-        `[sync-social-engagement] API error for @${partnerPlatform.identifier}:`,
-        error.message,
-      );
-
-      return logAndRespond(
-        `API error for @${partnerPlatform.identifier}: ${error.message}`,
-        { logLevel: "error" },
-      );
-    }
-
-    throw error;
-  }
-
-  const dailyEngagements = adapter.calculateDailyEngagement(postEngagements);
-
-  // --- Daily aggregate upserts (for historical chart) ---
-
+  // Daily aggregate upserts
   for (const day of dailyEngagements) {
     await prisma.partnerPlatformEngagement.upsert({
       where: {
@@ -181,8 +150,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const avgEngagementRate = avgResult._avg.engagementRate ?? 0;
 
-  // --- Per-post upserts (for fraud detection baselines) ---
-
+  // Per-post upserts
   for (const post of postEngagements) {
     await prisma.partnerPlatformPost.upsert({
       where: {
