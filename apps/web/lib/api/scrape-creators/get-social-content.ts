@@ -1,5 +1,5 @@
 import { getPlatformAdapter } from "@/lib/social-platforms";
-import { ScrapeCreatorsContentError } from "@/lib/social-platforms/scrape-creators";
+import { ContentNotFoundError } from "@/lib/social-platforms/scrape-creators";
 import { SocialContent } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { PlatformType } from "@dub/prisma/client";
@@ -61,7 +61,7 @@ export async function getSocialContent({
   } catch (error) {
     // Post not found
     // Cache empty result, so that we don't keep trying to scrape the same post.
-    if (error instanceof ScrapeCreatorsContentError && error.status === 404) {
+    if (error instanceof ContentNotFoundError && error.status === 404) {
       waitUntil(
         redis.set(cacheKey, EMPTY_SOCIAL_CONTENT, {
           ex: CACHE_TTL * 24 * 30,

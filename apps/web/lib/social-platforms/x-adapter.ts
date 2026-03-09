@@ -6,10 +6,13 @@ import {
   BasePlatformAdapter,
   type FetchEngagementParams,
   type PostEngagement,
+  type SocialProfile,
 } from "./base-adapter";
 import { checkXApiRateLimit } from "./rate-limiter";
 import {
-  ScrapeCreatorsContentError,
+  AccountNotFoundError,
+  ContentNotFoundError,
+  isAccountNotFound,
   scrapeCreatorsFetch,
 } from "./scrape-creators";
 
@@ -153,8 +156,59 @@ const xContentSchema = z.object({
   }),
 });
 
+const xProfileSchema = z.object({
+  rest_id: z.string(),
+  legacy: z.object({
+    description: z.string(),
+    followers_count: z
+      .number()
+      .nullish()
+      .transform((val) => val ?? 0),
+    statuses_count: z
+      .number()
+      .nullish()
+      .transform((val) => val ?? 0),
+  }),
+  avatar: z.object({
+    image_url: z.url().nullish().default(null),
+  }),
+});
+
 export class XAdapter extends BasePlatformAdapter {
   platform: PlatformType = "twitter";
+
+  async fetchProfile(handle: string): Promise<SocialProfile> {
+    const { data: raw, error } = await scrapeCreatorsFetch(
+      "/v1/:platform/:handleType",
+      {
+        params: { platform: "twitter", handleType: "profile" },
+        query: { handle },
+      },
+    );
+
+    if (error) {
+      throw new Error(
+        "We were unable to retrieve your social media profile. Please try again.",
+      );
+    }
+
+    if (isAccountNotFound(raw)) {
+      throw new AccountNotFoundError(
+        (raw as any).message || "Account doesn't exist",
+      );
+    }
+
+    const data = xProfileSchema.parse(raw);
+
+    return {
+      description: data.legacy.description,
+      platformId: data.rest_id,
+      subscribers: BigInt(data.legacy.followers_count),
+      posts: BigInt(data.legacy.statuses_count),
+      views: BigInt(0),
+      avatarUrl: data.avatar.image_url,
+    };
+  }
 
   async fetchPost(url: string): Promise<SocialContent> {
     const { data: raw, error } = await scrapeCreatorsFetch(
@@ -166,7 +220,7 @@ export class XAdapter extends BasePlatformAdapter {
     );
 
     if (error) {
-      throw new ScrapeCreatorsContentError(
+      throw new ContentNotFoundError(
         error.status ?? 500,
         error.statusText ?? "Unknown error",
       );

@@ -5,9 +5,12 @@ import {
   BasePlatformAdapter,
   type FetchEngagementParams,
   type PostEngagement,
+  type SocialProfile,
 } from "./base-adapter";
 import {
-  ScrapeCreatorsContentError,
+  AccountNotFoundError,
+  ContentNotFoundError,
+  isAccountNotFound,
   scrapeCreatorsFetch,
 } from "./scrape-creators";
 
@@ -38,8 +41,64 @@ const tiktokContentSchema = z.object({
     .optional(),
 });
 
+const tiktokProfileSchema = z.object({
+  user: z.object({
+    id: z.string(),
+    signature: z.string(),
+    uniqueId: z.string(),
+    avatarThumb: z.url().nullish().default(null),
+  }),
+  stats: z.object({
+    followerCount: z
+      .number()
+      .nullish()
+      .transform((val) => val ?? 0),
+    videoCount: z
+      .number()
+      .nullish()
+      .transform((val) => val ?? 0),
+    heartCount: z
+      .number()
+      .nullish()
+      .transform((val) => val ?? 0),
+  }),
+});
+
 export class TikTokAdapter extends BasePlatformAdapter {
   platform: PlatformType = "tiktok";
+
+  async fetchProfile(handle: string): Promise<SocialProfile> {
+    const { data: raw, error } = await scrapeCreatorsFetch(
+      "/v1/:platform/:handleType",
+      {
+        params: { platform: "tiktok", handleType: "profile" },
+        query: { handle },
+      },
+    );
+
+    if (error) {
+      throw new Error(
+        "We were unable to retrieve your social media profile. Please try again.",
+      );
+    }
+
+    if (isAccountNotFound(raw)) {
+      throw new AccountNotFoundError(
+        (raw as any).message || "Account doesn't exist",
+      );
+    }
+
+    const data = tiktokProfileSchema.parse(raw);
+
+    return {
+      description: data.user.signature,
+      platformId: data.user.id,
+      subscribers: BigInt(data.stats.followerCount),
+      posts: BigInt(data.stats.videoCount),
+      views: BigInt(0),
+      avatarUrl: data.user.avatarThumb,
+    };
+  }
 
   async fetchPost(url: string): Promise<SocialContent> {
     const { data: raw, error } = await scrapeCreatorsFetch(
@@ -51,7 +110,7 @@ export class TikTokAdapter extends BasePlatformAdapter {
     );
 
     if (error) {
-      throw new ScrapeCreatorsContentError(
+      throw new ContentNotFoundError(
         error.status ?? 500,
         error.statusText ?? "Unknown error",
       );

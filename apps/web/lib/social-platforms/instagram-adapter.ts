@@ -5,9 +5,12 @@ import {
   BasePlatformAdapter,
   type FetchEngagementParams,
   type PostEngagement,
+  type SocialProfile,
 } from "./base-adapter";
 import {
-  ScrapeCreatorsContentError,
+  AccountNotFoundError,
+  ContentNotFoundError,
+  isAccountNotFound,
   scrapeCreatorsFetch,
 } from "./scrape-creators";
 
@@ -54,8 +57,62 @@ const instagramContentSchema = z.object({
 
 type InstagramContent = z.infer<typeof instagramContentSchema>;
 
+const instagramProfileSchema = z.object({
+  data: z.object({
+    user: z.object({
+      biography: z.string(),
+      edge_followed_by: z.object({
+        count: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+      }),
+      edge_owner_to_timeline_media: z.object({
+        count: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+      }),
+      profile_pic_url: z.url().nullish().default(null),
+    }),
+  }),
+});
+
 export class InstagramAdapter extends BasePlatformAdapter {
   platform: PlatformType = "instagram";
+
+  async fetchProfile(handle: string): Promise<SocialProfile> {
+    const { data: raw, error } = await scrapeCreatorsFetch(
+      "/v1/:platform/:handleType",
+      {
+        params: { platform: "instagram", handleType: "profile" },
+        query: { handle },
+      },
+    );
+
+    if (error) {
+      throw new Error(
+        "We were unable to retrieve your social media profile. Please try again.",
+      );
+    }
+
+    if (isAccountNotFound(raw)) {
+      throw new AccountNotFoundError(
+        (raw as any).message || "Account doesn't exist",
+      );
+    }
+
+    const data = instagramProfileSchema.parse(raw);
+
+    return {
+      description: data.data.user.biography,
+      platformId: null,
+      subscribers: BigInt(data.data.user.edge_followed_by.count),
+      posts: BigInt(data.data.user.edge_owner_to_timeline_media.count),
+      views: BigInt(0),
+      avatarUrl: data.data.user.profile_pic_url,
+    };
+  }
 
   async fetchPost(url: string): Promise<SocialContent> {
     const { data: raw, error } = await scrapeCreatorsFetch(
@@ -67,7 +124,7 @@ export class InstagramAdapter extends BasePlatformAdapter {
     );
 
     if (error) {
-      throw new ScrapeCreatorsContentError(
+      throw new ContentNotFoundError(
         error.status ?? 500,
         error.statusText ?? "Unknown error",
       );
