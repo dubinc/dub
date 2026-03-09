@@ -2,7 +2,6 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
-import { uploadedImageAllowSVGSchema } from "@/lib/zod/schemas/misc";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
@@ -10,8 +9,7 @@ import {
   programResourcesSchema,
 } from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
-import { nanoid, R2_URL } from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
+import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";
@@ -26,16 +24,16 @@ const baseUpdateSchema = z.object({
 const updateLogoSchema = baseUpdateSchema.extend({
   resourceType: z.literal("logo"),
   name: z.string().min(1).optional(),
-  file: uploadedImageAllowSVGSchema.optional(),
-  extension: z.string().nullish(),
+  url: z.url().optional(),
+  fileSize: z.number().int().positive().optional(),
 });
 
 // Schema for file resources
 const updateFileSchema = baseUpdateSchema.extend({
   resourceType: z.literal("file"),
   name: z.string().min(1).optional(),
-  file: z.string().optional(),
-  extension: z.string().nullish(),
+  url: z.url().optional(),
+  fileSize: z.number().int().positive().optional(),
 });
 
 // Schema for color resources
@@ -103,59 +101,22 @@ export const updateProgramResourceAction = authActionClient
     const existingResource = resourceArray[resourceIndex];
 
     if (resourceType === "logo" || resourceType === "file") {
-      const { name, file, extension } = parsedInput;
+      const { name, url, fileSize } = parsedInput;
 
-      let newUrl = existingResource.url;
-      let newSize = existingResource.size;
+      const newUrl = url || existingResource.url;
+      const newSize = fileSize ?? existingResource.size;
 
-      // If a new file is provided, upload it and delete the old one
-      if (file) {
-        // Validate file size before upload
-        const base64Data = file.replace(/^data:.+;base64,/, "");
-        const fileSize = Math.ceil((base64Data.length * 3) / 4);
-
-        if (fileSize / 1024 / 1024 > 10) {
-          throw new Error("File size is too large");
-        }
-
-        // Upload the new file
-        const fileName = name || existingResource.name;
-        const fileKey = `programs/${program.id}/${resourceType}s/${slugify(fileName || resourceType)}-${nanoid(4)}${extension ? `.${extension}` : ""}`;
-        const uploadResult = await storage.upload({
-          key: fileKey,
-          body: file,
-          opts:
-            resourceType === "logo"
-              ? {
-                  headers: {
-                    "Content-Disposition": "attachment",
-                    ...(extension === "svg" && {
-                      "Content-Type": "image/svg+xml",
-                    }),
-                  },
-                }
-              : undefined,
-        });
-
-        if (!uploadResult || !uploadResult.url) {
-          throw new Error(`Failed to upload ${resourceType}`);
-        }
-
-        newUrl = uploadResult.url;
-        newSize = fileSize;
-
-        // Delete old file from storage (best-effort, after successful upload)
-        if (existingResource.url) {
-          try {
-            await storage.delete({
-              key: existingResource.url.replace(`${R2_URL}/`, ""),
-            });
-          } catch (error) {
-            console.error(
-              "Failed to delete old program resource file from storage:",
-              error,
-            );
-          }
+      // If a new URL was provided, delete the old file from storage (best-effort)
+      if (url && existingResource.url && existingResource.url !== url) {
+        try {
+          await storage.delete({
+            key: existingResource.url.replace(`${R2_URL}/`, ""),
+          });
+        } catch (error) {
+          console.error(
+            "Failed to delete old program resource file from storage:",
+            error,
+          );
         }
       }
 

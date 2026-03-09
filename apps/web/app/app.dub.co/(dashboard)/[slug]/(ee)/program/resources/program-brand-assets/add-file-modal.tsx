@@ -13,11 +13,13 @@ import {
   SetStateAction,
   useCallback,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+import { useUploadProgramResource } from "./use-upload-program-resource";
 
 type FileModalProps = {
   showFileModal: boolean;
@@ -25,10 +27,9 @@ type FileModalProps = {
   existingResource?: ProgramResourceFile;
 };
 
-// Define the form schema
 const fileFormSchema = z.object({
   name: z.string().min(1, "Name is required"),
-  file: z.string().optional(),
+  hasFile: z.boolean().optional(),
   extension: z.string().nullish(),
 });
 
@@ -53,6 +54,10 @@ function FileModalInner({
   const { mutate } = useProgramResources();
   const isEditing = Boolean(existingResource);
 
+  const rawFileRef = useRef<File | null>(null);
+  const [fileName, setFileName] = useState(existingResource?.name || "");
+  const [hasNewFile, setHasNewFile] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -64,12 +69,11 @@ function FileModalInner({
   } = useForm<FileFormData>({
     defaultValues: {
       name: existingResource?.name || "",
-      file: "",
+      hasFile: false,
     },
   });
 
-  const [fileName, setFileName] = useState(existingResource?.name || "");
-  const [hasNewFile, setHasNewFile] = useState(false);
+  const { upload } = useUploadProgramResource(workspaceId!);
 
   const { executeAsync: executeAdd } = useAction(addProgramResourceAction, {
     onSuccess: () => {
@@ -120,28 +124,56 @@ function FileModalInner({
 
       <form
         onSubmit={handleSubmit(async (data: FileFormData) => {
-          if (isEditing && existingResource) {
-            await executeUpdate({
-              workspaceId: workspaceId!,
-              resourceId: existingResource.id,
-              resourceType: "file",
-              name: data.name,
-              ...(hasNewFile && data.file
-                ? { file: data.file, extension: data.extension }
-                : {}),
-            });
-          } else {
-            if (!data.file) {
-              setError("file", { message: "File is required" });
-              return;
+          try {
+            if (isEditing && existingResource) {
+              let uploadedUrl: string | undefined;
+              let uploadedSize: number | undefined;
+
+              if (hasNewFile && rawFileRef.current) {
+                const { url, fileSize } = await upload({
+                  file: rawFileRef.current,
+                  resourceType: "file",
+                  name: data.name,
+                  extension: data.extension ?? undefined,
+                });
+                uploadedUrl = url;
+                uploadedSize = fileSize;
+              }
+
+              await executeUpdate({
+                workspaceId: workspaceId!,
+                resourceId: existingResource.id,
+                resourceType: "file",
+                name: data.name,
+                ...(uploadedUrl && uploadedSize !== undefined
+                  ? { url: uploadedUrl, fileSize: uploadedSize }
+                  : {}),
+              });
+            } else {
+              if (!rawFileRef.current) {
+                setError("hasFile", { message: "File is required" });
+                return;
+              }
+
+              const { url, fileSize } = await upload({
+                file: rawFileRef.current,
+                resourceType: "file",
+                name: data.name,
+                extension: data.extension ?? undefined,
+              });
+
+              await executeAdd({
+                workspaceId: workspaceId!,
+                name: data.name,
+                resourceType: "file",
+                url,
+                fileSize,
+              });
             }
-            await executeAdd({
-              workspaceId: workspaceId!,
-              name: data.name,
-              resourceType: "file",
-              file: data.file,
-              extension: data.extension,
-            });
+          } catch (err) {
+            const message =
+              err instanceof Error ? err.message : "Something went wrong";
+            toast.error(message);
           }
         })}
       >
@@ -156,25 +188,28 @@ function FileModalInner({
               </label>
               <Controller
                 control={control}
-                name="file"
-                rules={{ required: !isEditing ? "File is required" : false }}
+                name="hasFile"
+                rules={{
+                  validate: (v) =>
+                    !isEditing && !v ? "File is required" : true,
+                }}
                 render={({ field }) => (
                   <FileUpload
                     accept="programResourceFiles"
                     className={cn(
                       "aspect-[4.2] w-full rounded-md border border-neutral-300",
-                      errors.file && "border-red-300 ring-1 ring-red-500",
+                      errors.hasFile && "border-red-300 ring-1 ring-red-500",
                     )}
                     iconClassName="size-5"
                     variant="plain"
                     readFile
                     onChange={({ file, src }) => {
+                      rawFileRef.current = file;
                       setFileName(file.name);
-                      field.onChange(src);
+                      field.onChange(true);
                       setValue("extension", file.name.split(".").pop());
                       setHasNewFile(true);
 
-                      // Set the file name to the file name without extension if no name is provided
                       const currentName = getValues("name");
                       if (!currentName && file.name) {
                         const nameWithoutExtension = file.name
@@ -196,9 +231,9 @@ function FileModalInner({
                   />
                 )}
               />
-              {errors.file && (
+              {errors.hasFile && (
                 <p className="mt-1 text-xs text-red-600">
-                  {errors.file.message}
+                  {errors.hasFile.message}
                 </p>
               )}
             </div>
