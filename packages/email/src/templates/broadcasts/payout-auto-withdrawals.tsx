@@ -12,7 +12,10 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../../components/footer";
-import { BELOW_MIN_WITHDRAWAL_FEE_CENTS } from "../../types";
+import {
+  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
+} from "../../types";
 
 export default function PayoutAutoWithdrawals({
   email = "panic@thedis.co",
@@ -45,6 +48,15 @@ export default function PayoutAutoWithdrawals({
               payouts in your Dub partner account.
             </Text>
 
+            <Text className="text-sm leading-6 text-neutral-600">
+              For compliance reasons, all{" "}
+              <code className="rounded bg-indigo-100 px-1.5 py-0.5 text-indigo-600">
+                processed
+              </code>{" "}
+              payouts will be automatically withdrawn to your connected bank
+              account after 90 days.
+            </Text>
+
             <Section className="mb-8 mt-6">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
@@ -55,15 +67,6 @@ export default function PayoutAutoWithdrawals({
             </Section>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              For compliance reasons, all{" "}
-              <code className="rounded bg-indigo-100 px-1.5 py-0.5 text-indigo-600">
-                processed
-              </code>{" "}
-              payouts will be automatically withdrawn to your connected bank
-              account after 90 days for a{" "}
-              {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} fee.
-            </Text>
-            <Text className="text-sm leading-6 text-neutral-600">
               If you'd like to receive your payout right away, please{" "}
               <Link
                 href="https://partners.dub.co/payouts?status=processed"
@@ -73,8 +76,31 @@ export default function PayoutAutoWithdrawals({
                 go to your Payouts page
               </Link>{" "}
               and select <strong className="text-black">"Pay out now"</strong>{" "}
-              to withdraw your payout for a{" "}
-              {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS)} fee.
+              to withdraw your payout.
+            </Text>
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              Note: If your{" "}
+              <code className="rounded bg-indigo-100 px-1.5 py-0.5 text-indigo-600">
+                processed
+              </code>{" "}
+              payouts total is below the{" "}
+              <a
+                href="https://dub.co/help/article/receiving-payouts#what-is-the-minimum-withdrawal-amount-and-how-does-it-work"
+                target="_blank"
+                className="font-medium text-black underline decoration-dotted underline-offset-2"
+              >
+                minimum withdrawal amount
+              </a>{" "}
+              of{" "}
+              {currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS, {
+                trailingZeroDisplay: "stripIfInteger",
+              })}
+              , a withdrawal fee of{" "}
+              {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS, {
+                trailingZeroDisplay: "stripIfInteger",
+              })}{" "}
+              will be applied.
             </Text>
             <Footer email={email} />
           </Container>
