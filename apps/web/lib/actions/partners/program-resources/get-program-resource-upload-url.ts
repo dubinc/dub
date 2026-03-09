@@ -70,5 +70,6 @@ export const getProgramResourceUploadUrlAction = authActionClient
       destinationUrl: `${R2_URL}/${key}`,
       resourceId,
       key,
+      fileSize,
     };
   });

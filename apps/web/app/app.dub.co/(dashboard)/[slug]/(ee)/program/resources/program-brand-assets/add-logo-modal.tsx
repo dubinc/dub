@@ -2,7 +2,6 @@
 
 import { addProgramResourceAction } from "@/lib/actions/partners/program-resources/add-program-resource";
 import { updateProgramResourceAction } from "@/lib/actions/partners/program-resources/update-program-resource";
-import { useUploadProgramResource } from "./use-upload-program-resource";
 import useProgramResources from "@/lib/swr/use-program-resources";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramResourceFile } from "@/lib/zod/schemas/program-resources";
@@ -20,6 +19,7 @@ import {
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+import { useUploadProgramResource } from "./use-upload-program-resource";
 
 type LogoModalProps = {
   showLogoModal: boolean;
@@ -128,15 +128,17 @@ function LogoModalInner({
           try {
             if (isEditing && existingResource) {
               let uploadedKey: string | undefined;
+              let uploadedFileSize: number | undefined;
 
               if (hasNewFile && rawFileRef.current) {
-                const { key } = await upload({
+                const { key, fileSize } = await upload({
                   file: rawFileRef.current,
                   resourceType: "logo",
                   name: data.name,
                   extension: data.extension ?? undefined,
                 });
                 uploadedKey = key;
+                uploadedFileSize = fileSize;
               }
 
               await executeUpdate({
@@ -144,7 +146,9 @@ function LogoModalInner({
                 resourceId: existingResource.id,
                 resourceType: "logo",
                 name: data.name,
-                ...(uploadedKey ? { key: uploadedKey } : {}),
+                ...(uploadedKey
+                  ? { key: uploadedKey, fileSize: uploadedFileSize }
+                  : {}),
               });
             } else {
               if (!rawFileRef.current) {
@@ -152,7 +156,7 @@ function LogoModalInner({
                 return;
               }
 
-              const { key } = await upload({
+              const { key, fileSize } = await upload({
                 file: rawFileRef.current,
                 resourceType: "logo",
                 name: data.name,
@@ -164,6 +168,7 @@ function LogoModalInner({
                 name: data.name,
                 resourceType: "logo",
                 key,
+                fileSize,
               });
             }
           } catch (err) {

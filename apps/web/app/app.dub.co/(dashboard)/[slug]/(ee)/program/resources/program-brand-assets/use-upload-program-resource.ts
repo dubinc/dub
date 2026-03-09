@@ -24,7 +24,7 @@ export function useUploadProgramResource(workspaceId: string) {
 
     if (!result?.data) throw new Error("Failed to get upload URL");
 
-    const { signedUrl, key } = result.data;
+    const { signedUrl, key, fileSize } = result.data;
 
     const headers: Record<string, string> = {};
     if (opts.resourceType === "logo" && opts.extension === "svg") {
@@ -39,7 +39,7 @@ export function useUploadProgramResource(workspaceId: string) {
 
     if (!response.ok) throw new Error(`Failed to upload ${opts.resourceType}`);
 
-    return { key };
+    return { key, fileSize };
   };
 
   return { upload };

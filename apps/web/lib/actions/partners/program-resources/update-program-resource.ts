@@ -2,7 +2,6 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
-import { MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES } from "./constants";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
@@ -14,6 +13,7 @@ import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";
+import { MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES } from "./constants";
 
 // Base schema for all resource types
 const baseUpdateSchema = z.object({
@@ -26,6 +26,7 @@ const updateLogoSchema = baseUpdateSchema.extend({
   resourceType: z.literal("logo"),
   name: z.string().min(1).optional(),
   key: z.string().optional(),
+  fileSize: z.number().int().positive().optional(),
 });
 
 // Schema for file resources
@@ -33,6 +34,7 @@ const updateFileSchema = baseUpdateSchema.extend({
   resourceType: z.literal("file"),
   name: z.string().min(1).optional(),
   key: z.string().optional(),
+  fileSize: z.number().int().positive().optional(),
 });
 
 // Schema for color resources
@@ -103,25 +105,25 @@ export const updateProgramResourceAction = authActionClient
     let oldFileUrl: string | null = null;
 
     if (resourceType === "logo" || resourceType === "file") {
-      const { name, key } = parsedInput;
+      const { name, key, fileSize } = parsedInput;
 
       let newUrl = existingResource.url;
       let newSize = existingResource.size;
 
-      // If a new file was uploaded, validate ownership, derive URL, fetch real size
+      // If a new file was uploaded, validate ownership and derive URL server-side
       if (key) {
         if (!key.startsWith(`programs/${program.id}/`)) {
           throw new Error("Invalid resource key");
         }
 
-        newUrl = `${R2_URL}/${key}`;
-        newSize = await storage.getObjectSize({ key });
-
-        if (newSize > MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES) {
+        if (fileSize && fileSize > MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES) {
           throw new Error(
             `File size exceeds the maximum allowed size of ${MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES / 1024 / 1024}MB`,
           );
         }
+
+        newUrl = `${R2_URL}/${key}`;
+        newSize = fileSize ?? existingResource.size;
 
         // Remember the old URL — we'll delete it after the DB update succeeds
         if (existingResource.url) {

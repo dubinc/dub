@@ -127,15 +127,17 @@ function FileModalInner({
           try {
             if (isEditing && existingResource) {
               let uploadedKey: string | undefined;
+              let uploadedFileSize: number | undefined;
 
               if (hasNewFile && rawFileRef.current) {
-                const { key } = await upload({
+                const { key, fileSize } = await upload({
                   file: rawFileRef.current,
                   resourceType: "file",
                   name: data.name,
                   extension: data.extension ?? undefined,
                 });
                 uploadedKey = key;
+                uploadedFileSize = fileSize;
               }
 
               await executeUpdate({
@@ -143,7 +145,9 @@ function FileModalInner({
                 resourceId: existingResource.id,
                 resourceType: "file",
                 name: data.name,
-                ...(uploadedKey ? { key: uploadedKey } : {}),
+                ...(uploadedKey
+                  ? { key: uploadedKey, fileSize: uploadedFileSize }
+                  : {}),
               });
             } else {
               if (!rawFileRef.current) {
@@ -151,7 +155,7 @@ function FileModalInner({
                 return;
               }
 
-              const { key } = await upload({
+              const { key, fileSize } = await upload({
                 file: rawFileRef.current,
                 resourceType: "file",
                 name: data.name,
@@ -163,6 +167,7 @@ function FileModalInner({
                 name: data.name,
                 resourceType: "file",
                 key,
+                fileSize,
               });
             }
           } catch (err) {
