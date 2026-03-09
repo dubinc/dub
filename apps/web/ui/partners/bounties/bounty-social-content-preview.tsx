@@ -168,7 +168,7 @@ export function BountySocialContentPreview({
   return (
     <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-2">
       {/* Channel row */}
-      <div className="flex items-center gap-2 px-2 py-1">
+      {/* <div className="flex items-center gap-2 px-2 py-1">
         <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-100">
           <PlatformIcon className="size-3.5" />
         </div>
@@ -181,7 +181,7 @@ export function BountySocialContentPreview({
         >
           View
         </a>
-      </div>
+      </div> */}
 
       {/* Native embed */}
       <div
