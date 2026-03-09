@@ -1,3 +1,4 @@
+import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { prisma } from "@dub/prisma";
 import { cache } from "react";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -32,6 +33,15 @@ export const getNetworkProgram = cache(async ({ slug }: { slug: string }) => {
     return null;
   }
 
+  const defaultGroup = program.groups[0];
+
+  const bounties = defaultGroup
+    ? await getGroupBountySummaries({
+        programId: program.id,
+        groupId: defaultGroup.id,
+      })
+    : [];
+
   return NetworkProgramExtendedSchema.parse({
     ...program,
     rewards:
@@ -47,5 +57,6 @@ export const getNetworkProgram = cache(async ({ slug }: { slug: string }) => {
     landerData: program.groups?.[0]?.landerData
       ? programLanderSchema.parse(program.groups[0].landerData)
       : null,
+    bounties,
   });
 });

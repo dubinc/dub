@@ -1,10 +1,15 @@
 "use client";
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { DiscountProps, ProgramProps, RewardProps } from "@/lib/types";
+import {
+  DiscountProps,
+  GroupBountySummaryProps,
+  ProgramProps,
+  RewardProps,
+} from "@/lib/types";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
-import { ProgramRewardList } from "@/ui/partners/program-reward-list";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { BlurImage, Button, CircleCheck, Link4, StatusBadge } from "@dub/ui";
 import { capitalize, cn, OG_AVATAR_URL } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -15,7 +20,11 @@ export function ProgramSidebar({
   applicationRewards,
   applicationDiscount,
 }: {
-  program: Omit<ProgramProps, "referralFormData">;
+  program: Omit<ProgramProps, "referralFormData"> & {
+    group?: {
+      bounties?: GroupBountySummaryProps[];
+    } | null;
+  };
   applicationRewards: RewardProps[];
   applicationDiscount: DiscountProps | null;
 }) {
@@ -94,11 +103,7 @@ export function ProgramSidebar({
       </div>
 
       <div className="mt-8">
-        <h2 className="mb-2 text-base font-semibold text-neutral-800">
-          Rewards
-        </h2>
-
-        <ProgramRewardList
+        <LanderRewards
           rewards={
             (programEnrollment?.status === "approved"
               ? programEnrollment.rewards
@@ -112,7 +117,7 @@ export function ProgramSidebar({
               ? applicationDiscount
               : program.discounts?.[0] ?? null
           }
-          className="bg-neutral-100"
+          bounties={program.group?.bounties}
         />
       </div>
 

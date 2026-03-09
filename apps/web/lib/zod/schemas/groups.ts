@@ -6,6 +6,7 @@ import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
+import { GroupBountySummarySchema } from "./group-bounties";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { programApplicationFormSchema } from "./program-application-form";
 import { programLanderSchema } from "./program-lander";
@@ -79,6 +80,7 @@ export const GroupWithFormDataSchema = GroupSchema.extend({
   applicationFormPublishedAt: z.date().nullable(),
   landerData: programLanderSchema.nullable(),
   landerPublishedAt: z.date().nullable(),
+  bounties: z.array(GroupBountySummarySchema).optional(),
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({

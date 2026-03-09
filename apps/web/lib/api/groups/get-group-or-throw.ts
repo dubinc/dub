@@ -1,3 +1,4 @@
+import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
@@ -51,6 +52,12 @@ export const getGroupOrThrow = async ({
 
   return {
     ...group,
+    ...(includeExpandedFields && {
+      bounties: await getGroupBountySummaries({
+        programId,
+        groupId: group.id,
+      }),
+    }),
     moveRules: group.workflow?.triggerConditions,
   };
 };
