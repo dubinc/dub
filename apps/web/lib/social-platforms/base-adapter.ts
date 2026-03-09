@@ -27,7 +27,7 @@ export interface PostEngagement {
   engagementRate: number;
 }
 
-export interface FetchEngagementParams {
+export interface FetchPostsParams {
   platformId: string;
   identifier: string;
   startTime: Date;
@@ -37,7 +37,7 @@ export interface FetchEngagementParams {
 export abstract class BasePlatformAdapter {
   abstract platform: PlatformType;
 
-  abstract fetchPosts(params: FetchEngagementParams): Promise<PostEngagement[]>;
+  abstract fetchPosts(params: FetchPostsParams): Promise<PostEngagement[]>;
 
   abstract fetchPost(url: string): Promise<SocialContent>;
 

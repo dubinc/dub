@@ -4,7 +4,7 @@ import { PlatformType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import {
   BasePlatformAdapter,
-  type FetchEngagementParams,
+  type FetchPostsParams,
   type PostEngagement,
   type SocialProfile,
 } from "./base-adapter";
@@ -252,7 +252,7 @@ export class XAdapter extends BasePlatformAdapter {
     platformId,
     startTime,
     endTime,
-  }: FetchEngagementParams): Promise<PostEngagement[]> {
+  }: FetchPostsParams): Promise<PostEngagement[]> {
     const tweets = await this._getUserTweets({
       userId: platformId,
       startTime,
@@ -261,6 +261,8 @@ export class XAdapter extends BasePlatformAdapter {
 
     return tweets.map((tweet) => {
       const m = tweet.public_metrics;
+
+      // Engagement rate = (likes + retweets + replies + quotes) / impressions
       const totalEngagements =
         m.like_count + m.retweet_count + m.reply_count + m.quote_count;
       const engagementRate =

@@ -3,7 +3,7 @@ import { PlatformType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import {
   BasePlatformAdapter,
-  type FetchEngagementParams,
+  type FetchPostsParams,
   type PostEngagement,
   type SocialProfile,
 } from "./base-adapter";
@@ -209,7 +209,7 @@ export class InstagramAdapter extends BasePlatformAdapter {
     return undefined;
   }
 
-  async fetchPosts(_params: FetchEngagementParams): Promise<PostEngagement[]> {
+  async fetchPosts(_params: FetchPostsParams): Promise<PostEngagement[]> {
     return [];
   }
 }
