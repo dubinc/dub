@@ -18,7 +18,7 @@ const linkLRUCache = new LRUCache<string, RedisLinkProps>({
  * Caveat: we don't set expiration for links with webhooks since it's expensive
  * to fetch and set on-demand inside link middleware.
  */
-export const CACHE_EXPIRATION = 60 * 60 * 24;
+const CACHE_EXPIRATION = 60 * 60 * 24;
 
 class LinkCache {
   async mset(links: ExpandedLink[]) {
@@ -70,7 +70,7 @@ class LinkCache {
     // so we should get the original key from the cache
     const cacheKey = `linkcache:${domain}:${key}`;
 
-    // Check LRU cache first before hitting Redis
+    // Check LRU cache first
     let cachedLink = linkLRUCache.get(cacheKey) || null;
 
     if (cachedLink) {
@@ -79,12 +79,14 @@ class LinkCache {
     }
 
     console.log(`[LRU Cache MISS] ${cacheKey} - Checking Redis...`);
+
     try {
       // we're using the special redisWithTimeout client in case Redis times out
       cachedLink = await redisWithTimeout.get<RedisLinkProps>(cacheKey);
 
       if (cachedLink) {
-        console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU cache...`);
+        console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU Cache...`);
+
         linkLRUCache.set(cacheKey, cachedLink);
       } else {
         console.log(
