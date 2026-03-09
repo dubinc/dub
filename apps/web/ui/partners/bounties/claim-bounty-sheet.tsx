@@ -24,7 +24,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
@@ -49,27 +49,21 @@ interface FileInput {
 function ImagesField({
   bounty,
   onUploadingChange,
+  files,
+  setFiles,
 }: {
   bounty: PartnerBountyProps;
   onUploadingChange: (uploading: boolean) => void;
+  files: FileInput[];
+  setFiles: Dispatch<SetStateAction<FileInput[]>>;
 }) {
   const { programEnrollment } = useProgramEnrollment();
-  const { getValues, setValue } = useClaimBountyForm();
+  const { setValue } = useClaimBountyForm();
 
   const imageMax = bounty.submissionRequirements?.image?.max;
   const maxFiles = imageMax ?? BOUNTY_MAX_SUBMISSION_FILES;
   const formatRequirementText = (max?: number | null) =>
     max != null && max > 1 ? ` (1 required, max of ${max})` : " (1 required)";
-
-  const [files, setFiles] = useState<FileInput[]>(() => {
-    const existing = getValues("files") ?? [];
-    return existing.map((f) => ({
-      id: uuid(),
-      url: f.url,
-      uploading: false,
-      file: undefined,
-    }));
-  });
 
   const { executeAsync: uploadFile } = useAction(
     uploadBountySubmissionFileAction,
@@ -97,57 +91,73 @@ function ImagesField({
       return updated;
     });
 
-    const result = await uploadFile({
-      programId: programEnrollment.programId,
-      bountyId: bounty.id,
-    });
+    try {
+      const result = await uploadFile({
+        programId: programEnrollment.programId,
+        bountyId: bounty.id,
+      });
 
-    if (!result?.data) {
-      toast.error("Failed to get signed upload URL.");
+      if (!result?.data) {
+        toast.error("Failed to get signed upload URL.");
+        setFiles((prev) => {
+          const updated = prev.filter((f) => f.id !== newFile.id);
+          onUploadingChange(updated.some((f) => f.uploading));
+          syncToForm(updated);
+          return updated;
+        });
+        return;
+      }
+
+      const { signedUrl, destinationUrl } = result.data;
+
+      const uploadResponse = await fetch(signedUrl, {
+        method: "PUT",
+        body: file,
+        headers: {
+          "Content-Type": file.type,
+          "Content-Length": file.size.toString(),
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        let errorMessage = "Failed to upload screenshot.";
+        try {
+          const res = await uploadResponse.json();
+          errorMessage = res.error?.message || errorMessage;
+        } catch {
+          // ignore JSON parse errors; use the default message
+        }
+        toast.error(errorMessage);
+        setFiles((prev) => {
+          const updated = prev.filter((f) => f.id !== newFile.id);
+          onUploadingChange(updated.some((f) => f.uploading));
+          syncToForm(updated);
+          return updated;
+        });
+        return;
+      }
+
+      toast.success(`${file.name} uploaded!`);
+
+      setFiles((prev) => {
+        const updated = prev.map((f) =>
+          f.id === newFile.id
+            ? { ...f, uploading: false, url: destinationUrl }
+            : f,
+        );
+        onUploadingChange(updated.some((f) => f.uploading));
+        syncToForm(updated);
+        return updated;
+      });
+    } catch {
+      toast.error("An unexpected error occurred while uploading. Please try again.");
       setFiles((prev) => {
         const updated = prev.filter((f) => f.id !== newFile.id);
         onUploadingChange(updated.some((f) => f.uploading));
         syncToForm(updated);
         return updated;
       });
-      return;
     }
-
-    const { signedUrl, destinationUrl } = result.data;
-
-    const uploadResponse = await fetch(signedUrl, {
-      method: "PUT",
-      body: file,
-      headers: {
-        "Content-Type": file.type,
-        "Content-Length": file.size.toString(),
-      },
-    });
-
-    if (!uploadResponse.ok) {
-      const res = await uploadResponse.json();
-      toast.error(res.error?.message || "Failed to upload screenshot.");
-      setFiles((prev) => {
-        const updated = prev.filter((f) => f.id !== newFile.id);
-        onUploadingChange(updated.some((f) => f.uploading));
-        syncToForm(updated);
-        return updated;
-      });
-      return;
-    }
-
-    toast.success(`${file.name} uploaded!`);
-
-    setFiles((prev) => {
-      const updated = prev.map((f) =>
-        f.id === newFile.id
-          ? { ...f, uploading: false, url: destinationUrl }
-          : f,
-      );
-      onUploadingChange(updated.some((f) => f.uploading));
-      syncToForm(updated);
-      return updated;
-    });
   };
 
   return (
@@ -345,15 +355,20 @@ interface ClaimBountySheetProps {
 function ClaimBountySheetContent({
   bounty,
   setIsOpen,
+  isOpen,
   periodNumber,
-}: Omit<ClaimBountySheetProps, "isOpen">) {
+}: ClaimBountySheetProps) {
   const effectivePeriodNumber = periodNumber ?? 1;
   const submission =
     bounty.submissions?.find((s) => s.periodNumber === effectivePeriodNumber) ??
     null;
   const { programEnrollment } = useProgramEnrollment();
-  const { socialContentVerifying, socialContentRequirementsMet } =
-    useClaimBountyContext();
+  const {
+    socialContentVerifying,
+    socialContentRequirementsMet,
+    setSocialContentVerifying,
+    setSocialContentRequirementsMet,
+  } = useClaimBountyContext();
 
   const [isDraft, setIsDraft] = useState<boolean | null>(null);
   const [fileUploading, setFileUploading] = useState(false);
@@ -383,6 +398,56 @@ function ClaimBountySheetContent({
         })) ?? [],
     },
   });
+
+  const [files, setFiles] = useState<FileInput[]>(() =>
+    (submission?.files ?? []).map((f) => ({
+      id: uuid(),
+      url: f.url,
+      uploading: false,
+      file: undefined,
+    })),
+  );
+
+  const bountyRef = useRef(bounty);
+  bountyRef.current = bounty;
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const b = bountyRef.current;
+    const ep = periodNumber ?? 1;
+    const sub = b.submissions?.find((s) => s.periodNumber === ep) ?? null;
+    const sp = resolveBountyDetails(b)?.socialPlatform;
+
+    const urls =
+      sub?.urls?.length
+        ? sp
+          ? [sub.urls[0] ?? "", ...sub.urls.slice(1)]
+          : [...sub.urls]
+        : [""];
+
+    const formFiles =
+      sub?.files?.map((f) => ({
+        url: f.url,
+        fileName: f.fileName ?? "File",
+        size: f.size ?? 0,
+      })) ?? [];
+
+    claimForm.reset({ urls, description: sub?.description ?? "", files: formFiles });
+
+    setFiles(
+      formFiles.map((f) => ({
+        id: uuid(),
+        url: f.url,
+        uploading: false,
+        file: undefined,
+      })),
+    );
+
+    setSocialContentVerifying(false);
+    setSocialContentRequirementsMet(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, periodNumber]);
 
   const { executeAsync: createSubmission } = useAction(
     createBountySubmissionAction,
@@ -484,13 +549,14 @@ function ClaimBountySheetContent({
   const submissionsNotOpenYet =
     submissionsOpenAt !== null && submissionsOpenAt > new Date();
 
-  const formattedSubmissionsOpenAt = submissionsOpenAt
-    ? `${submissionsOpenAt.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })} at ${submissionsOpenAt.toLocaleTimeString("en-US", { hour: "numeric", hour12: true })}`
-    : null;
+  const formattedSubmissionsOpenAt =
+    submissionsOpenAt && new Date() < submissionsOpenAt
+      ? `${submissionsOpenAt.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        })} at ${submissionsOpenAt.toLocaleTimeString("en-US", { hour: "numeric", hour12: true })}`
+      : null;
 
   const isBusy =
     fileUploading ||
@@ -554,6 +620,8 @@ function ClaimBountySheetContent({
                   <ImagesField
                     bounty={bounty}
                     onUploadingChange={setFileUploading}
+                    files={files}
+                    setFiles={setFiles}
                   />
                 )}
                 {urlRequired && <UrlsField bounty={bounty} />}
@@ -613,6 +681,7 @@ export function ClaimBountySheet({
       <ClaimBountyProvider>
         <ClaimBountySheetContent
           bounty={bounty}
+          isOpen={isOpen}
           setIsOpen={setIsOpen}
           periodNumber={periodNumber}
         />

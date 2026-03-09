@@ -446,6 +446,7 @@ const bountyTemplates = ({
     description,
     rewardAmount,
     rewardDescription,
+    submissionRequirements,
     type,
     startsAt,
     endsAt,
@@ -459,6 +460,7 @@ const bountyTemplates = ({
   const formattedReward = getBountyRewardDescription({
     rewardAmount,
     rewardDescription,
+    submissionRequirements,
   });
 
   const hrefToBounty = `${APP_DOMAIN}/program/bounties/${id}`;

@@ -99,16 +99,18 @@ export function calculateSocialMetricsRewardAmount({
 }
 
 export function getBountyRewardDescription(
-  bounty: Pick<BountyProps, "rewardAmount" | "rewardDescription"> & {
-    submissionRequirements?: BountyProps["submissionRequirements"];
-  },
+  bounty: Pick<
+    BountyProps,
+    "rewardAmount" | "rewardDescription" | "submissionRequirements"
+  >,
 ) {
   const bountyInfo = resolveBountyDetails({
     rewardAmount: bounty.rewardAmount,
-    submissionRequirements: bounty.submissionRequirements ?? null,
+    submissionRequirements: bounty.submissionRequirements,
   });
 
-  const incrementalBonus = bountyInfo?.socialMetrics?.incrementalBonus;
+  const socialMetrics = bountyInfo?.socialMetrics;
+  const incrementalBonus = socialMetrics?.incrementalBonus;
 
   if (
     incrementalBonus?.incrementCount &&
@@ -116,10 +118,16 @@ export function getBountyRewardDescription(
     incrementalBonus?.maxCount
   ) {
     const baseRewardCents = bounty.rewardAmount ?? 0;
+    const minCount = socialMetrics?.minCount ?? 0;
 
     const incrementalCapCents =
-      Math.floor(incrementalBonus.maxCount / incrementalBonus.incrementCount) *
-      incrementalBonus.bonusPerIncrement;
+      Math.max(
+        0,
+        Math.floor(
+          (incrementalBonus.maxCount - minCount) /
+            incrementalBonus.incrementCount,
+        ),
+      ) * incrementalBonus.bonusPerIncrement;
 
     const earningsCapCents = baseRewardCents + incrementalCapCents;
 
