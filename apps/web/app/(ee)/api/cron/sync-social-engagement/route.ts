@@ -96,32 +96,34 @@ export const POST = withCron(async ({ rawBody }) => {
     platformAdapter.calculateDailyEngagement(postEngagements);
 
   // Daily aggregate upserts
-  for (const day of dailyEngagements) {
-    await prisma.partnerPlatformEngagement.upsert({
-      where: {
-        partnerPlatformId_date: {
+  await prisma.$transaction(
+    dailyEngagements.map((day) =>
+      prisma.partnerPlatformEngagement.upsert({
+        where: {
+          partnerPlatformId_date: {
+            partnerPlatformId,
+            date: day.date,
+          },
+        },
+        create: {
           partnerPlatformId,
           date: day.date,
+          totalPosts: day.totalPosts,
+          totalImpressions: BigInt(day.totalImpressions),
+          totalLikes: BigInt(day.totalLikes),
+          totalComments: BigInt(day.totalComments),
+          engagementRate: day.engagementRate,
         },
-      },
-      create: {
-        partnerPlatformId,
-        date: day.date,
-        totalPosts: day.totalPosts,
-        totalImpressions: BigInt(day.totalImpressions),
-        totalLikes: BigInt(day.totalLikes),
-        totalComments: BigInt(day.totalComments),
-        engagementRate: day.engagementRate,
-      },
-      update: {
-        totalPosts: day.totalPosts,
-        totalImpressions: BigInt(day.totalImpressions),
-        totalLikes: BigInt(day.totalLikes),
-        totalComments: BigInt(day.totalComments),
-        engagementRate: day.engagementRate,
-      },
-    });
-  }
+        update: {
+          totalPosts: day.totalPosts,
+          totalImpressions: BigInt(day.totalImpressions),
+          totalLikes: BigInt(day.totalLikes),
+          totalComments: BigInt(day.totalComments),
+          engagementRate: day.engagementRate,
+        },
+      }),
+    ),
+  );
 
   // Prune old daily engagements (keep 31 days for timezone safety)
   await prisma.partnerPlatformEngagement.deleteMany({
@@ -151,32 +153,34 @@ export const POST = withCron(async ({ rawBody }) => {
   const avgEngagementRate = avgResult._avg.engagementRate ?? 0;
 
   // Per-post upserts
-  for (const post of postEngagements) {
-    await prisma.partnerPlatformPost.upsert({
-      where: {
-        partnerPlatformId_postId: {
+  await prisma.$transaction(
+    postEngagements.map((post) =>
+      prisma.partnerPlatformPost.upsert({
+        where: {
+          partnerPlatformId_postId: {
+            partnerPlatformId,
+            postId: post.postId,
+          },
+        },
+        create: {
           partnerPlatformId,
           postId: post.postId,
+          publishedAt: post.publishedAt,
+          title: post.title,
+          views: BigInt(post.views),
+          likes: BigInt(post.likes),
+          comments: BigInt(post.comments),
+          engagementRate: post.engagementRate,
         },
-      },
-      create: {
-        partnerPlatformId,
-        postId: post.postId,
-        publishedAt: post.publishedAt,
-        title: post.title,
-        views: BigInt(post.views),
-        likes: BigInt(post.likes),
-        comments: BigInt(post.comments),
-        engagementRate: post.engagementRate,
-      },
-      update: {
-        views: BigInt(post.views),
-        likes: BigInt(post.likes),
-        comments: BigInt(post.comments),
-        engagementRate: post.engagementRate,
-      },
-    });
-  }
+        update: {
+          views: BigInt(post.views),
+          likes: BigInt(post.likes),
+          comments: BigInt(post.comments),
+          engagementRate: post.engagementRate,
+        },
+      }),
+    ),
+  );
 
   // Prune to last N posts per partner
   const postCount = await prisma.partnerPlatformPost.count({
@@ -186,7 +190,7 @@ export const POST = withCron(async ({ rawBody }) => {
   });
 
   if (postCount > MAX_POSTS_PER_PARTNER) {
-    const oldestToKeep = await prisma.partnerPlatformPost.findMany({
+    const postsToKeep = await prisma.partnerPlatformPost.findMany({
       where: {
         partnerPlatformId,
       },
@@ -195,17 +199,17 @@ export const POST = withCron(async ({ rawBody }) => {
       },
       take: MAX_POSTS_PER_PARTNER,
       select: {
-        publishedAt: true,
+        id: true,
       },
     });
 
-    const cutoff = oldestToKeep[oldestToKeep.length - 1].publishedAt;
+    const keepIds = postsToKeep.map((p) => p.id);
 
     await prisma.partnerPlatformPost.deleteMany({
       where: {
         partnerPlatformId,
-        publishedAt: {
-          lt: cutoff,
+        id: {
+          notIn: keepIds,
         },
       },
     });

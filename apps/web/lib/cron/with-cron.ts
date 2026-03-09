@@ -62,6 +62,7 @@ export const withCron = (handler: WithCronHandler) => {
                 ...error,
                 name: error.name,
                 message: error.message,
+                stack: error.stack,
               })
             : String(error);
 

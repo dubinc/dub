@@ -8,11 +8,17 @@ const HIGH_ENGAGEMENT_THRESHOLD = 10_000;
 
 type FraudRiskLevel = "low" | "medium" | "high";
 
-const FRAUD_FLAG_SEVERITY: Record<string, FraudRiskLevel> = {
-  engagement_spike: "high",
-  low_follower_high_engagement: "high",
-  engagement_rate_anomaly: "medium",
-  no_baseline_history: "medium",
+type FraudFlag =
+  | "engagementSpike"
+  | "lowFollowerHighEngagement"
+  | "engagementRateAnomaly"
+  | "noBaselineHistory";
+
+const FRAUD_FLAG_SEVERITY: Record<FraudFlag, FraudRiskLevel> = {
+  engagementSpike: "high",
+  lowFollowerHighEngagement: "high",
+  engagementRateAnomaly: "medium",
+  noBaselineHistory: "medium",
 };
 
 type PartnerPlatformBaseline = Pick<
@@ -31,8 +37,8 @@ interface DetectBountyFraudInput {
 }
 
 interface BountyFraudResult {
-  fraudRiskLevel: string | null;
-  fraudFlags: string[];
+  fraudRiskLevel: FraudRiskLevel | null;
+  fraudFlags: FraudFlag[];
 }
 
 /**
@@ -40,22 +46,22 @@ interface BountyFraudResult {
  * the submission's engagement metrics against the partner's historical baselines.
  *
  * Signals based on industry standards:
- * - engagement_spike: metrics far exceed partner's median (purchased views/likes)
- * - engagement_rate_anomaly: engagement rate significantly above baseline
- * - no_baseline_history: no historical data to benchmark against
- * - low_follower_high_engagement: disproportionate reach vs audience size
+ * - engagementSpike: metrics far exceed partner's median (purchased views/likes)
+ * - engagementRateAnomaly: engagement rate significantly above baseline
+ * - noBaselineHistory: no historical data to benchmark against
+ * - lowFollowerHighEngagement: disproportionate reach vs audience size
  */
 export function detectBountySubmissionFraud({
   socialMetricCount,
   bountyMetric,
   partnerPlatform,
 }: DetectBountyFraudInput): BountyFraudResult {
-  const flags: string[] = [];
+  const flags: FraudFlag[] = [];
 
   // Signal: no_baseline_history
   // New/unverified accounts with no historical posts synced
   if (!partnerPlatform || partnerPlatform.medianViews === null) {
-    flags.push("no_baseline_history");
+    flags.push("noBaselineHistory");
 
     return {
       fraudRiskLevel: getHighestSeverity(flags),
@@ -71,7 +77,7 @@ export function detectBountySubmissionFraud({
   // Signal: engagement_spike
   // Submission metrics far exceed the partner's historical median
   if (median > 0 && socialMetricCount > median * SPIKE_MULTIPLIER) {
-    flags.push("engagement_spike");
+    flags.push("engagementSpike");
   }
 
   // Signal: engagement_rate_anomaly
@@ -92,14 +98,13 @@ export function detectBountySubmissionFraud({
         socialMetricCount * partnerPlatform.medianEngagementRate;
       // If views are growing but the view count implies an engagement pattern
       // that would require an abnormally high rate, flag it
-      const impliedViewsForMedianLikes = medianLikes / medianViews;
       const currentRatio = socialMetricCount / medianViews;
 
       if (
         currentRatio > ENGAGEMENT_RATE_MULTIPLIER &&
         expectedLikes > medianLikes * ENGAGEMENT_RATE_MULTIPLIER
       ) {
-        flags.push("engagement_rate_anomaly");
+        flags.push("engagementRateAnomaly");
       }
     }
   }
@@ -112,7 +117,7 @@ export function detectBountySubmissionFraud({
     subscribers < LOW_FOLLOWER_THRESHOLD &&
     socialMetricCount > HIGH_ENGAGEMENT_THRESHOLD
   ) {
-    flags.push("low_follower_high_engagement");
+    flags.push("lowFollowerHighEngagement");
   }
 
   return {
@@ -121,7 +126,7 @@ export function detectBountySubmissionFraud({
   };
 }
 
-function getHighestSeverity(flags: string[]): string | null {
+function getHighestSeverity(flags: FraudFlag[]): FraudRiskLevel | null {
   if (flags.length === 0) {
     return null;
   }
@@ -135,7 +140,7 @@ function getHighestSeverity(flags: string[]): string | null {
   let highest: FraudRiskLevel = "low";
 
   for (const flag of flags) {
-    const severity = FRAUD_FLAG_SEVERITY[flag] ?? "low";
+    const severity = FRAUD_FLAG_SEVERITY[flag];
 
     if (severityRank[severity] > severityRank[highest]) {
       highest = severity;

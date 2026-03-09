@@ -302,8 +302,6 @@ export class XAdapter extends BasePlatformAdapter {
       endTime,
     });
 
-    console.log("tweets", tweets);
-
     return tweets.map((tweet) => {
       const m = tweet.public_metrics;
       const totalEngagements =
