@@ -3,12 +3,12 @@
 import { createId } from "@/lib/api/create-id";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { BOUNTY_MAX_SUBMISSION_URLS } from "@/lib/bounty/constants";
 import {
   getPlatformFromSocialUrl,
   resolveBountyDetails,
 } from "@/lib/bounty/utils";
+import { getSocialContent } from "@/lib/social-platforms/get-social-content";
 import {
   createBountySubmissionInputSchema,
   submissionRequirementsSchema,

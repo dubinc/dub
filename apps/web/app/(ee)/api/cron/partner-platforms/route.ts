@@ -1,9 +1,9 @@
+import { qstash } from "@/lib/cron";
+import { withCron } from "@/lib/cron/with-cron";
 import {
   AccountNotFoundError,
   getSocialProfile,
-} from "@/lib/api/scrape-creators/get-social-profile";
-import { qstash } from "@/lib/cron";
-import { withCron } from "@/lib/cron/with-cron";
+} from "@/lib/social-platforms/get-social-profile";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { subDays } from "date-fns";

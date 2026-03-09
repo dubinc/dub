@@ -1,7 +1,7 @@
 import {
   AccountNotFoundError,
   getSocialProfile,
-} from "@/lib/api/scrape-creators/get-social-profile";
+} from "@/lib/social-platforms/get-social-profile";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
