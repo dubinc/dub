@@ -6,11 +6,11 @@ import { ExpandedLink } from "./utils/transform-link";
 
 /*
  * Link LRU cache to reduce Redis load during traffic spikes.
- * Max 5000 entries with 3-second TTL.
+ * Max 10,000 entries with 5-second TTL.
  */
 const linkLRUCache = new LRUCache<string, RedisLinkProps>({
-  max: 5000, // max 5000 entries
-  ttl: 3000, // 3 seconds
+  max: 10000, // max 10,000 entries
+  ttl: 5000, // 5 seconds
 });
 
 /*
@@ -56,6 +56,7 @@ class LinkCache {
 
     if (cachedLink) {
       console.log(`[LRU Cache HIT] ${cacheKey}`);
+      linkLRUCache.set(cacheKey, cachedLink); // refresh the LRU cache
       return cachedLink;
     }
 
@@ -66,8 +67,8 @@ class LinkCache {
 
     if (cachedLink) {
       console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU Cache...`);
-
-      linkLRUCache.set(cacheKey, cachedLink);
+      linkLRUCache.set(cacheKey, cachedLink); // persist to LRU cache
+      return cachedLink;
     } else {
       console.log(
         `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,

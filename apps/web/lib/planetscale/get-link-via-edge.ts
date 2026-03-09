@@ -33,16 +33,12 @@ export const getLinkViaEdge = async ({
 
   if (!rows || !Array.isArray(rows) || rows.length === 0) return null;
 
-  console.log("rows", rows);
-
   const first = rows[0] as EdgeLinkProps & { webhookId: string | null };
   const { webhookId: _w, ...link } = first;
   const webhooks = (rows as (EdgeLinkProps & { webhookId: string | null })[])
     .map((r) => r.webhookId)
     .filter((id): id is string => id != null)
     .map((webhookId) => ({ webhookId }));
-
-  console.log("webhooks", webhooks);
 
   return {
     ...link,
