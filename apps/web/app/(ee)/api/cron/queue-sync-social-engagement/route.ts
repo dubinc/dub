@@ -30,7 +30,7 @@ export const GET = withCron(async () => {
     return logAndRespond("No eligible partner platforms for engagement sync.");
   }
 
-  await enqueueBatchJobs(
+  const jobs = await enqueueBatchJobs(
     partnerPlatforms.map((pp) => ({
       queueName: "sync-social-engagement",
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/sync-social-engagement`,
@@ -41,7 +41,5 @@ export const GET = withCron(async () => {
     })),
   );
 
-  return logAndRespond(
-    `Queued ${partnerPlatforms.length} social engagement sync jobs.`,
-  );
+  return logAndRespond(`Queued ${jobs.length} social engagement sync jobs.`);
 });
