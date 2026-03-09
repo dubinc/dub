@@ -120,7 +120,11 @@ describe.concurrent("/links/** - pagination", async () => {
   test("Rejects both startingAfter and endingBefore", async () => {
     const { status, data: error } = await http.get({
       path: "/links",
-      query: { pageSize: "5", startingAfter: "id", endingBefore: "id" },
+      query: {
+        pageSize: "5",
+        startingAfter: baselineIds[0],
+        endingBefore: baselineIds[1],
+      },
     });
 
     expect(status).toEqual(422);
