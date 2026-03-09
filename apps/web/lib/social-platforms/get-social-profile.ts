@@ -1,6 +1,5 @@
 import { getPlatformAdapter } from "@/lib/social-platforms";
 import { PlatformType } from "@dub/prisma/client";
-
 export { AccountNotFoundError } from "@/lib/social-platforms/scrape-creators";
 
 interface GetSocialProfileParams {
