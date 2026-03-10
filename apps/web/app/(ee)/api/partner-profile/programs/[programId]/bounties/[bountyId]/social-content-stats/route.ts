@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { getSocialContent } from "@/lib/social-platforms/get-social-content";
 import { ratelimit } from "@/lib/upstash";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";

@@ -63,6 +63,10 @@
     {
       "path": "/api/cron/fraud/summary",
       "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/cron/queue-sync-social-engagement",
+      "schedule": "0 7 * * *"
     }
   ],
   "functions": {

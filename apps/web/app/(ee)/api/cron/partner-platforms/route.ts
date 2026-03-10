@@ -1,9 +1,9 @@
+import { qstash } from "@/lib/cron";
+import { withCron } from "@/lib/cron/with-cron";
 import {
   AccountNotFoundError,
   getSocialProfile,
-} from "@/lib/api/scrape-creators/get-social-profile";
-import { qstash } from "@/lib/cron";
-import { withCron } from "@/lib/cron/with-cron";
+} from "@/lib/social-platforms/get-social-profile";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { subDays } from "date-fns";
@@ -89,6 +89,9 @@ export const POST = withCron(async ({ rawBody }) => {
         });
 
         const newStats = {
+          ...(socialProfile.platformId && {
+            platformId: socialProfile.platformId,
+          }),
           subscribers: socialProfile.subscribers,
           posts: socialProfile.posts,
           avatarUrl: socialProfile.avatarUrl,

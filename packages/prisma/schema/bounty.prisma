@@ -86,6 +86,8 @@ model BountySubmission {
   rejectionNote             String?                          @db.Text
   files                     Json?
   urls                      Json?
+  fraudRiskLevel            String?
+  fraudFlags                Json?                            @db.Json
   socialMetricsLastSyncedAt DateTime?
   completedAt               DateTime?
   reviewedAt                DateTime?

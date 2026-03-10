@@ -57,7 +57,14 @@ export const withCron = (handler: WithCronHandler) => {
         console.error(error);
 
         const errorMessage =
-          error instanceof Error ? error.message : String(error);
+          error instanceof Error
+            ? JSON.stringify({
+                ...error,
+                name: error.name,
+                message: error.message,
+                stack: error.stack,
+              })
+            : String(error);
 
         // Send error to Axiom
         logger.error(errorMessage, error);

@@ -1,6 +1,6 @@
 "use server";
 
-import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
+import { getSocialProfile } from "@/lib/social-platforms/get-social-profile";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";

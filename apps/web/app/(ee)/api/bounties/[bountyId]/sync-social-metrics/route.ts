@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { detectBountySubmissionFraud } from "@/lib/bounty/api/detect-bounty-submission-fraud";
 import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { getSocialMetricsUpdates } from "@/lib/bounty/api/get-social-metrics-updates";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
@@ -51,6 +52,7 @@ export const POST = withWorkspace(
                 id: true,
                 urls: true,
                 status: true,
+                partnerId: true,
                 partner: true,
               },
             },
@@ -141,6 +143,35 @@ export const POST = withWorkspace(
         socialMetricCount,
         socialMetricsLastSyncedAt,
       };
+
+      if (socialMetricCount != null) {
+        const partnerPlatformBaseline = await prisma.partnerPlatform.findUnique(
+          {
+            where: {
+              partnerId_type: {
+                partnerId: submission.partnerId,
+                type: bountyInfo.socialPlatform!.value,
+              },
+            },
+            select: {
+              medianViews: true,
+              medianLikes: true,
+              medianComments: true,
+              medianEngagementRate: true,
+              subscribers: true,
+            },
+          },
+        );
+
+        const fraudResult = detectBountySubmissionFraud({
+          socialMetricCount,
+          bountyMetric: bountyInfo.socialMetrics!.metric,
+          partnerPlatform: partnerPlatformBaseline,
+        });
+
+        updateData.fraudRiskLevel = fraudResult.fraudRiskLevel;
+        updateData.fraudFlags = fraudResult.fraudFlags;
+      }
 
       const hasMetCriteria =
         socialMetricCount != null &&
