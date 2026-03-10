@@ -88,7 +88,7 @@ export const POST = withCron(async ({ rawBody }) => {
   const dailyEngagements = platform.calculateDailyEngagement(posts);
 
   // Daily aggregate upserts
-  await prisma.$transaction(
+  const engagementResults = await Promise.allSettled(
     dailyEngagements.map((day) =>
       prisma.partnerPlatformEngagement.upsert({
         where: {
@@ -117,6 +117,16 @@ export const POST = withCron(async ({ rawBody }) => {
     ),
   );
 
+  const engagementFailures = engagementResults.filter(
+    (r) => r.status === "rejected",
+  );
+
+  if (engagementFailures.length > 0) {
+    console.warn(
+      `Failed to upsert ${engagementFailures.length}/${dailyEngagements.length} daily engagements for ${partnerPlatformId}`,
+    );
+  }
+
   // Prune old daily engagements (keep 31 days for timezone safety)
   await prisma.partnerPlatformEngagement.deleteMany({
     where: {
@@ -128,7 +138,7 @@ export const POST = withCron(async ({ rawBody }) => {
   });
 
   // Per-post upserts
-  await prisma.$transaction(
+  const postResults = await Promise.allSettled(
     posts.map((post) =>
       prisma.partnerPlatformPost.upsert({
         where: {
@@ -157,19 +167,23 @@ export const POST = withCron(async ({ rawBody }) => {
     ),
   );
 
+  const postFailures = postResults.filter((r) => r.status === "rejected");
+
+  if (postFailures.length > 0) {
+    console.warn(
+      `Failed to upsert ${postFailures.length}/${posts.length} posts for ${partnerPlatformId}`,
+    );
+  }
+
   // Prune to last N posts per partner
-  await prisma.$transaction(async (tx) => {
-    const postCount = await tx.partnerPlatformPost.count({
-      where: {
-        partnerPlatformId,
-      },
-    });
+  const postCount = await prisma.partnerPlatformPost.count({
+    where: {
+      partnerPlatformId,
+    },
+  });
 
-    if (postCount <= MAX_POSTS_PER_PARTNER) {
-      return;
-    }
-
-    const postsToKeep = await tx.partnerPlatformPost.findMany({
+  if (postCount > MAX_POSTS_PER_PARTNER) {
+    const postsToKeep = await prisma.partnerPlatformPost.findMany({
       where: {
         partnerPlatformId,
       },
@@ -184,7 +198,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
     const keepIds = postsToKeep.map((p) => p.id);
 
-    await tx.partnerPlatformPost.deleteMany({
+    await prisma.partnerPlatformPost.deleteMany({
       where: {
         partnerPlatformId,
         id: {
@@ -192,7 +206,7 @@ export const POST = withCron(async ({ rawBody }) => {
         },
       },
     });
-  });
+  }
 
   // Recompute avgEngagementRate
   const avgResult = await prisma.partnerPlatformEngagement.aggregate({
@@ -243,12 +257,8 @@ export const POST = withCron(async ({ rawBody }) => {
     },
   });
 
-  console.log(
-    `[sync-social-engagement] Synced @${partnerPlatform.identifier}: ${dailyEngagements.length} days, ${posts.length} posts, avgRate=${avgEngagementRate.toFixed(6)}, medianViews=${medianViews}`,
-  );
-
   return logAndRespond(
-    `Synced engagement for @${partnerPlatform.identifier}: ${dailyEngagements.length} days, ${posts.length} posts`,
+    `Synced @${partnerPlatform.identifier}: ${dailyEngagements.length} days, ${posts.length} posts, avgRate=${avgEngagementRate.toFixed(6)}, medianViews=${medianViews}`,
   );
 });
 

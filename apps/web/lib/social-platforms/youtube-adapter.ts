@@ -153,8 +153,11 @@ export class YouTubeAdapter extends BasePlatformAdapter {
     const allVideoIds: string[] = [];
     let pageToken: string | undefined;
 
-    // Uploads playlist is in reverse chronological order.
-    // Paginate until we pass startTime, then stop.
+    // The uploads playlist returns newest-first in practice (not guaranteed
+    // by the API docs). We paginate until we pass startTime, then stop.
+    // Cap at 10 pages (500 videos) — the playlist API doesn't support
+    // server-side time filtering, so we scan client-side. Most syncs
+    // (2-day window) finish in 1-2 pages due to the early exit.
     for (let page = 0; page < 10; page++) {
       const { success } = await checkYouTubeApiQuota(1);
 

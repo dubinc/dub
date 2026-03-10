@@ -14,6 +14,7 @@ const xApiRateLimiter = new Ratelimit({
 // YouTube Data API v3: 10,000 units/day default quota
 // Budget 5,000 units/day for engagement sync (reserve rest for channel stats cron + headroom)
 // playlistItems.list = 1 unit, videos.list = 1 unit → ~2-3 units per partner
+// see: https://developers.google.com/youtube/v3/guides/quota_and_compliance_audits
 const youtubeApiQuotaLimiter = new Ratelimit({
   redis,
   limiter: Ratelimit.fixedWindow(5000, "1 d"),
