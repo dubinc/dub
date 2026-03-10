@@ -26,15 +26,15 @@ function formatConditionText(condition: EligibilityConditionDB): string {
     }
   }
 
-  if (condition.key === "emailDomain") {
-    const joined = oxfordJoin(condition.value);
-
-    if (condition.operator === "is") {
-      return `Your email domain is ${joined}`;
-    } else {
-      return `Your email domain is not ${joined}`;
-    }
-  }
+  // emailDomain — commented out, preserved for future use
+  // if (condition.key === "emailDomain") {
+  //   const joined = oxfordJoin(condition.value);
+  //   if (condition.operator === "is") {
+  //     return `Your email domain is ${joined}`;
+  //   } else {
+  //     return `Your email domain is not ${joined}`;
+  //   }
+  // }
 
   return "";
 }
