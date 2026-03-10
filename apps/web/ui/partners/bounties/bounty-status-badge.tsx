@@ -56,10 +56,14 @@ function getBountyBadgeState(
         (bounty.maxSubmissions ?? 1);
 
   if (isCompleted) {
+    const lastSubmission = bounty.submissions?.[0];
+
     return {
       status: "completed",
       endsAtFormatted,
-      completedAtFormatted: null,
+      completedAtFormatted: formatDate(lastSubmission?.completedAt ?? now, {
+        month: "short",
+      }),
     };
   }
 
@@ -84,30 +88,46 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
     return null;
   }
 
-  const { status, endsAtFormatted } = state;
+  const { status, endsAtFormatted, completedAtFormatted } = state;
 
   return (
     <div className="absolute left-2 top-2 z-10">
       {status === "expired" && endsAtFormatted && (
-        <div className="flex h-5 items-center gap-1 rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-700">
+        <StatusBadge
+          variant="error"
+          icon={null}
+          className="bg-red-100 text-xs font-semibold text-red-700"
+        >
           Expired {endsAtFormatted}
-        </div>
+        </StatusBadge>
       )}
 
       {status === "expiring_soon" && endsAtFormatted && (
-        <div className="flex h-5 items-center gap-1 rounded-md bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">
+        <StatusBadge
+          variant="warning"
+          icon={null}
+          className="bg-amber-100 text-xs font-semibold text-amber-700"
+        >
           Expiring soon {endsAtFormatted}
-        </div>
+        </StatusBadge>
       )}
 
-      {status === "completed" && (
-        <div className="flex h-5 items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-700">
-          Pending review
-        </div>
+      {status === "completed" && completedAtFormatted && (
+        <StatusBadge
+          variant="success"
+          icon={null}
+          className="bg-green-100 text-xs font-semibold text-green-700"
+        >
+          Completed {completedAtFormatted}
+        </StatusBadge>
       )}
 
       {status === "new" && (
-        <StatusBadge variant="new" icon={null}>
+        <StatusBadge
+          variant="new"
+          icon={null}
+          className="bg-blue-100 text-xs font-semibold text-blue-700"
+        >
           New
         </StatusBadge>
       )}

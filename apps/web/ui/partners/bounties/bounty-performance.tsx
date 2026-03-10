@@ -9,8 +9,12 @@ import {
 
 export function PerformanceBountyProgress({
   bounty,
+  labelClassName,
+  wrapperClassName,
 }: {
   bounty: PartnerBountyProps;
+  labelClassName?: string;
+  wrapperClassName?: string;
 }) {
   const performanceCondition = bounty.performanceCondition;
 
@@ -39,7 +43,11 @@ export function PerformanceBountyProgress({
     target > 0 ? Math.min(Math.max(value / target, 0), 1) * 100 : 0;
 
   return (
-    <BountyProgressBarRow progress={percent}>
+    <BountyProgressBarRow
+      progress={percent}
+      labelClassName={labelClassName}
+      wrapperClassName={wrapperClassName}
+    >
       <EmphasisNumber>{formattedValue}</EmphasisNumber> of{" "}
       <EmphasisNumber>{formattedTarget}</EmphasisNumber> {metricLabel} generated
     </BountyProgressBarRow>

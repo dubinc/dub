@@ -64,9 +64,15 @@ export function PartnerBountyPageClient() {
                 </h2>
                 <div className="border-border-subtle flex w-full flex-col gap-4 rounded-xl border bg-white px-5 pb-4 pt-6">
                   {bounty.type === "performance" ? (
-                    <PerformanceBountyProgress bounty={bounty} />
+                    <PerformanceBountyProgress
+                      bounty={bounty}
+                      labelClassName="text-base"
+                    />
                   ) : (
-                    <SubmissionBountyProgress bounty={bounty} />
+                    <SubmissionBountyProgress
+                      bounty={bounty}
+                      labelClassName="text-base"
+                    />
                   )}
                 </div>
               </div>

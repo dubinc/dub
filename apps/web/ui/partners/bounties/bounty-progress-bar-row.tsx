@@ -38,7 +38,10 @@ export function BountyProgressBarRow({
         />
       </div>
       <p
-        className={labelClassName ?? "text-content-subtle text-xs font-medium"}
+        className={cn(
+          "text-content-subtle text-xs font-medium",
+          labelClassName,
+        )}
       >
         {children}
       </p>
