@@ -59,7 +59,22 @@ export function detectBountySubmissionFraud({
   });
 
   // New/unverified accounts with no historical posts synced
-  if (!partnerPlatform || partnerPlatform.medianViews === null) {
+  if (!partnerPlatform) {
+    return {
+      fraudRiskLevel: null,
+      fraudFlags: [],
+    };
+  }
+
+  // Ensure the required baseline fields are present for the given metric
+  const hasRequiredBaseline =
+    bountyMetric === "views"
+      ? partnerPlatform.medianViews !== null &&
+        partnerPlatform.subscribers !== null
+      : partnerPlatform.medianLikes !== null &&
+        partnerPlatform.subscribers !== null;
+
+  if (!hasRequiredBaseline) {
     return {
       fraudRiskLevel: null,
       fraudFlags: [],
@@ -125,16 +140,15 @@ export function detectBountySubmissionFraud({
 
   // Signal: lowFollowerHighEngagement
   // Disproportionate reach relative to audience size
-  const subscribers = Number(partnerPlatform.subscribers);
-
   if (
-    subscribers < LOW_FOLLOWER_THRESHOLD &&
+    partnerPlatform.subscribers !== null &&
+    Number(partnerPlatform.subscribers) < LOW_FOLLOWER_THRESHOLD &&
     socialMetricCount > HIGH_ENGAGEMENT_THRESHOLD
   ) {
     console.log(
       "[detectBountySubmissionFraud] lowFollowerHighEngagement detected",
       {
-        subscribers,
+        subscribers: Number(partnerPlatform.subscribers),
         socialMetricCount,
       },
     );

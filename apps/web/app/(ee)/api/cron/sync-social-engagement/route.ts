@@ -11,7 +11,14 @@ const bodySchema = z.object({
   partnerPlatformId: z.string(),
 });
 
+// Max number of posts to retain per partner platform when pruning; older posts are deleted.
 const MAX_POSTS_PER_PARTNER = 50;
+
+// Days to overlap fetch window with last synced date to avoid gaps from timezone or late data.
+const OVERLAP_DAYS = 2;
+
+// Days to look back from now when no prior engagement data exists (first sync).
+const INITIAL_LOOKBACK_DAYS = 30;
 
 // POST /api/cron/sync-social-engagement
 // Processes a single partner platform: fetches engagement data, upserts daily
@@ -51,20 +58,24 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  // Determine date range: first run = 30 days, subsequent = yesterday only
   const now = new Date();
   const todayStart = startOfDay(now);
 
-  const existingCount = await prisma.partnerPlatformEngagement.count({
+  const latestResult = await prisma.partnerPlatformEngagement.aggregate({
     where: {
       partnerPlatformId,
     },
+    _max: {
+      date: true,
+    },
   });
 
-  const startTime =
-    existingCount === 0
-      ? startOfDay(subDays(now, 30))
-      : startOfDay(subDays(now, 1));
+  // Resume from last synced date, or use initial lookback on first run. Overlap by OVERLAP_DAYS
+  // so we re-fetch a few days before the watermark and avoid gaps from timezone or late API data.
+  const latestEngagementDate = latestResult._max.date;
+  const watermarkDate =
+    latestEngagementDate ?? startOfDay(subDays(now, INITIAL_LOOKBACK_DAYS));
+  const startTime = startOfDay(subDays(watermarkDate, OVERLAP_DAYS));
   const endTime = todayStart;
 
   const posts = await platform.fetchPosts({

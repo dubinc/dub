@@ -109,6 +109,9 @@ export const POST = withCron(async ({ rawBody }) => {
         in: partnerIds,
       },
       type: bountyInfo.socialPlatform!.value,
+      verifiedAt: {
+        not: null,
+      },
     },
     select: {
       partnerId: true,
