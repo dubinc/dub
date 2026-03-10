@@ -2,19 +2,17 @@
 
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { storage } from "@/lib/storage";
-import { uploadedImageAllowSVGSchema } from "@/lib/zod/schemas/misc";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
   programResourceLinkSchema,
 } from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
+import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";
+import { MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES } from "./constants";
 
 // Base schema for all resource types
 const baseResourceSchema = z.object({
@@ -25,15 +23,15 @@ const baseResourceSchema = z.object({
 // Schema for logo resources
 const logoResourceSchema = baseResourceSchema.extend({
   resourceType: z.literal("logo"),
-  file: uploadedImageAllowSVGSchema,
-  extension: z.string().nullish(),
+  key: z.string(),
+  fileSize: z.number().int().positive(),
 });
 
 // Schema for file resources
 const fileResourceSchema = baseResourceSchema.extend({
   resourceType: z.literal("file"),
-  file: z.string(),
-  extension: z.string().nullish(),
+  key: z.string(),
+  fileSize: z.number().int().positive(),
 });
 
 // Schema for color resources
@@ -93,46 +91,25 @@ export const addProgramResourceAction = authActionClient
     const updatedResources = { ...currentResources };
 
     if (resourceType === "logo" || resourceType === "file") {
-      const { file, extension } = parsedInput;
+      const { key, fileSize } = parsedInput;
 
-      if (!file) {
-        throw new Error("File is required.");
+      if (!key.startsWith(`programs/${program.id}/`)) {
+        throw new Error("Invalid resource key");
       }
 
-      // Upload the file to storage
-      const fileKey = `programs/${program.id}/${resourceType}s/${slugify(name || resourceType)}-${nanoid(4)}${extension ? `.${extension}` : ""}`;
-      const uploadResult = await storage.upload({
-        key: fileKey,
-        body: file,
-        opts:
-          resourceType === "logo"
-            ? {
-                headers: {
-                  "Content-Disposition": "attachment",
-                  ...(extension === "svg" && {
-                    "Content-Type": "image/svg+xml",
-                  }),
-                },
-              }
-            : undefined,
-      });
-
-      if (!uploadResult || !uploadResult.url) {
-        throw new Error(`Failed to upload ${resourceType}`);
+      if (fileSize > MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES) {
+        throw new Error(
+          `File size exceeds the maximum allowed size of ${MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES / 1024 / 1024}MB`,
+        );
       }
 
-      // Extract file size from base64 string
-      const base64Data = file.replace(/^data:.+;base64,/, "");
-      const fileSize = Math.ceil((base64Data.length * 3) / 4);
-
-      if (fileSize / 1024 / 1024 > 10)
-        throw new Error("File size is too large");
+      const url = `${R2_URL}/${key}`;
 
       const newResource = programResourceFileSchema.parse({
         id: createId({ prefix: "pgr_" }),
         name,
         size: fileSize,
-        url: uploadResult.url,
+        url,
       });
 
       // Update the appropriate array in the resources object
