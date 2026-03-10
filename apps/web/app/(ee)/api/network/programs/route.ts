@@ -106,7 +106,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
               },
             },
           ]
-        : { [sortBy]: sortOrder },
+        : {
+            [sortBy === "recency" ? "addedToMarketplaceAt" : sortBy]: sortOrder,
+          },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });

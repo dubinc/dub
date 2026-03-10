@@ -13,11 +13,13 @@ import {
   SetStateAction,
   useCallback,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
+import { useUploadProgramResource } from "./use-upload-program-resource";
 
 type LogoModalProps = {
   showLogoModal: boolean;
@@ -25,10 +27,10 @@ type LogoModalProps = {
   existingResource?: ProgramResourceFile;
 };
 
-// Define the form schema
 const logoFormSchema = z.object({
   name: z.string(),
-  file: z.string().optional(),
+  previewSrc: z.string().optional(),
+  hasFile: z.boolean().optional(),
   extension: z.string().nullish(),
 });
 
@@ -53,6 +55,9 @@ function LogoModalInner({
   const { mutate } = useProgramResources();
   const isEditing = Boolean(existingResource);
 
+  const rawFileRef = useRef<File | null>(null);
+  const [hasNewFile, setHasNewFile] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -64,12 +69,12 @@ function LogoModalInner({
   } = useForm<LogoFormData>({
     defaultValues: {
       name: existingResource?.name || "",
-      file: "",
+      previewSrc: "",
+      hasFile: false,
     },
   });
 
-  // Track if user has selected a new file
-  const [hasNewFile, setHasNewFile] = useState(false);
+  const { upload } = useUploadProgramResource(workspaceId!);
 
   const { executeAsync: executeAdd } = useAction(addProgramResourceAction, {
     onSuccess: () => {
@@ -120,28 +125,56 @@ function LogoModalInner({
 
       <form
         onSubmit={handleSubmit(async (data: LogoFormData) => {
-          if (isEditing && existingResource) {
-            await executeUpdate({
-              workspaceId: workspaceId!,
-              resourceId: existingResource.id,
-              resourceType: "logo",
-              name: data.name,
-              ...(hasNewFile && data.file
-                ? { file: data.file, extension: data.extension }
-                : {}),
-            });
-          } else {
-            if (!data.file) {
-              setError("file", { message: "Logo file is required" });
-              return;
+          try {
+            if (isEditing && existingResource) {
+              let uploadedKey: string | undefined;
+              let uploadedFileSize: number | undefined;
+
+              if (hasNewFile && rawFileRef.current) {
+                const { key, fileSize } = await upload({
+                  file: rawFileRef.current,
+                  resourceType: "logo",
+                  name: data.name,
+                  extension: data.extension ?? undefined,
+                });
+                uploadedKey = key;
+                uploadedFileSize = fileSize;
+              }
+
+              await executeUpdate({
+                workspaceId: workspaceId!,
+                resourceId: existingResource.id,
+                resourceType: "logo",
+                name: data.name,
+                ...(uploadedKey
+                  ? { key: uploadedKey, fileSize: uploadedFileSize }
+                  : {}),
+              });
+            } else {
+              if (!rawFileRef.current) {
+                setError("hasFile", { message: "Logo file is required" });
+                return;
+              }
+
+              const { key, fileSize } = await upload({
+                file: rawFileRef.current,
+                resourceType: "logo",
+                name: data.name,
+                extension: data.extension ?? undefined,
+              });
+
+              await executeAdd({
+                workspaceId: workspaceId!,
+                name: data.name,
+                resourceType: "logo",
+                key,
+                fileSize,
+              });
             }
-            await executeAdd({
-              workspaceId: workspaceId!,
-              name: data.name,
-              resourceType: "logo",
-              file: data.file,
-              extension: data.extension,
-            });
+          } catch (err) {
+            const message =
+              err instanceof Error ? err.message : "Something went wrong";
+            toast.error(message);
           }
         })}
       >
@@ -156,16 +189,19 @@ function LogoModalInner({
               </label>
               <Controller
                 control={control}
-                name="file"
+                name="previewSrc"
                 rules={{
-                  required: !isEditing ? "Logo file is required" : false,
+                  validate: (_, formValues) =>
+                    !isEditing && !formValues.hasFile
+                      ? "Logo file is required"
+                      : true,
                 }}
                 render={({ field }) => (
                   <FileUpload
                     accept="programResourceImages"
                     className={cn(
                       "aspect-[4.2] w-full rounded-md border border-neutral-300",
-                      errors.file && "border-red-300 ring-1 ring-red-500",
+                      errors.previewSrc && "border-red-300 ring-1 ring-red-500",
                     )}
                     iconClassName="size-5"
                     previewClassName="object-contain"
@@ -173,11 +209,12 @@ function LogoModalInner({
                     imageSrc={field.value || existingResource?.url}
                     readFile
                     onChange={({ file, src }) => {
+                      rawFileRef.current = file;
                       field.onChange(src);
+                      setValue("hasFile", true);
                       setValue("extension", file.name.split(".").pop());
                       setHasNewFile(true);
 
-                      // Set the logo name to the file name without extension if no name is provided
                       const currentName = getValues("name");
                       if (!currentName && file.name) {
                         const nameWithoutExtension = file.name
@@ -196,9 +233,9 @@ function LogoModalInner({
                   />
                 )}
               />
-              {errors.file && (
+              {errors.previewSrc && (
                 <p className="mt-1 text-xs text-red-600">
-                  {errors.file.message}
+                  {errors.previewSrc.message}
                 </p>
               )}
             </div>
@@ -274,5 +311,4 @@ export function useLogoModal({
   );
 }
 
-// Keep backwards compatibility alias
 export const useAddLogoModal = useLogoModal;
