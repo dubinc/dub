@@ -87,6 +87,7 @@ describe.sequential("/groups/**", async () => {
     const {
       applicationFormData,
       applicationFormPublishedAt,
+      bounties,
       landerData,
       landerPublishedAt,
       program,
