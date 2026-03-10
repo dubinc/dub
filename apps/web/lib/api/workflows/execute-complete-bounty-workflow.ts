@@ -1,5 +1,4 @@
 import { evaluateWorkflowConditions } from "@/lib/api/workflows/evaluate-workflow-conditions";
-import { getCurrentPeriodNumber } from "@/lib/bounty/periods";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail, sendEmail } from "@dub/email";
@@ -77,19 +76,7 @@ export const executeCompleteBountyWorkflow = async ({
     return;
   }
 
-  const { groups, submissions: allPartnerSubmissions } = bounty;
-
-  const currentPeriodNumber =
-    getCurrentPeriodNumber({
-      startsAt: bounty.startsAt,
-      endsAt: bounty.endsAt,
-      submissionFrequency: bounty.submissionFrequency,
-      maxSubmissions: bounty.maxSubmissions,
-    }) ?? 1;
-
-  const submissions = allPartnerSubmissions.filter(
-    (s) => s.periodNumber === currentPeriodNumber,
-  );
+  const { groups, submissions } = bounty;
 
   // If the bounty is part of a group, check if the partner is in the group
   if (groups.length > 0) {
@@ -129,6 +116,7 @@ export const executeCompleteBountyWorkflow = async ({
   };
 
   const performanceCount = finalContext[condition.attribute] ?? 0;
+  const periodNumber = 1; // Only one submission is allowed for performance based bounties
 
   // Create or update the submission
   const bountySubmission = await prisma.bountySubmission.upsert({
@@ -136,7 +124,7 @@ export const executeCompleteBountyWorkflow = async ({
       bountyId_partnerId_periodNumber: {
         bountyId,
         partnerId,
-        periodNumber: currentPeriodNumber,
+        periodNumber,
       },
     },
     create: {
@@ -144,7 +132,7 @@ export const executeCompleteBountyWorkflow = async ({
       programId: bounty.programId,
       partnerId,
       bountyId: bounty.id,
-      periodNumber: currentPeriodNumber,
+      periodNumber,
       status: "draft",
       performanceCount,
     },
