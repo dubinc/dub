@@ -45,6 +45,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/payouts/force-withdrawals",
+      "schedule": "0 12 * * *"
+    },
+    {
       "path": "/api/cron/payouts/reminders/partners",
       "schedule": "0 14 * * *"
     },
