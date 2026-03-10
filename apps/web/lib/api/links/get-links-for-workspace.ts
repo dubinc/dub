@@ -2,7 +2,7 @@ import { getLinksQuerySchemaExtended } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
-import { getPaginationOptions } from "../pagination";
+import { buildPaginationQuery } from "../pagination";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { transformLink } from "./utils";
@@ -45,6 +45,9 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
     filters = { ...filters, sortBy: sort };
   }
 
+  const paginationQuery = buildPaginationQuery(filters);
+
+  // Validate the provided cursor ID
   const cursorId = filters.startingAfter || filters.endingBefore;
 
   if (cursorId) {
@@ -182,7 +185,7 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
       webhooks: includeWebhooks,
       dashboard: includeDashboard,
     },
-    ...getPaginationOptions(filters),
+    ...paginationQuery,
   });
 
   return links.map((link) => transformLink(link));

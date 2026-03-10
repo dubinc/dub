@@ -4,7 +4,7 @@ import { prisma } from "@dub/prisma";
 import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
-import { getPaginationOptions } from "../pagination";
+import { buildPaginationQuery } from "../pagination";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
@@ -30,6 +30,9 @@ export async function getCommissions(filters: CommissionsFilters) {
     endingBefore,
   } = filters;
 
+  const paginationQuery = buildPaginationQuery(filters);
+
+  // Validate the provided cursor ID
   const cursorId = startingAfter || endingBefore;
 
   if (cursorId) {
@@ -107,6 +110,6 @@ export async function getCommissions(filters: CommissionsFilters) {
       partner: true,
       programEnrollment: true,
     },
-    ...getPaginationOptions(filters),
+    ...paginationQuery,
   });
 }

@@ -10,7 +10,7 @@ interface Filters {
   sortOrder: Prisma.SortOrder;
 }
 
-export interface PaginationOptions {
+interface PaginationQuery {
   cursor?: { id: string };
   skip: number;
   take: number;
@@ -21,7 +21,7 @@ export interface PaginationOptions {
 
 const MAX_PAGE_VALUE = 100;
 
-export function getPaginationOptions(filters: Filters): PaginationOptions {
+export function buildPaginationQuery(filters: Filters): PaginationQuery {
   const { page, pageSize, startingAfter, endingBefore, sortBy, sortOrder } =
     filters;
 
