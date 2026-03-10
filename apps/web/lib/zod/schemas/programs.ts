@@ -36,6 +36,9 @@ export const applicationRequirementsSchema = z
   .max(2);
 
 export type EligibilityConditionDB = z.infer<typeof eligibilityConditionSchema>;
+export type ApplicationRequirementsDB = z.infer<
+  typeof applicationRequirementsSchema
+>;
 
 export const ProgramSchema = z.object({
   id: z.string(),

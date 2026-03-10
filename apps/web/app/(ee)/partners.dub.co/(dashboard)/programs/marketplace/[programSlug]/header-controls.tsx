@@ -2,6 +2,7 @@
 
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
+import { partnerMeetsAllRequirements } from "@/lib/partners/check-eligibility-requirements";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -91,6 +92,10 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
           </span>
         </Link>
       </div>
+    ) : program.applicationRequirements?.length &&
+      partner &&
+      !partnerMeetsAllRequirements(program.applicationRequirements, partner) ? (
+      "You don't meet the eligibility requirements for this program"
     ) : undefined;
 
   useKeyboardShortcut("a", () => setIsApplicationSheetOpen(true), {

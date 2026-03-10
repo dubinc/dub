@@ -7,6 +7,7 @@ import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
+import { partnerMeetsAllRequirements } from "@/lib/partners/check-eligibility-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -19,7 +20,10 @@ import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
-import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
+import {
+  ApplicationRequirementsDB,
+  createProgramApplicationSchema,
+} from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import {
   Partner,
@@ -198,6 +202,21 @@ export const createProgramApplicationAction = actionClient
         throw new Error(
           "Please complete your partner profile to submit your application: https://partners.dub.co/profile",
         );
+      }
+
+      const requirements =
+        program.applicationRequirements as ApplicationRequirementsDB | null;
+      if (requirements?.length) {
+        const allMet = partnerMeetsAllRequirements(requirements, {
+          country: existingPartner.country,
+          email: existingPartner.email,
+        });
+
+        if (!allMet) {
+          throw new Error(
+            "You do not meet the eligibility requirements for this program.",
+          );
+        }
       }
 
       return createApplicationAndEnrollment({

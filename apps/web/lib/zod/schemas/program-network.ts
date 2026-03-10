@@ -16,6 +16,7 @@ export const NetworkProgramSchema = ProgramSchema.pick({
   description: true,
   rewards: true,
   termsUrl: true,
+  applicationRequirements: true,
 }).extend({
   discount: DiscountSchema.nullish(),
   categories: z.array(z.enum(Category)),
