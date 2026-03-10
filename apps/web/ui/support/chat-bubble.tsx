@@ -40,7 +40,7 @@ export function SupportChatBubble() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 16, scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="pointer-events-auto mb-4 flex h-[660px] max-h-[calc(100vh-6rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl shadow-[inset_0_0_0_1px_rgba(0,0,0,0.08)] sm:w-[560px]"
+            className="pointer-events-auto mb-4 flex h-[660px] max-h-[calc(100vh-6rem)] w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-2xl bg-white shadow-xl shadow-neutral-900/15 sm:w-[560px]"
           >
             <div className="flex shrink-0 items-center justify-between bg-neutral-900 px-4 py-3">
               <div className="flex items-center gap-2.5">
@@ -74,13 +74,11 @@ export function SupportChatBubble() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-hidden bg-white">
-              <ChatInterface
-                key={resetKey}
-                onReset={handleReset}
-                className="h-full overflow-hidden"
-              />
-            </div>
+            <ChatInterface
+              key={resetKey}
+              onReset={handleReset}
+              className="h-full overflow-hidden"
+            />
           </motion.div>
         )}
       </AnimatePresence>
