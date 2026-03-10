@@ -1,12 +1,12 @@
 "use client";
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import {
   DiscountProps,
   GroupBountySummaryProps,
   RewardProps,
 } from "@/lib/types";
-import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { Gift, Heart, Icon, Trophy } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
@@ -40,7 +40,11 @@ export function LanderRewards({
       ? bounties.slice(0, MAX_VISIBLE_BOUNTIES)
       : bounties;
 
-  if (sortedFilteredRewards.length === 0 && !discount && bounties.length === 0) {
+  if (
+    sortedFilteredRewards.length === 0 &&
+    !discount &&
+    bounties.length === 0
+  ) {
     return null;
   }
 
@@ -68,10 +72,7 @@ export function LanderRewards({
                       <>per {reward.event}</>
                     )}
                     {reward.maxDuration === null ? (
-                      <>
-                        {" "}
-                        for the customer's lifetime
-                      </>
+                      <> for the customer's lifetime</>
                     ) : reward.maxDuration && reward.maxDuration >= 1 ? (
                       <>
                         {" "}

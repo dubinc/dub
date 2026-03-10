@@ -7,9 +7,9 @@ import {
   ProgramProps,
   RewardProps,
 } from "@/lib/types";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
-import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { BlurImage, Button, CircleCheck, Link4, StatusBadge } from "@dub/ui";
 import { capitalize, cn, OG_AVATAR_URL } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -113,9 +113,10 @@ export function ProgramSidebar({
             []
           }
           discount={
-            programEnrollment?.discount ?? applicationDiscount !== undefined
-              ? applicationDiscount
-              : program.discounts?.[0] ?? null
+            programEnrollment?.discount ??
+            applicationDiscount ??
+            program.discounts?.[0] ??
+            null
           }
           bounties={program.group?.bounties}
         />

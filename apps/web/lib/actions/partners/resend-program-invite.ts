@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
+import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
@@ -71,7 +71,7 @@ export const resendProgramInviteAction = authActionClient
               slug: program.slug,
               logo: program.logo,
             },
-            ...(await getPartnerInviteRewardsAndBounties({
+            ...(await getGroupRewardsAndBounties({
               programId,
               groupId: programEnrollment.groupId || program.defaultGroupId,
             })),
