@@ -119,7 +119,7 @@ export class XAdapter extends BasePlatformAdapter {
         title: tweet.text,
         views: m.impression_count,
         likes: m.like_count,
-        comments: m.reply_count + m.quote_count,
+        comments: m.reply_count,
         engagementRate,
       };
     });
