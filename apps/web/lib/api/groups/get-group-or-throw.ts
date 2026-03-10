@@ -6,10 +6,12 @@ export const getGroupOrThrow = async ({
   programId,
   groupId,
   includeExpandedFields = false,
+  includeBounties = false,
 }: {
   programId: string;
   groupId: string;
   includeExpandedFields?: boolean;
+  includeBounties?: boolean;
 }) => {
   const group = await prisma.partnerGroup.findUnique({
     where: {
@@ -52,7 +54,7 @@ export const getGroupOrThrow = async ({
 
   return {
     ...group,
-    ...(includeExpandedFields && {
+    ...(includeBounties && {
       bounties: await getGroupBountySummaries({
         programId,
         groupId: group.id,

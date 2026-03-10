@@ -22,6 +22,7 @@ export function ProgramSidebar({
 }: {
   program: Omit<ProgramProps, "referralFormData"> & {
     group?: {
+      id: string;
       bounties?: GroupBountySummaryProps[];
     } | null;
   };
@@ -118,7 +119,12 @@ export function ProgramSidebar({
             program.discounts?.[0] ??
             null
           }
-          bounties={program.group?.bounties}
+          bounties={
+            programEnrollment?.status === "approved" &&
+            programEnrollment.groupId !== program.group?.id
+              ? undefined
+              : program.group?.bounties
+          }
         />
       </div>
 

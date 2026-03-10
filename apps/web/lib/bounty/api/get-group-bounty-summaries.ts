@@ -78,9 +78,11 @@ export async function getGroupBountySummaries({
     },
   });
 
-  return filterActiveGroupBounties(bounties, { groupId, now }).map((bounty) => ({
-    id: bounty.id,
-    name: bounty.name || "Untitled bounty",
-    type: bounty.type,
-  }));
+  return filterActiveGroupBounties(bounties, { groupId, now }).map(
+    (bounty) => ({
+      id: bounty.id,
+      name: bounty.name || "Untitled bounty",
+      type: bounty.type,
+    }),
+  );
 }

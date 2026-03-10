@@ -26,6 +26,7 @@ export async function getGroupRewardsAndBounties({
     programId,
     groupId,
     includeExpandedFields: true,
+    includeBounties: true,
   });
 
   return {
