@@ -59,7 +59,7 @@
     "@upstash/vector": "^1.2.2",
     "@upstash/workflow": "^0.2.19",
     "@vercel/edge-config": "^0.4.1",
-    "@vercel/functions": "^1.4.2",
+    "@vercel/functions": "^3.4.3",
     "@vercel/og": "^0.6.5",
     "@visx/curve": "^3.3.0",
     "@visx/geo": "^2.10.0",

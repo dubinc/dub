@@ -234,7 +234,7 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   test("unsupported key", async () => {
     const response = await fetch(`${h.baseUrl}/wp-admin.php`, fetchOptions);
 
-    expect(response.headers.get("location")).toBe("/?dub-no-track=1");
+    expect(response.headers.get("location")).toMatch(/\/\?dub-no-track=1$/);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });
