@@ -97,6 +97,12 @@ export const createStripeTransfer = async ({
     0,
   );
 
+  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
+    throw new Error(
+      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.email} is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}). Skipping...`,
+    );
+  }
+
   let withdrawalFee = 0;
 
   // If the total transferable amount is less than the minimum withdrawal amount
@@ -119,12 +125,6 @@ export const createStripeTransfer = async ({
 
   // Minus the withdrawal fee from the total amount
   const finalTransferableAmount = totalTransferableAmount - withdrawalFee;
-
-  if (finalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    throw new Error(
-      `Final transferable amount (${currencyFormatter(finalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)})`,
-    );
-  }
 
   const allPayoutsProgramNames = [
     ...new Set(allPayouts.map((p) => p.program.name)), // deduplicate program names
