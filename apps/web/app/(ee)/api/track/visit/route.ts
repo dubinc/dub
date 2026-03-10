@@ -9,7 +9,7 @@ import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis, redisUsEast } from "@/lib/upstash";
+import { formatRedisLink, redis, redisGlobal } from "@/lib/upstash";
 import { isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -36,7 +36,7 @@ export const POST = withAxiom(async (req) => {
     const identityHash = await getIdentityHash(req);
 
     let [clickId, cachedLink] = await Promise.all([
-      redisUsEast.get<string>(
+      redisGlobal.get<string>(
         recordClickCache._createKey({ domain, key, identityHash }),
       ),
       redis.get<RedisLinkProps>(linkCache._createKey({ domain, key })),

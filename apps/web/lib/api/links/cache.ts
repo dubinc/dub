@@ -1,30 +1,20 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis, redisWithTimeout } from "@/lib/upstash";
-import { getCache, waitUntil } from "@vercel/functions";
+import { formatRedisLink, redisGlobal } from "@/lib/upstash";
 import { LRUCache } from "lru-cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
 
 /*
  * Link LRU cache to reduce Redis load during traffic spikes.
- * Max 5000 entries with 3-second TTL.
+ * Max 10,000 entries with 5-second TTL.
  */
 const linkLRUCache = new LRUCache<string, RedisLinkProps>({
-  max: 5000, // max 5000 entries
-  ttl: 3000, // 3 seconds
+  max: 10000, // max 10,000 entries
+  ttl: 5000, // 5 seconds
 });
 
 /*
- * When traffic spikes, new Fluid instances are spun up.
- * Since LRUCache is not shared between Fluid instances,
- * we fallback to Vercel cache if LRUCache is not available
- */
-const vercelCache = getCache();
-
-/*
  * Link cache expiration is set to 24 hours by default for all links.
- * Caveat: we don't set expiration for links with webhooks since it's expensive
- * to fetch and set on-demand inside link middleware.
  */
 const CACHE_EXPIRATION = 60 * 60 * 24;
 
@@ -34,24 +24,12 @@ class LinkCache {
       return;
     }
 
-    const pipeline = redis.pipeline();
+    const pipeline = redisGlobal.pipeline();
 
-    const redisLinks = await Promise.all(
-      links.map((link) => ({
-        ...formatRedisLink(link),
-        cacheKey: this._createKey({ domain: link.domain, key: link.key }),
-      })),
-    );
-
-    redisLinks.map(({ cacheKey, ...redisLink }) => {
-      const hasWebhooks =
-        redisLink.webhookIds && redisLink.webhookIds.length > 0;
-
-      pipeline.set(
-        cacheKey,
-        redisLink,
-        hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
-      );
+    links.forEach((link) => {
+      const redisLink = formatRedisLink(link);
+      const cacheKey = this._createKey({ domain: link.domain, key: link.key });
+      pipeline.set(cacheKey, redisLink, { ex: CACHE_EXPIRATION });
     });
 
     return await pipeline.exec();
@@ -59,17 +37,12 @@ class LinkCache {
 
   async set(link: ExpandedLink) {
     const redisLink = formatRedisLink(link);
-    const hasWebhooks = redisLink.webhookIds && redisLink.webhookIds.length > 0;
     const cacheKey = this._createKey({ domain: link.domain, key: link.key });
 
     // Update LRU cache immediately to prevent stale reads
     linkLRUCache.set(cacheKey, redisLink);
 
-    return await redis.set(
-      cacheKey,
-      redisLink,
-      hasWebhooks ? undefined : { ex: CACHE_EXPIRATION },
-    );
+    return await redisGlobal.set(cacheKey, redisLink, { ex: CACHE_EXPIRATION });
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
@@ -83,59 +56,28 @@ class LinkCache {
 
     if (cachedLink) {
       console.log(`[LRU Cache HIT] ${cacheKey}`);
+      linkLRUCache.set(cacheKey, cachedLink); // refresh the LRU cache
       return cachedLink;
     }
 
-    console.log(`[LRU Cache MISS] ${cacheKey} - Checking Vercel Cache...`);
+    console.log(`[LRU Cache MISS] ${cacheKey} - Checking redisGlobal...`);
 
-    try {
-      cachedLink = (await vercelCache.get(cacheKey)) as RedisLinkProps | null;
-    } catch (error) {
-      cachedLink = null;
-    }
+    // Fallback to redisGlobal if LRU cache miss
+    cachedLink = await redisGlobal.get<RedisLinkProps>(cacheKey);
 
     if (cachedLink) {
-      console.log(`[Vercel Cache HIT] ${cacheKey}`);
-      linkLRUCache.set(cacheKey, cachedLink);
+      console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU Cache...`);
+      linkLRUCache.set(cacheKey, cachedLink); // persist to LRU cache
       return cachedLink;
-    }
-
-    console.log(`[Vercel Cache MISS] ${cacheKey} - Checking Redis...`);
-
-    try {
-      // we're using the special redisWithTimeout client in case Redis times out
-      cachedLink = await redisWithTimeout.get<RedisLinkProps>(cacheKey);
-
-      if (cachedLink) {
-        console.log(
-          `[Redis Cache HIT] ${cacheKey} - Populating LRU Cache and Vercel Cache...`,
-        );
-
-        linkLRUCache.set(cacheKey, cachedLink);
-        waitUntil(
-          vercelCache.set(cacheKey, cachedLink, {
-            ttl: 5, // cache for 5 seconds
-          }),
-        );
-      } else {
-        console.log(
-          `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
-        );
-      }
-
-      return cachedLink;
-    } catch (error) {
-      console.error(
-        "[LinkCache] – Timeout getting cached link from Redis, falling back to MySQL...",
-        error,
+    } else {
+      console.log(
+        `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
       );
-
-      return null;
     }
   }
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    return await redis.del(this._createKey({ domain, key }));
+    return await redisGlobal.del(this._createKey({ domain, key }));
   }
 
   async deleteMany(links: Pick<LinkProps, "domain" | "key">[]) {
@@ -143,7 +85,7 @@ class LinkCache {
       return;
     }
 
-    const pipeline = redis.pipeline();
+    const pipeline = redisGlobal.pipeline();
 
     links.forEach(({ domain, key }) => {
       pipeline.del(this._createKey({ domain, key }));
@@ -157,7 +99,7 @@ class LinkCache {
       return;
     }
 
-    const pipeline = redis.pipeline();
+    const pipeline = redisGlobal.pipeline();
 
     links.forEach(({ domain, key }) => {
       // expire the link cache key immediately

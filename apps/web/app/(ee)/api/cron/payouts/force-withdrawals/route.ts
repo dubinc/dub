@@ -1,10 +1,11 @@
 import { forceWithdrawal } from "@/lib/actions/partners/force-withdrawal";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
-import { ACME_PROGRAM_ID, APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -18,7 +19,6 @@ const schema = z.object({
 
 // This route is used to force withdrawals for partners that haven't withdrew their earnings for than 90 days
 // Runs once a day at 5AM PST (0 12 * * *) + calls itself recursively to process all partners in batches
-// TODO: Add cron to vercel.json starting Mar 9, 2026
 async function handler(req: Request) {
   try {
     let rawBody: string | undefined;
@@ -41,30 +41,24 @@ async function handler(req: Request) {
       startingAfter = undefined;
     }
 
-    // Get batch of partner IDs with processed payouts (cursor-based pagination)
-    const processedPayouts = await prisma.payout.findMany({
+    // Get batch of partners with processed payouts (cursor-based pagination)
+    const partnersToProcess = await prisma.partner.findMany({
       where: {
-        status: "processed",
-        method: {
+        payoutsEnabledAt: {
+          not: null,
+        },
+        defaultPayoutMethod: {
           in: ["stablecoin", "connect"],
         },
-        programId: {
-          not: ACME_PROGRAM_ID,
-        },
-        paidAt: {
-          lte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
-        },
-        partner: {
-          payoutsEnabledAt: {
-            not: null,
-          },
-        },
-      },
-      include: {
-        partner: {
-          select: {
-            id: true,
-            defaultPayoutMethod: true,
+        payouts: {
+          some: {
+            status: "processed",
+            amount: {
+              gte: MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
+            },
+            paidAt: {
+              lte: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
+            },
           },
         },
       },
@@ -78,28 +72,26 @@ async function handler(req: Request) {
           id: startingAfter,
         },
       }),
+      select: {
+        id: true,
+        defaultPayoutMethod: true,
+      },
     });
 
-    if (!processedPayouts.length) {
+    if (!partnersToProcess.length) {
       return logAndRespond(
-        "No processed payouts found. Skipping force withdrawals...",
+        "No partners to process. Skipping force withdrawals...",
       );
     }
 
-    const hasMoreToProcess = processedPayouts.length === BATCH_SIZE;
+    const hasMoreToProcess = partnersToProcess.length === BATCH_SIZE;
 
     console.log(
-      `Found ${processedPayouts.length} partners to process${hasMoreToProcess ? " (more to process)" : ""}`,
+      `Found ${partnersToProcess.length} partners to process${hasMoreToProcess ? " (more to process)" : ""}`,
     );
 
     await Promise.allSettled(
-      processedPayouts
-        .filter(
-          // filter out duplicate payouts for the same partner
-          (payout, index, self) =>
-            index === self.findIndex((t) => t.partnerId === payout.partnerId),
-        )
-        .map(({ partner }) => forceWithdrawal(partner)),
+      partnersToProcess.map((partner) => forceWithdrawal(partner)),
     );
 
     if (hasMoreToProcess) {
@@ -108,7 +100,7 @@ async function handler(req: Request) {
       );
 
       const nextStartingAfter =
-        processedPayouts[processedPayouts.length - 1].id;
+        partnersToProcess[partnersToProcess.length - 1].id;
 
       const qstashResponse = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/force-withdrawals`,
