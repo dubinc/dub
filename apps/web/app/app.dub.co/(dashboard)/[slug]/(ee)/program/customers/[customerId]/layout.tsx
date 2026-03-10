@@ -6,6 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerEnriched } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
+import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { CustomerStats } from "@/ui/customers/customer-stats";
 import { CustomerTabs } from "@/ui/customers/customer-tabs";
 import { PageContent } from "@/ui/layout/page-content";
@@ -13,12 +14,25 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { Button } from "@dub/ui";
 import { ChevronRight, User } from "@dub/ui/icons";
 import Link from "next/link";
-import { redirect, useParams } from "next/navigation";
+import {
+  redirect,
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { ReactNode } from "react";
 
-export default function CustomerLayout({ children }: { children: ReactNode }) {
+export default function ProgramCustomerLayout({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const { slug: workspaceSlug } = useWorkspace();
   const { customerId } = useParams<{ customerId: string }>();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const { data: customer, error: customerError } =
     useCustomer<CustomerEnriched>({
@@ -33,6 +47,12 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
   if (customerError && customerError.status === 404)
     redirect(`/${workspaceSlug}/program/customers`);
 
+  const switchToCustomer = (newCustomerId: string) => {
+    if (customerId === newCustomerId) return;
+    const url = `${pathname.replace(`/customers/${customerId}`, `/customers/${newCustomerId}`)}?${searchParams.toString()}`;
+    router.push(url);
+  };
+
   return (
     <PageContent
       title={
@@ -46,13 +66,11 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
             <User className="size-4" />
           </Link>
           <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-          <div>
-            {customer ? (
-              customer.name
-            ) : (
-              <div className="h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
-            )}
-          </div>
+          <CustomerSelector
+            variant="header"
+            selectedCustomerId={customer?.id ?? null}
+            setSelectedCustomerId={switchToCustomer}
+          />
         </div>
       }
     >

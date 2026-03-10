@@ -7,6 +7,7 @@ import { PartnerEarningsResponse } from "@/lib/types";
 import { CustomerActivityList } from "@/ui/customers/customer-activity-list";
 import { CustomerDetailsColumn } from "@/ui/customers/customer-details-column";
 import { CustomerSalesTable } from "@/ui/customers/customer-sales-table";
+import { PartnerCustomerSelector } from "@/ui/customers/partner-customer-selector";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
@@ -15,7 +16,13 @@ import { cn, fetcher, formatDate } from "@dub/utils";
 import { addMonths, isBefore } from "date-fns";
 import { AlertCircle } from "lucide-react";
 import Link from "next/link";
-import { redirect, useParams } from "next/navigation";
+import {
+  redirect,
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { memo, useMemo } from "react";
 import useSWR from "swr";
 
@@ -25,6 +32,9 @@ export function ProgramCustomerPageClient() {
     programSlug: string;
     customerId: string;
   }>();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const { data: customer, isLoading } = usePartnerCustomer({
     customerId,
@@ -49,6 +59,12 @@ export function ProgramCustomerPageClient() {
     redirect(`/programs/${programSlug}`);
   }
 
+  const switchToCustomer = (newCustomerId: string) => {
+    if (customerId === newCustomerId) return;
+    const url = `${pathname.replace(`/customers/${customerId}`, `/customers/${newCustomerId}`)}?${searchParams.toString()}`;
+    router.push(url);
+  };
+
   return (
     <PageContent
       title={
@@ -65,13 +81,11 @@ export function ProgramCustomerPageClient() {
             <User className="size-4" />
           </Link>
           <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-          <div>
-            {customer ? (
-              customer.name || customer.email
-            ) : (
-              <div className="h-6 w-32 animate-pulse rounded-md bg-neutral-200" />
-            )}
-          </div>
+          <PartnerCustomerSelector
+            variant="header"
+            selectedCustomerId={customer?.id ?? null}
+            setSelectedCustomerId={switchToCustomer}
+          />
         </div>
       }
     >
