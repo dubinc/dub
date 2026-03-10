@@ -142,6 +142,9 @@ export function BountySubmissionsTable({
         size: 98,
         cell: ({ row: { original } }) => {
           const { status } = original;
+          const isExpired =
+            bounty.endsAt !== null && new Date(bounty.endsAt) < new Date();
+          const isActionable = status === "notSubmitted" || status === "draft";
 
           let buttonText = "Submit";
 
@@ -151,12 +154,17 @@ export function BountySubmissionsTable({
             buttonText = "View";
           }
 
-          const isDisabled = status === "notOpen";
-          const isPrimary = status === "notSubmitted" || status === "draft";
+          const isDisabled =
+            status === "notOpen" || (isExpired && isActionable);
+          const isPrimary = isActionable && !isExpired;
 
-          const disabledTooltip = isDisabled
-            ? `Opens ${original.startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} at ${original.startDate.toLocaleTimeString("en-US", { hour: "numeric", hour12: true })}`
-            : undefined;
+          let disabledTooltip: string | undefined;
+
+          if (status === "notOpen") {
+            disabledTooltip = `Opens ${original.startDate.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })} at ${original.startDate.toLocaleTimeString("en-US", { hour: "numeric", hour12: true })}`;
+          } else if (isExpired && isActionable) {
+            disabledTooltip = "This bounty has expired";
+          }
 
           return (
             <div className="flex justify-end">
@@ -166,7 +174,7 @@ export function BountySubmissionsTable({
                 className="h-7 w-fit rounded-lg px-2.5 py-2"
                 text={buttonText}
                 onClick={() => {
-                  if (status === "notSubmitted" || status === "draft") {
+                  if (isActionable) {
                     setClaimPeriodNumber(original.periodNumber);
                     setShowClaimBountySheet(true);
                   } else {
