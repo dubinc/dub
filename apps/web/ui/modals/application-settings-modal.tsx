@@ -6,6 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   EligibilityCondition,
   EligibilityRequirements,
+  generateId,
 } from "@/ui/partners/eligibility-requirements";
 import { Category } from "@dub/prisma/client";
 import { Button, Modal, useEnterSubmit } from "@dub/ui";
@@ -49,7 +50,9 @@ function ApplicationSettingsModal({
     defaultValues: {
       description: program?.description ?? "",
       categories: program?.categories ?? [],
-      eligibilityConditions: [],
+      eligibilityConditions: (program?.applicationRequirements ?? []).map(
+        (c) => ({ ...c, id: generateId() }),
+      ),
     },
   });
 
@@ -72,6 +75,13 @@ function ApplicationSettingsModal({
     const result = await executeAsync({
       workspaceId: workspaceId!,
       ...data,
+      eligibilityConditions: data.eligibilityConditions
+        .filter((c) => c.key && c.operator && c.value && c.value.length > 0)
+        .map(({ id: _id, key, operator, value }) => ({
+          key: key!,
+          operator: operator!,
+          value: value!,
+        })),
     });
 
     if (result?.serverError || result?.validationErrors) {

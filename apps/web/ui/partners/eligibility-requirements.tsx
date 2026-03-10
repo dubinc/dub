@@ -65,7 +65,7 @@ function isValueValid(value: string[] | null): boolean {
   return Array.isArray(value) && value.length > 0 && value[0] !== "";
 }
 
-function generateId(): string {
+export function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
