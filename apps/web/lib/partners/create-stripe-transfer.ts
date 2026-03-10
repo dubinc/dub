@@ -221,7 +221,7 @@ export const createStripeTransfer = async ({
     }),
   ]);
 
-  if (partner.email && currentInvoicePayouts.length > 0) {
+  if (partner.email) {
     const payout = currentInvoicePayouts[0];
     const emailRes = await sendEmail({
       variant: "notifications",
