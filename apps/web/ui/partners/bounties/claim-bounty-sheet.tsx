@@ -150,7 +150,9 @@ function ImagesField({
         return updated;
       });
     } catch {
-      toast.error("An unexpected error occurred while uploading. Please try again.");
+      toast.error(
+        "An unexpected error occurred while uploading. Please try again.",
+      );
       setFiles((prev) => {
         const updated = prev.filter((f) => f.id !== newFile.id);
         onUploadingChange(updated.some((f) => f.uploading));
@@ -419,12 +421,11 @@ function ClaimBountySheetContent({
     const sub = b.submissions?.find((s) => s.periodNumber === ep) ?? null;
     const sp = resolveBountyDetails(b)?.socialPlatform;
 
-    const urls =
-      sub?.urls?.length
-        ? sp
-          ? [sub.urls[0] ?? "", ...sub.urls.slice(1)]
-          : [...sub.urls]
-        : [""];
+    const urls = sub?.urls?.length
+      ? sp
+        ? [sub.urls[0] ?? "", ...sub.urls.slice(1)]
+        : [...sub.urls]
+      : [""];
 
     const formFiles =
       sub?.files?.map((f) => ({
@@ -433,7 +434,11 @@ function ClaimBountySheetContent({
         size: f.size ?? 0,
       })) ?? [];
 
-    claimForm.reset({ urls, description: sub?.description ?? "", files: formFiles });
+    claimForm.reset({
+      urls,
+      description: sub?.description ?? "",
+      files: formFiles,
+    });
 
     setFiles(
       formFiles.map((f) => ({
