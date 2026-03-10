@@ -14,7 +14,7 @@ import { cn, truncate } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import {
-  BountyRewardsSection,
+  BountyRewardsTable,
   PartnerBountyCard,
   PartnerBountyCardSkeleton,
 } from "../bounty-card";
@@ -44,7 +44,7 @@ export function PartnerBountyPageClient() {
                 showRewards
               />
 
-              <BountyRewardsSection
+              <BountyRewardsTable
                 bounty={bounty}
                 programSlug={programSlug}
                 className="@3xl/page:hidden"

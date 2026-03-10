@@ -87,7 +87,7 @@ export function PartnerBountyCard({
 
       {showRewards && bounty.submissions.some((s) => s.commission !== null) && (
         <div className="@3xl/page:block hidden border-t border-neutral-200 p-4">
-          <BountyRewardsSection
+          <BountyRewardsTable
             bounty={bounty}
             programSlug={programSlug as string}
           />
@@ -97,7 +97,7 @@ export function PartnerBountyCard({
   );
 }
 
-export function BountyRewardsSection({
+export function BountyRewardsTable({
   bounty,
   programSlug,
   className,
@@ -135,21 +135,6 @@ export function BountyRewardsSection({
             </span>
           ) : null;
         },
-      },
-      {
-        id: "date",
-        header: "Date",
-        cell: ({ row }) => (
-          <TimestampTooltip
-            timestamp={row.original.createdAt}
-            side="right"
-            rows={["local", "utc"]}
-          >
-            <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
-              {formatDateTimeSmart(row.original.createdAt)}
-            </span>
-          </TimestampTooltip>
-        ),
       },
     ],
     thClassName: "border-l-transparent",

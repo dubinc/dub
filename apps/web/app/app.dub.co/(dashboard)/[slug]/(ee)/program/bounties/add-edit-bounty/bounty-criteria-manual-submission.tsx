@@ -207,7 +207,7 @@ export function BountyCriteriaManualSubmission() {
                 min={1}
                 max={BOUNTY_MAX_SUBMISSION_FILES}
                 step={1}
-                className="h-9 w-full [&>div]:h-9"
+                className="w-full"
               />
               <p className="text-xs text-neutral-500">
                 Set a maximum number of images partners can submit
@@ -255,7 +255,7 @@ export function BountyCriteriaManualSubmission() {
                   min={1}
                   max={BOUNTY_MAX_SUBMISSION_URLS}
                   step={1}
-                  className="h-9 w-full [&>div]:h-9"
+                  className="w-full"
                 />
                 <p className="text-xs text-neutral-500">
                   Set a maximum number of URLs partners can submit
