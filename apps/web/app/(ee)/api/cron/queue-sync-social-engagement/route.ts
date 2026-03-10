@@ -18,7 +18,7 @@ export const GET = withCron(async () => {
         not: null,
       },
       type: {
-        in: ["twitter"],
+        in: ["twitter", "youtube"],
       },
     },
     select: {

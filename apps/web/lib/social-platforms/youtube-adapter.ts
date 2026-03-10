@@ -1,65 +1,28 @@
 import { SocialContent } from "@/lib/types";
 import { PlatformType } from "@dub/prisma/client";
-import * as z from "zod/v4";
 import {
   BasePlatformAdapter,
   type FetchPostsParams,
   type PostEngagement,
   type SocialProfile,
 } from "./base-adapter";
+import { checkYouTubeApiQuota } from "./rate-limiter";
 import {
   AccountNotFoundError,
   ContentNotFoundError,
   isAccountNotFound,
   scrapeCreatorsFetch,
 } from "./scrape-creators";
-
-const youtubeContentSchema = z.object({
-  publishDateText: z.string(),
-  channel: z.object({
-    id: z.string(),
-    handle: z.string(),
-  }),
-  viewCountInt: z
-    .number()
-    .nullable()
-    .transform((val) => val ?? 0),
-  likeCountInt: z
-    .number()
-    .nullable()
-    .transform((val) => val ?? 0),
-  title: z.string().nullish(),
-  description: z.string().nullish(),
-  thumbnailUrl: z.string().nullish(),
-});
-
-const youtubeProfileSchema = z.object({
-  description: z.string(),
-  channelId: z.string(),
-  videoCount: z
-    .number()
-    .nullish()
-    .transform((val) => val ?? 0),
-  subscriberCount: z
-    .number()
-    .nullish()
-    .transform((val) => val ?? 0),
-  viewCount: z
-    .number()
-    .nullish()
-    .transform((val) => val ?? 0),
-  avatar: z.object({
-    image: z.object({
-      sources: z.array(
-        z.object({
-          url: z.url(),
-          width: z.number(),
-          height: z.number(),
-        }),
-      ),
-    }),
-  }),
-});
+import {
+  YouTubeApiError,
+  YouTubeApiQuotaExceededError,
+  ytFetch,
+} from "./youtube-client";
+import {
+  type YouTubeVideo,
+  youtubeContentSchema,
+  youtubeProfileSchema,
+} from "./youtube-schemas";
 
 export class YouTubeAdapter extends BasePlatformAdapter {
   platform: PlatformType = "youtube";
@@ -142,7 +105,130 @@ export class YouTubeAdapter extends BasePlatformAdapter {
     };
   }
 
-  async fetchPosts(_params: FetchPostsParams): Promise<PostEngagement[]> {
-    return [];
+  async fetchPosts({
+    platformId,
+    startTime,
+    endTime,
+  }: FetchPostsParams): Promise<PostEngagement[]> {
+    const videoIds = await this._getChannelVideos(
+      platformId,
+      startTime,
+      endTime,
+    );
+
+    if (videoIds.length === 0) {
+      return [];
+    }
+
+    const videos = await this._getVideoStatistics(videoIds);
+
+    return videos.map((video) => {
+      const views = video.statistics.viewCount;
+      const likes = video.statistics.likeCount;
+      const comments = video.statistics.commentCount;
+
+      const engagementRate = views > 0 ? (likes + comments) / views : 0;
+
+      return {
+        postId: video.id,
+        publishedAt: new Date(video.snippet.publishedAt),
+        title: video.snippet.title,
+        views,
+        likes,
+        comments,
+        engagementRate,
+      };
+    });
+  }
+
+  private async _getChannelVideos(
+    channelId: string,
+    startTime: Date,
+    endTime: Date,
+  ): Promise<string[]> {
+    // Derive the auto-generated uploads playlist ID from the channel ID
+    // Every YouTube channel has one: UC... → UU...
+    const uploadsPlaylistId = "UU" + channelId.slice(2);
+
+    const allVideoIds: string[] = [];
+    let pageToken: string | undefined;
+
+    // Uploads playlist is in reverse chronological order.
+    // Paginate until we pass startTime, then stop.
+    for (let page = 0; page < 10; page++) {
+      const { success } = await checkYouTubeApiQuota(1);
+
+      if (!success) {
+        throw new YouTubeApiQuotaExceededError();
+      }
+
+      const { data, error } = await ytFetch("/playlistItems", {
+        query: {
+          part: "contentDetails",
+          playlistId: uploadsPlaylistId,
+          maxResults: "50",
+          ...(pageToken && { pageToken }),
+        },
+      });
+
+      if (error) {
+        throw new YouTubeApiError(error);
+      }
+
+      let reachedOlderThanStart = false;
+
+      for (const item of data.items) {
+        const publishedAt = new Date(item.contentDetails.videoPublishedAt);
+
+        if (publishedAt < startTime) {
+          reachedOlderThanStart = true;
+          break;
+        }
+
+        if (publishedAt < endTime) {
+          allVideoIds.push(item.contentDetails.videoId);
+        }
+      }
+
+      if (reachedOlderThanStart || !data.nextPageToken) {
+        break;
+      }
+
+      pageToken = data.nextPageToken;
+    }
+
+    return allVideoIds;
+  }
+
+  private async _getVideoStatistics(
+    videoIds: string[],
+  ): Promise<YouTubeVideo[]> {
+    const allVideos: YouTubeVideo[] = [];
+
+    // Batch in chunks of 50 (YouTube API max per request)
+    for (let i = 0; i < videoIds.length; i += 50) {
+      const batch = videoIds.slice(i, i + 50);
+
+      const { success } = await checkYouTubeApiQuota(1);
+
+      if (!success) {
+        throw new YouTubeApiQuotaExceededError();
+      }
+
+      const { data, error } = await ytFetch("/videos", {
+        query: {
+          part: "snippet,statistics",
+          id: batch.join(","),
+        },
+      });
+
+      if (error) {
+        throw new YouTubeApiError(error);
+      }
+
+      allVideos.push(...data.items);
+    }
+
+    return allVideos;
   }
 }
