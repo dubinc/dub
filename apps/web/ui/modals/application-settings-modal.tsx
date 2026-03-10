@@ -3,6 +3,7 @@ import { updateApplicationSettingsAction } from "@/lib/actions/partners/update-a
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   EligibilityCondition,
   EligibilityRequirements,
@@ -38,7 +39,7 @@ function ApplicationSettingsModal({
   setShowApplicationSettingsModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const {
     control,
@@ -50,9 +51,9 @@ function ApplicationSettingsModal({
     defaultValues: {
       description: program?.description ?? "",
       categories: program?.categories ?? [],
-      eligibilityConditions: (program?.applicationRequirements ?? []).map(
-        (c) => ({ ...c, id: generateId() }),
-      ),
+      eligibilityConditions: (program?.applicationRequirements ?? [])
+        .filter((c) => c.key === "country")
+        .map((c) => ({ ...c, key: "country" as const, id: generateId() })),
     },
   });
 
@@ -144,6 +145,31 @@ function ApplicationSettingsModal({
                     />
                   )}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <div>
+                  <p className="block text-sm font-medium text-neutral-900">
+                    Enable auto-approval
+                  </p>
+                  <p className="text-sm text-neutral-500">
+                    The auto-approval setting is configurable at the group
+                    level.
+                  </p>
+                </div>
+
+                <a
+                  href={`/${workspaceSlug}/program/groups/${DEFAULT_PARTNER_GROUP.slug}/settings`}
+                  target="_blank"
+                  className="block"
+                >
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    text="View default group settings ↗"
+                    className="h-8 w-full px-3"
+                  />
+                </a>
               </div>
             </div>
 
