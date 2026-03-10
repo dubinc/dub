@@ -28,7 +28,6 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
   const useCursorPagination = !!startingAfter || !!endingBefore;
 
   // Cursor pagination validations
-
   if (startingAfter && endingBefore) {
     throw new DubApiError({
       code: "unprocessable_entity",
@@ -77,7 +76,6 @@ export function getPaginationOptions(filters: Filters): PaginationOptions {
   }
 
   // Offset pagination validations
-
   if (page > MAX_PAGE_VALUE) {
     throw new DubApiError({
       code: "unprocessable_entity",
