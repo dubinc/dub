@@ -137,8 +137,8 @@ export function BountyRewardsTable({
         },
       },
     ],
-    thClassName: "border-l-transparent",
-    tdClassName: "border-l-transparent",
+    thClassName: "border-l-transparent py-1.5",
+    tdClassName: "border-l-transparent py-1.5",
   });
 
   if (rewards.length === 0) {
