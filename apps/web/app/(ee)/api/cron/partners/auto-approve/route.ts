@@ -1,8 +1,10 @@
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
 import { withCron } from "@/lib/cron/with-cron";
+import { partnerMeetsAllRequirements } from "@/lib/partners/check-eligibility-requirements";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
+import { ApplicationRequirementsDB } from "@/lib/zod/schemas/programs";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -92,6 +94,21 @@ export const POST = withCron(async ({ rawBody }) => {
     if (riskSeverity === "high") {
       return logAndRespond(
         `Partner ${partnerId} has high risk. Skipping auto-approval.`,
+      );
+    }
+  }
+
+  const requirements = program.applicationRequirements as
+    | ApplicationRequirementsDB
+    | null;
+  if (requirements?.length) {
+    const allMet = partnerMeetsAllRequirements(requirements, {
+      country: programEnrollment.partner.country,
+      email: programEnrollment.partner.email,
+    });
+    if (!allMet) {
+      return logAndRespond(
+        `Partner ${partnerId} does not meet eligibility requirements. Skipping auto-approval.`,
       );
     }
   }

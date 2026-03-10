@@ -104,6 +104,16 @@ function CountryValueInput({
   );
 }
 
+// valid: @domain.com, @*.edu, @*.acme.com, @sub.domain.co.uk
+// wildcard: @*.<optional-segments.>tld  e.g. @*.edu, @*.acme.com
+// exact:    @<segment.>+tld             e.g. @acme.com, @mail.acme.com
+const DOMAIN_PATTERN =
+  /^@(\*\.([a-z0-9][a-z0-9-]*\.)*[a-z]{2,}|[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)*\.[a-z]{2,})$/i;
+
+function isValidDomainPattern(v: string): boolean {
+  return DOMAIN_PATTERN.test(v.trim());
+}
+
 function EmailDomainInput({
   value,
   onChange,
@@ -133,53 +143,72 @@ function EmailDomainInput({
 
   const showRemove = domains.length > 1;
 
+  const hasInvalidEntry = domains.some(
+    (d) => d.trim().length > 0 && !isValidDomainPattern(d),
+  );
+
   return (
     <div className="flex w-52 flex-col gap-1">
-      {domains.map((domain, index) => (
-        <div key={index} className="relative flex items-center">
-          <input
-            ref={(el) => {
-              inputRefs.current[index] = el;
-            }}
-            type="text"
-            value={domain}
-            placeholder="@domain.com"
-            autoFocus={index === domains.length - 1 && index > 0}
-            className={cn(
-              "block w-full rounded-md border border-neutral-300 py-1.5 text-sm text-neutral-900 placeholder-neutral-400",
-              "focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500",
-              showRemove ? "pl-2.5 pr-8" : "px-2.5",
+      {domains.map((domain, index) => {
+        const isInvalid =
+          domain.trim().length > 0 && !isValidDomainPattern(domain);
+        return (
+          <div key={index} className="flex flex-col gap-0.5">
+            <div className="relative flex items-center">
+              <input
+                ref={(el) => {
+                  inputRefs.current[index] = el;
+                }}
+                type="text"
+                value={domain}
+                placeholder="@domain.com"
+                autoFocus={index === domains.length - 1 && index > 0}
+                className={cn(
+                  "block h-8 w-full rounded-lg border py-1.5 text-sm text-neutral-800 placeholder-neutral-400",
+                  "focus:outline-none focus:ring-1",
+                  isInvalid
+                    ? "border-red-400 focus:border-red-500 focus:ring-red-500"
+                    : "border-neutral-300 focus:border-neutral-500 focus:ring-neutral-500",
+                  showRemove ? "pl-2.5 pr-8" : "px-2.5",
+                )}
+                onChange={(e) => handleChange(index, e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (domain.trim() && !hasInvalidEntry) handleAdd();
+                  }
+                  if (e.key === "Backspace" && !domain && showRemove) {
+                    e.preventDefault();
+                    handleRemove(index);
+                  }
+                }}
+              />
+              {showRemove && (
+                <button
+                  type="button"
+                  onClick={() => handleRemove(index)}
+                  className="absolute right-1 flex h-6 w-6 items-center justify-center rounded-md bg-neutral-100 text-neutral-900 hover:bg-neutral-200"
+                  aria-label="Remove domain"
+                >
+                  <Xmark className="size-3" />
+                </button>
+              )}
+            </div>
+            {isInvalid && (
+              <p className="text-xs text-red-500">
+                Use format: @domain.com or @*.tld
+              </p>
             )}
-            onChange={(e) => handleChange(index, e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                if (domain.trim()) handleAdd();
-              }
-              if (e.key === "Backspace" && !domain && showRemove) {
-                e.preventDefault();
-                handleRemove(index);
-              }
-            }}
-          />
-          {showRemove && (
-            <button
-              type="button"
-              onClick={() => handleRemove(index)}
-              className="absolute right-1 flex h-6 w-6 items-center justify-center rounded-md bg-neutral-100 text-neutral-900 hover:bg-neutral-200"
-              aria-label="Remove domain"
-            >
-              <Xmark className="size-3" />
-            </button>
-          )}
-        </div>
-      ))}
+          </div>
+        );
+      })}
       <Button
         type="button"
         variant="secondary"
         text="Add domain"
         className="h-6 text-xs font-medium text-neutral-900"
         onClick={handleAdd}
+        disabled={hasInvalidEntry}
       />
     </div>
   );

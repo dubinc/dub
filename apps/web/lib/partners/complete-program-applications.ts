@@ -12,6 +12,8 @@ import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
 } from "./format-application-form-data";
+import { partnerMeetsAllRequirements } from "./check-eligibility-requirements";
+import { ApplicationRequirementsDB } from "../zod/schemas/programs";
 
 /**
  * Completes any outstanding program applications for a user
@@ -85,9 +87,27 @@ export async function completeProgramApplications(userEmail: string) {
       },
     );
 
+    const partner = user.partners[0].partner;
+
+    // Filter out applications for programs whose eligibility requirements the partner doesn't meet
+    const eligibleApplications = filteredProgramApplications.filter((app) => {
+      const requirements = app.program.applicationRequirements as
+        | ApplicationRequirementsDB
+        | null;
+      if (!requirements?.length) return true;
+      return partnerMeetsAllRequirements(requirements, {
+        country: partner.country,
+        email: partner.email,
+      });
+    });
+
+    if (!eligibleApplications.length) {
+      return;
+    }
+
     // Program enrollments to create
     const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
-      filteredProgramApplications.map((programApplication) => ({
+      eligibleApplications.map((programApplication) => ({
         id: createId({ prefix: "pge_" }),
         programId: programApplication.programId,
         partnerId: user.partners[0].partnerId,
@@ -108,7 +128,7 @@ export async function completeProgramApplications(userEmail: string) {
     const workspaces = await prisma.project.findMany({
       where: {
         defaultProgramId: {
-          in: filteredProgramApplications.map((p) => p.programId),
+          in: eligibleApplications.map((p) => p.programId),
         },
       },
       select: {
@@ -123,8 +143,7 @@ export async function completeProgramApplications(userEmail: string) {
       workspaces.map((ws) => [ws.defaultProgramId, ws]),
     );
 
-    for (const programApplication of filteredProgramApplications) {
-      const partner = user.partners[0].partner;
+    for (const programApplication of eligibleApplications) {
       const application = programApplication;
       const program = programApplication.program;
       const group = programApplication.partnerGroup;

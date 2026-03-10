@@ -2,7 +2,7 @@ import { EligibilityConditionDB } from "@/lib/zod/schemas/programs";
 
 function getEmailDomain(email: string): string {
   const parts = email.split("@");
-  return parts.length === 2 ? `@${parts[1]}` : "";
+  return parts.length === 2 ? `@${parts[1].toLowerCase()}` : "";
 }
 
 function emailMatchesPattern(email: string, pattern: string): boolean {

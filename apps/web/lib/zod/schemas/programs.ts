@@ -25,11 +25,24 @@ import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 
-export const eligibilityConditionSchema = z.object({
-  key: z.enum(["country", "emailDomain"]),
-  operator: z.enum(["is", "is_not"]),
-  value: z.array(z.string()).min(1),
-});
+export const eligibilityConditionSchema = z
+  .object({
+    key: z.enum(["country", "emailDomain"]),
+    operator: z.enum(["is", "is_not"]),
+    value: z.array(z.string()).min(1),
+  })
+  .transform((data) => {
+    if (data.key === "emailDomain") {
+      return {
+        ...data,
+        value: data.value.map((v) => {
+          const t = v.trim().toLowerCase();
+          return t.startsWith("@") ? t : `@${t}`;
+        }),
+      };
+    }
+    return data;
+  });
 
 export const applicationRequirementsSchema = z
   .array(eligibilityConditionSchema)
