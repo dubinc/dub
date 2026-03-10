@@ -307,6 +307,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           bountyMetric: bountyInfo.socialMetrics.metric,
           partnerPlatform: partnerPlatform,
         });
+
         submissionData.fraudRiskLevel = fraudResult.fraudRiskLevel;
         submissionData.fraudFlags = fraudResult.fraudFlags;
 

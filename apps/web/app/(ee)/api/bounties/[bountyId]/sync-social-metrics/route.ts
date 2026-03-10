@@ -168,6 +168,7 @@ export const POST = withWorkspace(
           bountyMetric: bountyInfo.socialMetrics!.metric,
           partnerPlatform: partnerPlatformBaseline,
         });
+
         updateData.fraudRiskLevel = fraudResult.fraudRiskLevel;
         updateData.fraudFlags = fraudResult.fraudFlags;
       }
