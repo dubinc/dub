@@ -1,5 +1,6 @@
 "use client";
 
+import { isValidDomainPattern } from "@/lib/partners/check-eligibility-requirements";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
@@ -102,16 +103,6 @@ function CountryValueInput({
       }
     />
   );
-}
-
-// valid: @domain.com, @*.edu, @*.acme.com, @sub.domain.co.uk
-// wildcard: @*.<optional-segments.>tld  e.g. @*.edu, @*.acme.com
-// exact:    @<segment.>+tld             e.g. @acme.com, @mail.acme.com
-const DOMAIN_PATTERN =
-  /^@(\*\.([a-z0-9][a-z0-9-]*\.)*[a-z]{2,}|[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)*\.[a-z]{2,})$/i;
-
-function isValidDomainPattern(v: string): boolean {
-  return DOMAIN_PATTERN.test(v.trim());
 }
 
 function EmailDomainInput({

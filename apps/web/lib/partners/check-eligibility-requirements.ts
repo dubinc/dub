@@ -1,5 +1,15 @@
 import { EligibilityConditionDB } from "@/lib/zod/schemas/programs";
 
+// valid: @domain.com, @*.edu, @*.acme.com, @sub.domain.co.uk
+// wildcard: @*.<optional-segments.>tld  e.g. @*.edu, @*.acme.com
+// exact:    @<segment.>+tld             e.g. @acme.com, @mail.acme.com
+const DOMAIN_PATTERN =
+  /^@(\*\.([a-z0-9][a-z0-9-]*\.)*[a-z]{2,}|[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)*\.[a-z]{2,})$/i;
+
+export function isValidDomainPattern(v: string): boolean {
+  return DOMAIN_PATTERN.test(v.trim());
+}
+
 function getEmailDomain(email: string): string {
   const parts = email.split("@");
   return parts.length === 2 ? `@${parts[1].toLowerCase()}` : "";
