@@ -22,7 +22,7 @@ const programSortOptions = [
   {
     icon: Calendar6,
     label: "Newest",
-    value: "createdAt",
+    value: "recency",
     order: "desc",
   },
   {
