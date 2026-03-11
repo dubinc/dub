@@ -98,6 +98,8 @@ export async function POST(req: Request) {
             message: `Failed to fund Dub's financial account for stablecoin payouts: ${error.message}`,
             type: "errors",
           });
+
+          skipStablecoinPayouts = true;
         }
       }
 
