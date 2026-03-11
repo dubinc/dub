@@ -65,8 +65,6 @@ export const getLinkViaEdge = async ({
   if (existingLookup) {
     console.log(`[getLinkViaEdge] ${lookupKey} - Existing lookup found`);
     return await existingLookup;
-  } else {
-    console.log(`[getLinkViaEdge] ${lookupKey} - No existing lookup found`);
   }
 
   const lookupPromise = getLinkViaEdgeHelper({ domain, key }).finally(() => {
