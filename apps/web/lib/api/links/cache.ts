@@ -1,5 +1,9 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redisGlobal } from "@/lib/upstash";
+import {
+  formatRedisLink,
+  redisGlobal,
+  redisGlobalWithTimeout,
+} from "@/lib/upstash";
 import { LRUCache } from "lru-cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
@@ -62,17 +66,23 @@ class LinkCache {
 
     console.log(`[LRU Cache MISS] ${cacheKey} - Checking redisGlobal...`);
 
-    // Fallback to redisGlobal if LRU cache miss
-    cachedLink = await redisGlobal.get<RedisLinkProps>(cacheKey);
+    try {
+      // Fallback to redisGlobal if LRU cache miss
+      cachedLink = await redisGlobalWithTimeout.get<RedisLinkProps>(cacheKey);
 
-    if (cachedLink) {
-      console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU Cache...`);
-      linkLRUCache.set(cacheKey, cachedLink); // persist to LRU cache
-      return cachedLink;
-    } else {
-      console.log(
-        `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
-      );
+      if (cachedLink) {
+        console.log(`[Redis Cache HIT] ${cacheKey} - Populating LRU Cache...`);
+        linkLRUCache.set(cacheKey, cachedLink); // persist to LRU cache
+        return cachedLink;
+      } else {
+        console.log(
+          `[Redis Cache MISS] ${cacheKey} - Not found in LRU or Redis, falling back to MySQL...`,
+        );
+        return null;
+      }
+    } catch (error) {
+      console.error(`[Redis Cache Error] ${cacheKey} - ${error}`);
+      throw new Error(`[Redis Cache Error] ${cacheKey} - ${error}`);
     }
   }
 
