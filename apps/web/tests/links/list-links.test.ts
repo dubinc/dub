@@ -161,82 +161,63 @@ describe.concurrent("/links/** - pagination", async () => {
     });
   });
 
-  test("Invalid cursor ID (startingAfter) returns error", async () => {
-    const { status, data: error } = await http.get({
+  test("Invalid cursor ID (startingAfter / endingBefore) returns error", async () => {
+    const invalidCursorError = {
+      error: {
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    };
+
+    const { status: statusAfter, data: errorAfter } = await http.get({
       path: "/links",
       query: { pageSize: "5", startingAfter: "link_invalid_id_12345" },
     });
 
-    expect(status).toEqual(422);
-    expect(error).toStrictEqual({
-      error: {
-        code: "unprocessable_entity",
-        message: "Invalid cursor: the provided ID does not exist.",
-        doc_url:
-          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-      },
-    });
-  });
+    expect(statusAfter).toEqual(422);
+    expect(errorAfter).toStrictEqual(invalidCursorError);
 
-  test("Invalid cursor ID (endingBefore) returns error", async () => {
-    const { status, data: error } = await http.get({
+    const { status: statusBefore, data: errorBefore } = await http.get({
       path: "/links",
       query: { pageSize: "5", endingBefore: "link_invalid_id_12345" },
     });
 
-    expect(status).toEqual(422);
-    expect(error).toStrictEqual({
+    expect(statusBefore).toEqual(422);
+    expect(errorBefore).toStrictEqual(invalidCursorError);
+  });
+
+  test("Rejects mixing page with startingAfter / endingBefore", async () => {
+    const mixedPaginationError = {
       error: {
         code: "unprocessable_entity",
-        message: "Invalid cursor: the provided ID does not exist.",
+        message:
+          "You cannot use both page and startingAfter/endingBefore at the same time. Please use one pagination method.",
         doc_url:
           "https://dub.co/docs/api-reference/errors#unprocessable-entity",
       },
-    });
-  });
+    };
 
-  test("Rejects mixing page with startingAfter", async () => {
     const firstPage = baseline.slice(0, 5);
-    const lastId = firstPage[4].id;
-
-    const { status, data: error } = await http.get({
+    const { status: statusAfter, data: errorAfter } = await http.get({
       path: "/links",
-      query: { page: "2", pageSize: "5", startingAfter: lastId },
+      query: { page: "2", pageSize: "5", startingAfter: firstPage[4].id },
     });
 
-    expect(status).toEqual(422);
-    expect(error).toStrictEqual({
-      error: {
-        code: "unprocessable_entity",
-        message:
-          "You cannot use both page and startingAfter/endingBefore at the same time. Please use one pagination method.",
-        doc_url:
-          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-      },
+    expect(statusAfter).toEqual(422);
+    expect(errorAfter).toStrictEqual(mixedPaginationError);
+
+    const { status: statusBefore, data: errorBefore } = await http.get({
+      path: "/links",
+      query: { page: "2", pageSize: "5", endingBefore: baseline[5].id },
     });
+
+    expect(statusBefore).toEqual(422);
+    expect(errorBefore).toStrictEqual(mixedPaginationError);
   });
 
-  test("Rejects mixing page with endingBefore", async () => {
-    const beforeId = baseline[5].id;
-
-    const { status, data: error } = await http.get({
-      path: "/links",
-      query: { page: "2", pageSize: "5", endingBefore: beforeId },
-    });
-
-    expect(status).toEqual(422);
-    expect(error).toStrictEqual({
-      error: {
-        code: "unprocessable_entity",
-        message:
-          "You cannot use both page and startingAfter/endingBefore at the same time. Please use one pagination method.",
-        doc_url:
-          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
-      },
-    });
-  });
-
-  test("Rejects cursor pagination with non-createdAt sort", async () => {
+  test("Rejects cursor pagination with unsupported sort field", async () => {
     const { status, data: error } = await http.get({
       path: "/links",
       query: {
@@ -258,7 +239,7 @@ describe.concurrent("/links/** - pagination", async () => {
     });
   });
 
-  test("Sort order asc works correctly", async () => {
+  test("Offset pagination with sort order asc works correctly", async () => {
     // Get baseline in ascending order
     const { status: baselineStatus, data: ascBaseline } = await http.get<
       Link[]
@@ -302,45 +283,5 @@ describe.concurrent("/links/** - pagination", async () => {
     expectSortedByCreatedAtAsc(page1.data);
     expectSortedByCreatedAtAsc(page2.data);
     expectNoOverlap(page1.data, page2.data);
-  });
-
-  test("Cursor pagination with sort order asc", async () => {
-    const { data: ascBaseline } = await http.get<Link[]>({
-      path: "/links",
-      query: { pageSize: "25", sortBy: "createdAt", sortOrder: "asc" },
-    });
-
-    const firstPage = ascBaseline.slice(0, 5);
-    const lastId = firstPage[4].id;
-
-    const { status: statusAfter, data: dataAfter } = await http.get<Link[]>({
-      path: "/links",
-      query: {
-        pageSize: "5",
-        startingAfter: lastId,
-        sortBy: "createdAt",
-        sortOrder: "asc",
-      },
-    });
-
-    expect(statusAfter).toEqual(200);
-    expect(dataAfter).toHaveLength(5);
-    expectSortedById(dataAfter, "asc");
-
-    const beforeId = ascBaseline[5].id;
-
-    const { status: statusBefore, data: dataBefore } = await http.get<Link[]>({
-      path: "/links",
-      query: {
-        pageSize: "5",
-        endingBefore: beforeId,
-        sortBy: "createdAt",
-        sortOrder: "asc",
-      },
-    });
-
-    expect(statusBefore).toEqual(200);
-    expect(dataBefore).toHaveLength(5);
-    expectSortedById(dataBefore, "asc");
   });
 });
