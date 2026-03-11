@@ -1,5 +1,6 @@
 import { generateRandomName } from "@/lib/names";
 import { OG_AVATAR_URL, nanoid, randomValue } from "@dub/utils";
+import { expect } from "vitest";
 
 export const randomId = (length = 24) => nanoid(length);
 
@@ -55,4 +56,18 @@ export async function retry<T>(
   }
 
   throw lastError;
+}
+
+export function expectSortedById(
+  items: { id: string }[],
+  order: "asc" | "desc",
+) {
+  for (let i = 0; i < items.length - 1; i++) {
+    const cmp = items[i].id.localeCompare(items[i + 1].id);
+    if (order === "desc") {
+      expect(cmp).toBeGreaterThanOrEqual(0);
+    } else {
+      expect(cmp).toBeLessThanOrEqual(0);
+    }
+  }
 }

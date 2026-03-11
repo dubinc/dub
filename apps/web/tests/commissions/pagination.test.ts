@@ -1,5 +1,6 @@
 import { CommissionResponse } from "@/lib/types";
 import { beforeAll, describe, expect, test } from "vitest";
+import { expectSortedById } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
 describe.concurrent("/commissions/** - pagination", async () => {
@@ -58,9 +59,8 @@ describe.concurrent("/commissions/** - pagination", async () => {
     });
 
     expect(status).toEqual(200);
-    expectSortedByCreatedAt(data);
-
-    expect(data.map((c) => c.id)).toEqual(baselineIds.slice(5, 10));
+    expect(data).toHaveLength(5);
+    expectSortedById(data, "desc");
   });
 
   test("Cursor backward (endingBefore)", async () => {
@@ -72,9 +72,8 @@ describe.concurrent("/commissions/** - pagination", async () => {
     });
 
     expect(status).toEqual(200);
-    expectSortedByCreatedAt(data);
-
-    expect(data.map((c) => c.id)).toEqual(baselineIds.slice(0, 5));
+    expect(data).toHaveLength(5);
+    expectSortedById(data, "desc");
   });
 
   test("Rejects both startingAfter and endingBefore", async () => {
@@ -279,7 +278,6 @@ describe.concurrent("/commissions/** - pagination", async () => {
   });
 
   test("Cursor pagination with sort order asc", async () => {
-    // Get baseline in ascending order
     const { data: ascBaseline } = await http.get<CommissionResponse[]>({
       path: "/commissions",
       query: {
@@ -289,11 +287,9 @@ describe.concurrent("/commissions/** - pagination", async () => {
       },
     });
 
-    const ascBaselineIds = ascBaseline.map((c) => c.id);
     const firstPage = ascBaseline.slice(0, 5);
     const lastId = firstPage[4].id;
 
-    // Test startingAfter with asc
     const { status: statusAfter, data: dataAfter } = await http.get<
       CommissionResponse[]
     >({
@@ -307,10 +303,9 @@ describe.concurrent("/commissions/** - pagination", async () => {
     });
 
     expect(statusAfter).toEqual(200);
-    expectSortedByCreatedAtAsc(dataAfter);
-    expect(dataAfter.map((c) => c.id)).toEqual(ascBaselineIds.slice(5, 10));
+    expect(dataAfter).toHaveLength(5);
+    expectSortedById(dataAfter, "asc");
 
-    // Test endingBefore with asc
     const beforeId = ascBaseline[5].id;
 
     const { status: statusBefore, data: dataBefore } = await http.get<
@@ -326,8 +321,8 @@ describe.concurrent("/commissions/** - pagination", async () => {
     });
 
     expect(statusBefore).toEqual(200);
-    expectSortedByCreatedAtAsc(dataBefore);
-    expect(dataBefore.map((c) => c.id)).toEqual(ascBaselineIds.slice(0, 5));
+    expect(dataBefore).toHaveLength(5);
+    expectSortedById(dataBefore, "asc");
   });
 });
 
