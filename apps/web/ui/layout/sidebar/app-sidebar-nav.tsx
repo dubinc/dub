@@ -29,6 +29,7 @@ import {
   Key,
   LifeRing,
   LinesY as LinesYStatic,
+  MarketingTarget,
   MoneyBills2,
   Msgs,
   PaperPlane,
@@ -405,24 +406,24 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         name: "Developer",
         items: [
           {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/settings/analytics`,
-          },
-          {
             name: "API Keys",
             icon: Key,
             href: `/${slug}/settings/tokens`,
           },
           {
-            name: "OAuth Apps",
-            icon: CubeSettings,
-            href: `/${slug}/settings/oauth-apps`,
+            name: "Tracking",
+            icon: MarketingTarget,
+            href: `/${slug}/settings/tracking`,
           },
           {
             name: "Webhooks",
             icon: Webhook,
             href: `/${slug}/settings/webhooks`,
+          },
+          {
+            name: "OAuth Apps",
+            icon: CubeSettings,
+            href: `/${slug}/settings/oauth-apps`,
           },
         ],
       },
