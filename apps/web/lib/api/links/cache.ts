@@ -1,4 +1,3 @@
-import { getLinkViaEdge } from "@/lib/planetscale";
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import {
   formatRedisLink,
@@ -25,7 +24,7 @@ const linkLRUCache = new LRUCache<string, RedisLinkProps>({
  */
 export const vercelCache = getCache();
 
-const VERCEL_CACHE_EXPIRATION = 60; // 1 minute
+const VERCEL_CACHE_EXPIRATION = 60 * 5; // 5 minutes
 const REDIS_CACHE_EXPIRATION = 60 * 60 * 24;
 
 class LinkCache {
@@ -45,19 +44,24 @@ class LinkCache {
     return await pipeline.exec();
   }
 
-  async set(link: ExpandedLink) {
+  async set(
+    link: ExpandedLink,
+    { setVercelCache }: { setVercelCache?: boolean } = {},
+  ) {
     const redisLink = formatRedisLink(link);
     const cacheKey = this._createKey({ domain: link.domain, key: link.key });
 
     // Update LRU cache immediately to prevent stale reads
     linkLRUCache.set(cacheKey, redisLink);
-    waitUntil(
-      vercelCache.set(cacheKey, redisLink, { ttl: VERCEL_CACHE_EXPIRATION }),
-    );
 
-    return await redisGlobal.set(cacheKey, redisLink, {
-      ex: REDIS_CACHE_EXPIRATION,
-    });
+    await Promise.all([
+      redisGlobal.set(cacheKey, redisLink, {
+        ex: REDIS_CACHE_EXPIRATION,
+      }),
+      setVercelCache
+        ? vercelCache.set(cacheKey, redisLink, { ttl: VERCEL_CACHE_EXPIRATION })
+        : this._invalidateVercelCache(cacheKey),
+    ]);
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
@@ -97,28 +101,19 @@ class LinkCache {
       cachedLink = (await vercelCache.get(cacheKey)) as RedisLinkProps | null;
       if (cachedLink) {
         console.log(`[Vercel Cache HIT] ${cacheKey}`);
+        linkLRUCache.set(cacheKey, cachedLink);
         return cachedLink;
       }
 
       console.log(`[Vercel Cache MISS] ${cacheKey} - Falling back to MySQL...`);
-      const linkData = await getLinkViaEdge({
-        domain,
-        key,
-      });
-      // no link found, throw a 404 error
-      if (!linkData) {
-        throw new Error("Link not found.");
-      }
-      cachedLink = formatRedisLink(linkData as any);
-      await vercelCache.set(cacheKey, cachedLink, {
-        ttl: VERCEL_CACHE_EXPIRATION,
-      });
-      return cachedLink;
+      return null;
     }
   }
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    return await redisGlobal.del(this._createKey({ domain, key }));
+    const cacheKey = this._createKey({ domain, key });
+    waitUntil(this._invalidateVercelCache(cacheKey));
+    return await redisGlobal.del(cacheKey);
   }
 
   async deleteMany(links: Pick<LinkProps, "domain" | "key">[]) {
@@ -156,6 +151,16 @@ class LinkCache {
     const cacheKey = `linkcache:${domain}:${originalKey}`;
 
     return caseSensitive ? cacheKey : cacheKey.toLowerCase();
+  }
+
+  // Vercel cache reads are 10x cheaper than writes, so to invalidate the cache
+  // we check if the value is cached first before deleting it.
+  async _invalidateVercelCache(cacheKey: string) {
+    return vercelCache
+      .get(cacheKey)
+      .then((cachedLink) =>
+        cachedLink ? vercelCache.delete(cacheKey) : undefined,
+      );
   }
 }
 

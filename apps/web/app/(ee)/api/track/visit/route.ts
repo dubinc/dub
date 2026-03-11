@@ -9,7 +9,7 @@ import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis, redisGlobalWithTimeout } from "@/lib/upstash";
+import { formatRedisLink, redisGlobalWithTimeout } from "@/lib/upstash";
 import { isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -39,7 +39,9 @@ export const POST = withAxiom(async (req) => {
       redisGlobalWithTimeout
         .get<string>(recordClickCache._createKey({ domain, key, identityHash }))
         .catch(() => null),
-      redis.get<RedisLinkProps>(linkCache._createKey({ domain, key })),
+      redisGlobalWithTimeout
+        .get<RedisLinkProps>(linkCache._createKey({ domain, key }))
+        .catch(() => null),
     ]);
 
     // if the clickId is already cached in Redis, return it

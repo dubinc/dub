@@ -60,18 +60,17 @@ export const POST = withAxiom(async (req) => {
 
     const identityHash = await getIdentityHash(req);
 
-    const [cachedClickId, mgetResults] = await Promise.all([
+    let [redisGlobalResults, cachedAllowedHostnames] = await Promise.all([
       redisGlobalWithTimeout
-        .get<string>(recordClickCache._createKey({ domain, key, identityHash }))
-        .catch(() => null),
+        .mget<
+          [string | null, RedisLinkProps | null]
+        >([recordClickCache._createKey({ domain, key, identityHash }), linkCache._createKey({ domain, key })])
+        .catch(() => [null, null] as [string | null, RedisLinkProps | null]),
 
-      redis.mget<[RedisLinkProps, string[]]>([
-        linkCache._createKey({ domain, key }),
-        allowedHostnamesCache._createKey({ domain }),
-      ]),
+      redis.get<string[]>(allowedHostnamesCache._createKey({ domain })),
     ]);
 
-    let [cachedLink, cachedAllowedHostnames] = mgetResults;
+    let [cachedClickId, cachedLink] = redisGlobalResults;
 
     // assign a new clickId if there's no cached clickId
     // else, reuse the cached clickId

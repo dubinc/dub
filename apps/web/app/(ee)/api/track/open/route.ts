@@ -74,7 +74,9 @@ export const POST = withAxiom(async (req) => {
       redisGlobalWithTimeout
         .get<string>(recordClickCache._createKey({ domain, key, identityHash }))
         .catch(() => null),
-      redis.get<RedisLinkProps>(linkCache._createKey({ domain, key })),
+      redisGlobalWithTimeout
+        .get<RedisLinkProps>(linkCache._createKey({ domain, key }))
+        .catch(() => null),
     ]);
 
     // assign a new clickId if there's no cached clickId
