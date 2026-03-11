@@ -49,7 +49,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "partnerCrossProgramBan",
     name: "Cross-program ban",
     description:
-      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history. \nTo protect security and privacy, specific details such as links, evidence, or notes are not shared across programs.",
+      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history. To protect security and privacy, specific details such as links, evidence, or notes are not shared across programs.",
     scope: "partner",
     severity: "high",
     configurable: false,
