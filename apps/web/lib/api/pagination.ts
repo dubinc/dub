@@ -19,7 +19,7 @@ interface PaginationQuery {
     | Array<Record<string, Prisma.SortOrder>>;
 }
 
-const MAX_PAGE_VALUE = 100;
+const MAX_PAGE_VALUE = 1000;
 
 export function buildPaginationQuery(filters: Filters): PaginationQuery {
   let { page, pageSize, startingAfter, endingBefore, sortBy, sortOrder } =
