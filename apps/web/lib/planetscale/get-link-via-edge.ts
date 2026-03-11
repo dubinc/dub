@@ -7,7 +7,7 @@ import {
 import { conn } from "./connection";
 import { EdgeLinkProps, EdgeLinkWithWebhooks } from "./types";
 
-export const getLinkViaEdge = async ({
+const getLinkViaEdgeHelper = async ({
   domain,
   key,
 }: {
@@ -45,4 +45,35 @@ export const getLinkViaEdge = async ({
     key: decodeKeyIfCaseSensitive({ domain, key }),
     webhooks,
   };
+};
+
+const inFlightLinkLookups = new Map<
+  string,
+  Promise<Awaited<ReturnType<typeof getLinkViaEdgeHelper>>>
+>();
+
+export const getLinkViaEdge = async ({
+  domain,
+  key,
+}: {
+  domain: string;
+  key: string;
+}): Promise<Awaited<ReturnType<typeof getLinkViaEdgeHelper>>> => {
+  const lookupKey = `${domain}:${key}`;
+  const existingLookup = inFlightLinkLookups.get(lookupKey);
+
+  if (existingLookup) {
+    console.log(`[getLinkViaEdge] ${lookupKey} - Existing lookup found`);
+    return await existingLookup;
+  } else {
+    console.log(`[getLinkViaEdge] ${lookupKey} - No existing lookup found`);
+  }
+
+  const lookupPromise = getLinkViaEdgeHelper({ domain, key }).finally(() => {
+    inFlightLinkLookups.delete(lookupKey);
+  });
+
+  inFlightLinkLookups.set(lookupKey, lookupPromise);
+
+  return await lookupPromise;
 };
