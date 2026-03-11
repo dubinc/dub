@@ -36,6 +36,36 @@ import { isSupportedCustomURIScheme } from "./utils/is-supported-custom-uri-sche
 import { parse } from "./utils/parse";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
+const inFlightLinkLookups = new Map<
+  string,
+  Promise<Awaited<ReturnType<typeof getLinkViaEdge>>>
+>();
+
+async function getLinkViaEdgeSingleflight({
+  domain,
+  key,
+}: {
+  domain: string;
+  key: string;
+}) {
+  const lookupKey = `${domain}:${key}`;
+  const existingLookup = inFlightLinkLookups.get(lookupKey);
+
+  if (existingLookup) {
+    return await existingLookup;
+  } else {
+    console.log(`[LinkMiddleware] ${lookupKey} - No existing lookup found`);
+  }
+
+  const lookupPromise = getLinkViaEdge({ domain, key }).finally(() => {
+    inFlightLinkLookups.delete(lookupKey);
+  });
+
+  inFlightLinkLookups.set(lookupKey, lookupPromise);
+
+  return await lookupPromise;
+}
+
 export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   let { domain, fullKey: originalKey, fullPath } = parse(req);
 
@@ -78,7 +108,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
 
   if (!cachedLink) {
-    let linkData = await getLinkViaEdge({
+    let linkData = await getLinkViaEdgeSingleflight({
       domain,
       key,
     });
