@@ -5,7 +5,7 @@ import {
   redisGlobal,
   redisGlobalWithTimeout,
 } from "@/lib/upstash";
-import { getCache, rewrite, waitUntil } from "@vercel/functions";
+import { getCache, waitUntil } from "@vercel/functions";
 import { LRUCache } from "lru-cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
@@ -105,9 +105,9 @@ class LinkCache {
         domain,
         key,
       });
-      // no link found, rewrite to not found page
+      // no link found, throw a 404 error
       if (!linkData) {
-        rewrite(`/${domain}/not-found`);
+        throw new Error("Link not found.");
       }
       cachedLink = formatRedisLink(linkData as any);
       await vercelCache.set(cacheKey, cachedLink, {
