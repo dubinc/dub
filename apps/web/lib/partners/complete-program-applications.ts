@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { PlatformType, Prisma } from "@dub/prisma/client";
+import { PlatformType, Prisma, ProgramEnrollment } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
@@ -8,8 +8,7 @@ import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
-import { applicationRequirementsSchema } from "../zod/schemas/programs";
-import { partnerMeetsAllRequirements } from "./check-eligibility-requirements";
+import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -89,26 +88,54 @@ export async function completeProgramApplications(userEmail: string) {
 
     const partner = user.partners[0].partner;
 
-    // Filter out applications for programs whose eligibility requirements the partner doesn't meet
-    const eligibleApplications = filteredProgramApplications.filter((app) => {
-      const parsed = applicationRequirementsSchema.safeParse(
-        app.program.applicationRequirements,
-      );
-      if (!parsed.success) return true;
-      if (!parsed.data?.length) return true;
-      return partnerMeetsAllRequirements(parsed.data, {
-        country: partner.country,
-        email: partner.email,
-      });
-    });
+    // Check if the partner meets the eligibility requirements for each program application
+    const applicationsToAutoReject: Pick<
+      ProgramEnrollment,
+      "programId" | "partnerId"
+    >[] = [];
 
-    if (!eligibleApplications.length) {
-      return;
+    for (const programApplication of filteredProgramApplications) {
+      const program = programApplication.program;
+
+      const result = evaluateApplicationRequirements({
+        applicationRequirements: program.applicationRequirements,
+        context: {
+          country: partner.country,
+        },
+      });
+
+      if (result.reason === "requirementsNotMet") {
+        applicationsToAutoReject.push({
+          programId: program.id,
+          partnerId: partner.id,
+        });
+      }
+    }
+
+    if (applicationsToAutoReject.length) {
+      try {
+        const results = await Promise.allSettled(
+          applicationsToAutoReject.map((application) =>
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
+              delay: 30 * 60, // 30 minutes
+              body: {
+                programId: application.programId,
+                partnerId: application.partnerId,
+              },
+            }),
+          ),
+        );
+
+        console.log("Auto-reject results", results);
+      } catch (error) {
+        console.error("Failed to auto-reject applications", error);
+      }
     }
 
     // Program enrollments to create
     const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
-      eligibleApplications.map((programApplication) => ({
+      filteredProgramApplications.map((programApplication) => ({
         id: createId({ prefix: "pge_" }),
         programId: programApplication.programId,
         partnerId: user.partners[0].partnerId,
@@ -129,7 +156,7 @@ export async function completeProgramApplications(userEmail: string) {
     const workspaces = await prisma.project.findMany({
       where: {
         defaultProgramId: {
-          in: eligibleApplications.map((p) => p.programId),
+          in: filteredProgramApplications.map((p) => p.programId),
         },
       },
       select: {
@@ -144,7 +171,7 @@ export async function completeProgramApplications(userEmail: string) {
       workspaces.map((ws) => [ws.defaultProgramId, ws]),
     );
 
-    for (const programApplication of eligibleApplications) {
+    for (const programApplication of filteredProgramApplications) {
       const application = programApplication;
       const program = programApplication.program;
       const group = programApplication.partnerGroup;

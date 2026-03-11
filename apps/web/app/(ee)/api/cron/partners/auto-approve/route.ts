@@ -1,9 +1,8 @@
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
 import { withCron } from "@/lib/cron/with-cron";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
-import { partnerMeetsAllRequirements } from "@/lib/partners/check-eligibility-requirements";
+import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -98,24 +97,24 @@ export const POST = withCron(async ({ rawBody }) => {
     }
   }
 
-  const parsedRequirements = applicationRequirementsSchema.safeParse(
-    program.applicationRequirements,
-  );
-  if (!parsedRequirements.success) {
-    return logAndRespond(
-      `Invalid applicationRequirements for program ${programId}. Skipping auto-approval.`,
-    );
-  }
-  const requirements = parsedRequirements.data;
-  if (requirements?.length) {
-    const allMet = partnerMeetsAllRequirements(requirements, {
+  const result = evaluateApplicationRequirements({
+    applicationRequirements: program.applicationRequirements,
+    context: {
       country: programEnrollment.partner.country,
-      email: programEnrollment.partner.email,
-    });
-    if (!allMet) {
-      return logAndRespond(
-        `Partner ${partnerId} does not meet eligibility requirements. Skipping auto-approval.`,
-      );
+    },
+  });
+
+  if (!result.valid) {
+    switch (result.reason) {
+      case "invalidRequirements":
+        return logAndRespond(
+          `Invalid applicationRequirements for program ${programId}. Skipping auto-approval.`,
+        );
+
+      case "requirementsNotMet":
+        return logAndRespond(
+          `Partner ${partnerId} does not meet eligibility requirements. Skipping auto-approval.`,
+        );
     }
   }
 

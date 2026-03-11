@@ -1,5 +1,6 @@
 "use client";
 
+import { EligibilityConditionDB } from "@/lib/types";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
@@ -10,32 +11,32 @@ import { COUNTRIES } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useMemo } from "react";
 
-// emailDomain is commented out — country is the only supported condition for now
-export type ConditionKey = "country"; // | "emailDomain";
+type ConditionKey = EligibilityConditionDB["key"];
 
-export type EligibilityOperator = "is" | "is_not";
+type EligibilityOperator = EligibilityConditionDB["operator"];
 
 export type EligibilityCondition = {
   id: string;
-  key: ConditionKey | null;
-  operator: EligibilityOperator | null;
-  value: string[] | null;
+  key: EligibilityConditionDB["key"] | null;
+  operator: EligibilityConditionDB["operator"] | null;
+  value: EligibilityConditionDB["value"] | null;
 };
 
-type ConditionConfig = {
-  label: string;
-  operators: EligibilityOperator[];
-};
-
-const CONDITION_CONFIGS: Record<ConditionKey, ConditionConfig> = {
+const CONDITION_CONFIGS: Record<
+  ConditionKey,
+  {
+    label: string;
+    operators: EligibilityOperator[];
+  }
+> = {
   country: {
     label: "country",
     operators: ["is", "is_not"],
   },
-  // emailDomain: {
-  //   label: "email domain",
-  //   operators: ["is", "is_not"],
-  // },
+  emailDomain: {
+    label: "email domain",
+    operators: ["is", "is_not"],
+  },
 };
 
 const OPERATOR_LABELS: Record<EligibilityOperator, string> = {

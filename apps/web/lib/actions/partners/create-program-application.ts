@@ -7,7 +7,7 @@ import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
-import { partnerMeetsAllRequirements } from "@/lib/partners/check-eligibility-requirements";
+import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -20,7 +20,6 @@ import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
-import { ApplicationRequirementsDB } from "@/lib/types";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import {
@@ -202,19 +201,17 @@ export const createProgramApplicationAction = actionClient
         );
       }
 
-      const requirements =
-        program.applicationRequirements as ApplicationRequirementsDB | null;
-      if (requirements?.length) {
-        const allMet = partnerMeetsAllRequirements(requirements, {
+      const result = evaluateApplicationRequirements({
+        applicationRequirements: program.applicationRequirements,
+        context: {
           country: existingPartner.country,
-          email: existingPartner.email,
-        });
+        },
+      });
 
-        if (!allMet) {
-          throw new Error(
-            "You do not meet the eligibility requirements for this program.",
-          );
-        }
+      if (result.reason === "requirementsNotMet") {
+        throw new Error(
+          "Unfortunately, you do not meet the eligibility requirements for this program.",
+        );
       }
 
       return createApplicationAndEnrollment({
