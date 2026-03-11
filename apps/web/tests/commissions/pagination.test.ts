@@ -1,6 +1,11 @@
 import { CommissionResponse } from "@/lib/types";
 import { beforeAll, describe, expect, test } from "vitest";
-import { expectSortedById } from "../utils/helpers";
+import {
+  expectNoOverlap,
+  expectSortedByCreatedAt,
+  expectSortedByCreatedAtAsc,
+  expectSortedById,
+} from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
 describe.concurrent("/commissions/** - pagination", async () => {
@@ -325,24 +330,3 @@ describe.concurrent("/commissions/** - pagination", async () => {
     expectSortedById(dataBefore, "asc");
   });
 });
-
-function expectSortedByCreatedAt(commissions: CommissionResponse[]) {
-  for (let i = 0; i < commissions.length - 1; i++) {
-    const a = new Date(commissions[i].createdAt).getTime();
-    const b = new Date(commissions[i + 1].createdAt).getTime();
-    expect(a).toBeGreaterThanOrEqual(b);
-  }
-}
-
-function expectSortedByCreatedAtAsc(commissions: CommissionResponse[]) {
-  for (let i = 0; i < commissions.length - 1; i++) {
-    const a = new Date(commissions[i].createdAt).getTime();
-    const b = new Date(commissions[i + 1].createdAt).getTime();
-    expect(a).toBeLessThanOrEqual(b);
-  }
-}
-
-function expectNoOverlap(a: CommissionResponse[], b: CommissionResponse[]) {
-  const overlap = a.map((c) => c.id).filter((id) => b.some((x) => x.id === id));
-  expect(overlap).toHaveLength(0);
-}

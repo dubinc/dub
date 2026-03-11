@@ -1,6 +1,11 @@
 import { Customer } from "@/lib/types";
 import { beforeAll, describe, expect, test } from "vitest";
-import { expectSortedById } from "../utils/helpers";
+import {
+  expectNoOverlap,
+  expectSortedByCreatedAt,
+  expectSortedByCreatedAtAsc,
+  expectSortedById,
+} from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 
 describe.concurrent("/customers/** - pagination", async () => {
@@ -300,24 +305,3 @@ describe.concurrent("/customers/** - pagination", async () => {
     expectSortedById(dataBefore, "asc");
   });
 });
-
-function expectSortedByCreatedAt(customers: Customer[]) {
-  for (let i = 0; i < customers.length - 1; i++) {
-    const a = new Date(customers[i].createdAt).getTime();
-    const b = new Date(customers[i + 1].createdAt).getTime();
-    expect(a).toBeGreaterThanOrEqual(b);
-  }
-}
-
-function expectSortedByCreatedAtAsc(customers: Customer[]) {
-  for (let i = 0; i < customers.length - 1; i++) {
-    const a = new Date(customers[i].createdAt).getTime();
-    const b = new Date(customers[i + 1].createdAt).getTime();
-    expect(a).toBeLessThanOrEqual(b);
-  }
-}
-
-function expectNoOverlap(a: Customer[], b: Customer[]) {
-  const overlap = a.map((c) => c.id).filter((id) => b.some((x) => x.id === id));
-  expect(overlap).toHaveLength(0);
-}

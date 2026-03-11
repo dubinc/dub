@@ -1,7 +1,12 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { Link } from "@dub/prisma/client";
 import { beforeAll, describe, expect, onTestFinished, test } from "vitest";
-import { expectSortedById } from "../utils/helpers";
+import {
+  expectNoOverlap,
+  expectSortedByCreatedAt,
+  expectSortedByCreatedAtAsc,
+  expectSortedById,
+} from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
 
@@ -339,24 +344,3 @@ describe.concurrent("/links/** - pagination", async () => {
     expectSortedById(dataBefore, "asc");
   });
 });
-
-function expectSortedByCreatedAt(links: Link[]) {
-  for (let i = 0; i < links.length - 1; i++) {
-    const a = new Date(links[i].createdAt).getTime();
-    const b = new Date(links[i + 1].createdAt).getTime();
-    expect(a).toBeGreaterThanOrEqual(b);
-  }
-}
-
-function expectSortedByCreatedAtAsc(links: Link[]) {
-  for (let i = 0; i < links.length - 1; i++) {
-    const a = new Date(links[i].createdAt).getTime();
-    const b = new Date(links[i + 1].createdAt).getTime();
-    expect(a).toBeLessThanOrEqual(b);
-  }
-}
-
-function expectNoOverlap(a: Link[], b: Link[]) {
-  const overlap = a.map((l) => l.id).filter((id) => b.some((x) => x.id === id));
-  expect(overlap).toHaveLength(0);
-}

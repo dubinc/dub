@@ -71,3 +71,28 @@ export function expectSortedById(
     }
   }
 }
+
+export function expectSortedByCreatedAt<T extends { createdAt: string | Date }>(
+  items: T[],
+) {
+  for (let i = 0; i < items.length - 1; i++) {
+    const a = new Date(items[i].createdAt).getTime();
+    const b = new Date(items[i + 1].createdAt).getTime();
+    expect(a).toBeGreaterThanOrEqual(b);
+  }
+}
+
+export function expectSortedByCreatedAtAsc<
+  T extends { createdAt: string | Date },
+>(items: T[]) {
+  for (let i = 0; i < items.length - 1; i++) {
+    const a = new Date(items[i].createdAt).getTime();
+    const b = new Date(items[i + 1].createdAt).getTime();
+    expect(a).toBeLessThanOrEqual(b);
+  }
+}
+
+export function expectNoOverlap<T extends { id: string }>(a: T[], b: T[]) {
+  const overlap = a.map((x) => x.id).filter((id) => b.some((x) => x.id === id));
+  expect(overlap).toHaveLength(0);
+}
