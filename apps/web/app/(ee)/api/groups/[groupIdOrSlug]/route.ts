@@ -28,6 +28,7 @@ export const GET = withWorkspace(
       programId,
       groupId: params.groupIdOrSlug,
       includeExpandedFields: true,
+      includeBounties: true,
     });
 
     return NextResponse.json(GroupWithProgramSchema.parse(group));
