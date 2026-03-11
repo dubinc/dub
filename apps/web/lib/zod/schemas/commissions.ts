@@ -304,7 +304,12 @@ export const DEFAULT_COMMISSION_EXPORT_COLUMNS =
   );
 
 export const commissionsExportQuerySchema = getCommissionsQuerySchema
-  .omit({ page: true, pageSize: true })
+  .omit({
+    page: true,
+    pageSize: true,
+    startingAfter: true,
+    endingBefore: true,
+  })
   .extend({
     columns: z
       .string()
