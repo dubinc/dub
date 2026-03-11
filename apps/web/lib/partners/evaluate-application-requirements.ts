@@ -21,6 +21,13 @@ export function evaluateApplicationRequirements({
   applicationRequirements: unknown;
   context: Context;
 }): Result {
+  if (applicationRequirements == null) {
+    return {
+      valid: true,
+      reason: "noRequirements",
+    };
+  }
+
   const parsed = applicationRequirementsSchema.safeParse(
     applicationRequirements,
   );
