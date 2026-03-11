@@ -1,11 +1,10 @@
 "use client";
 
-// import { isValidDomainPattern } from "@/lib/partners/check-eligibility-requirements";
 import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
-import { AnimatedSizeContainer, Button } from "@dub/ui";
+import { AnimatedSizeContainer } from "@dub/ui";
 import { CircleCheck, Users2, Xmark } from "@dub/ui/icons";
 import { COUNTRIES } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
@@ -22,8 +21,6 @@ export type EligibilityCondition = {
   operator: EligibilityOperator | null;
   value: string[] | null;
 };
-
-// type ValueType = "country" | "emailDomain";
 
 type ConditionConfig = {
   label: string;
@@ -245,7 +242,9 @@ function ConditionRow({
         If partner {keyConfig.label}
         <InlineBadgePopover
           text={
-            condition.operator ? OPERATOR_LABELS[condition.operator] : "operator"
+            condition.operator
+              ? OPERATOR_LABELS[condition.operator]
+              : "operator"
           }
           invalid={!condition.operator}
         >
