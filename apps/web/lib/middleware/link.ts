@@ -99,7 +99,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     ev.waitUntil(
       (async () => {
         if (!isPartnerLink) {
-          await linkCache.set(linkData as any, { setVercelCache: true });
+          await linkCache.set(linkData as any);
           return;
         }
 
@@ -109,14 +109,11 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         });
 
         // we'll use this data on /track/click
-        await linkCache.set(
-          {
-            ...(linkData as any),
-            ...(partner && { partner }),
-            ...(discount && { discount }),
-          },
-          { setVercelCache: true },
-        );
+        await linkCache.set({
+          ...(linkData as any),
+          ...(partner && { partner }),
+          ...(discount && { discount }),
+        });
       })(),
     );
   }
@@ -240,8 +237,9 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     if (shouldCacheClickId) {
       const identityHash = await getIdentityHash(req);
       clickId =
-        (await recordClickCache.get({ domain, key, identityHash })) ||
-        undefined;
+        (await recordClickCache
+          .get({ domain, key, identityHash })
+          .catch(() => undefined)) || undefined;
     }
 
     // if there's still no clickId, generate a new one
