@@ -51,9 +51,8 @@ export function ProgramEligibilityCard({
     requirementsProp !== undefined
       ? requirementsProp
       : programEnrollment?.program?.applicationRequirements;
-  if (!requirements?.length) return null;
 
-  if (loading) return null;
+  if (!requirements?.length || loading) return null;
 
   const unmet = requirements.filter((c) => !partnerMeetsCondition(c, partner));
   const unmetWithText = unmet.map(formatConditionText).filter(Boolean);
