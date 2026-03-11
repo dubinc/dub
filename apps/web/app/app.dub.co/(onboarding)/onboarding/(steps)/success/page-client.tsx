@@ -127,7 +127,7 @@ export function SuccessPageClient({
                     icon: Plug2,
                     title: "Set up conversion tracking",
                     description: "Install the Dub tracking script",
-                    href: `/${workspace.slug}/settings/analytics`,
+                    href: `/${workspace.slug}/settings/tracking`,
                     cta: "Install",
                     loading: isLoadingWorkspace,
                     complete: connectedAnalytics,

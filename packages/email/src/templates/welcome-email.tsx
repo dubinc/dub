@@ -230,7 +230,7 @@ export default function WelcomeEmail({
                     <Text className="mb-4 text-sm leading-6 text-neutral-600">
                       2. Track conversions:{" "}
                       <Link
-                        href="https://app.dub.co/settings/analytics"
+                        href="https://app.dub.co/settings/tracking"
                         className="text-neutral-600 underline underline-offset-2"
                       >
                         Install the Dub tracking script
