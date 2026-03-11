@@ -3,7 +3,7 @@
 import { partnerMeetsCondition } from "@/lib/partners/check-eligibility-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { EligibilityConditionDB } from "@/lib/zod/schemas/programs";
+import { EligibilityConditionDB } from "@/lib/types";
 import { Lock } from "@dub/ui/icons";
 import { COUNTRIES } from "@dub/utils";
 

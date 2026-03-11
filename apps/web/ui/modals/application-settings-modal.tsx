@@ -4,7 +4,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { ApplicationRequirementsDB } from "@/lib/zod/schemas/programs";
+import { ApplicationRequirementsDB } from "@/lib/types";
 import {
   EligibilityCondition,
   EligibilityRequirements,

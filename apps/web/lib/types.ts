@@ -139,6 +139,8 @@ import {
 } from "./zod/schemas/program-network";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
+  applicationRequirementsSchema,
+  eligibilityConditionSchema,
   PartnerCommentSchema,
   ProgramEnrollmentSchema,
   ProgramSchema,
@@ -567,6 +569,10 @@ export type ProgramApplicationFormFieldWithValues = z.infer<
   typeof programApplicationFormFieldWithValuesSchema
 >;
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
+export type EligibilityConditionDB = z.infer<typeof eligibilityConditionSchema>;
+export type ApplicationRequirementsDB = z.infer<
+  typeof applicationRequirementsSchema
+>;
 
 export type PayoutsCount = {
   status: PayoutStatus;

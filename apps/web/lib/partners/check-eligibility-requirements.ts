@@ -1,4 +1,4 @@
-import { EligibilityConditionDB } from "@/lib/zod/schemas/programs";
+import { EligibilityConditionDB } from "@/lib/types";
 
 // valid: @domain.com, @*.edu, @*.acme.com, @sub.domain.co.uk
 // wildcard: @*.<optional-segments.>tld  e.g. @*.edu, @*.acme.com
