@@ -26,5 +26,5 @@ export const redisGlobal = new Redis(redisConfig);
 
 export const redisGlobalWithTimeout = new Redis({
   ...redisConfig,
-  signal: () => AbortSignal.timeout(1000),
+  signal: () => AbortSignal.timeout(1500),
 });
