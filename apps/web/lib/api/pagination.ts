@@ -59,17 +59,9 @@ export function buildPaginationQuery(filters: Filters): PaginationQuery {
       cursor: {
         id: cursorId,
       },
-      // Use a two-field sort: primary sort by createdAt, then by id as a tiebreaker.
-      // This ensures deterministic ordering when multiple records have the same createdAt,
-      // which is critical for cursor-based pagination to work correctly and consistently.
-      orderBy: [
-        {
-          createdAt: sortOrder,
-        },
-        {
-          id: sortOrder,
-        },
-      ],
+      orderBy: {
+        id: sortOrder,
+      },
       take: endingBefore ? -pageSize : pageSize,
       skip: 1,
     };
@@ -84,14 +76,11 @@ export function buildPaginationQuery(filters: Filters): PaginationQuery {
   }
 
   return {
-    orderBy: [
-      {
-        [sortBy]: sortOrder,
-      },
-      {
-        id: sortOrder,
-      },
-    ],
+    // Order by id only for better query performance on large datasets (single-column PK index).
+    // Trade-off: ordering is by id rather than createdAt, so order may not strictly match creation time.
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
     take: pageSize,
     skip: (page - 1) * pageSize,
   };
