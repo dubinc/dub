@@ -1,6 +1,8 @@
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { withCron } from "@/lib/cron/with-cron";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import { sendEmail } from "@dub/email";
+import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
@@ -93,9 +95,25 @@ export const POST = withCron(async ({ rawBody }) => {
       "Resolved automatically because the partner application was automatically rejected.",
   });
 
-  if (programEnrollment.partner.email) {
-    // TODO:
-    // Send email notification
+  const { partner, program } = programEnrollment;
+
+  if (partner.email) {
+    await sendEmail({
+      to: partner.email,
+      subject: `Your application to ${program.name} was not approved`,
+      variant: "notifications",
+      replyTo: program.supportEmail || "noreply",
+      react: PartnerApplicationRejected({
+        partner: {
+          name: partner.name ?? "there",
+          email: partner.email,
+        },
+        program: {
+          name: program.name,
+          slug: program.slug,
+        },
+      }),
+    });
   }
 
   return logAndRespond(
