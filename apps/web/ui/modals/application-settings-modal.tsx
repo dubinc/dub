@@ -4,6 +4,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { ApplicationRequirementsDB } from "@/lib/zod/schemas/programs";
 import {
   EligibilityCondition,
   EligibilityRequirements,
@@ -51,7 +52,10 @@ function ApplicationSettingsModal({
     defaultValues: {
       description: program?.description ?? "",
       categories: program?.categories ?? [],
-      eligibilityConditions: (program?.applicationRequirements ?? [])
+      eligibilityConditions: (
+        (program?.applicationRequirements as ApplicationRequirementsDB | null) ??
+        []
+      )
         .filter((c) => c.key === "country")
         .map((c) => ({ ...c, key: "country" as const, id: generateId() })),
     },
