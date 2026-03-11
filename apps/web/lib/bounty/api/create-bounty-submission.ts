@@ -280,9 +280,9 @@ export class BountySubmissionHandler {
 
   // Validate the requirements of the submission
   private validateRequirements() {
-    const submissionRequirements = submissionRequirementsSchema.parse(
-      this.bounty.submissionRequirements,
-    );
+    const submissionRequirements = submissionRequirementsSchema
+      .nullable()
+      .parse(this.bounty.submissionRequirements);
 
     const requireImage = !!submissionRequirements?.image;
     const requireUrl = !!submissionRequirements?.url;
@@ -486,9 +486,9 @@ export class BountySubmissionHandler {
   private mergeSubmissionData() {
     const bountyInfo = resolveBountyDetails(this.bounty);
 
-    const submissionRequirements = submissionRequirementsSchema.parse(
-      this.bounty.submissionRequirements,
-    );
+    const submissionRequirements = submissionRequirementsSchema
+      .nullable()
+      .parse(this.bounty.submissionRequirements);
 
     const requireImage = !!submissionRequirements?.image;
     const requireUrl = !!submissionRequirements?.url;
