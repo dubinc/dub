@@ -240,8 +240,9 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     if (shouldCacheClickId) {
       const identityHash = await getIdentityHash(req);
       clickId =
-        (await recordClickCache.get({ domain, key, identityHash })) ||
-        undefined;
+        (await recordClickCache
+          .get({ domain, key, identityHash })
+          .catch(() => undefined)) || undefined;
     }
 
     // if there's still no clickId, generate a new one
