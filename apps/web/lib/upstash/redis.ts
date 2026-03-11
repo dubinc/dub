@@ -13,36 +13,18 @@ const hasGlobalRedisConfig =
   !!process.env.UPSTASH_GLOBAL_REDIS_REST_URL &&
   !!process.env.UPSTASH_GLOBAL_REDIS_REST_TOKEN;
 
-const redisGlobalBase = new Redis({
+const redisConfig = {
   url: hasGlobalRedisConfig
     ? process.env.UPSTASH_GLOBAL_REDIS_REST_URL
     : process.env.UPSTASH_REDIS_REST_URL || "",
   token: hasGlobalRedisConfig
     ? process.env.UPSTASH_GLOBAL_REDIS_REST_TOKEN
     : process.env.UPSTASH_REDIS_REST_TOKEN || "",
-  signal: () => AbortSignal.timeout(1000),
-});
+};
 
-// On timeout (or other errors), get() method calls return null instead of throwing
-export const redisGlobal = new Proxy(redisGlobalBase, {
-  get(target, prop) {
-    const value = target[prop as keyof Redis];
-    if (prop === "get" && typeof value === "function") {
-      return async (...args: unknown[]) => {
-        try {
-          return await (value as (...args: unknown[]) => unknown).apply(
-            target,
-            args,
-          );
-        } catch (error) {
-          console.error(
-            "[redisGlobal] – Timeout getting value from Redis, returning null...",
-            error,
-          );
-          return null;
-        }
-      };
-    }
-    return value;
-  },
+export const redisGlobal = new Redis(redisConfig);
+
+export const redisGlobalWithTimeout = new Redis({
+  ...redisConfig,
+  signal: () => AbortSignal.timeout(1000),
 });
