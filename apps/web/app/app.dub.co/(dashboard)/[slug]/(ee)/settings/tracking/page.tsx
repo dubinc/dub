@@ -2,22 +2,22 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { Suspense } from "react";
 import { ConversionTrackingToggle } from "./conversion-tracking-toggle";
-import WorkspaceAnalyticsPageClient from "./page-client";
+import { WorkspaceTrackingSettingsPageClient } from "./page-client";
 
-export default function WorkspaceAnalyticsPage() {
+export default function WorkspaceTrackingSettingsPage() {
   return (
     <PageContent
-      title="Analytics"
+      title="Tracking"
       titleInfo={{
         title:
-          "Configure analytics and conversion tracking settings for your workspace.",
-        href: "https://dub.co/docs/conversions/quickstart",
+          "Configure and install Dub's tracking scripts and start tracking conversions on your website and web applications.",
+        href: "https://dub.co/docs/concepts/attribution",
       }}
       controls={<ConversionTrackingToggle />}
     >
       <PageWidthWrapper className="max-w-[800px] pb-20">
         <Suspense>
-          <WorkspaceAnalyticsPageClient />
+          <WorkspaceTrackingSettingsPageClient />
         </Suspense>
       </PageWidthWrapper>
     </PageContent>
