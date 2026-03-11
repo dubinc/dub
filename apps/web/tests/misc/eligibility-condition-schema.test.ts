@@ -65,6 +65,16 @@ describe("eligibilityConditionSchema — validation", () => {
     ).toThrow();
   });
 
+  it("rejects a whitespace-only domain entry (normalizes to '@')", () => {
+    expect(() =>
+      eligibilityConditionSchema.parse({
+        key: "emailDomain",
+        operator: "is",
+        value: ["   "],
+      }),
+    ).toThrow();
+  });
+
   it("rejects an unknown key", () => {
     expect(() =>
       eligibilityConditionSchema.parse({

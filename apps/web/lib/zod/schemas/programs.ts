@@ -42,7 +42,13 @@ export const eligibilityConditionSchema = z
       };
     }
     return data;
-  });
+  })
+  .refine(
+    (data) =>
+      data.key !== "emailDomain" ||
+      data.value.every((v) => v.length > 1 && v !== "@"),
+    { message: "Email domain values must be valid domain patterns" },
+  );
 
 export const applicationRequirementsSchema = z
   .array(eligibilityConditionSchema)

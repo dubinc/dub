@@ -45,7 +45,7 @@ export function ProgramEligibilityCard({
   requirements?: EligibilityConditionDB[] | null;
 } = {}) {
   const { programEnrollment } = useProgramEnrollment();
-  const { partner } = usePartnerProfile();
+  const { partner, loading } = usePartnerProfile();
 
   const requirements =
     requirementsProp !== undefined
@@ -53,20 +53,23 @@ export function ProgramEligibilityCard({
       : programEnrollment?.program?.applicationRequirements;
   if (!requirements?.length) return null;
 
-  const unmet = requirements.filter((c) => !partnerMeetsCondition(c, partner));
+  if (loading) return null;
 
-  if (unmet.length === 0) return null;
+  const unmet = requirements.filter((c) => !partnerMeetsCondition(c, partner));
+  const unmetWithText = unmet.map(formatConditionText).filter(Boolean);
+
+  if (unmetWithText.length === 0) return null;
 
   return (
-    <div className="space-y-3 rounded-[10px] border border-blue-200 bg-blue-50 p-4">
+    <div className="mt-4 space-y-3 rounded-[10px] border border-blue-200 bg-blue-50 p-4">
       <div className="flex items-center gap-2 font-semibold text-blue-900">
         <Lock className="size-4 text-blue-500" />
         Program eligibility
       </div>
 
       <ul className="list-disc space-y-1 pl-5 text-sm text-blue-800">
-        {unmet.map((c) => (
-          <li key={c.key}>{formatConditionText(c)}</li>
+        {unmetWithText.map((text, i) => (
+          <li key={i}>{text}</li>
         ))}
       </ul>
     </div>

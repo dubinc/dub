@@ -1,10 +1,10 @@
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
 import { withCron } from "@/lib/cron/with-cron";
-import { partnerMeetsAllRequirements } from "@/lib/partners/check-eligibility-requirements";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
+import { partnerMeetsAllRequirements } from "@/lib/partners/check-eligibility-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
-import { ApplicationRequirementsDB } from "@/lib/zod/schemas/programs";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -98,9 +98,15 @@ export const POST = withCron(async ({ rawBody }) => {
     }
   }
 
-  const requirements = program.applicationRequirements as
-    | ApplicationRequirementsDB
-    | null;
+  const parsedRequirements = applicationRequirementsSchema.safeParse(
+    program.applicationRequirements,
+  );
+  if (!parsedRequirements.success) {
+    return logAndRespond(
+      `Invalid applicationRequirements for program ${programId}. Skipping auto-approval.`,
+    );
+  }
+  const requirements = parsedRequirements.data;
   if (requirements?.length) {
     const allMet = partnerMeetsAllRequirements(requirements, {
       country: programEnrollment.partner.country,

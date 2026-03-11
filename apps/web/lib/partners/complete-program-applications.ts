@@ -8,12 +8,12 @@ import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
+import { applicationRequirementsSchema } from "../zod/schemas/programs";
+import { partnerMeetsAllRequirements } from "./check-eligibility-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
 } from "./format-application-form-data";
-import { partnerMeetsAllRequirements } from "./check-eligibility-requirements";
-import { ApplicationRequirementsDB } from "../zod/schemas/programs";
 
 /**
  * Completes any outstanding program applications for a user
@@ -91,11 +91,12 @@ export async function completeProgramApplications(userEmail: string) {
 
     // Filter out applications for programs whose eligibility requirements the partner doesn't meet
     const eligibleApplications = filteredProgramApplications.filter((app) => {
-      const requirements = app.program.applicationRequirements as
-        | ApplicationRequirementsDB
-        | null;
-      if (!requirements?.length) return true;
-      return partnerMeetsAllRequirements(requirements, {
+      const parsed = applicationRequirementsSchema.safeParse(
+        app.program.applicationRequirements,
+      );
+      if (!parsed.success) return true;
+      if (!parsed.data?.length) return true;
+      return partnerMeetsAllRequirements(parsed.data, {
         country: partner.country,
         email: partner.email,
       });

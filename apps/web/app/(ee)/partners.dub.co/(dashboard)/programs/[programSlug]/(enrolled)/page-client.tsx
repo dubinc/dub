@@ -224,9 +224,7 @@ export default function ProgramPageClient() {
                     <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
                   )}
                 </div>
-                <div className="mt-4">
-                  <ProgramEligibilityCard />
-                </div>
+                <ProgramEligibilityCard />
               </div>
             </motion.div>
           )}

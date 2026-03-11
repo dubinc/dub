@@ -241,11 +241,9 @@ export default async function MarketplaceProgramPage(props: {
           />
 
           {program.applicationRequirements?.length ? (
-            <div className="mt-4">
-              <ProgramEligibilityCard
-                requirements={program.applicationRequirements}
-              />
-            </div>
+            <ProgramEligibilityCard
+              requirements={program.applicationRequirements}
+            />
           ) : null}
 
           {program.landerData && (
