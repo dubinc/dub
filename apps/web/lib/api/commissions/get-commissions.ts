@@ -36,16 +36,17 @@ export async function getCommissions(filters: CommissionsFilters) {
   const cursorId = startingAfter || endingBefore;
 
   if (cursorId) {
-    const cursorRecord = await prisma.commission.findUnique({
+    const commission = await prisma.commission.findUnique({
       where: {
         id: cursorId,
       },
       select: {
         id: true,
+        programId: true,
       },
     });
 
-    if (!cursorRecord) {
+    if (!commission || commission.programId !== programId) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: "Invalid cursor: the provided ID does not exist.",

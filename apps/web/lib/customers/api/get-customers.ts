@@ -30,16 +30,17 @@ export async function getCustomers(filters: GetCustomersInput) {
   const cursorId = startingAfter || endingBefore;
 
   if (cursorId) {
-    const cursorRecord = await prisma.customer.findUnique({
+    const customer = await prisma.customer.findUnique({
       where: {
         id: cursorId,
       },
       select: {
         id: true,
+        projectId: true,
       },
     });
 
-    if (!cursorRecord) {
+    if (!customer || customer.projectId !== workspaceId) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: "Invalid cursor: the provided ID does not exist.",

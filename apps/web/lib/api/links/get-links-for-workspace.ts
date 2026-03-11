@@ -51,16 +51,17 @@ export async function getLinksForWorkspace(filters: GetLinksForWorkspaceProps) {
   const cursorId = filters.startingAfter || filters.endingBefore;
 
   if (cursorId) {
-    const cursorRecord = await prisma.link.findUnique({
+    const link = await prisma.link.findUnique({
       where: {
         id: cursorId,
       },
       select: {
         id: true,
+        projectId: true,
       },
     });
 
-    if (!cursorRecord) {
+    if (!link || link.projectId !== workspaceId) {
       throw new DubApiError({
         code: "unprocessable_entity",
         message: "Invalid cursor: the provided ID does not exist.",
