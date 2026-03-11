@@ -105,7 +105,7 @@ export function NavMobile({
       </button>
       <nav
         className={cn(
-          "fixed inset-0 z-20 hidden max-h-screen w-full overflow-y-auto bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white/90",
+          "fixed inset-0 z-20 hidden max-h-screen w-full overflow-y-auto bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white/70",
           open && "block",
         )}
       >
@@ -277,10 +277,10 @@ const ChildItem = ({
       </div>
       <div>
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-neutral-900">{title}</h2>
+          <h2 className="text-sm font-medium text-neutral-900 dark:text-white/90">{title}</h2>
         </div>
         {description && (
-          <p className="text-sm text-neutral-500">{description}</p>
+          <p className="text-sm text-neutral-500 dark:text-white/70">{description}</p>
         )}
       </div>
     </Link>
