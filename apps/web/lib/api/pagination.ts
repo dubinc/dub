@@ -19,7 +19,7 @@ interface PaginationQuery {
     | Array<Record<string, Prisma.SortOrder>>;
 }
 
-const MAX_PAGE_VALUE = 1000;
+export const MAX_OFFSET_PAGE = 1000;
 
 export function buildPaginationQuery(filters: Filters): PaginationQuery {
   let { page, pageSize, startingAfter, endingBefore, sortBy, sortOrder } =
@@ -70,10 +70,10 @@ export function buildPaginationQuery(filters: Filters): PaginationQuery {
   page = page ?? 1;
 
   // Offset pagination validations
-  if (page > MAX_PAGE_VALUE) {
+  if (page > MAX_OFFSET_PAGE) {
     throw new DubApiError({
       code: "unprocessable_entity",
-      message: `Page is too big (cannot be more than ${MAX_PAGE_VALUE}), recommend using cursor-based pagination instead.`,
+      message: `Page is too big (cannot be more than ${MAX_OFFSET_PAGE}), recommend using cursor-based pagination instead.`,
     });
   }
 
