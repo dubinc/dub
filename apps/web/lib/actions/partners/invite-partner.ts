@@ -2,7 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
+import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
@@ -83,7 +83,7 @@ export const invitePartnerAction = authActionClient
 
     const sendPartnerInvitePromise = (async () => {
       try {
-        const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
+        const rewardsAndBounties = await getGroupRewardsAndBounties({
           programId,
           groupId: enrolledPartner.groupId || program.defaultGroupId,
         });
