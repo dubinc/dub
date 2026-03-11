@@ -41,10 +41,10 @@ export const appRedirect = async (path: string) => {
   if (upgradeRegex.test(path))
     return path.replace(upgradeRegex, "/$1/settings/billing/upgrade");
 
-  // Redirect "/[slug]/guides" and all child paths to "/[slug]/settings/analytics"
+  // Redirect "/[slug]/guides" and all child paths to "/[slug]/settings/tracking"
   const guidesRegex = /^\/([^\/]+)\/guides(?:\/(.*))?$/;
   if (guidesRegex.test(path))
-    return path.replace(guidesRegex, "/$1/settings/analytics");
+    return path.replace(guidesRegex, "/$1/settings/tracking");
 
   // Redirect "/[slug]/settings/library/:path*" to "/[slug]/links/:path*"
   const libraryRegex = /^\/([^\/]+)\/settings\/library\/(.*)$/;
@@ -55,6 +55,11 @@ export const appRedirect = async (path: string) => {
   const peopleRegex = /^\/([^\/]+)\/settings\/people$/;
   if (peopleRegex.test(path))
     return path.replace(peopleRegex, "/$1/settings/members");
+
+  // Redirect "/[slug]/settings/analytics" to "/[slug]/settings/tracking"
+  const settingsAnalyticsRegex = /^\/([^\/]+)\/settings\/analytics$/;
+  if (settingsAnalyticsRegex.test(path))
+    return path.replace(settingsAnalyticsRegex, "/$1/settings/tracking");
 
   // Redirect "/[slug]/programs/prog_[id]/:path*" to "/[slug]/program/:path*"
   const oldProgramPagesRegex = /^\/([^\/]+)\/programs\/prog_[^\/]+\/(.*)$/;
