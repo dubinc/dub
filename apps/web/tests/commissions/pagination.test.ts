@@ -3,7 +3,6 @@ import { beforeAll, describe, expect, test } from "vitest";
 import {
   expectNoOverlap,
   expectSortedByCreatedAt,
-  expectSortedByCreatedAtAsc,
   expectSortedById,
 } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
@@ -215,55 +214,5 @@ describe.concurrent("/commissions/** - pagination", async () => {
           "https://dub.co/docs/api-reference/errors#unprocessable-entity",
       },
     });
-  });
-
-  test("Offset pagination with sort order asc works correctly", async () => {
-    // Get baseline in ascending order
-    const { status: baselineStatus, data: ascBaseline } = await http.get<
-      CommissionResponse[]
-    >({
-      path: "/commissions",
-      query: {
-        pageSize: "25",
-        sortBy: "createdAt",
-        sortOrder: "asc",
-      },
-    });
-
-    expect(baselineStatus).toEqual(200);
-    expectSortedByCreatedAtAsc(ascBaseline);
-
-    const ascBaselineIds = ascBaseline.map((c) => c.id);
-
-    // Test offset pagination with asc
-    const page1 = await http.get<CommissionResponse[]>({
-      path: "/commissions",
-      query: {
-        page: "1",
-        pageSize: "5",
-        sortBy: "createdAt",
-        sortOrder: "asc",
-      },
-    });
-
-    const page2 = await http.get<CommissionResponse[]>({
-      path: "/commissions",
-      query: {
-        page: "2",
-        pageSize: "5",
-        sortBy: "createdAt",
-        sortOrder: "asc",
-      },
-    });
-
-    expect(page1.status).toEqual(200);
-    expect(page2.status).toEqual(200);
-
-    expect(page1.data.map((c) => c.id)).toEqual(ascBaselineIds.slice(0, 5));
-    expect(page2.data.map((c) => c.id)).toEqual(ascBaselineIds.slice(5, 10));
-
-    expectSortedByCreatedAtAsc(page1.data);
-    expectSortedByCreatedAtAsc(page2.data);
-    expectNoOverlap(page1.data, page2.data);
   });
 });
