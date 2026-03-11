@@ -1,4 +1,3 @@
-import { MAX_OFFSET_PAGE } from "@/lib/api/pagination";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { Link } from "@dub/prisma/client";
 import { beforeAll, describe, expect, onTestFinished, test } from "vitest";
@@ -146,14 +145,15 @@ describe.concurrent("/links/** - pagination", async () => {
   test("Rejects page > MAX_OFFSET_PAGE", async () => {
     const { status, data: error } = await http.get({
       path: "/links",
-      query: { page: (MAX_OFFSET_PAGE + 1).toString(), pageSize: "10" },
+      query: { page: "1001", pageSize: "10" },
     });
 
     expect(status).toEqual(422);
     expect(error).toStrictEqual({
       error: {
         code: "unprocessable_entity",
-        message: `Page is too big (cannot be more than ${MAX_OFFSET_PAGE}), recommend using cursor-based pagination instead.`,
+        message:
+          "Page is too big (cannot be more than 1000), recommend using cursor-based pagination instead.",
         doc_url:
           "https://dub.co/docs/api-reference/errors#unprocessable-entity",
       },
