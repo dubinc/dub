@@ -50,9 +50,9 @@ describe("partnerMeetsCondition", () => {
     };
 
     it("returns true when domain matches exactly", () => {
-      expect(
-        partnerMeetsCondition(condition, { email: "jane@acme.com" }),
-      ).toBe(true);
+      expect(partnerMeetsCondition(condition, { email: "jane@acme.com" })).toBe(
+        true,
+      );
     });
 
     it("returns false for a subdomain — exact match is strict", () => {
@@ -75,9 +75,9 @@ describe("partnerMeetsCondition", () => {
         operator: "is" as const,
         value: ["@*.edu"],
       };
-      expect(
-        partnerMeetsCondition(condition, { email: "jane@mit.edu" }),
-      ).toBe(true);
+      expect(partnerMeetsCondition(condition, { email: "jane@mit.edu" })).toBe(
+        true,
+      );
       expect(
         partnerMeetsCondition(condition, { email: "jane@mit.edu.uk" }),
       ).toBe(false);
@@ -92,9 +92,9 @@ describe("partnerMeetsCondition", () => {
       expect(
         partnerMeetsCondition(condition, { email: "jane@mail.acme.com" }),
       ).toBe(true);
-      expect(
-        partnerMeetsCondition(condition, { email: "jane@acme.com" }),
-      ).toBe(false);
+      expect(partnerMeetsCondition(condition, { email: "jane@acme.com" })).toBe(
+        false,
+      );
     });
   });
 
@@ -109,9 +109,9 @@ describe("partnerMeetsCondition", () => {
       expect(
         partnerMeetsCondition(condition, { email: "jane@gmail.com" }),
       ).toBe(false);
-      expect(
-        partnerMeetsCondition(condition, { email: "jane@acme.com" }),
-      ).toBe(true);
+      expect(partnerMeetsCondition(condition, { email: "jane@acme.com" })).toBe(
+        true,
+      );
     });
   });
 
@@ -127,9 +127,9 @@ describe("partnerMeetsCondition", () => {
     });
 
     it("returns false when email has no @ sign", () => {
-      expect(
-        partnerMeetsCondition(condition, { email: "notanemail" }),
-      ).toBe(false);
+      expect(partnerMeetsCondition(condition, { email: "notanemail" })).toBe(
+        false,
+      );
     });
   });
 
@@ -140,9 +140,9 @@ describe("partnerMeetsCondition", () => {
         operator: "is" as const,
         value: ["@acme.com"],
       };
-      expect(
-        partnerMeetsCondition(condition, { email: "JANE@ACME.COM" }),
-      ).toBe(true);
+      expect(partnerMeetsCondition(condition, { email: "JANE@ACME.COM" })).toBe(
+        true,
+      );
     });
   });
 });
@@ -179,7 +179,10 @@ describe("partnerMeetsAllRequirements", () => {
 
   it("returns true when requirements array is empty", () => {
     expect(
-      partnerMeetsAllRequirements([], { country: "US", email: "jane@acme.com" }),
+      partnerMeetsAllRequirements([], {
+        country: "US",
+        email: "jane@acme.com",
+      }),
     ).toBe(true);
   });
 });

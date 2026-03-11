@@ -3,8 +3,8 @@ import { updateApplicationSettingsAction } from "@/lib/actions/partners/update-a
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { ApplicationRequirementsDB } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   EligibilityCondition,
   EligibilityRequirements,
