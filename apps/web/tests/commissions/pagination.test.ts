@@ -57,27 +57,45 @@ describe.concurrent("/commissions/** - pagination", async () => {
   test("Cursor forward (startingAfter)", async () => {
     const firstPage = baseline.slice(0, 5);
     const lastId = firstPage[4].id;
+    const expectedIds = baseline
+      .filter((b) => b.id < lastId)
+      .sort((a, b) => b.id.localeCompare(a.id))
+      .slice(0, 5)
+      .map((b) => b.id);
 
     const { status, data } = await http.get<CommissionResponse[]>({
       path: "/commissions",
-      query: { pageSize: "5", startingAfter: lastId },
+      query: {
+        ...commonQuery,
+        pageSize: "5",
+        startingAfter: lastId,
+      },
     });
 
     expect(status).toEqual(200);
-    expect(data).toHaveLength(5);
+    expect(data.map((d) => d.id)).toEqual(expectedIds);
     expectSortedById(data, "desc");
   });
 
   test("Cursor backward (endingBefore)", async () => {
     const beforeId = baseline[5].id;
+    const expectedIds = baseline
+      .filter((b) => b.id > beforeId)
+      .sort((a, b) => b.id.localeCompare(a.id))
+      .slice(0, 5)
+      .map((b) => b.id);
 
     const { status, data } = await http.get<CommissionResponse[]>({
       path: "/commissions",
-      query: { pageSize: "5", endingBefore: beforeId },
+      query: {
+        ...commonQuery,
+        pageSize: "5",
+        endingBefore: beforeId,
+      },
     });
 
     expect(status).toEqual(200);
-    expect(data).toHaveLength(5);
+    expect(data.map((d) => d.id)).toEqual(expectedIds);
     expectSortedById(data, "desc");
   });
 

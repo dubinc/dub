@@ -41,7 +41,6 @@ export const getPaginationQuerySchema = ({
     .number({ error: "Page must be a number." })
     .positive({ message: "Page must be greater than 0." })
     .optional()
-    .default(1)
     .describe(
       deprecated
         ? "DEPRECATED. Use `startingAfter` instead."

@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { Prisma } from "@dub/prisma/client";
 
 interface Filters {
-  page: number;
+  page?: number;
   pageSize: number;
   startingAfter?: string | null;
   endingBefore?: string | null;
@@ -22,7 +22,7 @@ interface PaginationQuery {
 const MAX_PAGE_VALUE = 100;
 
 export function buildPaginationQuery(filters: Filters): PaginationQuery {
-  const { page, pageSize, startingAfter, endingBefore, sortBy, sortOrder } =
+  let { page, pageSize, startingAfter, endingBefore, sortBy, sortOrder } =
     filters;
 
   const useCursorPagination = !!startingAfter || !!endingBefore;
@@ -44,7 +44,7 @@ export function buildPaginationQuery(filters: Filters): PaginationQuery {
     });
   }
 
-  if (useCursorPagination && page > 1) {
+  if (useCursorPagination && page) {
     throw new DubApiError({
       code: "unprocessable_entity",
       message:
@@ -66,6 +66,8 @@ export function buildPaginationQuery(filters: Filters): PaginationQuery {
       skip: 1,
     };
   }
+
+  page = page ?? 1;
 
   // Offset pagination validations
   if (page > MAX_PAGE_VALUE) {

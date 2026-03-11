@@ -18,7 +18,7 @@ export const GET = withWorkspace(
       type,
       partnerId,
       groupId,
-      page,
+      page = 1,
       pageSize,
       sortBy,
       sortOrder,

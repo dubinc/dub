@@ -22,8 +22,15 @@ export const GET = withWorkspace(
       },
     });
 
-    const { status, groupId, partnerId, sortOrder, sortBy, page, pageSize } =
-      getBountySubmissionsQuerySchema.parse(searchParams);
+    const {
+      status,
+      groupId,
+      partnerId,
+      sortOrder,
+      sortBy,
+      page = 1,
+      pageSize,
+    } = getBountySubmissionsQuerySchema.parse(searchParams);
 
     const submissions = await prisma.bountySubmission.findMany({
       where: {
