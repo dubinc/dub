@@ -1,3 +1,4 @@
+import { getLinkViaEdge } from "@/lib/planetscale";
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import {
   formatRedisLink,
@@ -44,10 +45,7 @@ class LinkCache {
     return await pipeline.exec();
   }
 
-  async set(
-    link: ExpandedLink,
-    { setVercelCache }: { setVercelCache?: boolean } = {},
-  ) {
+  async set(link: ExpandedLink) {
     const redisLink = formatRedisLink(link);
     const cacheKey = this._createKey({ domain: link.domain, key: link.key });
 
@@ -58,9 +56,7 @@ class LinkCache {
       redisGlobal.set(cacheKey, redisLink, {
         ex: REDIS_CACHE_EXPIRATION,
       }),
-      setVercelCache
-        ? vercelCache.set(cacheKey, redisLink, { ttl: VERCEL_CACHE_EXPIRATION })
-        : this._invalidateVercelCache(cacheKey),
+      this._invalidateVercelCache(cacheKey),
     ]);
   }
 
@@ -106,7 +102,25 @@ class LinkCache {
       }
 
       console.log(`[Vercel Cache MISS] ${cacheKey} - Falling back to MySQL...`);
-      return null;
+
+      const linkData = await getLinkViaEdge({
+        domain,
+        key,
+      });
+      // no link found, throw a 404 error
+      if (!linkData) {
+        throw new Error("Link not found.");
+      }
+      // else, format the link and cache it both in LRU cache and Vercel cache
+      cachedLink = formatRedisLink(linkData as any);
+      console.log(`Setting both LRU cache and Vercel cache for ${cacheKey}`);
+      linkLRUCache.set(cacheKey, cachedLink);
+      waitUntil(
+        vercelCache.set(cacheKey, cachedLink, {
+          ttl: VERCEL_CACHE_EXPIRATION,
+        }),
+      );
+      return cachedLink;
     }
   }
 
