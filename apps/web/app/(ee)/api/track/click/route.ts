@@ -14,7 +14,7 @@ import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis, redisGlobal } from "@/lib/upstash";
+import { formatRedisLink, redis, redisGlobalWithTimeout } from "@/lib/upstash";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { isValidUrl, nanoid } from "@dub/utils";
@@ -61,9 +61,9 @@ export const POST = withAxiom(async (req) => {
     const identityHash = await getIdentityHash(req);
 
     const [cachedClickId, mgetResults] = await Promise.all([
-      redisGlobal.get<string>(
-        recordClickCache._createKey({ domain, key, identityHash }),
-      ),
+      redisGlobalWithTimeout
+        .get<string>(recordClickCache._createKey({ domain, key, identityHash }))
+        .catch(() => null),
 
       redis.mget<[RedisLinkProps, string[]]>([
         linkCache._createKey({ domain, key }),
