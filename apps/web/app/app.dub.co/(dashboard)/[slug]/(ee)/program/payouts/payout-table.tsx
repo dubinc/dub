@@ -27,10 +27,9 @@ import { MoneyBill2 } from "@dub/ui/icons";
 import { cn, currencyFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
-import { PayoutDetailsSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-details-sheet";
 import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
-import { useParams } from "next/navigation";
-import { memo, useEffect, useMemo, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { memo, useMemo } from "react";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
 
@@ -50,7 +49,9 @@ const PayoutTableInner = memo(
     setSearch,
     setSelectedFilter,
   }: ReturnType<typeof usePayoutFilters>) => {
-    const { id: workspaceId, plan, defaultProgramId } = useWorkspace();
+    const { id: workspaceId, slug: workspaceSlug, plan, defaultProgramId } =
+      useWorkspace();
+    const router = useRouter();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
     const sortBy = searchParams.get("sortBy") || "amount";
@@ -76,23 +77,6 @@ const PayoutTableInner = memo(
         keepPreviousData: true,
       },
     );
-
-    const [detailsSheetState, setDetailsSheetState] = useState<
-      | { open: false; payout: PayoutResponse | null }
-      | { open: true; payout: PayoutResponse }
-    >({ open: false, payout: null });
-
-    useEffect(() => {
-      const payoutId = searchParams.get("payoutId");
-      if (payoutId) {
-        const payout = payouts?.find((p) => p.id === payoutId);
-        if (payout) {
-          setDetailsSheetState({ open: true, payout });
-        }
-      } else {
-        setDetailsSheetState({ open: false, payout: null });
-      }
-    }, [searchParams, payouts]);
 
     const { pagination, setPagination } = usePagination();
 
@@ -204,14 +188,22 @@ const PayoutTableInner = memo(
           del: "page",
           scroll: false,
         }),
-      onRowClick: (row) => {
-        queryParams({
-          set: {
-            payoutId: row.original.id,
-          },
-          scroll: false,
-        });
+      onRowClick: (row, e) => {
+        const url = `/${workspaceSlug}/program/payouts/${row.original.id}`;
+        if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+        else router.push(url);
       },
+      onRowAuxClick: (row) =>
+        window.open(
+          `/${workspaceSlug}/program/payouts/${row.original.id}`,
+          "_blank",
+        ),
+      rowProps: (row) => ({
+        onPointerEnter: () =>
+          router.prefetch(
+            `/${workspaceSlug}/program/payouts/${row.original.id}`,
+          ),
+      }),
       columnPinning: { right: ["menu"] },
       thClassName: "border-l-0",
       tdClassName: "border-l-0",
@@ -221,15 +213,6 @@ const PayoutTableInner = memo(
 
     return (
       <>
-        {detailsSheetState.payout && (
-          <PayoutDetailsSheet
-            isOpen={detailsSheetState.open}
-            setIsOpen={(open) =>
-              setDetailsSheetState((s) => ({ ...s, open }) as any)
-            }
-            payout={detailsSheetState.payout}
-          />
-        )}
         <div className="flex flex-col gap-3">
           <div>
             <Filter.Select
