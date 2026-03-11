@@ -11,7 +11,7 @@ interface Response {
   nextAction: "skip" | "executeNow";
 }
 
-// For stablecoin payouts, schedule a cron job at `available_on + 10 minutes`
+// For stablecoin payouts, schedule a cron job at `available_on + 15 minutes`
 // because Stablecoin financial accounts do not support `source_transaction`,
 // so the payout must be triggered after funds become available.
 export async function scheduleDelayedStablecoinPayouts(invoice: {
@@ -74,6 +74,13 @@ export async function scheduleDelayedStablecoinPayouts(invoice: {
 
     console.log(
       `Balance transaction will be available at ${scheduledAt.toISOString()}. Scheduling Stablecoin payouts...`,
+      {
+        qstashResponse,
+      },
+    );
+  } else {
+    console.error(
+      `Failed to schedule delayed stablecoin payout for invoice ${invoice.id}`,
       {
         qstashResponse,
       },
