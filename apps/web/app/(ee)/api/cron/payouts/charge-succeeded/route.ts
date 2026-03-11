@@ -87,10 +87,6 @@ export async function POST(req: Request) {
     if (stablecoinFundingAmount > 0) {
       const { nextAction } = await scheduleDelayedStablecoinPayouts(invoice);
 
-      if (nextAction === "skip") {
-        skipStablecoinPayouts = true;
-      }
-
       if (nextAction === "executeNow") {
         try {
           await fundFinancialAccount({
@@ -103,6 +99,10 @@ export async function POST(req: Request) {
             type: "errors",
           });
         }
+      }
+
+      if (nextAction === "skip") {
+        skipStablecoinPayouts = true;
       }
     }
 

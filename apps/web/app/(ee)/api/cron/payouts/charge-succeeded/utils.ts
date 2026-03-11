@@ -4,7 +4,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 
 const stripeChargeMetadataSchema = z.object({
-  balance_transaction: z.string(),
+  id: z.string(),
 });
 
 interface Response {
@@ -22,8 +22,23 @@ export async function scheduleDelayedStablecoinPayouts(invoice: {
     invoice.stripeChargeMetadata,
   );
 
-  const balanceTransaction = await stripe.balanceTransactions.retrieve(
-    stripeChargeMetadata.balance_transaction,
+  const balanceTransactions = await stripe.balanceTransactions.list({
+    source: stripeChargeMetadata.id,
+  });
+
+  if (balanceTransactions.data.length === 0) {
+    return {
+      nextAction: "skip",
+    };
+  }
+
+  const balanceTransaction = balanceTransactions.data[0];
+
+  console.log(
+    `Found balance transaction for charge invoice ${invoice.id}: ${balanceTransaction.id}`,
+    {
+      available_on: balanceTransaction.available_on,
+    },
   );
 
   const availableOnMs = balanceTransaction.available_on * 1000;
@@ -35,7 +50,7 @@ export async function scheduleDelayedStablecoinPayouts(invoice: {
     };
   }
 
-  const scheduleTimeMs = availableOnMs + 10 * 60 * 1000;
+  const scheduleTimeMs = availableOnMs + 15 * 60 * 1000; // 15 minutes
 
   const delaySeconds = Math.max(
     0,
@@ -59,6 +74,9 @@ export async function scheduleDelayedStablecoinPayouts(invoice: {
 
     console.log(
       `Balance transaction will be available at ${scheduledAt.toISOString()}. Scheduling Stablecoin payouts...`,
+      {
+        qstashResponse,
+      },
     );
   }
 
