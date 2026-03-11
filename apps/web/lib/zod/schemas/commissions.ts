@@ -136,6 +136,8 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   pageSize: true,
   sortOrder: true,
   sortBy: true,
+  startingAfter: true,
+  endingBefore: true,
 });
 
 export const createCommissionSchema = z.object({

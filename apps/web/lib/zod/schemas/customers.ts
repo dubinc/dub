@@ -93,6 +93,8 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
     pageSize: true,
     sortBy: true,
     sortOrder: true,
+    startingAfter: true,
+    endingBefore: true,
   })
   .extend({ groupBy: z.enum(["country", "linkId", "partnerId"]).optional() });
 
