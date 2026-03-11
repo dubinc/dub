@@ -9,7 +9,7 @@ import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis, redisGlobal } from "@/lib/upstash";
+import { formatRedisLink, redis, redisGlobalWithTimeout } from "@/lib/upstash";
 import {
   trackOpenRequestSchema,
   trackOpenResponseSchema,
@@ -71,10 +71,12 @@ export const POST = withAxiom(async (req) => {
     const key = deepLink.pathname.slice(1) || "_root"; // Remove leading slash, default to _root if empty
 
     let [cachedClickId, cachedLink] = await Promise.all([
-      redisGlobal.get<string>(
-        recordClickCache._createKey({ domain, key, identityHash }),
-      ),
-      redis.get<RedisLinkProps>(linkCache._createKey({ domain, key })),
+      redisGlobalWithTimeout
+        .get<string>(recordClickCache._createKey({ domain, key, identityHash }))
+        .catch(() => null),
+      redisGlobalWithTimeout
+        .get<RedisLinkProps>(linkCache._createKey({ domain, key }))
+        .catch(() => null),
     ]);
 
     // assign a new clickId if there's no cached clickId

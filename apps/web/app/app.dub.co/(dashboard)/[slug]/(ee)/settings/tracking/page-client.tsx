@@ -141,7 +141,7 @@ const SaleEventsStep = ({
   );
 };
 
-export default function WorkspaceAnalyticsPageClient() {
+export function WorkspaceTrackingSettingsPageClient() {
   const { searchParams, queryParams } = useRouterStuff();
   const expandedStep = (searchParams.get("step") as StepType) || "connect";
 

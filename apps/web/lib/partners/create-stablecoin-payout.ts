@@ -148,6 +148,9 @@ export const createStablecoinPayout = async ({
   totalTransferableAmount -=
     totalTransferableAmount * STABLECOIN_PAYOUT_FEE_RATE + withdrawalFee;
 
+  // Round down to the nearest integer
+  totalTransferableAmount = Math.floor(totalTransferableAmount);
+
   const stripeRecipientAccount = await getStripeRecipientAccount(
     partner.stripeRecipientId,
   );

@@ -508,7 +508,7 @@ export function CustomersTable({
               : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
           }
           {...(!isFiltered && {
-            learnMoreHref: `/${workspaceSlug}/settings/analytics`,
+            learnMoreHref: `/${workspaceSlug}/settings/tracking`,
             learnMoreTarget: "_self",
             learnMoreText: "Read the guides",
           })}

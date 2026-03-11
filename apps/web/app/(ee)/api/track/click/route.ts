@@ -14,7 +14,7 @@ import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis, redisGlobal } from "@/lib/upstash";
+import { formatRedisLink, redis, redisGlobalWithTimeout } from "@/lib/upstash";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { isValidUrl, nanoid } from "@dub/utils";
@@ -60,18 +60,17 @@ export const POST = withAxiom(async (req) => {
 
     const identityHash = await getIdentityHash(req);
 
-    const [cachedClickId, mgetResults] = await Promise.all([
-      redisGlobal.get<string>(
-        recordClickCache._createKey({ domain, key, identityHash }),
-      ),
+    let [redisGlobalResults, cachedAllowedHostnames] = await Promise.all([
+      redisGlobalWithTimeout
+        .mget<
+          [string | null, RedisLinkProps | null]
+        >([recordClickCache._createKey({ domain, key, identityHash }), linkCache._createKey({ domain, key })])
+        .catch(() => [null, null] as [string | null, RedisLinkProps | null]),
 
-      redis.mget<[RedisLinkProps, string[]]>([
-        linkCache._createKey({ domain, key }),
-        allowedHostnamesCache._createKey({ domain }),
-      ]),
+      redis.get<string[]>(allowedHostnamesCache._createKey({ domain })),
     ]);
 
-    let [cachedLink, cachedAllowedHostnames] = mgetResults;
+    let [cachedClickId, cachedLink] = redisGlobalResults;
 
     // assign a new clickId if there's no cached clickId
     // else, reuse the cached clickId
@@ -135,7 +134,7 @@ export const POST = withAxiom(async (req) => {
       if (!allowRequest) {
         throw new DubApiError({
           code: "forbidden",
-          message: `Request origin '${getHostnameFromRequest(req)}' is not included in the allowed hostnames for this workspace. Update your allowed hostnames here: https://app.dub.co/settings/analytics`,
+          message: `Request origin '${getHostnameFromRequest(req)}' is not included in the allowed hostnames for this workspace. Update your allowed hostnames here: https://app.dub.co/settings/tracking`,
         });
       }
 
