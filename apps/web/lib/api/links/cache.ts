@@ -1,9 +1,11 @@
+import { getLinkViaEdge } from "@/lib/planetscale";
 import { LinkProps, RedisLinkProps } from "@/lib/types";
 import {
   formatRedisLink,
   redisGlobal,
   redisGlobalWithTimeout,
 } from "@/lib/upstash";
+import { getCache, rewrite, waitUntil } from "@vercel/functions";
 import { LRUCache } from "lru-cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
@@ -16,11 +18,15 @@ const linkLRUCache = new LRUCache<string, RedisLinkProps>({
   max: 10000, // max 10,000 entries
   ttl: 5000, // 5 seconds
 });
-
 /*
- * Link cache expiration is set to 24 hours by default for all links.
+ * When traffic spikes, new Fluid instances are spun up.
+ * Since LRUCache is not shared between Fluid instances,
+ * we fallback to Vercel cache if both LRUCache/Redis are not available
  */
-const CACHE_EXPIRATION = 60 * 60 * 24;
+export const vercelCache = getCache();
+
+const VERCEL_CACHE_EXPIRATION = 60; // 1 minute
+const REDIS_CACHE_EXPIRATION = 60 * 60 * 24;
 
 class LinkCache {
   async mset(links: ExpandedLink[]) {
@@ -33,7 +39,7 @@ class LinkCache {
     links.forEach((link) => {
       const redisLink = formatRedisLink(link);
       const cacheKey = this._createKey({ domain: link.domain, key: link.key });
-      pipeline.set(cacheKey, redisLink, { ex: CACHE_EXPIRATION });
+      pipeline.set(cacheKey, redisLink, { ex: REDIS_CACHE_EXPIRATION });
     });
 
     return await pipeline.exec();
@@ -45,8 +51,13 @@ class LinkCache {
 
     // Update LRU cache immediately to prevent stale reads
     linkLRUCache.set(cacheKey, redisLink);
+    waitUntil(
+      vercelCache.set(cacheKey, redisLink, { ttl: VERCEL_CACHE_EXPIRATION }),
+    );
 
-    return await redisGlobal.set(cacheKey, redisLink, { ex: CACHE_EXPIRATION });
+    return await redisGlobal.set(cacheKey, redisLink, {
+      ex: REDIS_CACHE_EXPIRATION,
+    });
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
@@ -82,7 +93,27 @@ class LinkCache {
       }
     } catch (error) {
       console.error(`[Redis Cache Error] ${cacheKey} - ${error}`);
-      throw new Error(`[Redis Cache Error] ${cacheKey} - ${error}`);
+
+      cachedLink = (await vercelCache.get(cacheKey)) as RedisLinkProps | null;
+      if (cachedLink) {
+        console.log(`[Vercel Cache HIT] ${cacheKey}`);
+        return cachedLink;
+      }
+
+      console.log(`[Vercel Cache MISS] ${cacheKey} - Falling back to MySQL...`);
+      const linkData = await getLinkViaEdge({
+        domain,
+        key,
+      });
+      // no link found, rewrite to not found page
+      if (!linkData) {
+        rewrite(`/${domain}/not-found`);
+      }
+      cachedLink = formatRedisLink(linkData as any);
+      await vercelCache.set(cacheKey, cachedLink, {
+        ttl: VERCEL_CACHE_EXPIRATION,
+      });
+      return cachedLink;
     }
   }
 
