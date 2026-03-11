@@ -113,29 +113,40 @@ export async function completeProgramApplications(userEmail: string) {
     }
 
     if (applicationsToAutoReject.length) {
-      try {
-        const results = await Promise.allSettled(
-          applicationsToAutoReject.map((application) =>
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
-              delay: 30 * 60, // 30 minutes
-              body: {
-                programId: application.programId,
-                partnerId: application.partnerId,
-              },
-            }),
-          ),
-        );
+      const results = await Promise.allSettled(
+        applicationsToAutoReject.map((application) =>
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
+            delay: 30 * 60, // 30 minutes
+            body: {
+              programId: application.programId,
+              partnerId: application.partnerId,
+            },
+          }),
+        ),
+      );
 
-        console.log("Auto-reject results", results);
-      } catch (error) {
-        console.error("Failed to auto-reject applications", error);
+      const failedResults = results.filter((r) => r.status === "rejected");
+      if (failedResults.length > 0) {
+        console.error(
+          `Failed to schedule ${failedResults.length} auto-reject job(s). Aborting enrollment creation.`,
+          failedResults,
+        );
+        return;
       }
     }
 
+    const autoRejectProgramIds = new Set(
+      applicationsToAutoReject.map((a) => a.programId),
+    );
+
+    const eligibleApplications = filteredProgramApplications.filter(
+      (app) => !autoRejectProgramIds.has(app.programId),
+    );
+
     // Program enrollments to create
     const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
-      filteredProgramApplications.map((programApplication) => ({
+      eligibleApplications.map((programApplication) => ({
         id: createId({ prefix: "pge_" }),
         programId: programApplication.programId,
         partnerId: user.partners[0].partnerId,
@@ -156,7 +167,7 @@ export async function completeProgramApplications(userEmail: string) {
     const workspaces = await prisma.project.findMany({
       where: {
         defaultProgramId: {
-          in: filteredProgramApplications.map((p) => p.programId),
+          in: eligibleApplications.map((p) => p.programId),
         },
       },
       select: {
@@ -171,7 +182,7 @@ export async function completeProgramApplications(userEmail: string) {
       workspaces.map((ws) => [ws.defaultProgramId, ws]),
     );
 
-    for (const programApplication of filteredProgramApplications) {
+    for (const programApplication of eligibleApplications) {
       const application = programApplication;
       const program = programApplication.program;
       const group = programApplication.partnerGroup;

@@ -73,9 +73,10 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  await prisma.programEnrollment.update({
+  const { count } = await prisma.programEnrollment.updateMany({
     where: {
       id: programEnrollment.id,
+      status: ProgramEnrollmentStatus.pending,
     },
     data: {
       status: ProgramEnrollmentStatus.rejected,
@@ -85,6 +86,12 @@ export const POST = withCron(async ({ rawBody }) => {
       discountId: null,
     },
   });
+
+  if (count === 0) {
+    return logAndRespond(
+      `Partner ${partnerId} is no longer pending in program ${programId}. Skipping auto-reject.`,
+    );
+  }
 
   await resolveFraudGroups({
     where: {
