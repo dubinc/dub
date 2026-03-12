@@ -108,18 +108,15 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
   const isCommissions = attribute === "totalCommissions";
   const startDate = useMemo(
-    () =>
-      bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined,
-    [bounty.performanceScope, bounty.startsAt],
+    () => new Date(bounty.startsAt),
+    [bounty.startsAt],
   );
   const endDate = useMemo(
     () =>
-      bounty.performanceScope === "new"
-        ? bounty.endsAt
-          ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
-          : new Date()
-        : undefined,
-    [bounty.performanceScope, bounty.endsAt],
+      bounty.endsAt
+        ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
+        : new Date(),
+    [bounty.endsAt],
   );
 
   const { data: analyticsTimeseries, error: analyticsError } =
@@ -236,7 +233,7 @@ const PAGE_SIZE = 5;
 function usePaginationState() {
   const [page, setPage] = useState(1);
   const pagination = useMemo(
-    () => ({ pageIndex: page - 1, pageSize: PAGE_SIZE }),
+    () => ({ pageIndex: page, pageSize: PAGE_SIZE }),
     [page],
   );
 
@@ -249,7 +246,7 @@ function usePaginationState() {
         }),
   ) => {
     const next = typeof updater === "function" ? updater(pagination) : updater;
-    setPage(next.pageIndex + 1);
+    setPage(next.pageIndex);
   };
 
   return { page, pagination, onPaginationChange };
@@ -324,18 +321,15 @@ function BountyPerformanceEventsTable({
     : undefined;
 
   const startDate = useMemo(
-    () =>
-      bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined,
-    [bounty.performanceScope, bounty.startsAt],
+    () => new Date(bounty.startsAt),
+    [bounty.startsAt],
   );
   const endDate = useMemo(
     () =>
-      bounty.performanceScope === "new"
-        ? bounty.endsAt
-          ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
-          : new Date()
-        : undefined,
-    [bounty.performanceScope, bounty.endsAt],
+      bounty.endsAt
+        ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
+        : new Date(),
+    [bounty.endsAt],
   );
 
   const { page, pagination, onPaginationChange } = usePaginationState();
@@ -528,18 +522,15 @@ function BountyPerformanceCommissionsTable({
   const { programSlug } = useParams<{ programSlug: string }>();
 
   const startDate = useMemo(
-    () =>
-      bounty.performanceScope === "new" ? new Date(bounty.startsAt) : undefined,
-    [bounty.performanceScope, bounty.startsAt],
+    () => new Date(bounty.startsAt),
+    [bounty.startsAt],
   );
   const endDate = useMemo(
     () =>
-      bounty.performanceScope === "new"
-        ? bounty.endsAt
-          ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
-          : new Date()
-        : undefined,
-    [bounty.performanceScope, bounty.endsAt],
+      bounty.endsAt
+        ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
+        : new Date(),
+    [bounty.endsAt],
   );
 
   const { page, pagination, onPaginationChange } = usePaginationState();
