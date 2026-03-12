@@ -19,8 +19,8 @@ export const randomCustomer = ({
   };
 };
 
-export const randomTagName = () => {
-  return `e2e-${randomId()}`;
+export const randomTagName = (length?: number) => {
+  return `e2e-${randomId(length)}`;
 };
 
 export const randomEmail = ({

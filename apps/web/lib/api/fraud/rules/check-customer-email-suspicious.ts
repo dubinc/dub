@@ -1,6 +1,7 @@
 import { FraudEventContext } from "@/lib/types";
 import { redis } from "@/lib/upstash/redis";
 import { defineFraudRule } from "../define-fraud-rule";
+import { extractEmailDomain } from "../utils";
 
 export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customerEmailSuspiciousDomain",
@@ -12,15 +13,12 @@ export const checkCustomerEmailSuspicious = defineFraudRule({
       };
     }
 
-    // Extract domain from email
-    const emailParts = customer.email.split("@");
-    if (emailParts.length !== 2) {
+    const domain = extractEmailDomain(customer.email);
+    if (!domain) {
       return {
         triggered: false,
       };
     }
-
-    const domain = emailParts[1].toLowerCase().trim();
 
     try {
       const isDisposable = await redis.sismember(
