@@ -89,11 +89,8 @@ export async function scheduleDelayedStablecoinPayouts(invoice: {
       },
     );
   } else {
-    console.error(
+    throw new Error(
       `Failed to schedule delayed stablecoin payout for invoice ${invoice.id}`,
-      {
-        qstashResponse,
-      },
     );
   }
 
