@@ -10,6 +10,8 @@ on:
 
 jobs:
   e2e:
+    permissions:
+      contents: read
     timeout-minutes: 20
     runs-on: ubuntu-latest
 
