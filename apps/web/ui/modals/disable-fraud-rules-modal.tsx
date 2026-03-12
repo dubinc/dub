@@ -16,6 +16,9 @@ export const CONFIGURABLE_RULE_TYPES = [
   "paidTrafficDetected",
   "customerEmailMatch",
   "customerEmailSuspiciousDomain",
+  "partnerCrossProgramBan",
+  "partnerDuplicatePayoutMethod",
+  "partnerFraudReport",
 ] as const;
 
 export type ConfigurableRuleType = (typeof CONFIGURABLE_RULE_TYPES)[number];
@@ -39,6 +42,18 @@ const RULE_DETAILS: Record<
   customerEmailSuspiciousDomain: {
     title: "Suspicious customer email domain",
     description: "Flag customers using disposable or temporary email domains",
+  },
+  partnerCrossProgramBan: {
+    title: "Cross-program ban",
+    description: "Flag partners banned from other Dub programs",
+  },
+  partnerDuplicatePayoutMethod: {
+    title: "Duplicate payout method",
+    description: "Flag partners using a payout method linked to another account",
+  },
+  partnerFraudReport: {
+    title: "Fraud report",
+    description: "Flag partners rejected from other programs for suspected fraud",
   },
 };
 
@@ -203,30 +218,20 @@ export function getRulesBeingDisabled({
   nextFraudRules: UpdateFraudRuleSettings;
 }): ConfigurableRuleType[] {
   // Build "previous" map from API
-  const previous: Record<ConfigurableRuleType, boolean> = {
-    referralSourceBanned:
-      previousFraudRules?.find((r) => r.type === "referralSourceBanned")
-        ?.enabled ?? false,
-    paidTrafficDetected:
-      previousFraudRules?.find((r) => r.type === "paidTrafficDetected")
-        ?.enabled ?? false,
-    customerEmailMatch:
-      previousFraudRules?.find((r) => r.type === "customerEmailMatch")
-        ?.enabled ?? false,
-    customerEmailSuspiciousDomain:
-      previousFraudRules?.find(
-        (r) => r.type === "customerEmailSuspiciousDomain",
-      )?.enabled ?? false,
-  };
+  const previous = Object.fromEntries(
+    CONFIGURABLE_RULE_TYPES.map((type) => [
+      type,
+      previousFraudRules?.find((r) => r.type === type)?.enabled ?? false,
+    ]),
+  ) as Record<ConfigurableRuleType, boolean>;
 
   // Build "next" map from form
-  const next: Record<ConfigurableRuleType, boolean> = {
-    referralSourceBanned: nextFraudRules.referralSourceBanned?.enabled ?? false,
-    paidTrafficDetected: nextFraudRules.paidTrafficDetected?.enabled ?? false,
-    customerEmailMatch: nextFraudRules.customerEmailMatch?.enabled ?? false,
-    customerEmailSuspiciousDomain:
-      nextFraudRules.customerEmailSuspiciousDomain?.enabled ?? false,
-  };
+  const next = Object.fromEntries(
+    CONFIGURABLE_RULE_TYPES.map((type) => [
+      type,
+      nextFraudRules[type]?.enabled ?? false,
+    ]),
+  ) as Record<ConfigurableRuleType, boolean>;
 
   // Detect rule disable transitions
   return CONFIGURABLE_RULE_TYPES.filter(

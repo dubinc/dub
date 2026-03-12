@@ -22,6 +22,9 @@ import useSWR from "swr";
 import { FraudCustomerEmailMatchSettings } from "./fraud-customer-email-match-settings";
 import { FraudCustomerEmailSuspiciousDomainSettings } from "./fraud-customer-email-suspicious-domain-settings";
 import { FraudPaidTrafficSettings } from "./fraud-paid-traffic-settings";
+import { FraudPartnerCrossProgramBanSettings } from "./fraud-partner-cross-program-ban-settings";
+import { FraudPartnerDuplicatePayoutMethodSettings } from "./fraud-partner-duplicate-payout-method-settings";
+import { FraudPartnerFraudReportSettings } from "./fraud-partner-fraud-report-settings";
 import { FraudReferralSourceSettings } from "./fraud-referral-source-settings";
 
 interface ProgramFraudSettingsSheetProps {
@@ -58,6 +61,15 @@ function ProgramFraudSettingsSheetContent({
       customerEmailSuspiciousDomain: {
         enabled: true,
       },
+      partnerCrossProgramBan: {
+        enabled: true,
+      },
+      partnerDuplicatePayoutMethod: {
+        enabled: true,
+      },
+      partnerFraudReport: {
+        enabled: true,
+      },
     },
   });
 
@@ -85,6 +97,18 @@ function ProgramFraudSettingsSheetContent({
       (rule) => rule.type === "customerEmailSuspiciousDomain",
     );
 
+    const partnerCrossProgramBanRule = fraudRules.find(
+      (rule) => rule.type === "partnerCrossProgramBan",
+    );
+
+    const partnerDuplicatePayoutMethodRule = fraudRules.find(
+      (rule) => rule.type === "partnerDuplicatePayoutMethod",
+    );
+
+    const partnerFraudReportRule = fraudRules.find(
+      (rule) => rule.type === "partnerFraudReport",
+    );
+
     const paidTrafficConfig = (paidTrafficDetectedRule?.config ?? {}) as {
       platforms?: PaidTrafficPlatform[];
       google?: { whitelistedCampaignIds?: string[] };
@@ -110,6 +134,15 @@ function ProgramFraudSettingsSheetContent({
       },
       customerEmailSuspiciousDomain: {
         enabled: customerEmailSuspiciousDomainRule?.enabled ?? true,
+      },
+      partnerCrossProgramBan: {
+        enabled: partnerCrossProgramBanRule?.enabled ?? true,
+      },
+      partnerDuplicatePayoutMethod: {
+        enabled: partnerDuplicatePayoutMethodRule?.enabled ?? true,
+      },
+      partnerFraudReport: {
+        enabled: partnerFraudReportRule?.enabled ?? true,
       },
     });
   }, [fraudRules, form]);
@@ -191,6 +224,13 @@ function ProgramFraudSettingsSheetContent({
               <FraudCustomerEmailSuspiciousDomainSettings
                 isConfigLoading={isLoading}
               />
+              <FraudPartnerCrossProgramBanSettings
+                isConfigLoading={isLoading}
+              />
+              <FraudPartnerDuplicatePayoutMethodSettings
+                isConfigLoading={isLoading}
+              />
+              <FraudPartnerFraudReportSettings isConfigLoading={isLoading} />
             </div>
           </div>
 

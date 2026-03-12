@@ -43,7 +43,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "This partner was rejected from another program due to suspected fraud during their application.",
     scope: "partner",
     severity: "high",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "partnerCrossProgramBan",
@@ -52,7 +52,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history. To protect security and privacy, specific details such as links, evidence, or notes are not shared across programs.",
     scope: "partner",
     severity: "high",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "partnerDuplicatePayoutMethod",
@@ -61,7 +61,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
       "This partner is using a payout method that is already linked to another partner account, which may indicate account duplication or fraudulent behavior.",
     scope: "partner",
     severity: "high",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "partnerEmailDomainMismatch",

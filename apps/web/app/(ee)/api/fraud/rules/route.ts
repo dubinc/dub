@@ -41,12 +41,17 @@ export const GET = withWorkspace(
         };
       }
 
-      if (
-        ["customerEmailMatch", "customerEmailSuspiciousDomain"].includes(
-          type,
-        ) &&
-        !fraudRule
-      ) {
+      if (!fraudRule) {
+        // referralSourceBanned requires config to be useful, so default to disabled
+        if (type === "referralSourceBanned") {
+          return {
+            type,
+            enabled: false,
+            config: {},
+          };
+        }
+
+        // All other rules default to enabled
         return {
           type,
           enabled: true,
@@ -56,8 +61,8 @@ export const GET = withWorkspace(
 
       return {
         type,
-        enabled: fraudRule?.disabledAt === null,
-        config: fraudRule?.config ?? {},
+        enabled: fraudRule.disabledAt === null,
+        config: fraudRule.config ?? {},
       };
     });
 
@@ -78,6 +83,9 @@ export const PATCH = withWorkspace(
       paidTrafficDetected,
       customerEmailMatch,
       customerEmailSuspiciousDomain,
+      partnerCrossProgramBan,
+      partnerDuplicatePayoutMethod,
+      partnerFraudReport,
     } = updateFraudRuleSettingsSchema.parse(await parseRequestBody(req));
 
     const rulesToUpdate = [
@@ -96,6 +104,18 @@ export const PATCH = withWorkspace(
       {
         type: FraudRuleType.customerEmailSuspiciousDomain,
         payload: customerEmailSuspiciousDomain,
+      },
+      {
+        type: FraudRuleType.partnerCrossProgramBan,
+        payload: partnerCrossProgramBan,
+      },
+      {
+        type: FraudRuleType.partnerDuplicatePayoutMethod,
+        payload: partnerDuplicatePayoutMethod,
+      },
+      {
+        type: FraudRuleType.partnerFraudReport,
+        payload: partnerFraudReport,
       },
     ].filter((r) => r.payload);
 

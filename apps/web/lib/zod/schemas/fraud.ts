@@ -244,6 +244,27 @@ export const updateFraudRuleSettingsSchema = z.object({
       enabled: z.boolean(),
     })
     .optional(),
+
+  partnerCrossProgramBan: z
+    .object({
+      resolvePendingEvents: z.boolean().default(false),
+      enabled: z.boolean(),
+    })
+    .optional(),
+
+  partnerDuplicatePayoutMethod: z
+    .object({
+      resolvePendingEvents: z.boolean().default(false),
+      enabled: z.boolean(),
+    })
+    .optional(),
+
+  partnerFraudReport: z
+    .object({
+      resolvePendingEvents: z.boolean().default(false),
+      enabled: z.boolean(),
+    })
+    .optional(),
 });
 
 export const fraudEventSchemas = {
