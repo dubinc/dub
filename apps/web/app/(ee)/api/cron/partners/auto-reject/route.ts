@@ -64,6 +64,7 @@ export const POST = withCron(async ({ rawBody }) => {
     applicationRequirements: programEnrollment.program.applicationRequirements,
     context: {
       country: programEnrollment.partner.country,
+      email: programEnrollment.partner.email,
     },
   });
 
@@ -118,6 +119,7 @@ export const POST = withCron(async ({ rawBody }) => {
         program: {
           name: program.name,
           slug: program.slug,
+          supportEmail: program.supportEmail ?? undefined,
         },
       }),
     });

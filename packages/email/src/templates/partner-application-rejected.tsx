@@ -22,6 +22,7 @@ export default function PartnerApplicationRejected({
   program = {
     name: "Acme",
     slug: "acme",
+    supportEmail: "support@acme.com",
   },
 }: {
   partner: {
@@ -31,6 +32,7 @@ export default function PartnerApplicationRejected({
   program: {
     name: string;
     slug: string;
+    supportEmail?: string | null;
   };
 }) {
   return (
@@ -58,14 +60,23 @@ export default function PartnerApplicationRejected({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              If you have any questions, please{" "}
-              <Link
-                href={`https://partners.dub.co/messages/${program.slug}`}
-                className="font-semibold text-neutral-700 underline underline-offset-2"
-              >
-                reach out to the {program.name} team ↗
-              </Link>
-              .
+              {program.supportEmail ? (
+                <>
+                  If you have any questions, please{" "}
+                  <Link
+                    href={`mailto:${program.supportEmail}`}
+                    className="font-semibold text-neutral-700 underline underline-offset-2"
+                  >
+                    reach out to the {program.name} team ↗
+                  </Link>
+                  .
+                </>
+              ) : (
+                <>
+                  If you have any questions, please contact the {program.name}{" "}
+                  team directly.
+                </>
+              )}
             </Text>
 
             <Footer email={partner.email} />

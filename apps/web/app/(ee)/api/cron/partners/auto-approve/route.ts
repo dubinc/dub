@@ -101,6 +101,7 @@ export const POST = withCron(async ({ rawBody }) => {
     applicationRequirements: program.applicationRequirements,
     context: {
       country: programEnrollment.partner.country,
+      email: programEnrollment.partner.email,
     },
   });
 
