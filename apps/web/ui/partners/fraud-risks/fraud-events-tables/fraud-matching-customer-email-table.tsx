@@ -2,7 +2,10 @@
 
 import { useFraudEvents } from "@/lib/swr/use-fraud-events";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
+import {
+  CustomerEmailMatchType,
+  fraudEventSchemas,
+} from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
@@ -10,6 +13,12 @@ import Link from "next/link";
 import * as z from "zod/v4";
 
 type EventDataProps = z.infer<(typeof fraudEventSchemas)["customerEmailMatch"]>;
+
+const MATCH_TYPE_LABELS: Record<CustomerEmailMatchType, string> = {
+  [CustomerEmailMatchType.EXACT]: "Exact email match",
+  [CustomerEmailMatchType.DOMAIN_MATCH]: "Domain match",
+  [CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH]: "Historical domain match",
+};
 
 export function FraudMatchingCustomerEmailTable() {
   const { slug: workspaceSlug } = useWorkspace();
@@ -56,6 +65,21 @@ export function FraudMatchingCustomerEmailTable() {
           return (
             <span className="text-sm text-neutral-600">
               {row.original.customer?.email || "-"}
+            </span>
+          );
+        },
+      },
+      {
+        id: "matchType",
+        header: "Match type",
+        minSize: 120,
+        size: 180,
+        cell: ({ row }) => {
+          const matchType = row.original.metadata?.matchType ?? "exact";
+
+          return (
+            <span className="text-sm text-neutral-600">
+              {MATCH_TYPE_LABELS[matchType]}
             </span>
           );
         },
