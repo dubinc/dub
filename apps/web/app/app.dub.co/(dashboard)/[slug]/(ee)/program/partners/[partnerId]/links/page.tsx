@@ -1,8 +1,10 @@
 "use client";
 
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
+import useGroup from "@/lib/swr/use-group";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
 import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
@@ -48,6 +50,10 @@ export default function ProgramPartnerLinksPage() {
 const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   const { slug } = useWorkspace();
 
+  const { group } = useGroup({
+    groupIdOrSlug: partner.groupId ?? undefined,
+  });
+
   const { AddPartnerLinkModal, setShowAddPartnerLinkModal } =
     useAddPartnerLinkModal({
       partner,
@@ -59,18 +65,24 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
       {
         id: "shortLink",
         header: "Link",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <Link
-              href={`/${slug}/links/${row.original.domain}/${row.original.key}`}
-              target="_blank"
-              className="cursor-alias font-medium text-black decoration-dotted hover:underline"
-            >
-              {getPrettyUrl(row.original.shortLink)}
-            </Link>
-            <CopyButton value={row.original.shortLink} className="p-0.5" />
-          </div>
-        ),
+        cell: ({ row }) => {
+          const partnerLink = constructPartnerLink({
+            group: group ?? undefined,
+            link: row.original,
+          });
+          return (
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/${slug}/links/${row.original.domain}/${row.original.key}`}
+                target="_blank"
+                className="cursor-alias font-medium text-black decoration-dotted hover:underline"
+              >
+                {getPrettyUrl(partnerLink)}
+              </Link>
+              <CopyButton value={partnerLink} className="p-0.5" />
+            </div>
+          );
+        },
       },
       {
         header: "Clicks",

@@ -44,7 +44,7 @@ export const PAYOUT_METHODS = [
     title: "PayPal",
     recommended: false,
     icon: Paypal,
-    iconWrapperClass: "border-[#1717171A] bg-white p-2",
+    iconWrapperClass: "border-[#1717171A] bg-white",
     features: [
       { icon: MapPin, text: "Paid in local currency (3% FX fee)" },
       { icon: Zap, text: "Payouts deposited in minutes" },
@@ -70,6 +70,10 @@ export function getPayoutMethodIconConfig(type: PartnerPayoutMethod) {
   return (
     PAYOUT_METHOD_ICON_CONFIG[type] ?? { Icon: GreekTemple, wrapperClass: "" }
   );
+}
+
+export function getPayoutMethodLabel(type: PartnerPayoutMethod): string {
+  return PAYOUT_METHODS.find((m) => m.id === type)?.title ?? type;
 }
 
 export type PayoutMethodFeature = {
