@@ -181,7 +181,8 @@ export const createProgramApplicationAction = actionClient
 
     // for in-app applications from existing partners, we need to check
     // if the partner has an incomplete profile, if so we prompt them to complete it
-    if (inAppApplication && existingPartner) {
+    // TODO: Review this condition; it currently prevents existing partners from applying via the public application form.
+    if (existingPartner) {
       const { isComplete } = getPartnerProfileChecklistProgress({
         partner: {
           ...existingPartner,
@@ -201,25 +202,13 @@ export const createProgramApplicationAction = actionClient
         );
       }
 
-      const result = evaluateApplicationRequirements({
-        applicationRequirements: program.applicationRequirements,
-        context: {
-          country: existingPartner.country,
-        },
-      });
-
-      if (result.reason === "requirementsNotMet") {
-        throw new Error(
-          "Unfortunately, you do not meet the eligibility requirements for this program.",
-        );
-      }
-
       return createApplicationAndEnrollment({
         workspace: program.workspace,
         program,
         partner: existingPartner,
         group,
         data: parsedInput,
+        inAppApplication,
       });
     }
 
@@ -246,16 +235,55 @@ async function createApplicationAndEnrollment({
   partner,
   group,
   data,
+  inAppApplication,
 }: {
   workspace: Pick<Project, "id" | "webhookEnabled">;
   program: Program;
   partner: Partner & { programs: ProgramEnrollment[] };
   group: PartnerGroup;
   data: z.infer<typeof createProgramApplicationSchema>;
+  inAppApplication?: boolean;
 }) {
   // Check if ProgramEnrollment already exists
   if (partner.programs.some((p) => p.programId === program.id)) {
     throw new Error("You have already applied to this program.");
+  }
+
+  const sanitizedData = sanitizeData(data, group);
+
+  const result = evaluateApplicationRequirements({
+    applicationRequirements: program.applicationRequirements,
+    context: {
+      country: sanitizedData.country,
+    },
+  });
+
+  if (result.reason === "requirementsNotMet") {
+    if (inAppApplication) {
+      throw new Error(
+        "Unfortunately, you do not meet the eligibility requirements for this program.",
+      );
+    }
+
+    const qstashResponse = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
+      delay: 30 * 60, // 30 minutes
+      body: {
+        programId: program.id,
+        partnerId: partner.id,
+      },
+    });
+
+    if (qstashResponse.messageId) {
+      console.log(
+        `The partner did not meet the eligibility requirements for this program. Auto-reject job enqueued successfully.`,
+        {
+          ...qstashResponse,
+          programId: program.id,
+          partnerId: partner.id,
+        },
+      );
+    }
   }
 
   const applicationId = createId({ prefix: "pga_" });

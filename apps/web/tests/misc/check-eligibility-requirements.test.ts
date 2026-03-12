@@ -1,10 +1,14 @@
-import {
-  partnerMeetsAllRequirements,
-  partnerMeetsCondition,
-} from "@/lib/partners/check-eligibility-requirements";
+import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { describe, expect, it } from "vitest";
 
-describe("partnerMeetsCondition", () => {
+function evaluate(
+  applicationRequirements: unknown,
+  context: { country?: string | null; email?: string | null },
+) {
+  return evaluateApplicationRequirements({ applicationRequirements, context });
+}
+
+describe("evaluateApplicationRequirements", () => {
   describe("country — is", () => {
     const condition = {
       key: "country" as const,
@@ -12,17 +16,26 @@ describe("partnerMeetsCondition", () => {
       value: ["US", "CA"],
     };
 
-    it("returns true when country is in the list", () => {
-      expect(partnerMeetsCondition(condition, { country: "US" })).toBe(true);
+    it("returns valid when country is in the list", () => {
+      const result = evaluate([condition], { country: "US" });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("requirementsMet");
     });
 
-    it("returns false when country is not in the list", () => {
-      expect(partnerMeetsCondition(condition, { country: "GB" })).toBe(false);
+    it("returns invalid when country is not in the list", () => {
+      const result = evaluate([condition], { country: "GB" });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
     });
 
-    it("returns false when partner has no country or is null", () => {
-      expect(partnerMeetsCondition(condition, { country: null })).toBe(false);
-      expect(partnerMeetsCondition(condition, null)).toBe(false);
+    it("returns invalid when context has no country or is null", () => {
+      const resultNull = evaluate([condition], { country: null });
+      expect(resultNull.valid).toBe(false);
+      expect(resultNull.reason).toBe("requirementsNotMet");
+
+      const resultEmpty = evaluate([condition], {});
+      expect(resultEmpty.valid).toBe(false);
+      expect(resultEmpty.reason).toBe("requirementsNotMet");
     });
   });
 
@@ -33,12 +46,16 @@ describe("partnerMeetsCondition", () => {
       value: ["US"],
     };
 
-    it("returns false when country is in the exclusion list", () => {
-      expect(partnerMeetsCondition(condition, { country: "US" })).toBe(false);
+    it("returns invalid when country is in the exclusion list", () => {
+      const result = evaluate([condition], { country: "US" });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
     });
 
-    it("returns true when country is not in the exclusion list", () => {
-      expect(partnerMeetsCondition(condition, { country: "GB" })).toBe(true);
+    it("returns valid when country is not in the exclusion list", () => {
+      const result = evaluate([condition], { country: "GB" });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("requirementsMet");
     });
   });
 
@@ -49,22 +66,22 @@ describe("partnerMeetsCondition", () => {
       value: ["@acme.com"],
     };
 
-    it("returns true when domain matches exactly", () => {
-      expect(partnerMeetsCondition(condition, { email: "jane@acme.com" })).toBe(
-        true,
-      );
+    it("returns valid when domain matches exactly", () => {
+      const result = evaluate([condition], { email: "jane@acme.com" });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("requirementsMet");
     });
 
-    it("returns false for a subdomain — exact match is strict", () => {
-      expect(
-        partnerMeetsCondition(condition, { email: "jane@sub.acme.com" }),
-      ).toBe(false);
+    it("returns invalid for a subdomain — exact match is strict", () => {
+      const result = evaluate([condition], { email: "jane@sub.acme.com" });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
     });
 
-    it("returns false when domain contains the pattern as a suffix but is a different domain", () => {
-      expect(
-        partnerMeetsCondition(condition, { email: "jane@notacme.com" }),
-      ).toBe(false);
+    it("returns invalid when domain contains the pattern as a suffix but is a different domain", () => {
+      const result = evaluate([condition], { email: "jane@notacme.com" });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
     });
   });
 
@@ -75,12 +92,13 @@ describe("partnerMeetsCondition", () => {
         operator: "is" as const,
         value: ["@*.edu"],
       };
-      expect(partnerMeetsCondition(condition, { email: "jane@mit.edu" })).toBe(
-        true,
-      );
-      expect(
-        partnerMeetsCondition(condition, { email: "jane@mit.edu.uk" }),
-      ).toBe(false);
+      const resultMatch = evaluate([condition], { email: "jane@mit.edu" });
+      expect(resultMatch.valid).toBe(true);
+      expect(resultMatch.reason).toBe("requirementsMet");
+
+      const resultNoMatch = evaluate([condition], { email: "jane@mit.edu.uk" });
+      expect(resultNoMatch.valid).toBe(false);
+      expect(resultNoMatch.reason).toBe("requirementsNotMet");
     });
 
     it("@*.acme.com matches subdomains but not the root domain", () => {
@@ -89,12 +107,15 @@ describe("partnerMeetsCondition", () => {
         operator: "is" as const,
         value: ["@*.acme.com"],
       };
-      expect(
-        partnerMeetsCondition(condition, { email: "jane@mail.acme.com" }),
-      ).toBe(true);
-      expect(partnerMeetsCondition(condition, { email: "jane@acme.com" })).toBe(
-        false,
-      );
+      const resultMatch = evaluate([condition], {
+        email: "jane@mail.acme.com",
+      });
+      expect(resultMatch.valid).toBe(true);
+      expect(resultMatch.reason).toBe("requirementsMet");
+
+      const resultNoMatch = evaluate([condition], { email: "jane@acme.com" });
+      expect(resultNoMatch.valid).toBe(false);
+      expect(resultNoMatch.reason).toBe("requirementsNotMet");
     });
   });
 
@@ -105,13 +126,14 @@ describe("partnerMeetsCondition", () => {
       value: ["@gmail.com"],
     };
 
-    it("returns false when domain matches, true when it does not", () => {
-      expect(
-        partnerMeetsCondition(condition, { email: "jane@gmail.com" }),
-      ).toBe(false);
-      expect(partnerMeetsCondition(condition, { email: "jane@acme.com" })).toBe(
-        true,
-      );
+    it("returns invalid when domain matches, valid when it does not", () => {
+      const resultMatch = evaluate([condition], { email: "jane@gmail.com" });
+      expect(resultMatch.valid).toBe(false);
+      expect(resultMatch.reason).toBe("requirementsNotMet");
+
+      const resultNoMatch = evaluate([condition], { email: "jane@acme.com" });
+      expect(resultNoMatch.valid).toBe(true);
+      expect(resultNoMatch.reason).toBe("requirementsMet");
     });
   });
 
@@ -122,14 +144,16 @@ describe("partnerMeetsCondition", () => {
       value: ["@acme.com"],
     };
 
-    it("returns false when partner has no email", () => {
-      expect(partnerMeetsCondition(condition, { email: null })).toBe(false);
+    it("returns invalid when context has no email", () => {
+      const result = evaluate([condition], { email: null });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
     });
 
-    it("returns false when email has no @ sign", () => {
-      expect(partnerMeetsCondition(condition, { email: "notanemail" })).toBe(
-        false,
-      );
+    it("returns invalid when email has no @ sign", () => {
+      const result = evaluate([condition], { email: "notanemail" });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
     });
   });
 
@@ -140,49 +164,80 @@ describe("partnerMeetsCondition", () => {
         operator: "is" as const,
         value: ["@acme.com"],
       };
-      expect(partnerMeetsCondition(condition, { email: "JANE@ACME.COM" })).toBe(
-        true,
-      );
+      const result = evaluate([condition], { email: "JANE@ACME.COM" });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("requirementsMet");
     });
   });
-});
 
-describe("partnerMeetsAllRequirements", () => {
-  const countryCondition = {
-    key: "country" as const,
-    operator: "is" as const,
-    value: ["US"],
-  };
-  const emailCondition = {
-    key: "emailDomain" as const,
-    operator: "is" as const,
-    value: ["@acme.com"],
-  };
+  describe("multiple requirements (all must be met)", () => {
+    const countryCondition = {
+      key: "country" as const,
+      operator: "is" as const,
+      value: ["US"],
+    };
+    const emailCondition = {
+      key: "emailDomain" as const,
+      operator: "is" as const,
+      value: ["@acme.com"],
+    };
+    const requirements = [countryCondition, emailCondition];
 
-  it("returns true when all conditions are met", () => {
-    expect(
-      partnerMeetsAllRequirements([countryCondition, emailCondition], {
+    it("returns valid when all conditions are met", () => {
+      const result = evaluate(requirements, {
         country: "US",
         email: "jane@acme.com",
-      }),
-    ).toBe(true);
-  });
+      });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("requirementsMet");
+    });
 
-  it("returns false when one condition is unmet", () => {
-    expect(
-      partnerMeetsAllRequirements([countryCondition, emailCondition], {
+    it("returns invalid when one condition is unmet", () => {
+      const result = evaluate(requirements, {
         country: "GB",
         email: "jane@acme.com",
-      }),
-    ).toBe(false);
+      });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
+    });
   });
 
-  it("returns true when requirements array is empty", () => {
-    expect(
-      partnerMeetsAllRequirements([], {
+  describe("no requirements", () => {
+    it("returns valid when requirements array is empty", () => {
+      const result = evaluate([], {
         country: "US",
         email: "jane@acme.com",
-      }),
-    ).toBe(true);
+      });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("noRequirements");
+    });
+
+    it("returns valid when applicationRequirements is null", () => {
+      const result = evaluate(null, {
+        country: "US",
+        email: "jane@acme.com",
+      });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("noRequirements");
+    });
+
+    it("returns valid when applicationRequirements is undefined", () => {
+      const result = evaluate(undefined, {
+        country: "US",
+        email: "jane@acme.com",
+      });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("noRequirements");
+    });
+  });
+
+  describe("invalid requirements", () => {
+    it("returns invalid with reason invalidRequirements when schema parsing fails", () => {
+      const result = evaluate([{ key: "country", operator: "is", value: [] }], {
+        country: "US",
+      });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("invalidRequirements");
+    });
   });
 });

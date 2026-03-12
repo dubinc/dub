@@ -1,6 +1,6 @@
 "use client";
 
-import { partnerMeetsAllRequirements } from "@/lib/partners/check-eligibility-requirements";
+import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { NetworkProgramProps } from "@/lib/types";
@@ -39,11 +39,17 @@ export function ProgramStatusBadge({
     (programEnrollment) => programEnrollment.program.slug === program.slug,
   )?.status;
 
+  const { reason } = evaluateApplicationRequirements({
+    applicationRequirements: program.applicationRequirements,
+    context: {
+      country: partner?.country,
+      email: partner?.email,
+    },
+  });
+
   const statusBadge = programEnrollmentStatus
     ? ProgramNetworkStatusBadges[programEnrollmentStatus]
-    : program.applicationRequirements?.length &&
-        partner &&
-        !partnerMeetsAllRequirements(program.applicationRequirements, partner)
+    : reason === "requirementsNotMet"
       ? notEligibleBadge
       : null;
 

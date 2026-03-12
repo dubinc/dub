@@ -1,6 +1,6 @@
 "use client";
 
-import { partnerMeetsCondition } from "@/lib/partners/check-eligibility-requirements";
+import { evaluateCondition } from "@/lib/partners/evaluate-application-requirements";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { EligibilityConditionDB } from "@/lib/types";
@@ -54,7 +54,19 @@ export function ProgramEligibilityCard({
 
   if (!requirements?.length || loading) return null;
 
-  const unmet = requirements.filter((c) => !partnerMeetsCondition(c, partner));
+  const context = {
+    country: partner?.country,
+    email: partner?.email,
+  };
+
+  const unmet = requirements.filter(
+    (condition) =>
+      !evaluateCondition({
+        condition,
+        context,
+      }),
+  );
+
   const unmetWithText = unmet.map(formatConditionText).filter(Boolean);
 
   if (unmetWithText.length === 0) return null;

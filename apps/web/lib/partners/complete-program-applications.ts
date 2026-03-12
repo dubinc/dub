@@ -127,26 +127,19 @@ export async function completeProgramApplications(userEmail: string) {
       );
 
       const failedResults = results.filter((r) => r.status === "rejected");
+
       if (failedResults.length > 0) {
         console.error(
-          `Failed to schedule ${failedResults.length} auto-reject job(s). Aborting enrollment creation.`,
+          `Failed to schedule ${failedResults.length} auto-reject job(s).`,
           failedResults,
         );
         return;
       }
     }
 
-    const autoRejectProgramIds = new Set(
-      applicationsToAutoReject.map((a) => a.programId),
-    );
-
-    const eligibleApplications = filteredProgramApplications.filter(
-      (app) => !autoRejectProgramIds.has(app.programId),
-    );
-
     // Program enrollments to create
     const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
-      eligibleApplications.map((programApplication) => ({
+      filteredProgramApplications.map((programApplication) => ({
         id: createId({ prefix: "pge_" }),
         programId: programApplication.programId,
         partnerId: user.partners[0].partnerId,
@@ -167,7 +160,7 @@ export async function completeProgramApplications(userEmail: string) {
     const workspaces = await prisma.project.findMany({
       where: {
         defaultProgramId: {
-          in: eligibleApplications.map((p) => p.programId),
+          in: filteredProgramApplications.map((p) => p.programId),
         },
       },
       select: {
@@ -182,7 +175,7 @@ export async function completeProgramApplications(userEmail: string) {
       workspaces.map((ws) => [ws.defaultProgramId, ws]),
     );
 
-    for (const programApplication of eligibleApplications) {
+    for (const programApplication of filteredProgramApplications) {
       const application = programApplication;
       const program = programApplication.program;
       const group = programApplication.partnerGroup;
