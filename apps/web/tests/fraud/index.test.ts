@@ -104,7 +104,7 @@ describe.concurrent("/fraud/**", async () => {
 
   test("FraudRuleType = customerEmailMatch (historical domain match)", async () => {
     const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
-    const historicalDomain = `e2e-fraud-historical+${randomId(5)}.com`;
+    const historicalDomain = `e2e-fraud-historical${randomId(5)}@example.com`;
 
     const click1 = await http.post<{ clickId: string }>({
       path: "/track/click",
