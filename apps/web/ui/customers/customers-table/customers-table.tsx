@@ -405,7 +405,12 @@ export function CustomersTable({
     resourceName: (p) => `customer${p ? "s" : ""}`,
     rowCount: customersCount || 0,
     loading: isLoading,
-    error: error || countError ? "Failed to load customers" : undefined,
+    error:
+      error instanceof Error
+        ? error.message
+        : countError
+          ? "Failed to load customers"
+          : undefined,
   });
 
   return (

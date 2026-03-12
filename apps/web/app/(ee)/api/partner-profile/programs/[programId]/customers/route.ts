@@ -22,8 +22,15 @@ import * as z from "zod/v4";
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
-    const { search, country, linkId, sortBy, sortOrder, page, pageSize } =
-      getPartnerCustomersQuerySchema.parse(searchParams);
+    const {
+      search,
+      country,
+      linkId,
+      sortBy,
+      sortOrder,
+      page = 1,
+      pageSize,
+    } = getPartnerCustomersQuerySchema.parse(searchParams);
 
     const { program, totalCommissions, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({

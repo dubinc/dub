@@ -47,7 +47,7 @@ export async function calculatePartnerRanking({
   starred,
   platform,
   subscribers,
-  page,
+  page = 1,
   pageSize,
   status = "discover",
   similarPrograms = [],

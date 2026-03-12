@@ -1,6 +1,8 @@
 import { getCustomersQuerySchemaExtended } from "@/lib/zod/schemas/customers";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import * as z from "zod/v4";
+import { DubApiError } from "../../api/errors";
+import { buildPaginationQuery } from "../../api/pagination";
 
 type GetCustomersInput = z.infer<typeof getCustomersQuerySchemaExtended> & {
   workspaceId: string;
@@ -17,12 +19,34 @@ export async function getCustomers(filters: GetCustomersInput) {
     search,
     country,
     linkId,
-    sortBy,
-    sortOrder,
-    page,
-    pageSize,
     includeExpandedFields,
+    startingAfter,
+    endingBefore,
   } = filters;
+
+  const paginationQuery = buildPaginationQuery(filters);
+
+  // Validate the provided cursor ID
+  const cursorId = startingAfter || endingBefore;
+
+  if (cursorId) {
+    const customer = await prisma.customer.findUnique({
+      where: {
+        id: cursorId,
+      },
+      select: {
+        id: true,
+        projectId: true,
+      },
+    });
+
+    if (!customer || customer.projectId !== workspaceId) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+      });
+    }
+  }
 
   return await prisma.customer.findMany({
     where: {
@@ -57,11 +81,7 @@ export async function getCustomers(filters: GetCustomersInput) {
         linkId,
       }),
     },
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
+    ...paginationQuery,
     ...(includeExpandedFields
       ? {
           include: {
