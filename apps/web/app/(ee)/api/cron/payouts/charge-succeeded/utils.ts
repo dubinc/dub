@@ -7,7 +7,7 @@ const stripeChargeMetadataSchema = z.object({
   id: z.string(),
 });
 
-interface Response {
+interface StablecoinScheduleResult {
   nextAction: "skip" | "executeNow";
 }
 
@@ -17,7 +17,7 @@ interface Response {
 export async function scheduleDelayedStablecoinPayouts(invoice: {
   id: string;
   stripeChargeMetadata: unknown;
-}): Promise<Response> {
+}): Promise<StablecoinScheduleResult> {
   const stripeChargeMetadata = stripeChargeMetadataSchema.parse(
     invoice.stripeChargeMetadata,
   );
