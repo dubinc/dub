@@ -1,7 +1,6 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/constants/payouts";
 import usePayout from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
@@ -11,6 +10,7 @@ import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { ActivityEvent } from "@/ui/shared/activity-event";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
@@ -20,16 +20,16 @@ import {
   CircleArrowRight,
   CopyText,
   InvoiceDollar,
-  MoneyBill2,
+  MoneyBills2,
   StatusBadge,
   Table,
   TimestampTooltip,
   Tooltip,
+  usePagination,
   useTable,
 } from "@dub/ui";
 import {
   APP_DOMAIN,
-  capitalize,
   cn,
   currencyFormatter,
   fetcher,
@@ -73,13 +73,25 @@ export function PayoutDetailsPageClient() {
               title="Back to payouts"
               className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
             >
-              <MoneyBill2 className="size-4" />
+              <MoneyBills2 className="size-4" />
             </Link>
             <div className="flex items-center gap-1.5">
               <ChevronRight className="text-content-subtle size-2.5 shrink-0 [&_*]:stroke-2" />
-              <span className="text-lg font-semibold leading-7 text-neutral-900">
-                {payout?.partner.name ?? "Payout details"}
-              </span>
+              <div className="flex items-center gap-2">
+                {payout?.partner && (
+                  <img
+                    src={
+                      payout.partner.image ||
+                      `${OG_AVATAR_URL}${payout.partner.name}`
+                    }
+                    alt={payout.partner.name}
+                    className="size-5 rounded-full"
+                  />
+                )}
+                <span className="text-lg font-semibold leading-7 text-neutral-900">
+                  {payout?.partner.name ?? "Payout details"}
+                </span>
+              </div>
             </div>
           </div>
         )
@@ -110,7 +122,6 @@ export function PayoutDetailsPageClient() {
             payout={payout}
             workspaceId={workspaceId!}
             slug={slug!}
-            permissionsError={permissionsError}
             router={router}
           />
         ) : loading ? (
@@ -125,15 +136,15 @@ function PayoutDetailsContent({
   payout,
   workspaceId,
   slug,
-  permissionsError,
   router,
 }: {
   payout: NonNullable<ReturnType<typeof usePayout>["payout"]>;
   workspaceId: string;
   slug: string;
-  permissionsError: string | null;
   router: ReturnType<typeof useRouter>;
 }) {
+  const { pagination, setPagination } = usePagination();
+
   const {
     data: commissions,
     isLoading,
@@ -143,7 +154,18 @@ function PayoutDetailsContent({
       workspaceId,
       payoutId: payout.id,
       interval: "all",
-      pageSize: PAYOUTS_SHEET_ITEMS_LIMIT.toString(),
+      page: String(pagination.pageIndex),
+      pageSize: String(pagination.pageSize),
+    })}`,
+    fetcher,
+    { keepPreviousData: true },
+  );
+
+  const { data: commissionsCount } = useSWR<{ all: { count: number } }>(
+    `/api/commissions/count?${new URLSearchParams({
+      workspaceId,
+      payoutId: payout.id,
+      interval: "all",
     })}`,
     fetcher,
   );
@@ -206,7 +228,7 @@ function PayoutDetailsContent({
 
       Amount: (
         <div className="flex items-center gap-2">
-          <strong>{currencyFormatter(payout.amount)}</strong>
+          {currencyFormatter(payout.amount)}
 
           {payout.mode === "external" && (
             <Tooltip
@@ -242,6 +264,8 @@ function PayoutDetailsContent({
           <ConditionalLink
             href={`${APP_DOMAIN}/invoices/${payout.invoiceId}`}
             target="_blank"
+            className="block truncate font-mono text-sm text-neutral-500"
+            title={payout.invoiceId}
           >
             {payout.invoiceId}
           </ConditionalLink>
@@ -256,7 +280,7 @@ function PayoutDetailsContent({
         "Trace ID": (
           <CopyText
             value={payout.traceId}
-            className="text-left font-mono text-sm text-neutral-500"
+            className="block w-full truncate text-left font-mono text-sm text-neutral-500"
           >
             {payout.traceId}
           </CopyText>
@@ -309,12 +333,12 @@ function PayoutDetailsContent({
     columns: [
       {
         header: "Details",
-        minSize: 240,
-        size: 240,
-        maxSize: 240,
+        minSize: 300,
+        size: 9999,
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            {["click", "custom"].includes(row.original.type) ? (
+            {["click", "custom"].includes(row.original.type) ||
+            !row.original.customer ? (
               <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100">
                 <CommissionTypeIcon
                   type={row.original.type}
@@ -333,13 +357,21 @@ function PayoutDetailsContent({
             )}
 
             <div className="flex flex-col">
-              <span className="w-44 truncate text-sm text-neutral-700">
-                {row.original.type === "click"
-                  ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
-                  : row.original.customer
-                    ? row.original.customer.email || row.original.customer.name
+              {row.original.customer ? (
+                <Link
+                  href={`/${slug}/program/customers/${row.original.customer.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="max-w-xs truncate text-sm text-neutral-700 hover:underline"
+                >
+                  {row.original.customer.email || row.original.customer.name}
+                </Link>
+              ) : (
+                <span className="max-w-xs truncate text-sm text-neutral-700">
+                  {row.original.type === "click"
+                    ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
                     : "Custom commission"}
-              </span>
+                </span>
+              )}
               <span className="text-xs text-neutral-500">
                 {formatDateTime(row.original.createdAt)}
               </span>
@@ -350,8 +382,8 @@ function PayoutDetailsContent({
       {
         id: "type",
         header: "Type",
-        minSize: 100,
-        size: 120,
+        minSize: 150,
+        size: 150,
         maxSize: 150,
         cell: ({ row }) => (
           <CommissionTypeBadge type={row.original.type ?? "sale"} />
@@ -360,143 +392,116 @@ function PayoutDetailsContent({
       {
         id: "total",
         header: "Total",
-        minSize: 100,
+        minSize: 120,
         size: 120,
-        maxSize: 150,
+        maxSize: 120,
         cell: ({ row }) => currencyFormatter(row.original.earnings),
       },
       {
         id: "menu",
         enableHiding: false,
+        minSize: 48,
+        size: 48,
         cell: ({ row }) => <CommissionRowMenu row={row} />,
       },
     ],
     columnPinning: { right: ["menu"] },
+    onRowClick: (row, e) => {
+      const url = `/${slug}/program/commissions/${row.original.id}`;
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
+    },
+    onRowAuxClick: (row) =>
+      window.open(`/${slug}/program/commissions/${row.original.id}`, "_blank"),
+    rowProps: (row) => ({
+      onPointerEnter: () =>
+        router.prefetch(`/${slug}/program/commissions/${row.original.id}`),
+    }),
     thClassName: (id) =>
-      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
-    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
+      cn(id === "menu" && "[&>div]:justify-end", "border-l-0"),
+    tdClassName: (id) => cn(id === "menu" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `commission${p ? "s" : ""}`,
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: commissionsCount?.all?.count ?? commissions?.length ?? 0,
     loading: isLoading,
     error: error ? "Failed to load commissions" : undefined,
   } as any);
 
   return (
-    <div className="flex gap-6">
-      {/* Left column: commissions table + activity */}
-      <div className="min-w-0 flex-1">
-        <div className="rounded-xl border border-neutral-200 bg-white">
-          <Table {...commissionsTable} />
+    <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="order-last min-w-0 flex-1 lg:order-first">
+        <Table {...commissionsTable} />
 
-          {commissions && commissions.length > 0 && (
-            <div className="flex justify-end border-t border-neutral-200 px-4 py-3">
-              <Link
-                href={`/${slug}/program/commissions?payoutId=${payout.id}&interval=all`}
-                target="_blank"
-                className={cn(
-                  buttonVariants({ variant: "secondary" }),
-                  "flex h-7 items-center rounded-lg border px-2 text-sm",
-                )}
-              >
-                View all
-              </Link>
-            </div>
-          )}
-        </div>
-
-        {/* Activity timeline */}
         <div className="mt-6">
           <h3 className="mb-4 text-base font-medium text-neutral-900">
             Activity
           </h3>
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col">
             {activityItems.map((item, index) => {
               const badge = PayoutStatusBadges[item.status];
-              const Icon = badge.icon;
 
               return (
-                <div key={index} className="flex items-center gap-3">
-                  <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white">
-                    <Icon className="size-3.5 text-neutral-500" />
-                  </div>
-                  <div className="flex min-w-0 flex-1 items-center gap-2">
-                    <span className="text-sm text-neutral-700">Payout</span>
-                    <StatusBadge variant={badge.variant} icon={badge.icon}>
-                      {badge.label}
-                    </StatusBadge>
-                    {item.user && (
-                      <>
-                        <span className="text-sm text-neutral-500">by</span>
-                        <div className="flex items-center gap-1.5">
-                          <img
-                            src={
-                              item.user.image ||
-                              `${OG_AVATAR_URL}${item.user.id}`
-                            }
-                            alt={item.user.name ?? ""}
-                            className="size-4 rounded-full"
-                          />
-                          <span className="text-sm text-neutral-700">
-                            {item.user.name}
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                  <span className="shrink-0 text-xs text-neutral-400">
-                    {formatDateTime(item.timestamp)}
-                  </span>
-                </div>
+                <ActivityEvent
+                  key={index}
+                  icon={badge.icon}
+                  timestamp={item.timestamp}
+                  isLast={index === activityItems.length - 1}
+                >
+                  <span className="text-sm text-neutral-700">Payout</span>
+                  <StatusBadge variant={badge.variant} icon={null}>
+                    {badge.label}
+                  </StatusBadge>
+                  {item.user && (
+                    <>
+                      <span className="text-sm text-neutral-500">by</span>
+                      <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
+                        <img
+                          src={
+                            item.user.image || `${OG_AVATAR_URL}${item.user.id}`
+                          }
+                          alt={item.user.name ?? ""}
+                          className="size-4 rounded-full"
+                        />
+                        <span className="text-[13px] text-sm text-neutral-700">
+                          {item.user.name}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </ActivityEvent>
               );
             })}
           </div>
         </div>
-
-        {/* Confirm payout actions (pending only) */}
-        {payout.status === "pending" && (
-          <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-            <Button
-              type="button"
-              text="Confirm this payout"
-              variant="secondary"
-              disabledTooltip={
-                !payout.partner.payoutsEnabledAt
-                  ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-                  : permissionsError || undefined
-              }
-              onClick={() => {
-                router.push(
-                  `/${slug}/program/payouts?confirmPayouts=true&selectedPayoutId=${payout.id}`,
-                );
-              }}
-            />
-            <Button
-              type="button"
-              text="Confirm all pending payouts"
-              onClick={() => {
-                router.push(
-                  `/${slug}/program/payouts?confirmPayouts=true`,
-                );
-              }}
-            />
-          </div>
-        )}
       </div>
 
-      {/* Right column: invoice details */}
-      <div className="w-72 shrink-0">
+      <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
         <div className="rounded-xl border border-neutral-200 bg-white p-5">
-          <h3 className="mb-4 text-base font-medium text-neutral-900">
-            Invoice details
-          </h3>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h3 className="text-base font-medium text-neutral-900">
+              Invoice details
+            </h3>
+            <Link
+              href={`/${slug}/program/commissions?payoutId=${payout.id}&interval=all`}
+              target="_blank"
+              className={cn(
+                buttonVariants({ variant: "secondary" }),
+                "flex h-7 items-center rounded-lg border px-2 text-sm",
+              )}
+            >
+              View all
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
             {Object.entries(invoiceData).map(([key, value]) => (
               <Fragment key={key}>
                 <div className="flex items-start pt-0.5 font-medium text-neutral-500">
                   {key}
                 </div>
-                <div className="text-neutral-800">{value}</div>
+                <div className="min-w-0 text-neutral-500">{value}</div>
               </Fragment>
             ))}
           </div>
@@ -508,12 +513,12 @@ function PayoutDetailsContent({
 
 function PayoutDetailsskeleton() {
   return (
-    <div className="flex gap-6">
-      <div className="min-w-0 flex-1">
+    <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="order-last min-w-0 flex-1 lg:order-first">
         <div className="h-64 animate-pulse rounded-xl border border-neutral-200 bg-neutral-100" />
         <div className="mt-6 h-32 animate-pulse rounded-xl border border-neutral-200 bg-neutral-100" />
       </div>
-      <div className="w-72 shrink-0">
+      <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
         <div className="h-80 animate-pulse rounded-xl border border-neutral-200 bg-neutral-100" />
       </div>
     </div>
