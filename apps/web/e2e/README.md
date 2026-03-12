@@ -19,7 +19,7 @@
    PLAYWRIGHT_BASE_URL=http://partners.localhost:8888
    ```
 
-   The test user must exist in your local database with a password and ideally a partner profile.
+   The test user must exist in your local database with a password and ideally a partner profile. Partner onboarding tests use the same credentials; the onboarding flow will create or update the partner record (no separate onboarding-only user required).
 
 ## Running tests
 
