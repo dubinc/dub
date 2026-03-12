@@ -194,9 +194,7 @@ function ValueBadge({
   value: string[] | null;
   onChange: (v: string[]) => void;
 }) {
-  const displayText = isValueValid(value)
-    ? value!.map((code) => COUNTRIES[code] ?? code).join(", ")
-    : "value";
+  const displayText = isValueValid(value) ? value!.join(", ") : "value";
   const isInvalid = !isValueValid(value);
 
   return (
