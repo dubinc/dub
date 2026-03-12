@@ -32,24 +32,24 @@ export const checkCustomerEmailMatch = defineFraudRule({
     }
 
     // Extract domains for domain-level checks
-    const partnerDomain = extractEmailDomain(partner.email);
-    const customerDomain = extractEmailDomain(customer.email);
+    const partnerEmailDomain = extractEmailDomain(partner.email);
+    const customerEmailDomain = extractEmailDomain(customer.email);
 
-    if (!partnerDomain || !customerDomain) {
+    if (!partnerEmailDomain || !customerEmailDomain) {
       return {
         triggered: false,
       };
     }
 
     // Skip domain matching for free email providers
-    if (FREE_EMAIL_PROVIDER_DOMAINS.has(customerDomain)) {
+    if (FREE_EMAIL_PROVIDER_DOMAINS.has(customerEmailDomain)) {
       return {
         triggered: false,
       };
     }
 
     // 2. Partner-customer domain match
-    if (partnerDomain === customerDomain) {
+    if (partnerEmailDomain === customerEmailDomain) {
       return {
         triggered: true,
         metadata: {
@@ -68,7 +68,7 @@ export const checkCustomerEmailMatch = defineFraudRule({
           not: customer.id,
         },
         email: {
-          endsWith: `@${customerDomain}`,
+          endsWith: `@${customerEmailDomain}`,
         },
       },
       select: {
