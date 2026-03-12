@@ -116,6 +116,10 @@ export const CONFIGURABLE_FRAUD_RULES = FRAUD_RULES.filter(
   (rule) => rule.configurable,
 );
 
+export const CONFIGURABLE_RULE_TYPES = CONFIGURABLE_FRAUD_RULES.map(
+  (rule) => rule.type,
+);
+
 export const FRAUD_SEVERITY_CONFIG: Record<
   FraudSeverity,
   {

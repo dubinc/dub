@@ -121,6 +121,13 @@ export const fraudRuleSchema = z.object({
   config: z.unknown(),
 });
 
+const toggleOnlyFraudRuleSchema = z
+  .object({
+    resolvePendingEvents: z.boolean().default(false),
+    enabled: z.boolean(),
+  })
+  .optional();
+
 export const updateFraudRuleSettingsSchema = z.object({
   // Referral source banned rule
   referralSourceBanned: z
@@ -229,42 +236,12 @@ export const updateFraudRuleSettingsSchema = z.object({
     })
     .optional(),
 
-  // Customer email match rule (toggle-only)
-  customerEmailMatch: z
-    .object({
-      resolvePendingEvents: z.boolean().default(false),
-      enabled: z.boolean(),
-    })
-    .optional(),
-
-  // Customer email suspicious domain rule (toggle-only)
-  customerEmailSuspiciousDomain: z
-    .object({
-      resolvePendingEvents: z.boolean().default(false),
-      enabled: z.boolean(),
-    })
-    .optional(),
-
-  partnerCrossProgramBan: z
-    .object({
-      resolvePendingEvents: z.boolean().default(false),
-      enabled: z.boolean(),
-    })
-    .optional(),
-
-  partnerDuplicatePayoutMethod: z
-    .object({
-      resolvePendingEvents: z.boolean().default(false),
-      enabled: z.boolean(),
-    })
-    .optional(),
-
-  partnerFraudReport: z
-    .object({
-      resolvePendingEvents: z.boolean().default(false),
-      enabled: z.boolean(),
-    })
-    .optional(),
+  // Toggle-only rules (no additional config beyond enabled/disabled)
+  customerEmailMatch: toggleOnlyFraudRuleSchema,
+  customerEmailSuspiciousDomain: toggleOnlyFraudRuleSchema,
+  partnerCrossProgramBan: toggleOnlyFraudRuleSchema,
+  partnerDuplicatePayoutMethod: toggleOnlyFraudRuleSchema,
+  partnerFraudReport: toggleOnlyFraudRuleSchema,
 });
 
 export const fraudEventSchemas = {

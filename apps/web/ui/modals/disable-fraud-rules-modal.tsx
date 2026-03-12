@@ -2,6 +2,7 @@
 
 import {
   CONFIGURABLE_FRAUD_RULES,
+  CONFIGURABLE_RULE_TYPES,
   FRAUD_RULES_BY_TYPE,
 } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -14,10 +15,6 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
-
-const CONFIGURABLE_RULE_TYPES = CONFIGURABLE_FRAUD_RULES.map(
-  (rule) => rule.type,
-);
 
 export type ConfigurableRuleType = (typeof CONFIGURABLE_RULE_TYPES)[number];
 
