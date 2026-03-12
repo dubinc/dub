@@ -20,7 +20,7 @@ type GetIdentityFieldsForFraudEventInput = Pick<
 export function extractEmailDomain(email: string) {
   const parts = email.toLowerCase().trim().split("@");
 
-  if (parts.length !== 2) {
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
     return null;
   }
 

@@ -227,4 +227,5 @@ export const FREE_EMAIL_PROVIDER_DOMAINS = new Set([
   "fastmail.com",
   "tutanota.com",
   "tuta.com",
+  "privaterelay.appleid.com",
 ]);
