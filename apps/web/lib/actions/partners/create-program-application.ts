@@ -253,7 +253,8 @@ async function createApplicationAndEnrollment({
   const result = evaluateApplicationRequirements({
     applicationRequirements: program.applicationRequirements,
     context: {
-      country: sanitizedData.country,
+      // Always use the partner's country from their profile, if available
+      country: partner.country ?? sanitizedData.country,
     },
   });
 
