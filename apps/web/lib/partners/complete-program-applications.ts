@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { PlatformType, Prisma, ProgramEnrollment } from "@dub/prisma/client";
+import { PlatformType, Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
@@ -88,55 +88,6 @@ export async function completeProgramApplications(userEmail: string) {
 
     const partner = user.partners[0].partner;
 
-    // Check if the partner meets the eligibility requirements for each program application
-    const applicationsToAutoReject: Pick<
-      ProgramEnrollment,
-      "programId" | "partnerId"
-    >[] = [];
-
-    for (const programApplication of filteredProgramApplications) {
-      const program = programApplication.program;
-
-      const result = evaluateApplicationRequirements({
-        applicationRequirements: program.applicationRequirements,
-        context: {
-          country: partner.country,
-        },
-      });
-
-      if (result.reason === "requirementsNotMet") {
-        applicationsToAutoReject.push({
-          programId: program.id,
-          partnerId: partner.id,
-        });
-      }
-    }
-
-    if (applicationsToAutoReject.length) {
-      const results = await Promise.allSettled(
-        applicationsToAutoReject.map((application) =>
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
-            delay: 30 * 60, // 30 minutes
-            body: {
-              programId: application.programId,
-              partnerId: application.partnerId,
-            },
-          }),
-        ),
-      );
-
-      const failedResults = results.filter((r) => r.status === "rejected");
-
-      if (failedResults.length > 0) {
-        console.error(
-          `Failed to schedule ${failedResults.length} auto-reject job(s).`,
-          failedResults,
-        );
-        return;
-      }
-    }
-
     // Program enrollments to create
     const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
       filteredProgramApplications.map((programApplication) => ({
@@ -223,13 +174,64 @@ export async function completeProgramApplications(userEmail: string) {
         }),
       );
 
+      const { valid: validApplication } = evaluateApplicationRequirements({
+        applicationRequirements: program.applicationRequirements,
+        context: {
+          country: partner.country,
+        },
+      });
+
       await Promise.allSettled([
-        notifyPartnerApplication({
-          partner,
-          program,
-          group,
-          application,
-        }),
+        ...(validApplication
+          ? [
+              notifyPartnerApplication({
+                partner,
+                program,
+                group,
+                application,
+              }),
+
+              // Auto-approve the partner if the group has auto-approval enabled
+              group?.autoApprovePartnersEnabledAt
+                ? qstash.publishJSON({
+                    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
+                    delay: 5 * 60,
+                    body: {
+                      programId: program.id,
+                      partnerId: partner.id,
+                    },
+                  })
+                : Promise.resolve(null),
+
+              // Send "partner.application_submitted" webhook
+              workspacesByProgramId.has(program.id) &&
+                sendWorkspaceWebhook({
+                  workspace: workspacesByProgramId.get(program.id)!,
+                  trigger: "partner.application_submitted",
+                  data: partnerApplicationWebhookSchema.parse({
+                    id: application.id,
+                    createdAt: application.createdAt,
+                    partner: {
+                      ...partner,
+                      ...programEnrollment,
+                      id: partner.id,
+                      status: "pending",
+                      ...formatWebsiteAndSocialsFields(application),
+                    },
+                    applicationFormData,
+                  }),
+                }),
+            ]
+          : [
+              qstash.publishJSON({
+                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
+                delay: 5 * 60, // 5 minutes
+                body: {
+                  programId: program.id,
+                  partnerId: partner.id,
+                },
+              }),
+            ]),
 
         // if the application has any website or social fields but the partner doesn't have the corresponding one (maybe they forgot to add during onboarding)
         // update the partner to use the website they applied with
@@ -243,37 +245,6 @@ export async function completeProgramApplications(userEmail: string) {
                 identifier: identifier as string,
               })),
             skipDuplicates: true,
-          }),
-
-        // Auto-approve the partner if the group has auto-approval enabled
-        group?.autoApprovePartnersEnabledAt
-          ? qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-              delay: 5 * 60,
-              body: {
-                programId: program.id,
-                partnerId: partner.id,
-              },
-            })
-          : Promise.resolve(null),
-
-        // Send "partner.application_submitted" webhook
-        workspacesByProgramId.has(program.id) &&
-          sendWorkspaceWebhook({
-            workspace: workspacesByProgramId.get(program.id)!,
-            trigger: "partner.application_submitted",
-            data: partnerApplicationWebhookSchema.parse({
-              id: application.id,
-              createdAt: application.createdAt,
-              partner: {
-                ...partner,
-                ...programEnrollment,
-                id: partner.id,
-                status: "pending",
-                ...formatWebsiteAndSocialsFields(application),
-              },
-              applicationFormData,
-            }),
           }),
 
         // Detect and record fraud events for the partner when they apply to a program
