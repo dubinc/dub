@@ -37,7 +37,7 @@ export default function LinksContainer({
 
   const { folderId } = useCurrentFolderId();
 
-  const { links, isValidating } = useLinks({
+  const { links, isValidating, error } = useLinks({
     sortBy,
     showArchived,
     folderId: folderId ?? "",
@@ -57,6 +57,7 @@ export default function LinksContainer({
         links={links}
         count={count}
         loading={isValidating}
+        error={error}
         compact={viewMode === "rows"}
       />
     </PageWidthWrapper>
@@ -76,12 +77,14 @@ function LinksList({
   links,
   count,
   loading,
+  error,
   compact,
 }: {
   CreateLinkButton: () => JSX.Element;
   links?: ResponseLink[];
   count?: number;
   loading?: boolean;
+  error?: unknown;
   compact: boolean;
 }) {
   const searchParams = useSearchParams();
@@ -98,10 +101,17 @@ function LinksList({
     "showArchived",
   ].some((param) => searchParams.has(param));
 
+  const errorMessage =
+    error instanceof Error ? error.message : "Failed to load links";
+
   return (
     <LinksListContext.Provider value={{ openMenuLinkId, setOpenMenuLinkId }}>
       <LinkSelectionProvider links={links}>
-        {!links || links.length ? (
+        {error ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            {errorMessage}
+          </div>
+        ) : !links || links.length ? (
           // Cards
           <CardList variant={compact ? "compact" : "loose"} loading={loading}>
             {links?.length

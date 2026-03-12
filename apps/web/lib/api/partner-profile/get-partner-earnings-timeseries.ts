@@ -49,14 +49,7 @@ export async function getPartnerEarningsTimeseries({
   const { dateFormat, dateIncrement, startFunction, formatString } =
     sqlGranularityMap[granularity];
 
-  const earnings = await prisma.$queryRaw<
-    {
-      start: string;
-      earnings: number;
-      type?: string;
-      linkId?: string;
-    }[]
-  >`
+  const query = Prisma.sql`
         SELECT 
           DATE_FORMAT(CONVERT_TZ(createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start, 
           ${groupBy ? (groupBy === "type" ? Prisma.sql`type,` : Prisma.sql`linkId,`) : Prisma.sql``}
@@ -76,6 +69,15 @@ export async function getPartnerEarningsTimeseries({
           GROUP BY start${groupBy ? (groupBy === "type" ? Prisma.sql`, type` : Prisma.sql`, linkId`) : Prisma.sql``}
         ORDER BY start ASC;
       `;
+
+  const earnings = await prisma.$queryRaw<
+    {
+      start: string;
+      earnings: number;
+      type?: string;
+      linkId?: string;
+    }[]
+  >(query);
 
   const timeseries: {
     start: string;

@@ -9,12 +9,10 @@ import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink, redisGlobalWithTimeout } from "@/lib/upstash";
 import { isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-
-export const runtime = "edge";
 
 // POST /api/track/visit – Track a visit event from the client-side
 export const POST = withAxiom(async (req) => {
@@ -37,9 +35,13 @@ export const POST = withAxiom(async (req) => {
 
     const identityHash = await getIdentityHash(req);
 
-    let [clickId, cachedLink] = await redis.mget<[string, RedisLinkProps]>([
-      recordClickCache._createKey({ domain, key, identityHash }),
-      linkCache._createKey({ domain, key }),
+    let [clickId, cachedLink] = await Promise.all([
+      redisGlobalWithTimeout
+        .get<string>(recordClickCache._createKey({ domain, key, identityHash }))
+        .catch(() => null),
+      redisGlobalWithTimeout
+        .get<RedisLinkProps>(linkCache._createKey({ domain, key }))
+        .catch(() => null),
     ]);
 
     // if the clickId is already cached in Redis, return it

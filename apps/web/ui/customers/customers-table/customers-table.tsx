@@ -405,7 +405,12 @@ export function CustomersTable({
     resourceName: (p) => `customer${p ? "s" : ""}`,
     rowCount: customersCount || 0,
     loading: isLoading,
-    error: error || countError ? "Failed to load customers" : undefined,
+    error:
+      error instanceof Error
+        ? error.message
+        : countError
+          ? "Failed to load customers"
+          : undefined,
   });
 
   return (
@@ -508,7 +513,7 @@ export function CustomersTable({
               : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
           }
           {...(!isFiltered && {
-            learnMoreHref: `/${workspaceSlug}/settings/analytics`,
+            learnMoreHref: `/${workspaceSlug}/settings/tracking`,
             learnMoreTarget: "_self",
             learnMoreText: "Read the guides",
           })}

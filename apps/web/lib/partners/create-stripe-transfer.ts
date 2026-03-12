@@ -5,12 +5,13 @@ import {
 } from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
+import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
-import { createPayoutsIdempotencyKey } from "../payouts/api/create-payouts-idempotency-key";
-import { markPayoutsAsProcessed } from "../payouts/api/mark-payouts-as-processed";
+import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
+import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 
 export const createStripeTransfer = async ({
   partnerId,
@@ -96,6 +97,12 @@ export const createStripeTransfer = async ({
     0,
   );
 
+  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
+    throw new Error(
+      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.email} is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}). Skipping...`,
+    );
+  }
+
   let withdrawalFee = 0;
 
   // If the total transferable amount is less than the minimum withdrawal amount
@@ -118,12 +125,6 @@ export const createStripeTransfer = async ({
 
   // Minus the withdrawal fee from the total amount
   const finalTransferableAmount = totalTransferableAmount - withdrawalFee;
-
-  if (finalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    throw new Error(
-      `Final transferable amount (${currencyFormatter(finalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)})`,
-    );
-  }
 
   const allPayoutsProgramNames = [
     ...new Set(allPayouts.map((p) => p.program.name)), // deduplicate program names
@@ -220,17 +221,27 @@ export const createStripeTransfer = async ({
     }),
   ]);
 
-  if (partner.email && currentInvoicePayouts.length > 0) {
+  if (partner.email) {
     const payout = currentInvoicePayouts[0];
     const emailRes = await sendEmail({
       variant: "notifications",
       to: partner.email,
-      subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
-      react: PartnerPayoutProcessed({
-        email: partner.email,
-        program: payout.program,
-        payout,
-      }),
+      subject: forceWithdrawal
+        ? `A withdrawal of ${currencyFormatter(totalTransferableAmount)} has been initiated from your Dub account`
+        : `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
+      react: forceWithdrawal
+        ? PartnerPayoutForceWithdrawal({
+            email: partner.email,
+            payout: {
+              amount: totalTransferableAmount,
+              method: "connect",
+            },
+          })
+        : PartnerPayoutProcessed({
+            email: partner.email,
+            program: payout.program,
+            payout,
+          }),
     });
 
     console.log(`Resend email sent: ${JSON.stringify(emailRes, null, 2)}`);

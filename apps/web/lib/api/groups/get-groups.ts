@@ -11,7 +11,7 @@ export async function getGroups(filters: GroupFilters) {
   const {
     search,
     groupIds,
-    page,
+    page = 1,
     pageSize,
     sortBy,
     sortOrder,

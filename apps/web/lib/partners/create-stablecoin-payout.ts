@@ -1,11 +1,17 @@
 import { sendEmail } from "@dub/email";
+import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { PartnerPayoutMethod, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, prettyPrint } from "@dub/utils";
-import { STABLECOIN_PAYOUT_FEE_RATE } from "../constants/payouts";
-import { createPayoutsIdempotencyKey } from "../payouts/api/create-payouts-idempotency-key";
-import { markPayoutsAsProcessed } from "../payouts/api/mark-payouts-as-processed";
+import {
+  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
+  STABLECOIN_PAYOUT_FEE_RATE,
+} from "../constants/payouts";
+import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
+import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 import { createStripeOutboundPayment } from "../stripe/create-stripe-outbound-payment";
 import { fundFinancialAccount } from "../stripe/fund-financial-account";
 import { getStripeRecipientAccount } from "../stripe/get-stripe-recipient-account";
@@ -113,26 +119,37 @@ export const createStablecoinPayout = async ({
     0,
   );
 
-  if (totalTransferableAmount <= 0) {
-    console.warn(
-      `Total transferable amount for partner ${partner.email} is less than 0.`,
+  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
+    throw new Error(
+      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.email} is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}). Skipping...`,
     );
-    return;
   }
 
-  // Stablecoin payouts incur an outbound fee that is passed along to partners.
+  let withdrawalFee = 0;
+
+  // If the total transferable amount is less than the minimum withdrawal amount
+  if (totalTransferableAmount < MIN_WITHDRAWAL_AMOUNT_CENTS) {
+    // if we're forcing a withdrawal, we need to charge a withdrawal fee
+    if (forceWithdrawal) {
+      withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
+      // else, we will just update current invoice payouts to "processed" status
+    } else {
+      await markPayoutsAsProcessed(currentInvoicePayouts);
+
+      console.log(
+        `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
+      );
+
+      return;
+    }
+  }
+
+  // remove the stablecoin payout fee (0.5%) and withdrawal fee (if applicable) from the total amount
   totalTransferableAmount -=
-    totalTransferableAmount * STABLECOIN_PAYOUT_FEE_RATE;
+    totalTransferableAmount * STABLECOIN_PAYOUT_FEE_RATE + withdrawalFee;
 
   // Round down to the nearest integer
   totalTransferableAmount = Math.floor(totalTransferableAmount);
-
-  if (totalTransferableAmount <= 0) {
-    console.warn(
-      `Total transferable amount for partner ${partner.email} is less than 0.`,
-    );
-    return;
-  }
 
   const stripeRecipientAccount = await getStripeRecipientAccount(
     partner.stripeRecipientId,
@@ -150,7 +167,7 @@ export const createStablecoinPayout = async ({
       },
     });
 
-    await markPayoutsAsProcessed(allPayouts);
+    await markPayoutsAsProcessed(currentInvoicePayouts);
 
     console.warn(
       `Stripe recipient account for partner ${partner.email} is closed.`,
@@ -172,7 +189,7 @@ export const createStablecoinPayout = async ({
       },
     });
 
-    await markPayoutsAsProcessed(allPayouts);
+    await markPayoutsAsProcessed(currentInvoicePayouts);
 
     throw new Error(
       `Stripe recipient account for partner ${partner.email} does not have crypto wallet capabilities.`,
@@ -183,14 +200,11 @@ export const createStablecoinPayout = async ({
     ...new Set(allPayouts.map((p) => p.program.name)),
   ];
 
-  // Find the total amount to transfer to Dub's FA
-  let amountToTransferToFA = 0;
-
-  for (const payout of previouslyProcessedPayouts) {
-    if (payout.method === "connect") {
-      amountToTransferToFA += payout.amount;
-    }
-  }
+  // Transfer the total of previously processed payouts to Dub's FA
+  const amountToTransferToFA = previouslyProcessedPayouts.reduce(
+    (acc, payout) => acc + payout.amount,
+    0,
+  );
 
   if (amountToTransferToFA > 0) {
     await fundFinancialAccount({
@@ -247,17 +261,27 @@ export const createStablecoinPayout = async ({
     return;
   }
 
-  const payout = allPayouts[0];
+  const firstPayout = allPayouts[0];
 
   const emailResponse = await sendEmail({
     variant: "notifications",
     to: partner.email,
-    subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
-    react: PartnerPayoutProcessed({
-      email: partner.email,
-      program: payout.program,
-      payout,
-    }),
+    subject: forceWithdrawal
+      ? `A withdrawal of ${currencyFormatter(amountToTransferToFA)} has been initiated from your Dub account`
+      : `You've received a ${currencyFormatter(firstPayout.amount)} payout from ${firstPayout.program.name}`,
+    react: forceWithdrawal
+      ? PartnerPayoutForceWithdrawal({
+          email: partner.email,
+          payout: {
+            amount: amountToTransferToFA,
+            method: "stablecoin",
+          },
+        })
+      : PartnerPayoutProcessed({
+          email: partner.email,
+          program: firstPayout.program,
+          payout: firstPayout,
+        }),
   });
 
   console.log(

@@ -14,7 +14,7 @@ const schema = z.object({
   bountyId: z.string(),
 });
 
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 25;
 const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
 
 export const uploadBountySubmissionFileAction = authPartnerActionClient
@@ -63,17 +63,6 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
 
     if (bounty.programId !== programId) {
       throw new Error("This bounty is not for this program.");
-    }
-
-    // Validate the partner has not already created a submission for this bounty
-    if (bounty.submissions.length > 0) {
-      const submission = bounty.submissions[0];
-
-      if (submission.status !== "draft") {
-        throw new Error(
-          "You have already created a submission for this bounty.",
-        );
-      }
     }
 
     if (bounty.groups.length > 0) {

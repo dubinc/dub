@@ -5,15 +5,15 @@ import {
   isCaseSensitiveDomain,
 } from "../api/links/case-sensitivity";
 import { conn } from "./connection";
-import { EdgeLinkProps } from "./types";
+import { EdgeLinkProps, EdgeLinkWithWebhooks } from "./types";
 
-export const getLinkViaEdge = async ({
+const getLinkViaEdgeHelper = async ({
   domain,
   key,
 }: {
   domain: string;
   key: string;
-}) => {
+}): Promise<EdgeLinkWithWebhooks | null> => {
   const isCaseSensitive = isCaseSensitiveDomain(domain);
   const keyToQuery = isCaseSensitive
     ? // for case sensitive domains, we need to encode the key
@@ -23,17 +23,55 @@ export const getLinkViaEdge = async ({
       punyEncode(decodeURIComponent(key));
 
   const { rows } =
-    (await conn.execute("SELECT * FROM Link WHERE domain = ? AND `key` = ?", [
-      domain,
-      keyToQuery,
-    ])) || {};
+    (await conn.execute(
+      `SELECT Link.*, LinkWebhook.webhookId
+       FROM Link
+       LEFT JOIN LinkWebhook ON Link.id = LinkWebhook.linkId
+       WHERE Link.domain = ? AND Link.\`key\` = ?`,
+      [domain, keyToQuery],
+    )) || {};
 
-  const link =
-    rows && Array.isArray(rows) && rows.length > 0
-      ? (rows[0] as EdgeLinkProps)
-      : null;
+  if (!rows || !Array.isArray(rows) || rows.length === 0) return null;
 
-  return link
-    ? { ...link, key: decodeKeyIfCaseSensitive({ domain, key }) }
-    : null;
+  const first = rows[0] as EdgeLinkProps & { webhookId: string | null };
+  const { webhookId: _w, ...link } = first;
+  const webhooks = (rows as (EdgeLinkProps & { webhookId: string | null })[])
+    .map((r) => r.webhookId)
+    .filter((id): id is string => id != null)
+    .map((webhookId) => ({ webhookId }));
+
+  return {
+    ...link,
+    key: decodeKeyIfCaseSensitive({ domain, key }),
+    webhooks,
+  };
+};
+
+const inFlightLinkLookups = new Map<
+  string,
+  Promise<Awaited<ReturnType<typeof getLinkViaEdgeHelper>>>
+>();
+
+export const getLinkViaEdge = async ({
+  domain,
+  key,
+}: {
+  domain: string;
+  key: string;
+}): Promise<Awaited<ReturnType<typeof getLinkViaEdgeHelper>>> => {
+  const lookupKey = `${domain}:${key}`;
+  const existingLookup = inFlightLinkLookups.get(lookupKey);
+
+  if (existingLookup) {
+    console.log(`[getLinkViaEdge] ${lookupKey} - Existing lookup found`);
+    return await existingLookup;
+  }
+
+  const lookupPromise = getLinkViaEdgeHelper({ domain, key }).finally(() => {
+    inFlightLinkLookups.delete(lookupKey);
+  });
+
+  inFlightLinkLookups.set(lookupKey, lookupPromise);
+
+  return await lookupPromise;
 };

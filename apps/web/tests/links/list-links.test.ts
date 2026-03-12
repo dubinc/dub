@@ -1,6 +1,11 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { Link } from "@dub/prisma/client";
-import { expect, onTestFinished, test } from "vitest";
+import { beforeAll, describe, expect, onTestFinished, test } from "vitest";
+import {
+  expectNoOverlap,
+  expectSortedByCreatedAt,
+  expectSortedById,
+} from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK } from "../utils/resource";
 
@@ -38,5 +43,198 @@ test("GET /links", async (ctx) => {
     workspaceId,
     shortLink: `https://${domain}/${firstLink.key}`,
     qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,
+  });
+});
+
+describe.concurrent("/links/** - pagination", async () => {
+  const h = new IntegrationHarness();
+  let http: IntegrationHarness["http"];
+  let baseline: Link[];
+  let baselineIds: string[];
+
+  const commonQuery = {
+    pageSize: "5",
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  };
+
+  beforeAll(async () => {
+    ({ http } = await h.init());
+
+    const { status, data } = await http.get<Link[]>({
+      path: "/links",
+      query: { ...commonQuery, pageSize: "25" },
+    });
+
+    expect(status).toEqual(200);
+
+    baseline = data;
+    baselineIds = baseline.map((l) => l.id);
+
+    expectSortedByCreatedAt(baseline);
+  });
+
+  test("Offset pagination works", async () => {
+    const page1 = await http.get<Link[]>({
+      path: "/links",
+      query: { ...commonQuery, page: "1" },
+    });
+    const page2 = await http.get<Link[]>({
+      path: "/links",
+      query: { ...commonQuery, page: "2" },
+    });
+
+    expect(page1.status).toEqual(200);
+    expect(page2.status).toEqual(200);
+
+    expect(page1.data.map((l) => l.id)).toEqual(baselineIds.slice(0, 5));
+    expect(page2.data.map((l) => l.id)).toEqual(baselineIds.slice(5, 10));
+
+    expectNoOverlap(page1.data, page2.data);
+  });
+
+  test("Cursor forward (startingAfter)", async () => {
+    const firstPage = baseline.slice(0, 5);
+    const lastId = firstPage[4].id;
+
+    const { status, data } = await http.get<Link[]>({
+      path: "/links",
+      query: { pageSize: "5", startingAfter: lastId },
+    });
+
+    expect(status).toEqual(200);
+    expect(data).toHaveLength(5);
+    expectSortedById(data, "desc");
+  });
+
+  test("Cursor backward (endingBefore)", async () => {
+    const beforeId = baseline[5].id;
+
+    const { status, data } = await http.get<Link[]>({
+      path: "/links",
+      query: { pageSize: "5", endingBefore: beforeId },
+    });
+
+    expect(status).toEqual(200);
+    expect(data).toHaveLength(5);
+    expectSortedById(data, "desc");
+  });
+
+  test("Rejects both startingAfter and endingBefore", async () => {
+    const { status, data: error } = await http.get({
+      path: "/links",
+      query: {
+        pageSize: "5",
+        startingAfter: baselineIds[0],
+        endingBefore: baselineIds[1],
+      },
+    });
+
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "You cannot use both startingAfter and endingBefore at the same time.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
+  });
+
+  test("Rejects page > MAX_OFFSET_PAGE", async () => {
+    const { status, data: error } = await http.get({
+      path: "/links",
+      query: { page: "1001", pageSize: "10" },
+    });
+
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "Page is too big (cannot be more than 1000), recommend using cursor-based pagination instead.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
+  });
+
+  test("Invalid cursor ID (startingAfter / endingBefore) returns error", async () => {
+    const invalidCursorError = {
+      error: {
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    };
+
+    const { status: statusAfter, data: errorAfter } = await http.get({
+      path: "/links",
+      query: { pageSize: "5", startingAfter: "link_invalid_id_12345" },
+    });
+
+    expect(statusAfter).toEqual(422);
+    expect(errorAfter).toStrictEqual(invalidCursorError);
+
+    const { status: statusBefore, data: errorBefore } = await http.get({
+      path: "/links",
+      query: { pageSize: "5", endingBefore: "link_invalid_id_12345" },
+    });
+
+    expect(statusBefore).toEqual(422);
+    expect(errorBefore).toStrictEqual(invalidCursorError);
+  });
+
+  test("Rejects mixing page with startingAfter / endingBefore", async () => {
+    const mixedPaginationError = {
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "You cannot use both page and startingAfter/endingBefore at the same time. Please use one pagination method.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    };
+
+    const firstPage = baseline.slice(0, 5);
+    const { status: statusAfter, data: errorAfter } = await http.get({
+      path: "/links",
+      query: { page: "2", pageSize: "5", startingAfter: firstPage[4].id },
+    });
+
+    expect(statusAfter).toEqual(422);
+    expect(errorAfter).toStrictEqual(mixedPaginationError);
+
+    const { status: statusBefore, data: errorBefore } = await http.get({
+      path: "/links",
+      query: { page: "2", pageSize: "5", endingBefore: baseline[5].id },
+    });
+
+    expect(statusBefore).toEqual(422);
+    expect(errorBefore).toStrictEqual(mixedPaginationError);
+  });
+
+  test("Rejects cursor pagination with unsupported sort field", async () => {
+    const { status, data: error } = await http.get({
+      path: "/links",
+      query: {
+        pageSize: "5",
+        startingAfter: baseline[0].id,
+        sortBy: "clicks",
+      },
+    });
+
+    expect(status).toEqual(422);
+    expect(error).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "Cursor-based pagination only supports sorting by `createdAt`. Use offset-based pagination (page/pageSize) for other sort fields.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
   });
 });

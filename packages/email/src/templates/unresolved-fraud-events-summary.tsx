@@ -110,14 +110,14 @@ export default function UnresolvedFraudEventsSummary({
                     <Column className="px-3 py-3" valign="middle">
                       <Row>
                         <Column width="32" valign="middle">
-                            <Img
-                              src={
-                                group.partner.image ||
-                                `${OG_AVATAR_URL}${group.partner.name}`
-                              }
-                              width={32}
-                              height={32}
-                              alt={group.partner.name}
+                          <Img
+                            src={
+                              group.partner.image ||
+                              `${OG_AVATAR_URL}${group.partner.name}`
+                            }
+                            width={32}
+                            height={32}
+                            alt={group.partner.name}
                             className="rounded-full"
                           />
                         </Column>

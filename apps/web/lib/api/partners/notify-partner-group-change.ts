@@ -1,6 +1,6 @@
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import type PartnerGroupChanged from "@dub/email/templates/partner-group-changed";
-import { getPartnerInviteRewardsAndBounties } from "./get-partner-invite-rewards-and-bounties";
+import { getGroupRewardsAndBounties } from "./get-group-rewards-and-bounties";
 import { getPartnerUsers } from "./get-partner-users";
 
 interface NotifyPartnerGroupChangeParams {
@@ -27,7 +27,7 @@ export async function notifyPartnerGroupChange({
     },
     partnerUsers,
   ] = await Promise.all([
-    getPartnerInviteRewardsAndBounties({
+    getGroupRewardsAndBounties({
       programId,
       groupId,
     }),

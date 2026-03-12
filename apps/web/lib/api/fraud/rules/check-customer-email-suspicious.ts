@@ -1,5 +1,5 @@
 import { FraudEventContext } from "@/lib/types";
-import { redisWithTimeout } from "@/lib/upstash/redis";
+import { redis } from "@/lib/upstash/redis";
 import { defineFraudRule } from "../define-fraud-rule";
 
 export const checkCustomerEmailSuspicious = defineFraudRule({
@@ -23,7 +23,7 @@ export const checkCustomerEmailSuspicious = defineFraudRule({
     const domain = emailParts[1].toLowerCase().trim();
 
     try {
-      const isDisposable = await redisWithTimeout.sismember(
+      const isDisposable = await redis.sismember(
         "disposableEmailDomains",
         domain,
       );

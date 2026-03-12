@@ -85,7 +85,7 @@ function OnboardingButtonInner({
             },
             {
               display: "Set up conversion tracking",
-              cta: `/${slug}/settings/analytics`,
+              cta: `/${slug}/settings/tracking`,
               checked:
                 connectedAnalytics || (customersCount && customersCount > 0),
               recommended: true,
