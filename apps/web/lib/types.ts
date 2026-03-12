@@ -81,12 +81,12 @@ import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
-import { GroupBountySummarySchema } from "./zod/schemas/group-bounties";
 import {
   fraudGroupSchema,
   fraudRuleSchema,
   updateFraudRuleSettingsSchema,
 } from "./zod/schemas/fraud";
+import { GroupBountySummarySchema } from "./zod/schemas/group-bounties";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
   additionalPartnerLinkSchemaOptionalPath,
@@ -248,7 +248,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
 
-export type PartnerBetaFeatures = "postbacks" | "stablecoin";
+export type PartnerBetaFeatures = "postbacks";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
