@@ -6,7 +6,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "customerEmailMatch",
     name: "Matching customer email",
     description:
-      "Partner's email matches a customer's email, shares the same email domain, or the customer's domain matches a previously referred customer.",
+      "Customer's email matches the partner's email or a previously referred customer by the same partner.",
     scope: "conversionEvent",
     configurable: true,
   },
