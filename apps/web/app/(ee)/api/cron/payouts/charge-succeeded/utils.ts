@@ -83,7 +83,7 @@ export async function scheduleDelayedStablecoinPayouts(invoice: {
     const scheduledAt = new Date(scheduleTimeMs);
 
     console.log(
-      `Balance transaction will be available at ${scheduledAt.toISOString()}. Scheduling Stablecoin payouts...`,
+      `Scheduled delayed stablecoin payout for invoice ${invoice.id} at ${scheduledAt.toISOString()}.`,
       {
         qstashResponse,
       },
