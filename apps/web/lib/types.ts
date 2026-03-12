@@ -250,7 +250,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
 
-export type PartnerBetaFeatures = "postbacks" | "stablecoin";
+export type PartnerBetaFeatures = "postbacks";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
