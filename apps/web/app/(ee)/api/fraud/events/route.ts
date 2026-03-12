@@ -14,8 +14,11 @@ import * as z from "zod/v4";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { page, pageSize, ...queryParams } =
-      fraudEventQuerySchema.parse(searchParams);
+    const {
+      page = 1,
+      pageSize,
+      ...queryParams
+    } = fraudEventQuerySchema.parse(searchParams);
 
     let where: Prisma.FraudEventWhereInput = {};
     let eventGroupType: FraudRuleType | undefined;

@@ -1,4 +1,5 @@
 import useGroup from "@/lib/swr/use-group";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyListProps,
@@ -17,6 +18,7 @@ import {
   Globe,
   Heart,
   OfficeBuilding,
+  TimestampTooltip,
   Trophy,
 } from "@dub/ui";
 import {
@@ -25,6 +27,7 @@ import {
   capitalize,
   fetcher,
   formatDate,
+  formatDateTimeSmart,
   timeAgo,
 } from "@dub/utils";
 import Link from "next/link";
@@ -41,6 +44,10 @@ import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
+import {
+  getPayoutMethodIconConfig,
+  getPayoutMethodLabel,
+} from "./payouts/payout-method-config";
 import { ProgramRewardList } from "./program-reward-list";
 import { TrustedPartnerBadge } from "./trusted-partner-badge";
 
@@ -79,8 +86,16 @@ export function PartnerInfoCards({
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
+  const { program } = useProgram();
+
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
+
+  const showPayoutMethodField =
+    isEnrolled &&
+    program?.payoutMode !== "external" &&
+    partner?.payoutsEnabledAt != null &&
+    partner?.defaultPayoutMethod != null;
 
   const {
     partnerGroupHistorySheet,
@@ -154,6 +169,35 @@ export function PartnerInfoCards({
           ? `${partner.status === "approved" ? "Partner since" : "Applied"} ${formatDate(partner.createdAt)}`
           : undefined,
       },
+      ...(showPayoutMethodField && partner
+        ? (() => {
+            const { Icon: PayoutMethodIcon } = getPayoutMethodIconConfig(
+              partner.defaultPayoutMethod!,
+            );
+            const payoutTimestamp = partner.payoutsEnabledAt!;
+            const PayoutTimestampWrapper = ({
+              children,
+            }: {
+              children: React.ReactNode;
+            }) => (
+              <TimestampTooltip
+                timestamp={payoutTimestamp}
+                rows={["local", "utc", "unix"]}
+                side="left"
+              >
+                {children}
+              </TimestampTooltip>
+            );
+            return [
+              {
+                id: "payoutMethod" as const,
+                icon: <PayoutMethodIcon className="size-3.5 shrink-0" />,
+                text: `${getPayoutMethodLabel(partner.defaultPayoutMethod!)} connected ${formatDateTimeSmart(partner.payoutsEnabledAt!)}`,
+                wrapper: PayoutTimestampWrapper,
+              },
+            ];
+          })()
+        : []),
     ]);
   }
 

@@ -150,6 +150,7 @@ export async function POST(req: Request) {
         react: NewBountyAvailable({
           email: partner.email!,
           bounty: {
+            id: bounty.id,
             name: bounty.name,
             type: bounty.type,
             endsAt: bounty.endsAt,

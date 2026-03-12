@@ -15,7 +15,7 @@ export async function getPartners(filters: PartnerFilters) {
     email,
     tenantId,
     partnerIds,
-    page,
+    page = 1,
     pageSize,
     sortBy,
     sortOrder,

@@ -1,4 +1,4 @@
-import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/constants";
+import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/social-content";
 import { SocialContent } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { PlatformType } from "@dub/prisma/client";

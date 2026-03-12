@@ -14,8 +14,13 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId, status, search, page, pageSize } =
-      getPartnerReferralsQuerySchema.parse(searchParams);
+    const {
+      partnerId,
+      status,
+      search,
+      page = 1,
+      pageSize,
+    } = getPartnerReferralsQuerySchema.parse(searchParams);
 
     const partnerReferrals = await prisma.partnerReferral.findMany({
       where: {

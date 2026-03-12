@@ -3,6 +3,8 @@ import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
+import { DubApiError } from "../errors";
+import { buildPaginationQuery } from "../pagination";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
@@ -23,12 +25,34 @@ export async function getCommissions(filters: CommissionsFilters) {
     end,
     interval,
     timezone,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
     isHoldStatus,
+    startingAfter,
+    endingBefore,
   } = filters;
+
+  const paginationQuery = buildPaginationQuery(filters);
+
+  // Validate the provided cursor ID
+  const cursorId = startingAfter || endingBefore;
+
+  if (cursorId) {
+    const commission = await prisma.commission.findUnique({
+      where: {
+        id: cursorId,
+      },
+      select: {
+        id: true,
+        programId: true,
+      },
+    });
+
+    if (!commission || commission.programId !== programId) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+      });
+    }
+  }
 
   const { startDate, endDate } = getStartEndDates({
     interval,
@@ -87,8 +111,6 @@ export async function getCommissions(filters: CommissionsFilters) {
       partner: true,
       programEnrollment: true,
     },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    orderBy: { [sortBy]: sortOrder },
+    ...paginationQuery,
   });
 }
