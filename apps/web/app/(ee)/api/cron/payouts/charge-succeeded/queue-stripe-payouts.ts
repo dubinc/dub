@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
+import { Invoice, PartnerPayoutMethod } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -17,6 +17,7 @@ export async function queueStripePayouts(
     Invoice,
     "id" | "paymentMethod" | "stripeChargeMetadata" | "payoutMode"
   >,
+  skipStablecoinPayouts: boolean,
 ) {
   // All payouts are processed externally, hence no need to queue Stripe payouts
   if (invoice.payoutMode === "external") {
@@ -50,7 +51,10 @@ export async function queueStripePayouts(
       status: "processing",
       mode: "internal",
       method: {
-        in: ["connect", "stablecoin"],
+        in: [
+          PartnerPayoutMethod.connect,
+          ...(!skipStablecoinPayouts ? [PartnerPayoutMethod.stablecoin] : []),
+        ],
       },
       partner: {
         OR: [
