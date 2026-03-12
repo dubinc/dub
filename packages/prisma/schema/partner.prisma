@@ -81,6 +81,7 @@ model Partner {
   @@index(discoverableAt)
   @@index(trustedAt)
   @@index(payoutMethodHash)
+  @@index(cryptoWalletAddress)
   @@fulltext([email, name, companyName]) // For full-text search
 }
 
