@@ -1,7 +1,11 @@
+import { extractEmailDomain } from "@/lib/api/fraud/utils";
 import { Customer, TrackLeadResponse } from "@/lib/types";
-import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
+import {
+  CustomerEmailMatchType,
+  fraudEventSchemas,
+} from "@/lib/zod/schemas/fraud";
 import { FraudRuleType } from "@dub/prisma/client";
-import { randomCustomer, retry } from "tests/utils/helpers";
+import { randomCustomer, randomId, retry } from "tests/utils/helpers";
 import { HttpClient } from "tests/utils/http";
 import {
   E2E_FRAUD_PARTNER,
@@ -16,7 +20,7 @@ describe.concurrent("/fraud/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
-  test("FraudRuleType = customerEmailMatch", async () => {
+  test("FraudRuleType = customerEmailMatch (exact match)", async () => {
     const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
 
     // Track a click
@@ -55,6 +59,104 @@ describe.concurrent("/fraud/**", async () => {
       http,
       customer,
       ruleType: "customerEmailMatch",
+      metadata: {
+        matchType: CustomerEmailMatchType.EXACT,
+      },
+    });
+  });
+
+  test("FraudRuleType = customerEmailMatch (domain match)", async () => {
+    const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
+
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: { ...E2E_TRACK_CLICK_HEADERS },
+      body: { domain: clickLink.domain, key: clickLink.key },
+    });
+
+    const partnerEmailDomain = extractEmailDomain(E2E_FRAUD_PARTNER.email)!;
+
+    const customer = randomCustomer({
+      emailDomain: partnerEmailDomain,
+    });
+
+    await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        eventName: "Signup",
+        clickId: clickResponse.data.clickId,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      },
+    });
+
+    await verifyFraudEvent({
+      http,
+      customer,
+      ruleType: "customerEmailMatch",
+      metadata: {
+        matchType: CustomerEmailMatchType.DOMAIN_MATCH,
+      },
+    });
+  });
+
+  test("FraudRuleType = customerEmailMatch (historical domain match)", async () => {
+    const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
+    const historicalDomain = `e2e-fraud-historical+${randomId(5)}.com`;
+
+    const click1 = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: { ...E2E_TRACK_CLICK_HEADERS },
+      body: { domain: clickLink.domain, key: clickLink.key },
+    });
+
+    const customer1 = randomCustomer({
+      emailDomain: historicalDomain,
+    });
+
+    await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        eventName: "Signup",
+        clickId: click1.data.clickId,
+        customerId: customer1.externalId,
+        customerName: customer1.name,
+        customerEmail: customer1.email,
+        customerAvatar: customer1.avatar,
+      },
+    });
+
+    const click2 = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: { ...E2E_TRACK_CLICK_HEADERS },
+      body: { domain: clickLink.domain, key: clickLink.key },
+    });
+
+    const customer2 = randomCustomer({
+      emailDomain: historicalDomain,
+    });
+
+    await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        eventName: "Signup",
+        clickId: click2.data.clickId,
+        customerId: customer2.externalId,
+        customerName: customer2.name,
+        customerEmail: customer2.email,
+        customerAvatar: customer2.avatar,
+      },
+    });
+
+    await verifyFraudEvent({
+      http,
+      customer: customer2,
+      ruleType: "customerEmailMatch",
+      metadata: {
+        matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
+      },
     });
   });
 
@@ -134,6 +236,9 @@ describe.concurrent("/fraud/**", async () => {
       http,
       customer,
       ruleType: "referralSourceBanned",
+      metadata: {
+        source: E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
+      },
     });
   });
 
@@ -174,6 +279,10 @@ describe.concurrent("/fraud/**", async () => {
       http,
       customer,
       ruleType: "paidTrafficDetected",
+      metadata: {
+        source: "google",
+        url: "https://dub.co/paid-traffic?gclid=1234567890&gad_source=1",
+      },
     });
   });
 });
@@ -182,10 +291,12 @@ const verifyFraudEvent = async ({
   http,
   customer,
   ruleType,
+  metadata,
 }: {
   http: HttpClient;
   customer: Pick<Customer, "externalId">;
   ruleType: FraudRuleType;
+  metadata?: Record<string, unknown>;
 }) => {
   // Resolve customerId from customerExternalID
   const { data: customers } = await http.get<Customer[]>({
@@ -204,23 +315,13 @@ const verifyFraudEvent = async ({
 
   // Assert fraud event shape
   expect(fraudEvent).toStrictEqual({
+    metadata,
     createdAt: expect.any(String),
     customer: expect.objectContaining({
       id: customers[0].id,
       name: customers[0].name,
       email: customers[0].email,
       avatar: customers[0].avatar,
-    }),
-    ...(ruleType === "paidTrafficDetected" && {
-      metadata: {
-        source: "google",
-        url: "https://dub.co/paid-traffic?gclid=1234567890&gad_source=1",
-      },
-    }),
-    ...(ruleType === "referralSourceBanned" && {
-      metadata: {
-        source: E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
-      },
     }),
   });
 };
