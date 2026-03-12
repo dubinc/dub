@@ -12,7 +12,6 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
-import { ProgramEligibilityCard } from "@/ui/partners/program-eligibility-card";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -224,7 +223,6 @@ export default function ProgramPageClient() {
                     <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
                   )}
                 </div>
-                <ProgramEligibilityCard />
               </div>
             </motion.div>
           )}

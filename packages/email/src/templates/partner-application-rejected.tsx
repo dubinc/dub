@@ -39,7 +39,7 @@ export default function PartnerApplicationRejected({
     <Html>
       <Head />
       <Preview>
-        {program.name} has not approved your application to join their partner
+        {program.name} has rejected your application to join their partner
         program
       </Preview>
       <Tailwind>
@@ -55,8 +55,12 @@ export default function PartnerApplicationRejected({
 
             <Text className="text-sm leading-6 text-neutral-600">
               Your application to join <strong>{program.name}'s</strong> partner
-              program has not been approved. You did not meet the program's
+              program has been rejected. You did not meet the program's
               eligibility requirements.
+            </Text>
+
+            <Text className="text-sm leading-6 text-neutral-600">
+              You will be able to re-apply in 30 days.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">

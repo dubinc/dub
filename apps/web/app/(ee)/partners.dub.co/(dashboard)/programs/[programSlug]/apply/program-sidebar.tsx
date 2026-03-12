@@ -1,7 +1,10 @@
 "use client";
 
+import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
+  ApplicationRequirementsDB,
   DiscountProps,
   GroupBountySummaryProps,
   ProgramProps,
@@ -10,6 +13,7 @@ import {
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
+import { ProgramEligibilityCard } from "@/ui/partners/program-eligibility-card";
 import { BlurImage, Button, CircleCheck, Link4, StatusBadge } from "@dub/ui";
 import { capitalize, cn, OG_AVATAR_URL } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -20,7 +24,8 @@ export function ProgramSidebar({
   applicationRewards,
   applicationDiscount,
 }: {
-  program: Omit<ProgramProps, "referralFormData"> & {
+  program: Omit<ProgramProps, "applicationRequirements"> & {
+    applicationRequirements?: ApplicationRequirementsDB | null;
     group?: {
       id: string;
       bounties?: GroupBountySummaryProps[];
@@ -29,6 +34,7 @@ export function ProgramSidebar({
   applicationRewards: RewardProps[];
   applicationDiscount: DiscountProps | null;
 }) {
+  const { partner } = usePartnerProfile();
   const { programEnrollment } = useProgramEnrollment({
     swrOpts: {
       keepPreviousData: true,
@@ -36,6 +42,19 @@ export function ProgramSidebar({
       revalidateOnFocus: false,
     },
   });
+
+  const { reason } = evaluateApplicationRequirements({
+    applicationRequirements: program.applicationRequirements,
+    context: {
+      country: partner?.country,
+      email: partner?.email,
+    },
+  });
+
+  const requirementsNotMet =
+    reason === "requirementsNotMet"
+      ? "You do not meet the eligibility requirements for this program"
+      : undefined;
 
   const statusBadge = programEnrollment
     ? {
@@ -128,11 +147,23 @@ export function ProgramSidebar({
         />
       </div>
 
+      {program.applicationRequirements &&
+      program.applicationRequirements.length ? (
+        <ProgramEligibilityCard
+          requirements={program.applicationRequirements}
+        />
+      ) : null}
+
       <Button
-        className={cn("mt-8", justApplied && "text-green-600")}
+        className={cn("mt-4", justApplied && "text-green-600")}
         text={buttonText}
         icon={justApplied ? <CircleCheck className="size-4" /> : undefined}
-        disabled={programEnrollment || justApplied ? true : undefined}
+        disabled={
+          !!programEnrollment || justApplied || !!requirementsNotMet
+            ? true
+            : undefined
+        }
+        disabledTooltip={requirementsNotMet}
         onClick={() => setIsApplicationSheetOpen(true)}
       />
     </div>

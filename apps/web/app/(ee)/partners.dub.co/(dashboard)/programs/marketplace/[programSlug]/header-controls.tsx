@@ -73,7 +73,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
 
   const requirementsNotMet =
     reason === "requirementsNotMet"
-      ? "You don't meet the eligibility requirements for this program"
+      ? "You do not meet the eligibility requirements for this program"
       : undefined;
 
   const disabledTooltip: ReactNode =
