@@ -91,39 +91,11 @@ export function PartnerInfoCards({
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
 
-  const showPayoutsEnabled =
-    isEnrolled &&
-    partner &&
-    "payoutsEnabledAt" in partner &&
-    partner !== undefined;
-  const isExternalPayoutEnabled =
-    showPayoutsEnabled &&
-    (() => {
-      switch (program?.payoutMode) {
-        case "external":
-          return true;
-        case "hybrid":
-          return partner?.payoutsEnabledAt === null;
-        case "internal":
-          return false;
-        default:
-          return false;
-      }
-    })();
-  const payoutStatusKey =
-    showPayoutsEnabled && partner
-      ? isExternalPayoutEnabled
-        ? "external"
-        : partner.payoutsEnabledAt
-          ? "enabled"
-          : "disabled"
-      : null;
   const showPayoutMethodField =
     isEnrolled &&
-    partner &&
-    payoutStatusKey === "enabled" &&
-    partner.payoutsEnabledAt &&
-    partner.defaultPayoutMethod;
+    program?.payoutMode !== "external" &&
+    partner?.payoutsEnabledAt != null &&
+    partner?.defaultPayoutMethod != null;
 
   const {
     partnerGroupHistorySheet,

@@ -7,9 +7,7 @@ import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
-import {
-  getPayoutMethodLabel,
-} from "./payouts/payout-method-config";
+import { getPayoutMethodLabel } from "./payouts/payout-method-config";
 
 interface PartnerRowItemProps {
   showPermalink?: boolean;
@@ -50,7 +48,7 @@ const PAYOUT_STATUS_CONFIG = {
   enabled: {
     title: "Payouts enabled",
     description:
-      "This partner has payouts enabled, which means they will be able to receive payouts.",
+      "This partner has connected a payout method, which means they will be able to receive payouts.",
     icon: GreekTemple,
     iconClassName: "border-green-300 bg-green-200 text-green-800",
     indicatorColor: "bg-green-500",
@@ -58,7 +56,7 @@ const PAYOUT_STATUS_CONFIG = {
   disabled: {
     title: "Payouts disabled",
     description:
-      "This partner has not connected a bank account to receive payouts yet, which means they won't be able to receive payouts.",
+      "This partner has not connected a payout method yet, which means they won't be able to receive payouts.",
     icon: CircleMinus,
     iconClassName: "border-red-300 bg-red-200 text-red-800",
     indicatorColor: "bg-red-500",
