@@ -1,55 +1,16 @@
-import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import { Link } from "@dub/prisma/client";
-import { beforeAll, describe, expect, onTestFinished, test } from "vitest";
+import { Customer } from "@/lib/types";
+import { beforeAll, describe, expect, test } from "vitest";
 import {
   expectNoOverlap,
   expectSortedByCreatedAt,
   expectSortedById,
 } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_LINK } from "../utils/resource";
 
-const { domain, url } = E2E_LINK;
-
-test("GET /links", async (ctx) => {
-  const h = new IntegrationHarness(ctx);
-  const { workspace, http, user } = await h.init();
-  const workspaceId = workspace.id;
-  const projectId = normalizeWorkspaceId(workspaceId);
-
-  onTestFinished(async () => {
-    await h.deleteLink(firstLink.id);
-  });
-
-  const { data: firstLink } = await http.post<Link>({
-    path: "/links",
-    body: { url, domain },
-  });
-
-  const { data: links, status } = await http.get<Link[]>({
-    path: "/links",
-  });
-
-  const linkFound = links.find((l) => l.id === firstLink.id);
-
-  expect(status).toEqual(200);
-  expect(links.length).toBeGreaterThanOrEqual(1);
-  expect(linkFound).toStrictEqual({
-    ...firstLink,
-    domain,
-    url,
-    userId: user.id,
-    projectId,
-    workspaceId,
-    shortLink: `https://${domain}/${firstLink.key}`,
-    qrCode: `https://api.dub.co/qr?url=https://${domain}/${firstLink.key}?qr=1`,
-  });
-});
-
-describe.concurrent("/links/** - pagination", async () => {
+describe.concurrent("/customers/** - pagination", async () => {
   const h = new IntegrationHarness();
   let http: IntegrationHarness["http"];
-  let baseline: Link[];
+  let baseline: Customer[];
   let baselineIds: string[];
 
   const commonQuery = {
@@ -61,34 +22,34 @@ describe.concurrent("/links/** - pagination", async () => {
   beforeAll(async () => {
     ({ http } = await h.init());
 
-    const { status, data } = await http.get<Link[]>({
-      path: "/links",
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
       query: { ...commonQuery, pageSize: "25" },
     });
 
     expect(status).toEqual(200);
 
     baseline = data;
-    baselineIds = baseline.map((l) => l.id);
+    baselineIds = baseline.map((c) => c.id);
 
     expectSortedByCreatedAt(baseline);
   });
 
   test("Offset pagination works", async () => {
-    const page1 = await http.get<Link[]>({
-      path: "/links",
+    const page1 = await http.get<Customer[]>({
+      path: "/customers",
       query: { ...commonQuery, page: "1" },
     });
-    const page2 = await http.get<Link[]>({
-      path: "/links",
+    const page2 = await http.get<Customer[]>({
+      path: "/customers",
       query: { ...commonQuery, page: "2" },
     });
 
     expect(page1.status).toEqual(200);
     expect(page2.status).toEqual(200);
 
-    expect(page1.data.map((l) => l.id)).toEqual(baselineIds.slice(0, 5));
-    expect(page2.data.map((l) => l.id)).toEqual(baselineIds.slice(5, 10));
+    expect(page1.data.map((c) => c.id)).toEqual(baselineIds.slice(0, 5));
+    expect(page2.data.map((c) => c.id)).toEqual(baselineIds.slice(5, 10));
 
     expectNoOverlap(page1.data, page2.data);
   });
@@ -97,8 +58,8 @@ describe.concurrent("/links/** - pagination", async () => {
     const firstPage = baseline.slice(0, 5);
     const lastId = firstPage[4].id;
 
-    const { status, data } = await http.get<Link[]>({
-      path: "/links",
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
       query: { pageSize: "5", startingAfter: lastId },
     });
 
@@ -110,8 +71,8 @@ describe.concurrent("/links/** - pagination", async () => {
   test("Cursor backward (endingBefore)", async () => {
     const beforeId = baseline[5].id;
 
-    const { status, data } = await http.get<Link[]>({
-      path: "/links",
+    const { status, data } = await http.get<Customer[]>({
+      path: "/customers",
       query: { pageSize: "5", endingBefore: beforeId },
     });
 
@@ -122,12 +83,8 @@ describe.concurrent("/links/** - pagination", async () => {
 
   test("Rejects both startingAfter and endingBefore", async () => {
     const { status, data: error } = await http.get({
-      path: "/links",
-      query: {
-        pageSize: "5",
-        startingAfter: baselineIds[0],
-        endingBefore: baselineIds[1],
-      },
+      path: "/customers",
+      query: { pageSize: "5", startingAfter: "id", endingBefore: "id" },
     });
 
     expect(status).toEqual(422);
@@ -144,7 +101,7 @@ describe.concurrent("/links/** - pagination", async () => {
 
   test("Rejects page > MAX_OFFSET_PAGE", async () => {
     const { status, data: error } = await http.get({
-      path: "/links",
+      path: "/customers",
       query: { page: "1001", pageSize: "10" },
     });
 
@@ -171,16 +128,16 @@ describe.concurrent("/links/** - pagination", async () => {
     };
 
     const { status: statusAfter, data: errorAfter } = await http.get({
-      path: "/links",
-      query: { pageSize: "5", startingAfter: "link_invalid_id_12345" },
+      path: "/customers",
+      query: { pageSize: "5", startingAfter: "cus_invalid_id_12345" },
     });
 
     expect(statusAfter).toEqual(422);
     expect(errorAfter).toStrictEqual(invalidCursorError);
 
     const { status: statusBefore, data: errorBefore } = await http.get({
-      path: "/links",
-      query: { pageSize: "5", endingBefore: "link_invalid_id_12345" },
+      path: "/customers",
+      query: { pageSize: "5", endingBefore: "cus_invalid_id_12345" },
     });
 
     expect(statusBefore).toEqual(422);
@@ -200,7 +157,7 @@ describe.concurrent("/links/** - pagination", async () => {
 
     const firstPage = baseline.slice(0, 5);
     const { status: statusAfter, data: errorAfter } = await http.get({
-      path: "/links",
+      path: "/customers",
       query: { page: "2", pageSize: "5", startingAfter: firstPage[4].id },
     });
 
@@ -208,7 +165,7 @@ describe.concurrent("/links/** - pagination", async () => {
     expect(errorAfter).toStrictEqual(mixedPaginationError);
 
     const { status: statusBefore, data: errorBefore } = await http.get({
-      path: "/links",
+      path: "/customers",
       query: { page: "2", pageSize: "5", endingBefore: baseline[5].id },
     });
 
@@ -218,11 +175,11 @@ describe.concurrent("/links/** - pagination", async () => {
 
   test("Rejects cursor pagination with unsupported sort field", async () => {
     const { status, data: error } = await http.get({
-      path: "/links",
+      path: "/customers",
       query: {
         pageSize: "5",
         startingAfter: baseline[0].id,
-        sortBy: "clicks",
+        sortBy: "saleAmount",
       },
     });
 
