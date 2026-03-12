@@ -78,46 +78,14 @@ export const PATCH = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const {
-      referralSourceBanned,
-      paidTrafficDetected,
-      customerEmailMatch,
-      customerEmailSuspiciousDomain,
-      partnerCrossProgramBan,
-      partnerDuplicatePayoutMethod,
-      partnerFraudReport,
-    } = updateFraudRuleSettingsSchema.parse(await parseRequestBody(req));
+    const parsed = updateFraudRuleSettingsSchema.parse(
+      await parseRequestBody(req),
+    );
 
-    const rulesToUpdate = [
-      {
-        type: FraudRuleType.referralSourceBanned,
-        payload: referralSourceBanned,
-      },
-      {
-        type: FraudRuleType.paidTrafficDetected,
-        payload: paidTrafficDetected,
-      },
-      {
-        type: FraudRuleType.customerEmailMatch,
-        payload: customerEmailMatch,
-      },
-      {
-        type: FraudRuleType.customerEmailSuspiciousDomain,
-        payload: customerEmailSuspiciousDomain,
-      },
-      {
-        type: FraudRuleType.partnerCrossProgramBan,
-        payload: partnerCrossProgramBan,
-      },
-      {
-        type: FraudRuleType.partnerDuplicatePayoutMethod,
-        payload: partnerDuplicatePayoutMethod,
-      },
-      {
-        type: FraudRuleType.partnerFraudReport,
-        payload: partnerFraudReport,
-      },
-    ].filter((r) => r.payload);
+    const rulesToUpdate = CONFIGURABLE_FRAUD_RULES.map(({ type }) => ({
+      type: type as FraudRuleType,
+      payload: parsed[type as keyof typeof parsed],
+    })).filter((r) => r.payload);
 
     for (const { type, payload } of rulesToUpdate) {
       if (!payload) continue;

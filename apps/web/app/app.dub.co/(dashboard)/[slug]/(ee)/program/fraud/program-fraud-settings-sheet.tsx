@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  CONFIGURABLE_FRAUD_RULES,
+  FRAUD_RULES_BY_TYPE,
+} from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -19,13 +23,20 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { FraudCustomerEmailMatchSettings } from "./fraud-customer-email-match-settings";
-import { FraudCustomerEmailSuspiciousDomainSettings } from "./fraud-customer-email-suspicious-domain-settings";
 import { FraudPaidTrafficSettings } from "./fraud-paid-traffic-settings";
-import { FraudPartnerCrossProgramBanSettings } from "./fraud-partner-cross-program-ban-settings";
-import { FraudPartnerDuplicatePayoutMethodSettings } from "./fraud-partner-duplicate-payout-method-settings";
-import { FraudPartnerFraudReportSettings } from "./fraud-partner-fraud-report-settings";
 import { FraudReferralSourceSettings } from "./fraud-referral-source-settings";
+import { FraudRuleToggleSettings } from "./fraud-rule-toggle-settings";
+
+// Rules that have dedicated settings components with complex config UI
+const RULES_WITH_CUSTOM_UI = new Set([
+  "paidTrafficDetected",
+  "referralSourceBanned",
+]);
+
+// Toggle-only rules rendered via the generic FraudRuleToggleSettings component
+const TOGGLE_ONLY_RULES = CONFIGURABLE_FRAUD_RULES.filter(
+  (rule) => !RULES_WITH_CUSTOM_UI.has(rule.type),
+);
 
 interface ProgramFraudSettingsSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -55,21 +66,12 @@ function ProgramFraudSettingsSheetContent({
         enabled: false,
         config: { platforms: [], google: { whitelistedCampaignIds: [] } },
       },
-      customerEmailMatch: {
-        enabled: true,
-      },
-      customerEmailSuspiciousDomain: {
-        enabled: true,
-      },
-      partnerCrossProgramBan: {
-        enabled: true,
-      },
-      partnerDuplicatePayoutMethod: {
-        enabled: true,
-      },
-      partnerFraudReport: {
-        enabled: true,
-      },
+      ...Object.fromEntries(
+        TOGGLE_ONLY_RULES.map((rule) => [
+          rule.type,
+          { enabled: true },
+        ]),
+      ),
     },
   });
 
@@ -81,33 +83,11 @@ function ProgramFraudSettingsSheetContent({
   useEffect(() => {
     if (!fraudRules) return;
 
-    const referralSourceBannedRule = fraudRules.find(
-      (rule) => rule.type === "referralSourceBanned",
-    );
+    const findRule = (type: string) =>
+      fraudRules.find((rule) => rule.type === type);
 
-    const paidTrafficDetectedRule = fraudRules.find(
-      (rule) => rule.type === "paidTrafficDetected",
-    );
-
-    const customerEmailMatchRule = fraudRules.find(
-      (rule) => rule.type === "customerEmailMatch",
-    );
-
-    const customerEmailSuspiciousDomainRule = fraudRules.find(
-      (rule) => rule.type === "customerEmailSuspiciousDomain",
-    );
-
-    const partnerCrossProgramBanRule = fraudRules.find(
-      (rule) => rule.type === "partnerCrossProgramBan",
-    );
-
-    const partnerDuplicatePayoutMethodRule = fraudRules.find(
-      (rule) => rule.type === "partnerDuplicatePayoutMethod",
-    );
-
-    const partnerFraudReportRule = fraudRules.find(
-      (rule) => rule.type === "partnerFraudReport",
-    );
+    const paidTrafficDetectedRule = findRule("paidTrafficDetected");
+    const referralSourceBannedRule = findRule("referralSourceBanned");
 
     const paidTrafficConfig = (paidTrafficDetectedRule?.config ?? {}) as {
       platforms?: PaidTrafficPlatform[];
@@ -129,21 +109,12 @@ function ProgramFraudSettingsSheetContent({
           },
         },
       },
-      customerEmailMatch: {
-        enabled: customerEmailMatchRule?.enabled ?? true,
-      },
-      customerEmailSuspiciousDomain: {
-        enabled: customerEmailSuspiciousDomainRule?.enabled ?? true,
-      },
-      partnerCrossProgramBan: {
-        enabled: partnerCrossProgramBanRule?.enabled ?? true,
-      },
-      partnerDuplicatePayoutMethod: {
-        enabled: partnerDuplicatePayoutMethodRule?.enabled ?? true,
-      },
-      partnerFraudReport: {
-        enabled: partnerFraudReportRule?.enabled ?? true,
-      },
+      ...Object.fromEntries(
+        TOGGLE_ONLY_RULES.map((rule) => [
+          rule.type,
+          { enabled: findRule(rule.type)?.enabled ?? true },
+        ]),
+      ),
     });
   }, [fraudRules, form]);
 
@@ -220,17 +191,15 @@ function ProgramFraudSettingsSheetContent({
             <div className="space-y-4">
               <FraudPaidTrafficSettings isConfigLoading={isLoading} />
               <FraudReferralSourceSettings isConfigLoading={isLoading} />
-              <FraudCustomerEmailMatchSettings isConfigLoading={isLoading} />
-              <FraudCustomerEmailSuspiciousDomainSettings
-                isConfigLoading={isLoading}
-              />
-              <FraudPartnerCrossProgramBanSettings
-                isConfigLoading={isLoading}
-              />
-              <FraudPartnerDuplicatePayoutMethodSettings
-                isConfigLoading={isLoading}
-              />
-              <FraudPartnerFraudReportSettings isConfigLoading={isLoading} />
+              {TOGGLE_ONLY_RULES.map((rule) => (
+                <FraudRuleToggleSettings
+                  key={rule.type}
+                  ruleType={rule.type as keyof UpdateFraudRuleSettings}
+                  title={FRAUD_RULES_BY_TYPE[rule.type].name}
+                  description={FRAUD_RULES_BY_TYPE[rule.type].description}
+                  isConfigLoading={isLoading}
+                />
+              ))}
             </div>
           </div>
 

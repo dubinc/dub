@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  CONFIGURABLE_FRAUD_RULES,
+  FRAUD_RULES_BY_TYPE,
+} from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -11,51 +15,11 @@ import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-export const CONFIGURABLE_RULE_TYPES = [
-  "referralSourceBanned",
-  "paidTrafficDetected",
-  "customerEmailMatch",
-  "customerEmailSuspiciousDomain",
-  "partnerCrossProgramBan",
-  "partnerDuplicatePayoutMethod",
-  "partnerFraudReport",
-] as const;
+const CONFIGURABLE_RULE_TYPES = CONFIGURABLE_FRAUD_RULES.map(
+  (rule) => rule.type,
+);
 
 export type ConfigurableRuleType = (typeof CONFIGURABLE_RULE_TYPES)[number];
-
-const RULE_DETAILS: Record<
-  ConfigurableRuleType,
-  { title: string; description: string }
-> = {
-  referralSourceBanned: {
-    title: "Referral source",
-    description: "Flag specific domains for referral traffic",
-  },
-  paidTrafficDetected: {
-    title: "Paid traffic",
-    description: "Flag paid advertising traffic",
-  },
-  customerEmailMatch: {
-    title: "Matching customer email",
-    description: "Flag when a partner's email matches a customer's email",
-  },
-  customerEmailSuspiciousDomain: {
-    title: "Suspicious customer email domain",
-    description: "Flag customers using disposable or temporary email domains",
-  },
-  partnerCrossProgramBan: {
-    title: "Cross-program ban",
-    description: "Flag partners banned from other Dub programs",
-  },
-  partnerDuplicatePayoutMethod: {
-    title: "Duplicate payout method",
-    description: "Flag partners using a payout method linked to another account",
-  },
-  partnerFraudReport: {
-    title: "Fraud report",
-    description: "Flag partners rejected from other programs for suspected fraud",
-  },
-};
 
 interface DisableFraudRulesModalProps {
   showModal: boolean;
@@ -106,10 +70,10 @@ function DisableFraudRulesModal({
   const handleCancel = () => {
     // Reset resolvePendingEvents to false for rules being disabled
     rulesBeingDisabled.forEach((ruleType) => {
-      const rule = formValues[ruleType];
+      const rule = formValues[ruleType as keyof UpdateFraudRuleSettings];
 
       if (rule) {
-        setValue(ruleType, {
+        setValue(ruleType as keyof UpdateFraudRuleSettings, {
           ...rule,
           resolvePendingEvents: false,
         });
@@ -133,7 +97,8 @@ function DisableFraudRulesModal({
       <div className="px-5 pb-5">
         <div className="space-y-4">
           {rulesBeingDisabled.map((ruleType) => {
-            const { title, description } = RULE_DETAILS[ruleType];
+            const ruleInfo = FRAUD_RULES_BY_TYPE[ruleType];
+            const formKey = ruleType as keyof UpdateFraudRuleSettings;
 
             return (
               <div
@@ -142,10 +107,10 @@ function DisableFraudRulesModal({
               >
                 <div className="p-3">
                   <h4 className="text-sm font-semibold text-neutral-900">
-                    {title}
+                    {ruleInfo.name}
                   </h4>
                   <p className="text-content-subtle mt-0.5 text-xs font-normal tracking-normal">
-                    {description}
+                    {ruleInfo.description}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 p-3">
@@ -154,14 +119,14 @@ function DisableFraudRulesModal({
                     id={ruleType}
                     className="h-4 w-4 rounded border-neutral-300 text-black focus:ring-black"
                     checked={
-                      formValues[ruleType]?.resolvePendingEvents ?? false
+                      formValues[formKey]?.resolvePendingEvents ?? false
                     }
                     disabled={isLoading}
                     onChange={(e) => {
-                      const rule = formValues[ruleType];
+                      const rule = formValues[formKey];
 
                       if (rule) {
-                        setValue(ruleType, {
+                        setValue(formKey, {
                           ...rule,
                           resolvePendingEvents: e.target.checked,
                         });
@@ -217,26 +182,14 @@ export function getRulesBeingDisabled({
   previousFraudRules: FraudRuleProps[] | undefined;
   nextFraudRules: UpdateFraudRuleSettings;
 }): ConfigurableRuleType[] {
-  // Build "previous" map from API
-  const previous = Object.fromEntries(
-    CONFIGURABLE_RULE_TYPES.map((type) => [
-      type,
-      previousFraudRules?.find((r) => r.type === type)?.enabled ?? false,
-    ]),
-  ) as Record<ConfigurableRuleType, boolean>;
+  return CONFIGURABLE_RULE_TYPES.filter((type) => {
+    const wasEnabled =
+      previousFraudRules?.find((r) => r.type === type)?.enabled ?? false;
+    const isEnabled =
+      nextFraudRules[type as keyof UpdateFraudRuleSettings]?.enabled ?? false;
 
-  // Build "next" map from form
-  const next = Object.fromEntries(
-    CONFIGURABLE_RULE_TYPES.map((type) => [
-      type,
-      nextFraudRules[type]?.enabled ?? false,
-    ]),
-  ) as Record<ConfigurableRuleType, boolean>;
-
-  // Detect rule disable transitions
-  return CONFIGURABLE_RULE_TYPES.filter(
-    (type) => previous[type] && !next[type],
-  );
+    return wasEnabled && !isEnabled;
+  });
 }
 
 export function useDisableFraudRulesModal({
