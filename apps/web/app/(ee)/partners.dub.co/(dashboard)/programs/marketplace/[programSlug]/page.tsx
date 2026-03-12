@@ -238,6 +238,7 @@ export default async function MarketplaceProgramPage(props: {
             className="mt-4"
             rewards={program.rewards || []}
             discount={program.discount || null}
+            bounties={program.bounties}
           />
 
           {program.applicationRequirements?.length ? (

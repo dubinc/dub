@@ -147,19 +147,22 @@ export const partnerNotificationTypes = z.enum([
   "connectPayoutReminder",
 ]);
 
+export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
+  commission: PartnerEarningsSchema.pick({
+    id: true,
+    earnings: true,
+    status: true,
+    createdAt: true,
+  })
+    .nullable()
+    .default(null),
+});
+
 export const PartnerBountySchema = BountySchema.omit({
   groups: true,
+  socialMetricsLastSyncedAt: true,
 }).extend({
-  submission: BountySubmissionSchema.extend({
-    commission: PartnerEarningsSchema.pick({
-      id: true,
-      earnings: true,
-      status: true,
-      createdAt: true,
-    })
-      .nullable()
-      .default(null),
-  }).nullable(),
+  submissions: z.array(partnerBountySubmissionSchema),
   performanceCondition: bountyPerformanceConditionSchema
     .nullable()
     .default(null),

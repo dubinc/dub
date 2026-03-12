@@ -32,10 +32,8 @@ import {
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
-import {
-  BOUNTY_SOCIAL_PLATFORMS,
-  BOUNTY_SUBMISSION_REQUIREMENTS,
-} from "./bounty/constants";
+import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
+import { BOUNTY_SOCIAL_PLATFORMS } from "./bounty/social-content";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
@@ -83,6 +81,7 @@ import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
+import { GroupBountySummarySchema } from "./zod/schemas/group-bounties";
 import {
   fraudGroupSchema,
   fraudRuleSchema,
@@ -675,6 +674,7 @@ export type PartnerCommentProps = z.infer<typeof PartnerCommentSchema>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
+export type GroupBountySummaryProps = z.infer<typeof GroupBountySummarySchema>;
 
 export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
 

@@ -3,7 +3,10 @@ import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import {
+  getCursorPaginationQuerySchema,
+  getPaginationQuerySchema,
+} from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
 import { centsSchema, parseDateSchema } from "./utils";
 
@@ -118,13 +121,23 @@ export const getCommissionsQuerySchema = z
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
   })
-  .extend(getPaginationQuerySchema({ pageSize: COMMISSIONS_MAX_PAGE_SIZE }));
+  .extend({
+    ...getCursorPaginationQuerySchema({
+      example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56",
+    }),
+    ...getPaginationQuerySchema({
+      pageSize: COMMISSIONS_MAX_PAGE_SIZE,
+      deprecated: true,
+    }),
+  });
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   page: true,
   pageSize: true,
   sortOrder: true,
   sortBy: true,
+  startingAfter: true,
+  endingBefore: true,
 });
 
 export const createCommissionSchema = z.object({
@@ -291,7 +304,12 @@ export const DEFAULT_COMMISSION_EXPORT_COLUMNS =
   );
 
 export const commissionsExportQuerySchema = getCommissionsQuerySchema
-  .omit({ page: true, pageSize: true })
+  .omit({
+    page: true,
+    pageSize: true,
+    startingAfter: true,
+    endingBefore: true,
+  })
   .extend({
     columns: z
       .string()

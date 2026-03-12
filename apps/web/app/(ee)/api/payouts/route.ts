@@ -26,7 +26,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     invoiceId,
     sortBy,
     sortOrder,
-    page,
+    page = 1,
     pageSize,
   } = payoutsQuerySchema.parse(isHoldStatus ? restSearchParams : searchParams);
 

@@ -1,6 +1,6 @@
 import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
-import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
+import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
@@ -275,7 +275,7 @@ export const { POST } = serve<Payload>(
         data: partnerUsers,
       });
 
-      const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
+      const rewardsAndBounties = await getGroupRewardsAndBounties({
         programId,
         groupId: programEnrollment.groupId || program.defaultGroupId,
       });

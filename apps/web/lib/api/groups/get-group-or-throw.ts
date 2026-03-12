@@ -1,3 +1,4 @@
+import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
@@ -5,10 +6,12 @@ export const getGroupOrThrow = async ({
   programId,
   groupId,
   includeExpandedFields = false,
+  includeBounties = false,
 }: {
   programId: string;
   groupId: string;
   includeExpandedFields?: boolean;
+  includeBounties?: boolean;
 }) => {
   const group = await prisma.partnerGroup.findUnique({
     where: {
@@ -51,6 +54,12 @@ export const getGroupOrThrow = async ({
 
   return {
     ...group,
+    ...(includeBounties && {
+      bounties: await getGroupBountySummaries({
+        programId,
+        groupId: group.id,
+      }),
+    }),
     moveRules: group.workflow?.triggerConditions,
   };
 };

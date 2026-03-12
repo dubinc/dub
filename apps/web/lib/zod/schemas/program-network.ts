@@ -1,6 +1,7 @@
 import { Category, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
+import { GroupBountySummarySchema } from "./group-bounties";
 import { getPaginationQuerySchema } from "./misc";
 import { programLanderSchema } from "./program-lander";
 import { ProgramSchema } from "./programs";
@@ -26,6 +27,7 @@ export const NetworkProgramSchema = ProgramSchema.pick({
 
 export const NetworkProgramExtendedSchema = NetworkProgramSchema.extend({
   landerData: programLanderSchema.nullable(),
+  bounties: z.array(GroupBountySummarySchema).optional(),
 });
 
 export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;

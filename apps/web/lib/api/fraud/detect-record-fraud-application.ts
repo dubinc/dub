@@ -1,4 +1,5 @@
 import { CreateFraudEventInput, PartnerProps, ProgramProps } from "@/lib/types";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType } from "@dub/prisma/client";
 import { FRAUD_RULES_BY_SCOPE } from "./constants";
@@ -6,7 +7,10 @@ import { createFraudEvents } from "./create-fraud-events";
 
 interface FraudApplicationContext {
   program: Pick<ProgramProps, "id">;
-  partner: Pick<PartnerProps, "id"> & { payoutMethodHash: string | null };
+  partner: Pick<PartnerProps, "id"> & {
+    payoutMethodHash: string | null;
+    cryptoWalletAddress: string | null;
+  };
 }
 
 // Detect and record fraud events for the partner when they apply to a program
@@ -57,34 +61,55 @@ export async function detectAndRecordFraudApplication({
     }
   }
 
-  // Check if partner shares the same payout method hash with other partners
+  // Check if partner shares the same payoutMethodHash or cryptoWalletAddress with other partners
   // indicates potential duplicate account fraud
-  if (partner.payoutMethodHash) {
+  const { payoutMethodHash, cryptoWalletAddress } = partner;
+
+  if (payoutMethodHash || cryptoWalletAddress) {
     const duplicatePartners = await prisma.partner.findMany({
       where: {
-        payoutMethodHash: partner.payoutMethodHash,
         programs: {
           some: {
             programId: program.id,
           },
         },
+        OR: [
+          ...(payoutMethodHash ? [{ payoutMethodHash }] : []),
+          ...(cryptoWalletAddress ? [{ cryptoWalletAddress }] : []),
+        ],
       },
       select: {
         id: true,
         payoutMethodHash: true,
+        cryptoWalletAddress: true,
+        programs: {
+          where: {
+            programId: program.id,
+          },
+          select: {
+            status: true,
+          },
+        },
       },
     });
 
     if (duplicatePartners.length > 1) {
       // For each partner, create fraud events pointing to all duplicates
       for (const sourcePartner of duplicatePartners) {
+        const programEnrollment = sourcePartner.programs[0];
+
+        if (INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment?.status)) {
+          continue;
+        }
+
         for (const conflictingPartner of duplicatePartners) {
           fraudEvents.push({
             programId: program.id,
             partnerId: sourcePartner.id,
             type: FraudRuleType.partnerDuplicatePayoutMethod,
             metadata: {
-              payoutMethodHash: partner.payoutMethodHash,
+              ...(payoutMethodHash ? { payoutMethodHash } : {}),
+              ...(cryptoWalletAddress ? { cryptoWalletAddress } : {}),
               duplicatePartnerId: conflictingPartner.id,
             },
           });

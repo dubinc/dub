@@ -21,8 +21,10 @@ export async function detectDuplicatePayoutMethodFraud({
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partner: {
-        ...(payoutMethodHash ? { payoutMethodHash } : {}),
-        ...(cryptoWalletAddress ? { cryptoWalletAddress } : {}),
+        OR: [
+          ...(payoutMethodHash ? [{ payoutMethodHash }] : []),
+          ...(cryptoWalletAddress ? [{ cryptoWalletAddress }] : []),
+        ],
       },
     },
     select: {

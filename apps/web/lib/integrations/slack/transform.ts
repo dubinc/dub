@@ -1,5 +1,5 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
-import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
+import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { APP_DOMAIN, COUNTRIES, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import * as z from "zod/v4";
@@ -446,6 +446,7 @@ const bountyTemplates = ({
     description,
     rewardAmount,
     rewardDescription,
+    submissionRequirements,
     type,
     startsAt,
     endsAt,
@@ -459,6 +460,7 @@ const bountyTemplates = ({
   const formattedReward = getBountyRewardDescription({
     rewardAmount,
     rewardDescription,
+    submissionRequirements,
   });
 
   const hrefToBounty = `${APP_DOMAIN}/program/bounties/${id}`;
