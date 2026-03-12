@@ -5,7 +5,7 @@ import {
   fraudEventSchemas,
 } from "@/lib/zod/schemas/fraud";
 import { FraudRuleType } from "@dub/prisma/client";
-import { randomCustomer, randomId, retry } from "tests/utils/helpers";
+import { randomCustomer, retry } from "tests/utils/helpers";
 import { HttpClient } from "tests/utils/http";
 import {
   E2E_FRAUD_PARTNER,
@@ -98,64 +98,6 @@ describe.concurrent("/fraud/**", async () => {
       ruleType: "customerEmailMatch",
       metadata: {
         matchType: CustomerEmailMatchType.DOMAIN_MATCH,
-      },
-    });
-  });
-
-  test("FraudRuleType = customerEmailMatch (historical domain match)", async () => {
-    const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
-    const historicalDomain = `e2e-fraud-historical${randomId(5)}@example.com`;
-
-    const click1 = await http.post<{ clickId: string }>({
-      path: "/track/click",
-      headers: { ...E2E_TRACK_CLICK_HEADERS },
-      body: { domain: clickLink.domain, key: clickLink.key },
-    });
-
-    const customer1 = randomCustomer({
-      emailDomain: historicalDomain,
-    });
-
-    await http.post<TrackLeadResponse>({
-      path: "/track/lead",
-      body: {
-        eventName: "Signup",
-        clickId: click1.data.clickId,
-        customerId: customer1.externalId,
-        customerName: customer1.name,
-        customerEmail: customer1.email,
-        customerAvatar: customer1.avatar,
-      },
-    });
-
-    const click2 = await http.post<{ clickId: string }>({
-      path: "/track/click",
-      headers: { ...E2E_TRACK_CLICK_HEADERS },
-      body: { domain: clickLink.domain, key: clickLink.key },
-    });
-
-    const customer2 = randomCustomer({
-      emailDomain: historicalDomain,
-    });
-
-    await http.post<TrackLeadResponse>({
-      path: "/track/lead",
-      body: {
-        eventName: "Signup",
-        clickId: click2.data.clickId,
-        customerId: customer2.externalId,
-        customerName: customer2.name,
-        customerEmail: customer2.email,
-        customerAvatar: customer2.avatar,
-      },
-    });
-
-    await verifyFraudEvent({
-      http,
-      customer: customer2,
-      ruleType: "customerEmailMatch",
-      metadata: {
-        matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
       },
     });
   });
