@@ -1,3 +1,4 @@
+import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { prisma } from "@dub/prisma";
 import { Program, Reward } from "@dub/prisma/client";
 import { cache } from "react";
@@ -55,6 +56,11 @@ export const getProgram = cache(
 
     const group = groups[0];
 
+    const bounties = await getGroupBountySummaries({
+      programId: program.id,
+      groupId: group.id,
+    });
+
     const rewards = [group.clickReward, group.leadReward, group.saleReward]
       .filter((r) => r !== null)
       .map((r) => serializeReward(r as Reward));
@@ -63,7 +69,10 @@ export const getProgram = cache(
 
     return {
       ...program,
-      group,
+      group: {
+        ...group,
+        bounties,
+      },
       rewards: rewards as RewardProps[],
       discount: discount as DiscountProps | null,
     };

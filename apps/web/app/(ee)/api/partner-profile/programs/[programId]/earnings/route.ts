@@ -24,7 +24,7 @@ export const GET = withPartnerProfile(
       });
 
     const {
-      page,
+      page = 1,
       pageSize,
       type,
       status,

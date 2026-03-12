@@ -3,6 +3,7 @@ import {
   IndustryInterest,
   MonthlyTraffic,
   PartnerBannedReason,
+  PartnerPayoutMethod,
   PartnerProfileType,
   PlatformType,
   PreferredEarningStructure,
@@ -307,6 +308,12 @@ export const PartnerSchema = z
       .string()
       .nullable()
       .describe("The partner's country (required for tax purposes)."),
+    defaultPayoutMethod: z
+      .enum(PartnerPayoutMethod)
+      .nullable()
+      .describe(
+        "The partner's default payout method. Connect: Bank account payouts via Stripe Connect; Stablecoin: USDC payouts directly to a crypto wallet; PayPal: Payouts via PayPal",
+      ),
     stripeConnectId: z
       .string()
       .nullable()
@@ -380,6 +387,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
+  defaultPayoutMethod: true,
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,

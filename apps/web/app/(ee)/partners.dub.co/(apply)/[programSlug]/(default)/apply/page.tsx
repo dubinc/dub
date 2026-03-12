@@ -62,6 +62,7 @@ export default async function ApplicationPage(props: {
           className="mt-10"
           rewards={program.rewards}
           discount={program.discount}
+          bounties={program.group.bounties}
         />
 
         {/* Application form */}

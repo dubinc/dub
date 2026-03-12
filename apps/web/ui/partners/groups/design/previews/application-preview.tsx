@@ -245,7 +245,11 @@ export function ApplicationPreview({
             {/* Program rewards */}
             <div className="mx-auto mb-1 mt-6 max-w-screen-sm">
               <div className="px-6">
-                <LanderRewards rewards={rewards} discount={discount} />
+                <LanderRewards
+                  rewards={rewards}
+                  discount={discount}
+                  bounties={group.bounties}
+                />
               </div>
             </div>
 

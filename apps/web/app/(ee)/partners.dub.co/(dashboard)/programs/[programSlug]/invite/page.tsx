@@ -1,3 +1,4 @@
+import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getSession } from "@/lib/auth";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
@@ -67,6 +68,11 @@ export default async function ProgramInvitePage(props: {
     .filter((r) => r !== null)
     .map((r) => serializeReward(r as Reward));
 
+  const bounties = await getGroupBountySummaries({
+    programId: program.id,
+    groupId: group.id,
+  });
+
   const landerData = group.landerData
     ? programLanderSchema.parse(group.landerData)
     : null;
@@ -131,6 +137,7 @@ export default async function ProgramInvitePage(props: {
             className="mt-4"
             rewards={rewards}
             discount={discount}
+            bounties={bounties}
           />
 
           {landerData?.blocks && landerData.blocks.length > 0 && (

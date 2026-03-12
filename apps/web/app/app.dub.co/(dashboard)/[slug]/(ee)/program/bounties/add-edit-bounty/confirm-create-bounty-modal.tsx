@@ -1,4 +1,4 @@
-import { getBountyRewardDescription } from "@/lib/bounty/get-bounty-reward-description";
+import { getBountyRewardDescription } from "@/lib/bounty/rewards";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useGroups from "@/lib/swr/use-groups";
 import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
@@ -31,6 +31,7 @@ type ConfirmCreateBountyModalProps = {
     | "endsAt"
     | "rewardAmount"
     | "rewardDescription"
+    | "submissionRequirements"
     | "groups"
   >;
   onConfirm: (data: { sendNotificationEmails: boolean }) => Promise<void>;

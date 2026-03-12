@@ -56,6 +56,7 @@ export default async function ApplyPage(props: {
           className="mt-4"
           rewards={program.rewards}
           discount={program.discount}
+          bounties={program.group.bounties}
         />
 
         {/* Buttons */}
