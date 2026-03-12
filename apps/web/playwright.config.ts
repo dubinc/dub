@@ -9,7 +9,10 @@ export default defineConfig({
   reporter: process.env.CI ? "list" : "html",
   use: {
     baseURL:
-      process.env.PLAYWRIGHT_BASE_URL || "http://partners.localhost:8888",
+      process.env.PLAYWRIGHT_BASE_URL ||
+      (process.env.CI
+        ? "http://partners.localhost:3000"
+        : "http://partners.localhost:8888"),
     trace: "on-first-retry",
     screenshot: "only-on-failure",
   },
@@ -19,4 +22,12 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
+  webServer: process.env.CI
+    ? {
+        command: "pnpm start",
+        port: 3000,
+        reuseExistingServer: false,
+        timeout: 120_000,
+      }
+    : undefined,
 });
