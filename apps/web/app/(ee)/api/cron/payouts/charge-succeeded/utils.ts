@@ -26,32 +26,42 @@ export async function scheduleDelayedStablecoinPayouts(invoice: {
     source: stripeChargeMetadata.id,
   });
 
-  if (balanceTransactions.data.length === 0) {
-    return {
-      nextAction: "skip",
-    };
-  }
-
-  const balanceTransaction = balanceTransactions.data[0];
-
-  console.log(
-    `Found balance transaction for charge invoice ${invoice.id}: ${balanceTransaction.id}`,
-    {
-      available_on: balanceTransaction.available_on,
-    },
-  );
-
-  const availableOnMs = balanceTransaction.available_on * 1000;
   const now = Date.now();
+  let scheduleTimeMs = 0;
 
-  if (availableOnMs <= now) {
-    return {
-      nextAction: "executeNow",
-    };
+  // Balance transaction is not available
+  if (balanceTransactions.data.length === 0) {
+    console.log(
+      `No balance transaction found for charge ${stripeChargeMetadata.id}`,
+    );
+
+    scheduleTimeMs = now + 1 * 60 * 60 * 1000;
   }
 
-  const scheduleTimeMs = availableOnMs + 15 * 60 * 1000; // 15 minutes
+  // Balance transaction is available
+  else {
+    const balanceTransaction = balanceTransactions.data[0];
 
+    console.log(
+      `Found balance transaction for charge invoice ${invoice.id}: ${balanceTransaction.id}`,
+      {
+        available_on: balanceTransaction.available_on,
+      },
+    );
+
+    const availableOnMs = balanceTransaction.available_on * 1000;
+
+    // Funds already available, execute immediately
+    if (availableOnMs <= now) {
+      return {
+        nextAction: "executeNow",
+      };
+    }
+
+    scheduleTimeMs = availableOnMs + 15 * 60 * 1000;
+  }
+
+  // Schedule the QStash job
   const delaySeconds = Math.max(
     0,
     Math.floor((scheduleTimeMs - Date.now()) / 1000),
