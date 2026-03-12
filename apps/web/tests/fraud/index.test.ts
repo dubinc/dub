@@ -315,7 +315,7 @@ const verifyFraudEvent = async ({
 
   // Assert fraud event shape
   expect(fraudEvent).toStrictEqual({
-    metadata,
+    ...(metadata && { metadata }),
     createdAt: expect.any(String),
     customer: expect.objectContaining({
       id: customers[0].id,
