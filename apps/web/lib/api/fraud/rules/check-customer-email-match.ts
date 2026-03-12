@@ -1,7 +1,7 @@
+import { isGenericEmail } from "@/lib/is-generic-email";
 import { FraudEventContext } from "@/lib/types";
 import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
-import { FREE_EMAIL_PROVIDER_DOMAINS } from "../constants";
 import { defineFraudRule } from "../define-fraud-rule";
 import { extractEmailDomain, normalizeEmail } from "../utils";
 
@@ -42,7 +42,7 @@ export const checkCustomerEmailMatch = defineFraudRule({
     }
 
     // Skip domain matching for free email providers
-    if (FREE_EMAIL_PROVIDER_DOMAINS.has(customerEmailDomain)) {
+    if (isGenericEmail(customer.email)) {
       return {
         triggered: false,
       };
