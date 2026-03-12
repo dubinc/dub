@@ -20,7 +20,6 @@ export async function getPartnerPayoutMethods(
 
   const availablePayoutMethods = getPayoutMethodsForCountry({
     country: partner.country,
-    stablecoinEnabled: featureFlags.stablecoin,
   });
 
   const [bankAccount, stripePayoutMethod] = await Promise.all([

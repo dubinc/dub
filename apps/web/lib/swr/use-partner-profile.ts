@@ -34,7 +34,6 @@ export default function usePartnerProfile() {
 
   const availablePayoutMethods = getPayoutMethodsForCountry({
     country: partner?.country,
-    stablecoinEnabled: Boolean(partner?.featureFlags?.stablecoin),
   });
 
   return {
