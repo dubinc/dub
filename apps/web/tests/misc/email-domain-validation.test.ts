@@ -1,4 +1,4 @@
-import { isValidDomainPattern } from "@/lib/partners/check-eligibility-requirements";
+import { isValidDomainPattern } from "@/lib/partners/evaluate-application-requirements";
 import { describe, expect, it } from "vitest";
 
 describe("isValidDomainPattern", () => {
