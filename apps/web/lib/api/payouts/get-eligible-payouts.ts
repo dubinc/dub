@@ -26,7 +26,7 @@ export async function getEligiblePayouts({
   selectedPayoutId,
   excludedPayoutIds,
   pageSize,
-  page,
+  page = 1,
 }: GetEligiblePayoutsProps) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,

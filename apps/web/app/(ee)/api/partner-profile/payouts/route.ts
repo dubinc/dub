@@ -8,8 +8,14 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/payouts - get all payouts for a partner
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { programId, status, sortBy, sortOrder, page, pageSize } =
-    partnerProfilePayoutsQuerySchema.parse(searchParams);
+  const {
+    programId,
+    status,
+    sortBy,
+    sortOrder,
+    page = 1,
+    pageSize,
+  } = partnerProfilePayoutsQuerySchema.parse(searchParams);
 
   const payouts = await prisma.payout.findMany({
     where: {

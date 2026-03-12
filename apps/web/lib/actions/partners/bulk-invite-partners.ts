@@ -3,7 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { bulkCreateLinks } from "@/lib/api/links";
-import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
+import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
@@ -168,7 +168,7 @@ export const bulkInvitePartnersAction = authActionClient
           );
         }
 
-        const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
+        const rewardsAndBounties = await getGroupRewardsAndBounties({
           programId,
           groupId: groupId || program.defaultGroupId,
         });

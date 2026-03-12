@@ -2,7 +2,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
+import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { storage } from "@/lib/storage";
@@ -319,7 +319,7 @@ async function invitePartner({
             slug: program.slug,
             logo: program.logo,
           },
-          ...(await getPartnerInviteRewardsAndBounties({
+          ...(await getGroupRewardsAndBounties({
             programId: program.id,
             groupId: program.defaultGroupId,
           })),

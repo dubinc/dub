@@ -9,6 +9,19 @@ import { openApiErrorResponses } from "../responses";
 export const listCommissions: ZodOpenApiOperationObject = {
   operationId: "listCommissions",
   "x-speakeasy-name-override": "list",
+  "x-speakeasy-pagination": {
+    type: "cursor",
+    inputs: [
+      {
+        name: "startingAfter",
+        in: "parameters",
+        type: "cursor",
+      },
+    ],
+    outputs: {
+      nextCursor: "$[-1].id",
+    },
+  },
   summary: "List all commissions",
   description: "Retrieve a list of commissions for your partner program.",
   requestParams: {

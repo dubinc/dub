@@ -18,6 +18,7 @@ import { Footer } from "../components/footer";
 
 export default function NewBountyAvailable({
   bounty = {
+    id: "bty_xxx",
     name: "Promote Acme at your campus and earn $500",
     type: "performance",
     endsAt: new Date(),
@@ -31,6 +32,7 @@ export default function NewBountyAvailable({
   email = "panic@thedis.co",
 }: {
   bounty: {
+    id: string;
     name: string;
     type: "performance" | "submission";
     endsAt: Date | null;
@@ -90,7 +92,7 @@ export default function NewBountyAvailable({
 
               <Section className="px-6 pb-6 text-center">
                 <Link
-                  href={`https://partners.dub.co/programs/${program.slug}/bounties`}
+                  href={`https://partners.dub.co/programs/${program.slug}/bounties/${bounty.id}`}
                   className="box-border block w-full rounded-md bg-black px-2 py-4 text-center text-sm font-medium leading-none text-white no-underline"
                 >
                   View bounty

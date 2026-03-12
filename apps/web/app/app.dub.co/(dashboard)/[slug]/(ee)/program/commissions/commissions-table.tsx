@@ -362,7 +362,11 @@ export function CommissionsTable() {
       commissions?.length ??
       0,
     loading: isLoading,
-    error: error ? "Failed to load commissions" : undefined,
+    error: error
+      ? error instanceof Error
+        ? error.message
+        : "Failed to load commissions"
+      : undefined,
   });
 
   return (

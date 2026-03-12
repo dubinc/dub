@@ -3,8 +3,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-usage";
-import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
 import { sendEmail } from "@dub/email";
@@ -91,7 +91,7 @@ export const invitePartnerFromNetworkAction = authActionClient
       Promise.allSettled([
         (async () => {
           if (!partner.email) return;
-          const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
+          const rewardsAndBounties = await getGroupRewardsAndBounties({
             programId,
             groupId: enrolledPartner.groupId || program.defaultGroupId,
           });

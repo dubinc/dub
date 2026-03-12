@@ -80,5 +80,12 @@ export function validateBounty({
         message: "maxSubmissions is required when submissionFrequency is set.",
       });
     }
+
+    if (submissionFrequency && !endsAt) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "An end date is required when submissionFrequency is set.",
+      });
+    }
   }
 }

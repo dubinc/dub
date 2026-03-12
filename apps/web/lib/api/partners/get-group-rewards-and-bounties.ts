@@ -1,6 +1,5 @@
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { prisma } from "@dub/prisma";
 import { BountyType, EventType, Reward } from "@dub/prisma/client";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 import { serializeReward } from "./serialize-reward";
@@ -16,62 +15,19 @@ const BOUNTY_ICONS: Record<BountyType, string> = {
   performance: "https://assets.dub.co/email-assets/icons/trophy.png",
 };
 
-export async function getPartnerInviteRewardsAndBounties({
+export async function getGroupRewardsAndBounties({
   programId,
   groupId,
 }: {
   programId: string;
   groupId: string;
 }) {
-  const now = new Date();
-
-  const [group, bounties] = await Promise.all([
-    getGroupOrThrow({
-      programId,
-      groupId,
-      includeExpandedFields: true,
-    }),
-
-    prisma.bounty.findMany({
-      where: {
-        programId,
-        startsAt: {
-          lte: now,
-        },
-        // Check if the bounty is active
-        OR: [
-          {
-            endsAt: null,
-          },
-          {
-            endsAt: {
-              gt: now,
-            },
-          },
-        ],
-        // If bounty has no groups, it's available to all partners
-        // If bounty has groups, only partners in those groups can see it
-        AND: [
-          {
-            OR: [
-              {
-                groups: {
-                  none: {},
-                },
-              },
-              {
-                groups: {
-                  some: {
-                    groupId,
-                  },
-                },
-              },
-            ],
-          },
-        ],
-      },
-    }),
-  ]);
+  const group = await getGroupOrThrow({
+    programId,
+    groupId,
+    includeExpandedFields: true,
+    includeBounties: true,
+  });
 
   return {
     rewards: [
@@ -90,7 +46,7 @@ export async function getPartnerInviteRewardsAndBounties({
           ]
         : []),
     ],
-    bounties: bounties.map((bounty) => ({
+    bounties: (group.bounties ?? []).map((bounty) => ({
       icon: BOUNTY_ICONS[bounty.type],
       label: bounty.name,
     })),
