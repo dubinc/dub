@@ -2,7 +2,7 @@
 
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";

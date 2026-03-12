@@ -3,7 +3,7 @@
 import {
   BOUNTY_SOCIAL_PLATFORM_METRICS_MAP,
   BOUNTY_SOCIAL_PLATFORMS,
-} from "@/lib/bounty/constants";
+} from "@/lib/bounty/social-content";
 import type { BountySocialMetricsIncrementalBonus } from "@/lib/types";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";

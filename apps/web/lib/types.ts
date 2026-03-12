@@ -32,10 +32,8 @@ import {
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
-import {
-  BOUNTY_SOCIAL_PLATFORMS,
-  BOUNTY_SUBMISSION_REQUIREMENTS,
-} from "./bounty/constants";
+import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
+import { BOUNTY_SOCIAL_PLATFORMS } from "./bounty/social-content";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
