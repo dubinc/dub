@@ -181,8 +181,7 @@ export const createProgramApplicationAction = actionClient
 
     // for in-app applications from existing partners, we need to check
     // if the partner has an incomplete profile, if so we prompt them to complete it
-    // TODO: Review this condition; it currently prevents existing partners from applying via the public application form.
-    if (existingPartner) {
+    if (inAppApplication && existingPartner) {
       const { isComplete } = getPartnerProfileChecklistProgress({
         partner: {
           ...existingPartner,
