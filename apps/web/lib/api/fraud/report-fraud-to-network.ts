@@ -12,7 +12,7 @@ export async function reportFraudToNetwork({
   programId,
   partnerIds,
 }: {
-  programId: string;
+  programId: string; // The program that reported the fraud,
   partnerIds: string[];
 }) {
   if (partnerIds.length === 0) {
