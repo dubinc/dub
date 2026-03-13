@@ -1,6 +1,7 @@
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
 import { withCron } from "@/lib/cron/with-cron";
 import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
+import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
@@ -93,6 +94,28 @@ export const POST = withCron(async ({ rawBody }) => {
       return logAndRespond(
         `Partner ${partnerId} has high risk. Skipping auto-approval.`,
       );
+    }
+  }
+
+  const result = evaluateApplicationRequirements({
+    applicationRequirements: program.applicationRequirements,
+    context: {
+      country: programEnrollment.partner.country,
+      email: programEnrollment.partner.email,
+    },
+  });
+
+  if (!result.valid) {
+    switch (result.reason) {
+      case "invalidRequirements":
+        return logAndRespond(
+          `Invalid applicationRequirements for program ${programId}. Skipping auto-approval.`,
+        );
+
+      case "requirementsNotMet":
+        return logAndRespond(
+          `Partner ${partnerId} does not meet eligibility requirements. Skipping auto-approval.`,
+        );
     }
   }
 

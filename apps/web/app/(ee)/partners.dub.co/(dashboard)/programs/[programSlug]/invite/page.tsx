@@ -1,6 +1,6 @@
-import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getSession } from "@/lib/auth";
+import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
