@@ -9,12 +9,13 @@ import {
   ProgramApplicationFormDataWithValues,
   ProgramProps,
 } from "@/lib/types";
+import { trackApplicationEvent } from "@/ui/application-tracker/use-application-tracking";
 import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { CountryCombobox } from "../../../country-combobox";
@@ -130,9 +131,24 @@ export function ProgramApplicationForm({
   const isLoading =
     isSubmitting || isSubmitSuccessful || isPending || hasAnyLoadingStatus;
 
+  // Track application start event
+  const startTrackedRef = useRef(false);
+  const handleStartFill = useCallback(() => {
+    if (preview || startTrackedRef.current) {
+      return;
+    }
+
+    startTrackedRef.current = true;
+
+    trackApplicationEvent({
+      eventName: "start",
+    });
+  }, [preview]);
+
   return (
     <FormProvider {...form}>
       <form
+        onFocusCapture={handleStartFill}
         onSubmit={handleSubmit(async (data) => {
           const result = await executeAsync({
             ...data,
