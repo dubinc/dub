@@ -90,7 +90,6 @@ jobs:
             nextjs-${{ runner.os }}-
 
       - name: Build application
-        working-directory: apps/web
         run: pnpm build
 
       - name: Run Playwright tests
