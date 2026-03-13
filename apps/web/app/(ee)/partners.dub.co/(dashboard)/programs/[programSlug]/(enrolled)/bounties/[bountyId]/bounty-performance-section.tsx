@@ -70,7 +70,10 @@ const ATTRIBUTE_TO_ANALYTICS_FIELD: Partial<
 };
 
 const ATTRIBUTE_TO_EVENT_PARAMS: Partial<
-  Record<PerformanceAttribute, { event: "leads" | "sales"; saleType?: string }>
+  Record<
+    PerformanceAttribute,
+    { event: "leads" | "sales"; saleType?: "new" | "recurring" }
+  >
 > = {
   totalLeads: { event: "leads" },
   totalConversions: { event: "leads", saleType: "new" },
@@ -105,25 +108,42 @@ export function BountyPerformanceSection({
 }
 
 function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
+  const { programEnrollment } = useProgramEnrollment();
   const attribute = bounty.performanceCondition?.attribute as
     | PerformanceAttribute
     | undefined;
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
   const isCommissions = attribute === "totalCommissions";
-  const startDate = useMemo(() => new Date(bounty.startsAt), [bounty.startsAt]);
-  const endDate = useMemo(
+
+  const startDate = useMemo(
     () =>
-      bounty.endsAt
-        ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
-        : new Date(),
+      bounty.performanceScope === "new"
+        ? new Date(bounty.startsAt)
+        : new Date(programEnrollment?.createdAt ?? bounty.startsAt),
+    [bounty.performanceScope, bounty.startsAt, programEnrollment?.createdAt],
+  );
+  const endDate = useMemo(
+    () => (bounty.endsAt ? new Date(bounty.endsAt) : new Date()),
     [bounty.endsAt],
+  );
+
+  const eventParams = attribute
+    ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
+    : undefined;
+
+  const analyticsParams = useMemo(
+    () => ({
+      groupBy: "timeseries" as const,
+      event: "composite" as const,
+      ...(startDate && endDate && { start: startDate, end: endDate }),
+      ...(eventParams?.saleType && { saleType: eventParams.saleType }),
+    }),
+    [startDate, endDate, eventParams?.saleType],
   );
 
   const { data: analyticsTimeseries, error: analyticsError } =
     usePartnerAnalytics({
-      groupBy: "timeseries",
-      event: "composite",
-      ...(startDate && endDate && { start: startDate, end: endDate }),
+      ...analyticsParams,
       enabled: !isCommissions,
     });
 
