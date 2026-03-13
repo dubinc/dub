@@ -1,6 +1,6 @@
 "use client";
 
-import useCommission from "@/lib/swr/use-commission";
+import useCommission, { CommissionDetail } from "@/lib/swr/use-commission";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
@@ -30,6 +30,7 @@ import {
   OG_AVATAR_URL,
   pluralize,
 } from "@dub/utils";
+import { Row } from "@tanstack/react-table";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Fragment } from "react";
@@ -108,7 +109,7 @@ function CommissionDetailsContent({
   const group = groups?.find((g) => g.id === commission.partner.groupId);
   const statusBadge = CommissionStatusBadges[commission.status];
 
-  const itemsTable = useTable<CommissionResponse>({
+  const itemsTable = useTable<CommissionDetail>({
     data: [commission],
     columns: [
       {
@@ -164,7 +165,9 @@ function CommissionDetailsContent({
       {
         id: "menu",
         enableHiding: false,
-        cell: ({ row }) => <CommissionRowMenu row={row} />,
+        cell: ({ row }) => (
+          <CommissionRowMenu row={row as unknown as Row<CommissionResponse>} />
+        ),
       },
     ],
     columnPinning: { right: ["menu"] },
