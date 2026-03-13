@@ -18,13 +18,14 @@ export function ActivityEvent({
   return (
     <div className="flex gap-3">
       <div className="flex flex-col items-center">
-        <div className="flex size-7 shrink-0 items-center justify-center">
+        <div className="flex size-6 shrink-0 items-center justify-center">
           <Icon className="size-[18px] text-neutral-600" />
         </div>
+
         {!isLast && (
           <div
-            className="mt-1 flex-1 border-l border-neutral-300"
-            style={{ borderWidth: "0 0 0 1px" }}
+            className="mt-0.5 border-l border-neutral-300"
+            style={{ height: "10px", width: "1px" }}
           />
         )}
       </div>
