@@ -28,31 +28,46 @@ export const rejectPartnerApplicationAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
+    const programEnrollment = await prisma.$transaction(async (tx) => {
+      const enrollment = await tx.programEnrollment.findUniqueOrThrow({
+        where: {
+          partnerId_programId: {
+            partnerId,
+            programId,
+          },
         },
-      },
-      include: {
-        partner: true,
-      },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
+
+      if (enrollment.status !== "pending") {
+        return null;
+      }
+
+      return await tx.programEnrollment.update({
+        where: {
+          id: enrollment.id,
+          status: "pending",
+        },
+        data: {
+          status: ProgramEnrollmentStatus.rejected,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
+          discountId: null,
+        },
+        include: {
+          partner: true,
+        },
+      });
     });
 
-    await prisma.programEnrollment.update({
-      where: {
-        id: programEnrollment.id,
-        status: "pending",
-      },
-      data: {
-        status: ProgramEnrollmentStatus.rejected,
-        clickRewardId: null,
-        leadRewardId: null,
-        saleRewardId: null,
-        discountId: null,
-      },
-    });
+    // Don't do anything if the application is no longer pending
+    if (programEnrollment === null) {
+      return;
+    }
 
     waitUntil(
       (async () => {
