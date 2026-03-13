@@ -10,46 +10,13 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import {
+  CommissionDetailSchema,
   CommissionEnrichedSchema,
   updateCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
-
-const CommissionDetailSchema = CommissionEnrichedSchema.extend({
-  payoutId: z.string().nullable(),
-  user: z
-    .object({
-      id: z.string(),
-      name: z.string().nullable(),
-      image: z.string().nullable(),
-    })
-    .nullable(),
-  reward: z
-    .object({
-      description: z.string().nullable(),
-      type: z.enum(["percentage", "flat"]),
-      event: z.enum(["click", "lead", "sale"]),
-      amountInCents: z.number().nullable(),
-      amountInPercentage: z.number().nullable(),
-    })
-    .nullable(),
-  payout: z
-    .object({
-      paidAt: z.date().nullable(),
-      initiatedAt: z.date().nullable(),
-      user: z
-        .object({
-          id: z.string(),
-          name: z.string().nullable(),
-          image: z.string().nullable(),
-        })
-        .nullable(),
-    })
-    .nullable(),
-});
 
 // GET /api/commissions/:commissionId - get a single commission by ID
 export const GET = withWorkspace(async ({ workspace, params }) => {

@@ -44,6 +44,40 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
   customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
 });
 
+// Schema for the commission detail page (GET /api/commissions/:commissionId)
+export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
+  payoutId: z.string().nullable(),
+  user: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable(),
+      image: z.string().nullable(),
+    })
+    .nullable(),
+  reward: z
+    .object({
+      description: z.string().nullable(),
+      type: z.enum(["percentage", "flat"]),
+      event: z.enum(["click", "lead", "sale"]),
+      amountInCents: z.number().nullable(),
+      amountInPercentage: z.number().nullable(),
+    })
+    .nullable(),
+  payout: z
+    .object({
+      paidAt: z.date().nullable(),
+      initiatedAt: z.date().nullable(),
+      user: z
+        .object({
+          id: z.string(),
+          name: z.string().nullable(),
+          image: z.string().nullable(),
+        })
+        .nullable(),
+    })
+    .nullable(),
+});
+
 // "commission.created" webhook event schema
 export const CommissionWebhookSchema = CommissionSchema.extend({
   partner: WebhookPartnerSchema,

@@ -1,25 +1,26 @@
-import { CommissionResponse } from "@/lib/types";
+"use client";
+
+import { CommissionDetailSchema } from "@/lib/zod/schemas/commissions";
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
+import * as z from "zod/v4";
 import useWorkspace from "./use-workspace";
 
-type CommissionDetail = CommissionResponse & {
-  payoutId: string | null;
-  user: { id: string; name: string | null; image: string | null } | null;
-  reward: {
-    description: string | null;
-    type: "percentage" | "flat";
-    event: "click" | "lead" | "sale";
-    amountInCents: number | null;
-    amountInPercentage: number | null;
-  } | null;
+type CommissionDetail = Omit<
+  z.infer<typeof CommissionDetailSchema>,
+  "createdAt" | "updatedAt" | "payout"
+> & {
+  createdAt: string;
+  updatedAt: string;
   payout: {
     paidAt: string | null;
     initiatedAt: string | null;
     user: { id: string; name: string | null; image: string | null } | null;
   } | null;
 };
+
+export type { CommissionDetail };
 
 export default function useCommission() {
   const { id: workspaceId } = useWorkspace();
