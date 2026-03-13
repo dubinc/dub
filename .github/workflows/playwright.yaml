@@ -8,6 +8,10 @@ on:
       - "packages/**"
       - ".github/workflows/playwright.yaml"
 
+concurrency:
+  group: e2e-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   e2e:
     permissions:
