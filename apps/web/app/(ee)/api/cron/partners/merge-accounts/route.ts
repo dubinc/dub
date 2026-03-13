@@ -251,35 +251,38 @@ export async function POST(req: Request) {
     );
 
     if (existingEnrollments.length > 0) {
-      for (const enrollment of existingEnrollments) {
+      for (const sourceEnrollment of existingEnrollments) {
+        const targetEnrollment = targetPartnerEnrollments.find(
+          ({ programId }) => programId === sourceEnrollment.programId,
+        );
         await prisma.$transaction(async (tx) => {
           // delete old source enrollment
           await tx.programEnrollment.delete({
             where: {
               partnerId_programId: {
                 partnerId: sourcePartnerId,
-                programId: enrollment.programId,
+                programId: sourceEnrollment.programId,
               },
             },
           });
 
-          // update target enrollment
-          if (enrollment.tenantId) {
+          // update target enrollment with source enrollment's tenantId if target enrollment does not have a tenantId
+          if (sourceEnrollment.tenantId && !targetEnrollment?.tenantId) {
             await tx.programEnrollment.update({
               where: {
                 partnerId_programId: {
                   partnerId: targetPartnerId,
-                  programId: enrollment.programId,
+                  programId: sourceEnrollment.programId,
                 },
               },
               data: {
-                tenantId: enrollment.tenantId,
+                tenantId: sourceEnrollment.tenantId,
               },
             });
           }
         });
         console.log(
-          `Deleted old source enrollment for program ${enrollment.programId}.${enrollment.tenantId ? ` Since there was a tenantId, we updated the target enrollment with the same tenantId: ${enrollment.tenantId}` : ""}`,
+          `Deleted old source enrollment for program ${sourceEnrollment.programId}.${sourceEnrollment.tenantId ? ` Since there was a tenantId, we updated the target enrollment with the same tenantId: ${sourceEnrollment.tenantId}` : ""}`,
         );
       }
     }
