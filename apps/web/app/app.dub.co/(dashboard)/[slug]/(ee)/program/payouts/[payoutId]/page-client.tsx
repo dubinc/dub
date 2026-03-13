@@ -197,7 +197,10 @@ function PayoutDetailsContent({
         </ConditionalLink>
       ),
 
-      Period: formatPeriod(payout),
+      Period: formatPeriod({
+        periodStart: payout.periodStart ? new Date(payout.periodStart) : null,
+        periodEnd: payout.periodEnd ? new Date(payout.periodEnd) : null,
+      }),
 
       Status: (
         <StatusBadge variant={statusBadge.variant} icon={statusBadge.icon}>
