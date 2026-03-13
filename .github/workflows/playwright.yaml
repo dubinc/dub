@@ -15,6 +15,17 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
 
+    env:
+      CI: "true"
+      DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
+      NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
+      NEXTAUTH_URL: "http://partners.localhost:8888"
+      NEXT_PUBLIC_APP_NAME: "Dub"
+      NEXT_PUBLIC_APP_DOMAIN: "dub.co"
+      NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
+      E2E_PARTNER_EMAIL: "e2e-partner@test.local"
+      E2E_PARTNER_PASSWORD: "test-password-123"
+
     services:
       mysql:
         image: mysql:8.0
@@ -46,51 +57,45 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('apps/web/package.json') }}
+
       - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: pnpm --filter web exec playwright install chromium
 
       - name: Generate Prisma client
         working-directory: apps/web
         run: pnpm prisma:generate
-        env:
-          DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
 
       - name: Push database schema
         working-directory: apps/web
         run: pnpm prisma:push
-        env:
-          DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
 
       - name: Seed test data
         working-directory: apps/web
         run: pnpm tsx e2e/seed.ts
-        env:
-          DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/**/*.ts', 'apps/web/**/*.tsx') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            nextjs-${{ runner.os }}-
 
       - name: Build application
         working-directory: apps/web
         run: pnpm build
-        env:
-          DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
-          NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
-          NEXTAUTH_URL: "http://partners.localhost:3000"
-          NEXT_PUBLIC_APP_NAME: "Dub"
-          NEXT_PUBLIC_APP_DOMAIN: "dub.co"
-          NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
 
       - name: Run Playwright tests
         working-directory: apps/web
         run: pnpm test:e2e
-        env:
-          CI: "true"
-          DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
-          NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
-          NEXTAUTH_URL: "http://partners.localhost:3000"
-          NEXT_PUBLIC_APP_NAME: "Dub"
-          NEXT_PUBLIC_APP_DOMAIN: "dub.co"
-          NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
-          E2E_PARTNER_EMAIL: "e2e-partner@test.local"
-          E2E_PARTNER_PASSWORD: "test-password-123"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
