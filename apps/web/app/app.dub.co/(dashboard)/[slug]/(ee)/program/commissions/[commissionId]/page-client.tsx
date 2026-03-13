@@ -5,7 +5,6 @@ import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
-import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -345,11 +344,18 @@ function CommissionDetailsContent({
                 {
                   icon: CommissionStatusBadges["pending"].icon,
                   timestamp: commission.createdAt,
-                  note: commission.reward ? (
-                    <ProgramRewardDescription reward={commission.reward} />
-                  ) : commission.description ? (
-                    commission.description
-                  ) : undefined,
+                  note: commission.reward
+                    ? `Earn ${
+                        commission.reward.type === "percentage"
+                          ? `${commission.reward.amountInPercentage ?? 0}%`
+                          : currencyFormatter(
+                              commission.reward.amountInCents ?? 0,
+                              { trailingZeroDisplay: "stripIfInteger" },
+                            )
+                      } per ${commission.reward.event}`
+                    : commission.description
+                      ? commission.description
+                      : undefined,
                   children: (
                     <>
                       <span className="text-sm text-neutral-700">

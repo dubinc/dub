@@ -312,14 +312,18 @@ function PayoutDetailsContent({
       });
     }
 
-    if (payout.paidAt) {
-      const terminalStatus = (
-        ["completed", "sent", "failed", "canceled"] as const
-      ).find((s) => s === payout.status);
+    const terminalStatuses = [
+      "completed",
+      "sent",
+      "failed",
+      "canceled",
+      "hold",
+    ] as const;
+    const terminalStatus = terminalStatuses.find((s) => s === payout.status);
 
-      if (terminalStatus) {
-        items.push({ status: terminalStatus, timestamp: payout.paidAt });
-      }
+    if (terminalStatus) {
+      const timestamp = payout.paidAt ?? payout.updatedAt;
+      items.push({ status: terminalStatus, timestamp });
     }
 
     return items.reverse();
