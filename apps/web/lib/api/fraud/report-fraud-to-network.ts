@@ -47,15 +47,12 @@ export async function reportFraudToNetwork({
   }
 
   // Filter out programs where the partnerFraudReport rule is disabled
-  if (affectedProgramEnrollments.length > 0) {
-    affectedProgramEnrollments = affectedProgramEnrollments.filter(
-      (enrollment) =>
-        isFraudRuleEnabled({
-          fraudRules: enrollment.program.fraudRules,
-          ruleType: FraudRuleType.partnerFraudReport,
-        }),
-    );
-  }
+  affectedProgramEnrollments = affectedProgramEnrollments.filter((enrollment) =>
+    isFraudRuleEnabled({
+      fraudRules: enrollment.program.fraudRules,
+      ruleType: FraudRuleType.partnerFraudReport,
+    }),
+  );
 
   if (affectedProgramEnrollments.length === 0) {
     return;

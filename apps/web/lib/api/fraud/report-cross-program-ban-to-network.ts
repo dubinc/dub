@@ -44,15 +44,12 @@ export async function reportCrossProgramBanToNetwork({
   }
 
   // Filter out programs where the partnerCrossProgramBan rule is disabled
-  if (affectedProgramEnrollments.length > 0) {
-    affectedProgramEnrollments = affectedProgramEnrollments.filter(
-      (enrollment) =>
-        isFraudRuleEnabled({
-          fraudRules: enrollment.program.fraudRules,
-          ruleType: FraudRuleType.partnerCrossProgramBan,
-        }),
-    );
-  }
+  affectedProgramEnrollments = affectedProgramEnrollments.filter((enrollment) =>
+    isFraudRuleEnabled({
+      fraudRules: enrollment.program.fraudRules,
+      ruleType: FraudRuleType.partnerCrossProgramBan,
+    }),
+  );
 
   if (affectedProgramEnrollments.length === 0) {
     return;

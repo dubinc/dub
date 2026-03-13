@@ -11,7 +11,7 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 const defaultFraudRuleOverrides: Partial<
-  Record<string, { enabled: boolean; config: object }>
+  Record<FraudRuleType, { enabled: boolean; config: object }>
 > = {
   paidTrafficDetected: {
     enabled: true,
