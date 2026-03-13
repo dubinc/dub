@@ -9,6 +9,7 @@ import {
 import {
   Category,
   EventType,
+  FraudRuleType,
   PartnerBannedReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
@@ -220,6 +221,12 @@ export const createProgramApplicationSchema = z.object({
   inAppApplication: z.boolean().optional(),
 });
 
+export const fraudResolutionCommentMetadataSchema = z.object({
+  source: z.literal("fraudResolution"),
+  groupId: z.string(),
+  type: z.enum(FraudRuleType),
+});
+
 export const PartnerCommentSchema = z.object({
   id: z.string(),
   programId: z.string(),
@@ -231,6 +238,7 @@ export const PartnerCommentSchema = z.object({
     image: true,
   }),
   text: z.string(),
+  metadata: z.unknown().nullable().default(null),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

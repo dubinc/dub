@@ -4,6 +4,7 @@ model PartnerComment {
   partnerId String
   userId    String
   text      String   @db.Text
+  metadata  Json?    @db.Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
