@@ -65,15 +65,15 @@ const ATTRIBUTE_TO_ANALYTICS_FIELD: Partial<
   Record<PerformanceAttribute, "leads" | "sales" | "saleAmount">
 > = {
   totalLeads: "leads",
-  totalConversions: "sales",
-  totalSaleAmount: "saleAmount",
+  totalConversions: "leads",
+  totalSaleAmount: "sales",
 };
 
 const ATTRIBUTE_TO_EVENT_PARAMS: Partial<
   Record<PerformanceAttribute, { event: "leads" | "sales"; saleType?: string }>
 > = {
   totalLeads: { event: "leads" },
-  totalConversions: { event: "sales", saleType: "new" },
+  totalConversions: { event: "leads", saleType: "new" },
   totalSaleAmount: { event: "sales" },
 };
 
@@ -302,14 +302,14 @@ function BountyPerformanceEventsTable({
       ? UserPlus
       : CircleDollar;
 
-  const eventParams = attribute
-    ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
-    : undefined;
-
   const { eventsParams, eventCountParams } = useMemo<{
     eventsParams: PartnerAnalyticsFilters | null;
     eventCountParams: PartnerAnalyticsFilters | null;
   }>(() => {
+    const eventParams = attribute
+      ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
+      : undefined;
+
     if (!programSlug || !eventParams) {
       return {
         eventsParams: null,
@@ -325,7 +325,6 @@ function BountyPerformanceEventsTable({
     const endDate = bounty.endsAt ? new Date(bounty.endsAt) : new Date();
 
     const baseParams: PartnerAnalyticsFilters = {
-      event: eventParams.event,
       ...(startDate && { start: startDate }),
       ...(endDate && { end: endDate }),
       ...(eventParams.saleType && { saleType: eventParams.saleType }),
@@ -334,17 +333,21 @@ function BountyPerformanceEventsTable({
     return {
       eventsParams: {
         ...baseParams,
+        event: eventParams.event,
         limit: String(PAGE_SIZE),
         page: String(page),
       },
 
       eventCountParams: {
         ...baseParams,
-        groupBy: "count",
+        event: "composite",
         enabled: true,
       },
     };
-  }, [programSlug, eventParams, page, bounty]);
+  }, [programSlug, page, bounty, attribute, programEnrollment]);
+
+  console.log("eventsParams", eventsParams);
+  console.log("eventCountParams", eventCountParams);
 
   const eventsUrl = useMemo(() => {
     if (!programSlug || !eventsParams) return null;
