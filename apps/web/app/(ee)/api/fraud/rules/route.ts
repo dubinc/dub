@@ -10,6 +10,24 @@ import { FraudRuleType, Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
+const defaultFraudRuleOverrides: Partial<
+  Record<string, { enabled: boolean; config: object }>
+> = {
+  paidTrafficDetected: {
+    enabled: true,
+    config: {
+      platforms: ["google"],
+      google: {
+        whitelistedCampaignIds: [],
+      },
+    },
+  },
+  referralSourceBanned: {
+    enabled: false,
+    config: {},
+  },
+};
+
 // GET /api/fraud/rules
 export const GET = withWorkspace(
   async ({ workspace }) => {
@@ -29,33 +47,14 @@ export const GET = withWorkspace(
     const mergedFraudRules = CONFIGURABLE_FRAUD_RULES.map(({ type }) => {
       const fraudRule = fraudRules.find((f) => f.type === type);
 
-      // Default paidTrafficDetected to enabled with Google platform
-      if (type === "paidTrafficDetected" && !fraudRule) {
-        return {
-          type,
-          enabled: true,
-          config: {
-            platforms: ["google"],
-            google: { whitelistedCampaignIds: [] },
-          },
-        };
-      }
-
+      // If the rule is not found, default it to the expected value
       if (!fraudRule) {
-        // referralSourceBanned requires config to be useful, so default to disabled
-        if (type === "referralSourceBanned") {
-          return {
-            type,
-            enabled: false,
-            config: {},
-          };
-        }
+        const defaults = defaultFraudRuleOverrides[type];
 
-        // All other rules default to enabled
         return {
           type,
-          enabled: true,
-          config: {},
+          enabled: defaults?.enabled ?? true,
+          config: defaults?.config ?? {},
         };
       }
 
@@ -84,7 +83,7 @@ export const PATCH = withWorkspace(
 
     const rulesToUpdate = CONFIGURABLE_FRAUD_RULES.map(({ type }) => ({
       type: type as FraudRuleType,
-      payload: parsed[type as keyof typeof parsed],
+      payload: parsed[type],
     })).filter((r) => r.payload);
 
     for (const { type, payload } of rulesToUpdate) {

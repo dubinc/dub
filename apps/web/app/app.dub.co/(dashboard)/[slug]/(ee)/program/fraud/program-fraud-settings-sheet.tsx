@@ -8,6 +8,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
+  FraudRuleInfo,
   FraudRuleProps,
   PaidTrafficPlatform,
   UpdateFraudRuleSettings,
@@ -35,7 +36,8 @@ const RULES_WITH_CUSTOM_UI = new Set([
 
 // Toggle-only rules rendered via the generic FraudRuleToggleSettings component
 const TOGGLE_ONLY_RULES = CONFIGURABLE_FRAUD_RULES.filter(
-  (rule) => !RULES_WITH_CUSTOM_UI.has(rule.type),
+  (rule): rule is FraudRuleInfo & { type: keyof UpdateFraudRuleSettings } =>
+    !RULES_WITH_CUSTOM_UI.has(rule.type),
 );
 
 interface ProgramFraudSettingsSheetProps {
@@ -67,10 +69,7 @@ function ProgramFraudSettingsSheetContent({
         config: { platforms: [], google: { whitelistedCampaignIds: [] } },
       },
       ...Object.fromEntries(
-        TOGGLE_ONLY_RULES.map((rule) => [
-          rule.type,
-          { enabled: true },
-        ]),
+        TOGGLE_ONLY_RULES.map((rule) => [rule.type, { enabled: true }]),
       ),
     },
   });
@@ -194,7 +193,7 @@ function ProgramFraudSettingsSheetContent({
               {TOGGLE_ONLY_RULES.map((rule) => (
                 <FraudRuleToggleSettings
                   key={rule.type}
-                  ruleType={rule.type as keyof UpdateFraudRuleSettings}
+                  ruleType={rule.type}
                   title={FRAUD_RULES_BY_TYPE[rule.type].name}
                   description={FRAUD_RULES_BY_TYPE[rule.type].description}
                   isConfigLoading={isLoading}
