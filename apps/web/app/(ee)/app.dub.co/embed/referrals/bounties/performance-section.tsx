@@ -94,7 +94,7 @@ export function EmbedBountyPerformanceSection({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <h2 className="text-content-emphasis text-lg font-semibold leading-7 tracking-[-0.36px]">
+        <h2 className="text-content-emphasis text-lg font-semibold">
           Performance
         </h2>
         <div className="border-border-subtle rounded-xl border bg-white p-5">

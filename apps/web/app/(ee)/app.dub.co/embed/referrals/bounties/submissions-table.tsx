@@ -205,7 +205,7 @@ export function EmbedBountySubmissionsTable({
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-content-emphasis text-lg font-semibold leading-7 tracking-[-0.36px]">
+      <h2 className="text-content-emphasis text-lg font-semibold">
         Submissions
       </h2>
       <Table {...tableProps} table={table} />

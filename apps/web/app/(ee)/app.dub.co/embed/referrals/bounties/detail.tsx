@@ -18,11 +18,11 @@ import {
   BountyRewardsTable,
 } from "../../../../partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/bounties/bounty-card";
 import { EmbedBountyPerformanceSection } from "./performance-section";
-import { EmbedBountySubmissionsTable } from "./submissions-table";
 import {
   EmbedBountySubmissionDetail,
   EmbedBountySubmissionForm,
 } from "./submission-form";
+import { EmbedBountySubmissionsTable } from "./submissions-table";
 
 export type EmbedBountyView =
   | { mode: "detail" }
@@ -49,8 +49,6 @@ export function EmbedBountyDetail({
   const hasRewards = bounty.submissions.some((s) => s.commission != null);
 
   const handleSubmissionSuccess = (newSubmission: PartnerBountySubmission) => {
-    // The raw API response has no `commission` field; normalize to null so
-    // downstream components don't crash on undefined.
     const normalized: PartnerBountySubmission = {
       ...newSubmission,
       commission: newSubmission.commission ?? null,
@@ -65,7 +63,7 @@ export function EmbedBountyDetail({
           )
         : [...prev.submissions, normalized];
       const updated = { ...prev, submissions: updatedSubmissions };
-      // Sync the updated bounty up to the parent so it survives view remounts
+
       onBountyUpdate?.(updated);
       return updated;
     });
@@ -117,35 +115,27 @@ export function EmbedBountyDetail({
 
   return (
     <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-      {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4">
-        <div className="flex items-center gap-2.5">
-          <div className="bg-bg-subtle flex size-8 shrink-0 items-center justify-center rounded-lg">
-            <Trophy className="size-4" />
-          </div>
-          <span className="text-content-emphasis text-sm font-semibold">
-            Bounty details
-          </span>
+      <div className="flex items-center justify-between px-4 py-2">
+        <div className="flex items-center gap-2 text-neutral-800">
+          <Trophy className="size-4" />
+
+          <span className="font-semibold">Bounty details</span>
         </div>
         <button
           type="button"
           onClick={onBack}
-          className="border-border-subtle text-content-default hover:bg-bg-muted flex h-8 items-center rounded-lg border px-3 text-sm font-medium transition-colors duration-100"
+          className="border-border-subtle text-content-emphasis hover:bg-bg-muted flex h-8 items-center rounded-lg border px-3 text-sm font-medium transition-colors duration-100"
         >
           Back
         </button>
       </div>
 
-      {/* Header divider */}
       <div className="border-t border-neutral-200" />
 
-      {/* Two-column content */}
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)] lg:divide-x lg:divide-neutral-200">
-        {/* Left col: content */}
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:divide-x lg:divide-neutral-200">
         <div className="flex flex-col gap-6 p-5">
-          {/* Progress */}
           <div className="flex flex-col gap-3">
-            <h2 className="text-content-emphasis text-lg font-semibold leading-7 tracking-[-0.36px]">
+            <h2 className="text-content-emphasis text-lg font-semibold">
               Progress
             </h2>
             <div className="border-border-subtle flex w-full flex-col gap-4 rounded-xl border bg-white px-5 pb-4 pt-6">
@@ -163,7 +153,6 @@ export function EmbedBountyDetail({
             </div>
           </div>
 
-          {/* Performance or submission section */}
           {bounty.type === "performance" ? (
             <EmbedBountyPerformanceSection bounty={bounty} />
           ) : (
@@ -178,7 +167,6 @@ export function EmbedBountyDetail({
             />
           )}
 
-          {/* Info section */}
           <div className="flex flex-col gap-6 text-sm">
             <BountySubmissionRequirements bounty={bounty} />
             <BountyRewardCriteria bounty={bounty} />
@@ -186,26 +174,23 @@ export function EmbedBountyDetail({
           </div>
         </div>
 
-        {/* Right col: bounty info (no card wrapper) */}
         <div className="flex flex-col gap-4 border-t border-neutral-200 p-5 lg:border-t-0">
-          {/* Thumbnail */}
-          <div className="relative flex h-[160px] items-center justify-center overflow-hidden rounded-lg bg-neutral-100">
+          <div className="relative flex h-[132px] items-center justify-center overflow-hidden rounded-lg bg-neutral-100">
             <div className="relative size-full">
               <BountyThumbnailImage bounty={bounty} />
             </div>
             <BountyStatusBadge bounty={bounty} />
           </div>
 
-          {/* Info */}
           <div className="flex flex-col gap-1">
-            <h3 className="text-content-emphasis text-sm font-semibold">
+            <h3 className="text-sm font-semibold text-neutral-900">
               {bounty.name}
             </h3>
+
             <BountyEndDate bounty={bounty} />
             <BountyRewardDescription bounty={bounty} className="font-medium" />
           </div>
 
-          {/* Rewards table */}
           {hasRewards && <BountyRewardsTable bounty={bounty} />}
         </div>
       </div>

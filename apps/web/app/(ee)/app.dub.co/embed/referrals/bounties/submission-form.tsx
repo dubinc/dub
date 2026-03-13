@@ -31,14 +31,11 @@ export function SubmissionCardHeader({
 }) {
   return (
     <>
-      <div className="flex items-center justify-between px-5 py-4">
-        <div className="flex items-center gap-2.5">
-          <div className="bg-bg-subtle flex size-8 shrink-0 items-center justify-center rounded-lg">
-            <Trophy className="size-4" />
-          </div>
-          <span className="text-content-emphasis text-sm font-semibold">
-            {title}
-          </span>
+      <div className="flex items-center justify-between px-4 py-2">
+        <div className="flex items-center gap-2 text-neutral-800">
+          <Trophy className="size-4" />
+
+          <span className="font-semibold">{title}</span>
         </div>
         <div className="flex items-center gap-2">{rightContent}</div>
       </div>

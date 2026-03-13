@@ -115,7 +115,7 @@ export function ReferralsEmbedPageClient({
       ...(showQuickstart ? ["Quickstart"] : []),
       "Earnings",
       ...(group.additionalLinks.length > 0 ? ["Links"] : []),
-      ...(bounties.length > 0 ? ["Bounties"] : []),
+      ...(activeBountiesCount > 0 ? ["Bounties"] : []),
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
         : ["Leaderboard"]),
@@ -127,7 +127,7 @@ export function ReferralsEmbedPageClient({
       group.additionalLinks,
       programEmbedData,
       hasResources,
-      bounties,
+      activeBountiesCount,
     ],
   );
 
