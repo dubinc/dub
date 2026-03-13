@@ -277,10 +277,10 @@ const ChildItem = ({
       </div>
       <div>
         <div className="flex items-center gap-2">
-          <h2 className="text-sm font-medium text-neutral-900">{title}</h2>
+          <h2 className="text-sm font-medium text-neutral-900 dark:text-white/90">{title}</h2>
         </div>
         {description && (
-          <p className="text-sm text-neutral-500">{description}</p>
+          <p className="text-sm text-neutral-500 dark:text-white/70">{description}</p>
         )}
       </div>
     </Link>
