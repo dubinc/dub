@@ -69,6 +69,14 @@ const ATTRIBUTE_TO_ANALYTICS_FIELD: Partial<
   totalSaleAmount: "sales",
 };
 
+const ATTRIBUTE_TO_CHART_FIELD: Partial<
+  Record<PerformanceAttribute, "leads" | "sales" | "saleAmount">
+> = {
+  totalLeads: "leads",
+  totalConversions: "leads",
+  totalSaleAmount: "saleAmount",
+};
+
 const ATTRIBUTE_TO_EVENT_PARAMS: Partial<
   Record<
     PerformanceAttribute,
@@ -180,7 +188,7 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
       return undefined;
     }
 
-    const field = ATTRIBUTE_TO_ANALYTICS_FIELD[attribute];
+    const field = ATTRIBUTE_TO_CHART_FIELD[attribute];
     if (!field || !Array.isArray(analyticsTimeseries)) {
       return [];
     }
