@@ -8,8 +8,6 @@ import {
 import { AnimatedSizeContainer } from "@dub/ui";
 import { CircleCheck, Users2, Xmark } from "@dub/ui/icons";
 import { COUNTRIES } from "@dub/utils";
-import { AnimatePresence, motion } from "motion/react";
-import { useMemo } from "react";
 
 type ConditionKey = EligibilityConditionDB["key"];
 
@@ -284,7 +282,7 @@ export function EligibilityRequirements({
   value: EligibilityCondition[];
   onChange: (conditions: EligibilityCondition[]) => void;
 }) {
-  const hasCondition = useMemo(() => conditions.length > 0, [conditions]);
+  const hasCondition = conditions.length > 0;
 
   const handleAdd = () => {
     if (hasCondition) return;
@@ -304,54 +302,40 @@ export function EligibilityRequirements({
   return (
     <AnimatedSizeContainer
       height
-      transition={{ ease: "easeInOut", duration: 0.2 }}
       className="rounded-[10px] border border-neutral-200 bg-neutral-100"
     >
       <div className="flex flex-col px-2.5 py-3">
-        <AnimatePresence mode="wait" initial={false}>
-          {!hasCondition ? (
-            <motion.button
-              key="empty"
-              type="button"
-              onClick={handleAdd}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: "easeInOut" }}
-              className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-50"
-            >
-              <Users2 className="size-4" />
-              Add condition
-            </motion.button>
-          ) : (
-            <motion.div
-              key="active"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15, ease: "easeInOut" }}
-            >
-              <div className="flex flex-col">
-                <ConditionRow
-                  condition={conditions[0]}
-                  onChange={handleChange}
-                  onRemove={handleRemove}
-                />
-              </div>
+        {!hasCondition ? (
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-white px-2 py-2 text-sm font-medium text-neutral-900 transition-colors hover:bg-neutral-50"
+          >
+            <Users2 className="size-4" />
+            Add condition
+          </button>
+        ) : (
+          <div>
+            <div className="flex flex-col">
+              <ConditionRow
+                condition={conditions[0]}
+                onChange={handleChange}
+                onRemove={handleRemove}
+              />
+            </div>
 
-              <div className="ml-6 h-3 w-px bg-neutral-300" />
+            <div className="ml-6 h-3 w-px bg-neutral-300" />
 
-              <div className="flex items-center gap-2.5 rounded-xl border border-neutral-200 bg-white p-2.5 shadow-sm">
-                <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-                  <CircleCheck className="size-4 text-neutral-600" />
-                </div>
-                <span className="text-sm font-medium text-neutral-700">
-                  Allow partner to apply
-                </span>
+            <div className="flex items-center gap-2.5 rounded-xl border border-neutral-200 bg-white p-2.5 shadow-sm">
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
+                <CircleCheck className="size-4 text-neutral-600" />
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <span className="text-sm font-medium text-neutral-700">
+                Allow partner to apply
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </AnimatedSizeContainer>
   );
