@@ -12,7 +12,7 @@ export function ActivityEvent({
   icon: React.ElementType;
   children: React.ReactNode;
   timestamp: string | Date | null | undefined;
-  note?: string;
+  note?: React.ReactNode;
   isLast?: boolean;
 }) {
   return (
@@ -30,7 +30,7 @@ export function ActivityEvent({
       </div>
 
       <div
-        className={cn("flex min-w-0 flex-1 flex-col gap-1", !isLast && "pb-4")}
+        className={cn("flex min-w-0 flex-1 flex-col gap-2", !isLast && "pb-4")}
       >
         <div className="flex items-center gap-2">
           {children}
@@ -40,7 +40,12 @@ export function ActivityEvent({
             </span>
           )}
         </div>
-        {note && <p className="text-sm text-neutral-500">{note}</p>}
+
+        {note && (
+          <div className="flex h-9 items-center rounded-lg border border-neutral-200 px-3 py-2.5 text-sm text-neutral-800">
+            {note}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -20,7 +20,15 @@ import * as z from "zod/v4";
 
 const CommissionDetailSchema = CommissionEnrichedSchema.extend({
   payoutId: z.string().nullable(),
-  reward: z.object({ description: z.string().nullable() }).nullable(),
+  reward: z
+    .object({
+      description: z.string().nullable(),
+      type: z.enum(["percentage", "flat"]),
+      event: z.enum(["click", "lead", "sale"]),
+      amountInCents: z.number().nullable(),
+      amountInPercentage: z.number().nullable(),
+    })
+    .nullable(),
   payout: z
     .object({
       paidAt: z.date().nullable(),
@@ -51,7 +59,15 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       partner: true,
       programEnrollment: true,
       customer: true,
-      reward: { select: { description: true } },
+      reward: {
+        select: {
+          description: true,
+          type: true,
+          event: true,
+          amountInCents: true,
+          amountInPercentage: true,
+        },
+      },
       payout: {
         select: {
           paidAt: true,
@@ -76,7 +92,14 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     CommissionDetailSchema.parse({
       ...rest,
       payoutId: rest.payoutId ?? null,
-      reward: reward ?? null,
+      reward: reward
+        ? {
+            ...reward,
+            amountInPercentage: reward.amountInPercentage
+              ? Number(reward.amountInPercentage)
+              : null,
+          }
+        : null,
       payout: payout ?? null,
       customer: transformCustomerForCommission(customer),
       partner: {

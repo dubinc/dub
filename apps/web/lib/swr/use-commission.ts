@@ -6,7 +6,13 @@ import useWorkspace from "./use-workspace";
 
 type CommissionDetail = CommissionResponse & {
   payoutId: string | null;
-  reward: { description: string | null } | null;
+  reward: {
+    description: string | null;
+    type: "percentage" | "flat";
+    event: "click" | "lead" | "sale";
+    amountInCents: number | null;
+    amountInPercentage: number | null;
+  } | null;
   payout: {
     paidAt: string | null;
     initiatedAt: string | null;

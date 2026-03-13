@@ -5,6 +5,7 @@ import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -143,17 +144,6 @@ function CommissionDetailsContent({
         maxSize: 150,
         cell: ({ row }) => (
           <CommissionTypeBadge type={row.original.type ?? "sale"} />
-        ),
-      },
-      {
-        id: "product",
-        header: "Product",
-        minSize: 120,
-        size: 160,
-        cell: ({ row }) => (
-          <span className="text-sm text-neutral-600">
-            {row.original.description || "—"}
-          </span>
         ),
       },
       {
@@ -355,7 +345,11 @@ function CommissionDetailsContent({
                 {
                   icon: CommissionStatusBadges["pending"].icon,
                   timestamp: commission.createdAt,
-                  note: commission.reward?.description ?? undefined,
+                  note: commission.reward ? (
+                    <ProgramRewardDescription reward={commission.reward} />
+                  ) : commission.description ? (
+                    commission.description
+                  ) : undefined,
                   children: (
                     <>
                       <span className="text-sm text-neutral-700">
