@@ -60,6 +60,12 @@ export default function PartnerGroupChanged({
   rewards?: { icon: string; label: string }[] | null;
   bounties?: { icon: string; label: string }[] | null;
 }) {
+  const shouldCollapseBounties = (bounties?.length ?? 0) > 2;
+  const visibleBounties = shouldCollapseBounties
+    ? bounties!.slice(0, 2)
+    : bounties;
+  const hiddenBountiesCount = shouldCollapseBounties ? bounties!.length - 2 : 0;
+
   return (
     <Html>
       <Head />
@@ -116,7 +122,7 @@ export default function PartnerGroupChanged({
                     >
                       Eligible Bounties
                     </Text>
-                    {bounties.map((bounty) => (
+                    {visibleBounties?.map((bounty) => (
                       <Row key={bounty.label} className="mb-0 mt-2">
                         <Column className="align-center">
                           <Img src={bounty.icon} height="16" alt="" />
@@ -128,6 +134,11 @@ export default function PartnerGroupChanged({
                         </Column>
                       </Row>
                     ))}
+                    {shouldCollapseBounties && (
+                      <Text className="mb-0 mt-2 inline-block rounded-md bg-neutral-200 px-[6px] py-1 text-xs font-medium text-black">
+                        Plus {hiddenBountiesCount} more
+                      </Text>
+                    )}
                   </>
                 )}
               </Section>
