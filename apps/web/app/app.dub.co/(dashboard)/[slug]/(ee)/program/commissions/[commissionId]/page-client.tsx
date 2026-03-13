@@ -7,13 +7,13 @@ import { CommissionResponse } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CommentCardDisplay } from "@/ui/partners/partner-comments";
-import { ActivityEvent } from "@/ui/partners/activity-event";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import {
   ChevronRight,
@@ -101,8 +101,8 @@ function CommissionDetailsContent({
   const group = groups?.find((g) => g.id === commission.partner.groupId);
   const statusBadge = CommissionStatusBadges[commission.status];
 
-  const itemsTable = useTable({
-    data: [commission] as CommissionResponse[],
+  const itemsTable = useTable<CommissionResponse>({
+    data: [commission],
     columns: [
       {
         id: "item",
@@ -169,7 +169,7 @@ function CommissionDetailsContent({
     resourceName: (p) => `commission${p ? "s" : ""}`,
     loading: false,
     error: undefined,
-  } as any);
+  });
 
   const detailRows: Record<string, React.ReactNode> = {
     Partner: (
