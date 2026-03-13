@@ -3,7 +3,7 @@ import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, ProgramEnrollment } from "@dub/prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
-import { getMergedFraudRules } from "./get-merged-fraud-rules";
+import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
 
 type DetectDuplicatePayoutMethodFraudOptions =
   | { payoutMethodHash: string; cryptoWalletAddress?: never }
@@ -45,15 +45,12 @@ export async function detectDuplicatePayoutMethodFraud({
   }
 
   // Filter out program enrollments where the partnerDuplicatePayoutMethod rule is disabled
-  programEnrollments = programEnrollments.filter((enrollment) => {
-    const mergedFraudRules = getMergedFraudRules(enrollment.program.fraudRules);
-
-    const fraudRule = mergedFraudRules.find(
-      (rule) => rule.type === FraudRuleType.partnerDuplicatePayoutMethod,
-    );
-
-    return fraudRule ? fraudRule.enabled : true;
-  });
+  programEnrollments = programEnrollments.filter((enrollment) =>
+    isFraudRuleEnabled({
+      programRules: enrollment.program.fraudRules,
+      ruleType: FraudRuleType.partnerDuplicatePayoutMethod,
+    }),
+  );
 
   // Group partners by program enrollment
   let partnersByProgram = programEnrollments.reduce((map, e) => {

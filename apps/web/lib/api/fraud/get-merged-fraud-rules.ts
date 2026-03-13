@@ -38,3 +38,16 @@ export function getMergedFraudRules(programRules: FraudRule[]) {
 
   return mergedRules;
 }
+
+export function isFraudRuleEnabled({
+  programRules,
+  ruleType,
+}: {
+  programRules: FraudRule[];
+  ruleType: FraudRuleType;
+}): boolean {
+  const mergedRules = getMergedFraudRules(programRules);
+  const fraudRule = mergedRules.find((r) => r.type === ruleType);
+
+  return fraudRule ? fraudRule.enabled : true;
+}

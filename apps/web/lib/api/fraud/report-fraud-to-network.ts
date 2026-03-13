@@ -1,5 +1,5 @@
 import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
-import { getMergedFraudRules } from "@/lib/api/fraud/get-merged-fraud-rules";
+import { isFraudRuleEnabled } from "@/lib/api/fraud/get-merged-fraud-rules";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType } from "@dub/prisma/client";
@@ -49,17 +49,11 @@ export async function reportFraudToNetwork({
   // Filter out programs where the partnerFraudReport rule is disabled
   if (affectedProgramEnrollments.length > 0) {
     affectedProgramEnrollments = affectedProgramEnrollments.filter(
-      (enrollment) => {
-        const mergedFraudRules = getMergedFraudRules(
-          enrollment.program.fraudRules,
-        );
-
-        const fraudRule = mergedFraudRules.find(
-          (rule) => rule.type === FraudRuleType.partnerFraudReport,
-        );
-
-        return fraudRule ? fraudRule.enabled : true;
-      },
+      (enrollment) =>
+        isFraudRuleEnabled({
+          programRules: enrollment.program.fraudRules,
+          ruleType: FraudRuleType.partnerFraudReport,
+        }),
     );
   }
 

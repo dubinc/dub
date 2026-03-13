@@ -3,7 +3,7 @@ import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType } from "@dub/prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
-import { getMergedFraudRules } from "./get-merged-fraud-rules";
+import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
 
 interface FraudApplicationContext {
   program: Pick<ProgramProps, "id">;
@@ -28,19 +28,14 @@ export async function detectAndRecordFraudApplication({
     },
   });
 
-  const mergedFraudRules = getMergedFraudRules(fraudRules);
-
-  const crossProgramBanRule = mergedFraudRules.find(
-    (rule) => rule.type === FraudRuleType.partnerCrossProgramBan,
-  );
-
-  const duplicatePayoutMethodRule = mergedFraudRules.find(
-    (rule) => rule.type === FraudRuleType.partnerDuplicatePayoutMethod,
-  );
-
   // Check if partner has been banned in other programs
   // indicates cross-program fraud risk
-  if (crossProgramBanRule && crossProgramBanRule.enabled) {
+  if (
+    isFraudRuleEnabled({
+      programRules: fraudRules,
+      ruleType: FraudRuleType.partnerCrossProgramBan,
+    })
+  ) {
     const bannedProgramEnrollments = await prisma.programEnrollment.findMany({
       where: {
         partnerId: partner.id,
@@ -80,7 +75,12 @@ export async function detectAndRecordFraudApplication({
 
   // Check if partner shares the same payoutMethodHash or cryptoWalletAddress with other partners
   // indicates potential duplicate account fraud
-  if (duplicatePayoutMethodRule && duplicatePayoutMethodRule.enabled) {
+  if (
+    isFraudRuleEnabled({
+      programRules: fraudRules,
+      ruleType: FraudRuleType.partnerDuplicatePayoutMethod,
+    })
+  ) {
     const { payoutMethodHash, cryptoWalletAddress } = partner;
 
     if (payoutMethodHash || cryptoWalletAddress) {
