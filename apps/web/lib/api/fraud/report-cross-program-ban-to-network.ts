@@ -14,7 +14,7 @@ export async function reportCrossProgramBanToNetwork({
   bannedAt,
 }: {
   partnerId: string;
-  programId: string;
+  programId: string; // The program that issued the ban
   bannedReason: PartnerBannedReason | null;
   bannedAt: Date | null;
 }) {
