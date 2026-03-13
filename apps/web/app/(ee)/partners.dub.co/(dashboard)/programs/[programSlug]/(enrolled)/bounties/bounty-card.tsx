@@ -23,25 +23,29 @@ export function PartnerBountyCard({
   showFullTitle = false,
   hideFooter = false,
   showRewards = false,
+  onClick,
 }: {
   bounty: PartnerBountyProps;
   showFullTitle?: boolean;
   hideFooter?: boolean;
   showRewards?: boolean;
+  onClick?: () => void;
 }) {
   const { programSlug } = useParams();
   const router = useRouter();
+
+  const handleClick =
+    onClick ??
+    (() => router.push(`/programs/${programSlug}/bounties/${bounty.id}`));
 
   return (
     <div
       role="link"
       tabIndex={0}
-      onClick={() =>
-        router.push(`/programs/${programSlug}/bounties/${bounty.id}`)
-      }
+      onClick={handleClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
-          router.push(`/programs/${programSlug}/bounties/${bounty.id}`);
+          handleClick();
         }
       }}
       className="border-border-subtle group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-white text-left"
@@ -103,11 +107,11 @@ export function BountyRewardsTable({
   className,
 }: {
   bounty: PartnerBountyProps;
-  programSlug: string;
+  programSlug?: string;
   className?: string;
 }) {
   const rewards = bounty.submissions
-    .filter((s) => s.commission !== null)
+    .filter((s) => s.commission != null)
     .map((s) => s.commission!);
 
   const { table, ...tableProps } = useTable({
@@ -151,16 +155,18 @@ export function BountyRewardsTable({
         <h3 className="@3xl/page:text-sm text-lg font-semibold text-neutral-900">
           Rewards
         </h3>
-        <Link
-          href={`/programs/${programSlug}/earnings?type=custom`}
-          onClick={(e) => e.stopPropagation()}
-          className={cn(
-            buttonVariants({ variant: "secondary" }),
-            "border-border-subtle flex h-6 items-center rounded-md border px-2 text-xs",
-          )}
-        >
-          View all
-        </Link>
+        {programSlug && (
+          <Link
+            href={`/programs/${programSlug}/earnings?type=custom`}
+            onClick={(e) => e.stopPropagation()}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "border-border-subtle flex h-6 items-center rounded-md border px-2 text-xs",
+            )}
+          >
+            View all
+          </Link>
+        )}
       </div>
       <Table
         {...tableProps}
@@ -173,7 +179,7 @@ export function BountyRewardsTable({
   );
 }
 
-function BountyEndDate({ bounty }: { bounty: PartnerBountyProps }) {
+export function BountyEndDate({ bounty }: { bounty: PartnerBountyProps }) {
   const isExpired =
     bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
 

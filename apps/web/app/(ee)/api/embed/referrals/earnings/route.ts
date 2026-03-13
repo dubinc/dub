@@ -10,8 +10,12 @@ import * as z from "zod/v4";
 // GET /api/embed/referrals/earnings – get commissions for a partner from an embed token
 export const GET = withReferralsEmbedToken(
   async ({ programEnrollment, searchParams }) => {
-    const { page } = z
-      .object({ page: z.coerce.number().optional().default(1) })
+    const { page, start, end } = z
+      .object({
+        page: z.coerce.number().optional().default(1),
+        start: z.string().optional(),
+        end: z.string().optional(),
+      })
       .parse(searchParams);
 
     const earnings = await prisma.commission.findMany({
@@ -21,6 +25,14 @@ export const GET = withReferralsEmbedToken(
         },
         programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
+        ...(start || end
+          ? {
+              createdAt: {
+                ...(start && { gte: new Date(start) }),
+                ...(end && { lte: new Date(end) }),
+              },
+            }
+          : {}),
       },
       include: {
         customer: {

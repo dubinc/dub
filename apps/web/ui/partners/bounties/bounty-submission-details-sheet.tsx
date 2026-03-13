@@ -44,7 +44,7 @@ interface BountySubmissionDetailsSheetProps {
   onPrevious?: () => void;
 }
 
-function SocialContentPreview({
+export function SocialContentPreview({
   bounty,
   submission,
 }: {
@@ -305,7 +305,7 @@ function SubmissionDetailsView({
   );
 }
 
-function SubmissionRewardTable({
+export function SubmissionRewardTable({
   submission,
 }: {
   submission: PartnerBountySubmission;

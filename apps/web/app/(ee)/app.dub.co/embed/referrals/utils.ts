@@ -3,6 +3,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
+import { PartnerBountySchema } from "@/lib/zod/schemas/partner-profile";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@dub/prisma/client";
@@ -58,10 +59,55 @@ export const getReferralsEmbedData = async (token: string) => {
     leadReward,
     saleReward,
     partnerGroup: group,
+    groupId,
+    totalCommissions,
   } = programEnrollment;
 
+  const partnerLinkStats = aggregatePartnerLinksStats(links);
   const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
-    aggregatePartnerLinksStats(links);
+    partnerLinkStats;
+
+  const now = new Date();
+  const partnerGroupId = groupId || program.defaultGroupId;
+
+  const rawBounties = await prisma.bounty.findMany({
+    where: {
+      programId: program.id,
+      startsAt: { lte: now },
+      AND: [
+        {
+          OR: [
+            { groups: { none: {} } },
+            { groups: { some: { groupId: partnerGroupId } } },
+          ],
+        },
+      ],
+    },
+    include: {
+      workflow: { select: { triggerConditions: true } },
+      submissions: {
+        where: { partnerId },
+        include: {
+          commission: {
+            select: { id: true, earnings: true, status: true, createdAt: true },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  const bounties = z.array(PartnerBountySchema).parse(
+    rawBounties.map((bounty) => ({
+      ...bounty,
+      submission: bounty.submissions?.[0] || null,
+      performanceCondition: bounty.workflow?.triggerConditions?.[0] || null,
+      partner: {
+        ...partnerLinkStats,
+        totalCommissions,
+      },
+    })),
+  );
 
   return {
     program,
@@ -100,5 +146,6 @@ export const getReferralsEmbedData = async (token: string) => {
       linkStructure: group.linkStructure,
       holdingPeriodDays: group.holdingPeriodDays,
     },
+    bounties,
   };
 };

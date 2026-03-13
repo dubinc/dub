@@ -2,7 +2,12 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
-import { DiscountProps, PartnerGroupProps, RewardProps } from "@/lib/types";
+import {
+  DiscountProps,
+  PartnerBountyProps,
+  PartnerGroupProps,
+  RewardProps,
+} from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
@@ -28,6 +33,7 @@ import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
+import { ReferralsEmbedBounties } from "./bounties";
 import { ReferralsEmbedEarnings } from "./earnings";
 import { ReferralsEmbedEarningsSummary } from "./earnings-summary";
 import { ReferralsEmbedFAQ } from "./faq";
@@ -48,6 +54,7 @@ export function ReferralsEmbedPageClient({
   earnings,
   stats,
   group,
+  bounties,
   themeOptions,
   dynamicHeight,
 }: {
@@ -77,6 +84,7 @@ export function ReferralsEmbedPageClient({
     | "linkStructure"
     | "holdingPeriodDays"
   >;
+  bounties: PartnerBountyProps[];
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;
 }) {
@@ -97,18 +105,30 @@ export function ReferralsEmbedPageClient({
     true,
   );
 
+  const activeBountiesCount = useMemo(() => {
+    const now = new Date();
+    return bounties.filter((b) => !b.endsAt || new Date(b.endsAt) > now).length;
+  }, [bounties]);
+
   const tabs = useMemo(
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
       "Earnings",
       ...(group.additionalLinks.length > 0 ? ["Links"] : []),
+      ...(bounties.length > 0 ? ["Bounties"] : []),
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
         : ["Leaderboard"]),
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
     ],
-    [showQuickstart, group.additionalLinks, programEmbedData, hasResources],
+    [
+      showQuickstart,
+      group.additionalLinks,
+      programEmbedData,
+      hasResources,
+      bounties,
+    ],
   );
 
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
@@ -183,7 +203,17 @@ export function ReferralsEmbedPageClient({
             <TabSelect
               options={tabs.map((tab) => ({
                 id: tab,
-                label: tab,
+                label:
+                  tab === "Bounties" ? (
+                    <span className="flex items-center gap-2">
+                      Bounties
+                      <span className="flex h-5 items-center rounded-md bg-blue-600 px-1.5 text-xs font-medium text-blue-50">
+                        {activeBountiesCount}
+                      </span>
+                    </span>
+                  ) : (
+                    tab
+                  ),
               }))}
               selected={selectedTab}
               onSelect={(option) => {
@@ -228,6 +258,8 @@ export function ReferralsEmbedPageClient({
                 <ReferralsEmbedFAQ program={program} reward={rewards[0]} />
               ) : selectedTab === "Resources" ? (
                 <ReferralsEmbedResources resources={resources} />
+              ) : selectedTab === "Bounties" ? (
+                <ReferralsEmbedBounties bounties={bounties} />
               ) : null}
             </AnimatePresence>
           </div>
