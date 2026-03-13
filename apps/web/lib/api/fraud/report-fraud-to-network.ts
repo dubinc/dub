@@ -5,7 +5,7 @@ import { prisma } from "@dub/prisma";
 import { FraudRuleType } from "@dub/prisma/client";
 
 // Creates fraud report events in other programs where the given partners are enrolled.
-// Used when a program rejects or reports a partner so that other programs can be
+// Used when a program rejects (and reports) a partner so that other programs can be
 // alerted about suspected fraud. Only programs with the partnerFraudReport rule
 // enabled receive events.
 export async function reportFraudToNetwork({
