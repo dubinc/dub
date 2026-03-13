@@ -61,7 +61,10 @@ export async function detectDuplicatePayoutMethodFraud({
       map.set(e.programId, []);
     }
 
-    map.get(e.programId)!.push({ partnerId: e.partnerId, status: e.status });
+    map.get(e.programId)!.push({
+      partnerId: e.partnerId,
+      status: e.status,
+    });
 
     return map;
   }, new Map<string, Pick<ProgramEnrollment, "partnerId" | "status">[]>());
