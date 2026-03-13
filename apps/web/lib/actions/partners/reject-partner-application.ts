@@ -1,15 +1,12 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
+import { reportFraudToNetwork } from "@/lib/api/fraud/report-fraud-to-network";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import {
-  INACTIVE_ENROLLMENT_STATUSES,
-  rejectPartnerSchema,
-} from "@/lib/zod/schemas/partners";
+import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -56,24 +53,6 @@ export const rejectPartnerApplicationAction = authActionClient
 
     waitUntil(
       (async () => {
-        const affectedProgramEnrollments = reportFraud
-          ? await prisma.programEnrollment.findMany({
-              where: {
-                partnerId,
-                programId: {
-                  not: programId,
-                },
-                status: {
-                  notIn: INACTIVE_ENROLLMENT_STATUSES,
-                },
-              },
-              select: {
-                programId: true,
-                partnerId: true,
-              },
-            })
-          : [];
-
         await Promise.allSettled([
           recordAuditLog({
             workspaceId: workspace.id,
@@ -101,16 +80,12 @@ export const rejectPartnerApplicationAction = authActionClient
               "Resolved automatically because the partner application was rejected.",
           }),
 
-          // Create fraud report events in other programs where this partner is enrolled
-          // to help keep the network safe by alerting other programs about suspected fraud
-          createFraudEvents(
-            affectedProgramEnrollments.map((affectedEnrollment) => ({
-              programId: affectedEnrollment.programId,
-              partnerId: affectedEnrollment.partnerId,
-              type: FraudRuleType.partnerFraudReport,
-              sourceProgramId: programId, // The program that reported the fraud,
-            })),
-          ),
+          reportFraud
+            ? reportFraudToNetwork({
+                programId,
+                partnerIds: [partnerId],
+              })
+            : Promise.resolve(),
         ]);
       })(),
     );

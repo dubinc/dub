@@ -1,0 +1,70 @@
+import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
+import { getMergedFraudRules } from "@/lib/api/fraud/get-merged-fraud-rules";
+import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
+import { FraudRuleType } from "@dub/prisma/client";
+
+// Creates fraud report events in other programs where the given partners are enrolled.
+// Used when a program rejects or reports a partner so that other programs can be
+// alerted about suspected fraud. Only programs with the partnerFraudReport rule
+// enabled receive events.
+export async function reportFraudToNetwork({
+  programId,
+  partnerIds,
+}: {
+  programId: string;
+  partnerIds: string[];
+}) {
+  if (partnerIds.length === 0) {
+    return;
+  }
+
+  let affectedProgramEnrollments = await prisma.programEnrollment.findMany({
+    where: {
+      partnerId: {
+        in: partnerIds,
+      },
+      programId: {
+        not: programId,
+      },
+      status: {
+        notIn: INACTIVE_ENROLLMENT_STATUSES,
+      },
+    },
+    select: {
+      programId: true,
+      partnerId: true,
+      program: {
+        select: {
+          fraudRules: true,
+        },
+      },
+    },
+  });
+
+  // Filter out programs where the partnerFraudReport rule is disabled
+  if (affectedProgramEnrollments.length > 0) {
+    affectedProgramEnrollments = affectedProgramEnrollments.filter(
+      (enrollment) => {
+        const mergedFraudRules = getMergedFraudRules(
+          enrollment.program.fraudRules,
+        );
+
+        const partnerFraudReportRule = mergedFraudRules.find(
+          (rule) => rule.type === FraudRuleType.partnerFraudReport,
+        );
+
+        return partnerFraudReportRule ? partnerFraudReportRule.enabled : true;
+      },
+    );
+  }
+
+  await createFraudEvents(
+    affectedProgramEnrollments.map((affectedEnrollment) => ({
+      programId: affectedEnrollment.programId,
+      partnerId: affectedEnrollment.partnerId,
+      type: FraudRuleType.partnerFraudReport,
+      sourceProgramId: programId,
+    })),
+  );
+}
