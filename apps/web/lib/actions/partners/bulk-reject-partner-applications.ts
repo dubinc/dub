@@ -71,6 +71,10 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
         "Resolved automatically because the partner application was rejected.",
     });
 
+    const rejectedPartnerIds = [
+      ...new Set(programEnrollments.map((pe) => pe.partner.id)),
+    ];
+
     waitUntil(
       (async () => {
         await Promise.allSettled([
@@ -91,10 +95,10 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
             })),
           ),
 
-          reportFraud
+          reportFraud && rejectedPartnerIds.length > 0
             ? reportFraudToNetwork({
                 programId,
-                partnerIds,
+                partnerIds: rejectedPartnerIds,
               })
             : Promise.resolve(),
         ]);
