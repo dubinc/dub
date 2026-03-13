@@ -107,10 +107,7 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
     | undefined;
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
   const isCommissions = attribute === "totalCommissions";
-  const startDate = useMemo(
-    () => new Date(bounty.startsAt),
-    [bounty.startsAt],
-  );
+  const startDate = useMemo(() => new Date(bounty.startsAt), [bounty.startsAt]);
   const endDate = useMemo(
     () =>
       bounty.endsAt
@@ -320,10 +317,7 @@ function BountyPerformanceEventsTable({
     ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
     : undefined;
 
-  const startDate = useMemo(
-    () => new Date(bounty.startsAt),
-    [bounty.startsAt],
-  );
+  const startDate = useMemo(() => new Date(bounty.startsAt), [bounty.startsAt]);
   const endDate = useMemo(
     () =>
       bounty.endsAt
@@ -521,10 +515,7 @@ function BountyPerformanceCommissionsTable({
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
 
-  const startDate = useMemo(
-    () => new Date(bounty.startsAt),
-    [bounty.startsAt],
-  );
+  const startDate = useMemo(() => new Date(bounty.startsAt), [bounty.startsAt]);
   const endDate = useMemo(
     () =>
       bounty.endsAt
