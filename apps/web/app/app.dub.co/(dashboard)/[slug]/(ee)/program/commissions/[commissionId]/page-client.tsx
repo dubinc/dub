@@ -71,7 +71,7 @@ export function CommissionDetailsPageClient() {
                   />
                 )}
                 <span className="text-lg font-semibold leading-7 text-neutral-900">
-                  {commission?.partner.name ?? "Commission details"}
+                  {commission?.partner?.name ?? "Commission details"}
                 </span>
               </div>
             </div>
@@ -384,7 +384,7 @@ function CommissionDetailsContent({
               ] as {
                 icon: React.ElementType;
                 timestamp: string | Date | null | undefined;
-                note?: string;
+                note?: React.ReactNode;
                 children: React.ReactNode;
               }[]
             ).map((event, index, arr) => (
