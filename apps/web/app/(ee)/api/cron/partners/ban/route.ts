@@ -1,19 +1,15 @@
 import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
-import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
+import { reportCrossProgramBanToNetwork } from "@/lib/api/fraud/report-cross-program-ban-to-network";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withCron } from "@/lib/cron/with-cron";
 import { recordLink } from "@/lib/tinybird";
-import {
-  BAN_PARTNER_REASONS,
-  INACTIVE_ENROLLMENT_STATUSES,
-} from "@/lib/zod/schemas/partners";
+import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { cancelCommissions } from "./cancel-commissions";
@@ -134,36 +130,12 @@ export const POST = withCron(async ({ rawBody }) => {
     deleteDiscountCodes(links.map((link) => link.discountCode)),
   ]);
 
-  const affectedProgramEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      partnerId,
-      programId: {
-        not: programId,
-      },
-      status: {
-        notIn: INACTIVE_ENROLLMENT_STATUSES,
-      },
-    },
-    select: {
-      programId: true,
-      partnerId: true,
-    },
+  await reportCrossProgramBanToNetwork({
+    partnerId,
+    programId,
+    bannedReason: programEnrollment.bannedReason,
+    bannedAt: programEnrollment.bannedAt,
   });
-
-  // Create partnerCrossProgramBan fraud events for all active enrollments
-  // to flag potential cross-program fraud risk
-  await createFraudEvents(
-    affectedProgramEnrollments.map((affectedEnrollment) => ({
-      programId: affectedEnrollment.programId,
-      partnerId: affectedEnrollment.partnerId,
-      type: FraudRuleType.partnerCrossProgramBan,
-      sourceProgramId: programEnrollment.programId, // The program that issued the ban
-      metadata: {
-        bannedReason: programEnrollment.bannedReason,
-        bannedAt: programEnrollment.bannedAt,
-      },
-    })),
-  );
 
   // Send email
   if (partner.email) {

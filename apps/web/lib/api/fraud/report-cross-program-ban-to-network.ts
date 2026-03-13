@@ -2,28 +2,25 @@ import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { getMergedFraudRules } from "@/lib/api/fraud/get-merged-fraud-rules";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType, PartnerBannedReason } from "@dub/prisma/client";
 
-// Creates fraud report events in other programs where the given partners are enrolled.
-// Used when a program rejects (and reports) a partner so that other programs can be
-// alerted about suspected fraud. Only programs with the partnerFraudReport rule
-// enabled receive events.
-export async function reportFraudToNetwork({
+// Creates partnerCrossProgramBan fraud events in other programs where the partner is enrolled.
+// Used when a program bans a partner so that other programs can be alerted about cross-program
+// fraud risk. Only programs with the partnerCrossProgramBan rule enabled receive events.
+export async function reportCrossProgramBanToNetwork({
+  partnerId,
   programId,
-  partnerIds,
+  bannedReason,
+  bannedAt,
 }: {
+  partnerId: string;
   programId: string;
-  partnerIds: string[];
+  bannedReason: PartnerBannedReason | null;
+  bannedAt: Date | null;
 }) {
-  if (partnerIds.length === 0) {
-    return;
-  }
-
   let affectedProgramEnrollments = await prisma.programEnrollment.findMany({
     where: {
-      partnerId: {
-        in: partnerIds,
-      },
+      partnerId,
       programId: {
         not: programId,
       },
@@ -42,7 +39,7 @@ export async function reportFraudToNetwork({
     },
   });
 
-  // Filter out programs where the partnerFraudReport rule is disabled
+  // Filter out programs where the partnerCrossProgramBan rule is disabled
   if (affectedProgramEnrollments.length > 0) {
     affectedProgramEnrollments = affectedProgramEnrollments.filter(
       (enrollment) => {
@@ -51,7 +48,7 @@ export async function reportFraudToNetwork({
         );
 
         const fraudRule = mergedFraudRules.find(
-          (rule) => rule.type === FraudRuleType.partnerFraudReport,
+          (rule) => rule.type === FraudRuleType.partnerCrossProgramBan,
         );
 
         return fraudRule ? fraudRule.enabled : true;
@@ -63,8 +60,12 @@ export async function reportFraudToNetwork({
     affectedProgramEnrollments.map((affectedEnrollment) => ({
       programId: affectedEnrollment.programId,
       partnerId: affectedEnrollment.partnerId,
-      type: FraudRuleType.partnerFraudReport,
+      type: FraudRuleType.partnerCrossProgramBan,
       sourceProgramId: programId,
+      metadata: {
+        bannedReason,
+        bannedAt,
+      },
     })),
   );
 }
