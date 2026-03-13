@@ -1,10 +1,12 @@
 "use client";
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
+import { PartnerAnalyticsFilters } from "@/lib/analytics/types";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
   LeadEvent,
   PartnerBountyProps,
@@ -67,7 +69,7 @@ const ATTRIBUTE_TO_ANALYTICS_FIELD: Partial<
 };
 
 const ATTRIBUTE_TO_EVENT_PARAMS: Partial<
-  Record<PerformanceAttribute, { event: string; saleType?: string }>
+  Record<PerformanceAttribute, { event: "leads" | "sales"; saleType?: string }>
 > = {
   totalLeads: { event: "leads" },
   totalConversions: { event: "sales", saleType: "new" },
@@ -107,10 +109,7 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
     | undefined;
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
   const isCommissions = attribute === "totalCommissions";
-  const startDate = useMemo(
-    () => new Date(bounty.startsAt),
-    [bounty.startsAt],
-  );
+  const startDate = useMemo(() => new Date(bounty.startsAt), [bounty.startsAt]);
   const endDate = useMemo(
     () =>
       bounty.endsAt
@@ -228,14 +227,11 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
   );
 }
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 function usePaginationState() {
   const [page, setPage] = useState(1);
-  const pagination = useMemo(
-    () => ({ pageIndex: page, pageSize: PAGE_SIZE }),
-    [page],
-  );
+  const pagination = { pageIndex: page, pageSize: PAGE_SIZE };
 
   const onPaginationChange = (
     updater:
@@ -299,10 +295,11 @@ function BountyPerformanceEventsTable({
 }: {
   bounty: PartnerBountyProps;
 }) {
+  const { programEnrollment } = useProgramEnrollment();
   const { programSlug } = useParams<{ programSlug: string }>();
-  const attribute = bounty.performanceCondition?.attribute as
-    | PerformanceAttribute
-    | undefined;
+
+  const attribute = bounty.performanceCondition
+    ?.attribute as PerformanceAttribute;
 
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
   const metricLabel = attribute
@@ -320,43 +317,64 @@ function BountyPerformanceEventsTable({
     ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
     : undefined;
 
-  const startDate = useMemo(
-    () => new Date(bounty.startsAt),
-    [bounty.startsAt],
-  );
-  const endDate = useMemo(
-    () =>
-      bounty.endsAt
-        ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
-        : new Date(),
-    [bounty.endsAt],
-  );
-
   const { page, pagination, onPaginationChange } = usePaginationState();
 
-  const eventsUrl = useMemo(() => {
+  const { eventsParams, eventCountParams } = useMemo<{
+    eventsParams: PartnerAnalyticsFilters | null;
+    eventCountParams: PartnerAnalyticsFilters | null;
+  }>(() => {
     if (!programSlug || !eventParams) {
-      return null;
+      return {
+        eventsParams: null,
+        eventCountParams: null,
+      };
     }
 
-    const params = new URLSearchParams({
+    const startDate =
+      bounty.performanceScope === "new"
+        ? new Date(bounty.startsAt)
+        : new Date(programEnrollment?.createdAt ?? bounty.startsAt);
+
+    const endDate = bounty.endsAt ? new Date(bounty.endsAt) : new Date();
+
+    const baseParams: PartnerAnalyticsFilters = {
       event: eventParams.event,
-      limit: String(PAGE_SIZE),
-      page: String(page),
-    });
+      ...(startDate && { start: startDate }),
+      ...(endDate && { end: endDate }),
+      ...(eventParams.saleType && { saleType: eventParams.saleType }),
+    };
 
-    if (eventParams.saleType) {
-      params.set("saleType", eventParams.saleType);
-    }
+    return {
+      eventsParams: {
+        ...baseParams,
+        limit: String(PAGE_SIZE),
+        page: String(page),
+      },
 
-    if (startDate) {
-      params.set("start", startDate.toISOString());
-    }
-    if (endDate) {
-      params.set("end", endDate.toISOString());
-    }
-    return `/api/partner-profile/programs/${programSlug}/events?${params.toString()}`;
-  }, [programSlug, eventParams, page, startDate, endDate]);
+      eventCountParams: {
+        ...baseParams,
+        groupBy: "count",
+        enabled: true,
+      },
+    };
+  }, [programSlug, eventParams, page, bounty]);
+
+  const eventsUrl = useMemo(() => {
+    if (!programSlug || !eventsParams) return null;
+
+    const params: Record<string, string> = {
+      ...Object.fromEntries(
+        Object.entries(eventsParams).map(([key, value]) => [
+          key,
+          value instanceof Date ? value.toISOString() : String(value),
+        ]),
+      ),
+    };
+
+    const query = new URLSearchParams(params).toString();
+
+    return `/api/partner-profile/programs/${programSlug}/events?${query}`;
+  }, [programSlug, eventsParams]);
 
   const {
     data: events,
@@ -367,10 +385,7 @@ function BountyPerformanceEventsTable({
   });
 
   const { data: analyticsCount } = usePartnerAnalytics({
-    event: "composite",
-    groupBy: "count",
-    ...(startDate && endDate && { start: startDate, end: endDate }),
-    enabled: true,
+    ...eventCountParams,
   });
 
   const rows = useMemo<PerformanceRow[]>(() => {
@@ -394,12 +409,9 @@ function BountyPerformanceEventsTable({
   const analyticsField = attribute
     ? ATTRIBUTE_TO_ANALYTICS_FIELD[attribute]
     : undefined;
-  const totalCount =
-    attribute === "totalSaleAmount"
-      ? analyticsCount?.sales ?? 0
-      : analyticsField
-        ? analyticsCount?.[analyticsField] ?? 0
-        : 0;
+
+  const eventsCount =
+    analyticsField && analyticsCount ? analyticsCount[analyticsField] : 0;
 
   const columns = useMemo<ColumnDef<PerformanceRow, any>[]>(() => {
     const base: ColumnDef<PerformanceRow, any>[] = [
@@ -479,7 +491,7 @@ function BountyPerformanceEventsTable({
     columns,
     pagination,
     onPaginationChange,
-    rowCount: totalCount,
+    rowCount: eventsCount,
     thClassName: "border-l-transparent",
     tdClassName: (columnId: string) =>
       cn("border-l-transparent", columnId === "customer" && "p-0"),
@@ -521,71 +533,59 @@ function BountyPerformanceCommissionsTable({
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
 
-  const startDate = useMemo(
-    () => new Date(bounty.startsAt),
-    [bounty.startsAt],
-  );
-  const endDate = useMemo(
-    () =>
-      bounty.endsAt
-        ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
-        : new Date(),
-    [bounty.endsAt],
-  );
+  const startDate = new Date(bounty.startsAt);
+
+  const endDate = bounty.endsAt
+    ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
+    : new Date();
 
   const { page, pagination, onPaginationChange } = usePaginationState();
 
-  const earningsUrlParams = useMemo(() => {
-    const params = new URLSearchParams({
-      pageSize: String(PAGE_SIZE),
-      page: String(page),
-    });
-    if (startDate) params.set("start", startDate.toISOString());
-    if (endDate) params.set("end", endDate.toISOString());
-    return params.toString();
-  }, [page, startDate, endDate]);
+  const baseParams = new URLSearchParams({
+    ...(startDate && { start: startDate.toISOString() }),
+    ...(endDate && { end: endDate.toISOString() }),
+  });
 
-  const earningsCountUrlParams = useMemo(() => {
-    const params = new URLSearchParams();
-    if (startDate) params.set("start", startDate.toISOString());
-    if (endDate) params.set("end", endDate.toISOString());
-    const qs = params.toString();
-    return qs ? `?${qs}` : "";
-  }, [startDate, endDate]);
+  const earningsQuery = new URLSearchParams({
+    pageSize: String(PAGE_SIZE),
+    page: String(page),
+    ...Object.fromEntries(baseParams),
+  }).toString();
+
+  const earningsCountQuery = baseParams.toString();
+
+  const earningsUrl = programSlug
+    ? `/api/partner-profile/programs/${programSlug}/earnings?${earningsQuery}`
+    : null;
+
+  const earningsCountUrl = programSlug
+    ? `/api/partner-profile/programs/${programSlug}/earnings/count${
+        earningsCountQuery ? `?${earningsCountQuery}` : ""
+      }`
+    : null;
 
   const {
     data: earnings,
     isValidating: isLoading,
     error,
-  } = useSWR<PartnerEarningsResponse[]>(
-    programSlug
-      ? `/api/partner-profile/programs/${programSlug}/earnings?${earningsUrlParams}`
-      : null,
-    fetcher,
-    { keepPreviousData: true },
-  );
+  } = useSWR<PartnerEarningsResponse[]>(earningsUrl, fetcher, {
+    keepPreviousData: true,
+  });
 
   const { data: earningsCount } = useSWR<{ count: number }>(
-    programSlug
-      ? `/api/partner-profile/programs/${programSlug}/earnings/count${earningsCountUrlParams}`
-      : null,
+    earningsCountUrl,
     fetcher,
     { keepPreviousData: true },
   );
 
-  const rows = useMemo<PerformanceRow[]>(() => {
-    if (!earnings) {
-      return [];
-    }
-
-    return earnings.map((earning) => ({
+  const rows: PerformanceRow[] =
+    earnings?.map((earning) => ({
       id: earning.id,
       date: earning.createdAt,
       customer: earning.customer,
       link: earning.link ?? null,
       amount: earning.earnings,
-    }));
-  }, [earnings]);
+    })) ?? [];
 
   const columns = useMemo<ColumnDef<PerformanceRow, any>[]>(
     () => [
