@@ -178,6 +178,7 @@ export async function completeProgramApplications(userEmail: string) {
         applicationRequirements: program.applicationRequirements,
         context: {
           country: partner.country,
+          email: partner.email,
         },
       });
 
