@@ -1,6 +1,6 @@
 "use client";
 
-import { useFraudEvents } from "@/lib/swr/use-fraud-events";
+import { useFraudEventsPaginated } from "@/lib/swr/use-fraud-events-paginated";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   CustomerEmailMatchType,
@@ -23,10 +23,20 @@ const MATCH_TYPE_LABELS: Record<CustomerEmailMatchType, string> = {
 export function FraudMatchingCustomerEmailTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { fraudEvents, loading, error } = useFraudEvents<EventDataProps>();
+  const {
+    fraudEvents,
+    loading,
+    error,
+    pagination,
+    setPagination,
+    fraudEventsCount,
+  } = useFraudEventsPaginated<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: fraudEventsCount ?? 0,
     columns: [
       {
         id: "date",
