@@ -4,12 +4,12 @@ import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-applica
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import {
-  ApplicationRequirementsDB,
   DiscountProps,
   GroupBountySummaryProps,
   ProgramProps,
   RewardProps,
 } from "@/lib/types";
+import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
@@ -24,8 +24,7 @@ export function ProgramSidebar({
   applicationRewards,
   applicationDiscount,
 }: {
-  program: Omit<ProgramProps, "applicationRequirements"> & {
-    applicationRequirements?: ApplicationRequirementsDB | null;
+  program: ProgramProps & {
     group?: {
       id: string;
       bounties?: GroupBountySummaryProps[];
@@ -43,8 +42,12 @@ export function ProgramSidebar({
     },
   });
 
+  const applicationRequirements = program.applicationRequirements
+    ? applicationRequirementsSchema.parse(program.applicationRequirements)
+    : null;
+
   const { reason } = evaluateApplicationRequirements({
-    applicationRequirements: program.applicationRequirements,
+    applicationRequirements,
     context: {
       country: partner?.country,
       email: partner?.email,
@@ -147,11 +150,8 @@ export function ProgramSidebar({
         />
       </div>
 
-      {program.applicationRequirements &&
-      program.applicationRequirements.length ? (
-        <ProgramEligibilityCard
-          requirements={program.applicationRequirements}
-        />
+      {applicationRequirements && applicationRequirements.length ? (
+        <ProgramEligibilityCard requirements={applicationRequirements} />
       ) : null}
 
       <Button
