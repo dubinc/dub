@@ -13,7 +13,7 @@ import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CommentCardDisplay } from "@/ui/partners/partner-comments";
-import { ActivityEvent } from "@/ui/shared/activity-event";
+import { ActivityEvent } from "@/ui/partners/activity-event";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import {
   ChevronRight,

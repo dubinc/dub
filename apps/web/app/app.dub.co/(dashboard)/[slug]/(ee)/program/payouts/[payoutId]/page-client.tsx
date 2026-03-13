@@ -10,7 +10,7 @@ import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { ActivityEvent } from "@/ui/shared/activity-event";
+import { ActivityEvent } from "@/ui/partners/activity-event";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
