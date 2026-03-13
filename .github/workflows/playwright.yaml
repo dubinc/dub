@@ -22,13 +22,35 @@ jobs:
     env:
       CI: "true"
       DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
+
       NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
       NEXTAUTH_URL: "http://partners.localhost:8888"
+
       NEXT_PUBLIC_APP_NAME: "Dub"
       NEXT_PUBLIC_APP_DOMAIN: "dub.co"
       NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
+
       E2E_PARTNER_EMAIL: "e2e-partner@test.local"
       E2E_PARTNER_PASSWORD: "test-password-123"
+
+      TINYBIRD_API_KEY: "xx"
+      TINYBIRD_API_URL: "xx"
+
+      UPSTASH_REDIS_REST_URL: "xx"
+      UPSTASH_REDIS_REST_TOKEN: "xx"
+      UPSTASH_VECTOR_REST_URL: "xx"
+      UPSTASH_VECTOR_REST_TOKEN: "xx"
+      QSTASH_TOKEN: "xx"
+      QSTASH_CURRENT_SIGNING_KEY: "xx"
+      QSTASH_NEXT_SIGNING_KEY: "xx"
+
+      AXIOM_TOKEN: "xx"
+      AXIOM_DATASET: "xx"
+
+      RESEND_API_KEY: "xx"
+
+      EMBEDDING_SYNC_SECRET: "xx"
+      ANTHROPIC_API_KEY: "xx"
 
     services:
       mysql:
