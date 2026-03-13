@@ -60,7 +60,7 @@ export default function PartnerGroupChanged({
   rewards?: { icon: string; label: string }[] | null;
   bounties?: { icon: string; label: string }[] | null;
 }) {
-  const shouldCollapseBounties = (bounties?.length ?? 0) > 2;
+  const shouldCollapseBounties = (bounties?.length ?? 0) > 3;
   const visibleBounties = shouldCollapseBounties
     ? bounties!.slice(0, 2)
     : bounties;
