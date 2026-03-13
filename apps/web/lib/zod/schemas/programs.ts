@@ -25,6 +25,35 @@ import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 
+export const eligibilityConditionSchema = z
+  .object({
+    key: z.enum(["country", "emailDomain"]),
+    operator: z.enum(["is", "is_not"]),
+    value: z.array(z.string()).min(1),
+  })
+  .transform((data) => {
+    if (data.key === "emailDomain") {
+      return {
+        ...data,
+        value: data.value.map((v) => {
+          const t = v.trim().toLowerCase();
+          return t.startsWith("@") ? t : `@${t}`;
+        }),
+      };
+    }
+    return data;
+  })
+  .refine(
+    (data) =>
+      data.key !== "emailDomain" ||
+      data.value.every((v) => v.length > 1 && v !== "@"),
+    { message: "Email domain values must be valid domain patterns" },
+  );
+
+export const applicationRequirementsSchema = z
+  .array(eligibilityConditionSchema)
+  .max(2);
+
 export const ProgramSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -48,6 +77,7 @@ export const ProgramSchema = z.object({
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
   referralFormData: z.record(z.string(), z.any()).nullish(),
+  applicationRequirements: applicationRequirementsSchema.nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),

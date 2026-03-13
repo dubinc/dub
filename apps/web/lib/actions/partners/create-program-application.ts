@@ -7,6 +7,7 @@ import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
+import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -206,6 +207,7 @@ export const createProgramApplicationAction = actionClient
         partner: existingPartner,
         group,
         data: parsedInput,
+        inAppApplication,
       });
     }
 
@@ -232,16 +234,57 @@ async function createApplicationAndEnrollment({
   partner,
   group,
   data,
+  inAppApplication,
 }: {
   workspace: Pick<Project, "id" | "webhookEnabled">;
   program: Program;
   partner: Partner & { programs: ProgramEnrollment[] };
   group: PartnerGroup;
   data: z.infer<typeof createProgramApplicationSchema>;
+  inAppApplication?: boolean;
 }) {
   // Check if ProgramEnrollment already exists
   if (partner.programs.some((p) => p.programId === program.id)) {
     throw new Error("You have already applied to this program.");
+  }
+
+  const sanitizedData = sanitizeData(data, group);
+
+  const result = evaluateApplicationRequirements({
+    applicationRequirements: program.applicationRequirements,
+    context: {
+      // Always use the partner's country from their profile, if available
+      country: partner.country ?? sanitizedData.country,
+      email: partner.email,
+    },
+  });
+
+  if (result.reason === "requirementsNotMet") {
+    if (inAppApplication) {
+      throw new Error(
+        "Unfortunately, you do not meet the eligibility requirements for this program.",
+      );
+    }
+
+    const qstashResponse = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
+      delay: 30 * 60, // 30 minutes
+      body: {
+        programId: program.id,
+        partnerId: partner.id,
+      },
+    });
+
+    if (qstashResponse.messageId) {
+      console.log(
+        `The partner did not meet the eligibility requirements for this program. Auto-reject job enqueued successfully.`,
+        {
+          ...qstashResponse,
+          programId: program.id,
+          partnerId: partner.id,
+        },
+      );
+    }
   }
 
   const applicationId = createId({ prefix: "pga_" });
