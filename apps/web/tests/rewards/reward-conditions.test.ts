@@ -1754,4 +1754,119 @@ describe("evaluateRewardConditions", () => {
       expect(result).toBe(null);
     });
   });
+
+  describe("date conditions", () => {
+    const cutoffDate = new Date("2024-06-01T00:00:00.000Z");
+    const cutoffTimestamp = cutoffDate.getTime();
+
+    const beforeDate = new Date("2024-01-01T00:00:00.000Z");
+    const afterDate = new Date("2024-12-01T00:00:00.000Z");
+
+    const lessThanCondition = [
+      {
+        operator: "AND" as const,
+        type: "flat" as const,
+        amountInCents: 5000,
+        conditions: [
+          {
+            entity: "customer" as const,
+            attribute: "signupDate" as const,
+            operator: "less_than" as const,
+            value: cutoffTimestamp,
+          },
+        ],
+      },
+    ];
+
+    const greaterThanOrEqualCondition = [
+      {
+        operator: "AND" as const,
+        type: "flat" as const,
+        amountInCents: 5000,
+        conditions: [
+          {
+            entity: "customer" as const,
+            attribute: "subscriptionStartDate" as const,
+            operator: "greater_than_or_equal" as const,
+            value: cutoffTimestamp,
+          },
+        ],
+      },
+    ];
+
+    test("should match when signupDate is before the cutoff (less_than)", () => {
+      const context: RewardContext = {
+        customer: {
+          signupDate: beforeDate,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions: lessThanCondition,
+        context,
+      });
+
+      expect(result).toEqual(lessThanCondition[0]);
+    });
+
+    test("should not match when signupDate is after the cutoff (less_than)", () => {
+      const context: RewardContext = {
+        customer: {
+          signupDate: afterDate,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions: lessThanCondition,
+        context,
+      });
+
+      expect(result).toBeNull();
+    });
+
+    test("should match when subscriptionStartDate is on the cutoff (greater_than_or_equal)", () => {
+      const context: RewardContext = {
+        customer: {
+          subscriptionStartDate: cutoffDate,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions: greaterThanOrEqualCondition,
+        context,
+      });
+
+      expect(result).toEqual(greaterThanOrEqualCondition[0]);
+    });
+
+    test("should not match when subscriptionStartDate is before the cutoff (greater_than_or_equal)", () => {
+      const context: RewardContext = {
+        customer: {
+          subscriptionStartDate: beforeDate,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions: greaterThanOrEqualCondition,
+        context,
+      });
+
+      expect(result).toBeNull();
+    });
+
+    test("should not match when signupDate is undefined", () => {
+      const context: RewardContext = {
+        customer: {
+          signupDate: undefined,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions: lessThanCondition,
+        context,
+      });
+
+      expect(result).toBeNull();
+    });
+  });
 });

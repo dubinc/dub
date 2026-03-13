@@ -1,6 +1,10 @@
 import { ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE } from "@/lib/constants/payouts";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
-import { PayoutMode, PayoutStatus } from "@dub/prisma/client";
+import {
+  PartnerPayoutMethod,
+  PayoutMode,
+  PayoutStatus,
+} from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
@@ -85,6 +89,7 @@ export const PayoutSchema = z.object({
   paidAt: z.date().nullable(),
   failureReason: z.string().nullish(),
   mode: z.enum(PayoutMode).nullable(),
+  method: z.enum(PartnerPayoutMethod).nullable(),
   traceId: z.string().nullish(),
 });
 

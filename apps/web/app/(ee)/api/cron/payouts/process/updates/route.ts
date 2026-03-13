@@ -61,8 +61,7 @@ export async function POST(req: Request) {
     }
 
     const auditLogResponse = await recordAuditLog(
-      payouts.map((p) => {
-        const { program, partner, invoice, ...payout } = p;
+      payouts.map(({ program, partner, invoice, ...payout }) => {
         return {
           workspaceId: program.workspaceId,
           programId: program.id,
@@ -113,7 +112,7 @@ export async function POST(req: Request) {
               endDate: payout.periodEnd,
               mode: payout.mode,
               paymentMethod: invoice.paymentMethod ?? "ach",
-              payoutMethod: payout.partner.paypalEmail ? "paypal" : "stripe",
+              payoutMethod: payout.partner.defaultPayoutMethod ?? null,
             },
           }),
         })),

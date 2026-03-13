@@ -3,6 +3,7 @@ import {
   CUSTOMER_EXPORT_DEFAULT_COLUMNS,
 } from "@/lib/zod/schemas/customers";
 import type { Customer, Link, ProgramEnrollment } from "@dub/prisma/client";
+import { toCentsNumber } from "@dub/utils";
 
 type CustomerForExport = Customer & {
   link?: Pick<Link, "shortLink" | "url"> | null;
@@ -45,7 +46,7 @@ export function formatCustomersForExport(
       stripeCustomerId: c.stripeCustomerId ?? "",
       country: c.country ?? "",
       sales: c.sales ?? 0,
-      saleAmount: c.saleAmount ?? 0,
+      saleAmount: toCentsNumber(c.saleAmount ?? 0),
       createdAt: dateToIso(c.createdAt),
       firstSaleAt: dateToIso(c.firstSaleAt),
       subscriptionCanceledAt: dateToIso(c.subscriptionCanceledAt),

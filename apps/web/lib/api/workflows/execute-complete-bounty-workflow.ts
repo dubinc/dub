@@ -116,13 +116,15 @@ export const executeCompleteBountyWorkflow = async ({
   };
 
   const performanceCount = finalContext[condition.attribute] ?? 0;
+  const periodNumber = 1; // Only one submission is allowed for performance based bounties
 
   // Create or update the submission
   const bountySubmission = await prisma.bountySubmission.upsert({
     where: {
-      bountyId_partnerId: {
+      bountyId_partnerId_periodNumber: {
         bountyId,
         partnerId,
+        periodNumber,
       },
     },
     create: {
@@ -130,6 +132,7 @@ export const executeCompleteBountyWorkflow = async ({
       programId: bounty.programId,
       partnerId,
       bountyId: bounty.id,
+      periodNumber,
       status: "draft",
       performanceCount,
     },
@@ -144,7 +147,7 @@ export const executeCompleteBountyWorkflow = async ({
   const shouldExecute = evaluateWorkflowConditions({
     conditions: [condition],
     attributes: {
-      [condition.attribute]: bountySubmission.performanceCount,
+      [condition.attribute]: Number(bountySubmission.performanceCount ?? 0),
     },
   });
 

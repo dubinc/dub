@@ -18,7 +18,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     status,
     sortBy,
     sortOrder,
-    page,
+    page = 1,
     pageSize,
   } = getNetworkProgramsQuerySchema.parse(searchParams);
 
@@ -106,7 +106,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
               },
             },
           ]
-        : { [sortBy]: sortOrder },
+        : {
+            [sortBy === "recency" ? "addedToMarketplaceAt" : sortBy]: sortOrder,
+          },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });

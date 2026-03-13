@@ -3,11 +3,15 @@
 import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
 import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
-import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
-import { PayoutMethodsDropdown } from "@/ui/partners/payout-methods-dropdown";
+import {
+  PAYOUT_METHODS,
+  PayoutMethodSelector,
+} from "@/ui/partners/payouts/payout-method-cards";
+import { PayoutMethodDropdown } from "@/ui/partners/payouts/payout-method-dropdown";
 import {
   BlurImage,
   Button,
@@ -16,16 +20,11 @@ import {
   useRouterStuff,
   useScrollProgress,
 } from "@dub/ui";
-import {
-  CONNECT_SUPPORTED_COUNTRIES,
-  COUNTRIES,
-  OG_AVATAR_URL,
-} from "@dub/utils";
-import { COUNTRY_CURRENCY_CODES } from "@dub/utils/src";
+import { OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type UseFormRegister } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import * as z from "zod/v4";
@@ -106,9 +105,7 @@ function PartnerPayoutSettingsSheetInner() {
     {
       onSuccess: async () => {
         toast.success("Payout settings updated successfully!");
-        queryParams({
-          del: "settings",
-        });
+        queryParams({ del: "settings" });
         mutatePrefix("/api/partner-profile");
       },
       onError({ error }) {
@@ -143,96 +140,10 @@ function PartnerPayoutSettingsSheetInner() {
           onScroll={updateScrollProgress}
           className="scrollbar-hide h-full space-y-10 overflow-y-auto bg-neutral-50 p-4 sm:p-6"
         >
-          <div className="divide-y divide-neutral-200">
-            {/* Connected payout account */}
-            <div className="space-y-3 pb-6">
-              <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                Connected payout account
-              </h4>
-
-              {!partner?.payoutsEnabledAt ? (
-                <ConnectPayoutButton className="h-10 rounded-lg px-4 py-2" />
-              ) : (
-                <PayoutMethodsDropdown />
-              )}
-
-              {partner?.country &&
-                CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) && (
-                  <p className="text-xs text-neutral-500">
-                    For compliance reasons, your payout bank account must match
-                    your local currency. Since you're based in{" "}
-                    <Link
-                      href="/profile"
-                      target="_blank"
-                      className="font-medium text-neutral-900 underline decoration-dotted underline-offset-2"
-                    >
-                      {COUNTRIES[partner.country]}
-                    </Link>{" "}
-                    , you will need to connect a{" "}
-                    <span className="font-medium text-neutral-900">
-                      {COUNTRY_CURRENCY_CODES[partner.country]} bank account
-                    </span>{" "}
-                    to receive payouts.{" "}
-                    <Link
-                      href="https://dub.co/help/article/receiving-payouts"
-                      target="_blank"
-                      className="font-medium text-neutral-900 underline decoration-dotted underline-offset-2"
-                    >
-                      Learn more ↗
-                    </Link>
-                  </p>
-                )}
-            </div>
-
-            {/* Connected external accounts */}
+          <div className="space-y-8 divide-y divide-neutral-200">
+            <PayoutMethodsSection />
             <ConnectedExternalAccounts />
-
-            {/* Invoice details */}
-            <div className="space-y-6 py-6">
-              <div>
-                <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                  Invoice details (optional)
-                </h4>
-                <p className="text-sm font-medium text-neutral-500">
-                  This information is added to your payout invoices.
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-neutral-900">
-                  Business name
-                </label>
-                <div className="relative mt-1.5 rounded-md shadow-sm">
-                  <input
-                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                    {...register("companyName")}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-neutral-900">
-                  Business address
-                </label>
-                <TextareaAutosize
-                  className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  minRows={3}
-                  {...register("address")}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-neutral-900">
-                  Business tax ID
-                </label>
-                <div className="relative mt-1.5 rounded-md shadow-sm">
-                  <input
-                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                    {...register("taxId")}
-                  />
-                </div>
-              </div>
-            </div>
+            <InvoiceDetailsSection register={register} />
           </div>
         </div>
         <div
@@ -263,6 +174,173 @@ function PartnerPayoutSettingsSheetInner() {
         />
       </div>
     </form>
+  );
+}
+
+function PayoutMethodsSectionSkeleton() {
+  return (
+    <div
+      className="flex w-full cursor-default items-center justify-between rounded-lg border border-neutral-200 bg-white p-2"
+      aria-hidden
+    >
+      <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
+        <div className="size-8 shrink-0 animate-pulse rounded-lg bg-neutral-200" />
+        <div className="min-w-0">
+          <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
+          <div className="mt-1 h-3 w-44 animate-pulse rounded bg-neutral-200" />
+        </div>
+      </div>
+      <div className="size-4 shrink-0 animate-pulse rounded bg-neutral-200" />
+    </div>
+  );
+}
+
+function PayoutMethodsSection() {
+  const { availablePayoutMethods } = usePartnerProfile();
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
+
+  const {
+    payoutMethods: payoutMethodsData,
+    isLoading: isPayoutMethodsLoading,
+  } = usePartnerPayoutSettings();
+
+  const hasConnectedAccount =
+    payoutMethodsData?.some((m) => m.connected) ?? false;
+
+  const filteredMethods = PAYOUT_METHODS.filter((m) =>
+    availablePayoutMethods.includes(m.id),
+  );
+
+  const currentMethod = selectedMethodId
+    ? filteredMethods.find((m) => m.id === selectedMethodId) ||
+      filteredMethods[0]
+    : filteredMethods[0];
+
+  const otherMethods = filteredMethods.filter(
+    (m) => m.id !== currentMethod?.id,
+  );
+
+  if (availablePayoutMethods.length === 0) {
+    return null;
+  }
+
+  // Show stablecoin as a recommended option when available but not yet connected, to encourage partners to add it
+  const showStablecoinRecommended =
+    availablePayoutMethods.includes("stablecoin") &&
+    !payoutMethodsData?.some((m) => m.type === "stablecoin" && m.connected);
+
+  return (
+    <div>
+      <h4 className="text-content-emphasis mb-3 text-base font-semibold leading-6">
+        Payout account
+      </h4>
+      {isPayoutMethodsLoading ? (
+        <PayoutMethodsSectionSkeleton />
+      ) : hasConnectedAccount ? (
+        <div className="space-y-3">
+          <PayoutMethodDropdown />
+          {showStablecoinRecommended &&
+            payoutMethodsData?.some((m) => m.type === "stablecoin") && (
+              <PayoutMethodSelector
+                payoutMethods={payoutMethodsData!.filter(
+                  (m) => m.type === "stablecoin",
+                )}
+                variant="compact"
+                allowConnectWhenPayoutsEnabled
+              />
+            )}
+        </div>
+      ) : (
+        <PayoutMethodSelector
+          payoutMethods={
+            currentMethod && payoutMethodsData
+              ? payoutMethodsData.filter((m) => m.type === currentMethod.id)
+              : []
+          }
+          variant="compact"
+          actionFooter={(_setting) =>
+            otherMethods.length > 0 ? (
+              <div className="mt-1 flex justify-center">
+                {otherMethods.map((method) => (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => setSelectedMethodId(method.id)}
+                    className="text-xs font-medium text-neutral-400 transition-colors hover:text-neutral-600"
+                  >
+                    Connect {method.title}
+                    {method.recommended ? " (recommended)" : ""}
+                  </button>
+                ))}
+              </div>
+            ) : null
+          }
+        />
+      )}
+    </div>
+  );
+}
+
+function InvoiceDetailsSection({
+  register,
+}: {
+  register: UseFormRegister<PartnerPayoutSettingsFormData>;
+}) {
+  return (
+    <div className="space-y-4 py-6">
+      <div>
+        <h4 className="text-base font-semibold leading-6 text-neutral-900">
+          Invoice details (optional)
+        </h4>
+        <p className="text-sm font-medium text-neutral-500">
+          This information is added to your payout invoices.
+        </p>
+      </div>
+
+      <div>
+        <label
+          htmlFor="companyName"
+          className="text-sm font-medium text-neutral-900"
+        >
+          Business name
+        </label>
+        <div className="relative mt-1.5 rounded-md shadow-sm">
+          <input
+            id="companyName"
+            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+            {...register("companyName")}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="address"
+          className="text-sm font-medium text-neutral-900"
+        >
+          Business address
+        </label>
+        <TextareaAutosize
+          id="address"
+          className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+          minRows={3}
+          {...register("address")}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="taxId" className="text-sm font-medium text-neutral-900">
+          Business tax ID
+        </label>
+        <div className="relative mt-1.5 rounded-md shadow-sm">
+          <input
+            id="taxId"
+            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+            {...register("taxId")}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 

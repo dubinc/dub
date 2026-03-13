@@ -29,6 +29,7 @@ import {
   Key,
   LifeRing,
   LinesY as LinesYStatic,
+  MarketingTarget,
   MoneyBills2,
   Msgs,
   PaperPlane,
@@ -76,8 +77,6 @@ type SidebarNavData = {
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
 };
-
-const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
@@ -200,7 +199,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     pendingFraudEventsCount,
     pendingReferralsCount,
     partnerNetworkEnabled,
-    pathname,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -408,24 +406,24 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         name: "Developer",
         items: [
           {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/settings/analytics`,
-          },
-          {
             name: "API Keys",
             icon: Key,
             href: `/${slug}/settings/tokens`,
           },
           {
-            name: "OAuth Apps",
-            icon: CubeSettings,
-            href: `/${slug}/settings/oauth-apps`,
+            name: "Tracking",
+            icon: MarketingTarget,
+            href: `/${slug}/settings/tracking`,
           },
           {
             name: "Webhooks",
             icon: Webhook,
             href: `/${slug}/settings/webhooks`,
+          },
+          {
+            name: "OAuth Apps",
+            icon: CubeSettings,
+            href: `/${slug}/settings/oauth-apps`,
           },
         ],
       },
@@ -616,7 +614,7 @@ export function AppSidebarNav({
           include: ["folderId"],
         }),
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
+        showNews: true,
         defaultProgramId: defaultProgramId || undefined,
         pendingPayoutsCount,
         applicationsCount,
@@ -624,7 +622,8 @@ export function AppSidebarNav({
         unreadMessagesCount,
         pendingFraudEventsCount,
         pendingReferralsCount,
-        showConversionGuides: canTrackConversions,
+        showConversionGuides:
+          canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}

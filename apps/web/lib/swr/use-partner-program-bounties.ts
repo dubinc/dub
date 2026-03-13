@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import useSWR from "swr";
 import { PartnerBountyProps } from "../types";
 
-export default function usePartnerProgramBounties({
+export function usePartnerProgramBounties({
   enabled = true,
 }: {
   enabled?: boolean;

@@ -1,8 +1,13 @@
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
-import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import {
+  booleanQuerySchema,
+  getCursorPaginationQuerySchema,
+  getPaginationQuerySchema,
+} from "./misc";
 import { PartnerSchema } from "./partners";
+import { centsSchema } from "./utils";
 
 export const CUSTOMERS_MAX_PAGE_SIZE = 100;
 
@@ -63,7 +68,15 @@ export const getCustomersQuerySchema = z
       .default("desc")
       .describe("The sort order. The default is `desc`."),
   })
-  .extend(getPaginationQuerySchema({ pageSize: CUSTOMERS_MAX_PAGE_SIZE }));
+  .extend({
+    ...getCursorPaginationQuerySchema({
+      example: "cus_1KAP4CDPBSVMMBMH9XX3YZZ0Z",
+    }),
+    ...getPaginationQuerySchema({
+      pageSize: CUSTOMERS_MAX_PAGE_SIZE,
+      deprecated: true,
+    }),
+  });
 
 export const getCustomersQuerySchemaExtended = getCustomersQuerySchema.extend({
   customerIds: z
@@ -80,6 +93,8 @@ export const getCustomersCountQuerySchema = getCustomersQuerySchema
     pageSize: true,
     sortBy: true,
     sortOrder: true,
+    startingAfter: true,
+    endingBefore: true,
   })
   .extend({ groupBy: z.enum(["country", "linkId", "partnerId"]).optional() });
 
@@ -141,8 +156,7 @@ export const CustomerSchema = z.object({
     .number()
     .nullish()
     .describe("Total number of sales for the customer."),
-  saleAmount: z
-    .number()
+  saleAmount: centsSchema
     .nullish()
     .describe("Total amount of sales for the customer."),
   createdAt: z

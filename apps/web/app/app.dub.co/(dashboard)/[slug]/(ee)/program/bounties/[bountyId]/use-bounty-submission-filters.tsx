@@ -1,4 +1,4 @@
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,

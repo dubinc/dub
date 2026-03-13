@@ -1,4 +1,4 @@
-import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/constants";
+import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/social-content";
 import { SocialContent } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { PlatformType } from "@dub/prisma/client";
@@ -76,6 +76,17 @@ export async function getSocialContent({
   );
 
   if (error) {
+    // Post not found
+    // Cache empty result, so that we don't keep trying to scrape the same post.
+    if (error.status === 404) {
+      waitUntil(
+        redis.set(cacheKey, EMPTY_SOCIAL_CONTENT, {
+          ex: CACHE_TTL * 24 * 30,
+        }),
+      );
+    }
+
+    // We don't cache other errors because they are likely to be transient.
     return EMPTY_SOCIAL_CONTENT;
   }
 

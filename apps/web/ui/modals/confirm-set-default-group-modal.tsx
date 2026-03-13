@@ -63,9 +63,7 @@ function ConfirmSetDefaultGroupModal({
             />
             <div className="relative flex items-center justify-center gap-4">
               <div className="flex items-center gap-2">
-                <GroupColorCircle
-                  group={currentDefaultGroup}
-                />
+                <GroupColorCircle group={currentDefaultGroup} />
                 <span className="text-content-emphasis text-sm font-medium">
                   {currentDefaultGroup.name}
                 </span>
@@ -126,7 +124,10 @@ export function useConfirmSetDefaultGroupModal() {
     [],
   );
 
-  const closeConfirmSetDefaultGroupModal = useCallback(() => setState(null), []);
+  const closeConfirmSetDefaultGroupModal = useCallback(
+    () => setState(null),
+    [],
+  );
 
   return {
     openConfirmSetDefaultGroupModal,

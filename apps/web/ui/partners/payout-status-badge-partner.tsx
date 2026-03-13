@@ -10,7 +10,7 @@ export const PayoutStatusBadgePartner = ({
   payout,
   program,
 }: {
-  payout: Pick<Payout, "status" | "amount"> & {
+  payout: Pick<Payout, "status" | "amount" | "method"> & {
     failureReason?: string | null;
   };
   program: Pick<Program, "minPayoutAmount">;
@@ -23,9 +23,11 @@ export const PayoutStatusBadgePartner = ({
     if (!partner) {
       return undefined;
     }
+
     if (payout.status === "failed" && payout.failureReason) {
       return payout.failureReason;
     }
+
     if (
       payout.status === "pending" &&
       payout.amount < program.minPayoutAmount
@@ -35,11 +37,14 @@ export const PayoutStatusBadgePartner = ({
         { trailingZeroDisplay: "stripIfInteger" },
       )}. This payout will be accrued and processed during the next payout period.`;
     }
-    return (
-      PAYOUT_STATUS_DESCRIPTIONS?.[
-        partner?.paypalEmail ? "paypal" : "stripe"
-      ]?.[payout.status] || PAYOUT_STATUS_DESCRIPTIONS?.paypal?.[payout.status]
-    );
+
+    const payoutMethod = payout.method ?? partner?.defaultPayoutMethod;
+
+    if (!payoutMethod) {
+      return undefined;
+    }
+
+    return PAYOUT_STATUS_DESCRIPTIONS[payoutMethod][payout.status];
   }, [payout, program, partner]);
 
   return badge ? (

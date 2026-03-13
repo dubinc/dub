@@ -2,7 +2,6 @@
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
-import { uploadedImageAllowSVGSchema } from "@/lib/zod/schemas/misc";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
@@ -10,11 +9,11 @@ import {
   programResourcesSchema,
 } from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
-import { nanoid, R2_URL } from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
+import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
 import { throwIfNoPermission } from "../../throw-if-no-permission";
+import { MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES } from "./constants";
 
 // Base schema for all resource types
 const baseUpdateSchema = z.object({
@@ -26,16 +25,16 @@ const baseUpdateSchema = z.object({
 const updateLogoSchema = baseUpdateSchema.extend({
   resourceType: z.literal("logo"),
   name: z.string().min(1).optional(),
-  file: uploadedImageAllowSVGSchema.optional(),
-  extension: z.string().nullish(),
+  key: z.string().optional(),
+  fileSize: z.number().int().positive().optional(),
 });
 
 // Schema for file resources
 const updateFileSchema = baseUpdateSchema.extend({
   resourceType: z.literal("file"),
   name: z.string().min(1).optional(),
-  file: z.string().optional(),
-  extension: z.string().nullish(),
+  key: z.string().optional(),
+  fileSize: z.number().int().positive().optional(),
 });
 
 // Schema for color resources
@@ -102,60 +101,33 @@ export const updateProgramResourceAction = authActionClient
 
     const existingResource = resourceArray[resourceIndex];
 
+    // Capture old URL before any mutation so we can delete it after a successful DB write
+    let oldFileUrl: string | null = null;
+
     if (resourceType === "logo" || resourceType === "file") {
-      const { name, file, extension } = parsedInput;
+      const { name, key, fileSize } = parsedInput;
 
       let newUrl = existingResource.url;
       let newSize = existingResource.size;
 
-      // If a new file is provided, upload it and delete the old one
-      if (file) {
-        // Validate file size before upload
-        const base64Data = file.replace(/^data:.+;base64,/, "");
-        const fileSize = Math.ceil((base64Data.length * 3) / 4);
-
-        if (fileSize / 1024 / 1024 > 10) {
-          throw new Error("File size is too large");
+      // If a new file was uploaded, validate ownership and derive URL server-side
+      if (key) {
+        if (!key.startsWith(`programs/${program.id}/`)) {
+          throw new Error("Invalid resource key");
         }
 
-        // Upload the new file
-        const fileName = name || existingResource.name;
-        const fileKey = `programs/${program.id}/${resourceType}s/${slugify(fileName || resourceType)}-${nanoid(4)}${extension ? `.${extension}` : ""}`;
-        const uploadResult = await storage.upload({
-          key: fileKey,
-          body: file,
-          opts:
-            resourceType === "logo"
-              ? {
-                  headers: {
-                    "Content-Disposition": "attachment",
-                    ...(extension === "svg" && {
-                      "Content-Type": "image/svg+xml",
-                    }),
-                  },
-                }
-              : undefined,
-        });
-
-        if (!uploadResult || !uploadResult.url) {
-          throw new Error(`Failed to upload ${resourceType}`);
+        if (fileSize && fileSize > MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES) {
+          throw new Error(
+            `File size exceeds the maximum allowed size of ${MAX_PROGRAM_RESOURCE_FILE_SIZE_BYTES / 1024 / 1024}MB`,
+          );
         }
 
-        newUrl = uploadResult.url;
-        newSize = fileSize;
+        newUrl = `${R2_URL}/${key}`;
+        newSize = fileSize ?? existingResource.size;
 
-        // Delete old file from storage (best-effort, after successful upload)
+        // Remember the old URL — we'll delete it after the DB update succeeds
         if (existingResource.url) {
-          try {
-            await storage.delete({
-              key: existingResource.url.replace(`${R2_URL}/`, ""),
-            });
-          } catch (error) {
-            console.error(
-              "Failed to delete old program resource file from storage:",
-              error,
-            );
-          }
+          oldFileUrl = existingResource.url;
         }
       }
 
@@ -202,6 +174,20 @@ export const updateProgramResourceAction = authActionClient
         resources: programResourcesSchema.parse(updatedResources) as any,
       },
     });
+
+    // Delete the old file from storage only after the DB update succeeds (best-effort)
+    if (oldFileUrl) {
+      try {
+        await storage.delete({
+          key: oldFileUrl.replace(`${R2_URL}/`, ""),
+        });
+      } catch (error) {
+        console.error(
+          "Failed to delete old program resource file from storage:",
+          error,
+        );
+      }
+    }
 
     return {
       success: true,

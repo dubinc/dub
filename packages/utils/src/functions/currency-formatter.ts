@@ -1,13 +1,15 @@
 import { isZeroDecimalCurrency } from "./currency-zero-decimal";
+import { toCentsNumber } from "./to-cents-number";
 
 interface CurrencyFormatterOptions extends Intl.NumberFormatOptions {
   trailingZeroDisplay?: "auto" | "stripIfInteger";
 }
 
 export const currencyFormatter = (
-  valueInCents: number,
+  valueInCents: number | bigint,
   options?: CurrencyFormatterOptions,
 ) => {
+  const cents = toCentsNumber(valueInCents);
   const currency = options?.currency || "USD";
   return Intl.NumberFormat("en-US", {
     style: "currency",
@@ -17,6 +19,6 @@ export const currencyFormatter = (
       : "auto",
     ...options,
   } as CurrencyFormatterOptions).format(
-    isZeroDecimalCurrency(currency) ? valueInCents : valueInCents / 100,
+    isZeroDecimalCurrency(currency) ? cents : cents / 100,
   );
 };

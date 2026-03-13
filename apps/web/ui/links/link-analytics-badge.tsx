@@ -27,14 +27,12 @@ import { ResponseLink } from "./links-container";
 
 export function LinkAnalyticsBadge({
   link,
-  url,
   sharingEnabled = true,
 }: {
   link: Omit<ResponseLink, "user">;
-  url?: string;
   sharingEnabled?: boolean;
 }) {
-  const { slug, plan } = useWorkspace();
+  const { slug } = useWorkspace();
   const { domain, key, trackConversion, clicks, leads, saleAmount } = link;
 
   const { isMobile } = useMediaQuery();

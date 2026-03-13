@@ -6,9 +6,9 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "customerEmailMatch",
     name: "Matching customer email",
     description:
-      "Partner's email matches a customer's email and could be a self referral.",
+      "Customer's email matches the partner's email or a previously referred customer by the same partner.",
     scope: "conversionEvent",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "customerEmailSuspiciousDomain",
@@ -16,7 +16,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "Customer's email uses a disposable or temporary domain which could be a fraud attempt.",
     scope: "conversionEvent",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "referralSourceBanned",
@@ -40,7 +40,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "partnerFraudReport",
     name: "Fraud report",
     description:
-      "This partner was reported for suspected fraud by another program.",
+      "This partner was rejected from another program due to suspected fraud during their application.",
     scope: "partner",
     severity: "high",
     configurable: false,
@@ -49,7 +49,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "partnerCrossProgramBan",
     name: "Cross-program ban",
     description:
-      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history.",
+      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history. To protect security and privacy, specific details such as links, evidence, or notes are not shared across programs.",
     scope: "partner",
     severity: "high",
     configurable: false,

@@ -41,7 +41,7 @@ function OnboardingButtonInner({
   const { slug } = useParams() as { slug: string };
   const { plan, totalLinks, defaultProgramId } = useWorkspace();
 
-  const { canTrackConversions } = getPlanCapabilities(plan);
+  const { canTrackConversions, canManageProgram } = getPlanCapabilities(plan);
 
   const { data: domainsCount, loading: domainsLoading } = useDomainsCount({
     ignoreParams: true,
@@ -58,7 +58,7 @@ function OnboardingButtonInner({
   const { partnersCount, loading: partnersCountLoading } =
     usePartnersCount<number>({
       ignoreParams: true,
-      enabled: Boolean(defaultProgramId),
+      enabled: Boolean(defaultProgramId) && canManageProgram,
     });
 
   const loading =
@@ -85,7 +85,7 @@ function OnboardingButtonInner({
             },
             {
               display: "Set up conversion tracking",
-              cta: `/${slug}/settings/analytics`,
+              cta: `/${slug}/settings/tracking`,
               checked:
                 connectedAnalytics || (customersCount && customersCount > 0),
               recommended: true,

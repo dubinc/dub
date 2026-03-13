@@ -25,7 +25,7 @@ const FEATURES = [
     icon: MoneyBills2,
     title: "Get paid how you want",
     description:
-      "Connect your bank account, PayPal, or other payout choices. Get paid in any country.",
+      "Connect your paoyut details and receive payouts from the programs you partner with.",
   },
   {
     icon: LinesY,

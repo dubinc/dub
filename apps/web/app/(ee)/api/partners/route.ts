@@ -11,6 +11,7 @@ import {
   getPartnersQuerySchemaExtended,
   partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
+import { toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -80,7 +81,7 @@ export const GET = withWorkspace(
           leads: partner.totalLeads,
           conversions: partner.totalConversions,
           sales: partner.totalSales,
-          saleAmount: partner.totalSaleAmount,
+          saleAmount: toCentsNumber(partner.totalSaleAmount),
           ...polyfillSocialMediaFields(partner.platforms),
         })),
       ),

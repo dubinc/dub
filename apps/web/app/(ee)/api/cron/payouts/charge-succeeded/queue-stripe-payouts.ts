@@ -1,6 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
-import { Invoice } from "@dub/prisma/client";
+import { Invoice, PartnerPayoutMethod } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -8,11 +8,16 @@ const stripeChargeMetadataSchema = z.object({
   id: z.string(), // Stripe charge id
 });
 
+const queue = qstash.queue({
+  queueName: "send-stripe-payout",
+});
+
 export async function queueStripePayouts(
   invoice: Pick<
     Invoice,
     "id" | "paymentMethod" | "stripeChargeMetadata" | "payoutMode"
   >,
+  skipStablecoinPayouts: boolean,
 ) {
   // All payouts are processed externally, hence no need to queue Stripe payouts
   if (invoice.payoutMode === "external") {
@@ -45,18 +50,29 @@ export async function queueStripePayouts(
       invoiceId,
       status: "processing",
       mode: "internal",
+      method: {
+        in: [
+          PartnerPayoutMethod.connect,
+          ...(!skipStablecoinPayouts ? [PartnerPayoutMethod.stablecoin] : []),
+        ],
+      },
       partner: {
-        stripeConnectId: {
-          not: null,
-        },
+        OR: [
+          {
+            stripeConnectId: {
+              not: null,
+            },
+          },
+          {
+            stripeRecipientId: {
+              not: null,
+            },
+          },
+        ],
         // here we're not checking for payoutsEnabledAt since we want visiblity
         // if a stripe.transfers.create fails due to restricted Stripe account
       },
     },
-  });
-
-  const queue = qstash.queue({
-    queueName: "send-stripe-payout",
   });
 
   const chunkedPartners = chunk(partnersInCurrentInvoice, 100);

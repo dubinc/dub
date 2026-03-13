@@ -1,10 +1,8 @@
 "use client";
 
 import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
-import {
-  calculateSocialMetricsRewardAmount,
-  resolveBountyDetails,
-} from "@/lib/bounty/utils";
+import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps, BountySubmissionProps } from "@/lib/types";

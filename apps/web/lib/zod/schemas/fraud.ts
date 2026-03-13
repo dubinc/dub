@@ -8,6 +8,12 @@ import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
+export enum CustomerEmailMatchType {
+  EXACT = "exact",
+  DOMAIN_MATCH = "domainMatch",
+  HISTORICAL_DOMAIN_MATCH = "historicalDomainMatch",
+}
+
 export const fraudGroupSchema = z.object({
   id: z.string(),
   type: z.enum(FraudRuleType),
@@ -228,6 +234,22 @@ export const updateFraudRuleSettingsSchema = z.object({
       return data;
     })
     .optional(),
+
+  // Customer email match rule (toggle-only)
+  customerEmailMatch: z
+    .object({
+      resolvePendingEvents: z.boolean().default(false),
+      enabled: z.boolean(),
+    })
+    .optional(),
+
+  // Customer email suspicious domain rule (toggle-only)
+  customerEmailSuspiciousDomain: z
+    .object({
+      resolvePendingEvents: z.boolean().default(false),
+      enabled: z.boolean(),
+    })
+    .optional(),
 });
 
 export const fraudEventSchemas = {
@@ -270,6 +292,12 @@ export const fraudEventSchemas = {
       email: true,
       avatar: true,
     }),
+    metadata: z
+      .object({
+        matchType: z.enum(CustomerEmailMatchType),
+      })
+      .nullable()
+      .optional(),
   }),
 
   customerEmailSuspiciousDomain: z.object({

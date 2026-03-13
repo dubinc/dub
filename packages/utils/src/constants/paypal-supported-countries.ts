@@ -1,7 +1,7 @@
 import { CONNECT_SUPPORTED_COUNTRIES } from "./connect-supported-countries";
 
 // @see: https://developer.paypal.com/docs/payouts/standard/reference/country-feature
-export const PAYPAL_SUPPORTED_COUNTRIES_FULL = [
+const PAYPAL_SUPPORTED_COUNTRIES_FULL = [
   "AD", // Andorra
   "AR", // Argentina
   "AU", // Australia

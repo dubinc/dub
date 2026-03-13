@@ -1,3 +1,4 @@
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/constants/misc";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { generateRandomName } from "@/lib/names";
@@ -54,7 +55,7 @@ export const GET = withReferralsEmbedToken(
                 email: e.customer.email
                   ? programEnrollment.customerDataSharingEnabledAt
                     ? e.customer.email
-                    : e.customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+                    : obfuscateCustomerEmail(e.customer.email)
                   : e.customer.name || generateRandomName(),
               }
             : null,

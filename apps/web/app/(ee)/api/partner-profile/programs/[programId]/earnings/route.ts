@@ -1,4 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
@@ -23,7 +24,7 @@ export const GET = withPartnerProfile(
       });
 
     const {
-      page,
+      page = 1,
       pageSize,
       type,
       status,
@@ -89,7 +90,7 @@ export const GET = withPartnerProfile(
                 ...e.customer,
                 email: customerDataSharingEnabledAt
                   ? customerEmail
-                  : customerEmail.replace(/(?<=^.).+(?=.@)/, "****"),
+                  : obfuscateCustomerEmail(customerEmail),
                 country: e.customer?.country,
               }
             : null,

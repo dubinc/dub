@@ -10,7 +10,6 @@ import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
-import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
 import { updateWorkspacePlan } from "./utils/update-workspace-plan";
@@ -69,12 +68,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   });
 
   if (!workspace) {
-    console.log(
-      "Workspace with Stripe ID *`" +
-        stripeId +
-        "`* not found in Stripe webhook `customer.subscription.deleted` callback",
-    );
-    return NextResponse.json({ received: true });
+    return `Workspace with Stripe ID ${stripeId} not found in customer.subscription.deleted callback.`;
   }
 
   // Check if the customer has another active subscription
@@ -92,7 +86,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       priceId,
     });
 
-    return NextResponse.json({ received: true });
+    return `Workspace ${workspace.slug} has another active subscription; updated plan.`;
   }
 
   const workspaceLinks = workspace.links;
@@ -120,7 +114,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
         usersLimit: FREE_PLAN.limits.users!,
         paymentFailedAt: null,
-        foldersUsage: 0,
       },
     }),
 
@@ -226,16 +219,15 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
 
   await webhookCache.mset(webhooks);
 
-  if (workspace.foldersUsage > 0) {
-    await deleteWorkspaceFolders({
-      workspaceId: workspace.id,
-    });
-  }
+  await deleteWorkspaceFolders({
+    workspaceId: workspace.id,
+    defaultProgramId: workspace.defaultProgramId,
+  });
 
   // Deactivate the program if the workspace had partner access
   if (workspace.defaultProgramId) {
     await deactivateProgram(workspace.defaultProgramId);
   }
 
-  return NextResponse.json({ received: true });
+  return `Workspace ${workspace.slug} subscription deleted; downgraded to free.`;
 }

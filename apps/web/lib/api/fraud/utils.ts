@@ -16,8 +16,19 @@ type GetIdentityFieldsForFraudEventInput = Pick<
   "type" | "partnerId" | "customerId" | "sourceProgramId" | "metadata"
 >;
 
+// Extract domain from email
+export function extractEmailDomain(email: string) {
+  const parts = email.toLowerCase().trim().split("@");
+
+  if (parts.length !== 2 || !parts[0] || !parts[1]) {
+    return null;
+  }
+
+  return parts[1];
+}
+
 // Normalize email for comparison
-export function normalizeEmail(email: string): string {
+export function normalizeEmail(email: string) {
   const trimmed = email.toLowerCase().trim();
   const parts = trimmed.split("@");
 
@@ -120,6 +131,7 @@ export function sanitizeFraudEventMetadata(
 
   delete sanitized.duplicatePartnerId;
   delete sanitized.payoutMethodHash;
+  delete sanitized.cryptoWalletAddress;
 
   return Object.keys(sanitized).length > 0 ? sanitized : undefined;
 }

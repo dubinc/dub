@@ -3,6 +3,7 @@ import { dub } from "@/lib/dub";
 import {
   partnerHasEarnedCommissions,
   partnerIsNotBanned,
+  type ProgramEnrollmentsForDiscoverability,
 } from "@/lib/network/get-discoverability-requirements";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -44,8 +45,9 @@ export const GET = withSession(async ({ session }) => {
     if (
       programEnrollments.length > 0 &&
       !(
-        partnerHasEarnedCommissions(programEnrollments) &&
-        partnerIsNotBanned(programEnrollments)
+        partnerHasEarnedCommissions(
+          programEnrollments as ProgramEnrollmentsForDiscoverability,
+        ) && partnerIsNotBanned(programEnrollments)
       )
     ) {
       return NextResponse.json({ publicToken: null });

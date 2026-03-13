@@ -1,5 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { MIN_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
@@ -7,6 +9,7 @@ import { logAndRespond } from "../../utils";
 import { queueExternalPayouts } from "./queue-external-payouts";
 import { queueStripePayouts } from "./queue-stripe-payouts";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
+import { scheduleDelayedStablecoinPayouts } from "./utils";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 600; // This function can run for a maximum of 10 minutes
@@ -52,9 +55,62 @@ export async function POST(req: Request) {
       );
     }
 
+    // Set the method for each payout in the invoice to the corresponding partner's default payout method
+    await prisma.$executeRaw`
+      UPDATE Payout p
+      INNER JOIN Partner pr ON p.partnerId = pr.id
+      SET p.method = pr.defaultPayoutMethod
+      WHERE p.invoiceId = ${invoice.id}
+      AND pr.defaultPayoutMethod IS NOT NULL
+      AND p.status = 'processing'
+    `;
+
+    // Fund the total stablecoin payout amount for this invoice
+    const { _sum } = await prisma.payout.aggregate({
+      _sum: { amount: true },
+      where: {
+        invoiceId: invoice.id,
+        method: "stablecoin",
+        // only transfer funds for stablecoin payouts >= minimum withdrawal amount
+        // for payouts below the minimum withdrawal amount, we will just mark them as processed
+        // and users can force withdraw them manually later (which triggers another fundFinancialAccount call)
+        amount: {
+          gte: MIN_WITHDRAWAL_AMOUNT_CENTS,
+        },
+      },
+    });
+
+    let skipStablecoinPayouts = false;
+    const stablecoinFundingAmount = _sum.amount ?? 0;
+
+    // Send money to Financial Account to handle stablecoin payouts
+    if (stablecoinFundingAmount > 0) {
+      const { nextAction } = await scheduleDelayedStablecoinPayouts(invoice);
+
+      if (nextAction === "executeNow") {
+        try {
+          await fundFinancialAccount({
+            amount: stablecoinFundingAmount,
+            idempotencyKey: invoiceId,
+          });
+        } catch (error) {
+          await log({
+            message: `Failed to fund Dub's financial account for stablecoin payouts: ${error.message}`,
+            type: "errors",
+          });
+
+          skipStablecoinPayouts = true;
+        }
+      }
+
+      if (nextAction === "skip") {
+        skipStablecoinPayouts = true;
+      }
+    }
+
     await Promise.allSettled([
       // Queue Stripe payouts
-      queueStripePayouts(invoice),
+      queueStripePayouts(invoice, skipStablecoinPayouts),
       // Send PayPal payouts
       sendPaypalPayouts(invoice),
       // Queue external payouts

@@ -12,7 +12,7 @@ model Customer {
   country   String?
 
   sales                  Int       @default(0)
-  saleAmount             Int       @default(0)
+  saleAmount             BigInt    @default(0)
   firstSaleAt            DateTime?
   subscriptionCanceledAt DateTime?
 
