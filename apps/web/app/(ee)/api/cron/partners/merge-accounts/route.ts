@@ -5,13 +5,14 @@ import { includeProgramEnrollment } from "@/lib/api/links/include-program-enroll
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { conn } from "@/lib/planetscale";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
-import { log, prettyPrint, R2_URL, toCentsNumber } from "@dub/utils";
+import { log, prettyPrint, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 
 export const dynamic = "force-dynamic";
@@ -60,10 +61,12 @@ export async function POST(req: Request) {
       select: {
         id: true,
         email: true,
+        image: true,
         payoutMethodHash: true,
         programs: {
           select: {
             programId: true,
+            tenantId: true,
           },
         },
         users: {
@@ -240,6 +243,47 @@ export async function POST(req: Request) {
       console.log(prettyPrint(res));
     }
 
+    const existingEnrollments = sourcePartnerEnrollments.filter(
+      ({ programId }) =>
+        targetPartnerEnrollments.some(
+          ({ programId: targetProgramId }) => programId === targetProgramId,
+        ),
+    );
+
+    if (existingEnrollments.length > 0) {
+      for (const enrollment of existingEnrollments) {
+        await prisma.$transaction(async (tx) => {
+          // delete old source enrollment
+          await tx.programEnrollment.delete({
+            where: {
+              partnerId_programId: {
+                partnerId: sourcePartnerId,
+                programId: enrollment.programId,
+              },
+            },
+          });
+
+          // update target enrollment
+          if (enrollment.tenantId) {
+            await tx.programEnrollment.update({
+              where: {
+                partnerId_programId: {
+                  partnerId: targetPartnerId,
+                  programId: enrollment.programId,
+                },
+              },
+              data: {
+                tenantId: enrollment.tenantId,
+              },
+            });
+          }
+        });
+        console.log(
+          `Deleted old source enrollment for program ${enrollment.programId}.${enrollment.tenantId ? ` Since there was a tenantId, we updated the target enrollment with the same tenantId: ${enrollment.tenantId}` : ""}`,
+        );
+      }
+    }
+
     // If source account has rewind, need to delete and recalculate for the target account
     if (sourceAccount.partnerRewinds.length > 0) {
       const deletedRewinds = await prisma.partnerRewind.deleteMany({
@@ -248,43 +292,6 @@ export async function POST(req: Request) {
         },
       });
       console.log(`Deleted ${deletedRewinds.count} partner rewinds`);
-
-      const rewindStats = await prisma.programEnrollment
-        .aggregate({
-          where: {
-            partnerId: targetPartnerId,
-          },
-          _sum: {
-            totalClicks: true,
-            totalLeads: true,
-            totalSaleAmount: true,
-            totalCommissions: true,
-          },
-        })
-        .then((res) => ({
-          totalClicks: res._sum.totalClicks ?? 0,
-          totalLeads: res._sum.totalLeads ?? 0,
-          totalRevenue: toCentsNumber(res._sum.totalSaleAmount ?? 0),
-          totalEarnings: toCentsNumber(res._sum.totalCommissions ?? 0),
-        }));
-
-      await prisma.partnerRewind.upsert({
-        where: {
-          partnerId_year: {
-            partnerId: targetPartnerId,
-            year: 2025,
-          },
-        },
-        update: rewindStats,
-        create: {
-          partnerId: targetPartnerId,
-          year: 2025,
-          ...rewindStats,
-        },
-      });
-      console.log(
-        `Upserted partner rewind for ${targetPartnerId} in 2025: ${prettyPrint(rewindStats)}`,
-      );
     }
 
     // Remove the user if there are no workspaces left
@@ -327,18 +334,14 @@ export async function POST(req: Request) {
 
     try {
       // Finally, delete the partner account
-      const deletedPartner = await prisma.partner.delete({
-        where: {
-          id: sourcePartnerId,
-        },
-      });
+      await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
       console.log(
-        `Deleted partner ${deletedPartner.email} (${deletedPartner.id})`,
+        `Deleted partner ${sourceAccount.email} (${sourceAccount.id})`,
       );
 
-      if (deletedPartner.image) {
+      if (sourceAccount.image) {
         await storage.delete({
-          key: deletedPartner.image.replace(`${R2_URL}/`, ""),
+          key: sourceAccount.image.replace(`${R2_URL}/`, ""),
         });
       }
     } catch (error) {
