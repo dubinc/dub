@@ -292,7 +292,7 @@ function PayoutDetailsContent({
   const activityItems = useMemo(() => {
     type ActivityItem = {
       status: keyof typeof PayoutStatusBadges;
-      timestamp: string | Date;
+      timestamp: string | Date | null;
       user?: {
         name?: string | null;
         image?: string | null;
@@ -322,7 +322,7 @@ function PayoutDetailsContent({
     const terminalStatus = terminalStatuses.find((s) => s === payout.status);
 
     if (terminalStatus) {
-      const timestamp = payout.paidAt ?? payout.updatedAt;
+      const timestamp = payout.paidAt ?? payout.updatedAt ?? null;
       items.push({ status: terminalStatus, timestamp });
     }
 

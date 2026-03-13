@@ -41,11 +41,7 @@ export function ActivityEvent({
           )}
         </div>
 
-        {note && (
-          <div className="flex h-9 items-center rounded-lg border border-neutral-200 px-3 py-2.5 text-sm text-neutral-800">
-            {note}
-          </div>
-        )}
+        {note && <div>{note}</div>}
       </div>
     </div>
   );

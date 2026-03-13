@@ -393,3 +393,57 @@ function CommentCard({
     </div>
   );
 }
+
+export function CommentCardDisplay({
+  user,
+  timestamp,
+  text,
+  className,
+}: {
+  user: { name: string | null; image: string | null } | null;
+  timestamp: Date | string;
+  text: string;
+  className?: string;
+}) {
+  const ts = new Date(timestamp);
+
+  return (
+    <div
+      className={cn(
+        "border-border-subtle rounded-xl border pb-4 pl-4 pr-3.5 pt-2.5 shadow-sm",
+        className,
+      )}
+    >
+      {user && (
+        <div className="mb-2 flex items-center gap-1.5">
+          <img
+            src={user.image || `${OG_AVATAR_URL}${user.name}`}
+            alt={`${user.name} avatar`}
+            className="size-4 shrink-0 rounded-full"
+          />
+          <span className="text-content-emphasis text-xs font-semibold">
+            {user.name}
+          </span>
+          <div className="bg-content-muted size-0.5 shrink-0 rounded-full" />
+          <span className="text-content-subtle text-xs">
+            {new Date().getTime() - ts.getTime() < 1000 * 60 * 60 * 24
+              ? ts.toLocaleTimeString("en-US", {
+                  hour: "numeric",
+                  minute: "numeric",
+                })
+              : formatDate(ts, {
+                  month: "short",
+                  year:
+                    ts.getFullYear() !== new Date().getFullYear()
+                      ? "numeric"
+                      : undefined,
+                })}
+          </span>
+        </div>
+      )}
+      <p className="prose prose-sm text-content-default break-words font-normal">
+        {text}
+      </p>
+    </div>
+  );
+}

@@ -12,6 +12,7 @@ import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { CommentCardDisplay } from "@/ui/partners/partner-comments";
 import { ActivityEvent } from "@/ui/shared/activity-event";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import {
@@ -344,18 +345,28 @@ function CommissionDetailsContent({
                 {
                   icon: CommissionStatusBadges["pending"].icon,
                   timestamp: commission.createdAt,
-                  note: commission.reward
-                    ? `Earn ${
-                        commission.reward.type === "percentage"
-                          ? `${commission.reward.amountInPercentage ?? 0}%`
-                          : currencyFormatter(
-                              commission.reward.amountInCents ?? 0,
-                              { trailingZeroDisplay: "stripIfInteger" },
-                            )
-                      } per ${commission.reward.event}`
-                    : commission.description
-                      ? commission.description
-                      : undefined,
+                  note: (() => {
+                    const text = commission.reward
+                      ? `Earn ${
+                          commission.reward.type === "percentage"
+                            ? `${commission.reward.amountInPercentage ?? 0}%`
+                            : currencyFormatter(
+                                commission.reward.amountInCents ?? 0,
+                                { trailingZeroDisplay: "stripIfInteger" },
+                              )
+                        } per ${commission.reward.event}`
+                      : commission.description ?? null;
+
+                    if (!text) return undefined;
+
+                    return (
+                      <CommentCardDisplay
+                        user={commission.user}
+                        timestamp={commission.createdAt}
+                        text={text}
+                      />
+                    );
+                  })(),
                   children: (
                     <>
                       <span className="text-sm text-neutral-700">

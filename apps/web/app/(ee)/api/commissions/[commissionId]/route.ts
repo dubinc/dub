@@ -20,6 +20,13 @@ import * as z from "zod/v4";
 
 const CommissionDetailSchema = CommissionEnrichedSchema.extend({
   payoutId: z.string().nullable(),
+  user: z
+    .object({
+      id: z.string(),
+      name: z.string().nullable(),
+      image: z.string().nullable(),
+    })
+    .nullable(),
   reward: z
     .object({
       description: z.string().nullable(),
@@ -88,10 +95,18 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   const { partner, programEnrollment, customer, reward, payout, ...rest } =
     commission;
 
+  const user = rest.userId
+    ? await prisma.user.findUnique({
+        where: { id: rest.userId },
+        select: { id: true, name: true, image: true },
+      })
+    : null;
+
   return NextResponse.json(
     CommissionDetailSchema.parse({
       ...rest,
       payoutId: rest.payoutId ?? null,
+      user: user ?? null,
       reward: reward
         ? {
             ...reward,
