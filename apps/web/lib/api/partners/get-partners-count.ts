@@ -49,8 +49,6 @@ export async function getPartnersCount<T>(
             ...(groupId && {
               groupId,
             }),
-          },
-          every: {
             status,
           },
         },

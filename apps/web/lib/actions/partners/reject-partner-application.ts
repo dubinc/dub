@@ -40,6 +40,11 @@ export const rejectPartnerApplicationAction = authActionClient
       },
     });
 
+    // Don't do anything if the application is no longer pending
+    if (programEnrollment.status !== "pending") {
+      return;
+    }
+
     await prisma.programEnrollment.update({
       where: {
         id: programEnrollment.id,
