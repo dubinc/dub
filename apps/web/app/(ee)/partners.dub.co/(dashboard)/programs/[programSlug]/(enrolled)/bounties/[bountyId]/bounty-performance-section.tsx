@@ -346,9 +346,6 @@ function BountyPerformanceEventsTable({
     };
   }, [programSlug, page, bounty, attribute, programEnrollment]);
 
-  console.log("eventsParams", eventsParams);
-  console.log("eventCountParams", eventCountParams);
-
   const eventsUrl = useMemo(() => {
     if (!programSlug || !eventsParams) return null;
 
@@ -521,66 +518,98 @@ function BountyPerformanceCommissionsTable({
 }: {
   bounty: PartnerBountyProps;
 }) {
+  const [page, setPage] = useState(1);
+  const { programEnrollment } = useProgramEnrollment();
   const { programSlug } = useParams<{ programSlug: string }>();
 
-  const startDate = new Date(bounty.startsAt);
-
-  const endDate = bounty.endsAt
-    ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
-    : new Date();
-
-  const [page, setPage] = useState(1);
   const { pagination, setPagination } = useTablePagination({
     pageSize: PAGE_SIZE,
     page,
     onPageChange: setPage,
   });
 
-  const baseParams = new URLSearchParams({
-    ...(startDate && { start: startDate.toISOString() }),
-    ...(endDate && { end: endDate.toISOString() }),
-  });
+  const dateRangeStable =
+    bounty.performanceScope === "new" || programEnrollment != null;
 
-  const earningsQuery = new URLSearchParams({
-    pageSize: String(PAGE_SIZE),
-    page: String(page),
-    ...Object.fromEntries(baseParams),
-  }).toString();
+  const { earningsParams, countParams } = useMemo<{
+    earningsParams: Record<string, string> | null;
+    countParams: Record<string, string> | null;
+  }>(() => {
+    if (!programSlug || !dateRangeStable) {
+      return {
+        earningsParams: null,
+        countParams: null,
+      };
+    }
 
-  const earningsCountQuery = baseParams.toString();
+    const startDate =
+      bounty.performanceScope === "new"
+        ? new Date(bounty.startsAt)
+        : new Date(programEnrollment?.createdAt ?? bounty.startsAt);
 
-  const earningsUrl = programSlug
-    ? `/api/partner-profile/programs/${programSlug}/earnings?${earningsQuery}`
-    : null;
+    const endDate = bounty.endsAt ? new Date(bounty.endsAt) : new Date();
 
-  const earningsCountUrl = programSlug
-    ? `/api/partner-profile/programs/${programSlug}/earnings/count${
-        earningsCountQuery ? `?${earningsCountQuery}` : ""
-      }`
-    : null;
+    const baseParams: Record<string, string> = {
+      ...(startDate && { start: startDate.toISOString() }),
+      ...(endDate && { end: endDate.toISOString() }),
+    };
+
+    return {
+      earningsParams: {
+        ...baseParams,
+        pageSize: String(PAGE_SIZE),
+        page: String(page),
+      },
+
+      countParams: {
+        ...baseParams,
+      },
+    };
+  }, [
+    programSlug,
+    dateRangeStable,
+    page,
+    bounty.performanceScope,
+    bounty.startsAt,
+    bounty.endsAt,
+    programEnrollment?.createdAt,
+  ]);
+
+  const earningsUrl = useMemo(() => {
+    if (!programSlug || !earningsParams) return null;
+    return `/api/partner-profile/programs/${programSlug}/earnings?${new URLSearchParams(earningsParams).toString()}`;
+  }, [programSlug, earningsParams]);
+
+  const countUrl = useMemo(() => {
+    if (!programSlug || !countParams) return null;
+    return `/api/partner-profile/programs/${programSlug}/earnings/count?${new URLSearchParams(countParams).toString()}`;
+  }, [programSlug, countParams]);
 
   const {
     data: earnings,
-    isValidating: isLoading,
+    isLoading,
     error,
   } = useSWR<PartnerEarningsResponse[]>(earningsUrl, fetcher, {
     keepPreviousData: true,
   });
 
-  const { data: earningsCount } = useSWR<{ count: number }>(
-    earningsCountUrl,
-    fetcher,
-    { keepPreviousData: true },
-  );
+  const { data: earningsCount, isLoading: isLoadingCount } = useSWR<{
+    count: number;
+  }>(countUrl, fetcher, {
+    keepPreviousData: true,
+  });
 
-  const rows: PerformanceRow[] =
-    earnings?.map((earning) => ({
-      id: earning.id,
-      date: earning.createdAt,
-      customer: earning.customer,
-      link: earning.link ?? null,
-      amount: earning.earnings,
-    })) ?? [];
+  const rows = useMemo<PerformanceRow[]>(
+    () =>
+      earnings?.map((earning) => ({
+        id: earning.id,
+        date: earning.createdAt,
+        customer: earning.customer,
+        link: earning.link ?? null,
+        amount: earning.earnings,
+      })) ?? [],
+    [earnings],
+  );
 
   const columns = useMemo<ColumnDef<PerformanceRow, any>[]>(
     () => [
@@ -651,7 +680,7 @@ function BountyPerformanceCommissionsTable({
 
   const { table, ...tableProps } = useTable({
     data: rows,
-    loading: isLoading,
+    loading: isLoading || isLoadingCount,
     error: error ? "Failed to fetch data." : undefined,
     columns,
     pagination,
