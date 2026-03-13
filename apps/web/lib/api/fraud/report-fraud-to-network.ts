@@ -42,6 +42,10 @@ export async function reportFraudToNetwork({
     },
   });
 
+  if (affectedProgramEnrollments.length === 0) {
+    return;
+  }
+
   // Filter out programs where the partnerFraudReport rule is disabled
   if (affectedProgramEnrollments.length > 0) {
     affectedProgramEnrollments = affectedProgramEnrollments.filter(
@@ -57,6 +61,10 @@ export async function reportFraudToNetwork({
         return fraudRule ? fraudRule.enabled : true;
       },
     );
+  }
+
+  if (affectedProgramEnrollments.length === 0) {
+    return;
   }
 
   await createFraudEvents(
