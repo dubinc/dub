@@ -4,6 +4,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
+import { ProgramEligibilityCard } from "@/ui/partners/program-eligibility-card";
 import { ProgramCategory } from "@/ui/partners/program-marketplace/program-category";
 import { ProgramRewardsDisplay } from "@/ui/partners/program-marketplace/program-rewards-display";
 import { prisma } from "@dub/prisma";
@@ -239,6 +240,12 @@ export default async function MarketplaceProgramPage(props: {
             discount={program.discount || null}
             bounties={program.bounties}
           />
+
+          {program.applicationRequirements?.length ? (
+            <ProgramEligibilityCard
+              requirements={program.applicationRequirements}
+            />
+          ) : null}
 
           {program.landerData && (
             <div className="mt-16 grid grid-cols-1 gap-10">

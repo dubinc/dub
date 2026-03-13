@@ -8,6 +8,12 @@ import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
+export enum CustomerEmailMatchType {
+  EXACT = "exact",
+  DOMAIN_MATCH = "domainMatch",
+  HISTORICAL_DOMAIN_MATCH = "historicalDomainMatch",
+}
+
 export const fraudGroupSchema = z.object({
   id: z.string(),
   type: z.enum(FraudRuleType),
@@ -284,6 +290,12 @@ export const fraudEventSchemas = {
       email: true,
       avatar: true,
     }),
+    metadata: z
+      .object({
+        matchType: z.enum(CustomerEmailMatchType),
+      })
+      .nullable()
+      .optional(),
   }),
 
   customerEmailSuspiciousDomain: z.object({

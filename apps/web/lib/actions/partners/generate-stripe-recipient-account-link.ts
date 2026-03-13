@@ -1,7 +1,6 @@
 "use server";
 
 import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
-import { getPartnerFeatureFlags } from "@/lib/edge-config";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
 import { createStripeRecipientAccount } from "@/lib/stripe/create-stripe-recipient-account";
 import { createStripeRecipientAccountLink } from "@/lib/stripe/create-stripe-recipient-account-link";
@@ -18,14 +17,6 @@ export const generateStripeRecipientAccountLink =
       role: partnerUser.role,
       permission: "payout_settings.update",
     });
-
-    const featureFlags = await getPartnerFeatureFlags(partner.id);
-
-    if (!featureFlags.stablecoin) {
-      throw new Error(
-        "Stablecoin payouts are not enabled for your account yet. Please contact support.",
-      );
-    }
 
     let useCase: "account_onboarding" | "account_update" = "account_update";
 

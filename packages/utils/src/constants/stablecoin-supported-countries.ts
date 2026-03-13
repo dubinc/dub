@@ -147,7 +147,7 @@ export const STABLECOIN_SUPPORTED_COUNTRIES = [
   "TV", // Tuvalu
   "TZ", // Tanzania
   "UG", // Uganda
-  "US", // United States
+  // "US", // United States (not supported for now)
   "UY", // Uruguay
   "UZ", // Uzbekistan
   "VA", // Holy See

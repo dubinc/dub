@@ -133,7 +133,9 @@ export function CustomerSelector({
         caret={true}
         placeholder={variant === "header" ? "" : "Select customer"}
         searchPlaceholder={
-          variant === "header" ? "Search customers..." : "Search or create customer..."
+          variant === "header"
+            ? "Search customers..."
+            : "Search or create customer..."
         }
         onSearchChange={setSearch}
         {...(variant !== "header" && {

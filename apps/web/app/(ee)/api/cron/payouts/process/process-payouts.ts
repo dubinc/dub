@@ -244,7 +244,9 @@ export async function processPayouts({
       confirmation_method: "automatic",
       confirm: true,
       transfer_group: invoice.id,
-      statement_descriptor: "Dub Partners",
+      ...(paymentMethod.type === "card"
+        ? { statement_descriptor_suffix: "Dub Partners" }
+        : { statement_descriptor: "Dub Partners" }),
       description: `Dub Partners payout invoice (${invoice.id})`,
     },
     {
