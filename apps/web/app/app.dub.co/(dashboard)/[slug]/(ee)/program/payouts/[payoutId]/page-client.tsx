@@ -6,11 +6,11 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { ActivityEvent } from "@/ui/partners/activity-event";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
@@ -89,7 +89,7 @@ export function PayoutDetailsPageClient() {
                   />
                 )}
                 <span className="text-lg font-semibold leading-7 text-neutral-900">
-                  {payout?.partner.name ?? "Payout details"}
+                  {payout?.partner?.name ?? "Payout details"}
                 </span>
               </div>
             </div>
@@ -126,6 +126,13 @@ export function PayoutDetailsPageClient() {
           />
         ) : loading ? (
           <PayoutDetailsskeleton />
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <p className="text-sm font-medium text-neutral-700">
+              Failed to load payout
+            </p>
+            <p className="text-sm text-neutral-500">{error.message}</p>
+          </div>
         ) : null}
       </PageWidthWrapper>
     </PageContent>

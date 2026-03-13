@@ -84,6 +84,13 @@ export function CommissionDetailsPageClient() {
           <CommissionDetailsContent commission={commission} slug={slug!} />
         ) : loading ? (
           <CommissionDetailSkeleton />
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <p className="text-sm font-medium text-neutral-700">
+              Failed to load commission
+            </p>
+            <p className="text-sm text-neutral-500">{error.message}</p>
+          </div>
         ) : null}
       </PageWidthWrapper>
     </PageContent>
