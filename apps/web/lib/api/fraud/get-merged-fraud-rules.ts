@@ -40,13 +40,13 @@ export function getMergedFraudRules(programRules: FraudRule[]) {
 }
 
 export function isFraudRuleEnabled({
-  programRules,
+  fraudRules,
   ruleType,
 }: {
-  programRules: FraudRule[];
+  fraudRules: FraudRule[];
   ruleType: FraudRuleType;
 }): boolean {
-  const mergedRules = getMergedFraudRules(programRules);
+  const mergedRules = getMergedFraudRules(fraudRules);
   const fraudRule = mergedRules.find((r) => r.type === ruleType);
 
   return fraudRule ? fraudRule.enabled : true;

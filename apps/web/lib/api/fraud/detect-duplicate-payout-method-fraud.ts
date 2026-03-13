@@ -47,7 +47,7 @@ export async function detectDuplicatePayoutMethodFraud({
   // Filter out program enrollments where the partnerDuplicatePayoutMethod rule is disabled
   programEnrollments = programEnrollments.filter((enrollment) =>
     isFraudRuleEnabled({
-      programRules: enrollment.program.fraudRules,
+      fraudRules: enrollment.program.fraudRules,
       ruleType: FraudRuleType.partnerDuplicatePayoutMethod,
     }),
   );

@@ -48,7 +48,7 @@ export async function reportCrossProgramBanToNetwork({
     affectedProgramEnrollments = affectedProgramEnrollments.filter(
       (enrollment) =>
         isFraudRuleEnabled({
-          programRules: enrollment.program.fraudRules,
+          fraudRules: enrollment.program.fraudRules,
           ruleType: FraudRuleType.partnerCrossProgramBan,
         }),
     );

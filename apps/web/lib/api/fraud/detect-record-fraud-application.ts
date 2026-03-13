@@ -32,7 +32,7 @@ export async function detectAndRecordFraudApplication({
   // indicates cross-program fraud risk
   if (
     isFraudRuleEnabled({
-      programRules: fraudRules,
+      fraudRules,
       ruleType: FraudRuleType.partnerCrossProgramBan,
     })
   ) {
@@ -48,11 +48,6 @@ export async function detectAndRecordFraudApplication({
         programId: true,
         bannedReason: true,
         bannedAt: true,
-        program: {
-          select: {
-            fraudRules: true,
-          },
-        },
       },
     });
 
@@ -77,7 +72,7 @@ export async function detectAndRecordFraudApplication({
   // indicates potential duplicate account fraud
   if (
     isFraudRuleEnabled({
-      programRules: fraudRules,
+      fraudRules,
       ruleType: FraudRuleType.partnerDuplicatePayoutMethod,
     })
   ) {

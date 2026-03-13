@@ -51,7 +51,7 @@ export async function reportFraudToNetwork({
     affectedProgramEnrollments = affectedProgramEnrollments.filter(
       (enrollment) =>
         isFraudRuleEnabled({
-          programRules: enrollment.program.fraudRules,
+          fraudRules: enrollment.program.fraudRules,
           ruleType: FraudRuleType.partnerFraudReport,
         }),
     );
