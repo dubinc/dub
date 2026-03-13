@@ -143,7 +143,7 @@ function PayoutDetailsContent({
   slug: string;
   router: ReturnType<typeof useRouter>;
 }) {
-  const { pagination, setPagination } = usePagination();
+  const { pagination, setPagination } = usePagination(10);
 
   const {
     data: commissions,

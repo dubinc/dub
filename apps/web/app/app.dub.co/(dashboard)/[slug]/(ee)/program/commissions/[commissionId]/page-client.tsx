@@ -4,6 +4,7 @@ import useCommission from "@/lib/swr/use-commission";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
+import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -15,7 +16,6 @@ import { ActivityEvent } from "@/ui/shared/activity-event";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import {
   ChevronRight,
-  CopyText,
   InvoiceDollar,
   StatusBadge,
   Table,
@@ -108,39 +108,32 @@ function CommissionDetailsContent({
         header: "Item",
         minSize: 220,
         size: 220,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            {["click", "custom"].includes(row.original.type) ? (
+        cell: ({ row }) =>
+          row.original.customer ? (
+            <CustomerRowItem
+              customer={row.original.customer}
+              href={`/${slug}/program/customers/${row.original.customer.id}`}
+            />
+          ) : (
+            <div className="flex items-center gap-2">
               <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100">
                 <CommissionTypeIcon
                   type={row.original.type}
                   className="size-4"
                 />
               </div>
-            ) : (
-              <img
-                src={
-                  row.original.customer?.avatar ||
-                  `${OG_AVATAR_URL}${row.original.customer?.id}`
-                }
-                alt={row.original.customer?.id ?? ""}
-                className="size-6 rounded-full"
-              />
-            )}
-            <div className="flex flex-col">
-              <span className="w-44 truncate text-sm text-neutral-700">
-                {row.original.type === "click"
-                  ? `${nFormatter(row.original.quantity)} ${pluralize("click", row.original.quantity)}`
-                  : row.original.customer
-                    ? row.original.customer.email || row.original.customer.name
+              <div className="flex flex-col">
+                <span className="w-44 truncate text-sm text-neutral-700">
+                  {row.original.type === "click"
+                    ? `${nFormatter(row.original.quantity)} ${pluralize("click", row.original.quantity)}`
                     : "Custom commission"}
-              </span>
-              <span className="text-xs text-neutral-500">
-                {formatDateTime(row.original.createdAt)}
-              </span>
+                </span>
+                <span className="text-xs text-neutral-500">
+                  {formatDateTime(row.original.createdAt)}
+                </span>
+              </div>
             </div>
-          </div>
-        ),
+          ),
       },
       {
         id: "type",
@@ -241,24 +234,25 @@ function CommissionDetailsContent({
 
     ...(commission.invoiceId && {
       Invoice: (
-        <CopyText
-          value={commission.invoiceId}
-          className="block w-full truncate text-left font-mono text-sm text-neutral-500"
+        <ConditionalLink
+          href={undefined}
+          className="block truncate font-mono text-sm text-neutral-500"
+          title={commission.invoiceId}
         >
           {commission.invoiceId}
-        </CopyText>
+        </ConditionalLink>
       ),
     }),
 
     ...(commission.payoutId && {
       Payout: (
-        <Link
+        <ConditionalLink
           href={`/${slug}/program/payouts/${commission.payoutId}`}
-          className="block truncate font-mono text-sm text-neutral-500 hover:underline"
+          className="block truncate font-mono text-sm text-neutral-500"
           title={commission.payoutId}
         >
           {commission.payoutId}
-        </Link>
+        </ConditionalLink>
       ),
     }),
   };
