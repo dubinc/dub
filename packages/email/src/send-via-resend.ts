@@ -29,7 +29,7 @@ const resendEmailForOptions = (
   const baseOptions = {
     to: isProdEnv ? to : "delivered@resend.dev",
     from: from || VARIANT_TO_FROM_MAP[variant],
-    subject: `${subject}${!isProdEnv && gitBranch ? ` [${gitBranch}]` : ""}`,
+    subject: `${!isProdEnv && gitBranch ? `[${gitBranch}] ` : ""}${subject}`,
     bcc,
     // if replyTo is set to "noreply@dub.co", don't set replyTo
     // else set it to the value of replyTo or fallback to support@dub.co
