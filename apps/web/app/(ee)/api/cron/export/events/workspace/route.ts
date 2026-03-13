@@ -2,10 +2,10 @@ import {
   eventsExportColumnAccessors,
   eventsExportColumnNames,
 } from "@/lib/analytics/events-export-helpers";
-import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
-import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
+import { convertToCSV } from "@/lib/exports/convert-to-csv";
+import { createDownloadableExport } from "@/lib/exports/create-downloadable-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
+import { generateExportFilename } from "@/lib/exports/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";

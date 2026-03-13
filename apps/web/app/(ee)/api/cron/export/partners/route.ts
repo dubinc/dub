@@ -1,9 +1,8 @@
-import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
-import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
-import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { exportCsvToStorage } from "@/lib/exports/export-csv-to-storage";
+import { generateExportFilename } from "@/lib/exports/generate-export-filename";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
@@ -65,24 +64,21 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch partners in batches and build CSV
-    const allPartners: any[] = [];
     const partnersFilters = {
       ...filters,
       programId,
     };
 
-    for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
-      allPartners.push(...formatPartnersForExport(partners, columns));
-    }
+    const formattedBatches = async function* () {
+      for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
+        yield formatPartnersForExport(partners, columns);
+      }
+    };
 
-    const csvData = convertToCSV(allPartners);
-
-    const { downloadUrl } = await createDownloadableExport({
+    const { downloadUrl, rowCount } = await exportCsvToStorage({
       fileKey: `exports/partners/${generateRandomString(16)}.csv`,
       fileName: generateExportFilename("partners"),
-      body: csvData,
-      contentType: "text/csv",
+      batches: formattedBatches(),
     });
 
     await sendEmail({
@@ -99,7 +95,7 @@ export async function POST(req: Request) {
     });
 
     return logAndRespond(
-      `Export (${allPartners.length} partners) generated and email sent to user.`,
+      `Export (${rowCount} partners) generated and email sent to user.`,
     );
   } catch (error) {
     await log({

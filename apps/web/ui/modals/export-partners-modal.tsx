@@ -1,4 +1,4 @@
-import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
+import { generateExportFilename } from "@/lib/exports/generate-export-filename";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {

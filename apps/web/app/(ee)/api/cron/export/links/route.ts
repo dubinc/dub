@@ -1,11 +1,10 @@
-import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { formatLinksForExport } from "@/lib/api/links/format-links-for-export";
 import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
-import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { exportCsvToStorage } from "@/lib/exports/export-csv-to-storage";
+import { generateExportFilename } from "@/lib/exports/generate-export-filename";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { PlanProps } from "@/lib/types";
@@ -97,9 +96,6 @@ export async function POST(req: Request) {
       end: end ? endOfDay(new Date(end)) : undefined,
     });
 
-    // Fetch links in batches and build CSV
-    const allLinks: Record<string, any>[] = [];
-
     const linksFilters = {
       ...filters,
       ...(interval !== "all" && {
@@ -116,17 +112,16 @@ export async function POST(req: Request) {
       folderIds,
     };
 
-    for await (const { links } of fetchLinksBatch(linksFilters)) {
-      allLinks.push(...formatLinksForExport(links, columns));
-    }
+    const formattedBatches = async function* () {
+      for await (const { links } of fetchLinksBatch(linksFilters)) {
+        yield formatLinksForExport(links, columns);
+      }
+    };
 
-    const csvData = convertToCSV(allLinks);
-
-    const { downloadUrl } = await createDownloadableExport({
+    const { downloadUrl, rowCount } = await exportCsvToStorage({
       fileKey: `exports/links/${generateRandomString(16)}.csv`,
       fileName: generateExportFilename("links"),
-      body: csvData,
-      contentType: "text/csv",
+      batches: formattedBatches(),
     });
 
     await sendEmail({
@@ -143,7 +138,7 @@ export async function POST(req: Request) {
     });
 
     return logAndRespond(
-      `Export (${allLinks.length} links) generated and email sent to user.`,
+      `Export (${rowCount} links) generated and email sent to user.`,
     );
   } catch (error) {
     await log({

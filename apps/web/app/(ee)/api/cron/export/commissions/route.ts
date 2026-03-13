@@ -1,9 +1,8 @@
-import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { formatCommissionsForExport } from "@/lib/api/commissions/format-commissions-for-export";
-import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { exportCsvToStorage } from "@/lib/exports/export-csv-to-storage";
+import { generateExportFilename } from "@/lib/exports/generate-export-filename";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { commissionsExportQuerySchema } from "@/lib/zod/schemas/commissions";
 import { sendEmail } from "@dub/email";
@@ -65,26 +64,23 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch commissions in batches and build CSV
-    const allCommissions: any[] = [];
     const commissionsFilters = {
       ...filters,
       programId,
     };
 
-    for await (const { commissions } of fetchCommissionsBatch(
-      commissionsFilters,
-    )) {
-      allCommissions.push(...formatCommissionsForExport(commissions, columns));
-    }
+    const formattedBatches = async function* () {
+      for await (const { commissions } of fetchCommissionsBatch(
+        commissionsFilters,
+      )) {
+        yield formatCommissionsForExport(commissions, columns);
+      }
+    };
 
-    const csvData = convertToCSV(allCommissions);
-
-    const { downloadUrl } = await createDownloadableExport({
+    const { downloadUrl, rowCount } = await exportCsvToStorage({
       fileKey: `exports/commissions/${generateRandomString(16)}.csv`,
       fileName: generateExportFilename("commissions"),
-      body: csvData,
-      contentType: "text/csv",
+      batches: formattedBatches(),
     });
 
     await sendEmail({
@@ -101,7 +97,7 @@ export async function POST(req: Request) {
     });
 
     return logAndRespond(
-      `Export (${allCommissions.length} commissions) generated and email sent to user.`,
+      `Export (${rowCount} commissions) generated and email sent to user.`,
     );
   } catch (error) {
     await log({

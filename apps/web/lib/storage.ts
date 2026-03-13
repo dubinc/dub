@@ -8,10 +8,10 @@ interface imageOptions {
   headers?: Record<string, string>;
 }
 
-type BucketType = "public" | "private";
+export type BucketType = "public" | "private";
 
-class StorageClient {
-  private client: AwsClient;
+export class StorageClient {
+  protected client: AwsClient;
 
   constructor() {
     this.client = new AwsClient({
@@ -230,7 +230,7 @@ class StorageClient {
     return blob;
   }
 
-  private _getBucketName(bucket: BucketType) {
+  protected _getBucketName(bucket: BucketType) {
     if (bucket === "public") {
       const bucketName = process.env.STORAGE_PUBLIC_BUCKET;
 
