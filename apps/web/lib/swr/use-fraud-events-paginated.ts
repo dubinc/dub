@@ -3,7 +3,7 @@ import { useFraudEvents } from "./use-fraud-events";
 import { useFraudEventsCount } from "./use-fraud-events-count";
 
 export function useFraudEventsPaginated<T = unknown>({
-  pageSize = 25,
+  pageSize = 10,
 }: {
   pageSize?: number;
 } = {}) {
