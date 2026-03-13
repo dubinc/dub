@@ -23,6 +23,7 @@ import {
   Table,
   TimestampTooltip,
   useTable,
+  useTablePagination,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
 import { CircleDollar, UserPlus } from "@dub/ui/icons";
@@ -229,25 +230,6 @@ function BountyPerformanceChart({ bounty }: { bounty: PartnerBountyProps }) {
 
 const PAGE_SIZE = 10;
 
-function usePaginationState() {
-  const [page, setPage] = useState(1);
-  const pagination = { pageIndex: page, pageSize: PAGE_SIZE };
-
-  const onPaginationChange = (
-    updater:
-      | { pageIndex: number; pageSize: number }
-      | ((prev: { pageIndex: number; pageSize: number }) => {
-          pageIndex: number;
-          pageSize: number;
-        }),
-  ) => {
-    const next = typeof updater === "function" ? updater(pagination) : updater;
-    setPage(next.pageIndex);
-  };
-
-  return { page, pagination, onPaginationChange };
-}
-
 function PerformanceTableShell({
   title,
   viewAllHref,
@@ -295,8 +277,15 @@ function BountyPerformanceEventsTable({
 }: {
   bounty: PartnerBountyProps;
 }) {
+  const [page, setPage] = useState(1);
   const { programEnrollment } = useProgramEnrollment();
   const { programSlug } = useParams<{ programSlug: string }>();
+
+  const { pagination, setPagination } = useTablePagination({
+    pageSize: PAGE_SIZE,
+    page,
+    onPageChange: setPage,
+  });
 
   const attribute = bounty.performanceCondition
     ?.attribute as PerformanceAttribute;
@@ -316,8 +305,6 @@ function BountyPerformanceEventsTable({
   const eventParams = attribute
     ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
     : undefined;
-
-  const { page, pagination, onPaginationChange } = usePaginationState();
 
   const { eventsParams, eventCountParams } = useMemo<{
     eventsParams: PartnerAnalyticsFilters | null;
@@ -490,7 +477,7 @@ function BountyPerformanceEventsTable({
     error: error ? "Failed to fetch data." : undefined,
     columns,
     pagination,
-    onPaginationChange,
+    onPaginationChange: setPagination,
     rowCount: eventsCount,
     thClassName: "border-l-transparent",
     tdClassName: (columnId: string) =>
@@ -539,7 +526,12 @@ function BountyPerformanceCommissionsTable({
     ? new Date(Math.min(new Date(bounty.endsAt).getTime(), Date.now()))
     : new Date();
 
-  const { page, pagination, onPaginationChange } = usePaginationState();
+  const [page, setPage] = useState(1);
+  const { pagination, setPagination } = useTablePagination({
+    pageSize: PAGE_SIZE,
+    page,
+    onPageChange: setPage,
+  });
 
   const baseParams = new URLSearchParams({
     ...(startDate && { start: startDate.toISOString() }),
@@ -660,7 +652,7 @@ function BountyPerformanceCommissionsTable({
     error: error ? "Failed to fetch data." : undefined,
     columns,
     pagination,
-    onPaginationChange,
+    onPaginationChange: setPagination,
     rowCount: earningsCount?.count || 0,
     thClassName: "border-l-transparent",
     tdClassName: (columnId: string) =>
