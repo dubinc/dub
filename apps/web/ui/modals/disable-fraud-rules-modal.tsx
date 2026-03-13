@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  CONFIGURABLE_FRAUD_RULES,
   CONFIGURABLE_RULE_TYPES,
   FRAUD_RULES_BY_TYPE,
 } from "@/lib/api/fraud/constants";
@@ -16,7 +15,7 @@ import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-export type ConfigurableRuleType = (typeof CONFIGURABLE_RULE_TYPES)[number];
+export type ConfigurableRuleType = keyof UpdateFraudRuleSettings;
 
 interface DisableFraudRulesModalProps {
   showModal: boolean;
@@ -67,10 +66,10 @@ function DisableFraudRulesModal({
   const handleCancel = () => {
     // Reset resolvePendingEvents to false for rules being disabled
     rulesBeingDisabled.forEach((ruleType) => {
-      const rule = formValues[ruleType as keyof UpdateFraudRuleSettings];
+      const rule = formValues[ruleType];
 
       if (rule) {
-        setValue(ruleType as keyof UpdateFraudRuleSettings, {
+        setValue(ruleType, {
           ...rule,
           resolvePendingEvents: false,
         });
@@ -95,7 +94,6 @@ function DisableFraudRulesModal({
         <div className="space-y-4">
           {rulesBeingDisabled.map((ruleType) => {
             const ruleInfo = FRAUD_RULES_BY_TYPE[ruleType];
-            const formKey = ruleType as keyof UpdateFraudRuleSettings;
 
             return (
               <div
@@ -116,14 +114,14 @@ function DisableFraudRulesModal({
                     id={ruleType}
                     className="h-4 w-4 rounded border-neutral-300 text-black focus:ring-black"
                     checked={
-                      formValues[formKey]?.resolvePendingEvents ?? false
+                      formValues[ruleType]?.resolvePendingEvents ?? false
                     }
                     disabled={isLoading}
                     onChange={(e) => {
-                      const rule = formValues[formKey];
+                      const rule = formValues[ruleType];
 
                       if (rule) {
-                        setValue(formKey, {
+                        setValue(ruleType, {
                           ...rule,
                           resolvePendingEvents: e.target.checked,
                         });
@@ -179,14 +177,16 @@ export function getRulesBeingDisabled({
   previousFraudRules: FraudRuleProps[] | undefined;
   nextFraudRules: UpdateFraudRuleSettings;
 }): ConfigurableRuleType[] {
-  return CONFIGURABLE_RULE_TYPES.filter((type) => {
-    const wasEnabled =
-      previousFraudRules?.find((r) => r.type === type)?.enabled ?? false;
-    const isEnabled =
-      nextFraudRules[type as keyof UpdateFraudRuleSettings]?.enabled ?? false;
+  return CONFIGURABLE_RULE_TYPES.filter(
+    (type): type is ConfigurableRuleType => {
+      const wasEnabled =
+        previousFraudRules?.find((r) => r.type === type)?.enabled ?? false;
+      const isEnabled =
+        nextFraudRules[type as ConfigurableRuleType]?.enabled ?? false;
 
-    return wasEnabled && !isEnabled;
-  });
+      return wasEnabled && !isEnabled;
+    },
+  );
 }
 
 export function useDisableFraudRulesModal({
