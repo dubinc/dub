@@ -38,6 +38,10 @@ model Link {
   testStartedAt   DateTime? // When tests were started
   testCompletedAt DateTime? // When tests were or will be completed
 
+  // Redirect Rules (wildcard/pattern matching)
+  isRule      Boolean @default(false) // whether this link is a redirect rule
+  rulePattern String? @db.VarChar(500) // pattern to match (e.g. /blog/*, /docs/:slug)
+
   // User who created the link
   user   User?   @relation(fields: [userId], references: [id])
   userId String?
@@ -100,6 +104,7 @@ model Link {
   @@index([programId, partnerId]) // for getting a referral link (programId + partnerId)
   @@index(partnerId) // for getting links by partnerId
   @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
+  @@index([domain, isRule]) // for fetching redirect rules by domain
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
   @@index(partnerGroupDefaultLinkId)
