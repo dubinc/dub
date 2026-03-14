@@ -13,10 +13,12 @@ import {
 import { EmbedBountyDetail, EmbedBountyView } from "./detail";
 
 export function ReferralsEmbedBounties({
-  bounties,
+  bounties: initialBounties,
 }: {
   bounties: PartnerBountyProps[];
 }) {
+  const [bounties, setBounties] =
+    useState<PartnerBountyProps[]>(initialBounties);
   const [selectedBounty, setSelectedBounty] =
     useState<PartnerBountyProps | null>(null);
   const [view, setView] = useState<EmbedBountyView>({ mode: "detail" });
@@ -43,6 +45,9 @@ export function ReferralsEmbedBounties({
 
   const handleBountyUpdate = (updatedBounty: PartnerBountyProps) => {
     setSelectedBounty(updatedBounty);
+    setBounties((prev) =>
+      prev.map((b) => (b.id === updatedBounty.id ? updatedBounty : b)),
+    );
   };
 
   return (

@@ -45,6 +45,7 @@ export function PartnerBountyCard({
       onClick={handleClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
+          if (e.key === " ") e.preventDefault();
           handleClick();
         }
       }}

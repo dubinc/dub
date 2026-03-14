@@ -5,8 +5,8 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const querySchema = z.object({
-  start: z.string().optional(),
-  end: z.string().optional(),
+  start: z.union([z.iso.date(), z.iso.datetime()]).optional(),
+  end: z.union([z.iso.date(), z.iso.datetime()]).optional(),
   event: z.enum(["composite", "clicks", "leads", "sales"]).default("composite"),
   groupBy: z.enum(["timeseries", "count"]).default("timeseries"),
   saleType: z.enum(["new", "recurring"]).optional(),

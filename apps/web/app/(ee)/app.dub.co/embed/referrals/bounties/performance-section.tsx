@@ -483,50 +483,38 @@ function EmbedBountyCommissionsTable({
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       page: String(page),
+      withTotal: "true",
     });
     return `/api/embed/referrals/earnings?${params.toString()}`;
   }, [startDate, endDate, page]);
 
-  const countUrl = useMemo(() => {
-    const params = new URLSearchParams({
-      event: "composite",
-      groupBy: "count",
-      start: startDate.toISOString(),
-      end: endDate.toISOString(),
-    });
-    return `/api/embed/referrals/analytics?${params.toString()}`;
-  }, [startDate, endDate]);
-
   const {
-    data: earnings,
+    data: earningsResponse,
     isLoading,
     error,
-  } = useSWR<
-    {
+  } = useSWR<{
+    data: {
       id: string;
       createdAt: string;
       earnings: number;
       customer: { id: string; email: string } | null;
       link: { id: string; shortLink: string; url: string } | null;
-    }[]
-  >(earningsUrl, authFetcher, {
+    }[];
+    total: number;
+  }>(earningsUrl, authFetcher, {
     keepPreviousData: true,
   });
 
-  const { data: countData, isLoading: isLoadingCount } = useSWR<
-    Record<string, number>
-  >(countUrl, authFetcher, { keepPreviousData: true });
-
   const rows = useMemo<PerformanceRow[]>(
     () =>
-      earnings?.map((e) => ({
+      earningsResponse?.data.map((e) => ({
         id: e.id,
         date: e.createdAt,
         customer: e.customer,
         link: e.link ?? null,
         amount: e.earnings,
       })) ?? [],
-    [earnings],
+    [earningsResponse],
   );
 
   const columns = useMemo<ColumnDef<PerformanceRow, any>[]>(
@@ -597,12 +585,12 @@ function EmbedBountyCommissionsTable({
 
   const { table, ...tableProps } = useTable({
     data: rows,
-    loading: isLoading || isLoadingCount,
+    loading: isLoading,
     error: error ? "Failed to fetch data." : undefined,
     columns,
     pagination,
     onPaginationChange: setPagination,
-    rowCount: countData?.sales ?? 0,
+    rowCount: earningsResponse?.total ?? 0,
     thClassName: "border-l-transparent",
     tdClassName: (columnId: string) =>
       cn("border-l-transparent", columnId === "customer" && "p-0"),

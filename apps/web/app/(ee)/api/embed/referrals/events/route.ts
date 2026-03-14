@@ -9,8 +9,8 @@ import * as z from "zod/v4";
 
 const querySchema = z.object({
   event: z.enum(["leads", "sales"]).default("leads"),
-  start: z.string().optional(),
-  end: z.string().optional(),
+  start: z.union([z.iso.date(), z.iso.datetime()]).optional(),
+  end: z.union([z.iso.date(), z.iso.datetime()]).optional(),
   saleType: z.enum(["new", "recurring"]).optional(),
   limit: z.coerce.number().int().positive().max(100).default(10),
   page: z.coerce.number().int().positive().default(1),
@@ -39,8 +39,15 @@ export const GET = withReferralsEmbedToken(
     });
 
     const response = events.map((event) => {
-      // @ts-ignore – ip is deprecated but present in the data
-      const { ip, click, customer, ...eventRest } = event;
+      const {
+        ip: _eventIp,
+        click,
+        customer,
+        ...eventRest
+      } = event as typeof event & {
+        ip?: unknown;
+        customer?: { id: string; email?: string | null; name?: string | null };
+      };
       const { ip: _, ...clickRest } = click;
 
       return {

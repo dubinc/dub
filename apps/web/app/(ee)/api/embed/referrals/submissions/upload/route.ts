@@ -17,7 +17,7 @@ const bodySchema = z.object({
 
 // POST /api/embed/referrals/submissions/upload – get a signed R2 upload URL for a bounty submission
 export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment }) => {
+  async ({ req, programEnrollment, group }) => {
     const { bountyId } = bodySchema.parse(await req.json());
 
     const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
@@ -41,6 +41,7 @@ export const POST = withReferralsEmbedToken(
         endsAt: true,
         archivedAt: true,
         submissionRequirements: true,
+        groups: { select: { groupId: true } },
       },
     });
 
@@ -48,6 +49,16 @@ export const POST = withReferralsEmbedToken(
       throw new DubApiError({
         code: "forbidden",
         message: "This bounty is not for this program.",
+      });
+    }
+
+    if (
+      bounty.groups.length > 0 &&
+      !bounty.groups.some((g) => g.groupId === group.id)
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "This bounty is not available for your group.",
       });
     }
 

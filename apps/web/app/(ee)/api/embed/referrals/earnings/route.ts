@@ -10,69 +10,79 @@ import * as z from "zod/v4";
 // GET /api/embed/referrals/earnings – get commissions for a partner from an embed token
 export const GET = withReferralsEmbedToken(
   async ({ programEnrollment, searchParams }) => {
-    const { page, start, end } = z
+    const { page, start, end, withTotal } = z
       .object({
-        page: z.coerce.number().optional().default(1),
-        start: z.string().optional(),
-        end: z.string().optional(),
+        page: z.coerce.number().int().positive().optional().default(1),
+        start: z.coerce.date().optional(),
+        end: z.coerce.date().optional(),
+        withTotal: z.coerce.boolean().optional().default(false),
       })
       .parse(searchParams);
 
-    const earnings = await prisma.commission.findMany({
-      where: {
-        earnings: {
-          gt: 0,
-        },
-        programId: programEnrollment.programId,
-        partnerId: programEnrollment.partnerId,
-        ...(start || end
-          ? {
-              createdAt: {
-                ...(start && { gte: new Date(start) }),
-                ...(end && { lte: new Date(end) }),
-              },
-            }
-          : {}),
+    const where = {
+      earnings: {
+        gt: 0,
       },
-      include: {
-        customer: {
-          select: {
-            id: true,
-            email: true,
-            name: true,
-          },
-        },
-        link: {
-          select: {
-            id: true,
-            shortLink: true,
-            url: true,
-          },
-        },
-      },
-      take: REFERRALS_EMBED_EARNINGS_LIMIT,
-      skip: (page - 1) * REFERRALS_EMBED_EARNINGS_LIMIT,
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+      programId: programEnrollment.programId,
+      partnerId: programEnrollment.partnerId,
+      ...(start || end
+        ? {
+            createdAt: {
+              ...(start && { gte: start }),
+              ...(end && { lte: end }),
+            },
+          }
+        : {}),
+    };
 
-    return NextResponse.json(
-      z.array(PartnerEarningsSchema).parse(
-        earnings.map((e) => ({
-          ...e,
-          customer: e.customer
-            ? {
-                ...e.customer,
-                email: e.customer.email
-                  ? programEnrollment.customerDataSharingEnabledAt
-                    ? e.customer.email
-                    : obfuscateCustomerEmail(e.customer.email)
-                  : e.customer.name || generateRandomName(),
-              }
-            : null,
-        })),
-      ),
+    const [earnings, total] = await Promise.all([
+      prisma.commission.findMany({
+        where,
+        include: {
+          customer: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
+          link: {
+            select: {
+              id: true,
+              shortLink: true,
+              url: true,
+            },
+          },
+        },
+        take: REFERRALS_EMBED_EARNINGS_LIMIT,
+        skip: (page - 1) * REFERRALS_EMBED_EARNINGS_LIMIT,
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      withTotal ? prisma.commission.count({ where }) : Promise.resolve(null),
+    ]);
+
+    const data = z.array(PartnerEarningsSchema).parse(
+      earnings.map((e) => ({
+        ...e,
+        customer: e.customer
+          ? {
+              ...e.customer,
+              email: e.customer.email
+                ? programEnrollment.customerDataSharingEnabledAt
+                  ? e.customer.email
+                  : obfuscateCustomerEmail(e.customer.email)
+                : e.customer.name || generateRandomName(),
+            }
+          : null,
+      })),
     );
+
+    if (withTotal) {
+      return NextResponse.json({ data, total });
+    }
+
+    return NextResponse.json(data);
   },
 );
