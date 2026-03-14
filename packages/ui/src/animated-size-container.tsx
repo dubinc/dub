@@ -51,10 +51,7 @@ const AnimatedSizeContainer: ForwardRefExoticComponent<
     }
 
     const effectiveTransition =
-      transition ??
-      (isFirstMeasurement
-        ? { duration: 0 }
-        : defaultTransition);
+      transition ?? (isFirstMeasurement ? { duration: 0 } : defaultTransition);
 
     return (
       <motion.div
