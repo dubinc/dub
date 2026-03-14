@@ -167,18 +167,20 @@ export async function POST(req: Request) {
         `Updated ${updatedLinksRes.count} links, ${updatedCustomersRes.count} customers, ${updatedCommissionsRes.count} commissions, and ${updatedPayoutsRes.count} payouts`,
       );
 
-      // update notification emails, messages, and partner comments
+      // update discount codes, notification emails, messages, and partner comments
       const [
+        updatedDiscountCodesRes,
         updatedNotificationEmailsRes,
         updatedMessagesRes,
         updatedPartnerCommentsRes,
       ] = await Promise.all([
+        prisma.discountCode.updateMany(updateManyPayload),
         prisma.notificationEmail.updateMany(updateManyPayload),
         prisma.message.updateMany(updateManyPayload),
         prisma.partnerComment.updateMany(updateManyPayload),
       ]);
       console.log(
-        `Updated ${updatedNotificationEmailsRes.count} notification emails, ${updatedMessagesRes.count} messages, and ${updatedPartnerCommentsRes.count} partner comments`,
+        `Updated ${updatedDiscountCodesRes.count} discount codes, ${updatedNotificationEmailsRes.count} notification emails, ${updatedMessagesRes.count} messages, and ${updatedPartnerCommentsRes.count} partner comments`,
       );
 
       const updatedLinks = await prisma.link.findMany({
