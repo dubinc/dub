@@ -49,7 +49,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "partnerCrossProgramBan",
     name: "Cross-program ban",
     description:
-      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history. To protect security and privacy, specific details such as links, evidence, or notes are not shared across programs.",
+      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history.",
     scope: "partner",
     severity: "high",
     configurable: true,
@@ -66,7 +66,8 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
   {
     type: "partnerEmailDomainMismatch",
     name: "Email domain mismatch with website",
-    description: "The custom email domain doesn't match the website provided.",
+    description:
+      "The partner's email domain doesn't match their website domain.",
     scope: "partner",
     severity: "low",
     configurable: false,
