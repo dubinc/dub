@@ -102,6 +102,12 @@ export async function POST(req: Request) {
       );
     }
 
+    if (sourceAccount.id === targetAccount.id) {
+      return new Response(
+        `Source and target partner accounts must be different. Source account: ${sourceAccount.email} (${sourceAccount.id}), Target account: ${targetAccount.email} (${targetAccount.id})`,
+      );
+    }
+
     const {
       id: sourcePartnerId,
       users: sourcePartnerUsers,
