@@ -32,14 +32,14 @@ export function SubmissionCardHeader({
   return (
     <>
       <div className="flex items-center justify-between px-4 py-2">
-        <div className="flex items-center gap-2 text-neutral-800">
+        <div className="text-content-emphasis flex items-center gap-2">
           <Trophy className="size-4" />
 
           <span className="font-semibold">{title}</span>
         </div>
         <div className="flex items-center gap-2">{rightContent}</div>
       </div>
-      <div className="border-t border-neutral-200" />
+      <div className="border-border-subtle border-t" />
     </>
   );
 }
@@ -48,7 +48,7 @@ export function headerButtonClass(primary = false) {
   return cn(
     "flex h-8 items-center rounded-lg border px-3 text-sm font-medium transition-colors duration-100",
     primary
-      ? "border-transparent bg-neutral-900 text-white hover:bg-neutral-700"
+      ? "border-transparent bg-bg-inverted text-content-inverted hover:opacity-80"
       : "border-border-subtle text-content-default hover:bg-bg-muted",
   );
 }
@@ -155,7 +155,7 @@ export function EmbedBountySubmissionForm({
   };
 
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+    <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
       <SubmissionCardHeader
         title={title}
         rightContent={
@@ -206,7 +206,7 @@ export function EmbedBountySubmissionForm({
 
       <div className="flex flex-col gap-5 p-5">
         {submissionsNotOpenYet && submissionsOpenAt && (
-          <div className="rounded-lg bg-orange-50 p-2 text-center text-sm font-medium text-orange-800">
+          <div className="bg-bg-attention text-content-attention rounded-lg p-2 text-center text-sm font-medium">
             Submissions open{" "}
             {submissionsOpenAt.toLocaleDateString("en-US", {
               month: "short",

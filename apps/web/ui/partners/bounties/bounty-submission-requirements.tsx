@@ -58,7 +58,7 @@ export function BountySubmissionRequirements({
         {submissionTexts.map((text) => (
           <div className="flex items-center gap-1.5" key={text}>
             <Check2 className="size-3 shrink-0 text-green-600" />
-            <span className="text-sm font-normal text-neutral-600">{text}</span>
+            <span className="text-sm font-normal text-neutral-600 dark:text-neutral-400">{text}</span>
           </div>
         ))}
       </div>

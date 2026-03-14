@@ -17,7 +17,8 @@ import { cn, DUB_LOGO } from "@dub/utils";
 import { motion } from "motion/react";
 import { ReferralsEmbedLink } from "./types";
 
-const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
+const BUTTON_CLASSNAME =
+  "h-9 rounded-lg bg-bg-inverted dark:hover:bg-neutral-200 hover:bg-neutral-800";
 
 export function ReferralsEmbedQuickstart({
   program,

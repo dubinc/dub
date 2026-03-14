@@ -62,7 +62,7 @@ export function EmbedBountySubmissionsTable({
                     : config?.label;
                 return (
                   <div className="flex items-center gap-3">
-                    <span className="min-w-[52px] text-sm font-medium leading-5 tracking-[-0.28px] text-neutral-600">
+                    <span className="text-content-subtle min-w-[52px] text-sm font-medium leading-5 tracking-[-0.28px]">
                       {original.label}
                     </span>
                     {config && (
@@ -104,7 +104,7 @@ export function EmbedBountySubmissionsTable({
         minSize: 100,
         size: 120,
         cell: ({ row: { original } }) => (
-          <span className="text-center text-sm font-medium leading-5 tracking-[-0.28px] text-neutral-600">
+          <span className="text-content-subtle text-center text-sm font-medium leading-5 tracking-[-0.28px]">
             {original.submission?.completedAt
               ? formatDate(original.submission.completedAt, {
                   month: "short",
@@ -121,7 +121,7 @@ export function EmbedBountySubmissionsTable({
         minSize: 100,
         size: 120,
         cell: ({ row: { original } }) => (
-          <span className="text-center text-sm font-medium leading-5 tracking-[-0.28px] text-neutral-600">
+          <span className="text-content-subtle text-center text-sm font-medium leading-5 tracking-[-0.28px]">
             {original.submission?.reviewedAt
               ? formatDate(original.submission.reviewedAt, {
                   month: "short",
@@ -200,7 +200,7 @@ export function EmbedBountySubmissionsTable({
         MOBILE_HIDDEN.has(columnId) && "hidden sm:table-cell",
       ),
     className: "[&_tbody_tr:last-child_td]:border-b-0",
-    containerClassName: "border-neutral-200",
+    containerClassName: "border-border-subtle",
   });
 
   return (

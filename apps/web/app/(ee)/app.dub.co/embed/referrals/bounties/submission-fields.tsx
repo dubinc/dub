@@ -8,11 +8,24 @@ import {
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { Button, CircleCheckFill, FileUpload, Label, LoadingSpinner, Trash } from "@dub/ui";
+import {
+  Button,
+  CircleCheckFill,
+  FileUpload,
+  Label,
+  LoadingSpinner,
+  Trash,
+} from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
+
+const inputClassName =
+  "block h-10 w-full rounded-md px-3 py-2 sm:text-sm " +
+  "border-border-default bg-bg-default text-content-emphasis " +
+  "placeholder:text-content-muted " +
+  "focus:border-border-emphasis focus:outline-none focus:ring-border-emphasis";
 
 export interface FileInput {
   id: string;
@@ -126,7 +139,7 @@ export function EmbedImagesField({
         {files.map((file, idx) => (
           <div
             key={file.id}
-            className="border-border-subtle group relative flex aspect-square h-full items-center justify-center rounded-md border bg-white"
+            className="border-border-subtle bg-bg-default group relative flex aspect-square h-full items-center justify-center rounded-md border"
           >
             {file.uploading ? (
               <LoadingSpinner className="size-4" />
@@ -145,14 +158,14 @@ export function EmbedImagesField({
               type="button"
               className={cn(
                 "absolute right-0 top-0 flex size-[1.125rem] -translate-y-1/2 translate-x-1/2 items-center justify-center",
-                "rounded-full border border-neutral-200 bg-white shadow-sm hover:bg-neutral-50 active:scale-95",
+                "border-border-subtle bg-bg-default hover:bg-bg-muted rounded-full border shadow-sm active:scale-95",
                 "scale-50 opacity-0 transition-[background-color,transform,opacity] group-hover:scale-100 group-hover:opacity-100",
               )}
               onClick={() =>
                 setFiles((prev) => prev.filter((f) => f.id !== file.id))
               }
             >
-              <X className="size-2.5 text-neutral-400" />
+              <X className="text-content-muted size-2.5" />
             </button>
           </div>
         ))}
@@ -193,7 +206,7 @@ export function EmbedSocialUrlField({
 
   return (
     <div>
-      <label className="block text-sm font-medium text-neutral-900">
+      <label className="text-content-emphasis block text-sm font-medium">
         {`${socialPlatform.label} URL`}
       </label>
       <div className="mt-2">
@@ -205,17 +218,17 @@ export function EmbedSocialUrlField({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onBlur={(e) => onChange(e.target.value.trim())}
-          className="block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+          className={inputClassName}
         />
       </div>
       <ul className="mt-2 flex flex-wrap items-center gap-3">
-        <li className="flex items-center gap-1 text-xs font-medium text-neutral-400">
-          <CircleCheckFill className="size-2.5 text-neutral-200" />
+        <li className="text-content-muted flex items-center gap-1 text-xs font-medium">
+          <CircleCheckFill className="text-content-muted size-2.5" />
           <span>Posted from your account</span>
         </li>
         {bounty.startsAt && (
-          <li className="flex items-center gap-1 text-xs font-medium text-neutral-400">
-            <CircleCheckFill className="size-2.5 text-neutral-200" />
+          <li className="text-content-muted flex items-center gap-1 text-xs font-medium">
+            <CircleCheckFill className="text-content-muted size-2.5" />
             <span>{`Posted after ${formatDate(bounty.startsAt, { month: "short", day: "numeric", year: "numeric" })}`}</span>
           </li>
         )}
@@ -245,7 +258,7 @@ export function EmbedUrlsField({
     <div>
       <div className="flex items-center justify-between">
         <Label>URL{formatRequirementText(urlMax)}</Label>
-        <span className="text-xs font-medium text-neutral-500">
+        <span className="text-content-subtle text-xs font-medium">
           {urls.filter(Boolean).length} / {maxUrls}
         </span>
       </div>
@@ -266,12 +279,12 @@ export function EmbedUrlsField({
                   return next;
                 });
               }}
-              className="block h-10 w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              className={inputClassName}
             />
             <Button
               variant="outline"
               icon={<Trash className="size-4" />}
-              className="w-10 shrink-0 bg-red-50 p-0 text-red-700 hover:bg-red-100"
+              className="bg-bg-error text-content-error hover:bg-bg-error/80 w-10 shrink-0 p-0"
               onClick={() => setUrls((prev) => prev.filter((_, j) => j !== i))}
             />
           </div>
@@ -288,7 +301,7 @@ export function EmbedUrlsField({
 
         {bounty.submissionRequirements?.url?.domains &&
           bounty.submissionRequirements.url.domains.length > 0 && (
-            <p className="text-xs text-neutral-400">
+            <p className="text-content-muted text-xs">
               Allowed domains:{" "}
               {bounty.submissionRequirements.url.domains.join(", ")}
             </p>
@@ -314,7 +327,8 @@ export function EmbedDescriptionField({
         id="embed-submission-description"
         className={cn(
           "mt-2 block w-full resize-none rounded-md focus:outline-none sm:text-sm",
-          "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+          "border-border-default bg-bg-default text-content-emphasis",
+          "placeholder:text-content-muted focus:border-border-emphasis focus:ring-border-emphasis",
         )}
         minRows={3}
         maxLength={BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH}
@@ -328,7 +342,7 @@ export function EmbedDescriptionField({
         }}
       />
       <div className="mt-1 text-left">
-        <span className="text-xs text-neutral-500">
+        <span className="text-content-subtle text-xs">
           {value.length} / {BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH}
         </span>
       </div>

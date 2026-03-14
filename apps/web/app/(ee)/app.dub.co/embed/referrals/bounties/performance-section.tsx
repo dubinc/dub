@@ -97,7 +97,7 @@ export function EmbedBountyPerformanceSection({
         <h2 className="text-content-emphasis text-lg font-semibold">
           Performance
         </h2>
-        <div className="border-border-subtle rounded-xl border bg-white p-5">
+        <div className="border-border-subtle bg-bg-default rounded-xl border p-5">
           <EmbedBountyPerformanceChart bounty={bounty} />
         </div>
       </div>
@@ -195,10 +195,10 @@ function EmbedBountyPerformanceChart({
           ]}
           tooltipContent={(d) => (
             <div className="flex justify-between gap-6 whitespace-nowrap p-2 text-xs leading-none">
-              <span className="font-medium text-neutral-700">
+              <span className="text-content-default font-medium">
                 {formatDateTooltip(d.date, {})}
               </span>
-              <p className="text-right text-neutral-500">
+              <p className="text-content-subtle text-right">
                 {isCurrency
                   ? currencyFormatter(d.values.main)
                   : nFormatter(d.values.main)}
@@ -212,7 +212,7 @@ function EmbedBountyPerformanceChart({
       ) : (
         <div className="flex size-full items-center justify-center">
           {error ? (
-            <span className="text-sm text-neutral-500">
+            <span className="text-content-subtle text-sm">
               Failed to load data.
             </span>
           ) : (
@@ -387,7 +387,10 @@ function EmbedBountyEventsTable({ bounty }: { bounty: PartnerBountyProps }) {
                 successMessage="Copied link to clipboard!"
                 className="truncate"
               >
-                <span className="truncate" title={row.original.link.shortLink}>
+                <span
+                  className="text-content-default truncate"
+                  title={row.original.link.shortLink}
+                >
                   {getPrettyUrl(row.original.link.shortLink)}
                 </span>
               </CopyText>
@@ -428,8 +431,8 @@ function EmbedBountyEventsTable({ bounty }: { bounty: PartnerBountyProps }) {
         description={`${tableTitle} will appear here once you start generating activity.`}
         cardContent={() => (
           <>
-            <EmptyIcon className="size-4 text-neutral-700" />
-            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            <EmptyIcon className="text-content-default size-4" />
+            <div className="bg-bg-emphasis h-2.5 w-24 min-w-0 rounded-sm" />
           </>
         )}
         className="border-none md:min-h-0"
@@ -445,7 +448,7 @@ function EmbedBountyEventsTable({ bounty }: { bounty: PartnerBountyProps }) {
       <Table
         {...tableProps}
         table={table}
-        containerClassName="border-neutral-200"
+        containerClassName="border-border-subtle"
         scrollWrapperClassName="min-h-[315px]"
       />
     </div>
@@ -610,8 +613,8 @@ function EmbedBountyCommissionsTable({
         description="Commissions earned will appear here once you start generating activity."
         cardContent={() => (
           <>
-            <CircleDollar className="size-4 text-neutral-700" />
-            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+            <CircleDollar className="text-content-default size-4" />
+            <div className="bg-bg-emphasis h-2.5 w-24 min-w-0 rounded-sm" />
           </>
         )}
         className="border-none md:min-h-0"
@@ -627,7 +630,7 @@ function EmbedBountyCommissionsTable({
       <Table
         {...tableProps}
         table={table}
-        containerClassName="border-neutral-200"
+        containerClassName="border-border-subtle"
         scrollWrapperClassName="min-h-[315px]"
       />
     </div>

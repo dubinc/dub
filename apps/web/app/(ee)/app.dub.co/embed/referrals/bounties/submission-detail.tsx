@@ -35,7 +35,7 @@ export function EmbedBountySubmissionDetail({
       : "Submission";
 
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+    <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
       <SubmissionCardHeader
         title={title}
         rightContent={
@@ -49,7 +49,7 @@ export function EmbedBountySubmissionDetail({
         }
       />
 
-      <div className="grid grid-cols-1 divide-y divide-neutral-200 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:divide-x lg:divide-y-0">
+      <div className="divide-border-subtle grid grid-cols-1 divide-y lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:divide-x lg:divide-y-0">
         <SubmissionLeftColumn bounty={bounty} submission={submission} />
         <SubmissionRightColumn bounty={bounty} submission={submission} />
       </div>
@@ -79,19 +79,21 @@ function SubmissionLeftColumn({
         submission.description) && (
         <div className="flex flex-col gap-4">
           {!bountyInfo?.hasSocialMetrics && (
-            <h2 className="text-base font-semibold text-neutral-800">
+            <h2 className="text-content-emphasis text-base font-semibold">
               Submitted content
             </h2>
           )}
 
           {Boolean(submission.files?.length) && (
             <div>
-              <h3 className="text-sm font-medium text-neutral-700">Images</h3>
+              <h3 className="text-content-default text-sm font-medium">
+                Images
+              </h3>
               <div className="mt-2 flex flex-wrap gap-3">
                 {submission.files!.map((file, idx) => (
                   <a
                     key={idx}
-                    className="border-border-subtle hover:border-border-default group relative flex size-14 items-center justify-center rounded-md border bg-white"
+                    className="border-border-subtle hover:border-border-default bg-bg-default group relative flex size-14 items-center justify-center rounded-md border"
                     target="_blank"
                     href={file.url}
                     rel="noopener noreferrer"
@@ -115,7 +117,9 @@ function SubmissionLeftColumn({
           {Boolean(submission.urls?.length) &&
             !bountyInfo?.hasSocialMetrics && (
               <div>
-                <h3 className="text-sm font-medium text-neutral-700">URLs</h3>
+                <h3 className="text-content-default text-sm font-medium">
+                  URLs
+                </h3>
                 <div className="mt-2 flex flex-col gap-2">
                   {submission.urls?.map((url, idx) => (
                     <div
@@ -127,13 +131,13 @@ function SubmissionLeftColumn({
                           href={url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block cursor-alias truncate text-sm font-normal text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                          className="text-content-emphasis block cursor-alias truncate text-sm font-normal decoration-dotted underline-offset-2 hover:underline"
                         >
                           {url}
                         </a>
                       </div>
                       <div className="absolute inset-y-0 left-0 flex items-center pl-2.5">
-                        <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100 text-xs font-medium text-neutral-600">
+                        <div className="bg-bg-subtle text-content-subtle flex size-6 items-center justify-center rounded-full text-xs font-medium">
                           {idx + 1}
                         </div>
                       </div>
@@ -153,10 +157,10 @@ function SubmissionLeftColumn({
 
           {submission.description && (
             <div>
-              <h3 className="text-sm font-medium text-neutral-700">
+              <h3 className="text-content-default text-sm font-medium">
                 Provide any additional details (optional)
               </h3>
-              <p className="mt-2 whitespace-pre-wrap text-sm text-neutral-600">
+              <p className="text-content-subtle mt-2 whitespace-pre-wrap text-sm">
                 {submission.description}
               </p>
             </div>
@@ -179,7 +183,7 @@ function SubmissionRightColumn({
   const submittedDate = submission.completedAt ?? submission.createdAt;
 
   const textValue = (text: string) => (
-    <span className="text-sm font-medium text-neutral-900">{text}</span>
+    <span className="text-content-emphasis text-sm font-medium">{text}</span>
   );
 
   const details: { label: string; value: React.ReactNode }[] = [];
@@ -240,11 +244,13 @@ function SubmissionRightColumn({
   return (
     <div className="flex flex-col gap-5 p-5">
       <div>
-        <h2 className="text-base font-semibold text-neutral-800">Details</h2>
+        <h2 className="text-content-emphasis text-base font-semibold">
+          Details
+        </h2>
         <div className="mt-3 grid grid-cols-2 items-center gap-x-14 gap-y-1">
           {details.map(({ label, value }) => (
             <Fragment key={label}>
-              <span className="text-sm font-medium text-neutral-500">
+              <span className="text-content-subtle text-sm font-medium">
                 {label}
               </span>
               <div>{value}</div>
@@ -254,8 +260,8 @@ function SubmissionRightColumn({
       </div>
 
       {submission.rejectionNote && (
-        <div className="rounded-lg bg-orange-50 p-4">
-          <p className="whitespace-pre-wrap text-sm leading-6 text-orange-800">
+        <div className="bg-bg-attention rounded-lg p-4">
+          <p className="text-content-attention whitespace-pre-wrap text-sm leading-6">
             {submission.rejectionNote}
           </p>
         </div>

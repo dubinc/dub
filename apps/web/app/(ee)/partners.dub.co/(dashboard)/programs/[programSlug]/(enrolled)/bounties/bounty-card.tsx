@@ -48,10 +48,10 @@ export function PartnerBountyCard({
           handleClick();
         }
       }}
-      className="border-border-subtle group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-white text-left"
+      className="border-border-subtle group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-white text-left dark:bg-black"
     >
       <div className="p-3 pb-0">
-        <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100">
+        <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100 dark:bg-neutral-800">
           <div className="relative size-full">
             <BountyThumbnailImage bounty={bounty} />
           </div>
@@ -80,7 +80,7 @@ export function PartnerBountyCard({
       </div>
 
       {!hideFooter && (
-        <div className="border-t border-neutral-200 px-5 py-4">
+        <div className="border-t border-neutral-200 px-5 py-4 dark:border-neutral-800">
           {bounty.type === "performance" ? (
             <PerformanceBountyProgress bounty={bounty} />
           ) : (
@@ -90,7 +90,7 @@ export function PartnerBountyCard({
       )}
 
       {showRewards && bounty.submissions.some((s) => s.commission !== null) && (
-        <div className="@3xl/page:block hidden border-t border-neutral-200 p-4">
+        <div className="@3xl/page:block hidden border-t border-neutral-200 p-4 dark:border-neutral-800">
           <BountyRewardsTable
             bounty={bounty}
             programSlug={programSlug as string}
@@ -152,7 +152,7 @@ export function BountyRewardsTable({
   return (
     <div className={cn("relative flex flex-col gap-4", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="@3xl/page:text-sm text-lg font-semibold text-neutral-900">
+        <h3 className="@3xl/page:text-sm text-lg font-semibold text-neutral-900 dark:text-neutral-100">
           Rewards
         </h3>
         {programSlug && (
@@ -171,7 +171,7 @@ export function BountyRewardsTable({
       <Table
         {...tableProps}
         table={table}
-        containerClassName="border-neutral-200"
+        containerClassName="border-neutral-200 dark:border-neutral-800"
         scrollWrapperClassName="min-h-0"
         className="[&_tbody_tr:last-child_td]:border-b-0"
       />
@@ -210,14 +210,14 @@ export function BountyEndDate({ bounty }: { bounty: PartnerBountyProps }) {
 
 export const PartnerBountyCardSkeleton = () => {
   return (
-    <div className="border-border-subtle rounded-xl border bg-white p-5">
+    <div className="border-border-subtle rounded-xl border bg-white p-5 dark:bg-black">
       <div className="flex flex-col gap-5">
-        <div className="flex h-[132px] animate-pulse items-center justify-center rounded-lg bg-neutral-100 px-32 py-4" />
+        <div className="flex h-[132px] animate-pulse items-center justify-center rounded-lg bg-neutral-100 px-32 py-4 dark:bg-neutral-800" />
         <div className="flex flex-col gap-1.5">
-          <div className="h-5 w-48 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-5 w-48 animate-pulse rounded-md bg-neutral-200 dark:bg-neutral-700" />
           <div className="flex h-5 items-center space-x-2">
-            <div className="size-4 animate-pulse rounded bg-neutral-200" />
-            <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+            <div className="size-4 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700" />
+            <div className="h-4 w-32 animate-pulse rounded bg-neutral-200 dark:bg-neutral-700" />
           </div>
         </div>
       </div>

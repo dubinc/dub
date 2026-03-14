@@ -114,9 +114,9 @@ export function EmbedBountyDetail({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
+    <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
       <div className="flex items-center justify-between px-4 py-2">
-        <div className="flex items-center gap-2 text-neutral-800">
+        <div className="text-content-emphasis flex items-center gap-2">
           <Trophy className="size-4" />
 
           <span className="font-semibold">Bounty details</span>
@@ -130,15 +130,15 @@ export function EmbedBountyDetail({
         </button>
       </div>
 
-      <div className="border-t border-neutral-200" />
+      <div className="border-border-subtle border-t" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:divide-x lg:divide-neutral-200">
+      <div className="lg:divide-border-subtle grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:divide-x">
         <div className="flex flex-col gap-6 p-5">
           <div className="flex flex-col gap-3">
             <h2 className="text-content-emphasis text-lg font-semibold">
               Progress
             </h2>
-            <div className="border-border-subtle flex w-full flex-col gap-4 rounded-xl border bg-white px-5 pb-4 pt-6">
+            <div className="border-border-subtle bg-bg-default flex w-full flex-col gap-4 rounded-xl border px-5 pb-4 pt-6">
               {bounty.type === "performance" ? (
                 <PerformanceBountyProgress
                   bounty={bounty}
@@ -174,8 +174,8 @@ export function EmbedBountyDetail({
           </div>
         </div>
 
-        <div className="flex flex-col gap-4 border-t border-neutral-200 p-5 lg:border-t-0">
-          <div className="relative flex h-[132px] items-center justify-center overflow-hidden rounded-lg bg-neutral-100">
+        <div className="border-border-subtle flex flex-col gap-4 border-t p-5 lg:border-t-0">
+          <div className="bg-bg-subtle relative flex h-[132px] items-center justify-center overflow-hidden rounded-lg">
             <div className="relative size-full">
               <BountyThumbnailImage bounty={bounty} />
             </div>
@@ -183,7 +183,7 @@ export function EmbedBountyDetail({
           </div>
 
           <div className="flex flex-col gap-1">
-            <h3 className="text-sm font-semibold text-neutral-900">
+            <h3 className="text-content-emphasis text-sm font-semibold">
               {bounty.name}
             </h3>
 

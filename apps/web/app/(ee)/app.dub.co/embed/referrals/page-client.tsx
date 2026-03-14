@@ -207,7 +207,14 @@ export function ReferralsEmbedPageClient({
                   tab === "Bounties" ? (
                     <span className="flex items-center gap-2">
                       Bounties
-                      <span className="flex h-5 items-center rounded-md bg-blue-600 px-1.5 text-xs font-medium text-blue-50">
+                      <span
+                        className={cn(
+                          "flex h-5 items-center rounded-md px-1.5 text-xs font-medium",
+                          selectedTab === "Bounties"
+                            ? "bg-blue-600 text-blue-50"
+                            : "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300",
+                        )}
+                      >
                         {activeBountiesCount}
                       </span>
                     </span>
