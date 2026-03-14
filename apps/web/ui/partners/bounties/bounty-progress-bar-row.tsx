@@ -28,7 +28,7 @@ export function BountyProgressBarRow({
         wrapperClassName ?? "gap-2",
       )}
     >
-      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-200">
+      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-700">
         <div
           className={cn(
             "h-full rounded-full",

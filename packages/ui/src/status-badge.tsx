@@ -16,11 +16,15 @@ const statusBadgeVariants = cva(
     variants: {
       variant: {
         neutral: "bg-neutral-500/[.15] text-neutral-600",
-        new: "bg-blue-500/[.15] text-blue-600",
-        success: "bg-green-500/[.15] text-green-600",
-        pending: "bg-orange-500/[.15] text-orange-600",
-        warning: "bg-yellow-500/[.15] text-yellow-600",
-        error: "bg-red-500/[.15] text-red-600",
+        new: "bg-blue-500/[.15] text-blue-600 dark:bg-blue-900 dark:text-blue-300",
+        success:
+          "bg-green-500/[.15] text-green-600 dark:bg-green-900 dark:text-green-300",
+        pending:
+          "bg-orange-500/[.15] text-orange-600 dark:bg-orange-900 dark:text-orange-300",
+        warning:
+          "bg-yellow-500/[.15] text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300",
+        error:
+          "bg-red-500/[.15] text-red-600 dark:bg-red-900 dark:text-red-300",
       },
       size: {
         sm: "px-1.5 py-0.5",

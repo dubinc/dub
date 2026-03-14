@@ -166,7 +166,7 @@ export function BountySocialContentPreview({
   const PlatformIcon = PLATFORM_ICONS[platform.value];
 
   return (
-    <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-2">
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-2 dark:border-neutral-700 dark:bg-neutral-800">
       {/* Channel row */}
       {/* <div className="flex items-center gap-2 px-2 py-1">
         <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-100">

@@ -44,7 +44,7 @@ interface BountySubmissionDetailsSheetProps {
   onPrevious?: () => void;
 }
 
-function SocialContentPreview({
+export function SocialContentPreview({
   bounty,
   submission,
 }: {
@@ -72,21 +72,21 @@ function SocialContentPreview({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-neutral-800">
+        <h2 className="text-base font-semibold text-neutral-800 dark:text-neutral-200">
           Submitted content
         </h2>
         {lastSyncedAt && (
-          <span className="text-xs font-medium text-neutral-400">
+          <span className="text-xs font-medium text-neutral-400 dark:text-neutral-500">
             Last sync{" "}
             {formatDistanceToNow(new Date(lastSyncedAt), { addSuffix: true })}
           </span>
         )}
       </div>
 
-      <div className="rounded-xl border border-neutral-200 bg-neutral-50">
+      <div className="rounded-xl border border-neutral-200 bg-neutral-50 dark:border-neutral-700 dark:bg-neutral-800">
         {/* Progress section */}
         <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
-          <div className="h-1 w-full rounded-full bg-neutral-200">
+          <div className="h-1 w-full rounded-full bg-neutral-200 dark:bg-neutral-700">
             <div
               className={cn(
                 "h-full rounded-full",
@@ -98,7 +98,7 @@ function SocialContentPreview({
 
           <div className="flex items-center gap-2">
             <PlatformIcon className="size-4 shrink-0" />
-            <p className="text-sm font-medium text-neutral-600">
+            <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
               <EmphasisNumber>
                 {nFormatter(socialMetricCount, { full: true })}
               </EmphasisNumber>
@@ -305,7 +305,7 @@ function SubmissionDetailsView({
   );
 }
 
-function SubmissionRewardTable({
+export function SubmissionRewardTable({
   submission,
 }: {
   submission: PartnerBountySubmission;
@@ -364,12 +364,14 @@ function SubmissionRewardTable({
 
   return (
     <div>
-      <h2 className="text-base font-semibold text-neutral-800">Rewards</h2>
+      <h2 className="text-base font-semibold text-neutral-800 dark:text-neutral-200">
+        Rewards
+      </h2>
       <div className="mt-2">
         <Table
           {...tableProps}
           table={table}
-          containerClassName="border-neutral-200"
+          containerClassName="border-neutral-200 dark:border-neutral-700"
           scrollWrapperClassName="min-h-0"
           className="[&_tbody_tr:last-child_td]:border-b-0"
         />

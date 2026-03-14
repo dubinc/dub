@@ -188,7 +188,7 @@ export function ReferralsEmbedLinksList({
             text="Create link"
             variant="primary"
             onClick={onCreateLink}
-            className="bg-bg-inverted h-9 rounded-md hover:bg-neutral-800"
+            className="bg-bg-inverted h-9 rounded-md hover:bg-neutral-800 dark:hover:bg-neutral-200"
           />
         }
       />
