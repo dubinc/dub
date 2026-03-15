@@ -143,7 +143,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                 <Tooltip
                   content={[
                     payout.method === "stablecoin" &&
-                      `Stablecoin payouts on Dub are subject to a [${STABLECOIN_PAYOUT_FEE_RATE * 100}% transaction fee](https://dub.co/help/article/receiving-payouts#stablecoin-payouts).`,
+                      `Stablecoin payouts on Dub are subject to a [${STABLECOIN_PAYOUT_FEE_RATE * 100}% transaction fee](https://dub.co/help/article/receiving-payouts#connecting-a-stablecoin-wallet).`,
                     payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS &&
                       `Since this payout is below the [minimum withdrawal amount](https://dub.co/help/article/receiving-payouts#what-is-the-minimum-withdrawal-amount-and-how-does-it-work) of ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS, { trailingZeroDisplay: "stripIfInteger" })}, a ${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS, { trailingZeroDisplay: "stripIfInteger" })} withdrawal fee was applied.`,
                   ]
