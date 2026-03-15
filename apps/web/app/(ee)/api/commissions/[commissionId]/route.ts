@@ -10,12 +10,87 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import {
+  CommissionDetailSchema,
   CommissionEnrichedSchema,
   updateCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+
+// GET /api/commissions/:commissionId - get a single commission by ID
+export const GET = withWorkspace(async ({ workspace, params }) => {
+  const programId = getDefaultProgramIdOrThrow(workspace);
+
+  const { commissionId } = params;
+
+  const commission = await prisma.commission.findUnique({
+    where: {
+      id: commissionId,
+      programId,
+    },
+    include: {
+      partner: true,
+      programEnrollment: true,
+      customer: true,
+      reward: {
+        select: {
+          description: true,
+          type: true,
+          event: true,
+          amountInCents: true,
+          amountInPercentage: true,
+        },
+      },
+      payout: {
+        select: {
+          paidAt: true,
+          initiatedAt: true,
+          user: { select: { id: true, name: true, image: true } },
+        },
+      },
+    },
+  });
+
+  if (!commission) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Commission ${commissionId} not found.`,
+    });
+  }
+
+  const { partner, programEnrollment, customer, reward, payout, ...rest } =
+    commission;
+
+  const user = rest.userId
+    ? await prisma.user.findUnique({
+        where: { id: rest.userId },
+        select: { id: true, name: true, image: true },
+      })
+    : null;
+
+  return NextResponse.json(
+    CommissionDetailSchema.parse({
+      ...rest,
+      payoutId: rest.payoutId ?? null,
+      user: user ?? null,
+      reward: reward
+        ? {
+            ...reward,
+            amountInPercentage: reward.amountInPercentage
+              ? Number(reward.amountInPercentage)
+              : null,
+          }
+        : null,
+      payout: payout ?? null,
+      customer: transformCustomerForCommission(customer),
+      partner: {
+        ...partner,
+        groupId: programEnrollment.groupId,
+      },
+    }),
+  );
+});
 
 // PATCH /api/commissions/:commissionId - update a commission
 export const PATCH = withWorkspace(
