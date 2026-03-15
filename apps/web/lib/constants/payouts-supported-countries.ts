@@ -4,6 +4,7 @@ import {
   PAYPAL_SUPPORTED_COUNTRIES,
   STABLECOIN_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
+import { getPayoutMethodsForCountry } from "../partners/get-payout-methods-for-country";
 
 export const PAYOUT_SUPPORTED_COUNTRIES = [
   ...new Set([
@@ -13,4 +14,8 @@ export const PAYOUT_SUPPORTED_COUNTRIES = [
   ]),
 ]
   .sort((a, b) => COUNTRIES[a].localeCompare(COUNTRIES[b]))
-  .map((code) => ({ code, name: COUNTRIES[code] }));
+  .map((code) => ({
+    code,
+    name: COUNTRIES[code],
+    methods: getPayoutMethodsForCountry({ country: code }),
+  }));
