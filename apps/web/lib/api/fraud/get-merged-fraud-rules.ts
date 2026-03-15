@@ -1,13 +1,13 @@
 import { FraudRuleProps } from "@/lib/types";
 import { FraudRule, FraudRuleType } from "@dub/prisma/client";
-import { FRAUD_RULES_BY_SCOPE } from "./constants";
+import { CONFIGURABLE_FRAUD_RULES } from "./constants";
 
 // Merges global fraud rules with program-specific overrides.
 // Returns an array of merged rules with the program override taking precedence when it exists.
 export function getMergedFraudRules(programRules: FraudRule[]) {
   const mergedRules: FraudRuleProps[] = [];
 
-  FRAUD_RULES_BY_SCOPE["conversionEvent"].forEach((globalRule) => {
+  CONFIGURABLE_FRAUD_RULES.forEach((globalRule) => {
     const programRule = programRules.find(
       (programRule) => programRule.type === globalRule.type,
     );
@@ -37,4 +37,17 @@ export function getMergedFraudRules(programRules: FraudRule[]) {
   });
 
   return mergedRules;
+}
+
+export function isFraudRuleEnabled({
+  fraudRules,
+  ruleType,
+}: {
+  fraudRules: FraudRule[];
+  ruleType: FraudRuleType;
+}): boolean {
+  const mergedRules = getMergedFraudRules(fraudRules);
+  const fraudRule = mergedRules.find((r) => r.type === ruleType);
+
+  return fraudRule ? fraudRule.enabled : true;
 }
