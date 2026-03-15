@@ -38,5 +38,5 @@
     "../../packages/blocks/src/event-list.tsx",
     "../../packages/ui/src/hooks/use-pagination.ts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "e2e"]
 }

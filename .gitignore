@@ -45,3 +45,8 @@ packages/stripe-app/.build/*
 *.csv
 *.ndjson
 .vitest
+
+# playwright
+playwright-report/
+test-results/
+blob-report/

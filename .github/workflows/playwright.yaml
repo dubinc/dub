@@ -1,0 +1,134 @@
+name: Playwright E2E Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - ".github/workflows/playwright.yaml"
+
+concurrency:
+  group: e2e-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+
+    env:
+      CI: "true"
+      NODE_OPTIONS: "--max-old-space-size=8192"
+      DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
+
+      NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
+      NEXTAUTH_URL: "http://partners.localhost:8888"
+
+      NEXT_PUBLIC_APP_NAME: "Dub"
+      NEXT_PUBLIC_APP_DOMAIN: "dub.co"
+      NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
+
+      E2E_PARTNER_EMAIL: "e2e-partner@test.local"
+      E2E_PARTNER_PASSWORD: "test-password-123"
+
+      TINYBIRD_API_KEY: "xx"
+      TINYBIRD_API_URL: "xx"
+
+      UPSTASH_REDIS_REST_URL: "xx"
+      UPSTASH_REDIS_REST_TOKEN: "xx"
+      UPSTASH_VECTOR_REST_URL: "xx"
+      UPSTASH_VECTOR_REST_TOKEN: "xx"
+      QSTASH_TOKEN: "xx"
+      QSTASH_CURRENT_SIGNING_KEY: "xx"
+      QSTASH_NEXT_SIGNING_KEY: "xx"
+
+      AXIOM_TOKEN: "xx"
+      AXIOM_DATASET: "xx"
+
+      RESEND_API_KEY: "xx"
+
+      EMBEDDING_SYNC_SECRET: "xx"
+      ANTHROPIC_API_KEY: "xx"
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: planetscale
+          MYSQL_ROOT_HOST: "%"
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 3306:3306
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('apps/web/package.json') }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter web exec playwright install chromium
+
+      - name: Generate Prisma client
+        working-directory: apps/web
+        run: pnpm prisma:generate
+
+      - name: Push database schema
+        working-directory: apps/web
+        run: pnpm prisma:push
+
+      - name: Seed test data
+        working-directory: apps/web
+        run: pnpm tsx e2e/seed.ts
+
+      - name: Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: apps/web/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/**/*.ts', 'apps/web/**/*.tsx') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
+            nextjs-${{ runner.os }}-
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Run Playwright tests
+        working-directory: apps/web
+        run: pnpm test:e2e
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: |
+            apps/web/playwright-report/
+            apps/web/test-results/
+          retention-days: 7
