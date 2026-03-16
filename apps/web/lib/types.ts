@@ -878,3 +878,7 @@ export type PostbackProps = z.infer<typeof postbackSchema>;
 export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
 
 export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];
+
+export type NullableOptional<T> = {
+  [K in keyof T]?: T[K] | null;
+};

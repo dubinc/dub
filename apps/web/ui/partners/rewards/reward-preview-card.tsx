@@ -1,6 +1,6 @@
 import { EnrolledPartnerProps } from "@/lib/types";
-import { Button, Table, useTable } from "@dub/ui";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { Button, Table, useTable } from "@dub/ui";
 import { cn, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -64,10 +64,7 @@ function PartnersCompactTable({
         header: "Partner",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <PartnerAvatar
-              partner={row.original}
-              className="size-6 shrink-0"
-            />
+            <PartnerAvatar partner={row.original} className="size-6" />
             <span className="truncate text-sm text-neutral-700">
               {row.original.name}
             </span>
@@ -166,7 +163,7 @@ function PartnerPreviewOrCount({
           <PartnerAvatar
             key={partner.id}
             partner={partner}
-            className="-ml-1.5 size-[1.125rem] shrink-0 border border-white"
+            className="-ml-1.5 size-[1.125rem] border border-white"
           />
         ))}
         {partnersCount > 3 && (

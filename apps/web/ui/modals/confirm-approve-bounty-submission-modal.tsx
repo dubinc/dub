@@ -108,7 +108,7 @@ function ConfirmApproveBountySubmissionModal({
               <div className="flex min-w-0 flex-1 items-center gap-4">
                 <PartnerAvatar
                   partner={submission.partner}
-                  className="size-10 shrink-0"
+                  className="size-10"
                 />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-base font-semibold text-neutral-800">

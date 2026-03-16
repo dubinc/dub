@@ -1,3 +1,4 @@
+import { NullableOptional, PartnerProps } from "@/lib/types";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 
 export function PartnerAvatar({
@@ -5,11 +6,7 @@ export function PartnerAvatar({
   className,
   showName = false,
 }: {
-  partner: {
-    id?: string | null;
-    name?: string | null;
-    image?: string | null;
-  };
+  partner: NullableOptional<PartnerProps>;
   className?: string;
   showName?: boolean;
 }) {

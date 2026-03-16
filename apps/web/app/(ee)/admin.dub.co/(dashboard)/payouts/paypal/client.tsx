@@ -45,14 +45,7 @@ export default function PaypalPayoutsPageClient() {
         header: "Partner",
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
-            <PartnerAvatar
-              partner={{
-                id: row.original.partner.email,
-                name: row.original.partner.email,
-                image: row.original.partner.image,
-              }}
-              className="size-4"
-            />
+            <PartnerAvatar partner={row.original.partner} className="size-4" />
             <span className="text-sm text-neutral-900">
               {row.original.partner.email || "-"}
             </span>

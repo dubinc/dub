@@ -192,7 +192,7 @@ export function PartnerRowItem({
           }
         >
           <div className="relative shrink-0">
-            <PartnerAvatar partner={partner} className="size-5 shrink-0" />
+            <PartnerAvatar partner={partner} className="size-5" />
             {showPayoutsEnabled && statusKey && (
               <div
                 className={cn(

@@ -116,10 +116,7 @@ export function ProgramMessagesPartnerPageClient() {
                 </>
               ) : (
                 <>
-                  <PartnerAvatar
-                    partner={partner}
-                    className="size-6 shrink-0"
-                  />
+                  <PartnerAvatar partner={partner} className="size-6" />
                   <h2 className="text-content-emphasis text-lg font-semibold leading-7">
                     {partner?.name ?? "Partner"}
                   </h2>
