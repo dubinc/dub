@@ -32,16 +32,11 @@ export function usePayoutFilters() {
         label: "Partner",
         shouldFilter: false,
         options:
-          partners?.map(({ id, name, image }) => {
+          partners?.map((partner) => {
             return {
-              value: id,
-              label: name,
-              icon: (
-                <PartnerAvatar
-                  partner={{ id, name, image }}
-                  className="size-4"
-                />
-              ),
+              value: partner.id,
+              label: partner.name,
+              icon: <PartnerAvatar partner={partner} className="size-4" />,
             };
           }) ?? null,
       },
