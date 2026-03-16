@@ -236,7 +236,7 @@ export function TopLinks() {
               data={data?.map(mapItem).sort((a, b) => b.value - a.value) || []}
               allData={allData?.map(mapItem).sort((a, b) => b.value - a.value)}
               unit={selectedTab}
-              maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
+              maxValue={Math.max(...data.map((d) => d[dataKey] ?? 0))}
               barBackground="bg-orange-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
               filterSelectedBackground="bg-orange-500"

@@ -203,7 +203,7 @@ export function ReferrersUTMs() {
                   })
                   ?.sort((a, b) => b.value - a.value)}
                 unit={selectedTab}
-                maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
+                maxValue={Math.max(...data.map((d) => d[dataKey] ?? 0)) ?? 0}
                 barBackground="bg-red-100"
                 hoverBackground="hover:bg-gradient-to-r hover:from-red-50 hover:to-transparent hover:border-red-500"
                 filterSelectedBackground="bg-red-600"
