@@ -5,17 +5,23 @@ import { hashSync } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+const E2E_PARTNER = {
+  name: "Partner 1",
+  email: "partner1@dub-internal-test.com",
+  password: "password",
+};
+
 async function main() {
   const passwordHash = hashSync("test-password-123", 10);
 
   const user = await prisma.user.upsert({
     where: {
-      email: "e2e-partner@test.local",
+      email: E2E_PARTNER.email,
     },
     update: {},
     create: {
-      email: "e2e-partner@test.local",
-      name: "E2E Test Partner",
+      email: E2E_PARTNER.email,
+      name: E2E_PARTNER.name,
       emailVerified: new Date(),
       passwordHash,
     },
@@ -23,12 +29,12 @@ async function main() {
 
   const partner = await prisma.partner.upsert({
     where: {
-      email: "e2e-partner@test.local",
+      email: E2E_PARTNER.email,
     },
     update: {},
     create: {
-      name: "E2E Test Partner",
-      email: "e2e-partner@test.local",
+      name: E2E_PARTNER.name,
+      email: E2E_PARTNER.email,
       country: "US",
       users: {
         create: {

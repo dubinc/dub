@@ -32,8 +32,8 @@ jobs:
       NEXT_PUBLIC_APP_DOMAIN: "dub.co"
       NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
 
-      E2E_PARTNER_EMAIL: "e2e-partner@test.local"
-      E2E_PARTNER_PASSWORD: "test-password-123"
+      E2E_PARTNER_EMAIL: "partner1@dub-internal-test.com"
+      E2E_PARTNER_PASSWORD: "password"
 
       TINYBIRD_API_KEY: "xx"
       TINYBIRD_API_URL: "xx"
