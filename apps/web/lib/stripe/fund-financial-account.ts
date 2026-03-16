@@ -1,4 +1,5 @@
 import { currencyFormatter, prettyPrint } from "@dub/utils";
+import { stripe } from "./index";
 import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
 const financialAccountId = process.env.STRIPE_FINANCIAL_ACCOUNT_ID;
@@ -19,6 +20,16 @@ export async function fundFinancialAccount({
 
   if (!financialAccountId) {
     throw new Error("STRIPE_FINANCIAL_ACCOUNT_ID is not configured.");
+  }
+
+  const balance = await stripe.balance.retrieve();
+  const usdAvailable = balance.available.find((b) => b.currency === "usd");
+  const availableAmount = usdAvailable?.amount ?? 0;
+
+  if (availableAmount < amount) {
+    throw new Error(
+      `Insufficient balance to fund financial account. Available: ${currencyFormatter(availableAmount)}, required: ${currencyFormatter(amount)}.`,
+    );
   }
 
   const { data, error } = await stripeV2Fetch("/v1/payouts", {

@@ -1,6 +1,7 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { Category } from "@dub/prisma/client";
 import * as z from "zod/v4";
@@ -11,13 +12,14 @@ const schema = z.object({
   workspaceId: z.string(),
   description: z.string().optional(),
   categories: z.array(z.enum(Category)).optional(),
+  eligibilityConditions: applicationRequirementsSchema.optional(),
 });
 
 export const updateApplicationSettingsAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { description, categories } = parsedInput;
+    const { description, categories, eligibilityConditions } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -31,12 +33,15 @@ export const updateApplicationSettingsAction = authActionClient
         id: programId,
       },
       data: {
-        ...(description && { description }),
+        ...(description !== undefined && { description }),
         ...(categories && {
           categories: {
             deleteMany: {},
             create: categories.map((category) => ({ category })),
           },
+        }),
+        ...(eligibilityConditions !== undefined && {
+          applicationRequirements: eligibilityConditions,
         }),
       },
     });

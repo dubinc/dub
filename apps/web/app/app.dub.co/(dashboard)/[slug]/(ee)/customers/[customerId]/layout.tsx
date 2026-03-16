@@ -14,7 +14,13 @@ import { Button } from "@dub/ui";
 import { ChevronRight, Users } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import Link from "next/link";
-import { redirect, useParams, usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  redirect,
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { ReactNode } from "react";
 import useSWR from "swr";
 

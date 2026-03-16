@@ -37,9 +37,6 @@ export const GET = withWorkspace(
             messages: {
               some: {
                 programId,
-                programEnrollment: {
-                  status: "approved",
-                },
               },
             },
           },
