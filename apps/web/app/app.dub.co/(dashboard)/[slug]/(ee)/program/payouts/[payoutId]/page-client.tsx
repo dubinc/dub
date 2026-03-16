@@ -3,7 +3,7 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse } from "@/lib/types";
+import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
@@ -43,6 +43,12 @@ import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { Fragment, useMemo } from "react";
 import useSWR from "swr";
+
+type PayoutActivityItem = {
+  status: keyof typeof PayoutStatusBadges;
+  timestamp: string | Date | null;
+  user?: PayoutResponse["user"];
+};
 
 export function PayoutDetailsPageClient() {
   const { slug, id: workspaceId, role } = useWorkspace();
@@ -291,17 +297,7 @@ function PayoutDetailsContent({
   }, [payout, slug]);
 
   const activityItems = useMemo(() => {
-    type ActivityItem = {
-      status: keyof typeof PayoutStatusBadges;
-      timestamp: string | Date | null;
-      user?: {
-        name?: string | null;
-        image?: string | null;
-        id?: string;
-      } | null;
-    };
-
-    const items: ActivityItem[] = [
+    const items: PayoutActivityItem[] = [
       { status: "pending", timestamp: payout.createdAt },
     ];
 
