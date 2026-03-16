@@ -29,6 +29,8 @@ export function AnalyticsCard<T extends string>({
   onSelectSubTab,
   expandLimit,
   dataLength,
+  isFilterActive,
+  onClearFilter,
   children,
   className,
 }: {
@@ -42,6 +44,8 @@ export function AnalyticsCard<T extends string>({
     | ((subTabId: string) => void);
   expandLimit: number;
   dataLength?: number;
+  isFilterActive?: boolean;
+  onClearFilter?: () => void;
   children: (props: {
     limit?: number;
     event?: EventType;
@@ -178,17 +182,30 @@ export function AnalyticsCard<T extends string>({
             setShowModal,
           })}
         </div>
-        {showViewAll && (
+        {(showViewAll || isFilterActive) && (
           <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">
             <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />
-            <button
-              onClick={() => setShowModal(true)}
-              className="group relative flex w-full items-center justify-center py-4"
-            >
-              <div className="rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-sm text-neutral-950 group-hover:bg-neutral-100 group-active:border-neutral-300">
+            <div className="relative flex w-full items-center justify-center gap-2 py-4">
+              <button
+                onClick={() => setShowModal(true)}
+                className={cn(
+                  "h-8 w-fit rounded-lg px-3 text-sm transition-colors",
+                  isFilterActive
+                    ? "text-content-inverted hover:bg-inverted hover:ring-border-subtle border-black bg-black hover:ring-4"
+                    : "border border-neutral-200 bg-white text-neutral-950 hover:bg-neutral-100 active:border-neutral-300",
+                )}
+              >
                 View All
-              </div>
-            </button>
+              </button>
+              {isFilterActive && onClearFilter && (
+                <button
+                  onClick={onClearFilter}
+                  className="h-8 w-fit rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 active:border-neutral-300"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>
