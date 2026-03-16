@@ -31,12 +31,14 @@ export function ActivityEvent({
       </div>
 
       <div
-        className={cn("flex min-w-0 flex-1 flex-col gap-2", !isLast && "pb-4")}
+        className={cn("flex min-w-0 flex-1 flex-col gap-1", !isLast && "pb-4")}
       >
-        <div className="flex items-center gap-2">
-          {children}
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            {children}
+          </div>
           {timestamp && (
-            <span className="ml-auto shrink-0 text-xs text-neutral-400">
+            <span className="shrink-0 text-xs text-neutral-400 sm:ml-auto">
               {formatDateTime(timestamp)}
             </span>
           )}

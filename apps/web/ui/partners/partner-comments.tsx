@@ -410,7 +410,8 @@ export function CommentCardDisplay({
   return (
     <div
       className={cn(
-        "border-border-subtle rounded-xl border pb-4 pl-4 pr-3.5 pt-2.5 shadow-sm",
+        "border-border-subtle rounded-xl border pl-4 pr-3.5 shadow-sm",
+        user ? "pb-4 pt-2.5" : "px-3 py-2",
         className,
       )}
     >
