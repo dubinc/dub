@@ -5,6 +5,7 @@ import {
 import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
 import { ipAddress } from "@vercel/functions";
 import { NextRequest, userAgent } from "next/server";
+import { isAppsFlyerTrackingUrl } from "./is-appsflyer-tracking-url";
 import { isGooglePlayStoreUrl } from "./is-google-play-store-url";
 import { isSingularTrackingUrl } from "./is-singular-tracking-url";
 import { parse } from "./parse";
@@ -62,6 +63,16 @@ export const getFinalUrl = (
     urlObj.searchParams.set("cl", clickId ?? "");
     urlObj.searchParams.set("ua", ua?.ua ?? "");
     urlObj.searchParams.set("ip", ip ?? "");
+  }
+
+  // for AppsFlyer tracking links
+  if (isAppsFlyerTrackingUrl(url)) {
+    const ua = userAgent(req);
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    urlObj.searchParams.set("clickid", clickId ?? "");
+    urlObj.searchParams.set("af_siteid", via ?? "");
+    urlObj.searchParams.set("af_ua", ua?.ua ?? "");
+    urlObj.searchParams.set("af_ip", ip ?? "");
   }
 
   // Polyfill wpcn & wpcl params for Singular integration
