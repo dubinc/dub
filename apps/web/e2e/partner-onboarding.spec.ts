@@ -15,6 +15,13 @@ async function loginAsPartner(page: import("@playwright/test").Page) {
   await page.waitForURL(/\/(programs|onboarding)/, { timeout: 30000 });
 }
 
+// Wait for Suspense fallback to resolve (the fallback renders a duplicate form)
+async function waitForOnboardingForm(page: import("@playwright/test").Page) {
+  await expect(page.locator('input[name="name"]')).toHaveCount(1, {
+    timeout: 30000,
+  });
+}
+
 test.describe("Partner onboarding", () => {
   test("unauthenticated redirect to login", async ({ page }) => {
     await page.goto("/onboarding");
@@ -30,29 +37,27 @@ test.describe("Partner onboarding", () => {
     test("onboarding page renders", async ({ page }) => {
       await loginAsPartner(page);
       await page.goto("/onboarding");
+      await waitForOnboardingForm(page);
 
-      const pageHeading = page.getByRole("heading", {
-        name: "Create your partner profile",
-      });
-      const nameInput = page.locator('input[name="name"]').first();
-      const profileImage = page.getByText("Profile image");
-      const countrySelect = page.getByLabel("Country");
-      const descriptionInput = page.getByLabel(/Description/, { exact: false });
-      const profileTypeSelect = page.getByText("Profile Type");
-      const continueButton = page.getByRole("button", { name: "Continue" });
-
-      await expect(pageHeading).toBeVisible();
-      await expect(nameInput).toBeVisible();
-      await expect(profileImage).toBeVisible();
-      await expect(countrySelect).toBeVisible();
-      await expect(descriptionInput).toBeVisible();
-      await expect(profileTypeSelect).toBeVisible();
-      await expect(continueButton).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: "Create your partner profile" }),
+      ).toBeVisible();
+      await expect(page.locator('input[name="name"]')).toBeVisible();
+      await expect(page.getByText("Profile image")).toBeVisible();
+      await expect(page.getByLabel("Country")).toBeVisible();
+      await expect(
+        page.getByLabel(/Description/, { exact: false }),
+      ).toBeVisible();
+      await expect(page.getByText("Profile Type")).toBeVisible();
+      await expect(
+        page.getByRole("button", { name: "Continue" }),
+      ).toBeVisible();
     });
 
     test("profile submit redirects to platforms", async ({ page }) => {
       await loginAsPartner(page);
       await page.goto("/onboarding");
+      await waitForOnboardingForm(page);
 
       const nameInput = page.locator('input[name="name"]');
       const countryField = page.getByLabel("Country");
@@ -92,6 +97,7 @@ test.describe("Partner onboarding", () => {
     }) => {
       await loginAsPartner(page);
       await page.goto("/onboarding");
+      await waitForOnboardingForm(page);
 
       const nameInput = page.locator('input[name="name"]');
       const countryField = page.getByLabel("Country");
