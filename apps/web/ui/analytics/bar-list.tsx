@@ -230,8 +230,8 @@ export function BarList({
         <div className="relative">
           <div className="h-[50vh] overflow-auto pb-4 md:h-[40vh]">{bars}</div>
           {hasModalSelection && onApplyFilterValues && (
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex h-[130px] items-end justify-center bg-gradient-to-t from-white to-transparent pb-4">
-              <div className="pointer-events-auto flex items-center gap-1">
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex h-[130px] items-end justify-center bg-gradient-to-t from-white from-40% to-white/0 pb-4 backdrop-blur-[2px]">
+              <div className="pointer-events-auto flex items-center gap-2">
                 <Button
                   text="Filter"
                   variant="primary"
@@ -298,23 +298,27 @@ export function LineItem({
   isActivelyFiltered?: boolean;
   onFilterClick?: () => void;
 }) {
-  const lineItem = useMemo(() => {
-    return (
-      <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
+  const [isHovered, setIsHovered] = useState(false);
+  const { saleUnit } = useContext(AnalyticsContext);
+
+  const percentage = Math.round((value / totalSum) * 1000) / 10;
+  const isModalView = !limit;
+
+  const lineItem = (
+    <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
+      {onFilterClick ? (
         <button
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            onFilterClick?.();
+            onFilterClick();
           }}
           className="relative size-7 shrink-0 cursor-pointer"
         >
           <div
             className={cn(
               "flex size-full items-center justify-center transition-all duration-200",
-              isSelected
-                ? "translate-x-3 opacity-0"
-                : "group-hover/row:translate-x-3 group-hover/row:opacity-0",
+              isSelected || isHovered ? "translate-x-3 opacity-0" : "",
             )}
           >
             {icon}
@@ -328,15 +332,17 @@ export function LineItem({
                     filterSelectedBackground,
                     filterSelectedHoverBackground,
                   )
-                : cn(
-                    "-translate-x-3 opacity-0 group-hover/row:translate-x-0 group-hover/row:opacity-100",
-                    isActivelyFiltered
-                      ? cn(
-                          filterSelectedBackground,
-                          filterSelectedHoverBackground,
-                        )
-                      : filterHoverClass,
-                  ),
+                : isHovered
+                  ? cn(
+                      "translate-x-0 opacity-100",
+                      isActivelyFiltered
+                        ? cn(
+                            filterSelectedBackground,
+                            filterSelectedHoverBackground,
+                          )
+                        : filterHoverClass,
+                    )
+                  : "-translate-x-3 opacity-0",
             )}
           >
             <FilterBars
@@ -344,41 +350,29 @@ export function LineItem({
                 "size-3",
                 isSelected || isActivelyFiltered
                   ? "text-white"
-                  : "text-content-emphasis",
+                  : "text-neutral-500",
               )}
             />
           </div>
         </button>
-        <div className="truncate text-sm text-neutral-800">
-          {getPrettyUrl(title)}
+      ) : (
+        <div className="flex size-7 shrink-0 items-center justify-center">
+          {icon}
         </div>
+      )}
+      <div className="truncate text-sm text-neutral-800">
+        {getPrettyUrl(title)}
       </div>
-    );
-  }, [
-    icon,
-    title,
-    isSelected,
-    isActivelyFiltered,
-    onFilterClick,
-    filterSelectedBackground,
-    filterSelectedHoverBackground,
-    filterHoverClass,
-  ]);
-
-  const { saleUnit } = useContext(AnalyticsContext);
-
-  // Calculate percentage against total sum and round to 1 decimal
-  const percentage = Math.round((value / totalSum) * 1000) / 10;
-
-  // Check if we're in modal view - if limit is undefined, we're in the modal view
-  const isModalView = !limit;
+    </div>
+  );
 
   return (
     <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        `group/row block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
+        "group block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all",
         hoverBackground,
-        isModalView ? "group" : "",
       )}
     >
       <div
