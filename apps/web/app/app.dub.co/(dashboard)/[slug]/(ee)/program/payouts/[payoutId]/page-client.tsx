@@ -1,9 +1,15 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse, PayoutResponse } from "@/lib/types";
+import {
+  CommissionResponse,
+  FraudGroupCountByPartner,
+  PayoutResponse,
+} from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
@@ -51,16 +57,9 @@ type PayoutActivityItem = {
 };
 
 export function PayoutDetailsPageClient() {
-  const { slug, id: workspaceId, role } = useWorkspace();
+  const { slug, id: workspaceId } = useWorkspace();
   const { payout, loading, error } = usePayout();
   const router = useRouter();
-
-  const { error: _permissionsError } = clientAccessCheck({
-    action: "payouts.write",
-    role,
-  });
-  const permissionsError =
-    typeof _permissionsError === "string" ? _permissionsError : null;
 
   if (error?.status === 404) {
     redirect(`/${slug}/program/payouts`);
@@ -102,25 +101,7 @@ export function PayoutDetailsPageClient() {
           </div>
         )
       }
-      controls={
-        payout?.status === "pending" ? (
-          <div className="flex items-center gap-2">
-            <Button
-              text="Confirm payout"
-              disabledTooltip={
-                !payout.partner.payoutsEnabledAt
-                  ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
-                  : permissionsError || undefined
-              }
-              onClick={() => {
-                router.push(
-                  `/${slug}/program/payouts?confirmPayouts=true&selectedPayoutId=${payout.id}`,
-                );
-              }}
-            />
-          </div>
-        ) : undefined
-      }
+      controls={<PayoutConfirmButton />}
     >
       <PageWidthWrapper className="pb-10">
         {payout ? (
@@ -522,6 +503,61 @@ function PayoutDetailsskeleton() {
       <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
         <div className="h-80 animate-pulse rounded-xl border border-neutral-200 bg-neutral-100" />
       </div>
+    </div>
+  );
+}
+
+function PayoutConfirmButton() {
+  const { slug, role, plan } = useWorkspace();
+  const { payout } = usePayout();
+  const router = useRouter();
+
+  const { canManageFraudEvents } = getPlanCapabilities(plan);
+
+  const { fraudGroupCount } = useFraudGroupCount<FraudGroupCountByPartner[]>({
+    ignoreParams: true,
+    enabled: !!payout?.partner?.id,
+    query: {
+      groupBy: "partnerId",
+      status: "pending",
+      ...(payout?.partner?.id && { partnerId: payout.partner.id }),
+    },
+  });
+
+  const hasHold =
+    payout?.status === "pending" &&
+    canManageFraudEvents &&
+    (fraudGroupCount?.length ?? 0) > 0;
+
+  const { error: _permissionsError } = clientAccessCheck({
+    action: "payouts.write",
+    role,
+  });
+
+  const permissionsError =
+    typeof _permissionsError === "string" ? _permissionsError : null;
+
+  if (payout?.status !== "pending") {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        text="Confirm payout"
+        disabledTooltip={
+          hasHold
+            ? `This partner's payouts are on hold due to [unresolved fraud events](${APP_DOMAIN}/${slug}/program/fraud?partnerId=${payout.partner.id}). They cannot be paid out until resolved.`
+            : !payout.partner.payoutsEnabledAt
+              ? "This partner has not [connected a bank account](https://dub.co/help/article/receiving-payouts) to receive payouts yet, which means they won't be able to receive payouts from your program."
+              : permissionsError || undefined
+        }
+        onClick={() => {
+          router.push(
+            `/${slug}/program/payouts?confirmPayouts=true&selectedPayoutId=${payout.id}`,
+          );
+        }}
+      />
     </div>
   );
 }
