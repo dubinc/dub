@@ -23,6 +23,7 @@ jobs:
       CI: "true"
       NODE_OPTIONS: "--max-old-space-size=8192"
       DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
+      PLANETSCALE_DATABASE_URL: "http://root:unused@localhost:3900/planetscale"
 
       NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
       NEXTAUTH_URL: "http://partners.localhost:8888"
@@ -79,6 +80,17 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v4
+
+      - name: Start PlanetScale simulator
+        run: |
+          docker run -d --name ps-http-sim \
+            --network host \
+            ghcr.io/mattrobenolt/ps-http-sim:latest \
+            -listen-addr=0.0.0.0 \
+            -listen-port=3900 \
+            -mysql-dbname=planetscale \
+            -mysql-no-pass \
+            -mysql-addr=127.0.0.1
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3

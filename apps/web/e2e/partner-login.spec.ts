@@ -28,7 +28,7 @@ test.describe("Partner Login", () => {
 
     await expect(
       page.getByText("No account found with that email address."),
-    ).toBeVisible({ timeout: 10000 });
+    ).toBeVisible({ timeout: 30000 });
   });
 
   test.describe("with credentials", () => {
@@ -46,7 +46,7 @@ test.describe("Partner Login", () => {
 
       // Wait for password field to appear
       await expect(page.locator('input[type="password"]')).toBeVisible({
-        timeout: 10000,
+        timeout: 30000,
       });
 
       // Enter password and submit
@@ -65,7 +65,7 @@ test.describe("Partner Login", () => {
       await page.getByRole("button", { name: "Log in with email" }).click();
 
       await expect(page.locator('input[type="password"]')).toBeVisible({
-        timeout: 10000,
+        timeout: 30000,
       });
 
       await page.locator('input[type="password"]').fill("wrongpassword123");
@@ -73,7 +73,7 @@ test.describe("Partner Login", () => {
 
       await expect(
         page.getByText("Email or password is incorrect."),
-      ).toBeVisible({ timeout: 10000 });
+      ).toBeVisible({ timeout: 30000 });
     });
   });
 });

@@ -8,7 +8,7 @@ async function loginAsPartner(page: import("@playwright/test").Page) {
   await page.locator('input[name="email"]').fill(partnerEmail!);
   await page.getByRole("button", { name: "Log in with email" }).click();
   await expect(page.locator('input[type="password"]')).toBeVisible({
-    timeout: 10000,
+    timeout: 30000,
   });
   await page.locator('input[type="password"]').fill(partnerPassword!);
   await page.getByRole("button", { name: "Log in with password" }).click();
