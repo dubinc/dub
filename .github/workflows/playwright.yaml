@@ -46,8 +46,8 @@ jobs:
       QSTASH_CURRENT_SIGNING_KEY: "xx"
       QSTASH_NEXT_SIGNING_KEY: "xx"
 
-      AXIOM_TOKEN: "xx"
-      AXIOM_DATASET: "xx"
+      AXIOM_TOKEN: ""
+      AXIOM_DATASET: ""
 
       RESEND_API_KEY: "xx"
 
