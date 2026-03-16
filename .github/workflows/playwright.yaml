@@ -53,6 +53,11 @@ jobs:
       EMBEDDING_SYNC_SECRET: "xx"
       ANTHROPIC_API_KEY: "xx"
 
+      STRIPE_SECRET_KEY: "xx"
+      STRIPE_WEBHOOK_SECRET: "xx"
+      STRIPE_CONNECT_WEBHOOK_SECRET: "xx"
+      STRIPE_CONNECT_V2_WEBHOOK_SECRET: "xx"
+
     services:
       mysql:
         image: mysql:8.0
