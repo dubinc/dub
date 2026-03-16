@@ -78,6 +78,8 @@ export function EmbedBountySubmissionForm({
       id: uuid(),
       url: f.url,
       uploading: false,
+      originalFileName: f.fileName,
+      originalFileSize: f.size,
     })),
   );
   const [urls, setUrls] = useState<string[]>(() => {
@@ -110,8 +112,8 @@ export function EmbedBountySubmissionForm({
       .filter((f): f is FileInput & { url: string } => !f.uploading && !!f.url)
       .map((f) => ({
         url: f.url,
-        fileName: f.file?.name ?? "File",
-        size: f.file?.size ?? 0,
+        fileName: f.file?.name ?? f.originalFileName ?? "File",
+        size: f.file?.size ?? f.originalFileSize ?? 0,
       }));
 
     const submissionUrls = isSocialMetricsBounty

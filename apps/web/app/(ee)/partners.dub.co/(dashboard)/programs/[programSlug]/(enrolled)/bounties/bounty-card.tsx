@@ -90,7 +90,7 @@ export function PartnerBountyCard({
         </div>
       )}
 
-      {showRewards && bounty.submissions.some((s) => s.commission !== null) && (
+      {showRewards && bounty.submissions.some((s) => s.commission != null) && (
         <div className="@3xl/page:block hidden border-t border-neutral-200 p-4 dark:border-neutral-800">
           <BountyRewardsTable
             bounty={bounty}

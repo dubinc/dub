@@ -32,6 +32,8 @@ export interface FileInput {
   file?: File;
   url?: string;
   uploading: boolean;
+  originalFileName?: string;
+  originalFileSize?: number;
 }
 
 export function EmbedImagesField({
