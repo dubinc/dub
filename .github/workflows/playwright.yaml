@@ -37,9 +37,9 @@ jobs:
       TINYBIRD_API_KEY: "xx"
       TINYBIRD_API_URL: "xx"
 
-      UPSTASH_REDIS_REST_URL: "xx"
+      UPSTASH_REDIS_REST_URL: "https://sensible-camel-xxxx.upstash.io"
       UPSTASH_REDIS_REST_TOKEN: "xx"
-      UPSTASH_VECTOR_REST_URL: "xx"
+      UPSTASH_VECTOR_REST_URL: "https://sensible-camel-xxxx.upstash.io"
       UPSTASH_VECTOR_REST_TOKEN: "xx"
       QSTASH_TOKEN: "xx"
       QSTASH_CURRENT_SIGNING_KEY: "xx"
