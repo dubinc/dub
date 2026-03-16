@@ -230,7 +230,7 @@ export function BarList({
         <div className="relative">
           <div className="h-[50vh] overflow-auto pb-4 md:h-[40vh]">{bars}</div>
           {hasModalSelection && onApplyFilterValues && (
-            <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex h-[130px] items-end justify-center bg-gradient-to-t from-white from-40% to-white/0 pb-4 backdrop-blur-[2px]">
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex h-[130px] items-end justify-center bg-gradient-to-t from-white from-40% to-white/0 pb-4">
               <div className="pointer-events-auto flex items-center gap-2">
                 <Button
                   text="Filter"
@@ -313,6 +313,8 @@ export function LineItem({
             e.stopPropagation();
             onFilterClick();
           }}
+          aria-label={`${isSelected ? "Remove" : "Add"} filter: ${title}`}
+          aria-pressed={isSelected}
           className="relative size-7 shrink-0 cursor-pointer"
         >
           <div
