@@ -18,6 +18,7 @@ import {
   getPrettyUrl,
   OG_AVATAR_URL,
 } from "@dub/utils";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Pencil } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Fragment, HTMLProps, useMemo } from "react";
@@ -311,10 +312,9 @@ export function CustomerDetailsColumn({
 
             {partner && (
               <div className="mb-4 flex items-center gap-2">
-                <img
-                  src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                  alt=""
-                  className="size-5 rounded-full"
+                <PartnerAvatar
+                  partner={partner}
+                  className="size-5"
                 />
                 <ConditionalLink
                   href={

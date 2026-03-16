@@ -5,8 +5,9 @@ import useCustomer from "@/lib/swr/use-customer";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, CustomerEnriched } from "@/lib/types";
 import { CustomerPartnerEarningsTable } from "@/ui/customers/customer-partner-earnings-table";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ArrowUpRight } from "@dub/ui";
-import { OG_AVATAR_URL, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { memo } from "react";
@@ -37,13 +38,9 @@ export function CustomerEarningsPageClient() {
           <div className="flex min-w-0 items-center gap-3">
             {customer?.partner ? (
               <>
-                <img
-                  src={
-                    customer?.partner?.image ||
-                    `${OG_AVATAR_URL}${customer?.partner?.name}`
-                  }
-                  alt={customer.partner.name}
-                  className="size-5 rounded-full"
+                <PartnerAvatar
+                  partner={customer.partner}
+                  className="size-5"
                 />
                 <span className="block min-w-0 truncate text-sm font-medium text-neutral-900">
                   {customer.partner.name}

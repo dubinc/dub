@@ -61,6 +61,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkIcon } from "../links/link-icon";
 import TagBadge from "../links/tag-badge";
@@ -461,10 +462,9 @@ export function useAnalyticsFilters({
                       value: partner.id,
                       label: partner.name,
                       icon: (
-                        <img
-                          src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                          alt={partner.id}
-                          className="size-4 rounded-full"
+                        <PartnerAvatar
+                          partner={partner}
+                          className="size-4"
                         />
                       ),
                       right: getFilterOptionTotal(rest),
@@ -814,12 +814,9 @@ export function useAnalyticsFilters({
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedPartner ? (
-            <img
-              src={
-                selectedPartner.image || `${OG_AVATAR_URL}${selectedPartner.id}`
-              }
-              alt={`${selectedPartner.email} avatar`}
-              className="size-4 rounded-full"
+            <PartnerAvatar
+              partner={selectedPartner}
+              className="size-4"
             />
           ) : null;
         },

@@ -5,6 +5,7 @@ import { CommissionResponse, PayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
@@ -78,14 +79,11 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
           href={`/${slug}/program/partners/${payout.partner.id}`}
           target="_blank"
         >
-          <img
-            src={
-              payout.partner.image || `${OG_AVATAR_URL}${payout.partner.name}`
-            }
-            alt={payout.partner.name}
-            className="mr-1.5 inline-flex size-5 rounded-full"
+          <PartnerAvatar
+            partner={payout.partner}
+            className="mr-1.5 inline-flex size-5"
+            showName
           />
-          {payout.partner.name}
         </ConditionalLink>
       ),
 

@@ -2,9 +2,10 @@ import usePartners from "@/lib/swr/use-partners";
 import { PartnerProps } from "@/lib/types";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { Combobox, ComboboxProps } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
+import { PartnerAvatar } from "./partner-avatar";
 
 export type Partner = Pick<PartnerProps, "id" | "name">;
 
@@ -49,10 +50,7 @@ export function PartnerSelector({
       value: partner.id,
       label: partner.name,
       icon: (
-        <img
-          src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-          className="size-4 rounded-full"
-        />
+        <PartnerAvatar partner={partner} className="size-4" />
       ),
     }));
   }, [partners]);
@@ -70,10 +68,7 @@ export function PartnerSelector({
       value: partner.id,
       label: partner.name,
       icon: (
-        <img
-          src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-          className="size-4 rounded-full"
-        />
+        <PartnerAvatar partner={partner} className="size-4" />
       ),
     };
   }, [partners, selectedPartners, selectedPartnerId]);

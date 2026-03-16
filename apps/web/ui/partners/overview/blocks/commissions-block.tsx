@@ -2,7 +2,8 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, StatusBadge } from "@dub/ui";
-import { currencyFormatter, fetcher, OG_AVATAR_URL } from "@dub/utils";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { currencyFormatter, fetcher } from "@dub/utils";
 import { useContext } from "react";
 import useSWR from "swr";
 import { CommissionStatusBadges } from "../../commission-status-badges";
@@ -49,10 +50,9 @@ export function CommissionsBlock() {
                 className="text-content-default flex h-10 items-center justify-between text-xs font-medium"
               >
                 <div className="flex min-w-0 items-center gap-2">
-                  <img
-                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                    alt={partner.id}
-                    className="size-4 rounded-full"
+                  <PartnerAvatar
+                    partner={partner}
+                    className="size-4"
                   />
                   <span className="min-w-0 truncate">{partner.name}</span>
                 </div>

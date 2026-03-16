@@ -2,7 +2,8 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
 import { PartnerStatusBadgeWithTooltip } from "@/ui/partners/partner-status-badge-with-tooltip";
 import { ArrowUpRight } from "@dub/ui/icons";
-import { currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
 export function LinkPartnerDetails({
@@ -23,10 +24,9 @@ export function LinkPartnerDetails({
       >
         <div className="flex min-w-0 items-center gap-3">
           {partner ? (
-            <img
-              src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-              alt={partner.id}
-              className="size-8 rounded-full"
+            <PartnerAvatar
+              partner={partner}
+              className="size-8"
             />
           ) : (
             <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
