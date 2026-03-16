@@ -12,7 +12,10 @@ async function loginAsPartner(page: import("@playwright/test").Page) {
   });
   await page.locator('input[type="password"]').fill(partnerPassword!);
   await page.getByRole("button", { name: "Log in with password" }).click();
-  await page.waitForURL(/\/(programs|onboarding)/, { timeout: 30000 });
+  await page.waitForURL(
+    (url) => /^\/(programs|onboarding)/.test(new URL(url).pathname),
+    { timeout: 30000 },
+  );
 }
 
 // Wait for Suspense fallback to resolve (the fallback renders a duplicate form)

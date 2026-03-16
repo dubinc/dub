@@ -54,7 +54,10 @@ test.describe("Partner Login", () => {
       await page.getByRole("button", { name: "Log in with password" }).click();
 
       // Verify redirect to authenticated area
-      await page.waitForURL(/\/(programs|onboarding)/, { timeout: 30000 });
+      await page.waitForURL(
+        (url) => /^\/(programs|onboarding)/.test(new URL(url).pathname),
+        { timeout: 30000 },
+      );
       await expect(page).not.toHaveURL(/\/login/);
     });
 
