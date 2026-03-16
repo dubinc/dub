@@ -49,23 +49,27 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
 
 // Schema for the commission detail page (GET /api/commissions/:commissionId)
 export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
-  payoutId: z.string().nullable(),
-  user: UserSchema.nullable(),
+  user: UserSchema.nullish().describe("The user who created the commission."),
   reward: RewardSchema.pick({
     event: true,
     description: true,
     type: true,
     amountInCents: true,
     amountInPercentage: true,
-  }).nullable(),
+  }).nullish(),
   payout: PayoutSchema.pick({
+    id: true,
     paidAt: true,
     initiatedAt: true,
   })
     .extend({
-      user: UserSchema.nullable(),
+      user: UserSchema.nullish().describe("The user who processed the payout."),
     })
-    .nullable(),
+    .nullish(),
+  holdingPeriodDays: z
+    .number()
+    .nullish()
+    .describe("The holding period days for the partner group."),
 });
 
 // "commission.created" webhook event schema

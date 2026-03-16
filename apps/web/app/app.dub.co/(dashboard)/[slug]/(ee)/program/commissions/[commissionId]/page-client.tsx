@@ -30,6 +30,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
+import { addDays } from "date-fns";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -263,14 +264,14 @@ function CommissionDetailsContent({
       </span>
     ),
 
-    ...(commission.payoutId && {
+    ...(commission.payout?.id && {
       Payout: (
         <ConditionalLink
-          href={`/${slug}/program/payouts/${commission.payoutId}`}
+          href={`/${slug}/program/payouts/${commission.payout.id}`}
           className="font-mono text-xs"
-          title={commission.payoutId}
+          title={commission.payout.id}
         >
-          {commission.payoutId}
+          {commission.payout.id}
         </ConditionalLink>
       ),
     }),
@@ -323,7 +324,7 @@ function CommissionActivity({
       <div className="flex flex-col">
         {[
           // Paid event
-          ...(commission.status === "paid" && commission.payoutId
+          ...(commission.status === "paid" && commission.payout?.id
             ? [
                 {
                   icon: CommissionStatusBadges["paid"].icon,
@@ -339,7 +340,7 @@ function CommissionActivity({
                       >
                         {CommissionStatusBadges["paid"].label}
                       </StatusBadge>
-                      {commission.payout?.user && (
+                      {commission.payout.user && (
                         <>
                           <span className="text-sm text-neutral-500">by</span>
                           <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
@@ -358,12 +359,12 @@ function CommissionActivity({
                         </>
                       )}
                       <Link
-                        href={`/${slug}/program/payouts/${commission.payoutId}`}
+                        href={`/${slug}/program/payouts/${commission.payout.id}`}
                         className="flex h-6 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 transition-colors hover:bg-neutral-200"
                       >
                         <InvoiceDollar className="size-4 shrink-0 text-neutral-500" />
                         <span className="font-mono text-[13px] text-neutral-700">
-                          {commission.payoutId}
+                          {commission.payout.id}
                         </span>
                       </Link>
                     </>
@@ -373,11 +374,14 @@ function CommissionActivity({
             : []),
 
           // Processed event
-          ...(commission.status === "paid" || commission.status === "processed"
+          ...(["paid", "processed"].includes(commission.status)
             ? [
                 {
                   icon: CommissionStatusBadges["processed"].icon,
-                  timestamp: commission.payout?.initiatedAt ?? null,
+                  timestamp: addDays(
+                    commission.createdAt,
+                    commission.holdingPeriodDays ?? 0,
+                  ),
                   children: (
                     <>
                       <span className="text-sm text-neutral-700">
@@ -388,6 +392,45 @@ function CommissionActivity({
                         variant={CommissionStatusBadges["processed"].variant}
                       >
                         {CommissionStatusBadges["processed"].label}
+                      </StatusBadge>
+                      {commission.holdingPeriodDays ? (
+                        <span className="text-sm text-neutral-700">
+                          after {commission.holdingPeriodDays}-day{" "}
+                          <a
+                            href="https://dub.co/help/article/partner-payouts#payout-holding-period"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="cursor-help underline decoration-dotted underline-offset-2"
+                          >
+                            holding period
+                          </a>
+                        </span>
+                      ) : null}
+                    </>
+                  ),
+                },
+              ]
+            : []),
+
+          ...(["canceled", "duplicate", "fraud", "refunded"].includes(
+            commission.status,
+          )
+            ? [
+                {
+                  icon: CommissionStatusBadges[commission.status].icon,
+                  timestamp: commission.updatedAt,
+                  children: (
+                    <>
+                      <span className="text-sm text-neutral-700">
+                        Commission marked as
+                      </span>
+                      <StatusBadge
+                        icon={null}
+                        variant={
+                          CommissionStatusBadges[commission.status].variant
+                        }
+                      >
+                        {CommissionStatusBadges[commission.status].label}
                       </StatusBadge>
                     </>
                   ),
@@ -430,6 +473,24 @@ function CommissionActivity({
                 >
                   {CommissionStatusBadges["pending"].label}
                 </StatusBadge>
+                {commission.user ? (
+                  <>
+                    <span className="text-sm text-neutral-500">by</span>
+                    <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
+                      <img
+                        src={
+                          commission.user.image ||
+                          `${OG_AVATAR_URL}${commission.user.id}`
+                        }
+                        alt={commission.user.name ?? ""}
+                        className="size-4 rounded-full"
+                      />
+                      <span className="text-[13px] text-neutral-700">
+                        {commission.user.name}
+                      </span>
+                    </div>
+                  </>
+                ) : null}
               </>
             ),
           },

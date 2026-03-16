@@ -400,7 +400,7 @@ export function CommentCardDisplay({
   text,
   className,
 }: {
-  user: { name: string | null; image: string | null } | null;
+  user?: { name: string | null; image: string | null } | null;
   timestamp: Date | string;
   text: string;
   className?: string;

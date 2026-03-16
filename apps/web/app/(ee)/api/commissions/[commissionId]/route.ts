@@ -31,7 +31,16 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     },
     include: {
       partner: true,
-      programEnrollment: true,
+      programEnrollment: {
+        select: {
+          partnerGroup: {
+            select: {
+              id: true,
+              holdingPeriodDays: true,
+            },
+          },
+        },
+      },
       customer: true,
       reward: {
         select: {
@@ -45,6 +54,7 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
       user: true,
       payout: {
         select: {
+          id: true,
           paidAt: true,
           initiatedAt: true,
           user: true,
@@ -65,6 +75,11 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
   return NextResponse.json(
     CommissionDetailSchema.parse({
       ...rest,
+      partner: {
+        ...partner,
+        groupId: programEnrollment.partnerGroup?.id ?? null,
+      },
+      customer: transformCustomerForCommission(customer),
       reward: reward
         ? {
             ...reward,
@@ -73,11 +88,10 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
               : null,
           }
         : null,
-      customer: transformCustomerForCommission(customer),
-      partner: {
-        ...partner,
-        groupId: programEnrollment.groupId,
-      },
+      holdingPeriodDays:
+        rest.type === "custom"
+          ? 0
+          : programEnrollment.partnerGroup?.holdingPeriodDays ?? 0,
     }),
   );
 });
