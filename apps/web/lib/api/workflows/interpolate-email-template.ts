@@ -28,10 +28,10 @@ export function interpolateEmailTemplate({
   variables: Partial<EmailTemplateVariables>;
 }): string {
   return text.replace(
-    /{{\s*([\w.]+)(?:\|([^}]+))?\s*}}/g,
+    /{{\s*([\w.]+)\s*(?:\|\s*([^}]*?))?\s*}}/g,
     (_, key, fallback) => {
       const value = variables[key];
-      return value != null ? String(value) : fallback ?? "";
+      return value != null ? String(value) : fallback?.trim() ?? "";
     },
   );
 }
