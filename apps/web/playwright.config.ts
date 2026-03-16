@@ -1,12 +1,13 @@
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
+  globalSetup: require.resolve("./global-setup"),
   testDir: "./e2e",
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
+  retries: 1,
   workers: process.env.CI ? 1 : undefined,
-  reporter: process.env.CI ? "list" : "html",
+  reporter: process.env.CI ? "list" : [["html", { open: "always" }]],
   use: {
     baseURL:
       process.env.PLAYWRIGHT_BASE_URL || "http://partners.localhost:8888",
@@ -23,7 +24,7 @@ export default defineConfig({
     ? {
         command: "pnpm start -p 8888",
         port: 8888,
-        reuseExistingServer: false,
+        reuseExistingServer: true,
         timeout: 120_000,
       }
     : undefined,

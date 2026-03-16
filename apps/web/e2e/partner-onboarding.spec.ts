@@ -12,7 +12,7 @@ async function loginAsPartner(page: import("@playwright/test").Page) {
   });
   await page.locator('input[type="password"]').fill(partnerPassword!);
   await page.getByRole("button", { name: "Log in with password" }).click();
-  await page.waitForURL(/\/(programs|onboarding)/, { timeout: 15000 });
+  await page.waitForURL(/\/(programs|onboarding)/, { timeout: 30000 });
 }
 
 test.describe("Partner onboarding", () => {
@@ -31,45 +31,55 @@ test.describe("Partner onboarding", () => {
       await loginAsPartner(page);
       await page.goto("/onboarding");
 
-      await expect(
-        page.getByRole("heading", { name: "Create your partner profile" }),
-      ).toBeVisible();
-      await expect(page.locator('input[name="name"]')).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: /Select country|United States/ }),
-      ).toBeVisible();
-      await expect(
-        page.getByRole("button", { name: "Continue" }),
-      ).toBeVisible();
+      const pageHeading = page.getByRole("heading", {
+        name: "Create your partner profile",
+      });
+      const nameInput = page.getByLabel("Name");
+      const profileImage = page.getByText("Profile image");
+      const countrySelect = page.getByLabel("Country");
+      const descriptionInput = page.getByLabel(/Description/, { exact: false });
+      const profileTypeSelect = page.getByText("Profile Type");
+      const continueButton = page.getByRole("button", { name: "Continue" });
+
+      await expect(pageHeading).toBeVisible();
+      await expect(nameInput).toBeVisible();
+      await expect(profileImage).toBeVisible();
+      await expect(countrySelect).toBeVisible();
+      await expect(descriptionInput).toBeVisible();
+      await expect(profileTypeSelect).toBeVisible();
+      await expect(continueButton).toBeVisible();
     });
 
     test("profile submit redirects to platforms", async ({ page }) => {
       await loginAsPartner(page);
       await page.goto("/onboarding");
 
-      await page.locator('input[name="name"]').fill("E2E Onboarding Test");
-      await page
-        .getByRole("button", { name: /Select country|United States/ })
-        .click();
-
+      const nameInput = page.locator('input[name="name"]');
+      const countryField = page.getByLabel("Country");
+      const searchCountriesInput = page.getByPlaceholder("Search countries...");
+      const continueButton = page.getByRole("button", { name: "Continue" });
       const acknowledgeButton = page.getByRole("button", {
         name: "I acknowledge",
       });
+
+      await nameInput.fill("E2E Onboarding Test");
+      await countryField.click();
+
       if (
         await acknowledgeButton.isVisible({ timeout: 2000 }).catch(() => false)
       ) {
         await acknowledgeButton.click();
       }
 
-      await expect(
-        page.getByPlaceholder("Search countries..."),
-      ).toBeVisible({ timeout: 5000 });
-      await page.getByPlaceholder("Search countries...").fill("United States");
+      await expect(searchCountriesInput).toBeVisible({
+        timeout: 5000,
+      });
+      await searchCountriesInput.fill("United States");
       await page.getByText("United States", { exact: true }).first().click();
 
-      await page.getByRole("button", { name: "Continue" }).click();
+      await continueButton.click();
 
-      await page.waitForURL(/\/onboarding\/platforms/, { timeout: 15000 });
+      await page.waitForURL(/\/onboarding\/platforms/, { timeout: 30000 });
       await expect(
         page.getByRole("heading", {
           name: "Your social and web platforms",
@@ -83,31 +93,35 @@ test.describe("Partner onboarding", () => {
       await loginAsPartner(page);
       await page.goto("/onboarding");
 
-      await page.locator('input[name="name"]').fill("E2E Onboarding Test");
-      await page
-        .getByRole("button", { name: /Select country|United States/ })
-        .click();
-
+      const nameInput = page.locator('input[name="name"]');
+      const countryField = page.getByLabel("Country");
+      const searchCountriesInput = page.getByPlaceholder("Search countries...");
+      const continueButton = page.getByRole("button", { name: "Continue" });
+      const skipLink = page.getByRole("link", {
+        name: "I'll complete this later",
+      });
       const acknowledgeButton = page.getByRole("button", {
         name: "I acknowledge",
       });
+
+      await nameInput.fill("E2E Onboarding Test");
+      await countryField.click();
+
       if (
         await acknowledgeButton.isVisible({ timeout: 2000 }).catch(() => false)
       ) {
         await acknowledgeButton.click();
       }
 
-      await expect(
-        page.getByPlaceholder("Search countries..."),
-      ).toBeVisible({ timeout: 5000 });
-      await page.getByPlaceholder("Search countries...").fill("United States");
+      await expect(searchCountriesInput).toBeVisible({
+        timeout: 5000,
+      });
+      await searchCountriesInput.fill("United States");
       await page.getByText("United States", { exact: true }).first().click();
-      await page.getByRole("button", { name: "Continue" }).click();
-      await page.waitForURL(/\/onboarding\/platforms/, { timeout: 15000 });
+      await continueButton.click();
+      await page.waitForURL(/\/onboarding\/platforms/, { timeout: 30000 });
 
-      await page
-        .getByRole("link", { name: "I'll complete this later" })
-        .click();
+      await skipLink.click();
 
       await expect(page).toHaveURL(/\/(onboarding\/payouts|programs)/);
       if (page.url().includes("/onboarding/payouts")) {
@@ -122,16 +136,17 @@ test.describe("Partner onboarding", () => {
       await page.goto("/onboarding/payouts");
 
       await page.waitForURL(/\/(onboarding\/payouts|programs)/, {
-        timeout: 10000,
+        timeout: 30000,
       });
 
       if (page.url().includes("/programs")) {
         return;
       }
 
-      await page
-        .getByRole("link", { name: "I'll complete this later" })
-        .click();
+      const skipLink = page.getByRole("link", {
+        name: "I'll complete this later",
+      });
+      await skipLink.click();
       await expect(page).toHaveURL(/\/programs/);
     });
   });

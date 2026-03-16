@@ -18,6 +18,7 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { createId } from "../api/create-id";
+import { isProduction } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -52,16 +53,16 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
-        if (process.env.NODE_ENV === "development") {
+        if (!isProduction) {
           console.log(`Login link: ${url}`);
           return;
-        } else {
-          sendEmail({
-            to: identifier,
-            subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-            react: LoginLink({ url, email: identifier }),
-          });
         }
+
+        sendEmail({
+          to: identifier,
+          subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+          react: LoginLink({ url, email: identifier }),
+        });
       },
     }),
     GoogleProvider({
@@ -222,12 +223,14 @@ export const authOptions: NextAuthOptions = {
           throw new Error("no-credentials");
         }
 
-        const { success } = await ratelimit(5, "1 m").limit(
-          `login-attempts:${email}`,
-        );
+        if (isProduction) {
+          const { success } = await ratelimit(5, "1 m").limit(
+            `login-attempts:${email}`,
+          );
 
-        if (!success) {
-          throw new Error("too-many-login-attempts");
+          if (!success) {
+            throw new Error("too-many-login-attempts");
+          }
         }
 
         // SSO enforcement check

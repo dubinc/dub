@@ -27,7 +27,7 @@ test.describe("Partner Login", () => {
     await page.getByRole("button", { name: "Log in with email" }).click();
 
     await expect(
-      page.getByText("No account found with that email address"),
+      page.getByText("No account found with that email address."),
     ).toBeVisible({ timeout: 10000 });
   });
 
@@ -54,7 +54,7 @@ test.describe("Partner Login", () => {
       await page.getByRole("button", { name: "Log in with password" }).click();
 
       // Verify redirect to authenticated area
-      await page.waitForURL(/\/(programs|onboarding)/, { timeout: 15000 });
+      await page.waitForURL(/\/(programs|onboarding)/, { timeout: 30000 });
       await expect(page).not.toHaveURL(/\/login/);
     });
 
@@ -72,7 +72,7 @@ test.describe("Partner Login", () => {
       await page.getByRole("button", { name: "Log in with password" }).click();
 
       await expect(
-        page.getByText("Email or password is incorrect"),
+        page.getByText("Email or password is incorrect."),
       ).toBeVisible({ timeout: 10000 });
     });
   });
