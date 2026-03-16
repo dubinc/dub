@@ -263,29 +263,15 @@ function CommissionDetailsContent({
       </span>
     ),
 
-    ...(commission.invoiceId && {
-      Invoice: (
-        <ConditionalLink
-          href={undefined}
-          className="block truncate font-mono text-xs text-neutral-500"
-          title={commission.invoiceId}
-        >
-          {commission.invoiceId}
-        </ConditionalLink>
-      ),
-    }),
-
     ...(commission.payoutId && {
       Payout: (
-        <Link
+        <ConditionalLink
           href={`/${slug}/program/payouts/${commission.payoutId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block min-w-0 cursor-pointer truncate font-mono text-xs text-neutral-500 decoration-dotted hover:text-neutral-950 hover:underline"
+          className="font-mono text-xs"
           title={commission.payoutId}
         >
           {commission.payoutId}
-        </Link>
+        </ConditionalLink>
       ),
     }),
   };
@@ -353,18 +339,30 @@ function CommissionActivity({
                       >
                         {CommissionStatusBadges["paid"].label}
                       </StatusBadge>
-                      <span className="text-sm text-neutral-500">
-                        on payout
-                      </span>
+                      {commission.payout?.user && (
+                        <>
+                          <span className="text-sm text-neutral-500">by</span>
+                          <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
+                            <img
+                              src={
+                                commission.payout.user.image ||
+                                `${OG_AVATAR_URL}${commission.payout.user.id}`
+                              }
+                              alt={commission.payout.user.name ?? ""}
+                              className="size-4 rounded-full"
+                            />
+                            <span className="text-[13px] text-neutral-700">
+                              {commission.payout.user.name}
+                            </span>
+                          </div>
+                        </>
+                      )}
                       <Link
                         href={`/${slug}/program/payouts/${commission.payoutId}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex h-6 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 hover:bg-neutral-200"
-                        onClick={(e) => e.stopPropagation()}
+                        className="flex h-6 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 transition-colors hover:bg-neutral-200"
                       >
                         <InvoiceDollar className="size-4 shrink-0 text-neutral-500" />
-                        <span className="max-w-[160px] truncate font-mono text-[13px] text-neutral-700">
+                        <span className="font-mono text-[13px] text-neutral-700">
                           {commission.payoutId}
                         </span>
                       </Link>
@@ -391,24 +389,6 @@ function CommissionActivity({
                       >
                         {CommissionStatusBadges["processed"].label}
                       </StatusBadge>
-                      {commission.payout?.user && (
-                        <>
-                          <span className="text-sm text-neutral-500">by</span>
-                          <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
-                            <img
-                              src={
-                                commission.payout.user.image ||
-                                `${OG_AVATAR_URL}${commission.payout.user.id}`
-                              }
-                              alt={commission.payout.user.name ?? ""}
-                              className="size-4 rounded-full"
-                            />
-                            <span className="text-[13px] text-neutral-700">
-                              {commission.payout.user.name}
-                            </span>
-                          </div>
-                        </>
-                      )}
                     </>
                   ),
                 },

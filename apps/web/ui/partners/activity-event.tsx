@@ -1,5 +1,6 @@
 "use client";
 
+import { TimestampTooltip } from "@dub/ui";
 import { cn, formatDateTime } from "@dub/utils";
 
 export function ActivityEvent({
@@ -38,13 +39,19 @@ export function ActivityEvent({
             {children}
           </div>
           {timestamp && (
-            <span className="shrink-0 text-xs text-neutral-400 sm:ml-auto">
-              {formatDateTime(timestamp)}
-            </span>
+            <TimestampTooltip
+              timestamp={timestamp}
+              side="right"
+              rows={["local", "utc", "unix"]}
+            >
+              <span className="shrink-0 text-xs text-neutral-400 sm:ml-auto">
+                {formatDateTime(timestamp)}
+              </span>
+            </TimestampTooltip>
           )}
         </div>
 
-        {note && <div>{note}</div>}
+        {note && <div className="mt-1">{note}</div>}
       </div>
     </div>
   );

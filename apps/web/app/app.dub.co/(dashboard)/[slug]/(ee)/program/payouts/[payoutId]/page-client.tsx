@@ -21,11 +21,9 @@ import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
-  buttonVariants,
   ChevronRight,
   CircleArrowRight,
   CopyText,
-  InvoiceDollar,
   MoneyBills2,
   StatusBadge,
   Table,
@@ -47,7 +45,7 @@ import {
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
-import { Fragment, useMemo } from "react";
+import { useMemo } from "react";
 import useSWR from "swr";
 
 type PayoutActivityItem = {
@@ -171,7 +169,6 @@ function PayoutDetailsContent({
       Partner: (
         <ConditionalLink
           href={`/${slug}/program/partners/${payout.partner.id}`}
-          target="_blank"
         >
           <img
             src={
@@ -238,27 +235,22 @@ function PayoutDetailsContent({
               <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
             </Tooltip>
           )}
-
-          {payout.mode === "internal" && payout.status !== "failed" && (
-            <Tooltip content="View invoice">
-              <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
-                <Link
-                  href={`${APP_DOMAIN}/invoices/${payout.invoiceId || payout.id}`}
-                  className="text-neutral-700"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <InvoiceDollar className="size-4" />
-                </Link>
-              </div>
-            </Tooltip>
-          )}
         </div>
       ),
 
-      ...(payout.invoiceId && {
-        Invoice: <div className="truncate">{payout.invoiceId}</div>,
-      }),
+      ...(payout.invoiceId &&
+        payout.mode === "internal" &&
+        payout.status !== "failed" && {
+          Invoice: (
+            <ConditionalLink
+              href={`${APP_DOMAIN}/invoices/${payout.invoiceId}`}
+              target="_blank"
+              className="max-w-xs truncate"
+            >
+              {payout.invoiceId}
+            </ConditionalLink>
+          ),
+        }),
 
       ...(payout.description && {
         Description: payout.description,
@@ -268,7 +260,7 @@ function PayoutDetailsContent({
         "Trace ID": (
           <CopyText
             value={payout.traceId}
-            className="block w-full truncate text-left font-mono text-sm text-neutral-500"
+            className="block w-full truncate text-left font-mono text-xs text-neutral-500"
           >
             {payout.traceId}
           </CopyText>
@@ -406,6 +398,7 @@ function PayoutDetailsContent({
     scrollWrapperClassName: "min-h-[40px]",
     resourceName: (p) => `commission${p ? "s" : ""}`,
     pagination,
+    paginationAllRowsHref: `/${slug}/program/commissions?payoutId=${payout.id}&interval=all`,
     onPaginationChange: setPagination,
     rowCount: commissionsCount?.all?.count ?? commissions?.length ?? 0,
     loading: isLoading,
@@ -461,30 +454,23 @@ function PayoutDetailsContent({
       </div>
 
       <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
-        <div className="rounded-xl border border-neutral-200 bg-white p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h3 className="text-base font-medium text-neutral-900">
-              Invoice details
-            </h3>
-            <Link
-              href={`/${slug}/program/commissions?payoutId=${payout.id}&interval=all`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-7 items-center rounded-lg border px-2 text-sm",
-              )}
-            >
-              View all
-            </Link>
-          </div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+          <h3 className="text-content-emphasis mb-2 text-base font-semibold">
+            Invoice details
+          </h3>
+          <div className="flex flex-col gap-1">
             {Object.entries(invoiceData).map(([key, value]) => (
-              <Fragment key={key}>
-                <div className="flex items-start pt-0.5 font-medium text-neutral-500">
+              <div
+                key={key}
+                className="flex items-center gap-4 rounded-md py-1"
+              >
+                <div className="w-20 shrink-0 text-xs font-medium text-neutral-700">
                   {key}
                 </div>
-                <div className="min-w-0 text-neutral-500">{value}</div>
-              </Fragment>
+                <div className="flex min-w-0 flex-1 items-center text-xs font-medium text-neutral-500">
+                  {value}
+                </div>
+              </div>
             ))}
           </div>
         </div>
