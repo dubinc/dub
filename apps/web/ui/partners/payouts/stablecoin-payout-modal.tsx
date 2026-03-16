@@ -91,7 +91,7 @@ function StablecoinPayoutModal({
 
           <MarkdownDescription className="text-sm leading-5 text-neutral-600">
             With [stablecoin
-            payouts](https://dub.co/help/article/receiving-payouts#stablecoin-payouts),
+            payouts](https://dub.co/help/article/receiving-payouts#connecting-a-stablecoin-wallet),
             you can get paid USDC anywhere in the world in minutes – instead of
             waiting up to 15 business days with your bank account.
           </MarkdownDescription>
