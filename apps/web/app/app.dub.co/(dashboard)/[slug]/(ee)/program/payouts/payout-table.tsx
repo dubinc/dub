@@ -49,8 +49,12 @@ const PayoutTableInner = memo(
     setSearch,
     setSelectedFilter,
   }: ReturnType<typeof usePayoutFilters>) => {
-    const { id: workspaceId, slug: workspaceSlug, plan, defaultProgramId } =
-      useWorkspace();
+    const {
+      id: workspaceId,
+      slug: workspaceSlug,
+      plan,
+      defaultProgramId,
+    } = useWorkspace();
     const router = useRouter();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
