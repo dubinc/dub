@@ -34,7 +34,7 @@ test.describe("Partner onboarding", () => {
       const pageHeading = page.getByRole("heading", {
         name: "Create your partner profile",
       });
-      const nameInput = page.getByLabel("Name");
+      const nameInput = page.locator('input[name="name"]').first();
       const profileImage = page.getByText("Profile image");
       const countrySelect = page.getByLabel("Country");
       const descriptionInput = page.getByLabel(/Description/, { exact: false });
