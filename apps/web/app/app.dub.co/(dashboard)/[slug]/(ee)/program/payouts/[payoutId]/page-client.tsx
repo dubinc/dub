@@ -270,16 +270,7 @@ function PayoutDetailsContent({
       ),
 
       ...(payout.invoiceId && {
-        Invoice: (
-          <ConditionalLink
-            href={`${APP_DOMAIN}/invoices/${payout.invoiceId}`}
-            target="_blank"
-            className="block truncate font-mono text-sm text-neutral-500"
-            title={payout.invoiceId}
-          >
-            {payout.invoiceId}
-          </ConditionalLink>
-        ),
+        Invoice: <div className="truncate">{payout.invoiceId}</div>,
       }),
 
       ...(payout.description && {
