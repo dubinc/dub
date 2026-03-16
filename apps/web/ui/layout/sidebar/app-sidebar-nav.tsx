@@ -191,6 +191,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Program
   program: ({
     slug,
+    pathname,
     showNews,
     pendingPayoutsCount,
     applicationsCount,
@@ -284,11 +285,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Customers",
             icon: User,
             href: `/${slug}/program/customers`,
-            badge: pendingReferralsCount
-              ? pendingReferralsCount > 99
-                ? "99+"
-                : pendingReferralsCount
-              : undefined,
+            badge:
+              pathname?.includes("/customers/referrals") &&
+              pendingReferralsCount
+                ? pendingReferralsCount > 99
+                  ? "99+"
+                  : pendingReferralsCount
+                : undefined,
           },
           {
             name: "Commissions",
