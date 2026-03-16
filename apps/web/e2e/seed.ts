@@ -12,7 +12,7 @@ const E2E_PARTNER = {
 };
 
 async function main() {
-  const passwordHash = hashSync("test-password-123", 10);
+  const passwordHash = hashSync(E2E_PARTNER.password, 10);
 
   const user = await prisma.user.upsert({
     where: {
