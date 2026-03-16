@@ -1,7 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import usePayout from "@/lib/swr/use-payout";
+import { usePayout } from "@/lib/swr/use-payout";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";

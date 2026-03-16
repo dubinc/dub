@@ -42,11 +42,12 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
           amountInPercentage: true,
         },
       },
+      user: true,
       payout: {
         select: {
           paidAt: true,
           initiatedAt: true,
-          user: { select: { id: true, name: true, image: true } },
+          user: true,
         },
       },
     },
@@ -59,21 +60,11 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     });
   }
 
-  const { partner, programEnrollment, customer, reward, payout, ...rest } =
-    commission;
-
-  const user = rest.userId
-    ? await prisma.user.findUnique({
-        where: { id: rest.userId },
-        select: { id: true, name: true, image: true },
-      })
-    : null;
+  const { partner, programEnrollment, customer, reward, ...rest } = commission;
 
   return NextResponse.json(
     CommissionDetailSchema.parse({
       ...rest,
-      payoutId: rest.payoutId ?? null,
-      user: user ?? null,
       reward: reward
         ? {
             ...reward,
@@ -82,7 +73,6 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
               : null,
           }
         : null,
-      payout: payout ?? null,
       customer: transformCustomerForCommission(customer),
       partner: {
         ...partner,

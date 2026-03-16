@@ -8,13 +8,16 @@ import {
   getPaginationQuerySchema,
 } from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
+import { PayoutSchema } from "./payouts";
+import { RewardSchema } from "./rewards";
+import { UserSchema } from "./users";
 import { centsSchema, parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").meta({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.enum(CommissionType).optional(),
+  type: z.enum(CommissionType).optional(), // Note: Not sure the type will ever be optional
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
@@ -47,33 +50,20 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
 // Schema for the commission detail page (GET /api/commissions/:commissionId)
 export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
   payoutId: z.string().nullable(),
-  user: z
-    .object({
-      id: z.string(),
-      name: z.string().nullable(),
-      image: z.string().nullable(),
-    })
-    .nullable(),
-  reward: z
-    .object({
-      description: z.string().nullable(),
-      type: z.enum(["percentage", "flat"]),
-      event: z.enum(["click", "lead", "sale"]),
-      amountInCents: z.number().nullable(),
-      amountInPercentage: z.number().nullable(),
-    })
-    .nullable(),
-  payout: z
-    .object({
-      paidAt: z.date().nullable(),
-      initiatedAt: z.date().nullable(),
-      user: z
-        .object({
-          id: z.string(),
-          name: z.string().nullable(),
-          image: z.string().nullable(),
-        })
-        .nullable(),
+  user: UserSchema.nullable(),
+  reward: RewardSchema.pick({
+    event: true,
+    description: true,
+    type: true,
+    amountInCents: true,
+    amountInPercentage: true,
+  }).nullable(),
+  payout: PayoutSchema.pick({
+    paidAt: true,
+    initiatedAt: true,
+  })
+    .extend({
+      user: UserSchema.nullable(),
     })
     .nullable(),
 });

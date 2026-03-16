@@ -1,10 +1,9 @@
 "use client";
 
-import useCommission, { CommissionDetail } from "@/lib/swr/use-commission";
+import { useCommission } from "@/lib/swr/use-commission";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CommissionResponse } from "@/lib/types";
-import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { CommissionDetail, CommissionResponse } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
@@ -33,7 +32,6 @@ import {
 import { Row } from "@tanstack/react-table";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Fragment } from "react";
 
 export function CommissionDetailsPageClient() {
   const { slug } = useWorkspace();
@@ -72,7 +70,7 @@ export function CommissionDetailsPageClient() {
                   />
                 )}
                 <span className="text-lg font-semibold leading-7 text-neutral-900">
-                  {commission?.partner?.name ?? "Commission details"}
+                  {commission?.partner.name}
                 </span>
               </div>
             </div>
@@ -102,11 +100,12 @@ function CommissionDetailsContent({
   commission,
   slug,
 }: {
-  commission: NonNullable<ReturnType<typeof useCommission>["commission"]>;
+  commission: CommissionDetail;
   slug: string;
 }) {
   const { groups } = useGroups();
   const group = groups?.find((g) => g.id === commission.partner.groupId);
+
   const statusBadge = CommissionStatusBadges[commission.status];
 
   const itemsTable = useTable<CommissionDetail>({
@@ -115,41 +114,66 @@ function CommissionDetailsContent({
       {
         id: "item",
         header: "Item",
-        minSize: 220,
-        size: 220,
-        cell: ({ row }) =>
-          row.original.customer ? (
-            <CustomerRowItem
-              customer={row.original.customer}
-              href={`/${slug}/program/customers/${row.original.customer.id}`}
-            />
-          ) : (
+        minSize: 260,
+        size: 280,
+        cell: ({ row }) => {
+          const customer = row.original.customer;
+          const customerHref = customer
+            ? `/${slug}/program/customers/${customer.id}`
+            : undefined;
+
+          return (
             <div className="flex items-center gap-2">
-              <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100">
-                <CommissionTypeIcon
-                  type={row.original.type}
-                  className="size-4"
+              {["click", "custom"].includes(row.original.type!) ? (
+                <div className="flex size-6 items-center justify-center rounded-full bg-neutral-100">
+                  <CommissionTypeIcon
+                    type={row.original.type}
+                    className="size-4"
+                  />
+                </div>
+              ) : (
+                <img
+                  src={customer?.avatar || `${OG_AVATAR_URL}${customer?.id}`}
+                  alt={customer?.id}
+                  className="size-6 rounded-full"
+                  title={customer?.name}
+                  loading="lazy"
                 />
-              </div>
+              )}
+
               <div className="flex flex-col">
-                <span className="w-44 truncate text-sm text-neutral-700">
-                  {row.original.type === "click"
-                    ? `${nFormatter(row.original.quantity)} ${pluralize("click", row.original.quantity)}`
-                    : "Custom commission"}
-                </span>
+                {customerHref ? (
+                  <Link
+                    href={customerHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-w-0 max-w-[13rem] cursor-alias truncate text-xs font-medium text-neutral-700 decoration-dotted hover:underline"
+                  >
+                    {customer?.email || customer?.name}
+                  </Link>
+                ) : (
+                  <span className="min-w-0 max-w-[13rem] truncate text-xs font-medium text-neutral-700">
+                    {row.original.type === "click"
+                      ? `${row.original.quantity} ${pluralize("click", row.original.quantity)}`
+                      : customer
+                        ? customer.email || customer.name
+                        : "Custom commission"}
+                  </span>
+                )}
                 <span className="text-xs text-neutral-500">
                   {formatDateTime(row.original.createdAt)}
                 </span>
               </div>
             </div>
-          ),
+          );
+        },
       },
       {
         id: "type",
         header: "Type",
         minSize: 100,
-        size: 120,
-        maxSize: 150,
+        size: 110,
+        maxSize: 130,
         cell: ({ row }) => (
           <CommissionTypeBadge type={row.original.type ?? "sale"} />
         ),
@@ -157,14 +181,16 @@ function CommissionDetailsContent({
       {
         id: "total",
         header: "Total",
-        minSize: 80,
-        size: 100,
-        maxSize: 120,
+        minSize: 90,
+        size: 110,
+        maxSize: 130,
         cell: ({ row }) => currencyFormatter(row.original.earnings),
       },
       {
         id: "menu",
         enableHiding: false,
+        minSize: 48,
+        size: 48,
         cell: ({ row }) => (
           <CommissionRowMenu row={row as unknown as Row<CommissionResponse>} />
         ),
@@ -183,8 +209,11 @@ function CommissionDetailsContent({
 
   const detailRows: Record<string, React.ReactNode> = {
     Partner: (
-      <ConditionalLink
+      <Link
         href={`/${slug}/program/partners/${commission.partner.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex min-w-0 cursor-alias items-center gap-1.5 text-neutral-500 decoration-dotted hover:text-neutral-950 hover:underline"
       >
         <img
           src={
@@ -192,17 +221,19 @@ function CommissionDetailsContent({
             `${OG_AVATAR_URL}${commission.partner.name}`
           }
           alt={commission.partner.name}
-          className="mr-1.5 inline-flex size-5 rounded-full"
+          className="size-4 shrink-0 rounded-full"
         />
-        {commission.partner.name}
-      </ConditionalLink>
+        <span className="truncate">{commission.partner.name}</span>
+      </Link>
     ),
 
     ...(group && {
       Group: (
         <Link
           href={`/${slug}/program/groups/${group.slug}`}
-          className="flex items-center gap-1.5 text-neutral-800 hover:underline"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex cursor-alias items-center gap-1.5 text-neutral-800 decoration-dotted hover:underline"
         >
           <GroupColorCircle group={group} />
           {group.name}
@@ -236,7 +267,7 @@ function CommissionDetailsContent({
       Invoice: (
         <ConditionalLink
           href={undefined}
-          className="block truncate font-mono text-sm text-neutral-500"
+          className="block truncate font-mono text-xs text-neutral-500"
           title={commission.invoiceId}
         >
           {commission.invoiceId}
@@ -246,13 +277,15 @@ function CommissionDetailsContent({
 
     ...(commission.payoutId && {
       Payout: (
-        <ConditionalLink
+        <Link
           href={`/${slug}/program/payouts/${commission.payoutId}`}
-          className="block truncate font-mono text-sm text-neutral-500"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block min-w-0 cursor-pointer truncate font-mono text-xs text-neutral-500 decoration-dotted hover:text-neutral-950 hover:underline"
           title={commission.payoutId}
         >
           {commission.payoutId}
-        </ConditionalLink>
+        </Link>
       ),
     }),
   };
@@ -262,121 +295,53 @@ function CommissionDetailsContent({
       <div className="order-last min-w-0 flex-1 lg:order-first">
         <Table {...itemsTable} />
 
-        <div className="mt-6">
-          <h3 className="mb-4 text-base font-medium text-neutral-900">
-            Activity
+        <CommissionActivity commission={commission} slug={slug} />
+      </div>
+
+      <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
+        <div className="rounded-xl border border-neutral-200 bg-white p-4">
+          <h3 className="text-content-emphasis mb-2 text-base font-semibold">
+            Commission details
           </h3>
-          <div className="flex flex-col">
-            {(
-              [
-                // Paid event
-                ...(commission.status === "paid" && commission.payoutId
-                  ? [
-                      {
-                        icon: CommissionStatusBadges["paid"].icon,
-                        timestamp: commission.payout?.paidAt ?? null,
-                        children: (
-                          <>
-                            <span className="text-sm text-neutral-700">
-                              Commission
-                            </span>
-                            <StatusBadge
-                              icon={null}
-                              variant={CommissionStatusBadges["paid"].variant}
-                            >
-                              {CommissionStatusBadges["paid"].label}
-                            </StatusBadge>
-                            <span className="text-sm text-neutral-500">
-                              on payout
-                            </span>
-                            <Link
-                              href={`/${slug}/program/payouts/${commission.payoutId}`}
-                              className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 hover:bg-neutral-200"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <InvoiceDollar className="size-4 shrink-0 text-neutral-500" />
-                              <span className="max-w-[160px] truncate font-mono text-[13px] text-neutral-700">
-                                {commission.payoutId}
-                              </span>
-                            </Link>
-                          </>
-                        ),
-                      },
-                    ]
-                  : []),
+          <div className="flex flex-col gap-1">
+            {Object.entries(detailRows).map(([key, value]) => (
+              <div
+                key={key}
+                className="flex items-center gap-4 rounded-md py-1"
+              >
+                <div className="w-20 shrink-0 text-xs font-medium text-neutral-700">
+                  {key}
+                </div>
+                <div className="flex min-w-0 flex-1 items-center text-xs font-medium text-neutral-500">
+                  {value}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-                // Processed event
-                ...(commission.status === "paid" ||
-                commission.status === "processed"
-                  ? [
-                      {
-                        icon: CommissionStatusBadges["processed"].icon,
-                        timestamp: commission.payout?.initiatedAt ?? null,
-                        children: (
-                          <>
-                            <span className="text-sm text-neutral-700">
-                              Commission
-                            </span>
-                            <StatusBadge
-                              icon={null}
-                              variant={
-                                CommissionStatusBadges["processed"].variant
-                              }
-                            >
-                              {CommissionStatusBadges["processed"].label}
-                            </StatusBadge>
-                            {commission.payout?.user && (
-                              <>
-                                <span className="text-sm text-neutral-500">
-                                  by
-                                </span>
-                                <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
-                                  <img
-                                    src={
-                                      commission.payout.user.image ||
-                                      `${OG_AVATAR_URL}${commission.payout.user.id}`
-                                    }
-                                    alt={commission.payout.user.name ?? ""}
-                                    className="size-4 rounded-full"
-                                  />
-                                  <span className="text-[13px] text-neutral-700">
-                                    {commission.payout.user.name}
-                                  </span>
-                                </div>
-                              </>
-                            )}
-                          </>
-                        ),
-                      },
-                    ]
-                  : []),
-
-                // Pending / created event
+function CommissionActivity({
+  commission,
+  slug,
+}: {
+  commission: CommissionDetail;
+  slug: string;
+}) {
+  return (
+    <div className="mt-6">
+      <h3 className="mb-4 text-base font-medium text-neutral-900">Activity</h3>
+      <div className="flex flex-col">
+        {[
+          // Paid event
+          ...(commission.status === "paid" && commission.payoutId
+            ? [
                 {
-                  icon: CommissionStatusBadges["pending"].icon,
-                  timestamp: commission.createdAt,
-                  note: (() => {
-                    const text = commission.reward
-                      ? `Earn ${
-                          commission.reward.type === "percentage"
-                            ? `${commission.reward.amountInPercentage ?? 0}%`
-                            : currencyFormatter(
-                                commission.reward.amountInCents ?? 0,
-                                { trailingZeroDisplay: "stripIfInteger" },
-                              )
-                        } per ${commission.reward.event}`
-                      : commission.description ?? null;
-
-                    if (!text) return undefined;
-
-                    return (
-                      <CommentCardDisplay
-                        user={commission.user}
-                        timestamp={commission.createdAt}
-                        text={text}
-                      />
-                    );
-                  })(),
+                  icon: CommissionStatusBadges["paid"].icon,
+                  timestamp: commission.payout?.paidAt ?? null,
                   children: (
                     <>
                       <span className="text-sm text-neutral-700">
@@ -384,50 +349,121 @@ function CommissionDetailsContent({
                       </span>
                       <StatusBadge
                         icon={null}
-                        variant={CommissionStatusBadges["pending"].variant}
+                        variant={CommissionStatusBadges["paid"].variant}
                       >
-                        {CommissionStatusBadges["pending"].label}
+                        {CommissionStatusBadges["paid"].label}
                       </StatusBadge>
+                      <span className="text-sm text-neutral-500">
+                        on payout
+                      </span>
+                      <Link
+                        href={`/${slug}/program/payouts/${commission.payoutId}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex h-6 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 hover:bg-neutral-200"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <InvoiceDollar className="size-4 shrink-0 text-neutral-500" />
+                        <span className="max-w-[160px] truncate font-mono text-[13px] text-neutral-700">
+                          {commission.payoutId}
+                        </span>
+                      </Link>
                     </>
                   ),
                 },
-              ] as {
-                icon: React.ElementType;
-                timestamp: string | Date | null | undefined;
-                note?: React.ReactNode;
-                children: React.ReactNode;
-              }[]
-            ).map((event, index, arr) => (
-              <ActivityEvent
-                key={index}
-                icon={event.icon}
-                timestamp={event.timestamp}
-                note={event.note}
-                isLast={index === arr.length - 1}
-              >
-                {event.children}
-              </ActivityEvent>
-            ))}
-          </div>
-        </div>
-      </div>
+              ]
+            : []),
 
-      <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
-        <div className="rounded-xl border border-neutral-200 bg-white p-5">
-          <h3 className="mb-4 text-base font-medium text-neutral-900">
-            Commission details
-          </h3>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-            {Object.entries(detailRows).map(([key, value]) => (
-              <Fragment key={key}>
-                <div className="flex items-start pt-0.5 font-medium text-neutral-500">
-                  {key}
-                </div>
-                <div className="min-w-0 text-neutral-500">{value}</div>
-              </Fragment>
-            ))}
-          </div>
-        </div>
+          // Processed event
+          ...(commission.status === "paid" || commission.status === "processed"
+            ? [
+                {
+                  icon: CommissionStatusBadges["processed"].icon,
+                  timestamp: commission.payout?.initiatedAt ?? null,
+                  children: (
+                    <>
+                      <span className="text-sm text-neutral-700">
+                        Commission
+                      </span>
+                      <StatusBadge
+                        icon={null}
+                        variant={CommissionStatusBadges["processed"].variant}
+                      >
+                        {CommissionStatusBadges["processed"].label}
+                      </StatusBadge>
+                      {commission.payout?.user && (
+                        <>
+                          <span className="text-sm text-neutral-500">by</span>
+                          <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
+                            <img
+                              src={
+                                commission.payout.user.image ||
+                                `${OG_AVATAR_URL}${commission.payout.user.id}`
+                              }
+                              alt={commission.payout.user.name ?? ""}
+                              className="size-4 rounded-full"
+                            />
+                            <span className="text-[13px] text-neutral-700">
+                              {commission.payout.user.name}
+                            </span>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ),
+                },
+              ]
+            : []),
+
+          // Pending / created event
+          {
+            icon: CommissionStatusBadges["pending"].icon,
+            timestamp: commission.createdAt,
+            note: (() => {
+              const text = commission.reward
+                ? `Earn ${
+                    commission.reward.type === "percentage"
+                      ? `${commission.reward.amountInPercentage ?? 0}%`
+                      : currencyFormatter(
+                          commission.reward.amountInCents ?? 0,
+                          { trailingZeroDisplay: "stripIfInteger" },
+                        )
+                  } per ${commission.reward.event}`
+                : commission.description ?? null;
+
+              if (!text) return undefined;
+
+              return (
+                <CommentCardDisplay
+                  user={commission.user}
+                  timestamp={commission.createdAt}
+                  text={text}
+                />
+              );
+            })(),
+            children: (
+              <>
+                <span className="text-sm text-neutral-700">Commission</span>
+                <StatusBadge
+                  icon={null}
+                  variant={CommissionStatusBadges["pending"].variant}
+                >
+                  {CommissionStatusBadges["pending"].label}
+                </StatusBadge>
+              </>
+            ),
+          },
+        ].map((event, index, arr) => (
+          <ActivityEvent
+            key={index}
+            icon={event.icon}
+            timestamp={event.timestamp}
+            note={event.note}
+            isLast={index === arr.length - 1}
+          >
+            {event.children}
+          </ActivityEvent>
+        ))}
       </div>
     </div>
   );
