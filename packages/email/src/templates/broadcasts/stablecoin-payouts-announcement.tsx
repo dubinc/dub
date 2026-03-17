@@ -34,7 +34,10 @@ export default function StablecoinPayoutsAnnouncement({
           }
         `}</style>
       </Head>
-      <Preview>Connect your crypto wallet and get paid in USDC.</Preview>
+      <Preview>
+        Connect your crypto wallet and get paid in USDC. Also, Dub Program
+        Marketplace is now generally available.
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="email-container mx-auto my-10 max-w-[600px] px-10 py-5">
@@ -92,7 +95,7 @@ export default function StablecoinPayoutsAnnouncement({
 
             <Section className="mb-8 text-center">
               <Link
-                href="https://ship.dub.co/stablecoins"
+                href="https://ship.dub.co/stablecoins-connect"
                 className="box-border inline-block rounded-lg bg-neutral-900 px-6 py-3 text-center text-sm font-medium text-white no-underline"
                 style={{
                   backgroundColor: "#171717",
@@ -107,6 +110,19 @@ export default function StablecoinPayoutsAnnouncement({
               >
                 Connect your wallet
               </Link>
+              <Text className="mt-3 text-center text-xs text-neutral-500">
+                <Link
+                  href="https://ship.dub.co/stablecoins"
+                  className="mt-3 text-center text-xs text-neutral-600 underline"
+                  style={{
+                    color: "#525252",
+                    fontSize: "12px",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Read the announcement
+                </Link>
+              </Text>
             </Section>
 
             <Hr className="mx-0 my-6 w-full border border-neutral-200" />
