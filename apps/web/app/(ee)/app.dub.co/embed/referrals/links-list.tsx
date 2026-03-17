@@ -85,7 +85,7 @@ export function ReferralsEmbedLinksList({
 
           return (
             <div className="flex min-w-0 items-center gap-2">
-              <div className="border-border-subtle has-[:hover]:bg-bg-muted rounded-md border bg-white transition-colors dark:bg-black">
+              <div className="border-border-subtle has-[:hover]:bg-bg-muted bg-bg-default rounded-md border transition-colors">
                 <CopyButton
                   value={partnerLink}
                   variant="neutral"
@@ -188,7 +188,7 @@ export function ReferralsEmbedLinksList({
             text="Create link"
             variant="primary"
             onClick={onCreateLink}
-            className="bg-bg-inverted h-9 rounded-md hover:bg-neutral-800 dark:hover:bg-neutral-200"
+            className="bg-bg-inverted text-content-inverted h-9 rounded-md hover:opacity-80"
           />
         }
       />

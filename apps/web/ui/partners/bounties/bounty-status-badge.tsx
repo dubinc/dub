@@ -96,7 +96,7 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
         <StatusBadge
           variant="error"
           icon={null}
-          className="bg-red-100 text-xs font-semibold text-red-700 dark:bg-red-900 dark:text-red-300"
+          className="bg-bg-error text-content-error text-xs font-semibold"
         >
           Expired {endsAtFormatted}
         </StatusBadge>
@@ -106,7 +106,7 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
         <StatusBadge
           variant="warning"
           icon={null}
-          className="bg-amber-100 text-xs font-semibold text-amber-700 dark:bg-amber-900 dark:text-amber-300"
+          className="bg-bg-attention text-content-attention text-xs font-semibold"
         >
           Expiring soon {endsAtFormatted}
         </StatusBadge>
@@ -116,7 +116,7 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
         <StatusBadge
           variant="success"
           icon={null}
-          className="bg-green-100 text-xs font-semibold text-green-700 dark:bg-green-900 dark:text-green-300"
+          className="bg-bg-success text-content-success text-xs font-semibold"
         >
           Completed {completedAtFormatted}
         </StatusBadge>
@@ -126,7 +126,7 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
         <StatusBadge
           variant="new"
           icon={null}
-          className="bg-blue-100 text-xs font-semibold text-blue-700 dark:bg-blue-900 dark:text-blue-300"
+          className="bg-bg-info text-content-info text-xs font-semibold"
         >
           New
         </StatusBadge>

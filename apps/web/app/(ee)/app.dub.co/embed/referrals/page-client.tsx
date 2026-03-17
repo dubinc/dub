@@ -212,7 +212,7 @@ export function ReferralsEmbedPageClient({
                           "flex h-5 items-center rounded-md px-1.5 text-xs font-medium",
                           selectedTab === "Bounties"
                             ? "bg-blue-600 text-blue-50"
-                            : "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300",
+                            : "bg-bg-info text-content-info",
                         )}
                       >
                         {activeBountiesCount}

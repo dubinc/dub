@@ -20,7 +20,7 @@ export function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
         <Markdown
           className={cn(
             PROSE_STYLES.default,
-            "text-sm font-normal text-neutral-600 dark:text-neutral-400",
+            "text-content-subtle text-sm font-normal",
           )}
         >
           {description}

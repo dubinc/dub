@@ -18,7 +18,7 @@ import { motion } from "motion/react";
 import { ReferralsEmbedLink } from "./types";
 
 const BUTTON_CLASSNAME =
-  "h-9 rounded-lg bg-bg-inverted dark:hover:bg-neutral-200 hover:bg-neutral-800";
+  "bg-bg-inverted text-content-inverted h-9 rounded-lg hover:opacity-80";
 
 export function ReferralsEmbedQuickstart({
   program,
