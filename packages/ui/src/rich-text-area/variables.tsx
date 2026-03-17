@@ -162,8 +162,11 @@ const Menu = forwardRef(
         }
 
         if (event.key === "Enter") {
-          selectVar(items[selectedIndex]);
-          return true;
+          if (items.length > 0 && selectedIndex >= 0 && selectedIndex < items.length) {
+            selectVar(items[selectedIndex]);
+            return true;
+          }
+          return false;
         }
 
         return false;
