@@ -31,6 +31,7 @@ export const GENERIC_EMAIL_DOMAINS = [
   "tutanota.com",
   "tuta.com",
   "privaterelay.appleid.com",
+  "example.com",
 ];
 
 export const isGenericEmail = (email: string) => {

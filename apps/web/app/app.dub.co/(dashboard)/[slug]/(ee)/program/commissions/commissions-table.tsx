@@ -38,6 +38,7 @@ import {
   formatDateTimeSmart,
   nFormatter,
 } from "@dub/utils";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { useCommissionFilters } from "./use-commission-filters";
@@ -78,6 +79,7 @@ export function CommissionsTable() {
 
   const workspace = useWorkspace();
   const { id: workspaceId, slug } = workspace;
+  const router = useRouter();
   const { program } = useProgram();
   const { groups } = useGroups();
 
@@ -354,6 +356,17 @@ export function CommissionsTable() {
         del: "page",
         scroll: false,
       }),
+    onRowClick: (row, e) => {
+      const url = `/${slug}/program/commissions/${row.original.id}`;
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
+    },
+    onRowAuxClick: (row) =>
+      window.open(`/${slug}/program/commissions/${row.original.id}`, "_blank"),
+    rowProps: (row) => ({
+      onPointerEnter: () =>
+        router.prefetch(`/${slug}/program/commissions/${row.original.id}`),
+    }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `commission${p ? "s" : ""}`,
