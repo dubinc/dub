@@ -1,9 +1,10 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { LoadingSpinner, StatusBadge } from "@dub/ui";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { ArrowRight, LoadingSpinner, StatusBadge } from "@dub/ui";
 import { currencyFormatter, fetcher } from "@dub/utils";
+import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
 import { CommissionStatusBadges } from "../../commission-status-badges";
@@ -45,16 +46,15 @@ export function CommissionsBlock() {
             const badge = CommissionStatusBadges[status];
 
             return (
-              <div
+              <Link
                 key={id}
-                className="text-content-default flex h-10 items-center justify-between text-xs font-medium"
+                href={`/${workspaceSlug}/program/commissions/${id}`}
+                className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
               >
                 <div className="flex min-w-0 items-center gap-2">
-                  <PartnerAvatar
-                    partner={partner}
-                    className="size-4"
-                  />
+                  <PartnerAvatar partner={partner} className="size-4" />
                   <span className="min-w-0 truncate">{partner.name}</span>
+                  <ArrowRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -70,7 +70,7 @@ export function CommissionsBlock() {
                     {currencyFormatter(earnings)}
                   </span>
                 </div>
-              </div>
+              </Link>
             );
           })
         )}

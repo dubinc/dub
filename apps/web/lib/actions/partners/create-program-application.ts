@@ -179,26 +179,28 @@ export const createProgramApplicationAction = actionClient
       throw new Error("This program is no longer accepting applications.");
     }
 
-    // for in-app applications from existing partners, we need to check
-    // if the partner has an incomplete profile, if so we prompt them to complete it
-    if (inAppApplication && existingPartner) {
-      const { isComplete } = getPartnerProfileChecklistProgress({
-        partner: {
-          ...existingPartner,
-          preferredEarningStructures:
-            existingPartner.preferredEarningStructures.map(
-              ({ preferredEarningStructure }) => preferredEarningStructure,
+    if (existingPartner) {
+      // for in-app applications from existing partners, we need to check
+      // if the partner has an incomplete profile, if so we prompt them to complete it
+      if (inAppApplication) {
+        const { isComplete } = getPartnerProfileChecklistProgress({
+          partner: {
+            ...existingPartner,
+            preferredEarningStructures:
+              existingPartner.preferredEarningStructures.map(
+                ({ preferredEarningStructure }) => preferredEarningStructure,
+              ),
+            salesChannels: existingPartner.salesChannels.map(
+              ({ salesChannel }) => salesChannel,
             ),
-          salesChannels: existingPartner.salesChannels.map(
-            ({ salesChannel }) => salesChannel,
-          ),
-        },
-      });
+          },
+        });
 
-      if (!isComplete) {
-        throw new Error(
-          "Please complete your partner profile to submit your application: https://partners.dub.co/profile",
-        );
+        if (!isComplete) {
+          throw new Error(
+            "Please complete your partner profile to submit your application: https://partners.dub.co/profile",
+          );
+        }
       }
 
       return createApplicationAndEnrollment({

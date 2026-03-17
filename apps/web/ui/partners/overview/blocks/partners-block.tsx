@@ -4,9 +4,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ExceededEventsLimit } from "@/ui/partners/overview/exceeded-events-limit";
-import { ArrowUpRight, LoadingSpinner } from "@dub/ui";
-import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { ArrowRight, LoadingSpinner } from "@dub/ui";
+import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
@@ -59,16 +59,12 @@ export function PartnersBlock() {
             <Link
               key={partner.partnerId}
               href={`/${workspaceSlug}/program/partners/${partner.partnerId}`}
-              target="_blank"
               className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
             >
               <div className="flex min-w-0 items-center gap-2">
-                <PartnerAvatar
-                  partner={partner.partner}
-                  className="size-4"
-                />
+                <PartnerAvatar partner={partner.partner} className="size-4" />
                 <span className="min-w-0 truncate">{partner.partner.name}</span>
-                <ArrowUpRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
+                <ArrowRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
               </div>
 
               <span>

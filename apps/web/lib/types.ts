@@ -71,7 +71,10 @@ import {
   clickEventResponseSchema,
   clickEventSchemaTB,
 } from "./zod/schemas/clicks";
-import { CommissionEnrichedSchema } from "./zod/schemas/commissions";
+import {
+  CommissionDetailSchema,
+  CommissionEnrichedSchema,
+} from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
   CustomerEnrichedSchema,
@@ -878,6 +881,8 @@ export type PostbackProps = z.infer<typeof postbackSchema>;
 export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
 
 export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];
+
+export type CommissionDetail = z.infer<typeof CommissionDetailSchema>;
 
 export type NullableOptional<T> = {
   [K in keyof T]?: T[K] | null;
