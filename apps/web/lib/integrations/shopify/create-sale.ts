@@ -190,7 +190,7 @@ export async function createShopifySale({
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
             programEnrollment: pick(programEnrollment, ["status"]),
-            customer: pick(customer, ["id", "email", "name"]),
+            customer: pick(customer, ["id", "email", "name", "sales"]),
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },

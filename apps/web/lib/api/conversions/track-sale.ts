@@ -534,7 +534,7 @@ const _trackSale = async ({
       ]);
 
       // Update customer stats + program/partner associations
-      await prisma.customer.update({
+      const customerUpdated = await prisma.customer.update({
         where: {
           id: customer.id,
         },
@@ -615,7 +615,7 @@ const _trackSale = async ({
               program: { id: link.programId },
               partner: pick(webhookPartner, ["id", "email", "name"]),
               programEnrollment: pick(programEnrollment, ["status"]),
-              customer: pick(customer, ["id", "email", "name", "sales"]),
+              customer: pick(customerUpdated, ["id", "email", "name", "sales"]),
               link: pick(link, ["id"]),
               click: pick(saleData, ["url", "referer"]),
               event: { id: saleData.event_id },

@@ -377,21 +377,56 @@ export async function checkoutSessionCompleted(
     linkId,
   });
 
-  const [_sale, linkUpdated] = await Promise.all([
-    recordSale(saleData),
+  const [_sale, linkUpdated, _projectUpdated, customerUpdated] =
+    await Promise.all([
+      recordSale(saleData),
 
-    // update link stats
-    link &&
-      prisma.link.update({
-        where: {
-          id: link.id,
-        },
-        data: {
-          ...(firstConversionFlag && {
-            conversions: {
+      // update link stats
+      link &&
+        prisma.link.update({
+          where: {
+            id: link.id,
+          },
+          data: {
+            ...(firstConversionFlag && {
+              conversions: {
+                increment: 1,
+              },
+              lastConversionAt: new Date(),
+            }),
+            sales: {
               increment: 1,
             },
-            lastConversionAt: new Date(),
+            saleAmount: {
+              increment: chargeAmountTotal,
+            },
+          },
+          include: includeTags,
+        }),
+
+      // update workspace usage
+      prisma.project.update({
+        where: {
+          id: customer.projectId,
+        },
+        data: {
+          usage: {
+            increment: 1,
+          },
+        },
+      }),
+
+      // update customer stats + program/partner associations
+      prisma.customer.update({
+        where: {
+          id: customer.id,
+        },
+        data: {
+          ...(link?.programId && {
+            programId: link.programId,
+          }),
+          ...(link?.partnerId && {
+            partnerId: link.partnerId,
           }),
           sales: {
             increment: 1,
@@ -399,45 +434,11 @@ export async function checkoutSessionCompleted(
           saleAmount: {
             increment: chargeAmountTotal,
           },
+          firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+          subscriptionCanceledAt: null,
         },
-        include: includeTags,
       }),
-
-    // update workspace usage
-    prisma.project.update({
-      where: {
-        id: customer.projectId,
-      },
-      data: {
-        usage: {
-          increment: 1,
-        },
-      },
-    }),
-
-    // update customer stats + program/partner associations
-    prisma.customer.update({
-      where: {
-        id: customer.id,
-      },
-      data: {
-        ...(link?.programId && {
-          programId: link.programId,
-        }),
-        ...(link?.partnerId && {
-          partnerId: link.partnerId,
-        }),
-        sales: {
-          increment: 1,
-        },
-        saleAmount: {
-          increment: chargeAmountTotal,
-        },
-        firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
-        subscriptionCanceledAt: null,
-      },
-    }),
-  ]);
+    ]);
 
   // for program links
   let createdCommission:
@@ -505,7 +506,7 @@ export async function checkoutSessionCompleted(
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
             programEnrollment: pick(programEnrollment, ["status"]),
-            customer: pick(customer, ["id", "email", "name"]),
+            customer: pick(customerUpdated, ["id", "email", "name", "sales"]),
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },
