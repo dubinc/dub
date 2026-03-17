@@ -533,6 +533,28 @@ const _trackSale = async ({
         }),
       ]);
 
+      // Update customer stats + program/partner associations
+      await prisma.customer.update({
+        where: {
+          id: customer.id,
+        },
+        data: {
+          ...(link.programId && {
+            programId: link.programId,
+          }),
+          ...(link.partnerId && {
+            partnerId: link.partnerId,
+          }),
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: amount,
+          },
+          firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
+        },
+      });
+
       let createdCommission:
         | Awaited<ReturnType<typeof createPartnerCommission>>
         | undefined = undefined;
@@ -593,7 +615,7 @@ const _trackSale = async ({
               program: { id: link.programId },
               partner: pick(webhookPartner, ["id", "email", "name"]),
               programEnrollment: pick(programEnrollment, ["status"]),
-              customer: pick(customer, ["id", "email", "name"]),
+              customer: pick(customer, ["id", "email", "name", "sales"]),
               link: pick(link, ["id"]),
               click: pick(saleData, ["url", "referer"]),
               event: { id: saleData.event_id },
@@ -630,28 +652,6 @@ const _trackSale = async ({
             ]
           : []),
       ]);
-
-      // Update customer stats + program/partner associations
-      await prisma.customer.update({
-        where: {
-          id: customer.id,
-        },
-        data: {
-          ...(link.programId && {
-            programId: link.programId,
-          }),
-          ...(link.partnerId && {
-            partnerId: link.partnerId,
-          }),
-          sales: {
-            increment: 1,
-          },
-          saleAmount: {
-            increment: amount,
-          },
-          firstSaleAt: customer.firstSaleAt ? undefined : new Date(),
-        },
-      });
     })(),
   );
 
