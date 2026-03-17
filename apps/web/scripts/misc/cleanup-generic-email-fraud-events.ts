@@ -1,23 +1,29 @@
 import "dotenv-flow/config";
 
+import { isGenericEmail } from "@/lib/is-generic-email";
 import { prisma } from "@dub/prisma";
 
 async function main() {
-  const fraudEvents = await prisma.fraudEvent.findMany({
+  let fraudEvents = await prisma.fraudEvent.findMany({
     where: {
       fraudEventGroup: {
         type: "customerEmailMatch",
         resolvedAt: null,
       },
-      metadata: {
-        path: "$.matchType",
-        equals: "historicalDomainMatch",
-      },
-      customer: {
-        sales: {
-          gt: 1,
+      OR: [
+        {
+          metadata: {
+            path: "$.matchType",
+            equals: "domainMatch",
+          },
         },
-      },
+        {
+          metadata: {
+            path: "$.matchType",
+            equals: "historicalDomainMatch",
+          },
+        },
+      ],
     },
     include: {
       partner: true,
@@ -32,6 +38,11 @@ async function main() {
       createdAt: "desc",
     },
   });
+
+  // Find fraud events with generic email
+  fraudEvents = fraudEvents.filter(
+    (event) => event.customer?.email && isGenericEmail(event.customer.email),
+  );
 
   console.table(
     fraudEvents.map((event) => ({
@@ -56,7 +67,7 @@ async function main() {
     console.log(`Removed ${count} fraud events`);
   }
 
-  // Remove fraud group if no events left
+  // Find fraud event groups with no events left
   const fraudEventGroupsWithNoEvents = await prisma.fraudEventGroup.findMany({
     where: {
       fraudEvents: {

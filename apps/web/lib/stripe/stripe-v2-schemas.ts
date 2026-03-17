@@ -143,14 +143,16 @@ export const listPayoutMethodsOutputSchema = z.object({
     z.object({
       id: z.string(),
       object: z.string(),
-      type: z.enum(["crypto_wallet"]),
+      type: z
+        .enum(["crypto_wallet", "bank_account", "card"])
+        .describe("We only care about crypto_wallet type"),
       crypto_wallet: z
         .object({
           address: z.string(),
           archived: z.boolean(),
           network: z.string(),
         })
-        .nullable(),
+        .nullish(),
     }),
   ),
 });

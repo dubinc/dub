@@ -1,7 +1,6 @@
-import { getPartnerFeatureFlags } from "@/lib/edge-config/get-partner-feature-flags";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { getPayoutMethodsForCountry } from "@/lib/partners/get-payout-methods-for-country";
-import { getStripeStablecoinPayoutMethod } from "@/lib/stripe/get-stripe-recipient-payout-method";
+import { getStripeRecipientPayoutMethod } from "@/lib/stripe/get-stripe-recipient-payout-method";
 import { PartnerPayoutMethodSetting } from "@/lib/types";
 import { Partner, PartnerPayoutMethod } from "@dub/prisma/client";
 
@@ -16,8 +15,6 @@ export async function getPartnerPayoutMethods(
     | "defaultPayoutMethod"
   >,
 ) {
-  const featureFlags = await getPartnerFeatureFlags(partner.id);
-
   const availablePayoutMethods = getPayoutMethodsForCountry({
     country: partner.country,
   });
@@ -28,7 +25,7 @@ export async function getPartnerPayoutMethods(
       : Promise.resolve(null),
 
     partner.stripeRecipientId
-      ? getStripeStablecoinPayoutMethod(partner.stripeRecipientId)
+      ? getStripeRecipientPayoutMethod(partner.stripeRecipientId)
       : Promise.resolve(null),
   ]);
 

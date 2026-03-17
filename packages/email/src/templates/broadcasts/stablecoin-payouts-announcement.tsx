@@ -4,6 +4,7 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Img,
   Link,
@@ -33,7 +34,10 @@ export default function StablecoinPayoutsAnnouncement({
           }
         `}</style>
       </Head>
-      <Preview>Connect your crypto wallet and get paid in USDC.</Preview>
+      <Preview>
+        Connect your crypto wallet and get paid in USDC. Also, Dub Program
+        Marketplace is now generally available.
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="email-container mx-auto my-10 max-w-[600px] px-10 py-5">
@@ -91,7 +95,7 @@ export default function StablecoinPayoutsAnnouncement({
 
             <Section className="mb-8 text-center">
               <Link
-                href="https://ship.dub.co/stablecoins"
+                href="https://ship.dub.co/stablecoins-connect"
                 className="box-border inline-block rounded-lg bg-neutral-900 px-6 py-3 text-center text-sm font-medium text-white no-underline"
                 style={{
                   backgroundColor: "#171717",
@@ -105,6 +109,70 @@ export default function StablecoinPayoutsAnnouncement({
                 }}
               >
                 Connect your wallet
+              </Link>
+              <Text className="mt-3 text-center text-xs text-neutral-500">
+                <Link
+                  href="https://ship.dub.co/stablecoins"
+                  className="mt-3 text-center text-xs text-neutral-600 underline"
+                  style={{
+                    color: "#525252",
+                    fontSize: "12px",
+                    textDecoration: "underline",
+                  }}
+                >
+                  Read the announcement
+                </Link>
+              </Text>
+            </Section>
+
+            <Hr className="mx-0 my-6 w-full border border-neutral-200" />
+
+            <Section className="mb-8 text-center">
+              <Link
+                href="https://ship.dub.co/marketplace"
+                style={{ textDecoration: "none" }}
+              >
+                <Img
+                  src="https://assets.dub.co/misc/program-marketplace-email-header.jpg"
+                  width="500"
+                  height="292"
+                  alt="Dub Program Marketplace"
+                  style={{
+                    display: "block",
+                    maxWidth: "100%",
+                    height: "auto",
+                    margin: "0 auto",
+                  }}
+                />
+              </Link>
+            </Section>
+
+            <Heading className="mx-0 mb-3 mt-0 p-0 text-center text-lg font-semibold text-black">
+              Dub Program Marketplace is now generally available
+            </Heading>
+
+            <Text className="mx-auto mb-8 mt-0 max-w-[420px] text-center text-sm leading-6 text-neutral-600">
+              Find programs that fit your audience, compare rewards, and submit
+              your application. It is the easiest way to expand your reach and
+              unlock new earning possibilities.
+            </Text>
+
+            <Section className="mb-8 text-center">
+              <Link
+                href="https://ship.dub.co/marketplace"
+                className="box-border inline-block rounded-lg bg-neutral-900 px-6 py-3 text-center text-sm font-medium text-white no-underline"
+                style={{
+                  backgroundColor: "#171717",
+                  color: "#ffffff",
+                  borderRadius: "8px",
+                  padding: "12px 24px",
+                  textDecoration: "none",
+                  display: "inline-block",
+                  fontWeight: "500",
+                  fontSize: "14px",
+                }}
+              >
+                Explore the program marketplace
               </Link>
             </Section>
 

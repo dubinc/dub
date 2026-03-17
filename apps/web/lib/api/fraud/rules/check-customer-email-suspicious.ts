@@ -1,7 +1,7 @@
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { FraudEventContext } from "@/lib/types";
 import { redis } from "@/lib/upstash/redis";
 import { defineFraudRule } from "../define-fraud-rule";
-import { extractEmailDomain } from "../utils";
 
 export const checkCustomerEmailSuspicious = defineFraudRule({
   type: "customerEmailSuspiciousDomain",
