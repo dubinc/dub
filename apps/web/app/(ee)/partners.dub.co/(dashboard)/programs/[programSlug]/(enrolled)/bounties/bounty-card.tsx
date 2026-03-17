@@ -44,6 +44,7 @@ export function PartnerBountyCard({
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={(e) => {
+        if (e.target !== e.currentTarget) return;
         if (e.key === "Enter" || e.key === " ") {
           if (e.key === " ") e.preventDefault();
           handleClick();

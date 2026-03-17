@@ -106,7 +106,7 @@ export function EmbedBountySubmissionForm({
       : "Submission";
 
   const handleSubmit = async (isDraft: boolean) => {
-    if (!token) return;
+    if (!token || isSubmitting || isDraftSaving) return;
 
     const completedFiles = files
       .filter((f): f is FileInput & { url: string } => !f.uploading && !!f.url)
@@ -174,7 +174,10 @@ export function EmbedBountySubmissionForm({
                 type="button"
                 onClick={() => handleSubmit(true)}
                 disabled={
-                  fileUploading || isDraftSaving || submissionsNotOpenYet
+                  fileUploading ||
+                  isSubmitting ||
+                  isDraftSaving ||
+                  submissionsNotOpenYet
                 }
                 className={headerButtonClass()}
               >

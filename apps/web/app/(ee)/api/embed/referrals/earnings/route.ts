@@ -12,7 +12,11 @@ const schema = z.object({
   page: z.coerce.number().int().positive().optional().default(1),
   start: z.coerce.date().optional(),
   end: z.coerce.date().optional(),
-  withTotal: z.coerce.boolean().optional().default(false),
+  withTotal: z
+    .string()
+    .optional()
+    .transform((v) => v?.toLowerCase() === "true")
+    .default(false),
 });
 
 // GET /api/embed/referrals/earnings – get commissions for a partner from an embed token

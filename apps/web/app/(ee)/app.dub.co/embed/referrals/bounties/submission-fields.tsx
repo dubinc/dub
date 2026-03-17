@@ -158,14 +158,19 @@ export function EmbedImagesField({
             </span>
             <button
               type="button"
+              aria-label={`Remove ${file.file?.name ?? file.originalFileName ?? "file"}`}
               className={cn(
                 "absolute right-0 top-0 flex size-[1.125rem] -translate-y-1/2 translate-x-1/2 items-center justify-center",
                 "border-border-subtle bg-bg-default hover:bg-bg-muted rounded-full border shadow-sm active:scale-95",
                 "scale-50 opacity-0 transition-[background-color,transform,opacity] group-hover:scale-100 group-hover:opacity-100",
               )}
-              onClick={() =>
-                setFiles((prev) => prev.filter((f) => f.id !== file.id))
-              }
+              onClick={() => {
+                setFiles((prev) => {
+                  const next = prev.filter((f) => f.id !== file.id);
+                  onUploadingChange(next.some((f) => f.uploading));
+                  return next;
+                });
+              }}
             >
               <X className="text-content-muted size-2.5" />
             </button>
@@ -286,6 +291,7 @@ export function EmbedUrlsField({
             <Button
               variant="outline"
               icon={<Trash className="size-4" />}
+              aria-label={`Remove URL ${i + 1}`}
               className="bg-bg-error text-content-error hover:bg-bg-error/80 w-10 shrink-0 p-0"
               onClick={() => setUrls((prev) => prev.filter((_, j) => j !== i))}
             />
