@@ -35,7 +35,6 @@ const GENERIC_EMAIL_DOMAIN_PREFIXES = [
   "yahoo.",
   "hotmail.",
   "outlook.",
-  "mail.",
   "gmx.",
   "yandex.",
 ];
