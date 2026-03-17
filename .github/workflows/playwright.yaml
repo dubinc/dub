@@ -136,8 +136,16 @@ jobs:
             nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
             nextjs-${{ runner.os }}-
 
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
       - name: Build application
-        run: pnpm build
+        run: pnpm turbo build --filter=web
 
       - name: Run Playwright tests
         working-directory: apps/web
