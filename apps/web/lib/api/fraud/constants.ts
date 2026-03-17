@@ -18,19 +18,21 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     scope: "conversionEvent",
     configurable: true,
   },
-  {
-    type: "referralSourceBanned",
-    name: "Banned referral source",
-    description:
-      "A conversion, event, or click was made on a banned referral domain.",
-    scope: "conversionEvent",
-    configurable: true,
-  },
+
+  // Referral source rules
   {
     type: "paidTrafficDetected",
     name: "Paid traffic",
     description:
       "A conversion, event, or click was made from paid advertising traffic.",
+    scope: "conversionEvent",
+    configurable: true,
+  },
+  {
+    type: "referralSourceBanned",
+    name: "Banned referral source",
+    description:
+      "A conversion, event, or click was made on a banned referral domain.",
     scope: "conversionEvent",
     configurable: true,
   },
