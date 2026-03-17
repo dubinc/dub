@@ -87,16 +87,16 @@ export function ReferrersUTMs() {
     [singularTabName, queryParams],
   );
 
-  const onClearFilter = useCallback(() => {
-    setSelectedItems([]);
-    queryParams({ del: singularTabName });
-  }, [singularTabName, queryParams]);
-
   const isFilterActive = searchParams.has(singularTabName);
   const activeFilterValues = useMemo(
     () => searchParams.get(singularTabName)?.split(",") ?? [],
     [singularTabName, searchParams],
   );
+
+  const onClearFilter = useCallback(() => {
+    setSelectedItems([]);
+    if (isFilterActive) queryParams({ del: singularTabName });
+  }, [singularTabName, queryParams, isFilterActive]);
 
   const UTMTagIcon = useMemo(() => {
     if (tab === "utms") {
@@ -214,6 +214,7 @@ export function ReferrersUTMs() {
                 activeFilterValues={activeFilterValues}
                 onToggleFilter={onToggleFilter}
                 onClearFilter={onClearFilter}
+                onClearSelection={() => setSelectedItems([])}
                 onApplyFilterValues={onApplyFilterValues}
                 {...(limit && { limit })}
               />

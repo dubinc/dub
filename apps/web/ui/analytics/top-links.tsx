@@ -104,11 +104,6 @@ export function TopLinks() {
     [filterParamKey, queryParams],
   );
 
-  const onClearFilter = useCallback(() => {
-    setSelectedItems([]);
-    if (filterParamKey) queryParams({ del: filterParamKey });
-  }, [filterParamKey, queryParams]);
-
   const isFilterActive = useMemo(
     () => (filterParamKey ? searchParams.has(filterParamKey) : false),
     [filterParamKey, searchParams],
@@ -119,6 +114,11 @@ export function TopLinks() {
       filterParamKey ? searchParams.get(filterParamKey)?.split(",") ?? [] : [],
     [filterParamKey, searchParams],
   );
+
+  const onClearFilter = useCallback(() => {
+    setSelectedItems([]);
+    if (isFilterActive && filterParamKey) queryParams({ del: filterParamKey });
+  }, [filterParamKey, queryParams, isFilterActive]);
 
   const groupByParams = useMemo(
     () => TAB_CONFIG[tab].getGroupBy(subtab),
@@ -247,6 +247,7 @@ export function TopLinks() {
               activeFilterValues={activeFilterValues}
               onToggleFilter={onToggleFilter}
               onClearFilter={filterParamKey ? onClearFilter : undefined}
+              onClearSelection={() => setSelectedItems([])}
               onApplyFilterValues={
                 filterParamKey ? onApplyFilterValues : undefined
               }

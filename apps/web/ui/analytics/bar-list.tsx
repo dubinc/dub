@@ -1,7 +1,7 @@
 "use client";
 
 import { LinkProps } from "@/lib/types";
-import { Button, Tooltip, useMediaQuery } from "@dub/ui";
+import { Button, Tooltip, useKeyboardShortcut, useMediaQuery } from "@dub/ui";
 import { FilterBars } from "@dub/ui/icons";
 import { cn, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
@@ -41,6 +41,7 @@ export function BarList({
   activeFilterValues,
   onToggleFilter,
   onClearFilter,
+  onClearSelection,
   onApplyFilterValues,
 }: {
   tab: string;
@@ -71,6 +72,7 @@ export function BarList({
   activeFilterValues?: string[];
   onToggleFilter?: (val: string) => void;
   onClearFilter?: () => void;
+  onClearSelection?: () => void;
   onApplyFilterValues?: (values: string[]) => void;
 }) {
   const [search, setSearch] = useState("");
@@ -92,6 +94,11 @@ export function BarList({
 
   const hasSelection = (selectedFilterValues?.length ?? 0) > 0;
   const hasModalSelection = modalSelectedValues.length > 0;
+
+  useKeyboardShortcut("Escape", () => onClearSelection?.(), {
+    priority: 2,
+    enabled: hasSelection && !!onClearSelection,
+  });
 
   const effectiveSelectedValues = !limit
     ? modalSelectedValues
@@ -299,6 +306,8 @@ export function LineItem({
   onFilterClick?: () => void;
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [filterButtonHovered, setFilterButtonHovered] = useState(false);
+  const [tooltipResetKey, setTooltipResetKey] = useState(0);
   const { saleUnit } = useContext(AnalyticsContext);
 
   const percentage = Math.round((value / totalSum) * 1000) / 10;
@@ -311,11 +320,16 @@ export function LineItem({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            onFilterClick();
+            if (!isActivelyFiltered) onFilterClick();
           }}
+          onMouseEnter={() => {
+            setFilterButtonHovered(true);
+            setTooltipResetKey((k) => k + 1);
+          }}
+          onMouseLeave={() => setFilterButtonHovered(false)}
           aria-label={`${isSelected ? "Remove" : "Add"} filter: ${title}`}
           aria-pressed={isSelected}
-          className="relative size-7 shrink-0 cursor-pointer"
+          className="relative size-6 shrink-0 cursor-pointer"
         >
           <div
             className={cn(
@@ -358,13 +372,36 @@ export function LineItem({
           </div>
         </button>
       ) : (
-        <div className="flex size-7 shrink-0 items-center justify-center">
+        <div className="flex size-6 shrink-0 items-center justify-center">
           {icon}
         </div>
       )}
-      <div className="truncate text-sm text-neutral-800">
-        {getPrettyUrl(title)}
-      </div>
+      {tab === "links" && linkData ? (
+        <Tooltip
+          key={tooltipResetKey}
+          content={<LinkPreviewTooltip data={linkData} />}
+          disabled={filterButtonHovered}
+        >
+          <div className="truncate text-sm text-neutral-800">
+            {getPrettyUrl(title)}
+          </div>
+        </Tooltip>
+      ) : tab === "urls" ? (
+        <Tooltip
+          key={tooltipResetKey}
+          content={`[${title}](${title})`}
+          contentClassName="max-w-lg"
+          disabled={filterButtonHovered}
+        >
+          <div className="truncate text-sm text-neutral-800">
+            {getPrettyUrl(title)}
+          </div>
+        </Tooltip>
+      ) : (
+        <div className="truncate text-sm text-neutral-800">
+          {getPrettyUrl(title)}
+        </div>
+      )}
     </div>
   );
 
@@ -395,20 +432,7 @@ export function LineItem({
           animate={{ transform: "scaleX(1)" }}
         />
         <div className="relative z-10 flex h-8 w-full min-w-0 max-w-[calc(100%-2rem)] items-center transition-[max-width] duration-300 ease-in-out group-hover:max-w-[calc(100%-5rem)]">
-          {tab === "links" && linkData ? (
-            <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
-              {lineItem}
-            </Tooltip>
-          ) : tab === "urls" ? (
-            <Tooltip
-              content={`[${title}](${title})`}
-              contentClassName="max-w-lg"
-            >
-              {lineItem}
-            </Tooltip>
-          ) : (
-            lineItem
-          )}
+          {lineItem}
         </div>
         <div className="z-10 flex items-center">
           <NumberFlow

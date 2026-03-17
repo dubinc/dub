@@ -119,10 +119,8 @@ export function PartnerSection() {
 
   const onClearFilter = useCallback(() => {
     setSelectedItems([]);
-    if (filterParamKey) {
-      queryParams({ del: filterParamKey });
-    }
-  }, [filterParamKey, queryParams]);
+    if (isFilterActive && filterParamKey) queryParams({ del: filterParamKey });
+  }, [filterParamKey, queryParams, isFilterActive]);
 
   const groupByParams = useMemo(
     () => TAB_CONFIG[tab].getGroupBy(subtab),
@@ -251,6 +249,7 @@ export function PartnerSection() {
               activeFilterValues={activeFilterValues}
               onToggleFilter={onToggleFilter}
               onClearFilter={onClearFilter}
+              onClearSelection={() => setSelectedItems([])}
               onApplyFilterValues={
                 filterParamKey ? onApplyFilterValues : undefined
               }
