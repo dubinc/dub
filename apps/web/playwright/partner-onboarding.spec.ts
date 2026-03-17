@@ -1,16 +1,14 @@
 import { expect, test } from "@playwright/test";
-
-const partnerEmail = process.env.E2E_PARTNER_EMAIL;
-const partnerPassword = process.env.E2E_PARTNER_PASSWORD;
+import { env } from "./env";
 
 async function loginAsPartner(page: import("@playwright/test").Page) {
   await page.goto("/login");
-  await page.locator('input[name="email"]').fill(partnerEmail!);
+  await page.locator('input[name="email"]').fill(env.E2E_PARTNER_EMAIL);
   await page.getByRole("button", { name: "Log in with email" }).click();
   await expect(page.locator('input[type="password"]')).toBeVisible({
     timeout: 30000,
   });
-  await page.locator('input[type="password"]').fill(partnerPassword!);
+  await page.locator('input[type="password"]').fill(env.E2E_PARTNER_PASSWORD);
   await page.getByRole("button", { name: "Log in with password" }).click();
   await page.waitForURL(
     (url) => /^\/(programs|onboarding)/.test(new URL(url).pathname),
@@ -33,7 +31,7 @@ test.describe("Partner onboarding", () => {
 
   test.describe("with credentials", () => {
     test.skip(
-      !partnerEmail || !partnerPassword,
+      !env.E2E_PARTNER_EMAIL || !env.E2E_PARTNER_PASSWORD,
       "E2E_PARTNER_EMAIL and E2E_PARTNER_PASSWORD must be set",
     );
 

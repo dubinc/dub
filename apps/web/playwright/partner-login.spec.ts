@@ -1,7 +1,5 @@
 import { expect, test } from "@playwright/test";
-
-const partnerEmail = process.env.E2E_PARTNER_EMAIL;
-const partnerPassword = process.env.E2E_PARTNER_PASSWORD;
+import { env } from "./env";
 
 test.describe("Partner Login", () => {
   test("login page renders correctly", async ({ page }) => {
@@ -33,7 +31,7 @@ test.describe("Partner Login", () => {
 
   test.describe("with credentials", () => {
     test.skip(
-      !partnerEmail || !partnerPassword,
+      !env.E2E_PARTNER_EMAIL || !env.E2E_PARTNER_PASSWORD,
       "E2E_PARTNER_EMAIL and E2E_PARTNER_PASSWORD must be set",
     );
 
@@ -41,7 +39,7 @@ test.describe("Partner Login", () => {
       await page.goto("/login");
 
       // Enter email and submit to trigger account check
-      await page.locator('input[name="email"]').fill(partnerEmail!);
+      await page.locator('input[name="email"]').fill(env.E2E_PARTNER_EMAIL);
       await page.getByRole("button", { name: "Log in with email" }).click();
 
       // Wait for password field to appear
@@ -50,7 +48,9 @@ test.describe("Partner Login", () => {
       });
 
       // Enter password and submit
-      await page.locator('input[type="password"]').fill(partnerPassword!);
+      await page
+        .locator('input[type="password"]')
+        .fill(env.E2E_PARTNER_PASSWORD);
       await page.getByRole("button", { name: "Log in with password" }).click();
 
       // Verify redirect to authenticated area
@@ -64,7 +64,7 @@ test.describe("Partner Login", () => {
     test("shows error for wrong password", async ({ page }) => {
       await page.goto("/login");
 
-      await page.locator('input[name="email"]').fill(partnerEmail!);
+      await page.locator('input[name="email"]').fill(env.E2E_PARTNER_EMAIL);
       await page.getByRole("button", { name: "Log in with email" }).click();
 
       await expect(page.locator('input[type="password"]')).toBeVisible({

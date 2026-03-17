@@ -2,7 +2,7 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   globalSetup: require.resolve("./global-setup"),
-  testDir: "./e2e",
+  testDir: "./playwright",
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 1,
