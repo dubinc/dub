@@ -3,7 +3,7 @@ import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/sc
 import { Link, Partner } from "@dub/prisma/client";
 import { R2_URL } from "@dub/utils";
 import { describe, expect, test } from "vitest";
-import { randomEmail, randomId } from "../utils/helpers";
+import { randomId, randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER_GROUP, E2E_PROGRAM } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
@@ -19,7 +19,7 @@ describe.sequential("POST /partners", async () => {
   test("with required fields only", async () => {
     const partner = {
       name: generateRandomName(),
-      email: randomEmail(),
+      email: randomPartnerEmail(),
       groupId: E2E_PARTNER_GROUP.id,
     };
 
@@ -37,7 +37,7 @@ describe.sequential("POST /partners", async () => {
   test("with all fields", async () => {
     const partner = {
       name: generateRandomName(),
-      email: randomEmail(),
+      email: randomPartnerEmail(),
       tenantId: randomId(),
       groupId: E2E_PARTNER_GROUP.id,
       description: "A description of the partner",
@@ -77,7 +77,7 @@ describe.sequential("POST /partners", async () => {
 
     const partner = {
       name: generateRandomName(),
-      email: randomEmail(),
+      email: randomPartnerEmail(),
       groupId: E2E_PARTNER_GROUP.id,
     };
 
@@ -110,7 +110,7 @@ describe.sequential("POST /partners", async () => {
   });
 
   test("upsert behavior - update existing partner with tenantId", async () => {
-    const email = randomEmail();
+    const email = randomPartnerEmail();
 
     // First, create a partner with email and no tenantId
     const initialPartner = {

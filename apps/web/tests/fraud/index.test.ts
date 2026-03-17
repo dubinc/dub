@@ -1,4 +1,4 @@
-import { extractEmailDomain } from "@/lib/api/fraud/utils";
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { Customer, TrackLeadResponse } from "@/lib/types";
 import {
   CustomerEmailMatchType,
@@ -98,6 +98,41 @@ describe.concurrent("/fraud/**", async () => {
       ruleType: "customerEmailMatch",
       metadata: {
         matchType: CustomerEmailMatchType.DOMAIN_MATCH,
+      },
+    });
+  });
+
+  test("FraudRuleType = customerEmailMatch (historical domain match)", async () => {
+    const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
+
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: { ...E2E_TRACK_CLICK_HEADERS },
+      body: { domain: clickLink.domain, key: clickLink.key },
+    });
+
+    const trackedClickId = clickResponse.data.clickId;
+
+    const customer = randomCustomer({ emailDomain: "google.com" });
+
+    await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        eventName: "Signup",
+        clickId: trackedClickId,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      },
+    });
+
+    await verifyFraudEvent({
+      http,
+      customer,
+      ruleType: "customerEmailMatch",
+      metadata: {
+        matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
       },
     });
   });

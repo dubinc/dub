@@ -10,6 +10,7 @@ import {
   VisibilityState,
 } from "@tanstack/react-table";
 import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import {
   CSSProperties,
   HTMLAttributes,
@@ -447,6 +448,7 @@ export function Table<T>({
   tdClassName,
   table,
   pagination,
+  paginationAllRowsHref, // to show all rows link in the pagination
   resourceName,
   onRowClick,
   onRowAuxClick,
@@ -471,6 +473,8 @@ export function Table<T>({
   );
   const getUtilityColumnWidth = (columnId: string, fallback: number) =>
     utilityColumnWidths.get(columnId) ?? fallback;
+
+  const As = paginationAllRowsHref ? Link : "span";
 
   return (
     <div
@@ -815,10 +819,10 @@ export function Table<T>({
               ).toLocaleString()}
             </span>{" "}
             of{" "}
-            <span className="font-medium">
-              {table.getRowCount().toLocaleString()}
-            </span>{" "}
-            {resourceName?.(table.getRowCount() !== 1) || "items"}
+            <As href={paginationAllRowsHref ?? "#"} className="font-medium">
+              {table.getRowCount().toLocaleString()}{" "}
+              {resourceName?.(table.getRowCount() !== 1) || "items"}
+            </As>
           </div>
           <div className="flex items-center gap-2">
             <Button
