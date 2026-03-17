@@ -102,6 +102,41 @@ describe.concurrent("/fraud/**", async () => {
     });
   });
 
+  test("FraudRuleType = customerEmailMatch (historical domain match)", async () => {
+    const clickLink = E2E_FRAUD_PARTNER.links.customerEmailMatch;
+
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: { ...E2E_TRACK_CLICK_HEADERS },
+      body: { domain: clickLink.domain, key: clickLink.key },
+    });
+
+    const trackedClickId = clickResponse.data.clickId;
+
+    const customer = randomCustomer({ emailDomain: "example.com" });
+
+    await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        eventName: "Signup",
+        clickId: trackedClickId,
+        customerId: customer.externalId,
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      },
+    });
+
+    await verifyFraudEvent({
+      http,
+      customer,
+      ruleType: "customerEmailMatch",
+      metadata: {
+        matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
+      },
+    });
+  });
+
   test("FraudRuleType = customerEmailSuspiciousDomain", async () => {
     const clickLink = E2E_FRAUD_PARTNER.links.customerEmailSuspiciousDomain;
 
