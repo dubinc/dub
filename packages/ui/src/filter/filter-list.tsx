@@ -241,7 +241,7 @@ export function FilterList({
         {normalizedFilters.length !== 0 && (
           <button
             type="button"
-            className="group mt-px flex items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-neutral-500 ring-inset ring-neutral-500 transition-colors hover:border-neutral-200 hover:bg-white hover:text-black focus:outline-none"
+            className="group flex h-[38px] self-start items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 text-sm text-neutral-500 ring-inset ring-neutral-500 transition-colors hover:border-neutral-200 hover:bg-white hover:text-black focus:outline-none"
             onClick={onRemoveAll}
           >
             Clear Filters
@@ -311,7 +311,7 @@ function OperatorFilterPill({
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center divide-x rounded-md border border-neutral-200 bg-white text-sm text-black"
+      className="flex items-center divide-x rounded-lg border border-neutral-200 bg-white text-sm text-black"
     >
       <div className="flex items-center gap-2.5 px-3 py-2">
         <span className="shrink-0 text-neutral-600">

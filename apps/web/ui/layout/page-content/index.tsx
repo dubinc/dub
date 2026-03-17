@@ -28,7 +28,7 @@ export function PageContent({
       <PageContentHeader {...headerProps} />
       <div
         className={cn(
-          "flex-1 rounded-t-[inherit] bg-white pt-3 lg:pt-6",
+          "flex-1 rounded-t-[inherit] bg-white pt-3 lg:pt-5",
           contentWrapperClassName,
         )}
       >
