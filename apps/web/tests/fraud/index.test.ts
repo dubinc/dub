@@ -113,7 +113,7 @@ describe.concurrent("/fraud/**", async () => {
 
     const trackedClickId = clickResponse.data.clickId;
 
-    const customer = randomCustomer();
+    const customer = randomCustomer({ emailDomain: "google.com" });
 
     await http.post<TrackLeadResponse>({
       path: "/track/lead",
