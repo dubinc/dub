@@ -8,13 +8,16 @@ import {
   getPaginationQuerySchema,
 } from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
+import { PayoutSchema } from "./payouts";
+import { RewardSchema } from "./rewards";
+import { UserSchema } from "./users";
 import { centsSchema, parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").meta({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.enum(CommissionType).optional(),
+  type: z.enum(CommissionType).optional(), // Note: Not sure the type will ever be optional
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
@@ -42,6 +45,31 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
     groupId: true,
   }),
   customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+});
+
+// Schema for the commission detail page (GET /api/commissions/:commissionId)
+export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
+  user: UserSchema.nullish().describe("The user who created the commission."),
+  reward: RewardSchema.pick({
+    event: true,
+    description: true,
+    type: true,
+    amountInCents: true,
+    amountInPercentage: true,
+  }).nullish(),
+  payout: PayoutSchema.pick({
+    id: true,
+    paidAt: true,
+    initiatedAt: true,
+  })
+    .extend({
+      user: UserSchema.nullish().describe("The user who processed the payout."),
+    })
+    .nullish(),
+  holdingPeriodDays: z
+    .number()
+    .nullish()
+    .describe("The holding period days for the partner group."),
 });
 
 // "commission.created" webhook event schema

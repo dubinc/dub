@@ -35,7 +35,7 @@ export const programLanderFileSchema = z.object({
     .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
       message: "Only HTTP and HTTPS URLs are allowed for files.",
     }),
-  external: z.boolean().optional(),
+  external: z.boolean().optional(), // TODO: not using this atm, might wanna change this to `downloadable` boolean instead
 });
 
 export const programLanderFilesBlockSchema =
