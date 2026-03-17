@@ -36,20 +36,6 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
-  const commissions = await prisma.commission.groupBy({
-    by: ["status"],
-    _sum: {
-      earnings: true,
-    },
-    where: {
-      earnings: {
-        gt: 0,
-      },
-      programId,
-      partnerId,
-    },
-  });
-
   const {
     program,
     partner,
@@ -70,32 +56,63 @@ export const getReferralsEmbedData = async (token: string) => {
   const now = new Date();
   const partnerGroupId = groupId || program.defaultGroupId;
 
-  const rawBounties = await prisma.bounty.findMany({
-    where: {
-      programId: program.id,
-      startsAt: { lte: now },
-      AND: [
-        {
-          OR: [
-            { groups: { none: {} } },
-            { groups: { some: { groupId: partnerGroupId } } },
-          ],
+  const [commissions, rawBounties] = await Promise.all([
+    prisma.commission.groupBy({
+      by: ["status"],
+      _sum: {
+        earnings: true,
+      },
+      where: {
+        earnings: {
+          gt: 0,
         },
-      ],
-    },
-    include: {
-      workflow: { select: { triggerConditions: true } },
-      submissions: {
-        where: { partnerId },
-        include: {
-          commission: {
-            select: { id: true, earnings: true, status: true, createdAt: true },
+        programId,
+        partnerId,
+      },
+    }),
+
+    prisma.bounty.findMany({
+      where: {
+        programId: program.id,
+        startsAt: {
+          lte: now,
+        },
+        AND: [
+          {
+            OR: [
+              { groups: { none: {} } },
+              { groups: { some: { groupId: partnerGroupId } } },
+            ],
+          },
+        ],
+      },
+      include: {
+        workflow: {
+          select: {
+            triggerConditions: true,
+          },
+        },
+        submissions: {
+          where: {
+            partnerId,
+          },
+          include: {
+            commission: {
+              select: {
+                id: true,
+                earnings: true,
+                status: true,
+                createdAt: true,
+              },
+            },
           },
         },
       },
-    },
-    orderBy: { createdAt: "asc" },
-  });
+      orderBy: {
+        createdAt: "asc",
+      },
+    }),
+  ]);
 
   const bounties = z.array(PartnerBountySchema).parse(
     rawBounties.map((bounty) => ({
