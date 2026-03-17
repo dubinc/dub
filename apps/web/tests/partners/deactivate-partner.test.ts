@@ -2,7 +2,7 @@ import { generateRandomName } from "@/lib/names";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
 import { describe, expect, test } from "vitest";
 import { fetchPartner } from "../utils/fetch-partner";
-import { randomEmail, randomId } from "../utils/helpers";
+import { randomId, randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER_GROUP } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
@@ -18,7 +18,7 @@ describe.concurrent("POST /partners/deactivate", async () => {
   test("deactivate partner by partnerId", async () => {
     const partner = {
       name: generateRandomName(),
-      email: randomEmail(),
+      email: randomPartnerEmail(),
       groupId: E2E_PARTNER_GROUP.id,
     };
 
@@ -55,7 +55,7 @@ describe.concurrent("POST /partners/deactivate", async () => {
 
     const partner = {
       name: generateRandomName(),
-      email: randomEmail(),
+      email: randomPartnerEmail(),
       tenantId,
       groupId: E2E_PARTNER_GROUP.id,
     };

@@ -4,7 +4,7 @@ import { PartnerGroup } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
 import { E2E_PARTNER } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
-import { randomEmail } from "../utils/helpers";
+import { randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyPartnerGroupMove } from "./utils/verify-partner-group-move";
@@ -200,7 +200,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
         path: "/partners",
         body: {
           name: "E2E Test Partner - Disabled Move",
-          email: randomEmail(),
+          email: randomPartnerEmail(),
           groupId: sourceGroup.id,
         },
       });
@@ -268,7 +268,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
         path: "/partners",
         body: {
           name: "E2E Test Partner - Not Met",
-          email: randomEmail(),
+          email: randomPartnerEmail(),
           groupId: sourceGroup.id,
         },
       });
@@ -339,7 +339,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
           path: "/partners",
           body: {
             name: "E2E Test Partner - Move Execution",
-            email: randomEmail(),
+            email: randomPartnerEmail(),
             groupId: sourceGroup.id,
           },
         });
@@ -410,7 +410,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
           path: "/partners",
           body: {
             name: "E2E Test Partner - No Dup Move",
-            email: randomEmail(),
+            email: randomPartnerEmail(),
             groupId: sourceGroup.id,
           },
         });

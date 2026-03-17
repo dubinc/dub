@@ -184,8 +184,6 @@ function ProgramFraudSettingsSheetContent({
 
           <div className="h-full overflow-y-auto p-4 sm:p-6">
             <div className="space-y-4">
-              <FraudPaidTrafficSettings isConfigLoading={isLoading} />
-              <FraudReferralSourceSettings isConfigLoading={isLoading} />
               {TOGGLE_ONLY_RULES.map((rule) => (
                 <FraudRuleToggleSettings
                   key={rule.type}
@@ -195,6 +193,8 @@ function ProgramFraudSettingsSheetContent({
                   isConfigLoading={isLoading}
                 />
               ))}
+              <FraudPaidTrafficSettings isConfigLoading={isLoading} />
+              <FraudReferralSourceSettings isConfigLoading={isLoading} />
             </div>
           </div>
 

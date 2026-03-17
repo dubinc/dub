@@ -2,7 +2,7 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { Bounty } from "@dub/prisma/client";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
-import { randomEmail } from "../utils/helpers";
+import { randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { deleteBountyAndSubmissions } from "./utils/delete-bounty-and-submissions";
 import { trackE2ELead } from "./utils/track-e2e-lead";
@@ -49,7 +49,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           path: "/partners",
           body: {
             name: "E2E Test Partner - Goal",
-            email: randomEmail(),
+            email: randomPartnerEmail(),
             groupId: E2E_PARTNER_GROUP.id,
           },
         });
@@ -110,7 +110,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         path: "/partners",
         body: {
           name: "E2E Test Partner - Not Reached",
-          email: randomEmail(),
+          email: randomPartnerEmail(),
           groupId: E2E_PARTNER_GROUP.id,
         },
       });
@@ -184,7 +184,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
         path: "/partners",
         body: {
           name: "E2E Test Partner - Disabled",
-          email: randomEmail(),
+          email: randomPartnerEmail(),
           groupId: E2E_PARTNER_GROUP.id,
         },
       });
@@ -243,7 +243,7 @@ describe.sequential("Workflow - AwardBounty", async () => {
           path: "/partners",
           body: {
             name: "E2E Test Partner - No Dup",
-            email: randomEmail(),
+            email: randomPartnerEmail(),
             groupId: E2E_PARTNER_GROUP.id,
           },
         });
