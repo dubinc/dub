@@ -352,7 +352,10 @@ export const trackLead = async ({
                   program: { id: link.programId },
                   partner: pick(webhookPartner, ["id", "email", "name"]),
                   programEnrollment: pick(programEnrollment, ["status"]),
-                  customer: pick(customer, ["id", "email", "name", "sales"]),
+                  customer: {
+                    ...pick(customer, ["id", "email", "name"]),
+                    isFirstConversion: false,
+                  },
                   link: pick(link, ["id"]),
                   click: pick(clickData, ["url", "referer"]),
                   event: { id: leadEventId },

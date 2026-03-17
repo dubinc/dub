@@ -17,7 +17,7 @@ export const fraudEventContext = z.object({
     id: z.string(),
     email: z.string().nullable(),
     name: z.string().nullable(),
-    sales: z.number().nullable(),
+    isFirstConversion: z.boolean().nullable(),
   }),
   link: z.object({
     id: z.string().nullable().optional(),

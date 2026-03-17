@@ -160,7 +160,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     linkId,
   });
 
-  const [_sale, linkUpdated, workspace, customerUpdated] = await Promise.all([
+  const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
     // update link stats
@@ -274,7 +274,10 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
             programEnrollment: pick(programEnrollment, ["status"]),
-            customer: pick(customerUpdated, ["id", "email", "name", "sales"]),
+            customer: {
+              ...pick(customer, ["id", "email", "name"]),
+              isFirstConversion: firstConversionFlag,
+            },
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },
