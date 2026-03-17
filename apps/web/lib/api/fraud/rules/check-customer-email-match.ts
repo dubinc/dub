@@ -73,10 +73,11 @@ export const checkCustomerEmailMatch = defineFraudRule({
       },
       select: {
         id: true,
+        sales: true,
       },
     });
 
-    if (historicalMatch) {
+    if (historicalMatch && historicalMatch.sales === 0) {
       return {
         triggered: true,
         metadata: {
