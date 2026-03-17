@@ -2,7 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
 import { Partner, PartnerPayoutMethod } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
-import { getStripeStablecoinPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
+import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
 
 const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [
   PartnerPayoutMethod.stablecoin,
@@ -36,7 +36,7 @@ export async function recomputePartnerPayoutState(
         : Promise.resolve(null),
 
       partner.stripeRecipientId
-        ? getStripeStablecoinPayoutMethod(partner.stripeRecipientId)
+        ? getStripeRecipientPayoutMethod(partner.stripeRecipientId)
         : Promise.resolve(null),
     ]);
 
