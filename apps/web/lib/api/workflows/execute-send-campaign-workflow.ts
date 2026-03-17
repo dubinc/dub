@@ -174,6 +174,8 @@ export const executeSendCampaignWorkflow = async ({
               variables: {
                 PartnerName: partnerUser.partner.name,
                 PartnerEmail: partnerUser.partner.email,
+                PartnerLink:
+                  partnerUser.enrollment.links?.[0]?.shortLink ?? null,
               },
             }),
           },
@@ -219,6 +221,7 @@ const includePartnerUsers = {
       },
     },
   },
+  links: true,
 } satisfies Prisma.ProgramEnrollmentInclude;
 
 async function getProgramEnrollments({
