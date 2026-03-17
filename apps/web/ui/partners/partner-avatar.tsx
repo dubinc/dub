@@ -10,11 +10,13 @@ export function PartnerAvatar({
   className?: string;
   showName?: boolean;
 }) {
+  const identifier = partner.id || partner.name || "unknown";
+
   return (
     <>
       <img
-        src={partner.image || `${OG_AVATAR_URL}${partner.id || partner.name}`}
-        alt={partner.name || partner.id || ""}
+        src={partner.image || `${OG_AVATAR_URL}${identifier}`}
+        alt={partner.name || partner.id || "Partner"}
         className={cn("shrink-0 rounded-full", className)}
       />
       {showName && partner.name}
