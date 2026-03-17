@@ -113,7 +113,7 @@ async function startWebsiteVerification({
     // - is not a disposable email domain
     // - matches the website domain exactly
     if (
-      isGenericEmail(partner.email!) &&
+      !isGenericEmail(partner.email!) &&
       !isDisposableEmailDomain &&
       emailDomain === websiteDomain
     ) {

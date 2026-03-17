@@ -16,7 +16,6 @@ export async function transferReversed(event: Stripe.Event) {
       },
     },
     data: {
-      method: null,
       status: "processed",
       stripeTransferId: null,
       stripePayoutId: null,
