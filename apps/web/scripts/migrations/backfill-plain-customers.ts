@@ -1,4 +1,3 @@
-import { GENERIC_EMAIL_DOMAINS } from "@/lib/is-generic-email";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
@@ -12,11 +11,11 @@ async function main() {
       email: true,
     },
     where: {
-      NOT: GENERIC_EMAIL_DOMAINS.map((domain) => ({
-        email: {
-          endsWith: `@${domain}`,
-        },
-      })),
+      // NOT: GENERIC_EMAIL_DOMAINS.map((domain) => ({
+      //   email: {
+      //     endsWith: `@${domain}`,
+      //   },
+      // })),
       projects: {
         some: {
           project: {
