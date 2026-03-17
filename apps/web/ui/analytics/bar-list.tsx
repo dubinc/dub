@@ -409,8 +409,12 @@ export function LineItem({
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => {
+        if (onFilterClick && !isActivelyFiltered) onFilterClick();
+      }}
       className={cn(
         "group block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all",
+        onFilterClick && !isActivelyFiltered && "cursor-pointer",
         hoverBackground,
       )}
     >
