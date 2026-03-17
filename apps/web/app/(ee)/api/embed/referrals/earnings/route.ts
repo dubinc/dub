@@ -4,22 +4,23 @@ import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { generateRandomName } from "@/lib/names";
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+
+const schema = z.object({
+  page: z.coerce.number().int().positive().optional().default(1),
+  start: z.coerce.date().optional(),
+  end: z.coerce.date().optional(),
+  withTotal: z.coerce.boolean().optional().default(false),
+});
 
 // GET /api/embed/referrals/earnings – get commissions for a partner from an embed token
 export const GET = withReferralsEmbedToken(
   async ({ programEnrollment, searchParams }) => {
-    const { page, start, end, withTotal } = z
-      .object({
-        page: z.coerce.number().int().positive().optional().default(1),
-        start: z.coerce.date().optional(),
-        end: z.coerce.date().optional(),
-        withTotal: z.coerce.boolean().optional().default(false),
-      })
-      .parse(searchParams);
+    const { page, start, end, withTotal } = schema.parse(searchParams);
 
-    const where = {
+    const commonWhere: Prisma.CommissionWhereInput = {
       earnings: {
         gt: 0,
       },
@@ -37,7 +38,7 @@ export const GET = withReferralsEmbedToken(
 
     const [earnings, total] = await Promise.all([
       prisma.commission.findMany({
-        where,
+        where: commonWhere,
         include: {
           customer: {
             select: {
@@ -60,7 +61,12 @@ export const GET = withReferralsEmbedToken(
           createdAt: "desc",
         },
       }),
-      withTotal ? prisma.commission.count({ where }) : Promise.resolve(null),
+
+      withTotal
+        ? prisma.commission.count({
+            where: commonWhere,
+          })
+        : Promise.resolve(null),
     ]);
 
     const data = z.array(PartnerEarningsSchema).parse(
@@ -80,7 +86,10 @@ export const GET = withReferralsEmbedToken(
     );
 
     if (withTotal) {
-      return NextResponse.json({ data, total });
+      return NextResponse.json({
+        data,
+        total,
+      });
     }
 
     return NextResponse.json(data);
