@@ -28,7 +28,6 @@ async function main() {
   });
 
   console.table(fraudEvents);
-  console.log(fraudEvents.length);
 
   // Remove fraud events
   if (fraudEvents.length > 0) {
