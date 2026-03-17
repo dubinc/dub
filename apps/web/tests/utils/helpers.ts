@@ -6,7 +6,7 @@ export const randomId = (length = 24) => nanoid(length);
 
 // Generate random customer data
 export const randomCustomer = ({
-  emailDomain = `example-${nanoid(4)}.com`,
+  emailDomain = "example.com",
 }: { emailDomain?: string } = {}) => {
   const externalId = `cus_${randomId()}`;
   const customerName = generateRandomName();
