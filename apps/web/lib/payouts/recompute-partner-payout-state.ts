@@ -25,36 +25,38 @@ export async function recomputePartnerPayoutState(
     | "defaultPayoutMethod"
   >,
 ) {
-  const [connectAccount, stablecoinAccount, stablecoinPayoutMethod] =
-    await Promise.all([
-      partner.stripeConnectId
-        ? stripe.accounts.retrieve(partner.stripeConnectId)
-        : Promise.resolve(null),
+  const [connectAccount, stablecoinAccount] = await Promise.all([
+    partner.stripeConnectId
+      ? stripe.accounts.retrieve(partner.stripeConnectId)
+      : Promise.resolve(null),
 
-      partner.stripeRecipientId
-        ? getStripeRecipientAccount(partner.stripeRecipientId)
-        : Promise.resolve(null),
+    partner.stripeRecipientId
+      ? getStripeRecipientAccount(partner.stripeRecipientId)
+      : Promise.resolve(null),
+  ]);
 
-      partner.stripeRecipientId
-        ? getStripeRecipientPayoutMethod(partner.stripeRecipientId)
-        : Promise.resolve(null),
-    ]);
-
-  const connectActive = Boolean(
-    connectAccount?.payouts_enabled === true &&
-      connectAccount?.capabilities?.transfers === "active",
+  const hasCryptoWalletCapabilities = Boolean(
+    stablecoinAccount?.configuration?.recipient?.capabilities?.crypto_wallets
+      ?.status === "active",
   );
+
+  const stablecoinPayoutMethod =
+    partner.stripeRecipientId && hasCryptoWalletCapabilities
+      ? await getStripeRecipientPayoutMethod(partner.stripeRecipientId)
+      : null;
 
   const cryptoWalletAddress =
     stablecoinPayoutMethod?.crypto_wallet?.address ?? null;
   const cryptoWalletNetwork =
     stablecoinPayoutMethod?.crypto_wallet?.network ?? null;
 
+  const connectActive = Boolean(
+    connectAccount?.payouts_enabled === true &&
+      connectAccount?.capabilities?.transfers === "active",
+  );
+
   const stablecoinActive = Boolean(
-    stablecoinAccount?.configuration?.recipient?.capabilities?.crypto_wallets
-      ?.status === "active" &&
-      cryptoWalletAddress &&
-      cryptoWalletNetwork,
+    hasCryptoWalletCapabilities && cryptoWalletAddress && cryptoWalletNetwork,
   );
 
   const paypalActive = Boolean(partner.paypalEmail);
