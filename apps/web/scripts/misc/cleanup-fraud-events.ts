@@ -13,6 +13,11 @@ async function main() {
         path: "$.matchType",
         equals: "historicalDomainMatch",
       },
+      customer: {
+        sales: {
+          gt: 1,
+        },
+      },
     },
     select: {
       id: true,
