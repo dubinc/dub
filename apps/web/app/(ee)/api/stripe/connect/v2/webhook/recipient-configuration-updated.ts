@@ -1,7 +1,5 @@
 import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplicate-payout-method-fraud";
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
-import { getStripeStablecoinPayoutMethod } from "@/lib/stripe/get-stripe-recipient-payout-method";
-
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import { prisma } from "@dub/prisma";
@@ -36,16 +34,13 @@ export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
     return `Partner with stripeRecipientId ${stripeRecipientId} not found, skipping...`;
   }
 
-  const { payoutsEnabledAt, defaultPayoutMethod } =
-    await recomputePartnerPayoutState(partner);
-
-  const stablecoinPayoutMethod =
-    await getStripeStablecoinPayoutMethod(stripeRecipientId);
-
-  const cryptoWalletAddress =
-    stablecoinPayoutMethod?.crypto_wallet?.address ?? null;
-  const cryptoWalletNetwork =
-    stablecoinPayoutMethod?.crypto_wallet?.network ?? null;
+  const {
+    payoutsEnabledAt,
+    defaultPayoutMethod,
+    cryptoWalletAddress,
+    cryptoWalletNetwork,
+    maskedCryptoWalletAddress,
+  } = await recomputePartnerPayoutState(partner);
 
   await prisma.partner.update({
     where: {
@@ -54,15 +49,9 @@ export async function recipientConfigurationUpdated(event: Stripe.ThinEvent) {
     data: {
       payoutsEnabledAt,
       defaultPayoutMethod,
-      cryptoWalletAddress: cryptoWalletAddress,
+      cryptoWalletAddress,
     },
   });
-
-  const maskedCryptoWalletAddress = cryptoWalletAddress
-    ? cryptoWalletAddress.length > 10
-      ? `${cryptoWalletAddress.slice(0, 6)}••••${cryptoWalletAddress.slice(-4)}`
-      : cryptoWalletAddress
-    : null;
 
   if (
     partner.email &&

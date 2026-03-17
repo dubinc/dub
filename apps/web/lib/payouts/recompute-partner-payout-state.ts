@@ -2,6 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
 import { Partner, PartnerPayoutMethod } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
+import { getStripeStablecoinPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
 
 const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [
   PartnerPayoutMethod.stablecoin,
@@ -24,24 +25,36 @@ export async function recomputePartnerPayoutState(
     | "defaultPayoutMethod"
   >,
 ) {
-  const [connectAccount, stablecoinAccount] = await Promise.all([
-    partner.stripeConnectId
-      ? stripe.accounts.retrieve(partner.stripeConnectId)
-      : Promise.resolve(null),
+  const [connectAccount, stablecoinAccount, stablecoinPayoutMethod] =
+    await Promise.all([
+      partner.stripeConnectId
+        ? stripe.accounts.retrieve(partner.stripeConnectId)
+        : Promise.resolve(null),
 
-    partner.stripeRecipientId
-      ? getStripeRecipientAccount(partner.stripeRecipientId)
-      : Promise.resolve(null),
-  ]);
+      partner.stripeRecipientId
+        ? getStripeRecipientAccount(partner.stripeRecipientId)
+        : Promise.resolve(null),
+
+      partner.stripeRecipientId
+        ? getStripeStablecoinPayoutMethod(partner.stripeRecipientId)
+        : Promise.resolve(null),
+    ]);
 
   const connectActive = Boolean(
     connectAccount?.payouts_enabled === true &&
       connectAccount?.capabilities?.transfers === "active",
   );
 
+  const cryptoWalletAddress =
+    stablecoinPayoutMethod?.crypto_wallet?.address ?? null;
+  const cryptoWalletNetwork =
+    stablecoinPayoutMethod?.crypto_wallet?.network ?? null;
+
   const stablecoinActive = Boolean(
     stablecoinAccount?.configuration?.recipient?.capabilities?.crypto_wallets
-      ?.status === "active",
+      ?.status === "active" &&
+      cryptoWalletAddress &&
+      cryptoWalletNetwork,
   );
 
   const paypalActive = Boolean(partner.paypalEmail);
@@ -79,8 +92,17 @@ export async function recomputePartnerPayoutState(
     }),
   );
 
+  const maskedCryptoWalletAddress = cryptoWalletAddress
+    ? cryptoWalletAddress.length > 10
+      ? `${cryptoWalletAddress.slice(0, 6)}••••${cryptoWalletAddress.slice(-4)}`
+      : cryptoWalletAddress
+    : null;
+
   return {
     payoutsEnabledAt,
     defaultPayoutMethod,
+    cryptoWalletAddress,
+    cryptoWalletNetwork,
+    maskedCryptoWalletAddress,
   };
 }
