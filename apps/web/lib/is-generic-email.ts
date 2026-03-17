@@ -3,6 +3,7 @@ import { extractEmailDomain } from "./email/extract-email-domain";
 const GENERIC_EMAIL_DOMAINS = [
   "gmail.com",
   "googlemail.com",
+  "ymail.com",
   "icloud.com",
   "aol.com",
   "comcast.net",
