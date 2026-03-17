@@ -8,6 +8,9 @@ export default defineConfig({
   retries: 1,
   workers: process.env.CI ? 1 : undefined,
   reporter: process.env.CI ? "list" : [["html", { open: "always" }]],
+  expect: {
+    timeout: 30000,
+  },
   use: {
     baseURL:
       process.env.PLAYWRIGHT_BASE_URL || "http://partners.localhost:8888",

@@ -120,8 +120,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
           }
 
           if (provider === "credentials") {
-            router.refresh();
-            router.push(finalNext || "/workspaces");
+            router.push(response?.url || finalNext || "/workspaces");
           }
         }}
         className="flex flex-col gap-y-6"
