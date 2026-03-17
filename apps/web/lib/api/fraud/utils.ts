@@ -16,17 +16,6 @@ type GetIdentityFieldsForFraudEventInput = Pick<
   "type" | "partnerId" | "customerId" | "sourceProgramId" | "metadata"
 >;
 
-// Extract domain from email
-export function extractEmailDomain(email: string) {
-  const parts = email.toLowerCase().trim().split("@");
-
-  if (parts.length !== 2 || !parts[0] || !parts[1]) {
-    return null;
-  }
-
-  return parts[1];
-}
-
 // Normalize email for comparison
 export function normalizeEmail(email: string) {
   const trimmed = email.toLowerCase().trim();

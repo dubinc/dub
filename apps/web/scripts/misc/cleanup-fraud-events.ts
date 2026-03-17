@@ -19,11 +19,12 @@ async function main() {
         },
       },
     },
-    select: {
-      id: true,
+    include: {
+      partner: true,
+      customer: true,
       fraudEventGroup: {
         select: {
-          id: true,
+          program: true,
         },
       },
     },
@@ -32,7 +33,15 @@ async function main() {
     },
   });
 
-  console.table(fraudEvents);
+  console.table(
+    fraudEvents.map((event) => ({
+      id: event.id,
+      program: event.fraudEventGroup?.program?.name,
+      partner: event.partner?.email,
+      customer: event.customer?.email,
+      createdAt: event.createdAt,
+    })),
+  );
 
   // Remove fraud events
   if (fraudEvents.length > 0) {
