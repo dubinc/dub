@@ -43,18 +43,14 @@ async function main() {
   }
 
   // Remove fraud group if no events left
-  const fraudEventGroupIds = fraudEvents.map(
-    (event) => event.fraudEventGroup.id,
-  );
-
   const fraudEventGroupsWithNoEvents = await prisma.fraudEventGroup.findMany({
     where: {
-      id: {
-        in: fraudEventGroupIds,
-      },
       fraudEvents: {
         none: {},
       },
+    },
+    select: {
+      id: true,
     },
   });
 
