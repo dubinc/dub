@@ -8,7 +8,7 @@ import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
+import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
 import {
   CopyText,
   LinkLogo,
@@ -30,15 +30,8 @@ import {
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
-import { Cell } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-
-type ColumnMeta = {
-  filterParams?: (
-    args: Pick<Cell<PartnerEarningsResponse, any>, "getValue">,
-  ) => Record<string, any>;
-};
 
 export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programSlug } = useParams();
@@ -93,27 +86,28 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         id: "type",
         header: "Type",
         accessorKey: "type",
-        meta: {
-          filterParams: ({ getValue }) => ({
-            type: getValue(),
-          }),
-        },
-        cell: ({ row }) => <CommissionTypeBadge type={row.original.type} />,
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <FilterIconCell set={{ type: row.original.type }} />
+            <CommissionTypeBadge type={row.original.type} />
+          </div>
+        ),
       },
       {
         id: "link",
         header: "Link",
         accessorKey: "link",
-        meta: {
-          filterParams: ({ row }) =>
-            row.original.link ? { linkId: row.original.link.id } : null,
-        },
         cell: ({ row }) =>
           row.original.link ? (
             <div className="flex items-center gap-3">
-              <LinkLogo
-                apexDomain={getApexDomain(row.original.link.url)}
-                className="size-4 shrink-0 sm:size-4"
+              <FilterIconCell
+                set={{ linkId: row.original.link.id }}
+                icon={
+                  <LinkLogo
+                    apexDomain={getApexDomain(row.original.link.url)}
+                    className="size-4 shrink-0 sm:size-4"
+                  />
+                }
               />
               <CopyText
                 value={row.original.link.shortLink}
@@ -136,26 +130,20 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         minSize: 250,
         cell: ({ row }) =>
           row.original.customer ? (
-            <CustomerRowItem
-              customer={row.original.customer}
-              href={
-                showDetailedAnalytics
-                  ? `/programs/${programSlug}/customers/${row.original.customer.id}`
-                  : undefined
-              }
-              className="px-4 py-2.5"
-            />
+            <div className="flex items-center gap-3 px-4 py-2.5">
+              <FilterIconCell set={{ customerId: row.original.customer.id }} />
+              <CustomerRowItem
+                customer={row.original.customer}
+                href={
+                  showDetailedAnalytics
+                    ? `/programs/${programSlug}/customers/${row.original.customer.id}`
+                    : undefined
+                }
+              />
+            </div>
           ) : (
             <p className="px-4 py-2.5">-</p>
           ),
-        meta: {
-          filterParams: ({ row }) =>
-            row.original.customer
-              ? {
-                  customerId: row.original.customer.id,
-                }
-              : null,
-        },
       },
       ...(programEnrollment?.rewards?.some((r) => r.event === "sale")
         ? [
@@ -257,15 +245,6 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         },
       },
     ],
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
-      return (
-        meta?.filterParams &&
-        meta.filterParams(cell) && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     ...(!limit && {
       pagination,
       onPaginationChange: setPagination,

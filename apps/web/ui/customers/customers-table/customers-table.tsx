@@ -8,7 +8,7 @@ import { getCustomersQuerySchema } from "@/lib/zod/schemas/customers";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
+import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
   AnimatedSizeContainer,
@@ -38,7 +38,7 @@ import {
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
-import { Cell, Row } from "@tanstack/react-table";
+import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import Image from "next/image";
 import Link from "next/link";
@@ -49,12 +49,6 @@ import useSWR from "swr";
 import * as z from "zod/v4";
 import { EXAMPLE_CUSTOMER_DATA } from "./example-data";
 import { useCustomerFilters } from "./use-customer-filters";
-
-type ColumnMeta = {
-  filterParams?: (
-    args: Pick<Cell<CustomerProps, any>, "getValue">,
-  ) => Record<string, any>;
-};
 
 export function CustomersTable({
   query,
@@ -163,26 +157,23 @@ export function CustomersTable({
           id: "country",
           header: "Country",
           accessorKey: "country",
-          meta: {
-            filterParams: ({ getValue }) =>
-              getValue()
-                ? {
-                    country: getValue(),
-                  }
-                : undefined,
-          },
           minSize: 150,
           cell: ({ row }) => {
             const country = row.original.country;
             return (
               <div className="flex items-center gap-2">
-                {country && (
-                  <img
-                    alt={`${country} flag`}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
-                    className="size-4 shrink-0"
+                {country ? (
+                  <FilterIconCell
+                    set={{ country }}
+                    icon={
+                      <img
+                        alt={`${country} flag`}
+                        src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                        className="size-4 shrink-0"
+                      />
+                    }
                   />
-                )}
+                ) : null}
                 <span className="min-w-0 truncate">
                   {(country ? COUNTRIES[country] : null) ?? "-"}
                 </span>
@@ -193,17 +184,12 @@ export function CustomersTable({
         {
           id: "partner",
           header: "Partner",
-          meta: {
-            filterParams: ({ row }) =>
-              row.original.partner?.id
-                ? {
-                    partnerId: row.original.partner.id,
-                  }
-                : undefined,
-          },
           cell: ({ row }) =>
             row.original.partner ? (
-              <PartnerRowItem partner={row.original.partner} />
+              <PartnerRowItem
+                filterSet={{ partnerId: row.original.partner.id }}
+                partner={row.original.partner}
+              />
             ) : (
               "-"
             ),
@@ -213,25 +199,31 @@ export function CustomersTable({
           id: "link",
           header: "Link",
           accessorKey: "link",
-          meta: {
-            filterParams: ({ getValue }) =>
-              getValue() ? { linkId: getValue().id } : undefined,
-          },
           cell: ({ row }) =>
             row.original.link ? (
-              <Link
-                href={`/${workspaceSlug}/links/${row.original.link.domain}/${row.original.link.key}`}
-                target="_blank"
-                className="flex cursor-alias items-center gap-3 decoration-dotted underline-offset-2 hover:underline"
-              >
-                <LinkLogo
-                  apexDomain={getApexDomain(row.original.link.url)}
-                  className="size-4 shrink-0 sm:size-4"
+              <div className="flex items-center gap-3">
+                <FilterIconCell
+                  set={{ linkId: row.original.link.id }}
+                  icon={
+                    <LinkLogo
+                      apexDomain={getApexDomain(row.original.link.url)}
+                      className="size-4 shrink-0 sm:size-4"
+                    />
+                  }
                 />
-                <span className="truncate" title={row.original.link.shortLink}>
-                  {getPrettyUrl(row.original.link.shortLink)}
-                </span>
-              </Link>
+                <Link
+                  href={`/${workspaceSlug}/links/${row.original.link.domain}/${row.original.link.key}`}
+                  target="_blank"
+                  className="cursor-alias truncate decoration-dotted underline-offset-2 hover:underline"
+                >
+                  <span
+                    className="truncate"
+                    title={row.original.link.shortLink}
+                  >
+                    {getPrettyUrl(row.original.link.shortLink)}
+                  </span>
+                </Link>
+              </div>
             ) : (
               "-"
             ),
@@ -392,14 +384,6 @@ export function CustomersTable({
         del: "page",
         scroll: false,
       }),
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `customer${p ? "s" : ""}`,

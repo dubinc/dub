@@ -2,7 +2,6 @@ import { AnalyticsResponse } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { Table, usePagination, useTable } from "@dub/ui";
 import {
   capitalize,
@@ -54,6 +53,7 @@ export function AnalyticsPartnersTable() {
           const p = row.original.partner;
           return (
             <PartnerRowItem
+              filterSet={{ partnerId: row.original.partnerId }}
               partner={{
                 ...p,
                 payoutsEnabledAt: p.payoutsEnabledAt
@@ -62,11 +62,6 @@ export function AnalyticsPartnersTable() {
               }}
             />
           );
-        },
-        meta: {
-          filterParams: ({ row }) => ({
-            partnerId: row.original.partnerId,
-          }),
         },
       },
       {
@@ -112,19 +107,6 @@ export function AnalyticsPartnersTable() {
             },
           ]),
     ],
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as
-        | {
-            filterParams?: any;
-          }
-        | undefined;
-
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["clicks", "leads", "saleAmount"],
