@@ -1,6 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { env } from "./env";
 
+test.use({
+  storageState: {
+    cookies: [],
+    origins: [],
+  },
+});
+
 test.describe("Partner Login", () => {
   test("login page renders correctly", async ({ page }) => {
     await page.goto("/login");

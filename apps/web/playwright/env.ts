@@ -1,5 +1,6 @@
-import * as z from "zod/v4";
+/// <reference types="node" />
 
+import * as z from "zod/v4";
 
 const envSchema = z.object({
   E2E_PARTNER_EMAIL: z.email(),

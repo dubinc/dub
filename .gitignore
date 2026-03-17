@@ -48,5 +48,6 @@ packages/stripe-app/.build/*
 
 # playwright
 playwright-report/
+**/playwright/.auth/
 test-results/
 blob-report/
