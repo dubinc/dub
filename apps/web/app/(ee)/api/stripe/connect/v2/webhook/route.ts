@@ -11,10 +11,10 @@ import { recipientConfigurationUpdated } from "./recipient-configuration-updated
 const relevantEvents = new Set([
   "v2.core.account.closed",
   "v2.core.account[configuration.recipient].updated",
+  "v2.core.account[configuration.recipient].capability_status_updated",
   "v2.money_management.outbound_payment.posted",
   "v2.money_management.outbound_payment.returned",
   "v2.money_management.outbound_payment.failed",
-  "v2.core.account[configuration.recipient].capability_status_updated",
 ]);
 
 const webhookSecret = process.env.STRIPE_CONNECT_V2_WEBHOOK_SECRET;
