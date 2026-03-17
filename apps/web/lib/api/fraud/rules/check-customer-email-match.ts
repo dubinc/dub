@@ -60,29 +60,31 @@ export const checkCustomerEmailMatch = defineFraudRule({
 
     // 3. Historical domain match — customer's email domain matches
     // a previously referred customer from the same partner
-    const previousCustomer = await prisma.customer.findFirst({
-      where: {
-        programId: program.id,
-        partnerId: partner.id,
-        id: {
-          not: customer.id,
+    if (customer.sales === 1) {
+      const previousCustomer = await prisma.customer.findFirst({
+        where: {
+          programId: program.id,
+          partnerId: partner.id,
+          id: {
+            not: customer.id,
+          },
+          email: {
+            endsWith: `@${customerEmailDomain}`,
+          },
         },
-        email: {
-          endsWith: `@${customerEmailDomain}`,
+        select: {
+          id: true,
         },
-      },
-      select: {
-        id: true,
-      },
-    });
+      });
 
-    if (previousCustomer && customer.sales === 1) {
-      return {
-        triggered: true,
-        metadata: {
-          matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
-        },
-      };
+      if (previousCustomer) {
+        return {
+          triggered: true,
+          metadata: {
+            matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
+          },
+        };
+      }
     }
 
     return {
