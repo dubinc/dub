@@ -1,4 +1,4 @@
-import { extractEmailDomain } from "@/lib/api/fraud/utils";
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { Customer, TrackLeadResponse } from "@/lib/types";
 import {
   CustomerEmailMatchType,

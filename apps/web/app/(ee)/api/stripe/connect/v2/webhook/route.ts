@@ -11,6 +11,7 @@ import { recipientConfigurationUpdated } from "./recipient-configuration-updated
 const relevantEvents = new Set([
   "v2.core.account.closed",
   "v2.core.account[configuration.recipient].updated",
+  "v2.core.account[configuration.recipient].capability_status_updated",
   "v2.money_management.outbound_payment.posted",
   "v2.money_management.outbound_payment.returned",
   "v2.money_management.outbound_payment.failed",
@@ -53,31 +54,29 @@ export const POST = async (req: Request) => {
   }
 
   let response = "OK";
+
   try {
     switch (event.type) {
-      // @ts-ignore
       case "v2.core.account.closed":
         response = await recipientAccountClosed(event);
         break;
-      // @ts-ignore
       case "v2.core.account[configuration.recipient].updated":
+      case "v2.core.account[configuration.recipient].capability_status_updated":
         response = await recipientConfigurationUpdated(event);
         break;
-      // @ts-ignore
       case "v2.money_management.outbound_payment.posted":
         response = await outboundPaymentPosted(event);
         break;
-      // @ts-ignore
       case "v2.money_management.outbound_payment.returned":
         response = await outboundPaymentReturned(event);
         break;
-      // @ts-ignore
       case "v2.money_management.outbound_payment.failed":
         response = await outboundPaymentFailed(event);
         break;
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
+
     await log({
       message: `/api/stripe/connect/v2/webhook webhook failed (${event.type}). Error: ${message}`,
       type: "errors",
