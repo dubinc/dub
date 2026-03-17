@@ -193,11 +193,11 @@ const Menu = forwardRef(
                   cancelFallback();
                 }
               }}
-              placeholder="Fallback option"
+              placeholder="Fallback (optional)"
               className="h-8 rounded-lg"
             />
             <p className="text-content-subtle text-xs">
-              In case the variable is empty, this fallback option will be used.
+              Used only if {pendingVar} is missing.
             </p>
           </div>
 
