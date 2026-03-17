@@ -1,6 +1,6 @@
 import { generateRandomName } from "@/lib/names";
 import { describe, expect, test } from "vitest";
-import { randomEmail, randomId } from "../utils/helpers";
+import { randomId, randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER } from "../utils/resource";
 
@@ -30,7 +30,7 @@ describe.sequential("POST /api/tokens/embed/referrals", async () => {
   test("with new partner props (creates new partner)", async () => {
     const partner = {
       name: generateRandomName(),
-      email: randomEmail(),
+      email: randomPartnerEmail(),
       description: "A test partner for embed token",
       country: "US",
       image: "https://api.dicebear.com/9.x/micah/png?seed=test",
@@ -66,7 +66,7 @@ describe.sequential("POST /api/tokens/embed/referrals", async () => {
 
   test("with minimal partner props", async () => {
     const partner = {
-      email: randomEmail(),
+      email: randomPartnerEmail(),
     };
 
     const { data, status } = await http.post({
