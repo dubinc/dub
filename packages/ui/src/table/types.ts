@@ -86,7 +86,8 @@ export type TableProps<T> = BaseTableProps<T> &
   (
     | {
         pagination?: PaginationState;
+        paginationAllRowsHref?: string;
         rowCount: number;
       }
-    | { pagination?: never; rowCount?: never }
+    | { pagination?: never; paginationAllRowsHref?: never; rowCount?: never }
   );

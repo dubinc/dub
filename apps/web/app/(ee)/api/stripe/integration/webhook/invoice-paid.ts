@@ -184,6 +184,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       },
       include: includeTags,
     }),
+
     // update workspace sales usage
     prisma.project.update({
       where: {
@@ -273,7 +274,10 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
             programEnrollment: pick(programEnrollment, ["status"]),
-            customer: pick(customer, ["id", "email", "name"]),
+            customer: {
+              ...pick(customer, ["id", "email", "name"]),
+              isFirstConversion: firstConversionFlag,
+            },
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },

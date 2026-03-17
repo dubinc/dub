@@ -20,6 +20,7 @@ const PARTNERS_PROGRAM_REDIRECTS = {
   supercutai: "supercut",
   "teller-perps": "teller",
   "hundred-health": "hundred",
+  "gitroom-short": "postiz",
 };
 
 export const partnersProgramRedirects = (path: string) => {
