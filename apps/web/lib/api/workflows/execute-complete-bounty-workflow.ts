@@ -5,10 +5,23 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import { prisma } from "@dub/prisma";
-import { Workflow, WorkspaceRole } from "@dub/prisma/client";
+import {
+  BountySubmissionStatus,
+  Workflow,
+  WorkspaceRole,
+} from "@dub/prisma/client";
 import { createId } from "../create-id";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+
+const terminalStatusReason: Record<
+  Exclude<BountySubmissionStatus, "draft">,
+  string
+> = {
+  submitted: "finished",
+  approved: "been awarded",
+  rejected: "been rejected",
+};
 
 export const executeCompleteBountyWorkflow = async ({
   workflow,
@@ -93,12 +106,15 @@ export const executeCompleteBountyWorkflow = async ({
   if (submissions.length > 0) {
     const submission = submissions[0];
 
-    if (submission.status === "submitted" || submission.status === "approved") {
-      console.log(
-        `Partner ${partnerId} has already ${submission.status === "submitted" ? "finished" : "been awarded"} this bounty (bountyId: ${bounty.id}, submissionId: ${submissions[0].id}).`,
-      );
+    if (submission.status !== "draft") {
+      const reason = terminalStatusReason[submission.status];
 
-      return;
+      if (reason) {
+        console.log(
+          `Partner ${partnerId} has already ${reason} this bounty (bountyId: ${bounty.id}, submissionId: ${submission.id}).`,
+        );
+        return;
+      }
     }
   }
 

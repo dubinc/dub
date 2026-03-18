@@ -10,6 +10,11 @@ export const detectBot = (req: Request) => {
     return true;
   }
 
+  // HEAD requests are generally from bots, real users will always use GET requests
+  if (req.method === "HEAD") {
+    return true;
+  }
+
   // Check ua
   const ua = userAgent(req);
 
