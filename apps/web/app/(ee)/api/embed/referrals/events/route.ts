@@ -8,6 +8,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
 
 const querySchema = partnerProfileEventsQuerySchema.pick({
   event: true,
@@ -35,16 +36,12 @@ export const GET = withReferralsEmbedToken(
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 
+    const { customerDataSharingEnabledAt } = programEnrollment;
+
     const response = events.map((event) => {
-      const {
-        ip: _eventIp,
-        click,
-        customer,
-        ...eventRest
-      } = event as typeof event & {
-        ip?: unknown;
-        customer?: { id: string; email?: string | null; name?: string | null };
-      };
+      // don't return ip address for partner profile
+      // @ts-ignore – ip is deprecated but present in the data
+      const { ip, click, customer, ...eventRest } = event;
       const { ip: _, ...clickRest } = click;
 
       return {
@@ -52,14 +49,23 @@ export const GET = withReferralsEmbedToken(
         click: clickRest,
         link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
         ...(customer && {
-          customer: {
-            id: customer.id,
-            email: customer.email
-              ? programEnrollment.customerDataSharingEnabledAt
-                ? customer.email
-                : obfuscateCustomerEmail(customer.email)
-              : customer.name || generateRandomName(),
-          },
+          customer: z
+            .object({
+              id: z.string(),
+              email: z.string(),
+              ...(customerDataSharingEnabledAt && { name: z.string() }),
+            })
+            .parse({
+              ...customer,
+              email: customer.email
+                ? customerDataSharingEnabledAt
+                  ? customer.email
+                  : obfuscateCustomerEmail(customer.email)
+                : customer.name || generateRandomName(),
+              ...(customerDataSharingEnabledAt && {
+                name: customer.name || generateRandomName(),
+              }),
+            }),
         }),
       };
     });
