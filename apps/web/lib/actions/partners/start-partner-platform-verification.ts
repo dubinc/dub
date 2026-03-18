@@ -7,7 +7,8 @@ import {
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
 import { generateOTP } from "@/lib/auth/utils";
-import { GENERIC_EMAIL_DOMAINS } from "@/lib/is-generic-email";
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
+import { isGenericEmail } from "@/lib/is-generic-email";
 import {
   sanitizeSocialHandle,
   SOCIAL_PLATFORM_CONFIGS,
@@ -100,7 +101,7 @@ async function startWebsiteVerification({
   | Extract<VerificationResult, { type: "auto_verified" }>
 > {
   const websiteDomain = getDomainWithoutWWW(handle)?.toLowerCase();
-  const emailDomain = partner.email?.split("@")[1]?.toLowerCase();
+  const emailDomain = extractEmailDomain(partner.email!);
 
   if (websiteDomain && emailDomain) {
     const isDisposableEmailDomain = await redis.sismember(
@@ -112,7 +113,7 @@ async function startWebsiteVerification({
     // - is not a disposable email domain
     // - matches the website domain exactly
     if (
-      !GENERIC_EMAIL_DOMAINS.includes(emailDomain) &&
+      !isGenericEmail(partner.email!) &&
       !isDisposableEmailDomain &&
       emailDomain === websiteDomain
     ) {

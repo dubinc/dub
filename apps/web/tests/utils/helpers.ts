@@ -23,7 +23,7 @@ export const randomTagName = (length?: number) => {
   return `e2e-${randomId(length)}`;
 };
 
-export const randomEmail = ({
+export const randomPartnerEmail = ({
   domain = "dub-internal-test.com",
 }: {
   domain?: string;

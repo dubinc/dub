@@ -1,6 +1,6 @@
-import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
+import StablecoinPayoutsAnnouncement from "@dub/email/templates/broadcasts/stablecoin-payouts-announcement";
 import { prisma } from "@dub/prisma";
-import { chunk } from "@dub/utils";
+import { chunk, STABLECOIN_SUPPORTED_COUNTRIES } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
 import { generateUnsubscribeToken } from "../lib/email/unsubscribe-token";
@@ -14,7 +14,13 @@ async function main() {
           partnerAccount: true,
         },
         partners: {
-          some: {},
+          some: {
+            partner: {
+              country: {
+                in: STABLECOIN_SUPPORTED_COUNTRIES,
+              },
+            },
+          },
         },
       },
       take: 10000,
@@ -25,12 +31,12 @@ async function main() {
     }
     console.log(`Found ${usersToNotify.length} users to notify`);
 
-    const res = await queueBatchEmail<typeof ConnectPlatformsReminder>(
+    const res = await queueBatchEmail<typeof StablecoinPayoutsAnnouncement>(
       usersToNotify.map((user) => ({
         to: user.email!,
-        subject: "Verify your social platforms on Dub Partners",
+        subject: "Introducing Stablecoin Payouts",
         variant: "marketing",
-        templateName: "ConnectPlatformsReminder",
+        templateName: "StablecoinPayoutsAnnouncement",
         templateProps: {
           email: user.email!,
           unsubscribeUrl: `https://partners.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,

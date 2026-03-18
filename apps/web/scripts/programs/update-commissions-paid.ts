@@ -1,18 +1,21 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
-const commissionIdList: string[] = [];
-
 async function main() {
   const commissions = await prisma.commission.findMany({
     where: {
-      id: {
-        in: commissionIdList,
+      programId: "prog_xxx",
+      status: {
+        in: ["pending", "processed"],
       },
-      status: "processed",
-      payout: {
-        status: "pending",
-      },
+      OR: [
+        { payoutId: null },
+        {
+          payout: {
+            status: "pending",
+          },
+        },
+      ],
     },
   });
 

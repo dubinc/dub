@@ -93,19 +93,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         },
       },
       categories: true,
+      invoices: true,
     },
     orderBy:
       sortBy === "popularity"
-        ? [
-            {
-              marketplaceRanking: "asc",
-            },
-            {
-              applications: {
-                _count: "desc",
-              },
-            },
-          ]
+        ? {}
         : {
             [sortBy === "recency" ? "addedToMarketplaceAt" : sortBy]: sortOrder,
           },
@@ -116,8 +108,17 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   return NextResponse.json(
     z.array(NetworkProgramSchema).parse(
       programs
-        // if requesting featured programs, randomize the order
-        .sort(() => (featured ? Math.random() - 0.5 : 0))
+        .sort((a, b) =>
+          // if requesting featured programs, randomize the order
+          featured
+            ? Math.random() - 0.5
+            : // if sorting by popularity, sort by marketplaceRanking first, then total invoice paid out
+              sortBy === "popularity"
+              ? a.marketplaceRanking - b.marketplaceRanking ||
+                b.invoices.reduce((acc, invoice) => acc + invoice.amount, 0) -
+                  a.invoices.reduce((acc, invoice) => acc + invoice.amount, 0)
+              : 0,
+        )
         .map((program) => ({
           ...program,
           rewards:

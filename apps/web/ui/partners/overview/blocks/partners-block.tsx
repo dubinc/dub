@@ -4,7 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ExceededEventsLimit } from "@/ui/partners/overview/exceeded-events-limit";
-import { ArrowUpRight, LoadingSpinner } from "@dub/ui";
+import { ArrowRight, LoadingSpinner } from "@dub/ui";
 import {
   currencyFormatter,
   fetcher,
@@ -63,7 +63,6 @@ export function PartnersBlock() {
             <Link
               key={partner.partnerId}
               href={`/${workspaceSlug}/program/partners/${partner.partnerId}`}
-              target="_blank"
               className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
             >
               <div className="flex min-w-0 items-center gap-2">
@@ -76,7 +75,7 @@ export function PartnersBlock() {
                   className="size-4 rounded-full"
                 />
                 <span className="min-w-0 truncate">{partner.partner.name}</span>
-                <ArrowUpRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
+                <ArrowRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
               </div>
 
               <span>

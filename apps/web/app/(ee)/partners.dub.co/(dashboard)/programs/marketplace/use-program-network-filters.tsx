@@ -101,7 +101,7 @@ export function useProgramNetworkFilters() {
         options:
           categoriesCount?.map(({ category, _count }) => ({
             value: category,
-            label: category,
+            label: category.replaceAll("_", " "),
             right: nFormatter(_count, { full: true }),
           })) ?? [],
       },
