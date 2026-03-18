@@ -9,9 +9,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, FraudGroupCountByPartner } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
-import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -32,6 +32,7 @@ import {
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
 import {
+  capitalize,
   cn,
   currencyFormatter,
   fetcher,
@@ -165,11 +166,9 @@ export function CommissionsTable() {
           cell: ({ row }) =>
             row.original.customer ? (
               <div className="flex items-center gap-2">
-                <FilterIconCell
-                  set={{ customerId: row.original.customer.id }}
-                />
                 <CustomerRowItem
                   customer={row.original.customer}
+                  filterSet={{ customerId: row.original.customer.id }}
                   href={`/${slug}/program/customers/${row.original.customer.id}`}
                 />
               </div>
@@ -215,10 +214,12 @@ export function CommissionsTable() {
           header: "Type",
           accessorKey: "type",
           cell: ({ row }) => (
-            <div className="flex items-center gap-2">
-              <FilterIconCell set={{ type: row.original.type }} />
-              <CommissionTypeBadge type={row.original.type ?? "sale"} />
-            </div>
+            <FilterIconCell
+              set={{ type: row.original.type }}
+              icon={<CommissionTypeIcon type={row.original.type ?? "sale"} />}
+            >
+              {capitalize(row.original.type ?? "sale")}
+            </FilterIconCell>
           ),
         },
         {

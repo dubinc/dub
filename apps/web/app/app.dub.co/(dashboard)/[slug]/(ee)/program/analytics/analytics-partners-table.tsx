@@ -54,16 +54,26 @@ export function AnalyticsPartnersTable() {
         minSize: 250,
         cell: ({ row }) => {
           const p = row.original.partner;
+          const filterHref = queryParams({
+            set: { partnerId: row.original.partnerId },
+            del: "page",
+            getNewPath: true,
+          }) as string;
           return (
-            <PartnerRowItem
-              filterSet={{ partnerId: row.original.partnerId }}
-              partner={{
-                ...p,
-                payoutsEnabledAt: p.payoutsEnabledAt
-                  ? new Date(p.payoutsEnabledAt)
-                  : null,
-              }}
-            />
+            <div
+              className="cursor-pointer"
+              onClick={() => router.push(filterHref)}
+            >
+              <PartnerRowItem
+                filterSet={{ partnerId: row.original.partnerId }}
+                partner={{
+                  ...p,
+                  payoutsEnabledAt: p.payoutsEnabledAt
+                    ? new Date(p.payoutsEnabledAt)
+                    : null,
+                }}
+              />
+            </div>
           );
         },
       },
@@ -110,17 +120,6 @@ export function AnalyticsPartnersTable() {
             },
           ]),
     ],
-    rowProps: (row) => ({
-      className: "cursor-pointer",
-      onClick: () => {
-        const href = queryParams({
-          set: { partnerId: row.original.partnerId },
-          del: "page",
-          getNewPath: true,
-        }) as string;
-        router.push(href);
-      },
-    }),
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["clicks", "leads", "saleAmount"],

@@ -1,4 +1,5 @@
 import { generateRandomName } from "@/lib/names";
+import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
 import { ChartActivity2 } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
@@ -10,6 +11,7 @@ export function CustomerRowItem({
   className,
   avatarClassName,
   chartActivityIconMode = "hiddenOnHover",
+  filterSet,
 }: {
   customer: {
     id: string;
@@ -21,8 +23,20 @@ export function CustomerRowItem({
   className?: string;
   avatarClassName?: string;
   chartActivityIconMode?: "visible" | "hidden" | "hiddenOnHover";
+  filterSet?: Record<string, any>;
 }) {
   const display = customer.email || customer.name || generateRandomName();
+
+  const avatar = (
+    <img
+      alt={display}
+      src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
+      className={cn(
+        "size-5 shrink-0 rounded-full border border-neutral-200",
+        avatarClassName,
+      )}
+    />
+  );
 
   return (
     <Wrapper
@@ -35,14 +49,11 @@ export function CustomerRowItem({
       )}
     >
       <div className="flex items-center gap-2 truncate" title={display}>
-        <img
-          alt={display}
-          src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-          className={cn(
-            "size-5 shrink-0 rounded-full border border-neutral-200",
-            avatarClassName,
-          )}
-        />
+        {filterSet ? (
+          <FilterIconCell set={filterSet} icon={avatar} />
+        ) : (
+          <div className="shrink-0">{avatar}</div>
+        )}
         <span className="truncate">{display}</span>
       </div>
       {href && chartActivityIconMode !== "hidden" && (

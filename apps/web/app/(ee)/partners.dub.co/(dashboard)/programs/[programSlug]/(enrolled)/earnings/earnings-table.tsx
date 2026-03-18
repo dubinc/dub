@@ -5,8 +5,8 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerEarningsResponse } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
-import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
 import {
@@ -22,6 +22,7 @@ import {
 } from "@dub/ui";
 import { CircleDollar, Globe } from "@dub/ui/icons";
 import {
+  capitalize,
   cn,
   COUNTRIES,
   currencyFormatter,
@@ -82,16 +83,19 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           </TimestampTooltip>
         ),
       },
-        {
-          id: "type",
-          header: "Type",
-          accessorKey: "type",
-          cell: ({ row }) => (
-            <FilterIconCell set={{ type: row.original.type }}>
-              <CommissionTypeBadge type={row.original.type} />
-            </FilterIconCell>
-          ),
-        },
+      {
+        id: "type",
+        header: "Type",
+        accessorKey: "type",
+        cell: ({ row }) => (
+          <FilterIconCell
+            set={{ type: row.original.type }}
+            icon={<CommissionTypeIcon type={row.original.type} />}
+          >
+            {capitalize(row.original.type)}
+          </FilterIconCell>
+        ),
+      },
       {
         id: "link",
         header: "Link",
@@ -130,9 +134,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         cell: ({ row }) =>
           row.original.customer ? (
             <div className="flex items-center gap-3 px-4 py-2.5">
-              <FilterIconCell set={{ customerId: row.original.customer.id }} />
               <CustomerRowItem
                 customer={row.original.customer}
+                filterSet={{ customerId: row.original.customer.id }}
                 href={
                   showDetailedAnalytics
                     ? `/programs/${programSlug}/customers/${row.original.customer.id}`
