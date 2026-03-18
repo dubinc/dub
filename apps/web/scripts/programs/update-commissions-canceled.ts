@@ -1,21 +1,17 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
+import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
 
 async function main() {
+  const programId = "prog_xxx";
+
   const commissions = await prisma.commission.findMany({
     where: {
-      programId: "prog_xxx",
+      programId,
+      partnerId: "pn_xxx",
       status: {
         in: ["pending", "processed"],
       },
-      OR: [
-        { payoutId: null },
-        {
-          payout: {
-            status: "pending",
-          },
-        },
-      ],
     },
   });
 
@@ -50,9 +46,13 @@ async function main() {
     },
     data: {
       payoutId: null,
-      status: "paid",
+      status: "canceled",
     },
   });
+
+  console.log(
+    `Updated ${updatedCommissions.count} commissions to have status "canceled"`,
+  );
 
   for (const payoutId of payoutIdsToRetally) {
     const data = await prisma.commission.aggregate({
@@ -83,10 +83,17 @@ async function main() {
       });
     }
   }
+  const partnerIdsToRetally = [
+    ...new Set(commissions.map((commission) => commission.partnerId)),
+  ];
 
-  console.log(
-    `Updated ${updatedCommissions.count} commissions to have status "paid"`,
-  );
+  for (const partnerId of partnerIdsToRetally) {
+    await syncTotalCommissions({
+      partnerId,
+      programId,
+      mode: "direct",
+    });
+  }
 }
 
 main();

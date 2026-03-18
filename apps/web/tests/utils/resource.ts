@@ -234,7 +234,9 @@ export const E2E_PARTNERS = [
 
 export const E2E_FRAUD_PARTNER = {
   id: "pn_1K8ND11BZ4XPEX39QX3YMBGY0",
+  name: "kiran+e2e+1@dub.co",
   email: "kiran+e2e+1@dub.co",
+  image: null,
   links: {
     customerEmailMatch: {
       domain: "getacme.link",
