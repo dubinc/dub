@@ -1,4 +1,5 @@
 import { CustomerActivityResponse, CustomerEnriched } from "@/lib/types";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
   Button,
   CalendarIcon,
@@ -18,7 +19,6 @@ import {
   getPrettyUrl,
   OG_AVATAR_URL,
 } from "@dub/utils";
-import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Pencil } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Fragment, HTMLProps, useMemo } from "react";
@@ -312,10 +312,7 @@ export function CustomerDetailsColumn({
 
             {partner && (
               <div className="mb-4 flex items-center gap-2">
-                <PartnerAvatar
-                  partner={partner}
-                  className="size-5"
-                />
+                <PartnerAvatar partner={partner} className="size-5" />
                 <ConditionalLink
                   href={
                     workspaceSlug

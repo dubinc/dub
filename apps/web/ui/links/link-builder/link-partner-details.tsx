@@ -1,8 +1,8 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerStatusBadgeWithTooltip } from "@/ui/partners/partner-status-badge-with-tooltip";
 import { ArrowUpRight } from "@dub/ui/icons";
-import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
@@ -24,10 +24,7 @@ export function LinkPartnerDetails({
       >
         <div className="flex min-w-0 items-center gap-3">
           {partner ? (
-            <PartnerAvatar
-              partner={partner}
-              className="size-8"
-            />
+            <PartnerAvatar partner={partner} className="size-8" />
           ) : (
             <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
           )}

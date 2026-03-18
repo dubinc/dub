@@ -49,9 +49,7 @@ export function PartnerSelector({
     return partners?.map((partner) => ({
       value: partner.id,
       label: partner.name,
-      icon: (
-        <PartnerAvatar partner={partner} className="size-4" />
-      ),
+      icon: <PartnerAvatar partner={partner} className="size-4" />,
     }));
   }, [partners]);
 
@@ -67,9 +65,7 @@ export function PartnerSelector({
     return {
       value: partner.id,
       label: partner.name,
-      icon: (
-        <PartnerAvatar partner={partner} className="size-4" />
-      ),
+      icon: <PartnerAvatar partner={partner} className="size-4" />,
     };
   }, [partners, selectedPartners, selectedPartnerId]);
 
