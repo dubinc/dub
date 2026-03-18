@@ -68,10 +68,7 @@ function ArchivePartnerModal({
       <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
         <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
           <div className="flex items-center gap-4">
-            <PartnerAvatar
-              partner={partner}
-              className="size-10 bg-white"
-            />
+            <PartnerAvatar partner={partner} className="size-10 bg-white" />
             <div className="flex min-w-0 flex-col">
               <h4 className="truncate text-sm font-medium text-neutral-900">
                 {partner.name}

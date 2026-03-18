@@ -5,6 +5,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -18,7 +19,6 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -177,10 +177,7 @@ function FraudReviewSheetContent({
                   Partner details
                 </h2>
                 <div className="flex min-w-0 items-center gap-3">
-                  <PartnerAvatar
-                    partner={partner}
-                    className="size-10"
-                  />
+                  <PartnerAvatar partner={partner} className="size-10" />
                   <div className="flex min-w-0 flex-col">
                     <span className="text-content-emphasis truncate text-sm font-semibold">
                       {partner.name}

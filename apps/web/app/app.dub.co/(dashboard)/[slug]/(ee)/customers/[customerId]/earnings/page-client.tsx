@@ -38,10 +38,7 @@ export function CustomerEarningsPageClient() {
           <div className="flex min-w-0 items-center gap-3">
             {customer?.partner ? (
               <>
-                <PartnerAvatar
-                  partner={customer.partner}
-                  className="size-5"
-                />
+                <PartnerAvatar partner={customer.partner} className="size-5" />
                 <span className="block min-w-0 truncate text-sm font-medium text-neutral-900">
                   {customer.partner.name}
                 </span>

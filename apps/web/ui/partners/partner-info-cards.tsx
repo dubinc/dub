@@ -256,7 +256,10 @@ export function PartnerInfoCards({
             <div className="flex items-start justify-between gap-2">
               <div className="relative w-fit shrink-0">
                 {partner ? (
-                  <PartnerAvatar partner={partner} className="size-20 border border-neutral-100" />
+                  <PartnerAvatar
+                    partner={partner}
+                    className="size-20 border border-neutral-100"
+                  />
                 ) : (
                   <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
                 )}

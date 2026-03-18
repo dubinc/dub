@@ -13,6 +13,8 @@ import {
   UTM_PARAMETERS,
 } from "@dub/ui";
 
+import { CustomerAvatar } from "@/ui/customers/customer-avatar";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
   Calendar6,
   Cube,
@@ -46,7 +48,6 @@ import {
   GOOGLE_FAVICON_URL,
   linkConstructor,
   nFormatter,
-  OG_AVATAR_URL,
   parseFilterValue,
   REGIONS,
   type FilterOperator,
@@ -61,7 +62,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkIcon } from "../links/link-icon";
 import TagBadge from "../links/tag-badge";
@@ -462,10 +462,7 @@ export function useAnalyticsFilters({
                       value: partner.id,
                       label: partner.name,
                       icon: (
-                        <PartnerAvatar
-                          partner={partner}
-                          className="size-4"
-                        />
+                        <PartnerAvatar partner={partner} className="size-4" />
                       ),
                       right: getFilterOptionTotal(rest),
                     };
@@ -788,14 +785,7 @@ export function useAnalyticsFilters({
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedCustomer ? (
-            <img
-              src={
-                selectedCustomer["avatar"] ||
-                `${OG_AVATAR_URL}${selectedCustomer.id}`
-              }
-              alt={`${selectedCustomer.email} avatar`}
-              className="size-4 rounded-full"
-            />
+            <CustomerAvatar customer={selectedCustomer} className="size-4" />
           ) : null;
         },
         getOptionPermalink: () => {
@@ -814,10 +804,7 @@ export function useAnalyticsFilters({
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedPartner ? (
-            <PartnerAvatar
-              partner={selectedPartner}
-              className="size-4"
-            />
+            <PartnerAvatar partner={selectedPartner} className="size-4" />
           ) : null;
         },
         getOptionLabel: () => {
