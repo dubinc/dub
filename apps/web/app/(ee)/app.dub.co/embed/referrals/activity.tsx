@@ -22,8 +22,16 @@ export function ReferralsEmbedActivity({
   const token = useEmbedToken();
 
   const isEmpty = clicks === 0 && leads === 0 && sales === 0;
+
+  const analyticsSearchParams = new URLSearchParams({
+    event: "composite",
+    groupBy: "timeseries",
+    interval: "1y",
+  });
+
   const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
-    !isEmpty && "/api/embed/referrals/analytics",
+    !isEmpty &&
+      `/api/embed/referrals/analytics?${analyticsSearchParams.toString()}`,
     (url) =>
       fetcher(url, {
         headers: {
