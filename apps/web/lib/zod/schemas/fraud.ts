@@ -250,9 +250,18 @@ export const updateFraudRuleSettingsSchema = z.object({
   partnerFraudReport: toggleOnlyFraudRuleSchema,
 });
 
+const baseFraudEventSchema = z.object({
+  createdAt: z.date(),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+  }),
+});
+
 export const fraudEventSchemas = {
-  referralSourceBanned: z.object({
-    createdAt: z.date(),
+  referralSourceBanned: baseFraudEventSchema.extend({
     customer: CustomerSchema.pick({
       id: true,
       name: true,
@@ -266,8 +275,7 @@ export const fraudEventSchemas = {
       .nullable(),
   }),
 
-  paidTrafficDetected: z.object({
-    createdAt: z.date(),
+  paidTrafficDetected: baseFraudEventSchema.extend({
     customer: CustomerSchema.pick({
       id: true,
       name: true,
@@ -282,8 +290,7 @@ export const fraudEventSchemas = {
       .nullable(),
   }),
 
-  customerEmailMatch: z.object({
-    createdAt: z.date(),
+  customerEmailMatch: baseFraudEventSchema.extend({
     customer: CustomerSchema.pick({
       id: true,
       name: true,
@@ -298,8 +305,7 @@ export const fraudEventSchemas = {
       .optional(),
   }),
 
-  customerEmailSuspiciousDomain: z.object({
-    createdAt: z.date(),
+  customerEmailSuspiciousDomain: baseFraudEventSchema.extend({
     customer: CustomerSchema.pick({
       id: true,
       name: true,
@@ -308,30 +314,14 @@ export const fraudEventSchemas = {
     }),
   }),
 
-  partnerCrossProgramBan: z.object({
+  partnerCrossProgramBan: baseFraudEventSchema.extend({
     metadata: z.object({
       bannedAt: z.string(),
       bannedReason: z.string(),
     }),
   }),
 
-  partnerDuplicatePayoutMethod: z.object({
-    createdAt: z.date(),
-    partner: PartnerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-    }),
-  }),
+  partnerDuplicatePayoutMethod: baseFraudEventSchema,
 
-  partnerFraudReport: z.object({
-    createdAt: z.date(),
-    partner: PartnerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-    }),
-  }),
+  partnerFraudReport: baseFraudEventSchema,
 };
