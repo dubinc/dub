@@ -1,4 +1,4 @@
-import { DubApiError } from "@/lib/api/errors";
+import { parseRequestBody } from "@/lib/api/utils";
 import { BountySubmissionHandler } from "@/lib/bounty/api/create-bounty-submission";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createBountySubmissionInputSchema } from "@/lib/zod/schemas/bounties";
@@ -7,29 +7,31 @@ import { NextResponse } from "next/server";
 
 // POST /api/embed/referrals/submissions – submit a bounty via embed token
 export const POST = withReferralsEmbedToken(
-  async ({ req, programEnrollment, program }) => {
+  async ({ req, programEnrollment }) => {
+    const parsedInput = createBountySubmissionInputSchema
+      .omit({ programId: true })
+      .parse(await parseRequestBody(req));
+
     const partner = await prisma.partner.findUniqueOrThrow({
-      where: { id: programEnrollment.partnerId },
-      select: { id: true, name: true, image: true, email: true },
+      where: {
+        id: programEnrollment.partnerId,
+      },
+      select: {
+        id: true,
+        name: true,
+        image: true,
+        email: true,
+      },
     });
 
-    const body = createBountySubmissionInputSchema
-      .omit({ programId: true })
-      .parse(await req.json());
+    const submissionHandler = new BountySubmissionHandler({
+      ...parsedInput,
+      programId: programEnrollment.id,
+      partner,
+    });
 
-    try {
-      const submission = await new BountySubmissionHandler({
-        ...body,
-        programId: program.id,
-        partner,
-      }).submit();
+    const submission = await submissionHandler.submit();
 
-      return NextResponse.json(submission);
-    } catch (e) {
-      throw new DubApiError({
-        code: "unprocessable_entity",
-        message: e instanceof Error ? e.message : "Failed to submit bounty.",
-      });
-    }
+    return NextResponse.json(submission);
   },
 );
