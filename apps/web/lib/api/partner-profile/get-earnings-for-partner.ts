@@ -16,7 +16,7 @@ interface GetEarningsForPartnerParams
 }
 
 export async function getEarningsForPartner(
-  filters: GetEarningsForPartnerParams,
+  params: GetEarningsForPartnerParams,
 ) {
   const {
     page = 1,
@@ -35,7 +35,7 @@ export async function getEarningsForPartner(
     programId,
     partnerId,
     customerDataSharingEnabledAt,
-  } = filters;
+  } = params;
 
   const { startDate, endDate } = getStartEndDates({
     interval,
