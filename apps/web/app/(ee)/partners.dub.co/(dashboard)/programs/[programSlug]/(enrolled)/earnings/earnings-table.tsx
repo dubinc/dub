@@ -82,17 +82,16 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           </TimestampTooltip>
         ),
       },
-      {
-        id: "type",
-        header: "Type",
-        accessorKey: "type",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <FilterIconCell set={{ type: row.original.type }} />
-            <CommissionTypeBadge type={row.original.type} />
-          </div>
-        ),
-      },
+        {
+          id: "type",
+          header: "Type",
+          accessorKey: "type",
+          cell: ({ row }) => (
+            <FilterIconCell set={{ type: row.original.type }}>
+              <CommissionTypeBadge type={row.original.type} />
+            </FilterIconCell>
+          ),
+        },
       {
         id: "link",
         header: "Link",

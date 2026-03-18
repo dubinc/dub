@@ -2,7 +2,7 @@ import { AnalyticsResponse } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { Table, usePagination, useTable } from "@dub/ui";
+import { Table, usePagination, useRouterStuff, useTable } from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -11,11 +11,14 @@ import {
   fetcher,
   nFormatter,
 } from "@dub/utils";
+import { useRouter } from "next/navigation";
 import { useContext, useMemo } from "react";
 import useSWR from "swr";
 
 export function AnalyticsPartnersTable() {
   const { selectedTab, queryString } = useContext(AnalyticsContext);
+  const { queryParams } = useRouterStuff();
+  const router = useRouter();
 
   const { pagination, setPagination } = usePagination(10);
 
@@ -107,6 +110,17 @@ export function AnalyticsPartnersTable() {
             },
           ]),
     ],
+    rowProps: (row) => ({
+      className: "cursor-pointer",
+      onClick: () => {
+        const href = queryParams({
+          set: { partnerId: row.original.partnerId },
+          del: "page",
+          getNewPath: true,
+        }) as string;
+        router.push(href);
+      },
+    }),
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["clicks", "leads", "saleAmount"],

@@ -223,15 +223,14 @@ export default function EventsTable({
           cell: ({ getValue }) => {
             const { title, icon: Icon } = TRIGGER_DISPLAY[getValue() ?? "link"];
             return (
-              <div className="flex items-center gap-3">
-                <FilterIconCell
-                  set={{ trigger: getValue() ?? "link" }}
-                  icon={<Icon className="size-4 shrink-0" />}
-                />
+              <FilterIconCell
+                set={{ trigger: getValue() ?? "link" }}
+                icon={<Icon className="size-4 shrink-0" />}
+              >
                 <span className="truncate" title={title}>
                   {title}
                 </span>
-              </div>
+              </FilterIconCell>
             );
           },
         },
@@ -387,27 +386,26 @@ export default function EventsTable({
           header: "Referrer",
           accessorKey: "click.referer",
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              <FilterIconCell
-                set={{ referer: getValue() }}
-                icon={
-                  getValue() === "(direct)" ? (
-                    <Link2 className="h-4 w-4" />
-                  ) : (
-                    <LinkLogo
-                      apexDomain={getValue()}
-                      className="size-4 shrink-0 sm:size-4"
-                    />
-                  )
-                }
-              />
+            <FilterIconCell
+              set={{ referer: getValue() }}
+              icon={
+                getValue() === "(direct)" ? (
+                  <Link2 className="h-4 w-4" />
+                ) : (
+                  <LinkLogo
+                    apexDomain={getValue()}
+                    className="size-4 shrink-0 sm:size-4"
+                  />
+                )
+              }
+            >
               <CopyText
                 value={getValue()}
                 successMessage="Copied referrer to clipboard!"
               >
                 <span className="truncate">{getValue()}</span>
               </CopyText>
-            </div>
+            </FilterIconCell>
           ),
         },
         {
@@ -415,20 +413,19 @@ export default function EventsTable({
           header: "Referrer URL",
           accessorKey: "click.refererUrl",
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
-              <FilterIconCell
-                set={{ refererUrl: getValue() }}
-                icon={
-                  getValue() === "(direct)" ? (
-                    <Link2 className="h-4 w-4" />
-                  ) : (
-                    <LinkLogo
-                      apexDomain={getApexDomain(getValue())}
-                      className="size-4 shrink-0 sm:size-4"
-                    />
-                  )
-                }
-              />
+            <FilterIconCell
+              set={{ refererUrl: getValue() }}
+              icon={
+                getValue() === "(direct)" ? (
+                  <Link2 className="h-4 w-4" />
+                ) : (
+                  <LinkLogo
+                    apexDomain={getApexDomain(getValue())}
+                    className="size-4 shrink-0 sm:size-4"
+                  />
+                )
+              }
+            >
               <CopyText
                 value={getValue()}
                 successMessage="Copied referrer URL to clipboard!"
@@ -437,7 +434,7 @@ export default function EventsTable({
                   {getPrettyUrl(getValue())}
                 </span>
               </CopyText>
-            </div>
+            </FilterIconCell>
           ),
         },
         {
@@ -445,28 +442,24 @@ export default function EventsTable({
           header: "Country",
           accessorKey: "click.country",
           cell: ({ getValue }) => (
-            <div
-              className="flex items-center gap-3"
-              title={COUNTRIES[getValue()] ?? getValue()}
+            <FilterIconCell
+              set={{ country: getValue() }}
+              icon={
+                getValue() === "Unknown" ? (
+                  <Globe className="size-4 shrink-0" />
+                ) : (
+                  <img
+                    alt={getValue()}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )
+              }
             >
-              <FilterIconCell
-                set={{ country: getValue() }}
-                icon={
-                  getValue() === "Unknown" ? (
-                    <Globe className="size-4 shrink-0" />
-                  ) : (
-                    <img
-                      alt={getValue()}
-                      src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
-                      className="size-4 shrink-0"
-                    />
-                  )
-                }
-              />
-              <span className="truncate">
+              <span className="truncate" title={COUNTRIES[getValue()] ?? getValue()}>
                 {COUNTRIES[getValue()] ?? getValue()}
               </span>
-            </div>
+            </FilterIconCell>
           ),
         },
         {
@@ -475,24 +468,23 @@ export default function EventsTable({
           accessorKey: "click.city",
           minSize: 160,
           cell: ({ getValue, row }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              <FilterIconCell
-                set={{ city: getValue() }}
-                icon={
-                  !row.original.country ||
-                  row.original.country === "Unknown" ? (
-                    <Globe className="size-4 shrink-0" />
-                  ) : (
-                    <img
-                      alt={row.original.country}
-                      src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                      className="size-4 shrink-0"
-                    />
-                  )
-                }
-              />
-              <span className="truncate">{getValue()}</span>
-            </div>
+            <FilterIconCell
+              set={{ city: getValue() }}
+              icon={
+                !row.original.country ||
+                row.original.country === "Unknown" ? (
+                  <Globe className="size-4 shrink-0" />
+                ) : (
+                  <img
+                    alt={row.original.country}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )
+              }
+            >
+              <span className="truncate" title={getValue()}>{getValue()}</span>
+            </FilterIconCell>
           ),
         },
         {
@@ -501,26 +493,25 @@ export default function EventsTable({
           accessorKey: "click.region",
           minSize: 160,
           cell: ({ getValue, row }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              <FilterIconCell
-                set={{ region: getValue() }}
-                icon={
-                  !row.original.country ||
-                  row.original.country === "Unknown" ? (
-                    <Globe className="size-4 shrink-0" />
-                  ) : (
-                    <img
-                      alt={row.original.country}
-                      src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                      className="size-4 shrink-0"
-                    />
-                  )
-                }
-              />
-              <span className="truncate">
+            <FilterIconCell
+              set={{ region: getValue() }}
+              icon={
+                !row.original.country ||
+                row.original.country === "Unknown" ? (
+                  <Globe className="size-4 shrink-0" />
+                ) : (
+                  <img
+                    alt={row.original.country}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )
+              }
+            >
+              <span className="truncate" title={getValue()}>
                 {REGIONS[getValue()] || getValue().split("-")[1]}
               </span>
-            </div>
+            </FilterIconCell>
           ),
         },
         {
@@ -528,23 +519,19 @@ export default function EventsTable({
           header: "Continent",
           accessorKey: "click.continent",
           cell: ({ getValue }) => (
-            <div
-              className="flex items-center gap-3"
-              title={CONTINENTS[getValue()] ?? "Unknown"}
+            <FilterIconCell
+              set={{ continent: getValue() }}
+              icon={
+                <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+              }
             >
-              <FilterIconCell
-                set={{ continent: getValue() }}
-                icon={
-                  <ContinentIcon
-                    display={getValue()}
-                    className="size-4 shrink-0"
-                  />
-                }
-              />
-              <span className="truncate">
+              <span
+                className="truncate"
+                title={CONTINENTS[getValue()] ?? "Unknown"}
+              >
                 {CONTINENTS[getValue()] ?? "Unknown"}
               </span>
-            </div>
+            </FilterIconCell>
           ),
         },
         {
@@ -552,19 +539,18 @@ export default function EventsTable({
           header: "Device",
           accessorKey: "click.device",
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              <FilterIconCell
-                set={{ device: getValue() }}
-                icon={
-                  <DeviceIcon
-                    display={capitalize(getValue()) ?? getValue()}
-                    tab="devices"
-                    className="size-4 shrink-0"
-                  />
-                }
-              />
-              <span className="truncate">{getValue()}</span>
-            </div>
+            <FilterIconCell
+              set={{ device: getValue() }}
+              icon={
+                <DeviceIcon
+                  display={capitalize(getValue()) ?? getValue()}
+                  tab="devices"
+                  className="size-4 shrink-0"
+                />
+              }
+            >
+              <span className="truncate" title={getValue()}>{getValue()}</span>
+            </FilterIconCell>
           ),
         },
         {

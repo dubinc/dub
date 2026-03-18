@@ -235,23 +235,22 @@ export default function PayoutsPageClient() {
         id: "program",
         header: "Program",
         cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
-            <FilterIconCell
-              set={{ programId: row.original.programId }}
-              icon={
-                <img
-                  src={row.original.programLogo}
-                  alt={row.original.programName}
-                  width={20}
-                  height={20}
-                  className="size-4 rounded-full"
-                />
-              }
-            />
+          <FilterIconCell
+            set={{ programId: row.original.programId }}
+            icon={
+              <img
+                src={row.original.programLogo}
+                alt={row.original.programName}
+                width={20}
+                height={20}
+                className="size-4 rounded-full"
+              />
+            }
+          >
             <span className="text-sm font-medium">
               {row.original.programName}
             </span>
-          </div>
+          </FilterIconCell>
         ),
       },
       {
@@ -261,12 +260,11 @@ export default function PayoutsPageClient() {
           const badge = PayoutStatusBadges[row.original.status];
 
           return badge ? (
-            <div className="flex items-center gap-1.5">
-              <FilterIconCell set={{ status: row.original.status }} />
+            <FilterIconCell set={{ status: row.original.status }}>
               <StatusBadge icon={badge.icon} variant={badge.variant}>
                 {badge.label}
               </StatusBadge>
-            </div>
+            </FilterIconCell>
           ) : (
             "-"
           );

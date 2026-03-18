@@ -182,21 +182,20 @@ export default function CommissionsPageClient() {
         id: "program",
         header: "Program",
         cell: ({ row }) => (
-          <div className="flex items-center gap-1.5">
-            <FilterIconCell
-              set={{ programId: row.original.id }}
-              icon={
-                <img
-                  src={row.original.logo}
-                  alt={row.original.name}
-                  width={20}
-                  height={20}
-                  className="size-4 rounded-full"
-                />
-              }
-            />
+          <FilterIconCell
+            set={{ programId: row.original.id }}
+            icon={
+              <img
+                src={row.original.logo}
+                alt={row.original.name}
+                width={20}
+                height={20}
+                className="size-4 rounded-full"
+              />
+            }
+          >
             <span className="text-sm font-medium">{row.original.name}</span>
-          </div>
+          </FilterIconCell>
         ),
       },
       {
