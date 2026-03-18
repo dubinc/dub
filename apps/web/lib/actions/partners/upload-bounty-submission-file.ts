@@ -1,11 +1,7 @@
 "use server";
 
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { storage } from "@/lib/storage";
-import { ratelimit } from "@/lib/upstash";
-import { submissionRequirementsSchema } from "@/lib/zod/schemas/bounties";
-import { prisma } from "@dub/prisma";
-import { nanoid, R2_URL } from "@dub/utils";
+import { getBountySubmissionUploadUrl } from "@/lib/bounty/api/get-bounty-submission-upload-url";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -14,110 +10,25 @@ const schema = z.object({
   bountyId: z.string(),
 });
 
-const MAX_ATTEMPTS = 25;
-const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
-
 export const uploadBountySubmissionFileAction = authPartnerActionClient
   .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
     const { programId, bountyId } = parsedInput;
 
-    const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
-      `${CACHE_KEY_PREFIX}:${bountyId}:${partner.id}`,
-    );
+    const programEnrollment = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId,
+      include: {},
+    });
 
-    if (!success) {
-      throw new Error(
-        "You've reached the maximum number of attempts to upload a file for this bounty.",
-      );
-    }
+    const { signedUrl, destinationUrl } = await getBountySubmissionUploadUrl({
+      bountyId,
+      programEnrollment,
+    });
 
-    const [programEnrollment, bounty] = await Promise.all([
-      getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId,
-        include: {},
-      }),
-
-      prisma.bounty.findUniqueOrThrow({
-        where: {
-          id: bountyId,
-        },
-        include: {
-          groups: true,
-          submissions: {
-            where: {
-              partnerId: partner.id,
-            },
-          },
-        },
-      }),
-    ]);
-
-    if (!["approved", "pending"].includes(programEnrollment.status)) {
-      throw new Error(
-        "You are not allowed to submit a bounty for this program.",
-      );
-    }
-
-    if (bounty.programId !== programId) {
-      throw new Error("This bounty is not for this program.");
-    }
-
-    if (bounty.groups.length > 0) {
-      const isInGroup = bounty.groups.find(
-        ({ groupId }) => groupId === programEnrollment.groupId,
-      );
-
-      if (!isInGroup) {
-        throw new Error("You are not allowed to submit this bounty.");
-      }
-    }
-
-    // Validate the bounty dates
-    const now = new Date();
-
-    if (bounty.startsAt && bounty.startsAt > now) {
-      throw new Error("This bounty is not yet available.");
-    }
-
-    if (bounty.endsAt && bounty.endsAt < now) {
-      throw new Error("This bounty is no longer available.");
-    }
-
-    if (bounty.archivedAt) {
-      throw new Error("This bounty is archived.");
-    }
-
-    if (bounty.type === "performance") {
-      throw new Error("You are not allowed to submit a performance bounty.");
-    }
-
-    // Validate the submission requirements
-    const submissionRequirements = submissionRequirementsSchema.parse(
-      bounty.submissionRequirements,
-    );
-
-    const requireImage = !!submissionRequirements?.image;
-
-    if (!requireImage) {
-      throw new Error(
-        "The submission requirements for this bounty do not allow for file uploads.",
-      );
-    }
-
-    try {
-      const key = `programs/${bounty.programId}/bounties/${bounty.id}/submissions/${partner.id}/${nanoid(7)}`;
-      const signedUrl = await storage.getSignedUploadUrl({
-        key,
-      });
-
-      return {
-        signedUrl,
-        destinationUrl: `${R2_URL}/${key}`,
-      };
-    } catch (e) {
-      throw new Error("Failed to get signed URL for upload.");
-    }
+    return {
+      signedUrl,
+      destinationUrl,
+    };
   });

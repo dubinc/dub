@@ -26,7 +26,7 @@ export const POST = withReferralsEmbedToken(
 
     const submissionHandler = new BountySubmissionHandler({
       ...parsedInput,
-      programId: programEnrollment.id,
+      programId: programEnrollment.programId,
       partner,
     });
 
