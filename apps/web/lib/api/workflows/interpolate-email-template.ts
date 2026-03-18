@@ -1,5 +1,8 @@
 import { EmailTemplateVariables } from "@/lib/types";
 
+/**
+ * Escapes a string for safe insertion into HTML text nodes and double-quoted attributes.
+ */
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -9,6 +12,9 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+/**
+ * Renders PartnerLink placeholders: http(s) URLs become a single anchor; otherwise escaped text.
+ */
 function partnerLinkToAnchorOrText(raw: string): string {
   const trimmed = raw.trim();
   if (!trimmed) return "";
@@ -25,27 +31,32 @@ function partnerLinkToAnchorOrText(raw: string): string {
 }
 
 /**
- * Renders an email template by replacing variable placeholders with actual values.
+ * Substitutes campaign email template placeholders after HTML sanitization.
  *
- * Supports Handlebars-style syntax with optional fallback values:
- * - `{{variableName}}` - replaced with the variable value
- * - `{{variableName|fallback}}` - replaced with the variable value, or fallback if variable is null/undefined
+ * **Syntax** — Whitespace around names and `|` is optional, e.g. `{{PartnerName}}`,
+ * `{{ PartnerName | Guest }}`.
  *
- * `{{PartnerLink}}` (and pipe variants) with a valid http(s) URL becomes a clickable `<a>` tag.
+ * **Values**
+ * - Variable present → use its string form.
+ * - Variable null/undefined → use pipe fallback if any, else empty string.
  *
- * @param template - The email template string containing variable placeholders
- * @param variables - Object containing variable names and their values to substitute
- * @returns The rendered template with all placeholders replaced by their corresponding values
+ * **Output**
+ * - `PartnerName`, `PartnerEmail`, etc.: HTML-escaped (treat as plain text; no raw HTML).
+ * - `PartnerLink`: valid `http:` / `https:` URL → clickable `<a>`; else escaped text.
+ *
+ * @param text - HTML string containing `{{VariableName}}` or `{{Name | fallback}}`
+ * @param variables - Map of template variable names to values
+ * @returns HTML with placeholders replaced
  *
  * @example
- * ```
- * const template = "Hello {{PartnerName|Guest}}, welcome to the program!"
- * const variables = { PartnerName: "John" };
- * const result = renderEmailTemplate({ template, variables });
- * // Result: "Hello John, welcome to the program!"
+ * ```ts
+ * interpolateEmailTemplate({
+ *   text: "Hello {{PartnerName|Guest}}!",
+ *   variables: { PartnerName: "John" },
+ * });
+ * // "Hello John!" (Guest ignored when value present)
  * ```
  */
-
 export function interpolateEmailTemplate({
   text,
   variables,
