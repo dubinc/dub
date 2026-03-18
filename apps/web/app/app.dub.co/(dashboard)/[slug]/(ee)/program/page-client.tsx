@@ -70,7 +70,7 @@ export default function ProgramOverviewPageClient() {
   );
 
   return (
-    <div className="@container flex flex-col gap-6">
+    <div className="@container flex flex-col gap-4">
       <SimpleDateRangePicker align="start" className="w-fit" />
       <AnalyticsContext.Provider
         value={{

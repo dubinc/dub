@@ -562,7 +562,7 @@ export function PartnersTable() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col">
       <ChangeGroupModal />
       <BulkArchivePartnersModal />
       <BulkDeactivatePartnersModal />
@@ -597,24 +597,26 @@ export function PartnersTable() {
           </div>
         </AnimatedSizeContainer>
       </div>
-      {partners?.length !== 0 ? (
-        <Table {...tableProps} table={table} />
-      ) : (
-        <AnimatedEmptyState
-          title="No partners found"
-          description={
-            isFiltered
-              ? "No partners found for the selected filters."
-              : "No partners have been added to this program yet."
-          }
-          cardContent={() => (
-            <>
-              <Users className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
-      )}
+      <div className="mt-4">
+        {partners?.length !== 0 ? (
+          <Table {...tableProps} table={table} />
+        ) : (
+          <AnimatedEmptyState
+            title="No partners found"
+            description={
+              isFiltered
+                ? "No partners found for the selected filters."
+                : "No partners have been added to this program yet."
+            }
+            cardContent={() => (
+              <>
+                <Users className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+              </>
+            )}
+          />
+        )}
+      </div>
     </div>
   );
 }

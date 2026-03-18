@@ -211,7 +211,7 @@ export function GroupsTable() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <SearchBoxPersisted
           placeholder="Search by name"

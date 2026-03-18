@@ -129,7 +129,7 @@ export function ProgramPartnerNetworkPageClient() {
   }, [partners, detailsSheetState.partnerId]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col">
       {detailsSheetState.partnerId && currentPartner && (
         <NetworkPartnerSheet
           isOpen={detailsSheetState.open}
@@ -157,7 +157,7 @@ export function ProgramPartnerNetworkPageClient() {
           }
         />
       )}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="mt-px grid grid-cols-3 gap-2">
         {tabs.map((tab) => {
           const isActive = status === tab.id;
 
@@ -193,7 +193,7 @@ export function ProgramPartnerNetworkPageClient() {
         })}
       </div>
 
-      <div>
+      <div className="mt-[17px]">
         <div className="xs:flex-row xs:items-center flex flex-col gap-4">
           <Filter.Select
             className="h-9 w-full rounded-lg md:w-fit"
@@ -222,7 +222,7 @@ export function ProgramPartnerNetworkPageClient() {
         <AnimatedSizeContainer height>
           <div>
             {activeFilters.length > 0 && (
-              <div className="pt-3">
+              <div className="pt-4">
                 <Filter.List
                   filters={filters}
                   activeFilters={activeFilters}
@@ -241,7 +241,7 @@ export function ProgramPartnerNetworkPageClient() {
           Failed to load partners
         </div>
       ) : !partners || partners?.length ? (
-        <div>
+        <div className="mt-4">
           <div
             className={cn(
               "@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 transition-opacity lg:gap-6",

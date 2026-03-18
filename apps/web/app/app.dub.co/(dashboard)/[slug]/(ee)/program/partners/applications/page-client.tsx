@@ -426,7 +426,7 @@ export function ProgramPartnersApplicationsPageClient() {
   }, [partners, detailsSheetState.partnerId]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col">
       {detailsSheetState.partnerId && currentPartner && (
         <PartnerApplicationSheet
           isOpen={detailsSheetState.open}
@@ -487,20 +487,22 @@ export function ProgramPartnersApplicationsPageClient() {
           </div>
         </AnimatedSizeContainer>
       </div>
-      {partners?.length !== 0 ? (
-        <Table {...tableProps} table={table} />
-      ) : (
-        <AnimatedEmptyState
-          title="No applications found"
-          description={`No applications found${isFiltered || search ? " for the selected filters" : " for this program"}.`}
-          cardContent={() => (
-            <>
-              <Users className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
-      )}
+      <div className="mt-4">
+        {partners?.length !== 0 ? (
+          <Table {...tableProps} table={table} />
+        ) : (
+          <AnimatedEmptyState
+            title="No applications found"
+            description={`No applications found${isFiltered || search ? " for the selected filters" : " for this program"}.`}
+            cardContent={() => (
+              <>
+                <Users className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+              </>
+            )}
+          />
+        )}
+      </div>
     </div>
   );
 }
