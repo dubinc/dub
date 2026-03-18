@@ -21,6 +21,7 @@ import { suggestions } from "./variables";
 export const PROSE_STYLES = {
   default: "prose-p:my-2 prose-ul:my-2 prose-ol:my-2",
   condensed: "prose-p:my-0 prose-ul:my-2 prose-ol:my-2",
+  chat: "prose-p:my-0 prose-ul:my-2 prose-ol:my-2 [&_p+p]:mt-2",
   relaxed: "",
 } as const;
 
