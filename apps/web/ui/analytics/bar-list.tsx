@@ -7,6 +7,7 @@ import { cn, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { Search } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
+import { useRouter } from "next/navigation";
 import {
   ComponentProps,
   Dispatch,
@@ -52,6 +53,8 @@ export function BarList({
     filterValue?: string;
     value: number;
     linkId?: string;
+    /** When set without filter UI (e.g. billing usage modal), row navigates here */
+    href?: string;
   }[];
   allData?: {
     icon: ReactNode;
@@ -59,6 +62,7 @@ export function BarList({
     filterValue?: string;
     value: number;
     linkId?: string;
+    href?: string;
   }[];
   maxValue: number;
   barBackground: string;
@@ -100,6 +104,7 @@ export function BarList({
     enabled: hasSelection && !!onClearSelection,
   });
 
+  // Collapsed card: selection UI is staging-only (new picks before Apply).
   const effectiveSelectedValues = !limit
     ? modalSelectedValues
     : selectedFilterValues;
@@ -286,6 +291,7 @@ export function LineItem({
   isSelected,
   isActivelyFiltered,
   onFilterClick,
+  href,
 }: {
   icon: ReactNode;
   title: string;
@@ -304,11 +310,13 @@ export function LineItem({
   isSelected?: boolean;
   isActivelyFiltered?: boolean;
   onFilterClick?: () => void;
+  href?: string;
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const [filterButtonHovered, setFilterButtonHovered] = useState(false);
   const [tooltipResetKey, setTooltipResetKey] = useState(0);
   const { saleUnit } = useContext(AnalyticsContext);
+  const router = useRouter();
 
   const percentage = Math.round((value / totalSum) * 1000) / 10;
   const isModalView = !limit;
@@ -405,16 +413,24 @@ export function LineItem({
     </div>
   );
 
+  const rowClickable =
+    (onFilterClick && !isActivelyFiltered) || (!!href && !onFilterClick);
+
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => {
-        if (onFilterClick && !isActivelyFiltered) onFilterClick();
+        if (onFilterClick && !isActivelyFiltered) {
+          onFilterClick();
+        } else if (href && !onFilterClick) {
+          router.push(href);
+          setShowModal(false);
+        }
       }}
       className={cn(
         "group block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all",
-        onFilterClick && !isActivelyFiltered && "cursor-pointer",
+        rowClickable && "cursor-pointer",
         hoverBackground,
       )}
     >

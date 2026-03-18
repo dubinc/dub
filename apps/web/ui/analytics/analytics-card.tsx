@@ -182,6 +182,7 @@ export function AnalyticsCard<T extends string>({
             setShowModal,
           })}
         </div>
+        {/* View All when filtered: modal shows full list (items not on card). */}
         {(showViewAll || isFilterActive) && (
           <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">
             <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />

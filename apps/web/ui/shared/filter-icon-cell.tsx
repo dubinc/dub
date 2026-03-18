@@ -4,7 +4,7 @@ import { useRouterStuff } from "@dub/ui";
 import { FilterBars } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { type MouseEvent, type ReactNode } from "react";
 
 export function FilterIconCell({
   set,
@@ -22,13 +22,18 @@ export function FilterIconCell({
 
   const href = queryParams({ set, del: "page", getNewPath: true }) as string;
 
+  const stopRowPointer = (e: MouseEvent) => e.stopPropagation();
+
   const filterButtonLink = (
     <Link
       href={href}
-      onClick={(e) => e.stopPropagation()}
+      onClick={stopRowPointer}
+      onAuxClick={stopRowPointer}
       className={cn(
         "flex size-6 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
         "-translate-x-3 opacity-0 group-hover:translate-x-0 group-hover:opacity-100",
+        "pointer-events-none group-hover:pointer-events-auto",
+        "focus:pointer-events-auto focus:translate-x-0 focus:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
         isActive ? "bg-neutral-900" : "border border-neutral-200 bg-white",
       )}
       aria-label="Filter by this value"
@@ -39,24 +44,22 @@ export function FilterIconCell({
     </Link>
   );
 
-  // No-icon + children: filter button is absolutely positioned (zero layout
-  // impact) so it never causes a table column width reflow. Children shift
-  // right via transform on hover.
+  // No-icon + children: filter button is absolutely positioned
   if (!icon && children) {
     return (
       <div className="relative flex items-center">
-        {/* Full-area overlay — enables clicking anywhere in the cell to filter */}
         <Link
           href={href}
-          onClick={(e) => e.stopPropagation()}
+          onClick={stopRowPointer}
+          onAuxClick={stopRowPointer}
           className="absolute inset-0 z-0"
           aria-label="Filter by this value"
         />
-        {/* Filter button: absolute, no layout space consumed */}
+
         <div className="absolute inset-y-0 left-0 z-10 flex items-center">
           {filterButtonLink}
         </div>
-        {/* Children shift right on hover — transform only, no reflow */}
+
         <div className="relative z-10 min-w-0 transition-all duration-200 group-hover:translate-x-8">
           {children}
         </div>
@@ -69,7 +72,8 @@ export function FilterIconCell({
       {children && (
         <Link
           href={href}
-          onClick={(e) => e.stopPropagation()}
+          onClick={stopRowPointer}
+          onAuxClick={stopRowPointer}
           className="absolute inset-0 z-0"
           aria-label="Filter by this value"
         />

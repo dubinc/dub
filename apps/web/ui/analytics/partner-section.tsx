@@ -78,6 +78,7 @@ export function PartnerSection() {
   const isFilterActive = useMemo(() => {
     if (subtab === "groups") return searchParams.has("groupId");
     if (subtab === "tags") return searchParams.has("tagId");
+    if (subtab === "short_links") return searchParams.has("linkId");
     if (subtab === "destination_urls") return searchParams.has("url");
     return false;
   }, [subtab, searchParams]);
@@ -86,6 +87,8 @@ export function PartnerSection() {
     if (subtab === "groups")
       return searchParams.get("groupId")?.split(",") ?? [];
     if (subtab === "tags") return searchParams.get("tagId")?.split(",") ?? [];
+    if (subtab === "short_links")
+      return searchParams.get("linkId")?.split(",") ?? [];
     if (subtab === "destination_urls")
       return searchParams.get("url")?.split(",") ?? [];
     return [];
@@ -94,6 +97,7 @@ export function PartnerSection() {
   const filterParamKey = useMemo(() => {
     if (subtab === "groups") return "groupId";
     if (subtab === "tags") return "tagId";
+    if (subtab === "short_links") return "linkId";
     if (subtab === "destination_urls") return "url";
     return null;
   }, [subtab]);
@@ -190,6 +194,7 @@ export function PartnerSection() {
       let filterValue: string | undefined;
       if (isGroupsSubtab) filterValue = d.groupId;
       else if (isTagsSubtab) filterValue = d.tagId;
+      else if (isShortLinksSubtab) filterValue = d.id;
       else if (isDestinationUrlsSubtab) filterValue = d.url;
 
       return {
