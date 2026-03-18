@@ -34,10 +34,21 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
 };
 
 export const suggestions = (variables: string[]) => ({
-  items: ({ query }: { query: string }) =>
-    variables
-      .filter((item) => item.toLowerCase().startsWith(query.toLowerCase()))
-      .slice(0, 5),
+  items: ({ query }: { query: string }) => {
+    const q = query.trim().toLowerCase();
+    if (!q) return variables.slice(0, 5);
+    return variables
+      .filter((item) => item.toLowerCase().includes(q))
+      .sort((a, b) => {
+        const al = a.toLowerCase();
+        const bl = b.toLowerCase();
+        const aPrefix = al.startsWith(q) ? 0 : 1;
+        const bPrefix = bl.startsWith(q) ? 0 : 1;
+        if (aPrefix !== bPrefix) return aPrefix - bPrefix;
+        return a.localeCompare(b);
+      })
+      .slice(0, 5);
+  },
 
   render: () => {
     let component: any;
@@ -95,6 +106,10 @@ const menuItemClassName = cn(
   "data-[selected=true]:bg-neutral-100",
 );
 
+function usesFallbackStep(variableId: string) {
+  return variableId === "PartnerName";
+}
+
 const Menu = forwardRef(
   (
     {
@@ -120,6 +135,10 @@ const Menu = forwardRef(
     };
 
     const selectVar = (item: string) => {
+      if (!usesFallbackStep(item)) {
+        command({ id: item, fallback: null });
+        return;
+      }
       setPendingVar(item);
       setFallback("");
     };
@@ -162,7 +181,11 @@ const Menu = forwardRef(
         }
 
         if (event.key === "Enter") {
-          if (items.length > 0 && selectedIndex >= 0 && selectedIndex < items.length) {
+          if (
+            items.length > 0 &&
+            selectedIndex >= 0 &&
+            selectedIndex < items.length
+          ) {
             selectVar(items[selectedIndex]);
             return true;
           }
