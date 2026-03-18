@@ -129,27 +129,23 @@ export function FraudGroupTable() {
 
           if (reason) {
             return (
-              <div className="flex items-center gap-2">
-                <FilterIconCell set={{ type: row.original.type }} />
-                <Tooltip content={reason.description}>
-                  <span
-                    className={cn(
-                      "cursor-help truncate underline decoration-dotted underline-offset-2",
-                    )}
-                  >
-                    {reason.name}
-                  </span>
-                </Tooltip>
-
-                {count > 1 && (
-                  <Badge
-                    variant="gray"
-                    className="shrink-0 rounded-md border-none px-1.5 py-1 text-xs font-semibold text-neutral-700"
-                  >
-                    +{Number(count) - 1}
-                  </Badge>
-                )}
-              </div>
+              <FilterIconCell set={{ type: row.original.type }}>
+                <div className="flex items-center gap-2">
+                  <Tooltip content={reason.description}>
+                    <span className="cursor-help truncate underline decoration-dotted underline-offset-2">
+                      {reason.name}
+                    </span>
+                  </Tooltip>
+                  {count > 1 && (
+                    <Badge
+                      variant="gray"
+                      className="shrink-0 rounded-md border-none px-1.5 py-1 text-xs font-semibold text-neutral-700"
+                    >
+                      +{Number(count) - 1}
+                    </Badge>
+                  )}
+                </div>
+              </FilterIconCell>
             );
           }
         },
