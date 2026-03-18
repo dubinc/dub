@@ -449,7 +449,11 @@ function DomainCardMenu({
                   Link Settings
                 </p>
                 <Button
-                  text="Edit Link"
+                  text={
+                    linkProps?.key === "_root"
+                      ? "Edit Landing Page"
+                      : "Edit Link"
+                  }
                   variant="outline"
                   onClick={() => {
                     setOpenPopover(false);

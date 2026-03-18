@@ -1,12 +1,9 @@
-"use client";
-
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
 import { Logo } from "@dub/ui";
 import { cn, createHref } from "@dub/utils";
-import { useParams } from "next/navigation";
 import { BubbleIcon } from "../../ui/placeholders/bubble-icon";
 import { BrowserGraphic } from "./browser-graphic";
 
@@ -15,9 +12,7 @@ const UTM_PARAMS = {
   utm_medium: "Welcome Page",
 };
 
-export default function PlaceholderContent() {
-  const { domain } = useParams() as { domain: string };
-
+export default function PlaceholderContent({ domain }: { domain: string }) {
   return (
     <div>
       <Hero>
