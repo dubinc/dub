@@ -7,15 +7,15 @@ async function main() {
   const integration = await prisma.integration.create({
     data: {
       id: createId({ prefix: "int_" }),
-      name: "Hubspot",
-      slug: "hubspot",
-      description: "Hubspot",
+      name: "AppsFlyer",
+      slug: "appsflyer",
+      description: "Track AppsFlyer events with Dub.",
       developer: "Dub",
       website: "https://dub.co",
       verified: true,
       projectId: DUB_WORKSPACE_ID,
-      category: "",
-      guideUrl: "",
+      category: "analytics",
+      guideUrl: "https://dub.co/docs/integrations/appsflyer",
     },
   });
 
