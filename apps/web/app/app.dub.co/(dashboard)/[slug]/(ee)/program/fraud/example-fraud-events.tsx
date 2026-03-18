@@ -1,6 +1,6 @@
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
-import { FraudRuleType } from "@dub/prisma/client";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { FraudRuleType } from "@dub/prisma/client";
 import { Button, ShieldKeyhole } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 
