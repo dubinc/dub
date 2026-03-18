@@ -370,7 +370,7 @@ export function CommissionsTable() {
   });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center">
           <Filter.Select
@@ -383,7 +383,8 @@ export function CommissionsTable() {
             onSelectedFilterChange={setSelectedFilter}
           />
           <SimpleDateRangePicker
-            className="w-full sm:min-w-[200px] md:w-fit"
+            align="start"
+            className="w-fit"
             defaultInterval="all"
           />
         </div>
