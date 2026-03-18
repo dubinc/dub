@@ -37,4 +37,24 @@ describe("interpolateEmailTemplate", () => {
       }),
     ).toBe("Hello !");
   });
+
+  it("renders PartnerLink as a clickable anchor for https URLs", () => {
+    expect(
+      interpolateEmailTemplate({
+        text: "Your link: {{PartnerLink}}",
+        variables: { PartnerLink: "https://example.com/foo" },
+      }),
+    ).toBe(
+      'Your link: <a href="https://example.com/foo" target="_blank" rel="noopener noreferrer">https://example.com/foo</a>',
+    );
+  });
+
+  it("renders PartnerLink fallback as plain text when variable is missing", () => {
+    expect(
+      interpolateEmailTemplate({
+        text: "Link: {{PartnerLink | N/A}}",
+        variables: {},
+      }),
+    ).toBe("Link: N/A");
+  });
 });
