@@ -5,7 +5,8 @@ function escapeHtml(s: string): string {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function partnerLinkToAnchorOrText(raw: string): string {
@@ -60,7 +61,7 @@ export function interpolateEmailTemplate({
       if (key === "PartnerLink") {
         return partnerLinkToAnchorOrText(resolved);
       }
-      return resolved;
+      return escapeHtml(resolved);
     },
   );
 }

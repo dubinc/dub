@@ -158,6 +158,7 @@ export async function POST(req: Request) {
           select: {
             shortLink: true,
           },
+          orderBy: { id: "asc" },
         },
         partner: {
           select: {

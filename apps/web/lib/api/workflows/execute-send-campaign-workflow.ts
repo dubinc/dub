@@ -211,6 +211,23 @@ export const executeSendCampaignWorkflow = async ({
   }
 };
 
+const enrollmentLinksForEmail = {
+  select: { shortLink: true },
+  orderBy: { id: "asc" as const },
+};
+
+const enrollmentLinksForWorkflowStats = {
+  select: {
+    shortLink: true,
+    clicks: true,
+    leads: true,
+    conversions: true,
+    sales: true,
+    saleAmount: true,
+  },
+  orderBy: { id: "asc" as const },
+};
+
 const includePartnerUsers = {
   partner: {
     include: {
@@ -221,7 +238,7 @@ const includePartnerUsers = {
       },
     },
   },
-  links: true,
+  links: enrollmentLinksForEmail,
 } satisfies Prisma.ProgramEnrollmentInclude;
 
 async function getProgramEnrollments({
@@ -259,7 +276,9 @@ async function getProgramEnrollments({
       },
       include: {
         ...includePartnerUsers,
-        ...(isPartnerLinkStatsAttribute ? { links: true } : {}),
+        ...(isPartnerLinkStatsAttribute
+          ? { links: enrollmentLinksForWorkflowStats }
+          : {}),
       },
     });
 
@@ -270,7 +289,11 @@ async function getProgramEnrollments({
     const context: Partial<Record<WorkflowConditionAttribute, number | null>> =
       {
         ...(isPartnerLinkStatsAttribute
-          ? aggregatePartnerLinksStats(programEnrollment.links)
+          ? aggregatePartnerLinksStats(
+              programEnrollment.links as unknown as NonNullable<
+                Parameters<typeof aggregatePartnerLinksStats>[0]
+              >,
+            )
           : {}),
         ...(attribute === "totalCommissions"
           ? {

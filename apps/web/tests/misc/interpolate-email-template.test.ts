@@ -57,4 +57,13 @@ describe("interpolateEmailTemplate", () => {
       }),
     ).toBe("Link: N/A");
   });
+
+  it("HTML-escapes non-link variables to avoid injection", () => {
+    expect(
+      interpolateEmailTemplate({
+        text: "Hi {{PartnerName}}",
+        variables: { PartnerName: "<script>alert(1)</script>" },
+      }),
+    ).toBe("Hi &lt;script&gt;alert(1)&lt;/script&gt;");
+  });
 });
