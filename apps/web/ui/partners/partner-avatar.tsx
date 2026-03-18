@@ -10,7 +10,7 @@ export function PartnerAvatar({
   className?: string;
   showName?: boolean;
 }) {
-  const identifier = partner.name || partner.id || "Unknow";
+  const identifier = partner.name || partner.id || "Unknown";
   const displayName = partner.name || partner.id || "Partner";
 
   return (
