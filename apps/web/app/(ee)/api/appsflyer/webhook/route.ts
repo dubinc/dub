@@ -1,19 +1,21 @@
+import { trackLead } from "@/lib/api/conversions/track-lead";
+import { trackSale } from "@/lib/api/conversions/track-sale";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
-import { trackAppsFlyerLeadEvent } from "@/lib/integrations/appsflyer/track-lead";
-import { trackAppsFlyerSaleEvent } from "@/lib/integrations/appsflyer/track-sale";
+import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
+import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const querySchema = z.object({
-  publishable_key: z
+  publishableKey: z
     .string()
-    .min(1, "publishable_key is required")
+    .min(1, "publishableKey is required")
     .startsWith("dub_pk_", "Invalid publishable key format.")
     .describe("The workspace's publishable key on Dub."),
-  event_type: z.enum(["lead", "sale"]),
+  eventName: z.string().min(1, "eventName is required"),
 });
 
 // GET /api/appsflyer/webhook – listen to Postback events from AppsFlyer
@@ -21,8 +23,7 @@ export const GET = withAxiom(async (req) => {
   try {
     const queryParams = getSearchParams(req.url);
 
-    const { publishable_key: publishableKey, event_type: eventType } =
-      querySchema.parse(queryParams);
+    const { publishableKey, eventName } = querySchema.parse(queryParams);
 
     const workspace = await prisma.project.findUnique({
       where: {
@@ -44,22 +45,56 @@ export const GET = withAxiom(async (req) => {
       });
     }
 
-    delete queryParams.publishable_key;
-    delete queryParams.event_type;
+    // Track lead event
+    if (eventName === "lead") {
+      const {
+        clickId,
+        eventName,
+        customerExternalId,
+        customerName,
+        customerEmail,
+        customerAvatar,
+      } = trackLeadRequestSchema.parse(queryParams);
 
-    if (eventType === "lead") {
-      await trackAppsFlyerLeadEvent({
-        queryParams,
+      await trackLead({
+        clickId,
+        eventName,
+        customerExternalId,
+        customerName,
+        customerEmail,
+        customerAvatar,
+        eventQuantity: undefined,
+        mode: undefined,
+        metadata: null,
         workspace,
+        rawBody: queryParams,
       });
-    } else if (eventType === "sale") {
-      await trackAppsFlyerSaleEvent({
-        queryParams,
-        workspace,
-      });
+
+      return NextResponse.json("Lead event tracked successfully.");
     }
 
-    return NextResponse.json("OK");
+    // Track sale event
+    if (eventName === "sale") {
+      const { eventName, customerExternalId, amount, currency, invoiceId } =
+        trackSaleRequestSchema.parse(queryParams);
+
+      await trackSale({
+        customerExternalId,
+        amount,
+        currency,
+        eventName,
+        paymentProcessor: undefined,
+        invoiceId,
+        leadEventName: undefined,
+        metadata: null,
+        workspace,
+        rawBody: queryParams,
+      });
+
+      return NextResponse.json("Sale event tracked successfully.");
+    }
+
+    return NextResponse.json(`Unknow ${eventName} event.`);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
