@@ -32,5 +32,5 @@
   "resolutions": {
     "chrono-node": "2.7.5"
   },
-  "packageManager": "pnpm@8.6.10"
+  "packageManager": "pnpm@9.15.5"
 }
