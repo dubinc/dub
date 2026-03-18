@@ -12,7 +12,7 @@ export function CustomerAvatar({
   className?: string;
   showName?: boolean;
 }) {
-  const identifier = customer.name || customer.email || customer.id || "Unknow";
+  const identifier = customer.name || customer.email || customer.id || "Unknown";
   const displayName =
     customer.name || customer.email || customer.id || "Customer";
 
