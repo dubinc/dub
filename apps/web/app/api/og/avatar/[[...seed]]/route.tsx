@@ -1,6 +1,6 @@
+import { getTheme } from "@/lib/avatar-theme";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
-import { getTheme } from "./utils";
 
 export const runtime = "edge";
 

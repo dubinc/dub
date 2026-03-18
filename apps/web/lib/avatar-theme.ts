@@ -1,4 +1,4 @@
-export const THEMES = [
+const THEMES = [
   // Blues
   { bg: "#DBEAFE", fg: "#2B7FFF" },
   { bg: "#DFF2FE", fg: "#00A6F4" },
@@ -26,3 +26,21 @@ export const THEMES = [
   { bg: "#F5F5F5", fg: "#404040" },
   { bg: "#FAFAFA", fg: "#FAFAFA" },
 ] as const;
+
+function hashCode(str: string) {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+  return Math.abs(hash);
+}
+
+export function getTheme(seed?: string | null): (typeof THEMES)[number] {
+  if (!seed) {
+    return THEMES[Math.floor(Math.random() * THEMES.length)];
+  }
+  const index = hashCode(seed) % THEMES.length;
+  return THEMES[index];
+}
