@@ -18,6 +18,14 @@ const querySchema = z.object({
   eventName: z.string().min(1, "eventName is required"),
 });
 
+// https://support.appsflyer.com/hc/en-us/articles/4410481112081-In-app-events-Event-structure#predefined-event-names
+const appsFlyerToDubEvent = {
+  af_complete_registration: "lead",
+  af_subscribe: "sale",
+};
+
+const supportedEvents = Object.keys(appsFlyerToDubEvent);
+
 // GET /api/appsflyer/webhook – listen to Postback events from AppsFlyer
 export const GET = withAxiom(async (req) => {
   try {
@@ -43,6 +51,14 @@ export const GET = withAxiom(async (req) => {
         docUrl:
           "https://dub.co/docs/api-reference/authentication#create-a-publishable-key",
       });
+    }
+
+    if (!supportedEvents.includes(eventName)) {
+      console.error(
+        `Event ${eventName} is not supported by AppsFlyer <> Dub integration.`,
+      );
+
+      return NextResponse.json("OK");
     }
 
     // Track lead event
@@ -94,7 +110,7 @@ export const GET = withAxiom(async (req) => {
       return NextResponse.json("Sale event tracked successfully.");
     }
 
-    return NextResponse.json(`Unknow ${eventName} event.`);
+    return NextResponse.json("OK");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
