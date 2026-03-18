@@ -2,18 +2,21 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { generateRandomName } from "@/lib/names";
-import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  partnerProfileEventsQuerySchema,
+  PartnerProfileLinkSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
 
-const querySchema = z.object({
-  event: z.enum(["leads", "sales"]).default("leads"),
-  start: z.union([z.iso.date(), z.iso.datetime()]).optional(),
-  end: z.union([z.iso.date(), z.iso.datetime()]).optional(),
-  saleType: z.enum(["new", "recurring"]).optional(),
-  limit: z.coerce.number().int().positive().max(100).default(10),
-  page: z.coerce.number().int().positive().default(1),
+const querySchema = partnerProfileEventsQuerySchema.pick({
+  event: true,
+  start: true,
+  end: true,
+  saleType: true,
+  limit: true,
+  page: true,
+  sortBy: true,
 });
 
 // GET /api/embed/referrals/events – get paginated events for a partner
@@ -23,16 +26,10 @@ export const GET = withReferralsEmbedToken(
       return NextResponse.json([]);
     }
 
-    const parsed = querySchema.parse(searchParams);
+    const parsedQuery = querySchema.parse(searchParams);
 
     const events = await getEvents({
-      event: parsed.event,
-      ...(parsed.start && { start: new Date(parsed.start) }),
-      ...(parsed.end && { end: new Date(parsed.end) }),
-      ...(parsed.saleType && { saleType: parsed.saleType }),
-      limit: parsed.limit,
-      page: parsed.page,
-      sortBy: "timestamp",
+      ...parsedQuery,
       workspaceId: program.workspaceId,
       linkId: parseFilterValue(links.map((link) => link.id)),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
