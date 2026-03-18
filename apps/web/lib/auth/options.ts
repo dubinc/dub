@@ -18,7 +18,7 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { createId } from "../api/create-id";
-import { isProduction } from "../api/environment";
+import { isProduction, skipAuthThrottling } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
@@ -223,7 +223,7 @@ export const authOptions: NextAuthOptions = {
           throw new Error("no-credentials");
         }
 
-        if (isProduction) {
+        if (!skipAuthThrottling) {
           const { success } = await ratelimit(5, "1 m").limit(
             `login-attempts:${email}`,
           );
