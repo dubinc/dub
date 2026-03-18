@@ -1,5 +1,6 @@
 "use client";
 
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { useFraudEventsPaginated } from "@/lib/swr/use-fraud-events-paginated";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -106,7 +107,13 @@ export function FraudMatchingCustomerEmailTable() {
 
           return (
             <Link
-              href={`/${workspaceSlug}/program/customers/${row.original.customer.id}`}
+              href={
+                row.original.customer.email &&
+                row.original.metadata?.matchType ===
+                  CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH
+                  ? `/${workspaceSlug}/program/customers?partnerId=${row.original.partner.id}&search=${extractEmailDomain(row.original.customer.email)}`
+                  : `/${workspaceSlug}/events?event=leads&interval=all&customerId=${row.original.customer.id}`
+              }
               target="_blank"
             >
               <Button
