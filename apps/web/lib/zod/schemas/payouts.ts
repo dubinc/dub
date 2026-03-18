@@ -100,6 +100,7 @@ export const PayoutResponseSchema = PayoutSchema.extend({
     name: true,
     email: true,
     image: true,
+    defaultPayoutMethod: true,
     payoutsEnabledAt: true,
     country: true,
     groupId: true,

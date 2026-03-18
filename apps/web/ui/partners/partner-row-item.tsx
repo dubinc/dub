@@ -1,7 +1,7 @@
 import useProgram from "@/lib/swr/use-program";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
-import { cn, timeAgo } from "@dub/utils";
+import { cn, formatDateTimeSmart } from "@dub/utils";
 import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
@@ -156,7 +156,7 @@ function PartnerPayoutStatusTooltip({
           </div>
           <span>
             {getPayoutMethodLabel(partner.defaultPayoutMethod!)} · Connected{" "}
-            {timeAgo(partner.payoutsEnabledAt!, { withAgo: true })}
+            {formatDateTimeSmart(partner.payoutsEnabledAt!)}
           </span>
         </div>
       )}
