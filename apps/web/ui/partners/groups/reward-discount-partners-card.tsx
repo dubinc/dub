@@ -13,11 +13,15 @@ import { RewardIconSquare } from "../rewards/reward-icon-square";
 export function RewardDiscountPartnersCard({ groupId }: { groupId: string }) {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
-  const { partnersCount } = usePartnersCount<number | undefined>({ groupId });
+  const { partnersCount } = usePartnersCount<number | undefined>({
+    groupId,
+    status: "approved",
+  });
 
   const { partners } = usePartners({
     query: {
       groupId,
+      status: "approved",
       pageSize: 10,
     },
   });

@@ -97,14 +97,25 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   return NextResponse.json(
     ProgramMessagesSchema.parse(
       programs
-        // Sort by most recent message
-        .sort((a, b) =>
-          sortOrder === "desc"
+        // Sort by unread first, then by most recent message
+        .sort((a, b) => {
+          const aUnread = a.messages.some(
+            (m) => !m.senderPartnerId && !m.readInApp,
+          );
+          const bUnread = b.messages.some(
+            (m) => !m.senderPartnerId && !m.readInApp,
+          );
+
+          if (aUnread !== bUnread) {
+            return aUnread ? -1 : 1;
+          }
+
+          return sortOrder === "desc"
             ? (b.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
-              (a.messages?.[0]?.[sortBy]?.getTime() ?? 0)
+                (a.messages?.[0]?.[sortBy]?.getTime() ?? 0)
             : (a.messages?.[0]?.[sortBy]?.getTime() ?? 0) -
-              (b.messages?.[0]?.[sortBy]?.getTime() ?? 0),
-        )
+                (b.messages?.[0]?.[sortBy]?.getTime() ?? 0);
+        })
         // Map to {program, messages}
         .map(({ messages, ...program }) => ({
           program,

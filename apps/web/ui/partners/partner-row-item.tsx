@@ -7,7 +7,10 @@ import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
-import { getPayoutMethodLabel } from "./payouts/payout-method-config";
+import {
+  getPayoutMethodIconConfig,
+  getPayoutMethodLabel,
+} from "./payouts/payout-method-config";
 
 interface PartnerRowItemProps {
   showPermalink?: boolean;
@@ -118,6 +121,11 @@ function PartnerPayoutStatusTooltip({
     partner.payoutsEnabledAt &&
     partner.defaultPayoutMethod;
 
+  const { Icon: MethodIcon, wrapperClass: methodWrapperClass } =
+    hasPayoutDetails
+      ? getPayoutMethodIconConfig(partner.defaultPayoutMethod!)
+      : { Icon: GreekTemple, wrapperClass: "" };
+
   return (
     <div className="max-w-xs">
       <div className="grid gap-2 p-2.5">
@@ -137,9 +145,17 @@ function PartnerPayoutStatusTooltip({
         </div>
       </div>
       {hasPayoutDetails && (
-        <div className="border-t border-neutral-100 p-2.5 text-xs text-neutral-600">
+        <div className="flex items-center gap-1.5 border-t border-neutral-100 p-2.5 text-xs text-neutral-600">
+          <div
+            className={cn(
+              "flex size-5 shrink-0 items-center justify-center rounded-md border",
+              methodWrapperClass,
+            )}
+          >
+            <MethodIcon className="size-3" />
+          </div>
           <span>
-            Connected {getPayoutMethodLabel(partner.defaultPayoutMethod!)}{" "}
+            {getPayoutMethodLabel(partner.defaultPayoutMethod!)} · Connected{" "}
             {formatDateTimeSmart(partner.payoutsEnabledAt!)}
           </span>
         </div>

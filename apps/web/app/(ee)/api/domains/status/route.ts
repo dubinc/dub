@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { DOMAIN_REGISTRATION_ELIGIBLE_WORKSPACES } from "@/lib/dynadot/constants";
 import { searchDomainsAvailability } from "@/lib/dynadot/search-domains";
 import {
   DomainStatusSchema,
@@ -11,7 +12,7 @@ import * as z from "zod/v4";
 
 // GET /api/domains/status - checks the availability status of one or more domains
 export const GET = withWorkspace(
-  async ({ searchParams }) => {
+  async ({ workspace, searchParams }) => {
     let { domains } = searchDomainSchema.parse(searchParams);
 
     if (domains.length === 0) {
@@ -19,6 +20,14 @@ export const GET = withWorkspace(
         code: "bad_request",
         message:
           "You must provide at least one domain to check. We only support .link domains for now.",
+      });
+    }
+
+    if (!DOMAIN_REGISTRATION_ELIGIBLE_WORKSPACES.includes(workspace.id)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "GET /domains/status is not available for your workspace. Contact support for more information.",
       });
     }
 

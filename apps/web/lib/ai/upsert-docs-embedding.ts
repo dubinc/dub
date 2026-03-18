@@ -22,7 +22,9 @@ async function cleanMdx(
 
   content = content.replace(
     /<PayoutSupportedCountries\s*\/>/g,
-    PAYOUT_SUPPORTED_COUNTRIES.map((c) => `- ${c.name} (${c.code})`).join("\n"),
+    PAYOUT_SUPPORTED_COUNTRIES.map(
+      (c) => `- ${c.name} [${c.code}] (${c.methods.join(", ")})`,
+    ).join("\n"),
   );
 
   content = content.replace(/<[A-Z][A-Za-z]*\s*\/>/g, "");

@@ -1,9 +1,10 @@
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { isGenericEmail } from "@/lib/is-generic-email";
 import { FraudEventContext } from "@/lib/types";
 import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";
 import { prisma } from "@dub/prisma";
 import { defineFraudRule } from "../define-fraud-rule";
-import { extractEmailDomain, normalizeEmail } from "../utils";
+import { normalizeEmail } from "../utils";
 
 // Partner's email matches a customer's email, shares the same email domain,
 // or the customer's domain matches a previously referred customer.
@@ -60,29 +61,36 @@ export const checkCustomerEmailMatch = defineFraudRule({
 
     // 3. Historical domain match — customer's email domain matches
     // a previously referred customer from the same partner
-    const historicalMatch = await prisma.customer.findFirst({
-      where: {
-        programId: program.id,
-        partnerId: partner.id,
-        id: {
-          not: customer.id,
-        },
-        email: {
-          endsWith: `@${customerEmailDomain}`,
-        },
-      },
-      select: {
-        id: true,
-      },
-    });
 
-    if (historicalMatch) {
-      return {
-        triggered: true,
-        metadata: {
-          matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
+    const shouldCheckHistoricalDomainMatch =
+      ("isFirstConversion" in customer && customer.isFirstConversion) ||
+      !("isFirstConversion" in customer);
+
+    if (shouldCheckHistoricalDomainMatch) {
+      const previousCustomer = await prisma.customer.findFirst({
+        where: {
+          programId: program.id,
+          partnerId: partner.id,
+          id: {
+            not: customer.id,
+          },
+          email: {
+            endsWith: `@${customerEmailDomain}`,
+          },
         },
-      };
+        select: {
+          id: true,
+        },
+      });
+
+      if (previousCustomer) {
+        return {
+          triggered: true,
+          metadata: {
+            matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
+          },
+        };
+      }
     }
 
     return {

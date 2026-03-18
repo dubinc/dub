@@ -1,14 +1,9 @@
-export const GENERIC_EMAIL_DOMAINS = [
+import { extractEmailDomain } from "./email/extract-email-domain";
+
+const GENERIC_EMAIL_DOMAINS = [
   "gmail.com",
   "googlemail.com",
-  "yahoo.com",
-  "yahoo.co.uk",
-  "yahoo.co.jp",
-  "yahoo.fr",
-  "yahoo.de",
-  "hotmail.com",
-  "hotmail.co.uk",
-  "outlook.com",
+  "ymail.com",
   "icloud.com",
   "aol.com",
   "comcast.net",
@@ -18,21 +13,42 @@ export const GENERIC_EMAIL_DOMAINS = [
   "mac.com",
   "msn.com",
   "live.com",
+  "web.de",
   "protonmail.com",
   "proton.me",
+  "passinbox.com",
+  "163.com",
+  "duck.com",
+  "qq.com",
   "zoho.com",
-  "yandex.com",
-  "yandex.ru",
-  "mail.com",
-  "mail.ru",
-  "gmx.com",
-  "gmx.net",
   "fastmail.com",
   "tutanota.com",
   "tuta.com",
   "privaterelay.appleid.com",
+  "qyver.online",
+  "naver.com",
+  "yeah.net",
+  "example.com",
+];
+
+const GENERIC_EMAIL_DOMAIN_PREFIXES = [
+  "yahoo.",
+  "hotmail.",
+  "outlook.",
+  "gmx.",
+  "yandex.",
 ];
 
 export const isGenericEmail = (email: string) => {
-  return GENERIC_EMAIL_DOMAINS.some((domain) => email.endsWith(`@${domain}`));
+  const emailDomain = extractEmailDomain(email);
+  if (!emailDomain) {
+    return false;
+  }
+
+  return (
+    GENERIC_EMAIL_DOMAINS.includes(emailDomain) ||
+    GENERIC_EMAIL_DOMAIN_PREFIXES.some((prefix) =>
+      emailDomain.startsWith(prefix),
+    )
+  );
 };

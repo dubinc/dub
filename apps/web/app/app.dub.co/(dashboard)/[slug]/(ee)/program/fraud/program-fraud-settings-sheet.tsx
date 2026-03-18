@@ -170,11 +170,7 @@ function ProgramFraudSettingsSheetContent({
             <div className="flex h-16 items-center justify-between px-6 py-4">
               <Sheet.Title className="flex items-center gap-2 text-lg font-semibold">
                 Fraud settings
-                <InfoTooltip
-                  content={
-                    "Learn more about our fraud and risk flags, including how to configure them. [Learn more.](https://dub.co/help/article/fraud-and-risk-flags)"
-                  }
-                />
+                <InfoTooltip content="Learn more about how to [customize your program's fraud settings](https://dub.co/help/article/fraud-detection)." />
               </Sheet.Title>
               <Sheet.Close asChild>
                 <Button
@@ -188,8 +184,6 @@ function ProgramFraudSettingsSheetContent({
 
           <div className="h-full overflow-y-auto p-4 sm:p-6">
             <div className="space-y-4">
-              <FraudPaidTrafficSettings isConfigLoading={isLoading} />
-              <FraudReferralSourceSettings isConfigLoading={isLoading} />
               {TOGGLE_ONLY_RULES.map((rule) => (
                 <FraudRuleToggleSettings
                   key={rule.type}
@@ -199,6 +193,8 @@ function ProgramFraudSettingsSheetContent({
                   isConfigLoading={isLoading}
                 />
               ))}
+              <FraudPaidTrafficSettings isConfigLoading={isLoading} />
+              <FraudReferralSourceSettings isConfigLoading={isLoading} />
             </div>
           </div>
 
