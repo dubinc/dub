@@ -16,9 +16,9 @@ type GetBountiesForPartnerParams = Pick<
 };
 
 export async function getBountiesForPartner(
-  programEnrollment: GetBountiesForPartnerParams,
+  params: GetBountiesForPartnerParams,
 ) {
-  const { groupId, partnerId, totalCommissions, program } = programEnrollment;
+  const { groupId, partnerId, totalCommissions, program, links } = params;
 
   const now = new Date();
 
@@ -76,7 +76,7 @@ export async function getBountiesForPartner(
     },
   });
 
-  const partnerLinkStats = aggregatePartnerLinksStats(programEnrollment.links);
+  const partnerLinkStats = aggregatePartnerLinksStats(links);
 
   return z.array(PartnerBountySchema).parse(
     bounties.map((bounty) => ({
