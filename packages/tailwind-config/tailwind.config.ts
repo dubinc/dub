@@ -253,7 +253,7 @@ const config: Config = {
         "content-error": "rgb(var(--content-error, 185 28 28) / <alpha-value>)",
       },
       dropShadow: {
-        "card-hover": ["0 8px 12px #222A350d", "0 32px 80px #2f30370f"],
+        "card-hover": ["0 2px 4px #222A350d"],
       },
     },
   },

@@ -414,7 +414,7 @@ export function CustomersTable({
   });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -447,84 +447,86 @@ export function CustomersTable({
           </div>
         </AnimatedSizeContainer>
       </div>
-      {!canManageCustomers || customers?.length !== 0 ? (
-        <Table
-          {...tableProps}
-          table={table}
-          scrollWrapperClassName={
-            canManageCustomers ? undefined : "overflow-x-hidden"
-          }
-        >
-          {!canManageCustomers && (
-            <>
-              <div className="absolute inset-0 flex touch-pan-y flex-col items-center justify-center bg-gradient-to-t from-[#fff_75%] to-[#fff6] px-4 text-center">
-                <div className="h-40 w-full max-w-[480px] overflow-hidden [mask-image:linear-gradient(black,transparent)]">
-                  <div className="relative h-96 w-full overflow-hidden rounded-lg border border-neutral-200">
-                    <Image
-                      src="https://assets.dub.co/misc/customer-screenshot.jpg"
-                      fill
-                      className="object-contain object-top"
-                      alt="Customer overview screenshot"
-                      draggable={false}
-                    />
+      <div className="mt-4">
+        {!canManageCustomers || customers?.length !== 0 ? (
+          <Table
+            {...tableProps}
+            table={table}
+            scrollWrapperClassName={
+              canManageCustomers ? undefined : "overflow-x-hidden"
+            }
+          >
+            {!canManageCustomers && (
+              <>
+                <div className="absolute inset-0 flex touch-pan-y flex-col items-center justify-center bg-gradient-to-t from-[#fff_75%] to-[#fff6] px-4 text-center">
+                  <div className="h-40 w-full max-w-[480px] overflow-hidden [mask-image:linear-gradient(black,transparent)]">
+                    <div className="relative h-96 w-full overflow-hidden rounded-lg border border-neutral-200">
+                      <Image
+                        src="https://assets.dub.co/misc/customer-screenshot.jpg"
+                        fill
+                        className="object-contain object-top"
+                        alt="Customer overview screenshot"
+                        draggable={false}
+                      />
+                    </div>
+                  </div>
+                  <div className="relative -mt-4 flex flex-col items-center justify-center">
+                    <span className="text-lg font-semibold text-neutral-700">
+                      Customer Insights
+                    </span>
+                    <p className="mt-3 max-w-sm text-pretty text-sm text-neutral-500">
+                      Want to see more details about your customers' LTV, country
+                      breakdown etc.? Upgrade to our Business Plan to get
+                      deeper, real-time customer insights.{" "}
+                      <a
+                        href="https://dub.co/help/article/customer-insights"
+                        target="_blank"
+                        className="underline underline-offset-2 hover:text-neutral-800"
+                      >
+                        Learn more ↗
+                      </a>
+                    </p>
+                    <div className="mt-4">
+                      <Link
+                        href={`/${workspaceSlug}/upgrade`}
+                        className={cn(
+                          buttonVariants({ variant: "secondary" }),
+                          "flex h-8 items-center justify-center gap-2 rounded-md border px-4 text-sm",
+                        )}
+                      >
+                        <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
+                          Upgrade to Business
+                        </span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
-                <div className="relative -mt-4 flex flex-col items-center justify-center">
-                  <span className="text-lg font-semibold text-neutral-700">
-                    Customer Insights
-                  </span>
-                  <p className="mt-3 max-w-sm text-pretty text-sm text-neutral-500">
-                    Want to see more details about your customers' LTV, country
-                    breakdown etc.? Upgrade to our Business Plan to get deeper,
-                    real-time customer insights.{" "}
-                    <a
-                      href="https://dub.co/help/article/customer-insights"
-                      target="_blank"
-                      className="underline underline-offset-2 hover:text-neutral-800"
-                    >
-                      Learn more ↗
-                    </a>
-                  </p>
-                  <div className="mt-4">
-                    <Link
-                      href={`/${workspaceSlug}/upgrade`}
-                      className={cn(
-                        buttonVariants({ variant: "secondary" }),
-                        "flex h-8 items-center justify-center gap-2 rounded-md border px-4 text-sm",
-                      )}
-                    >
-                      <span className="bg-gradient-to-r from-violet-600 to-pink-600 bg-clip-text text-transparent">
-                        Upgrade to Business
-                      </span>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-              <div className="h-[420px]" />
-            </>
-          )}
-        </Table>
-      ) : (
-        <AnimatedEmptyState
-          title={`No customers ${isFiltered ? "found" : "yet"}`}
-          description={
-            isFiltered
-              ? "No customers found for the selected filters. Adjust your filters to refine your search results."
-              : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
-          }
-          {...(!isFiltered && {
-            learnMoreHref: `/${workspaceSlug}/settings/tracking`,
-            learnMoreTarget: "_self",
-            learnMoreText: "Read the guides",
-          })}
-          cardContent={() => (
-            <>
-              <User className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
-      )}
+                <div className="h-[420px]" />
+              </>
+            )}
+          </Table>
+        ) : (
+          <AnimatedEmptyState
+            title={`No customers ${isFiltered ? "found" : "yet"}`}
+            description={
+              isFiltered
+                ? "No customers found for the selected filters. Adjust your filters to refine your search results."
+                : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
+            }
+            {...(!isFiltered && {
+              learnMoreHref: `/${workspaceSlug}/settings/tracking`,
+              learnMoreTarget: "_self",
+              learnMoreText: "Read the guides",
+            })}
+            cardContent={() => (
+              <>
+                <User className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+              </>
+            )}
+          />
+        )}
+      </div>
     </div>
   );
 }
