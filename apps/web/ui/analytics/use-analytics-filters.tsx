@@ -3,6 +3,8 @@ import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
+import { CustomerAvatar } from "@/ui/customers/customer-avatar";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
@@ -12,9 +14,6 @@ import {
   useRouterStuff,
   UTM_PARAMETERS,
 } from "@dub/ui";
-
-import { CustomerAvatar } from "@/ui/customers/customer-avatar";
-import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
   Calendar6,
   Cube,
