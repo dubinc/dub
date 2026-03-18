@@ -106,10 +106,6 @@ const menuItemClassName = cn(
   "data-[selected=true]:bg-neutral-100",
 );
 
-function usesFallbackStep(variableId: string) {
-  return variableId === "PartnerName";
-}
-
 const Menu = forwardRef(
   (
     {
@@ -135,7 +131,7 @@ const Menu = forwardRef(
     };
 
     const selectVar = (item: string) => {
-      if (!usesFallbackStep(item)) {
+      if (item !== "PartnerName") {
         command({ id: item, fallback: null });
         return;
       }
