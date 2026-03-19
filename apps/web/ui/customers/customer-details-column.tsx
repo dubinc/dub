@@ -1,4 +1,5 @@
 import { CustomerActivityResponse, CustomerEnriched } from "@/lib/types";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import {
   Button,
   CalendarIcon,
@@ -16,7 +17,6 @@ import {
   COUNTRIES,
   getParamsFromURL,
   getPrettyUrl,
-  OG_AVATAR_URL,
 } from "@dub/utils";
 import { Pencil } from "lucide-react";
 import { useParams } from "next/navigation";
@@ -24,6 +24,7 @@ import { Fragment, HTMLProps, useMemo } from "react";
 import { DeviceIcon } from "../analytics/device-icon";
 import { useEditCustomerModal } from "../modals/edit-customer-modal";
 import { ConditionalLink } from "../shared/conditional-link";
+import { CustomerAvatar } from "./customer-avatar";
 
 export function CustomerDetailsColumn({
   customer,
@@ -120,10 +121,9 @@ export function CustomerDetailsColumn({
             <div className="flex items-start justify-between gap-2">
               <div className="relative w-fit">
                 {customer ? (
-                  <img
-                    src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-                    alt={customer.id}
-                    className="size-10 rounded-full border border-neutral-100"
+                  <CustomerAvatar
+                    customer={customer}
+                    className="size-10 border border-neutral-100"
                   />
                 ) : (
                   <div className="size-10 animate-pulse rounded-full bg-neutral-200" />
@@ -311,11 +311,7 @@ export function CustomerDetailsColumn({
 
             {partner && (
               <div className="mb-4 flex items-center gap-2">
-                <img
-                  src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                  alt=""
-                  className="size-5 rounded-full"
-                />
+                <PartnerAvatar partner={partner} className="size-5" />
                 <ConditionalLink
                   href={
                     workspaceSlug

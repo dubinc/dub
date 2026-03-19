@@ -1,6 +1,7 @@
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { TimestampTooltip } from "@dub/ui";
-import { OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import { timeAgo } from "@dub/utils";
 import { CampaignEvent } from "./campaign-events";
 
 export const campaignEventsColumns = [
@@ -11,13 +12,9 @@ export const campaignEventsColumns = [
     cell: ({ row }: { row: { original: CampaignEvent } }) => (
       <div className="flex gap-2">
         <div className="flex h-8 shrink-0 items-center justify-center">
-          <img
-            src={
-              row.original.partner.image ||
-              `${OG_AVATAR_URL}${row.original.partner.name}`
-            }
-            alt={row.original.partner.name}
-            className="size-7 rounded-full object-cover"
+          <PartnerAvatar
+            partner={row.original.partner}
+            className="size-7 object-cover"
           />
         </div>
         <div className="flex h-8 min-w-0 flex-1 flex-col">

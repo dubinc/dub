@@ -12,13 +12,14 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { PartnerInfoStats } from "@/ui/partners/partner-info-stats";
 import { X } from "@/ui/shared/icons";
 import { Button } from "@dub/ui";
 import { ChevronLeft } from "@dub/ui/icons";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
@@ -115,11 +116,7 @@ export function ProgramMessagesPartnerPageClient() {
                 </>
               ) : (
                 <>
-                  <img
-                    src={partner?.image || `${OG_AVATAR_URL}${partner?.name}`}
-                    alt={`${partner?.name} avatar`}
-                    className="size-6 shrink-0 rounded-full"
-                  />
+                  <PartnerAvatar partner={partner} className="size-6" />
                   <h2 className="text-content-emphasis text-lg font-semibold leading-7">
                     {partner?.name ?? "Partner"}
                   </h2>

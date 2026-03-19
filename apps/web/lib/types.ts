@@ -883,3 +883,7 @@ export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
 export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];
 
 export type CommissionDetail = z.infer<typeof CommissionDetailSchema>;
+
+export type NullableOptional<T> = {
+  [K in keyof T]?: T[K] | null;
+};

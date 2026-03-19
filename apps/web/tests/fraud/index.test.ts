@@ -1,10 +1,10 @@
-import { extractEmailDomain } from "@/lib/api/fraud/utils";
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { Customer, TrackLeadResponse } from "@/lib/types";
 import {
   CustomerEmailMatchType,
   fraudEventSchemas,
 } from "@/lib/zod/schemas/fraud";
-import { FraudRuleType } from "@dub/prisma/client";
+import { FraudRuleType, Partner } from "@dub/prisma/client";
 import { randomCustomer, retry } from "tests/utils/helpers";
 import { HttpClient } from "tests/utils/http";
 import {
@@ -57,6 +57,7 @@ describe.concurrent("/fraud/**", async () => {
 
     await verifyFraudEvent({
       http,
+      partner: E2E_FRAUD_PARTNER,
       customer,
       ruleType: "customerEmailMatch",
       metadata: {
@@ -94,6 +95,7 @@ describe.concurrent("/fraud/**", async () => {
 
     await verifyFraudEvent({
       http,
+      partner: E2E_FRAUD_PARTNER,
       customer,
       ruleType: "customerEmailMatch",
       metadata: {
@@ -129,6 +131,7 @@ describe.concurrent("/fraud/**", async () => {
 
     await verifyFraudEvent({
       http,
+      partner: E2E_FRAUD_PARTNER,
       customer,
       ruleType: "customerEmailMatch",
       metadata: {
@@ -171,6 +174,7 @@ describe.concurrent("/fraud/**", async () => {
 
     await verifyFraudEvent({
       http,
+      partner: E2E_FRAUD_PARTNER,
       customer,
       ruleType: "customerEmailSuspiciousDomain",
     });
@@ -212,6 +216,7 @@ describe.concurrent("/fraud/**", async () => {
     await verifyFraudEvent({
       http,
       customer,
+      partner: E2E_FRAUD_PARTNER,
       ruleType: "referralSourceBanned",
       metadata: {
         source: E2E_FRAUD_REFERRAL_SOURCE_BANNED_DOMAIN,
@@ -254,6 +259,7 @@ describe.concurrent("/fraud/**", async () => {
 
     await verifyFraudEvent({
       http,
+      partner: E2E_FRAUD_PARTNER,
       customer,
       ruleType: "paidTrafficDetected",
       metadata: {
@@ -266,11 +272,13 @@ describe.concurrent("/fraud/**", async () => {
 
 const verifyFraudEvent = async ({
   http,
+  partner,
   customer,
   ruleType,
   metadata,
 }: {
   http: HttpClient;
+  partner: Pick<Partner, "id" | "name" | "email" | "image">;
   customer: Pick<Customer, "externalId">;
   ruleType: FraudRuleType;
   metadata?: Record<string, unknown>;
@@ -292,8 +300,14 @@ const verifyFraudEvent = async ({
 
   // Assert fraud event shape
   expect(fraudEvent).toStrictEqual({
-    ...(metadata && { metadata }),
     createdAt: expect.any(String),
+    partner: expect.objectContaining({
+      id: partner.id,
+      name: partner.name,
+      email: partner.email,
+      image: partner.image,
+    }),
+    ...(metadata && { metadata }),
     customer: expect.objectContaining({
       id: customers[0].id,
       name: customers[0].name,

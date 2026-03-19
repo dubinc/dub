@@ -602,6 +602,15 @@ export const createPartnerSchema = z.object({
       tagId: true,
       geo: true,
       webhookIds: true,
+      keyLength: true,
+    })
+    .extend({
+      prefix: z
+        .string()
+        .optional()
+        .describe(
+          "Path prefix for each default referral link slug (e.g. `/c/` → `https://{domain}/c/{identity}`). If the group has multiple default links, a short random suffix is appended to the identity segment for uniqueness (e.g. `c/jane-a7f2`).",
+        ),
     })
     .partial()
     .optional()

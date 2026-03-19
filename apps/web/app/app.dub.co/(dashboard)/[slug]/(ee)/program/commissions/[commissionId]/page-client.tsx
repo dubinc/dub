@@ -4,6 +4,7 @@ import { useCommission } from "@/lib/swr/use-commission";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionDetail, CommissionResponse } from "@/lib/types";
+import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
@@ -133,13 +134,9 @@ function CommissionDetailsContent({
                   />
                 </div>
               ) : (
-                <img
-                  src={customer?.avatar || `${OG_AVATAR_URL}${customer?.id}`}
-                  alt={customer?.id}
-                  className="size-6 rounded-full"
-                  title={customer?.name}
-                  loading="lazy"
-                />
+                customer && (
+                  <CustomerAvatar customer={customer} className="size-6" />
+                )
               )}
 
               <div className="flex flex-col">

@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps } from "@/lib/types";
-import { TokenAvatar } from "@dub/ui";
+import { TokenAvatar } from "@/ui/token-avatar";
 import Link from "next/link";
 import { WebhookStatus } from "./webhook-status";
 
