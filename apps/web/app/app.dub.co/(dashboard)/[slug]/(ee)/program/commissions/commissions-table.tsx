@@ -9,13 +9,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, FraudGroupCountByPartner } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
-import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
@@ -32,7 +32,6 @@ import {
 } from "@dub/ui";
 import { MoneyBill2 } from "@dub/ui/icons";
 import {
-  capitalize,
   cn,
   currencyFormatter,
   fetcher,
@@ -168,24 +167,31 @@ export function CommissionsTable() {
               <div className="flex items-center gap-2">
                 <CustomerRowItem
                   customer={row.original.customer}
-                  filterSet={{ customerId: row.original.customer.id }}
                   href={`/${slug}/program/customers/${row.original.customer.id}`}
                 />
               </div>
             ) : (
               "-"
             ),
+          meta: {
+            filterParams: ({ row }) =>
+              row.original.customer
+                ? {
+                    customerId: row.original.customer.id,
+                  }
+                : {},
+          },
         },
         {
           id: "partner",
           header: "Partner",
-          cell: ({ row }) => (
-            <PartnerRowItem
-              filterSet={{ partnerId: row.original.partner.id }}
-              partner={row.original.partner}
-            />
-          ),
+          cell: ({ row }) => <PartnerRowItem partner={row.original.partner} />,
           maxSize: 200,
+          meta: {
+            filterParams: ({ row }) => ({
+              partnerId: row.original.partner.id,
+            }),
+          },
         },
         {
           id: "group",
@@ -213,13 +219,13 @@ export function CommissionsTable() {
           id: "type",
           header: "Type",
           accessorKey: "type",
+          meta: {
+            filterParams: ({ row }) => ({
+              type: row.original.type,
+            }),
+          },
           cell: ({ row }) => (
-            <FilterIconCell
-              set={{ type: row.original.type }}
-              icon={<CommissionTypeIcon type={row.original.type ?? "sale"} />}
-            >
-              {capitalize(row.original.type ?? "sale")}
-            </FilterIconCell>
+            <CommissionTypeBadge type={row.original.type ?? "sale"} />
           ),
         },
         {
@@ -348,6 +354,19 @@ export function CommissionsTable() {
       onPointerEnter: () =>
         router.prefetch(`/${slug}/program/commissions/${row.original.id}`),
     }),
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `commission${p ? "s" : ""}`,

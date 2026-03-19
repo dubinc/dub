@@ -13,7 +13,7 @@ import { FraudDisclaimerBanner } from "@/ui/partners/fraud-risks/fraud-disclaime
 import { FraudReviewSheet } from "@/ui/partners/fraud-risks/fraud-review-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   AnimatedSizeContainer,
   Badge,
@@ -129,25 +129,28 @@ export function FraudGroupTable() {
 
           if (reason) {
             return (
-              <FilterIconCell set={{ type: row.original.type }}>
-                <div className="flex items-center gap-2">
-                  <Tooltip content={reason.description}>
-                    <span className="cursor-help truncate underline decoration-dotted underline-offset-2">
-                      {reason.name}
-                    </span>
-                  </Tooltip>
-                  {count > 1 && (
-                    <Badge
-                      variant="gray"
-                      className="shrink-0 rounded-md border-none px-1.5 py-1 text-xs font-semibold text-neutral-700"
-                    >
-                      +{Number(count) - 1}
-                    </Badge>
-                  )}
-                </div>
-              </FilterIconCell>
+              <div className="flex items-center gap-2">
+                <Tooltip content={reason.description}>
+                  <span className="cursor-help truncate underline decoration-dotted underline-offset-2">
+                    {reason.name}
+                  </span>
+                </Tooltip>
+                {count > 1 && (
+                  <Badge
+                    variant="gray"
+                    className="shrink-0 rounded-md border-none px-1.5 py-1 text-xs font-semibold text-neutral-700"
+                  >
+                    +{Number(count) - 1}
+                  </Badge>
+                )}
+              </div>
             );
           }
+        },
+        meta: {
+          filterParams: ({ row }) => ({
+            type: row.original.type,
+          }),
         },
       },
       {
@@ -160,7 +163,6 @@ export function FraudGroupTable() {
 
           return (
             <PartnerRowItem
-              filterSet={{ partnerId: partner.id }}
               partner={{
                 id: partner.id,
                 name: partner.name || "Unknown",
@@ -170,6 +172,14 @@ export function FraudGroupTable() {
               showFraudIndicator={false}
             />
           );
+        },
+        meta: {
+          filterParams: ({ row }) =>
+            row.original.partner
+              ? {
+                  partnerId: row.original.partner.id,
+                }
+              : {},
         },
       },
       {
@@ -222,6 +232,19 @@ export function FraudGroupTable() {
         },
         scroll: false,
       });
+    },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",

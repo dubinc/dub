@@ -1,5 +1,4 @@
 import useProgram from "@/lib/swr/use-program";
-import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn, formatDateTimeSmart } from "@dub/utils";
@@ -16,7 +15,6 @@ import {
 interface PartnerRowItemProps {
   showPermalink?: boolean;
   showFraudIndicator?: boolean;
-  filterSet?: Record<string, any>;
   partner: {
     id: string;
     name: string;
@@ -170,56 +168,46 @@ export function PartnerRowItem({
   partner,
   showPermalink = true,
   showFraudIndicator = true,
-  filterSet,
 }: PartnerRowItemProps) {
   const { slug } = useParams();
   const { statusKey, showPayoutsEnabled } = usePartnerPayoutStatus(partner);
 
   const As = showPermalink ? Link : "div";
 
-  const avatar = (
-    <DynamicTooltipWrapper
-      tooltipProps={
-        statusKey
-          ? {
-              content: (
-                <PartnerPayoutStatusTooltip
-                  statusKey={statusKey}
-                  partner={partner}
-                />
-              ),
-            }
-          : undefined
-      }
-    >
-      <div className="relative shrink-0">
-        <PartnerAvatar partner={partner} className="size-5" />
-        {showPayoutsEnabled && statusKey && (
-          <div
-            className={cn(
-              "absolute -bottom-0.5 -right-0.5 size-2 rounded-full",
-              PAYOUT_STATUS_CONFIG[statusKey].indicatorColor,
-            )}
-          />
-        )}
-      </div>
-    </DynamicTooltipWrapper>
-  );
-
   return (
     <div className="flex min-w-0 items-center gap-2">
-      {filterSet ? (
-        <FilterIconCell set={filterSet} icon={avatar} />
-      ) : (
-        <div className="shrink-0">{avatar}</div>
-      )}
+      <div className="shrink-0">
+        <DynamicTooltipWrapper
+          tooltipProps={
+            statusKey
+              ? {
+                  content: (
+                    <PartnerPayoutStatusTooltip
+                      statusKey={statusKey}
+                      partner={partner}
+                    />
+                  ),
+                }
+              : undefined
+          }
+        >
+          <div className="relative shrink-0">
+            <PartnerAvatar partner={partner} className="size-5" />
+            {showPayoutsEnabled && statusKey && (
+              <div
+                className={cn(
+                  "absolute -bottom-0.5 -right-0.5 size-2 rounded-full",
+                  PAYOUT_STATUS_CONFIG[statusKey].indicatorColor,
+                )}
+              />
+            )}
+          </div>
+        </DynamicTooltipWrapper>
+      </div>
 
       <As
         href={`/${slug}/program/partners/${partner.id}`}
         {...(showPermalink && { target: "_blank" })}
-        {...(filterSet && {
-          onClick: (e: React.MouseEvent) => e.stopPropagation(),
-        })}
         className={cn(
           "min-w-0 truncate",
           showPermalink && "cursor-alias decoration-dotted hover:underline",
