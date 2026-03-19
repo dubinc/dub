@@ -14,9 +14,9 @@ import { useInviteWorkspaceUserModal } from "@/ui/modals/invite-workspace-user-m
 import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-modal";
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { WorkspaceRole } from "@dub/prisma/client";
 import {
-  Avatar,
   Button,
   Filter,
   Popover,
@@ -159,7 +159,7 @@ export function WorkspaceMembersClient() {
 
           return (
             <div className="flex items-center space-x-3">
-              <Avatar user={user} />
+              <UserAvatar user={user} />
               <div className="flex flex-col">
                 <h3 className="text-sm font-medium">
                   {user.name || user.email}

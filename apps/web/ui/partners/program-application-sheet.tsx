@@ -30,6 +30,7 @@ import useSWR, { mutate } from "swr";
 import * as z from "zod/v4";
 import { ProgramApplicationFormField } from "./groups/design/application-form/fields";
 import { formDataForApplicationFormData } from "./groups/design/application-form/form-data-for-application-form-data";
+import { PartnerAvatar } from "./partner-avatar";
 
 interface ProgramApplicationSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -283,10 +284,13 @@ function ProgramApplicationSheetForm({
               alt={program.name}
               className="z-10 size-20 rotate-[-15deg] rounded-full drop-shadow-md"
             />
-            <img
-              src={partner?.image || `${OG_AVATAR_URL}${partner?.name}`}
-              alt={partner?.name || "Your avatar"}
-              className="-ml-4 size-20 rotate-[15deg] rounded-full drop-shadow-md"
+            <PartnerAvatar
+              partner={{
+                id: partner?.id,
+                name: partner?.name,
+                image: partner?.image,
+              }}
+              className="-ml-4 size-20 rotate-[15deg] drop-shadow-md"
             />
             <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
               <CircleCheckFill className="size-8 text-green-500" />

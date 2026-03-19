@@ -14,8 +14,8 @@ import { useUninstallIntegrationModal } from "@/ui/modals/uninstall-integration-
 import { BackLink } from "@/ui/shared/back-link";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Markdown } from "@/ui/shared/markdown";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import {
-  Avatar,
   BlurImage,
   Button,
   buttonVariants,
@@ -188,7 +188,7 @@ export default function IntegrationPageClient({
                     label: "Enabled by",
                     content: (
                       <span className="text-neutral-700">
-                        <Avatar
+                        <UserAvatar
                           user={integration.installed.by}
                           className="inline-block size-3 -translate-y-0.5 border-0"
                         />{" "}

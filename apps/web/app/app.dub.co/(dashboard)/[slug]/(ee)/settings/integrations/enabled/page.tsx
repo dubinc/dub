@@ -2,8 +2,9 @@ import { IntegrationLogo } from "@/ui/integrations/integration-logo";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { BackLink } from "@/ui/shared/back-link";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { prisma } from "@dub/prisma";
-import { Avatar, ConnectedDots } from "@dub/ui";
+import { ConnectedDots } from "@dub/ui";
 import { cn, formatDate, truncate } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
@@ -106,7 +107,7 @@ async function EnabledIntegrationsPageRSC({ slug }: { slug: string }) {
                       {installerName ? (
                         <>
                           by{" "}
-                          <Avatar
+                          <UserAvatar
                             user={installation.user}
                             className="inline-block size-3 -translate-y-0.5 border-0"
                           />{" "}

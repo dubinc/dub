@@ -1,13 +1,14 @@
 import useCustomers from "@/lib/swr/use-customers";
 import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { Combobox, ComboboxProps } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import {
   AddCustomerModal,
   type AddCustomerInitialData,
 } from "../modals/add-customer-modal";
+import { CustomerAvatar } from "./customer-avatar";
 
 type CustomerSelectorProps = {
   selectedCustomerId: string | null;
@@ -57,18 +58,7 @@ export function CustomerSelector({
         label: customer.name || customer.email || customer.externalId,
         icon: (
           <span className="shrink-0 text-neutral-600">
-            <img
-              src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-              alt=""
-              className="size-4 rounded-full"
-              onError={(e) => {
-                // Fallback to OG avatar if image fails to load
-                const target = e.target as HTMLImageElement;
-                if (target.src !== `${OG_AVATAR_URL}${customer.id}`) {
-                  target.src = `${OG_AVATAR_URL}${customer.id}`;
-                }
-              }}
-            />
+            <CustomerAvatar customer={customer} className="size-4" />
           </span>
         ),
       })) || []
@@ -89,18 +79,7 @@ export function CustomerSelector({
       label: customer.name || customer.email || customer.externalId,
       icon: (
         <span className="shrink-0 text-neutral-600">
-          <img
-            src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-            alt=""
-            className="size-4 rounded-full"
-            onError={(e) => {
-              // Fallback to OG avatar if image fails to load
-              const target = e.target as HTMLImageElement;
-              if (target.src !== `${OG_AVATAR_URL}${customer.id}`) {
-                target.src = `${OG_AVATAR_URL}${customer.id}`;
-              }
-            }}
-          />
+          <CustomerAvatar customer={customer} className="size-4" />
         </span>
       ),
     };

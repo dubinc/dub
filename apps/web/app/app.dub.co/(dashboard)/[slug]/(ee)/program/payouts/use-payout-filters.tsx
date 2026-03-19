@@ -1,10 +1,11 @@
 import usePartners from "@/lib/swr/use-partners";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import { EnrolledPartnerProps, PayoutsCount } from "@/lib/types";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, InvoiceDollar, Users } from "@dub/ui/icons";
-import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -31,17 +32,11 @@ export function usePayoutFilters() {
         label: "Partner",
         shouldFilter: false,
         options:
-          partners?.map(({ id, name, image }) => {
+          partners?.map((partner) => {
             return {
-              value: id,
-              label: name,
-              icon: (
-                <img
-                  src={image || `${OG_AVATAR_URL}${id}`}
-                  alt={`${name} image`}
-                  className="size-4 rounded-full"
-                />
-              ),
+              value: partner.id,
+              label: partner.name,
+              icon: <PartnerAvatar partner={partner} className="size-4" />,
             };
           }) ?? null,
       },
