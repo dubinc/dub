@@ -1,5 +1,5 @@
 import { BountySocialPlatform } from "@/lib/types";
-import { Instagram, TikTok, Twitter, YouTube } from "@dub/ui";
+import { Instagram, LinkedIn, TikTok, Twitter, YouTube } from "@dub/ui";
 import { ComponentType } from "react";
 
 export const PLATFORM_ICONS: Record<
@@ -10,4 +10,5 @@ export const PLATFORM_ICONS: Record<
   tiktok: TikTok,
   instagram: Instagram,
   twitter: Twitter,
+  linkedin: LinkedIn,
 };
