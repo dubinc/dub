@@ -56,13 +56,15 @@ const PLATFORM_INFO: Record<
     name: "LinkedIn",
     title: "Create a LinkedIn post",
     instruction:
-      "Click the button below to create a LinkedIn post with the code pre-filled. You can remove the post after verification.",
+      "Click the button below to create a LinkedIn post with the code pre-filled.",
     openLabel: "Create post on LinkedIn",
     verifyTitle: "Paste post URL and verify account",
     verifyDescription:
       "After creating the post, paste the post URL below and click verify.",
     getProfileUrl: (_handle, code) =>
-      `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(code)}`,
+      `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(
+        `I'm claiming my Dub profile on partners.dub.co 🤘\n\nEarn by partnering with world-class companies like Framer, Polymarket, Perplexity, and more.\n\nVerification: ${code}`,
+      )}`,
   },
 };
 
@@ -183,7 +185,7 @@ function SocialVerificationByCodeModalInner({
               type="url"
               value={postUrl}
               onChange={(e) => setPostUrl(e.target.value)}
-              placeholder="https://www.linkedin.com/posts/..."
+              placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
               className="block w-full rounded-md border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
             />
           )}
