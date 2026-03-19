@@ -4,14 +4,14 @@ import { Link, Partner } from "@dub/prisma/client";
 import { R2_URL } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { describe, expect, test } from "vitest";
-
-function reEscape(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 import { randomId, randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER_GROUP, E2E_PROGRAM } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
+
+function reEscape(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend(
   normalizedPartnerDateFields.shape,
@@ -98,9 +98,7 @@ describe.sequential("POST /partners", async () => {
     const parsed = EnrolledPartnerSchema.parse(data);
     expect(parsed.name).toBe(partner.name);
     expect(parsed.email).toBe(partner.email);
-    const keyRe = new RegExp(
-      `^${reEscape(username)}(-[a-z0-9]{4})?$`,
-    );
+    const keyRe = new RegExp(`^${reEscape(username)}(-[a-z0-9]{4})?$`);
     expect(parsed.links).toEqual(
       expect.arrayContaining([
         expect.objectContaining({

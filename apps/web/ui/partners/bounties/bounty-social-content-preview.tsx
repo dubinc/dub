@@ -8,7 +8,6 @@ import {
 } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { useState } from "react";
-import { PLATFORM_ICONS } from "./bounty-platform-icons";
 
 interface BountySocialContentPreviewProps {
   bounty: Pick<PartnerBountyProps, "id" | "submissionRequirements">;
@@ -98,6 +97,21 @@ function getSocialContentEmbedUrl({
       }
     }
 
+    if (platform === "linkedin") {
+      if (host === "linkedin.com") {
+        // LinkedIn post URLs:
+        //   /posts/username_activity-{id}-xxxx
+        //   /feed/update/urn:li:activity:{id}
+        const activityMatch = parsed.pathname.match(/activity[_-](\d+)/);
+        const urnMatch = parsed.pathname.match(/activity[:%]3A(\d+)/);
+        const activityId = activityMatch?.[1] ?? urnMatch?.[1];
+
+        return activityId
+          ? `https://www.linkedin.com/embed/feed/update/urn:li:activity:${activityId}`
+          : null;
+      }
+    }
+
     return null;
   } catch {
     return null;
@@ -126,6 +140,10 @@ function getSocialContentEmbedAspectRatio({
 
     if (platform === "twitter") {
       return "aspect-square";
+    }
+
+    if (platform === "linkedin") {
+      return "aspect-video";
     }
 
     return "aspect-video";
@@ -163,26 +181,8 @@ export function BountySocialContentPreview({
     url,
   });
 
-  const PlatformIcon = PLATFORM_ICONS[platform.value];
-
   return (
-    <div className="border-border-default bg-bg-subtle flex flex-col gap-2 rounded-xl border p-2">
-      {/* Channel row */}
-      {/* <div className="flex items-center gap-2 px-2 py-1">
-        <div className="flex size-6 shrink-0 items-center justify-center rounded-full bg-neutral-100">
-          <PlatformIcon className="size-3.5" />
-        </div>
-        <div className="min-w-0 flex-1" />
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex h-7 shrink-0 items-center rounded-lg border border-neutral-200 bg-white px-2.5 text-sm font-medium text-neutral-900"
-        >
-          View
-        </a>
-      </div> */}
-
+    <div className="flex flex-col gap-2 rounded-xl border border-neutral-200 bg-white p-2">
       {/* Native embed */}
       <div
         className={cn(
