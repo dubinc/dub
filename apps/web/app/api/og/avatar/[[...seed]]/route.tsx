@@ -1,4 +1,4 @@
-import { getTheme } from "@/lib/avatar-theme";
+import { getAvatarTheme } from "@dub/utils";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
 
@@ -22,7 +22,7 @@ export async function GET(
 
   const { searchParams } = new URL(req.url);
   const seed = params.seed?.[0] ?? searchParams.get("seed");
-  const theme = getTheme(seed);
+  const theme = getAvatarTheme(seed);
 
   return new ImageResponse(
     (

@@ -1,5 +1,5 @@
 import { CustomerProps, NullableOptional } from "@/lib/types";
-import { Avatar } from "@/ui/avatar";
+import { Avatar } from "@dub/ui";
 
 export function CustomerAvatar({
   customer,

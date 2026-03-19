@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { OAuthAppProps } from "@/lib/types";
-import { BlurImage, TokenAvatar } from "@dub/ui";
+import { TokenAvatar } from "@/ui/token-avatar";
+import { BlurImage } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 import Link from "next/link";
 

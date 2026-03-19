@@ -2,13 +2,8 @@
 
 import { TokenProps } from "@/lib/types";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
-import {
-  IconMenu,
-  LoadingSpinner,
-  Popover,
-  TokenAvatar,
-  TriangleWarning,
-} from "@dub/ui";
+import { TokenAvatar } from "@/ui/token-avatar";
+import { IconMenu, LoadingSpinner, Popover, TriangleWarning } from "@dub/ui";
 import { fetcher, timeAgo } from "@dub/utils";
 import { FolderOpen, MoreVertical, Trash } from "lucide-react";
 import { useState } from "react";

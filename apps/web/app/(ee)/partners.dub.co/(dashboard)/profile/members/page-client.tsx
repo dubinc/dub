@@ -8,9 +8,9 @@ import { useInvitePartnerUserModal } from "@/ui/modals/invite-partner-user-modal
 import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal";
 import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { PartnerRole } from "@dub/prisma/client";
 import {
-  Avatar,
   Button,
   Filter,
   Popover,
@@ -144,7 +144,7 @@ export function ProfileMembersPageClient() {
 
           return (
             <div className="flex items-center space-x-3">
-              <Avatar user={user} />
+              <UserAvatar user={user} />
               <div className="flex flex-col">
                 <h3 className="text-sm font-medium">
                   {user.name || user.email}

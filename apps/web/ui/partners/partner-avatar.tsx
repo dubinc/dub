@@ -1,5 +1,5 @@
 import { NullableOptional, PartnerProps } from "@/lib/types";
-import { Avatar } from "@/ui/avatar";
+import { Avatar } from "@dub/ui";
 
 export function PartnerAvatar({
   partner,
