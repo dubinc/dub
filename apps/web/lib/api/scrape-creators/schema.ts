@@ -48,7 +48,6 @@ export const socialProfileSchema = z.preprocess(
           platform: "twitter",
         };
       }
-
     }
 
     return data;
