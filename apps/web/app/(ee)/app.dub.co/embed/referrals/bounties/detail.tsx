@@ -11,6 +11,7 @@ import { BountyRewardDescription } from "@/ui/partners/bounties/bounty-reward-de
 import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountySubmissionRequirements } from "@/ui/partners/bounties/bounty-submission-requirements";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
+import { PlatformType } from "@dub/prisma/client";
 import { Trophy } from "@dub/ui/icons";
 import { useState } from "react";
 import {
@@ -33,6 +34,7 @@ type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
 
 export function EmbedBountyDetail({
   bounty: initialBounty,
+  partnerPlatforms,
   programEnrollmentCreatedAt,
   view,
   setView,
@@ -40,6 +42,11 @@ export function EmbedBountyDetail({
   onBountyUpdate,
 }: {
   bounty: PartnerBountyProps;
+  partnerPlatforms: Array<{
+    type: PlatformType;
+    identifier: string;
+    verifiedAt: Date | null;
+  }>;
   programEnrollmentCreatedAt: Date;
   view: EmbedBountyView;
   setView: (v: EmbedBountyView) => void;
@@ -90,6 +97,7 @@ export function EmbedBountyDetail({
     return (
       <EmbedBountySubmissionForm
         bounty={bounty}
+        partnerPlatforms={partnerPlatforms}
         periodNumber={
           (view as { mode: "submission-form"; periodNumber: number })
             .periodNumber

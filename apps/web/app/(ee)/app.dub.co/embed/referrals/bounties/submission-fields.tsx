@@ -7,6 +7,7 @@ import {
 } from "@/lib/bounty/constants";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
+import { socialContentRequirementChecks } from "@/ui/partners/bounties/social-content-requirement-checks";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -17,9 +18,12 @@ import {
   Trash,
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
+import { AlertTriangle } from "lucide-react";
+import { useEffect, useId, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
+import { useEmbedSocialContent } from "./use-embed-social-content";
 
 const inputClassName =
   "block h-10 w-full rounded-md px-3 py-2 sm:text-sm " +
@@ -201,41 +205,133 @@ export function EmbedSocialUrlField({
   bounty,
   value,
   onChange,
+  partnerPlatform,
+  onVerifyingChange,
+  onRequirementsMetChange,
 }: {
   bounty: PartnerBountyProps;
   value: string;
   onChange: (v: string) => void;
+  partnerPlatform?: {
+    identifier: string;
+    verifiedAt: Date | null;
+  };
+  onVerifyingChange: (value: boolean) => void;
+  onRequirementsMetChange: (value: boolean) => void;
 }) {
   const bountyInfo = resolveBountyDetails(bounty);
   const socialPlatform = bountyInfo?.socialPlatform;
+  const inputId = useId();
+  const [urlToCheck, setUrlToCheck] = useState("");
+
+  useEffect(() => {
+    if (value === "") {
+      setUrlToCheck("");
+    }
+  }, [value]);
+
+  const { data, error, isValidating } = useEmbedSocialContent({
+    bountyId: bounty.id,
+    url: urlToCheck,
+  });
+
+  useEffect(() => {
+    onVerifyingChange(isValidating);
+    return () => onVerifyingChange(false);
+  }, [isValidating, onVerifyingChange]);
 
   if (!socialPlatform) return null;
 
+  const { isPostedFromYourAccount, isAfterStartDate } =
+    socialContentRequirementChecks({
+      content: data,
+      bounty,
+      partnerPlatform,
+    });
+
+  useEffect(() => {
+    onRequirementsMetChange(isPostedFromYourAccount && isAfterStartDate);
+    return () => onRequirementsMetChange(true);
+  }, [isAfterStartDate, isPostedFromYourAccount, onRequirementsMetChange]);
+
+  const showIcon = isValidating || (!!error && !!urlToCheck);
+
   return (
     <div>
-      <label className="text-content-emphasis block text-sm font-medium">
-        {`${socialPlatform.label} URL`}
+      <label htmlFor={inputId} className="block">
+        <span className="text-content-emphasis text-sm font-medium">
+          {`${socialPlatform.label} URL`}
+        </span>
       </label>
-      <div className="mt-2">
+      <div className="relative mt-2">
         <input
+          id={inputId}
           type="text"
           inputMode="url"
           autoComplete="url"
           placeholder={socialPlatform.placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          onBlur={(e) => onChange(e.target.value.trim())}
-          className={inputClassName}
+          onBlur={(e) => {
+            const trimmed = e.target.value.trim();
+            onChange(trimmed);
+            setUrlToCheck(trimmed);
+          }}
+          className={cn(
+            `${inputClassName} pr-10`,
+            error &&
+              urlToCheck &&
+              "border-border-error focus:border-border-error focus:ring-border-error",
+          )}
         />
+
+        {showIcon && (
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+            {isValidating ? (
+              <LoadingSpinner className="text-content-muted size-4 shrink-0" />
+            ) : error && urlToCheck ? (
+              <AlertTriangle
+                className="text-content-error size-4 shrink-0"
+                fill="rgb(var(--content-error))"
+              />
+            ) : null}
+          </div>
+        )}
       </div>
       <ul className="mt-2 flex flex-wrap items-center gap-3">
-        <li className="text-content-muted flex items-center gap-1 text-xs font-medium">
-          <CircleCheckFill className="text-content-muted size-2.5" />
+        <li
+          className={cn(
+            "flex items-center gap-1 text-xs font-medium transition-colors",
+            isPostedFromYourAccount
+              ? "text-content-success"
+              : "text-content-muted",
+          )}
+        >
+          <CircleCheckFill
+            className={cn(
+              "size-2.5 transition-opacity",
+              isPostedFromYourAccount
+                ? "text-content-success"
+                : "text-content-muted",
+            )}
+          />
           <span>Posted from your account</span>
         </li>
         {bounty.startsAt && (
-          <li className="text-content-muted flex items-center gap-1 text-xs font-medium">
-            <CircleCheckFill className="text-content-muted size-2.5" />
+          <li
+            className={cn(
+              "flex items-center gap-1 text-xs font-medium transition-colors",
+              isAfterStartDate ? "text-content-success" : "text-content-muted",
+            )}
+          >
+            <CircleCheckFill
+              className={cn(
+                "size-2.5 transition-opacity",
+                isAfterStartDate
+                  ? "text-content-success"
+                  : "text-content-muted",
+              )}
+            />
             <span>{`Posted after ${formatDate(bounty.startsAt, { month: "short", day: "numeric", year: "numeric" })}`}</span>
           </li>
         )}

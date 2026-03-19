@@ -9,36 +9,10 @@ import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
-import { isBefore } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
-
-function socialContentRequirementChecks({
-  content,
-  bounty,
-  partnerPlatform,
-}: {
-  content: SocialContent | null | undefined;
-  bounty: PartnerBountyProps;
-  partnerPlatform: { identifier: string; verifiedAt: Date | null } | undefined;
-}) {
-  const isPostedFromYourAccount =
-    !!content &&
-    !!partnerPlatform &&
-    !!partnerPlatform.verifiedAt &&
-    partnerPlatform.identifier.toLowerCase() === content.handle?.toLowerCase();
-
-  const isAfterStartDate =
-    !!content?.publishedAt &&
-    !!bounty.startsAt &&
-    !isBefore(content.publishedAt, bounty.startsAt);
-
-  return {
-    isPostedFromYourAccount,
-    isAfterStartDate,
-  };
-}
+import { socialContentRequirementChecks } from "./social-content-requirement-checks";
 
 function SocialContentRequirementChecks({
   content,

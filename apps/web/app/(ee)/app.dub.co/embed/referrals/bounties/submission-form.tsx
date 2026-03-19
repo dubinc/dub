@@ -3,6 +3,7 @@
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
+import { PlatformType } from "@dub/prisma/client";
 import { LoadingSpinner } from "@dub/ui";
 import { Trophy } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
@@ -55,12 +56,18 @@ export function headerButtonClass(primary = false) {
 
 export function EmbedBountySubmissionForm({
   bounty,
+  partnerPlatforms,
   periodNumber,
   existingSubmission,
   onCancel,
   onSuccess,
 }: {
   bounty: PartnerBountyProps;
+  partnerPlatforms: Array<{
+    type: PlatformType;
+    identifier: string;
+    verifiedAt: Date | null;
+  }>;
   periodNumber: number;
   existingSubmission?: PartnerBountySubmission | null;
   onCancel: () => void;
@@ -69,6 +76,9 @@ export function EmbedBountySubmissionForm({
   const token = useEmbedToken();
   const bountyInfo = resolveBountyDetails(bounty);
   const isSocialMetricsBounty = bountyInfo?.hasSocialMetrics ?? false;
+  const partnerPlatform = bountyInfo?.socialPlatform
+    ? partnerPlatforms.find((p) => p.type === bountyInfo.socialPlatform?.value)
+    : undefined;
   const imageRequired = !!bounty.submissionRequirements?.image;
   const urlRequired =
     !!bounty.submissionRequirements?.url && !isSocialMetricsBounty;
@@ -93,6 +103,9 @@ export function EmbedBountySubmissionForm({
   const [fileUploading, setFileUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDraftSaving, setIsDraftSaving] = useState(false);
+  const [socialContentVerifying, setSocialContentVerifying] = useState(false);
+  const [socialContentRequirementsMet, setSocialContentRequirementsMet] =
+    useState(true);
 
   const submissionsOpenAt = bounty.submissionsOpenAt
     ? new Date(bounty.submissionsOpenAt)
@@ -100,13 +113,21 @@ export function EmbedBountySubmissionForm({
   const submissionsNotOpenYet =
     submissionsOpenAt !== null && submissionsOpenAt > new Date();
 
+  const isBusy =
+    fileUploading ||
+    isSubmitting ||
+    isDraftSaving ||
+    (isSocialMetricsBounty &&
+      (socialContentVerifying || !socialContentRequirementsMet));
+  const isDisabled = submissionsNotOpenYet || isBusy;
+
   const title =
     bounty.maxSubmissions > 1
       ? `Submission (${getPeriodLabel(bounty.submissionFrequency, periodNumber - 1)})`
       : "Submission";
 
   const handleSubmit = async (isDraft: boolean) => {
-    if (!token || isSubmitting || isDraftSaving) return;
+    if (!token || isSubmitting || isDraftSaving || isDisabled) return;
 
     const completedFiles = files
       .filter((f): f is FileInput & { url: string } => !f.uploading && !!f.url)
@@ -173,12 +194,7 @@ export function EmbedBountySubmissionForm({
               <button
                 type="button"
                 onClick={() => handleSubmit(true)}
-                disabled={
-                  fileUploading ||
-                  isSubmitting ||
-                  isDraftSaving ||
-                  submissionsNotOpenYet
-                }
+                disabled={isDisabled}
                 className={headerButtonClass()}
               >
                 {isDraftSaving ? (
@@ -191,12 +207,7 @@ export function EmbedBountySubmissionForm({
             <button
               type="button"
               onClick={() => handleSubmit(false)}
-              disabled={
-                fileUploading ||
-                isSubmitting ||
-                isDraftSaving ||
-                submissionsNotOpenYet
-              }
+              disabled={isDisabled}
               className={headerButtonClass(true)}
             >
               {isSubmitting ? (
@@ -241,6 +252,9 @@ export function EmbedBountySubmissionForm({
             bounty={bounty}
             value={urls[0] ?? ""}
             onChange={(v) => setUrls([v])}
+            partnerPlatform={partnerPlatform}
+            onVerifyingChange={setSocialContentVerifying}
+            onRequirementsMetChange={setSocialContentRequirementsMet}
           />
         ) : (
           urlRequired && (

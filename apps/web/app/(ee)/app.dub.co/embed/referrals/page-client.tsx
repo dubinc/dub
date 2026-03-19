@@ -14,7 +14,7 @@ import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Partner, Program } from "@dub/prisma/client";
+import { Partner, PlatformType, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -48,6 +48,7 @@ import { ReferralsEmbedLink } from "./types";
 export function ReferralsEmbedPageClient({
   program,
   partner,
+  partnerPlatforms,
   links,
   rewards,
   discount,
@@ -61,6 +62,11 @@ export function ReferralsEmbedPageClient({
 }: {
   program: Program;
   partner: Pick<Partner, "id" | "name" | "email">;
+  partnerPlatforms: Array<{
+    type: PlatformType;
+    identifier: string;
+    verifiedAt: Date | null;
+  }>;
   links: ReferralsEmbedLink[];
   rewards: RewardProps[];
   discount?: DiscountProps | null;
@@ -267,6 +273,7 @@ export function ReferralsEmbedPageClient({
               ) : selectedTab === "Bounties" ? (
                 <ReferralsEmbedBounties
                   bounties={bounties}
+                  partnerPlatforms={partnerPlatforms}
                   programEnrollmentCreatedAt={programEnrollmentCreatedAt}
                 />
               ) : null}

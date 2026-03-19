@@ -2,6 +2,7 @@
 
 import { PartnerBountyProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { PlatformType } from "@dub/prisma/client";
 import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/ui";
 import { Trophy } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
@@ -14,9 +15,15 @@ import { EmbedBountyDetail, EmbedBountyView } from "./detail";
 
 export function ReferralsEmbedBounties({
   bounties: initialBounties,
+  partnerPlatforms,
   programEnrollmentCreatedAt,
 }: {
   bounties: PartnerBountyProps[];
+  partnerPlatforms: Array<{
+    type: PlatformType;
+    identifier: string;
+    verifiedAt: Date | null;
+  }>;
   programEnrollmentCreatedAt: Date;
 }) {
   const [bounties, setBounties] =
@@ -58,6 +65,7 @@ export function ReferralsEmbedBounties({
         {selectedBounty ? (
           <EmbedBountyDetail
             bounty={selectedBounty}
+            partnerPlatforms={partnerPlatforms}
             programEnrollmentCreatedAt={programEnrollmentCreatedAt}
             view={view}
             setView={setView}
