@@ -35,7 +35,11 @@ test("sign up and verify new partner", async ({ page }) => {
   await page.keyboard.type(otp);
 
   // Step 4: Wait for redirect to onboarding after auto-submit
-  await page.waitForURL(/\/onboarding/, { timeout: 15_000 });
+  // CI is slower; use domcontentloaded so we don't wait for full page load (images, etc.)
+  await page.waitForURL(/\/onboarding/, {
+    timeout: process.env.CI ? 30_000 : 15_000,
+    waitUntil: "domcontentloaded",
+  });
 
   // Save authenticated state
   await page.context().storageState({ path: authFile });
