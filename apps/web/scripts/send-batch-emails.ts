@@ -1,6 +1,6 @@
-import StablecoinPayoutsAnnouncement from "@dub/email/templates/broadcasts/stablecoin-payouts-announcement";
+import DubProductUpdateMar26 from "@dub/email/templates/broadcasts/dub-product-update-mar26";
 import { prisma } from "@dub/prisma";
-import { chunk, STABLECOIN_SUPPORTED_COUNTRIES } from "@dub/utils";
+import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
 import { generateUnsubscribeToken } from "../lib/email/unsubscribe-token";
@@ -11,13 +11,13 @@ async function main() {
       where: {
         sentMail: false,
         notificationPreferences: {
-          partnerAccount: true,
+          dubPartners: true,
         },
-        partners: {
+        projects: {
           some: {
-            partner: {
-              country: {
-                in: STABLECOIN_SUPPORTED_COUNTRIES,
+            project: {
+              plan: {
+                not: "free",
               },
             },
           },
@@ -31,15 +31,15 @@ async function main() {
     }
     console.log(`Found ${usersToNotify.length} users to notify`);
 
-    const res = await queueBatchEmail<typeof StablecoinPayoutsAnnouncement>(
+    const res = await queueBatchEmail<typeof DubProductUpdateMar26>(
       usersToNotify.map((user) => ({
         to: user.email!,
-        subject: "Introducing Stablecoin Payouts",
+        subject: "Dub Partners Product Updates (Mar '26)",
         variant: "marketing",
-        templateName: "StablecoinPayoutsAnnouncement",
+        templateName: "DubProductUpdateMar26",
         templateProps: {
           email: user.email!,
-          unsubscribeUrl: `https://partners.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
+          unsubscribeUrl: `https://app.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
         },
       })),
     );
