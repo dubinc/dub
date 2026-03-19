@@ -226,7 +226,7 @@ export function MessagesPanel({
                                 ? "text-content-inverted prose-invert prose-a:text-content-inverted"
                                 : "text-content-default prose-a:text-content-emphasis",
                               "prose prose-sm break-words",
-                              PROSE_STYLES.condensed,
+                              PROSE_STYLES.chat,
                               "prose-a:font-medium prose-a:underline-offset-4",
                             )}
                             allowedElements={[
