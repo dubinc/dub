@@ -26,18 +26,20 @@ export function PartnerAnalyticsFilterCell({
   onToggle,
 }: PartnerAnalyticsFilterCellProps) {
   const { slug } = useParams() as { slug: string };
-  const isActive = isStaged || isApplied;
 
   return (
     <div
-      className="flex cursor-pointer select-none items-center gap-2"
-      onClick={onToggle}
+      className={cn(
+        "flex select-none items-center gap-2",
+        !isApplied && "cursor-pointer",
+      )}
+      onClick={isApplied ? undefined : onToggle}
     >
       <div className="relative size-6 shrink-0">
         <div
           className={cn(
             "flex size-full items-center justify-center transition-all duration-200",
-            isActive
+            isStaged
               ? "translate-x-3 opacity-0"
               : "group-hover:translate-x-3 group-hover:opacity-0",
           )}
@@ -46,32 +48,27 @@ export function PartnerAnalyticsFilterCell({
         </div>
 
         <div className="absolute inset-0 flex items-center justify-center">
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggle();
-            }}
+          <div
             className={cn(
               "flex size-6 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
-              isActive
-                ? "pointer-events-auto translate-x-0 bg-neutral-900 opacity-100"
+              isStaged
+                ? "pointer-events-none translate-x-0 opacity-100"
                 : cn(
                     "-translate-x-3 opacity-0 group-hover:translate-x-0 group-hover:opacity-100",
-                    "pointer-events-none group-hover:pointer-events-auto",
-                    "border border-neutral-200 bg-white",
+                    "pointer-events-none",
                   ),
+              isStaged || isApplied
+                ? "bg-neutral-900"
+                : "border border-neutral-200 bg-white",
             )}
-            aria-label="Toggle partner filter"
           >
             <FilterBars
               className={cn(
                 "size-3",
-                isActive ? "text-white" : "text-neutral-500",
+                isStaged || isApplied ? "text-white" : "text-neutral-500",
               )}
             />
-          </button>
+          </div>
         </div>
       </div>
 
