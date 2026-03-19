@@ -107,10 +107,7 @@ export function ReferralsEmbedPageClient({
     true,
   );
 
-  const activeBountiesCount = useMemo(() => {
-    const now = new Date();
-    return bounties.filter((b) => !b.endsAt || new Date(b.endsAt) > now).length;
-  }, [bounties]);
+  const activeBountiesCount = bounties.length;
 
   const tabs = useMemo(
     () => [

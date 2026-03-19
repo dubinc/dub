@@ -10,6 +10,26 @@ export const POST = withReferralsEmbedToken(
   async ({ req, programEnrollment }) => {
     const parsedInput = createBountySubmissionInputSchema
       .omit({ programId: true })
+      .superRefine((data, ctx) => {
+        data.urls.forEach((value, index) => {
+          try {
+            const protocol = new URL(value).protocol;
+            if (protocol !== "http:" && protocol !== "https:") {
+              ctx.addIssue({
+                code: "custom",
+                path: ["urls", index],
+                message: "URL must use http or https.",
+              });
+            }
+          } catch {
+            ctx.addIssue({
+              code: "custom",
+              path: ["urls", index],
+              message: "Invalid URL.",
+            });
+          }
+        });
+      })
       .parse(await parseRequestBody(req));
 
     const partner = await prisma.partner.findUniqueOrThrow({
