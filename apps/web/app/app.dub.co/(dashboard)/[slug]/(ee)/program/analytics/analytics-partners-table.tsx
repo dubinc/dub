@@ -45,9 +45,10 @@ export function AnalyticsPartnersTable() {
     (partnerId: string) => {
       setStagedPartnerIds((prev) => {
         const base = prev ?? activePartnerIdsFromUrl;
-        return base.includes(partnerId)
+        const next = base.includes(partnerId)
           ? base.filter((id) => id !== partnerId)
           : [...base, partnerId];
+        return next.length === 0 ? null : next;
       });
     },
     [activePartnerIdsFromUrl],
@@ -197,9 +198,9 @@ export function AnalyticsPartnersTable() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 8 }}
               transition={{ ease: "easeOut", duration: 0.15 }}
-              className="absolute bottom-1 left-0 z-20 flex h-20 w-full items-end bg-gradient-to-t from-white from-40% to-white/0"
+              className="absolute bottom-0 left-0 z-20 flex h-16 w-full items-end bg-gradient-to-t from-white to-white/0"
             >
-              <div className="flex w-full items-center justify-center gap-2 pb-3">
+              <div className="flex w-full items-center justify-center gap-2 pb-2.5">
                 {stagedPartnerIds !== null && stagedPartnerIds.length > 0 && (
                   <Button
                     text="Filter"
