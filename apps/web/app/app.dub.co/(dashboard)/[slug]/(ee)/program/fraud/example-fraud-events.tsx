@@ -57,8 +57,10 @@ function ExampleFraudEvent({ event }: { event: ExampleFraudEventProps }) {
             <PartnerAvatar
               partner={{ name: event.partnerName }}
               className="size-5 bg-white"
-              showName
             />
+            <span className="text-content-default whitespace-nowrap text-sm font-medium">
+              {event.partnerName}
+            </span>
             <span className="font-inter whitespace-nowrap text-sm text-neutral-400">
               {formatDate(event.date, {
                 month: "short",

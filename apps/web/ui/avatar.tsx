@@ -18,70 +18,50 @@ const shouldersStyle = {
 export function Avatar({
   imageUrl,
   identifier,
-  displayName,
-  showName = false,
   className,
 }: {
   imageUrl?: string | null;
   identifier: string;
-  displayName?: string;
-  showName?: boolean;
   className?: string;
 }) {
-  const alt = displayName || identifier;
-
   if (imageUrl) {
     return (
-      <>
-        <img
-          src={imageUrl}
-          alt={alt}
-          className={cn("shrink-0 rounded-full", className)}
-        />
-        {showName && displayName && (
-          <span className="text-content-default whitespace-nowrap text-sm font-medium">
-            {displayName}
-          </span>
-        )}
-      </>
+      <img
+        src={imageUrl}
+        alt={identifier}
+        className={cn("shrink-0 rounded-full", className)}
+      />
     );
   }
 
   const theme = getTheme(identifier);
 
   return (
-    <>
-      <div
-        className={cn(
-          "relative shrink-0 overflow-hidden rounded-full",
-          className,
-        )}
-        style={{ background: theme.bg }}
-        role="img"
-        aria-label={alt}
-      >
-        <div className="absolute left-0 top-0 h-full w-full">
-          <div
-            className="absolute left-[30%] top-[22%] aspect-square w-[40%] rounded-full"
-            style={{
-              background: theme.fg,
-              ...headStyle,
-            }}
-          />
-          <div
-            className="absolute left-[10%] top-[70%] h-[40%] w-[80%] rounded-t-full"
-            style={{
-              background: theme.fg,
-              ...shouldersStyle,
-            }}
-          />
-        </div>
-      </div>
-      {showName && displayName && (
-        <span className="text-content-default whitespace-nowrap text-sm font-medium">
-          {displayName}
-        </span>
+    <div
+      className={cn(
+        "relative shrink-0 overflow-hidden rounded-full",
+        className,
       )}
-    </>
+      style={{ background: theme.bg }}
+      role="img"
+      aria-label={identifier}
+    >
+      <div className="absolute left-0 top-0 h-full w-full">
+        <div
+          className="absolute left-[30%] top-[22%] aspect-square w-[40%] rounded-full"
+          style={{
+            background: theme.fg,
+            ...headStyle,
+          }}
+        />
+        <div
+          className="absolute left-[10%] top-[70%] h-[40%] w-[80%] rounded-t-full"
+          style={{
+            background: theme.fg,
+            ...shouldersStyle,
+          }}
+        />
+      </div>
+    </div>
   );
 }
