@@ -52,6 +52,8 @@ jobs:
       # RESEND_API_KEY must be unset so emails route through SMTP to MailHog
       SMTP_HOST: "localhost"
       SMTP_PORT: "1025"
+      SMTP_USER: "smtpUser"
+      SMTP_PASSWORD: "smtpPassword"
 
       EMBEDDING_SYNC_SECRET: "xx"
       ANTHROPIC_API_KEY: "xx"
