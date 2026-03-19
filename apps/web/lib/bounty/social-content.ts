@@ -29,6 +29,13 @@ export const BOUNTY_SOCIAL_PLATFORMS = [
     metrics: ["likes", "views"],
     placeholder: "https://x.com/username/status/",
   },
+  {
+    value: "linkedin",
+    label: "LinkedIn",
+    postType: "post",
+    metrics: ["likes"],
+    placeholder: "https://www.linkedin.com/posts/",
+  },
 ] as const;
 
 export const BOUNTY_SOCIAL_PLATFORM_VALUES = BOUNTY_SOCIAL_PLATFORMS.map(
@@ -60,4 +67,6 @@ export const SOCIAL_URL_HOST_TO_PLATFORM: Record<string, PlatformType> = {
   "m.instagram.com": "instagram",
   "twitter.com": "twitter",
   "x.com": "twitter",
+  "linkedin.com": "linkedin",
+  "www.linkedin.com": "linkedin",
 };

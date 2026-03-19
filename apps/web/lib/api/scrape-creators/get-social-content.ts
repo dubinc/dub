@@ -182,9 +182,13 @@ export async function getSocialContent({
     }
 
     case "linkedin": {
+      const handleMatch = data.author?.url?.match(
+        /linkedin\.com\/in\/([^\/\?]+)/i,
+      );
+
       result = {
         publishedAt: data.datePublished ? new Date(data.datePublished) : null,
-        handle: null,
+        handle: handleMatch?.[1] ?? null,
         platformId: null,
         views: 0,
         likes: data.likeCount,
@@ -208,9 +212,7 @@ export async function getSocialContent({
       };
   }
 
-  // TODO:
-  // Fix this "any" when we add LinkedIn to the bounty social platform.
-  if (BOUNTY_SOCIAL_PLATFORM_VALUES.includes(data.platform as any)) {
+  if (BOUNTY_SOCIAL_PLATFORM_VALUES.includes(data.platform)) {
     waitUntil(redis.set(cacheKey, result, { ex: CACHE_TTL }));
   }
 
