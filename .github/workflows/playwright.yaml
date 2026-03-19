@@ -137,23 +137,6 @@ jobs:
         working-directory: apps/web
         run: pnpm tsx playwright/seed.ts
 
-      # - name: Cache Next.js build
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: apps/web/.next/cache
-      #     key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/**/*.ts', 'apps/web/**/*.tsx') }}
-      #     restore-keys: |
-      #       nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
-      #       nextjs-${{ runner.os }}-
-
-      # - name: Cache Turbo
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: .turbo
-      #     key: turbo-${{ runner.os }}-${{ github.sha }}
-      #     restore-keys: |
-      #       turbo-${{ runner.os }}-
-
       - name: Build application
         run: pnpm turbo build --filter=web
 
