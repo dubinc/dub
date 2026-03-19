@@ -15,10 +15,12 @@ export const sendViaNodeMailer = async ({
     // @ts-ignore (Fix this)
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
+    ...(process.env.SMTP_USER && {
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD,
+      },
+    }),
     secure: false,
     tls: {
       rejectUnauthorized: false,
