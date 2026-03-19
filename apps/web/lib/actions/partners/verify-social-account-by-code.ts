@@ -93,13 +93,14 @@ export const verifySocialAccountByCodeAction = authPartnerActionClient
         );
       }
 
-      // Verify the post author matches the handle (exact segment match to prevent prefix spoofing)
-      const authorUrlPath = linkedInPost.author.url?.toLowerCase() ?? "";
-      const handlePattern = new RegExp(
-        `/in/${handle.toLowerCase()}(?:/|$|\\?)`,
-      );
+      // Verify the post author matches the stored handle
+      const authorUrl = linkedInPost.author.url?.toLowerCase() ?? "";
+      const authorSlug = authorUrl.match(/\/in\/([^/?]+)/)?.[1];
 
-      if (!authorUrlPath || !handlePattern.test(authorUrlPath)) {
+      if (
+        !authorSlug ||
+        authorSlug !== partnerPlatform.identifier.toLowerCase()
+      ) {
         throw new Error(
           "The LinkedIn post does not appear to belong to the account you are verifying. Please ensure you are sharing a post from the correct account.",
         );

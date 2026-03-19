@@ -122,6 +122,10 @@ function SocialVerificationByCodeModalInner({
 
   let stepNumber = 1;
 
+  if (!platformInfo) {
+    return null;
+  }
+
   return (
     <>
       <div className="flex items-center justify-between border-b border-neutral-200 p-4 sm:px-6">

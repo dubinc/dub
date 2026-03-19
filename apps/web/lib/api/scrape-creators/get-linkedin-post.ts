@@ -41,7 +41,7 @@ export async function getLinkedInPost(
     description: data.description ?? data.headline ?? null,
     author: {
       url: data.author.url ?? null,
-      followers: data.author.followers,
+      followers: data.author.followers ?? 0,
     },
   };
 }
