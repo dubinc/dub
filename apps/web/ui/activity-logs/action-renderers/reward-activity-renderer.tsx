@@ -5,7 +5,7 @@ import { ProgramRewardDescription } from "@/ui/partners/program-reward-descripti
 import { ProgramRewardModifiersTooltipContent } from "@/ui/partners/program-reward-modifiers-tooltip";
 import { TimestampTooltip } from "@dub/ui";
 import { formatDate } from "@dub/utils";
-import { UserAvatar } from "../activity-entry-chips";
+import { ActivityLogUserAvatar } from "../activity-entry-chips";
 
 interface RewardActivityConfig {
   title: string;
@@ -83,7 +83,7 @@ export function RewardActivityRenderer({ log }: RewardActivityRendererProps) {
     <div className="flex w-full flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <UserAvatar user={log.user} />
+          <ActivityLogUserAvatar user={log.user} />
           <span className="text-sm font-medium leading-5 text-neutral-800">
             {config.title}
           </span>

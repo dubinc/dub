@@ -1,7 +1,8 @@
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { FraudRuleType } from "@dub/prisma/client";
 import { Button, ShieldKeyhole } from "@dub/ui";
-import { formatDate, OG_AVATAR_URL } from "@dub/utils";
+import { formatDate } from "@dub/utils";
 
 const EXAMPLE_FRAUD_EVENTS: {
   type: FraudRuleType;
@@ -53,10 +54,9 @@ function ExampleFraudEvent({ event }: { event: ExampleFraudEventProps }) {
             {rule.name}
           </span>
           <div className="flex items-center gap-2">
-            <img
-              src={`${OG_AVATAR_URL}${event.partnerName}`}
-              alt={event.partnerName}
-              className="size-5 shrink-0 rounded-full bg-white"
+            <PartnerAvatar
+              partner={{ name: event.partnerName }}
+              className="size-5 bg-white"
             />
             <span className="text-content-default whitespace-nowrap text-sm font-medium">
               {event.partnerName}

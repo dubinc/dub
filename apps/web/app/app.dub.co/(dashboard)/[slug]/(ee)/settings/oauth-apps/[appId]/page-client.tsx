@@ -10,14 +10,8 @@ import AddOAuthAppForm from "@/ui/oauth-apps/add-edit-app-form";
 import OAuthAppCredentials from "@/ui/oauth-apps/oauth-app-credentials";
 import { BackLink } from "@/ui/shared/back-link";
 import { ThreeDots } from "@/ui/shared/icons";
-import {
-  BlurImage,
-  Button,
-  MaxWidthWrapper,
-  Popover,
-  Refresh2,
-  TokenAvatar,
-} from "@dub/ui";
+import { TokenAvatar } from "@/ui/token-avatar";
+import { BlurImage, Button, MaxWidthWrapper, Popover, Refresh2 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { Trash, Upload } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";

@@ -16,6 +16,7 @@ import { getBountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-cr
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
 import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
@@ -38,7 +39,6 @@ import {
   formatDate,
   getPrettyUrl,
   nFormatter,
-  OG_AVATAR_URL,
   timeAgo,
 } from "@dub/utils";
 import Linkify from "linkify-react";
@@ -218,14 +218,7 @@ function BountySubmissionDetailsSheetContent({
       <div className="flex grow flex-col">
         <div className="px-6 pt-6">
           <div className="flex items-center gap-4 rounded-xl bg-neutral-100 px-4 py-3">
-            <img
-              src={
-                submission.partner.image ||
-                `${OG_AVATAR_URL}${submission.partner.id}`
-              }
-              alt={submission.partner.name}
-              className="size-10 shrink-0 rounded-full"
-            />
+            <PartnerAvatar partner={submission.partner} className="size-10" />
             <div className="min-w-0 flex-1">
               <div className="text-base font-semibold text-neutral-800">
                 {submission.partner.name}

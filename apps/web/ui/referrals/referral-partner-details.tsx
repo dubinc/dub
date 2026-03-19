@@ -1,5 +1,5 @@
 import { ReferralProps } from "@/lib/types";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -22,12 +22,9 @@ export function ReferralPartnerDetails({
         target="_blank"
         className="flex items-center gap-2 transition-opacity hover:opacity-80"
       >
-        <img
-          src={
-            referral.partner.image || `${OG_AVATAR_URL}${referral.partner.id}`
-          }
-          alt={referral.partner.name}
-          className="size-5 rounded-full border border-neutral-100"
+        <PartnerAvatar
+          partner={referral.partner}
+          className="size-5 border border-neutral-100"
         />
         <div className="text-content-emphasis cursor-alias text-sm font-semibold decoration-dotted hover:underline">
           {referral.partner.name}

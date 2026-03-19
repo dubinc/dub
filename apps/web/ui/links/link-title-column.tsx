@@ -5,9 +5,9 @@ import useDomain from "@/lib/swr/use-domain";
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   ArrowTurnRight2,
-  Avatar,
   CardList,
   CopyButton,
   LinkLogo,
@@ -381,7 +381,7 @@ const Details = memo(
             displayProperties.includes("user") && "sm:block",
           )}
         >
-          <UserAvatar user={link.user} />
+          <UserAvatarWithTooltip user={link.user} />
         </div>
         <div
           className={cn(
@@ -402,13 +402,13 @@ const Details = memo(
   },
 );
 
-export function UserAvatar({ user }: { user: UserProps }) {
+export function UserAvatarWithTooltip({ user }: { user: UserProps }) {
   const { slug } = useParams();
   return (
     <Tooltip
       content={
         <div className="w-full p-3">
-          <Avatar user={user} className="h-8 w-8" />
+          <UserAvatar user={user} className="h-8 w-8" />
           <div className="mt-2 flex items-center gap-1.5">
             <p className="text-sm font-semibold text-neutral-700">
               {user?.name || user?.email || "Anonymous User"}
@@ -430,7 +430,7 @@ export function UserAvatar({ user }: { user: UserProps }) {
       delayDuration={150}
     >
       <div>
-        <Avatar user={user} className="size-4" />
+        <UserAvatar user={user} className="size-4" />
       </div>
     </Tooltip>
   );

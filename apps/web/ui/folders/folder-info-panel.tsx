@@ -4,7 +4,8 @@ import useFolder from "@/lib/swr/use-folder";
 import { useFolderUsers } from "@/lib/swr/use-folder-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderUser } from "@/lib/types";
-import { Avatar, BlurImage, LoadingSpinner } from "@dub/ui";
+import { UserAvatar } from "@/ui/users/user-avatar";
+import { BlurImage, LoadingSpinner } from "@dub/ui";
 import { PropsWithChildren } from "react";
 import { FolderActions } from "./folder-actions";
 
@@ -117,7 +118,7 @@ const UserList = ({
         ))
       : users?.map((user) => (
           <div key={user.id} className="flex min-w-12 items-center gap-3">
-            <Avatar user={user} className="size-8" />
+            <UserAvatar user={user} className="size-8" />
             <div className="min-w-0">
               <h3 className="truncate text-xs font-medium text-neutral-800">
                 {user?.name || user?.email || "Anonymous User"}
