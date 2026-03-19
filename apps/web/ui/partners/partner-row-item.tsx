@@ -17,6 +17,8 @@ interface PartnerRowItemProps {
   showPermalink?: boolean;
   showFraudIndicator?: boolean;
   filterSet?: Record<string, any>;
+  filterOnClick?: () => void;
+  filterIconActive?: boolean;
   partner: {
     id: string;
     name: string;
@@ -171,6 +173,8 @@ export function PartnerRowItem({
   showPermalink = true,
   showFraudIndicator = true,
   filterSet,
+  filterOnClick,
+  filterIconActive,
 }: PartnerRowItemProps) {
   const { slug } = useParams();
   const { statusKey, showPayoutsEnabled } = usePartnerPayoutStatus(partner);
@@ -209,7 +213,14 @@ export function PartnerRowItem({
   return (
     <div className="flex min-w-0 items-center gap-2">
       {filterSet ? (
-        <FilterIconCell set={filterSet} icon={avatar} />
+        <FilterIconCell
+          set={filterSet}
+          icon={avatar}
+          {...(filterOnClick && {
+            onFilterClick: () => filterOnClick(),
+            isActive: filterIconActive,
+          })}
+        />
       ) : (
         <div className="shrink-0">{avatar}</div>
       )}

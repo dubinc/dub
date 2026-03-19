@@ -1,8 +1,16 @@
+"use client";
+
 import { AnalyticsResponse } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { Table, usePagination, useRouterStuff, useTable } from "@dub/ui";
+import {
+  Table,
+  useKeyboardShortcut,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -11,16 +19,52 @@ import {
   fetcher,
   nFormatter,
 } from "@dub/utils";
-import { useRouter } from "next/navigation";
-import { useContext, useMemo } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import useSWR from "swr";
 
 export function AnalyticsPartnersTable() {
   const { selectedTab, queryString } = useContext(AnalyticsContext);
-  const { queryParams } = useRouterStuff();
-  const router = useRouter();
+  const { queryParams, searchParams } = useRouterStuff();
+
+  const [stagedPartnerIds, setStagedPartnerIds] = useState<string[]>([]);
 
   const { pagination, setPagination } = usePagination(10);
+
+  const activePartnerIdsFromUrl = useMemo(
+    () => searchParams.get("partnerId")?.split(",").filter(Boolean) ?? [],
+    [searchParams],
+  );
+
+  const isFilterActive = searchParams.has("partnerId");
+
+  const toggleStagePartner = useCallback((partnerId: string) => {
+    setStagedPartnerIds((prev) =>
+      prev.includes(partnerId)
+        ? prev.filter((id) => id !== partnerId)
+        : [...prev, partnerId],
+    );
+  }, []);
+
+  const applyFilter = useCallback(() => {
+    if (stagedPartnerIds.length === 0) return;
+    queryParams({
+      set: { partnerId: stagedPartnerIds.join(",") },
+      del: "page",
+    });
+    setStagedPartnerIds([]);
+  }, [queryParams, stagedPartnerIds]);
+
+  const clearFilter = useCallback(() => {
+    setStagedPartnerIds([]);
+    if (searchParams.has("partnerId")) {
+      queryParams({ del: ["partnerId", "page"] });
+    }
+  }, [queryParams, searchParams]);
+
+  useKeyboardShortcut("Escape", () => setStagedPartnerIds([]), {
+    enabled: stagedPartnerIds.length > 0,
+    priority: 2,
+  });
 
   const {
     data: topPartners,
@@ -49,23 +93,57 @@ export function AnalyticsPartnersTable() {
     columns: [
       {
         id: "partner",
-        header: "Partner",
+        header: () => (
+          <div className="flex w-full min-w-0 items-center justify-between gap-2 pr-1">
+            <span className="truncate text-sm font-medium leading-none">
+              Partner
+            </span>
+            <div className="flex h-6 shrink-0 items-center justify-end gap-1">
+              {stagedPartnerIds.length > 0 && (
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex h-6 max-h-6 items-center rounded-lg border border-black bg-black px-1.5 text-[11px] font-medium leading-none text-white",
+                    "hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
+                  )}
+                  onClick={applyFilter}
+                >
+                  Filter
+                </button>
+              )}
+              {(stagedPartnerIds.length > 0 || isFilterActive) && (
+                <button
+                  type="button"
+                  className={cn(
+                    "inline-flex h-6 max-h-6 items-center rounded-lg border border-neutral-200 bg-white px-1.5 text-[11px] font-medium leading-none text-neutral-700",
+                    "hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
+                  )}
+                  onClick={clearFilter}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+        ),
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {
           const p = row.original.partner;
-          const filterHref = queryParams({
-            set: { partnerId: row.original.partnerId },
-            del: "page",
-            getNewPath: true,
-          }) as string;
+          const partnerId = row.original.partnerId;
+          const filterIconActive =
+            stagedPartnerIds.includes(partnerId) ||
+            activePartnerIdsFromUrl.includes(partnerId);
+
           return (
             <div
-              className="cursor-pointer"
-              onClick={() => router.push(filterHref)}
+              className="cursor-pointer select-none"
+              onClick={() => toggleStagePartner(partnerId)}
             >
               <PartnerRowItem
                 filterSet={{ partnerId: row.original.partnerId }}
+                filterOnClick={() => toggleStagePartner(partnerId)}
+                filterIconActive={filterIconActive}
                 partner={{
                   ...p,
                   payoutsEnabledAt: p.payoutsEnabledAt
@@ -104,19 +182,22 @@ export function AnalyticsPartnersTable() {
             {
               id: "sales",
               header: "Sales",
-              accessorFn: (d) => nFormatter(d.sales),
+              accessorFn: (d: AnalyticsResponse["top_partners"]) =>
+                nFormatter(d.sales),
             },
             {
               id: "saleAmount",
               header: "Revenue",
-              accessorFn: (d) => currencyFormatter(d.saleAmount),
+              accessorFn: (d: AnalyticsResponse["top_partners"]) =>
+                currencyFormatter(d.saleAmount),
             },
           ]
         : [
             {
               id: selectedTab,
               header: `${capitalize(selectedTab)}`,
-              accessorFn: (d) => nFormatter(d[selectedTab]),
+              accessorFn: (d: AnalyticsResponse["top_partners"]) =>
+                nFormatter(d[selectedTab]),
             },
           ]),
     ],
