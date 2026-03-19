@@ -49,13 +49,6 @@ export const socialProfileSchema = z.preprocess(
         };
       }
 
-      // LinkedIn detection
-      if ("author" in data && "likeCount" in data && "commentCount" in data) {
-        return {
-          ...data,
-          platform: "linkedin",
-        };
-      }
     }
 
     return data;
