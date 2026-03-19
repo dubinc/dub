@@ -53,7 +53,6 @@ describe("POST /track/lead", async () => {
         customerExternalId: customer1.externalId,
         customerName: customer1.name,
         customerEmail: customer1.email,
-        customerAvatar: customer1.avatar,
       },
     });
 
@@ -73,7 +72,6 @@ describe("POST /track/lead", async () => {
         customerExternalId: customer1.externalId,
         customerName: customer1.name,
         customerEmail: customer1.email,
-        customerAvatar: customer1.avatar,
       },
     });
 
@@ -95,7 +93,6 @@ describe("POST /track/lead", async () => {
         customerExternalId: customer2.externalId,
         customerName: customer2.name,
         customerEmail: customer2.email,
-        customerAvatar: customer2.avatar,
         mode: "deferred",
       },
     });
@@ -129,7 +126,6 @@ describe("POST /track/lead", async () => {
         customerExternalId: customer3.externalId,
         customerName: customer3.name,
         customerEmail: customer3.email,
-        customerAvatar: customer3.avatar,
         mode: "wait",
       },
     });
@@ -162,7 +158,6 @@ describe("POST /track/lead", async () => {
         customerExternalId: customer4.externalId,
         customerName: customer4.name,
         customerEmail: customer4.email,
-        customerAvatar: customer4.avatar,
         eventQuantity: 2,
       },
     });
@@ -184,7 +179,6 @@ describe("POST /track/lead", async () => {
         eventName: "Signup",
         customerName: customer5.name,
         customerEmail: customer5.email,
-        customerAvatar: customer5.avatar,
       },
     });
 
@@ -205,7 +199,6 @@ describe("POST /track/lead", async () => {
         eventName: "Signup",
         customerName: customer6.name,
         customerEmail: customer6.email,
-        customerAvatar: customer6.avatar,
       },
     });
 

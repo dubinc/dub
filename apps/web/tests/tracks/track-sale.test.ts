@@ -182,7 +182,6 @@ describe.concurrent("POST /track/sale", async () => {
         customerExternalId: saleCustomer.externalId,
         customerName: saleCustomer.name,
         customerEmail: saleCustomer.email,
-        customerAvatar: saleCustomer.avatar,
       },
     });
 

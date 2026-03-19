@@ -141,7 +141,6 @@ describe.concurrent("Sale rewards with conditions", async () => {
         customerExternalId: newCustomer.externalId,
         customerName: newCustomer.name,
         customerEmail: newCustomer.email,
-        customerAvatar: newCustomer.avatar,
       },
     });
 

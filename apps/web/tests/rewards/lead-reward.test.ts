@@ -37,7 +37,6 @@ describe.concurrent("Lead rewards", async () => {
         customerExternalId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
-        customerAvatar: customer.avatar,
       },
     });
 
@@ -75,7 +74,6 @@ describe.concurrent("Lead rewards", async () => {
         customerExternalId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
-        customerAvatar: customer.avatar,
       },
     });
 

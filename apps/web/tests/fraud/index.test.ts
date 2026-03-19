@@ -51,7 +51,6 @@ describe.concurrent("/fraud/**", async () => {
         customerId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
-        customerAvatar: customer.avatar,
       },
     });
 
@@ -89,7 +88,6 @@ describe.concurrent("/fraud/**", async () => {
         customerId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
-        customerAvatar: customer.avatar,
       },
     });
 
@@ -125,7 +123,6 @@ describe.concurrent("/fraud/**", async () => {
         customerId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
-        customerAvatar: customer.avatar,
       },
     });
 
@@ -168,7 +165,6 @@ describe.concurrent("/fraud/**", async () => {
         customerId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
-        customerAvatar: customer.avatar,
       },
     });
 
@@ -209,7 +205,6 @@ describe.concurrent("/fraud/**", async () => {
         customerId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
-        customerAvatar: customer.avatar,
       },
     });
 
@@ -253,7 +248,6 @@ describe.concurrent("/fraud/**", async () => {
         customerId: customer.externalId,
         customerName: customer.name,
         customerEmail: customer.email,
-        customerAvatar: customer.avatar,
       },
     });
 
