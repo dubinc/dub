@@ -2,8 +2,7 @@ import { AnalyticsResponse } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
-import { Table, usePagination, useTable } from "@dub/ui";
+import { Table, usePagination, useRouterStuff, useTable } from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -12,11 +11,14 @@ import {
   fetcher,
   nFormatter,
 } from "@dub/utils";
+import { useRouter } from "next/navigation";
 import { useContext, useMemo } from "react";
 import useSWR from "swr";
 
 export function AnalyticsPartnersTable() {
   const { selectedTab, queryString } = useContext(AnalyticsContext);
+  const { queryParams } = useRouterStuff();
+  const router = useRouter();
 
   const { pagination, setPagination } = usePagination(10);
 
@@ -52,21 +54,27 @@ export function AnalyticsPartnersTable() {
         minSize: 250,
         cell: ({ row }) => {
           const p = row.original.partner;
+          const filterHref = queryParams({
+            set: { partnerId: row.original.partnerId },
+            del: "page",
+            getNewPath: true,
+          }) as string;
           return (
-            <PartnerRowItem
-              partner={{
-                ...p,
-                payoutsEnabledAt: p.payoutsEnabledAt
-                  ? new Date(p.payoutsEnabledAt)
-                  : null,
-              }}
-            />
+            <div
+              className="cursor-pointer"
+              onClick={() => router.push(filterHref)}
+            >
+              <PartnerRowItem
+                filterSet={{ partnerId: row.original.partnerId }}
+                partner={{
+                  ...p,
+                  payoutsEnabledAt: p.payoutsEnabledAt
+                    ? new Date(p.payoutsEnabledAt)
+                    : null,
+                }}
+              />
+            </div>
           );
-        },
-        meta: {
-          filterParams: ({ row }) => ({
-            partnerId: row.original.partnerId,
-          }),
         },
       },
       {
@@ -112,19 +120,6 @@ export function AnalyticsPartnersTable() {
             },
           ]),
     ],
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as
-        | {
-            filterParams?: any;
-          }
-        | undefined;
-
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["clicks", "leads", "saleAmount"],
