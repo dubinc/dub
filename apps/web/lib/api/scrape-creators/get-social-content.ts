@@ -15,13 +15,14 @@ interface GetSocialContentStatsParams {
 }
 
 const PLATFORM_CONTENT_TYPE: Record<
-  Exclude<PlatformType, "website" | "linkedin">,
+  Exclude<PlatformType, "website">,
   "post" | "video" | "tweet"
 > = {
   youtube: "video",
   instagram: "post",
   twitter: "tweet",
   tiktok: "video",
+  linkedin: "post",
 };
 
 const EMPTY_SOCIAL_CONTENT: SocialContent = {
@@ -180,6 +181,20 @@ export async function getSocialContent({
       break;
     }
 
+    case "linkedin": {
+      result = {
+        publishedAt: data.datePublished ? new Date(data.datePublished) : null,
+        handle: null,
+        platformId: null,
+        views: 0,
+        likes: data.likeCount,
+        title: data.name ?? null,
+        description: data.description ?? data.headline ?? null,
+        thumbnailUrl: null,
+      };
+      break;
+    }
+
     default:
       result = {
         publishedAt: null,
@@ -193,7 +208,9 @@ export async function getSocialContent({
       };
   }
 
-  if (BOUNTY_SOCIAL_PLATFORM_VALUES.includes(data.platform)) {
+  // TODO:
+  // Fix this "any" when we add LinkedIn to the bounty social platform.
+  if (BOUNTY_SOCIAL_PLATFORM_VALUES.includes(data.platform as any)) {
     waitUntil(redis.set(cacheKey, result, { ex: CACHE_TTL }));
   }
 

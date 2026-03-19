@@ -456,7 +456,10 @@ export default function EventsTable({
                 )
               }
             >
-              <span className="truncate" title={COUNTRIES[getValue()] ?? getValue()}>
+              <span
+                className="truncate"
+                title={COUNTRIES[getValue()] ?? getValue()}
+              >
                 {COUNTRIES[getValue()] ?? getValue()}
               </span>
             </FilterIconCell>
@@ -471,8 +474,7 @@ export default function EventsTable({
             <FilterIconCell
               set={{ city: getValue() }}
               icon={
-                !row.original.country ||
-                row.original.country === "Unknown" ? (
+                !row.original.country || row.original.country === "Unknown" ? (
                   <Globe className="size-4 shrink-0" />
                 ) : (
                   <img
@@ -483,7 +485,9 @@ export default function EventsTable({
                 )
               }
             >
-              <span className="truncate" title={getValue()}>{getValue()}</span>
+              <span className="truncate" title={getValue()}>
+                {getValue()}
+              </span>
             </FilterIconCell>
           ),
         },
@@ -496,8 +500,7 @@ export default function EventsTable({
             <FilterIconCell
               set={{ region: getValue() }}
               icon={
-                !row.original.country ||
-                row.original.country === "Unknown" ? (
+                !row.original.country || row.original.country === "Unknown" ? (
                   <Globe className="size-4 shrink-0" />
                 ) : (
                   <img
@@ -522,7 +525,10 @@ export default function EventsTable({
             <FilterIconCell
               set={{ continent: getValue() }}
               icon={
-                <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+                <ContinentIcon
+                  display={getValue()}
+                  className="size-4 shrink-0"
+                />
               }
             >
               <span
@@ -549,7 +555,9 @@ export default function EventsTable({
                 />
               }
             >
-              <span className="truncate" title={getValue()}>{getValue()}</span>
+              <span className="truncate" title={getValue()}>
+                {getValue()}
+              </span>
             </FilterIconCell>
           ),
         },
