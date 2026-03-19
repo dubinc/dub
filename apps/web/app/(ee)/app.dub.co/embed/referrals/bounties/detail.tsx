@@ -33,12 +33,14 @@ type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
 
 export function EmbedBountyDetail({
   bounty: initialBounty,
+  programEnrollmentCreatedAt,
   view,
   setView,
   onBack,
   onBountyUpdate,
 }: {
   bounty: PartnerBountyProps;
+  programEnrollmentCreatedAt: Date;
   view: EmbedBountyView;
   setView: (v: EmbedBountyView) => void;
   onBack: () => void;
@@ -154,7 +156,10 @@ export function EmbedBountyDetail({
           </div>
 
           {bounty.type === "performance" ? (
-            <EmbedBountyPerformanceSection bounty={bounty} />
+            <EmbedBountyPerformanceSection
+              bounty={bounty}
+              programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+            />
           ) : (
             <EmbedBountySubmissionsTable
               bounty={bounty}

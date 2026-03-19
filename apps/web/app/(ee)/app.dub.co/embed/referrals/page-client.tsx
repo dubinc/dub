@@ -53,6 +53,7 @@ export function ReferralsEmbedPageClient({
   discount,
   earnings,
   stats,
+  programEnrollmentCreatedAt,
   group,
   bounties,
   themeOptions,
@@ -73,6 +74,7 @@ export function ReferralsEmbedPageClient({
     sales: number;
     saleAmount: number;
   };
+  programEnrollmentCreatedAt: Date;
   group: Pick<
     PartnerGroupProps,
     | "id"
@@ -266,7 +268,10 @@ export function ReferralsEmbedPageClient({
               ) : selectedTab === "Resources" ? (
                 <ReferralsEmbedResources resources={resources} />
               ) : selectedTab === "Bounties" ? (
-                <ReferralsEmbedBounties bounties={bounties} />
+                <ReferralsEmbedBounties
+                  bounties={bounties}
+                  programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+                />
               ) : null}
             </AnimatePresence>
           </div>

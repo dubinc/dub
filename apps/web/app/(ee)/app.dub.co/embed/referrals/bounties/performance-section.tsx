@@ -88,8 +88,10 @@ const PAGE_SIZE = 10;
 
 export function EmbedBountyPerformanceSection({
   bounty,
+  programEnrollmentCreatedAt,
 }: {
   bounty: PartnerBountyProps;
+  programEnrollmentCreatedAt: Date;
 }) {
   return (
     <div className="flex flex-col gap-6">
@@ -98,18 +100,26 @@ export function EmbedBountyPerformanceSection({
           Performance
         </h2>
         <div className="border-border-subtle bg-bg-default rounded-xl border p-5">
-          <EmbedBountyPerformanceChart bounty={bounty} />
+          <EmbedBountyPerformanceChart
+            bounty={bounty}
+            programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+          />
         </div>
       </div>
-      <EmbedBountyPerformanceTable bounty={bounty} />
+      <EmbedBountyPerformanceTable
+        bounty={bounty}
+        programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+      />
     </div>
   );
 }
 
 function EmbedBountyPerformanceChart({
   bounty,
+  programEnrollmentCreatedAt,
 }: {
   bounty: PartnerBountyProps;
+  programEnrollmentCreatedAt: Date;
 }) {
   const token = useEmbedToken();
   const attribute = bounty.performanceCondition?.attribute as
@@ -118,11 +128,20 @@ function EmbedBountyPerformanceChart({
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
   const isCommissions = attribute === "totalCommissions";
 
-  const startDate = useMemo(() => new Date(bounty.startsAt), [bounty.startsAt]);
+  const startDate = useMemo(
+    () =>
+      bounty.performanceScope === "new"
+        ? new Date(bounty.startsAt)
+        : new Date(programEnrollmentCreatedAt ?? bounty.startsAt),
+    [bounty.performanceScope, bounty.startsAt, programEnrollmentCreatedAt],
+  );
   const endDate = useMemo(
     () => (bounty.endsAt ? new Date(bounty.endsAt) : new Date()),
     [bounty.endsAt],
   );
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const authFetcher = (url: string) =>
+    fetcher(url, { headers: { Authorization: `Bearer ${token}` } });
 
   const analyticsUrl = useMemo(() => {
     const eventParam = attribute
@@ -137,25 +156,45 @@ function EmbedBountyPerformanceChart({
     return `/api/embed/referrals/analytics?${params.toString()}`;
   }, [startDate, endDate, attribute]);
 
-  const { data: analyticsTimeseries, error } = useSWR<any[]>(
-    analyticsUrl,
-    (url) =>
-      fetcher(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      }),
+  const earningsTimeseriesUrl = useMemo(() => {
+    const params = new URLSearchParams({
+      start: startDate.toISOString(),
+      end: endDate.toISOString(),
+      timezone,
+    });
+    return `/api/embed/referrals/earnings/timeseries?${params.toString()}`;
+  }, [startDate, endDate, timezone]);
+
+  const { data: analyticsTimeseries, error: analyticsError } = useSWR<any[]>(
+    isCommissions ? null : analyticsUrl,
+    authFetcher,
     { keepPreviousData: true },
   );
 
-  const data = useMemo(() => {
-    if (!analyticsTimeseries) return undefined;
+  const { data: earningsTimeseries, error: earningsError } = useSWR<
+    { start: string; earnings: number }[]
+  >(isCommissions ? earningsTimeseriesUrl : null, authFetcher, {
+    keepPreviousData: true,
+  });
 
+  const data = useMemo(() => {
     if (isCommissions) {
-      return analyticsTimeseries.map(
-        ({ start, earnings }: { start: string; earnings: number }) => ({
-          date: new Date(start),
-          values: { main: earnings },
-        }),
-      );
+      if (!earningsTimeseries) {
+        return undefined;
+      }
+
+      if (!Array.isArray(earningsTimeseries)) {
+        return [];
+      }
+
+      return earningsTimeseries.map(({ start, earnings }) => ({
+        date: new Date(start),
+        values: { main: earnings },
+      }));
+    }
+
+    if (!analyticsTimeseries) {
+      return undefined;
     }
 
     if (!attribute) return [];
@@ -167,7 +206,9 @@ function EmbedBountyPerformanceChart({
       date: new Date(d.start),
       values: { main: d[field] ?? 0 },
     }));
-  }, [analyticsTimeseries, isCommissions, attribute]);
+  }, [analyticsTimeseries, earningsTimeseries, isCommissions, attribute]);
+
+  const error = isCommissions ? earningsError : analyticsError;
 
   const chartData = useMemo(() => {
     if (data === undefined) return undefined;
@@ -226,21 +267,39 @@ function EmbedBountyPerformanceChart({
 
 function EmbedBountyPerformanceTable({
   bounty,
+  programEnrollmentCreatedAt,
 }: {
   bounty: PartnerBountyProps;
+  programEnrollmentCreatedAt: Date;
 }) {
   const attribute = bounty.performanceCondition?.attribute as
     | PerformanceAttribute
     | undefined;
 
   if (attribute === "totalCommissions") {
-    return <EmbedBountyCommissionsTable bounty={bounty} />;
+    return (
+      <EmbedBountyCommissionsTable
+        bounty={bounty}
+        programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+      />
+    );
   }
 
-  return <EmbedBountyEventsTable bounty={bounty} />;
+  return (
+    <EmbedBountyEventsTable
+      bounty={bounty}
+      programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+    />
+  );
 }
 
-function EmbedBountyEventsTable({ bounty }: { bounty: PartnerBountyProps }) {
+function EmbedBountyEventsTable({
+  bounty,
+  programEnrollmentCreatedAt,
+}: {
+  bounty: PartnerBountyProps;
+  programEnrollmentCreatedAt: Date;
+}) {
   const token = useEmbedToken();
   const [page, setPage] = useState(1);
 
@@ -268,7 +327,13 @@ function EmbedBountyEventsTable({ bounty }: { bounty: PartnerBountyProps }) {
     ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
     : undefined;
 
-  const startDate = useMemo(() => new Date(bounty.startsAt), [bounty.startsAt]);
+  const startDate = useMemo(
+    () =>
+      bounty.performanceScope === "new"
+        ? new Date(bounty.startsAt)
+        : new Date(programEnrollmentCreatedAt ?? bounty.startsAt),
+    [bounty.performanceScope, bounty.startsAt, programEnrollmentCreatedAt],
+  );
   const endDate = useMemo(
     () => (bounty.endsAt ? new Date(bounty.endsAt) : new Date()),
     [bounty.endsAt],
@@ -457,8 +522,10 @@ function EmbedBountyEventsTable({ bounty }: { bounty: PartnerBountyProps }) {
 
 function EmbedBountyCommissionsTable({
   bounty,
+  programEnrollmentCreatedAt,
 }: {
   bounty: PartnerBountyProps;
+  programEnrollmentCreatedAt: Date;
 }) {
   const token = useEmbedToken();
   const [page, setPage] = useState(1);
@@ -469,7 +536,13 @@ function EmbedBountyCommissionsTable({
     onPageChange: setPage,
   });
 
-  const startDate = useMemo(() => new Date(bounty.startsAt), [bounty.startsAt]);
+  const startDate = useMemo(
+    () =>
+      bounty.performanceScope === "new"
+        ? new Date(bounty.startsAt)
+        : new Date(programEnrollmentCreatedAt ?? bounty.startsAt),
+    [bounty.performanceScope, bounty.startsAt, programEnrollmentCreatedAt],
+  );
   const endDate = useMemo(
     () => (bounty.endsAt ? new Date(bounty.endsAt) : new Date()),
     [bounty.endsAt],

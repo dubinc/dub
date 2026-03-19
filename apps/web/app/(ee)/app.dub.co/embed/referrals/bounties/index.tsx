@@ -14,8 +14,10 @@ import { EmbedBountyDetail, EmbedBountyView } from "./detail";
 
 export function ReferralsEmbedBounties({
   bounties: initialBounties,
+  programEnrollmentCreatedAt,
 }: {
   bounties: PartnerBountyProps[];
+  programEnrollmentCreatedAt: Date;
 }) {
   const [bounties, setBounties] =
     useState<PartnerBountyProps[]>(initialBounties);
@@ -56,6 +58,7 @@ export function ReferralsEmbedBounties({
         {selectedBounty ? (
           <EmbedBountyDetail
             bounty={selectedBounty}
+            programEnrollmentCreatedAt={programEnrollmentCreatedAt}
             view={view}
             setView={setView}
             onBack={handleBack}
