@@ -94,12 +94,7 @@ export function ProgramCustomersPageClient() {
           enableHiding: false,
           minSize: 250,
           cell: ({ row }) => {
-            return (
-              <CustomerRowItem
-                customer={row.original}
-                chartActivityIconMode="visible"
-              />
-            );
+            return <CustomerRowItem customer={row.original} />;
           },
         },
         {

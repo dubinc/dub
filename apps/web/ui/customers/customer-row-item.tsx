@@ -1,6 +1,5 @@
 import { generateRandomName } from "@/lib/names";
 import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
-import { ChartActivity2 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import React, { ComponentProps } from "react";
@@ -11,7 +10,6 @@ export function CustomerRowItem({
   href,
   className,
   avatarClassName,
-  chartActivityIconMode = "hiddenOnHover",
   filterSet,
 }: {
   customer: {
@@ -23,7 +21,6 @@ export function CustomerRowItem({
   href?: string;
   className?: string;
   avatarClassName?: string;
-  chartActivityIconMode?: "visible" | "hidden" | "hiddenOnHover";
   filterSet?: Record<string, any>;
 }) {
   const display = customer.email || customer.name || generateRandomName();
@@ -53,15 +50,6 @@ export function CustomerRowItem({
         )}
         <span className="truncate">{display}</span>
       </div>
-      {href && chartActivityIconMode !== "hidden" && (
-        <ChartActivity2
-          className={cn(
-            "size-3.5 shrink-0 transition-all",
-            chartActivityIconMode === "hiddenOnHover" &&
-              "group-hover:-translate-x-3 group-hover:opacity-0",
-          )}
-        />
-      )}
     </Wrapper>
   );
 }
