@@ -22,6 +22,9 @@ async function main() {
             },
           },
         },
+        email: {
+          not: null,
+        },
       },
       take: 10000,
     });
