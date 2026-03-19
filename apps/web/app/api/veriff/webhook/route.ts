@@ -1,23 +1,9 @@
-import { veriffDecisionWebhookSchema } from "@/lib/veriff/schema";
-import { prisma } from "@dub/prisma";
-import { IdentityVerificationStatus } from "@dub/prisma/client";
+import { veriffEventSchema } from "@/lib/veriff/schema";
 import crypto from "crypto";
+import { handleDecisionEvent } from "./handle-decision-event";
+import { handleSessionEvent } from "./handle-session-event";
 
-const VERIFF_DECISION_CODE_MAP: Record<
-  number,
-  {
-    status: IdentityVerificationStatus;
-    setVerifiedAt: boolean;
-  }
-> = {
-  9001: { status: "approved", setVerifiedAt: true },
-  9102: { status: "declined", setVerifiedAt: false },
-  9103: { status: "resubmissionRequested", setVerifiedAt: false },
-  9104: { status: "expired", setVerifiedAt: false },
-  9121: { status: "pending", setVerifiedAt: false }, // manual review
-};
-
-// POST /api/veriff/webhook - receive Veriff decision webhooks
+// POST /api/veriff/webhook
 export const POST = async (req: Request) => {
   const rawBody = await req.text();
 
@@ -51,48 +37,20 @@ export const POST = async (req: Request) => {
   // }
 
   const body = JSON.parse(rawBody);
-  const result = veriffDecisionWebhookSchema.safeParse(body);
+  const result = veriffEventSchema.safeParse(body);
 
   if (!result.success) {
     console.error("[Veriff Webhook] Invalid payload:", result.error);
     return new Response("Invalid payload.", { status: 400 });
   }
 
-  const { code, vendorData } = result.data;
-  const mapping = VERIFF_DECISION_CODE_MAP[code];
+  console.log("[Veriff Webhook] payload:", result.data);
 
-  if (!mapping) {
-    console.warn(`[Veriff Webhook] Unknown decision code: ${code}`);
-    return new Response("OK");
+  if ("code" in result.data) {
+    await handleSessionEvent(result.data);
+  } else {
+    await handleDecisionEvent(result.data);
   }
-
-  const partner = await prisma.partner.findUnique({
-    where: {
-      veriffSessionId: vendorData,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!partner) {
-    console.warn(
-      `[Veriff Webhook] No partner found for session: ${vendorData}`,
-    );
-    return new Response("OK");
-  }
-
-  await prisma.partner.update({
-    where: {
-      id: partner.id,
-    },
-    data: {
-      identityVerificationStatus: mapping.status,
-      ...(mapping.setVerifiedAt && {
-        identityVerifiedAt: new Date(),
-      }),
-    },
-  });
 
   return new Response("OK");
 };

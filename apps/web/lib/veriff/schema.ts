@@ -24,9 +24,30 @@ export const veriffCreateSessionOutputSchema = z.object({
   }),
 });
 
-// Decision webhook payload
-export const veriffDecisionWebhookSchema = z.object({
+// Event webhook payload
+export const veriffSessionEventSchema = z.object({
+  id: z.string(),
   code: z.number(),
   vendorData: z.string(),
-  action: z.string(),
+  action: z.enum(["started", "submitted"]),
 });
+
+// Decision webhook payload
+export const veriffDecisionEventSchema = z.object({
+  verification: z.object({
+    id: z.string(),
+    vendorData: z.string(),
+    decisionTime: z.string().nullable(),
+    status: z.enum([
+      "approved",
+      "declined",
+      "expired",
+      "resubmission_requested",
+    ]),
+  }),
+});
+
+export const veriffEventSchema = z.union([
+  veriffSessionEventSchema,
+  veriffDecisionEventSchema,
+]);

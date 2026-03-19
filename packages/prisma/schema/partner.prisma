@@ -23,7 +23,8 @@ enum PartnerPayoutMethod {
 }
 
 enum IdentityVerificationStatus {
-  pending
+  started
+  submitted
   approved
   declined
   resubmissionRequested
