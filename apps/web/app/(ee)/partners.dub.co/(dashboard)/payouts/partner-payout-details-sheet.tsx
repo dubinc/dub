@@ -7,6 +7,7 @@ import {
 } from "@/lib/constants/payouts";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
+import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -276,13 +277,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                 />
               </div>
             ) : (
-              <img
-                src={
-                  row.original.customer.avatar ||
-                  `${OG_AVATAR_URL}${row.original.customer.id}`
-                }
-                alt={row.original.customer.id}
-                className="size-6 rounded-full"
+              <CustomerAvatar
+                customer={row.original.customer}
+                className="size-6"
               />
             )}
 

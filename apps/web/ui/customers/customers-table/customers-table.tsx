@@ -151,18 +151,14 @@ export function CustomersTable({
           enableHiding: false,
           minSize: 250,
           cell: ({ row }) => {
-            return (
-              <CustomerRowItem
-                customer={row.original}
-                chartActivityIconMode="visible"
-              />
-            );
+            return <CustomerRowItem customer={row.original} />;
           },
         },
         {
           id: "country",
           header: "Country",
           accessorKey: "country",
+          minSize: 150,
           meta: {
             filterParams: ({ getValue }) =>
               getValue()
@@ -171,7 +167,6 @@ export function CustomersTable({
                   }
                 : undefined,
           },
-          minSize: 150,
           cell: ({ row }) => {
             const country = row.original.country;
             return (
@@ -193,6 +188,13 @@ export function CustomersTable({
         {
           id: "partner",
           header: "Partner",
+          cell: ({ row }) =>
+            row.original.partner ? (
+              <PartnerRowItem partner={row.original.partner} />
+            ) : (
+              "-"
+            ),
+          size: 200,
           meta: {
             filterParams: ({ row }) =>
               row.original.partner?.id
@@ -201,13 +203,6 @@ export function CustomersTable({
                   }
                 : undefined,
           },
-          cell: ({ row }) =>
-            row.original.partner ? (
-              <PartnerRowItem partner={row.original.partner} />
-            ) : (
-              "-"
-            ),
-          size: 200,
         },
         {
           id: "link",
@@ -394,11 +389,10 @@ export function CustomersTable({
       }),
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
+      if (!meta?.filterParams) return null;
+      const params = meta.filterParams(cell);
+      if (!params || Object.keys(params).length === 0) return null;
+      return <FilterButtonTableRow set={params} />;
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",

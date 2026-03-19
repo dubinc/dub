@@ -10,6 +10,7 @@ import {
   FraudGroupCountByPartner,
   PayoutResponse,
 } from "@/lib/types";
+import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ActivityEvent } from "@/ui/partners/activity-event";
@@ -320,13 +321,9 @@ function PayoutDetailsContent({
                 />
               </div>
             ) : (
-              <img
-                src={
-                  row.original.customer.avatar ||
-                  `${OG_AVATAR_URL}${row.original.customer.id}`
-                }
-                alt={row.original.customer.id}
-                className="size-6 rounded-full"
+              <CustomerAvatar
+                customer={row.original.customer}
+                className="size-6"
               />
             )}
 

@@ -131,15 +131,10 @@ export function FraudGroupTable() {
             return (
               <div className="flex items-center gap-2">
                 <Tooltip content={reason.description}>
-                  <span
-                    className={cn(
-                      "cursor-help truncate underline decoration-dotted underline-offset-2",
-                    )}
-                  >
+                  <span className="cursor-help truncate underline decoration-dotted underline-offset-2">
                     {reason.name}
                   </span>
                 </Tooltip>
-
                 {count > 1 && (
                   <Badge
                     variant="gray"
@@ -215,19 +210,6 @@ export function FraudGroupTable() {
       },
     ],
     columnPinning: { right: ["menu"] },
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as
-        | {
-            filterParams?: any;
-          }
-        | undefined;
-
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["createdAt", "type"],
@@ -250,6 +232,19 @@ export function FraudGroupTable() {
         },
         scroll: false,
       });
+    },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      if (!meta?.filterParams) return null;
+      const params = meta.filterParams(cell);
+      if (!params || Object.keys(params).length === 0) return null;
+
+      return <FilterButtonTableRow set={params} />;
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",

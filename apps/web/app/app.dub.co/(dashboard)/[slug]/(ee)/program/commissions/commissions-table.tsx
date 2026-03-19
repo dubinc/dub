@@ -164,10 +164,12 @@ export function CommissionsTable() {
           maxSize: 250,
           cell: ({ row }) =>
             row.original.customer ? (
-              <CustomerRowItem
-                customer={row.original.customer}
-                href={`/${slug}/program/customers/${row.original.customer.id}`}
-              />
+              <div className="flex items-center gap-2">
+                <CustomerRowItem
+                  customer={row.original.customer}
+                  href={`/${slug}/program/customers/${row.original.customer.id}`}
+                />
+              </div>
             ) : (
               "-"
             ),
@@ -183,9 +185,7 @@ export function CommissionsTable() {
         {
           id: "partner",
           header: "Partner",
-          cell: ({ row }) => {
-            return <PartnerRowItem partner={row.original.partner} />;
-          },
+          cell: ({ row }) => <PartnerRowItem partner={row.original.partner} />,
           maxSize: 200,
           meta: {
             filterParams: ({ row }) => ({
@@ -219,14 +219,14 @@ export function CommissionsTable() {
           id: "type",
           header: "Type",
           accessorKey: "type",
+          meta: {
+            filterParams: ({ row }) => ({
+              type: row.original.type ?? "sale",
+            }),
+          },
           cell: ({ row }) => (
             <CommissionTypeBadge type={row.original.type ?? "sale"} />
           ),
-          meta: {
-            filterParams: ({ row }) => ({
-              type: row.original.type,
-            }),
-          },
         },
         {
           id: "amount",
@@ -327,19 +327,6 @@ export function CommissionsTable() {
     data: commissions || [],
     columns,
     columnPinning: { right: ["menu"] },
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as
-        | {
-            filterParams?: any;
-          }
-        | undefined;
-
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     pagination,
     onPaginationChange: setPagination,
     columnVisibility,
@@ -367,6 +354,19 @@ export function CommissionsTable() {
       onPointerEnter: () =>
         router.prefetch(`/${slug}/program/commissions/${row.original.id}`),
     }),
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `commission${p ? "s" : ""}`,

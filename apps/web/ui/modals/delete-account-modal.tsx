@@ -1,4 +1,5 @@
-import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
+import { UserAvatar } from "@/ui/users/user-avatar";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -82,7 +83,7 @@ function DeleteAccountModal({
         className="flex flex-col space-y-4 bg-neutral-50 px-4 py-4 sm:px-6"
       >
         <div className="relative flex items-center gap-3 rounded-md border border-neutral-300 bg-white px-4 py-2">
-          <Avatar user={session?.user} className="size-7" />
+          <UserAvatar user={session?.user} className="size-7" />
           <div className="flex flex-1 flex-col gap-0.5">
             <h3 className="line-clamp-1 text-sm font-medium text-neutral-600">
               {session?.user?.name || session?.user?.email}

@@ -1,76 +1,66 @@
-import { cn } from "@dub/utils";
-import { sha256 } from "js-sha256";
-import { useState } from "react";
+import { cn, getAvatarTheme } from "@dub/utils";
 
-type User = {
-  id?: string | null | undefined;
-  name?: string | null | undefined;
-  email?: string | null | undefined;
-  image?: string | null | undefined;
+const headStyle = {
+  backgroundImage:
+    "linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.2) 100%)",
+  boxShadow:
+    "inset 6px -5px 11px rgba(0,0,0,0.13), inset -18px -12px 19px rgba(255,255,255,0.4)",
 };
 
-export function getUserAvatarUrl(user?: User | null) {
-  if (user?.image) return user.image;
-
-  if (!user?.id) return "https://api.dub.co/og/avatar";
-
-  const ogAvatar = `https://api.dub.co/og/avatar/${user.id}`;
-
-  return user.email
-    ? `https://0.gravatar.com/avatar/${sha256(user.email)}?d=${ogAvatar}`
-    : ogAvatar;
-}
+const shouldersStyle = {
+  backgroundImage:
+    "linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(0,0,0,0.2) 100%)",
+  boxShadow:
+    "inset 10px -12px 19px rgba(0,0,0,0.4), inset -18px -12px 19px rgba(255,255,255,0.4), inset 2px -1px 11px rgba(0,0,0,0.1)",
+};
 
 export function Avatar({
-  user = {},
+  imageUrl,
+  identifier,
   className,
 }: {
-  user?: User;
+  imageUrl?: string | null;
+  identifier: string;
   className?: string;
 }) {
-  if (!user) {
+  if (imageUrl) {
     return (
-      <div
-        className={cn(
-          "h-10 w-10 animate-pulse rounded-full border border-neutral-300 bg-neutral-100",
-          className,
-        )}
+      <img
+        src={imageUrl}
+        alt={identifier}
+        className={cn("shrink-0 rounded-full", className)}
       />
     );
   }
 
-  const [url, setUrl] = useState(getUserAvatarUrl(user));
+  const theme = getAvatarTheme(identifier);
 
   return (
-    <img
-      alt={`Avatar for ${user.name || user.email}`}
-      referrerPolicy="no-referrer"
-      src={url}
+    <div
       className={cn(
-        "h-10 w-10 rounded-full border border-neutral-300",
+        "relative shrink-0 overflow-hidden rounded-full",
         className,
       )}
-      draggable={false}
-      onError={() => {
-        setUrl(`https://api.dub.co/og/avatar/${user.id}`);
-      }}
-    />
-  );
-}
-
-export function TokenAvatar({
-  id,
-  className,
-}: {
-  id: string;
-  className?: string;
-}) {
-  return (
-    <img
-      src={`https://api.dicebear.com/9.x/shapes/svg?seed=${id}`}
-      alt="avatar"
-      className={cn("h-10 w-10 rounded-full", className)}
-      draggable={false}
-    />
+      style={{ background: theme.bg }}
+      role="img"
+      aria-label={identifier}
+    >
+      <div className="absolute left-0 top-0 h-full w-full">
+        <div
+          className="absolute left-[30%] top-[22%] aspect-square w-[40%] rounded-full"
+          style={{
+            background: theme.fg,
+            ...headStyle,
+          }}
+        />
+        <div
+          className="absolute left-[10%] top-[70%] h-[40%] w-[80%] rounded-t-full"
+          style={{
+            background: theme.fg,
+            ...shouldersStyle,
+          }}
+        />
+      </div>
+    </div>
   );
 }

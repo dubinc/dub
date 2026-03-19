@@ -1,7 +1,8 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/types";
-import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
+import { UserAvatar } from "@/ui/users/user-avatar";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { signOut, useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
@@ -121,7 +122,7 @@ function RemovePartnerUserModal({
       <div className="flex flex-col space-y-4 bg-neutral-50 px-4 py-4 sm:px-6">
         <div className="relative flex items-center gap-2 space-x-3 rounded-md border border-neutral-300 bg-white px-4 py-2">
           <div className="flex items-center gap-2">
-            <Avatar user={user} className="size-10" />
+            <UserAvatar user={user} className="size-10" />
             <div className="flex flex-col">
               {isInvite ? (
                 <p className="text-content-subtle text-sm font-medium">
