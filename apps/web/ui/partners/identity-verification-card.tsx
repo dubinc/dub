@@ -11,7 +11,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 
 const STATUS_CONFIG = {
-  Pending: {
+  pending: {
     badge: { label: "In progress", variant: "pending" as const },
     title: "Verification in progress",
     description:
@@ -19,14 +19,14 @@ const STATUS_CONFIG = {
     buttonText: "Continue verification",
     showButton: true,
   },
-  Approved: {
+  approved: {
     badge: { label: "Verified", variant: "success" as const },
     title: "Identity verified",
     description: "Your identity has been verified.",
     buttonText: null,
     showButton: false,
   },
-  Declined: {
+  declined: {
     badge: { label: "Declined", variant: "error" as const },
     title: "Verification declined",
     description:
@@ -34,7 +34,7 @@ const STATUS_CONFIG = {
     buttonText: "Try again",
     showButton: true,
   },
-  ResubmissionRequested: {
+  resubmissionRequested: {
     badge: { label: "Action needed", variant: "warning" as const },
     title: "Additional information needed",
     description:
@@ -42,7 +42,7 @@ const STATUS_CONFIG = {
     buttonText: "Resume verification",
     showButton: true,
   },
-  Expired: {
+  expired: {
     badge: { label: "Expired", variant: "neutral" as const },
     title: "Verification expired",
     description:
@@ -122,7 +122,7 @@ export function IdentityVerificationCard({
           )}
         </div>
 
-        {status === "Approved" && partner.identityVerifiedAt && (
+        {status === "approved" && partner.identityVerifiedAt && (
           <p className="text-sm text-neutral-500">
             Verified on {formatDate(partner.identityVerifiedAt)}
           </p>

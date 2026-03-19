@@ -36,7 +36,7 @@ export async function createVeriffSession({
     },
     data: {
       veriffSessionId: data.verification.id,
-      identityVerificationStatus: "Pending",
+      identityVerificationStatus: "pending",
     },
   });
 

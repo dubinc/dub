@@ -10,11 +10,11 @@ const VERIFF_DECISION_CODE_MAP: Record<
     setVerifiedAt: boolean;
   }
 > = {
-  9001: { status: "Approved", setVerifiedAt: true },
-  9102: { status: "Declined", setVerifiedAt: false },
-  9103: { status: "ResubmissionRequested", setVerifiedAt: false },
-  9104: { status: "Expired", setVerifiedAt: false },
-  9121: { status: "Pending", setVerifiedAt: false }, // manual review
+  9001: { status: "approved", setVerifiedAt: true },
+  9102: { status: "declined", setVerifiedAt: false },
+  9103: { status: "resubmissionRequested", setVerifiedAt: false },
+  9104: { status: "expired", setVerifiedAt: false },
+  9121: { status: "pending", setVerifiedAt: false }, // manual review
 };
 
 // POST /api/veriff/webhook - receive Veriff decision webhooks

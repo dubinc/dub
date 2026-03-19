@@ -23,11 +23,11 @@ enum PartnerPayoutMethod {
 }
 
 enum IdentityVerificationStatus {
-  Pending
-  Approved
-  Declined
-  ResubmissionRequested
-  Expired
+  pending
+  approved
+  declined
+  resubmissionRequested
+  expired
 }
 
 model Partner {

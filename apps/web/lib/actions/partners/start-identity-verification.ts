@@ -7,7 +7,7 @@ export const startIdentityVerificationAction =
   authPartnerActionClient.action(async ({ ctx }) => {
     const { partner } = ctx;
 
-    if (partner.identityVerificationStatus === "Approved") {
+    if (partner.identityVerificationStatus === "approved") {
       throw new Error("Your identity has already been verified.");
     }
 
