@@ -1,5 +1,6 @@
 import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import {
+  IdentityVerificationStatus,
   IndustryInterest,
   MonthlyTraffic,
   PartnerBannedReason,
@@ -356,6 +357,16 @@ export const PartnerSchema = z
       .describe(
         "The date when the partner received the trusted badge in the partner network.",
       ),
+    identityVerificationStatus: z
+      .enum(IdentityVerificationStatus)
+      .nullable()
+      .describe(
+        "The partner's identity verification status. Null means not yet initiated.",
+      ),
+    identityVerifiedAt: z
+      .date()
+      .nullable()
+      .describe("The date when the partner's identity was verified."),
   })
   .extend(PartnerPartnerPlatformsSchema.shape)
   .extend(PartnerProfileSchema.partial().shape);

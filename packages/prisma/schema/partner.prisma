@@ -22,6 +22,14 @@ enum PartnerPayoutMethod {
   paypal
 }
 
+enum IdentityVerificationStatus {
+  Pending
+  Approved
+  Declined
+  ResubmissionRequested
+  Expired
+}
+
 model Partner {
   id          String             @id @default(cuid())
   name        String
@@ -31,6 +39,11 @@ model Partner {
   image       String?            @db.Text
   description String?            @db.Text
   country     String?
+
+  // identity verification fields
+  identityVerificationStatus IdentityVerificationStatus?
+  identityVerifiedAt         DateTime?
+  veriffSessionId            String?                     @unique
 
   // payout fields
   defaultPayoutMethod          PartnerPayoutMethod?
