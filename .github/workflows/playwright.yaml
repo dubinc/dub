@@ -49,7 +49,9 @@ jobs:
       AXIOM_TOKEN: ""
       AXIOM_DATASET: ""
 
-      RESEND_API_KEY: "xx"
+      # RESEND_API_KEY must be unset so emails route through SMTP to MailHog
+      SMTP_HOST: "localhost"
+      SMTP_PORT: "1025"
 
       EMBEDDING_SYNC_SECRET: "xx"
       ANTHROPIC_API_KEY: "xx"
@@ -76,6 +78,12 @@ jobs:
           --health-retries=5
         ports:
           - 3306:3306
+
+      mailhog:
+        image: mailhog/mailhog:latest
+        ports:
+          - 1025:1025
+          - 8025:8025
 
     steps:
       - name: Check out code
