@@ -133,7 +133,7 @@ export function ReferralStatusPill({ status }: { status: ReferralStatus }) {
   return <ActivityChip className={badge.className}>{badge.label}</ActivityChip>;
 }
 
-export function UserAvatar({ user }: { user: ActivityLog["user"] }) {
+export function ActivityLogUserAvatar({ user }: { user: ActivityLog["user"] }) {
   if (!user) return null;
 
   const image = user.image || `${OG_AVATAR_URL}${user.id}`;

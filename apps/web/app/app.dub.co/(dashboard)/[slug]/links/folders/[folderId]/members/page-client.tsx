@@ -15,8 +15,9 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { FolderIcon } from "@/ui/folders/folder-icon";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { FolderUserRole } from "@dub/prisma/client";
-import { Avatar, BlurImage, Globe } from "@dub/ui";
+import { BlurImage, Globe } from "@dub/ui";
 import { cn, fetcher, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { ChevronLeft } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -222,7 +223,7 @@ const FolderUserRow = ({
     >
       <div className="flex items-start space-x-3">
         <div className="flex items-center space-x-3">
-          <Avatar user={user} />
+          <UserAvatar user={user} />
           <div className="flex flex-col">
             <h3 className="text-xs font-medium text-neutral-800">
               {user.name || user.email}

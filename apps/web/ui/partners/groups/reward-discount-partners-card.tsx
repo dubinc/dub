@@ -1,9 +1,10 @@
 import usePartners from "@/lib/swr/use-partners";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, ChevronRight, Table, useTable } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
-import { cn, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
+import { cn, nFormatter, pluralize } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -105,11 +106,7 @@ function PartnersCompactTable({
         header: "Partner",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <img
-              src={row.original.image || `${OG_AVATAR_URL}${row.original.name}`}
-              alt={row.original.name}
-              className="size-6 shrink-0 rounded-full"
-            />
+            <PartnerAvatar partner={row.original} className="size-6" />
             <span className="truncate text-sm text-neutral-700">
               {row.original.name}
             </span>
@@ -204,13 +201,11 @@ function PartnerPreviewOrCount({
           !showAvatars && "pointer-events-none translate-y-0.5 opacity-0",
         )}
       >
-        {previewPartners.map(({ id, name, image }) => (
-          <img
-            key={id}
-            src={image || `${OG_AVATAR_URL}${name}`}
-            alt={`${name} avatar`}
-            title={name}
-            className="-ml-1.5 size-[1.125rem] shrink-0 rounded-full border border-white"
+        {previewPartners.map((partner) => (
+          <PartnerAvatar
+            key={partner.id}
+            partner={partner}
+            className="-ml-1.5 size-[1.125rem] border border-white"
           />
         ))}
         {partnersCount > 3 && (

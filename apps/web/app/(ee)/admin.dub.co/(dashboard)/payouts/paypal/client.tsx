@@ -1,6 +1,7 @@
 "use client";
 
 import type { PaypalPayoutResponse } from "@/lib/paypal/get-pending-payouts";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
@@ -54,16 +55,7 @@ export default function PaypalPayoutsPageClient() {
         header: "Partner",
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
-            <img
-              src={
-                row.original.partner.image ||
-                `${OG_AVATAR_URL}${row.original.partner.email || ""}`
-              }
-              alt={row.original.partner.email || ""}
-              width={20}
-              height={20}
-              className="size-4 rounded-full"
-            />
+            <PartnerAvatar partner={row.original.partner} className="size-4" />
             <span className="text-sm text-neutral-900">
               {row.original.partner.email || "-"}
             </span>

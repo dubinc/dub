@@ -1,9 +1,10 @@
 import { generateRandomName } from "@/lib/names";
 import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
 import { ChartActivity2 } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 import React, { ComponentProps } from "react";
+import { CustomerAvatar } from "./customer-avatar";
 
 export function CustomerRowItem({
   customer,
@@ -28,13 +29,9 @@ export function CustomerRowItem({
   const display = customer.email || customer.name || generateRandomName();
 
   const avatar = (
-    <img
-      alt={display}
-      src={customer.avatar || `${OG_AVATAR_URL}${customer.id}`}
-      className={cn(
-        "size-5 shrink-0 rounded-full border border-neutral-200",
-        avatarClassName,
-      )}
+    <CustomerAvatar
+      customer={customer}
+      className={cn("size-5 border border-neutral-200", avatarClassName)}
     />
   );
 
