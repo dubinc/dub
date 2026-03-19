@@ -3,8 +3,8 @@
 import { AnalyticsResponse } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import {
+  Button,
   Table,
   useKeyboardShortcut,
   usePagination,
@@ -19,8 +19,10 @@ import {
   fetcher,
   nFormatter,
 } from "@dub/utils";
+import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useContext, useMemo, useState } from "react";
 import useSWR from "swr";
+import { PartnerAnalyticsFilterCell } from "./partner-analytics-filter-cell";
 
 export function AnalyticsPartnersTable() {
   const { selectedTab, queryString } = useContext(AnalyticsContext);
@@ -93,65 +95,20 @@ export function AnalyticsPartnersTable() {
     columns: [
       {
         id: "partner",
-        header: () => (
-          <div className="flex w-full min-w-0 items-center justify-between gap-2 pr-1">
-            <span className="truncate text-sm font-medium leading-none">
-              Partner
-            </span>
-            <div className="flex h-6 shrink-0 items-center justify-end gap-1">
-              {stagedPartnerIds.length > 0 && (
-                <button
-                  type="button"
-                  className={cn(
-                    "inline-flex h-6 max-h-6 items-center rounded-lg border border-black bg-black px-1.5 text-[11px] font-medium leading-none text-white",
-                    "hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
-                  )}
-                  onClick={applyFilter}
-                >
-                  Filter
-                </button>
-              )}
-              {(stagedPartnerIds.length > 0 || isFilterActive) && (
-                <button
-                  type="button"
-                  className={cn(
-                    "inline-flex h-6 max-h-6 items-center rounded-lg border border-neutral-200 bg-white px-1.5 text-[11px] font-medium leading-none text-neutral-700",
-                    "hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
-                  )}
-                  onClick={clearFilter}
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
-        ),
+        header: "Partner",
         enableHiding: false,
         minSize: 250,
         cell: ({ row }) => {
           const p = row.original.partner;
           const partnerId = row.original.partnerId;
-          const filterIconActive =
-            stagedPartnerIds.includes(partnerId) ||
-            activePartnerIdsFromUrl.includes(partnerId);
-
           return (
-            <div
-              className="cursor-pointer select-none"
-              onClick={() => toggleStagePartner(partnerId)}
-            >
-              <PartnerRowItem
-                filterSet={{ partnerId: row.original.partnerId }}
-                filterOnClick={() => toggleStagePartner(partnerId)}
-                filterIconActive={filterIconActive}
-                partner={{
-                  ...p,
-                  payoutsEnabledAt: p.payoutsEnabledAt
-                    ? new Date(p.payoutsEnabledAt)
-                    : null,
-                }}
-              />
-            </div>
+            <PartnerAnalyticsFilterCell
+              partner={p}
+              partnerId={partnerId}
+              isStaged={stagedPartnerIds.includes(partnerId)}
+              isApplied={activePartnerIdsFromUrl.includes(partnerId)}
+              onToggle={() => toggleStagePartner(partnerId)}
+            />
           );
         },
       },
@@ -213,6 +170,8 @@ export function AnalyticsPartnersTable() {
     error: topPartnersError ? "Failed to load partners" : undefined,
   });
 
+  const showFloatingBar = stagedPartnerIds.length > 0 || isFilterActive;
+
   return !topPartnersList ? (
     <PartnerTableSkeleton />
   ) : topPartnersList.length > 0 ? (
@@ -224,7 +183,36 @@ export function AnalyticsPartnersTable() {
         table={table}
         containerClassName="border-none"
         scrollWrapperClassName="min-h-[200px]"
-      />
+      >
+        <AnimatePresence>
+          {showFloatingBar && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ ease: "easeOut", duration: 0.15 }}
+              className="absolute bottom-0 left-0 z-20 flex w-full items-end"
+            >
+              <div className="flex w-full items-center justify-center gap-2 py-4">
+                {stagedPartnerIds.length > 0 && (
+                  <Button
+                    text="Filter"
+                    variant="primary"
+                    className="h-8 w-fit rounded-lg px-3 py-2"
+                    onClick={applyFilter}
+                  />
+                )}
+                <Button
+                  text="Clear"
+                  variant="secondary"
+                  className="h-8 w-fit rounded-lg px-3 py-2"
+                  onClick={clearFilter}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Table>
     </div>
   ) : (
     <div className="text-content-muted flex h-36 items-center justify-center text-sm">
