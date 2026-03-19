@@ -19,7 +19,7 @@ export const trackSaleRequestSchema = z.object({
     .int()
     .min(0, "amount cannot be negative")
     .describe(
-      "The amount of the sale in cents (for all two-decimal currencies). If the sale is in a zero-decimal currency, pass the full integer value (e.g. `1437` JPY). Learn more: https://d.to/currency",
+      "The amount of the sale in cents (for all two-decimal currencies). If the sale is in a zero-decimal currency, pass the full integer value (e.g. `1580` JPY). Learn more: https://d.to/currency",
     ),
   currency: z
     .string()
