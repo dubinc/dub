@@ -1,19 +1,19 @@
 import * as z from "zod/v4";
 
 // POST /v1/sessions request body
-export const veriffCreateSessionBodySchema = z.object({
+export const veriffCreateSessionInputSchema = z.object({
   verification: z.object({
+    vendorData: z.string(),
     person: z.object({
       firstName: z.string(),
       lastName: z.string(),
+      email: z.string(),
     }),
-    vendorData: z.string().optional(),
-    endUserId: z.string().optional(),
   }),
 });
 
 // POST /v1/sessions response
-export const veriffCreateSessionResponseSchema = z.object({
+export const veriffCreateSessionOutputSchema = z.object({
   status: z.string(),
   verification: z.object({
     id: z.string(),
@@ -26,34 +26,7 @@ export const veriffCreateSessionResponseSchema = z.object({
 
 // Decision webhook payload
 export const veriffDecisionWebhookSchema = z.object({
-  status: z.string(),
-  verification: z.object({
-    id: z.string(),
-    code: z.number(),
-    status: z.string(),
-    person: z
-      .object({
-        firstName: z.string().nullable().optional(),
-        lastName: z.string().nullable().optional(),
-        dateOfBirth: z.string().nullable().optional(),
-      })
-      .optional(),
-    document: z
-      .object({
-        type: z.string().nullable().optional(),
-        country: z.string().nullable().optional(),
-      })
-      .optional(),
-    vendorData: z.string().nullable().optional(),
-  }),
+  code: z.number(),
+  vendorData: z.string(),
+  action: z.string(),
 });
-
-export type VeriffCreateSessionBody = z.infer<
-  typeof veriffCreateSessionBodySchema
->;
-export type VeriffCreateSessionResponse = z.infer<
-  typeof veriffCreateSessionResponseSchema
->;
-export type VeriffDecisionWebhook = z.infer<
-  typeof veriffDecisionWebhookSchema
->;

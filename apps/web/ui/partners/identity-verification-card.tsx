@@ -12,7 +12,10 @@ import { toast } from "sonner";
 
 const STATUS_CONFIG = {
   pending: {
-    badge: { label: "In progress", variant: "pending" as const },
+    badge: {
+      label: "In progress",
+      variant: "pending",
+    },
     title: "Verification in progress",
     description:
       "Your identity verification is being processed. This usually takes a few minutes.",
@@ -20,14 +23,20 @@ const STATUS_CONFIG = {
     showButton: true,
   },
   approved: {
-    badge: { label: "Verified", variant: "success" as const },
+    badge: {
+      label: "Verified",
+      variant: "success",
+    },
     title: "Identity verified",
     description: "Your identity has been verified.",
     buttonText: null,
     showButton: false,
   },
   declined: {
-    badge: { label: "Declined", variant: "error" as const },
+    badge: {
+      label: "Declined",
+      variant: "error",
+    },
     title: "Verification declined",
     description:
       "Your identity verification was declined. Please try again with a valid government-issued ID.",
@@ -35,7 +44,10 @@ const STATUS_CONFIG = {
     showButton: true,
   },
   resubmissionRequested: {
-    badge: { label: "Action needed", variant: "warning" as const },
+    badge: {
+      label: "Action needed",
+      variant: "warning",
+    },
     title: "Additional information needed",
     description:
       "We need additional information to verify your identity. Please resubmit your documents.",
@@ -43,7 +55,10 @@ const STATUS_CONFIG = {
     showButton: true,
   },
   expired: {
-    badge: { label: "Expired", variant: "neutral" as const },
+    badge: {
+      label: "Expired",
+      variant: "neutral",
+    },
     title: "Verification expired",
     description:
       "Your verification session has expired. Please start a new verification.",
