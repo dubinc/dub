@@ -57,7 +57,7 @@ export function WorkspaceDropdown() {
     } else {
       return {
         name: session?.user?.name || session?.user?.email,
-        image: getUserAvatarUrl(session?.user),
+        image: getUserAvatarUrl(session?.user).then((url) => url),
         plan: "free",
       };
     }

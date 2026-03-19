@@ -9,10 +9,12 @@ import { toast } from "sonner";
 export default function UploadAvatar() {
   const { data: session, update } = useSession();
 
-  const [image, setImage] = useState<string | null>();
+  const [image, setImage] = useState<string | null>(null);
 
   useEffect(() => {
-    setImage(session?.user ? getUserAvatarUrl(session.user) : null);
+    if (session?.user) {
+      getUserAvatarUrl(session.user).then((url) => setImage(url));
+    }
   }, [session]);
 
   const [uploading, setUploading] = useState(false);
