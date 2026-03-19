@@ -10,10 +10,6 @@ import slugify from "@sindresorhus/slugify";
 import { DubApiError } from "../errors";
 import { processLink } from "../links/process-link";
 
-export function normalizePartnerLinkKeyPrefix(prefix: string) {
-  return prefix.replace(/^\/|\/$/g, "");
-}
-
 export function derivePartnerLinkKey({
   key,
   username,
@@ -68,7 +64,7 @@ export function buildPartnerDefaultLinkKey({
   }
 
   if (link?.prefix) {
-    return `${normalizePartnerLinkKeyPrefix(link.prefix)}/${slug}`;
+    return `${link.prefix.replace(/^\/|\/$/g, "")}/${slug}`;
   }
 
   return slug;
