@@ -154,6 +154,12 @@ export async function POST(req: Request) {
       },
       select: {
         id: true,
+        links: {
+          select: {
+            shortLink: true,
+          },
+          orderBy: { id: "asc" },
+        },
         partner: {
           select: {
             id: true,
@@ -250,6 +256,8 @@ export async function POST(req: Request) {
                   variables: {
                     PartnerName: partnerUser.partner.name,
                     PartnerEmail: partnerUser.partner.email,
+                    PartnerLink:
+                      partnerUser.enrollment.links?.[0]?.shortLink ?? null,
                   },
                 }),
               },
