@@ -56,7 +56,7 @@ const PLATFORM_INFO: Record<
     name: "LinkedIn",
     title: "Create a LinkedIn post",
     instruction:
-      "Click the button below to create a LinkedIn post with the code pre-filled.",
+      "Click the button below to create a LinkedIn post with the code pre-filled. You can remove the post after verification.",
     openLabel: "Create post on LinkedIn",
     verifyTitle: "Paste post URL and verify account",
     verifyDescription:
