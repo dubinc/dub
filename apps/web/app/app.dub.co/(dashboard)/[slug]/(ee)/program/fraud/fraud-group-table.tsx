@@ -240,11 +240,11 @@ export function FraudGroupTable() {
           }
         | undefined;
 
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
+      if (!meta?.filterParams) return null;
+      const params = meta.filterParams(cell);
+      if (!params || Object.keys(params).length === 0) return null;
+
+      return <FilterButtonTableRow set={params} />;
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",

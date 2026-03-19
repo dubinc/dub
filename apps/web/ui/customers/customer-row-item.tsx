@@ -25,7 +25,14 @@ export function CustomerRowItem({
   return (
     <Wrapper
       element={href ? Link : "div"}
-      {...(href ? { href, target: "_blank" } : {})}
+      {...(href
+        ? {
+            href,
+            target: "_blank",
+            onClick: (e) => e.stopPropagation(),
+            onAuxClick: (e) => e.stopPropagation(),
+          }
+        : {})}
       className={cn(
         "group flex items-center justify-between gap-2",
         href && "cursor-alias decoration-dotted hover:underline",

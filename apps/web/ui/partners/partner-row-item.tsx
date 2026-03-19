@@ -208,6 +208,8 @@ export function PartnerRowItem({
       <As
         href={`/${slug}/program/partners/${partner.id}`}
         {...(showPermalink && { target: "_blank" })}
+        onClick={showPermalink ? (e) => e.stopPropagation() : undefined}
+        onAuxClick={showPermalink ? (e) => e.stopPropagation() : undefined}
         className={cn(
           "min-w-0 truncate",
           showPermalink && "cursor-alias decoration-dotted hover:underline",

@@ -221,7 +221,7 @@ export function CommissionsTable() {
           accessorKey: "type",
           meta: {
             filterParams: ({ row }) => ({
-              type: row.original.type,
+              type: row.original.type ?? "sale",
             }),
           },
           cell: ({ row }) => (

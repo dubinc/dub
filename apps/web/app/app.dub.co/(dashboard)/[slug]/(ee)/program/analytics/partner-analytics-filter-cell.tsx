@@ -29,11 +29,25 @@ export function PartnerAnalyticsFilterCell({
 
   return (
     <div
+      role={!isApplied ? "button" : undefined}
+      tabIndex={!isApplied ? 0 : -1}
+      aria-disabled={isApplied}
       className={cn(
         "flex select-none items-center gap-2",
         !isApplied && "cursor-pointer",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
       )}
       onClick={isApplied ? undefined : onToggle}
+      onKeyDown={
+        !isApplied
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onToggle();
+              }
+            }
+          : undefined
+      }
     >
       <div className="relative size-6 shrink-0">
         <div

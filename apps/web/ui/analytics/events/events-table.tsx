@@ -477,20 +477,23 @@ export default function EventsTable({
           meta: {
             filterParams: ({ getValue }) => ({ city: getValue() }),
           },
-          cell: ({ getValue, row }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              {!row.original.country || row.original.country === "Unknown" ? (
-                <Globe className="size-4 shrink-0" />
-              ) : (
-                <img
-                  alt={row.original.country}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
-              <span className="truncate">{getValue()}</span>
-            </div>
-          ),
+          cell: ({ getValue, row }) => {
+            const country = row.original.click?.country;
+            return (
+              <div className="flex items-center gap-3" title={getValue()}>
+                {!country || country === "Unknown" ? (
+                  <Globe className="size-4 shrink-0" />
+                ) : (
+                  <img
+                    alt={country}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )}
+                <span className="truncate">{getValue()}</span>
+              </div>
+            );
+          },
         },
         {
           id: "region",
@@ -500,22 +503,25 @@ export default function EventsTable({
           meta: {
             filterParams: ({ getValue }) => ({ region: getValue() }),
           },
-          cell: ({ getValue, row }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              {!row.original.country || row.original.country === "Unknown" ? (
-                <Globe className="size-4 shrink-0" />
-              ) : (
-                <img
-                  alt={row.original.country}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
-              <span className="truncate">
-                {REGIONS[getValue()] || getValue().split("-")[1]}
-              </span>
-            </div>
-          ),
+          cell: ({ getValue, row }) => {
+            const country = row.original.click?.country;
+            return (
+              <div className="flex items-center gap-3" title={getValue()}>
+                {!country || country === "Unknown" ? (
+                  <Globe className="size-4 shrink-0" />
+                ) : (
+                  <img
+                    alt={country}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )}
+                <span className="truncate">
+                  {REGIONS[getValue()] || getValue().split("-")[1]}
+                </span>
+              </div>
+            );
+          },
         },
         {
           id: "continent",

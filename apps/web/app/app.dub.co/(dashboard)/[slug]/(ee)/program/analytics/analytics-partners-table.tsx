@@ -28,7 +28,9 @@ export function AnalyticsPartnersTable() {
   const { selectedTab, queryString } = useContext(AnalyticsContext);
   const { queryParams, searchParams } = useRouterStuff();
 
-  const [stagedPartnerIds, setStagedPartnerIds] = useState<string[]>([]);
+  const [stagedPartnerIds, setStagedPartnerIds] = useState<string[] | null>(
+    null,
+  );
 
   const { pagination, setPagination } = usePagination(10);
 
@@ -39,32 +41,36 @@ export function AnalyticsPartnersTable() {
 
   const isFilterActive = searchParams.has("partnerId");
 
-  const toggleStagePartner = useCallback((partnerId: string) => {
-    setStagedPartnerIds((prev) =>
-      prev.includes(partnerId)
-        ? prev.filter((id) => id !== partnerId)
-        : [...prev, partnerId],
-    );
-  }, []);
+  const toggleStagePartner = useCallback(
+    (partnerId: string) => {
+      setStagedPartnerIds((prev) => {
+        const base = prev ?? activePartnerIdsFromUrl;
+        return base.includes(partnerId)
+          ? base.filter((id) => id !== partnerId)
+          : [...base, partnerId];
+      });
+    },
+    [activePartnerIdsFromUrl],
+  );
 
   const applyFilter = useCallback(() => {
-    if (stagedPartnerIds.length === 0) return;
+    if (!stagedPartnerIds || stagedPartnerIds.length === 0) return;
     queryParams({
       set: { partnerId: stagedPartnerIds.join(",") },
       del: "page",
     });
-    setStagedPartnerIds([]);
+    setStagedPartnerIds(null);
   }, [queryParams, stagedPartnerIds]);
 
   const clearFilter = useCallback(() => {
-    setStagedPartnerIds([]);
+    setStagedPartnerIds(null);
     if (searchParams.has("partnerId")) {
       queryParams({ del: ["partnerId", "page"] });
     }
   }, [queryParams, searchParams]);
 
-  useKeyboardShortcut("Escape", () => setStagedPartnerIds([]), {
-    enabled: stagedPartnerIds.length > 0,
+  useKeyboardShortcut("Escape", () => setStagedPartnerIds(null), {
+    enabled: stagedPartnerIds !== null,
     priority: 2,
   });
 
@@ -105,7 +111,7 @@ export function AnalyticsPartnersTable() {
             <PartnerAnalyticsFilterCell
               partner={p}
               partnerId={partnerId}
-              isStaged={stagedPartnerIds.includes(partnerId)}
+              isStaged={stagedPartnerIds?.includes(partnerId) ?? false}
               isApplied={activePartnerIdsFromUrl.includes(partnerId)}
               onToggle={() => toggleStagePartner(partnerId)}
             />
@@ -170,7 +176,7 @@ export function AnalyticsPartnersTable() {
     error: topPartnersError ? "Failed to load partners" : undefined,
   });
 
-  const showFloatingBar = stagedPartnerIds.length > 0 || isFilterActive;
+  const showFloatingBar = stagedPartnerIds !== null || isFilterActive;
 
   return !topPartnersList ? (
     <PartnerTableSkeleton />
@@ -194,7 +200,7 @@ export function AnalyticsPartnersTable() {
               className="absolute bottom-0 left-0 z-20 flex w-full items-end"
             >
               <div className="flex w-full items-center justify-center gap-2 py-4">
-                {stagedPartnerIds.length > 0 && (
+                {stagedPartnerIds !== null && stagedPartnerIds.length > 0 && (
                   <Button
                     text="Filter"
                     variant="primary"
