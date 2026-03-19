@@ -1,6 +1,7 @@
 import { cn } from "@dub/utils";
 import ReactMarkdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
+import remarkGfm from "remark-gfm";
 import { ZoomImage } from "../shared/zoom-image";
 
 export function MessageMarkdown({
@@ -34,7 +35,6 @@ export function MessageMarkdown({
         "prose-li:mb-1 prose-li:leading-5",
         "prose-hr:my-8",
         "prose-img:rounded-lg prose-img:border-1",
-        // Color styles (conditional based on invert)
         invert
           ? [
               "prose-headings:text-white prose-headings:border-neutral-600",
@@ -65,6 +65,19 @@ export function MessageMarkdown({
               "prose-img:border-neutral-200",
             ],
       )}
+      allowedElements={[
+        "p",
+        "a",
+        "code",
+        "pre",
+        "strong",
+        "em",
+        "ul",
+        "ol",
+        "li",
+        "blockquote",
+        "hr",
+      ]}
       components={{
         a: ({ node, ...props }) => (
           <a {...props} target="_blank" rel="noopener noreferrer" />
@@ -85,6 +98,7 @@ export function MessageMarkdown({
         },
         ...components,
       }}
+      remarkPlugins={[remarkGfm] as any}
     >
       {children}
     </ReactMarkdown>
