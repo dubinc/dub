@@ -6,25 +6,31 @@ import {
 import { getMetaTags } from "app/api/links/metatags/utils";
 
 export const runtime = "edge";
-export const fetchCache = "force-no-store";
 
 export async function generateMetadata(props: {
   params: Promise<{ url: string }>;
 }) {
   const params = await props.params;
-  const url = decodeURIComponent(params.url); // key can potentially be encoded
-
-  const metatags = await getMetaTags(url);
-
+  const url = decodeURIComponent(params.url);
   const apexDomain = getApexDomain(url);
 
-  return constructMetadata({
-    fullTitle: metatags.title,
-    description: metatags.description,
-    image: metatags.image,
-    icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
-    noIndex: true,
-  });
+  try {
+    const metatags = await getMetaTags(url);
+    return constructMetadata({
+      fullTitle: metatags.title,
+      description: metatags.description,
+      image: metatags.image,
+      icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
+      noIndex: true,
+    });
+  } catch {
+    return constructMetadata({
+      fullTitle: apexDomain,
+      description: url,
+      icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
+      noIndex: true,
+    });
+  }
 }
 
 export default async function CloakedPage(props: {
