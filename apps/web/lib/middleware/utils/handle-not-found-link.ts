@@ -9,7 +9,7 @@ export const handleNotFoundLink = async (req: NextRequest) => {
   // check if domain has notFoundUrl configured
   const domainData = await getDomainViaEdge(domain);
   if (domainData?.notFoundUrl) {
-    return NextResponse.redirect(domainData.notFoundUrl, {
+    const response = NextResponse.redirect(domainData.notFoundUrl, {
       headers: {
         ...DUB_HEADERS,
         "X-Robots-Tag": "googlebot: noindex",
@@ -18,9 +18,23 @@ export const handleNotFoundLink = async (req: NextRequest) => {
       },
       status: 302,
     });
+    response.headers.set(
+      "Vercel-CDN-Cache-Control",
+      "s-maxage=3600, stale-while-revalidate=86400",
+    );
+    return response;
   } else {
-    return NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
-      headers: DUB_HEADERS,
-    });
+    const response = NextResponse.rewrite(
+      new URL(`/${domain}/not-found`, req.url),
+      {
+        headers: DUB_HEADERS,
+      },
+    );
+    response.headers.set(
+      "Vercel-CDN-Cache-Control",
+      "s-maxage=3600, stale-while-revalidate=86400",
+    );
+    response.headers.set("Cache-Control", "public, max-age=300");
+    return response;
   }
 };
