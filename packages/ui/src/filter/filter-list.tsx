@@ -539,7 +539,7 @@ function OperatorFilterPill({
 
       <button
         type="button"
-        className="h-full rounded-r-md p-2 text-neutral-500 ring-inset ring-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-1"
+        className="h-full rounded-r-lg p-2 text-neutral-500 ring-inset ring-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-1"
         onClick={() => {
           if (onRemoveFilter) {
             onRemoveFilter(filterKey);
