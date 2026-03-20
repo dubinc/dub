@@ -9,12 +9,30 @@ type FilterIcon =
 
 export type { FilterOperator };
 
+export type FilterRangePercentiles = {
+  p0: number;
+  p25: number;
+  p50: number;
+  p75: number;
+  p100: number;
+};
+
 export type Filter = {
   key: string;
   icon: FilterIcon;
   label: string;
   labelPlural?: string; // Plural form of the label (optional, defaults to pluralize(label))
   options: FilterOption[] | null;
+  /** When set to `range`, `FilterSelect` renders min/max controls instead of option list. */
+  type?: "default" | "range";
+  /** Cohort percentiles for range preset menu (`null` while loading). */
+  rangePercentiles?: FilterRangePercentiles | null;
+  /** Format a bound in storage units (e.g. cents) for display. */
+  formatRangeBound?: (n: number) => string;
+  /** Parse typed input into storage units. Return NaN if invalid. */
+  parseRangeInput?: (raw: string) => number;
+  /** Full pill label for active range token (used by `Filter.List`). */
+  formatRangePillLabel?: (token: string) => string;
   hideInFilterDropdown?: boolean; // Hide in Filter.Select dropdown
   shouldFilter?: boolean; // Disable filtering for this filter
   separatorAfter?: boolean; // Add a separator after the filter in Filter.Select dropdown
@@ -101,4 +119,32 @@ export function normalizeActiveFilter(filter: ActiveFilterInput): ActiveFilter {
     operator: "IS",
     values: [],
   };
+}
+
+export function parseRangeToken(token: string | undefined | null): {
+  min?: number;
+  max?: number;
+} {
+  if (token == null || token === "|") {
+    return {};
+  }
+  const [a, b] = token.split("|");
+  const min = a === "" ? undefined : Number(a);
+  const max = b === "" ? undefined : Number(b);
+  return {
+    ...(Number.isFinite(min) ? { min } : {}),
+    ...(Number.isFinite(max) ? { max } : {}),
+  };
+}
+
+export function encodeRangeToken(
+  min?: number | null,
+  max?: number | null,
+): string {
+  const l = min == null || !Number.isFinite(min) ? "" : String(Math.trunc(min));
+  const r = max == null || !Number.isFinite(max) ? "" : String(Math.trunc(max));
+  if (!l && !r) {
+    return "|";
+  }
+  return `${l}|${r}`;
 }

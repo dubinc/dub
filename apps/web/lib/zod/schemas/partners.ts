@@ -180,6 +180,24 @@ export const getPartnersQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
+const partnerMetricRangeQueryFields = {
+  totalClicksMin: z.coerce.number().int().nonnegative().optional(),
+  totalClicksMax: z.coerce.number().int().nonnegative().optional(),
+  totalLeadsMin: z.coerce.number().int().nonnegative().optional(),
+  totalLeadsMax: z.coerce.number().int().nonnegative().optional(),
+  totalConversionsMin: z.coerce.number().int().nonnegative().optional(),
+  totalConversionsMax: z.coerce.number().int().nonnegative().optional(),
+  totalCommissionsMin: z.coerce.number().int().nonnegative().optional(),
+  totalCommissionsMax: z.coerce.number().int().nonnegative().optional(),
+};
+
+export const partnerMetricFieldSchema = z.enum([
+  "totalClicks",
+  "totalLeads",
+  "totalConversions",
+  "totalCommissions",
+]);
+
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
   partnerIds: z
     .union([z.string(), z.array(z.string())])
@@ -187,6 +205,7 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .optional(),
   groupId: z.string().optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
+  ...partnerMetricRangeQueryFields,
 });
 
 export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
@@ -206,7 +225,19 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country", "groupId"]).optional(),
+    groupBy: z
+      .enum(["status", "country", "groupId", "metricPercentiles"])
+      .optional(),
+    metric: partnerMetricFieldSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.groupBy === "metricPercentiles" && !data.metric) {
+      ctx.addIssue({
+        code: "custom",
+        message: "`metric` is required when groupBy is metricPercentiles",
+        path: ["metric"],
+      });
+    }
   });
 
 export const partnerPlatformSchema = z.object({

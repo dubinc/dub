@@ -2,6 +2,11 @@ import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
+import {
+  buildMetricRangeWhere,
+  buildProgramEnrollmentWhereForList,
+  percentileBreakpoints,
+} from "./program-enrollment-query";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
   programId: string;
@@ -10,16 +15,11 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
 ): Promise<T> {
-  const {
-    groupBy,
-    status,
-    country,
-    search,
-    email,
-    partnerIds,
-    groupId,
-    programId,
-  } = filters;
+  const { groupBy, metric, programId, ...enrollmentFilters } = filters;
+  const enrollmentBase = { ...enrollmentFilters, programId };
+
+  const { status, country, search, email, partnerIds, groupId } =
+    enrollmentFilters;
 
   const commonWhere: Prisma.PartnerWhereInput = {
     ...(email
@@ -38,6 +38,56 @@ export async function getPartnersCount<T>(
     }),
   };
 
+  const enrollmentMetricWhere = buildMetricRangeWhere(enrollmentBase);
+
+  if (groupBy === "metricPercentiles") {
+    const m = metric!;
+    const where = buildProgramEnrollmentWhereForList(enrollmentBase, {
+      percentileMetric: m,
+    });
+
+    if (m === "totalClicks") {
+      const rows = await prisma.programEnrollment.findMany({
+        where,
+        select: { totalClicks: true },
+        orderBy: { totalClicks: "asc" },
+      });
+      return {
+        percentiles: percentileBreakpoints(rows.map((r) => r.totalClicks)),
+      } as T;
+    }
+    if (m === "totalLeads") {
+      const rows = await prisma.programEnrollment.findMany({
+        where,
+        select: { totalLeads: true },
+        orderBy: { totalLeads: "asc" },
+      });
+      return {
+        percentiles: percentileBreakpoints(rows.map((r) => r.totalLeads)),
+      } as T;
+    }
+    if (m === "totalConversions") {
+      const rows = await prisma.programEnrollment.findMany({
+        where,
+        select: { totalConversions: true },
+        orderBy: { totalConversions: "asc" },
+      });
+      return {
+        percentiles: percentileBreakpoints(rows.map((r) => r.totalConversions)),
+      } as T;
+    }
+    const rows = await prisma.programEnrollment.findMany({
+      where,
+      select: { totalCommissions: true },
+      orderBy: { totalCommissions: "asc" },
+    });
+    return {
+      percentiles: percentileBreakpoints(
+        rows.map((r) => Number(r.totalCommissions)),
+      ),
+    } as T;
+  }
+
   // Get partner count by country
   if (groupBy === "country") {
     const partners = await prisma.partner.groupBy({
@@ -50,6 +100,7 @@ export async function getPartnersCount<T>(
               groupId,
             }),
             status,
+            ...enrollmentMetricWhere,
           },
         },
         ...commonWhere,
@@ -80,6 +131,7 @@ export async function getPartnersCount<T>(
           }),
           ...commonWhere,
         },
+        ...enrollmentMetricWhere,
       },
       _count: true,
       orderBy: {
@@ -91,12 +143,12 @@ export async function getPartnersCount<T>(
 
     // Find missing statuses
     const missingStatuses = Object.values(ProgramEnrollmentStatus).filter(
-      (status) => !partners.some((p) => p.status === status),
+      (st) => !partners.some((p) => p.status === st),
     );
 
     // Add missing statuses with count 0
-    missingStatuses.forEach((status) => {
-      partners.push({ _count: 0, status });
+    missingStatuses.forEach((st) => {
+      partners.push({ _count: 0, status: st });
     });
 
     return partners as T;
@@ -115,6 +167,7 @@ export async function getPartnersCount<T>(
           ...commonWhere,
         },
         status,
+        ...enrollmentMetricWhere,
       },
       _count: true,
       orderBy: {
@@ -129,19 +182,7 @@ export async function getPartnersCount<T>(
 
   // Get absolute count of partners
   const count = await prisma.programEnrollment.count({
-    where: {
-      programId,
-      status,
-      ...(groupId && {
-        groupId,
-      }),
-      partner: {
-        ...(country && {
-          country,
-        }),
-        ...commonWhere,
-      },
-    },
+    where: buildProgramEnrollmentWhereForList(enrollmentBase),
   });
 
   return count as T;

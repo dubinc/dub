@@ -134,6 +134,7 @@ export function PartnersTable() {
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     isFiltered,
   } = usePartnerFilters({ sortBy, sortOrder, status });
@@ -575,6 +576,7 @@ export function PartnersTable() {
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
           />
           <SearchBoxPersisted
             placeholder="Search by name, email, or company"
@@ -590,6 +592,7 @@ export function PartnersTable() {
                   activeFilters={activeFilters}
                   onSelect={onSelect}
                   onRemove={onRemove}
+                  onRemoveFilter={onRemoveFilter}
                   onRemoveAll={onRemoveAll}
                 />
               </div>
