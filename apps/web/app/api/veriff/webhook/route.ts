@@ -25,16 +25,14 @@ export const POST = async (req: Request) => {
     });
   }
 
-  // TODO:
-  // Fix this verification
   const computedSignature = crypto
     .createHmac("sha256", webhookSecret)
-    .update(Buffer.from(rawBody, "base64").toString("utf8"))
+    .update(rawBody)
     .digest("hex");
 
-  // if (computedSignature !== signature) {
-  //   return new Response("Invalid signature.", { status: 400 });
-  // }
+  if (computedSignature !== signature) {
+    return new Response("Invalid signature.", { status: 400 });
+  }
 
   const body = JSON.parse(rawBody);
   const result = veriffEventSchema.safeParse(body);

@@ -22,6 +22,7 @@ enum PartnerPayoutMethod {
   paypal
 }
 
+// https://devdocs.veriff.com/v1/docs/how-to-generate-sessions-manually#verification-session-statuses
 enum IdentityVerificationStatus {
   started
   submitted
@@ -29,6 +30,8 @@ enum IdentityVerificationStatus {
   declined
   resubmissionRequested
   expired
+  abandoned
+  review
 }
 
 model Partner {
@@ -44,6 +47,8 @@ model Partner {
   // identity verification fields
   identityVerificationStatus IdentityVerificationStatus?
   identityVerifiedAt         DateTime?
+  veriffSessionExpiresAt     DateTime?
+  veriffSessionUrl           String?                     @db.Text
   veriffSessionId            String?                     @unique
 
   // payout fields

@@ -14,7 +14,7 @@ export const veriffCreateSessionInputSchema = z.object({
 
 // POST /v1/sessions response
 export const veriffCreateSessionOutputSchema = z.object({
-  status: z.string(),
+  status: z.enum(["success"]),
   verification: z.object({
     id: z.string(),
     url: z.string(),
@@ -43,6 +43,8 @@ export const veriffDecisionEventSchema = z.object({
       "declined",
       "expired",
       "resubmission_requested",
+      "abandoned",
+      "review",
     ]),
   }),
 });

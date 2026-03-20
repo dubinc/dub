@@ -20,20 +20,19 @@ export const handleSessionEvent = async ({
   });
 
   if (!partner) {
-    console.warn(
-      `[Veriff Webhook] No partner found for session: ${vendorData}`,
-    );
+    console.warn("[Veriff Webhook] No partner found for session.");
     return new Response("OK");
   }
 
   if (partner.identityVerifiedAt) {
-    console.warn(`[Veriff Webhook] Partner already verified: ${partner.id}`);
+    console.warn("[Veriff Webhook] Partner already verified.");
     return new Response("OK");
   }
 
   await prisma.partner.update({
     where: {
       id: partner.id,
+      identityVerifiedAt: null,
     },
     data: {
       identityVerificationStatus: action,
