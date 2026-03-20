@@ -98,12 +98,21 @@ export function EmbedBountySubmissionsTable({
           const { status, periodNumber } = original;
           const isExpired =
             bounty.endsAt !== null && new Date(bounty.endsAt) < new Date();
-          const isActionable = status === "notSubmitted" || status === "draft";
+          const isActionable =
+            status === "notSubmitted" ||
+            (status === "draft" &&
+              !bounty.submissionRequirements?.socialMetrics);
 
           let buttonText = "Submit";
-          if (status === "draft") buttonText = "Continue";
-          else if (["submitted", "approved", "rejected"].includes(status))
+          if (status === "draft") {
+            if (bounty.submissionRequirements?.socialMetrics) {
+              buttonText = "View";
+            } else {
+              buttonText = "Submit";
+            }
+          } else if (["submitted", "approved", "rejected"].includes(status)) {
             buttonText = "View";
+          }
 
           const isDisabled =
             status === "notOpen" || (isExpired && isActionable);

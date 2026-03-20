@@ -204,7 +204,9 @@ export function EmbedBountyDetail({
             <BountyRewardDescription bounty={bounty} className="font-medium" />
           </div>
 
-          {hasRewards && <BountyRewardsTable bounty={bounty} />}
+          {hasRewards && (
+            <BountyRewardsTable bounty={bounty} className="border-t pt-4" />
+          )}
         </div>
       </div>
     </div>

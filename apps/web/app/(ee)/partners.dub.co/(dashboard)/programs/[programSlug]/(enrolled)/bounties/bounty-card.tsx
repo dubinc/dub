@@ -143,9 +143,7 @@ export function BountyRewardsTable({
   return (
     <div className={cn("relative flex flex-col gap-4", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="@3xl/page:text-sm text-content-emphasis text-lg font-semibold">
-          Rewards
-        </h3>
+        <h3 className="text-content-emphasis text-sm font-semibold">Rewards</h3>
         {programSlug && (
           <Link
             href={`/programs/${programSlug}/earnings?type=custom`}
