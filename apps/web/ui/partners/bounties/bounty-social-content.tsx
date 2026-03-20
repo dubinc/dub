@@ -9,8 +9,8 @@ import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CircleCheckFill, LoadingSpinner } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
+import { useReferralsEmbedData } from "app/(ee)/app.dub.co/embed/referrals/page-client";
 import { AlertTriangle } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useId, useState } from "react";
 import { evaluateSocialContentRequirements } from "./evaluate-social-content-requirements";
 
@@ -191,30 +191,32 @@ export function SocialAccountNotVerifiedWarning({
 }) {
   const bountyInfo = resolveBountyDetails(bounty);
 
+  const { program, partner } = useReferralsEmbedData();
+
   if (!bountyInfo?.socialPlatform) {
     return null;
   }
 
   return (
-    <div className="bg-bg-attention flex flex-col gap-2 rounded-lg p-2 text-center">
+    <div className="bg-bg-attention flex flex-col items-center justify-between gap-2 rounded-lg p-2 text-center sm:flex-row">
       <div className="text-content-attention px-2 text-sm font-medium">
         {`A verified ${bountyInfo.socialPlatform.label} account must be connected to your Dub partner profile to claim this bounty.`}
 
-        <Link
-          href="https://dub.co/help/article/receiving-payouts"
+        <a
+          href="https://dub.co/help/article/partner-profile#website-and-socials"
           target="_blank"
           className="ml-1 underline underline-offset-2"
         >
           Learn more
-        </Link>
+        </a>
       </div>
 
       <ButtonLink
         variant="primary"
-        href="/profile"
+        href={`https://partners.dub.co/${program.slug}/register?email=${partner.email}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="h-7 w-full justify-center rounded-lg"
+        className="h-7 w-full justify-center rounded-lg sm:w-fit"
       >
         View profile
       </ButtonLink>
