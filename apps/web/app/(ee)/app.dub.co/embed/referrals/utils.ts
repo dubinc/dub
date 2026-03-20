@@ -39,6 +39,11 @@ export const getReferralsEmbedData = async (token: string) => {
       clickReward: true,
       leadReward: true,
       saleReward: true,
+      _count: {
+        select: {
+          commissions: true,
+        },
+      },
     },
   });
 
@@ -99,6 +104,7 @@ export const getReferralsEmbedData = async (token: string) => {
         return acc;
       }, 0),
       paid: commissions.find((c) => c.status === "paid")?._sum.earnings ?? 0,
+      totalCount: programEnrollment._count.commissions,
     },
     stats: {
       clicks: totalClicks,

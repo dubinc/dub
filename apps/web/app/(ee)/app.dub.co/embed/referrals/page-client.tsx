@@ -74,6 +74,7 @@ export function ReferralsEmbedPageClient({
   earnings: {
     upcoming: number;
     paid: number;
+    totalCount: number;
   };
   stats: {
     clicks: number;
@@ -119,9 +120,9 @@ export function ReferralsEmbedPageClient({
   const tabs = useMemo(
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
+      ...(activeBountiesCount > 0 ? ["Bounties"] : []),
       "Earnings",
       ...(group.additionalLinks.length > 0 ? ["Links"] : []),
-      ...(activeBountiesCount > 0 ? ["Bounties"] : []),
       ...(programEmbedData?.leaderboard?.mode === "disabled"
         ? []
         : ["Leaderboard"]),
@@ -130,10 +131,10 @@ export function ReferralsEmbedPageClient({
     ],
     [
       showQuickstart,
+      activeBountiesCount,
       group.additionalLinks,
       programEmbedData,
       hasResources,
-      activeBountiesCount,
     ],
   );
 
@@ -256,8 +257,14 @@ export function ReferralsEmbedPageClient({
                   hasResources={hasResources}
                   setSelectedTab={setSelectedTab}
                 />
+              ) : selectedTab === "Bounties" ? (
+                <ReferralsEmbedBounties
+                  bounties={bounties}
+                  partnerPlatforms={partnerPlatforms}
+                  programEnrollment={programEnrollment}
+                />
               ) : selectedTab === "Earnings" ? (
-                <ReferralsEmbedEarnings salesCount={stats.sales} />
+                <ReferralsEmbedEarnings earningsCount={earnings.totalCount} />
               ) : selectedTab === "Links" ? (
                 <ReferralsEmbedLinks
                   program={program}
@@ -271,12 +278,6 @@ export function ReferralsEmbedPageClient({
                 <ReferralsEmbedFAQ program={program} reward={rewards[0]} />
               ) : selectedTab === "Resources" ? (
                 <ReferralsEmbedResources resources={resources} />
-              ) : selectedTab === "Bounties" ? (
-                <ReferralsEmbedBounties
-                  bounties={bounties}
-                  partnerPlatforms={partnerPlatforms}
-                  programEnrollment={programEnrollment}
-                />
               ) : null}
             </AnimatePresence>
           </div>

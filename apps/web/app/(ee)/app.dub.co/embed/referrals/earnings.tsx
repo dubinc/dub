@@ -19,14 +19,18 @@ import { motion } from "motion/react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
 
-export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
+export function ReferralsEmbedEarnings({
+  earningsCount,
+}: {
+  earningsCount: number;
+}) {
   const token = useEmbedToken();
 
   const { pagination, setPagination } = usePagination(
     REFERRALS_EMBED_EARNINGS_LIMIT,
   );
   const { data: earnings, isLoading } = useSWR<PartnerEarningsResponse[]>(
-    `/api/embed/referrals/earnings?page=${pagination.pageIndex}&interval=all`,
+    `/api/embed/referrals/earnings?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&interval=all`,
     (url) =>
       fetcher(url, {
         headers: {
@@ -88,7 +92,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
     ],
     pagination,
     onPaginationChange: setPagination,
-    rowCount: salesCount,
+    rowCount: earningsCount,
     emptyState: (
       <div className="flex w-full flex-col items-center justify-center gap-2">
         <Gift className="text-content-muted size-6" />
@@ -100,7 +104,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
     ),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `sale${plural ? "s" : ""}`,
+    resourceName: (plural) => `commission${plural ? "s" : ""}`,
   });
 
   return (
