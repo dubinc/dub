@@ -143,15 +143,24 @@ class StorageClient {
     bucket?: BucketType;
     expiresIn?: number;
     contentLength?: number;
+    contentType?: string;
   }) {
+    const headers: Record<string, string> = {};
+
+    if (opts.contentLength) {
+      headers["Content-Length"] = String(opts.contentLength);
+    }
+
+    if (opts.contentType) {
+      headers["Content-Type"] = opts.contentType;
+    }
+
     return await this.getSignedUrl({
       key: opts.key,
       method: "PUT",
       bucket: opts.bucket || "public",
       expiresIn: opts.expiresIn || 600,
-      headers: opts.contentLength
-        ? { "Content-Length": String(opts.contentLength) }
-        : undefined,
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
     });
   }
 

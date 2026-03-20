@@ -11,17 +11,56 @@ const CACHE_KEY_PREFIX = "bounty:submission:file:upload";
 
 type GetBountySubmissionUploadUrlParams = {
   bountyId: string;
+  fileName: string;
+  contentType: string;
+  contentLength: number;
   programEnrollment: Pick<
     ProgramEnrollment,
     "programId" | "partnerId" | "groupId"
   >;
 };
 
+const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_CONTENT_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/svg+xml",
+]);
+
 export async function getBountySubmissionUploadUrl({
   bountyId,
+  fileName,
+  contentType,
+  contentLength,
   programEnrollment,
 }: GetBountySubmissionUploadUrlParams) {
   const { programId, partnerId } = programEnrollment;
+
+  if (!fileName.trim()) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "File name is required.",
+    });
+  }
+
+  if (!ALLOWED_IMAGE_CONTENT_TYPES.has(contentType)) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "Unsupported file type. Please upload SVG, JPG, PNG, or WEBP.",
+    });
+  }
+
+  if (
+    !Number.isInteger(contentLength) ||
+    contentLength <= 0 ||
+    contentLength > MAX_UPLOAD_SIZE_BYTES
+  ) {
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message: "File size exceeds maximum of 5MB.",
+    });
+  }
 
   const { success } = await ratelimit(MAX_ATTEMPTS, "24 h").limit(
     `${CACHE_KEY_PREFIX}:${bountyId}:${partnerId}`,
@@ -107,6 +146,8 @@ export async function getBountySubmissionUploadUrl({
     const key = `programs/${programId}/bounties/${bountyId}/submissions/${partnerId}/${nanoid(7)}`;
     const signedUrl = await storage.getSignedUploadUrl({
       key,
+      contentLength,
+      contentType,
     });
 
     return {

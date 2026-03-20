@@ -73,8 +73,14 @@ export function EmbedImagesField({
         {
           method: "POST",
           headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
+          body: JSON.stringify({
+            fileName: file.name,
+            contentType: file.type,
+            contentLength: file.size,
+          }),
         },
       );
 
@@ -220,10 +226,9 @@ export function EmbedSocialUrlField({
   const [urlToCheck, setUrlToCheck] = useState("");
 
   useEffect(() => {
-    if (value === "") {
-      setUrlToCheck("");
-    }
-  }, [value]);
+    setUrlToCheck("");
+    onRequirementsMetChange(false);
+  }, [value, onRequirementsMetChange]);
 
   const { data, error, isValidating } = useEmbedSocialContent({
     bountyId: bounty.id,
