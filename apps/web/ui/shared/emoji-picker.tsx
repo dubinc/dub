@@ -3,18 +3,28 @@ import { FaceSmile } from "@dub/ui/icons";
 import { EmojiPicker as EmojiPickerBase } from "frimousse";
 import { PropsWithChildren, useState } from "react";
 
+type EmojiPickerProps = PropsWithChildren<{
+  onSelect: (emoji: string) => void;
+  openPopover?: boolean;
+  setOpenPopover?: (open: boolean) => void;
+}>;
+
 export function EmojiPicker({
   onSelect,
   children,
-}: PropsWithChildren<{
-  onSelect: (emoji: string) => void;
-}>) {
-  const [isOpen, setIsOpen] = useState(false);
+  openPopover: controlledOpen,
+  setOpenPopover: controlledSetOpen,
+}: EmojiPickerProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled =
+    controlledOpen !== undefined && controlledSetOpen !== undefined;
+  const openPopover = isControlled ? controlledOpen : internalOpen;
+  const setOpenPopover = isControlled ? controlledSetOpen : setInternalOpen;
 
   return (
     <Popover
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
       side="top"
       align="start"
       sideOffset={34}
@@ -23,7 +33,7 @@ export function EmojiPicker({
           className="isolate flex h-[300px] w-fit flex-col"
           onEmojiSelect={({ emoji }) => {
             onSelect(emoji);
-            setIsOpen(false);
+            setOpenPopover(false);
           }}
         >
           <EmojiPickerBase.Search className="border-border-default focus:border-border-default z-10 rounded-t-lg border-0 border-b bg-white px-3 py-2.5 text-base outline-none placeholder:text-neutral-400 focus:ring-0 sm:text-sm" />

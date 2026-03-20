@@ -10,7 +10,7 @@ import {
   useRichTextContext,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { EmojiPicker } from "../shared/emoji-picker";
 
 export function MessageInput({
@@ -32,6 +32,13 @@ export function MessageInput({
 }) {
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
   const [typedMessage, setTypedMessage] = useState(defaultValue || "");
+  const [emojiPickerOpen, setEmojiPickerOpenState] = useState(false);
+  const stripColonOnEmojiPickRef = useRef(false);
+
+  const setEmojiPickerOpen = useCallback((open: boolean) => {
+    stripColonOnEmojiPickRef.current = false;
+    setEmojiPickerOpenState(open);
+  }, []);
 
   const sendMessage = () => {
     const message = typedMessage.trim();
@@ -57,17 +64,37 @@ export function MessageInput({
         markdown
         autoFocus={autoFocus}
         placeholder={placeholder}
-        editorClassName="block max-h-24 w-full resize-none border-none overflow-auto scrollbar-hide p-3 text-base sm:text-sm"
+        editorClassName="block max-h-[min(40dvh,15rem)] w-full resize-none border-none overflow-auto scrollbar-hide p-3 text-base sm:max-h-64 sm:text-sm md:max-h-80 lg:max-h-96"
         initialValue={defaultValue}
         onChange={(editor) => setTypedMessage((editor as any).getMarkdown())}
         editorProps={{
           handleDOMEvents: {
-            keydown: (_, e) => {
+            keydown: (view, e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
                 e.stopPropagation();
                 sendMessage();
                 return false;
+              }
+              if (e.key === ":" && !e.metaKey && !e.ctrlKey && !e.altKey) {
+                const { $from } = view.state.selection;
+                const afterHardBreak =
+                  $from.nodeBefore?.type.name === "hardBreak";
+                const atBlockStart = $from.parentOffset === 0;
+                const afterWhitespace =
+                  $from.parentOffset > 0 &&
+                  /\s/.test(
+                    $from.parent.textBetween(
+                      $from.parentOffset - 1,
+                      $from.parentOffset,
+                    ),
+                  );
+                if (atBlockStart || afterWhitespace || afterHardBreak) {
+                  setTimeout(() => {
+                    stripColonOnEmojiPickRef.current = true;
+                    setEmojiPickerOpenState(true);
+                  }, 0);
+                }
               }
             },
           },
@@ -76,7 +103,11 @@ export function MessageInput({
         <RichTextArea />
 
         <div className="flex items-center justify-between gap-4 px-3 pb-3">
-          <MessageInputToolbar />
+          <MessageInputToolbar
+            emojiPickerOpen={emojiPickerOpen}
+            setEmojiPickerOpen={setEmojiPickerOpen}
+            stripColonOnEmojiPickRef={stripColonOnEmojiPickRef}
+          />
           <div className="flex items-center justify-between gap-2">
             {onCancel && (
               <Button
@@ -112,16 +143,51 @@ export function MessageInput({
   );
 }
 
-function MessageInputToolbar() {
+function MessageInputToolbar({
+  emojiPickerOpen,
+  setEmojiPickerOpen,
+  stripColonOnEmojiPickRef,
+}: {
+  emojiPickerOpen: boolean;
+  setEmojiPickerOpen: (open: boolean) => void;
+  stripColonOnEmojiPickRef: { current: boolean };
+}) {
   const { editor } = useRichTextContext();
+  const prevEmojiPickerOpen = useRef(emojiPickerOpen);
+
+  useEffect(() => {
+    if (prevEmojiPickerOpen.current && !emojiPickerOpen && editor) {
+      setTimeout(() => editor.commands.focus(), 0);
+    }
+    prevEmojiPickerOpen.current = emojiPickerOpen;
+  }, [emojiPickerOpen, editor]);
 
   return (
     <RichTextToolbar
       toolsStart={
         <EmojiPicker
+          openPopover={emojiPickerOpen}
+          setOpenPopover={setEmojiPickerOpen}
           onSelect={(emoji) => {
             if (!editor) return;
-            editor.chain().focus().insertContent(emoji).run();
+            const stripColon = stripColonOnEmojiPickRef.current;
+            stripColonOnEmojiPickRef.current = false;
+
+            const { from } = editor.state.selection;
+            if (
+              stripColon &&
+              from > 0 &&
+              editor.state.doc.textBetween(from - 1, from) === ":"
+            ) {
+              editor
+                .chain()
+                .deleteRange({ from: from - 1, to: from })
+                .insertContent(emoji)
+                .run();
+            } else {
+              editor.chain().insertContent(emoji).run();
+            }
+            setTimeout(() => editor.commands.focus(), 0);
           }}
         >
           <RichTextToolbarButton icon={FaceSmile} label="Emoji" />
