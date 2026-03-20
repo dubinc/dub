@@ -60,17 +60,30 @@ type ReferralsEmbedData = {
     | "id"
     | "name"
     | "slug"
+    | "domain"
     | "minPayoutAmount"
     | "termsUrl"
     | "embedData"
     | "resources"
   >;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
   partner: Pick<Partner, "id" | "name" | "email">;
   partnerPlatforms: Array<{
     type: PlatformType;
     identifier: string;
     verifiedAt: Date | null;
   }>;
+  group: Pick<
+    PartnerGroupProps,
+    | "id"
+    | "logo"
+    | "wordmark"
+    | "brandColor"
+    | "additionalLinks"
+    | "maxPartnerLinks"
+    | "linkStructure"
+    | "holdingPeriodDays"
+  >;
   links: ReferralsEmbedLink[];
   rewards: RewardProps[];
   discount?: DiscountProps | null;
@@ -85,18 +98,6 @@ type ReferralsEmbedData = {
     sales: number;
     saleAmount: number;
   };
-  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
-  group: Pick<
-    PartnerGroupProps,
-    | "id"
-    | "logo"
-    | "wordmark"
-    | "brandColor"
-    | "additionalLinks"
-    | "maxPartnerLinks"
-    | "linkStructure"
-    | "holdingPeriodDays"
-  >;
   bounties: PartnerBountyProps[];
 };
 

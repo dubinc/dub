@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";
-import { useReferralsEmbedData } from "./page-client";
 import { ReferralsEmbedLink } from "./types";
 
 export function ReferralsEmbedLinks() {
-  const { links, program, group } = useReferralsEmbedData();
   const [createLink, setCreateLink] = useState(false);
   const [link, setLink] = useState<ReferralsEmbedLink | null>(null);
 
@@ -13,9 +11,7 @@ export function ReferralsEmbedLinks() {
     <div className="flex flex-col space-y-6">
       {createLink ? (
         <ReferralsEmbedCreateUpdateLink
-          program={program}
           link={link}
-          group={group}
           onCancel={() => {
             setCreateLink(false);
             setLink(null);
@@ -23,9 +19,6 @@ export function ReferralsEmbedLinks() {
         />
       ) : (
         <ReferralsEmbedLinksList
-          program={program}
-          links={links}
-          group={group}
           onCreateLink={() => setCreateLink(true)}
           onEditLink={(link) => {
             setLink(link);

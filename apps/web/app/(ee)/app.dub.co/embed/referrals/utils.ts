@@ -41,6 +41,7 @@ export const getReferralsEmbedData = async (token: string) => {
           id: true,
           name: true,
           slug: true,
+          domain: true,
           defaultGroupId: true,
           minPayoutAmount: true,
           termsUrl: true,

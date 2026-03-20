@@ -108,7 +108,7 @@ export function EmbedBountySubmissionsTable({
             if (bounty.submissionRequirements?.socialMetrics) {
               buttonText = "View";
             } else {
-              buttonText = "Submit";
+              buttonText = "Continue";
             }
           } else if (["submitted", "approved", "rejected"].includes(status)) {
             buttonText = "View";

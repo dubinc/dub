@@ -1,7 +1,5 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import { PartnerGroupProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Program } from "@dub/prisma/client";
 import {
   Button,
   CopyButton,
@@ -22,27 +20,17 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { useEmbedToken } from "../use-embed-token";
+import { useReferralsEmbedData } from "./page-client";
 import { ReferralsEmbedLink } from "./types";
 
 interface Props {
-  program: Pick<Program, "name">;
-  links: ReferralsEmbedLink[];
-  group: Pick<
-    PartnerGroupProps,
-    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
-  >;
   onCreateLink: () => void;
   onEditLink: (link: ReferralsEmbedLink) => void;
 }
 
-export function ReferralsEmbedLinksList({
-  program,
-  links,
-  group,
-  onCreateLink,
-  onEditLink,
-}: Props) {
+export function ReferralsEmbedLinksList({ onCreateLink, onEditLink }: Props) {
   const token = useEmbedToken();
+  const { links, program, group } = useReferralsEmbedData();
   const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
 
   const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
