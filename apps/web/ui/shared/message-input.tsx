@@ -8,9 +8,16 @@ import {
   RichTextToolbar,
   RichTextToolbarButton,
   useRichTextContext,
+  useScrollProgress,
 } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 import { EmojiPicker } from "../shared/emoji-picker";
 
 export function MessageInput({
@@ -152,9 +159,15 @@ export function MessageInput({
 
 function MessageInputEditorOverflowFades() {
   const { editor } = useRichTextContext();
-  const [showTopFade, setShowTopFade] = useState(false);
-  const [showBottomFade, setShowBottomFade] = useState(false);
+  const scrollElRef = useRef<HTMLElement | null>(null);
   const prevScrollTopRef = useRef(0);
+  const [scrollDirection, setScrollDirection] = useState<"down" | "up" | null>(
+    null,
+  );
+
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(
+    scrollElRef as RefObject<HTMLElement>,
+  );
 
   useEffect(() => {
     if (!editor) return;
@@ -163,45 +176,20 @@ function MessageInputEditorOverflowFades() {
     const scrollEl =
       (editor.view as { scrollDOM?: HTMLElement }).scrollDOM ?? root;
 
-    const syncFades = () => {
-      const { scrollTop, scrollHeight, clientHeight } = scrollEl;
-      const maxScroll = scrollHeight - clientHeight;
+    scrollElRef.current = scrollEl;
+    updateScrollProgress();
 
-      if (maxScroll <= 2) {
-        setShowTopFade(false);
-        setShowBottomFade(false);
-        prevScrollTopRef.current = scrollTop;
-        return;
-      }
-
-      if (scrollTop <= 2) {
-        setShowTopFade(false);
-        setShowBottomFade(true);
-        prevScrollTopRef.current = scrollTop;
-        return;
-      }
-
-      if (scrollTop >= maxScroll - 2) {
-        setShowTopFade(true);
-        setShowBottomFade(false);
-        prevScrollTopRef.current = scrollTop;
-        return;
-      }
-
-      const scrollingDown = scrollTop > prevScrollTopRef.current;
-      prevScrollTopRef.current = scrollTop;
-      setShowTopFade(scrollingDown);
-      setShowBottomFade(!scrollingDown);
+    const onScroll = () => {
+      setScrollDirection(
+        scrollEl.scrollTop > prevScrollTopRef.current ? "down" : "up",
+      );
+      prevScrollTopRef.current = scrollEl.scrollTop;
+      updateScrollProgress();
     };
 
-    syncFades();
+    scrollEl.addEventListener("scroll", onScroll, { passive: true });
 
-    scrollEl.addEventListener("scroll", syncFades, { passive: true });
-
-    const resizeObserver = new ResizeObserver(syncFades);
-    resizeObserver.observe(scrollEl);
-
-    const mutationObserver = new MutationObserver(syncFades);
+    const mutationObserver = new MutationObserver(updateScrollProgress);
     mutationObserver.observe(root, {
       subtree: true,
       childList: true,
@@ -209,11 +197,27 @@ function MessageInputEditorOverflowFades() {
     });
 
     return () => {
-      scrollEl.removeEventListener("scroll", syncFades);
-      resizeObserver.disconnect();
+      scrollEl.removeEventListener("scroll", onScroll);
       mutationObserver.disconnect();
+      scrollElRef.current = null;
     };
-  }, [editor]);
+  }, [editor, updateScrollProgress]);
+
+  const epsilon = 0.02;
+  const hasOverflow = scrollProgress < 1 - epsilon || scrollProgress > epsilon;
+  let showTopFade = false;
+  let showBottomFade = false;
+
+  if (hasOverflow) {
+    if (scrollProgress <= epsilon) {
+      showBottomFade = true;
+    } else if (scrollProgress >= 1 - epsilon) {
+      showTopFade = true;
+    } else {
+      showTopFade = scrollDirection === "down";
+      showBottomFade = scrollDirection === "up";
+    }
+  }
 
   return (
     <>
