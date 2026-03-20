@@ -2,12 +2,11 @@
 
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { SocialAccountNotVerifiedWarning } from "@/ui/partners/bounties/bounty-social-content";
 import { PlatformType } from "@dub/prisma/client";
-import { LoadingSpinner } from "@dub/ui";
+import { Button } from "@dub/ui";
 import { Trophy } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -21,10 +20,6 @@ import {
   type FileInput,
 } from "./submission-fields";
 
-export { EmbedBountySubmissionDetail } from "./submission-detail";
-
-type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
-
 export function SubmissionCardHeader({
   title,
   rightContent,
@@ -37,22 +32,12 @@ export function SubmissionCardHeader({
       <div className="flex items-center justify-between px-4 py-2">
         <div className="text-content-emphasis flex items-center gap-2">
           <Trophy className="size-4" />
-
           <span className="font-semibold">{title}</span>
         </div>
         <div className="flex items-center gap-2">{rightContent}</div>
       </div>
       <div className="border-border-subtle border-t" />
     </>
-  );
-}
-
-export function headerButtonClass(primary = false) {
-  return cn(
-    "flex h-8 items-center rounded-lg border px-3 text-sm font-medium transition-colors duration-100",
-    primary
-      ? "border-transparent bg-bg-inverted text-content-inverted hover:opacity-80"
-      : "border-border-subtle text-content-default hover:bg-bg-muted",
   );
 }
 
@@ -199,39 +184,32 @@ export function EmbedBountySubmissionForm({
         title={title}
         rightContent={
           <>
-            <button
+            <Button
+              text="Cancel"
               type="button"
+              variant="secondary"
               onClick={onCancel}
-              className={headerButtonClass()}
-            >
-              Cancel
-            </button>
+              className="h-8 rounded-lg px-3"
+            />
+
             {!isSocialMetricsBounty && (
-              <button
+              <Button
+                text={isDraftSaving ? "Saving..." : "Save progress"}
                 type="button"
+                loading={isDraftSaving}
                 onClick={() => handleSubmit(true)}
                 disabled={isDisabled}
-                className={headerButtonClass()}
-              >
-                {isDraftSaving ? (
-                  <LoadingSpinner className="size-4" />
-                ) : (
-                  "Save progress"
-                )}
-              </button>
+                className="h-8 rounded-lg px-3"
+              />
             )}
-            <button
-              type="button"
+
+            <Button
+              text={isSubmitting ? "Submitting..." : "Submit"}
+              loading={isSubmitting}
               onClick={() => handleSubmit(false)}
               disabled={isDisabled}
-              className={headerButtonClass(true)}
-            >
-              {isSubmitting ? (
-                <LoadingSpinner className="size-4 text-white" />
-              ) : (
-                "Submit"
-              )}
-            </button>
+              className="h-8 rounded-lg px-3"
+            />
           </>
         }
       />

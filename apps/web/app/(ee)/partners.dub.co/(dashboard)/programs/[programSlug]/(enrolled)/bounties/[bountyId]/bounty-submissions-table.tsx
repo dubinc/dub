@@ -5,15 +5,13 @@ import {
   getSubmissionPeriods,
 } from "@/lib/bounty/periods";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
-import { PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { useBountySubmissionDetailsSheet } from "@/ui/partners/bounties/bounty-submission-details-sheet";
 import { useClaimBountySheet } from "@/ui/partners/bounties/claim-bounty-sheet";
 import { Button, StatusBadge, Table, useTable } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
-
-type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
 
 export function BountySubmissionsTable({
   bounty,

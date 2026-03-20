@@ -4,19 +4,17 @@ import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
 import {
   SocialContentPreview,
   SubmissionRewardTable,
 } from "@/ui/partners/bounties/bounty-submission-details-sheet";
-import { CopyButton, StatusBadge } from "@dub/ui";
+import { Button, CopyButton, StatusBadge } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 import { Fragment } from "react";
 import { toast } from "sonner";
-import { headerButtonClass, SubmissionCardHeader } from "./submission-form";
-
-type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
+import { SubmissionCardHeader } from "./submission-form";
 
 export function EmbedBountySubmissionDetail({
   bounty,
@@ -39,13 +37,12 @@ export function EmbedBountySubmissionDetail({
       <SubmissionCardHeader
         title={title}
         rightContent={
-          <button
+          <Button
+            text="Back"
             type="button"
             onClick={onBack}
-            className={headerButtonClass()}
-          >
-            Back
-          </button>
+            className="h-8 w-fit rounded-lg px-3"
+          />
         }
       />
 

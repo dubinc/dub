@@ -4,7 +4,7 @@ import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { X } from "@/ui/shared/icons";
 import {
@@ -32,8 +32,6 @@ import { PLATFORM_ICONS } from "./bounty-platform-icons";
 import { EmphasisNumber } from "./bounty-progress-bar-row";
 import { BountySocialContentPreview } from "./bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "./bounty-social-metrics-rewards-table";
-
-type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
 
 interface BountySubmissionDetailsSheetProps {
   bounty: PartnerBountyProps;

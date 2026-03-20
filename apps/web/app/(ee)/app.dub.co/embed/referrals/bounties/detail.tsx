@@ -1,6 +1,6 @@
 "use client";
 
-import { PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { BountyDescription } from "@/ui/partners/bounties/bounty-description";
 import {
   PerformanceBountyProgress,
@@ -12,6 +12,7 @@ import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountySubmissionRequirements } from "@/ui/partners/bounties/bounty-submission-requirements";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { PlatformType } from "@dub/prisma/client";
+import { Button } from "@dub/ui";
 import { Trophy } from "@dub/ui/icons";
 import { useState } from "react";
 import {
@@ -19,18 +20,14 @@ import {
   BountyRewardsTable,
 } from "../../../../partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/bounties/bounty-card";
 import { EmbedBountyPerformanceSection } from "./performance-section";
-import {
-  EmbedBountySubmissionDetail,
-  EmbedBountySubmissionForm,
-} from "./submission-form";
+import { EmbedBountySubmissionDetail } from "./submission-detail";
+import { EmbedBountySubmissionForm } from "./submission-form";
 import { EmbedBountySubmissionsTable } from "./submissions-table";
 
 export type EmbedBountyView =
   | { mode: "detail" }
   | { mode: "submission-form"; periodNumber: number }
   | { mode: "submission-view"; periodNumber: number };
-
-type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
 
 export function EmbedBountyDetail({
   bounty: initialBounty,
@@ -131,13 +128,12 @@ export function EmbedBountyDetail({
 
           <span className="font-semibold">Bounty details</span>
         </div>
-        <button
+        <Button
+          text="Back"
           type="button"
           onClick={onBack}
-          className="border-border-subtle text-content-emphasis hover:bg-bg-muted flex h-8 items-center rounded-lg border px-3 text-sm font-medium transition-colors duration-100"
-        >
-          Back
-        </button>
+          className="h-8 w-fit rounded-lg px-3"
+        />
       </div>
 
       <div className="border-border-subtle border-t" />
