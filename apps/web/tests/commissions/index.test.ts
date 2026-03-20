@@ -98,7 +98,7 @@ describe.sequential("/commissions/**", async () => {
 
   test("PATCH /commissions/{id} - foreign currency conversion", async () => {
     const toUpdate = {
-      amount: 1437, // approximately 1000 USD cents
+      amount: 1580, // approximately 1000 USD cents
       currency: "jpy",
     };
 

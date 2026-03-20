@@ -2,7 +2,7 @@
 
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
-import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   CrownSmall,
@@ -182,21 +182,22 @@ export default function CommissionsPageClient() {
         id: "program",
         header: "Program",
         cell: ({ row }) => (
-          <FilterIconCell
-            set={{ programId: row.original.id }}
-            icon={
-              <img
-                src={row.original.logo}
-                alt={row.original.name}
-                width={20}
-                height={20}
-                className="size-4 rounded-full"
-              />
-            }
-          >
+          <div className="flex items-center gap-1.5">
+            <img
+              src={row.original.logo}
+              alt={row.original.name}
+              width={20}
+              height={20}
+              className="size-4 rounded-full"
+            />
             <span className="text-sm font-medium">{row.original.name}</span>
-          </FilterIconCell>
+          </div>
         ),
+        meta: {
+          filterParams: ({ row }) => ({
+            programId: row.original.id,
+          }),
+        },
       },
       {
         id: "commissions",
@@ -216,6 +217,19 @@ export default function CommissionsPageClient() {
     resourceName: (plural) => `program${plural ? "s" : ""}`,
     rowCount: programs?.length ?? 0,
     loading: isLoading,
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
   });
 
   return (

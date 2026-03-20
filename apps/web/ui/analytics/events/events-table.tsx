@@ -6,7 +6,7 @@ import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import EmptyState from "@/ui/shared/empty-state";
-import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import {
   CopyText,
   EditColumnsButton,
@@ -25,13 +25,14 @@ import {
   COUNTRIES,
   REGIONS,
   capitalize,
+  cn,
   currencyFormatter,
   fetcher,
   formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
 } from "@dub/utils";
-import { ColumnDef } from "@tanstack/react-table";
+import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -130,6 +131,12 @@ const eventColumns = {
 
 export type EventDatum = ClickEvent | LeadEvent | SaleEvent;
 
+type ColumnMeta = {
+  filterParams?: (
+    args: Pick<Cell<EventDatum, any>, "getValue">,
+  ) => Record<string, any>;
+};
+
 export default function EventsTable({
   requiresUpgrade,
   upgradeOverlay,
@@ -220,17 +227,20 @@ export default function EventsTable({
           minSize: 150,
           size: 150,
           maxSize: 150,
+          meta: {
+            filterParams: ({ getValue }) => ({
+              trigger: getValue() ?? "link",
+            }),
+          },
           cell: ({ getValue }) => {
             const { title, icon: Icon } = TRIGGER_DISPLAY[getValue() ?? "link"];
             return (
-              <FilterIconCell
-                set={{ trigger: getValue() ?? "link" }}
-                icon={<Icon className="size-4 shrink-0" />}
-              >
+              <div className="flex items-center gap-3">
+                <Icon className="size-4 shrink-0" />
                 <span className="truncate" title={title}>
                   {title}
                 </span>
-              </FilterIconCell>
+              </div>
             );
           },
         },
@@ -255,22 +265,20 @@ export default function EventsTable({
           minSize: 300,
           size: 300,
           maxSize: 400,
-          cell: ({ getValue }) => {
-            const customer = getValue();
-            return (
-              <div className="flex items-center gap-3 px-4 py-2.5">
-                <FilterIconCell set={{ customerId: customer.id }} />
-                <CustomerRowItem
-                  customer={customer}
-                  href={
-                    partnerPage
-                      ? `/programs/${programSlug}/customers/${customer.id}`
-                      : `/${slug}/customers/${customer.id}`
-                  }
-                />
-              </div>
-            );
+          meta: {
+            filterParams: ({ getValue }) => ({ customerId: getValue().id }),
           },
+          cell: ({ getValue }) => (
+            <CustomerRowItem
+              customer={getValue()}
+              href={
+                partnerPage
+                  ? `/programs/${programSlug}/customers/${getValue().id}`
+                  : `/${slug}/customers/${getValue().id}`
+              }
+              className="px-4 py-2.5"
+            />
+          ),
         },
         {
           id: "customerName",
@@ -320,36 +328,37 @@ export default function EventsTable({
           minSize: 250,
           size: 250,
           maxSize: 400,
+          meta: {
+            filterParams: ({ getValue }) => ({ linkId: getValue().id }),
+          },
           cell: ({ getValue }) => {
-            const link = getValue();
-            const text = (
-              <span className="truncate" title={shortLinkTitle(link)}>
-                {getPrettyUrl(shortLinkTitle(link))}
-              </span>
-            );
-            return (
-              <div className="flex items-center gap-3">
-                <FilterIconCell
-                  set={{ linkId: link.id }}
-                  icon={
-                    <LinkLogo
-                      apexDomain={getApexDomain(link.url)}
-                      className="size-4 shrink-0 sm:size-4"
-                    />
-                  }
-                />
-                {partnerPage ? (
-                  text
-                ) : (
-                  <Link
-                    href={`/${slug}/links/${link.domain}/${link.key}`}
-                    target="_blank"
-                    className="cursor-alias truncate decoration-dotted hover:underline"
-                  >
-                    {text}
-                  </Link>
+            const content = (
+              <div
+                className={cn(
+                  "flex items-center gap-3",
+                  !partnerPage &&
+                    "cursor-alias decoration-dotted hover:underline",
                 )}
+              >
+                <LinkLogo
+                  apexDomain={getApexDomain(getValue().url)}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+                <span className="truncate" title={shortLinkTitle(getValue())}>
+                  {getPrettyUrl(shortLinkTitle(getValue()))}
+                </span>
               </div>
+            );
+
+            return partnerPage ? (
+              content
+            ) : (
+              <Link
+                href={`/${slug}/links/${getValue().domain}/${getValue().key}`}
+                target="_blank"
+              >
+                {content}
+              </Link>
             );
           },
         },
@@ -359,16 +368,14 @@ export default function EventsTable({
           accessorKey: "click.url",
           minSize: 250,
           size: 250,
+          meta: {
+            filterParams: ({ getValue }) => ({ url: getValue() }),
+          },
           cell: ({ getValue }) => (
             <div className="flex items-center gap-3">
-              <FilterIconCell
-                set={{ url: getValue() }}
-                icon={
-                  <LinkLogo
-                    apexDomain={getApexDomain(getValue())}
-                    className="size-4 shrink-0 sm:size-4"
-                  />
-                }
+              <LinkLogo
+                apexDomain={getApexDomain(getValue())}
+                className="size-4 shrink-0 sm:size-4"
               />
               <CopyText
                 value={getValue()}
@@ -385,47 +392,45 @@ export default function EventsTable({
           id: "referer",
           header: "Referrer",
           accessorKey: "click.referer",
+          meta: {
+            filterParams: ({ getValue }) => ({ referer: getValue() }),
+          },
           cell: ({ getValue }) => (
-            <FilterIconCell
-              set={{ referer: getValue() }}
-              icon={
-                getValue() === "(direct)" ? (
-                  <Link2 className="h-4 w-4" />
-                ) : (
-                  <LinkLogo
-                    apexDomain={getValue()}
-                    className="size-4 shrink-0 sm:size-4"
-                  />
-                )
-              }
-            >
+            <div className="flex items-center gap-3">
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getValue()}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
               <CopyText
                 value={getValue()}
                 successMessage="Copied referrer to clipboard!"
               >
                 <span className="truncate">{getValue()}</span>
               </CopyText>
-            </FilterIconCell>
+            </div>
           ),
         },
         {
           id: "refererUrl",
           header: "Referrer URL",
           accessorKey: "click.refererUrl",
+          meta: {
+            filterParams: ({ getValue }) => ({ refererUrl: getValue() }),
+          },
           cell: ({ getValue }) => (
-            <FilterIconCell
-              set={{ refererUrl: getValue() }}
-              icon={
-                getValue() === "(direct)" ? (
-                  <Link2 className="h-4 w-4" />
-                ) : (
-                  <LinkLogo
-                    apexDomain={getApexDomain(getValue())}
-                    className="size-4 shrink-0 sm:size-4"
-                  />
-                )
-              }
-            >
+            <div className="flex items-center gap-3">
+              {getValue() === "(direct)" ? (
+                <Link2 className="h-4 w-4" />
+              ) : (
+                <LinkLogo
+                  apexDomain={getApexDomain(getValue())}
+                  className="size-4 shrink-0 sm:size-4"
+                />
+              )}
               <CopyText
                 value={getValue()}
                 successMessage="Copied referrer URL to clipboard!"
@@ -434,32 +439,34 @@ export default function EventsTable({
                   {getPrettyUrl(getValue())}
                 </span>
               </CopyText>
-            </FilterIconCell>
+            </div>
           ),
         },
         {
           id: "country",
           header: "Country",
           accessorKey: "click.country",
+          meta: {
+            filterParams: ({ getValue }) => ({ country: getValue() }),
+          },
           cell: ({ getValue }) => (
-            <FilterIconCell
-              set={{ country: getValue() }}
-              icon={
-                getValue() === "Unknown" ? (
-                  <Globe className="size-4 shrink-0" />
-                ) : (
-                  <img
-                    alt={getValue()}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
-                    className="size-4 shrink-0"
-                  />
-                )
-              }
+            <div
+              className="flex items-center gap-3"
+              title={COUNTRIES[getValue()] ?? getValue()}
             >
-              <span className="truncate" title={COUNTRIES[getValue()] ?? getValue()}>
+              {getValue() === "Unknown" ? (
+                <Globe className="size-4 shrink-0" />
+              ) : (
+                <img
+                  alt={getValue()}
+                  src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
+                  className="size-4 shrink-0"
+                />
+              )}
+              <span className="truncate">
                 {COUNTRIES[getValue()] ?? getValue()}
               </span>
-            </FilterIconCell>
+            </div>
           ),
         },
         {
@@ -467,90 +474,90 @@ export default function EventsTable({
           header: "City",
           accessorKey: "click.city",
           minSize: 160,
-          cell: ({ getValue, row }) => (
-            <FilterIconCell
-              set={{ city: getValue() }}
-              icon={
-                !row.original.country ||
-                row.original.country === "Unknown" ? (
+          meta: {
+            filterParams: ({ getValue }) => ({ city: getValue() }),
+          },
+          cell: ({ getValue, row }) => {
+            const country = row.original.click?.country;
+            return (
+              <div className="flex items-center gap-3" title={getValue()}>
+                {!country || country === "Unknown" ? (
                   <Globe className="size-4 shrink-0" />
                 ) : (
                   <img
-                    alt={row.original.country}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                    alt={country}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
                     className="size-4 shrink-0"
                   />
-                )
-              }
-            >
-              <span className="truncate" title={getValue()}>{getValue()}</span>
-            </FilterIconCell>
-          ),
+                )}
+                <span className="truncate">{getValue()}</span>
+              </div>
+            );
+          },
         },
         {
           id: "region",
           header: "Region",
           accessorKey: "click.region",
           minSize: 160,
-          cell: ({ getValue, row }) => (
-            <FilterIconCell
-              set={{ region: getValue() }}
-              icon={
-                !row.original.country ||
-                row.original.country === "Unknown" ? (
+          meta: {
+            filterParams: ({ getValue }) => ({ region: getValue() }),
+          },
+          cell: ({ getValue, row }) => {
+            const country = row.original.click?.country;
+            return (
+              <div className="flex items-center gap-3" title={getValue()}>
+                {!country || country === "Unknown" ? (
                   <Globe className="size-4 shrink-0" />
                 ) : (
                   <img
-                    alt={row.original.country}
-                    src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
+                    alt={country}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
                     className="size-4 shrink-0"
                   />
-                )
-              }
-            >
-              <span className="truncate" title={getValue()}>
-                {REGIONS[getValue()] || getValue().split("-")[1]}
-              </span>
-            </FilterIconCell>
-          ),
+                )}
+                <span className="truncate">
+                  {REGIONS[getValue()] || getValue().split("-")[1]}
+                </span>
+              </div>
+            );
+          },
         },
         {
           id: "continent",
           header: "Continent",
           accessorKey: "click.continent",
+          meta: {
+            filterParams: ({ getValue }) => ({ continent: getValue() }),
+          },
           cell: ({ getValue }) => (
-            <FilterIconCell
-              set={{ continent: getValue() }}
-              icon={
-                <ContinentIcon display={getValue()} className="size-4 shrink-0" />
-              }
+            <div
+              className="flex items-center gap-3"
+              title={CONTINENTS[getValue()] ?? "Unknown"}
             >
-              <span
-                className="truncate"
-                title={CONTINENTS[getValue()] ?? "Unknown"}
-              >
+              <ContinentIcon display={getValue()} className="size-4 shrink-0" />
+              <span className="truncate">
                 {CONTINENTS[getValue()] ?? "Unknown"}
               </span>
-            </FilterIconCell>
+            </div>
           ),
         },
         {
           id: "device",
           header: "Device",
           accessorKey: "click.device",
+          meta: {
+            filterParams: ({ getValue }) => ({ device: getValue() }),
+          },
           cell: ({ getValue }) => (
-            <FilterIconCell
-              set={{ device: getValue() }}
-              icon={
-                <DeviceIcon
-                  display={capitalize(getValue()) ?? getValue()}
-                  tab="devices"
-                  className="size-4 shrink-0"
-                />
-              }
-            >
-              <span className="truncate" title={getValue()}>{getValue()}</span>
-            </FilterIconCell>
+            <div className="flex items-center gap-3" title={getValue()}>
+              <DeviceIcon
+                display={capitalize(getValue()) ?? getValue()}
+                tab="devices"
+                className="size-4 shrink-0"
+              />
+              <span className="truncate">{getValue()}</span>
+            </div>
           ),
         },
         {
@@ -762,6 +769,17 @@ export default function EventsTable({
         },
       }),
     columnPinning: { right: ["menu"] },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow
+            set={meta.filterParams(cell)}
+            className="bg-[linear-gradient(to_right,transparent,white_10%)]"
+          />
+        )
+      );
+    },
     tdClassName: (columnId) => (columnId === "customer" ? "p-0" : ""),
     emptyState: (
       <EmptyState
