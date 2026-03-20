@@ -1,6 +1,6 @@
 "use client";
 
-import { PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps, ProgramEnrollmentProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { PlatformType } from "@dub/prisma/client";
 import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/ui";
@@ -16,7 +16,7 @@ import { EmbedBountyDetail, EmbedBountyView } from "./detail";
 export function ReferralsEmbedBounties({
   bounties: initialBounties,
   partnerPlatforms,
-  programEnrollmentCreatedAt,
+  programEnrollment,
 }: {
   bounties: PartnerBountyProps[];
   partnerPlatforms: Array<{
@@ -24,7 +24,7 @@ export function ReferralsEmbedBounties({
     identifier: string;
     verifiedAt: Date | null;
   }>;
-  programEnrollmentCreatedAt: Date;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
   const [bounties, setBounties] =
     useState<PartnerBountyProps[]>(initialBounties);
@@ -66,7 +66,7 @@ export function ReferralsEmbedBounties({
           <EmbedBountyDetail
             bounty={selectedBounty}
             partnerPlatforms={partnerPlatforms}
-            programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+            programEnrollment={programEnrollment}
             view={view}
             setView={setView}
             onBack={handleBack}

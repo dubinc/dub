@@ -6,6 +6,7 @@ import {
   DiscountProps,
   PartnerBountyProps,
   PartnerGroupProps,
+  ProgramEnrollmentProps,
   RewardProps,
 } from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
@@ -54,7 +55,7 @@ export function ReferralsEmbedPageClient({
   discount,
   earnings,
   stats,
-  programEnrollmentCreatedAt,
+  programEnrollment,
   group,
   bounties,
   themeOptions,
@@ -80,7 +81,7 @@ export function ReferralsEmbedPageClient({
     sales: number;
     saleAmount: number;
   };
-  programEnrollmentCreatedAt: Date;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
   group: Pick<
     PartnerGroupProps,
     | "id"
@@ -274,7 +275,7 @@ export function ReferralsEmbedPageClient({
                 <ReferralsEmbedBounties
                   bounties={bounties}
                   partnerPlatforms={partnerPlatforms}
-                  programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+                  programEnrollment={programEnrollment}
                 />
               ) : null}
             </AnimatePresence>

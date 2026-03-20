@@ -1,6 +1,10 @@
 "use client";
 
-import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
+import {
+  PartnerBountyProps,
+  PartnerBountySubmission,
+  ProgramEnrollmentProps,
+} from "@/lib/types";
 import { BountyDescription } from "@/ui/partners/bounties/bounty-description";
 import {
   PerformanceBountyProgress,
@@ -32,7 +36,7 @@ export type EmbedBountyView =
 export function EmbedBountyDetail({
   bounty: initialBounty,
   partnerPlatforms,
-  programEnrollmentCreatedAt,
+  programEnrollment,
   view,
   setView,
   onBack,
@@ -44,7 +48,7 @@ export function EmbedBountyDetail({
     identifier: string;
     verifiedAt: Date | null;
   }>;
-  programEnrollmentCreatedAt: Date;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
   view: EmbedBountyView;
   setView: (v: EmbedBountyView) => void;
   onBack: () => void;
@@ -162,7 +166,7 @@ export function EmbedBountyDetail({
           {bounty.type === "performance" ? (
             <EmbedBountyPerformanceSection
               bounty={bounty}
-              programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+              programEnrollment={programEnrollment}
             />
           ) : (
             <EmbedBountySubmissionsTable

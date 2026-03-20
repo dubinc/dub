@@ -1,32 +1,13 @@
 "use client";
 
 import { SocialContent } from "@/lib/types";
+import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { useEmbedToken } from "../../use-embed-token";
 
 interface UseEmbedSocialContentParams {
   bountyId: string;
   url: string;
-}
-
-async function fetchEmbedSocialContent(
-  endpoint: string,
-  token: string,
-): Promise<SocialContent> {
-  const res = await fetch(endpoint, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-
-  if (!res.ok) {
-    const message =
-      (await res.json().catch(() => null))?.error?.message ??
-      "Failed to fetch social content.";
-    throw new Error(message);
-  }
-
-  return res.json();
 }
 
 export function useEmbedSocialContent({
@@ -46,7 +27,12 @@ export function useEmbedSocialContent({
           token,
         ]
       : null,
-    ([requestUrl, authToken]) => fetchEmbedSocialContent(requestUrl, authToken),
+    ([requestUrl, authToken]) =>
+      fetcher(requestUrl, {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      }),
     {
       revalidateOnFocus: false,
     },

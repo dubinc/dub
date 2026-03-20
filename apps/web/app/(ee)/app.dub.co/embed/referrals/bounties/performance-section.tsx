@@ -3,7 +3,12 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
-import { LeadEvent, PartnerBountyProps, SaleEvent } from "@/lib/types";
+import {
+  LeadEvent,
+  PartnerBountyProps,
+  ProgramEnrollmentProps,
+  SaleEvent,
+} from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
@@ -88,10 +93,10 @@ const PAGE_SIZE = 10;
 
 export function EmbedBountyPerformanceSection({
   bounty,
-  programEnrollmentCreatedAt,
+  programEnrollment,
 }: {
   bounty: PartnerBountyProps;
-  programEnrollmentCreatedAt: Date;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
   return (
     <div className="flex flex-col gap-6">
@@ -102,13 +107,13 @@ export function EmbedBountyPerformanceSection({
         <div className="border-border-subtle bg-bg-default rounded-xl border p-5">
           <EmbedBountyPerformanceChart
             bounty={bounty}
-            programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+            programEnrollment={programEnrollment}
           />
         </div>
       </div>
       <EmbedBountyPerformanceTable
         bounty={bounty}
-        programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+        programEnrollment={programEnrollment}
       />
     </div>
   );
@@ -116,10 +121,10 @@ export function EmbedBountyPerformanceSection({
 
 function EmbedBountyPerformanceChart({
   bounty,
-  programEnrollmentCreatedAt,
+  programEnrollment,
 }: {
   bounty: PartnerBountyProps;
-  programEnrollmentCreatedAt: Date;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
   const token = useEmbedToken();
   const attribute = bounty.performanceCondition?.attribute as
@@ -132,8 +137,8 @@ function EmbedBountyPerformanceChart({
     () =>
       bounty.performanceScope === "new"
         ? new Date(bounty.startsAt)
-        : new Date(programEnrollmentCreatedAt ?? bounty.startsAt),
-    [bounty.performanceScope, bounty.startsAt, programEnrollmentCreatedAt],
+        : new Date(programEnrollment.createdAt ?? bounty.startsAt),
+    [bounty.performanceScope, bounty.startsAt, programEnrollment.createdAt],
   );
   const endDate = useMemo(
     () => (bounty.endsAt ? new Date(bounty.endsAt) : new Date()),
@@ -268,10 +273,10 @@ function EmbedBountyPerformanceChart({
 
 function EmbedBountyPerformanceTable({
   bounty,
-  programEnrollmentCreatedAt,
+  programEnrollment,
 }: {
   bounty: PartnerBountyProps;
-  programEnrollmentCreatedAt: Date;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
   const attribute = bounty.performanceCondition?.attribute as
     | PerformanceAttribute
@@ -281,7 +286,7 @@ function EmbedBountyPerformanceTable({
     return (
       <EmbedBountyCommissionsTable
         bounty={bounty}
-        programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+        programEnrollment={programEnrollment}
       />
     );
   }
@@ -289,17 +294,17 @@ function EmbedBountyPerformanceTable({
   return (
     <EmbedBountyEventsTable
       bounty={bounty}
-      programEnrollmentCreatedAt={programEnrollmentCreatedAt}
+      programEnrollment={programEnrollment}
     />
   );
 }
 
 function EmbedBountyEventsTable({
   bounty,
-  programEnrollmentCreatedAt,
+  programEnrollment,
 }: {
   bounty: PartnerBountyProps;
-  programEnrollmentCreatedAt: Date;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
   const token = useEmbedToken();
   const [page, setPage] = useState(1);
@@ -332,8 +337,8 @@ function EmbedBountyEventsTable({
     () =>
       bounty.performanceScope === "new"
         ? new Date(bounty.startsAt)
-        : new Date(programEnrollmentCreatedAt ?? bounty.startsAt),
-    [bounty.performanceScope, bounty.startsAt, programEnrollmentCreatedAt],
+        : new Date(programEnrollment.createdAt ?? bounty.startsAt),
+    [bounty.performanceScope, bounty.startsAt, programEnrollment.createdAt],
   );
   const endDate = useMemo(
     () => (bounty.endsAt ? new Date(bounty.endsAt) : new Date()),
@@ -523,10 +528,10 @@ function EmbedBountyEventsTable({
 
 function EmbedBountyCommissionsTable({
   bounty,
-  programEnrollmentCreatedAt,
+  programEnrollment,
 }: {
   bounty: PartnerBountyProps;
-  programEnrollmentCreatedAt: Date;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
   const token = useEmbedToken();
   const [page, setPage] = useState(1);
@@ -541,8 +546,8 @@ function EmbedBountyCommissionsTable({
     () =>
       bounty.performanceScope === "new"
         ? new Date(bounty.startsAt)
-        : new Date(programEnrollmentCreatedAt ?? bounty.startsAt),
-    [bounty.performanceScope, bounty.startsAt, programEnrollmentCreatedAt],
+        : new Date(programEnrollment.createdAt ?? bounty.startsAt),
+    [bounty.performanceScope, bounty.startsAt, programEnrollment.createdAt],
   );
   const endDate = useMemo(
     () => (bounty.endsAt ? new Date(bounty.endsAt) : new Date()),

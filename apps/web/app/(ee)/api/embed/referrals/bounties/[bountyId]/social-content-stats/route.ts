@@ -18,7 +18,7 @@ export const GET = withReferralsEmbedToken(
     const { url } = searchParamsSchema.parse(searchParams);
 
     const { success } = await ratelimit(10, "1 h").limit(
-      `embed-referrals:social-content-stats:${programEnrollment.partnerId}`,
+      `partner-profile:social-content-stats:${programEnrollment.partnerId}`,
     );
 
     if (!success) {
