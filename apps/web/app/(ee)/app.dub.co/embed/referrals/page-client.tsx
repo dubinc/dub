@@ -57,7 +57,13 @@ import { ReferralsEmbedLink } from "./types";
 type ReferralsEmbedData = {
   program: Pick<
     Program,
-    "id" | "slug" | "minPayoutAmount" | "termsUrl" | "embedData" | "resources"
+    | "id"
+    | "name"
+    | "slug"
+    | "minPayoutAmount"
+    | "termsUrl"
+    | "embedData"
+    | "resources"
   >;
   partner: Pick<Partner, "id" | "name" | "email">;
   partnerPlatforms: Array<{

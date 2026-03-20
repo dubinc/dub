@@ -39,8 +39,9 @@ export const getReferralsEmbedData = async (token: string) => {
       program: {
         select: {
           id: true,
-          defaultGroupId: true,
+          name: true,
           slug: true,
+          defaultGroupId: true,
           minPayoutAmount: true,
           termsUrl: true,
           embedData: true,
@@ -90,8 +91,6 @@ export const getReferralsEmbedData = async (token: string) => {
 
   const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
     aggregatePartnerLinksStats(links);
-
-  console.log("program._count.bounties", program._count.bounties);
 
   const [commissions, bounties] = await Promise.all([
     prisma.commission.groupBy({
