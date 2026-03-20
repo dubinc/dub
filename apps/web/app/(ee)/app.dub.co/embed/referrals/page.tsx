@@ -66,7 +66,7 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
       <div className="p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground color="#737373" />
-          <span className="text-base font-semibold text-neutral-800">
+          <span className="text-content-emphasis text-base font-semibold">
             Referral link
           </span>
           <div className="xs:flex-row relative mt-3 flex flex-col items-center gap-2">
@@ -78,7 +78,7 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
               disabled
             />
           </div>
-          <span className="mt-12 text-base font-semibold text-neutral-800">
+          <span className="text-content-emphasis mt-12 text-base font-semibold">
             Rewards
           </span>
           <div className="bg-bg-default border-border-subtle mt-2 h-20 w-[28rem] rounded-md border" />

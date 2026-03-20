@@ -1,5 +1,6 @@
 import {
   PartnerBountySchema,
+  partnerBountySubmissionSchema,
   PartnerEarningsSchema,
   partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
@@ -887,3 +888,7 @@ export type CommissionDetail = z.infer<typeof CommissionDetailSchema>;
 export type NullableOptional<T> = {
   [K in keyof T]?: T[K] | null;
 };
+
+export type PartnerBountySubmission = z.infer<
+  typeof partnerBountySubmissionSchema
+>;

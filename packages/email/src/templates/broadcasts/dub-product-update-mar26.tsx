@@ -402,8 +402,7 @@ export default function DubProductUpdateMar26({
                 • Bounties, Commissions, and Payouts APIs
                 <br />
                 • “Paid” and “Canceled” columns on customer tables
-                <br />
-                • Group reward update logs for auditability
+                <br />• Group reward update logs for auditability
               </Text>
               <Section className="mt-4 text-center">
                 <Link

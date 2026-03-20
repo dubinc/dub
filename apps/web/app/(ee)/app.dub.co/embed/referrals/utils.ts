@@ -1,5 +1,6 @@
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { getBountiesForPartner } from "@/lib/bounty/api/get-bounties-for-partner";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
@@ -16,38 +17,67 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
+  const now = new Date();
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
     include: {
-      partner: true,
-      program: true,
+      partner: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          platforms: {
+            select: {
+              type: true,
+              identifier: true,
+              verifiedAt: true,
+            },
+          },
+        },
+      },
+      program: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          domain: true,
+          defaultGroupId: true,
+          minPayoutAmount: true,
+          termsUrl: true,
+          embedData: true,
+          resources: true,
+          _count: {
+            select: {
+              bounties: {
+                where: {
+                  startsAt: {
+                    lte: now,
+                  },
+                  OR: [{ endsAt: null }, { endsAt: { gte: now } }],
+                },
+              },
+            },
+          },
+        },
+      },
       links: true,
       partnerGroup: true,
       discount: true,
       clickReward: true,
       leadReward: true,
       saleReward: true,
+      _count: {
+        select: {
+          commissions: true,
+        },
+      },
     },
   });
 
   if (!programEnrollment || !programEnrollment.partnerGroup) {
     notFound();
   }
-
-  const commissions = await prisma.commission.groupBy({
-    by: ["status"],
-    _sum: {
-      earnings: true,
-    },
-    where: {
-      earnings: {
-        gt: 0,
-      },
-      programId,
-      partnerId,
-    },
-  });
 
   const {
     program,
@@ -63,6 +93,26 @@ export const getReferralsEmbedData = async (token: string) => {
   const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
     aggregatePartnerLinksStats(links);
 
+  const [commissions, bounties] = await Promise.all([
+    prisma.commission.groupBy({
+      by: ["status"],
+      _sum: {
+        earnings: true,
+      },
+      where: {
+        earnings: {
+          gt: 0,
+        },
+        programId,
+        partnerId,
+      },
+    }),
+
+    program._count.bounties > 0
+      ? getBountiesForPartner(programEnrollment)
+      : Promise.resolve([]),
+  ]);
+
   return {
     program,
     partner: {
@@ -70,6 +120,7 @@ export const getReferralsEmbedData = async (token: string) => {
       name: partner.name,
       email: partner.email,
     },
+    partnerPlatforms: partner.platforms,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
     rewards: [clickReward, leadReward, saleReward]
       .filter((r): r is Reward => r !== null)
@@ -83,12 +134,16 @@ export const getReferralsEmbedData = async (token: string) => {
         return acc;
       }, 0),
       paid: commissions.find((c) => c.status === "paid")?._sum.earnings ?? 0,
+      totalCount: programEnrollment._count.commissions,
     },
     stats: {
       clicks: totalClicks,
       leads: totalLeads,
       sales: totalSales,
       saleAmount: totalSaleAmount,
+    },
+    programEnrollment: {
+      createdAt: programEnrollment.createdAt,
     },
     group: {
       id: group.id,
@@ -100,5 +155,6 @@ export const getReferralsEmbedData = async (token: string) => {
       linkStructure: group.linkStructure,
       holdingPeriodDays: group.holdingPeriodDays,
     },
+    bounties,
   };
 };

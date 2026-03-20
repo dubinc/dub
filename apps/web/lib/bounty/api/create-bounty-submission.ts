@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { DubApiError } from "@/lib/api/errors";
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
@@ -131,14 +132,20 @@ export class BountySubmissionHandler {
     // Multi-submission WITHOUT frequency — all periods open
     if (!this.bounty.submissionFrequency) {
       if (!this.periodNumber) {
-        throw new Error("Period number is required for this bounty.");
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Period number is required for this bounty.",
+        });
       }
 
       if (
         this.periodNumber < 1 ||
         this.periodNumber > this.bounty.maxSubmissions
       ) {
-        throw new Error("Invalid submission period number.");
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Invalid submission period number.",
+        });
       }
 
       this.finalPeriodNumber = this.periodNumber;
@@ -159,14 +166,20 @@ export class BountySubmissionHandler {
       periodNumber = this.periodNumber;
     } else {
       if (!currentPeriod) {
-        throw new Error("No active submission period for this bounty.");
+        throw new DubApiError({
+          code: "bad_request",
+          message: "No active submission period for this bounty.",
+        });
       }
 
       periodNumber = currentPeriod;
     }
 
     if (periodNumber < 1 || periodNumber > this.bounty.maxSubmissions) {
-      throw new Error("Invalid submission period number.");
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid submission period number.",
+      });
     }
 
     // Validate the period has started
@@ -177,11 +190,17 @@ export class BountySubmissionHandler {
     });
 
     if (new Date() < periodStart) {
-      throw new Error("This submission period hasn't started yet.");
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This submission period hasn't started yet.",
+      });
     }
 
     if (currentPeriod && periodNumber < currentPeriod) {
-      throw new Error("This submission period has already closed.");
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This submission period has already closed.",
+      });
     }
 
     this.finalPeriodNumber = periodNumber;
@@ -190,13 +209,17 @@ export class BountySubmissionHandler {
   // Validate the eligibility of the submission
   private validateEligibility() {
     if (!["approved", "pending"].includes(this.programEnrollment.status)) {
-      throw new Error(
-        "You are not allowed to submit a bounty for this program.",
-      );
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not allowed to submit a bounty for this program.",
+      });
     }
 
     if (this.bounty.programId !== this.programId) {
-      throw new Error("This bounty is not for this program.");
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This bounty is not for this program.",
+      });
     }
 
     // Check existing submission for this period
@@ -212,18 +235,20 @@ export class BountySubmissionHandler {
         existingSubmission.status === "approved" ||
         existingSubmission.status === "rejected"
       ) {
-        throw new Error(
-          `You already have a ${existingSubmission.status} submission for this period.`,
-        );
+        throw new DubApiError({
+          code: "conflict",
+          message: `You already have a ${existingSubmission.status} submission for this period.`,
+        });
       }
 
       if (
         existingSubmission.status !== "draft" &&
         !bountyInfo?.hasSocialMetrics
       ) {
-        throw new Error(
-          `You already have a ${existingSubmission.status} submission for this period.`,
-        );
+        throw new DubApiError({
+          code: "conflict",
+          message: `You already have a ${existingSubmission.status} submission for this period.`,
+        });
       }
     }
 
@@ -234,7 +259,10 @@ export class BountySubmissionHandler {
       );
 
       if (!isInGroup) {
-        throw new Error("You are not allowed to submit this bounty.");
+        throw new DubApiError({
+          code: "forbidden",
+          message: "You are not allowed to submit this bounty.",
+        });
       }
     }
 
@@ -242,19 +270,31 @@ export class BountySubmissionHandler {
     const now = new Date();
 
     if (this.bounty.startsAt && this.bounty.startsAt > now) {
-      throw new Error("This bounty is not yet available.");
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This bounty is not yet available.",
+      });
     }
 
     if (this.bounty.endsAt && this.bounty.endsAt < now) {
-      throw new Error("This bounty is no longer available.");
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This bounty is no longer available.",
+      });
     }
 
     if (this.bounty.archivedAt) {
-      throw new Error("This bounty is archived.");
+      throw new DubApiError({
+        code: "bad_request",
+        message: "This bounty is archived.",
+      });
     }
 
     if (this.bounty.type === "performance") {
-      throw new Error("You are not allowed to submit a performance bounty.");
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not allowed to submit a performance bounty.",
+      });
     }
 
     if (
@@ -266,15 +306,18 @@ export class BountySubmissionHandler {
         addSuffix: true,
       });
 
-      throw new Error(
-        `Submissions are not open yet. You can submit ${waitTime}.`,
-      );
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Submissions are not open yet. You can submit ${waitTime}.`,
+      });
     }
 
     if (bountyInfo?.hasSocialMetrics && this.isDraft) {
-      throw new Error(
-        "Draft submissions are not allowed for social metrics bounties.",
-      );
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Draft submissions are not allowed for social metrics bounties.",
+      });
     }
   }
 
@@ -295,27 +338,35 @@ export class BountySubmissionHandler {
 
     if (!this.isDraft) {
       if (requireImage && this.files.length === 0) {
-        throw new Error("You must submit an image.");
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: "You must submit an image.",
+        });
       }
 
       if (requireUrl && this.urls.length === 0) {
-        throw new Error("You must submit a URL.");
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: "You must submit a URL.",
+        });
       }
 
       this.validateUrlDomains(urlRequirement);
 
       // Validate max count for URLs
       if (urlRequirement?.max && this.urls.length > urlRequirement.max) {
-        throw new Error(
-          `You can submit at most ${urlRequirement.max} URL${urlRequirement.max === 1 ? "" : "s"}.`,
-        );
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: `You can submit at most ${urlRequirement.max} URL${urlRequirement.max === 1 ? "" : "s"}.`,
+        });
       }
 
       // Validate max count for images
       if (imageRequirement?.max && this.files.length > imageRequirement.max) {
-        throw new Error(
-          `You can submit at most ${imageRequirement.max} image${imageRequirement.max === 1 ? "" : "s"}.`,
-        );
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: `You can submit at most ${imageRequirement.max} image${imageRequirement.max === 1 ? "" : "s"}.`,
+        });
       }
 
       this.submissionData = {
@@ -364,9 +415,10 @@ export class BountySubmissionHandler {
     if (invalidUrls.length > 0) {
       const domainsList = allowedDomains.join(", ");
 
-      throw new Error(
-        `All URLs must be from one of the following domains: ${domainsList}. Please check your submission.`,
-      );
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `All URLs must be from one of the following domains: ${domainsList}. Please check your submission.`,
+      });
     }
   }
 
@@ -381,23 +433,28 @@ export class BountySubmissionHandler {
     const contentUrl = this.urls[0];
 
     if (!bountyInfo.socialPlatform) {
-      throw new Error("Invalid bounty platform.");
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Invalid bounty platform.",
+      });
     }
 
     const platform = bountyInfo.socialPlatform;
 
     if (!contentUrl) {
-      throw new Error(
-        `You must provide a ${platform.label} URL to submit this bounty.`,
-      );
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `You must provide a ${platform.label} URL to submit this bounty.`,
+      });
     }
 
     const urlPlatform = getPlatformFromSocialUrl(contentUrl);
 
     if (urlPlatform !== platform.value) {
-      throw new Error(
-        `This link must be a ${platform.label} link. You submitted a link from another platform.`,
-      );
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `This link must be a ${platform.label} link. You submitted a link from another platform.`,
+      });
     }
 
     const partnerPlatform = await prisma.partnerPlatform.findUnique({
@@ -414,15 +471,17 @@ export class BountySubmissionHandler {
     });
 
     if (!partnerPlatform) {
-      throw new Error(
-        `You must connect your ${platform.label} account to your profile before submitting this bounty.`,
-      );
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `You must connect your ${platform.label} account to your profile before submitting this bounty.`,
+      });
     }
 
     if (!partnerPlatform.verifiedAt) {
-      throw new Error(
-        `You must verify your ${platform.label} account before submitting this bounty.`,
-      );
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `You must verify your ${platform.label} account before submitting this bounty.`,
+      });
     }
 
     const socialContent = await getSocialContent({
@@ -431,18 +490,21 @@ export class BountySubmissionHandler {
     });
 
     if (!socialContent.handle || !socialContent.publishedAt) {
-      throw new Error(
-        "We were unable to verify this content. Please review the submission and try again.",
-      );
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message:
+          "We were unable to verify this content. Please review the submission and try again.",
+      });
     }
 
     if (
       socialContent.handle.toLowerCase() !==
       partnerPlatform.identifier.toLowerCase()
     ) {
-      throw new Error(
-        `The content was not published from your connected ${platform.label} account.`,
-      );
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: `The content was not published from your connected ${platform.label} account.`,
+      });
     }
 
     if (
@@ -450,9 +512,11 @@ export class BountySubmissionHandler {
       this.bounty.startsAt &&
       isBefore(socialContent.publishedAt, this.bounty.startsAt)
     ) {
-      throw new Error(
-        `This content was published before the bounty started. Please submit content posted after the start date.`,
-      );
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message:
+          "This content was published before the bounty started. Please submit content posted after the start date.",
+      });
     }
 
     this.submissionData = {

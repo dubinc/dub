@@ -316,9 +316,8 @@ function Hero({
           alt={invite.project.name}
           className="z-10 size-20 rotate-[-15deg] rounded-full drop-shadow-md"
         />
-        <img
-          src={user?.image || `${OG_AVATAR_URL}${user?.id}`}
-          alt={user?.name || "Your avatar"}
+        <UserAvatar
+          user={user}
           className="-ml-4 size-20 rotate-[15deg] rounded-full drop-shadow-md"
         />
         <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
