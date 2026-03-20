@@ -23,18 +23,22 @@ export function PartnerBountyCard({
   showFullTitle = false,
   hideFooter = false,
   showRewards = false,
+  href,
   onClick,
 }: {
   bounty: PartnerBountyProps;
   showFullTitle?: boolean;
   hideFooter?: boolean;
   showRewards?: boolean;
+  href?: string;
   onClick?: () => void;
 }) {
   const { programSlug } = useParams();
+  const As = href ? Link : "div";
   return (
-    <Link
-      href={`/programs/${programSlug}/bounties/${bounty.id}`}
+    <As
+      href={href ?? "#"}
+      onClick={onClick}
       className="border-border-subtle hover:border-border-default bg-bg-default group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left transition-all hover:shadow-lg"
     >
       <div className="p-3 pb-0">
@@ -84,7 +88,7 @@ export function PartnerBountyCard({
           />
         </div>
       )}
-    </Link>
+    </As>
   );
 }
 
