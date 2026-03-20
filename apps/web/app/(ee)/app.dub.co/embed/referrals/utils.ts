@@ -17,12 +17,16 @@ export const getReferralsEmbedData = async (token: string) => {
     notFound();
   }
 
+  const now = new Date();
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
     include: {
       partner: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
           platforms: {
             select: {
               type: true,
@@ -32,7 +36,29 @@ export const getReferralsEmbedData = async (token: string) => {
           },
         },
       },
-      program: true,
+      program: {
+        select: {
+          id: true,
+          defaultGroupId: true,
+          slug: true,
+          minPayoutAmount: true,
+          termsUrl: true,
+          embedData: true,
+          resources: true,
+          _count: {
+            select: {
+              bounties: {
+                where: {
+                  startsAt: {
+                    lte: now,
+                  },
+                  OR: [{ endsAt: null }, { endsAt: { gte: now } }],
+                },
+              },
+            },
+          },
+        },
+      },
       links: true,
       partnerGroup: true,
       discount: true,
@@ -65,6 +91,8 @@ export const getReferralsEmbedData = async (token: string) => {
   const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
     aggregatePartnerLinksStats(links);
 
+  console.log("program._count.bounties", program._count.bounties);
+
   const [commissions, bounties] = await Promise.all([
     prisma.commission.groupBy({
       by: ["status"],
@@ -80,7 +108,9 @@ export const getReferralsEmbedData = async (token: string) => {
       },
     }),
 
-    getBountiesForPartner(programEnrollment),
+    program._count.bounties > 0
+      ? getBountiesForPartner(programEnrollment)
+      : Promise.resolve([]),
   ]);
 
   return {
@@ -112,7 +142,9 @@ export const getReferralsEmbedData = async (token: string) => {
       sales: totalSales,
       saleAmount: totalSaleAmount,
     },
-    programEnrollment,
+    programEnrollment: {
+      createdAt: programEnrollment.createdAt,
+    },
     group: {
       id: group.id,
       logo: group.logo,
