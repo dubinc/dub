@@ -149,6 +149,7 @@ function EmbedBountyPerformanceChart({
       : undefined;
     const params = new URLSearchParams({
       event: "composite",
+      groupBy: "timeseries",
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       ...(eventParam?.saleType && { saleType: eventParam.saleType }),
@@ -556,6 +557,7 @@ function EmbedBountyCommissionsTable({
       start: startDate.toISOString(),
       end: endDate.toISOString(),
       page: String(page),
+      pageSize: String(PAGE_SIZE),
       withTotal: "true",
     });
     return `/api/embed/referrals/earnings?${params.toString()}`;
