@@ -3,10 +3,12 @@
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps } from "@/lib/types";
+import { SocialAccountNotVerifiedWarning } from "@/ui/partners/bounties/bounty-social-content";
 import { PlatformType } from "@dub/prisma/client";
 import { LoadingSpinner } from "@dub/ui";
 import { Trophy } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
@@ -73,6 +75,7 @@ export function EmbedBountySubmissionForm({
   onCancel: () => void;
   onSuccess: (submission: PartnerBountySubmission) => void;
 }) {
+  const router = useRouter();
   const token = useEmbedToken();
   const bountyInfo = resolveBountyDetails(bounty);
   const isSocialMetricsBounty = bountyInfo?.hasSocialMetrics ?? false;
@@ -141,6 +144,18 @@ export function EmbedBountySubmissionForm({
       ? urls.slice(0, 1).filter(Boolean)
       : urls.filter(Boolean);
 
+    if (!isDraft) {
+      if (imageRequired && completedFiles.length === 0) {
+        toast.error("You must upload at least one image.");
+        return;
+      }
+
+      if (urlRequired && submissionUrls.length === 0) {
+        toast.error("You must provide at least one URL.");
+        return;
+      }
+    }
+
     isDraft ? setIsDraftSaving(true) : setIsSubmitting(true);
 
     try {
@@ -169,6 +184,7 @@ export function EmbedBountySubmissionForm({
       const submission = await res.json();
       toast.success(isDraft ? "Progress saved!" : "Bounty submitted!");
       onSuccess(submission);
+      router.refresh();
     } catch {
       toast.error("An unexpected error occurred. Please try again.");
     } finally {
@@ -248,14 +264,19 @@ export function EmbedBountySubmissionForm({
         )}
 
         {isSocialMetricsBounty && bountyInfo?.socialPlatform ? (
-          <EmbedSocialUrlField
-            bounty={bounty}
-            value={urls[0] ?? ""}
-            onChange={(v) => setUrls([v])}
-            partnerPlatform={partnerPlatform}
-            onVerifyingChange={setSocialContentVerifying}
-            onRequirementsMetChange={setSocialContentRequirementsMet}
-          />
+          <>
+            {!partnerPlatform?.verifiedAt && (
+              <SocialAccountNotVerifiedWarning bounty={bounty} />
+            )}
+            <EmbedSocialUrlField
+              bounty={bounty}
+              value={urls[0] ?? ""}
+              onChange={(v) => setUrls([v])}
+              partnerPlatform={partnerPlatform}
+              onVerifyingChange={setSocialContentVerifying}
+              onRequirementsMetChange={setSocialContentRequirementsMet}
+            />
+          </>
         ) : (
           urlRequired && (
             <EmbedUrlsField bounty={bounty} urls={urls} setUrls={setUrls} />

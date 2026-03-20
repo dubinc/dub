@@ -11,6 +11,8 @@ const querySchema = getPartnerEarningsQuerySchema
     end: true,
     page: true,
     pageSize: true,
+    interval: true,
+    timezone: true,
   })
   .extend({
     withTotal: z
@@ -23,7 +25,7 @@ const querySchema = getPartnerEarningsQuerySchema
 // GET /api/embed/referrals/earnings – get commissions for a partner from an embed token
 export const GET = withReferralsEmbedToken(
   async ({ programEnrollment, searchParams }) => {
-    const { withTotal, start, end, pageSize, page } =
+    const { withTotal, start, end, pageSize, page, interval, timezone } =
       querySchema.parse(searchParams);
 
     const [earnings, total] = await Promise.all([
@@ -32,9 +34,10 @@ export const GET = withReferralsEmbedToken(
         pageSize,
         start,
         end,
+        interval,
+        timezone,
         sortBy: "createdAt",
         sortOrder: "desc",
-        interval: "all", // TODO: Fix this
         programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
         customerDataSharingEnabledAt:
@@ -45,7 +48,7 @@ export const GET = withReferralsEmbedToken(
         ? prisma.commission.count({
             where: {
               earnings: {
-                gt: 0,
+                not: 0,
               },
               programId: programEnrollment.programId,
               partnerId: programEnrollment.partnerId,

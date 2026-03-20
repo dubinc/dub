@@ -17,9 +17,7 @@ const querySchema = partnerProfileAnalyticsQuerySchema.pick({
 export const GET = withReferralsEmbedToken(
   async ({ links, program, searchParams }) => {
     if (links.length === 0) {
-      return NextResponse.json(
-        querySchema.parse(searchParams).groupBy === "count" ? {} : [],
-      );
+      return NextResponse.json([]);
     }
 
     const parsedQuery = querySchema.parse(searchParams);

@@ -267,12 +267,13 @@ function SubmissionRightColumn({
         </div>
       )}
 
-      {bountyInfo?.hasSocialMetrics && (
-        <BountySocialMetricsRewardsTable
-          bounty={bounty}
-          submission={submission}
-        />
-      )}
+      {bountyInfo?.hasSocialMetrics &&
+        ["draft", "submitted"].includes(submission.status) && (
+          <BountySocialMetricsRewardsTable
+            bounty={bounty}
+            submission={submission}
+          />
+        )}
     </div>
   );
 }
