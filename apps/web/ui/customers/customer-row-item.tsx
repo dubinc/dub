@@ -1,5 +1,4 @@
 import { generateRandomName } from "@/lib/names";
-import { FilterIconCell } from "@/ui/shared/filter-icon-cell";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import React, { ComponentProps } from "react";
@@ -10,7 +9,6 @@ export function CustomerRowItem({
   href,
   className,
   avatarClassName,
-  filterSet,
 }: {
   customer: {
     id: string;
@@ -21,21 +19,20 @@ export function CustomerRowItem({
   href?: string;
   className?: string;
   avatarClassName?: string;
-  filterSet?: Record<string, any>;
 }) {
   const display = customer.email || customer.name || generateRandomName();
-
-  const avatar = (
-    <CustomerAvatar
-      customer={customer}
-      className={cn("size-5 border border-neutral-200", avatarClassName)}
-    />
-  );
 
   return (
     <Wrapper
       element={href ? Link : "div"}
-      {...(href ? { href, target: "_blank" } : {})}
+      {...(href
+        ? {
+            href,
+            target: "_blank",
+            onClick: (e) => e.stopPropagation(),
+            onAuxClick: (e) => e.stopPropagation(),
+          }
+        : {})}
       className={cn(
         "group flex items-center justify-between gap-2",
         href && "cursor-alias decoration-dotted hover:underline",
@@ -43,11 +40,10 @@ export function CustomerRowItem({
       )}
     >
       <div className="flex items-center gap-2 truncate" title={display}>
-        {filterSet ? (
-          <FilterIconCell set={filterSet} icon={avatar} />
-        ) : (
-          <div className="shrink-0">{avatar}</div>
-        )}
+        <CustomerAvatar
+          customer={customer}
+          className={cn("size-5 border border-neutral-200", avatarClassName)}
+        />
         <span className="truncate">{display}</span>
       </div>
     </Wrapper>

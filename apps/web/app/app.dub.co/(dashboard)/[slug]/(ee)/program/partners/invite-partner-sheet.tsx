@@ -635,7 +635,7 @@ function EmailPreview({
               <BlurImage
                 src={program?.logo || "https://assets.dub.co/wordmark.png"}
                 alt={program?.name || "Dub"}
-                className="my-1 h-8 rounded-full"
+                className="my-1 size-8 rounded-full object-contain"
                 width={48}
                 height={48}
               />
