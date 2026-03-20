@@ -245,14 +245,6 @@ function MessageInputToolbar({
   stripColonOnEmojiPickRef: { current: boolean };
 }) {
   const { editor } = useRichTextContext();
-  const prevEmojiPickerOpen = useRef(emojiPickerOpen);
-
-  useEffect(() => {
-    if (prevEmojiPickerOpen.current && !emojiPickerOpen && editor) {
-      setTimeout(() => editor.commands.focus(), 0);
-    }
-    prevEmojiPickerOpen.current = emojiPickerOpen;
-  }, [emojiPickerOpen, editor]);
 
   return (
     <RichTextToolbar
@@ -260,6 +252,7 @@ function MessageInputToolbar({
         <EmojiPicker
           openPopover={emojiPickerOpen}
           setOpenPopover={setEmojiPickerOpen}
+          onKeyboardDismissFocusEditor={() => editor?.commands.focus()}
           onSelect={(emoji) => {
             if (!editor) return;
             const stripColon = stripColonOnEmojiPickRef.current;

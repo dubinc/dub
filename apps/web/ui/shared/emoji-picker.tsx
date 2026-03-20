@@ -4,6 +4,7 @@ import { EmojiPicker as EmojiPickerBase } from "frimousse";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   PropsWithChildren,
+  useRef,
   useState,
 } from "react";
 
@@ -11,6 +12,7 @@ type EmojiPickerProps = PropsWithChildren<{
   onSelect: (emoji: string) => void;
   openPopover?: boolean;
   setOpenPopover?: (open: boolean) => void;
+  onKeyboardDismissFocusEditor?: () => void;
 }>;
 
 export function EmojiPicker({
@@ -18,12 +20,14 @@ export function EmojiPicker({
   children,
   openPopover: controlledOpen,
   setOpenPopover: controlledSetOpen,
+  onKeyboardDismissFocusEditor,
 }: EmojiPickerProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled =
     controlledOpen !== undefined && controlledSetOpen !== undefined;
   const openPopover = isControlled ? controlledOpen : internalOpen;
   const setOpenPopover = isControlled ? controlledSetOpen : setInternalOpen;
+  const keyboardDismissRef = useRef(false);
 
   const handleBackspaceClose = (e: ReactKeyboardEvent) => {
     if (e.key !== "Backspace") return;
@@ -33,6 +37,7 @@ export function EmojiPicker({
       return;
     e.preventDefault();
     e.stopPropagation();
+    keyboardDismissRef.current = true;
     setOpenPopover(false);
   };
 
@@ -42,7 +47,18 @@ export function EmojiPicker({
       setOpenPopover={setOpenPopover}
       side="top"
       align="start"
-      sideOffset={34}
+      sideOffset={38}
+      onEscapeKeyDown={() => {
+        keyboardDismissRef.current = true;
+      }}
+      onCloseAutoFocus={(e) => {
+        if (!keyboardDismissRef.current) return;
+        keyboardDismissRef.current = false;
+        if (onKeyboardDismissFocusEditor) {
+          e.preventDefault();
+          setTimeout(() => onKeyboardDismissFocusEditor(), 0);
+        }
+      }}
       content={
         <div
           className="isolate flex h-[300px] w-fit flex-col"
