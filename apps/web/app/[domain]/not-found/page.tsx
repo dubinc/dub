@@ -1,7 +1,5 @@
 import { BubbleIcon } from "@/ui/placeholders/bubble-icon";
 import { ButtonLink } from "@/ui/placeholders/button-link";
-import { CTA } from "@/ui/placeholders/cta";
-import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
 import { GlobeSearch } from "@dub/ui";
 import { cn, constructMetadata, createHref } from "@dub/utils";
@@ -15,11 +13,6 @@ export const metadata = constructMetadata({
   image: "https://assets.dub.co/misc/notfoundlink.jpg",
   noIndex: true,
 });
-
-const UTM_PARAMS = {
-  utm_source: "Link Not Found",
-  utm_medium: "Link Not Found Page",
-};
 
 export default async function NotFoundLinkPage(props: {
   params: Promise<{ domain: string }>;
@@ -62,7 +55,8 @@ export default async function NotFoundLinkPage(props: {
           <ButtonLink
             variant="secondary"
             href={createHref("/", params.domain, {
-              ...UTM_PARAMS,
+              utm_source: "Link Not Found",
+              utm_medium: "Link Not Found Page",
               utm_campaign: params.domain,
               utm_content: "Learn more",
             })}
@@ -71,12 +65,6 @@ export default async function NotFoundLinkPage(props: {
           </ButtonLink>
         </div>
       </Hero>
-      <div className="mt-20">
-        <FeaturesSection domain={params.domain} utmParams={UTM_PARAMS} />
-      </div>
-      <div className="mt-32">
-        <CTA domain={params.domain} utmParams={UTM_PARAMS} />
-      </div>
     </main>
   );
 }
