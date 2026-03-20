@@ -12,7 +12,7 @@ import { cn, formatDate } from "@dub/utils";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useId, useState } from "react";
-import { socialContentRequirementChecks } from "./social-content-requirement-checks";
+import { evaluateSocialContentRequirements } from "./evaluate-social-content-requirements";
 
 function SocialContentRequirementChecks({
   content,
@@ -31,7 +31,7 @@ function SocialContentRequirementChecks({
   );
 
   const { isPostedFromYourAccount, isAfterStartDate } =
-    socialContentRequirementChecks({
+    evaluateSocialContentRequirements({
       content,
       bounty,
       partnerPlatform,
@@ -110,7 +110,7 @@ export function SocialContentUrlField({
   );
 
   useEffect(() => {
-    const checks = socialContentRequirementChecks({
+    const checks = evaluateSocialContentRequirements({
       content: data,
       bounty,
       partnerPlatform,

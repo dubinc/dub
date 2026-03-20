@@ -1,21 +1,21 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getSocialContent } from "@/lib/api/scrape-creators/get-social-content";
+import { getBountyOrThrow } from "@/lib/bounty/api/get-bounty-or-throw";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { ratelimit } from "@/lib/upstash";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const searchParamsSchema = z.object({
-  bountyId: z.string(),
   url: z.url("Social media URL is required."),
 });
 
-// GET /api/embed/referrals/submissions/social-content-stats
+// GET /api/embed/referrals/bounties/[bountyId]/social-content-stats
 export const GET = withReferralsEmbedToken(
-  async ({ programEnrollment, searchParams }) => {
-    const { bountyId, url } = searchParamsSchema.parse(searchParams);
+  async ({ programEnrollment, searchParams, params }) => {
+    const { bountyId } = params;
+    const { url } = searchParamsSchema.parse(searchParams);
 
     const { success } = await ratelimit(10, "1 h").limit(
       `embed-referrals:social-content-stats:${programEnrollment.partnerId}`,
@@ -28,31 +28,13 @@ export const GET = withReferralsEmbedToken(
       });
     }
 
-    const bounty = await prisma.bounty.findUniqueOrThrow({
-      where: {
-        id: bountyId,
-      },
-      select: {
-        id: true,
-        programId: true,
-        startsAt: true,
-        endsAt: true,
-        archivedAt: true,
-        submissionRequirements: true,
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
+    const bounty = await getBountyOrThrow({
+      bountyId,
+      programId: programEnrollment.programId,
+      include: {
+        groups: true,
       },
     });
-
-    if (bounty.programId !== programEnrollment.programId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Bounty not found.",
-      });
-    }
 
     if (bounty.groups.length > 0) {
       const isInGroup = bounty.groups.some(

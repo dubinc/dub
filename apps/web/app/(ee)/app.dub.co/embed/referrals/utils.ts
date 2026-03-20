@@ -85,11 +85,7 @@ export const getReferralsEmbedData = async (token: string) => {
       name: partner.name,
       email: partner.email,
     },
-    partnerPlatforms: partner.platforms.map((platform) => ({
-      type: platform.type,
-      identifier: platform.identifier,
-      verifiedAt: platform.verifiedAt,
-    })),
+    partnerPlatforms: partner.platforms,
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
     rewards: [clickReward, leadReward, saleReward]
       .filter((r): r is Reward => r !== null)

@@ -6,8 +6,8 @@ import {
   BOUNTY_MAX_SUBMISSION_URLS,
 } from "@/lib/bounty/constants";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { PartnerBountyProps } from "@/lib/types";
-import { socialContentRequirementChecks } from "@/ui/partners/bounties/social-content-requirement-checks";
+import { PartnerBountyProps, PartnerPlatformProps } from "@/lib/types";
+import { evaluateSocialContentRequirements } from "@/ui/partners/bounties/evaluate-social-content-requirements";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -69,14 +69,12 @@ export function EmbedImagesField({
 
     try {
       const uploadUrlRes = await fetch(
-        "/api/embed/referrals/submissions/upload",
+        `/api/embed/referrals/bounties/${bounty.id}/upload`,
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ bountyId: bounty.id }),
         },
       );
 
@@ -212,10 +210,7 @@ export function EmbedSocialUrlField({
   bounty: PartnerBountyProps;
   value: string;
   onChange: (v: string) => void;
-  partnerPlatform?: {
-    identifier: string;
-    verifiedAt: Date | null;
-  };
+  partnerPlatform?: Pick<PartnerPlatformProps, "identifier" | "verifiedAt">;
   onVerifyingChange: (value: boolean) => void;
   onRequirementsMetChange: (value: boolean) => void;
 }) {
@@ -243,10 +238,17 @@ export function EmbedSocialUrlField({
   if (!socialPlatform) return null;
 
   const { isPostedFromYourAccount, isAfterStartDate } =
-    socialContentRequirementChecks({
+    evaluateSocialContentRequirements({
       content: data,
-      bounty,
-      partnerPlatform,
+      bounty: {
+        startsAt: new Date(bounty.startsAt),
+      },
+      partnerPlatform: {
+        identifier: partnerPlatform?.identifier ?? "",
+        verifiedAt: partnerPlatform?.verifiedAt
+          ? new Date(partnerPlatform.verifiedAt)
+          : null,
+      },
     });
 
   useEffect(() => {

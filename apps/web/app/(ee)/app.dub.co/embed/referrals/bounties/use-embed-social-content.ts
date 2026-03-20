@@ -36,14 +36,16 @@ export function useEmbedSocialContent({
   const token = useEmbedToken();
 
   const searchParams = new URLSearchParams({
-    bountyId,
     url,
   });
 
-  const endpoint = `/api/embed/referrals/submissions/social-content-stats?${searchParams.toString()}`;
-
   const { data, error, isValidating, mutate } = useSWR<SocialContent>(
-    token && bountyId && url ? [endpoint, token] : null,
+    token && bountyId && url
+      ? [
+          `/api/embed/referrals/bounties/${bountyId}/social-content-stats?${searchParams.toString()}`,
+          token,
+        ]
+      : null,
     ([requestUrl, authToken]) => fetchEmbedSocialContent(requestUrl, authToken),
     {
       revalidateOnFocus: false,
