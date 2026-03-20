@@ -88,6 +88,7 @@ export const POST = withWorkspace(
               variables: {
                 PartnerName: "Partner",
                 PartnerEmail: "partner@acme.com",
+                PartnerLink: "https://acme.com/partner",
               },
             }),
           },

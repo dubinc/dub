@@ -1,8 +1,8 @@
 import { getSession } from "@/lib/auth";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { prisma } from "@dub/prisma";
 import { Project, ProjectInvite, User } from "@dub/prisma/client";
 import {
-  Avatar,
   Book2Fill,
   CircleCheckFill,
   CircleHalfDottedClock,
@@ -196,7 +196,10 @@ export default async function WorkspaceInvitePage({
                       className="flex items-center justify-between gap-2 px-2.5 py-2"
                     >
                       <div className="flex min-w-0 items-center gap-2">
-                        <Avatar user={{ id, name, image }} className="size-6" />
+                        <UserAvatar
+                          user={{ id, name, image }}
+                          className="size-6"
+                        />
                         <span className="text-content-default min-w-0 truncate text-sm font-medium">
                           {name || email}
                         </span>

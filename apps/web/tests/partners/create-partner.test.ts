@@ -2,11 +2,16 @@ import { generateRandomName } from "@/lib/names";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
 import { Link, Partner } from "@dub/prisma/client";
 import { R2_URL } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { describe, expect, test } from "vitest";
 import { randomId, randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_PARTNER_GROUP, E2E_PROGRAM } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
+
+function reEscape(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
 
 const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.extend(
   normalizedPartnerDateFields.shape,
@@ -93,13 +98,18 @@ describe.sequential("POST /partners", async () => {
     const parsed = EnrolledPartnerSchema.parse(data);
     expect(parsed.name).toBe(partner.name);
     expect(parsed.email).toBe(partner.email);
+    const keyRe = new RegExp(`^${reEscape(username)}(-[a-z0-9]{4})?$`);
     expect(parsed.links).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           domain: E2E_PROGRAM.domain,
-          url: E2E_PARTNER_GROUP.url,
-          key: username,
-          shortLink: `https://${E2E_PROGRAM.domain}/${username}`,
+          url: expect.stringMatching(/^https?:\/\//),
+          key: expect.stringMatching(keyRe),
+          shortLink: expect.stringMatching(
+            new RegExp(
+              `^https://${reEscape(E2E_PROGRAM.domain)}/${reEscape(username)}(-[a-z0-9]{4})?$`,
+            ),
+          ),
           clicks: 0,
           leads: 0,
           sales: 0,
@@ -107,6 +117,32 @@ describe.sequential("POST /partners", async () => {
         }),
       ]),
     );
+  });
+
+  test("with linkProps.prefix on default link", async () => {
+    const id = randomId();
+    const email = `prefix-e2e-${id}@example.com`;
+    const identitySlug = slugify(email.split("@")[0]);
+    const prefixedKeyRe = new RegExp(
+      `^c/${reEscape(identitySlug)}(-[a-z0-9]{4})?$`,
+    );
+
+    const { data, status } = await http.post<Link>({
+      path: "/partners",
+      body: {
+        email,
+        groupId: E2E_PARTNER_GROUP.id,
+        linkProps: { prefix: "/c/" },
+      },
+    });
+
+    expect(status).toEqual(201);
+    const parsed = EnrolledPartnerSchema.parse(data);
+    expect(parsed.links?.length).toBeGreaterThanOrEqual(1);
+    for (const link of parsed.links!) {
+      expect(link.key).toMatch(prefixedKeyRe);
+      expect(link.shortLink).toBe(`https://${link.domain}/${link.key}`);
+    }
   });
 
   test("upsert behavior - update existing partner with tenantId", async () => {

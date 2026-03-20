@@ -16,7 +16,7 @@ const batchEmailPayloadSchema = z.array(
       Object.keys(EMAIL_TEMPLATES_MAP) as [string, ...string[]],
     ),
     templateProps: z.record(z.string(), z.any()),
-    to: z.email(),
+    to: z.string(),
     from: z.string().optional(),
     subject: z.string(),
     bcc: z.union([z.string(), z.array(z.string())]).optional(),

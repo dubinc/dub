@@ -6,8 +6,9 @@ import {
   BAN_PARTNER_REASONS,
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
-import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -162,12 +163,9 @@ function BulkBanPartnersModal({
           <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
             {partners.length === 1 ? (
               <div className="flex items-center gap-4">
-                <img
-                  src={
-                    partners[0].image || `${OG_AVATAR_URL}${partners[0].name}`
-                  }
-                  alt={partners[0].name}
-                  className="size-10 rounded-full bg-white"
+                <PartnerAvatar
+                  partner={partners[0]}
+                  className="size-10 bg-white"
                 />
                 <div className="flex min-w-0 flex-col">
                   <h4 className="truncate text-sm font-medium text-neutral-900">
@@ -184,12 +182,11 @@ function BulkBanPartnersModal({
               <div className="flex items-center gap-3">
                 <div className="flex items-center">
                   {partners.slice(0, 3).map((partner, index) => (
-                    <img
+                    <PartnerAvatar
                       key={partner.id}
-                      src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                      alt={partner.id}
+                      partner={partner}
                       className={cn(
-                        "inline-block size-7 rounded-full border-2 border-neutral-100 bg-white",
+                        "inline-block size-7 border-2 border-neutral-100 bg-white",
                         index > 0 && "-ml-2.5",
                       )}
                     />

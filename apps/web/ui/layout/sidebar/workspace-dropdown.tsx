@@ -4,12 +4,8 @@ import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { PlanProps, WorkspaceProps } from "@/lib/types";
 import { ModalContext } from "@/ui/modals/modal-provider";
-import {
-  BlurImage,
-  getUserAvatarUrl,
-  Popover,
-  useScrollProgress,
-} from "@dub/ui";
+import { getUserAvatarUrl } from "@/ui/users/user-avatar";
+import { BlurImage, Popover, useScrollProgress } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
 import { cn, isLegacyBusinessPlan, pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -61,7 +57,7 @@ export function WorkspaceDropdown() {
     } else {
       return {
         name: session?.user?.name || session?.user?.email,
-        image: getUserAvatarUrl(session?.user),
+        image: getUserAvatarUrl(session?.user).then((url) => url),
         plan: "free",
       };
     }

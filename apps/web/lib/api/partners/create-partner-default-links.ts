@@ -5,11 +5,11 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { PartnerGroupDefaultLink } from "@dub/prisma/client";
-import { constructURLFromUTMParams, isFulfilled, nanoid } from "@dub/utils";
+import { constructURLFromUTMParams, isFulfilled } from "@dub/utils";
 import { bulkCreateLinks } from "../links";
 import { extractUtmParams } from "../utm/extract-utm-params";
 import {
-  derivePartnerLinkKey,
+  buildPartnerDefaultLinkKey,
   generatePartnerLink,
 } from "./generate-partner-link";
 
@@ -46,15 +46,11 @@ export async function createPartnerDefaultLinks({
   const processedLinks = (
     await Promise.allSettled(
       defaultLinks.map((defaultLink) => {
-        let key = derivePartnerLinkKey({
-          username: partner.username,
-          name: partner.name,
-          email: partner.email,
+        const key = buildPartnerDefaultLinkKey({
+          link,
+          partner,
+          hasMoreThanOneDefaultLink,
         });
-
-        key = hasMoreThanOneDefaultLink
-          ? `${key}-${nanoid(4).toLowerCase()}`
-          : key;
 
         return generatePartnerLink({
           workspace,

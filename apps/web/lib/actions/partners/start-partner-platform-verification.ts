@@ -49,8 +49,8 @@ type VerificationParams = {
 /**
  * Starts the social platform verification process for a partner.
  * Supports three verification methods:
- * - OAuth: For platforms like Twitter, TikTok, and LinkedIn (returns OAuth URL)
- * - Verification Code: For platforms like YouTube and Instagram (returns code to display)
+ * - OAuth: For platforms like Twitter and TikTok (returns OAuth URL)
+ * - Verification Code: For platforms like YouTube, Instagram, and LinkedIn (returns code to display)
  * - TXT Record: For website verification (returns DNS TXT record)
  */
 export const startPartnerPlatformVerificationAction = authPartnerActionClient

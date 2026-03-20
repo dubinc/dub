@@ -90,7 +90,7 @@ export default function StablecoinPayoutsAnnouncement({
             <Text className="mx-auto mb-8 mt-0 max-w-[420px] text-center text-sm leading-6 text-neutral-600">
               With stablecoin payouts, you can receive earnings in minutes –
               instead of waiting up to 15 business days. You also avoid the 1%
-              FX fees with regular bank payouts.
+              FX fees with international bank payouts.
             </Text>
 
             <Section className="mb-8 text-center">
@@ -121,6 +121,17 @@ export default function StablecoinPayoutsAnnouncement({
                   }}
                 >
                   Read the announcement
+                </Link>
+                <br />
+                <br />
+                Note: Stablecoin payouts are currently only available in 157
+                countries.
+                <br />
+                <Link
+                  href="https://ship.dub.co/payout-countries"
+                  className="text-xs text-neutral-600 underline"
+                >
+                  View the list of supported countries
                 </Link>
               </Text>
             </Section>

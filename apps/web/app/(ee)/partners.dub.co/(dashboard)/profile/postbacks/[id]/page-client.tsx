@@ -12,7 +12,8 @@ import { PostbackEventListSkeleton } from "@/ui/postbacks/postback-event-list-sk
 import { usePostbackSecretModal } from "@/ui/postbacks/postback-secret-modal";
 import { PostbackStatus } from "@/ui/postbacks/postback-status";
 import { BackLink } from "@/ui/shared/back-link";
-import { EmptyState, TokenAvatar, Webhook } from "@dub/ui";
+import { TokenAvatar } from "@/ui/token-avatar";
+import { EmptyState, Webhook } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { redirect, useRouter } from "next/navigation";
 import { useState } from "react";

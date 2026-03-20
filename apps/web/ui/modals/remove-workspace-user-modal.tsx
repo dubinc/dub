@@ -1,7 +1,8 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps, UserProps } from "@/lib/types";
-import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
+import { UserAvatar } from "@/ui/users/user-avatar";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
 import { fetcher, timeAgo } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -124,7 +125,7 @@ function RemoveWorkspaceUserModal({
 
       <div className="relative flex items-center gap-2 space-x-3 rounded-md border border-neutral-300 bg-white px-4 py-2">
         <div className="flex items-center gap-2">
-          <Avatar user={user} className="size-10" />
+          <UserAvatar user={user} className="size-10" />
           <div className="flex flex-col">
             <p className="text-sm font-medium text-neutral-900">
               {user.name || user.email}

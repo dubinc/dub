@@ -4,7 +4,7 @@ import { BlurImage, useRouterStuff, UTM_PARAMETERS } from "@dub/ui";
 import { Note, ReferredVia } from "@dub/ui/icons";
 import { getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { Link2 } from "lucide-react";
-import { useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
@@ -47,6 +47,7 @@ export function ReferrersUTMs() {
 
   const [tab, setTab] = useState<TabId>("referers");
   const [subtab, setSubtab] = useState<Subtab>(TAB_CONFIG[tab].defaultSubtab);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   // Reset subtab when tab changes to ensure it's valid for the new tab
   const handleTabChange = (newTab: TabId) => {
@@ -57,8 +58,45 @@ export function ReferrersUTMs() {
   const { data } = useAnalyticsFilterOption({
     groupBy: subtab,
   });
+  const { data: allData } = useAnalyticsFilterOption(
+    { groupBy: subtab },
+    { omitGroupByFilterKey: true },
+  );
 
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[subtab];
+
+  useEffect(() => {
+    setSelectedItems([]);
+  }, [tab, subtab]);
+
+  const onToggleFilter = useCallback((val: string) => {
+    setSelectedItems((prev) =>
+      prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val],
+    );
+  }, []);
+
+  const onApplyFilterValues = useCallback(
+    (values: string[]) => {
+      if (values.length === 0) {
+        queryParams({ del: singularTabName });
+      } else {
+        queryParams({ set: { [singularTabName]: values.join(",") } });
+      }
+      setSelectedItems([]);
+    },
+    [singularTabName, queryParams],
+  );
+
+  const isFilterActive = searchParams.has(singularTabName);
+  const activeFilterValues = useMemo(
+    () => searchParams.get(singularTabName)?.split(",") ?? [],
+    [singularTabName, searchParams],
+  );
+
+  const onClearFilter = useCallback(() => {
+    setSelectedItems([]);
+    if (isFilterActive) queryParams({ del: singularTabName });
+  }, [singularTabName, queryParams, isFilterActive]);
 
   const UTMTagIcon = useMemo(() => {
     if (tab === "utms") {
@@ -92,6 +130,8 @@ export function ReferrersUTMs() {
       {...subTabProps}
       expandLimit={8}
       dataLength={data?.length}
+      isFilterActive={isFilterActive}
+      onClearFilter={onClearFilter}
     >
       {({ limit, setShowModal }) => (
         <>
@@ -126,26 +166,56 @@ export function ReferrersUTMs() {
                             />
                           ),
                         title: d[singularTabName],
-                        href: queryParams({
-                          ...(searchParams.has(singularTabName)
-                            ? { del: singularTabName }
-                            : {
-                                set: {
-                                  [singularTabName]: d[singularTabName],
-                                },
-                              }),
-                          getNewPath: true,
-                        }) as string,
+                        filterValue: d[singularTabName],
                         value: d[dataKey] || 0,
                       };
                     })
                     ?.sort((a, b) => b.value - a.value) || []
                 }
+                allData={allData
+                  ?.map((d) => {
+                    const isUtmTab = tab === "utms";
+                    const isDirect = d[singularTabName] === "(direct)";
+                    const isRefererUrl = subtab === "referer_urls";
+                    return {
+                      icon:
+                        isUtmTab && UTMTagIcon ? (
+                          <UTMTagIcon />
+                        ) : isDirect ? (
+                          <Link2 className="h-4 w-4" />
+                        ) : (
+                          <BlurImage
+                            src={`${GOOGLE_FAVICON_URL}${
+                              isRefererUrl
+                                ? getApexDomain(d[singularTabName])
+                                : d[singularTabName]
+                            }`}
+                            alt={d[singularTabName]}
+                            width={20}
+                            height={20}
+                            className="h-4 w-4 rounded-full"
+                          />
+                        ),
+                      title: d[singularTabName],
+                      filterValue: d[singularTabName],
+                      value: d[dataKey] || 0,
+                    };
+                  })
+                  ?.sort((a, b) => b.value - a.value)}
                 unit={selectedTab}
-                maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
+                maxValue={Math.max(...data.map((d) => d[dataKey] ?? 0)) ?? 0}
                 barBackground="bg-red-100"
                 hoverBackground="hover:bg-gradient-to-r hover:from-red-50 hover:to-transparent hover:border-red-500"
+                filterSelectedBackground="bg-red-600"
+                filterSelectedHoverBackground="hover:bg-red-700"
+                filterHoverClass="bg-white border border-red-200"
                 setShowModal={setShowModal}
+                selectedFilterValues={selectedItems}
+                activeFilterValues={activeFilterValues}
+                onToggleFilter={onToggleFilter}
+                onClearFilter={onClearFilter}
+                onClearSelection={() => setSelectedItems([])}
+                onApplyFilterValues={onApplyFilterValues}
                 {...(limit && { limit })}
               />
             ) : (
