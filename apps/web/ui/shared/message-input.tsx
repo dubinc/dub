@@ -9,7 +9,7 @@ import {
   RichTextToolbarButton,
   useRichTextContext,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { EmojiPicker } from "../shared/emoji-picker";
 
@@ -100,9 +100,12 @@ export function MessageInput({
           },
         }}
       >
-        <RichTextArea />
+        <div className="relative">
+          <RichTextArea />
+          <MessageInputEditorOverflowFades />
+        </div>
 
-        <div className="flex items-center justify-between gap-4 px-3 pb-3">
+        <div className="flex items-center justify-between gap-4 p-3">
           <MessageInputToolbar
             emojiPickerOpen={emojiPickerOpen}
             setEmojiPickerOpen={setEmojiPickerOpen}
@@ -132,7 +135,11 @@ export function MessageInput({
                   </span>
                 </span>
               }
-              disabled={typedMessage.trim().length >= MAX_MESSAGE_LENGTH}
+              disabledTooltip={
+                typedMessage.trim().length >= MAX_MESSAGE_LENGTH
+                  ? `Message must be less than ${nFormatter(MAX_MESSAGE_LENGTH)} characters`
+                  : undefined
+              }
               onClick={sendMessage}
               className="h-8 w-fit rounded-lg px-4"
             />
@@ -140,6 +147,91 @@ export function MessageInput({
         </div>
       </RichTextProvider>
     </div>
+  );
+}
+
+function MessageInputEditorOverflowFades() {
+  const { editor } = useRichTextContext();
+  const [showTopFade, setShowTopFade] = useState(false);
+  const [showBottomFade, setShowBottomFade] = useState(false);
+  const prevScrollTopRef = useRef(0);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const root = editor.view.dom as HTMLElement;
+    const scrollEl =
+      (editor.view as { scrollDOM?: HTMLElement }).scrollDOM ?? root;
+
+    const syncFades = () => {
+      const { scrollTop, scrollHeight, clientHeight } = scrollEl;
+      const maxScroll = scrollHeight - clientHeight;
+
+      if (maxScroll <= 2) {
+        setShowTopFade(false);
+        setShowBottomFade(false);
+        prevScrollTopRef.current = scrollTop;
+        return;
+      }
+
+      if (scrollTop <= 2) {
+        setShowTopFade(false);
+        setShowBottomFade(true);
+        prevScrollTopRef.current = scrollTop;
+        return;
+      }
+
+      if (scrollTop >= maxScroll - 2) {
+        setShowTopFade(true);
+        setShowBottomFade(false);
+        prevScrollTopRef.current = scrollTop;
+        return;
+      }
+
+      const scrollingDown = scrollTop > prevScrollTopRef.current;
+      prevScrollTopRef.current = scrollTop;
+      setShowTopFade(scrollingDown);
+      setShowBottomFade(!scrollingDown);
+    };
+
+    syncFades();
+
+    scrollEl.addEventListener("scroll", syncFades, { passive: true });
+
+    const resizeObserver = new ResizeObserver(syncFades);
+    resizeObserver.observe(scrollEl);
+
+    const mutationObserver = new MutationObserver(syncFades);
+    mutationObserver.observe(root, {
+      subtree: true,
+      childList: true,
+      characterData: true,
+    });
+
+    return () => {
+      scrollEl.removeEventListener("scroll", syncFades);
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [editor]);
+
+  return (
+    <>
+      <div
+        aria-hidden
+        className={cn(
+          "from-bg-default pointer-events-none absolute inset-x-0 top-0 z-[1] h-[20px] bg-gradient-to-b to-transparent transition-opacity duration-150 ease-out",
+          showTopFade ? "opacity-100" : "opacity-0",
+        )}
+      />
+      <div
+        aria-hidden
+        className={cn(
+          "from-bg-default pointer-events-none absolute inset-x-0 bottom-0 z-[1] h-[20px] bg-gradient-to-t to-transparent transition-opacity duration-150 ease-out",
+          showBottomFade ? "opacity-100" : "opacity-0",
+        )}
+      />
+    </>
   );
 }
 
