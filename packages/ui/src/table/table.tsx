@@ -851,7 +851,7 @@ export function Table<T>({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-bg-default/50 absolute inset-0 h-full"
+            className="bg-bg-default/50 absolute inset-0 h-full rounded-xl"
           >
             {/* here we're using min(75%,75vh) to ensure proper placement on full height vs partial height tables */}
             <div className="flex h-[min(75%,75vh)] w-full items-center justify-center">
