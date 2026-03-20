@@ -3,7 +3,7 @@ import {
   webhookPayloadSchema,
 } from "@/lib/webhook/schemas";
 import { Webhook } from "@dub/prisma/client";
-import { OG_AVATAR_URL, nanoid, toCamelCase } from "@dub/utils";
+import { nanoid, toCamelCase } from "@dub/utils";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { generateRandomName } from "../names";
 import { ClickEventTB, WebhookTrigger } from "../types";
@@ -58,7 +58,7 @@ const transformWebhookCustomer = (customer: any) => {
     name: customer.name || customer.email || generateRandomName(),
     externalId: customer.externalId || "",
     country: undefined,
-    avatar: customer.avatar || `${OG_AVATAR_URL}${customer.id}`,
+    avatar: customer.avatar,
   };
 };
 

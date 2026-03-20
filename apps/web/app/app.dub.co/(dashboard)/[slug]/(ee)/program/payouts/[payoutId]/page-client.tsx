@@ -17,8 +17,10 @@ import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
@@ -40,7 +42,6 @@ import {
   fetcher,
   formatDateTime,
   formatDateTimeSmart,
-  OG_AVATAR_URL,
   pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
@@ -83,13 +84,9 @@ export function PayoutDetailsPageClient() {
               <ChevronRight className="text-content-subtle size-2.5 shrink-0 [&_*]:stroke-2" />
               <div className="flex items-center gap-2">
                 {payout?.partner && (
-                  <img
-                    src={
-                      payout.partner.image ||
-                      `${OG_AVATAR_URL}${payout.partner.name}`
-                    }
-                    alt={payout.partner.name}
-                    className="size-5 rounded-full"
+                  <PartnerAvatar
+                    partner={payout.partner}
+                    className="size-5 shrink-0"
                   />
                 )}
                 <span className="text-lg font-semibold leading-7 text-neutral-900">
@@ -171,12 +168,9 @@ function PayoutDetailsContent({
         <ConditionalLink
           href={`/${slug}/program/partners/${payout.partner.id}`}
         >
-          <img
-            src={
-              payout.partner.image || `${OG_AVATAR_URL}${payout.partner.name}`
-            }
-            alt={payout.partner.name}
-            className="mr-1.5 inline-flex size-5 rounded-full"
+          <PartnerAvatar
+            partner={payout.partner}
+            className="mr-1.5 inline-flex size-5 shrink-0"
           />
           {payout.partner.name}
         </ConditionalLink>
@@ -430,13 +424,7 @@ function PayoutDetailsContent({
                     <>
                       <span className="text-sm text-neutral-500">by</span>
                       <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
-                        <img
-                          src={
-                            item.user.image || `${OG_AVATAR_URL}${item.user.id}`
-                          }
-                          alt={item.user.name ?? ""}
-                          className="size-4 rounded-full"
-                        />
+                        <UserAvatar user={item.user} className="size-4" />
                         <span className="text-[13px] text-sm text-neutral-700">
                           {item.user.name}
                         </span>
