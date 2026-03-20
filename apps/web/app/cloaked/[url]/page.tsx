@@ -12,25 +12,17 @@ export async function generateMetadata(props: {
 }) {
   const params = await props.params;
   const url = decodeURIComponent(params.url);
+
+  const metatags = await getMetaTags(url);
   const apexDomain = getApexDomain(url);
 
-  try {
-    const metatags = await getMetaTags(url);
-    return constructMetadata({
-      fullTitle: metatags.title,
-      description: metatags.description,
-      image: metatags.image,
-      icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
-      noIndex: true,
-    });
-  } catch {
-    return constructMetadata({
-      fullTitle: apexDomain,
-      description: url,
-      icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
-      noIndex: true,
-    });
-  }
+  return constructMetadata({
+    fullTitle: metatags.title,
+    description: metatags.description,
+    image: metatags.image,
+    icons: `${GOOGLE_FAVICON_URL}${apexDomain}`,
+    noIndex: true,
+  });
 }
 
 export default async function CloakedPage(props: {
