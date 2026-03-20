@@ -26,6 +26,13 @@ export async function GET(req: NextRequest) {
 
     const qrCodeLogo = await getQRCodeLogo({ url, logo, hideLogo });
 
+    const responseHeaders = new Headers(CORS_HEADERS);
+    responseHeaders.set(
+      "Vercel-CDN-Cache-Control",
+      "s-maxage=86400, stale-while-revalidate=604800",
+    );
+    responseHeaders.set("Cache-Control", "public, max-age=3600");
+
     return new ImageResponse(
       QRCodeSVG({
         value: url,
@@ -49,7 +56,7 @@ export async function GET(req: NextRequest) {
       {
         width: size,
         height: size,
-        headers: CORS_HEADERS,
+        headers: responseHeaders,
       },
     );
   } catch (error) {
