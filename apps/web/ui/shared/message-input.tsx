@@ -47,6 +47,8 @@ export function MessageInput({
     setEmojiPickerOpenState(open);
   }, []);
 
+  const isSendDisabled = typedMessage.trim().length >= MAX_MESSAGE_LENGTH;
+
   const sendMessage = () => {
     const message = typedMessage.trim();
     if (!message || message.length >= MAX_MESSAGE_LENGTH) return;
@@ -133,11 +135,32 @@ export function MessageInput({
                 <span className="flex items-center gap-2">
                   {sendButtonText}
                   <span className="hidden items-center gap-1 sm:flex">
-                    <span className="flex size-4 items-center justify-center rounded border border-neutral-700 text-[0.625rem]">
+                    <span
+                      className={cn(
+                        "flex size-4 items-center justify-center rounded border text-[0.625rem]",
+                        isSendDisabled
+                          ? "border-neutral-300 text-neutral-400"
+                          : "border-neutral-700 group-disabled:border-neutral-300 group-disabled:text-neutral-400",
+                      )}
+                    >
                       {navigator.platform.startsWith("Mac") ? "⌘" : "^"}
                     </span>
-                    <span className="flex size-4 items-center justify-center rounded border border-neutral-700">
-                      <ArrowTurnLeft className="text-content-inverted size-2.5" />
+                    <span
+                      className={cn(
+                        "flex size-4 items-center justify-center rounded border",
+                        isSendDisabled
+                          ? "border-neutral-300"
+                          : "border-neutral-700 group-disabled:border-neutral-300",
+                      )}
+                    >
+                      <ArrowTurnLeft
+                        className={cn(
+                          "size-2.5",
+                          isSendDisabled
+                            ? "text-neutral-400"
+                            : "text-content-inverted group-disabled:text-neutral-400",
+                        )}
+                      />
                     </span>
                   </span>
                 </span>
