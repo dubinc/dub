@@ -513,8 +513,6 @@ export const WebhookPartnerSchema = PartnerSchema.pick({
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  image: z.string(),
   totalCommissions: centsSchemaWithDefault,
 });
 
