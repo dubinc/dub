@@ -244,7 +244,7 @@ function TimeSeriesChartInner<T extends Datum>({
             >
               <div
                 className={cn(
-                  "pointer-events-none border-border-default bg-bg-default rounded-lg border px-4 py-2 text-base shadow-sm",
+                  "border-border-default bg-bg-default pointer-events-none rounded-lg border px-4 py-2 text-base shadow-sm",
                   tooltipClassName,
                 )}
               >
