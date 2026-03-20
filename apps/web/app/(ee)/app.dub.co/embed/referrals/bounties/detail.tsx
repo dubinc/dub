@@ -16,8 +16,7 @@ import { BountyStatusBadge } from "@/ui/partners/bounties/bounty-status-badge";
 import { BountySubmissionRequirements } from "@/ui/partners/bounties/bounty-submission-requirements";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { PlatformType } from "@dub/prisma/client";
-import { Button } from "@dub/ui";
-import { Trophy } from "@dub/ui/icons";
+import { ChevronRight, Trophy } from "@dub/ui";
 import { useState } from "react";
 import {
   BountyEndDate,
@@ -120,24 +119,27 @@ export function EmbedBountyDetail({
             .periodNumber
         }
         onBack={() => setView({ mode: "detail" })}
+        onBackToRoot={onBack}
       />
     );
   }
 
   return (
     <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
-      <div className="flex items-center justify-between px-4 py-2">
-        <div className="text-content-emphasis flex items-center gap-2">
-          <Trophy className="size-4" />
-
-          <span className="text-sm font-semibold">Bounty details</span>
-        </div>
-        <Button
-          text="Back"
+      <div className="flex items-center gap-1.5 px-4 py-2">
+        <button
           type="button"
+          aria-label="Back to bounties"
+          title="Back to bounties"
           onClick={onBack}
-          className="h-8 w-fit rounded-lg px-3"
-        />
+          className="bg-bg-subtle flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 hover:bg-bg-emphasis active:scale-95"
+        >
+          <Trophy className="size-4" />
+        </button>
+        <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+        <span className="text-content-emphasis text-sm font-semibold">
+          Bounty details
+        </span>
       </div>
 
       <div className="border-border-subtle border-t" />

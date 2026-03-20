@@ -10,22 +10,23 @@ import {
   SocialContentPreview,
   SubmissionRewardTable,
 } from "@/ui/partners/bounties/bounty-submission-details-sheet";
-import { Button, CopyButton, StatusBadge } from "@dub/ui";
+import { ChevronRight, CopyButton, StatusBadge, Trophy } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 import { Fragment } from "react";
 import { toast } from "sonner";
-import { SubmissionCardHeader } from "./submission-form";
 
 export function EmbedBountySubmissionDetail({
   bounty,
   submission,
   periodNumber,
   onBack,
+  onBackToRoot,
 }: {
   bounty: PartnerBountyProps;
   submission: PartnerBountySubmission;
   periodNumber: number;
   onBack: () => void;
+  onBackToRoot: () => void;
 }) {
   const title =
     bounty.maxSubmissions > 1
@@ -34,17 +35,33 @@ export function EmbedBountySubmissionDetail({
 
   return (
     <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
-      <SubmissionCardHeader
-        title={title}
-        rightContent={
-          <Button
-            text="Back"
-            type="button"
-            onClick={onBack}
-            className="h-8 w-fit rounded-lg px-3"
-          />
-        }
-      />
+      <div className="flex items-center gap-1.5 px-4 py-2">
+        <button
+          type="button"
+          aria-label="Back to bounties"
+          title="Back to bounties"
+          onClick={onBackToRoot}
+          className="bg-bg-subtle flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 hover:bg-bg-emphasis active:scale-95"
+        >
+          <Trophy className="size-4" />
+        </button>
+        <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+        <button
+          type="button"
+          aria-label="Back to bounty details"
+          title="Back to bounty details"
+          onClick={onBack}
+          className="text-content-default hover:text-content-emphasis shrink-0 text-sm font-medium transition-colors"
+        >
+          Bounty details
+        </button>
+        <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+        <span className="text-content-emphasis min-w-0 truncate text-sm font-semibold">
+          {title}
+        </span>
+      </div>
+
+      <div className="border-border-subtle border-t" />
 
       <div className="divide-border-subtle grid grid-cols-1 divide-y lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:divide-x lg:divide-y-0">
         <SubmissionLeftColumn bounty={bounty} submission={submission} />
