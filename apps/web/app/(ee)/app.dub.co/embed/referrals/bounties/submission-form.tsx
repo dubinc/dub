@@ -5,8 +5,7 @@ import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { SocialAccountNotVerifiedWarning } from "@/ui/partners/bounties/bounty-social-content";
 import { PlatformType } from "@dub/prisma/client";
-import { Button } from "@dub/ui";
-import { Trophy } from "@dub/ui/icons";
+import { Button, ChevronRight, Trophy } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -22,17 +21,42 @@ import {
 
 export function SubmissionCardHeader({
   title,
+  onBack,
+  onBackToRoot,
   rightContent,
 }: {
   title: string;
+  onBack: () => void;
+  onBackToRoot: () => void;
   rightContent: React.ReactNode;
 }) {
   return (
     <>
       <div className="flex items-center justify-between px-4 py-2">
-        <div className="text-content-emphasis flex items-center gap-2">
-          <Trophy className="size-4" />
-          <span className="font-semibold">{title}</span>
+        <div className="flex min-w-0 items-center gap-1.5">
+          <button
+            type="button"
+            aria-label="Back to bounties"
+            title="Back to bounties"
+            onClick={onBackToRoot}
+            className="bg-bg-subtle flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 hover:bg-bg-emphasis active:scale-95"
+          >
+            <Trophy className="size-4" />
+          </button>
+          <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+          <button
+            type="button"
+            aria-label="Back to bounty details"
+            title="Back to bounty details"
+            onClick={onBack}
+            className="text-content-default hover:text-content-emphasis shrink-0 text-sm font-medium transition-colors"
+          >
+            Bounty details
+          </button>
+          <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+          <span className="text-content-emphasis min-w-0 truncate text-sm font-semibold">
+            {title}
+          </span>
         </div>
         <div className="flex items-center gap-2">{rightContent}</div>
       </div>
@@ -47,6 +71,7 @@ export function EmbedBountySubmissionForm({
   periodNumber,
   existingSubmission,
   onCancel,
+  onBackToRoot,
   onSuccess,
 }: {
   bounty: PartnerBountyProps;
@@ -58,6 +83,7 @@ export function EmbedBountySubmissionForm({
   periodNumber: number;
   existingSubmission?: PartnerBountySubmission | null;
   onCancel: () => void;
+  onBackToRoot: () => void;
   onSuccess: (submission: PartnerBountySubmission) => void;
 }) {
   const router = useRouter();
@@ -182,6 +208,8 @@ export function EmbedBountySubmissionForm({
     <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
       <SubmissionCardHeader
         title={title}
+        onBack={onCancel}
+        onBackToRoot={onBackToRoot}
         rightContent={
           <>
             <Button

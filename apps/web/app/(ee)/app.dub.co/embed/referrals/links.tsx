@@ -1,20 +1,11 @@
-import { PartnerGroupProps } from "@/lib/types";
-import { Program } from "@dub/prisma/client";
 import { useState } from "react";
 import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";
+import { useReferralsEmbedData } from "./page-client";
 import { ReferralsEmbedLink } from "./types";
 
-interface Props {
-  links: ReferralsEmbedLink[];
-  program: Pick<Program, "domain" | "url" | "name">;
-  group: Pick<
-    PartnerGroupProps,
-    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
-  >;
-}
-
-export function ReferralsEmbedLinks({ links, program, group }: Props) {
+export function ReferralsEmbedLinks() {
+  const { links, program, group } = useReferralsEmbedData();
   const [createLink, setCreateLink] = useState(false);
   const [link, setLink] = useState<ReferralsEmbedLink | null>(null);
 

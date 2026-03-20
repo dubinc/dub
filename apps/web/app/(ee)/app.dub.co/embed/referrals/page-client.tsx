@@ -231,11 +231,7 @@ export function ReferralsEmbedPageClient({
           <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
             <HeroBackground logo={group.logo} color={group.brandColor} embed />
 
-            <ReferralLinkDisplay
-              links={links}
-              group={group}
-              onSelectTab={setSelectedTab}
-            />
+            <ReferralLinkDisplay onSelectTab={setSelectedTab} />
 
             <div className="mt-12 sm:max-w-[50%]">
               <div className="flex items-end justify-between">
@@ -276,7 +272,7 @@ export function ReferralsEmbedPageClient({
             )}
           </div>
           <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
-            <ReferralsEmbedActivity color={group.brandColor} {...stats} />
+            <ReferralsEmbedActivity />
             <ReferralsEmbedEarningsSummary />
           </div>
           <div className="mt-4">
@@ -322,32 +318,20 @@ export function ReferralsEmbedPageClient({
               <AnimatePresence mode="wait">
                 {selectedTab === "Quickstart" ? (
                   <ReferralsEmbedQuickstart
-                    program={program}
-                    group={group}
-                    links={links}
-                    earnings={earnings}
                     hasResources={hasResources}
                     setSelectedTab={setSelectedTab}
                   />
                 ) : selectedTab === "Bounties" ? (
-                  <ReferralsEmbedBounties
-                    bounties={bounties}
-                    partnerPlatforms={partnerPlatforms}
-                    programEnrollment={programEnrollment}
-                  />
+                  <ReferralsEmbedBounties />
                 ) : selectedTab === "Earnings" ? (
-                  <ReferralsEmbedEarnings earningsCount={earnings.totalCount} />
+                  <ReferralsEmbedEarnings />
                 ) : selectedTab === "Links" ? (
-                  <ReferralsEmbedLinks
-                    program={program}
-                    links={links}
-                    group={group}
-                  />
+                  <ReferralsEmbedLinks />
                 ) : selectedTab === "Leaderboard" &&
                   programEmbedData?.leaderboard?.mode !== "disabled" ? (
                   <ReferralsEmbedLeaderboard />
                 ) : selectedTab === "FAQ" ? (
-                  <ReferralsEmbedFAQ program={program} reward={rewards[0]} />
+                  <ReferralsEmbedFAQ />
                 ) : selectedTab === "Resources" ? (
                   <ReferralsEmbedResources resources={resources} />
                 ) : null}
@@ -361,25 +345,8 @@ export function ReferralsEmbedPageClient({
   );
 }
 
-function ReferralLinkDisplay({
-  links,
-  group,
-  onSelectTab,
-}: {
-  links: ReferralsEmbedLink[];
-  group: Pick<
-    PartnerGroupProps,
-    | "id"
-    | "logo"
-    | "wordmark"
-    | "brandColor"
-    | "additionalLinks"
-    | "maxPartnerLinks"
-    | "linkStructure"
-    | "holdingPeriodDays"
-  >;
-  onSelectTab: (tab: string) => void;
-}) {
+function ReferralLinkDisplay({ onSelectTab }) {
+  const { links, group } = useReferralsEmbedData();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(

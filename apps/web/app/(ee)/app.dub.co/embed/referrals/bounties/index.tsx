@@ -1,8 +1,7 @@
 "use client";
 
-import { PartnerBountyProps, ProgramEnrollmentProps } from "@/lib/types";
+import { PartnerBountyProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PlatformType } from "@dub/prisma/client";
 import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/ui";
 import { Trophy } from "@dub/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
@@ -11,21 +10,16 @@ import {
   BountyEndDate,
   PartnerBountyCard,
 } from "../../../../partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/bounties/bounty-card";
+import { useReferralsEmbedData } from "../page-client";
 import { EmbedBountyDetail, EmbedBountyView } from "./detail";
 
-export function ReferralsEmbedBounties({
-  bounties: initialBounties,
-  partnerPlatforms,
-  programEnrollment,
-}: {
-  bounties: PartnerBountyProps[];
-  partnerPlatforms: Array<{
-    type: PlatformType;
-    identifier: string;
-    verifiedAt: Date | null;
-  }>;
-  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
-}) {
+export function ReferralsEmbedBounties() {
+  const {
+    bounties: initialBounties,
+    partnerPlatforms,
+    programEnrollment,
+  } = useReferralsEmbedData();
+
   const [bounties, setBounties] =
     useState<PartnerBountyProps[]>(initialBounties);
   const [selectedBounty, setSelectedBounty] =

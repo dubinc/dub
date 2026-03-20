@@ -18,13 +18,13 @@ import {
 import { motion } from "motion/react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
+import { useReferralsEmbedData } from "./page-client";
 
-export function ReferralsEmbedEarnings({
-  earningsCount,
-}: {
-  earningsCount: number;
-}) {
+export function ReferralsEmbedEarnings() {
   const token = useEmbedToken();
+  const {
+    earnings: { totalCount: earningsCount },
+  } = useReferralsEmbedData();
 
   const { pagination, setPagination } = usePagination(
     REFERRALS_EMBED_EARNINGS_LIMIT,

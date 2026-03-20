@@ -106,7 +106,10 @@ export async function getBountySubmissionUploadUrl({
     );
 
     if (!isInGroup) {
-      throw new Error("You are not allowed to submit this bounty.");
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not allowed to submit this bounty.",
+      });
     }
   }
 
@@ -114,19 +117,31 @@ export async function getBountySubmissionUploadUrl({
   const now = new Date();
 
   if (bounty.startsAt && bounty.startsAt > now) {
-    throw new Error("This bounty is not yet available.");
+    throw new DubApiError({
+      code: "forbidden",
+      message: "This bounty is not yet available.",
+    });
   }
 
   if (bounty.endsAt && bounty.endsAt < now) {
-    throw new Error("This bounty is no longer available.");
+    throw new DubApiError({
+      code: "forbidden",
+      message: "This bounty is no longer available.",
+    });
   }
 
   if (bounty.archivedAt) {
-    throw new Error("This bounty is archived.");
+    throw new DubApiError({
+      code: "forbidden",
+      message: "This bounty is archived.",
+    });
   }
 
   if (bounty.type === "performance") {
-    throw new Error("You are not allowed to submit a performance bounty.");
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You are not allowed to submit a performance bounty.",
+    });
   }
 
   // Validate the submission requirements
@@ -137,9 +152,11 @@ export async function getBountySubmissionUploadUrl({
   const requireImage = !!submissionRequirements?.image;
 
   if (!requireImage) {
-    throw new Error(
-      "The submission requirements for this bounty do not allow for file uploads.",
-    );
+    throw new DubApiError({
+      code: "unprocessable_entity",
+      message:
+        "The submission requirements for this bounty do not allow for file uploads.",
+    });
   }
 
   try {
@@ -155,6 +172,9 @@ export async function getBountySubmissionUploadUrl({
       destinationUrl: `${R2_URL}/${key}`,
     };
   } catch (e) {
-    throw new Error("Failed to get signed URL for upload.");
+    throw new DubApiError({
+      code: "internal_server_error",
+      message: "Failed to get signed URL for upload.",
+    });
   }
 }

@@ -104,6 +104,7 @@ export function EmbedBountyDetail({
         }
         existingSubmission={existingSubmission}
         onCancel={() => setView({ mode: "detail" })}
+        onBackToRoot={onBack}
         onSuccess={handleSubmissionSuccess}
       />
     );
