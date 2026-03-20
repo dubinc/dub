@@ -27,7 +27,7 @@ export default function AnalyticsEvents({
           {({ dashboardProps }) => (
             <div
               className={cn(
-                "mx-auto flex max-w-screen-xl flex-col gap-3 px-3 lg:px-10",
+                "mx-auto flex max-w-screen-xl flex-col gap-4 px-3 lg:px-10",
                 // TODO: [PageContent] Remove once all pages are migrated to the new PageContent
                 !dashboardProps && !adminPage && "lg:px-6",
               )}

@@ -122,7 +122,7 @@ export default function ProgramPageClient() {
             >
               <div
                 className={cn(
-                  "relative z-0 mb-4 flex flex-col overflow-hidden rounded-xl border border-neutral-200 p-4 sm:mb-8 md:p-6",
+                  "relative z-0 mb-4 flex flex-col overflow-hidden rounded-xl border border-neutral-200 p-4 sm:mb-5 md:p-6",
                   isDeactivated && "opacity-80",
                 )}
               >
@@ -237,7 +237,7 @@ export default function ProgramPageClient() {
         }}
       >
         <ChartTooltipSync>
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
             <div className="group rounded-xl border border-neutral-200 p-5 pb-3 pt-4 lg:col-span-2">
               <EarningsChart />
             </div>
@@ -260,7 +260,7 @@ export default function ProgramPageClient() {
             </NumberFlowGroup>
           </div>
         </ChartTooltipSync>
-        <div className="mt-6">
+        <div className="mt-5">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-semibold text-neutral-900">
               Recent earnings

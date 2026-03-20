@@ -104,7 +104,7 @@ export function EarningsCompositeChart() {
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <EarningsTableControls />
       <div className="rounded-lg border border-neutral-200 p-6">
         <div className="flex w-full items-center justify-between">
