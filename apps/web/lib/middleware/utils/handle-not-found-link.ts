@@ -20,8 +20,9 @@ export const handleNotFoundLink = async (req: NextRequest) => {
     });
     response.headers.set(
       "Vercel-CDN-Cache-Control",
-      "s-maxage=3600, stale-while-revalidate=86400",
+      "s-maxage=300, stale-while-revalidate=3600",
     );
+    response.headers.set("Cache-Control", "public, max-age=300");
     return response;
   } else {
     const response = NextResponse.rewrite(
@@ -32,7 +33,7 @@ export const handleNotFoundLink = async (req: NextRequest) => {
     );
     response.headers.set(
       "Vercel-CDN-Cache-Control",
-      "s-maxage=3600, stale-while-revalidate=86400",
+      "s-maxage=300, stale-while-revalidate=3600",
     );
     response.headers.set("Cache-Control", "public, max-age=300");
     return response;

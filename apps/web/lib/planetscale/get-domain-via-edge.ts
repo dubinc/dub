@@ -21,6 +21,8 @@ export const getDomainViaEdge = async (domain: string) => {
 
   const result =
     rows && Array.isArray(rows) && rows.length > 0 ? rows[0] : null;
-  domainLRUCache.set(domain, result);
+  if (result !== null) {
+    domainLRUCache.set(domain, result);
+  }
   return result;
 };
