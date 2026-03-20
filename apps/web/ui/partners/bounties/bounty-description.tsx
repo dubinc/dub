@@ -12,7 +12,7 @@ export function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
 
   return (
     <div>
-      <h3 className="text-content-emphasis text-lg font-semibold">
+      <h3 className="text-content-emphasis text-sm font-semibold">
         Bounty details
       </h3>
 

@@ -3,7 +3,9 @@ import { ReactNode } from "react";
 
 export function EmphasisNumber({ children }: { children: ReactNode }) {
   return (
-    <span className="text-content-emphasis font-semibold">{children}</span>
+    <span className="text-content-emphasis text-sm font-semibold">
+      {children}
+    </span>
   );
 }
 

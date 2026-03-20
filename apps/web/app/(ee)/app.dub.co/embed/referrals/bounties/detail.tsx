@@ -130,7 +130,7 @@ export function EmbedBountyDetail({
         <div className="text-content-emphasis flex items-center gap-2">
           <Trophy className="size-4" />
 
-          <span className="font-semibold">Bounty details</span>
+          <span className="text-sm font-semibold">Bounty details</span>
         </div>
         <Button
           text="Back"
@@ -145,19 +145,19 @@ export function EmbedBountyDetail({
       <div className="lg:divide-border-subtle grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:divide-x">
         <div className="flex flex-col gap-6 p-5">
           <div className="flex flex-col gap-3">
-            <h2 className="text-content-emphasis text-lg font-semibold">
+            <h2 className="text-content-emphasis text-sm font-semibold">
               Progress
             </h2>
             <div className="border-border-subtle bg-bg-default flex w-full flex-col gap-4 rounded-xl border px-5 pb-4 pt-6">
               {bounty.type === "performance" ? (
                 <PerformanceBountyProgress
                   bounty={bounty}
-                  labelClassName="text-base"
+                  labelClassName="text-sm"
                 />
               ) : (
                 <SubmissionBountyProgress
                   bounty={bounty}
-                  labelClassName="text-base"
+                  labelClassName="text-sm"
                 />
               )}
             </div>

@@ -57,7 +57,7 @@ export function BountyRewardCriteria({
 
   return (
     <div>
-      <h3 className="text-content-emphasis text-lg font-semibold">
+      <h3 className="text-content-emphasis text-sm font-semibold">
         Reward criteria
       </h3>
 

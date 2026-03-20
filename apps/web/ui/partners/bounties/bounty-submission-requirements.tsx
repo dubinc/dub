@@ -50,7 +50,7 @@ export function BountySubmissionRequirements({
 
   return (
     <div>
-      <h3 className="text-content-emphasis text-lg font-semibold">
+      <h3 className="text-content-emphasis text-sm font-semibold">
         Submission requirements
       </h3>
 

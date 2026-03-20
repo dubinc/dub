@@ -10,7 +10,6 @@ import {
   SaleEvent,
 } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
-import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
   CopyText,
   LinkLogo,
@@ -21,7 +20,6 @@ import {
   useTablePagination,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
-import { CircleDollar, UserPlus } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -101,7 +99,7 @@ export function EmbedBountyPerformanceSection({
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
-        <h2 className="text-content-emphasis text-lg font-semibold">
+        <h2 className="text-content-emphasis text-sm font-semibold">
           Performance
         </h2>
         <div className="border-border-subtle bg-bg-default rounded-xl border p-5">
@@ -181,6 +179,7 @@ function EmbedBountyPerformanceChart({
     { start: string; earnings: number }[]
   >(isCommissions ? earningsTimeseriesUrl : null, authFetcher, {
     keepPreviousData: true,
+    revalidateOnFocus: false,
   });
 
   const data = useMemo(() => {
@@ -236,7 +235,7 @@ function EmbedBountyPerformanceChart({
             {
               id: "main",
               valueAccessor: (d) => d.values.main,
-              colorClassName: "text-violet-500",
+              colorClassName: "text-[var(--brand,#8e51ff)]",
               isActive: true,
             },
           ]}
@@ -324,10 +323,6 @@ function EmbedBountyEventsTable({
   const tableTitle = attribute
     ? ATTRIBUTE_TO_TABLE_TITLE[attribute]
     : "Performance";
-  const EmptyIcon =
-    attribute === "totalLeads" || attribute === "totalConversions"
-      ? UserPlus
-      : CircleDollar;
 
   const eventParams = attribute
     ? ATTRIBUTE_TO_EVENT_PARAMS[attribute]
@@ -497,23 +492,16 @@ function EmbedBountyEventsTable({
       cn("border-l-transparent", columnId === "customer" && "p-0"),
     resourceName: () => metricLabel,
     emptyState: (
-      <AnimatedEmptyState
-        title={`No ${metricLabel} recorded yet`}
-        description={`${tableTitle} will appear here once you start generating activity.`}
-        cardContent={() => (
-          <>
-            <EmptyIcon className="text-content-default size-4" />
-            <div className="bg-bg-emphasis h-2.5 w-24 min-w-0 rounded-sm" />
-          </>
-        )}
-        className="border-none md:min-h-0"
-      />
+      <div className="text-content-subtle text-sm">
+        No {metricLabel} recorded yet
+      </div>
     ),
+    emptyWrapperClassName: "h-48",
   });
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-content-emphasis text-lg font-semibold leading-7 tracking-[-0.36px]">
+      <h2 className="text-content-emphasis text-sm font-semibold leading-7 tracking-[-0.36px]">
         {tableTitle}
       </h2>
       <Table
@@ -583,6 +571,7 @@ function EmbedBountyCommissionsTable({
     total: number;
   }>(earningsUrl, authFetcher, {
     keepPreviousData: true,
+    revalidateOnFocus: false,
   });
 
   const rows = useMemo<PerformanceRow[]>(
@@ -676,23 +665,16 @@ function EmbedBountyCommissionsTable({
       cn("border-l-transparent", columnId === "customer" && "p-0"),
     resourceName: () => "commissions",
     emptyState: (
-      <AnimatedEmptyState
-        title="No commissions recorded yet"
-        description="Commissions earned will appear here once you start generating activity."
-        cardContent={() => (
-          <>
-            <CircleDollar className="text-content-default size-4" />
-            <div className="bg-bg-emphasis h-2.5 w-24 min-w-0 rounded-sm" />
-          </>
-        )}
-        className="border-none md:min-h-0"
-      />
+      <div className="text-content-subtle text-sm">
+        No commissions recorded yet
+      </div>
     ),
+    emptyWrapperClassName: "h-48",
   });
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-content-emphasis text-lg font-semibold leading-7 tracking-[-0.36px]">
+      <h2 className="text-content-emphasis text-sm font-semibold leading-7 tracking-[-0.36px]">
         Commissions earned
       </h2>
       <Table

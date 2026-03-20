@@ -7,7 +7,6 @@ import {
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { Button, StatusBadge, Table, useTable } from "@dub/ui";
-import { cn, formatDate } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo } from "react";
 
@@ -29,12 +28,6 @@ export function EmbedBountySubmissionsTable({
   });
 
   const showSubmissionColumn = bounty.maxSubmissions > 1;
-
-  const MOBILE_HIDDEN = new Set(
-    showSubmissionColumn
-      ? ["status", "submitted", "reviewed"]
-      : ["submitted", "reviewed"],
-  );
 
   const columns = useMemo<
     ColumnDef<SubmissionPeriod<PartnerBountySubmission>>[]
@@ -97,40 +90,6 @@ export function EmbedBountySubmissionsTable({
         },
       },
       {
-        id: "submitted",
-        header: "Submitted",
-        minSize: 100,
-        size: 120,
-        cell: ({ row: { original } }) => (
-          <span className="text-content-subtle text-center text-sm font-medium leading-5 tracking-[-0.28px]">
-            {original.submission?.completedAt
-              ? formatDate(original.submission.completedAt, {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : "–"}
-          </span>
-        ),
-      },
-      {
-        id: "reviewed",
-        header: "Reviewed",
-        minSize: 100,
-        size: 120,
-        cell: ({ row: { original } }) => (
-          <span className="text-content-subtle text-center text-sm font-medium leading-5 tracking-[-0.28px]">
-            {original.submission?.reviewedAt
-              ? formatDate(original.submission.reviewedAt, {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })
-              : "–"}
-          </span>
-        ),
-      },
-      {
         id: "action",
         header: "",
         minSize: 98,
@@ -187,23 +146,15 @@ export function EmbedBountySubmissionsTable({
     getRowId: (row) => String(row.periodNumber),
     resourceName: () => "submission period",
     scrollWrapperClassName: "min-h-0",
-    thClassName: (columnId) =>
-      cn(
-        "border-l-0 border-r-0",
-        MOBILE_HIDDEN.has(columnId) && "hidden sm:table-cell",
-      ),
-    tdClassName: (columnId) =>
-      cn(
-        "border-l-0 border-r-0",
-        MOBILE_HIDDEN.has(columnId) && "hidden sm:table-cell",
-      ),
+    thClassName: () => "border-l-0 border-r-0",
+    tdClassName: () => "border-l-0 border-r-0",
     className: "[&_tbody_tr:last-child_td]:border-b-0",
     containerClassName: "border-border-subtle",
   });
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="text-content-emphasis text-lg font-semibold">
+      <h2 className="text-content-emphasis text-sm font-semibold">
         Submissions
       </h2>
       <Table {...tableProps} table={table} />

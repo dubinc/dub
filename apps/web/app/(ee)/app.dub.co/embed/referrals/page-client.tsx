@@ -32,7 +32,7 @@ import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
 import { ReferralsEmbedBounties } from "./bounties";
 import { ReferralsEmbedEarnings } from "./earnings";
@@ -146,7 +146,12 @@ export function ReferralsEmbedPageClient({
 
   return (
     <div
-      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
+      style={
+        {
+          backgroundColor: themeOptions.backgroundColor || "transparent",
+          "--brand": group.brandColor || "#2563eb",
+        } as CSSProperties
+      }
       className={cn("flex flex-col", !dynamicHeight && "min-h-screen")}
     >
       <div className="relative z-0 p-5">
@@ -217,9 +222,7 @@ export function ReferralsEmbedPageClient({
                       <span
                         className={cn(
                           "flex h-5 items-center rounded-md px-1.5 text-xs font-medium",
-                          selectedTab === "Bounties"
-                            ? "bg-blue-600 text-blue-50"
-                            : "bg-bg-info text-content-info",
+                          "bg-[var(--brand)] text-white",
                         )}
                       >
                         {activeBountiesCount}
