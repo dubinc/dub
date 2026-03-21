@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { parse } from "./parse";
 
 export const handleNotFoundLink = async (req: NextRequest) => {
-  const { domain, key } = parse(req);
+  const { domain, fullKey } = parse(req);
 
   let response: NextResponse;
   // check if domain has notFoundUrl configured
@@ -28,7 +28,7 @@ export const handleNotFoundLink = async (req: NextRequest) => {
   response.headers.set("Vercel-CDN-Cache-Control", "public, max-age=86400");
   response.headers.set(
     "Vercel-Cache-Tag",
-    linkCache._createNotFoundCacheKey({ domain, key }),
+    linkCache._createNotFoundCacheKeys({ domain, key: fullKey }),
   );
   return response;
 };
