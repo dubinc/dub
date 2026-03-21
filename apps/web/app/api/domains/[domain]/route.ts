@@ -16,6 +16,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -48,6 +49,8 @@ export const PATCH = withWorkspace(
       slug: domain,
       registeredDomain,
       logo: oldLogo,
+      notFoundUrl: oldNotFoundUrl,
+      expiredUrl: oldExpiredUrl,
       partnerProgram,
     } = await getDomainOrThrow({
       workspace,
@@ -198,6 +201,13 @@ export const PATCH = withWorkspace(
         // remove old logo
         if (oldLogo && (logo === null || logoUploaded)) {
           await storage.delete({ key: oldLogo.replace(`${R2_URL}/`, "") });
+        }
+
+        if (
+          (notFoundUrl !== undefined && notFoundUrl !== oldNotFoundUrl) ||
+          (expiredUrl !== undefined && expiredUrl !== oldExpiredUrl)
+        ) {
+          revalidateTag(`notfound:${domain}`);
         }
 
         if (domainUpdated) {

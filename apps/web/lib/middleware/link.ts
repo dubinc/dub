@@ -273,16 +273,24 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       }),
     );
 
-    return createResponseWithCookies(
-      NextResponse.rewrite(new URL(`/${domain}`, req.url), {
+    const rewriteResponse = NextResponse.rewrite(
+      new URL(`/${domain}`, req.url),
+      {
         headers: {
           ...DUB_HEADERS,
-          // we only index root domain links if they're not subdomains
-          ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-      }),
-      cookieData,
+      },
     );
+    rewriteResponse.headers.set(
+      "Vercel-CDN-Cache-Control",
+      "public, s-maxage=86400",
+    );
+    rewriteResponse.headers.set(
+      "Vercel-Cache-Tag",
+      linkCache._createNotFoundCacheKeys({ domain, key: "_root" }), // set cache tag for root domain link
+    );
+    return createResponseWithCookies(rewriteResponse, cookieData);
   }
 
   const isBot = detectBot(req);

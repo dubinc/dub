@@ -7,6 +7,7 @@ import {
 } from "@/lib/upstash";
 import { getCache, waitUntil } from "@vercel/functions";
 import { LRUCache } from "lru-cache";
+import { revalidateTag } from "next/cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
 
@@ -40,6 +41,7 @@ class LinkCache {
       const redisLink = formatRedisLink(link);
       const cacheKey = this._createKey({ domain: link.domain, key: link.key });
       pipeline.set(cacheKey, redisLink, { ex: REDIS_CACHE_EXPIRATION });
+      revalidateTag(`notfound:${link.domain}:${link.key}`);
     });
 
     return await pipeline.exec();
@@ -51,12 +53,13 @@ class LinkCache {
 
     // Update LRU cache immediately to prevent stale reads
     linkLRUCache.set(cacheKey, redisLink);
+    revalidateTag(`notfound:${link.domain}:${link.key}`);
 
     await Promise.all([
       redisGlobal.set(cacheKey, redisLink, {
         ex: REDIS_CACHE_EXPIRATION,
       }),
-      this._invalidateVercelCache(cacheKey),
+      this._invalidateVercelRuntimeCache(cacheKey),
     ]);
   }
 
@@ -126,7 +129,7 @@ class LinkCache {
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
     const cacheKey = this._createKey({ domain, key });
-    waitUntil(this._invalidateVercelCache(cacheKey));
+    waitUntil(this._invalidateVercelRuntimeCache(cacheKey));
     return await redisGlobal.del(cacheKey);
   }
 
@@ -167,9 +170,16 @@ class LinkCache {
     return caseSensitive ? cacheKey : cacheKey.toLowerCase();
   }
 
+  _createNotFoundCacheKeys({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    // here we set 2 cache tags to invalidate the cache:
+    // 1. notfound:${domain}:${key} - for the specific not found link
+    // 2. notfound:${domain} - scope all links under the domain (for easy purging in PATCH /domains/:domain)
+    return `notfound:${domain}:${key},notfound:${domain}`;
+  }
+
   // Vercel cache reads are 10x cheaper than writes, so to invalidate the cache
   // we check if the value is cached first before deleting it.
-  async _invalidateVercelCache(cacheKey: string) {
+  private async _invalidateVercelRuntimeCache(cacheKey: string) {
     return vercelCache
       .get(cacheKey)
       .then((cachedLink) =>
