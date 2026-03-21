@@ -278,8 +278,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       {
         headers: {
           ...DUB_HEADERS,
-          // we only index root domain links if they're not subdomains
-          ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       },
     );
