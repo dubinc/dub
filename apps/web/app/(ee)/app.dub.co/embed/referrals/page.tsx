@@ -2,9 +2,9 @@ import { HeroBackground } from "@/ui/partners/hero-background";
 import { Button, Copy } from "@dub/ui";
 import { Suspense } from "react";
 import { DynamicHeightMessenger } from "./dynamic-height-messenger";
+import { getReferralsEmbedData } from "./get-referrals-embed-data";
 import { ReferralsEmbedPageClient } from "./page-client";
 import { parseThemeOptions, ThemeOptions } from "./theme-options";
-import { getReferralsEmbedData } from "./utils";
 
 export default async function ReferralsEmbedPage(props: {
   searchParams: Promise<{
