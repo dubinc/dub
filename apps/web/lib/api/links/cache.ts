@@ -41,7 +41,7 @@ class LinkCache {
       const redisLink = formatRedisLink(link);
       const cacheKey = this._createKey({ domain: link.domain, key: link.key });
       pipeline.set(cacheKey, redisLink, { ex: REDIS_CACHE_EXPIRATION });
-      revalidateTag(`notfound:${link.domain}:${link.key}`);
+      revalidateTag(`notfound:${link.domain.toLowerCase()}:${link.key}`);
     });
 
     return await pipeline.exec();
@@ -53,7 +53,7 @@ class LinkCache {
 
     // Update LRU cache immediately to prevent stale reads
     linkLRUCache.set(cacheKey, redisLink);
-    revalidateTag(`notfound:${link.domain}:${link.key}`);
+    revalidateTag(`notfound:${link.domain.toLowerCase()}:${link.key}`);
 
     await Promise.all([
       redisGlobal.set(cacheKey, redisLink, {
@@ -171,6 +171,7 @@ class LinkCache {
   }
 
   _createNotFoundCacheKeys({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    domain = domain.toLowerCase();
     // here we set 2 cache tags to invalidate the cache:
     // 1. notfound:${domain}:${key} - for the specific not found link
     // 2. notfound:${domain} - scope all links under the domain (for easy purging in PATCH /domains/:domain)

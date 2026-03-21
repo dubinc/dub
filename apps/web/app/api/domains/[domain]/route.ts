@@ -207,7 +207,7 @@ export const PATCH = withWorkspace(
           (notFoundUrl !== undefined && notFoundUrl !== oldNotFoundUrl) ||
           (expiredUrl !== undefined && expiredUrl !== oldExpiredUrl)
         ) {
-          revalidateTag(`notfound:${domain}`);
+          revalidateTag(`notfound:${domain.toLowerCase()}`);
         }
 
         if (domainUpdated) {
