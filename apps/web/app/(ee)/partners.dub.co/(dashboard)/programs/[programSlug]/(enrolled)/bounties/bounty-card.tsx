@@ -16,38 +16,33 @@ import {
   formatDateTimeSmart,
 } from "@dub/utils";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 
 export function PartnerBountyCard({
   bounty,
   showFullTitle = false,
   hideFooter = false,
   showRewards = false,
+  href,
+  onClick,
 }: {
   bounty: PartnerBountyProps;
   showFullTitle?: boolean;
   hideFooter?: boolean;
   showRewards?: boolean;
+  href?: string;
+  onClick?: () => void;
 }) {
   const { programSlug } = useParams();
-  const router = useRouter();
-
+  const As = href ? Link : "div";
   return (
-    <div
-      role="link"
-      tabIndex={0}
-      onClick={() =>
-        router.push(`/programs/${programSlug}/bounties/${bounty.id}`)
-      }
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          router.push(`/programs/${programSlug}/bounties/${bounty.id}`);
-        }
-      }}
-      className="border-border-subtle group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border bg-white text-left"
+    <As
+      href={href ?? "#"}
+      onClick={onClick}
+      className="border-border-subtle hover:border-border-default bg-bg-default group relative flex w-full cursor-pointer flex-col overflow-hidden rounded-xl border text-left transition-all hover:shadow-lg"
     >
       <div className="p-3 pb-0">
-        <div className="relative flex h-[124px] items-center justify-center rounded-lg bg-neutral-100">
+        <div className="bg-bg-subtle relative flex h-[124px] items-center justify-center rounded-lg">
           <div className="relative size-full">
             <BountyThumbnailImage bounty={bounty} />
           </div>
@@ -76,7 +71,7 @@ export function PartnerBountyCard({
       </div>
 
       {!hideFooter && (
-        <div className="border-t border-neutral-200 px-5 py-4">
+        <div className="border-border-subtle border-t px-5 py-4">
           {bounty.type === "performance" ? (
             <PerformanceBountyProgress bounty={bounty} />
           ) : (
@@ -85,15 +80,15 @@ export function PartnerBountyCard({
         </div>
       )}
 
-      {showRewards && bounty.submissions.some((s) => s.commission !== null) && (
-        <div className="@3xl/page:block hidden border-t border-neutral-200 p-4">
+      {showRewards && bounty.submissions.some((s) => s.commission != null) && (
+        <div className="@3xl/page:block border-border-subtle hidden border-t p-4">
           <BountyRewardsTable
             bounty={bounty}
             programSlug={programSlug as string}
           />
         </div>
       )}
-    </div>
+    </As>
   );
 }
 
@@ -103,11 +98,11 @@ export function BountyRewardsTable({
   className,
 }: {
   bounty: PartnerBountyProps;
-  programSlug: string;
+  programSlug?: string;
   className?: string;
 }) {
   const rewards = bounty.submissions
-    .filter((s) => s.commission !== null)
+    .filter((s) => s.commission != null)
     .map((s) => s.commission!);
 
   const { table, ...tableProps } = useTable({
@@ -148,24 +143,24 @@ export function BountyRewardsTable({
   return (
     <div className={cn("relative flex flex-col gap-4", className)}>
       <div className="flex items-center justify-between">
-        <h3 className="@3xl/page:text-sm text-lg font-semibold text-neutral-900">
-          Rewards
-        </h3>
-        <Link
-          href={`/programs/${programSlug}/earnings?type=custom`}
-          onClick={(e) => e.stopPropagation()}
-          className={cn(
-            buttonVariants({ variant: "secondary" }),
-            "border-border-subtle flex h-6 items-center rounded-md border px-2 text-xs",
-          )}
-        >
-          View all
-        </Link>
+        <h3 className="text-content-emphasis text-sm font-semibold">Rewards</h3>
+        {programSlug && (
+          <Link
+            href={`/programs/${programSlug}/earnings?type=custom`}
+            onClick={(e) => e.stopPropagation()}
+            className={cn(
+              buttonVariants({ variant: "secondary" }),
+              "border-border-subtle flex h-6 items-center rounded-md border px-2 text-xs",
+            )}
+          >
+            View all
+          </Link>
+        )}
       </div>
       <Table
         {...tableProps}
         table={table}
-        containerClassName="border-neutral-200"
+        containerClassName="border-border-subtle"
         scrollWrapperClassName="min-h-0"
         className="[&_tbody_tr:last-child_td]:border-b-0"
       />
@@ -173,7 +168,7 @@ export function BountyRewardsTable({
   );
 }
 
-function BountyEndDate({ bounty }: { bounty: PartnerBountyProps }) {
+export function BountyEndDate({ bounty }: { bounty: PartnerBountyProps }) {
   const isExpired =
     bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
 
@@ -204,14 +199,14 @@ function BountyEndDate({ bounty }: { bounty: PartnerBountyProps }) {
 
 export const PartnerBountyCardSkeleton = () => {
   return (
-    <div className="border-border-subtle rounded-xl border bg-white p-5">
+    <div className="border-border-subtle bg-bg-default rounded-xl border p-5">
       <div className="flex flex-col gap-5">
-        <div className="flex h-[132px] animate-pulse items-center justify-center rounded-lg bg-neutral-100 px-32 py-4" />
+        <div className="bg-bg-subtle flex h-[132px] animate-pulse items-center justify-center rounded-lg px-32 py-4" />
         <div className="flex flex-col gap-1.5">
-          <div className="h-5 w-48 animate-pulse rounded-md bg-neutral-200" />
+          <div className="bg-bg-emphasis h-5 w-48 animate-pulse rounded-md" />
           <div className="flex h-5 items-center space-x-2">
-            <div className="size-4 animate-pulse rounded bg-neutral-200" />
-            <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+            <div className="bg-bg-emphasis size-4 animate-pulse rounded" />
+            <div className="bg-bg-emphasis h-4 w-32 animate-pulse rounded" />
           </div>
         </div>
       </div>

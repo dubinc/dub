@@ -180,7 +180,7 @@ function TimeSeriesChartInner<T extends Datum>({
                     width={xScale.bandwidth() * (1 + xScale.padding() * 2)}
                     y={0}
                     height={height}
-                    fill="black"
+                    className="fill-[rgb(var(--content-emphasis))]"
                     fillOpacity={0.05}
                   />
                 </>
@@ -191,7 +191,7 @@ function TimeSeriesChartInner<T extends Datum>({
                     x2={xScale(tooltipData.date)}
                     y1={height}
                     y2={0}
-                    stroke="black"
+                    className="stroke-[rgb(var(--content-emphasis))]"
                     strokeOpacity={0.5}
                     strokeWidth={1}
                   />
@@ -244,7 +244,7 @@ function TimeSeriesChartInner<T extends Datum>({
             >
               <div
                 className={cn(
-                  "pointer-events-none rounded-lg border border-neutral-200 bg-white px-4 py-2 text-base shadow-sm",
+                  "border-border-default bg-bg-default pointer-events-none rounded-lg border px-4 py-2 text-base shadow-sm",
                   tooltipClassName,
                 )}
               >

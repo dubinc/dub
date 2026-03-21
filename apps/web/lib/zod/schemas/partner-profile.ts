@@ -57,6 +57,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .extend({
     interval: z
       .enum(DATE_RANGE_INTERVAL_PRESETS)
+      .optional()
       .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
     timezone: z.string().optional(),
     type: z.enum(CommissionType).optional(),

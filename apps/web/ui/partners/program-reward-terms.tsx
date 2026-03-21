@@ -1,4 +1,5 @@
 import { currencyFormatter } from "@dub/utils";
+import { Fragment } from "react";
 
 export function ProgramRewardTerms({
   minPayoutAmount,
@@ -35,7 +36,7 @@ export function ProgramRewardTerms({
   return (
     <div className="border-border-subtle text-content-subtle -mt-1 flex items-center gap-1 rounded-b-md rounded-t-none border border-t-0 p-1.5 pl-2.5 pt-2.5 text-xs">
       {items.map((item, index) => (
-        <>
+        <Fragment key={item.label}>
           <span key={item.label}>
             <span className="text-content-emphasis font-semibold">
               {item.value}
@@ -50,7 +51,7 @@ export function ProgramRewardTerms({
             </a>
           </span>
           {index < items.length - 1 && "•"}
-        </>
+        </Fragment>
       ))}
     </div>
   );

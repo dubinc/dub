@@ -1,12 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { BountyType } from "@dub/prisma/client";
 
-export type GroupBountySummary = {
-  id: string;
-  name: string;
-  type: BountyType;
-};
-
 type BountyEligibilityCandidate = {
   id: string;
   name: string | null;

@@ -95,6 +95,9 @@ function ImagesField({
       const result = await uploadFile({
         programId: programEnrollment.programId,
         bountyId: bounty.id,
+        fileName: file.name,
+        contentType: file.type,
+        contentLength: file.size,
       });
 
       if (!result?.data) {

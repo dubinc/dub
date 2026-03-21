@@ -1,7 +1,6 @@
 import { mutateSuffix } from "@/lib/swr/mutate";
-import { PartnerGroupAdditionalLink, PartnerGroupProps } from "@/lib/types";
+import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { Lock } from "@/ui/shared/icons";
-import { Program } from "@dub/prisma/client";
 import {
   Button,
   Combobox,
@@ -22,14 +21,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDebounce } from "use-debounce";
 import { useEmbedToken } from "../use-embed-token";
+import { useReferralsEmbedData } from "./page-client";
 import { ReferralsEmbedLink } from "./types";
-
-interface Props {
-  program: Pick<Program, "domain" | "url">;
-  group: Pick<PartnerGroupProps, "id" | "additionalLinks" | "maxPartnerLinks">;
-  link?: ReferralsEmbedLink | null;
-  onCancel: () => void;
-}
 
 interface FormData {
   pathname: string;
@@ -37,11 +30,12 @@ interface FormData {
 }
 
 export function ReferralsEmbedCreateUpdateLink({
-  program,
-  group,
   link,
   onCancel,
-}: Props) {
+}: {
+  link: ReferralsEmbedLink | null;
+  onCancel: () => void;
+}) {
   const token = useEmbedToken();
   const { isMobile } = useMediaQuery();
   const [, copyToClipboard] = useCopyToClipboard();
@@ -49,6 +43,8 @@ export function ReferralsEmbedCreateUpdateLink({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isExactMode, setIsExactMode] = useState(false);
+
+  const { program, group } = useReferralsEmbedData();
 
   const shortLinkDomain = program.domain || "";
   const additionalLinks: PartnerGroupAdditionalLink[] =
