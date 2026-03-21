@@ -41,6 +41,7 @@ class LinkCache {
       const redisLink = formatRedisLink(link);
       const cacheKey = this._createKey({ domain: link.domain, key: link.key });
       pipeline.set(cacheKey, redisLink, { ex: REDIS_CACHE_EXPIRATION });
+      this._invalidateVercelCDNCache(link);
     });
 
     return await pipeline.exec();
@@ -52,14 +53,13 @@ class LinkCache {
 
     // Update LRU cache immediately to prevent stale reads
     linkLRUCache.set(cacheKey, redisLink);
-    // invalidate Vercel-Cache-Tag for the not found link
-    revalidateTag(`notfound:${link.domain}:${link.key}`);
+    this._invalidateVercelCDNCache(link);
 
     await Promise.all([
       redisGlobal.set(cacheKey, redisLink, {
         ex: REDIS_CACHE_EXPIRATION,
       }),
-      this._invalidateVercelCache(cacheKey),
+      this._invalidateVercelRuntimeCache(cacheKey),
     ]);
   }
 
@@ -129,7 +129,7 @@ class LinkCache {
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {
     const cacheKey = this._createKey({ domain, key });
-    waitUntil(this._invalidateVercelCache(cacheKey));
+    waitUntil(this._invalidateVercelRuntimeCache(cacheKey));
     return await redisGlobal.del(cacheKey);
   }
 
@@ -170,9 +170,20 @@ class LinkCache {
     return caseSensitive ? cacheKey : cacheKey.toLowerCase();
   }
 
+  _createNotFoundCacheKey({ domain, key }: Pick<LinkProps, "domain" | "key">) {
+    return `notfound:${domain}:${key}`;
+  }
+
+  private _invalidateVercelCDNCache({
+    domain,
+    key,
+  }: Pick<LinkProps, "domain" | "key">) {
+    revalidateTag(this._createNotFoundCacheKey({ domain, key }));
+  }
+
   // Vercel cache reads are 10x cheaper than writes, so to invalidate the cache
   // we check if the value is cached first before deleting it.
-  async _invalidateVercelCache(cacheKey: string) {
+  private async _invalidateVercelRuntimeCache(cacheKey: string) {
     return vercelCache
       .get(cacheKey)
       .then((cachedLink) =>

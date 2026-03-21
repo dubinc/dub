@@ -1,3 +1,4 @@
+import { linkCache } from "@/lib/api/links/cache";
 import { getDomainViaEdge } from "@/lib/planetscale/get-domain-via-edge";
 import { DUB_HEADERS } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -25,6 +26,9 @@ export const handleNotFoundLink = async (req: NextRequest) => {
     });
   }
   response.headers.set("Vercel-CDN-Cache-Control", "public, max-age=86400");
-  response.headers.set("Vercel-Cache-Tag", `notfound:${domain}:${key}`);
+  response.headers.set(
+    "Vercel-Cache-Tag",
+    linkCache._createNotFoundCacheKey({ domain, key }),
+  );
   return response;
 };

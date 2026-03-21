@@ -289,7 +289,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     );
     rewriteResponse.headers.set(
       "Vercel-Cache-Tag",
-      `notfound:${domain}:${key}`,
+      linkCache._createNotFoundCacheKey({ domain, key }),
     );
     return createResponseWithCookies(rewriteResponse, cookieData);
   }
