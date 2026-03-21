@@ -249,7 +249,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   const cookieData = {
-    path: `/${originalKey}`,
+    path: `/${encodeURI(originalKey)}`,
     dubIdCookieName,
     dubIdCookieValue: clickId,
     dubTestUrlValue: testUrl,
