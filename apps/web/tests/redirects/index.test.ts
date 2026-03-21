@@ -57,10 +57,6 @@ async function assertRedirectWithDubIdCookie(
     ),
   );
   expect(dubIdCookie).toMatch(/Max-Age=3600\b/i);
-
-  console.log(`dubIdFromQuery: ${dubIdFromQuery}`);
-  console.log(`dubIdFromCookie: ${cookieValue}`);
-  console.log(`cookiePathAttr: ${pathAttr}`);
 }
 
 describe.runIf(env.CI)("Link Redirects", async () => {
