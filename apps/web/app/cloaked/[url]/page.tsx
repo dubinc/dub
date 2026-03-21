@@ -5,13 +5,11 @@ import {
 } from "@dub/utils";
 import { getMetaTags } from "app/api/links/metatags/utils";
 
-export const runtime = "edge";
-
 export async function generateMetadata(props: {
   params: Promise<{ url: string }>;
 }) {
   const params = await props.params;
-  const url = decodeURIComponent(params.url);
+  const url = decodeURIComponent(params.url); // key can potentially be encoded
 
   const metatags = await getMetaTags(url);
   const apexDomain = getApexDomain(url);
