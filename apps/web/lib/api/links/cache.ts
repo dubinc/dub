@@ -7,6 +7,7 @@ import {
 } from "@/lib/upstash";
 import { getCache, waitUntil } from "@vercel/functions";
 import { LRUCache } from "lru-cache";
+import { revalidateTag } from "next/cache";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
 
@@ -51,6 +52,8 @@ class LinkCache {
 
     // Update LRU cache immediately to prevent stale reads
     linkLRUCache.set(cacheKey, redisLink);
+    // invalidate Vercel-Cache-Tag for the not found link
+    revalidateTag(`notfound:${link.domain}:${link.key}`);
 
     await Promise.all([
       redisGlobal.set(cacheKey, redisLink, {

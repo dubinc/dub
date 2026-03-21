@@ -4,12 +4,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { parse } from "./parse";
 
 export const handleNotFoundLink = async (req: NextRequest) => {
-  const { domain } = parse(req);
+  const { domain, key } = parse(req);
 
+  let response: NextResponse;
   // check if domain has notFoundUrl configured
   const domainData = await getDomainViaEdge(domain);
   if (domainData?.notFoundUrl) {
-    const response = NextResponse.redirect(domainData.notFoundUrl, {
+    response = NextResponse.redirect(domainData.notFoundUrl, {
       headers: {
         ...DUB_HEADERS,
         "X-Robots-Tag": "googlebot: noindex",
@@ -18,24 +19,12 @@ export const handleNotFoundLink = async (req: NextRequest) => {
       },
       status: 302,
     });
-    response.headers.set(
-      "Vercel-CDN-Cache-Control",
-      "s-maxage=300, stale-while-revalidate=3600",
-    );
-    response.headers.set("Cache-Control", "public, max-age=300");
-    return response;
   } else {
-    const response = NextResponse.rewrite(
-      new URL(`/${domain}/not-found`, req.url),
-      {
-        headers: DUB_HEADERS,
-      },
-    );
-    response.headers.set(
-      "Vercel-CDN-Cache-Control",
-      "s-maxage=300, stale-while-revalidate=3600",
-    );
-    response.headers.set("Cache-Control", "public, max-age=300");
-    return response;
+    response = NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
+      headers: DUB_HEADERS,
+    });
   }
+  response.headers.set("Vercel-CDN-Cache-Control", "public, max-age=86400");
+  response.headers.set("Vercel-Cache-Tag", `notfound:${domain}:${key}`);
+  return response;
 };

@@ -285,7 +285,11 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     );
     rewriteResponse.headers.set(
       "Vercel-CDN-Cache-Control",
-      "s-maxage=3600, stale-while-revalidate=86400",
+      "public, max-age=86400",
+    );
+    rewriteResponse.headers.set(
+      "Vercel-Cache-Tag",
+      `notfound:${domain}:${key}`,
     );
     return createResponseWithCookies(rewriteResponse, cookieData);
   }
