@@ -191,13 +191,6 @@ const partnerMetricRangeQueryFields = {
   totalCommissionsMax: z.coerce.number().int().nonnegative().optional(),
 };
 
-export const partnerMetricFieldSchema = z.enum([
-  "totalClicks",
-  "totalLeads",
-  "totalConversions",
-  "totalCommissions",
-]);
-
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
   partnerIds: z
     .union([z.string(), z.array(z.string())])
@@ -225,19 +218,7 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z
-      .enum(["status", "country", "groupId", "metricPercentiles"])
-      .optional(),
-    metric: partnerMetricFieldSchema.optional(),
-  })
-  .superRefine((data, ctx) => {
-    if (data.groupBy === "metricPercentiles" && !data.metric) {
-      ctx.addIssue({
-        code: "custom",
-        message: "`metric` is required when groupBy is metricPercentiles",
-        path: ["metric"],
-      });
-    }
+    groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
 
 export const partnerPlatformSchema = z.object({

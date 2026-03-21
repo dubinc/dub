@@ -109,6 +109,14 @@ export function FilterSelect({
     return normalizeActiveFilter(raw).values[0] as string | undefined;
   }, [activeFilters, selectedFilter]);
 
+  const rangeFilterHasAppliedValue = useMemo(() => {
+    if (!selectedFilter || selectedFilter.type !== "range") {
+      return false;
+    }
+    const { min, max } = parseRangeToken(activeRangeTokenForSelected);
+    return min != null || max != null;
+  }, [selectedFilter, activeRangeTokenForSelected]);
+
   const openFilter = useCallback(
     (key: Filter["key"]) => {
       // Maintain dimensions for loading options
@@ -217,6 +225,17 @@ export function FilterSelect({
               <FilterRangeHeader
                 label={selectedFilter.label}
                 onBack={() => reset()}
+                onClear={
+                  rangeFilterHasAppliedValue && selectedFilterKey
+                    ? () =>
+                        onRemoveFilter
+                          ? onRemoveFilter(selectedFilterKey)
+                          : onRemove(
+                              selectedFilterKey,
+                              activeRangeTokenForSelected ?? "|",
+                            )
+                    : undefined
+                }
               />
               <FilterScroll key={selectedFilterKey} ref={listContainer}>
                 <FilterRangePanel

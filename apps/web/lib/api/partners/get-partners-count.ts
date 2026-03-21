@@ -5,7 +5,6 @@ import * as z from "zod/v4";
 import {
   buildMetricRangeWhere,
   buildProgramEnrollmentWhereForList,
-  percentileBreakpoints,
 } from "./program-enrollment-query";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
@@ -15,7 +14,7 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
 ): Promise<T> {
-  const { groupBy, metric, programId, ...enrollmentFilters } = filters;
+  const { groupBy, programId, ...enrollmentFilters } = filters;
   const enrollmentBase = { ...enrollmentFilters, programId };
 
   const { status, country, search, email, partnerIds, groupId } =
@@ -39,54 +38,6 @@ export async function getPartnersCount<T>(
   };
 
   const enrollmentMetricWhere = buildMetricRangeWhere(enrollmentBase);
-
-  if (groupBy === "metricPercentiles") {
-    const m = metric!;
-    const where = buildProgramEnrollmentWhereForList(enrollmentBase, {
-      percentileMetric: m,
-    });
-
-    if (m === "totalClicks") {
-      const rows = await prisma.programEnrollment.findMany({
-        where,
-        select: { totalClicks: true },
-        orderBy: { totalClicks: "asc" },
-      });
-      return {
-        percentiles: percentileBreakpoints(rows.map((r) => r.totalClicks)),
-      } as T;
-    }
-    if (m === "totalLeads") {
-      const rows = await prisma.programEnrollment.findMany({
-        where,
-        select: { totalLeads: true },
-        orderBy: { totalLeads: "asc" },
-      });
-      return {
-        percentiles: percentileBreakpoints(rows.map((r) => r.totalLeads)),
-      } as T;
-    }
-    if (m === "totalConversions") {
-      const rows = await prisma.programEnrollment.findMany({
-        where,
-        select: { totalConversions: true },
-        orderBy: { totalConversions: "asc" },
-      });
-      return {
-        percentiles: percentileBreakpoints(rows.map((r) => r.totalConversions)),
-      } as T;
-    }
-    const rows = await prisma.programEnrollment.findMany({
-      where,
-      select: { totalCommissions: true },
-      orderBy: { totalCommissions: "asc" },
-    });
-    return {
-      percentiles: percentileBreakpoints(
-        rows.map((r) => Number(r.totalCommissions)),
-      ),
-    } as T;
-  }
 
   // Get partner count by country
   if (groupBy === "country") {

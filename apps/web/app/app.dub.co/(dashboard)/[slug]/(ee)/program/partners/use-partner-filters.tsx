@@ -4,18 +4,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { encodeRangeToken, parseRangeToken, useRouterStuff } from "@dub/ui";
 import {
-  encodeRangeToken,
-  parseRangeToken,
-  useRouterStuff,
-  type FilterRangePercentiles,
-} from "@dub/ui";
-import {
-  ChartLine,
   CircleDotted,
   CursorRays,
   FlagWavy,
-  MoneyBill2,
+  InvoiceDollar,
+  MoneyBills2,
   UserPlus,
   Users6,
 } from "@dub/ui/icons";
@@ -45,7 +40,7 @@ const PARTNER_METRIC_RANGE = [
     maxParam: "totalConversionsMax",
     metric: "totalConversions" as const,
     label: "Conversions",
-    icon: ChartLine,
+    icon: InvoiceDollar,
   },
   {
     filterKey: "totalCommissions",
@@ -53,7 +48,7 @@ const PARTNER_METRIC_RANGE = [
     maxParam: "totalCommissionsMax",
     metric: "totalCommissions" as const,
     label: "Commissions",
-    icon: MoneyBill2,
+    icon: MoneyBills2,
     formatRangeBound: (n: number) => currencyFormatter(n),
     parseRangeInput: (raw: string) => {
       const n = Number.parseFloat(raw.replace(/[^0-9.-]/g, ""));
@@ -139,61 +134,6 @@ export function usePartnerFilters(
     enabled: enabledFilters.includes("groupId"),
   });
 
-  const { partnersCount: clicksPercentiles } = usePartnersCount<
-    { percentiles: FilterRangePercentiles } | undefined
-  >({
-    groupBy: "metricPercentiles",
-    metric: "totalClicks",
-    status,
-    ...cohortParams,
-    enabled: enabledFilters.includes("totalClicks"),
-  });
-
-  const { partnersCount: leadsPercentiles } = usePartnersCount<
-    { percentiles: FilterRangePercentiles } | undefined
-  >({
-    groupBy: "metricPercentiles",
-    metric: "totalLeads",
-    status,
-    ...cohortParams,
-    enabled: enabledFilters.includes("totalLeads"),
-  });
-
-  const { partnersCount: conversionsPercentiles } = usePartnersCount<
-    { percentiles: FilterRangePercentiles } | undefined
-  >({
-    groupBy: "metricPercentiles",
-    metric: "totalConversions",
-    status,
-    ...cohortParams,
-    enabled: enabledFilters.includes("totalConversions"),
-  });
-
-  const { partnersCount: commissionsPercentiles } = usePartnersCount<
-    { percentiles: FilterRangePercentiles } | undefined
-  >({
-    groupBy: "metricPercentiles",
-    metric: "totalCommissions",
-    status,
-    ...cohortParams,
-    enabled: enabledFilters.includes("totalCommissions"),
-  });
-
-  const percentileByMetric = useMemo(
-    () => ({
-      totalClicks: clicksPercentiles?.percentiles ?? null,
-      totalLeads: leadsPercentiles?.percentiles ?? null,
-      totalConversions: conversionsPercentiles?.percentiles ?? null,
-      totalCommissions: commissionsPercentiles?.percentiles ?? null,
-    }),
-    [
-      clicksPercentiles,
-      leadsPercentiles,
-      conversionsPercentiles,
-      commissionsPercentiles,
-    ],
-  );
-
   const filters = useMemo(
     () => [
       ...(enabledFilters.includes("groupId")
@@ -262,6 +202,7 @@ export function usePartnerFilters(
               key: "country",
               icon: FlagWavy,
               label: "Location",
+              separatorAfter: true,
               getOptionIcon: (value: string) => (
                 <img
                   alt={value}
@@ -301,7 +242,12 @@ export function usePartnerFilters(
           label: m.label,
           type: "range" as const,
           options: null,
-          rangePercentiles: percentileByMetric[m.metric],
+          ...(m.metric === "totalCommissions"
+            ? {
+                rangeDisplayScale: 100,
+                rangeNumberStep: 0.01,
+              }
+            : {}),
           formatRangeBound,
           parseRangeInput,
           formatRangePillLabel: (token: string) => {
@@ -320,15 +266,7 @@ export function usePartnerFilters(
         };
       }),
     ],
-    [
-      groupsCount,
-      groups,
-      statusCount,
-      countriesCount,
-      slug,
-      percentileByMetric,
-      enabledFilters,
-    ],
+    [groupsCount, groups, statusCount, countriesCount, slug, enabledFilters],
   );
 
   const activeFilters = useMemo(() => {

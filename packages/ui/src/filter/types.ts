@@ -9,14 +9,6 @@ type FilterIcon =
 
 export type { FilterOperator };
 
-export type FilterRangePercentiles = {
-  p0: number;
-  p25: number;
-  p50: number;
-  p75: number;
-  p100: number;
-};
-
 export type Filter = {
   key: string;
   icon: FilterIcon;
@@ -25,12 +17,19 @@ export type Filter = {
   options: FilterOption[] | null;
   /** When set to `range`, `FilterSelect` renders min/max controls instead of option list. */
   type?: "default" | "range";
-  /** Cohort percentiles for range preset menu (`null` while loading). */
-  rangePercentiles?: FilterRangePercentiles | null;
   /** Format a bound in storage units (e.g. cents) for display. */
   formatRangeBound?: (n: number) => string;
   /** Parse typed input into storage units. Return NaN if invalid. */
   parseRangeInput?: (raw: string) => number;
+  /**
+   * For `type: "range"`: divide stored values by this for the number input (e.g. `100` when storage is cents).
+   * Defaults to `1` (storage shown as-is).
+   */
+  rangeDisplayScale?: number;
+  /**
+   * `step` on the min/max number inputs. Defaults to `1` when `rangeDisplayScale` is 1, else `0.01`.
+   */
+  rangeNumberStep?: number;
   /** Full pill label for active range token (used by `Filter.List`). */
   formatRangePillLabel?: (token: string) => string;
   hideInFilterDropdown?: boolean; // Hide in Filter.Select dropdown
