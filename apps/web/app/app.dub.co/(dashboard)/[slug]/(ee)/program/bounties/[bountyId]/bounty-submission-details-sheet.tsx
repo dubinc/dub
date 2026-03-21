@@ -25,7 +25,6 @@ import {
   ChevronLeft,
   ChevronRight,
   CopyButton,
-  DynamicTooltipWrapper,
   Sheet,
   StatusBadge,
   Tooltip,
@@ -277,12 +276,10 @@ function BountySubmissionDetailsSheetContent({
                         label: "Criteria",
                         value:
                           criteriaTexts.length > 1 ? (
-                            <DynamicTooltipWrapper
-                              tooltipProps={{
-                                // remove first item from criteriaTexts
-                                content: criteriaTexts.slice(1).join("\n"),
-                                align: "end",
-                              }}
+                            <Tooltip
+                              // remove first item from criteriaTexts
+                              content={criteriaTexts.slice(1).join("\n")}
+                              align="end"
                             >
                               <div
                                 className={cn(
@@ -292,7 +289,7 @@ function BountySubmissionDetailsSheetContent({
                               >
                                 {`${bountyInfo.socialMetrics.minCount} ${bountyInfo.socialMetrics.metric}`}
                               </div>
-                            </DynamicTooltipWrapper>
+                            </Tooltip>
                           ) : (
                             `${bountyInfo.socialMetrics.minCount} ${bountyInfo.socialMetrics.metric}`
                           ),

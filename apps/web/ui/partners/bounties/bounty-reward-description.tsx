@@ -31,7 +31,7 @@ export function BountyRewardDescription({
     >
       <div className="flex items-center gap-2">
         <Gift className="size-3.5 shrink-0" />
-        <span>{description}</span>
+        <span className="max-w-[240px] truncate">{description}</span>
       </div>
 
       <BountyIncrementalBonusTooltip

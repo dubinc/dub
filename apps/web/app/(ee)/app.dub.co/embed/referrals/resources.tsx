@@ -51,7 +51,7 @@ export function ReferralsEmbedResources({
               key={link.id}
               resourceType="link"
               icon={
-                <div className="flex size-full items-center justify-center bg-neutral-50">
+                <div className="bg-bg-subtle flex size-full items-center justify-center">
                   <img
                     src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
                     alt={link.name}
@@ -94,8 +94,8 @@ export function ReferralsEmbedResources({
               key={file.id}
               resourceType="file"
               icon={
-                <div className="flex size-full items-center justify-center bg-neutral-50">
-                  <FileContent className="size-4 text-neutral-800" />
+                <div className="bg-bg-subtle flex size-full items-center justify-center">
+                  <FileContent className="text-content-emphasis size-4" />
                 </div>
               }
               title={file.name || "File"}
