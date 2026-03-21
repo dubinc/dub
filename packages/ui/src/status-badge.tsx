@@ -19,7 +19,7 @@ const statusBadgeVariants = cva(
         new: "bg-bg-info text-content-info",
         success: "bg-bg-success text-content-success",
         pending: "bg-bg-attention text-content-attention",
-        warning: "bg-bg-attention text-content-attention",
+        warning: "bg-bg-warning text-content-warning",
         error: "bg-bg-error text-content-error",
       },
       size: {
@@ -63,7 +63,9 @@ function StatusBadge({
     icon !== null ? icon ?? defaultIcons[variant ?? "neutral"] : null;
 
   return (
-    <DynamicTooltipWrapper tooltipProps={{ content: tooltip }}>
+    <DynamicTooltipWrapper
+      tooltipProps={tooltip ? { content: tooltip } : undefined}
+    >
       <span
         className={cn(
           statusBadgeVariants({ variant, size }),
