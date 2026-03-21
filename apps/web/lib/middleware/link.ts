@@ -284,7 +284,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     );
     rewriteResponse.headers.set(
       "Vercel-CDN-Cache-Control",
-      "public, max-age=86400",
+      "public, s-maxage=86400",
     );
     rewriteResponse.headers.set(
       "Vercel-Cache-Tag",

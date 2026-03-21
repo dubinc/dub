@@ -8,7 +8,8 @@ export async function GET() {
     headers: {
       "Access-Control-Allow-Origin": "*",
       // cache indefinitely till next deployment
-      "Cache-Control": "public, max-age=31536000, s-maxage=31536000",
+      "Vercel-CDN-Cache-Control": "s-maxage=31536000",
+      "Cache-Control": "public, max-age=31536000",
     },
   });
 }

@@ -25,7 +25,7 @@ export const handleNotFoundLink = async (req: NextRequest) => {
       headers: DUB_HEADERS,
     });
   }
-  response.headers.set("Vercel-CDN-Cache-Control", "public, max-age=86400");
+  response.headers.set("Vercel-CDN-Cache-Control", "public, s-maxage=86400");
   response.headers.set(
     "Vercel-Cache-Tag",
     linkCache._createNotFoundCacheKeys({ domain, key: fullKey }),
