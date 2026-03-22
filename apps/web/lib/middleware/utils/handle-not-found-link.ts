@@ -25,10 +25,21 @@ export const handleNotFoundLink = async (req: NextRequest) => {
       headers: DUB_HEADERS,
     });
   }
+  // TODO: remove this after debugging
+  response.headers.forEach((value, key) => {
+    console.log(`[before] ${key}: ${value}`);
+  });
+
   response.headers.set("Vercel-CDN-Cache-Control", "public, s-maxage=86400");
   response.headers.set(
     "Vercel-Cache-Tag",
     linkCache._createNotFoundCacheKeys({ domain, key: fullKey }),
   );
+
+  // TODO: remove this after debugging
+  response.headers.forEach((value, key) => {
+    console.log(`[after] ${key}: ${value}`);
+  });
+
   return response;
 };
