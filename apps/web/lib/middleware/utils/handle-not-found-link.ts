@@ -21,7 +21,7 @@ export const handleNotFoundLink = async (req: NextRequest) => {
       status: 302,
     });
   } else {
-    response = NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
+    response = NextResponse.rewrite(new URL("/static/notfound", req.url), {
       headers: DUB_HEADERS,
     });
   }

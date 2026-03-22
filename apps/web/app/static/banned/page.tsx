@@ -3,48 +3,33 @@ import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
-import { prisma } from "@dub/prisma";
-import { CircleHalfDottedClock, Footer, Nav, NavMobile } from "@dub/ui";
-import { cn, constructMetadata, createHref } from "@dub/utils";
-import { redirect } from "next/navigation";
+import { LearnMoreButton } from "@/ui/placeholders/learn-more-button";
+import { Footer, Nav, NavMobile, ShieldSlash } from "@dub/ui";
+import { cn, constructMetadata } from "@dub/utils";
 
 export const revalidate = false; // cache indefinitely
 
 export const metadata = constructMetadata({
-  title: "Expired Link",
-  description:
-    "This link has expired. Please contact the owner of this link to get a new one.",
+  title: "Banned Link",
+  description: "This link has been banned for violating our terms of service.",
   noIndex: true,
 });
 
 const UTM_PARAMS = {
-  utm_source: "Expired Link",
-  utm_medium: "Expired Link Page",
+  utm_source: "Banned Link",
+  utm_medium: "Banned Link Page",
 };
 
-export default async function ExpiredLinkPage(props: {
-  params: Promise<{ domain: string }>;
-}) {
-  const { domain } = await props.params;
-  const domainData = await prisma.domain.findUnique({
-    where: {
-      slug: domain,
-    },
-  });
-
-  if (domainData?.expiredUrl) {
-    redirect(domainData.expiredUrl);
-  }
-
+export default async function BannedPage() {
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <NavMobile />
       <Nav maxWidthWrapperClassName="max-w-screen-lg lg:px-4 xl:px-0" />
       <div>
         <Hero>
-          <div className="relative mx-auto flex w-full max-w-md flex-col items-center">
+          <div className="relative mx-auto flex w-full max-w-sm flex-col items-center">
             <BubbleIcon>
-              <CircleHalfDottedClock className="size-12" />
+              <ShieldSlash className="size-12" />
             </BubbleIcon>
             <h1
               className={cn(
@@ -52,7 +37,7 @@ export default async function ExpiredLinkPage(props: {
                 "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:20px] [animation-duration:1s] [animation-fill-mode:both]",
               )}
             >
-              Expired link
+              Banned link
             </h1>
             <p
               className={cn(
@@ -60,8 +45,7 @@ export default async function ExpiredLinkPage(props: {
                 "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
               )}
             >
-              This link has expired. Please contact the owner of this link to
-              get a new one.
+              This link has been banned for violating our terms of service.
             </p>
           </div>
 
@@ -74,23 +58,14 @@ export default async function ExpiredLinkPage(props: {
             <ButtonLink variant="primary" href="https://app.dub.co/register">
               Try Dub today
             </ButtonLink>
-            <ButtonLink
-              variant="secondary"
-              href={createHref("/links", domain, {
-                ...UTM_PARAMS,
-                utm_campaign: domain,
-                utm_content: "Learn more",
-              })}
-            >
-              Learn more
-            </ButtonLink>
+            <LearnMoreButton utmParams={UTM_PARAMS} />
           </div>
         </Hero>
         <div className="mt-20">
-          <FeaturesSection domain={domain} utmParams={UTM_PARAMS} />
+          <FeaturesSection utmParams={UTM_PARAMS} />
         </div>
         <div className="mt-32">
-          <CTA domain={domain} utmParams={UTM_PARAMS} />
+          <CTA utmParams={UTM_PARAMS} />
         </div>
       </div>
       <Footer className="max-w-screen-lg border-0 bg-transparent lg:px-4 xl:px-0" />

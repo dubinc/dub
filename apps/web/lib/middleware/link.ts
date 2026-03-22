@@ -195,7 +195,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   // if the link is banned
   if (workspaceId === LEGAL_WORKSPACE_ID) {
-    return NextResponse.rewrite(new URL("/banned", req.url), {
+    return NextResponse.rewrite(new URL("/static/banned", req.url), {
       headers: {
         ...DUB_HEADERS,
         ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
@@ -219,7 +219,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         status: 302,
       });
     } else {
-      return NextResponse.rewrite(new URL(`/expired/${domain}`, req.url), {
+      return NextResponse.rewrite(new URL(`/${domain}/expired`, req.url), {
         headers: {
           ...DUB_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),

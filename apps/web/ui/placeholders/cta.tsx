@@ -1,7 +1,9 @@
+"use client";
+
 import { Grid } from "@dub/ui";
 import { cn, createHref, UTMTags } from "@dub/utils";
 import { Star, StarHalf } from "lucide-react";
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { ButtonLink } from "./button-link";
 import Logos from "./logos";
 
@@ -27,18 +29,20 @@ const RATINGS = [
 ];
 
 export function CTA({
-  domain,
   utmParams,
   title = "Supercharge your marketing efforts",
   subtitle = "See why Dub is the link management platform of choice for modern marketing teams.",
   className,
 }: {
-  domain: string;
   utmParams?: Partial<Record<(typeof UTMTags)[number], string>>;
   title?: ReactNode;
   subtitle?: ReactNode;
   className?: string;
 }) {
+  const [domain, setDomain] = useState("");
+  useEffect(() => {
+    setDomain(window.location.hostname);
+  }, []);
   return (
     <div
       className={cn(

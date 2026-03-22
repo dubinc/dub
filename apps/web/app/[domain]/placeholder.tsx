@@ -4,8 +4,9 @@ import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
+import { LearnMoreButton } from "@/ui/placeholders/learn-more-button";
 import { Logo } from "@dub/ui";
-import { cn, createHref } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { useParams } from "next/navigation";
 import { BubbleIcon } from "../../ui/placeholders/bubble-icon";
 import { BrowserGraphic } from "./browser-graphic";
@@ -56,23 +57,14 @@ export default function PlaceholderContent() {
           <ButtonLink variant="primary" href="https://app.dub.co/register">
             Try Dub today
           </ButtonLink>
-          <ButtonLink
-            variant="secondary"
-            href={createHref("/links", domain, {
-              ...UTM_PARAMS,
-              utm_campaign: domain,
-              utm_content: "Learn more",
-            })}
-          >
-            Learn more
-          </ButtonLink>
+          <LearnMoreButton utmParams={UTM_PARAMS} />
         </div>
       </Hero>
       <div className="mt-20">
-        <FeaturesSection domain={domain} utmParams={UTM_PARAMS} />
+        <FeaturesSection utmParams={UTM_PARAMS} />
       </div>
       <div className="mt-32">
-        <CTA domain={domain} utmParams={UTM_PARAMS} />
+        <CTA utmParams={UTM_PARAMS} />
       </div>
     </div>
   );
