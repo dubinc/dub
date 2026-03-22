@@ -111,7 +111,7 @@ class LinkCache {
         key,
       });
       if (!linkData) {
-        // if no link found (and Redis fails), throw a 404 error (don't rewrite to /not-found since it's expensive)
+        // if no link found (and Redis fails), throw a 404 error (don't rewrite to /static/notfound since it's expensive)
         throw new Error("Link not found.");
       }
       // else, format the link and cache it both in LRU cache and Vercel cache
