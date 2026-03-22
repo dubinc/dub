@@ -1,24 +1,38 @@
-"use client";
-
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
 import { LearnMoreButton } from "@/ui/placeholders/learn-more-button";
 import { Logo } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { useParams } from "next/navigation";
-import { BubbleIcon } from "../../../ui/placeholders/bubble-icon";
+import { cn, constructMetadata } from "@dub/utils";
+import { BubbleIcon } from "../../ui/placeholders/bubble-icon";
 import { BrowserGraphic } from "./browser-graphic";
+
+export const revalidate = false;
+
+export async function generateMetadata(props: {
+  params: Promise<{ domain: string }>;
+}) {
+  const params = await props.params;
+  const title = `${params.domain.toUpperCase()} - A Dub Custom Domain`;
+  const description = `${params.domain.toUpperCase()} is a custom domain on Dub - the modern link attribution platform for short links, conversion tracking, and affiliate programs.`;
+
+  return constructMetadata({
+    title,
+    description,
+  });
+}
+// @see: https://nextjs.org/docs/app/api-reference/functions/generate-static-params#all-paths-at-runtime
+export function generateStaticParams() {
+  return [];
+}
 
 const UTM_PARAMS = {
   utm_source: "Custom Domain",
   utm_medium: "Welcome Page",
 };
 
-export default function PlaceholderContent() {
-  const { domain } = useParams() as { domain: string };
-
+export default function CustomDomainPage() {
   return (
     <div>
       <Hero>
@@ -27,7 +41,7 @@ export default function PlaceholderContent() {
             <Logo className="size-10" />
           </BubbleIcon>
           <div className="mt-16 w-full">
-            <BrowserGraphic domain={domain} />
+            <BrowserGraphic />
           </div>
           <h1
             className={cn(

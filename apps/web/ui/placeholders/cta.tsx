@@ -3,7 +3,8 @@
 import { Grid } from "@dub/ui";
 import { cn, createHref, UTMTags } from "@dub/utils";
 import { Star, StarHalf } from "lucide-react";
-import { ReactNode, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { ReactNode } from "react";
 import { ButtonLink } from "./button-link";
 import Logos from "./logos";
 
@@ -39,10 +40,7 @@ export function CTA({
   subtitle?: ReactNode;
   className?: string;
 }) {
-  const [domain, setDomain] = useState("");
-  useEffect(() => {
-    setDomain(window.location.hostname);
-  }, []);
+  const { domain } = useParams() as { domain: string };
   return (
     <div
       className={cn(

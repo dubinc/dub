@@ -4,45 +4,35 @@ import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
 import { LearnMoreButton } from "@/ui/placeholders/learn-more-button";
-import { prisma } from "@dub/prisma";
-import { CircleHalfDottedClock } from "@dub/ui";
+import { GlobeSearch } from "@dub/ui";
 import { cn, constructMetadata } from "@dub/utils";
-import { redirect } from "next/navigation";
 
 export const revalidate = false; // cache indefinitely
 
 export const metadata = constructMetadata({
-  title: "Expired Link",
+  title: "Link Not Found",
   description:
-    "This link has expired. Please contact the owner of this link to get a new one.",
+    "This link does not exist on Dub. Please check the URL and try again.",
+  image: "https://assets.dub.co/misc/notfoundlink.jpg",
   noIndex: true,
 });
 
 const UTM_PARAMS = {
-  utm_source: "Expired Link",
-  utm_medium: "Expired Link Page",
+  utm_source: "Link Not Found",
+  utm_medium: "Link Not Found Page",
 };
 
-export default async function ExpiredLinkPage(props: {
-  params: Promise<{ domain: string }>;
-}) {
-  const { domain } = await props.params;
-  const domainData = await prisma.domain.findUnique({
-    where: {
-      slug: domain,
-    },
-  });
+export function generateStaticParams() {
+  return [];
+}
 
-  if (domainData?.expiredUrl) {
-    redirect(domainData.expiredUrl);
-  }
-
+export default async function NotFoundLinkPage() {
   return (
-    <div>
+    <main className="flex min-h-screen flex-col justify-between">
       <Hero>
         <div className="relative mx-auto flex w-full max-w-md flex-col items-center">
           <BubbleIcon>
-            <CircleHalfDottedClock className="size-12" />
+            <GlobeSearch className="size-12" />
           </BubbleIcon>
           <h1
             className={cn(
@@ -50,7 +40,7 @@ export default async function ExpiredLinkPage(props: {
               "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:20px] [animation-duration:1s] [animation-fill-mode:both]",
             )}
           >
-            Expired link
+            Link not found
           </h1>
           <p
             className={cn(
@@ -58,8 +48,7 @@ export default async function ExpiredLinkPage(props: {
               "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
             )}
           >
-            This link has expired. Please contact the owner of this link to get
-            a new one.
+            This link does not exist on Dub. Please check the URL and try again.
           </p>
         </div>
 
@@ -81,6 +70,6 @@ export default async function ExpiredLinkPage(props: {
       <div className="mt-32">
         <CTA utmParams={UTM_PARAMS} />
       </div>
-    </div>
+    </main>
   );
 }

@@ -20,6 +20,10 @@ const UTM_PARAMS = {
   utm_medium: "Banned Link Page",
 };
 
+export function generateStaticParams() {
+  return [];
+}
+
 export default async function BannedPage() {
   return (
     <div>
