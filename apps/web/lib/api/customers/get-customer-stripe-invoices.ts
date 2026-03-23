@@ -6,9 +6,11 @@ const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { mode: "live" }),
 });
 
-function hasStripeInvoiceRefund(
-  invoice: Awaited<ReturnType<typeof stripe.invoices.list>>["data"][number],
-) {
+type StripeInvoice = Awaited<
+  ReturnType<typeof stripe.invoices.list>
+>["data"][number];
+
+function hasStripeInvoiceRefund(invoice: StripeInvoice) {
   const charge = (
     invoice as {
       charge?:
@@ -25,6 +27,24 @@ function hasStripeInvoiceRefund(
   }
 
   return !!charge.refunded || (charge.amount_refunded ?? 0) > 0;
+}
+
+function sanitizeInvoiceForMetadata(invoice: StripeInvoice) {
+  const charge = (
+    invoice as {
+      charge?:
+        | {
+            id?: string;
+          }
+        | string
+        | null;
+    }
+  ).charge;
+
+  return {
+    ...invoice,
+    charge: typeof charge === "string" || charge === null ? charge : charge?.id,
+  };
 }
 
 export async function getCustomerStripeInvoices({
@@ -74,7 +94,7 @@ export async function getCustomerStripeInvoices({
       id: invoice.id,
       amount: invoice.amount_paid,
       createdAt: new Date(invoice.created * 1000),
-      metadata: invoice,
+      metadata: sanitizeInvoiceForMetadata(invoice),
       dubCommissionId: invoiceIdCommissionIdMap[invoice.id],
     }),
   );
