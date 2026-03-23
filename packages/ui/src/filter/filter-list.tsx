@@ -8,6 +8,7 @@ import { AnimatedSizeContainer } from "../animated-size-container";
 import { useKeyboardShortcut } from "../hooks";
 import { Check } from "../icons";
 import { Popover } from "../popover";
+import { FilterRangePanel } from "./filter-range-panel";
 import {
   ActiveFilterInput,
   Filter,
@@ -298,6 +299,7 @@ function OperatorFilterPill({
   const [initialSelectedValues, setInitialSelectedValues] = useState<
     Set<FilterOption["value"]>
   >(new Set());
+  const [rangeEditOpen, setRangeEditOpen] = useState(false);
 
   const openValueDropdown = useCallback(() => {
     setInitialSelectedValues(new Set(values));
@@ -323,6 +325,8 @@ function OperatorFilterPill({
     const fmt =
       filter.formatRangeBound ?? ((n: number) => String(Math.trunc(n)));
     const { min, max } = parseRangeToken(token);
+    const rangeFullyApplied = min != null && max != null;
+    const rangeHasAppliedValue = min != null || max != null;
     const rangeLabel =
       filter.formatRangePillLabel?.(token) ??
       (min != null && max != null
@@ -357,9 +361,60 @@ function OperatorFilterPill({
           is
         </div>
 
-        <div className="flex min-w-0 flex-1 items-center px-3 py-2 text-sm font-medium tracking-tight text-neutral-900">
-          <span className="truncate">{rangeLabel}</span>
-        </div>
+        <Popover
+          openPopover={rangeEditOpen}
+          setOpenPopover={setRangeEditOpen}
+          align="start"
+          onEscapeKeyDown={(e) => {
+            if (rangeFullyApplied) {
+              e.preventDefault();
+              setRangeEditOpen(false);
+            }
+          }}
+          content={
+            <AnimatedSizeContainer width height className="rounded-[inherit]">
+              <FilterRangePanel
+                key={filterKey}
+                filter={filter}
+                activeToken={token}
+                onBack={() => setRangeEditOpen(false)}
+                onClear={
+                  rangeHasAppliedValue
+                    ? () =>
+                        onRemoveFilter
+                          ? onRemoveFilter(filterKey)
+                          : onRemove(filterKey, token)
+                    : undefined
+                }
+                onCloseOuter={
+                  rangeFullyApplied ? () => setRangeEditOpen(false) : undefined
+                }
+                onApply={(t) => {
+                  if (t === "|") {
+                    if (onRemoveFilter) {
+                      onRemoveFilter(filterKey);
+                    } else {
+                      onRemove(filterKey, token);
+                    }
+                  } else {
+                    onSelect?.(filterKey, t);
+                  }
+                }}
+              />
+            </AnimatedSizeContainer>
+          }
+        >
+          <button
+            type="button"
+            className={cn(
+              "flex min-w-0 flex-1 items-center px-3 py-2 text-left text-sm font-medium tracking-tight text-neutral-900",
+              "transition-[background-color,transform] duration-150 ease-out motion-reduce:transition-none",
+              "hover:bg-neutral-50 active:scale-[0.99] motion-reduce:active:scale-100 [@media(hover:none)]:hover:bg-transparent",
+            )}
+          >
+            <span className="truncate">{rangeLabel}</span>
+          </button>
+        </Popover>
 
         <button
           type="button"

@@ -5,21 +5,19 @@ import {
   Fragment,
   PropsWithChildren,
   ReactNode,
-  forwardRef,
   isValidElement,
   useCallback,
   useEffect,
-  useImperativeHandle,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { useKeyboardShortcut, useMediaQuery } from "../hooks";
-import { useScrollProgress } from "../hooks/use-scroll-progress";
 import { Check, LoadingSpinner, Magic } from "../icons";
 import { Popover } from "../popover";
-import { FilterRangeHeader, FilterRangePanel } from "./filter-range-panel";
+import { FilterRangePanel } from "./filter-range-panel";
+import { FilterScroll } from "./filter-scroll";
 import {
   ActiveFilterInput,
   Filter,
@@ -221,43 +219,37 @@ export function FilterSelect({
           style={{ transform: "translateZ(0)" }} // Fixes overflow on some browsers
         >
           {selectedFilter?.type === "range" ? (
-            <>
-              <FilterRangeHeader
-                label={selectedFilter.label}
-                onBack={() => reset()}
-                onClear={
-                  rangeFilterHasAppliedValue && selectedFilterKey
-                    ? () =>
-                        onRemoveFilter
-                          ? onRemoveFilter(selectedFilterKey)
-                          : onRemove(
-                              selectedFilterKey,
-                              activeRangeTokenForSelected ?? "|",
-                            )
-                    : undefined
-                }
-              />
-              <FilterScroll key={selectedFilterKey} ref={listContainer}>
-                <FilterRangePanel
-                  filter={selectedFilter}
-                  activeToken={activeRangeTokenForSelected}
-                  onNavigateBack={() => reset()}
-                  onCloseFilter={() => setIsOpen(false)}
-                  onApply={(token) => {
-                    if (token === "|") {
+            <FilterRangePanel
+              key={selectedFilterKey}
+              filter={selectedFilter}
+              activeToken={activeRangeTokenForSelected}
+              scrollRef={listContainer}
+              onBack={() => reset()}
+              onClear={
+                rangeFilterHasAppliedValue && selectedFilterKey
+                  ? () =>
                       onRemoveFilter
-                        ? onRemoveFilter(selectedFilter.key)
+                        ? onRemoveFilter(selectedFilterKey)
                         : onRemove(
-                            selectedFilter.key,
+                            selectedFilterKey,
                             activeRangeTokenForSelected ?? "|",
-                          );
-                    } else {
-                      onSelect(selectedFilter.key, token);
-                    }
-                  }}
-                />
-              </FilterScroll>
-            </>
+                          )
+                  : undefined
+              }
+              onCloseOuter={() => setIsOpen(false)}
+              onApply={(token) => {
+                if (token === "|") {
+                  onRemoveFilter
+                    ? onRemoveFilter(selectedFilter.key)
+                    : onRemove(
+                        selectedFilter.key,
+                        activeRangeTokenForSelected ?? "|",
+                      );
+                } else {
+                  onSelect(selectedFilter.key, token);
+                }
+              }}
+            />
           ) : (
             <Command
               loop
@@ -455,32 +447,6 @@ const CommandInput = (
     />
   );
 };
-
-const FilterScroll = forwardRef(
-  ({ children }: PropsWithChildren, forwardedRef) => {
-    const ref = useRef<HTMLDivElement>(null);
-    useImperativeHandle(forwardedRef, () => ref.current);
-
-    const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
-
-    return (
-      <>
-        <div
-          className="scrollbar-hide max-h-[50vh] w-screen overflow-y-scroll sm:w-auto"
-          ref={ref}
-          onScroll={updateScrollProgress}
-        >
-          {children}
-        </div>
-        {/* Bottom scroll fade */}
-        <div
-          className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full bg-gradient-to-t from-white sm:block"
-          style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-        ></div>
-      </>
-    );
-  },
-);
 
 function FilterButton({
   filter,

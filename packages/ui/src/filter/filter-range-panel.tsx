@@ -10,6 +10,7 @@ import {
   type MutableRefObject,
   type Ref,
 } from "react";
+import { FilterScroll } from "./filter-scroll";
 import { encodeRangeToken, parseRangeToken, type Filter } from "./types";
 
 type RangeBound = "min" | "max";
@@ -57,7 +58,7 @@ function sanitizeNumericDraft(raw: string, displayScale: number): string {
   return s;
 }
 
-export function FilterRangeHeader({
+function FilterRangeHeader({
   label,
   onBack,
   onClear,
@@ -267,7 +268,7 @@ function RangeEndControl({
   );
 }
 
-export function FilterRangePanel({
+function FilterRangeContent({
   filter,
   activeToken,
   onApply,
@@ -400,5 +401,44 @@ export function FilterRangePanel({
         </div>
       </div>
     </div>
+  );
+}
+
+export type FilterRangePanelProps = {
+  filter: Filter;
+  activeToken: string | undefined;
+  onApply: (token: string) => void;
+  onBack: () => void;
+  onClear?: () => void;
+  onCloseOuter?: () => void;
+  scrollRef?: Ref<HTMLDivElement | null>;
+};
+
+export function FilterRangePanel({
+  filter,
+  activeToken,
+  onApply,
+  onBack,
+  onClear,
+  onCloseOuter,
+  scrollRef,
+}: FilterRangePanelProps) {
+  return (
+    <>
+      <FilterRangeHeader
+        label={filter.label}
+        onBack={onBack}
+        onClear={onClear}
+      />
+      <FilterScroll ref={scrollRef}>
+        <FilterRangeContent
+          filter={filter}
+          activeToken={activeToken}
+          onApply={onApply}
+          onNavigateBack={onBack}
+          onCloseFilter={onCloseOuter}
+        />
+      </FilterScroll>
+    </>
   );
 }
