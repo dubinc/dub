@@ -1,3 +1,4 @@
+import { linkCache } from "@/lib/api/links/cache";
 import { redis } from "@/lib/upstash";
 import { DUB_HEADERS } from "@dub/utils";
 import { NextRequest, NextResponse } from "next/server";
@@ -21,7 +22,14 @@ export const crawlBitly = async (req: NextRequest) => {
   }
 
   return NextResponse.redirect("https://buffer.com", {
-    headers: DUB_HEADERS,
+    headers: {
+      ...DUB_HEADERS,
+      "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+      "Vercel-Cache-Tag": linkCache._createNotFoundCacheKeys({
+        domain,
+        key: fullKey,
+      }),
+    },
     status: 302,
   });
 };

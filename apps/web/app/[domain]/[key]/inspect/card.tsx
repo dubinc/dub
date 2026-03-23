@@ -15,7 +15,7 @@ export default function LinkInspectorCard({
   const key = _key;
   const apexDomain = getApexDomain(url);
   return (
-    <div className="flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white p-3">
+    <div className="flex w-full items-center justify-between rounded-lg border border-neutral-200 bg-white p-3 shadow-sm">
       <div className="flex items-center space-x-3">
         <LinkLogo apexDomain={apexDomain} />
         <div>

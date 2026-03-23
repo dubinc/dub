@@ -158,7 +158,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
     return NextResponse.rewrite(
-      new URL(`/inspect/${domain}/${encodeURIComponent(key)}+`, req.url),
+      new URL(`/${domain}/${encodeURIComponent(key)}/inspect`, req.url),
       {
         headers: {
           ...DUB_HEADERS,
@@ -195,7 +195,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   // if the link is banned
   if (workspaceId === LEGAL_WORKSPACE_ID) {
-    return NextResponse.rewrite(new URL("/banned", req.url), {
+    return NextResponse.rewrite(new URL(`/${domain}/banned`, req.url), {
       headers: {
         ...DUB_HEADERS,
         ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
@@ -219,7 +219,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         status: 302,
       });
     } else {
-      return NextResponse.rewrite(new URL(`/expired/${domain}`, req.url), {
+      return NextResponse.rewrite(new URL(`/${domain}/expired`, req.url), {
         headers: {
           ...DUB_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
@@ -249,7 +249,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   const cookieData = {
-    path: `/${originalKey}`,
+    path: `/${encodeURI(originalKey)}`,
     dubIdCookieName,
     dubIdCookieValue: clickId,
     dubTestUrlValue: testUrl,
@@ -273,16 +273,24 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       }),
     );
 
-    return createResponseWithCookies(
-      NextResponse.rewrite(new URL(`/${domain}`, req.url), {
+    const rewriteResponse = NextResponse.rewrite(
+      new URL(`/${domain}`, req.url),
+      {
         headers: {
           ...DUB_HEADERS,
-          // we only index root domain links if they're not subdomains
-          ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-      }),
-      cookieData,
+      },
     );
+    rewriteResponse.headers.set(
+      "Vercel-CDN-Cache-Control",
+      "public, s-maxage=86400",
+    );
+    rewriteResponse.headers.set(
+      "Vercel-Cache-Tag",
+      linkCache._createNotFoundCacheKeys({ domain, key: "_root" }), // set cache tag for root domain link
+    );
+    return createResponseWithCookies(rewriteResponse, cookieData);
   }
 
   const isBot = detectBot(req);
@@ -293,11 +301,11 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       ? geolocation(req)
       : LOCALHOST_GEO_DATA;
 
-  // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
+  // rewrite to proxy page ([domain]/[key]/proxy) if it's a bot and proxy is enabled
   if (isBot && proxy) {
     return createResponseWithCookies(
       NextResponse.rewrite(
-        new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+        new URL(`/${domain}/${encodeURIComponent(key)}/proxy`, req.url),
         {
           headers: {
             ...DUB_HEADERS,

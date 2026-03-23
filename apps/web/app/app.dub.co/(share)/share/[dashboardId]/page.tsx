@@ -62,10 +62,12 @@ export default async function DashboardPage(props: {
     );
   }
 
+  const domain = data.link?.domain || "app.dub.co";
+
   return (
     <div className="flex min-h-screen flex-col justify-between bg-neutral-50/80">
-      <NavMobile staticDomain="app.dub.co" />
-      <Nav staticDomain="app.dub.co" />
+      <NavMobile staticDomain={domain} />
+      <Nav staticDomain={domain} />
       <Suspense fallback={<div className="h-screen w-full bg-neutral-50" />}>
         <Analytics
           dashboardProps={{
@@ -84,7 +86,7 @@ export default async function DashboardPage(props: {
           }}
         />
       </Suspense>
-      <Footer staticDomain="app.dub.co" />
+      <Footer staticDomain={domain} />
     </div>
   );
 }

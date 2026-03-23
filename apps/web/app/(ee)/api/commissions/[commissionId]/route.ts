@@ -123,7 +123,7 @@ export const PATCH = withWorkspace(
     if (commission.status === "paid") {
       throw new DubApiError({
         code: "bad_request",
-        message: `Cannot update amount: Commission ${commissionId} has already been paid.`,
+        message: `Cannot update commission: Commission ${commissionId} has already been paid.`,
       });
     }
 

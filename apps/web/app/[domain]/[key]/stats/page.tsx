@@ -6,11 +6,14 @@ export default async function OldStatsPage(props: {
   params: Promise<{ domain: string; key: string }>;
 }) {
   const params = await props.params;
+  const domain = params.domain;
+  const key = decodeURIComponent(params.key);
+
   const link = await prisma.link.findUnique({
     where: {
       domain_key: {
-        domain: params.domain,
-        key: params.key,
+        domain,
+        key,
       },
     },
     select: {

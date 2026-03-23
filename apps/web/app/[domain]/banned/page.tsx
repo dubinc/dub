@@ -3,34 +3,34 @@ import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
-import { GlobeSearch } from "@dub/ui";
-import { cn, constructMetadata, createHref } from "@dub/utils";
+import { LearnMoreButton } from "@/ui/placeholders/learn-more-button";
+import { ShieldSlash } from "@dub/ui";
+import { cn, constructMetadata } from "@dub/utils";
 
 export const revalidate = false; // cache indefinitely
 
 export const metadata = constructMetadata({
-  title: "Link Not Found",
-  description:
-    "This link does not exist on Dub. Please check the URL and try again.",
-  image: "https://assets.dub.co/misc/notfoundlink.jpg",
+  title: "Banned Link",
+  description: "This link has been banned for violating our terms of service.",
   noIndex: true,
 });
 
 const UTM_PARAMS = {
-  utm_source: "Link Not Found",
-  utm_medium: "Link Not Found Page",
+  utm_source: "Banned Link",
+  utm_medium: "Banned Link Page",
 };
 
-export default async function NotFoundLinkPage(props: {
-  params: Promise<{ domain: string }>;
-}) {
-  const params = await props.params;
+export function generateStaticParams() {
+  return [];
+}
+
+export default async function BannedPage() {
   return (
-    <main className="flex min-h-screen flex-col justify-between">
+    <div>
       <Hero>
-        <div className="relative mx-auto flex w-full max-w-md flex-col items-center">
+        <div className="relative mx-auto flex w-full max-w-sm flex-col items-center">
           <BubbleIcon>
-            <GlobeSearch className="size-12" />
+            <ShieldSlash className="size-12" />
           </BubbleIcon>
           <h1
             className={cn(
@@ -38,7 +38,7 @@ export default async function NotFoundLinkPage(props: {
               "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:20px] [animation-duration:1s] [animation-fill-mode:both]",
             )}
           >
-            Link not found
+            Banned link
           </h1>
           <p
             className={cn(
@@ -46,7 +46,7 @@ export default async function NotFoundLinkPage(props: {
               "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
             )}
           >
-            This link does not exist on Dub. Please check the URL and try again.
+            This link has been banned for violating our terms of service.
           </p>
         </div>
 
@@ -59,24 +59,15 @@ export default async function NotFoundLinkPage(props: {
           <ButtonLink variant="primary" href="https://app.dub.co/register">
             Try Dub today
           </ButtonLink>
-          <ButtonLink
-            variant="secondary"
-            href={createHref("/", params.domain, {
-              ...UTM_PARAMS,
-              utm_campaign: params.domain,
-              utm_content: "Learn more",
-            })}
-          >
-            Learn more
-          </ButtonLink>
+          <LearnMoreButton utmParams={UTM_PARAMS} />
         </div>
       </Hero>
       <div className="mt-20">
-        <FeaturesSection domain={params.domain} utmParams={UTM_PARAMS} />
+        <FeaturesSection utmParams={UTM_PARAMS} />
       </div>
       <div className="mt-32">
-        <CTA domain={params.domain} utmParams={UTM_PARAMS} />
+        <CTA utmParams={UTM_PARAMS} />
       </div>
-    </main>
+    </div>
   );
 }
