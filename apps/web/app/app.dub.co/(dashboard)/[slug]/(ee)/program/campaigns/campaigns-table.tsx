@@ -45,7 +45,9 @@ export function CampaignsTable() {
   const { id: workspaceId, slug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const { getQueryString, searchParamsObj } = useRouterStuff();
-  const isFiltered = Object.keys(searchParamsObj).length > 0;
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const {
     data: campaigns,

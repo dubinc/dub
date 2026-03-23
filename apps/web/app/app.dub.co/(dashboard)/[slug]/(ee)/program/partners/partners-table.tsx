@@ -134,6 +134,10 @@ export function PartnersTable() {
     ...(status ? { status } : {}),
   });
 
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
+
   const {
     data: partners,
     error,
@@ -566,7 +570,7 @@ export function PartnersTable() {
         <AnimatedEmptyState
           title="No partners found"
           description={
-            Object.keys(searchParamsObj).length > 0
+            isFiltered
               ? "No partners found for the selected filters."
               : "No partners have been added to this program yet."
           }

@@ -90,6 +90,10 @@ export function PayoutTable() {
     return new Set(fraudGroupCount.map(({ partnerId }) => partnerId));
   }, [fraudGroupCount]);
 
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
+
   const table = useTable({
     data: payouts || [],
     loading: isLoading,
@@ -208,7 +212,7 @@ export function PayoutTable() {
         <AnimatedEmptyState
           title="No payouts found"
           description={
-            Object.keys(searchParamsObj).length > 0
+            isFiltered
               ? "No payouts found for the selected filters."
               : "No payouts have been initiated for this program yet."
           }

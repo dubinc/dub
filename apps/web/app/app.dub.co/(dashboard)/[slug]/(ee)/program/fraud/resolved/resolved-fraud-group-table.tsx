@@ -30,7 +30,9 @@ export function ResolvedFraudGroupTable() {
 
   const sortBy = searchParams.get("sortBy") || "resolvedAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-  const isFiltered = Object.keys(searchParamsObj).length > 0;
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const { fraudGroups, loading, error } = useFraudGroups({
     query: {

@@ -73,7 +73,9 @@ export function CustomersTable({
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const isFiltered = Object.keys(searchParamsObj).length > 0;
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const { data: customersCount, error: countError } = useCustomersCount({
     enabled: canManageCustomers,

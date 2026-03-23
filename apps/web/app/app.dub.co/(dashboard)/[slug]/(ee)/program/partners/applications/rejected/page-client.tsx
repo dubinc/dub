@@ -66,7 +66,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
   const { queryParams, searchParams, searchParamsObj, getQueryString } =
     useRouterStuff();
 
-  const search = searchParams.get("search");
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
@@ -120,6 +119,10 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     | { open: false; partnerId: string | null }
     | { open: true; partnerId: string }
   >({ open: false, partnerId: null });
+
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   useEffect(() => {
     const partnerId = searchParams.get("partnerId");
@@ -430,7 +433,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       ) : (
         <AnimatedEmptyState
           title="No rejected applications found"
-          description={`No rejected applications found${Object.keys(searchParamsObj).length > 0 || search ? " for the selected filters" : " for this program"}.`}
+          description={`No rejected applications found${isFiltered ? " for the selected filters" : " for this program"}.`}
           cardContent={() => (
             <>
               <Users className="size-4 text-neutral-700" />

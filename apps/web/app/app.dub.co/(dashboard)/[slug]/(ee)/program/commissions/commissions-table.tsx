@@ -78,6 +78,9 @@ export function CommissionsTable() {
     sortBy: string;
     sortOrder: "asc" | "desc";
   };
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const {
     data: commissions,
@@ -380,7 +383,7 @@ export function CommissionsTable() {
         <AnimatedEmptyState
           title="No commissions found"
           description={
-            Object.keys(searchParamsObj).length > 0
+            isFiltered
               ? "No commissions found for the selected filters."
               : "No commissions have been made for this program yet."
           }

@@ -88,7 +88,9 @@ export function GroupsTable() {
     error: countError,
   } = useGroupsCount();
 
-  const isFiltered = Object.keys(searchParamsObj).length > 0;
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const currentDefaultGroup = groups?.find(
     (g) => g.slug === DEFAULT_PARTNER_GROUP.slug,

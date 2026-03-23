@@ -65,9 +65,12 @@ export function ProgramPartnersApplicationsPageClient() {
   const { queryParams, searchParams, searchParamsObj, getQueryString } =
     useRouterStuff();
 
-  const search = searchParams.get("search");
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
@@ -487,7 +490,7 @@ export function ProgramPartnersApplicationsPageClient() {
       ) : (
         <AnimatedEmptyState
           title="No applications found"
-          description={`No applications found${Object.keys(searchParamsObj).length > 0 || search ? " for the selected filters" : " for this program"}.`}
+          description={`No applications found${isFiltered ? " for the selected filters" : " for this program"}.`}
           cardContent={() => (
             <>
               <Users className="size-4 text-neutral-700" />
