@@ -44,19 +44,12 @@ export const GET = withWorkspace(
 // PUT /api/domains/[domain] – edit a workspace's domain
 export const PATCH = withWorkspace(
   async ({ req, workspace, params }) => {
-    const {
-      id: domainId,
-      slug: domain,
-      registeredDomain,
-      logo: oldLogo,
-      notFoundUrl: oldNotFoundUrl,
-      expiredUrl: oldExpiredUrl,
-      partnerProgram,
-    } = await getDomainOrThrow({
+    const existingDomain = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
     });
+    const { slug: domain, registeredDomain, partnerProgram } = existingDomain;
 
     const {
       slug: newDomain,
@@ -130,17 +123,17 @@ export const PATCH = withWorkspace(
 
     const logoUploaded = logo
       ? await storage.upload({
-          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          key: `domains/${existingDomain.id}/logo_${nanoid(7)}`,
           body: logo,
         })
       : null;
 
     // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
-    const deleteLogo = logo === null && oldLogo;
+    const deleteLogo = logo === null && existingDomain.logo;
 
     const domainRecord = await prisma.domain.update({
       where: {
-        slug: domain,
+        id: existingDomain.id,
       },
       data: {
         ...(domainUpdated && { slug: newDomain }),
@@ -148,7 +141,7 @@ export const PATCH = withWorkspace(
         placeholder,
         expiredUrl,
         notFoundUrl,
-        logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
+        logo: deleteLogo ? null : logoUploaded?.url || existingDomain.logo,
         ...(assetLinks !== undefined && {
           assetLinks: assetLinks ? JSON.parse(assetLinks) : Prisma.DbNull,
         }),
@@ -177,7 +170,7 @@ export const PATCH = withWorkspace(
       if (shouldUpdate) {
         await prisma.registeredDomain.update({
           where: {
-            domainId: domainId,
+            domainId: existingDomain.id,
           },
           data: {
             autoRenewalDisabledAt: autoRenew ? null : new Date(),
@@ -199,15 +192,10 @@ export const PATCH = withWorkspace(
     waitUntil(
       (async () => {
         // remove old logo
-        if (oldLogo && (logo === null || logoUploaded)) {
-          await storage.delete({ key: oldLogo.replace(`${R2_URL}/`, "") });
-        }
-
-        if (
-          (notFoundUrl !== undefined && notFoundUrl !== oldNotFoundUrl) ||
-          (expiredUrl !== undefined && expiredUrl !== oldExpiredUrl)
-        ) {
-          revalidateTag(`notfound:${domain.toLowerCase()}`);
+        if (existingDomain.logo && (logo === null || logoUploaded)) {
+          await storage.delete({
+            key: existingDomain.logo.replace(`${R2_URL}/`, ""),
+          });
         }
 
         if (domainUpdated) {
@@ -243,6 +231,28 @@ export const PATCH = withWorkspace(
                 ]
               : []),
           ]);
+        }
+
+        // invalidate notfound cache
+        if (
+          (notFoundUrl !== undefined &&
+            notFoundUrl !== existingDomain.notFoundUrl) ||
+          (expiredUrl !== undefined && expiredUrl !== existingDomain.expiredUrl)
+        ) {
+          revalidateTag(`notfound:${domain.toLowerCase()}`);
+        }
+
+        // invalidate wellknown cache
+        if (
+          (appleAppSiteAssociation !== undefined &&
+            appleAppSiteAssociation !==
+              existingDomain.appleAppSiteAssociation) ||
+          (assetLinks !== undefined &&
+            assetLinks !== existingDomain.assetLinks) ||
+          (deepviewData !== undefined &&
+            deepviewData !== existingDomain.deepviewData)
+        ) {
+          revalidateTag(`wellknown:${domain.toLowerCase()}`);
         }
       })(),
     );

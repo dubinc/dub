@@ -81,7 +81,7 @@ export default async function InspectPage(props: {
         )}
       >
         <LinkInspectorCard domain={domain} _key={key} url={data.url} />
-        <Suspense fallback={<LinkPreviewPlaceholder />}>
+        <Suspense fallback={<LinkPreviewPlaceholder defaultUrl={data.url} />}>
           <LinkPreview defaultUrl={data.url} />
         </Suspense>
         <a
