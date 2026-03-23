@@ -113,7 +113,8 @@ const getPartnerUrl = ({
 
 export function PartnersTable() {
   const router = useRouter();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
@@ -128,15 +129,6 @@ export function PartnersTable() {
     searchParams.get("sortBy") ||
     (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-  } = usePartnerFilters({ sortBy, sortOrder, status });
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
     ...(status ? { status } : {}),
@@ -567,43 +559,14 @@ export function PartnersTable() {
       <BulkArchivePartnersModal />
       <BulkDeactivatePartnersModal />
       <BulkBanPartnersModal />
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-          />
-          <SearchBoxPersisted
-            placeholder="Search by name, email, or company"
-            inputClassName="md:w-80"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
+      <PartnersFilters sortBy={sortBy} sortOrder={sortOrder} status={status} />
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
           title="No partners found"
           description={
-            isFiltered
+            Object.keys(searchParamsObj).length > 0
               ? "No partners found for the selected filters."
               : "No partners have been added to this program yet."
           }
@@ -615,6 +578,52 @@ export function PartnersTable() {
           )}
         />
       )}
+    </div>
+  );
+}
+
+function PartnersFilters({
+  sortBy,
+  sortOrder,
+  status,
+}: {
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+  status: ProgramEnrollmentStatus;
+}) {
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePartnerFilters({ sortBy, sortOrder, status });
+
+  return (
+    <div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+        />
+        <SearchBoxPersisted
+          placeholder="Search by name, email, or company"
+          inputClassName="md:w-80"
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
     </div>
   );
 }

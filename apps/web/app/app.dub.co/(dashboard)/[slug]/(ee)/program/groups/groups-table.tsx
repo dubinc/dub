@@ -55,7 +55,8 @@ export function GroupsTable() {
   const { id: workspaceId, slug, defaultProgramId } = useWorkspace();
   const { program } = useProgram();
   const { pagination, setPagination } = usePagination();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
   const sortBy =
     searchParams.get("sortBy") ||
@@ -87,7 +88,7 @@ export function GroupsTable() {
     error: countError,
   } = useGroupsCount();
 
-  const isFiltered = !!searchParams.get("search");
+  const isFiltered = Object.keys(searchParamsObj).length > 0;
 
   const currentDefaultGroup = groups?.find(
     (g) => g.slug === DEFAULT_PARTNER_GROUP.slug,

@@ -44,16 +44,8 @@ export function CampaignsTable() {
   const router = useRouter();
   const { id: workspaceId, slug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
-  const { getQueryString } = useRouterStuff();
-
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-  } = useCampaignsFilters();
+  const { getQueryString, searchParamsObj } = useRouterStuff();
+  const isFiltered = Object.keys(searchParamsObj).length > 0;
 
   const {
     data: campaigns,
@@ -150,33 +142,7 @@ export function CampaignsTable() {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-          />
-          <SearchBoxPersisted
-            placeholder="Search by name"
-            inputClassName="md:w-[19rem]"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
+        <CampaignFilters />
       </div>
 
       {campaigns?.length !== 0 ? (
@@ -204,6 +170,43 @@ export function CampaignsTable() {
         />
       )}
     </div>
+  );
+}
+
+function CampaignFilters() {
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    useCampaignsFilters();
+
+  return (
+    <>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+        />
+        <SearchBoxPersisted
+          placeholder="Search by name"
+          inputClassName="md:w-[19rem]"
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
+    </>
   );
 }
 
