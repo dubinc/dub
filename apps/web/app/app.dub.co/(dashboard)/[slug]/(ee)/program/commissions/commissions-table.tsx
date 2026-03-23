@@ -66,17 +66,6 @@ const commissionsColumns = {
 };
 
 export function CommissionsTable() {
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-    setSearch,
-    setSelectedFilter,
-  } = useCommissionFilters();
-
   const workspace = useWorkspace();
   const { id: workspaceId, slug } = workspace;
   const router = useRouter();
@@ -89,6 +78,9 @@ export function CommissionsTable() {
     sortBy: string;
     sortOrder: "asc" | "desc";
   };
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const {
     data: commissions,
@@ -384,46 +376,7 @@ export function CommissionsTable() {
 
   return (
     <div className="flex flex-col gap-3">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-          <SimpleDateRangePicker
-            className="w-full sm:min-w-[200px] md:w-fit"
-            defaultInterval="all"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={[
-                    ...filters,
-                    {
-                      key: "payoutId",
-                      icon: MoneyBill2,
-                      label: "Payout",
-                      options: [],
-                    },
-                  ]}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
+      <CommissionsFilters />
       {commissions?.length !== 0 || isLoading ? (
         <Table {...table} />
       ) : (
@@ -442,6 +395,61 @@ export function CommissionsTable() {
           )}
         />
       )}
+    </div>
+  );
+}
+
+function CommissionsFilters() {
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useCommissionFilters();
+
+  return (
+    <div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        <SimpleDateRangePicker
+          className="w-full sm:min-w-[200px] md:w-fit"
+          defaultInterval="all"
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={[
+                  ...filters,
+                  {
+                    key: "payoutId",
+                    icon: MoneyBill2,
+                    label: "Payout",
+                    options: [],
+                  },
+                ]}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
     </div>
   );
 }
