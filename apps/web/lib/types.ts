@@ -259,6 +259,11 @@ export type PartnerBetaFeatures = "postbacks";
 export interface WorkspaceProps extends Project {
   logo: string | null;
   plan: PlanProps;
+  trackedSitemaps: {
+    url: string;
+    lastCrawledAt?: string;
+    lastUrlCount?: number;
+  }[] | null;
   domains: {
     slug: string;
     primary: boolean;

@@ -10,6 +10,12 @@ import {
   uploadedImageSchema,
 } from "./misc";
 
+export const trackedSitemapSchema = z.object({
+  url: z.string().url(),
+  lastCrawledAt: z.string().optional(),
+  lastUrlCount: z.number().int().nonnegative().optional(),
+});
+
 export const workspaceIdSchema = z.object({
   workspaceId: z
     .string()
@@ -138,6 +144,14 @@ export const WorkspaceSchema = z
       .record(z.string(), z.any())
       .nullable()
       .describe("The miscellaneous key-value store of the workspace."),
+    trackedSitemaps: z
+      .array(trackedSitemapSchema)
+      .nullable()
+      .optional()
+      .transform((value) => value ?? null)
+      .describe(
+        "Configured sitemap sources for site visit tracking and their latest crawl metadata.",
+      ),
     allowedHostnames: z
       .array(z.string())
       .nullable()

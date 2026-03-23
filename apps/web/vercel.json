@@ -55,6 +55,10 @@
     {
       "path": "/api/cron/bounties/queue-sync-social-metrics",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/sitemaps/queue",
+      "schedule": "0 2 * * *"
     }
   ],
   "functions": {

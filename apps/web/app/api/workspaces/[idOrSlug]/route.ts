@@ -11,10 +11,12 @@ import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
 import {
   createWorkspaceSchema,
+  trackedSitemapSchema,
   WorkspaceSchema,
   WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -35,6 +37,7 @@ const updateWorkspaceSchema = createWorkspaceSchema
       ])
       .optional(),
     enforceSAML: z.boolean().nullish(),
+    trackedSitemaps: z.array(trackedSitemapSchema).nullable().optional(),
   })
   .partial();
 
@@ -87,6 +90,7 @@ export const PATCH = withWorkspace(
       allowedHostnames,
       publishableKey,
       enforceSAML,
+      trackedSitemaps,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
@@ -146,6 +150,12 @@ export const PATCH = withWorkspace(
           ...(publishableKey !== undefined && { publishableKey }),
           ...(enforceSAML !== undefined && {
             ssoEnforcedAt: enforceSAML ? new Date() : null,
+          }),
+          ...(trackedSitemaps !== undefined && {
+            trackedSitemaps:
+              trackedSitemaps === null
+                ? Prisma.JsonNull
+                : (trackedSitemaps as Prisma.InputJsonValue),
           }),
         },
         include: {
