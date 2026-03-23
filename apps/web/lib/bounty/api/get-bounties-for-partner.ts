@@ -47,9 +47,6 @@ export async function getBountiesForPartner(
             },
           ],
         },
-        {
-          OR: [{ endsAt: null }, { endsAt: { gte: now } }],
-        },
       ],
     },
     include: {
