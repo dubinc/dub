@@ -63,13 +63,17 @@ export async function getCommissions(filters: CommissionsFilters) {
 
   const statusFilter = isHoldStatus
     ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status ?? {
-        notIn: [
-          CommissionStatus.duplicate,
-          CommissionStatus.fraud,
-          CommissionStatus.canceled,
-        ],
-      };
+    : status
+      ? status
+      : customerId || partnerId || type
+        ? undefined
+        : {
+            notIn: [
+              CommissionStatus.duplicate,
+              CommissionStatus.fraud,
+              CommissionStatus.canceled,
+            ],
+          };
 
   const programEnrollmentFilter = {
     ...(groupId && { groupId }),

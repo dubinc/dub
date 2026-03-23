@@ -82,6 +82,10 @@ export function FilterSelect({
     setSelectedFilterKey(null);
   }, []);
 
+  const goBackOrClose = useCallback(() => {
+    selectedFilterKey ? reset() : setIsOpen(false);
+  }, [selectedFilterKey, reset]);
+
   // Reset state when closed
   useEffect(() => {
     if (!isOpen) reset();
@@ -175,8 +179,10 @@ export function FilterSelect({
       setOpenPopover={setIsOpen}
       onEscapeKeyDown={(e) => {
         if (selectedFilterKey) {
+          console.log("Escape key pressed in Popover");
           e.preventDefault();
-          reset();
+          e.stopPropagation();
+          goBackOrClose();
         }
       }}
       content={
@@ -204,7 +210,7 @@ export function FilterSelect({
                   ) {
                     e.preventDefault();
                     e.stopPropagation();
-                    selectedFilterKey ? reset() : setIsOpen(false);
+                    goBackOrClose();
                   }
                 }}
                 onEmptySubmit={(e) => {
@@ -436,8 +442,12 @@ function FilterButton({
         "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
         "data-[selected=true]:bg-neutral-100",
       )}
-      onSelect={onSelect}
       value={label + option?.value}
+      onSelect={onSelect}
+      onMouseDown={(e) => {
+        // Keep the search input focused when selecting with mouse
+        e.preventDefault();
+      }}
     >
       {showCheckbox && (
         <div
