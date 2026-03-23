@@ -8,7 +8,7 @@ import { cn, constructMetadata } from "@dub/utils";
 import { BubbleIcon } from "../../ui/placeholders/bubble-icon";
 import { BrowserGraphic } from "./browser-graphic";
 
-export const revalidate = false;
+export const revalidate = false; // cache indefinitely
 
 export async function generateMetadata(props: {
   params: Promise<{ domain: string }>;
