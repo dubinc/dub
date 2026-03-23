@@ -44,7 +44,7 @@ export function ReferralsEmbedCreateUpdateLink({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isExactMode, setIsExactMode] = useState(false);
 
-  const { program, group } = useReferralsEmbedData();
+  const { program, group, themeOptions } = useReferralsEmbedData();
 
   const shortLinkDomain = program.domain || "";
   const additionalLinks: PartnerGroupAdditionalLink[] =
@@ -143,6 +143,7 @@ export function ReferralsEmbedCreateUpdateLink({
 
   return (
     <motion.div
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
       className="border-border-subtle bg-bg-default relative rounded-md border"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >

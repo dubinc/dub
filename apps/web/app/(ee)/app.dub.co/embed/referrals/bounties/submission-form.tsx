@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
+import { useReferralsEmbedData } from "../page-client";
 import { useEmbedToken } from "../../use-embed-token";
 import {
   EmbedDescriptionField,
@@ -88,6 +89,7 @@ export function EmbedBountySubmissionForm({
 }) {
   const router = useRouter();
   const token = useEmbedToken();
+  const { themeOptions } = useReferralsEmbedData();
   const bountyInfo = resolveBountyDetails(bounty);
   const isSocialMetricsBounty = bountyInfo?.hasSocialMetrics ?? false;
   const partnerPlatform = bountyInfo?.socialPlatform
@@ -206,7 +208,10 @@ export function EmbedBountySubmissionForm({
   };
 
   return (
-    <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
+    <div
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
+      className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border"
+    >
       <SubmissionCardHeader
         title={title}
         onBack={onCancel}

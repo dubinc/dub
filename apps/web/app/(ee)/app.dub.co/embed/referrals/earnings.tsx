@@ -24,6 +24,7 @@ export function ReferralsEmbedEarnings() {
   const token = useEmbedToken();
   const {
     earnings: { totalCount: earningsCount },
+    themeOptions,
   } = useReferralsEmbedData();
 
   const { pagination, setPagination } = usePagination(

@@ -14,6 +14,7 @@ import { ChevronRight, CopyButton, StatusBadge, Trophy } from "@dub/ui";
 import { formatDate } from "@dub/utils";
 import { Fragment } from "react";
 import { toast } from "sonner";
+import { useReferralsEmbedData } from "../page-client";
 
 export function EmbedBountySubmissionDetail({
   bounty,
@@ -28,13 +29,17 @@ export function EmbedBountySubmissionDetail({
   onBack: () => void;
   onBackToRoot: () => void;
 }) {
+  const { themeOptions } = useReferralsEmbedData();
   const title =
     bounty.maxSubmissions > 1
       ? `Submission (${getPeriodLabel(bounty.submissionFrequency, periodNumber - 1)})`
       : "Submission";
 
   return (
-    <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
+    <div
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
+      className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border"
+    >
       <div className="flex items-center gap-1.5 px-4 py-2">
         <button
           type="button"
