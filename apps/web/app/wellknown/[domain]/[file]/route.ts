@@ -50,7 +50,7 @@ export async function GET(
   return NextResponse.json(response, {
     headers: {
       "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
-      "Vercel-Cache-Tag": `wellknown:${domain}`,
+      "Vercel-Cache-Tag": `wellknown:${domain.toLowerCase()}`,
     },
   });
 }
