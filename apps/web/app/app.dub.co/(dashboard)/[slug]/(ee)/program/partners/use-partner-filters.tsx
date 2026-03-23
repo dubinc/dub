@@ -202,7 +202,9 @@ export function usePartnerFilters(
               key: "country",
               icon: FlagWavy,
               label: "Location",
-              separatorAfter: true,
+              separatorAfter: PARTNER_METRIC_RANGE.some((m) =>
+                enabledFilters.includes(m.filterKey),
+              ),
               getOptionIcon: (value: string) => (
                 <img
                   alt={value}

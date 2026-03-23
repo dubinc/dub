@@ -181,14 +181,58 @@ export const getPartnersQuerySchema = z
   .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
 const partnerMetricRangeQueryFields = {
-  totalClicksMin: z.coerce.number().int().nonnegative().optional(),
-  totalClicksMax: z.coerce.number().int().nonnegative().optional(),
-  totalLeadsMin: z.coerce.number().int().nonnegative().optional(),
-  totalLeadsMax: z.coerce.number().int().nonnegative().optional(),
-  totalConversionsMin: z.coerce.number().int().nonnegative().optional(),
-  totalConversionsMax: z.coerce.number().int().nonnegative().optional(),
-  totalCommissionsMin: z.coerce.number().int().nonnegative().optional(),
-  totalCommissionsMax: z.coerce.number().int().nonnegative().optional(),
+  totalClicksMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total clicks (inclusive)."),
+  totalClicksMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total clicks (inclusive)."),
+  totalLeadsMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total leads (inclusive)."),
+  totalLeadsMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total leads (inclusive)."),
+  totalConversionsMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total conversions (inclusive)."),
+  totalConversionsMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total conversions (inclusive)."),
+  totalCommissionsMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe(
+      "Minimum total commissions (inclusive), in the smallest currency unit (e.g. cents).",
+    ),
+  totalCommissionsMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe(
+      "Maximum total commissions (inclusive), in the smallest currency unit (e.g. cents).",
+    ),
 };
 
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
