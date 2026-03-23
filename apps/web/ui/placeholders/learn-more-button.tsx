@@ -1,7 +1,7 @@
 "use client";
 
 import { createHref } from "@dub/utils";
-import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import { ButtonLink } from "./button-link";
 
 export function LearnMoreButton({
@@ -9,10 +9,7 @@ export function LearnMoreButton({
 }: {
   utmParams: Record<string, string>;
 }) {
-  const [domain, setDomain] = useState("");
-  useEffect(() => {
-    setDomain(window.location.hostname);
-  }, []);
+  const { domain } = useParams() as { domain: string };
   return (
     <ButtonLink
       variant="secondary"

@@ -3,7 +3,8 @@
 import { ExpandingArrow } from "@dub/ui";
 import { cn, createHref, UTMTags } from "@dub/utils";
 import Link from "next/link";
-import { PropsWithChildren, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { PropsWithChildren } from "react";
 import Markdown from "react-markdown";
 import { Analytics } from "./feature-graphics/analytics";
 import { Collaboration } from "./feature-graphics/collaboration";
@@ -16,10 +17,7 @@ export function FeaturesSection({
 }: {
   utmParams: Partial<Record<(typeof UTMTags)[number], string>>;
 }) {
-  const [domain, setDomain] = useState("");
-  useEffect(() => {
-    setDomain(window.location.hostname);
-  }, []);
+  const { domain } = useParams() as { domain: string };
   return (
     <div className="mt-20">
       <div className="mx-auto w-full max-w-xl px-4 text-center">

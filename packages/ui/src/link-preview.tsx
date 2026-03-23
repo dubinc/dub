@@ -61,9 +61,9 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
         </div>
       )}
 
-      <div className="relative overflow-hidden rounded-md border border-neutral-300 bg-neutral-50">
+      <div className="relative w-full overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 shadow-sm">
         {isValidating && (
-          <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-neutral-300 bg-neutral-50">
+          <div className="absolute flex h-[250px] flex-col items-center justify-center space-y-4 border-b border-neutral-300 bg-neutral-50">
             <LoadingCircle />
           </div>
         )}

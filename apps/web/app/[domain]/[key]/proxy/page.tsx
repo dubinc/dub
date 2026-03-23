@@ -8,8 +8,6 @@ import {
 import { unescape } from "html-escaper";
 import { notFound, redirect } from "next/navigation";
 
-export const revalidate = false; // cache indefinitely
-
 export async function generateMetadata(props: {
   params: Promise<{ domain: string; key: string }>;
 }) {

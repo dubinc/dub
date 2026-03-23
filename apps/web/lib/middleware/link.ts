@@ -158,7 +158,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
     return NextResponse.rewrite(
-      new URL(`/inspect/${domain}/${encodeURIComponent(key)}+`, req.url),
+      new URL(`/${domain}/${encodeURIComponent(key)}/inspect`, req.url),
       {
         headers: {
           ...DUB_HEADERS,
@@ -195,7 +195,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   // if the link is banned
   if (workspaceId === LEGAL_WORKSPACE_ID) {
-    return NextResponse.rewrite(new URL("/static/banned", req.url), {
+    return NextResponse.rewrite(new URL(`/${domain}/banned`, req.url), {
       headers: {
         ...DUB_HEADERS,
         ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
@@ -301,11 +301,11 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       ? geolocation(req)
       : LOCALHOST_GEO_DATA;
 
-  // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
+  // rewrite to proxy page ([domain]/[key]/proxy) if it's a bot and proxy is enabled
   if (isBot && proxy) {
     return createResponseWithCookies(
       NextResponse.rewrite(
-        new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+        new URL(`/${domain}/${encodeURIComponent(key)}/proxy`, req.url),
         {
           headers: {
             ...DUB_HEADERS,
