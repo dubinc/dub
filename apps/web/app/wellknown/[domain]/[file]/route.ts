@@ -6,8 +6,6 @@ import {
 import { prismaEdge } from "@dub/prisma/edge";
 import { NextRequest, NextResponse } from "next/server";
 
-export const runtime = "edge";
-
 export async function GET(
   _req: NextRequest,
   props: { params: Promise<{ domain: string; file: SupportedWellKnownFiles }> },
@@ -49,5 +47,10 @@ export async function GET(
       break;
   }
 
-  return NextResponse.json(response);
+  return NextResponse.json(response, {
+    headers: {
+      "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+      "Vercel-Cache-Tag": `wellknown:${domain.toLowerCase()}`,
+    },
+  });
 }

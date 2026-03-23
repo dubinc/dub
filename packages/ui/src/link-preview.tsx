@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef } from "react";
 import useSWR from "swr";
 import { useDebounce } from "use-debounce";
 import { useMediaQuery } from "./hooks";
-import { LoadingCircle, Photo } from "./icons";
+import { LoadingSpinner, Photo } from "./icons";
 
 export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
   const searchParams = useSearchParams();
@@ -63,8 +63,8 @@ export function LinkPreview({ defaultUrl }: { defaultUrl?: string }) {
 
       <div className="relative w-full overflow-hidden rounded-lg border border-neutral-200 bg-neutral-50 shadow-sm">
         {isValidating && (
-          <div className="absolute flex h-[250px] flex-col items-center justify-center space-y-4 border-b border-neutral-300 bg-neutral-50">
-            <LoadingCircle />
+          <div className="absolute inset-x-0 flex h-[250px] flex-col items-center justify-center space-y-4 border-b border-neutral-300 bg-neutral-50">
+            <LoadingSpinner />
           </div>
         )}
         {image ? (
@@ -129,7 +129,7 @@ export function LinkPreviewPlaceholder({
       </div>
       <div className="relative overflow-hidden rounded-md border border-neutral-300 bg-neutral-50">
         <div className="absolute flex h-[250px] w-full flex-col items-center justify-center space-y-4 border-b border-neutral-300 bg-neutral-50">
-          <LoadingCircle />
+          <LoadingSpinner />
         </div>
       </div>
     </>
