@@ -2,7 +2,6 @@
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { referralFormSchema } from "@/lib/zod/schemas/referral-form";
-import { PROGRAM_MARKETPLACE_LOGO_COUNT } from "@/ui/partners/program-marketplace/program-marketplace-logos";
 import { SubmitReferralSheet } from "@/ui/referrals/submit-referral-sheet";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Button } from "@dub/ui";
@@ -12,25 +11,60 @@ import * as z from "zod/v4";
 
 const EMPTY_STATE_CARDS = [
   {
-    logo: 2,
-    programName: "Tella",
-    name: "John Doe",
-    status: "Qualified",
-    statusClassName: "text-violet-700 bg-violet-100",
-  },
-  {
-    logo: 7,
-    programName: "Fillout",
-    name: "John Doe",
-    status: "Closed won",
-    statusClassName: "text-green-700 bg-green-100",
-  },
-  {
-    logo: 11,
-    programName: "Granola",
-    name: "John Doe",
+    logoSrc: "/referrals-empty-state/logo-nvidia.svg",
+    programName: "Nvidia",
+    name: "Noah Thompson",
     status: "New",
-    statusClassName: "text-blue-700 bg-blue-100",
+    statusClassName: "bg-blue-100 text-blue-700",
+  },
+  {
+    logoSrc: "/referrals-empty-state/logo-openai.svg",
+    programName: "OpenAI",
+    name: "Ava Robinson",
+    status: "Qualified",
+    statusClassName: "bg-violet-100 text-violet-700",
+  },
+  {
+    logoSrc: "/referrals-empty-state/logo-google.svg",
+    programName: "Google",
+    name: "Sophie Carter",
+    status: "New",
+    statusClassName: "bg-blue-100 text-blue-700",
+  },
+  {
+    logoSrc: "/referrals-empty-state/logo-microsoft.svg",
+    programName: "Microsoft",
+    name: "Chloe Scott",
+    status: "Closed won",
+    statusClassName: "bg-green-100 text-green-700",
+  },
+  {
+    logoSrc: "/referrals-empty-state/logo-meta.svg",
+    programName: "Meta",
+    name: "Liam Johnson",
+    status: "Qualified",
+    statusClassName: "bg-violet-100 text-violet-700",
+  },
+  {
+    logoSrc: "/referrals-empty-state/logo-slack.svg",
+    programName: "Slack",
+    name: "Oliver Green",
+    status: "New",
+    statusClassName: "bg-blue-100 text-blue-700",
+  },
+  {
+    logoSrc: "/referrals-empty-state/logo-netflix.svg",
+    programName: "Netflix",
+    name: "Ella Martinez",
+    status: "Closed won",
+    statusClassName: "bg-green-100 text-green-700",
+  },
+  {
+    logoSrc: "/referrals-empty-state/logo-apple.svg",
+    programName: "Apple",
+    name: "Amelia Adams",
+    status: "Qualified",
+    statusClassName: "bg-violet-100 text-violet-700",
   },
 ];
 
@@ -67,12 +101,7 @@ export function PartnerProfileReferralsEmptyState() {
             ? "Submit leads and track their progress through the sales process."
             : "You can still earn from regular referrals using your links and codes."
         }
-        // TODO: Add "learn more" URLs
-        learnMoreHref={
-          submittedReferralsEnabled
-            ? "https://dub.co/help/article/partner-rewards"
-            : "https://dub.co/help/article/partner-rewards"
-        }
+        learnMoreHref="https://dub.co/help/article/partner-rewards"
         addButton={
           submittedReferralsEnabled ? (
             <Button
@@ -83,25 +112,19 @@ export function PartnerProfileReferralsEmptyState() {
             />
           ) : undefined
         }
-        cardCount={3}
+        cardCount={EMPTY_STATE_CARDS.length}
         cardContent={(index) => {
           const card = EMPTY_STATE_CARDS[index];
           return (
             <div className="flex grow items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div
-                  className="size-8"
-                  style={{
-                    backgroundImage:
-                      "url(https://assets.dub.co/misc/program-marketplace-logos.png)",
-                    backgroundSize: `${PROGRAM_MARKETPLACE_LOGO_COUNT * 100}%`,
-                    backgroundPositionX:
-                      (PROGRAM_MARKETPLACE_LOGO_COUNT -
-                        (card.logo % PROGRAM_MARKETPLACE_LOGO_COUNT)) *
-                        100 +
-                      "%",
-                  }}
-                />
+                <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-neutral-200 bg-white">
+                  <img
+                    alt={`${card.programName} logo`}
+                    src={card.logoSrc}
+                    className="size-full object-contain"
+                  />
+                </div>
                 <div className="flex flex-col">
                   <div className="text-content-default text-sm font-semibold">
                     {card.programName}
