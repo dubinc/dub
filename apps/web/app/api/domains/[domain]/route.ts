@@ -28,13 +28,13 @@ const updateDomainBodySchemaExtended = updateDomainBodySchema.extend({
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
-    const domainRecord = await getDomainOrThrow({
+    const domain = await getDomainOrThrow({
       workspace,
       domain: params.domain,
       dubDomainChecks: true,
     });
 
-    return NextResponse.json(transformDomain(domainRecord));
+    return NextResponse.json(transformDomain(domain));
   },
   {
     requiredPermissions: ["domains.read"],
@@ -131,7 +131,7 @@ export const PATCH = withWorkspace(
     // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
     const deleteLogo = logo === null && existingDomain.logo;
 
-    const domainRecord = await prisma.domain.update({
+    const updatedDomain = await prisma.domain.update({
       where: {
         id: existingDomain.id,
       },
@@ -242,22 +242,14 @@ export const PATCH = withWorkspace(
           revalidateTag(`notfound:${domain.toLowerCase()}`);
         }
 
-        // invalidate wellknown cache
-        if (
-          (appleAppSiteAssociation !== undefined &&
-            appleAppSiteAssociation !==
-              existingDomain.appleAppSiteAssociation) ||
-          (assetLinks !== undefined &&
-            assetLinks !== existingDomain.assetLinks) ||
-          (deepviewData !== undefined &&
-            deepviewData !== existingDomain.deepviewData)
-        ) {
+        // invalidate wellknown cache if any of the wellknown files have changed
+        if (appleAppSiteAssociation !== undefined || assetLinks !== undefined) {
           revalidateTag(`wellknown:${domain.toLowerCase()}`);
         }
       })(),
     );
 
-    return NextResponse.json(transformDomain(domainRecord));
+    return NextResponse.json(transformDomain(updatedDomain));
   },
   {
     requiredPermissions: ["domains.write"],
