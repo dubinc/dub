@@ -215,6 +215,7 @@ export const StripeCustomerInvoiceSchema = z.object({
   createdAt: z.date(),
   refunded: z.boolean(),
   dubCommissionId: z.string().nullish(),
+  metadata: z.any(),
 });
 
 export const CUSTOMER_EXPORT_COLUMNS = [
