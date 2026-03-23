@@ -6,6 +6,27 @@ const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { mode: "live" }),
 });
 
+function hasStripeInvoiceRefund(
+  invoice: Awaited<ReturnType<typeof stripe.invoices.list>>["data"][number],
+) {
+  const charge = (
+    invoice as {
+      charge?:
+        | {
+            refunded?: boolean;
+            amount_refunded?: number;
+          }
+        | string
+        | null;
+    }
+  ).charge;
+  if (!charge || typeof charge === "string") {
+    return false;
+  }
+
+  return !!charge.refunded || (charge.amount_refunded ?? 0) > 0;
+}
+
 export async function getCustomerStripeInvoices({
   stripeCustomerId,
   stripeConnectId,
@@ -20,6 +41,7 @@ export async function getCustomerStripeInvoices({
       customer: stripeCustomerId,
       status: "paid",
       limit: 100,
+      expand: ["data.charge"],
     },
     {
       stripeAccount: stripeConnectId,
@@ -27,7 +49,7 @@ export async function getCustomerStripeInvoices({
   );
   const validInvoices = data.filter(
     (invoice): invoice is (typeof data)[number] & { id: string } =>
-      typeof invoice.id === "string",
+      typeof invoice.id === "string" && !hasStripeInvoiceRefund(invoice),
   );
 
   const commissions = await prisma.commission.findMany({
