@@ -395,9 +395,6 @@ export function usePartnerFilters(
     return new URLSearchParams(acc).toString();
   }, [activeFilters, workspaceId, extraSearchParams, searchParamsObj.search]);
 
-  const isFiltered =
-    activeFilters.length > 0 || Boolean(searchParamsObj.search);
-
   return {
     filters,
     activeFilters,
@@ -406,6 +403,5 @@ export function usePartnerFilters(
     onRemoveFilter,
     onRemoveAll,
     searchQuery,
-    isFiltered,
   };
 }

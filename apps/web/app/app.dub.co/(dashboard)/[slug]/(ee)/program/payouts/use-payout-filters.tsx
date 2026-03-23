@@ -117,15 +117,12 @@ export function usePayoutFilters() {
     [queryParams],
   );
 
-  const isFiltered = useMemo(() => activeFilters.length > 0, [activeFilters]);
-
   return {
     filters,
     activeFilters,
     onSelect,
     onRemove,
     onRemoveAll,
-    isFiltered,
     setSearch,
     setSelectedFilter,
   };

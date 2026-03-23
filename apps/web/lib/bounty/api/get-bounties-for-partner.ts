@@ -30,25 +30,18 @@ export async function getBountiesForPartner(
       },
       // If bounty has no groups, it's available to all partners
       // If bounty has groups, only partners in those groups can see it
-      AND: [
+      OR: [
         {
-          OR: [
-            {
-              groups: {
-                none: {},
-              },
-            },
-            {
-              groups: {
-                some: {
-                  groupId: groupId || program.defaultGroupId,
-                },
-              },
-            },
-          ],
+          groups: {
+            none: {},
+          },
         },
         {
-          OR: [{ endsAt: null }, { endsAt: { gte: now } }],
+          groups: {
+            some: {
+              groupId: groupId || program.defaultGroupId,
+            },
+          },
         },
       ],
     },

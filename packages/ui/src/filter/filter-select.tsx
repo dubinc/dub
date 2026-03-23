@@ -86,6 +86,10 @@ export function FilterSelect({
     setSelectedFilterKey(null);
   }, []);
 
+  const goBackOrClose = useCallback(() => {
+    selectedFilterKey ? reset() : setIsOpen(false);
+  }, [selectedFilterKey, reset]);
+
   // Reset state when closed
   useEffect(() => {
     if (!isOpen) reset();
@@ -197,8 +201,11 @@ export function FilterSelect({
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       onEscapeKeyDown={(e) => {
-        if (!selectedFilterKey) {
-          return;
+        if (selectedFilterKey) {
+          console.log("Escape key pressed in Popover");
+          e.preventDefault();
+          e.stopPropagation();
+          goBackOrClose();
         }
         if (selectedFilter?.type === "range") {
           const { min, max } = parseRangeToken(activeRangeTokenForSelected);
@@ -269,7 +276,7 @@ export function FilterSelect({
                     ) {
                       e.preventDefault();
                       e.stopPropagation();
-                      selectedFilterKey ? reset() : setIsOpen(false);
+                      goBackOrClose();
                     }
                   }}
                   onEmptySubmit={(e) => {
@@ -482,8 +489,12 @@ function FilterButton({
         "active:scale-[0.99] motion-reduce:active:scale-100",
         "data-[selected=true]:bg-neutral-100",
       )}
-      onSelect={onSelect}
       value={label + option?.value}
+      onSelect={onSelect}
+      onMouseDown={(e) => {
+        // Keep the search input focused when selecting with mouse
+        e.preventDefault();
+      }}
     >
       {showCheckbox && (
         <div
