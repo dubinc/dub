@@ -25,7 +25,7 @@ export const crawlBitly = async (req: NextRequest) => {
     headers: {
       ...DUB_HEADERS,
       "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
-      "Vercel-Cache-Tag": linkCache._createNotFoundCacheKeys({
+      "Vercel-Cache-Tag": linkCache._createStaticPagesCacheKeys({
         domain,
         key: fullKey,
       }),
