@@ -44,15 +44,22 @@ export async function getCustomerStripeInvoices({
     (invoice) => invoice.id,
   ) as ExpandedStripeInvoice[];
 
-  const { data: charges } = await stripe.charges.list(
-    {
-      limit: 100,
-      customer: stripeCustomerId,
-    },
-    {
-      stripeAccount: stripeConnectId,
-    },
-  );
+  let charges: Stripe.Charge[] = [];
+  try {
+    const res = await stripe.charges.list(
+      {
+        limit: 100,
+        customer: stripeCustomerId,
+      },
+      {
+        stripeAccount: stripeConnectId,
+      },
+    );
+    charges = res.data;
+  } catch (error) {
+    // Stripe integration might be outdated and don't have charges.read permission
+    console.warn(error);
+  }
 
   const commissions = await prisma.commission.findMany({
     where: {
