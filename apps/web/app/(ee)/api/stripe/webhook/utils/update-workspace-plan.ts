@@ -173,11 +173,10 @@ export async function updateWorkspacePlan({
       wouldLosePartnerAccess({
         currentPlan: workspace.plan,
         newPlan: newPlanName,
-      })
+      }) &&
+      workspace.defaultProgramId
     ) {
-      if (workspace.defaultProgramId) {
-        await deactivateProgram(workspace.defaultProgramId);
-      }
+      await deactivateProgram(workspace.defaultProgramId);
     }
 
     // Reactivate all partners if the workspace gains partner access (Pro/Free -> Business/Enterprise)
@@ -185,21 +184,20 @@ export async function updateWorkspacePlan({
       wouldGainPartnerAccess({
         currentPlan: workspace.plan,
         newPlan: newPlanName,
-      })
+      }) &&
+      workspace.defaultProgramId
     ) {
-      if (workspace.defaultProgramId) {
-        const response = await qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
-          body: {
-            programId: workspace.defaultProgramId,
-          },
-          deduplicationId: `reactivate-program-${workspace.defaultProgramId}`,
-        });
+      const response = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
+        body: {
+          programId: workspace.defaultProgramId,
+        },
+        deduplicationId: `reactivate-program-${workspace.defaultProgramId}`,
+      });
 
-        console.log("Reactivation job enqueued.", {
-          response,
-        });
-      }
+      console.log("Reactivation job enqueued.", {
+        response,
+      });
     }
 
     if (

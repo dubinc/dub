@@ -56,7 +56,8 @@ export default function PartnerReactivated({
 
             <Text className="text-sm leading-6 text-neutral-600">
               Your referral links are now active again and will resume
-              generating commissions. No action is needed on your end.
+              generating commissions. Feel free to start sharing them with your
+              audience again.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
