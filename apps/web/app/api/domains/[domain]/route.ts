@@ -233,13 +233,22 @@ export const PATCH = withWorkspace(
           ]);
         }
 
-        // invalidate notfound cache
+        // invalidate static / isr cached for notfound links
         if (
           notFoundUrl !== undefined &&
           notFoundUrl !== existingDomain.notFoundUrl
         ) {
-          revalidateTag(`notfound:${domain.toLowerCase()}`);
+          revalidateTag(`static:${domain.toLowerCase()}`);
           revalidatePath(`/${domain.toLowerCase()}/notfound`);
+        }
+
+        // invalidate static / isr cached for expired links
+        if (
+          expiredUrl !== undefined &&
+          expiredUrl !== existingDomain.expiredUrl
+        ) {
+          revalidateTag(`static:${domain.toLowerCase()}`);
+          revalidatePath(`/${domain.toLowerCase()}/expired`);
         }
 
         // invalidate wellknown cache if any of the wellknown files have changed

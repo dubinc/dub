@@ -61,9 +61,9 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     key = "_root";
   }
 
-  const NOT_FOUND_CACHE_HEADERS = {
+  const STATIC_PAGES_CACHE_HEADERS = {
     "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
-    "Vercel-Cache-Tag": linkCache._createNotFoundCacheKeys({
+    "Vercel-Cache-Tag": linkCache._createStaticPagesCacheKeys({
       domain,
       key: originalKey || "_root",
     }),
@@ -98,7 +98,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
         headers: {
           ...DUB_HEADERS,
-          ...NOT_FOUND_CACHE_HEADERS,
+          ...STATIC_PAGES_CACHE_HEADERS,
         },
       });
     }
@@ -210,7 +210,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.rewrite(new URL(`/${domain}/banned`, req.url), {
       headers: {
         ...DUB_HEADERS,
-        "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+        ...STATIC_PAGES_CACHE_HEADERS,
         "X-Robots-Tag": "googlebot: noindex",
       },
     });
@@ -221,7 +221,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
       headers: {
         ...DUB_HEADERS,
-        ...NOT_FOUND_CACHE_HEADERS,
+        ...STATIC_PAGES_CACHE_HEADERS,
       },
     });
   }
@@ -240,6 +240,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       return NextResponse.rewrite(new URL(`/${domain}/expired`, req.url), {
         headers: {
           ...DUB_HEADERS,
+          ...STATIC_PAGES_CACHE_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       });
@@ -296,7 +297,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       {
         headers: {
           ...DUB_HEADERS,
-          ...NOT_FOUND_CACHE_HEADERS,
+          ...STATIC_PAGES_CACHE_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       },
