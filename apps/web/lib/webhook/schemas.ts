@@ -22,13 +22,29 @@ export const clickWebhookEventSchema = z.object({
   link: linkEventSchema,
 });
 
+const coerceJsonString = (val: unknown) => {
+  if (typeof val === "string") {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val;
+    }
+  }
+  return val;
+};
+
+const metadataSchema = z.preprocess(
+  coerceJsonString,
+  z.record(z.string(), z.any()).nullish().default(null),
+);
+
 export const leadWebhookEventSchema = z.object({
   eventName: z.string(),
   customer: CustomerSchema,
   click: clickEventSchema,
   link: linkEventSchema,
   partner: WebhookPartnerSchema.nullish(),
-  metadata: z.record(z.string(), z.any()).nullable().default(null),
+  metadata: metadataSchema,
 });
 
 export const saleWebhookEventSchema = z.object({
@@ -38,7 +54,7 @@ export const saleWebhookEventSchema = z.object({
   link: linkEventSchema,
   sale: webhookSaleSchema,
   partner: WebhookPartnerSchema.nullish(),
-  metadata: z.record(z.string(), z.any()).nullable().default(null),
+  metadata: metadataSchema,
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub
