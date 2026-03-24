@@ -65,7 +65,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
     "Vercel-Cache-Tag": linkCache._createNotFoundCacheKeys({
       domain,
-      key: originalKey,
+      key: originalKey || "_root",
     }),
   };
 
@@ -296,17 +296,10 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       {
         headers: {
           ...DUB_HEADERS,
+          ...NOT_FOUND_CACHE_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       },
-    );
-    rewriteResponse.headers.set(
-      "Vercel-CDN-Cache-Control",
-      "public, s-maxage=86400",
-    );
-    rewriteResponse.headers.set(
-      "Vercel-Cache-Tag",
-      linkCache._createNotFoundCacheKeys({ domain, key: "_root" }), // set cache tag for root domain link
     );
     return createResponseWithCookies(rewriteResponse, cookieData);
   }
