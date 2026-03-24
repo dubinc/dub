@@ -34,7 +34,7 @@ export function useProgramReferralsCount<T = number>({
   );
 
   return {
-    data,
+    data: enabled ? data : undefined,
     error,
     loading: isLoading,
   };
