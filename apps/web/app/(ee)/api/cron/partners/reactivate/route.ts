@@ -60,29 +60,25 @@ export const POST = withCron(async ({ rawBody }) => {
     take: CRON_BATCH_SIZE,
   });
 
-  if (programEnrollments.length === 0) {
-    return logAndRespond(
-      `[reactivatePartners] No more partners to reactivate for program ${programId}. Exiting...`,
-    );
-  }
-
-  await bulkReactivatePartners({
-    program,
-    programEnrollments,
-  });
-
-  // Self-queue the next batch if there are more partners to process
-  if (programEnrollments.length === CRON_BATCH_SIZE) {
-    const response = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
-      body: {
-        programId,
-      },
+  if (programEnrollments.length > 0) {
+    await bulkReactivatePartners({
+      program,
+      programEnrollments,
     });
 
-    return logAndRespond(
-      `[reactivatePartners] Processed ${programEnrollments.length} partners. Queued next batch (messageId: ${response.messageId}).`,
-    );
+    // Self-queue the next batch if there are more partners to process
+    if (programEnrollments.length === CRON_BATCH_SIZE) {
+      const response = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
+        body: {
+          programId,
+        },
+      });
+
+      return logAndRespond(
+        `[reactivatePartners] Processed ${programEnrollments.length} partners. Queued next batch (messageId: ${response.messageId}).`,
+      );
+    }
   }
 
   // All batches done – queue discount code creation for discounts with auto-provision enabled
@@ -116,6 +112,6 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   return logAndRespond(
-    `[reactivatePartners] Finished reactivating all ${programEnrollments.length} partners for program ${programId}.`,
+    `[reactivatePartners] Finished reactivating ${programEnrollments.length} partners for program ${programId}.`,
   );
 });
