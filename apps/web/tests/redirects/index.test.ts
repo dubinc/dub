@@ -82,10 +82,11 @@ describe.runIf(env.CI)("Link Redirects", async () => {
   test("disabled link", async () => {
     const response = await fetch(`${h.baseUrl}/disabled`, fetchOptions);
 
-    expect(response.headers.get("location")).toBe("https://dub.co/");
-    // special case for disabled links – we're using redirect() from next/navigation
-    // which uses 307 status code instead of 302 and doesn't support x-powered-by header
-    // expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    // Special case for disabled/notfound links since we're using redirect() from next/navigation:
+    // - doesn't support x-powered-by header
+    // - uses 307 status code instead of 302
+    // This is the same as case-sensitive (incorrect) key test below.
+    expect(response.headers.get("location")).toBe("https://dub.co/links");
     expect(response.status).toBe(307);
   });
 
@@ -283,9 +284,8 @@ describe.runIf(env.CI)("Link Redirects", async () => {
       fetchOptions,
     );
 
-    expect(response.headers.get("location")).toBe("https://dub.co/");
-    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
-    expect(response.status).toBe(302);
+    expect(response.headers.get("location")).toBe("https://dub.co/links");
+    expect(response.status).toBe(307);
   });
 
   test("with case-sensitive key (and dub_id)", async () => {
