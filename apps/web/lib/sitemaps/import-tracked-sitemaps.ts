@@ -135,6 +135,39 @@ function isSitemapLikeUrl(url: string) {
 
 const FETCH_TIMEOUT_MS = 10_000;
 
+async function decompressIfGzip(buffer: ArrayBuffer): Promise<string> {
+  const bytes = new Uint8Array(buffer);
+
+  // Gzip magic bytes: 0x1f 0x8b
+  if (bytes[0] === 0x1f && bytes[1] === 0x8b) {
+    const ds = new DecompressionStream("gzip");
+    const writer = ds.writable.getWriter();
+    const reader = ds.readable.getReader();
+
+    writer.write(bytes);
+    writer.close();
+
+    const chunks: Uint8Array[] = [];
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      chunks.push(value);
+    }
+
+    const total = chunks.reduce((acc, c) => acc + c.length, 0);
+    const decompressed = new Uint8Array(total);
+    let offset = 0;
+    for (const chunk of chunks) {
+      decompressed.set(chunk, offset);
+      offset += chunk.length;
+    }
+
+    return new TextDecoder().decode(decompressed);
+  }
+
+  return new TextDecoder().decode(bytes);
+}
+
 async function fetchAndParseSitemap(url: string): Promise<SitemapXmlResult> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
@@ -153,7 +186,8 @@ async function fetchAndParseSitemap(url: string): Promise<SitemapXmlResult> {
     throw new Error(`Failed to fetch sitemap (${response.status}): ${url}`);
   }
 
-  const xml = await response.text();
+  const buffer = await response.arrayBuffer();
+  const xml = await decompressIfGzip(buffer);
   return parser.parse(xml) as SitemapXmlResult;
 }
 
@@ -161,6 +195,7 @@ export async function crawlSitemapUrls(rootSitemapUrl: string) {
   const visitedSitemaps = new Set<string>();
   const discoveredUrls = new Set<string>();
   const queue = [normalizeSitemapUrl(rootSitemapUrl)];
+  let hadErrors = false;
 
   while (queue.length > 0) {
     const sitemapUrl = queue.shift();
@@ -175,6 +210,7 @@ export async function crawlSitemapUrls(rootSitemapUrl: string) {
       parsed = await fetchAndParseSitemap(sitemapUrl);
     } catch (error) {
       console.error(`Failed to fetch nested sitemap ${sitemapUrl}:`, error);
+      hadErrors = true;
       continue;
     }
 
@@ -219,7 +255,7 @@ export async function crawlSitemapUrls(rootSitemapUrl: string) {
     }
   }
 
-  return Array.from(discoveredUrls);
+  return { urls: Array.from(discoveredUrls), hadErrors };
 }
 
 export async function importTrackedSitemaps({
@@ -239,12 +275,14 @@ export async function importTrackedSitemaps({
 }) {
   const nowIso = new Date().toISOString();
 
-  const linksByKey = new Map<string, ProcessedLinkProps>();
-
-  const updatedTrackedSitemaps = await Promise.all(
+  const results = await Promise.all(
     trackedSitemaps.map(async (sitemap) => {
+      const sitemapLinks = new Map<string, ProcessedLinkProps>();
+
       try {
-        const crawledUrls = await crawlSitemapUrls(sitemap.url);
+        const { urls: crawledUrls, hadErrors } = await crawlSitemapUrls(
+          sitemap.url,
+        );
 
         const nonSitemapUrls = crawledUrls.filter(
           (url) => !url.endsWith("sitemap.xml"),
@@ -258,8 +296,8 @@ export async function importTrackedSitemaps({
             continue;
           }
 
-          if (!linksByKey.has(key)) {
-            linksByKey.set(key, {
+          if (!sitemapLinks.has(key)) {
+            sitemapLinks.set(key, {
               domain,
               key,
               url,
@@ -271,18 +309,36 @@ export async function importTrackedSitemaps({
           }
         }
 
+        if (hadErrors) {
+          return { sitemap: { ...sitemap }, sitemapLinks };
+        }
+
         return {
-          ...sitemap,
-          lastCrawledAt: nowIso,
-          lastUrlCount: nonSitemapUrls.length,
+          sitemap: {
+            ...sitemap,
+            lastCrawledAt: nowIso,
+            lastUrlCount: nonSitemapUrls.length,
+          },
+          sitemapLinks,
         };
       } catch (error) {
         console.error(`Failed to crawl sitemap ${sitemap.url}:`, error);
 
-        return { ...sitemap };
+        return { sitemap: { ...sitemap }, sitemapLinks };
       }
     }),
   );
+
+  const linksByKey = new Map<string, ProcessedLinkProps>();
+  for (const { sitemapLinks } of results) {
+    for (const [key, link] of sitemapLinks) {
+      if (!linksByKey.has(key)) {
+        linksByKey.set(key, link);
+      }
+    }
+  }
+
+  const updatedTrackedSitemaps = results.map((r) => r.sitemap);
 
   const candidateLinks = Array.from(linksByKey.values());
   const candidateKeys = candidateLinks.map((link) => link.key);
