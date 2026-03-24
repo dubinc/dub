@@ -201,12 +201,6 @@ export function FilterSelect({
       openPopover={isOpen}
       setOpenPopover={setIsOpen}
       onEscapeKeyDown={(e) => {
-        if (selectedFilterKey) {
-          e.preventDefault();
-          e.stopPropagation();
-          goBackOrClose();
-          return;
-        }
         if (selectedFilter?.type === "range") {
           const { min, max } = parseRangeToken(activeRangeTokenForSelected);
           if (min != null && max != null) {
@@ -215,8 +209,14 @@ export function FilterSelect({
             return;
           }
         }
+        if (selectedFilterKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          goBackOrClose();
+          return;
+        }
         e.preventDefault();
-        reset();
+        setIsOpen(false);
       }}
       content={
         <AnimatedSizeContainer
