@@ -10,20 +10,22 @@ export async function* fetchCustomersBatch(
 ) {
   const { columns: _columns, ...filtersRest } = filters;
 
-  let page = 1;
+  let cursor: string | undefined;
   let hasMore = true;
 
   while (hasMore) {
     const customers = await getCustomers({
       ...filtersRest,
-      page,
       pageSize,
       includeExpandedFields: true,
+      ...(cursor
+        ? { startingAfter: cursor }
+        : { page: 1 }),
     });
 
     if (customers.length > 0) {
       yield { customers };
-      page++;
+      cursor = customers[customers.length - 1].id;
       hasMore = customers.length === pageSize;
     } else {
       hasMore = false;

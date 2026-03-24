@@ -1,5 +1,5 @@
 import { convertToCSV } from "@/lib/analytics/utils";
-import { formatCommissionsForExport } from "@/lib/api/commissions/format-commissions-for-export";
+import { formatCommissionsForExport } from "@/lib/exports/commissions/format";
 import { getCommissions } from "@/lib/api/commissions/get-commissions";
 import { getCommissionsCount } from "@/lib/api/commissions/get-commissions-count";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";

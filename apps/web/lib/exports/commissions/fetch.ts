@@ -4,7 +4,7 @@ import * as z from "zod/v4";
 
 type CommissionFilters = Omit<
   z.infer<typeof getCommissionsQuerySchema>,
-  "page" | "pageSize"
+  "page" | "pageSize" | "startingAfter" | "endingBefore"
 > & {
   programId: string;
 };
@@ -13,19 +13,21 @@ export async function* fetchCommissionsBatch(
   filters: CommissionFilters,
   pageSize: number = 1000,
 ) {
-  let page = 1;
+  let cursor: string | undefined;
   let hasMore = true;
 
   while (hasMore) {
     const commissions = await getCommissions({
       ...filters,
-      page,
       pageSize,
+      ...(cursor
+        ? { startingAfter: cursor }
+        : { page: 1 }),
     });
 
     if (commissions.length > 0) {
       yield { commissions };
-      page++;
+      cursor = commissions[commissions.length - 1].id;
       hasMore = commissions.length === pageSize;
     } else {
       hasMore = false;

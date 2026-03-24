@@ -1,9 +1,5 @@
-import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { withCron } from "@/lib/cron/with-cron";
-import { fetchCustomersBatch } from "@/lib/customers/api/fetch-customers-batch";
-import { formatCustomersForExport } from "@/lib/customers/api/format-customers-export";
-import { exportCsvToStorage } from "@/lib/exports/export-csv-to-storage";
-import { generateExportFilename } from "@/lib/exports/generate-export-filename";
+import { exportCustomers } from "@/lib/exports/customers/export";
 import { customersExportCronInputSchema } from "@/lib/zod/schemas/customers";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
@@ -50,16 +46,9 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond(`Workspace ${workspaceId} not found.`);
   }
 
-  const formattedBatches = async function* () {
-    for await (const { customers } of fetchCustomersBatch(parsedFilters)) {
-      yield formatCustomersForExport(customers, columns);
-    }
-  };
-
-  const { downloadUrl, rowCount } = await exportCsvToStorage({
-    fileKey: `exports/customers/${generateRandomString(16)}.csv`,
-    fileName: generateExportFilename("customers"),
-    batches: formattedBatches(),
+  const { downloadUrl, rowCount } = await exportCustomers({
+    filters: parsedFilters,
+    columns,
   });
 
   await sendEmail({
