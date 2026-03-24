@@ -83,8 +83,10 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     const response = await fetch(`${h.baseUrl}/disabled`, fetchOptions);
 
     expect(response.headers.get("location")).toBe("https://dub.co/");
-    // expect(response.headers.get("x-powered-by")).toBe(poweredBy); // notfound page doesn't support x-powered-by header
-    expect(response.status).toBe(302);
+    // special case for disabled links – we're using redirect() from next/navigation
+    // which uses 307 status code instead of 302 and doesn't support x-powered-by header
+    // expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(307);
   });
 
   test("with slash", async () => {
