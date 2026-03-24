@@ -1,4 +1,4 @@
-import { type BucketType, StorageClient } from "../storage";
+import { type BucketType, StorageClient } from "./storage";
 
 class MultipartStorageClient extends StorageClient {
   async initiateMultipartUpload({

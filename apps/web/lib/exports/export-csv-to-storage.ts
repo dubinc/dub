@@ -1,6 +1,6 @@
 import { storage } from "../storage";
 import { convertToCSV } from "./convert-to-csv";
-import { multipartStorage } from "./multipart-storage";
+import { multipartStorage } from "../multipart-storage";
 
 const MIN_PART_SIZE = 5 * 1024 * 1024; // 5 MB — S3/R2 minimum for non-final parts
 export const SIGNED_URL_EXPIRY = 7 * 24 * 3600; // 7 days

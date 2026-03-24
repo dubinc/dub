@@ -1,6 +1,6 @@
+import { transformLink } from "@/lib/api/links/utils";
 import { exportLinksColumns } from "@/lib/zod/schemas/links";
 import { linkConstructor } from "@dub/utils";
-import { transformLink } from "./utils";
 
 const columnMap = exportLinksColumns.reduce(
   (acc, column, index) => {

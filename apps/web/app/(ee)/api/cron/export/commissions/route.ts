@@ -1,9 +1,6 @@
-import { formatCommissionsForExport } from "@/lib/api/commissions/format-commissions-for-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { generateRandomString } from "@/lib/api/utils/generate-random-string";
-import { exportCsvToStorage } from "@/lib/exports/export-csv-to-storage";
-import { generateExportFilename } from "@/lib/exports/generate-export-filename";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { exportCommissions } from "@/lib/exports/commissions/export";
 import { commissionsExportQuerySchema } from "@/lib/zod/schemas/commissions";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
@@ -11,7 +8,6 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
-import { fetchCommissionsBatch } from "./fetch-commissions-batch";
 
 const payloadSchema = commissionsExportQuerySchema.extend({
   programId: z.string(),
@@ -64,23 +60,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const commissionsFilters = {
-      ...filters,
-      programId,
-    };
-
-    const formattedBatches = async function* () {
-      for await (const { commissions } of fetchCommissionsBatch(
-        commissionsFilters,
-      )) {
-        yield formatCommissionsForExport(commissions, columns);
-      }
-    };
-
-    const { downloadUrl, rowCount } = await exportCsvToStorage({
-      fileKey: `exports/commissions/${generateRandomString(16)}.csv`,
-      fileName: generateExportFilename("commissions"),
-      batches: formattedBatches(),
+    const { downloadUrl, rowCount } = await exportCommissions({
+      filters: {
+        ...filters,
+        programId,
+      },
+      columns,
     });
 
     await sendEmail({

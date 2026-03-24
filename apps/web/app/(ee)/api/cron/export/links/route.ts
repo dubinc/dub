@@ -1,12 +1,9 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { formatLinksForExport } from "@/lib/api/links/format-links-for-export";
 import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
-import { generateRandomString } from "@/lib/api/utils/generate-random-string";
-import { exportCsvToStorage } from "@/lib/exports/export-csv-to-storage";
-import { generateExportFilename } from "@/lib/exports/generate-export-filename";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { exportLinks } from "@/lib/exports/links/export";
 import { PlanProps } from "@/lib/types";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { sendEmail } from "@dub/email";
@@ -16,7 +13,6 @@ import { log } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
-import { fetchLinksBatch } from "./fetch-links-batch";
 
 const payloadSchema = linksExportQuerySchema.extend({
   workspaceId: z.string(),
@@ -96,32 +92,23 @@ export async function POST(req: Request) {
       end: end ? endOfDay(new Date(end)) : undefined,
     });
 
-    const linksFilters = {
-      ...filters,
-      ...(interval !== "all" && {
-        startDate,
-        endDate,
-      }),
-      searchMode: (workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT
-        ? "exact"
-        : "fuzzy") as "exact" | "fuzzy",
-      includeDashboard: false,
-      includeUser: false,
-      includeWebhooks: false,
-      workspaceId,
-      folderIds,
-    };
-
-    const formattedBatches = async function* () {
-      for await (const { links } of fetchLinksBatch(linksFilters)) {
-        yield formatLinksForExport(links, columns);
-      }
-    };
-
-    const { downloadUrl, rowCount } = await exportCsvToStorage({
-      fileKey: `exports/links/${generateRandomString(16)}.csv`,
-      fileName: generateExportFilename("links"),
-      batches: formattedBatches(),
+    const { downloadUrl, rowCount } = await exportLinks({
+      filters: {
+        ...filters,
+        ...(interval !== "all" && {
+          startDate,
+          endDate,
+        }),
+        searchMode: (workspace.totalLinks > MEGA_WORKSPACE_LINKS_LIMIT
+          ? "exact"
+          : "fuzzy") as "exact" | "fuzzy",
+        includeDashboard: false,
+        includeUser: false,
+        includeWebhooks: false,
+        workspaceId,
+        folderIds,
+      },
+      columns,
     });
 
     await sendEmail({

@@ -1,9 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
-import { generateRandomString } from "@/lib/api/utils/generate-random-string";
-import { exportCsvToStorage } from "@/lib/exports/export-csv-to-storage";
-import { generateExportFilename } from "@/lib/exports/generate-export-filename";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { exportPartners } from "@/lib/exports/partners/export";
 import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
@@ -11,7 +8,6 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
-import { fetchPartnersBatch } from "./fetch-partners-batch";
 
 const payloadSchema = partnersExportQuerySchema.extend({
   programId: z.string(),
@@ -64,21 +60,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const partnersFilters = {
-      ...filters,
-      programId,
-    };
-
-    const formattedBatches = async function* () {
-      for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
-        yield formatPartnersForExport(partners, columns);
-      }
-    };
-
-    const { downloadUrl, rowCount } = await exportCsvToStorage({
-      fileKey: `exports/partners/${generateRandomString(16)}.csv`,
-      fileName: generateExportFilename("partners"),
-      batches: formattedBatches(),
+    const { downloadUrl, rowCount } = await exportPartners({
+      filters: {
+        ...filters,
+        programId,
+      },
+      columns,
     });
 
     await sendEmail({

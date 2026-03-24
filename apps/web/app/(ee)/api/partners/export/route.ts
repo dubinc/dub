@@ -1,5 +1,5 @@
 import { convertToCSV } from "@/lib/exports/convert-to-csv";
-import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
+import { formatPartnersForExport } from "@/lib/exports/partners/format";
 import { getPartners } from "@/lib/api/partners/get-partners";
 import { getPartnersCount } from "@/lib/api/partners/get-partners-count";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
