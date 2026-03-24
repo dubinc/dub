@@ -202,10 +202,10 @@ export function FilterSelect({
       setOpenPopover={setIsOpen}
       onEscapeKeyDown={(e) => {
         if (selectedFilterKey) {
-          console.log("Escape key pressed in Popover");
           e.preventDefault();
           e.stopPropagation();
           goBackOrClose();
+          return;
         }
         if (selectedFilter?.type === "range") {
           const { min, max } = parseRangeToken(activeRangeTokenForSelected);

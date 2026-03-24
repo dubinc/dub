@@ -20,10 +20,13 @@ export function buildPartnerEmailSearchWhere({
     if (search.includes("@")) {
       return { email: search };
     }
+    const q = sanitizeFullTextSearch(search);
     return {
-      email: { search: sanitizeFullTextSearch(search) },
-      name: { search: sanitizeFullTextSearch(search) },
-      companyName: { search: sanitizeFullTextSearch(search) },
+      OR: [
+        { email: { search: q } },
+        { name: { search: q } },
+        { companyName: { search: q } },
+      ],
     };
   }
   return {};

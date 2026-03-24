@@ -235,6 +235,10 @@ const partnerMetricRangeQueryFields = {
     ),
 };
 
+export const getPartnersQuerySchemaPublic = getPartnersQuerySchema.extend({
+  ...partnerMetricRangeQueryFields,
+});
+
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
   partnerIds: z
     .union([z.string(), z.array(z.string())])
