@@ -30,6 +30,7 @@ const coerceJsonString = (val: unknown) => {
       return val;
     }
   }
+
   return val;
 };
 
