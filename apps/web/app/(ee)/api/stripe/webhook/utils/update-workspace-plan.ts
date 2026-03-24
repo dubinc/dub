@@ -1,13 +1,18 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { qstash } from "@/lib/cron";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
+import {
+  wouldGainPartnerAccess,
+  wouldLosePartnerAccess,
+} from "@/lib/plans/has-partner-access";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import {
+  APP_DOMAIN_WITH_NGROK,
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,
 } from "@dub/utils";
@@ -196,11 +201,31 @@ export async function updateWorkspacePlan({
       wouldLosePartnerAccess({
         currentPlan: workspace.plan,
         newPlan: newPlanName,
-      })
+      }) &&
+      workspace.defaultProgramId
     ) {
-      if (workspace.defaultProgramId) {
-        await deactivateProgram(workspace.defaultProgramId);
-      }
+      await deactivateProgram(workspace.defaultProgramId);
+    }
+
+    // Reactivate all partners if the workspace gains partner access (Pro/Free -> Business/Enterprise)
+    if (
+      wouldGainPartnerAccess({
+        currentPlan: workspace.plan,
+        newPlan: newPlanName,
+      }) &&
+      workspace.defaultProgramId
+    ) {
+      const response = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
+        body: {
+          programId: workspace.defaultProgramId,
+        },
+        deduplicationId: `reactivate-program-${workspace.defaultProgramId}`,
+      });
+
+      console.log("Reactivation job enqueued.", {
+        response,
+      });
     }
 
     if (
