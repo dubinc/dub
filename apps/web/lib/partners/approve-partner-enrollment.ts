@@ -37,9 +37,9 @@ export async function approvePartnerEnrollment({
   });
 
   await throwIfPartnerEnrollmentTrialCapExceeded({
-    workspaceId: program.workspace.id,
     programId,
     additionalApproved: 1,
+    trialEndsAt: program.workspace.trialEndsAt,
   });
 
   const programEnrollment = await prisma.programEnrollment.update({

@@ -48,9 +48,9 @@ export const bulkApprovePartnersAction = authActionClient
     });
 
     await throwIfPartnerEnrollmentTrialCapExceeded({
-      workspaceId: workspace.id,
       programId: program.id,
       additionalApproved: programEnrollments.length,
+      trialEndsAt: workspace.trialEndsAt,
     });
 
     // Approve the enrollments

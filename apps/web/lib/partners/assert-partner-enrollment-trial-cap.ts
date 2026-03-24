@@ -1,22 +1,24 @@
 import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@dub/prisma";
-import { TRIAL_PARTNER_ENROLLMENT_CAP } from "@dub/utils";
+import {
+  isWorkspaceBillingTrialActive,
+  TRIAL_PARTNER_ENROLLMENT_CAP,
+} from "@dub/utils";
 
+/**
+ * Caps approved enrollments per program while the workspace billing trial is active.
+ * Pass `trialEndsAt` from an already-loaded workspace so non-trial paths skip the count query.
+ */
 export async function throwIfPartnerEnrollmentTrialCapExceeded({
-  workspaceId,
   programId,
   additionalApproved = 1,
+  trialEndsAt,
 }: {
-  workspaceId: string;
   programId: string;
   additionalApproved?: number;
+  trialEndsAt: Date | null | undefined;
 }) {
-  const workspace = await prisma.project.findUnique({
-    where: { id: workspaceId },
-    select: { trialEndsAt: true },
-  });
-
-  if (!workspace?.trialEndsAt || workspace.trialEndsAt <= new Date()) {
+  if (!isWorkspaceBillingTrialActive(trialEndsAt)) {
     return;
   }
 

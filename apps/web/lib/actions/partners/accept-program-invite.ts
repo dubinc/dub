@@ -20,13 +20,18 @@ export const acceptProgramInviteAction = authPartnerActionClient
 
     const program = await prisma.program.findUniqueOrThrow({
       where: { id: programId },
-      select: { workspaceId: true },
+      select: {
+        workspaceId: true,
+        workspace: {
+          select: { trialEndsAt: true },
+        },
+      },
     });
 
     await throwIfPartnerEnrollmentTrialCapExceeded({
-      workspaceId: program.workspaceId,
       programId,
       additionalApproved: 1,
+      trialEndsAt: program.workspace.trialEndsAt,
     });
 
     const enrollment = await prisma.programEnrollment.update({
