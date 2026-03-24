@@ -253,6 +253,12 @@ export const createManualCommissionAction = authActionClient
           currency: saleEvent.currency,
           invoiceId: saleEvent.invoice_id,
           createdAt: new Date(saleEvent.timestamp),
+          // if the invoice payment was refunded on Stripe, set the commission status to refunded as well
+          ...(stripeCustomerInvoices.find(
+            (invoice) => invoice.id === saleEvent.invoice_id,
+          )?.refunded && {
+            status: "refunded",
+          }),
           user,
           context: {
             customer: { country: customer.country },
