@@ -134,7 +134,6 @@ function isSitemapLikeUrl(url: string) {
 }
 
 const FETCH_TIMEOUT_MS = 10_000;
-const MAX_REDIRECTS = 5;
 
 async function fetchAndParseSitemap(url: string): Promise<SitemapXmlResult> {
   const controller = new AbortController();
@@ -145,8 +144,6 @@ async function fetchAndParseSitemap(url: string): Promise<SitemapXmlResult> {
     response = await fetch(url, {
       signal: controller.signal,
       redirect: "follow",
-      // @ts-expect-error - Node.js fetch supports this non-standard option
-      follow: MAX_REDIRECTS,
     });
   } finally {
     clearTimeout(timer);
@@ -187,7 +184,13 @@ export async function crawlSitemapUrls(rootSitemapUrl: string) {
 
     const nestedSitemapsFromUrlset = urlsetLocs
       .filter((url) => isSitemapLikeUrl(url))
-      .map((url) => normalizeSitemapUrl(url));
+      .flatMap((url) => {
+        try {
+          return [normalizeSitemapUrl(url)];
+        } catch {
+          return [];
+        }
+      });
 
     const pageUrls = urlsetLocs.filter((url) => !isSitemapLikeUrl(url));
 
@@ -198,7 +201,13 @@ export async function crawlSitemapUrls(rootSitemapUrl: string) {
     const nestedSitemaps = toArray(parsed.sitemapindex?.sitemap)
       .map((entry) => entry?.loc?.trim())
       .filter((url): url is string => Boolean(url))
-      .map((url) => normalizeSitemapUrl(url));
+      .flatMap((url) => {
+        try {
+          return [normalizeSitemapUrl(url)];
+        } catch {
+          return [];
+        }
+      });
 
     for (const nestedSitemap of [
       ...nestedSitemaps,
