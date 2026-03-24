@@ -1,13 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
-import {
-  BlurImage,
-  Button,
-  Logo,
-  Modal,
-  TokenAvatar,
-  useMediaQuery,
-} from "@dub/ui";
+import { TokenAvatar } from "@/ui/token-avatar";
+import { BlurImage, Button, Logo, Modal, useMediaQuery } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import {
   Dispatch,

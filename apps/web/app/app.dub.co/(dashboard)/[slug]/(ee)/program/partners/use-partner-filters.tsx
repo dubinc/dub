@@ -198,8 +198,6 @@ export function usePartnerFilters(
     [activeFilters, workspaceId, extraSearchParams],
   );
 
-  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
-
   return {
     filters,
     activeFilters,
@@ -207,6 +205,5 @@ export function usePartnerFilters(
     onRemove,
     onRemoveAll,
     searchQuery,
-    isFiltered,
   };
 }

@@ -1,9 +1,16 @@
+"use client";
+
 import { AnalyticsResponse } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
-import { Table, usePagination, useTable } from "@dub/ui";
+import {
+  Button,
+  Table,
+  useKeyboardShortcut,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -12,13 +19,61 @@ import {
   fetcher,
   nFormatter,
 } from "@dub/utils";
-import { useContext, useMemo } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import useSWR from "swr";
+import { PartnerAnalyticsFilterCell } from "./partner-analytics-filter-cell";
 
 export function AnalyticsPartnersTable() {
   const { selectedTab, queryString } = useContext(AnalyticsContext);
+  const { queryParams, searchParams } = useRouterStuff();
+
+  const [stagedPartnerIds, setStagedPartnerIds] = useState<string[] | null>(
+    null,
+  );
 
   const { pagination, setPagination } = usePagination(10);
+
+  const activePartnerIdsFromUrl = useMemo(
+    () => searchParams.get("partnerId")?.split(",").filter(Boolean) ?? [],
+    [searchParams],
+  );
+
+  const isFilterActive = searchParams.has("partnerId");
+
+  const toggleStagePartner = useCallback(
+    (partnerId: string) => {
+      setStagedPartnerIds((prev) => {
+        const base = prev ?? activePartnerIdsFromUrl;
+        const next = base.includes(partnerId)
+          ? base.filter((id) => id !== partnerId)
+          : [...base, partnerId];
+        return next.length === 0 ? null : next;
+      });
+    },
+    [activePartnerIdsFromUrl],
+  );
+
+  const applyFilter = useCallback(() => {
+    if (!stagedPartnerIds || stagedPartnerIds.length === 0) return;
+    queryParams({
+      set: { partnerId: stagedPartnerIds.join(",") },
+      del: "page",
+    });
+    setStagedPartnerIds(null);
+  }, [queryParams, stagedPartnerIds]);
+
+  const clearFilter = useCallback(() => {
+    setStagedPartnerIds(null);
+    if (searchParams.has("partnerId")) {
+      queryParams({ del: ["partnerId", "page"] });
+    }
+  }, [queryParams, searchParams]);
+
+  useKeyboardShortcut("Escape", () => setStagedPartnerIds(null), {
+    enabled: stagedPartnerIds !== null,
+    priority: 2,
+  });
 
   const {
     data: topPartners,
@@ -52,21 +107,16 @@ export function AnalyticsPartnersTable() {
         minSize: 250,
         cell: ({ row }) => {
           const p = row.original.partner;
+          const partnerId = row.original.partnerId;
           return (
-            <PartnerRowItem
-              partner={{
-                ...p,
-                payoutsEnabledAt: p.payoutsEnabledAt
-                  ? new Date(p.payoutsEnabledAt)
-                  : null,
-              }}
+            <PartnerAnalyticsFilterCell
+              partner={p}
+              partnerId={partnerId}
+              isStaged={stagedPartnerIds?.includes(partnerId) ?? false}
+              isApplied={activePartnerIdsFromUrl.includes(partnerId)}
+              onToggle={() => toggleStagePartner(partnerId)}
             />
           );
-        },
-        meta: {
-          filterParams: ({ row }) => ({
-            partnerId: row.original.partnerId,
-          }),
         },
       },
       {
@@ -96,35 +146,25 @@ export function AnalyticsPartnersTable() {
             {
               id: "sales",
               header: "Sales",
-              accessorFn: (d) => nFormatter(d.sales),
+              accessorFn: (d: AnalyticsResponse["top_partners"]) =>
+                nFormatter(d.sales),
             },
             {
               id: "saleAmount",
               header: "Revenue",
-              accessorFn: (d) => currencyFormatter(d.saleAmount),
+              accessorFn: (d: AnalyticsResponse["top_partners"]) =>
+                currencyFormatter(d.saleAmount),
             },
           ]
         : [
             {
               id: selectedTab,
               header: `${capitalize(selectedTab)}`,
-              accessorFn: (d) => nFormatter(d[selectedTab]),
+              accessorFn: (d: AnalyticsResponse["top_partners"]) =>
+                nFormatter(d[selectedTab]),
             },
           ]),
     ],
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as
-        | {
-            filterParams?: any;
-          }
-        | undefined;
-
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["clicks", "leads", "saleAmount"],
@@ -137,6 +177,8 @@ export function AnalyticsPartnersTable() {
     error: topPartnersError ? "Failed to load partners" : undefined,
   });
 
+  const showFloatingBar = stagedPartnerIds !== null || isFilterActive;
+
   return !topPartnersList ? (
     <PartnerTableSkeleton />
   ) : topPartnersList.length > 0 ? (
@@ -148,7 +190,36 @@ export function AnalyticsPartnersTable() {
         table={table}
         containerClassName="border-none"
         scrollWrapperClassName="min-h-[200px]"
-      />
+      >
+        <AnimatePresence>
+          {showFloatingBar && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ ease: "easeOut", duration: 0.15 }}
+              className="absolute bottom-1 left-0 z-20 flex h-16 w-full items-end bg-gradient-to-t from-white to-white/0"
+            >
+              <div className="flex w-full items-center justify-center gap-2 pb-2.5">
+                {stagedPartnerIds !== null && stagedPartnerIds.length > 0 && (
+                  <Button
+                    text="Filter"
+                    variant="primary"
+                    className="h-8 w-fit rounded-lg px-3 py-2"
+                    onClick={applyFilter}
+                  />
+                )}
+                <Button
+                  text="Clear"
+                  variant="secondary"
+                  className="h-8 w-fit rounded-lg px-3 py-2"
+                  onClick={clearFilter}
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </Table>
     </div>
   ) : (
     <div className="text-content-muted flex h-36 items-center justify-center text-sm">

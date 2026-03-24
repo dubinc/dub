@@ -6,8 +6,9 @@ import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps, BountySubmissionProps } from "@/lib/types";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
-import { currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { currencyFormatter } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -105,13 +106,9 @@ function ConfirmApproveBountySubmissionModal({
             />
             <div className="relative flex items-center justify-between gap-4">
               <div className="flex min-w-0 flex-1 items-center gap-4">
-                <img
-                  src={
-                    submission.partner.image ||
-                    `${OG_AVATAR_URL}${submission.partner.id}`
-                  }
-                  alt={submission.partner.name}
-                  className="size-10 shrink-0 rounded-full"
+                <PartnerAvatar
+                  partner={submission.partner}
+                  className="size-10"
                 />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-base font-semibold text-neutral-800">

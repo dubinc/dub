@@ -7,10 +7,8 @@ import {
 
 export function getPayoutMethodsForCountry({
   country,
-  stablecoinEnabled = true,
 }: {
   country: string | null | undefined;
-  stablecoinEnabled?: boolean;
 }) {
   if (!country) {
     return [];
@@ -18,7 +16,7 @@ export function getPayoutMethodsForCountry({
 
   const methods: PartnerPayoutMethod[] = [];
 
-  if (stablecoinEnabled && STABLECOIN_SUPPORTED_COUNTRIES.includes(country)) {
+  if (STABLECOIN_SUPPORTED_COUNTRIES.includes(country)) {
     methods.push("stablecoin");
   }
 

@@ -1,10 +1,10 @@
 "use client";
 
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import useGroup from "@/lib/swr/use-group";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
 import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";

@@ -106,16 +106,6 @@ export function BountySubmissionsTable() {
     useBountySubmissionsCount<SubmissionsCountByStatus[]>();
 
   const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    setSearch,
-    setSelectedFilter,
-  } = useBountySubmissionFilters({ bounty });
-
-  const {
     error,
     isLoading,
     data: submissions,
@@ -452,59 +442,13 @@ export function BountySubmissionsTable() {
 
       <div className="flex flex-col gap-6">
         <div>
-          <div className="flex w-full items-center justify-between gap-4">
-            <Filter.Select
-              className="w-full md:w-fit"
-              filters={filters}
-              activeFilters={activeFilters}
-              onSelect={onSelect}
-              onRemove={onRemove}
-              onSearchChange={setSearch}
-              onSelectedFilterChange={setSelectedFilter}
-            />
-            {bountyInfo?.hasSocialMetrics && (submissions?.length ?? 0) > 0 && (
-              <div className="flex shrink-0 items-center gap-3">
-                {bounty?.socialMetricsLastSyncedAt ? (
-                  <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
-                    Last sync{" "}
-                    {timeAgo(bounty.socialMetricsLastSyncedAt, {
-                      withAgo: true,
-                    })}
-                  </span>
-                ) : null}
-                <Button
-                  variant="secondary"
-                  text="Refresh stats"
-                  loading={isRefreshingStats}
-                  onClick={refreshStats}
-                  className="h-8 rounded-lg px-3"
-                />
-              </div>
-            )}
-          </div>
-          <AnimatedSizeContainer height>
-            <div>
-              {activeFilters.length > 0 && (
-                <div className="pt-3">
-                  <Filter.List
-                    filters={[
-                      ...filters,
-                      {
-                        key: "payoutId",
-                        icon: MoneyBill2,
-                        label: "Payout",
-                        options: [],
-                      },
-                    ]}
-                    activeFilters={activeFilters}
-                    onSelect={onSelect}
-                    onRemove={onRemove}
-                    onRemoveAll={onRemoveAll}
-                  />
-                </div>
-              )}
-            </div>
-          </AnimatedSizeContainer>
+          <BountySubmissionFilters
+            bounty={bounty}
+            bountyInfo={bountyInfo}
+            submissionsLength={submissions?.length ?? 0}
+            isRefreshingStats={isRefreshingStats}
+            refreshStats={refreshStats}
+          />
         </div>
         {submissions?.length !== 0 || isLoading ? (
           <Table {...tableProps} table={table} />
@@ -521,6 +465,88 @@ export function BountySubmissionsTable() {
           />
         )}
       </div>
+    </>
+  );
+}
+
+function BountySubmissionFilters({
+  bounty,
+  bountyInfo,
+  submissionsLength,
+  isRefreshingStats,
+  refreshStats,
+}: {
+  bounty: ReturnType<typeof useBounty>["bounty"];
+  bountyInfo: ReturnType<typeof resolveBountyDetails>;
+  submissionsLength: number;
+  isRefreshingStats: boolean;
+  refreshStats: () => void;
+}) {
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useBountySubmissionFilters({ bounty: bounty ?? undefined });
+
+  return (
+    <>
+      <div className="flex w-full items-center justify-between gap-4">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        {bountyInfo?.hasSocialMetrics && submissionsLength > 0 && (
+          <div className="flex shrink-0 items-center gap-3">
+            {bounty?.socialMetricsLastSyncedAt ? (
+              <span className="whitespace-nowrap text-xs font-medium text-neutral-500">
+                Last sync{" "}
+                {timeAgo(bounty.socialMetricsLastSyncedAt, {
+                  withAgo: true,
+                })}
+              </span>
+            ) : null}
+            <Button
+              variant="secondary"
+              text="Refresh stats"
+              loading={isRefreshingStats}
+              onClick={refreshStats}
+              className="h-8 rounded-lg px-3"
+            />
+          </div>
+        )}
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={[
+                  ...filters,
+                  {
+                    key: "payoutId",
+                    icon: MoneyBill2,
+                    label: "Payout",
+                    options: [],
+                  },
+                ]}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
     </>
   );
 }

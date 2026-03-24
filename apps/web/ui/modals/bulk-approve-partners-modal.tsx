@@ -4,8 +4,9 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { GroupSelector } from "@/ui/partners/groups/group-selector";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal } from "@dub/ui";
-import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -80,12 +81,11 @@ function BulkApprovePartnersModal({
         <div className="flex items-center gap-3 rounded-lg border border-neutral-200 bg-neutral-100 p-3">
           <div className="flex items-center">
             {partners.slice(0, 3).map((partner, index) => (
-              <img
+              <PartnerAvatar
                 key={partner.id}
-                src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                alt={partner.id}
+                partner={partner}
                 className={cn(
-                  "inline-block size-7 rounded-full border-2 border-neutral-100",
+                  "inline-block size-7 border-2 border-neutral-100",
                   index > 0 && "-ml-2.5",
                 )}
               />

@@ -677,7 +677,11 @@ function CreateCommissionSheetContent({
                                       </a>
                                       <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
                                         {formatDate(inv.createdAt)}
-                                        {inv.dubCommissionId && (
+                                        {inv.refunded ? (
+                                          <span className="rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500">
+                                            Refunded
+                                          </span>
+                                        ) : inv.dubCommissionId ? (
                                           <a
                                             href={`/${slug}/program/commissions?partnerId=${partnerId}&customerId=${customerId}`}
                                             target="_blank"
@@ -685,7 +689,7 @@ function CreateCommissionSheetContent({
                                           >
                                             Already imported
                                           </a>
-                                        )}
+                                        ) : null}
                                       </p>
                                     </div>
                                     <span

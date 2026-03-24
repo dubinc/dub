@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, FileUpload, getUserAvatarUrl } from "@dub/ui";
+import { getUserAvatarUrl } from "@/ui/users/user-avatar";
+import { Button, FileUpload } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -8,10 +9,12 @@ import { toast } from "sonner";
 export default function UploadAvatar() {
   const { data: session, update } = useSession();
 
-  const [image, setImage] = useState<string | null>();
+  const [image, setImage] = useState<string | null>(null);
 
   useEffect(() => {
-    setImage(session?.user ? getUserAvatarUrl(session.user) : null);
+    if (session?.user) {
+      getUserAvatarUrl(session.user).then((url) => setImage(url));
+    }
   }, [session]);
 
   const [uploading, setUploading] = useState(false);

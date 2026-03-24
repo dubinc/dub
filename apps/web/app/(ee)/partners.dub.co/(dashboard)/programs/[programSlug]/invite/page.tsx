@@ -1,12 +1,13 @@
-import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getSession } from "@/lib/auth";
+import { getGroupBountySummaries } from "@/lib/bounty/api/get-group-bounty-summaries";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@dub/prisma/client";
 import { CircleCheckFill } from "@dub/ui";
@@ -91,9 +92,8 @@ export default async function ProgramInvitePage(props: {
             alt={program.name}
             className="z-10 size-20 rotate-[-15deg] rounded-full drop-shadow-md"
           />
-          <img
-            src={user?.image || `${OG_AVATAR_URL}${user?.id}`}
-            alt={user?.name || "Your avatar"}
+          <UserAvatar
+            user={user}
             className="-ml-4 size-20 rotate-[15deg] rounded-full drop-shadow-md"
           />
           <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">

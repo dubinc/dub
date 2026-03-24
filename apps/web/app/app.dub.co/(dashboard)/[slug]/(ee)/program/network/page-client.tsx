@@ -7,6 +7,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ConversionScoreTooltip } from "@/ui/partners/partner-network/conversion-score-tooltip";
 import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
 import { PartnerStarButton } from "@/ui/partners/partner-star-button";
@@ -28,7 +29,6 @@ import type { Icon } from "@dub/ui/icons";
 import { EnvelopeArrowRight, Globe } from "@dub/ui/icons";
 import {
   COUNTRIES,
-  OG_AVATAR_URL,
   capitalize,
   cn,
   fetcher,
@@ -440,10 +440,9 @@ function PartnerCard({
           {/* Avatar + country icon */}
           <div className="relative w-fit">
             {partner ? (
-              <img
-                src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                alt={partner.id}
-                className="size-16 rounded-full border border-neutral-100"
+              <PartnerAvatar
+                partner={partner}
+                className="size-16 border border-neutral-100"
               />
             ) : (
               <div className="size-16 animate-pulse rounded-full bg-neutral-200" />

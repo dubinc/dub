@@ -52,6 +52,7 @@ model User {
   partnerComments         PartnerComment[]
   fraudEventGroups        FraudEventGroup[]
   activityLogs            ActivityLog[]
+  createdCommissions     Commission[]
 
   @@index(sentMail)
   @@index(source)

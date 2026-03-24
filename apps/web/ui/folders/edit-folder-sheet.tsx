@@ -11,9 +11,9 @@ import {
 import { useFolderUsers } from "@/lib/swr/use-folder-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { FolderUserRole, WorkspaceRole } from "@dub/prisma/client";
 import {
-  Avatar,
   BlurImage,
   Button,
   DynamicTooltipWrapper,
@@ -259,7 +259,7 @@ const FolderUserRow = ({
   return (
     <div key={user.id} className="flex items-center justify-between gap-3">
       <div className="flex min-w-12 items-center gap-3">
-        <Avatar user={user} className="size-8" />
+        <UserAvatar user={user} className="size-8" />
         <div className="min-w-0">
           <h3 className="truncate text-xs font-medium text-neutral-800">
             {user.name || user.email}

@@ -88,6 +88,10 @@ async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
 
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
+    flowControl: {
+      key: invoice.id,
+      rate: 1,
+    },
     body: {
       invoiceId: invoice.id,
     },

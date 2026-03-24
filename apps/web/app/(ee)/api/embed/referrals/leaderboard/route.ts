@@ -24,8 +24,6 @@ export const GET = withReferralsEmbedToken(async ({ program }) => {
 
   const response = partners.map((partner) => ({
     id: partner.id,
-    name: generateRandomName(partner.id),
-    image: `${OG_AVATAR_URL}${partner.id}`,
     totalCommissions: Number(partner.totalCommissions),
   }));
 

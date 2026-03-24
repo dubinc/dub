@@ -1,4 +1,5 @@
 import { withAdmin } from "@/lib/auth";
+import { conn } from "@/lib/planetscale";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
@@ -115,14 +116,22 @@ export const POST = withAdmin(async ({ req }) => {
           );
         }
       }
+
+      await prisma.programEnrollment.deleteMany({
+        where: {
+          partnerId: partner.id,
+          programId: {
+            in: partner.programs.map(({ program }) => program.id),
+          },
+        },
+      });
+      console.log(
+        `Deleted ${partner.programs.length} program enrollments for partner ${partner.email} (${partner.id})`,
+      );
     }
 
-    const deletedPartner = await prisma.partner.delete({
-      where: {
-        id: partner.id,
-      },
-    });
-    console.log("Deleted partner", deletedPartner);
+    await conn.execute(`DELETE FROM Partner WHERE id = ?`, [partner.id]);
+    console.log(`Deleted partner ${partner.email} (${partner.id})`);
   }
 
   return NextResponse.json({ success: true });

@@ -8,6 +8,12 @@ import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
 
+export enum CustomerEmailMatchType {
+  EXACT = "exact",
+  DOMAIN_MATCH = "domainMatch",
+  HISTORICAL_DOMAIN_MATCH = "historicalDomainMatch",
+}
+
 export const fraudGroupSchema = z.object({
   id: z.string(),
   type: z.enum(FraudRuleType),
@@ -121,6 +127,13 @@ export const fraudRuleSchema = z.object({
   config: z.unknown(),
 });
 
+const toggleOnlyFraudRuleSchema = z
+  .object({
+    resolvePendingEvents: z.boolean().default(false),
+    enabled: z.boolean(),
+  })
+  .optional();
+
 export const updateFraudRuleSettingsSchema = z.object({
   // Referral source banned rule
   referralSourceBanned: z
@@ -229,26 +242,26 @@ export const updateFraudRuleSettingsSchema = z.object({
     })
     .optional(),
 
-  // Customer email match rule (toggle-only)
-  customerEmailMatch: z
-    .object({
-      resolvePendingEvents: z.boolean().default(false),
-      enabled: z.boolean(),
-    })
-    .optional(),
+  // Toggle-only rules (no additional config beyond enabled/disabled)
+  customerEmailMatch: toggleOnlyFraudRuleSchema,
+  customerEmailSuspiciousDomain: toggleOnlyFraudRuleSchema,
+  partnerCrossProgramBan: toggleOnlyFraudRuleSchema,
+  partnerDuplicatePayoutMethod: toggleOnlyFraudRuleSchema,
+  partnerFraudReport: toggleOnlyFraudRuleSchema,
+});
 
-  // Customer email suspicious domain rule (toggle-only)
-  customerEmailSuspiciousDomain: z
-    .object({
-      resolvePendingEvents: z.boolean().default(false),
-      enabled: z.boolean(),
-    })
-    .optional(),
+const baseFraudEventSchema = z.object({
+  createdAt: z.date(),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+  }),
 });
 
 export const fraudEventSchemas = {
-  referralSourceBanned: z.object({
-    createdAt: z.date(),
+  referralSourceBanned: baseFraudEventSchema.extend({
     customer: CustomerSchema.pick({
       id: true,
       name: true,
@@ -262,8 +275,7 @@ export const fraudEventSchemas = {
       .nullable(),
   }),
 
-  paidTrafficDetected: z.object({
-    createdAt: z.date(),
+  paidTrafficDetected: baseFraudEventSchema.extend({
     customer: CustomerSchema.pick({
       id: true,
       name: true,
@@ -278,8 +290,22 @@ export const fraudEventSchemas = {
       .nullable(),
   }),
 
-  customerEmailMatch: z.object({
-    createdAt: z.date(),
+  customerEmailMatch: baseFraudEventSchema.extend({
+    customer: CustomerSchema.pick({
+      id: true,
+      name: true,
+      email: true,
+      avatar: true,
+    }),
+    metadata: z
+      .object({
+        matchType: z.enum(CustomerEmailMatchType),
+      })
+      .nullable()
+      .optional(),
+  }),
+
+  customerEmailSuspiciousDomain: baseFraudEventSchema.extend({
     customer: CustomerSchema.pick({
       id: true,
       name: true,
@@ -288,40 +314,14 @@ export const fraudEventSchemas = {
     }),
   }),
 
-  customerEmailSuspiciousDomain: z.object({
-    createdAt: z.date(),
-    customer: CustomerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      avatar: true,
-    }),
-  }),
-
-  partnerCrossProgramBan: z.object({
+  partnerCrossProgramBan: baseFraudEventSchema.extend({
     metadata: z.object({
       bannedAt: z.string(),
       bannedReason: z.string(),
     }),
   }),
 
-  partnerDuplicatePayoutMethod: z.object({
-    createdAt: z.date(),
-    partner: PartnerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-    }),
-  }),
+  partnerDuplicatePayoutMethod: baseFraudEventSchema,
 
-  partnerFraudReport: z.object({
-    createdAt: z.date(),
-    partner: PartnerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-    }),
-  }),
+  partnerFraudReport: baseFraudEventSchema,
 };
