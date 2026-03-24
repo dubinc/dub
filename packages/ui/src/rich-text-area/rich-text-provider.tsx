@@ -21,6 +21,7 @@ import { suggestions } from "./variables";
 export const PROSE_STYLES = {
   default: "prose-p:my-2 prose-ul:my-2 prose-ol:my-2",
   condensed: "prose-p:my-0 prose-ul:my-2 prose-ol:my-2",
+  chat: "prose-p:my-0 prose-ul:my-2 prose-ol:my-2 [&_p+p]:mt-2",
   relaxed: "",
 } as const;
 
@@ -189,7 +190,24 @@ export const RichTextProvider = forwardRef<
         ...(features.includes("variables") && variables
           ? [
               Mention.extend({
+                addAttributes() {
+                  return {
+                    ...this.parent?.(),
+                    fallback: {
+                      default: null,
+                      parseHTML: (element) =>
+                        element.getAttribute("data-fallback"),
+                      renderHTML: (attrs) =>
+                        attrs.fallback
+                          ? { "data-fallback": attrs.fallback }
+                          : {},
+                    },
+                  };
+                },
                 renderHTML({ node }: { node: any }) {
+                  const label = node.attrs.fallback
+                    ? `{{${node.attrs.id} | ${node.attrs.fallback}}}`
+                    : `{{${node.attrs.id}}}`;
                   return [
                     "span",
                     {
@@ -197,12 +215,17 @@ export const RichTextProvider = forwardRef<
                         "px-1 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold",
                       "data-type": "mention",
                       "data-id": node.attrs.id,
+                      ...(node.attrs.fallback
+                        ? { "data-fallback": node.attrs.fallback }
+                        : {}),
                     },
-                    `{{${node.attrs.id}}}`,
+                    label,
                   ];
                 },
                 renderText({ node }: { node: any }) {
-                  return `{{${node.attrs.id}}}`;
+                  return node.attrs.fallback
+                    ? `{{${node.attrs.id} | ${node.attrs.fallback}}}`
+                    : `{{${node.attrs.id}}}`;
                 },
               }).configure({
                 suggestion: suggestions(variables),

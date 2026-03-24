@@ -3,7 +3,7 @@ import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { Hyperlink, Users6 } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import TagBadge from "../links/tag-badge";
 import { GroupColorCircle } from "../partners/groups/group-color-circle";
 import { AnalyticsCard } from "./analytics-card";
@@ -63,6 +63,7 @@ export function PartnerSection() {
 
   const [tab, setTab] = useState<TabId>("segments");
   const [subtab, setSubtab] = useState<Subtab>(TAB_CONFIG[tab].defaultSubtab);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
   // Reset subtab when tab changes to ensure it's valid for the new tab
   const handleTabChange = (newTab: TabId) => {
@@ -70,12 +71,70 @@ export function PartnerSection() {
     setSubtab(TAB_CONFIG[newTab].defaultSubtab);
   };
 
+  useEffect(() => {
+    setSelectedItems([]);
+  }, [tab, subtab]);
+
+  const isFilterActive = useMemo(() => {
+    if (subtab === "groups") return searchParams.has("groupId");
+    if (subtab === "tags") return searchParams.has("tagId");
+    if (subtab === "short_links") return searchParams.has("linkId");
+    if (subtab === "destination_urls") return searchParams.has("url");
+    return false;
+  }, [subtab, searchParams]);
+
+  const activeFilterValues = useMemo(() => {
+    if (subtab === "groups")
+      return searchParams.get("groupId")?.split(",") ?? [];
+    if (subtab === "tags") return searchParams.get("tagId")?.split(",") ?? [];
+    if (subtab === "short_links")
+      return searchParams.get("linkId")?.split(",") ?? [];
+    if (subtab === "destination_urls")
+      return searchParams.get("url")?.split(",") ?? [];
+    return [];
+  }, [subtab, searchParams]);
+
+  const filterParamKey = useMemo(() => {
+    if (subtab === "groups") return "groupId";
+    if (subtab === "tags") return "tagId";
+    if (subtab === "short_links") return "linkId";
+    if (subtab === "destination_urls") return "url";
+    return null;
+  }, [subtab]);
+
+  const onToggleFilter = useCallback((val: string) => {
+    setSelectedItems((prev) =>
+      prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val],
+    );
+  }, []);
+
+  const onApplyFilterValues = useCallback(
+    (values: string[]) => {
+      if (!filterParamKey) return;
+      if (values.length === 0) {
+        queryParams({ del: filterParamKey });
+      } else {
+        queryParams({ set: { [filterParamKey]: values.join(",") } });
+      }
+      setSelectedItems([]);
+    },
+    [filterParamKey, queryParams],
+  );
+
+  const onClearFilter = useCallback(() => {
+    setSelectedItems([]);
+    if (isFilterActive && filterParamKey) queryParams({ del: filterParamKey });
+  }, [filterParamKey, queryParams, isFilterActive]);
+
   const groupByParams = useMemo(
     () => TAB_CONFIG[tab].getGroupBy(subtab),
     [tab, subtab],
   );
 
   const { data } = useAnalyticsFilterOption(groupByParams);
+  const { data: allData } = useAnalyticsFilterOption(groupByParams, {
+    omitGroupByFilterKey: true,
+  });
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
 
@@ -106,6 +165,49 @@ export function PartnerSection() {
     [persisted, tab, subtab],
   );
 
+  const mapItem = useCallback(
+    (d: Record<string, any>) => {
+      const isSegmentsTab = tab === "segments";
+      const isLinksTab = tab === "links";
+      const isGroupsSubtab = isSegmentsTab && subtab === "groups";
+      const isTagsSubtab = isSegmentsTab && subtab === "tags";
+      const isShortLinksSubtab = isLinksTab && subtab === "short_links";
+      const isDestinationUrlsSubtab =
+        isLinksTab && subtab === "destination_urls";
+
+      let icon;
+      if (isGroupsSubtab) {
+        icon = d.group ? <GroupColorCircle group={d.group} /> : null;
+      } else if (isTagsSubtab) {
+        icon = d.tag ? (
+          <TagBadge color={d.tag.color} withIcon className="sm:p-1" />
+        ) : null;
+      } else {
+        icon = (
+          <LinkLogo
+            apexDomain={getApexDomain(d.url || "")}
+            className="size-5 sm:size-5"
+          />
+        );
+      }
+
+      let filterValue: string | undefined;
+      if (isGroupsSubtab) filterValue = d.groupId;
+      else if (isTagsSubtab) filterValue = d.tagId;
+      else if (isShortLinksSubtab) filterValue = d.id;
+      else if (isDestinationUrlsSubtab) filterValue = d.url;
+
+      return {
+        icon,
+        title: getItemTitle(d),
+        filterValue,
+        value: d[dataKey] || 0,
+        ...(isShortLinksSubtab && { linkData: d }),
+      };
+    },
+    [tab, subtab, dataKey, getItemTitle],
+  );
+
   const subTabProps = useMemo(() => {
     if (adminPage || partnerPage) return {};
     const config = TAB_CONFIG[tab];
@@ -127,6 +229,8 @@ export function PartnerSection() {
       ]}
       expandLimit={8}
       dataLength={data?.length}
+      isFilterActive={isFilterActive}
+      onClearFilter={onClearFilter}
       selectedTabId={tab}
       onSelectTab={handleTabChange}
       {...subTabProps}
@@ -136,110 +240,24 @@ export function PartnerSection() {
           data.length > 0 ? (
             <BarList
               tab={tab}
-              data={
-                data
-                  ?.map((d) => {
-                    const isSegmentsTab = tab === "segments";
-                    const isLinksTab = tab === "links";
-                    const isGroupsSubtab = isSegmentsTab && subtab === "groups";
-                    const isTagsSubtab = isSegmentsTab && subtab === "tags";
-                    const isShortLinksSubtab =
-                      isLinksTab && subtab === "short_links";
-                    const isDestinationUrlsSubtab =
-                      isLinksTab && subtab === "destination_urls";
-
-                    // Determine icon
-                    let icon;
-                    if (isGroupsSubtab) {
-                      icon = d.group ? (
-                        <GroupColorCircle group={d.group} />
-                      ) : null;
-                    } else if (isTagsSubtab) {
-                      icon = d.tag ? (
-                        <TagBadge
-                          color={d.tag.color}
-                          withIcon
-                          className="sm:p-1"
-                        />
-                      ) : null;
-                    } else {
-                      icon = (
-                        <LinkLogo
-                          apexDomain={getApexDomain(d.url || "")}
-                          className="size-5 sm:size-5"
-                        />
-                      );
-                    }
-
-                    // Determine href
-                    let href: string | undefined;
-                    if (isShortLinksSubtab) {
-                      const hasLinkFilter =
-                        searchParams.has("domain") && searchParams.has("key");
-                      href = queryParams({
-                        ...(hasLinkFilter
-                          ? { del: ["domain", "key"] }
-                          : {
-                              set: {
-                                domain: d.domain,
-                                key: d.key || "_root",
-                              },
-                            }),
-                        getNewPath: true,
-                      }) as string;
-                    } else if (isDestinationUrlsSubtab) {
-                      const hasUrlFilter = searchParams.has("url");
-                      href = queryParams({
-                        ...(hasUrlFilter
-                          ? { del: "url" }
-                          : {
-                              set: {
-                                url: d.url,
-                              },
-                            }),
-                        getNewPath: true,
-                      }) as string;
-                    } else if (isGroupsSubtab) {
-                      const hasGroupFilter = searchParams.has("groupId");
-                      href = queryParams({
-                        ...(hasGroupFilter
-                          ? { del: "groupId" }
-                          : {
-                              set: {
-                                groupId: d.groupId,
-                              },
-                            }),
-                        getNewPath: true,
-                      }) as string;
-                    } else if (isTagsSubtab) {
-                      const hasTagFilter = searchParams.has("tagId");
-                      href = queryParams({
-                        ...(hasTagFilter
-                          ? { del: "tagId" }
-                          : {
-                              set: {
-                                tagId: d.tagId,
-                              },
-                            }),
-                        getNewPath: true,
-                      }) as string;
-                    }
-
-                    return {
-                      icon,
-                      title: getItemTitle(d),
-                      href,
-                      value: d[dataKey] || 0,
-                      ...(isShortLinksSubtab && { linkData: d }),
-                    };
-                  })
-                  ?.sort((a, b) => b.value - a.value) || []
-              }
+              data={data.map(mapItem).sort((a, b) => b.value - a.value)}
+              allData={allData?.map(mapItem).sort((a, b) => b.value - a.value)}
               unit={selectedTab}
-              maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
+              maxValue={Math.max(...data.map((d) => d[dataKey] ?? 0))}
               barBackground="bg-orange-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
+              filterSelectedBackground="bg-orange-500"
+              filterSelectedHoverBackground="hover:bg-orange-600"
+              filterHoverClass="bg-white border border-orange-200"
               setShowModal={setShowModal}
+              selectedFilterValues={selectedItems}
+              activeFilterValues={activeFilterValues}
+              onToggleFilter={onToggleFilter}
+              onClearFilter={onClearFilter}
+              onClearSelection={() => setSelectedItems([])}
+              onApplyFilterValues={
+                filterParamKey ? onApplyFilterValues : undefined
+              }
               {...(limit && { limit })}
             />
           ) : (

@@ -4,13 +4,15 @@ import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
+import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CommissionType } from "@dub/prisma/client";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Sliders, User, Users, Users6 } from "@dub/ui/icons";
-import { capitalize, cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { capitalize, cn, nFormatter } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -41,17 +43,11 @@ export function useCommissionFilters() {
         label: "Customer",
         shouldFilter: false,
         options:
-          customers?.map(({ id, email, name, avatar }) => {
+          customers?.map((customer) => {
             return {
-              value: id,
-              label: email ?? name,
-              icon: (
-                <img
-                  src={avatar || `${OG_AVATAR_URL}${id}`}
-                  alt={`${email} avatar`}
-                  className="size-4 rounded-full"
-                />
-              ),
+              value: customer.id,
+              label: customer.email ?? customer.name,
+              icon: <CustomerAvatar customer={customer} className="size-4" />,
             };
           }) ?? null,
       },
@@ -61,17 +57,11 @@ export function useCommissionFilters() {
         label: "Partner",
         shouldFilter: false,
         options:
-          partners?.map(({ id, name, image }) => {
+          partners?.map((partner) => {
             return {
-              value: id,
-              label: name,
-              icon: (
-                <img
-                  src={image || `${OG_AVATAR_URL}${id}`}
-                  alt={`${name} image`}
-                  className="size-4 rounded-full"
-                />
-              ),
+              value: partner.id,
+              label: partner.name,
+              icon: <PartnerAvatar partner={partner} className="size-4" />,
             };
           }) ?? null,
       },
@@ -178,18 +168,12 @@ export function useCommissionFilters() {
     [queryParams],
   );
 
-  const isFiltered = useMemo(
-    () => activeFilters.length > 0 || searchParamsObj.search,
-    [activeFilters, searchParamsObj.search],
-  );
-
   return {
     filters,
     activeFilters,
     onSelect,
     onRemove,
     onRemoveAll,
-    isFiltered,
     setSearch,
     setSelectedFilter,
   };

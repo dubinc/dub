@@ -3,15 +3,21 @@ import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import {
+  getCursorPaginationQuerySchema,
+  getPaginationQuerySchema,
+} from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
+import { PayoutSchema } from "./payouts";
+import { RewardSchema } from "./rewards";
+import { UserSchema } from "./users";
 import { centsSchema, parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").meta({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.enum(CommissionType).optional(),
+  type: z.enum(CommissionType).optional(), // Note: Not sure the type will ever be optional
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
@@ -39,6 +45,32 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
     groupId: true,
   }),
   customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+});
+
+// Schema for the commission detail page (GET /api/commissions/:commissionId)
+// TODO: Simplify this for OpenAPI and limit extra fields to in-app only – similar to getLinkInfoQuerySchemaExtended logic
+export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
+  user: UserSchema.nullish().describe("The user who created the commission."),
+  reward: RewardSchema.pick({
+    event: true,
+    description: true,
+    type: true,
+    amountInCents: true,
+    amountInPercentage: true,
+  }).nullish(),
+  payout: PayoutSchema.pick({
+    id: true,
+    paidAt: true,
+    initiatedAt: true,
+  })
+    .extend({
+      user: UserSchema.nullish().describe("The user who processed the payout."),
+    })
+    .nullish(),
+  holdingPeriodDays: z
+    .number()
+    .nullish()
+    .describe("The holding period days for the partner group."),
 });
 
 // "commission.created" webhook event schema
@@ -118,13 +150,23 @@ export const getCommissionsQuerySchema = z
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
   })
-  .extend(getPaginationQuerySchema({ pageSize: COMMISSIONS_MAX_PAGE_SIZE }));
+  .extend({
+    ...getCursorPaginationQuerySchema({
+      example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56",
+    }),
+    ...getPaginationQuerySchema({
+      pageSize: COMMISSIONS_MAX_PAGE_SIZE,
+      deprecated: true,
+    }),
+  });
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   page: true,
   pageSize: true,
   sortOrder: true,
   sortBy: true,
+  startingAfter: true,
+  endingBefore: true,
 });
 
 export const createCommissionSchema = z.object({
@@ -291,7 +333,12 @@ export const DEFAULT_COMMISSION_EXPORT_COLUMNS =
   );
 
 export const commissionsExportQuerySchema = getCommissionsQuerySchema
-  .omit({ page: true, pageSize: true })
+  .omit({
+    page: true,
+    pageSize: true,
+    startingAfter: true,
+    endingBefore: true,
+  })
   .extend({
     columns: z
       .string()

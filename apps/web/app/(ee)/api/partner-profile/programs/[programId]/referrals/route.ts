@@ -12,8 +12,12 @@ import * as z from "zod/v4";
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
     const { programId } = params;
-    const { status, search, page, pageSize } =
-      getPartnerReferralsQuerySchema.parse(searchParams);
+    const {
+      status,
+      search,
+      page = 1,
+      pageSize,
+    } = getPartnerReferralsQuerySchema.parse(searchParams);
 
     const { program } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,

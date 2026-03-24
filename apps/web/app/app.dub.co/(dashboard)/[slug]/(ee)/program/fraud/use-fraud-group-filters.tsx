@@ -3,9 +3,10 @@ import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
 import usePartners from "@/lib/swr/use-partners";
 import { EnrolledPartnerProps, FraudGroupCountByType } from "@/lib/types";
 import { fraudGroupCountQuerySchema } from "@/lib/zod/schemas/fraud";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { useRouterStuff } from "@dub/ui";
 import { ShieldKeyhole, Users } from "@dub/ui/icons";
-import { nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { nFormatter } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import * as z from "zod/v4";
@@ -54,10 +55,9 @@ export function useFraudGroupFilters({
               value: id,
               label: name,
               icon: (
-                <img
-                  src={image || `${OG_AVATAR_URL}${id}`}
-                  alt={`${name} image`}
-                  className="size-4 rounded-full"
+                <PartnerAvatar
+                  partner={{ id, name, image }}
+                  className="size-4"
                 />
               ),
             };

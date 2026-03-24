@@ -62,23 +62,21 @@ const applicationsColumns = {
 
 export function ProgramPartnersApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
-  const search = searchParams.get("search");
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-  } = usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
-    "groupId",
-    "country",
-  ]);
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
+
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
+      "groupId",
+      "country",
+    ]);
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
     status: "pending",
@@ -492,7 +490,7 @@ export function ProgramPartnersApplicationsPageClient() {
       ) : (
         <AnimatedEmptyState
           title="No applications found"
-          description={`No applications found${isFiltered || search ? " for the selected filters" : " for this program"}.`}
+          description={`No applications found${isFiltered ? " for the selected filters" : " for this program"}.`}
           cardContent={() => (
             <>
               <Users className="size-4 text-neutral-700" />

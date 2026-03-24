@@ -102,24 +102,20 @@ export function TicketUpload({
       status: "uploading",
     }));
 
-    let allowedEntries: FileEntry[] = [];
-    setFiles((prev) => {
-      const combined = [...prev, ...entries].slice(0, MAX_FILES);
-      allowedEntries = combined.slice(prev.length);
-      return combined;
-    });
+    setFiles((prev) => [...prev, ...entries].slice(0, MAX_FILES));
 
-    allowedEntries.forEach((entry) => {
+    entries.forEach((entry) => {
       uploadToPlain(entry.file).then((result) => {
-        setFiles((prev) =>
-          prev.map((f) =>
+        setFiles((prev) => {
+          if (!prev.some((f) => f.id === entry.id)) return prev;
+          return prev.map((f) =>
             f.id === entry.id
               ? "error" in result
                 ? { ...f, status: "error", errorMessage: result.error }
                 : { ...f, status: "done", attachmentId: result.attachmentId }
               : f,
-          ),
-        );
+          );
+        });
       });
     });
   }, []);

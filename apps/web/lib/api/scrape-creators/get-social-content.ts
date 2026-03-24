@@ -1,4 +1,4 @@
-import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/constants";
+import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/social-content";
 import { SocialContent } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { PlatformType } from "@dub/prisma/client";
@@ -15,13 +15,14 @@ interface GetSocialContentStatsParams {
 }
 
 const PLATFORM_CONTENT_TYPE: Record<
-  Exclude<PlatformType, "website" | "linkedin">,
+  Exclude<PlatformType, "website">,
   "post" | "video" | "tweet"
 > = {
   youtube: "video",
   instagram: "post",
   twitter: "tweet",
   tiktok: "video",
+  linkedin: "post",
 };
 
 const EMPTY_SOCIAL_CONTENT: SocialContent = {
@@ -176,6 +177,24 @@ export async function getSocialContent({
         title: null,
         description: data.desc ?? null,
         thumbnailUrl: data.video?.cover?.url_list?.[0] ?? null,
+      };
+      break;
+    }
+
+    case "linkedin": {
+      const handleMatch = data.author?.url?.match(
+        /linkedin\.com\/in\/([^\/\?]+)/i,
+      );
+
+      result = {
+        publishedAt: data.datePublished ? new Date(data.datePublished) : null,
+        handle: handleMatch?.[1] ?? null,
+        platformId: null,
+        views: 0,
+        likes: data.likeCount,
+        title: data.name ?? null,
+        description: data.description ?? data.headline ?? null,
+        thumbnailUrl: null,
       };
       break;
     }

@@ -1,4 +1,4 @@
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
@@ -8,9 +8,10 @@ import usePartners from "@/lib/swr/use-partners";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps, EnrolledPartnerProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Users, Users6 } from "@dub/ui/icons";
-import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { cn, nFormatter } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -48,10 +49,9 @@ export function useBountySubmissionFilters({
               value: id,
               label: name,
               icon: (
-                <img
-                  src={image || `${OG_AVATAR_URL}${id}`}
-                  alt={`${name} image`}
-                  className="size-4 rounded-full"
+                <PartnerAvatar
+                  partner={{ id, name, image }}
+                  className="size-4"
                 />
               ),
             };

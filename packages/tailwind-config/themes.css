@@ -6,9 +6,10 @@
   --bg-emphasis: 229 229 229;
   --bg-inverted: 23 23 23;
 
-  --bg-info: 191 219 254;
+  --bg-info: 219 234 254;
   --bg-success: 220 252 231;
   --bg-attention: 255 237 213;
+  --bg-warning: 254 249 195;
   --bg-error: 254 226 226;
 
   --border-emphasis: 163 163 163;
@@ -22,10 +23,11 @@
   --content-default: 64 64 64;
   --content-emphasis: 23 23 23;
 
-  --content-info: 29 78 216;
-  --content-success: 21 128 61;
-  --content-attention: 194 65 12;
-  --content-error: 185 28 28;
+  --content-info: 37 99 235;
+  --content-success: 22 163 74;
+  --content-attention: 234 88 12;
+  --content-warning: 202 138 4;
+  --content-error: 220 38 38;
 }
 
 .dark {
@@ -35,10 +37,11 @@
   --bg-emphasis: 64 64 64;
   --bg-inverted: 250 250 250;
 
-  --bg-info: 29 78 216;
-  --bg-success: 21 128 61;
-  --bg-attention: 194 65 12;
-  --bg-error: 185 28 28;
+  --bg-info: 23 37 84;
+  --bg-success: 5 46 22;
+  --bg-attention: 67 20 7;
+  --bg-warning: 66 32 6;
+  --bg-error: 69 10 10;
 
   --border-muted: 38 38 38;
   --border-subtle: 64 64 64;
@@ -51,8 +54,9 @@
   --content-default: 212 212 212;
   --content-emphasis: 250 250 250;
 
-  --content-info: 191 219 254;
-  --content-success: 220 252 231;
-  --content-attention: 255 237 213;
-  --content-error: 254 226 226;
+  --content-info: 147 197 253;
+  --content-success: 134 239 172;
+  --content-attention: 253 186 116;
+  --content-warning: 253 224 71;
+  --content-error: 252 165 165;
 }

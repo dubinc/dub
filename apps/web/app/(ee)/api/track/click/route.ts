@@ -14,16 +14,19 @@ import { getWorkspaceViaEdge } from "@/lib/planetscale";
 import { getLinkWithPartner } from "@/lib/planetscale/get-link-with-partner";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink, redis, redisGlobalWithTimeout } from "@/lib/upstash";
 import { DiscountSchema } from "@/lib/zod/schemas/discount";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
-import { isValidUrl, nanoid } from "@dub/utils";
+import { getDomainWithoutWWW, isValidUrl, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const trackClickSchema = z.object({
-  domain: z.string({ error: "domain is required." }),
+  domain: z.preprocess(
+    (val) => getDomainWithoutWWW(val as string),
+    z.string({ error: "domain is required." }),
+  ),
   key: z.string({ error: "key is required." }),
   url: z.string().nullish(),
   referrer: z.string().nullish(),
@@ -60,13 +63,17 @@ export const POST = withAxiom(async (req) => {
 
     const identityHash = await getIdentityHash(req);
 
-    let [cachedClickId, cachedLink, cachedAllowedHostnames] = await redis.mget<
-      [string, RedisLinkProps, string[]]
-    >([
-      recordClickCache._createKey({ domain, key, identityHash }),
-      linkCache._createKey({ domain, key }),
-      allowedHostnamesCache._createKey({ domain }),
+    let [redisGlobalResults, cachedAllowedHostnames] = await Promise.all([
+      redisGlobalWithTimeout
+        .mget<
+          [string | null, RedisLinkProps | null]
+        >([recordClickCache._createKey({ domain, key, identityHash }), linkCache._createKey({ domain, key })])
+        .catch(() => [null, null] as [string | null, RedisLinkProps | null]),
+
+      redis.get<string[]>(allowedHostnamesCache._createKey({ domain })),
     ]);
+
+    let [cachedClickId, cachedLink] = redisGlobalResults;
 
     // assign a new clickId if there's no cached clickId
     // else, reuse the cached clickId
@@ -130,7 +137,7 @@ export const POST = withAxiom(async (req) => {
       if (!allowRequest) {
         throw new DubApiError({
           code: "forbidden",
-          message: `Request origin '${getHostnameFromRequest(req)}' is not included in the allowed hostnames for this workspace. Update your allowed hostnames here: https://app.dub.co/settings/analytics`,
+          message: `Request origin '${getHostnameFromRequest(req)}' is not included in the allowed hostnames for this workspace. Update your allowed hostnames here: https://app.dub.co/settings/tracking`,
         });
       }
 

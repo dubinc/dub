@@ -7,6 +7,7 @@ import {
 } from "@/lib/constants/payouts";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
+import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -143,7 +144,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                 <Tooltip
                   content={[
                     payout.method === "stablecoin" &&
-                      `Stablecoin payouts on Dub are subject to a [${STABLECOIN_PAYOUT_FEE_RATE * 100}% transaction fee](https://dub.co/help/article/receiving-payouts#stablecoin-payouts).`,
+                      `Stablecoin payouts on Dub are subject to a [${STABLECOIN_PAYOUT_FEE_RATE * 100}% transaction fee](https://dub.co/help/article/receiving-payouts#connecting-a-stablecoin-wallet).`,
                     payout.amount < MIN_WITHDRAWAL_AMOUNT_CENTS &&
                       `Since this payout is below the [minimum withdrawal amount](https://dub.co/help/article/receiving-payouts#what-is-the-minimum-withdrawal-amount-and-how-does-it-work) of ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS, { trailingZeroDisplay: "stripIfInteger" })}, a ${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS, { trailingZeroDisplay: "stripIfInteger" })} withdrawal fee was applied.`,
                   ]
@@ -276,13 +277,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
                 />
               </div>
             ) : (
-              <img
-                src={
-                  row.original.customer.avatar ||
-                  `${OG_AVATAR_URL}${row.original.customer.id}`
-                }
-                alt={row.original.customer.id}
-                className="size-6 rounded-full"
+              <CustomerAvatar
+                customer={row.original.customer}
+                className="size-6"
               />
             )}
 

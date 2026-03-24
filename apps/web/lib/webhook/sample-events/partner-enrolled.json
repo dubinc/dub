@@ -11,6 +11,7 @@
   "partnerId": "pn_1K9BZE1K285BSTX4W6MPKXJFZ",
   "groupId": "grp_1KEC01MXCWZW95SMYMV85NBYM",
   "status": "approved",
+  "defaultPayoutMethod": null,
   "paypalEmail": null,
   "stripeConnectId": null,
   "payoutsEnabledAt": null,

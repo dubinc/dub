@@ -67,23 +67,14 @@ export function CustomersTable({
   const { canManageCustomers } = getPlanCapabilities(plan);
 
   const router = useRouter();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-    setSearch,
-    setSelectedFilter,
-  } = useCustomerFilters(
-    { sortBy, sortOrder },
-    { enabled: canManageCustomers },
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
   );
 
   const { data: customersCount, error: countError } = useCustomersCount({
@@ -151,18 +142,14 @@ export function CustomersTable({
           enableHiding: false,
           minSize: 250,
           cell: ({ row }) => {
-            return (
-              <CustomerRowItem
-                customer={row.original}
-                chartActivityIconMode="visible"
-              />
-            );
+            return <CustomerRowItem customer={row.original} />;
           },
         },
         {
           id: "country",
           header: "Country",
           accessorKey: "country",
+          minSize: 150,
           meta: {
             filterParams: ({ getValue }) =>
               getValue()
@@ -171,7 +158,6 @@ export function CustomersTable({
                   }
                 : undefined,
           },
-          minSize: 150,
           cell: ({ row }) => {
             const country = row.original.country;
             return (
@@ -193,6 +179,13 @@ export function CustomersTable({
         {
           id: "partner",
           header: "Partner",
+          cell: ({ row }) =>
+            row.original.partner ? (
+              <PartnerRowItem partner={row.original.partner} />
+            ) : (
+              "-"
+            ),
+          size: 200,
           meta: {
             filterParams: ({ row }) =>
               row.original.partner?.id
@@ -201,13 +194,6 @@ export function CustomersTable({
                   }
                 : undefined,
           },
-          cell: ({ row }) =>
-            row.original.partner ? (
-              <PartnerRowItem partner={row.original.partner} />
-            ) : (
-              "-"
-            ),
-          size: 200,
         },
         {
           id: "link",
@@ -394,54 +380,31 @@ export function CustomersTable({
       }),
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
+      if (!meta?.filterParams) return null;
+      const params = meta.filterParams(cell);
+      if (!params || Object.keys(params).length === 0) return null;
+      return <FilterButtonTableRow set={params} />;
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `customer${p ? "s" : ""}`,
     rowCount: customersCount || 0,
     loading: isLoading,
-    error: error || countError ? "Failed to load customers" : undefined,
+    error:
+      error instanceof Error
+        ? error.message
+        : countError
+          ? "Failed to load customers"
+          : undefined,
   });
 
   return (
     <div className="flex flex-col gap-3">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-          <SearchBoxPersisted
-            placeholder="Search by email or name"
-            inputClassName="md:w-[16rem]"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
+      <CustomersFilters
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        enabled={canManageCustomers}
+      />
       {!canManageCustomers || customers?.length !== 0 ? (
         <Table
           {...tableProps}
@@ -508,7 +471,7 @@ export function CustomersTable({
               : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
           }
           {...(!isFiltered && {
-            learnMoreHref: `/${workspaceSlug}/settings/analytics`,
+            learnMoreHref: `/${workspaceSlug}/settings/tracking`,
             learnMoreTarget: "_self",
             learnMoreText: "Read the guides",
           })}
@@ -520,6 +483,61 @@ export function CustomersTable({
           )}
         />
       )}
+    </div>
+  );
+}
+
+function CustomersFilters({
+  sortBy,
+  sortOrder,
+  enabled,
+}: {
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+  enabled: boolean;
+}) {
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useCustomerFilters({ sortBy, sortOrder }, { enabled });
+
+  return (
+    <div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        <SearchBoxPersisted
+          placeholder="Search by email or name"
+          inputClassName="md:w-[16rem]"
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
     </div>
   );
 }

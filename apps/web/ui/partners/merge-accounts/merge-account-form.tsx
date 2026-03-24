@@ -1,5 +1,6 @@
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
 import useUser from "@/lib/swr/use-user";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button } from "@dub/ui";
 import { AlertTriangle, ArrowDown } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -55,13 +56,13 @@ export function MergeAccountForm({
       <div className="flex flex-col gap-4">
         <AccountInputGroup title="Source account">
           <div className="flex items-center gap-4">
-            <img
-              src={
-                sourceAccount.avatarUrl ||
-                `https://api.dub.co/og/avatar/${sourceAccount.email}`
-              }
-              alt={sourceAccount.name}
-              className="size-12 rounded-full object-cover"
+            <PartnerAvatar
+              partner={{
+                image: sourceAccount.avatarUrl,
+                name: sourceAccount.name,
+                id: sourceAccount.email,
+              }}
+              className="size-12 object-cover"
             />
             <div>
               <div className="text-base font-semibold leading-4 text-neutral-900">
@@ -80,13 +81,13 @@ export function MergeAccountForm({
 
         <AccountInputGroup title="Target account">
           <div className="flex items-center gap-4">
-            <img
-              src={
-                targetAccount.avatarUrl ||
-                `https://api.dub.co/og/avatar/${targetAccount.email}`
-              }
-              alt={targetAccount.name}
-              className="size-12 rounded-full object-cover"
+            <PartnerAvatar
+              partner={{
+                image: targetAccount.avatarUrl,
+                name: targetAccount.name,
+                id: targetAccount.email,
+              }}
+              className="size-12 object-cover"
             />
             <div>
               <div className="text-base font-semibold leading-4 text-neutral-900">

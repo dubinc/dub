@@ -8,6 +8,7 @@ import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
+import { evaluateApplicationRequirements } from "./evaluate-application-requirements";
 import {
   formatApplicationFormData,
   formatWebsiteAndSocialsFields,
@@ -85,6 +86,8 @@ export async function completeProgramApplications(userEmail: string) {
       },
     );
 
+    const partner = user.partners[0].partner;
+
     // Program enrollments to create
     const programEnrollments: Prisma.ProgramEnrollmentCreateManyInput[] =
       filteredProgramApplications.map((programApplication) => ({
@@ -124,7 +127,6 @@ export async function completeProgramApplications(userEmail: string) {
     );
 
     for (const programApplication of filteredProgramApplications) {
-      const partner = user.partners[0].partner;
       const application = programApplication;
       const program = programApplication.program;
       const group = programApplication.partnerGroup;
@@ -172,13 +174,65 @@ export async function completeProgramApplications(userEmail: string) {
         }),
       );
 
+      const { valid: validApplication } = evaluateApplicationRequirements({
+        applicationRequirements: program.applicationRequirements,
+        context: {
+          country: partner.country,
+          email: partner.email,
+        },
+      });
+
       await Promise.allSettled([
-        notifyPartnerApplication({
-          partner,
-          program,
-          group,
-          application,
-        }),
+        ...(validApplication
+          ? [
+              notifyPartnerApplication({
+                partner,
+                program,
+                group,
+                application,
+              }),
+
+              // Auto-approve the partner if the group has auto-approval enabled
+              group?.autoApprovePartnersEnabledAt
+                ? qstash.publishJSON({
+                    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
+                    delay: 5 * 60,
+                    body: {
+                      programId: program.id,
+                      partnerId: partner.id,
+                    },
+                  })
+                : Promise.resolve(null),
+
+              // Send "partner.application_submitted" webhook
+              workspacesByProgramId.has(program.id) &&
+                sendWorkspaceWebhook({
+                  workspace: workspacesByProgramId.get(program.id)!,
+                  trigger: "partner.application_submitted",
+                  data: partnerApplicationWebhookSchema.parse({
+                    id: application.id,
+                    createdAt: application.createdAt,
+                    partner: {
+                      ...partner,
+                      ...programEnrollment,
+                      id: partner.id,
+                      status: "pending",
+                      ...formatWebsiteAndSocialsFields(application),
+                    },
+                    applicationFormData,
+                  }),
+                }),
+            ]
+          : [
+              qstash.publishJSON({
+                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-reject`,
+                delay: 5 * 60, // 5 minutes
+                body: {
+                  programId: program.id,
+                  partnerId: partner.id,
+                },
+              }),
+            ]),
 
         // if the application has any website or social fields but the partner doesn't have the corresponding one (maybe they forgot to add during onboarding)
         // update the partner to use the website they applied with
@@ -192,37 +246,6 @@ export async function completeProgramApplications(userEmail: string) {
                 identifier: identifier as string,
               })),
             skipDuplicates: true,
-          }),
-
-        // Auto-approve the partner if the group has auto-approval enabled
-        group?.autoApprovePartnersEnabledAt
-          ? qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/auto-approve`,
-              delay: 5 * 60,
-              body: {
-                programId: program.id,
-                partnerId: partner.id,
-              },
-            })
-          : Promise.resolve(null),
-
-        // Send "partner.application_submitted" webhook
-        workspacesByProgramId.has(program.id) &&
-          sendWorkspaceWebhook({
-            workspace: workspacesByProgramId.get(program.id)!,
-            trigger: "partner.application_submitted",
-            data: partnerApplicationWebhookSchema.parse({
-              id: application.id,
-              createdAt: application.createdAt,
-              partner: {
-                ...partner,
-                ...programEnrollment,
-                id: partner.id,
-                status: "pending",
-                ...formatWebsiteAndSocialsFields(application),
-              },
-              applicationFormData,
-            }),
           }),
 
         // Detect and record fraud events for the partner when they apply to a program

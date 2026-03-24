@@ -1,8 +1,17 @@
 "use client";
 
 import type { PaypalPayoutResponse } from "@/lib/paypal/get-pending-payouts";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { Button, StatusBadge, Table, usePagination, useTable } from "@dub/ui";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
+import {
+  Button,
+  StatusBadge,
+  Table,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
 import { Globe } from "@dub/ui/icons";
 import {
   cn,
@@ -19,8 +28,10 @@ import { useMemo } from "react";
 import useSWR from "swr";
 
 export default function PaypalPayoutsPageClient() {
+  const { getQueryString } = useRouterStuff();
+
   const { data: payouts = [], isLoading } = useSWR<PaypalPayoutResponse[]>(
-    "/api/admin/payouts/paypal",
+    `/api/admin/payouts/paypal${getQueryString()}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -44,16 +55,7 @@ export default function PaypalPayoutsPageClient() {
         header: "Partner",
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
-            <img
-              src={
-                row.original.partner.image ||
-                `${OG_AVATAR_URL}${row.original.partner.email || ""}`
-              }
-              alt={row.original.partner.email || ""}
-              width={20}
-              height={20}
-              className="size-4 rounded-full"
-            />
+            <PartnerAvatar partner={row.original.partner} className="size-4" />
             <span className="text-sm text-neutral-900">
               {row.original.partner.email || "-"}
             </span>
@@ -64,6 +66,9 @@ export default function PaypalPayoutsPageClient() {
         id: "country",
         header: "Country",
         accessorKey: "partner.country",
+        meta: {
+          filterParams: ({ getValue }) => ({ country: getValue() }),
+        },
         cell: ({ row }) => {
           const country = row.original.partner.country;
           if (!country || country === "Unknown") {
@@ -94,6 +99,10 @@ export default function PaypalPayoutsPageClient() {
       {
         id: "program",
         header: "Program",
+        accessorKey: "program.id",
+        meta: {
+          filterParams: ({ getValue }) => ({ programId: getValue() }),
+        },
         cell: ({ row }) => (
           <div className="flex items-center gap-1.5">
             <img
@@ -139,6 +148,19 @@ export default function PaypalPayoutsPageClient() {
     resourceName: (plural) => `payout${plural ? "s" : ""}`,
     rowCount: payouts.length,
     loading: isLoading,
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
   });
 
   const stats = useMemo(() => {

@@ -1,7 +1,7 @@
 {
   "name": "com.example.dub",
-  "version": "0.0.5",
-  "description": "Dub Conversions",
+  "version": "0.0.19",
+  "description": "Dub Partners",
   "private": true,
   "license": "~~proprietary~~",
   "dependencies": {

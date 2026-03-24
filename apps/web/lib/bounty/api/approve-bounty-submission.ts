@@ -1,10 +1,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { Session } from "@/lib/auth";
-import {
-  calculateSocialMetricsRewardAmount,
-  resolveBountyDetails,
-} from "@/lib/bounty/utils";
+import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
   approveBountySubmissionBodySchema,

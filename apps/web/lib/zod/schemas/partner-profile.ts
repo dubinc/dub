@@ -57,6 +57,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .extend({
     interval: z
       .enum(DATE_RANGE_INTERVAL_PRESETS)
+      .optional()
       .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
     timezone: z.string().optional(),
     type: z.enum(CommissionType).optional(),
@@ -147,19 +148,22 @@ export const partnerNotificationTypes = z.enum([
   "connectPayoutReminder",
 ]);
 
+export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
+  commission: PartnerEarningsSchema.pick({
+    id: true,
+    earnings: true,
+    status: true,
+    createdAt: true,
+  })
+    .nullable()
+    .default(null),
+});
+
 export const PartnerBountySchema = BountySchema.omit({
   groups: true,
+  socialMetricsLastSyncedAt: true,
 }).extend({
-  submission: BountySubmissionSchema.extend({
-    commission: PartnerEarningsSchema.pick({
-      id: true,
-      earnings: true,
-      status: true,
-      createdAt: true,
-    })
-      .nullable()
-      .default(null),
-  }).nullable(),
+  submissions: z.array(partnerBountySubmissionSchema),
   performanceCondition: bountyPerformanceConditionSchema
     .nullable()
     .default(null),

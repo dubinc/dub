@@ -10,6 +10,7 @@ const PayoutResponseTestSchema = PayoutResponseSchema.extend({
   periodStart: z.string().nullable(),
   periodEnd: z.string().nullable(),
   createdAt: z.string(),
+  updatedAt: z.string().optional(),
   initiatedAt: z.string().nullable(),
   paidAt: z.string().nullable(),
   partner: PayoutResponseSchema.shape.partner.extend({

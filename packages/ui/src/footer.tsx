@@ -89,10 +89,7 @@ const navigation = {
   })).concat(
     ["Rewardful", "PartnerStack", "FirstPromoter", "Tolt"].map((name) => ({
       name,
-      href:
-        name === "Rewardful"
-          ? "/blog/dub-vs-rewardful"
-          : `/help/article/migrating-from-${name.toLowerCase()}`,
+      href: `/blog/dub-vs-${name.toLowerCase()}`,
       product: "partners",
     })),
   ),

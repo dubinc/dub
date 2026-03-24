@@ -490,7 +490,6 @@ export const PartnerPlatformsForm = forwardRef<
                 prefix="in/"
                 icon={LinkedIn}
                 disabled={disabled}
-                verifyDisabledTooltip="LinkedIn verification is coming soon."
                 onVerifyClick={async () => {
                   const handle = getValues("linkedin");
 
@@ -655,7 +654,6 @@ function FormRow({
 }: {
   label: string;
   input: ReactNode;
-
   property: keyof PartnerPlatformsFormData;
   prefix?: string;
   icon: Icon;
@@ -738,6 +736,21 @@ function FormRow({
             ? `${nFormatter(Number(subscribers))} followers`
             : null,
           posts > 0 ? `${nFormatter(Number(posts))} tweets` : null,
+        ].filter(Boolean) as string[];
+      }
+
+      if (property === "linkedin") {
+        const linkedinPlatform = getPlatformData(
+          partnerWithPlatforms.platforms,
+          "linkedin",
+        );
+
+        const subscribers = linkedinPlatform?.subscribers ?? 0;
+
+        return [
+          subscribers > 0
+            ? `${nFormatter(Number(subscribers))} followers`
+            : null,
         ].filter(Boolean) as string[];
       }
     }

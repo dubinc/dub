@@ -19,7 +19,7 @@ export const GET = withWorkspace(
       ids,
       sortBy,
       sortOrder,
-      page,
+      page = 1,
       pageSize,
       includeLinksCount,
     } = getTagsQuerySchemaExtended.parse(searchParams);

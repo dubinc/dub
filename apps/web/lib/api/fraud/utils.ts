@@ -17,7 +17,7 @@ type GetIdentityFieldsForFraudEventInput = Pick<
 >;
 
 // Normalize email for comparison
-export function normalizeEmail(email: string): string {
+export function normalizeEmail(email: string) {
   const trimmed = email.toLowerCase().trim();
   const parts = trimmed.split("@");
 

@@ -9,6 +9,7 @@ import { logAndRespond } from "../../utils";
 import { queueExternalPayouts } from "./queue-external-payouts";
 import { queueStripePayouts } from "./queue-stripe-payouts";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
+import { scheduleDelayedStablecoinPayouts } from "./utils";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 600; // This function can run for a maximum of 10 minutes
@@ -78,26 +79,38 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    let skipStablecoinPayouts = false;
     const stablecoinFundingAmount = _sum.amount ?? 0;
 
     // Send money to Financial Account to handle stablecoin payouts
     if (stablecoinFundingAmount > 0) {
-      try {
-        await fundFinancialAccount({
-          amount: stablecoinFundingAmount,
-          idempotencyKey: invoiceId,
-        });
-      } catch (error) {
-        await log({
-          message: `Failed to fund Dub's financial account for stablecoin payouts: ${error.message}`,
-          type: "errors",
-        });
+      const { nextAction } = await scheduleDelayedStablecoinPayouts(invoice);
+
+      if (nextAction === "executeNow") {
+        try {
+          await fundFinancialAccount({
+            amount: stablecoinFundingAmount,
+            idempotencyKey: invoiceId,
+          });
+        } catch (error) {
+          await log({
+            message: `Failed to fund Dub's financial account for stablecoin payouts: ${error.message}`,
+            type: "errors",
+          });
+
+          skipStablecoinPayouts = true;
+        }
+      }
+
+      if (nextAction === "skip") {
+        skipStablecoinPayouts = true;
       }
     }
 
     await Promise.allSettled([
       // Queue Stripe payouts
-      queueStripePayouts(invoice),
+      queueStripePayouts(invoice, skipStablecoinPayouts),
       // Send PayPal payouts
       sendPaypalPayouts(invoice),
       // Queue external payouts

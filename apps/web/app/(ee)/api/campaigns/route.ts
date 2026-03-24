@@ -22,8 +22,14 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { type, status, search, triggerCondition, page, pageSize } =
-      getCampaignsQuerySchema.parse(searchParams);
+    const {
+      type,
+      status,
+      search,
+      triggerCondition,
+      page = 1,
+      pageSize,
+    } = getCampaignsQuerySchema.parse(searchParams);
 
     const campaigns = await prisma.campaign.findMany({
       where: {

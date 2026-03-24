@@ -6,6 +6,7 @@ import { PartnerPayoutMethod, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, prettyPrint } from "@dub/utils";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
   MIN_WITHDRAWAL_AMOUNT_CENTS,
   STABLECOIN_PAYOUT_FEE_RATE,
 } from "../constants/payouts";
@@ -118,6 +119,12 @@ export const createStablecoinPayout = async ({
     0,
   );
 
+  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
+    throw new Error(
+      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.email} is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}). Skipping...`,
+    );
+  }
+
   let withdrawalFee = 0;
 
   // If the total transferable amount is less than the minimum withdrawal amount
@@ -140,6 +147,9 @@ export const createStablecoinPayout = async ({
   // remove the stablecoin payout fee (0.5%) and withdrawal fee (if applicable) from the total amount
   totalTransferableAmount -=
     totalTransferableAmount * STABLECOIN_PAYOUT_FEE_RATE + withdrawalFee;
+
+  // Round down to the nearest integer
+  totalTransferableAmount = Math.floor(totalTransferableAmount);
 
   const stripeRecipientAccount = await getStripeRecipientAccount(
     partner.stripeRecipientId,

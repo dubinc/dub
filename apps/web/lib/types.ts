@@ -1,5 +1,6 @@
 import {
   PartnerBountySchema,
+  partnerBountySubmissionSchema,
   PartnerEarningsSchema,
   partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
@@ -32,10 +33,8 @@ import {
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
-import {
-  BOUNTY_SOCIAL_PLATFORMS,
-  BOUNTY_SUBMISSION_REQUIREMENTS,
-} from "./bounty/constants";
+import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
+import { BOUNTY_SOCIAL_PLATFORMS } from "./bounty/social-content";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
@@ -73,7 +72,10 @@ import {
   clickEventResponseSchema,
   clickEventSchemaTB,
 } from "./zod/schemas/clicks";
-import { CommissionEnrichedSchema } from "./zod/schemas/commissions";
+import {
+  CommissionDetailSchema,
+  CommissionEnrichedSchema,
+} from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
   CustomerEnrichedSchema,
@@ -88,6 +90,7 @@ import {
   fraudRuleSchema,
   updateFraudRuleSettingsSchema,
 } from "./zod/schemas/fraud";
+import { GroupBountySummarySchema } from "./zod/schemas/group-bounties";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
   additionalPartnerLinkSchemaOptionalPath,
@@ -139,6 +142,8 @@ import {
 } from "./zod/schemas/program-network";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
+  applicationRequirementsSchema,
+  eligibilityConditionSchema,
   PartnerCommentSchema,
   ProgramEnrollmentSchema,
   ProgramSchema,
@@ -249,7 +254,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
 
-export type PartnerBetaFeatures = "postbacks" | "stablecoin";
+export type PartnerBetaFeatures = "postbacks";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -543,9 +548,10 @@ export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = Omit<
   z.infer<typeof ProgramSchema>,
-  "referralFormData"
+  "referralFormData" | "applicationRequirements"
 > & {
   referralFormData?: Prisma.JsonValue | null;
+  applicationRequirements?: Prisma.JsonValue | null;
 };
 
 export type ProgramInviteEmailData = z.infer<
@@ -566,6 +572,10 @@ export type ProgramApplicationFormFieldWithValues = z.infer<
   typeof programApplicationFormFieldWithValuesSchema
 >;
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
+export type EligibilityConditionDB = z.infer<typeof eligibilityConditionSchema>;
+export type ApplicationRequirementsDB = z.infer<
+  typeof applicationRequirementsSchema
+>;
 
 export type PayoutsCount = {
   status: PayoutStatus;
@@ -668,6 +678,7 @@ export type PartnerCommentProps = z.infer<typeof PartnerCommentSchema>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
+export type GroupBountySummaryProps = z.infer<typeof GroupBountySummarySchema>;
 
 export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
 
@@ -871,3 +882,13 @@ export type PostbackProps = z.infer<typeof postbackSchema>;
 export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
 
 export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];
+
+export type CommissionDetail = z.infer<typeof CommissionDetailSchema>;
+
+export type NullableOptional<T> = {
+  [K in keyof T]?: T[K] | null;
+};
+
+export type PartnerBountySubmission = z.infer<
+  typeof partnerBountySubmissionSchema
+>;

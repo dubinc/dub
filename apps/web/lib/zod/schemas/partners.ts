@@ -3,6 +3,7 @@ import {
   IndustryInterest,
   MonthlyTraffic,
   PartnerBannedReason,
+  PartnerPayoutMethod,
   PartnerProfileType,
   PlatformType,
   PreferredEarningStructure,
@@ -307,6 +308,12 @@ export const PartnerSchema = z
       .string()
       .nullable()
       .describe("The partner's country (required for tax purposes)."),
+    defaultPayoutMethod: z
+      .enum(PartnerPayoutMethod)
+      .nullable()
+      .describe(
+        "The partner's default payout method. Connect: Bank account payouts via Stripe Connect; Stablecoin: USDC payouts directly to a crypto wallet; PayPal: Payouts via PayPal",
+      ),
     stripeConnectId: z
       .string()
       .nullable()
@@ -380,6 +387,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   country: true,
+  defaultPayoutMethod: true,
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
@@ -505,8 +513,6 @@ export const WebhookPartnerSchema = PartnerSchema.pick({
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
-  name: z.string(),
-  image: z.string(),
   totalCommissions: centsSchemaWithDefault,
 });
 
@@ -594,6 +600,15 @@ export const createPartnerSchema = z.object({
       tagId: true,
       geo: true,
       webhookIds: true,
+      keyLength: true,
+    })
+    .extend({
+      prefix: z
+        .string()
+        .optional()
+        .describe(
+          "Path prefix for each default referral link slug (e.g. `/c/` → `https://{domain}/c/{identity}`). If the group has multiple default links, a short random suffix is appended to the identity segment for uniqueness (e.g. `c/jane-a7f2`).",
+        ),
     })
     .partial()
     .optional()

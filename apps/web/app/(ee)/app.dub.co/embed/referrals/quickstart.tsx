@@ -1,6 +1,4 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import { PartnerGroupProps } from "@/lib/types";
-import { Program } from "@dub/prisma/client";
 import {
   Button,
   Carousel,
@@ -15,31 +13,22 @@ import {
 } from "@dub/ui";
 import { cn, DUB_LOGO } from "@dub/utils";
 import { motion } from "motion/react";
-import { ReferralsEmbedLink } from "./types";
+import { useReferralsEmbedData } from "./page-client";
 
-const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
+const BUTTON_CLASSNAME =
+  "bg-bg-inverted text-content-inverted h-9 rounded-lg hover:opacity-80";
 
 export function ReferralsEmbedQuickstart({
-  program,
-  group,
-  links,
-  earnings,
   hasResources,
   setSelectedTab,
 }: {
-  program: Program;
-  group: Pick<PartnerGroupProps, "logo" | "linkStructure">;
-  links: ReferralsEmbedLink[];
-  earnings: {
-    upcoming: number;
-    paid: number;
-  };
   hasResources: boolean;
   setSelectedTab: (tab: "Links" | "Resources") => void;
 }) {
+  const { program, group, links, earnings } = useReferralsEmbedData();
+
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
-
   const payoutsDisabled = earnings.upcoming === 0 && earnings.paid === 0;
 
   const items = [

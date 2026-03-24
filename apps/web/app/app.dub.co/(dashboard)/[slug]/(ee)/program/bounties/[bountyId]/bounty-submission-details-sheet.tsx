@@ -1,21 +1,22 @@
 "use client";
 
-import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/bounty-submission-status-badges";
 import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
-import {
-  calculateSocialMetricsRewardAmount,
-  getBountyRewardCriteriaTexts,
-  resolveBountyDetails,
-} from "@/lib/bounty/utils";
+import { calculateSocialMetricsRewardAmount } from "@/lib/bounty/rewards";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { useConfirmApproveBountySubmissionModal } from "@/ui/modals/confirm-approve-bounty-submission-modal";
+import { PLATFORM_ICONS } from "@/ui/partners/bounties/bounty-platform-icons";
+import { EmphasisNumber } from "@/ui/partners/bounties/bounty-progress-bar-row";
+import { getBountyRewardCriteria } from "@/ui/partners/bounties/bounty-reward-criteria";
 import { BountySocialContentPreview } from "@/ui/partners/bounties/bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
 import { useRejectBountySubmissionModal } from "@/ui/partners/bounties/reject-bounty-submission-modal";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
@@ -24,7 +25,6 @@ import {
   ChevronLeft,
   ChevronRight,
   CopyButton,
-  DynamicTooltipWrapper,
   Sheet,
   StatusBadge,
   Tooltip,
@@ -37,7 +37,7 @@ import {
   currencyFormatter,
   formatDate,
   getPrettyUrl,
-  OG_AVATAR_URL,
+  nFormatter,
   timeAgo,
 } from "@dub/utils";
 import Linkify from "linkify-react";
@@ -160,10 +160,22 @@ function BountySubmissionDetailsSheetContent({
   }
 
   const bountyInfo = resolveBountyDetails(bounty);
-  const criteriaTexts = bounty ? getBountyRewardCriteriaTexts(bounty) : [];
+  const criteriaTexts = bounty ? getBountyRewardCriteria(bounty) : [];
 
   const hasSocialContent =
     bountyInfo?.hasSocialMetrics && (submission.urls?.length ?? 0) > 0;
+
+  const socialPlatform = bountyInfo?.socialPlatform;
+  const SocialPlatformIcon = socialPlatform
+    ? PLATFORM_ICONS[socialPlatform.value]
+    : null;
+  const socialMetricCount = submission.socialMetricCount ?? 0;
+  const socialMinCount = bountyInfo?.socialMetrics?.minCount ?? 0;
+  const socialMetricPercent =
+    socialMinCount > 0
+      ? Math.min((socialMetricCount / socialMinCount) * 100, 100)
+      : 100;
+  const socialMetricComplete = socialMetricPercent >= 100;
 
   return (
     <div className="flex h-full flex-col">
@@ -205,14 +217,7 @@ function BountySubmissionDetailsSheetContent({
       <div className="flex grow flex-col">
         <div className="px-6 pt-6">
           <div className="flex items-center gap-4 rounded-xl bg-neutral-100 px-4 py-3">
-            <img
-              src={
-                submission.partner.image ||
-                `${OG_AVATAR_URL}${submission.partner.id}`
-              }
-              alt={submission.partner.name}
-              className="size-10 shrink-0 rounded-full"
-            />
+            <PartnerAvatar partner={submission.partner} className="size-10" />
             <div className="min-w-0 flex-1">
               <div className="text-base font-semibold text-neutral-800">
                 {submission.partner.name}
@@ -271,12 +276,10 @@ function BountySubmissionDetailsSheetContent({
                         label: "Criteria",
                         value:
                           criteriaTexts.length > 1 ? (
-                            <DynamicTooltipWrapper
-                              tooltipProps={{
-                                // remove first item from criteriaTexts
-                                content: criteriaTexts.slice(1).join("\n"),
-                                align: "end",
-                              }}
+                            <Tooltip
+                              // remove first item from criteriaTexts
+                              content={criteriaTexts.slice(1).join("\n")}
+                              align="end"
                             >
                               <div
                                 className={cn(
@@ -286,7 +289,7 @@ function BountySubmissionDetailsSheetContent({
                               >
                                 {`${bountyInfo.socialMetrics.minCount} ${bountyInfo.socialMetrics.metric}`}
                               </div>
-                            </DynamicTooltipWrapper>
+                            </Tooltip>
                           ) : (
                             `${bountyInfo.socialMetrics.minCount} ${bountyInfo.socialMetrics.metric}`
                           ),
@@ -396,18 +399,52 @@ function BountySubmissionDetailsSheetContent({
 
               <div className="mt-3 flex flex-col gap-6">
                 {hasSocialContent && (
-                  <BountySocialContentPreview
-                    bounty={bounty}
-                    submission={submission}
-                  />
+                  <div className="rounded-xl border border-neutral-200 bg-neutral-50">
+                    <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
+                      <div className="h-1 w-full rounded-full bg-neutral-200">
+                        <div
+                          className={cn(
+                            "h-full rounded-full",
+                            socialMetricComplete
+                              ? "bg-green-600"
+                              : "bg-amber-600",
+                          )}
+                          style={{ width: `${socialMetricPercent}%` }}
+                        />
+                      </div>
+
+                      {SocialPlatformIcon && bountyInfo?.socialMetrics && (
+                        <div className="flex items-center gap-2">
+                          <SocialPlatformIcon className="size-4 shrink-0" />
+                          <p className="text-sm font-medium text-neutral-600">
+                            <EmphasisNumber>
+                              {nFormatter(socialMetricCount, { full: true })}
+                            </EmphasisNumber>
+                            {" of "}
+                            <EmphasisNumber>
+                              {nFormatter(socialMinCount, { full: true })}
+                            </EmphasisNumber>
+                            {` ${bountyInfo.socialMetrics.metric} generated`}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <BountySocialContentPreview
+                      bounty={bounty}
+                      submission={submission}
+                    />
+                  </div>
                 )}
 
-                {bountyInfo?.hasSocialMetrics && bounty && (
-                  <BountySocialMetricsRewardsTable
-                    bounty={bounty}
-                    submission={submission}
-                  />
-                )}
+                {bountyInfo?.hasSocialMetrics &&
+                  ["draft", "submitted", "approved"].includes(
+                    submission.status,
+                  ) && (
+                    <BountySocialMetricsRewardsTable
+                      bounty={bounty}
+                      submission={submission}
+                    />
+                  )}
 
                 {Boolean(submission.files?.length) && (
                   <div>
