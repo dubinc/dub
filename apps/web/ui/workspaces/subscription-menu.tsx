@@ -8,11 +8,13 @@ import {
   DynamicTooltipWrapper,
   Icon,
   LoadingSpinner,
+  MoneyBill2,
   Popover,
   SquareXmark,
   StripeIcon,
+  useRouterStuff,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, isWorkspaceBillingTrialActive } from "@dub/utils";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -21,8 +23,16 @@ import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmati
 import { ThreeDots } from "../shared/icons";
 
 export default function SubscriptionMenu() {
-  const { id: workspaceId, role, plan, defaultProgramId } = useWorkspace();
+  const {
+    id: workspaceId,
+    role,
+    plan,
+    defaultProgramId,
+    trialEndsAt,
+    mutate,
+  } = useWorkspace();
   const router = useRouter();
+  const { queryParams } = useRouterStuff();
 
   const permissionsError = clientAccessCheck({
     action: "billing.write",
@@ -49,6 +59,33 @@ export default function SubscriptionMenu() {
         toast.error(error.message);
         setClicked(false);
       }
+    });
+  };
+
+  const endTrialNow = () => {
+    setIsOpen(false);
+    setClicked(true);
+    return fetch(`/api/workspaces/${workspaceId}/billing/end-trial`, {
+      method: "POST",
+    }).then(async (res) => {
+      if (res.ok) {
+        await mutate();
+        queryParams({
+          set: {
+            upgraded: "true",
+            plan: plan ?? "pro",
+          },
+          replace: true,
+          scroll: false,
+        });
+      } else {
+        const body = await res.json().catch(() => null);
+        const message =
+          body?.error?.message ??
+          "Could not end trial. Try again or use the billing portal.";
+        toast.error(message);
+      }
+      setClicked(false);
     });
   };
 
@@ -85,6 +122,14 @@ export default function SubscriptionMenu() {
         content={
           <Command tabIndex={0} loop className="pointer-events-auto">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[180px]">
+              {isWorkspaceBillingTrialActive(trialEndsAt) && (
+                <MenuItem
+                  icon={MoneyBill2}
+                  label="End trial and pay now"
+                  onSelect={endTrialNow}
+                  disabledTooltip={permissionsError}
+                />
+              )}
               <MenuItem
                 icon={StripeIcon}
                 label="Open billing portal"

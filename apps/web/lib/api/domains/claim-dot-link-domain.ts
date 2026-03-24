@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { createLink } from "@/lib/api/links";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { WorkspaceWithUsers } from "@/lib/types";
@@ -33,7 +34,14 @@ export async function claimDotLinkDomain({
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You cannot register a .link domain on a free trial.",
+        message: "You cannot register a .link domain until you add a payment method.",
+      });
+    }
+
+    if (isWorkspaceBillingTrialActive(workspace.trialEndsAt)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You cannot register a .link domain during your free trial.",
       });
     }
 

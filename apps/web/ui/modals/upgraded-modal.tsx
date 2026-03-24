@@ -1,7 +1,12 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
-import { getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
+import {
+  getPlanDetails,
+  isWorkspaceBillingTrialActive,
+  PLANS,
+  PRO_PLAN,
+} from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { useSearchParams } from "next/navigation";
 import {
@@ -26,7 +31,17 @@ function UpgradedModal({
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
 
-  const { dotLinkClaimed } = useWorkspace();
+  const {
+    dotLinkClaimed,
+    trialEndsAt,
+    loading: workspaceLoading,
+  } = useWorkspace();
+
+  const showDotLinkClaimUi =
+    !workspaceLoading &&
+    !dotLinkClaimed &&
+    !isWorkspaceBillingTrialActive(trialEndsAt);
+
   const [_, setDotLinkOfferDismissed, { mutateWorkspace }] =
     useWorkspaceStore<string>("dotLinkOfferDismissed");
 
@@ -87,7 +102,7 @@ function UpgradedModal({
               <p className="mt-2 text-sm text-neutral-600">
                 Thank you for upgrading to the {plan?.name} plan. You now have
                 access to more powerful features
-                {dotLinkClaimed ? (
+                {!showDotLinkClaimUi ? (
                   <> and higher usage limits.</>
                 ) : (
                   <>
@@ -103,7 +118,7 @@ function UpgradedModal({
                   </>
                 )}
               </p>
-              {!dotLinkClaimed && (
+              {showDotLinkClaimUi && (
                 <div className="mt-6 rounded-xl border border-neutral-100 bg-neutral-50 p-4">
                   <RegisterDomainForm
                     showTerms={false}
@@ -123,18 +138,18 @@ function UpgradedModal({
           </div>
           <Button
             type="button"
-            variant={dotLinkClaimed ? "primary" : "secondary"}
+            variant={showDotLinkClaimUi ? "secondary" : "primary"}
             text={
-              dotLinkClaimed
-                ? "Go to Dub"
-                : "No thanks, take me to the dashboard"
+              showDotLinkClaimUi
+                ? "No thanks, take me to the dashboard"
+                : "Go to Dub"
             }
             onClick={() => {
               onClose();
               setShowUpgradedModal(false);
             }}
           />
-          {!dotLinkClaimed && (
+          {showDotLinkClaimUi && (
             <p className="mt-6 text-pretty text-center text-xs text-neutral-500">
               By claiming your .link domain, you agree to our{" "}
               <a

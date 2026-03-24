@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfPartnerEnrollmentTrialCapExceeded } from "@/lib/partners/assert-partner-enrollment-trial-cap";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -16,6 +17,17 @@ export const acceptProgramInviteAction = authPartnerActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
     const { programId } = parsedInput;
+
+    const program = await prisma.program.findUniqueOrThrow({
+      where: { id: programId },
+      select: { workspaceId: true },
+    });
+
+    await throwIfPartnerEnrollmentTrialCapExceeded({
+      workspaceId: program.workspaceId,
+      programId,
+      additionalApproved: 1,
+    });
 
     const enrollment = await prisma.programEnrollment.update({
       where: {

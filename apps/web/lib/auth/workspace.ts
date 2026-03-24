@@ -6,7 +6,7 @@ import { WorkspaceRole } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
-import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
+import { getRatelimitForWorkspace } from "../api/get-ratelimit-for-plan";
 import {
   PermissionAction,
   getPermissionsByRole,
@@ -191,6 +191,7 @@ export const withWorkspace = (
                   project: {
                     select: {
                       plan: true,
+                      trialEndsAt: true,
                     },
                   },
                 }),
@@ -236,7 +237,10 @@ export const withWorkspace = (
             ? "1 s"
             : "1 m";
 
-          const planLimit = getRatelimitForPlan(token.project?.plan || "free");
+          const planLimit = getRatelimitForWorkspace({
+            plan: token.project?.plan || "free",
+            trialEndsAt: token.project?.trialEndsAt ?? null,
+          });
           limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
 
           const { success, headers } = await rateLimitRequest({

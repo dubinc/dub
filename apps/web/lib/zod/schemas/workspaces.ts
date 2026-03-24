@@ -37,6 +37,12 @@ export const WorkspaceSchema = z
       .nullable()
       .describe("The tier of the workspace's plan."),
     stripeId: z.string().nullable().describe("The Stripe ID of the workspace."),
+    trialEndsAt: z
+      .date()
+      .nullish()
+      .describe(
+        "When the current Stripe subscription billing trial ends, if applicable.",
+      ),
     billingCycleStart: z
       .number()
       .describe(

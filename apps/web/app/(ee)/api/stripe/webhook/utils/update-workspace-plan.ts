@@ -7,13 +7,30 @@ import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { getPlanAndTierFromPriceId } from "@dub/utils";
+import {
+  getPlanAndTierFromPriceId,
+  getWorkspaceLimitsForStripeSubscriptionStatus,
+} from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
+import Stripe from "stripe";
+
+function getTrialEndsAtFromStripeSubscription(
+  subscription?: Pick<Stripe.Subscription, "status" | "trial_end">,
+): Date | null | undefined {
+  if (!subscription) {
+    return undefined;
+  }
+  if (subscription.status === "trialing" && subscription.trial_end) {
+    return new Date(subscription.trial_end * 1000);
+  }
+  return null;
+}
 
 export async function updateWorkspacePlan({
   workspace,
   priceId,
+  subscription,
 }: {
   workspace: Pick<
     WorkspaceProps,
@@ -30,6 +47,7 @@ export async function updateWorkspacePlan({
     }[];
   };
   priceId: string;
+  subscription?: Pick<Stripe.Subscription, "status" | "trial_end">;
 }) {
   const { plan: newPlan, planTier: newPlanTier } = getPlanAndTierFromPriceId({
     priceId,
@@ -42,10 +60,18 @@ export async function updateWorkspacePlan({
   const { canManageProgram, canMessagePartners } =
     getPlanCapabilities(newPlanName);
 
+  const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
+    planLimits: newPlan.limits,
+    subscriptionStatus: subscription?.status ?? "active",
+  });
+
+  const trialEndsAt = getTrialEndsAtFromStripeSubscription(subscription);
+
   // If a workspace upgrades/downgrades their subscription
   // or if the payouts limit increases and the updated price ID is a new business price ID
   // update their usage limit in the database
   if (
+    subscription != null ||
     workspace.plan !== newPlanName ||
     workspace.planTier !== newPlanTier ||
     (workspace.payoutsLimit < newPlan.limits.payouts &&
@@ -59,17 +85,18 @@ export async function updateWorkspacePlan({
         data: {
           plan: newPlanName,
           planTier: newPlanTier,
-          usageLimit: newPlan.limits.clicks,
-          linksLimit: newPlan.limits.links,
-          payoutsLimit: newPlan.limits.payouts,
-          domainsLimit: newPlan.limits.domains,
-          aiLimit: newPlan.limits.ai,
-          tagsLimit: newPlan.limits.tags,
-          foldersLimit: newPlan.limits.folders,
-          groupsLimit: newPlan.limits.groups,
-          networkInvitesLimit: newPlan.limits.networkInvites,
-          usersLimit: newPlan.limits.users,
+          usageLimit: limits.clicks,
+          linksLimit: limits.links,
+          payoutsLimit: limits.payouts,
+          domainsLimit: limits.domains,
+          aiLimit: limits.ai,
+          tagsLimit: limits.tags,
+          foldersLimit: limits.folders,
+          groupsLimit: limits.groups,
+          networkInvitesLimit: limits.networkInvites,
+          usersLimit: limits.users,
           paymentFailedAt: null,
+          ...(trialEndsAt !== undefined && { trialEndsAt }),
         },
         include: {
           users: {

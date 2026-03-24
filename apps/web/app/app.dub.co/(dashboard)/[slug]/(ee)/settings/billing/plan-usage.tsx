@@ -34,6 +34,7 @@ import {
   getFirstAndLastDay,
   INFINITY_NUMBER,
   isLegacyBusinessPlan,
+  isWorkspaceBillingTrialActive,
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -65,6 +66,7 @@ export default function PlanUsage() {
     tagsLimit,
     usersLimit,
     billingCycleStart,
+    trialEndsAt,
   } = useWorkspace();
 
   const { data: tags } = useTagsCount();
@@ -171,6 +173,21 @@ export default function PlanUsage() {
               </>
             </p>
           )}
+          {trialEndsAt != null &&
+            isWorkspaceBillingTrialActive(trialEndsAt) && (
+              <p className="mt-2 text-sm text-neutral-600">
+                Trial ends on{" "}
+                <span className="font-medium text-neutral-800">
+                  {new Date(trialEndsAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
+                </span>
+                . Your card will be charged when the trial ends unless you
+                cancel.
+              </p>
+            )}
         </div>
         <div className="flex items-center gap-2">
           {plan !== "enterprise" && (

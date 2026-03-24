@@ -59,6 +59,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
   await updateWorkspacePlan({
     workspace,
     priceId,
+    subscription: subscriptionUpdated,
   });
 
   const subscriptionCanceled =

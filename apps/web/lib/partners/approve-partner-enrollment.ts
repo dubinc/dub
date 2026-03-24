@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
+import { throwIfPartnerEnrollmentTrialCapExceeded } from "./assert-partner-enrollment-trial-cap";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { triggerWorkflows } from "../cron/qstash-workflow";
 
@@ -33,6 +34,12 @@ export async function approvePartnerEnrollment({
   const group = await getGroupOrThrow({
     programId,
     groupId: groupId || program.defaultGroupId,
+  });
+
+  await throwIfPartnerEnrollmentTrialCapExceeded({
+    workspaceId: program.workspace.id,
+    programId,
+    additionalApproved: 1,
   });
 
   const programEnrollment = await prisma.programEnrollment.update({

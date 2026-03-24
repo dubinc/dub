@@ -17,6 +17,7 @@ import {
   BUSINESS_PLAN,
   cn,
   ENTERPRISE_PLAN,
+  PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
   PRICING_PLAN_MAIN_FEATURES,
   PRICING_PLAN_TAGLINES,
   PRO_PLAN,
@@ -108,6 +109,12 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                       </>
                     )}
                   </div>
+                  {product === "partners" && plan.name !== "Enterprise" && (
+                    <p className="mt-1 text-xs text-neutral-500">
+                      {PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · card
+                      required
+                    </p>
+                  )}
 
                   {plan.name === "Enterprise" ? (
                     <div className="mt-4 flex items-center gap-1.5 text-neutral-400">

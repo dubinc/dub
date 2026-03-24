@@ -4,7 +4,12 @@ import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, ButtonProps } from "@dub/ui";
-import { APP_DOMAIN, capitalize, SELF_SERVE_PAID_PLANS } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  capitalize,
+  PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
+  SELF_SERVE_PAID_PLANS,
+} from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
@@ -108,7 +113,7 @@ export function UpgradePlanButton({
           isCurrentPlan
             ? "Your current plan"
             : currentPlan === "free"
-              ? `Get started with ${selectedPlan.name} ${capitalize(period)}`
+              ? `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
               : `Switch to ${selectedPlan.name} ${capitalize(period)}`
         }
         loading={clicked}

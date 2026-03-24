@@ -36,6 +36,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
@@ -119,6 +120,7 @@ function WorkspaceLinks() {
     // We show the .link offer modal if:
     // - The upgraded modal is not open
     // - The user has a paid plan (and valid stripe ID)
+    // - The user is not in a billing trial (.link cannot be claimed until trial ends)
     // - The user has no custom domains
     // - The user has not claimed their .link domain
     // - The user has not dismissed the .link offer modal
@@ -127,6 +129,7 @@ function WorkspaceLinks() {
       workspace.stripeId &&
       workspace.plan &&
       workspace.plan !== "free" &&
+      !isWorkspaceBillingTrialActive(workspace.trialEndsAt) &&
       workspace.domains?.length === 0 &&
       !workspace.dotLinkClaimed &&
       !loadingDotLinkOfferDismissed &&
