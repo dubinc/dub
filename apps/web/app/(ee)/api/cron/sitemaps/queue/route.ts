@@ -18,7 +18,7 @@ export const GET = withCron(async () => {
   });
 
   if (workspaces.length === 0) {
-    return logAndRespond("No workspaces with tracked sitemaps configured.");
+    return logAndRespond("No workspaces found.");
   }
 
   const dayKey = new Date().toISOString().slice(0, 10);

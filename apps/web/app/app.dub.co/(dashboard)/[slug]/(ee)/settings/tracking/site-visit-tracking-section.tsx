@@ -308,6 +308,7 @@ export function SiteVisitTrackingSection() {
         </div>
 
         <Switch
+          id={`${switchId}-switch`}
           disabled={loading}
           {...(permissionsError
             ? {
