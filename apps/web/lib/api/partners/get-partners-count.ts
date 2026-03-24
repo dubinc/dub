@@ -1,9 +1,10 @@
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import {
   buildMetricRangeWhere,
+  buildPartnerEmailSearchWhere,
   buildProgramEnrollmentWhereForList,
 } from "./program-enrollment-query";
 
@@ -21,17 +22,7 @@ export async function getPartnersCount<T>(
     enrollmentFilters;
 
   const commonWhere: Prisma.PartnerWhereInput = {
-    ...(email
-      ? { email }
-      : search
-        ? search.includes("@")
-          ? { email: search }
-          : {
-              email: { search: sanitizeFullTextSearch(search) },
-              name: { search: sanitizeFullTextSearch(search) },
-              companyName: { search: sanitizeFullTextSearch(search) },
-            }
-        : {}),
+    ...buildPartnerEmailSearchWhere({ email, search }),
     ...(partnerIds && {
       id: { in: partnerIds },
     }),
@@ -94,12 +85,12 @@ export async function getPartnersCount<T>(
 
     // Find missing statuses
     const missingStatuses = Object.values(ProgramEnrollmentStatus).filter(
-      (st) => !partners.some((p) => p.status === st),
+      (status) => !partners.some((p) => p.status === status),
     );
 
     // Add missing statuses with count 0
-    missingStatuses.forEach((st) => {
-      partners.push({ _count: 0, status: st });
+    missingStatuses.forEach((status) => {
+      partners.push({ _count: 0, status: status });
     });
 
     return partners as T;

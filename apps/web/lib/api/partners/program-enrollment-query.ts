@@ -3,7 +3,32 @@ import { sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import * as z from "zod/v4";
 
-/** Fields that constrain the program enrollment `where` (excludes pagination/sort/include flags). */
+/**
+ * Email / search filters on `Partner` (exact email, or full-text on email/name/company).
+ */
+export function buildPartnerEmailSearchWhere({
+  email,
+  search,
+}: {
+  email?: string | null;
+  search?: string | null;
+}): Prisma.PartnerWhereInput {
+  if (email) {
+    return { email };
+  }
+  if (search) {
+    if (search.includes("@")) {
+      return { email: search };
+    }
+    return {
+      email: { search: sanitizeFullTextSearch(search) },
+      name: { search: sanitizeFullTextSearch(search) },
+      companyName: { search: sanitizeFullTextSearch(search) },
+    };
+  }
+  return {};
+}
+
 export type PartnerEnrollmentQueryFilters = Omit<
   z.infer<typeof getPartnersQuerySchemaExtended>,
   "sortBy" | "sortOrder" | "page" | "pageSize" | "includePartnerPlatforms"
@@ -116,17 +141,7 @@ export function buildProgramEnrollmentWhereForList(
       ? {
           partner: {
             country,
-            ...(email
-              ? { email }
-              : search
-                ? search.includes("@")
-                  ? { email: search }
-                  : {
-                      email: { search: sanitizeFullTextSearch(search) },
-                      name: { search: sanitizeFullTextSearch(search) },
-                      companyName: { search: sanitizeFullTextSearch(search) },
-                    }
-                : {}),
+            ...buildPartnerEmailSearchWhere({ email, search }),
           },
         }
       : {}),
