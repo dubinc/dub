@@ -16,7 +16,7 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -235,11 +235,11 @@ export const PATCH = withWorkspace(
 
         // invalidate notfound cache
         if (
-          (notFoundUrl !== undefined &&
-            notFoundUrl !== existingDomain.notFoundUrl) ||
-          (expiredUrl !== undefined && expiredUrl !== existingDomain.expiredUrl)
+          notFoundUrl !== undefined &&
+          notFoundUrl !== existingDomain.notFoundUrl
         ) {
           revalidateTag(`notfound:${domain.toLowerCase()}`);
+          revalidatePath(`/${domain.toLowerCase()}/notfound`);
         }
 
         // invalidate wellknown cache if any of the wellknown files have changed

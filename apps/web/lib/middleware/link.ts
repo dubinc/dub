@@ -29,7 +29,6 @@ import { createResponseWithCookies } from "./utils/create-response-with-cookies"
 import { detectBot } from "./utils/detect-bot";
 import { getFinalUrl } from "./utils/get-final-url";
 import { getIdentityHash } from "./utils/get-identity-hash";
-import { handleNotFoundLink } from "./utils/handle-not-found-link";
 import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { isSupportedCustomURIScheme } from "./utils/is-supported-custom-uri-scheme";
@@ -62,6 +61,14 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     key = "_root";
   }
 
+  const NOT_FOUND_CACHE_HEADERS = {
+    "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+    "Vercel-Cache-Tag": linkCache._createNotFoundCacheKeys({
+      domain,
+      key: originalKey,
+    }),
+  };
+
   // we don't support .php links (too much bot traffic)
   // hence we redirect to the root domain and add `dub-no-track` header to avoid tracking bot traffic
   if (isUnsupportedKey(key)) {
@@ -88,7 +95,12 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         return await crawlBitly(req);
       }
 
-      return await handleNotFoundLink(req);
+      return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
+        headers: {
+          ...DUB_HEADERS,
+          ...NOT_FOUND_CACHE_HEADERS,
+        },
+      });
     }
 
     isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
@@ -198,14 +210,20 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     return NextResponse.rewrite(new URL(`/${domain}/banned`, req.url), {
       headers: {
         ...DUB_HEADERS,
-        ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+        "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+        "X-Robots-Tag": "googlebot: noindex",
       },
     });
   }
 
   // handle disabled links
   if (disabledAt) {
-    return await handleNotFoundLink(req);
+    return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
+      headers: {
+        ...DUB_HEADERS,
+        ...NOT_FOUND_CACHE_HEADERS,
+      },
+    });
   }
 
   // if the link has expired
