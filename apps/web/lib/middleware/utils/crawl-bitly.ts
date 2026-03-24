@@ -14,7 +14,7 @@ import { parse } from "./parse";
 
 const BUFFER_WORKSPACE_ID = "cm05wnnpo000711ztj05wwdbu";
 const BUFFER_USER_ID = "cm05wnd49000411ztg2xbup0i";
-const BUFFER_FOLDER_ID = "fold_LIZsdjTgFVbQVGYSUmYAi5vT";
+const BUFFER_FOLDER_ID = "fold_1JNQBVZV8P0NA0YGB11W2HHSQ";
 const BUFFER_BITLY_API_KEY = process.env.BUFFER_BITLY_API_KEY;
 
 export const crawlBitly = async (req: NextRequest) => {
