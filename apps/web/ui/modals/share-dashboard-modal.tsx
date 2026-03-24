@@ -94,11 +94,13 @@ function ShareDashboardModalInner({
   );
 
   const { data: dashboard, mutate } = useSWR<DashboardProps>(
-    linkId || link?.id
-      ? `/api/links/${linkId || link?.id}/dashboard?workspaceId=${workspaceId}`
-      : folder?.id
-        ? `/api/folders/${folder.id}/dashboard?workspaceId=${workspaceId}`
-        : undefined,
+    !workspaceId
+      ? undefined
+      : linkId || link?.id
+        ? `/api/links/${linkId || link?.id}/dashboard?workspaceId=${workspaceId}`
+        : folder?.id
+          ? `/api/folders/${folder.id}/dashboard?workspaceId=${workspaceId}`
+          : undefined,
     fetcher,
     {
       dedupingInterval: 60000,
