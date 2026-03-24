@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -8,10 +9,12 @@ import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { useManageUsageModal } from "@/ui/modals/manage-usage-modal";
+import { useStartPaidPlanModal } from "@/ui/modals/start-paid-plan-modal";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import {
   AnimatedSizeContainer,
   Button,
+  DynamicTooltipWrapper,
   Icon,
   Tooltip,
   useRouterStuff,
@@ -46,6 +49,7 @@ export default function PlanUsage() {
   const {
     slug,
     plan,
+    role,
     stripeId,
     defaultProgramId,
     usage,
@@ -68,6 +72,14 @@ export default function PlanUsage() {
     billingCycleStart,
     trialEndsAt,
   } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "billing.write",
+    role,
+  }).error;
+
+  const { StartPaidPlanModal, setShowStartPaidPlanModal } =
+    useStartPaidPlanModal();
 
   const { data: tags } = useTagsCount();
   const { users } = useWorkspaceUsers();
@@ -154,7 +166,25 @@ export default function PlanUsage() {
   }, [plan, payoutFee, payoutFeeWaiverLimit, payoutFeeWaiverUsage]);
 
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white">
+    <>
+      <StartPaidPlanModal />
+      <div className="rounded-xl border border-neutral-200 bg-white">
+      {trialEndsAt != null && isWorkspaceBillingTrialActive(trialEndsAt) && (
+        <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-blue-50/50 px-3 py-2">
+          <p className="text-xs font-medium text-blue-600">
+            Trial ends on{" "}
+            <span className="font-semibold">
+              {new Date(trialEndsAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+            . Your card will be charged when the trial ends unless you cancel.
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
           <h2 className="text-xl font-medium">
@@ -173,35 +203,51 @@ export default function PlanUsage() {
               </>
             </p>
           )}
-          {trialEndsAt != null &&
-            isWorkspaceBillingTrialActive(trialEndsAt) && (
-              <p className="mt-2 text-sm text-neutral-600">
-                Trial ends on{" "}
-                <span className="font-medium text-neutral-800">
-                  {new Date(trialEndsAt).toLocaleDateString("en-US", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
-                </span>
-                . Your card will be charged when the trial ends unless you
-                cancel.
-              </p>
-            )}
         </div>
         <div className="flex items-center gap-2">
-          {plan !== "enterprise" && (
-            <Link href={`/${slug}/settings/billing/upgrade`}>
-              <Button
-                text={plan === "free" ? "Upgrade" : "Manage plan"}
-                variant="primary"
-                className="h-9"
-              />
-            </Link>
-          )}
-          <Link href={`/${slug}/settings/billing/invoices`}>
-            <Button text="View invoices" variant="secondary" className="h-9" />
+          {plan !== "enterprise" &&
+            (plan === "free" ? (
+              <Link href={`/${slug}/settings/billing/upgrade`}>
+                <Button text="Upgrade" variant="primary" className="h-9" />
+              </Link>
+            ) : isWorkspaceBillingTrialActive(trialEndsAt) ? (
+              <DynamicTooltipWrapper
+                tooltipProps={
+                  permissionsError ? { content: permissionsError } : undefined
+                }
+              >
+                <Button
+                  text="Start paid plan"
+                  variant="primary"
+                  className="h-9"
+                  disabled={Boolean(permissionsError)}
+                  onClick={() => setShowStartPaidPlanModal(true)}
+                />
+              </DynamicTooltipWrapper>
+            ) : (
+              <Link href={`/${slug}/settings/billing/upgrade`}>
+                <Button text="Manage plan" variant="primary" className="h-9" />
+              </Link>
+            ))}
+
+          <Link
+            href={
+              isWorkspaceBillingTrialActive(trialEndsAt)
+                ? `/${slug}/settings/billing/upgrade`
+                : `/${slug}/settings/billing/invoices`
+            }
+          >
+            <Button
+              text={
+                isWorkspaceBillingTrialActive(trialEndsAt)
+                  ? "View plans"
+                  : "View invoices"
+              }
+              variant="secondary"
+              className="h-9"
+            />
           </Link>
+
           {stripeId && plan !== "free" && <SubscriptionMenu />}
         </div>
       </div>
@@ -283,6 +329,7 @@ export default function PlanUsage() {
         </div>
       </div>
     </div>
+    </>
   );
 }
 

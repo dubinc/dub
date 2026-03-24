@@ -7,6 +7,7 @@ import { Button, ButtonProps } from "@dub/ui";
 import {
   APP_DOMAIN,
   capitalize,
+  isWorkspaceBillingTrialActive,
   PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
   SELF_SERVE_PAID_PLANS,
 } from "@dub/utils";
@@ -14,6 +15,7 @@ import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
+import { useStartPaidPlanModal } from "../modals/start-paid-plan-modal";
 
 export function UpgradePlanButton({
   plan,
@@ -33,6 +35,7 @@ export function UpgradePlanButton({
     plan: currentPlan,
     stripeId,
     defaultProgramId,
+    trialEndsAt,
   } = useWorkspace();
 
   const plausible = usePlausible();
@@ -97,7 +100,14 @@ export function UpgradePlanButton({
       onConfirm: performUpgrade,
     });
 
+  const { StartPaidPlanModal, setShowStartPaidPlanModal } =
+    useStartPaidPlanModal();
+
   const handleClick = () => {
+    if (isCurrentPlan && isWorkspaceBillingTrialActive(trialEndsAt)) {
+      setShowStartPaidPlanModal(true);
+      return;
+    }
     if (losesPartnerAccess) {
       setShowPlanChangeConfirmationModal(true);
     } else {
@@ -108,10 +118,13 @@ export function UpgradePlanButton({
   return (
     <>
       <PlanChangeConfirmationModal />
+      <StartPaidPlanModal />
       <Button
         text={
           isCurrentPlan
-            ? "Your current plan"
+            ? isWorkspaceBillingTrialActive(trialEndsAt)
+              ? "Activate plan"
+              : "Your current plan"
             : currentPlan === "free"
               ? `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
               : `Switch to ${selectedPlan.name} ${capitalize(period)}`

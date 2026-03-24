@@ -1,7 +1,7 @@
 "use client";
 
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
-import { Button, Crown, DubProductIcon } from "@dub/ui";
+import { Button, DubProductIcon } from "@dub/ui";
 import Image from "next/image";
 import { ReactNode } from "react";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
@@ -73,12 +73,6 @@ function ProductOption({
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
   return (
     <div className="relative flex h-full flex-col items-center gap-6 rounded-xl border border-neutral-300 p-6 pt-12 transition-all">
-      {paidPlanRequired && (
-        <div className="absolute inset-x-2 top-2 flex items-center justify-center gap-2 rounded-md border border-neutral-200 bg-neutral-100 px-2.5 py-1 text-xs font-medium text-neutral-600">
-          <Crown className="size-3" />
-          Paid plan required
-        </div>
-      )}
       <div className="relative size-36">
         <Image
           src={icon}

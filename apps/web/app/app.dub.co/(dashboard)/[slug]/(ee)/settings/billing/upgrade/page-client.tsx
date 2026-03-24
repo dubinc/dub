@@ -21,6 +21,7 @@ import {
   getSuggestedPlan,
   isDowngradePlan,
   isLegacyBusinessPlan,
+  isWorkspaceBillingTrialActive,
   PlanDetails,
   PLANS,
   PRICING_PLAN_COMPARE_FEATURES,
@@ -54,6 +55,7 @@ export function WorkspaceBillingUpgradePageClient() {
     planTier: currentPlanTier = 1,
     stripeId,
     payoutsLimit,
+    trialEndsAt,
   } = useWorkspace();
 
   const { error: permissionsError } = clientAccessCheck({
@@ -250,14 +252,18 @@ export function WorkspaceBillingUpgradePageClient() {
                           tier={planTier > 1 ? planTier : undefined}
                           period={period}
                           disabled={
-                            disableCurrentPlan || currentPlan === "enterprise"
+                            (disableCurrentPlan &&
+                              !isWorkspaceBillingTrialActive(trialEndsAt)) ||
+                            currentPlan === "enterprise"
                           }
                           disabledTooltip={permissionsError || undefined}
                           text={
                             currentPlan === "enterprise"
                               ? "Contact support"
                               : disableCurrentPlan
-                                ? "Current plan"
+                                ? isWorkspaceBillingTrialActive(trialEndsAt)
+                                  ? "Activate plan"
+                                  : "Current plan"
                                 : isDowngrade
                                   ? "Downgrade"
                                   : "Upgrade"
