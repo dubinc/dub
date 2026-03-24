@@ -1,13 +1,17 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { qstash } from "@/lib/cron";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
+import {
+  wouldGainPartnerAccess,
+  wouldLosePartnerAccess,
+} from "@/lib/plans/has-partner-access";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { getPlanAndTierFromPriceId } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, getPlanAndTierFromPriceId } from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 
@@ -173,6 +177,28 @@ export async function updateWorkspacePlan({
     ) {
       if (workspace.defaultProgramId) {
         await deactivateProgram(workspace.defaultProgramId);
+      }
+    }
+
+    // Reactivate all partners if the workspace gains partner access (Pro/Free -> Business/Enterprise)
+    if (
+      wouldGainPartnerAccess({
+        currentPlan: workspace.plan,
+        newPlan: newPlanName,
+      })
+    ) {
+      if (workspace.defaultProgramId) {
+        const response = await qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
+          body: {
+            programId: workspace.defaultProgramId,
+          },
+          deduplicationId: `reactivate-program-${workspace.defaultProgramId}`,
+        });
+
+        console.log("Reactivation job enqueued.", {
+          response,
+        });
       }
     }
 
