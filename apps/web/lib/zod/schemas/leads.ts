@@ -3,6 +3,7 @@ import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema, LinkSchema } from "./links";
+import { metadataSchema } from "./utils";
 
 export const trackLeadRequestSchema = z.object({
   clickId: z
@@ -59,16 +60,7 @@ export const trackLeadRequestSchema = z.object({
     .describe(
       "The numerical value associated with this lead event (e.g., number of provisioned seats in a free trial). If defined as N, the lead event will be tracked N times.",
     ),
-  metadata: z
-    .record(z.string(), z.any())
-    .nullish()
-    .default(null)
-    .refine((val) => !val || JSON.stringify(val).length <= 10000, {
-      message: "Metadata must be less than 10,000 characters when stringified",
-    })
-    .describe(
-      "Additional metadata to be stored with the lead event. Max 10,000 characters.",
-    ),
+  metadata: metadataSchema,
 });
 
 export const trackLeadResponseSchema = z.object({

@@ -153,6 +153,26 @@ describe.concurrent("POST /track/sale", async () => {
     expect(response.data.sale?.amount).toBeLessThanOrEqual(1100); // 1100 cents
   });
 
+  test("track a sale with stringified metadata", async () => {
+    const newSale = {
+      ...sale,
+      invoiceId: `INV_${randomId()}`,
+      amount: randomSaleAmount(),
+    };
+
+    const response = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...newSale,
+        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID,
+        metadata: JSON.stringify({ foo: "bar" }),
+      },
+    });
+
+    expect(response.status).toEqual(200);
+    expect(response.data.sale?.metadata).toStrictEqual({ foo: "bar" });
+  });
+
   test("track a sale with direct sale tracking", async () => {
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",

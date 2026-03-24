@@ -53,6 +53,34 @@ export const parseUrlSchemaAllowEmpty = ({
   return schema.transform((v) => getUrlFromString(v));
 };
 
+// Coerce a JSON string to an object before Zod validation.
+// Callers sending metadata as a pre-stringified JSON string would otherwise fail `z.record()`
+const coerceJsonString = (val: unknown) => {
+  if (typeof val === "string") {
+    try {
+      return JSON.parse(val);
+    } catch {
+      return val;
+    }
+  }
+  return val;
+};
+
+// Metadata field: accepts an object or a JSON string, max 10 000 chars.
+export const metadataSchema = z.preprocess(
+  coerceJsonString,
+  z
+    .record(z.string(), z.any())
+    .nullish()
+    .default(null)
+    .refine((val) => !val || JSON.stringify(val).length <= 10000, {
+      message: "Metadata must be less than 10,000 characters when stringified",
+    })
+    .describe(
+      "Additional metadata to be stored with the event. Max 10,000 characters when stringified.",
+    ),
+);
+
 export const parseDateSchema = z
   .string()
   .transform((v) => parseDateTime(v))

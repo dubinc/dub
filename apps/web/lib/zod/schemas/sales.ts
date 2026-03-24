@@ -3,7 +3,7 @@ import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
-import { centsSchema } from "./utils";
+import { centsSchema, metadataSchema } from "./utils";
 
 export const trackSaleRequestSchema = z.object({
   customerExternalId: z
@@ -48,16 +48,7 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "The invoice ID of the sale. Can be used as a idempotency key – only one sale event can be recorded for a given invoice ID.",
     ),
-  metadata: z
-    .record(z.string(), z.any())
-    .nullish()
-    .default(null)
-    .refine((val) => !val || JSON.stringify(val).length <= 10000, {
-      message: "Metadata must be less than 10,000 characters when stringified",
-    })
-    .describe(
-      "Additional metadata to be stored with the sale event. Max 10,000 characters when stringified.",
-    ),
+  metadata: metadataSchema,
   // advanced fields: leadEventName + fields for sale tracking without a  lead event
   leadEventName: z
     .string()
