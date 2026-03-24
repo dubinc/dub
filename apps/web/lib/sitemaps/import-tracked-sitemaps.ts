@@ -1,4 +1,5 @@
 import { bulkCreateLinks } from "@/lib/api/links/bulk-create-links";
+import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
 import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { XMLParser } from "fast-xml-parser";
@@ -62,6 +63,32 @@ function toArray<T>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
+const PRIVATE_IPV4_CIDRS = [
+  "127.0.0.0/8", // Loopback
+  "10.0.0.0/8", // Private
+  "172.16.0.0/12", // Private
+  "192.168.0.0/16", // Private
+  "169.254.0.0/16", // Link-local
+];
+
+const PRIVATE_IPV6_PATTERNS = [/^::1$/, /^fc[0-9a-f]{2}:/i, /^fd[0-9a-f]{2}:/i];
+
+const BLOCKED_HOSTNAMES = new Set(["localhost", "broadcasthost"]);
+
+function isPrivateHost(hostname: string): boolean {
+  const lower = hostname.toLowerCase();
+
+  if (BLOCKED_HOSTNAMES.has(lower) || lower.endsWith(".local")) {
+    return true;
+  }
+
+  if (PRIVATE_IPV4_CIDRS.some((cidr) => isIpInRange(lower, cidr))) {
+    return true;
+  }
+
+  return PRIVATE_IPV6_PATTERNS.some((pattern) => pattern.test(lower));
+}
+
 function normalizeSitemapUrl(url: string) {
   const trimmed = url.trim();
 
@@ -69,11 +96,25 @@ function normalizeSitemapUrl(url: string) {
     throw new Error("Sitemap URL is empty.");
   }
 
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
-    return trimmed;
+  const withProtocol =
+    trimmed.startsWith("http://") || trimmed.startsWith("https://")
+      ? trimmed
+      : `https://${trimmed}`;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(withProtocol);
+  } catch {
+    throw new Error(`Invalid sitemap URL: ${trimmed}`);
   }
 
-  return `https://${trimmed}`;
+  if (isPrivateHost(parsed.hostname)) {
+    throw new Error(
+      `Sitemap URL points to a private or reserved address: ${parsed.hostname}`,
+    );
+  }
+
+  return parsed.toString();
 }
 
 function extractKeyFromUrl(url: string) {
@@ -92,8 +133,24 @@ function isSitemapLikeUrl(url: string) {
   }
 }
 
+const FETCH_TIMEOUT_MS = 10_000;
+const MAX_REDIRECTS = 5;
+
 async function fetchAndParseSitemap(url: string): Promise<SitemapXmlResult> {
-  const response = await fetch(url);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      signal: controller.signal,
+      redirect: "follow",
+      // @ts-expect-error - Node.js fetch supports this non-standard option
+      follow: MAX_REDIRECTS,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!response.ok) {
     throw new Error(`Failed to fetch sitemap (${response.status}): ${url}`);
@@ -213,10 +270,7 @@ export async function importTrackedSitemaps({
       } catch (error) {
         console.error(`Failed to crawl sitemap ${sitemap.url}:`, error);
 
-        return {
-          ...sitemap,
-          lastCrawledAt: nowIso,
-        };
+        return { ...sitemap };
       }
     }),
   );

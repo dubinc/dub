@@ -68,7 +68,17 @@ export const POST = withWorkspace(
       updatedTrackedSitemaps.map((sitemap) => [sitemap.url, sitemap]),
     );
 
-    const mergedTrackedSitemaps = trackedSitemaps.map((sitemap) => {
+    // Re-read trackedSitemaps right before writing to avoid overwriting
+    // concurrent structural edits (add/delete) that happened during the import.
+    const freshWorkspace = await prisma.project.findUnique({
+      where: { id: workspace.id },
+      select: { trackedSitemaps: true },
+    });
+    const freshTrackedSitemaps = parseTrackedSitemaps(
+      freshWorkspace?.trackedSitemaps,
+    );
+
+    const mergedTrackedSitemaps = freshTrackedSitemaps.map((sitemap) => {
       return updatedByUrl.get(sitemap.url) || sitemap;
     });
 

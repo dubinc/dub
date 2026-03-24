@@ -135,58 +135,62 @@ export function SiteVisitTrackingSection() {
 
     setAddingSitemap(true);
 
-    const response = await fetch(`/api/workspaces/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        trackedSitemaps: [
-          ...sitemaps.map((sitemap) => ({
-            url: sitemap.url,
-            ...(sitemap.lastCrawledAt
-              ? { lastCrawledAt: sitemap.lastCrawledAt.toISOString() }
-              : {}),
-            ...(typeof sitemap.lastUrlCount === "number"
-              ? { lastUrlCount: sitemap.lastUrlCount }
-              : {}),
-          })),
-          {
-            url: normalizedSitemapUrl,
-          },
-        ],
-      }),
-    });
-
-    if (response.ok) {
-      const importResponse = await fetch(
-        `/api/workspaces/${id}/sitemaps/import`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            sitemapUrl: normalizedSitemapUrl,
-          }),
+    try {
+      const response = await fetch(`/api/workspaces/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          trackedSitemaps: [
+            ...sitemaps.map((sitemap) => ({
+              url: sitemap.url,
+              ...(sitemap.lastCrawledAt
+                ? { lastCrawledAt: sitemap.lastCrawledAt.toISOString() }
+                : {}),
+              ...(typeof sitemap.lastUrlCount === "number"
+                ? { lastUrlCount: sitemap.lastUrlCount }
+                : {}),
+            })),
+            {
+              url: normalizedSitemapUrl,
+            },
+          ],
+        }),
+      });
 
-      if (importResponse.ok) {
-        toast.success("Sitemap added and crawled.");
+      if (response.ok) {
+        const importResponse = await fetch(
+          `/api/workspaces/${id}/sitemaps/import`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              sitemapUrl: normalizedSitemapUrl,
+            }),
+          },
+        );
+
+        if (importResponse.ok) {
+          toast.success("Sitemap added and crawled.");
+        } else {
+          const { error } = await importResponse.json();
+          toast.error(error?.message || "Sitemap added, but crawl failed.");
+        }
+
+        setNewSitemapUrl("");
+        mutate();
       } else {
-        const { error } = await importResponse.json();
-        toast.error(error?.message || "Sitemap added, but crawl failed.");
+        const { error } = await response.json();
+        toast.error(error?.message || "Failed to add sitemap.");
       }
-
-      setNewSitemapUrl("");
-      mutate();
-    } else {
-      const { error } = await response.json();
-      toast.error(error?.message || "Failed to add sitemap.");
+    } catch {
+      toast.error("Network error, please try again or contact support.");
+    } finally {
+      setAddingSitemap(false);
     }
-
-    setAddingSitemap(false);
   };
 
   const serializeSitemaps = (
@@ -219,25 +223,29 @@ export function SiteVisitTrackingSection() {
 
     setRefreshingSitemapUrl(sitemapUrl);
 
-    const response = await fetch(`/api/workspaces/${id}/sitemaps/import`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        sitemapUrl,
-      }),
-    });
+    try {
+      const response = await fetch(`/api/workspaces/${id}/sitemaps/import`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sitemapUrl,
+        }),
+      });
 
-    if (response.ok) {
-      toast.success("Sitemap refreshed.");
-      mutate();
-    } else {
-      const { error } = await response.json();
-      toast.error(error?.message || "Failed to refresh sitemap.");
+      if (response.ok) {
+        toast.success("Sitemap refreshed.");
+        mutate();
+      } else {
+        const { error } = await response.json();
+        toast.error(error?.message || "Failed to refresh sitemap.");
+      }
+    } catch {
+      toast.error("Network error, please try again.");
+    } finally {
+      setRefreshingSitemapUrl(null);
     }
-
-    setRefreshingSitemapUrl(null);
   };
 
   const deleteSitemap = async (sitemapUrl: string) => {
@@ -257,25 +265,29 @@ export function SiteVisitTrackingSection() {
       (sitemap) => sitemap.url !== sitemapUrl,
     );
 
-    const response = await fetch(`/api/workspaces/${id}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        trackedSitemaps: serializeSitemaps(remainingSitemaps),
-      }),
-    });
+    try {
+      const response = await fetch(`/api/workspaces/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          trackedSitemaps: serializeSitemaps(remainingSitemaps),
+        }),
+      });
 
-    if (response.ok) {
-      toast.success("Sitemap deleted.");
-      mutate();
-    } else {
-      const { error } = await response.json();
-      toast.error(error?.message || "Failed to delete sitemap.");
+      if (response.ok) {
+        toast.success("Sitemap deleted.");
+        mutate();
+      } else {
+        const { error } = await response.json();
+        toast.error(error?.message || "Failed to delete sitemap.");
+      }
+    } catch {
+      toast.error("Network error, please try again.");
+    } finally {
+      setDeletingSitemapUrl(null);
     }
-
-    setDeletingSitemapUrl(null);
   };
 
   return (
