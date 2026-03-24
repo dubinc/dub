@@ -26,7 +26,16 @@ export function renderCampaignEmailHTML({
       },
     }),
     Mention.extend({
+      addAttributes() {
+        return {
+          ...this.parent?.(),
+          fallback: { default: null },
+        };
+      },
       renderHTML({ node }: { node: any }) {
+        const label = node.attrs.fallback
+          ? `{{${node.attrs.id} | ${node.attrs.fallback}}}`
+          : `{{${node.attrs.id}}}`;
         return [
           "span",
           {
@@ -35,11 +44,13 @@ export function renderCampaignEmailHTML({
             "data-type": "mention",
             "data-id": node.attrs.id,
           },
-          `{{${node.attrs.id}}}`,
+          label,
         ];
       },
       renderText({ node }: { node: any }) {
-        return `{{${node.attrs.id}}}`;
+        return node.attrs.fallback
+          ? `{{${node.attrs.id} | ${node.attrs.fallback}}}`
+          : `{{${node.attrs.id}}}`;
       },
     }).configure({
       suggestion: {

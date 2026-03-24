@@ -1,5 +1,9 @@
 export const revalidate = false; // cache indefinitely
 
+export function generateStaticParams() {
+  return [];
+}
+
 export default async function CustomURISchemePage(props: {
   params: Promise<{ url: string }>;
 }) {

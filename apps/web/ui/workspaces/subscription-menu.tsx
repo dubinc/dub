@@ -72,6 +72,10 @@ export default function SubscriptionMenu() {
     }
   };
 
+  if (plan === "enterprise") {
+    return null;
+  }
+
   return (
     <>
       <PlanChangeConfirmationModal />

@@ -9,10 +9,10 @@ export const createBountySubmissionAction = authPartnerActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 
-    const handler = new BountySubmissionHandler({
+    const submissionHandler = new BountySubmissionHandler({
       ...parsedInput,
       partner,
     });
 
-    await handler.submit();
+    await submissionHandler.submit();
   });

@@ -1,7 +1,8 @@
 import { EnrolledPartnerProps } from "@/lib/types";
 import { CopyButton, Tooltip } from "@dub/ui";
-import { COUNTRIES, OG_AVATAR_URL } from "@dub/utils";
+import { COUNTRIES } from "@dub/utils";
 import { PropsWithChildren } from "react";
+import { PartnerAvatar } from "./partner-avatar";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
 
 export function PartnerInfoSection({
@@ -26,11 +27,7 @@ export function PartnerInfoSection({
     <div className="flex items-start justify-between gap-6">
       <div>
         <div className="relative w-fit">
-          <img
-            src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-            alt={partner.id}
-            className="size-12 rounded-full"
-          />
+          <PartnerAvatar partner={partner} className="size-12" />
           {partner.country && (
             <Tooltip content={COUNTRIES[partner.country]}>
               <div className="absolute -right-1 top-0 overflow-hidden rounded-full bg-neutral-50 p-0.5 transition-transform duration-100 hover:scale-[1.15]">

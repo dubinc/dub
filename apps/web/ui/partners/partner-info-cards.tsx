@@ -23,7 +23,6 @@ import {
 } from "@dub/ui";
 import {
   COUNTRIES,
-  OG_AVATAR_URL,
   capitalize,
   fetcher,
   formatDate,
@@ -40,6 +39,7 @@ import {
   PartnerFraudBanner,
 } from "./fraud-risks/partner-fraud-banner";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
+import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
@@ -256,10 +256,9 @@ export function PartnerInfoCards({
             <div className="flex items-start justify-between gap-2">
               <div className="relative w-fit shrink-0">
                 {partner ? (
-                  <img
-                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                    alt={partner.id}
-                    className="size-20 rounded-full border border-neutral-100"
+                  <PartnerAvatar
+                    partner={partner}
+                    className="size-20 border border-neutral-100"
                   />
                 ) : (
                   <div className="size-20 animate-pulse rounded-full bg-neutral-200" />

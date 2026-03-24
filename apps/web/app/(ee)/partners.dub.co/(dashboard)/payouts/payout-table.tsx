@@ -46,9 +46,6 @@ export function PayoutTable() {
   const { payouts, error, loading } = usePartnerPayouts();
   const { payoutsCount } = usePartnerPayoutsCount<number>();
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    usePayoutFilters();
-
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; payout: PartnerPayoutResponse | null }
     | { open: true; payout: PartnerPayoutResponse }
@@ -234,26 +231,7 @@ export function PayoutTable() {
         />
       )}
       <div className="flex flex-col gap-3">
-        <div className="flex flex-col gap-3">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-          />
-          <AnimatedSizeContainer height>
-            {activeFilters.length > 0 && (
-              <Filter.List
-                filters={filters}
-                activeFilters={activeFilters}
-                onSelect={onSelect}
-                onRemove={onRemove}
-                onRemoveAll={onRemoveAll}
-              />
-            )}
-          </AnimatedSizeContainer>
-        </div>
+        <PartnerPayoutFilters />
         {payouts?.length !== 0 ? (
           <Table {...table} />
         ) : (
@@ -270,6 +248,34 @@ export function PayoutTable() {
         )}
       </div>
     </>
+  );
+}
+
+function PartnerPayoutFilters() {
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePayoutFilters();
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Filter.Select
+        className="w-full md:w-fit"
+        filters={filters}
+        activeFilters={activeFilters}
+        onSelect={onSelect}
+        onRemove={onRemove}
+      />
+      <AnimatedSizeContainer height>
+        {activeFilters.length > 0 && (
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onRemoveAll={onRemoveAll}
+          />
+        )}
+      </AnimatedSizeContainer>
+    </div>
   );
 }
 

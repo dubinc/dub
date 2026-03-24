@@ -10,6 +10,66 @@ import slugify from "@sindresorhus/slugify";
 import { DubApiError } from "../errors";
 import { processLink } from "../links/process-link";
 
+export function derivePartnerLinkKey({
+  key,
+  username,
+  name,
+  email,
+}: {
+  key?: string;
+  username?: string | null;
+  name?: string | null;
+  email: string;
+}) {
+  if (key) {
+    return key;
+  }
+
+  if (username) {
+    return username;
+  }
+
+  if (name) {
+    return slugify(name);
+  }
+
+  return slugify(email.split("@")[0]);
+}
+
+type PartnerDefaultLinkProps = CreatePartnerProps["linkProps"] & {
+  key?: string;
+};
+
+export function buildPartnerDefaultLinkKey({
+  link,
+  partner,
+  hasMoreThanOneDefaultLink,
+}: {
+  link?: PartnerDefaultLinkProps;
+  partner: Pick<CreatePartnerProps, "name" | "email" | "username" | "tenantId">;
+  hasMoreThanOneDefaultLink: boolean;
+}) {
+  if (link?.key) {
+    return link.key;
+  }
+
+  let slug = derivePartnerLinkKey({
+    username: partner.username,
+    name: partner.name,
+    email: partner.email,
+  });
+
+  if (hasMoreThanOneDefaultLink) {
+    slug = `${slug}-${nanoid(4).toLowerCase()}`;
+  }
+
+  if (link?.prefix) {
+    return `${link.prefix.replace(/^\/|\/$/g, "")}/${slug}`;
+  }
+
+  return slug;
+}
+
 interface GeneratePartnerLinkInput {
   workspace: Pick<WorkspaceProps, "id" | "plan">;
   program: Pick<ProgramProps, "defaultFolderId" | "id">;
@@ -92,29 +152,3 @@ export const generatePartnerLink = async ({
 
   return processedLink;
 };
-
-export function derivePartnerLinkKey({
-  key,
-  username,
-  name,
-  email,
-}: {
-  key?: string;
-  username?: string | null;
-  name?: string | null;
-  email: string;
-}) {
-  if (key) {
-    return key;
-  }
-
-  if (username) {
-    return username;
-  }
-
-  if (name) {
-    return slugify(name);
-  }
-
-  return slugify(email.split("@")[0]);
-}

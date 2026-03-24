@@ -1,6 +1,6 @@
+import { getAvatarTheme } from "@dub/utils";
 import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
-import { getTheme } from "./utils";
 
 export const runtime = "edge";
 
@@ -22,7 +22,7 @@ export async function GET(
 
   const { searchParams } = new URL(req.url);
   const seed = params.seed?.[0] ?? searchParams.get("seed");
-  const theme = getTheme(seed);
+  const theme = getAvatarTheme(seed);
 
   return new ImageResponse(
     (
@@ -67,7 +67,11 @@ export async function GET(
     {
       width: 128,
       height: 128,
-      headers: corsHeaders,
+      headers: {
+        ...corsHeaders,
+        "Vercel-CDN-Cache-Control": "s-maxage=31536000",
+        "Cache-Control": "public, max-age=31536000, immutable",
+      },
     },
   );
 }

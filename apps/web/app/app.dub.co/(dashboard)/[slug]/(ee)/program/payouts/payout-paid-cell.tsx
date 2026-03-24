@@ -1,7 +1,8 @@
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { CopyText, Tooltip } from "@dub/ui";
 import { CircleHalfDottedClock } from "@dub/ui/icons";
-import { formatDateSmart, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
+import { formatDateSmart, formatDateTime } from "@dub/utils";
 import { addBusinessDays } from "date-fns";
 
 type PayoutPaidCellUser = {
@@ -35,11 +36,7 @@ export function PayoutPaidCell({
         <div className="flex flex-col gap-1 p-2.5">
           {user && (
             <div className="flex flex-col gap-2">
-              <img
-                src={user.image || `${OG_AVATAR_URL}${user.id}`}
-                alt={user.name ?? user.email ?? user.id}
-                className="size-6 shrink-0 rounded-full"
-              />
+              <UserAvatar user={user} className="size-6" />
               <p className="text-sm font-medium">
                 {user.name ?? user.email ?? user.id}
               </p>
@@ -104,13 +101,7 @@ export function PayoutPaidCell({
       }
     >
       <div className="flex items-center gap-2">
-        {user && (
-          <img
-            src={user.image || `${OG_AVATAR_URL}${user.id}`}
-            alt={user.name ?? user.email ?? user.id}
-            className="size-5 shrink-0 rounded-full"
-          />
-        )}
+        {user && <UserAvatar user={user} className="size-5 shrink-0" />}
         {paidAt ? (
           <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
             {formatDateSmart(paidAt, {

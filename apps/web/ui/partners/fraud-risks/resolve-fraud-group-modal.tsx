@@ -8,9 +8,10 @@ import {
   MAX_RESOLUTION_REASON_LENGTH,
   resolveFraudGroupSchema,
 } from "@/lib/zod/schemas/fraud";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal } from "@dub/ui";
-import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -92,11 +93,7 @@ function ResolveFraudGroupModal({
           {partner && (
             <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
               <div className="flex items-center gap-4">
-                <img
-                  src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                  alt={partner.id}
-                  className="size-10 rounded-full bg-white"
-                />
+                <PartnerAvatar partner={partner} className="size-10 bg-white" />
                 <div className="flex min-w-0 flex-col">
                   <h4 className="truncate text-sm font-medium text-neutral-900">
                     {partner.name || "Unknown"}

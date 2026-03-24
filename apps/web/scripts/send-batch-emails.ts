@@ -1,4 +1,4 @@
-import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
+import DubProductUpdateMar26 from "@dub/email/templates/broadcasts/dub-product-update-mar26";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
@@ -11,10 +11,19 @@ async function main() {
       where: {
         sentMail: false,
         notificationPreferences: {
-          partnerAccount: true,
+          dubPartners: true,
         },
-        partners: {
-          some: {},
+        projects: {
+          some: {
+            project: {
+              plan: {
+                not: "free",
+              },
+            },
+          },
+        },
+        email: {
+          not: null,
         },
       },
       take: 10000,
@@ -25,15 +34,15 @@ async function main() {
     }
     console.log(`Found ${usersToNotify.length} users to notify`);
 
-    const res = await queueBatchEmail<typeof ConnectPlatformsReminder>(
+    const res = await queueBatchEmail<typeof DubProductUpdateMar26>(
       usersToNotify.map((user) => ({
         to: user.email!,
-        subject: "Verify your social platforms on Dub Partners",
+        subject: "Dub Partners Product Updates (Mar '26)",
         variant: "marketing",
-        templateName: "ConnectPlatformsReminder",
+        templateName: "DubProductUpdateMar26",
         templateProps: {
           email: user.email!,
-          unsubscribeUrl: `https://partners.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
+          unsubscribeUrl: `https://app.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
         },
       })),
     );

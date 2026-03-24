@@ -4,15 +4,12 @@ import {
   Check2,
   Envelope,
   LoadingSpinner,
-  PROSE_STYLES,
   Tooltip,
   useMediaQuery,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
 import { ChevronRight } from "lucide-react";
 import { Fragment, useMemo, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { MessageInput } from "../shared/message-input";
 import { MessageMarkdown } from "./message-markdown";
 
@@ -220,50 +217,9 @@ export function MessagesPanel({
                               : "rounded-bl bg-neutral-100",
                           )}
                         >
-                          <ReactMarkdown
-                            className={cn(
-                              isMySide
-                                ? "text-content-inverted prose-invert prose-a:text-content-inverted"
-                                : "text-content-default prose-a:text-content-emphasis",
-                              "prose prose-sm break-words",
-                              PROSE_STYLES.condensed,
-                              "prose-a:font-medium prose-a:underline-offset-4",
-                            )}
-                            allowedElements={[
-                              "p",
-                              "a",
-                              "code",
-                              "pre",
-                              "strong",
-                              "em",
-                              "ul",
-                              "ol",
-                              "li",
-                            ]}
-                            components={{
-                              a: ({ node, ...props }) => (
-                                <a
-                                  {...props}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                />
-                              ),
-                              pre: ({ node, ...props }) => (
-                                <pre
-                                  {...props}
-                                  className={cn(
-                                    "my-1 text-wrap py-1 text-sm",
-                                    isMySide
-                                      ? "text-content-inverted bg-neutral-600"
-                                      : "text-content-default bg-neutral-200",
-                                  )}
-                                />
-                              ),
-                            }}
-                            remarkPlugins={[remarkGfm] as any}
-                          >
+                          <MessageMarkdown invert={isMySide}>
                             {message.text}
-                          </ReactMarkdown>
+                          </MessageMarkdown>
                         </div>
                       </div>
                     </div>

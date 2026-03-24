@@ -5,7 +5,8 @@ import useTagsCount from "@/lib/swr/use-tags-count";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
-import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
+import { UserAvatar } from "@/ui/users/user-avatar";
+import { BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
 import { useContext, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -93,7 +94,7 @@ export function useLinkFilters() {
             value: id,
             label: name,
             icon: (
-              <Avatar
+              <UserAvatar
                 user={{
                   id,
                   name,

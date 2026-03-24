@@ -42,18 +42,6 @@ export function FraudGroupTable() {
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    setSearch,
-    setSelectedFilter,
-  } = useFraudGroupFilters({
-    status: "pending",
-  });
-
   const { fraudGroups, loading, error } = useFraudGroups({
     query: {
       status: "pending",
@@ -131,15 +119,10 @@ export function FraudGroupTable() {
             return (
               <div className="flex items-center gap-2">
                 <Tooltip content={reason.description}>
-                  <span
-                    className={cn(
-                      "cursor-help truncate underline decoration-dotted underline-offset-2",
-                    )}
-                  >
+                  <span className="cursor-help truncate underline decoration-dotted underline-offset-2">
                     {reason.name}
                   </span>
                 </Tooltip>
-
                 {count > 1 && (
                   <Badge
                     variant="gray"
@@ -215,19 +198,6 @@ export function FraudGroupTable() {
       },
     ],
     columnPinning: { right: ["menu"] },
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as
-        | {
-            filterParams?: any;
-          }
-        | undefined;
-
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["createdAt", "type"],
@@ -250,6 +220,19 @@ export function FraudGroupTable() {
         },
         scroll: false,
       });
+    },
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      if (!meta?.filterParams) return null;
+      const params = meta.filterParams(cell);
+      if (!params || Object.keys(params).length === 0) return null;
+
+      return <FilterButtonTableRow set={params} />;
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -363,32 +346,9 @@ export function FraudGroupTable() {
 
       <div>
         <FraudDisclaimerBanner />
-        <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
+        <div className="mt-3">
+          <PendingFraudFilters />
         </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
       </div>
 
       {fraudGroups?.length !== 0 ? (
@@ -409,6 +369,51 @@ export function FraudGroupTable() {
         />
       )}
     </div>
+  );
+}
+
+function PendingFraudFilters() {
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useFraudGroupFilters({
+    status: "pending",
+  });
+
+  return (
+    <>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
+    </>
   );
 }
 

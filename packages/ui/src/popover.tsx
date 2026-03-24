@@ -16,6 +16,7 @@ export type PopoverProps = PropsWithChildren<{
   forceDropdown?: boolean;
   popoverContentClassName?: string;
   onOpenAutoFocus?: PopoverPrimitive.PopoverContentProps["onOpenAutoFocus"];
+  onCloseAutoFocus?: PopoverPrimitive.PopoverContentProps["onCloseAutoFocus"];
   collisionBoundary?: Element | Element[];
   sticky?: "partial" | "always";
   onEscapeKeyDown?: (event: KeyboardEvent) => void;
@@ -34,6 +35,7 @@ export function Popover({
   forceDropdown,
   popoverContentClassName,
   onOpenAutoFocus,
+  onCloseAutoFocus,
   collisionBoundary,
   sticky,
   onEscapeKeyDown,
@@ -93,6 +95,7 @@ export function Popover({
           sticky={sticky}
           collisionBoundary={collisionBoundary}
           onOpenAutoFocus={onOpenAutoFocus}
+          onCloseAutoFocus={onCloseAutoFocus}
           onEscapeKeyDown={onEscapeKeyDown}
           onWheel={onWheel}
         >

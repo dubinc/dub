@@ -5,7 +5,9 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { X } from "@/ui/shared/icons";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   Button,
   ChevronLeft,
@@ -18,7 +20,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
+import { cn, formatDateTime } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
@@ -176,11 +178,7 @@ function FraudReviewSheetContent({
                   Partner details
                 </h2>
                 <div className="flex min-w-0 items-center gap-3">
-                  <img
-                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                    alt={partner.id}
-                    className="size-10 rounded-full"
-                  />
+                  <PartnerAvatar partner={partner} className="size-10" />
                   <div className="flex min-w-0 flex-col">
                     <span className="text-content-emphasis truncate text-sm font-semibold">
                       {partner.name}
@@ -247,10 +245,9 @@ function FraudReviewSheetContent({
                       <div className="flex flex-col gap-1 p-2.5">
                         {user && (
                           <div className="flex flex-col gap-2">
-                            <img
-                              src={user.image || `${OG_AVATAR_URL}${user.id}`}
-                              alt={user.name ?? user.email ?? user.id}
-                              className="size-6 shrink-0 rounded-full"
+                            <UserAvatar
+                              user={user}
+                              className="size-6 shrink-0"
                             />
                             <p className="text-sm font-medium">{user.name}</p>
                           </div>
@@ -268,11 +265,7 @@ function FraudReviewSheetContent({
                     }
                   >
                     {user && (
-                      <img
-                        src={user.image || `${OG_AVATAR_URL}${user.id}`}
-                        alt={user.name ?? user.email ?? user.id}
-                        className="size-5 shrink-0 rounded-full"
-                      />
+                      <UserAvatar user={user} className="size-5 shrink-0" />
                     )}
                   </Tooltip>
 

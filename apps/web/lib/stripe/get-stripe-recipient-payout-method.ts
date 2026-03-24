@@ -1,13 +1,13 @@
 import { STRIPE_API_VERSION, stripeV2Fetch } from "./stripe-v2-client";
 
-export async function getStripeStablecoinPayoutMethod(
+export async function getStripeRecipientPayoutMethod(
   stripeRecipientId: string,
 ) {
   const { data, error } = await stripeV2Fetch(
     "/v2/money_management/payout_methods",
     {
       query: {
-        limit: 1,
+        limit: 10,
       },
       headers: {
         Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
@@ -21,5 +21,5 @@ export async function getStripeStablecoinPayoutMethod(
     throw new Error(error.message);
   }
 
-  return data.data?.[0] ?? null;
+  return data.data?.find((m) => m.type === "crypto_wallet") ?? null;
 }

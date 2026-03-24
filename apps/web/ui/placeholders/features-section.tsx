@@ -1,6 +1,9 @@
+"use client";
+
 import { ExpandingArrow } from "@dub/ui";
 import { cn, createHref, UTMTags } from "@dub/utils";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { PropsWithChildren } from "react";
 import Markdown from "react-markdown";
 import { Analytics } from "./feature-graphics/analytics";
@@ -10,12 +13,11 @@ import { Personalization } from "./feature-graphics/personalization";
 import { QR } from "./feature-graphics/qr";
 
 export function FeaturesSection({
-  domain,
   utmParams,
 }: {
-  domain: string;
   utmParams: Partial<Record<(typeof UTMTags)[number], string>>;
 }) {
+  const { domain } = useParams() as { domain: string };
   return (
     <div className="mt-20">
       <div className="mx-auto w-full max-w-xl px-4 text-center">

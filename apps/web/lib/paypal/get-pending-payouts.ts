@@ -1,6 +1,5 @@
 import { prisma } from "@dub/prisma";
 import { PayoutStatus } from "@dub/prisma/client";
-import { PAYPAL_SUPPORTED_COUNTRIES } from "@dub/utils";
 import * as z from "zod/v4";
 import { PartnerSchema } from "../zod/schemas/partners";
 import { ProgramSchema } from "../zod/schemas/programs";
@@ -24,22 +23,25 @@ const PaypalPayoutResponseSchema = z.object({
 
 export type PaypalPayoutResponse = z.infer<typeof PaypalPayoutResponseSchema>;
 
-export async function getPendingPaypalPayouts() {
+export async function getPendingPaypalPayouts({
+  country,
+  programId,
+}: { country?: string; programId?: string } = {}) {
   const payouts = await prisma.payout.findMany({
     where: {
       status: {
         in: ["pending", "processing"],
       },
+      ...(programId && { programId }),
       partner: {
+        defaultPayoutMethod: "paypal",
         paypalEmail: {
           not: null,
         },
         payoutsEnabledAt: {
           not: null,
         },
-        country: {
-          in: PAYPAL_SUPPORTED_COUNTRIES,
-        },
+        ...(country && { country }),
       },
     },
     orderBy: {

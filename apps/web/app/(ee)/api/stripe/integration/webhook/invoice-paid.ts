@@ -69,7 +69,12 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`;
   }
 
-  let invoiceSaleAmount = invoice.total_excluding_tax ?? invoice.amount_paid;
+  // Sale amount excluding tax: use total_excluding_tax only when invoice was paid in full
+  // (amount_paid === total); otherwise use amount_paid (e.g. credits applied, upsells, etc.).
+  let invoiceSaleAmount =
+    invoice.amount_paid === invoice.total && invoice.total_excluding_tax != null
+      ? invoice.total_excluding_tax
+      : invoice.amount_paid;
 
   // Skip if invoice id is already processed
   const ok = await redis.set(
@@ -184,6 +189,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       },
       include: includeTags,
     }),
+
     // update workspace sales usage
     prisma.project.update({
       where: {
@@ -273,7 +279,10 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
             programEnrollment: pick(programEnrollment, ["status"]),
-            customer: pick(customer, ["id", "email", "name"]),
+            customer: {
+              ...pick(customer, ["id", "email", "name"]),
+              isFirstConversion: firstConversionFlag,
+            },
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },

@@ -13,6 +13,7 @@ import { WORKFLOW_ATTRIBUTES, workflowConditionSchema } from "./workflows";
 export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerName",
   "PartnerEmail",
+  "PartnerLink",
 ] as const;
 
 export const CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG: Record<
