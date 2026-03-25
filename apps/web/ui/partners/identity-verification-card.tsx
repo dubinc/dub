@@ -10,12 +10,6 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
-const DECLINE_REASON_MAP: Record<string, string> = {
-  countryMismatch: "Your document country does not match your account country.",
-  duplicateIdentity:
-    "This identity has already been verified on another account.",
-};
-
 const DEFAULT_DECLINE_DESCRIPTION =
   "Your identity verification was declined. Please try again with a valid government-issued ID.";
 
@@ -131,8 +125,7 @@ export function IdentityVerificationCard({
 
     if (status === "declined" && partner.identityVerificationDeclineReason) {
       return (
-        DECLINE_REASON_MAP[partner.identityVerificationDeclineReason] ||
-        DEFAULT_DECLINE_DESCRIPTION
+        partner.identityVerificationDeclineReason || DEFAULT_DECLINE_DESCRIPTION
       );
     }
 
