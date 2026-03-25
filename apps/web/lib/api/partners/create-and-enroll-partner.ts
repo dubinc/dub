@@ -211,6 +211,43 @@ export const createAndEnrollPartner = async ({
       });
 
       if (existingEnrollment) {
+        if (
+          partner.tenantId &&
+          partner.tenantId !== existingEnrollment.tenantId
+        ) {
+          await throwIfExistingTenantEnrollmentExists({
+            tenantId: partner.tenantId,
+            programId: program.id,
+          });
+
+          const updatedEnrollment = await prisma.programEnrollment.update({
+            where: {
+              id: existingEnrollment.id,
+            },
+            data: {
+              tenantId: partner.tenantId,
+            },
+            include: {
+              partner: {
+                include: {
+                  platforms: true,
+                },
+              },
+              links: true,
+            },
+          });
+
+          return EnrolledPartnerSchema.parse({
+            ...updatedEnrollment.partner,
+            ...updatedEnrollment,
+            id: updatedEnrollment.partner.id,
+            links: updatedEnrollment.links,
+            ...polyfillSocialMediaFields(
+              updatedEnrollment.partner.platforms,
+            ),
+          });
+        }
+
         return EnrolledPartnerSchema.parse({
           ...existingEnrollment.partner,
           ...existingEnrollment,
