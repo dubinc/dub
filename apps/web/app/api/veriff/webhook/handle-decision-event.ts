@@ -59,7 +59,7 @@ export const handleDecisionEvent = async ({
   };
 
   if (status === "approved") {
-    const identityHash = computeIdentityHash(person);
+    const identityHash = computeIdentityHash(verification);
 
     const isDuplicate = await checkDuplicateIdentity({
       partner,
@@ -264,17 +264,32 @@ async function checkCountryMismatch({
 }
 
 function computeIdentityHash(
-  person: VeriffDecisionEvent["verification"]["person"],
+  verification: VeriffDecisionEvent["verification"],
 ) {
-  if (!person?.firstName || !person?.lastName || !person?.dateOfBirth) {
-    return null;
+  const { person, document } = verification;
+
+  // Prefer document number (passport/ID number) — strongest unique signal
+  if (document?.number) {
+    const input = [
+      "doc",
+      document.number.toLowerCase().trim(),
+      document.country?.toUpperCase().trim() ?? "",
+    ].join("|");
+
+    return createHash("sha256").update(input).digest("hex");
   }
 
-  const input = [
-    person.firstName.toLowerCase().trim(),
-    person.lastName.toLowerCase().trim(),
-    person.dateOfBirth.trim(),
-  ].join("|");
+  // Fall back to name + date of birth
+  if (person?.firstName && person?.lastName && person?.dateOfBirth) {
+    const input = [
+      "person",
+      person.firstName.toLowerCase().trim(),
+      person.lastName.toLowerCase().trim(),
+      person.dateOfBirth.trim(),
+    ].join("|");
 
-  return createHash("sha256").update(input).digest("hex");
+    return createHash("sha256").update(input).digest("hex");
+  }
+
+  return null;
 }

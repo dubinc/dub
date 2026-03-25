@@ -6,7 +6,7 @@ import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
 import { createId } from "../api/create-id";
-import { skipAuthThrottling } from "../api/environment";
+import { shouldApplyRateLimit } from "../api/environment";
 import { hashPassword } from "../auth/password";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -31,7 +31,7 @@ export const createUserAccountAction = actionClient
 
     const signupAttemptKey = `signup:attempts:${email}`;
 
-    if (!skipAuthThrottling) {
+    if (shouldApplyRateLimit) {
       const { remaining: attemptsRemaining } = await ratelimit(
         MAX_OTP_ATTEMPTS,
         OTP_LOCKOUT_DURATION,
