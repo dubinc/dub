@@ -14,7 +14,7 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../components/footer";
-import { type TrialMarketingEmailProps } from "../components/trial-email-shell";
+import { type TrialMarketingEmailProps } from "../types/trial-marketing-email";
 
 export default function TrialLinksFocusEmail({
   email = "panic@thedis.co",

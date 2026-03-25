@@ -13,7 +13,7 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../components/footer";
-import { type TrialMarketingEmailProps } from "../components/trial-email-shell";
+import { type TrialMarketingEmailProps } from "../types/trial-marketing-email";
 
 const FRAMER_CASE_IMAGE = "https://assets.dub.co/cms/framer-thumbnail.png";
 const RAYCAST_CASE_IMAGE = "https://assets.dub.co/cms/raycast-thumbnail.jpg";
