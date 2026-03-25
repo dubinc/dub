@@ -16,7 +16,7 @@ test.describe("Partner onboarding", () => {
     await expect(
       page.getByRole("heading", { name: "Create your partner profile" }),
     ).toBeVisible();
-    await expect(page.locator('input[name="name"]')).toBeVisible();
+    await expect(page.locator('input[name="name"]').first()).toBeVisible();
     await expect(page.getByText("Profile image")).toBeVisible();
     await expect(page.getByLabel("Country")).toBeVisible();
     await expect(
@@ -29,7 +29,7 @@ test.describe("Partner onboarding", () => {
   test("profile submit redirects to platforms", async ({ page }) => {
     await page.goto("/onboarding");
 
-    const nameInput = page.locator('input[name="name"]');
+    const nameInput = page.locator('input[name="name"]').first();
     const countryField = page.getByLabel("Country");
     const searchCountriesInput = page.getByPlaceholder("Search countries...");
     const continueButton = page.getByRole("button", { name: "Continue" });
@@ -67,7 +67,7 @@ test.describe("Partner onboarding", () => {
   }) => {
     await page.goto("/onboarding");
 
-    const nameInput = page.locator('input[name="name"]');
+    const nameInput = page.locator('input[name="name"]').first();
     const countryField = page.getByLabel("Country");
     const searchCountriesInput = page.getByPlaceholder("Search countries...");
     const continueButton = page.getByRole("button", { name: "Continue" });
