@@ -29,7 +29,7 @@ jobs:
       NEXTAUTH_URL: "http://partners.localhost:8888"
 
       NEXT_PUBLIC_APP_NAME: "Dub"
-      NEXT_PUBLIC_APP_DOMAIN: "localhost:8888"
+      NEXT_PUBLIC_APP_DOMAIN: "dub.co"
       NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
 
       E2E_PARTNER_EMAIL: "partner1@dub-internal-test.com"
