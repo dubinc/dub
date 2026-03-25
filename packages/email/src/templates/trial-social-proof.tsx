@@ -15,8 +15,10 @@ import {
 import { Footer } from "../components/footer";
 import { type TrialMarketingEmailProps } from "../types/trial-marketing-email";
 
-const FRAMER_CASE_IMAGE = "https://assets.dub.co/cms/framer-thumbnail.png";
-const RAYCAST_CASE_IMAGE = "https://assets.dub.co/cms/raycast-thumbnail.jpg";
+const FRAMER_CASE_IMAGE =
+  "https://assets.dub.co/cms/trial-email-framer-thumbnail.png";
+const RAYCAST_CASE_IMAGE =
+  "https://assets.dub.co/cms/trial-email-raycast-thumbnail.png";
 
 export default function TrialSocialProofEmail({
   email = "panic@thedis.co",

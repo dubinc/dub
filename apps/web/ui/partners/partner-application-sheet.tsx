@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -15,6 +16,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
@@ -232,8 +234,11 @@ function PartnerApproval({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, trialEndsAt } = useWorkspace();
   const { program } = useProgram();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess: () => {
@@ -242,7 +247,14 @@ function PartnerApproval({
       mutatePrefix("/api/partners");
     },
     onError({ error }) {
-      toast.error(error.serverError || "Failed to approve partner.");
+      const msg = error.serverError ?? "";
+      toast.error(msg || "Failed to approve partner.");
+      if (
+        trialActive &&
+        (msg.includes("free trial") || msg.includes("enrolled partners"))
+      ) {
+        openTrialLimitModal("partnerEnrollments");
+      }
     },
   });
 
@@ -267,6 +279,7 @@ function PartnerApproval({
 
   return (
     <>
+      <TrialLimitActivateModal />
       {confirmModal}
       <div className="flex justify-end gap-2">
         {partner.status !== "rejected" && (

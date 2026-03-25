@@ -17,6 +17,47 @@ export const TRIAL_CAPS = {
   analyticsApi: 2,
 } as const;
 
+export type TrialLimitKind =
+  | keyof typeof TRIAL_CAPS
+  | "partnerEnrollments"
+  | "dublink";
+
+export const TRIAL_LIMIT_FEATURE_PHRASES: Record<TrialLimitKind, string> = {
+  links: "create more links",
+  clicks: "track more events",
+  payouts: "send a payout",
+  domains: "add more domains",
+  tags: "create more tags",
+  folders: "create more folders",
+  groups: "create more groups",
+  networkInvites: "invite more partners from the network",
+  users: "invite more teammates",
+  ai: "use more AI credits",
+  api: "make more API requests",
+  analyticsApi: "use the Analytics API more",
+  partnerEnrollments: "add more partners",
+  dublink: "claim a fee .link domain",
+};
+
+export function getTrialLimitFeaturePhrase(kind: TrialLimitKind): string {
+  return TRIAL_LIMIT_FEATURE_PHRASES[kind];
+}
+
+export function getTrialLimitKindForOverageBanner({
+  exceededEvents,
+  exceededLinks,
+  exceededPayouts,
+}: {
+  exceededEvents: boolean;
+  exceededLinks: boolean;
+  exceededPayouts: boolean;
+}): TrialLimitKind {
+  if (exceededEvents) return "clicks";
+  if (exceededLinks) return "links";
+  if (exceededPayouts) return "payouts";
+  return "payouts";
+}
+
 export const PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS = 14;
 
 export function isWorkspaceBillingTrialActive(

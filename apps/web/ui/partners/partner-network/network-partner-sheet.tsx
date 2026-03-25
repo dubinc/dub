@@ -6,6 +6,7 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -16,6 +17,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -196,8 +198,11 @@ function PartnerControls({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   groupId?: string | null;
 }) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, trialEndsAt } = useWorkspace();
   const { program } = useProgram();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const { executeAsync, isPending } = useAction(
     invitePartnerFromNetworkAction,
@@ -208,7 +213,11 @@ function PartnerControls({
         mutatePrefix(`/api/network/partners`);
       },
       onError({ error }) {
-        toast.error(error.serverError);
+        const msg = String(error.serverError ?? "");
+        toast.error(msg || "Failed to send invite.");
+        if (trialActive && msg.toLowerCase().includes("invitations limit")) {
+          openTrialLimitModal("networkInvites");
+        }
       },
     },
   );
@@ -233,15 +242,25 @@ function PartnerControls({
 
   const { remaining: remainingInvites } = usePartnerNetworkInvitesUsage();
 
-  const disabled = remainingInvites === 0;
+  const atNetworkInviteLimit = remainingInvites === 0;
+  const disabled = atNetworkInviteLimit && !trialActive;
 
-  useKeyboardShortcut("s", () => setShowConfirmModal(true), {
+  const handleSendInvitePress = () => {
+    if (trialActive && atNetworkInviteLimit) {
+      openTrialLimitModal("networkInvites");
+      return;
+    }
+    setShowConfirmModal(true);
+  };
+
+  useKeyboardShortcut("s", handleSendInvitePress, {
     sheet: true,
-    enabled: !disabled,
+    enabled: !disabled || trialActive,
   });
 
   return (
     <>
+      <TrialLimitActivateModal />
       {confirmModal}
       <div className="flex items-center justify-end gap-2">
         <div className="mr-2">
@@ -255,9 +274,9 @@ function PartnerControls({
           variant="primary"
           text="Send invite"
           disabled={disabled}
-          shortcut={disabled ? undefined : "S"}
+          shortcut={disabled && !trialActive ? undefined : "S"}
           loading={isPending}
-          onClick={() => setShowConfirmModal(true)}
+          onClick={handleSendInvitePress}
           className="w-fit shrink-0"
         />
       </div>
