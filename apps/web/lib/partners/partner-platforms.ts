@@ -7,7 +7,7 @@ import {
   Twitter,
   YouTube,
 } from "@dub/ui/icons";
-import { getPrettyUrl, getUrlFromString, nFormatter } from "@dub/utils";
+import { getPrettyUrl, getUrlFromStringIfValid, nFormatter } from "@dub/utils";
 import { PartnerPlatformProps } from "../types";
 
 export const PARTNER_PLATFORM_FIELDS: {
@@ -30,7 +30,7 @@ export const PARTNER_PLATFORM_FIELDS: {
         value: website ? getPrettyUrl(website.identifier) : null,
         verified: !!website?.verifiedAt,
         href: website?.identifier
-          ? getUrlFromString(website.identifier)
+          ? getUrlFromStringIfValid(website.identifier)
           : null,
       };
     },
