@@ -29,6 +29,8 @@ const GENERIC_EMAIL_DOMAINS = [
   "naver.com",
   "yeah.net",
   "example.com",
+  "mail.com",
+  "mail.ru",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [

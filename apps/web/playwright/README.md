@@ -8,18 +8,30 @@
    pnpm --filter web exec playwright install chromium
    ```
 
-2. Set environment variables in `apps/web/.env`:
+2. Start MailHog (used for email verification during signup):
 
    ```sh
-   # Required for credential-based tests
-   E2E_PARTNER_EMAIL=your-test-partner@example.com
-   E2E_PARTNER_PASSWORD=your-test-password
+   docker-compose -f apps/web/docker-compose.yml up -d mailhog
+   ```
+
+3. Set environment variables in `apps/web/.env`:
+
+   ```sh
+   # Required for login tests (seeded user)
+   E2E_PARTNER_EMAIL=partner1@dub-internal-test.com
+   E2E_PARTNER_PASSWORD=password
+
+   # SMTP must point to MailHog — signup tests read OTP emails from it
+   SMTP_HOST=localhost
+   SMTP_PORT=1025
+
+   # RESEND_API_KEY must NOT be set, otherwise emails go to Resend instead of MailHog
 
    # Optional — defaults to http://partners.localhost:8888
    PLAYWRIGHT_BASE_URL=http://partners.localhost:8888
    ```
 
-   The test user must exist in your local database with a password and ideally a partner profile. Partner onboarding tests use the same credentials; the onboarding flow will create or update the partner record (no separate onboarding-only user required).
+   The seeded test user (`E2E_PARTNER_EMAIL`) must exist in your local database — run `tsx apps/web/playwright/seed.ts` to create it. Signup tests generate a fresh user each run via MailHog email verification.
 
 ## Running tests
 
