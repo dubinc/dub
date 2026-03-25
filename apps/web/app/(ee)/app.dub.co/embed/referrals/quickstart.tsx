@@ -34,7 +34,7 @@ export function ReferralsEmbedQuickstart({
   const items = [
     {
       title: "Share your link",
-      description: `User your ${program.name} link to drive traffic and track every click, lead, and conversion.`,
+      description: `Use your ${program.name} link to drive traffic and track every click, lead, and conversion.`,
       illustration: <ShareLink />,
       cta: (
         <Button
