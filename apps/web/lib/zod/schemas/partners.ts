@@ -120,6 +120,11 @@ export const exportApplicationsColumnsDefault = [
 
 export const getPartnersQuerySchema = z
   .object({
+    groupId: z
+      .string()
+      .optional()
+      .describe("A filter on the list based on the partner's `groupId` field.")
+      .meta({ example: "grp_123" }),
     status: z
       .enum(ProgramEnrollmentStatus)
       .optional()
@@ -180,7 +185,13 @@ export const getPartnersQuerySchema = z
   })
   .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
-const partnerMetricRangeQueryFields = {
+export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
+  partnerIds: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional(),
+  includePartnerPlatforms: booleanQuerySchema.optional(),
+  // metric range query fields (TODO: Add to public API once we finalize the syntax)
   totalClicksMin: z.coerce
     .number()
     .int()
@@ -233,20 +244,6 @@ const partnerMetricRangeQueryFields = {
     .describe(
       "Maximum total commissions (inclusive), in the smallest currency unit (e.g. cents).",
     ),
-};
-
-export const getPartnersQuerySchemaPublic = getPartnersQuerySchema.extend({
-  ...partnerMetricRangeQueryFields,
-});
-
-export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
-  partnerIds: z
-    .union([z.string(), z.array(z.string())])
-    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-    .optional(),
-  groupId: z.string().optional(),
-  includePartnerPlatforms: booleanQuerySchema.optional(),
-  ...partnerMetricRangeQueryFields,
 });
 
 export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
