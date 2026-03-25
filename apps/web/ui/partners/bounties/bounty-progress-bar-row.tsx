@@ -3,7 +3,9 @@ import { ReactNode } from "react";
 
 export function EmphasisNumber({ children }: { children: ReactNode }) {
   return (
-    <span className="text-content-emphasis font-semibold">{children}</span>
+    <span className="text-content-emphasis text-sm font-semibold">
+      {children}
+    </span>
   );
 }
 
@@ -28,7 +30,7 @@ export function BountyProgressBarRow({
         wrapperClassName ?? "gap-2",
       )}
     >
-      <div className="h-1 w-full overflow-hidden rounded-full bg-neutral-200">
+      <div className="bg-bg-emphasis h-1 w-full overflow-hidden rounded-full">
         <div
           className={cn(
             "h-full rounded-full",

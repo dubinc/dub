@@ -49,7 +49,11 @@ jobs:
       AXIOM_TOKEN: ""
       AXIOM_DATASET: ""
 
-      RESEND_API_KEY: "xx"
+      # RESEND_API_KEY must be unset so emails route through SMTP to MailHog
+      SMTP_HOST: "localhost"
+      SMTP_PORT: "1025"
+      SMTP_USER: "smtpUser"
+      SMTP_PASSWORD: "smtpPassword"
 
       EMBEDDING_SYNC_SECRET: "xx"
       ANTHROPIC_API_KEY: "xx"
@@ -76,6 +80,12 @@ jobs:
           --health-retries=5
         ports:
           - 3306:3306
+
+      mailhog:
+        image: mailhog/mailhog:latest
+        ports:
+          - 1025:1025
+          - 8025:8025
 
     steps:
       - name: Check out code
@@ -126,23 +136,6 @@ jobs:
       - name: Seed test data
         working-directory: apps/web
         run: pnpm tsx playwright/seed.ts
-
-      # - name: Cache Next.js build
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: apps/web/.next/cache
-      #     key: nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('apps/web/**/*.ts', 'apps/web/**/*.tsx') }}
-      #     restore-keys: |
-      #       nextjs-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}-
-      #       nextjs-${{ runner.os }}-
-
-      # - name: Cache Turbo
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: .turbo
-      #     key: turbo-${{ runner.os }}-${{ github.sha }}
-      #     restore-keys: |
-      #       turbo-${{ runner.os }}-
 
       - name: Build application
         run: pnpm turbo build --filter=web

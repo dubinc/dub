@@ -1,3 +1,4 @@
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -187,6 +188,11 @@ function BasicInfoForm({
       mutatePrefix("/api/partner-profile");
     },
     onError({ error }) {
+      if (error.validationErrors) {
+        toast.error(parseActionError(error, "Could not update your profile."));
+        return;
+      }
+
       setError("root.serverError", {
         message: error.serverError,
       });

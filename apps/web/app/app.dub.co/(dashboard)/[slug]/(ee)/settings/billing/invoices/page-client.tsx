@@ -157,9 +157,11 @@ const InvoiceCard = ({
                   const badge = PayoutStatusBadges[invoice.status];
                   return (
                     <DynamicTooltipWrapper
-                      {...(invoice.failedReason
-                        ? { tooltipProps: { content: invoice.failedReason } }
-                        : null)}
+                      tooltipProps={
+                        invoice.failedReason
+                          ? { content: invoice.failedReason }
+                          : undefined
+                      }
                     >
                       <StatusBadge
                         icon={invoice.status === "failed" ? AlertCircle : null}
@@ -222,9 +224,11 @@ const InvoiceCard = ({
                 const badge = PayoutStatusBadges[invoice.status];
                 return (
                   <DynamicTooltipWrapper
-                    {...(invoice.failedReason
-                      ? { tooltipProps: { content: invoice.failedReason } }
-                      : null)}
+                    tooltipProps={
+                      invoice.failedReason
+                        ? { content: invoice.failedReason }
+                        : undefined
+                    }
                   >
                     <StatusBadge
                       icon={invoice.status === "failed" ? AlertCircle : null}

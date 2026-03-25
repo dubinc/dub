@@ -1,6 +1,6 @@
 {
   "id": "dub.co",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "name": "Dub Partners",
   "icon": "./stripe-icon.png",
   "permissions": [
@@ -15,6 +15,10 @@
     {
       "permission": "invoice_read",
       "purpose": "Allows Dub to read invoice information."
+    },
+    {
+      "permission": "charge_read",
+      "purpose": "Allows Dub to read charges to detect refunded payments."
     },
     {
       "permission": "checkout_session_read",
@@ -57,7 +61,6 @@
       "purpose": "Allows Dub to read promotion codes for an account."
     }
   ],
-  "connect_permissions": null,
   "ui_extension": {
     "views": [
       {
@@ -77,13 +80,13 @@
     }
   },
   "post_install_action": {
-    "type": "settings"
+    "type": "settings",
+    "url": ""
   },
   "allowed_redirect_uris": [
     "https://app.dub.co/api/stripe/integration/callback",
     "https://preview.dub.co/api/stripe/integration/callback"
   ],
   "stripe_api_access_type": "oauth",
-  "distribution_type": "public",
-  "sandbox_install_compatible": true
+  "distribution_type": "public"
 }

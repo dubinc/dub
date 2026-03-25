@@ -5,25 +5,27 @@ import { AnalyticsTimeseries } from "dub/models/components";
 import { SVGProps, useId } from "react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
+import { useReferralsEmbedData } from "./page-client";
 
-export function ReferralsEmbedActivity({
-  clicks,
-  leads,
-  sales,
-  saleAmount,
-  color,
-}: {
-  clicks: number;
-  leads: number;
-  sales: number;
-  saleAmount: number;
-  color?: string | null;
-}) {
+export function ReferralsEmbedActivity() {
+  const {
+    group: { brandColor: color },
+    stats: { clicks, leads, sales, saleAmount },
+  } = useReferralsEmbedData();
+
   const token = useEmbedToken();
 
   const isEmpty = clicks === 0 && leads === 0 && sales === 0;
+
+  const analyticsSearchParams = new URLSearchParams({
+    event: "composite",
+    groupBy: "timeseries",
+    interval: "1y",
+  });
+
   const { data: analytics } = useSWR<AnalyticsTimeseries[]>(
-    !isEmpty && "/api/embed/referrals/analytics",
+    !isEmpty &&
+      `/api/embed/referrals/analytics?${analyticsSearchParams.toString()}`,
     (url) =>
       fetcher(url, {
         headers: {

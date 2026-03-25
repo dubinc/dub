@@ -196,11 +196,6 @@ export function useCustomerFilters(
     [activeFilters, workspaceId, extraSearchParams],
   );
 
-  const isFiltered = useMemo(
-    () => activeFilters.length > 0 || searchParamsObj.search,
-    [activeFilters, searchParamsObj.search],
-  );
-
   return {
     filters,
     activeFilters,
@@ -208,7 +203,6 @@ export function useCustomerFilters(
     onRemove,
     onRemoveAll,
     searchQuery,
-    isFiltered,
     setSearch,
     setSelectedFilter,
   };

@@ -1,7 +1,5 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import { PartnerGroupProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Program } from "@dub/prisma/client";
 import {
   Button,
   CopyButton,
@@ -22,27 +20,17 @@ import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { useEmbedToken } from "../use-embed-token";
+import { useReferralsEmbedData } from "./page-client";
 import { ReferralsEmbedLink } from "./types";
 
 interface Props {
-  program: Pick<Program, "name">;
-  links: ReferralsEmbedLink[];
-  group: Pick<
-    PartnerGroupProps,
-    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
-  >;
   onCreateLink: () => void;
   onEditLink: (link: ReferralsEmbedLink) => void;
 }
 
-export function ReferralsEmbedLinksList({
-  program,
-  links,
-  group,
-  onCreateLink,
-  onEditLink,
-}: Props) {
+export function ReferralsEmbedLinksList({ onCreateLink, onEditLink }: Props) {
   const token = useEmbedToken();
+  const { links, program, group } = useReferralsEmbedData();
   const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
 
   const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
@@ -85,7 +73,7 @@ export function ReferralsEmbedLinksList({
 
           return (
             <div className="flex min-w-0 items-center gap-2">
-              <div className="border-border-subtle has-[:hover]:bg-bg-muted rounded-md border bg-white transition-colors dark:bg-black">
+              <div className="border-border-subtle has-[:hover]:bg-bg-muted bg-bg-default rounded-md border transition-colors">
                 <CopyButton
                   value={partnerLink}
                   variant="neutral"
@@ -188,7 +176,7 @@ export function ReferralsEmbedLinksList({
             text="Create link"
             variant="primary"
             onClick={onCreateLink}
-            className="bg-bg-inverted h-9 rounded-md hover:bg-neutral-800"
+            className="bg-bg-inverted text-content-inverted h-9 rounded-md hover:opacity-80"
           />
         }
       />
