@@ -10,6 +10,15 @@ import { useAction } from "next-safe-action/hooks";
 import { useCallback } from "react";
 import { toast } from "sonner";
 
+const DECLINE_REASON_MAP: Record<string, string> = {
+  countryMismatch: "Your document country does not match your account country.",
+  duplicateIdentity:
+    "This identity has already been verified on another account.",
+};
+
+const DEFAULT_DECLINE_DESCRIPTION =
+  "Your identity verification was declined. Please try again with a valid government-issued ID.";
+
 const STATUS_CONFIG = {
   pending: {
     badge: {
@@ -38,8 +47,7 @@ const STATUS_CONFIG = {
       variant: "error",
     },
     title: "Verification declined",
-    description:
-      "Your identity verification was declined. Please try again with a valid government-issued ID.",
+    description: DEFAULT_DECLINE_DESCRIPTION,
     buttonText: "Try again",
     showButton: true,
   },
@@ -116,6 +124,21 @@ export function IdentityVerificationCard({
   const status = partner.identityVerificationStatus;
   const config = status ? STATUS_CONFIG[status] : null;
 
+  const description = (() => {
+    if (!config) {
+      return "Verify your identity to build trust with programs and enable faster payout approvals.";
+    }
+
+    if (status === "declined" && partner.identityVerificationDeclineReason) {
+      return (
+        DECLINE_REASON_MAP[partner.identityVerificationDeclineReason] ||
+        DEFAULT_DECLINE_DESCRIPTION
+      );
+    }
+
+    return config.description;
+  })();
+
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col gap-4 p-5 sm:p-6">
@@ -124,11 +147,7 @@ export function IdentityVerificationCard({
             <h2 className="text-base font-semibold text-neutral-900">
               Identity verification
             </h2>
-            <p className="mt-1 text-sm text-neutral-500">
-              {config
-                ? config.description
-                : "Verify your identity to build trust with programs and enable faster payout approvals."}
-            </p>
+            <p className="mt-1 text-sm text-neutral-500">{description}</p>
           </div>
           {config && (
             <StatusBadge variant={config.badge.variant}>

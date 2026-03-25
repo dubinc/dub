@@ -363,6 +363,12 @@ export const PartnerSchema = z
       .describe(
         "The partner's identity verification status. Null means not yet initiated.",
       ),
+    identityVerificationDeclineReason: z
+      .string()
+      .nullable()
+      .describe(
+        "The reason for the partner's identity verification decline. Known values: 'countryMismatch', 'duplicateIdentity'. Otherwise, Veriff's raw reason string.",
+      ),
     identityVerifiedAt: z
       .date()
       .nullable()

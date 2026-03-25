@@ -1,4 +1,3 @@
-import { veriffEventSchema } from "@/lib/veriff/schema";
 import crypto from "crypto";
 import { handleDecisionEvent } from "./handle-decision-event";
 import { handleSessionEvent } from "./handle-session-event";
@@ -35,19 +34,13 @@ export const POST = async (req: Request) => {
   }
 
   const body = JSON.parse(rawBody);
-  const result = veriffEventSchema.safeParse(body);
 
-  if (!result.success) {
-    console.error("[Veriff Webhook] Invalid payload:", result.error);
-    return new Response("Invalid payload.", { status: 400 });
-  }
+  console.log("[Veriff Webhook] payload:", body);
 
-  console.log("[Veriff Webhook] payload:", result.data);
-
-  if ("code" in result.data) {
-    await handleSessionEvent(result.data);
+  if ("verification" in body) {
+    await handleDecisionEvent(body);
   } else {
-    await handleDecisionEvent(result.data);
+    await handleSessionEvent(body);
   }
 
   return new Response("OK");

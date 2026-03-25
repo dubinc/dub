@@ -46,6 +46,24 @@ export const veriffDecisionEventSchema = z.object({
       "abandoned",
       "review",
     ]),
+    reason: z.string().optional(),
+    reasonCode: z.number().optional(),
+    person: z
+      .object({
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+        dateOfBirth: z.string().optional(),
+        nationality: z.string().optional(),
+        idNumber: z.string().optional(),
+      })
+      .optional(),
+    document: z
+      .object({
+        number: z.string().optional(),
+        type: z.string().optional(),
+        country: z.string().optional(),
+      })
+      .optional(),
   }),
 });
 

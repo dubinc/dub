@@ -1,6 +1,15 @@
 import { veriffDecisionEventSchema } from "@/lib/veriff/schema";
+import { sendEmail } from "@dub/email";
+import PartnerIdentityDeclined from "@dub/email/templates/partner-identity-declined";
+import PartnerIdentityResubmission from "@dub/email/templates/partner-identity-resubmission";
+import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
 import { prisma } from "@dub/prisma";
-import { IdentityVerificationStatus, Prisma } from "@dub/prisma/client";
+import {
+  IdentityVerificationStatus,
+  Partner,
+  Prisma,
+} from "@dub/prisma/client";
+import { createHash } from "crypto";
 import * as z from "zod/v4";
 
 type VeriffDecisionEvent = z.infer<typeof veriffDecisionEventSchema>;
@@ -18,14 +27,19 @@ const veriffStatusMap: Record<
 };
 
 export const handleDecisionEvent = async ({
-  verification: { id, status, decisionTime },
+  verification,
 }: VeriffDecisionEvent) => {
+  const { id, status, decisionTime, person, reason } = verification;
+
   const partner = await prisma.partner.findUnique({
     where: {
       veriffSessionId: id,
     },
     select: {
       id: true,
+      name: true,
+      email: true,
+      country: true,
       identityVerifiedAt: true,
     },
   });
@@ -45,22 +59,54 @@ export const handleDecisionEvent = async ({
   };
 
   if (status === "approved") {
-    toUpdate["identityVerifiedAt"] = decisionTime
+    const identityHash = computeIdentityHash(person);
+
+    const isDuplicate = await checkDuplicateIdentity({
+      partner,
+      identityHash,
+    });
+
+    if (isDuplicate) {
+      return;
+    }
+
+    const isCountryMismatch = await checkCountryMismatch({
+      partner,
+      verification,
+    });
+
+    if (isCountryMismatch) {
+      return;
+    }
+
+    // All checks passed — approve
+    toUpdate.identityVerifiedAt = decisionTime
       ? new Date(decisionTime)
       : undefined;
+
+    if (identityHash) {
+      toUpdate.veriffIdentityHash = identityHash;
+    }
+
+    // Clear any previous decline reason
+    toUpdate.identityVerificationDeclineReason = null;
+  }
+
+  if (status === "declined") {
+    toUpdate.identityVerificationDeclineReason = reason;
   }
 
   if (status === "resubmission_requested") {
-    toUpdate["identityVerifiedAt"] = null;
-    toUpdate["veriffSessionExpiresAt"] = null;
-    toUpdate["veriffSessionUrl"] = null;
-    toUpdate["veriffSessionId"] = null;
+    toUpdate.identityVerifiedAt = null;
+    toUpdate.veriffSessionExpiresAt = null;
+    toUpdate.veriffSessionUrl = null;
+    toUpdate.veriffSessionId = null;
   }
 
   if (status === "expired") {
-    toUpdate["veriffSessionExpiresAt"] = null;
-    toUpdate["veriffSessionUrl"] = null;
-    toUpdate["veriffSessionId"] = null;
+    toUpdate.veriffSessionExpiresAt = null;
+    toUpdate.veriffSessionUrl = null;
+    toUpdate.veriffSessionId = null;
   }
 
   await prisma.partner.update({
@@ -68,8 +114,167 @@ export const handleDecisionEvent = async ({
       id: partner.id,
       identityVerifiedAt: null,
     },
+    data: toUpdate,
+  });
+
+  // Send emails after successful update
+  if (partner.email) {
+    if (status === "approved") {
+      await sendEmail({
+        to: partner.email,
+        subject: "Your identity has been verified",
+        react: PartnerIdentityVerified({
+          partner: {
+            name: partner.name,
+            email: partner.email,
+          },
+        }),
+      });
+    }
+
+    if (status === "declined") {
+      await sendEmail({
+        to: partner.email,
+        subject: "Your identity verification was declined",
+        react: PartnerIdentityDeclined({
+          partner: {
+            name: partner.name,
+            email: partner.email,
+          },
+          declineReason: reason || "",
+        }),
+      });
+    }
+
+    if (status === "resubmission_requested") {
+      await sendEmail({
+        to: partner.email,
+        subject: "Additional documents needed for identity verification",
+        react: PartnerIdentityResubmission({
+          partner: {
+            name: partner.name,
+            email: partner.email,
+          },
+        }),
+      });
+    }
+  }
+};
+
+async function declinePartner({
+  partner,
+  reason,
+}: {
+  partner: Pick<Partner, "id" | "name" | "email">;
+  reason: string;
+}) {
+  await prisma.partner.update({
+    where: {
+      id: partner.id,
+      identityVerifiedAt: null,
+    },
     data: {
-      ...toUpdate,
+      identityVerificationStatus: "declined",
+      identityVerificationDeclineReason: reason,
+      veriffSessionExpiresAt: null,
+      veriffSessionUrl: null,
+      veriffSessionId: null,
     },
   });
-};
+
+  if (partner.email) {
+    await sendEmail({
+      to: partner.email,
+      subject: "Your identity verification was declined",
+      react: PartnerIdentityDeclined({
+        partner: {
+          name: partner.name,
+          email: partner.email,
+        },
+        declineReason: reason,
+      }),
+    });
+  }
+}
+
+async function checkDuplicateIdentity({
+  partner,
+  identityHash,
+}: {
+  partner: Pick<Partner, "id" | "name" | "email">;
+  identityHash: string | null;
+}) {
+  if (!identityHash) return false;
+
+  const duplicatePartner = await prisma.partner.findFirst({
+    where: {
+      veriffIdentityHash: identityHash,
+      id: {
+        not: partner.id,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!duplicatePartner) return false;
+
+  console.warn(
+    `[Veriff Webhook] Duplicate identity detected. Partner ${partner.id} matches ${duplicatePartner.id}`,
+  );
+
+  await declinePartner({
+    partner,
+    reason: "This identity has already been verified on another account.",
+  });
+
+  return true;
+}
+
+async function checkCountryMismatch({
+  partner,
+  verification,
+}: {
+  partner: Pick<Partner, "id" | "country" | "name" | "email">;
+  verification: VeriffDecisionEvent["verification"];
+}) {
+  const veriffCountry = (
+    verification.document?.country || verification.person?.nationality
+  )?.toUpperCase();
+
+  if (
+    !partner.country ||
+    !veriffCountry ||
+    partner.country.toUpperCase() === veriffCountry
+  ) {
+    return false;
+  }
+
+  console.warn(
+    `[Veriff Webhook] Country mismatch for partner ${partner.id}. Partner: ${partner.country}, Veriff: ${veriffCountry}`,
+  );
+
+  await declinePartner({
+    partner,
+    reason: "Your document country does not match your account country.",
+  });
+
+  return true;
+}
+
+function computeIdentityHash(
+  person: VeriffDecisionEvent["verification"]["person"],
+) {
+  if (!person?.firstName || !person?.lastName || !person?.dateOfBirth) {
+    return null;
+  }
+
+  const input = [
+    person.firstName.toLowerCase().trim(),
+    person.lastName.toLowerCase().trim(),
+    person.dateOfBirth.trim(),
+  ].join("|");
+
+  return createHash("sha256").update(input).digest("hex");
+}

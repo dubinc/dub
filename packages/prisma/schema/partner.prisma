@@ -45,11 +45,13 @@ model Partner {
   country     String?
 
   // identity verification fields
-  identityVerificationStatus IdentityVerificationStatus?
-  identityVerifiedAt         DateTime?
-  veriffSessionExpiresAt     DateTime?
-  veriffSessionUrl           String?                     @db.Text
-  veriffSessionId            String?                     @unique
+  identityVerificationStatus        IdentityVerificationStatus?
+  identityVerificationDeclineReason String?                     @db.Text
+  identityVerifiedAt                DateTime?
+  veriffSessionExpiresAt            DateTime?
+  veriffSessionUrl                  String?                     @db.Text
+  veriffSessionId                   String?                     @unique
+  veriffIdentityHash                String?
 
   // payout fields
   defaultPayoutMethod          PartnerPayoutMethod?
@@ -101,6 +103,7 @@ model Partner {
   @@index(trustedAt)
   @@index(payoutMethodHash)
   @@index(cryptoWalletAddress)
+  @@index(veriffIdentityHash)
   @@fulltext([email, name, companyName]) // For full-text search
 }
 
