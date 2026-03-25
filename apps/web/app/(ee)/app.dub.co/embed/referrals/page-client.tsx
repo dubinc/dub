@@ -2,14 +2,20 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
-import { DiscountProps, PartnerGroupProps, RewardProps } from "@/lib/types";
+import {
+  DiscountProps,
+  PartnerBountyProps,
+  PartnerGroupProps,
+  ProgramEnrollmentProps,
+  RewardProps,
+} from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ProgramRewardTerms } from "@/ui/partners/program-reward-terms";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Partner, Program } from "@dub/prisma/client";
+import { Partner, PlatformType, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -26,8 +32,17 @@ import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  CSSProperties,
+  ReactNode,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { ReferralsEmbedActivity } from "./activity";
+import { ReferralsEmbedBounties } from "./bounties";
 import { ReferralsEmbedEarnings } from "./earnings";
 import { ReferralsEmbedEarningsSummary } from "./earnings-summary";
 import { ReferralsEmbedFAQ } from "./faq";
@@ -39,33 +54,25 @@ import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
 import { ReferralsEmbedLink } from "./types";
 
-export function ReferralsEmbedPageClient({
-  program,
-  partner,
-  links,
-  rewards,
-  discount,
-  earnings,
-  stats,
-  group,
-  themeOptions,
-  dynamicHeight,
-}: {
-  program: Program;
+type ReferralsEmbedData = {
+  program: Pick<
+    Program,
+    | "id"
+    | "name"
+    | "slug"
+    | "domain"
+    | "minPayoutAmount"
+    | "termsUrl"
+    | "embedData"
+    | "resources"
+  >;
+  programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
   partner: Pick<Partner, "id" | "name" | "email">;
-  links: ReferralsEmbedLink[];
-  rewards: RewardProps[];
-  discount?: DiscountProps | null;
-  earnings: {
-    upcoming: number;
-    paid: number;
-  };
-  stats: {
-    clicks: number;
-    leads: number;
-    sales: number;
-    saleAmount: number;
-  };
+  partnerPlatforms: Array<{
+    type: PlatformType;
+    identifier: string;
+    verifiedAt: Date | null;
+  }>;
   group: Pick<
     PartnerGroupProps,
     | "id"
@@ -77,9 +84,73 @@ export function ReferralsEmbedPageClient({
     | "linkStructure"
     | "holdingPeriodDays"
   >;
+  links: ReferralsEmbedLink[];
+  rewards: RewardProps[];
+  discount?: DiscountProps | null;
+  earnings: {
+    upcoming: number;
+    paid: number;
+    totalCount: number;
+  };
+  stats: {
+    clicks: number;
+    leads: number;
+    sales: number;
+    saleAmount: number;
+  };
+  bounties: PartnerBountyProps[];
+};
+
+type ReferralsEmbedPageClientProps = ReferralsEmbedData & {
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;
+};
+
+const ReferralsEmbedDataContext = createContext<ReferralsEmbedData | null>(
+  null,
+);
+
+export function useReferralsEmbedData() {
+  const context = useContext(ReferralsEmbedDataContext);
+
+  if (!context) {
+    throw new Error(
+      "useReferralsEmbedData must be used within ReferralsEmbedDataProvider",
+    );
+  }
+
+  return context;
+}
+
+function ReferralsEmbedDataProvider({
+  children,
+  value,
+}: {
+  children: ReactNode;
+  value: ReferralsEmbedData;
 }) {
+  return (
+    <ReferralsEmbedDataContext.Provider value={value}>
+      {children}
+    </ReferralsEmbedDataContext.Provider>
+  );
+}
+
+export function ReferralsEmbedPageClient({
+  program,
+  partner,
+  partnerPlatforms,
+  links,
+  rewards,
+  discount,
+  earnings,
+  stats,
+  programEnrollment,
+  group,
+  bounties,
+  themeOptions,
+  dynamicHeight,
+}: ReferralsEmbedPageClientProps) {
   const resources = programResourcesSchema.parse(
     program.resources ?? { logos: [], colors: [], files: [] },
   );
@@ -97,9 +168,12 @@ export function ReferralsEmbedPageClient({
     true,
   );
 
+  const activeBountiesCount = bounties.length;
+
   const tabs = useMemo(
     () => [
       ...(showQuickstart ? ["Quickstart"] : []),
+      ...(activeBountiesCount > 0 ? ["Bounties"] : []),
       "Earnings",
       ...(group.additionalLinks.length > 0 ? ["Links"] : []),
       ...(programEmbedData?.leaderboard?.mode === "disabled"
@@ -108,7 +182,13 @@ export function ReferralsEmbedPageClient({
       "FAQ",
       ...(hasResources ? ["Resources"] : []),
     ],
-    [showQuickstart, group.additionalLinks, programEmbedData, hasResources],
+    [
+      showQuickstart,
+      activeBountiesCount,
+      group.additionalLinks,
+      programEmbedData,
+      hasResources,
+    ],
   );
 
   const [selectedTab, setSelectedTab] = useState(tabs[0]);
@@ -117,146 +197,166 @@ export function ReferralsEmbedPageClient({
     if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
   }, [tabs, selectedTab]);
 
+  const embedData = useMemo(
+    () => ({
+      program,
+      partner,
+      partnerPlatforms,
+      links,
+      rewards,
+      discount,
+      earnings,
+      stats,
+      programEnrollment,
+      group,
+      bounties,
+    }),
+    [
+      program,
+      partner,
+      partnerPlatforms,
+      links,
+      rewards,
+      discount,
+      earnings,
+      stats,
+      programEnrollment,
+      group,
+      bounties,
+    ],
+  );
+
   return (
-    <div
-      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
-      className={cn("flex flex-col", !dynamicHeight && "min-h-screen")}
-    >
-      <div className="relative z-0 p-5">
-        <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
-          <HeroBackground logo={group.logo} color={group.brandColor} embed />
+    <ReferralsEmbedDataProvider value={embedData}>
+      <div
+        style={
+          {
+            backgroundColor: themeOptions.backgroundColor || "transparent",
+            "--brand": group.brandColor || "#2563eb",
+          } as CSSProperties
+        }
+        className={cn("flex flex-col", !dynamicHeight && "min-h-screen")}
+      >
+        <div className="relative z-0 p-5">
+          <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
+            <HeroBackground logo={group.logo} color={group.brandColor} embed />
 
-          <ReferralLinkDisplay
-            links={links}
-            group={group}
-            onSelectTab={setSelectedTab}
-          />
+            <ReferralLinkDisplay onSelectTab={setSelectedTab} />
 
-          <div className="mt-12 sm:max-w-[50%]">
-            <div className="flex items-end justify-between">
-              <span className="text-content-emphasis text-base font-semibold leading-none">
-                Rewards
-              </span>
-              {program.termsUrl && (
+            <div className="mt-12 sm:max-w-[50%]">
+              <div className="flex items-end justify-between">
+                <span className="text-content-emphasis text-base font-semibold leading-none">
+                  Rewards
+                </span>
+                {program.termsUrl && (
+                  <a
+                    href={program.termsUrl}
+                    target="_blank"
+                    className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
+                  >
+                    View terms ↗
+                  </a>
+                )}
+              </div>
+              <div className="text-content-emphasis relative mt-4 text-lg">
+                <ProgramRewardList rewards={rewards} discount={discount} />
+                <ProgramRewardTerms
+                  minPayoutAmount={program.minPayoutAmount}
+                  holdingPeriodDays={group.holdingPeriodDays ?? 0}
+                />
+              </div>
+            </div>
+            {!programEmbedData?.hidePoweredByBadge && (
+              <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
                 <a
-                  href={program.termsUrl}
+                  href="https://dub.co/partners"
                   target="_blank"
-                  className="text-content-subtle text-xs font-medium leading-none underline-offset-2 hover:underline"
+                  className="hover:text-content-default text-content-subtle bg-bg-default border-border-subtle flex w-fit items-center gap-1.5 rounded-md border px-2 py-1 transition-colors duration-75"
                 >
-                  View terms ↗
+                  <p className="whitespace-nowrap text-xs font-medium leading-none">
+                    Powered by
+                  </p>
+                  <Wordmark className="text-content-emphasis h-3.5" />
                 </a>
-              )}
-            </div>
-            <div className="text-content-emphasis relative mt-4 text-lg">
-              <ProgramRewardList rewards={rewards} discount={discount} />
-              <ProgramRewardTerms
-                minPayoutAmount={program.minPayoutAmount}
-                holdingPeriodDays={group.holdingPeriodDays ?? 0}
-              />
-            </div>
+              </div>
+            )}
           </div>
-          {!programEmbedData?.hidePoweredByBadge && (
-            <div className="mt-4 flex justify-center md:absolute md:bottom-3 md:right-3 md:mt-0">
-              <a
-                href="https://dub.co/partners"
-                target="_blank"
-                className="hover:text-content-default text-content-subtle bg-bg-default border-border-subtle flex w-fit items-center gap-1.5 rounded-md border px-2 py-1 transition-colors duration-75"
-              >
-                <p className="whitespace-nowrap text-xs font-medium leading-none">
-                  Powered by
-                </p>
-                <Wordmark className="text-content-emphasis h-3.5" />
-              </a>
-            </div>
-          )}
-        </div>
-        <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
-          <ReferralsEmbedActivity color={group.brandColor} {...stats} />
-          <ReferralsEmbedEarningsSummary
-            earnings={earnings}
-            programSlug={program.slug}
-            partnerEmail={partner.email}
-          />
-        </div>
-        <div className="mt-4">
-          <div className="border-border-subtle flex items-center border-b">
-            <TabSelect
-              options={tabs.map((tab) => ({
-                id: tab,
-                label: tab,
-              }))}
-              selected={selectedTab}
-              onSelect={(option) => {
-                setSelectedTab(option);
-              }}
-              className="scrollbar-hide min-w-0 grow overflow-x-auto"
-            />
-
-            <div className="shrink">
-              <Menu
-                showQuickstart={showQuickstart}
-                setShowQuickstart={(show) => {
-                  setShowQuickstart(show);
-                  if (show) setSelectedTab("Quickstart");
+          <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
+            <ReferralsEmbedActivity />
+            <ReferralsEmbedEarningsSummary />
+          </div>
+          <div className="mt-4">
+            <div className="border-border-subtle flex items-center border-b">
+              <TabSelect
+                options={tabs.map((tab) => ({
+                  id: tab,
+                  label:
+                    tab === "Bounties" ? (
+                      <span className="flex items-center gap-2">
+                        Bounties
+                        <span
+                          className={cn(
+                            "flex h-5 items-center rounded-md px-1.5 text-xs font-medium",
+                            "bg-[var(--brand)] text-white",
+                          )}
+                        >
+                          {activeBountiesCount}
+                        </span>
+                      </span>
+                    ) : (
+                      tab
+                    ),
+                }))}
+                selected={selectedTab}
+                onSelect={(option) => {
+                  setSelectedTab(option);
                 }}
+                className="scrollbar-hide min-w-0 grow overflow-x-auto"
               />
+
+              <div className="shrink">
+                <Menu
+                  showQuickstart={showQuickstart}
+                  setShowQuickstart={(show) => {
+                    setShowQuickstart(show);
+                    if (show) setSelectedTab("Quickstart");
+                  }}
+                />
+              </div>
+            </div>
+            <div className="my-4">
+              <AnimatePresence mode="wait">
+                {selectedTab === "Quickstart" ? (
+                  <ReferralsEmbedQuickstart
+                    hasResources={hasResources}
+                    setSelectedTab={setSelectedTab}
+                  />
+                ) : selectedTab === "Bounties" ? (
+                  <ReferralsEmbedBounties />
+                ) : selectedTab === "Earnings" ? (
+                  <ReferralsEmbedEarnings />
+                ) : selectedTab === "Links" ? (
+                  <ReferralsEmbedLinks />
+                ) : selectedTab === "Leaderboard" &&
+                  programEmbedData?.leaderboard?.mode !== "disabled" ? (
+                  <ReferralsEmbedLeaderboard />
+                ) : selectedTab === "FAQ" ? (
+                  <ReferralsEmbedFAQ />
+                ) : selectedTab === "Resources" ? (
+                  <ReferralsEmbedResources resources={resources} />
+                ) : null}
+              </AnimatePresence>
             </div>
           </div>
-          <div className="my-4">
-            <AnimatePresence mode="wait">
-              {selectedTab === "Quickstart" ? (
-                <ReferralsEmbedQuickstart
-                  program={program}
-                  group={group}
-                  links={links}
-                  earnings={earnings}
-                  hasResources={hasResources}
-                  setSelectedTab={setSelectedTab}
-                />
-              ) : selectedTab === "Earnings" ? (
-                <ReferralsEmbedEarnings salesCount={stats.sales} />
-              ) : selectedTab === "Links" ? (
-                <ReferralsEmbedLinks
-                  program={program}
-                  links={links}
-                  group={group}
-                />
-              ) : selectedTab === "Leaderboard" &&
-                programEmbedData?.leaderboard?.mode !== "disabled" ? (
-                <ReferralsEmbedLeaderboard />
-              ) : selectedTab === "FAQ" ? (
-                <ReferralsEmbedFAQ program={program} reward={rewards[0]} />
-              ) : selectedTab === "Resources" ? (
-                <ReferralsEmbedResources resources={resources} />
-              ) : null}
-            </AnimatePresence>
-          </div>
+          <ReferralsReferralsEmbedToken />
         </div>
-        <ReferralsReferralsEmbedToken />
       </div>
-    </div>
+    </ReferralsEmbedDataProvider>
   );
 }
 
-function ReferralLinkDisplay({
-  links,
-  group,
-  onSelectTab,
-}: {
-  links: ReferralsEmbedLink[];
-  group: Pick<
-    PartnerGroupProps,
-    | "id"
-    | "logo"
-    | "wordmark"
-    | "brandColor"
-    | "additionalLinks"
-    | "maxPartnerLinks"
-    | "linkStructure"
-    | "holdingPeriodDays"
-  >;
-  onSelectTab: (tab: string) => void;
-}) {
+function ReferralLinkDisplay({ onSelectTab }) {
+  const { links, group } = useReferralsEmbedData();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   const [selectedLinkId, setSelectedLinkId] = useState<string | null>(

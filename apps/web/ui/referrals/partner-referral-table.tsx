@@ -44,16 +44,6 @@ export function PartnerReferralTable() {
     open: !!referralIdFromUrl,
   });
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    setSearch,
-    setSelectedFilter,
-  } = useProgramReferralsFilters({});
-
   const { data: referralsCount, error: countError } =
     useProgramReferralsCount();
 
@@ -269,36 +259,7 @@ export function PartnerReferralTable() {
         />
       )}
       <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-          <SearchBoxPersisted
-            placeholder="Search by email or name"
-            inputClassName="md:w-[16rem]"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
+        <PartnerReferralFilters />
       </div>
       {referrals?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -315,5 +276,52 @@ export function PartnerReferralTable() {
         />
       )}
     </div>
+  );
+}
+
+function PartnerReferralFilters() {
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useProgramReferralsFilters({});
+
+  return (
+    <>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        <SearchBoxPersisted
+          placeholder="Search by email or name"
+          inputClassName="md:w-[16rem]"
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
+    </>
   );
 }

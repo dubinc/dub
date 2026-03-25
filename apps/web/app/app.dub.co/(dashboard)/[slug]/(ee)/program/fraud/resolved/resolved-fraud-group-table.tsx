@@ -25,24 +25,14 @@ import { useEffect, useMemo, useState } from "react";
 import { useFraudGroupFilters } from "../use-fraud-group-filters";
 
 export function ResolvedFraudGroupTable() {
-  const { queryParams, searchParams } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
   const sortBy = searchParams.get("sortBy") || "resolvedAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
-
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-    setSearch,
-    setSelectedFilter,
-  } = useFraudGroupFilters({
-    status: "resolved",
-  });
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const { fraudGroups, loading, error } = useFraudGroups({
     query: {
@@ -259,32 +249,7 @@ export function ResolvedFraudGroupTable() {
         />
       )}
       <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
+        <ResolvedFraudFilters />
       </div>
 
       {fraudGroups?.length !== 0 ? (
@@ -306,6 +271,51 @@ export function ResolvedFraudGroupTable() {
         />
       )}
     </div>
+  );
+}
+
+function ResolvedFraudFilters() {
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useFraudGroupFilters({
+    status: "resolved",
+  });
+
+  return (
+    <>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
+    </>
   );
 }
 

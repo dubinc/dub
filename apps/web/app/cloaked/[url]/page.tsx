@@ -5,9 +5,6 @@ import {
 } from "@dub/utils";
 import { getMetaTags } from "app/api/links/metatags/utils";
 
-export const runtime = "edge";
-export const fetchCache = "force-no-store";
-
 export async function generateMetadata(props: {
   params: Promise<{ url: string }>;
 }) {
@@ -15,7 +12,6 @@ export async function generateMetadata(props: {
   const url = decodeURIComponent(params.url); // key can potentially be encoded
 
   const metatags = await getMetaTags(url);
-
   const apexDomain = getApexDomain(url);
 
   return constructMetadata({

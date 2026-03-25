@@ -30,13 +30,21 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import * as z from "zod/v4";
 
-type ShareDashboardModalInnerProps =
+export type ShareDashboardModalInnerProps =
   | {
+      linkId: string;
+      domain?: never;
+      _key?: never;
+      folderId?: never;
+    }
+  | {
+      linkId?: never;
       domain: string;
       _key: string;
       folderId?: never;
     }
   | {
+      linkId?: never;
       folderId: string;
       domain?: never;
       _key?: never;
@@ -56,6 +64,7 @@ function ShareDashboardModal(props: ShareDashboardModalProps) {
 }
 
 function ShareDashboardModalInner({
+  linkId,
   domain,
   _key: key,
   folderId,
@@ -66,8 +75,17 @@ function ShareDashboardModalInner({
   const { folder, error: folderError } = useFolder({ folderId });
 
   const { data: link, error: linkError } = useSWR<LinkProps>(
-    workspaceId && domain && key
-      ? `/api/links/info?${new URLSearchParams({ workspaceId, domain, key }).toString()}`
+    workspaceId && (linkId || (domain && key))
+      ? `/api/links/info?${new URLSearchParams({
+          workspaceId,
+          ...(linkId
+            ? {
+                linkId,
+              }
+            : domain && key
+              ? { domain, key }
+              : {}),
+        }).toString()}`
       : undefined,
     fetcher,
     {
@@ -76,11 +94,13 @@ function ShareDashboardModalInner({
   );
 
   const { data: dashboard, mutate } = useSWR<DashboardProps>(
-    folder?.id
-      ? `/api/folders/${folder.id}/dashboard?workspaceId=${workspaceId}`
-      : link?.id
-        ? `/api/links/${link.id}/dashboard?workspaceId=${workspaceId}`
-        : undefined,
+    !workspaceId
+      ? undefined
+      : linkId || link?.id
+        ? `/api/links/${linkId || link?.id}/dashboard?workspaceId=${workspaceId}`
+        : folder?.id
+          ? `/api/folders/${folder.id}/dashboard?workspaceId=${workspaceId}`
+          : undefined,
     fetcher,
     {
       dedupingInterval: 60000,
@@ -116,7 +136,14 @@ function ShareDashboardModalInner({
     setIsCreating(true);
 
     const res = await fetch(
-      `/api/dashboards?${new URLSearchParams({ workspaceId, ...(domain && key ? { domain, key } : { folderId: folderId! }) }).toString()}`,
+      `/api/dashboards?${new URLSearchParams({
+        workspaceId,
+        ...(linkId
+          ? { linkId }
+          : domain && key
+            ? { domain, key }
+            : { folderId: folderId! }),
+      }).toString()}`,
       {
         method: "POST",
         headers: {

@@ -168,18 +168,12 @@ export function useCommissionFilters() {
     [queryParams],
   );
 
-  const isFiltered = useMemo(
-    () => activeFilters.length > 0 || searchParamsObj.search,
-    [activeFilters, searchParamsObj.search],
-  );
-
   return {
     filters,
     activeFilters,
     onSelect,
     onRemove,
     onRemoveAll,
-    isFiltered,
     setSearch,
     setSelectedFilter,
   };

@@ -6,39 +6,12 @@ import { PartnerBountyProps, SocialContent } from "@/lib/types";
 import { useClaimBountyContext } from "@/ui/partners/bounties/claim-bounty-context";
 import { useClaimBountyForm } from "@/ui/partners/bounties/use-claim-bounty-form";
 import { useSocialContent } from "@/ui/partners/bounties/use-social-content";
-import { ButtonLink } from "@/ui/placeholders/button-link";
-import { CircleCheckFill, LoadingSpinner } from "@dub/ui";
+import { Button, CircleCheckFill, LoadingSpinner } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
-import { isBefore } from "date-fns";
+import { useReferralsEmbedData } from "app/(ee)/app.dub.co/embed/referrals/page-client";
 import { AlertTriangle } from "lucide-react";
-import Link from "next/link";
 import { useEffect, useId, useState } from "react";
-
-function socialContentRequirementChecks({
-  content,
-  bounty,
-  partnerPlatform,
-}: {
-  content: SocialContent | null | undefined;
-  bounty: PartnerBountyProps;
-  partnerPlatform: { identifier: string; verifiedAt: Date | null } | undefined;
-}) {
-  const isPostedFromYourAccount =
-    !!content &&
-    !!partnerPlatform &&
-    !!partnerPlatform.verifiedAt &&
-    partnerPlatform.identifier.toLowerCase() === content.handle?.toLowerCase();
-
-  const isAfterStartDate =
-    !!content?.publishedAt &&
-    !!bounty.startsAt &&
-    !isBefore(content.publishedAt, bounty.startsAt);
-
-  return {
-    isPostedFromYourAccount,
-    isAfterStartDate,
-  };
-}
+import { evaluateSocialContentRequirements } from "./evaluate-social-content-requirements";
 
 function SocialContentRequirementChecks({
   content,
@@ -57,7 +30,7 @@ function SocialContentRequirementChecks({
   );
 
   const { isPostedFromYourAccount, isAfterStartDate } =
-    socialContentRequirementChecks({
+    evaluateSocialContentRequirements({
       content,
       bounty,
       partnerPlatform,
@@ -136,7 +109,7 @@ export function SocialContentUrlField({
   );
 
   useEffect(() => {
-    const checks = socialContentRequirementChecks({
+    const checks = evaluateSocialContentRequirements({
       content: data,
       bounty,
       partnerPlatform,
@@ -217,33 +190,32 @@ export function SocialAccountNotVerifiedWarning({
 }) {
   const bountyInfo = resolveBountyDetails(bounty);
 
+  const { program, partner } = useReferralsEmbedData();
+
   if (!bountyInfo?.socialPlatform) {
     return null;
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg bg-orange-50 p-2 text-center">
-      <div className="px-2 text-sm font-medium text-orange-900">
+    <div className="bg-bg-attention flex flex-col items-center justify-between gap-2 rounded-lg p-2 text-center sm:flex-row">
+      <div className="text-content-attention px-2 text-sm font-medium">
         {`A verified ${bountyInfo.socialPlatform.label} account must be connected to your Dub partner profile to claim this bounty.`}
 
-        <Link
-          href="https://dub.co/help/article/receiving-payouts"
+        <a
+          href="https://dub.co/help/article/partner-profile#website-and-socials"
           target="_blank"
           className="ml-1 underline underline-offset-2"
         >
           Learn more
-        </Link>
+        </a>
       </div>
 
-      <ButtonLink
-        variant="primary"
-        href="/profile"
+      <a
+        href={`https://partners.dub.co/${program.slug}/register?email=${partner.email}`}
         target="_blank"
-        rel="noopener noreferrer"
-        className="h-7 w-full justify-center rounded-lg"
       >
-        View profile
-      </ButtonLink>
+        <Button text="Update profile" className="h-7 w-full px-3 sm:w-fit" />
+      </a>
     </div>
   );
 }

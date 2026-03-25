@@ -93,41 +93,25 @@ export function BountyStatusBadge({ bounty }: { bounty: PartnerBountyProps }) {
   return (
     <div className="absolute left-2 top-2 z-10">
       {status === "expired" && endsAtFormatted && (
-        <StatusBadge
-          variant="error"
-          icon={null}
-          className="bg-red-100 text-xs font-semibold text-red-700"
-        >
+        <StatusBadge variant="error" icon={null}>
           Expired {endsAtFormatted}
         </StatusBadge>
       )}
 
       {status === "expiring_soon" && endsAtFormatted && (
-        <StatusBadge
-          variant="warning"
-          icon={null}
-          className="bg-amber-100 text-xs font-semibold text-amber-700"
-        >
+        <StatusBadge variant="warning" icon={null}>
           Expiring soon {endsAtFormatted}
         </StatusBadge>
       )}
 
       {status === "completed" && completedAtFormatted && (
-        <StatusBadge
-          variant="success"
-          icon={null}
-          className="bg-green-100 text-xs font-semibold text-green-700"
-        >
+        <StatusBadge variant="success" icon={null}>
           Completed {completedAtFormatted}
         </StatusBadge>
       )}
 
       {status === "new" && (
-        <StatusBadge
-          variant="new"
-          icon={null}
-          className="bg-blue-100 text-xs font-semibold text-blue-700"
-        >
+        <StatusBadge variant="new" icon={null}>
           New
         </StatusBadge>
       )}

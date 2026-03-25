@@ -5,6 +5,7 @@ import "dotenv-flow/config";
 const programId = "prog_xxx";
 const excludedCampaignIds: string[] = [];
 
+// script to remove fraud events for certain campaign ids
 async function main() {
   const fraudEvents = await prisma.fraudEvent.findMany({
     where: {

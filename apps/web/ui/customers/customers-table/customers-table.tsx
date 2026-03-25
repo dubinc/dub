@@ -67,23 +67,14 @@ export function CustomersTable({
   const { canManageCustomers } = getPlanCapabilities(plan);
 
   const router = useRouter();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-    setSearch,
-    setSelectedFilter,
-  } = useCustomerFilters(
-    { sortBy, sortOrder },
-    { enabled: canManageCustomers },
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
   );
 
   const { data: customersCount, error: countError } = useCustomersCount({
@@ -409,38 +400,11 @@ export function CustomersTable({
 
   return (
     <div className="flex flex-col gap-3">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-          <SearchBoxPersisted
-            placeholder="Search by email or name"
-            inputClassName="md:w-[16rem]"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
+      <CustomersFilters
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        enabled={canManageCustomers}
+      />
       {!canManageCustomers || customers?.length !== 0 ? (
         <Table
           {...tableProps}
@@ -519,6 +483,61 @@ export function CustomersTable({
           )}
         />
       )}
+    </div>
+  );
+}
+
+function CustomersFilters({
+  sortBy,
+  sortOrder,
+  enabled,
+}: {
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+  enabled: boolean;
+}) {
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useCustomerFilters({ sortBy, sortOrder }, { enabled });
+
+  return (
+    <div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        <SearchBoxPersisted
+          placeholder="Search by email or name"
+          inputClassName="md:w-[16rem]"
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
     </div>
   );
 }

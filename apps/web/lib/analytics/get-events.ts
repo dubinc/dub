@@ -1,7 +1,6 @@
 import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
-import { OG_AVATAR_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { transformLink } from "../api/links/utils/transform-link";
@@ -215,7 +214,6 @@ export const getEvents = async (params: EventsFilters) => {
                 id: evt.customer_id,
                 name: "Deleted Customer",
                 email: "deleted@customer.com",
-                avatar: `${OG_AVATAR_URL}${evt.customer_id}`,
                 externalId: evt.customer_id,
                 createdAt: new Date("1970-01-01"),
               },
@@ -285,7 +283,7 @@ const getCustomersMap = async (customerIds: string[]) => {
         externalId: customer.externalId || "",
         name: customer.name || customer.email || generateRandomName(),
         email: customer.email || "",
-        avatar: customer.avatar || `${OG_AVATAR_URL}${customer.id}`,
+        avatar: customer.avatar,
         country: customer.country || "",
         createdAt: customer.createdAt,
       });

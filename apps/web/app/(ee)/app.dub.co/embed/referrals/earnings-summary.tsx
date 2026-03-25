@@ -1,15 +1,10 @@
 import { Button, InfoTooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
+import { useReferralsEmbedData } from "./page-client";
 
-export function ReferralsEmbedEarningsSummary({
-  earnings,
-  programSlug,
-  partnerEmail,
-}: {
-  earnings: { upcoming: number; paid: number };
-  programSlug: string;
-  partnerEmail: string | null;
-}) {
+export function ReferralsEmbedEarningsSummary() {
+  const { program, partner, earnings } = useReferralsEmbedData();
+
   return (
     <div className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4">
       <div className="flex items-center justify-between">
@@ -18,8 +13,8 @@ export function ReferralsEmbedEarningsSummary({
           <InfoTooltip content="Summary of your commission earnings from your referrals." />
         </div>
         <a
-          href={`https://partners.dub.co/${programSlug}/register${
-            partnerEmail ? `?email=${partnerEmail}` : ""
+          href={`https://partners.dub.co/${program.slug}/register${
+            partner.email ? `?email=${partner.email}` : ""
           }`}
           target="_blank"
         >
