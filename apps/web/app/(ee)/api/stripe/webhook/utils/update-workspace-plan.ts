@@ -1,9 +1,16 @@
+import { pauseOrCancelCampaignsForProgramOnPlanDowngrade } from "@/lib/api/campaigns/pause-campaigns-on-plan-downgrade";
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { qstash } from "@/lib/cron";
+import { sendAdvancedDowngradeNoticeEmailIfNeeded } from "@/lib/email/send-advanced-downgrade-notice-email";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import {
+  leftAdvancedPlan,
+  wouldLoseAdvancedRewardLogic,
+} from "@/lib/plans/has-advanced-features";
 import {
   wouldGainPartnerAccess,
   wouldLosePartnerAccess,
@@ -45,6 +52,8 @@ export async function updateWorkspacePlan({
     | "payoutsLimit"
     | "foldersUsage"
     | "defaultProgramId"
+    | "name"
+    | "slug"
   > & {
     plan: string;
     restrictedTokens: {
@@ -225,6 +234,42 @@ export async function updateWorkspacePlan({
 
       console.log("Reactivation job enqueued.", {
         response,
+      });
+    }
+
+    if (
+      updatedWorkspace.status === "fulfilled" &&
+      workspace.defaultProgramId &&
+      wouldLoseAdvancedRewardLogic({
+        currentPlan: workspace.plan,
+        newPlan: newPlanName,
+      })
+    ) {
+      await Promise.all([
+        stripAdvancedRewardModifiersForProgram({
+          programId: workspace.defaultProgramId,
+        }),
+        pauseOrCancelCampaignsForProgramOnPlanDowngrade({
+          programId: workspace.defaultProgramId,
+        }),
+      ]);
+    }
+
+    if (
+      updatedWorkspace.status === "fulfilled" &&
+      updatedWorkspace.value.users.length &&
+      leftAdvancedPlan({
+        currentPlan: workspace.plan,
+        newPlan: newPlanName,
+      })
+    ) {
+      const workspaceOwner = updatedWorkspace.value.users[0].user;
+      await sendAdvancedDowngradeNoticeEmailIfNeeded({
+        projectId: workspace.id,
+        dedupeType: `advanced-downgrade-notice:${priceId}`,
+        ownerEmail: workspaceOwner.email,
+        workspaceName: workspace.name,
+        workspaceSlug: workspace.slug,
       });
     }
 

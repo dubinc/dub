@@ -1,10 +1,17 @@
+import { pauseOrCancelCampaignsForProgramOnPlanDowngrade } from "@/lib/api/campaigns/pause-campaigns-on-plan-downgrade";
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
+import { sendAdvancedDowngradeNoticeEmailIfNeeded } from "@/lib/email/send-advanced-downgrade-notice-email";
+import {
+  leftAdvancedPlan,
+  wouldLoseAdvancedRewardLogic,
+} from "@/lib/plans/has-advanced-features";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
@@ -27,6 +34,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     },
     select: {
       id: true,
+      name: true,
       slug: true,
       plan: true,
       planTier: true,
@@ -229,6 +237,40 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   // Deactivate the program if the workspace had partner access
   if (workspace.defaultProgramId) {
     await deactivateProgram(workspace.defaultProgramId);
+  }
+
+  if (
+    workspace.defaultProgramId &&
+    wouldLoseAdvancedRewardLogic({
+      currentPlan: workspace.plan,
+      newPlan: "free",
+    })
+  ) {
+    await Promise.all([
+      stripAdvancedRewardModifiersForProgram({
+        programId: workspace.defaultProgramId,
+      }),
+      pauseOrCancelCampaignsForProgramOnPlanDowngrade({
+        programId: workspace.defaultProgramId,
+      }),
+    ]);
+  }
+
+  const owner = workspaceUsers[0];
+  if (
+    owner &&
+    leftAdvancedPlan({
+      currentPlan: workspace.plan,
+      newPlan: "free",
+    })
+  ) {
+    await sendAdvancedDowngradeNoticeEmailIfNeeded({
+      projectId: workspace.id,
+      dedupeType: `advanced-downgrade-notice:subscription-deleted:${subscriptionDeleted.id}`,
+      ownerEmail: owner.email,
+      workspaceName: workspace.name,
+      workspaceSlug: workspace.slug,
+    });
   }
 
   return `Workspace ${workspace.slug} subscription deleted; downgraded to free.`;

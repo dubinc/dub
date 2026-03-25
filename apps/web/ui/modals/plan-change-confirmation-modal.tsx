@@ -1,8 +1,11 @@
 "use client";
 
+import usePartnersCount from "@/lib/swr/use-partners-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
+import { OG_AVATAR_URL, pluralize } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -22,8 +25,28 @@ function PlanChangeConfirmationModal({
   setShowPlanChangeConfirmationModal: Dispatch<SetStateAction<boolean>>;
   onConfirm: () => void | Promise<void>;
 }) {
-  const { slug } = useWorkspace();
+  const {
+    slug,
+    name: workspaceName,
+    logo: workspaceLogo,
+    defaultProgramId,
+  } = useWorkspace();
+
+  const { program } = useProgram({
+    enabled: showPlanChangeConfirmationModal && Boolean(defaultProgramId),
+  });
+
+  const { partnersCount, loading: partnersCountLoading } =
+    usePartnersCount<number>({
+      ignoreParams: true,
+      enabled: showPlanChangeConfirmationModal && Boolean(defaultProgramId),
+    });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const displayName = program?.name ?? workspaceName ?? "";
+  const logoSrc =
+    program?.logo ?? workspaceLogo ?? `${OG_AVATAR_URL}${displayName}`;
 
   return (
     <Modal
@@ -36,11 +59,35 @@ function PlanChangeConfirmationModal({
       </div>
 
       <div className="flex flex-col gap-4 bg-neutral-50 p-4 sm:p-6">
-        <div className="flex flex-col items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
-          <TriangleWarning className="size-5 text-amber-600" />
-          <p className="text-sm font-medium text-amber-900">
-            This change will affect your partner program
-          </p>
+        <div className="flex flex-col gap-1 rounded-lg bg-amber-100 p-1">
+          <div className="flex items-center gap-2 p-2">
+            <TriangleWarning className="size-4 shrink-0 text-amber-500" />
+            <p className="text-sm text-amber-900">
+              This change will affect your partner program
+            </p>
+          </div>
+
+          {defaultProgramId && displayName ? (
+            <div className="w-full rounded-lg border border-amber-100 bg-white p-3 shadow-sm">
+              <div className="flex items-center gap-3">
+                <img
+                  src={logoSrc}
+                  alt={displayName}
+                  className="size-10 shrink-0 rounded-full object-cover"
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-neutral-800">
+                    {displayName}
+                  </p>
+                  {!partnersCountLoading && partnersCount !== undefined ? (
+                    <p className="text-sm text-neutral-500">
+                      {partnersCount} {pluralize("partner", partnersCount)}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <Markdown className="list-decimal">
