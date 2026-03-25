@@ -16,6 +16,7 @@ import {
   prettyPrint,
 } from "@dub/utils";
 import Stripe from "stripe";
+import { getPlanPeriodFromStripeSubscription } from "./utils/stripe-plan-period";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
@@ -70,6 +71,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const stripeId = checkoutSession.customer.toString();
   const workspaceId = checkoutSession.client_reference_id;
   const planName = plan.name.toLowerCase();
+  const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
   // when the workspace subscribes to a plan, set their stripe customer ID
   // in the database for easy identification in future webhook events
@@ -96,6 +98,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       usersLimit: limits.users,
       trialEndsAt,
       paymentFailedAt: null,
+      ...(planPeriod !== undefined && { planPeriod }),
     },
     select: {
       plan: true,

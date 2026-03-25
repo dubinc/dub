@@ -1,3 +1,8 @@
+enum PlanPeriod {
+  monthly
+  yearly
+}
+
 model Project {
   id               String  @id @default(cuid())
   name             String
@@ -8,7 +13,10 @@ model Project {
 
   plan              String    @default("free")
   planTier          Int       @default(1)
+  planPeriod        PlanPeriod? // monthly vs yearly from Stripe price.recurring.interval
   trialEndsAt       DateTime? // when set and in the future, the workspace is on a Stripe subscription free trial
+  subscriptionCancelAtPeriodEnd Boolean @default(false) // Stripe cancel_at_period_end; when true, access ends at subscriptionCurrentPeriodEnd
+  subscriptionCurrentPeriodEnd  DateTime? // Stripe current_period_end (Unix → Date); shown when subscriptionCancelAtPeriodEnd is true
   stripeId          String?   @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
   paymentFailedAt   DateTime?

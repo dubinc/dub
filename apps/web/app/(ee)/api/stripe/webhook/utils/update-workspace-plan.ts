@@ -26,9 +26,21 @@ import {
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 import Stripe from "stripe";
+import {
+  getPlanPeriodFromStripeSubscription,
+  type SubscriptionItemsForPlanPeriod,
+} from "./stripe-plan-period";
+
+/** Fields read from Stripe subscription objects in webhooks (SDK types omit some API fields). */
+type StripeSubscriptionForWorkspacePlan = SubscriptionItemsForPlanPeriod & {
+  status: Stripe.Subscription.Status;
+  trial_end: number | null;
+  cancel_at_period_end?: boolean | null;
+  current_period_end?: number | null;
+};
 
 function getTrialEndsAtFromStripeSubscription(
-  subscription?: Pick<Stripe.Subscription, "status" | "trial_end">,
+  subscription?: Pick<StripeSubscriptionForWorkspacePlan, "status" | "trial_end">,
 ): Date | null | undefined {
   if (!subscription) {
     return undefined;
@@ -37,6 +49,31 @@ function getTrialEndsAtFromStripeSubscription(
     return new Date(subscription.trial_end * 1000);
   }
   return null;
+}
+
+function getSubscriptionCancellationFields(
+  subscription?: Pick<
+    StripeSubscriptionForWorkspacePlan,
+    "cancel_at_period_end" | "current_period_end"
+  >,
+): {
+  subscriptionCancelAtPeriodEnd: boolean;
+  subscriptionCurrentPeriodEnd: Date | null;
+} {
+  if (!subscription) {
+    return {
+      subscriptionCancelAtPeriodEnd: false,
+      subscriptionCurrentPeriodEnd: null,
+    };
+  }
+  const cancelAtPeriodEnd = subscription.cancel_at_period_end ?? false;
+  return {
+    subscriptionCancelAtPeriodEnd: cancelAtPeriodEnd,
+    subscriptionCurrentPeriodEnd:
+      cancelAtPeriodEnd && subscription.current_period_end != null
+        ? new Date(Number(subscription.current_period_end) * 1000)
+        : null,
+  };
 }
 
 export async function updateWorkspacePlan({
@@ -61,7 +98,7 @@ export async function updateWorkspacePlan({
     }[];
   };
   priceId: string;
-  subscription?: Pick<Stripe.Subscription, "status" | "trial_end">;
+  subscription?: StripeSubscriptionForWorkspacePlan;
 }) {
   const { plan: newPlan, planTier: newPlanTier } = getPlanAndTierFromPriceId({
     priceId,
@@ -80,6 +117,10 @@ export async function updateWorkspacePlan({
   });
 
   const trialEndsAt = getTrialEndsAtFromStripeSubscription(subscription);
+  const cancellationFields = getSubscriptionCancellationFields(subscription);
+  const planPeriod = subscription
+    ? getPlanPeriodFromStripeSubscription(subscription)
+    : undefined;
 
   // If a workspace upgrades/downgrades their subscription
   // or if the payouts limit increases and the updated price ID is a new business price ID
@@ -111,6 +152,8 @@ export async function updateWorkspacePlan({
           usersLimit: limits.users,
           paymentFailedAt: null,
           ...(trialEndsAt !== undefined && { trialEndsAt }),
+          ...cancellationFields,
+          ...(planPeriod !== undefined && { planPeriod }),
         },
         include: {
           users: {

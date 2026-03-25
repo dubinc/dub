@@ -36,12 +36,30 @@ export const WorkspaceSchema = z
       .number()
       .nullable()
       .describe("The tier of the workspace's plan."),
+    planPeriod: z
+      .enum(["monthly", "yearly"])
+      .nullish()
+      .describe(
+        "Billing cadence for the Stripe subscription (monthly vs yearly), when applicable.",
+      ),
     stripeId: z.string().nullable().describe("The Stripe ID of the workspace."),
     trialEndsAt: z
       .date()
       .nullish()
       .describe(
         "When the current Stripe subscription billing trial ends, if applicable.",
+      ),
+    subscriptionCancelAtPeriodEnd: z
+      .boolean()
+      .default(false)
+      .describe(
+        "Whether the Stripe subscription is scheduled to cancel at the end of the current period.",
+      ),
+    subscriptionCurrentPeriodEnd: z
+      .date()
+      .nullish()
+      .describe(
+        "When the current Stripe subscription period ends (from Stripe current_period_end); relevant when subscriptionCancelAtPeriodEnd is true.",
       ),
     billingCycleStart: z
       .number()

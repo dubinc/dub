@@ -113,6 +113,9 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       data: {
         plan: "free",
         trialEndsAt: null,
+        subscriptionCancelAtPeriodEnd: false,
+        subscriptionCurrentPeriodEnd: null,
+        planPeriod: null,
         usageLimit: FREE_PLAN.limits.clicks!,
         linksLimit: FREE_PLAN.limits.links!,
         payoutsLimit: FREE_PLAN.limits.payouts!,
