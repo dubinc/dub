@@ -97,6 +97,21 @@ export function buildMetricRangeWhere(
 
   {
     const b = normalizeBounds(
+      filters.totalSaleAmountMin,
+      filters.totalSaleAmountMax,
+    );
+    if (b.min != null || b.max != null) {
+      and.push({
+        totalSaleAmount: {
+          ...(b.min != null && { gte: b.min }),
+          ...(b.max != null && { lte: b.max }),
+        },
+      });
+    }
+  }
+
+  {
+    const b = normalizeBounds(
       filters.totalCommissionsMin,
       filters.totalCommissionsMax,
     );

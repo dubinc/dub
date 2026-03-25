@@ -228,22 +228,30 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .nonnegative()
     .optional()
     .describe("Maximum total conversions (inclusive)."),
+  totalSaleAmountMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total sale amount (inclusive) in USD cents."),
+  totalSaleAmountMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total sale amount (inclusive) in USD cents."),
   totalCommissionsMin: z.coerce
     .number()
     .int()
     .nonnegative()
     .optional()
-    .describe(
-      "Minimum total commissions (inclusive), in the smallest currency unit (e.g. cents).",
-    ),
+    .describe("Minimum total commissions (inclusive) in USD cents."),
   totalCommissionsMax: z.coerce
     .number()
     .int()
     .nonnegative()
     .optional()
-    .describe(
-      "Maximum total commissions (inclusive), in the smallest currency unit (e.g. cents).",
-    ),
+    .describe("Maximum total commissions (inclusive) in USD cents."),
 });
 
 export const partnersExportQuerySchema = getPartnersQuerySchemaExtended

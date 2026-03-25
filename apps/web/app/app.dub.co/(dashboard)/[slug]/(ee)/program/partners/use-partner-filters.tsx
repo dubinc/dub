@@ -10,6 +10,7 @@ import {
   CursorRays,
   FlagWavy,
   InvoiceDollar,
+  MarketingTarget,
   MoneyBills2,
   UserPlus,
   Users6,
@@ -40,7 +41,23 @@ const PARTNER_METRIC_RANGE = [
     maxParam: "totalConversionsMax",
     metric: "totalConversions" as const,
     label: "Conversions",
+    icon: MarketingTarget,
+  },
+  {
+    filterKey: "totalSaleAmount",
+    minParam: "totalSaleAmountMin",
+    maxParam: "totalSaleAmountMax",
+    metric: "totalSaleAmount" as const,
+    label: "Revenue",
     icon: InvoiceDollar,
+    formatRangeBound: (n: number) => currencyFormatter(n),
+    parseRangeInput: (raw: string) => {
+      const n = Number.parseFloat(raw.replace(/[^0-9.-]/g, ""));
+      if (!Number.isFinite(n)) {
+        return Number.NaN;
+      }
+      return Math.round(n * 100);
+    },
   },
   {
     filterKey: "totalCommissions",
@@ -75,6 +92,7 @@ export function usePartnerFilters(
     "totalClicks",
     "totalLeads",
     "totalConversions",
+    "totalSaleAmount",
     "totalCommissions",
   ],
 ) {
@@ -366,6 +384,8 @@ export function usePartnerFilters(
         "totalLeadsMax",
         "totalConversionsMin",
         "totalConversionsMax",
+        "totalSaleAmountMin",
+        "totalSaleAmountMax",
         "totalCommissionsMin",
         "totalCommissionsMax",
         "page",
