@@ -366,9 +366,7 @@ export const PartnerSchema = z
     identityVerificationDeclineReason: z
       .string()
       .nullable()
-      .describe(
-        "The reason for the partner's identity verification decline. Known values: 'countryMismatch', 'duplicateIdentity'. Otherwise, Veriff's raw reason string.",
-      ),
+      .describe("The reason for the partner's identity verification decline."),
     identityVerifiedAt: z
       .date()
       .nullable()
