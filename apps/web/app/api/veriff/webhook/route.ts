@@ -35,8 +35,6 @@ export const POST = async (req: Request) => {
 
   const body = JSON.parse(rawBody);
 
-  console.log("[Veriff Webhook] payload:", body);
-
   if ("verification" in body) {
     await handleDecisionEvent(body);
   } else {
