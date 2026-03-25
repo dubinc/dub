@@ -13,6 +13,9 @@ export const dynamic = "force-dynamic";
 /*
     This route is used to send a welcome email to new users + subscribe them to the corresponding Resend audience
     It is called by QStash 45 minutes after a user is created.
+
+    Trial sequence: users who later start a paid-plan trial also receive marketing emails from
+    `/api/cron/trial-emails` when due; that flow is additive (this welcome is not skipped).
 */
 export async function POST(req: Request) {
   try {

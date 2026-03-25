@@ -33,6 +33,10 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/trial-emails",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/payouts/aggregate-due-commissions",
       "schedule": "0 * * * *"
     },
