@@ -179,7 +179,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                     <UpgradePlanButton
                       plan={plan.name.toLowerCase()}
                       period={period}
-                      text="Get started"
+                      text={`Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial`}
                       className="h-10 rounded-lg shadow-sm"
                     />
                   )}

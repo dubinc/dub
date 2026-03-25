@@ -44,6 +44,13 @@ export function getWorkspaceLimitsForStripeSubscriptionStatus({
     ...planLimits,
     links: TRIAL_CAPS.links,
     clicks: TRIAL_CAPS.clicks,
+    payouts: TRIAL_CAPS.payouts,
     users: TRIAL_CAPS.users,
+    domains: TRIAL_CAPS.domains,
+    tags: TRIAL_CAPS.tags,
+    folders: TRIAL_CAPS.folders,
+    groups: TRIAL_CAPS.groups,
+    networkInvites: TRIAL_CAPS.networkInvites,
+    ai: TRIAL_CAPS.ai,
   };
 }

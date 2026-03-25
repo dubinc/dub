@@ -12,7 +12,7 @@ import {
   DynamicTooltipWrapper,
   Icon,
 } from "@dub/ui";
-import { CircleDollar, CursorRays, Hyperlink, Users } from "@dub/ui/icons";
+import { CursorRays, Hyperlink, Users } from "@dub/ui/icons";
 import {
   cn,
   getFirstAndLastDay,
@@ -169,17 +169,6 @@ function UsageInner() {
                   nextPlanLimit={undefined}
                   warning={warnings[1]}
                   hideProgressBar
-                />
-                <UsageRow
-                  icon={CircleDollar}
-                  label="Sales"
-                  usage={payoutsUsage}
-                  limit={payoutsLimit}
-                  showNextPlan={false}
-                  nextPlanLimit={undefined}
-                  warning={false}
-                  hideProgressBar
-                  valueInCents
                 />
                 <UsageRow
                   icon={Users}
