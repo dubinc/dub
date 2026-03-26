@@ -15,7 +15,19 @@ export const POST = async (req: Request) => {
     return logAndRespond("No signature provided.", { status: 401 });
   }
 
-  if (authClient !== process.env.VERIFF_API_KEY) {
+  const expectedApiKey = process.env.VERIFF_API_KEY;
+
+  if (!expectedApiKey || !authClient) {
+    return logAndRespond("Invalid auth client.", { status: 401 });
+  }
+
+  const authClientBuffer = Uint8Array.from(Buffer.from(authClient));
+  const expectedApiKeyBuffer = Uint8Array.from(Buffer.from(expectedApiKey));
+
+  if (
+    authClientBuffer.length !== expectedApiKeyBuffer.length ||
+    !crypto.timingSafeEqual(authClientBuffer, expectedApiKeyBuffer)
+  ) {
     return logAndRespond("Invalid auth client.", { status: 401 });
   }
 
@@ -30,7 +42,9 @@ export const POST = async (req: Request) => {
     .update(rawBody)
     .digest("hex");
 
-  const computedSignatureBuffer = Uint8Array.from(Buffer.from(computedSignature));
+  const computedSignatureBuffer = Uint8Array.from(
+    Buffer.from(computedSignature),
+  );
   const signatureBuffer = Uint8Array.from(Buffer.from(signature));
 
   const isSignatureValid =
