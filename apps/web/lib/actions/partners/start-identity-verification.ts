@@ -21,10 +21,18 @@ export const startIdentityVerificationAction = authPartnerActionClient
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 
-    if (partner.identityVerificationStatus === "approved") {
-      throw new Error(
-        "Your identity has already been verified. No further action is required.",
-      );
+    if (partner.identityVerificationStatus) {
+      switch (partner.identityVerificationStatus) {
+        case "approved":
+          throw new Error(
+            "Your identity has already been verified. No further action is required.",
+          );
+        case "submitted":
+        case "review":
+          throw new Error(
+            "A verification attempt is already in progress. Please wait for it to complete or resubmit.",
+          );
+      }
     }
 
     // If the session is already created and not expired, return the existing session

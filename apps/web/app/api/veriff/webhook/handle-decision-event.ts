@@ -29,7 +29,7 @@ const veriffStatusMap: Record<
 export const handleDecisionEvent = async ({
   verification,
 }: VeriffDecisionEvent) => {
-  const { id, status, decisionTime, person, reason } = verification;
+  const { id, status, decisionTime, reason } = verification;
 
   const partner = await prisma.partner.findUnique({
     where: {
@@ -88,25 +88,19 @@ export const handleDecisionEvent = async ({
       toUpdate.veriffIdentityHash = identityHash;
     }
 
-    // Clear any previous decline reason
     toUpdate.identityVerificationDeclineReason = null;
   }
 
-  if (status === "declined") {
-    toUpdate.identityVerificationDeclineReason = reason;
-  }
-
-  if (status === "resubmission_requested") {
+  if (
+    ["declined", "resubmission_requested", "expired", "abandoned"].includes(
+      status,
+    )
+  ) {
     toUpdate.identityVerifiedAt = null;
     toUpdate.veriffSessionExpiresAt = null;
     toUpdate.veriffSessionUrl = null;
     toUpdate.veriffSessionId = null;
-  }
-
-  if (status === "expired") {
-    toUpdate.veriffSessionExpiresAt = null;
-    toUpdate.veriffSessionUrl = null;
-    toUpdate.veriffSessionId = null;
+    toUpdate.identityVerificationDeclineReason = reason || null;
   }
 
   await prisma.partner.update({
@@ -117,7 +111,6 @@ export const handleDecisionEvent = async ({
     data: toUpdate,
   });
 
-  // Send emails after successful update
   if (partner.email) {
     if (status === "approved") {
       await sendEmail({
