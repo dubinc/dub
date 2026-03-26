@@ -8,6 +8,7 @@ import {
   Partner,
   Prisma,
 } from "@dub/prisma/client";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
 import { createHash } from "crypto";
 import * as z from "zod/v4";
 
@@ -44,13 +45,11 @@ export const handleDecisionEvent = async ({
   });
 
   if (!partner) {
-    console.warn("[Veriff Webhook] No partner found for session.");
-    return new Response("OK");
+    return logAndRespond("[Veriff Webhook] No partner found for session.");
   }
 
   if (partner.identityVerifiedAt) {
-    console.warn("[Veriff Webhook] Partner already verified.");
-    return new Response("OK");
+    return logAndRespond("[Veriff Webhook] Partner already verified.");
   }
 
   const toUpdate: Prisma.PartnerUpdateInput = {

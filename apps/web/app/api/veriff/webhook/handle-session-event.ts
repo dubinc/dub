@@ -1,5 +1,6 @@
 import { veriffSessionEventSchema } from "@/lib/veriff/schema";
 import { prisma } from "@dub/prisma";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
 import * as z from "zod/v4";
 
 type VeriffSessionEvent = z.infer<typeof veriffSessionEventSchema>;
@@ -19,13 +20,11 @@ export const handleSessionEvent = async ({
   });
 
   if (!partner) {
-    console.warn("[Veriff Webhook] No partner found for session.");
-    return new Response("OK");
+    return logAndRespond("[Veriff Webhook] No partner found for session.");
   }
 
   if (partner.identityVerifiedAt) {
-    console.warn("[Veriff Webhook] Partner already verified.");
-    return new Response("OK");
+    return logAndRespond("[Veriff Webhook] Partner already verified.");
   }
 
   await prisma.partner.update({
@@ -37,4 +36,6 @@ export const handleSessionEvent = async ({
       identityVerificationStatus: action,
     },
   });
+
+  return logAndRespond("[Veriff Webhook] Session event handled.");
 };
