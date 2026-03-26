@@ -28,6 +28,9 @@ import { ProgramEnrollmentSchema } from "./programs";
 import { centsSchema, centsSchemaWithDefault, parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
+export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
+export const MAX_PARTNER_DESCRIPTION_LENGTH = 500;
+export const MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS = 2;
 
 export const ACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
   ProgramEnrollmentStatus.approved,
@@ -313,8 +316,6 @@ export const PartnerPartnerPlatformsSchema = z.object({
     .describe("The partner's TikTok username (e.g. `johndoe`)."),
 });
 
-export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
-
 export const PartnerProfileSchema = z.object({
   monthlyTraffic: z
     .enum(MonthlyTraffic)
@@ -340,8 +341,6 @@ export const PartnerProfileSchema = z.object({
     })
     .describe("The partner's sales channels."),
 });
-
-export const MAX_PARTNER_DESCRIPTION_LENGTH = 500;
 
 export const PartnerSchema = z
   .object({
@@ -428,6 +427,11 @@ export const PartnerSchema = z
       .nullable()
       .describe(
         "The partner's identity verification status. Null means not yet initiated.",
+      ),
+    identityVerificationAttemptCount: z
+      .number()
+      .describe(
+        "The number of identity verification attempts started by the partner.",
       ),
     identityVerificationDeclineReason: z
       .string()

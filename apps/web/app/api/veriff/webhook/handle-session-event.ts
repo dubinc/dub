@@ -7,7 +7,6 @@ type VeriffSessionEvent = z.infer<typeof veriffSessionEventSchema>;
 export const handleSessionEvent = async ({
   id,
   action,
-  vendorData,
 }: VeriffSessionEvent) => {
   const partner = await prisma.partner.findUnique({
     where: {

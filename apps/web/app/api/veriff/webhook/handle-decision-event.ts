@@ -58,6 +58,7 @@ export const handleDecisionEvent = async ({
     identityVerificationStatus: veriffStatusMap[status],
   };
 
+  // If the verification was approved, compute the identity hash and check for duplicates and country mismatch
   if (status === "approved") {
     const identityHash = computeIdentityHash(verification);
 
@@ -91,16 +92,25 @@ export const handleDecisionEvent = async ({
     toUpdate.identityVerificationDeclineReason = null;
   }
 
-  if (
-    ["declined", "resubmission_requested", "expired", "abandoned"].includes(
-      status,
-    )
-  ) {
+  // If the verification failed, reset the session
+  else if (["expired", "abandoned"].includes(status)) {
     toUpdate.identityVerifiedAt = null;
     toUpdate.veriffSessionExpiresAt = null;
     toUpdate.veriffSessionUrl = null;
     toUpdate.veriffSessionId = null;
     toUpdate.identityVerificationDeclineReason = reason || null;
+  }
+
+  // Can reuse the same session for resubmission
+  else if (status === "resubmission_requested") {
+    toUpdate.identityVerifiedAt = null;
+    toUpdate.identityVerificationDeclineReason = reason || null;
+  }
+
+  if (["approved", "declined"].includes(status)) {
+    toUpdate.identityVerificationAttemptCount = {
+      increment: 1,
+    };
   }
 
   await prisma.partner.update({

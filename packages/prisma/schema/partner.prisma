@@ -47,6 +47,7 @@ model Partner {
 
   // identity verification fields
   identityVerificationStatus        IdentityVerificationStatus?
+  identityVerificationAttemptCount  Int                         @default(0)
   identityVerificationDeclineReason String?                     @db.Text
   identityVerifiedAt                DateTime?
   veriffSessionExpiresAt            DateTime?

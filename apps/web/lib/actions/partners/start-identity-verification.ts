@@ -6,6 +6,7 @@ import {
   veriffCreateSessionInputSchema,
   veriffCreateSessionOutputSchema,
 } from "@/lib/veriff/schema";
+import { MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Partner } from "@dub/prisma/client";
 import { addDays } from "date-fns/addDays";
@@ -33,6 +34,15 @@ export const startIdentityVerificationAction = authPartnerActionClient
             "A verification attempt is already in progress. Please wait for it to complete or resubmit.",
           );
       }
+    }
+
+    if (
+      partner.identityVerificationAttemptCount >=
+      MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS
+    ) {
+      throw new Error(
+        "You've reached the maximum number of identity verification attempts. Please contact support if you need help.",
+      );
     }
 
     // If the session is already created and not expired, return the existing session
