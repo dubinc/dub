@@ -118,8 +118,6 @@ export const handleDecisionEvent = async ({
 
   toUpdate.identityVerificationStatus = veriffStatusMap[effectiveStatus];
 
-  console.log(toUpdate);
-
   await prisma.partner.update({
     where: {
       id: partner.id,
@@ -202,10 +200,10 @@ function checkCountryMismatch({
   )?.toUpperCase();
 
   if (!veriffCountry || !partner.country) {
-    return false;
+    return true;
   }
 
-  return partner.country.toUpperCase() === veriffCountry;
+  return partner.country.toUpperCase() !== veriffCountry;
 }
 
 function computeIdentityHash(
