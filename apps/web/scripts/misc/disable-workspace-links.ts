@@ -4,7 +4,7 @@ import "dotenv-flow/config";
 import { linkCache } from "../../lib/api/links/cache";
 import { updateConfig } from "../../lib/edge-config";
 
-// script to get the top google ads campaign ids in fraud events
+// script to disable all links for a workspace
 async function main() {
   const project = await prisma.project.findUniqueOrThrow({
     where: {
