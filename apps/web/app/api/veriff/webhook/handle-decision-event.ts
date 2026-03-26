@@ -29,7 +29,10 @@ const veriffStatusMap: Record<
 export const handleDecisionEvent = async ({
   verification,
 }: VeriffDecisionEvent) => {
-  const { id, status, decisionTime, reason } = verification;
+  const { id, status, decisionTime, reason, attemptId } = verification;
+
+  let effectiveStatus = status;
+  let effectiveReason = reason || null;
 
   const partner = await prisma.partner.findUnique({
     where: {
@@ -52,12 +55,10 @@ export const handleDecisionEvent = async ({
     return logAndRespond("[Veriff Webhook] Partner already verified.");
   }
 
-  const toUpdate: Prisma.PartnerUpdateInput = {
-    identityVerificationStatus: veriffStatusMap[status],
-  };
+  const toUpdate: Prisma.PartnerUpdateInput = {};
 
   // If the verification was approved, compute the identity hash and check for duplicates and country mismatch
-  if (status === "approved") {
+  if (effectiveStatus === "approved") {
     const identityHash = computeIdentityHash(verification);
 
     const isDuplicate = await checkDuplicateIdentity({
@@ -65,51 +66,59 @@ export const handleDecisionEvent = async ({
       identityHash,
     });
 
-    if (isDuplicate) {
-      return;
-    }
-
-    const isCountryMismatch = await checkCountryMismatch({
+    const isCountryMismatch = checkCountryMismatch({
       partner,
       verification,
     });
 
-    if (isCountryMismatch) {
-      return;
-    }
+    const checkPassed = !isDuplicate && !isCountryMismatch;
 
-    // All checks passed — approve
-    toUpdate.identityVerifiedAt = decisionTime
-      ? new Date(decisionTime)
-      : undefined;
-
-    if (identityHash) {
+    if (checkPassed) {
+      toUpdate.identityVerificationDeclineReason = null;
       toUpdate.veriffIdentityHash = identityHash;
-    }
+      toUpdate.veriffSessionExpiresAt = null;
+      toUpdate.veriffSessionUrl = null;
+      toUpdate.veriffSessionId = null;
+      toUpdate.identityVerifiedAt = decisionTime
+        ? new Date(decisionTime)
+        : new Date();
+    } else {
+      effectiveStatus = "declined";
 
-    toUpdate.identityVerificationDeclineReason = null;
+      if (isDuplicate) {
+        effectiveReason =
+          "This identity has already been verified on another account.";
+      } else if (isCountryMismatch) {
+        effectiveReason =
+          "Your document country does not match your account country.";
+      }
+    }
   }
 
   // If the verification failed, reset the session
-  else if (["expired", "abandoned", "declined"].includes(status)) {
+  if (["expired", "abandoned", "declined"].includes(effectiveStatus)) {
     toUpdate.identityVerifiedAt = null;
     toUpdate.veriffSessionExpiresAt = null;
     toUpdate.veriffSessionUrl = null;
     toUpdate.veriffSessionId = null;
-    toUpdate.identityVerificationDeclineReason = reason || null;
+    toUpdate.identityVerificationDeclineReason = effectiveReason;
   }
 
   // Can reuse the same session for resubmission
-  else if (status === "resubmission_requested") {
+  if (effectiveStatus === "resubmission_requested") {
     toUpdate.identityVerifiedAt = null;
-    toUpdate.identityVerificationDeclineReason = reason || null;
+    toUpdate.identityVerificationDeclineReason = effectiveReason;
   }
 
-  if (["approved", "declined"].includes(status)) {
+  if (["approved", "declined"].includes(effectiveStatus)) {
     toUpdate.identityVerificationAttemptCount = {
       increment: 1,
     };
   }
+
+  toUpdate.identityVerificationStatus = veriffStatusMap[effectiveStatus];
+
+  console.log(toUpdate);
 
   await prisma.partner.update({
     where: {
@@ -120,10 +129,13 @@ export const handleDecisionEvent = async ({
   });
 
   if (partner.email) {
-    if (status === "approved") {
+    if (effectiveStatus === "approved") {
       await sendEmail({
         to: partner.email,
         subject: "Your identity has been verified",
+        headers: {
+          "Idempotency-Key": `${attemptId}-verified`,
+        },
         react: PartnerIdentityVerified({
           partner: {
             name: partner.name,
@@ -135,62 +147,33 @@ export const handleDecisionEvent = async ({
       await sendEmail({
         to: partner.email,
         subject: "Your identity verification was declined",
+        headers: {
+          "Idempotency-Key": `${attemptId}-verification-failed`,
+        },
         react: PartnerIdentityVerificationFailed({
           partner: {
             name: partner.name,
             email: partner.email,
-            identityVerificationDeclineReason: reason || "",
+            identityVerificationDeclineReason: effectiveReason || "",
           },
         }),
       });
     }
   }
+
+  return logAndRespond("[Veriff Webhook] Decision event handled successfully.");
 };
-
-async function declinePartner({
-  partner,
-  reason,
-}: {
-  partner: Pick<Partner, "id" | "name" | "email">;
-  reason: string;
-}) {
-  await prisma.partner.update({
-    where: {
-      id: partner.id,
-      identityVerifiedAt: null,
-    },
-    data: {
-      identityVerificationStatus: "declined",
-      identityVerificationDeclineReason: reason,
-      veriffSessionExpiresAt: null,
-      veriffSessionUrl: null,
-      veriffSessionId: null,
-    },
-  });
-
-  if (partner.email) {
-    await sendEmail({
-      to: partner.email,
-      subject: "Your identity verification was declined",
-      react: PartnerIdentityVerificationFailed({
-        partner: {
-          name: partner.name,
-          email: partner.email,
-          identityVerificationDeclineReason: reason,
-        },
-      }),
-    });
-  }
-}
 
 async function checkDuplicateIdentity({
   partner,
   identityHash,
 }: {
-  partner: Pick<Partner, "id" | "name" | "email">;
+  partner: Pick<Partner, "id">;
   identityHash: string | null;
-}) {
-  if (!identityHash) return false;
+}): Promise<boolean> {
+  if (!identityHash) {
+    return false;
+  }
 
   const duplicatePartner = await prisma.partner.findFirst({
     where: {
@@ -204,49 +187,25 @@ async function checkDuplicateIdentity({
     },
   });
 
-  if (!duplicatePartner) return false;
-
-  console.warn(
-    `[Veriff Webhook] Duplicate identity detected. Partner ${partner.id} matches ${duplicatePartner.id}`,
-  );
-
-  await declinePartner({
-    partner,
-    reason: "This identity has already been verified on another account.",
-  });
-
-  return true;
+  return duplicatePartner ? true : false;
 }
 
-async function checkCountryMismatch({
+function checkCountryMismatch({
   partner,
   verification,
 }: {
-  partner: Pick<Partner, "id" | "country" | "name" | "email">;
+  partner: Pick<Partner, "id" | "country">;
   verification: VeriffDecisionEvent["verification"];
-}) {
+}): boolean {
   const veriffCountry = (
     verification.document?.country || verification.person?.nationality
   )?.toUpperCase();
 
-  if (
-    !partner.country ||
-    !veriffCountry ||
-    partner.country.toUpperCase() === veriffCountry
-  ) {
+  if (!veriffCountry || !partner.country) {
     return false;
   }
 
-  console.warn(
-    `[Veriff Webhook] Country mismatch for partner ${partner.id}. Partner: ${partner.country}, Veriff: ${veriffCountry}`,
-  );
-
-  await declinePartner({
-    partner,
-    reason: "Your document country does not match your account country.",
-  });
-
-  return true;
+  return partner.country.toUpperCase() === veriffCountry;
 }
 
 function computeIdentityHash(

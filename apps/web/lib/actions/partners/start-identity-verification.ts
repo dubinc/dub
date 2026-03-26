@@ -21,6 +21,7 @@ export const startIdentityVerificationAction = authPartnerActionClient
   .inputSchema(inputSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
+    const { legalName } = parsedInput;
 
     if (partner.identityVerificationStatus) {
       switch (partner.identityVerificationStatus) {
@@ -74,7 +75,7 @@ export const startIdentityVerificationAction = authPartnerActionClient
     // Create a new session
     const { verification } = await createVeriffSession({
       partner,
-      legalName: parsedInput.legalName,
+      legalName,
     });
 
     await prisma.partner.update({
@@ -85,6 +86,7 @@ export const startIdentityVerificationAction = authPartnerActionClient
         veriffSessionId: verification.id,
         veriffSessionUrl: verification.url,
         veriffSessionExpiresAt: addDays(new Date(), 7),
+        legalName,
       },
     });
 

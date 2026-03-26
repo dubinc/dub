@@ -37,6 +37,7 @@ export const veriffDecisionEventSchema = z.object({
     id: z.string(),
     vendorData: z.string(),
     decisionTime: z.string().nullable(),
+    attemptId: z.string(),
     status: z.enum([
       "approved",
       "declined",

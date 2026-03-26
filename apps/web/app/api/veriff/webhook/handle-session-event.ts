@@ -34,6 +34,8 @@ export const handleSessionEvent = async ({
     },
     data: {
       identityVerificationStatus: action,
+      identityVerificationDeclineReason: null,
+      veriffIdentityHash: null,
     },
   });
 

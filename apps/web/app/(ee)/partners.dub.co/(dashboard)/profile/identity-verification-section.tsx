@@ -51,6 +51,8 @@ export function IdentityVerificationSection({
             }
           },
         });
+
+        mutate();
       },
     },
   );
@@ -140,8 +142,8 @@ export function IdentityVerificationSection({
       >
         {failedReason && (
           <div className="flex items-center gap-2 px-2 py-2">
-            <TriangleWarning className="size-3.5 shrink-0 text-amber-600" />
-            <p className="text-sm font-medium leading-5 text-amber-900">
+            <TriangleWarning className="size-3.5 shrink-0 text-amber-500" />
+            <p className="leading-0 text-sm font-medium text-amber-900">
               <span className="font-semibold">Verification failed:</span>{" "}
               {failedReason}
             </p>
