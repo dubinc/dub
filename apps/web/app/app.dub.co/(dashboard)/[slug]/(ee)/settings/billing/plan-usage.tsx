@@ -206,7 +206,7 @@ export default function PlanUsage() {
 
         {showPendingCancellation && (
           <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-amber-100/50 px-3 py-2">
-            <p className="text-center text-xs font-medium text-amber-900">
+            <p className="text-center text-xs text-amber-900">
               Your subscription will be canceled on{" "}
               <span className="font-medium">
                 {new Date(pendingCancellationEndDate).toLocaleDateString(
@@ -231,18 +231,16 @@ export default function PlanUsage() {
                 : capitalize(plan)}{" "}
               Plan
             </h2>
-            {billingStart &&
-              billingEnd &&
-              !showPendingCancellation && (
-                <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
-                  <>
-                    Current billing cycle:{" "}
-                    <span className="font-normal">
-                      {billingStart} - {billingEnd}
-                    </span>
-                  </>
-                </p>
-              )}
+            {billingStart && billingEnd && (
+              <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
+                <>
+                  Current billing cycle:{" "}
+                  <span className="font-normal">
+                    {billingStart} - {billingEnd}
+                  </span>
+                </>
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-2">
             {plan !== "enterprise" &&
@@ -267,9 +265,7 @@ export default function PlanUsage() {
               ) : showPendingCancellation ? (
                 <DynamicTooltipWrapper
                   tooltipProps={
-                    permissionsError
-                      ? { content: permissionsError }
-                      : undefined
+                    permissionsError ? { content: permissionsError } : undefined
                   }
                 >
                   <Button
