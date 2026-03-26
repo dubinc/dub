@@ -251,6 +251,11 @@ export function TopLinks() {
               onApplyFilterValues={
                 filterParamKey ? onApplyFilterValues : undefined
               }
+              onImmediateFilter={
+                filterParamKey
+                  ? (val) => onApplyFilterValues([val])
+                  : undefined
+              }
               {...(limit && { limit })}
             />
           ) : (

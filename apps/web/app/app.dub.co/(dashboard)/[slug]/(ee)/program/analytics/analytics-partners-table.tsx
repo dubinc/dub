@@ -115,6 +115,10 @@ export function AnalyticsPartnersTable() {
               isStaged={stagedPartnerIds?.includes(partnerId) ?? false}
               isApplied={activePartnerIdsFromUrl.includes(partnerId)}
               onToggle={() => toggleStagePartner(partnerId)}
+              onApplyImmediate={() => {
+                queryParams({ set: { partnerId }, del: "page" });
+                setStagedPartnerIds(null);
+              }}
             />
           );
         },

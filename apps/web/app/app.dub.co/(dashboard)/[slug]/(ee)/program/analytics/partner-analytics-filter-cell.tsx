@@ -16,6 +16,7 @@ interface PartnerAnalyticsFilterCellProps {
   isStaged: boolean;
   isApplied: boolean;
   onToggle: () => void;
+  onApplyImmediate: () => void;
 }
 
 export function PartnerAnalyticsFilterCell({
@@ -24,30 +25,17 @@ export function PartnerAnalyticsFilterCell({
   isStaged,
   isApplied,
   onToggle,
+  onApplyImmediate,
 }: PartnerAnalyticsFilterCellProps) {
   const { slug } = useParams() as { slug: string };
 
   return (
     <div
-      role={!isApplied ? "button" : undefined}
-      tabIndex={!isApplied ? 0 : -1}
-      aria-disabled={isApplied}
       className={cn(
         "flex select-none items-center gap-2",
         !isApplied && "cursor-pointer",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
       )}
-      onClick={isApplied ? undefined : onToggle}
-      onKeyDown={
-        !isApplied
-          ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onToggle();
-              }
-            }
-          : undefined
-      }
+      onClick={isApplied ? undefined : onApplyImmediate}
     >
       <div className="relative size-6 shrink-0">
         <div
@@ -62,19 +50,27 @@ export function PartnerAnalyticsFilterCell({
         </div>
 
         <div className="absolute inset-0 flex items-center justify-center">
-          <div
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!isApplied) onToggle();
+            }}
             className={cn(
               "flex size-6 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-1",
               isStaged
-                ? "pointer-events-none translate-x-0 opacity-100"
+                ? "pointer-events-auto translate-x-0 opacity-100"
                 : cn(
                     "-translate-x-3 opacity-0 group-hover:translate-x-0 group-hover:opacity-100",
-                    "pointer-events-none",
+                    "pointer-events-none group-hover:pointer-events-auto",
                   ),
               isStaged || isApplied
                 ? "bg-neutral-900"
                 : "border border-neutral-200 bg-white",
             )}
+            aria-label="Toggle multi-select filter"
+            aria-pressed={isStaged}
           >
             <FilterBars
               className={cn(
@@ -82,7 +78,7 @@ export function PartnerAnalyticsFilterCell({
                 isStaged || isApplied ? "text-white" : "text-neutral-500",
               )}
             />
-          </div>
+          </button>
         </div>
       </div>
 
