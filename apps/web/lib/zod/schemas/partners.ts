@@ -477,6 +477,8 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   stripeConnectId: true,
   payoutsEnabledAt: true,
   trustedAt: true,
+  identityVerificationStatus: true,
+  identityVerifiedAt: true,
 })
   .extend(
     ProgramEnrollmentSchema.omit({
