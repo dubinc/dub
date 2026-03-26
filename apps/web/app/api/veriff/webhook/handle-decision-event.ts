@@ -1,7 +1,7 @@
 import { veriffDecisionEventSchema } from "@/lib/veriff/schema";
 import { sendEmail } from "@dub/email";
-import PartnerIdentityDeclined from "@dub/email/templates/partner-identity-declined";
-import PartnerIdentityResubmission from "@dub/email/templates/partner-identity-resubmission";
+import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-identity-verification-failed";
+import PartnerIdentityVerificationResubmission from "@dub/email/templates/partner-identity-verification-resubmission";
 import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
 import { prisma } from "@dub/prisma";
 import {
@@ -136,7 +136,7 @@ export const handleDecisionEvent = async ({
       await sendEmail({
         to: partner.email,
         subject: "Your identity verification was declined",
-        react: PartnerIdentityDeclined({
+        react: PartnerIdentityVerificationFailed({
           partner: {
             name: partner.name,
             email: partner.email,
@@ -150,7 +150,7 @@ export const handleDecisionEvent = async ({
       await sendEmail({
         to: partner.email,
         subject: "Additional documents needed for identity verification",
-        react: PartnerIdentityResubmission({
+        react: PartnerIdentityVerificationResubmission({
           partner: {
             name: partner.name,
             email: partner.email,
@@ -186,7 +186,7 @@ async function declinePartner({
     await sendEmail({
       to: partner.email,
       subject: "Your identity verification was declined",
-      react: PartnerIdentityDeclined({
+      react: PartnerIdentityVerificationFailed({
         partner: {
           name: partner.name,
           email: partner.email,

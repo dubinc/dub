@@ -32,6 +32,7 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { toast } from "sonner";
+import { IdentityVerificationSection } from "./identity-verification-section";
 import { SettingsRow } from "./settings-row";
 
 type BasicInfoFormData = {
@@ -100,6 +101,14 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
             disabled={disabled}
           />
         </FormProvider>
+      </SettingsRow>
+
+      <SettingsRow
+        id="identity-verification"
+        heading="Identity verification"
+        description="Verify your identity to build trust with programs and get approved for programs faster."
+      >
+        <IdentityVerificationSection partner={partner} />
       </SettingsRow>
 
       <SettingsRow

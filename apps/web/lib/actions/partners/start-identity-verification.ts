@@ -9,29 +9,22 @@ import {
 import { prisma } from "@dub/prisma";
 import { Partner } from "@dub/prisma/client";
 import { addDays } from "date-fns/addDays";
+import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-export const startIdentityVerificationAction = authPartnerActionClient.action(
-  async ({ ctx }) => {
+const inputSchema = z.object({
+  legalName: z.string().trim().min(1),
+});
+
+export const startIdentityVerificationAction = authPartnerActionClient
+  .inputSchema(inputSchema)
+  .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
 
     if (partner.identityVerificationStatus === "approved") {
       throw new Error(
         "Your identity has already been verified. No further action is required.",
       );
-    }
-
-    // Rate limit check
-    if (shouldApplyRateLimit) {
-      const { success } = await ratelimit(3, "24 h").limit(
-        `identityVerification:${partner.id}`,
-      );
-
-      if (!success) {
-        throw new Error(
-          "Too many verification attempts. Please try again later.",
-        );
-      }
     }
 
     // If the session is already created and not expired, return the existing session
@@ -47,8 +40,24 @@ export const startIdentityVerificationAction = authPartnerActionClient.action(
       };
     }
 
+    // Rate limit check
+    if (shouldApplyRateLimit) {
+      const { success } = await ratelimit(1, "1 h").limit(
+        `identityVerification:${partner.id}`,
+      );
+
+      if (!success) {
+        throw new Error(
+          "Too many verification attempts. Please try again later.",
+        );
+      }
+    }
+
     // Create a new session
-    const { verification } = await createVeriffSession(partner);
+    const { verification } = await createVeriffSession({
+      partner,
+      legalName: parsedInput.legalName,
+    });
 
     await prisma.partner.update({
       where: {
@@ -64,21 +73,24 @@ export const startIdentityVerificationAction = authPartnerActionClient.action(
     return {
       sessionUrl: verification.url,
     };
-  },
-);
+  });
 
-async function createVeriffSession(
-  partner: Pick<Partner, "id" | "name" | "email">,
-) {
+async function createVeriffSession({
+  partner,
+  legalName,
+}: {
+  partner: Pick<Partner, "id" | "email">;
+  legalName: string;
+}) {
   const apiKey = process.env.VERIFF_API_KEY;
 
   if (!apiKey) {
     throw new Error("VERIFF_API_KEY is not configured.");
   }
 
-  const nameParts = partner.name.split(" ");
-  const firstName = nameParts[0] || partner.name;
-  const lastName = nameParts.slice(1).join(" ") || partner.name;
+  const nameParts = legalName.split(" ");
+  const firstName = nameParts[0] || legalName;
+  const lastName = nameParts.slice(1).join(" ") || legalName;
 
   const input = veriffCreateSessionInputSchema.parse({
     verification: {
@@ -86,7 +98,6 @@ async function createVeriffSession(
       person: {
         firstName,
         lastName,
-        email: partner.email,
       },
     },
   });

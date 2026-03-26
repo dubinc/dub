@@ -37,6 +37,7 @@ enum IdentityVerificationStatus {
 model Partner {
   id          String             @id @default(cuid())
   name        String
+  legalName   String?
   companyName String?
   profileType PartnerProfileType @default(individual)
   email       String?            @unique

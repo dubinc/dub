@@ -14,23 +14,21 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerIdentityDeclined({
+export default function PartnerIdentityVerificationResubmission({
   partner = {
     name: "John",
     email: "panic@thedis.co",
   },
-  declineReason = "Document Obscured: ID document is partially obscured (e.g. by fingers)",
 }: {
   partner: {
     name: string;
     email: string;
   };
-  declineReason: string;
 }) {
   return (
     <Html>
       <Head />
-      <Preview>Your identity verification was declined</Preview>
+      <Preview>Additional documents needed for identity verification</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -43,11 +41,12 @@ export default function PartnerIdentityDeclined({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              {declineReason}
+              We need additional information to verify your identity. Please
+              resubmit your documents.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You can try again from your{" "}
+              You can resume verification from your{" "}
               <Link
                 href="https://partners.dub.co/profile"
                 className="font-semibold text-neutral-700 underline underline-offset-2"

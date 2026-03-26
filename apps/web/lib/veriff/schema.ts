@@ -7,7 +7,6 @@ export const veriffCreateSessionInputSchema = z.object({
     person: z.object({
       firstName: z.string(),
       lastName: z.string(),
-      email: z.string(),
     }),
   }),
 });
@@ -24,7 +23,7 @@ export const veriffCreateSessionOutputSchema = z.object({
   }),
 });
 
-// Event webhook payload
+// Session webhook payload
 export const veriffSessionEventSchema = z.object({
   id: z.string(),
   code: z.number(),

@@ -4,7 +4,7 @@ import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { IdentityVerificationCard } from "@/ui/partners/identity-verification-card";
+
 import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Popover, Users2 } from "@dub/ui";
@@ -37,7 +37,6 @@ export function ProfileSettingsPageClient() {
     >
       <PageWidthWrapper className="mb-20 flex flex-col gap-6">
         {partner && !allTasksCompleted && <ProfileDiscoveryGuide />}
-        <IdentityVerificationCard partner={partner} />
         <ProfileDetailsForm partner={partner} />
         <AboutYouForm partner={partner} />
         <HowYouWorkForm partner={partner} />
