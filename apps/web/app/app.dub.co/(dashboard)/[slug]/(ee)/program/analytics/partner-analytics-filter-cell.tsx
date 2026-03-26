@@ -54,7 +54,12 @@ export function PartnerAnalyticsFilterCell({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              if (!isApplied) onToggle();
+              if (isApplied) return;
+              if (isStaged) {
+                onToggle();
+              } else {
+                onApplyImmediate();
+              }
             }}
             className={cn(
               "flex size-6 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
@@ -64,12 +69,15 @@ export function PartnerAnalyticsFilterCell({
                 : cn(
                     "-translate-x-3 opacity-0 group-hover:translate-x-0 group-hover:opacity-100",
                     "pointer-events-none group-hover:pointer-events-auto",
+                    "focus-visible:pointer-events-auto focus-visible:translate-x-0 focus-visible:opacity-100",
                   ),
               isStaged || isApplied
                 ? "bg-neutral-900"
                 : "border border-neutral-200 bg-white",
             )}
-            aria-label="Toggle multi-select filter"
+            aria-label={
+              isStaged ? "Remove from multi-select" : "Filter by this partner"
+            }
             aria-pressed={isStaged}
           >
             <FilterBars
