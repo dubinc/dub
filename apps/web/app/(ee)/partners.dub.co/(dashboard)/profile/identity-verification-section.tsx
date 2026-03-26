@@ -130,8 +130,7 @@ export function IdentityVerificationSection({
 
       <div
         className={cn(
-          failedReason &&
-            "overflow-hidden rounded-lg border border-amber-200 bg-amber-50 p-1",
+          failedReason && "overflow-hidden rounded-lg bg-amber-100 p-1",
         )}
       >
         {failedReason && (
@@ -175,10 +174,16 @@ export function IdentityVerificationSection({
               >
                 Pending review
               </StatusBadge>
-            ) : buttonText && !isMaxAttemptsReached ? (
+            ) : buttonText ? (
               <Button
                 text={buttonText}
                 variant="secondary"
+                disabled={isMaxAttemptsReached}
+                disabledTooltip={
+                  isMaxAttemptsReached
+                    ? "You have reached the maximum number of verification attempts. Please contact support if you need help."
+                    : undefined
+                }
                 onClick={(e) =>
                   executeAsync({
                     legalName: legalName.trim(),
@@ -187,11 +192,6 @@ export function IdentityVerificationSection({
                 loading={isPending}
                 className="h-10 w-fit rounded-lg px-4 py-1.5"
               />
-            ) : isMaxAttemptsReached ? (
-              <p className="text-sm font-medium text-neutral-500">
-                You have reached the maximum number of verification attempts.
-                Please contact support if you need help.
-              </p>
             ) : null}
 
             <div className="flex items-center gap-1 text-xs font-medium text-neutral-400">

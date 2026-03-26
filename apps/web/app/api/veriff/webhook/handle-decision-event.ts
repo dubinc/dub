@@ -93,7 +93,7 @@ export const handleDecisionEvent = async ({
   }
 
   // If the verification failed, reset the session
-  else if (["expired", "abandoned"].includes(status)) {
+  else if (["expired", "abandoned", "declined"].includes(status)) {
     toUpdate.identityVerifiedAt = null;
     toUpdate.veriffSessionExpiresAt = null;
     toUpdate.veriffSessionUrl = null;

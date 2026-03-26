@@ -575,6 +575,8 @@ export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
       industryInterests: true,
       preferredEarningStructures: true,
       salesChannels: true,
+      identityVerificationStatus: true,
+      identityVerifiedAt: true,
     }).shape,
   )
   .extend(PartnerPartnerPlatformsSchema.shape);

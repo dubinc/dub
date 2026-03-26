@@ -21,6 +21,7 @@ import {
   TimestampTooltip,
   Trophy,
 } from "@dub/ui";
+import { TrustedBadge } from "@dub/ui/icons";
 import {
   COUNTRIES,
   capitalize,
@@ -198,6 +199,16 @@ export function PartnerInfoCards({
             ];
           })()
         : []),
+      ...(partner?.identityVerificationStatus === "approved" &&
+      partner?.identityVerifiedAt
+        ? [
+            {
+              id: "identityVerifiedAt",
+              icon: <TrustedBadge className="size-3.5 shrink-0" />,
+              text: `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`,
+            },
+          ]
+        : []),
     ]);
   }
 
@@ -237,6 +248,16 @@ export function PartnerInfoCards({
         icon: <CalendarIcon className="size-3.5" />,
         text: partner ? `Joined ${formatDate(partner.createdAt!)}` : undefined,
       },
+      ...(partner?.identityVerificationStatus === "approved" &&
+      partner?.identityVerifiedAt
+        ? [
+            {
+              id: "identityVerifiedAt",
+              icon: <TrustedBadge className="size-3.5 shrink-0" />,
+              text: `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`,
+            },
+          ]
+        : []),
     ]);
   }
 
