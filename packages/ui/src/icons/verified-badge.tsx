@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export function TrustedBadge(props: SVGProps<SVGSVGElement>) {
+export function VerifiedBadge(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       width={32}
@@ -10,15 +10,15 @@ export function TrustedBadge(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g filter="url(#trustedBadgeFilter)">
+      <g filter="url(#verifiedBadgeFilter)">
         <path
           d="M26.6745 7.91113L18.7995 5.37618C18.276 5.20719 17.7225 5.20869 17.2005 5.37618L9.324 7.91113C8.232 8.26271 7.5 9.27367 7.5 10.4265V20.2645C7.5 25.5577 14.919 28.3809 17.19 29.1202C17.4555 29.2062 17.727 29.25 18 29.25C18.273 29.25 18.543 29.2078 18.807 29.1217C21.081 28.3824 28.5 25.5592 28.5 20.266V10.4265C28.5 9.27367 27.7665 8.26271 26.6745 7.91113Z"
-          fill="url(#trustedBadgeGradient)"
+          fill="url(#verifiedBadgeGradient)"
         />
       </g>
       <defs>
         <linearGradient
-          id="trustedBadgeGradient"
+          id="verifiedBadgeGradient"
           x1={7.5}
           y1={5.25}
           x2={30.3}
@@ -35,7 +35,7 @@ export function TrustedBadge(props: SVGProps<SVGSVGElement>) {
           <stop offset="1" stopColor="#AC7D53" />
         </linearGradient>
         <filter
-          id="trustedBadgeFilter"
+          id="verifiedBadgeFilter"
           x={0}
           y={0}
           width={36}

@@ -21,7 +21,7 @@ import {
   TimestampTooltip,
   Trophy,
 } from "@dub/ui";
-import { TrustedBadge } from "@dub/ui/icons";
+import { VerifiedBadge } from "@dub/ui/icons";
 import {
   COUNTRIES,
   capitalize,
@@ -204,7 +204,7 @@ export function PartnerInfoCards({
         ? [
             {
               id: "identityVerifiedAt",
-              icon: <TrustedBadge className="size-3.5 shrink-0" />,
+              icon: <VerifiedBadge className="size-3.5 shrink-0" />,
               text: `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`,
             },
           ]
@@ -253,7 +253,7 @@ export function PartnerInfoCards({
         ? [
             {
               id: "identityVerifiedAt",
-              icon: <TrustedBadge className="size-3.5 shrink-0" />,
+              icon: <VerifiedBadge className="size-3.5 shrink-0" />,
               text: `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`,
             },
           ]

@@ -143,8 +143,8 @@ export const handleDecisionEvent = async ({
           partner: {
             name: partner.name,
             email: partner.email,
+            identityVerificationDeclineReason: reason || "",
           },
-          declineReason: reason || "",
         }),
       });
     }
@@ -193,8 +193,8 @@ async function declinePartner({
         partner: {
           name: partner.name,
           email: partner.email,
+          identityVerificationDeclineReason: reason,
         },
-        declineReason: reason,
       }),
     });
   }

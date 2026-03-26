@@ -18,14 +18,15 @@ export default function PartnerIdentityVerificationFailed({
   partner = {
     name: "John",
     email: "panic@thedis.co",
+    identityVerificationDeclineReason:
+      "Document Obscured: ID document is partially obscured (e.g. by fingers)",
   },
-  declineReason = "Document Obscured: ID document is partially obscured (e.g. by fingers)",
 }: {
   partner: {
     name: string;
     email: string;
+    identityVerificationDeclineReason: string;
   };
-  declineReason: string;
 }) {
   return (
     <Html>
@@ -44,7 +45,7 @@ export default function PartnerIdentityVerificationFailed({
 
             <Text className="text-sm leading-6 text-neutral-600">
               Hi {partner.name}, your identity verification couldn't be
-              completed because {declineReason}.
+              completed because {partner.identityVerificationDeclineReason}.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">

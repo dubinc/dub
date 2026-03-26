@@ -6,7 +6,12 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
 import { MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS } from "@/lib/zod/schemas/partners";
 import { Button, StatusBadge } from "@dub/ui";
-import { ShieldCheck, TriangleWarning, Veriff } from "@dub/ui/icons";
+import {
+  ShieldCheck,
+  TriangleWarning,
+  Veriff,
+  VerifiedBadge,
+} from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
@@ -149,14 +154,11 @@ export function IdentityVerificationSection({
             aria-hidden
           />
           <div className="relative flex flex-col items-center gap-3 px-6 py-3">
-            <ShieldCheck
-              className={cn(
-                "size-6",
-                identityVerificationStatus === "approved"
-                  ? "text-green-600"
-                  : "text-neutral-400",
-              )}
-            />
+            {identityVerificationStatus === "approved" ? (
+              <VerifiedBadge className="size-6" />
+            ) : (
+              <ShieldCheck className="size-6 text-neutral-400" />
+            )}
 
             {identityVerificationStatus === "approved" ? (
               <StatusBadge
