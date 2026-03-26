@@ -1,7 +1,6 @@
 import { veriffDecisionEventSchema } from "@/lib/veriff/schema";
 import { sendEmail } from "@dub/email";
 import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-identity-verification-failed";
-import PartnerIdentityVerificationResubmission from "@dub/email/templates/partner-identity-verification-resubmission";
 import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
 import { prisma } from "@dub/prisma";
 import {
@@ -133,9 +132,7 @@ export const handleDecisionEvent = async ({
           },
         }),
       });
-    }
-
-    if (status === "declined") {
+    } else {
       await sendEmail({
         to: partner.email,
         subject: "Your identity verification was declined",
@@ -144,19 +141,6 @@ export const handleDecisionEvent = async ({
             name: partner.name,
             email: partner.email,
             identityVerificationDeclineReason: reason || "",
-          },
-        }),
-      });
-    }
-
-    if (status === "resubmission_requested") {
-      await sendEmail({
-        to: partner.email,
-        subject: "Additional documents needed for identity verification",
-        react: PartnerIdentityVerificationResubmission({
-          partner: {
-            name: partner.name,
-            email: partner.email,
           },
         }),
       });
