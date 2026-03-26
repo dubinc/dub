@@ -13,11 +13,11 @@ import { saleEventResponseSchema } from "../zod/schemas/sales";
 export const getCustomerEvents = async ({
   customerId,
   linkIds,
-  hideMetadata = false,
+  includeMetadata = true,
 }: {
   customerId: string;
   linkIds?: string[];
-  hideMetadata?: boolean;
+  includeMetadata?: boolean;
 }) => {
   const response = await getCustomerEventsTB({
     customerId,
@@ -56,7 +56,7 @@ export const getCustomerEvents = async ({
               eventId: evt.event_id,
               eventName: evt.event_name,
               metadata:
-                hideMetadata || !evt.metadata
+                !includeMetadata || !evt.metadata
                   ? undefined
                   : JSON.parse(evt.metadata),
               ...(evt.event === "sale"
