@@ -1,7 +1,8 @@
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
 import { toCentsNumber } from "@dub/utils";
 import * as z from "zod/v4";
+import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
   programId: string;
@@ -9,50 +10,20 @@ type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
 
 export async function getPartners(filters: PartnerFilters) {
   const {
-    status,
-    country,
-    search,
-    email,
-    tenantId,
-    partnerIds,
     page = 1,
     pageSize,
     sortBy,
     sortOrder,
     programId,
-    groupId,
+    includePartnerPlatforms: _includePartnerPlatforms,
+    ...enrollmentRest
   } = filters;
 
   const partners = await prisma.programEnrollment.findMany({
-    where: {
-      tenantId,
+    where: buildProgramEnrollmentWhereForList({
+      ...enrollmentRest,
       programId,
-      ...(partnerIds && {
-        partnerId: {
-          in: partnerIds,
-        },
-      }),
-      status,
-      groupId,
-      ...(country || search || email
-        ? {
-            partner: {
-              country,
-              ...(email
-                ? { email }
-                : search
-                  ? search.includes("@")
-                    ? { email: search }
-                    : {
-                        email: { search: sanitizeFullTextSearch(search) },
-                        name: { search: sanitizeFullTextSearch(search) },
-                        companyName: { search: sanitizeFullTextSearch(search) },
-                      }
-                  : {}),
-            },
-          }
-        : {}),
-    },
+    }),
     include: {
       partner: {
         include: {

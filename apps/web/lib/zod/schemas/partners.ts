@@ -120,6 +120,11 @@ export const exportApplicationsColumnsDefault = [
 
 export const getPartnersQuerySchema = z
   .object({
+    groupId: z
+      .string()
+      .optional()
+      .describe("A filter on the list based on the partner's `groupId` field.")
+      .meta({ example: "grp_123" }),
     status: z
       .enum(ProgramEnrollmentStatus)
       .optional()
@@ -185,8 +190,68 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
-  groupId: z.string().optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
+  // metric range query fields (TODO: Add to public API once we finalize the syntax)
+  totalClicksMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total clicks (inclusive)."),
+  totalClicksMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total clicks (inclusive)."),
+  totalLeadsMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total leads (inclusive)."),
+  totalLeadsMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total leads (inclusive)."),
+  totalConversionsMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total conversions (inclusive)."),
+  totalConversionsMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total conversions (inclusive)."),
+  totalSaleAmountMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total sale amount (inclusive) in USD cents."),
+  totalSaleAmountMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total sale amount (inclusive) in USD cents."),
+  totalCommissionsMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total commissions (inclusive) in USD cents."),
+  totalCommissionsMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total commissions (inclusive) in USD cents."),
 });
 
 export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
