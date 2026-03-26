@@ -45,8 +45,8 @@ export default function PartnerIdentityVerified({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Thank you for helping create a more trustworthy partner network,
-              and can now get approved for programs faster.
+              Thank you for helping create a more trustworthy partner network.
+              You can now get approved for programs faster.
             </Text>
 
             <Footer email={partner.email} />
