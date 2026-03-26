@@ -69,6 +69,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   const events = await getCustomerEvents({
     customerId: customer.id,
     linkIds: links.map((link) => link.id),
+    hideMetadata: true,
   });
 
   if (events.length === 0) {
