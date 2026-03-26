@@ -7,8 +7,8 @@ const MOCK_CHECKOUT_SESSION_ID = "cs_test_e2e_mock_session";
 /**
  * Intercepts the upgrade API so the dev server never calls Stripe, and
  * intercepts Hosted Checkout navigation so Stripe never loads a fake session id
- * (which throws CheckoutInitError). Trial is written to the DB in the Checkout
- * route handler right before redirecting to the app success URL.
+ * (which throws CheckoutInitError). Trial state is applied with Prisma
+ * (`apply-mock-trial.ts`) — no Stripe keys or webhooks.
  */
 export async function installBillingCheckoutMocks(
   page: Page,

@@ -14,10 +14,23 @@ concurrency:
 
 jobs:
   e2e:
+    name: E2E (${{ matrix.suite }})
     permissions:
       contents: read
     timeout-minutes: 20
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Partner app + auth must use the same host as NEXTAUTH_URL (CSRF / cookies).
+          - suite: partners
+            nextauth_url: "http://partners.localhost:8888"
+            playwright_args: "--project=setup-partner --project=chromium-partners"
+          # Dashboard login runs on localhost:8888; NEXTAUTH_URL must match.
+          - suite: dashboard
+            nextauth_url: "http://localhost:8888"
+            playwright_args: "--project=setup-dashboard --project=chromium-dashboard"
 
     env:
       CI: "true"
@@ -26,7 +39,7 @@ jobs:
       PLANETSCALE_DATABASE_URL: "http://root:unused@localhost:3900/planetscale"
 
       NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
-      NEXTAUTH_URL: "http://partners.localhost:8888"
+      NEXTAUTH_URL: ${{ matrix.nextauth_url }}
 
       NEXT_PUBLIC_APP_NAME: "Dub"
       NEXT_PUBLIC_APP_DOMAIN: "dub.co"
@@ -91,6 +104,10 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
+      # Linux runners do not always resolve *.localhost reliably; Playwright uses partners.localhost.
+      - name: Map partners.localhost to loopback
+        run: echo '127.0.0.1 partners.localhost' | sudo tee -a /etc/hosts
+
       - name: Start PlanetScale simulator
         run: |
           docker run -d --name ps-http-sim \
@@ -142,4 +159,4 @@ jobs:
 
       - name: Run Playwright tests
         working-directory: apps/web
-        run: pnpm test:e2e
+        run: pnpm exec playwright test ${{ matrix.playwright_args }}

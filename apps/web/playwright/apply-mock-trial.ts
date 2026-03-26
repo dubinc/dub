@@ -10,7 +10,7 @@ import {
 
 /**
  * Puts the seeded workspace back on Free so the upgrade page shows “Upgrade”
- * again (repeatable mocked runs).
+ * again (repeatable billing E2E runs).
  */
 export async function resetE2eWorkspaceForBillingTest(slug: string) {
   const l = FREE_PLAN.limits;
@@ -19,7 +19,6 @@ export async function resetE2eWorkspaceForBillingTest(slug: string) {
     data: {
       plan: "free",
       planTier: 1,
-      planPeriod: null,
       trialEndsAt: null,
       stripeId: null,
       usageLimit: l.clicks,
@@ -38,8 +37,7 @@ export async function resetE2eWorkspaceForBillingTest(slug: string) {
 }
 
 /**
- * Simulates post-checkout trial state without Stripe webhooks (used by mocked
- * billing E2E). Matches the limits applied for a trialing Pro subscription.
+ * Writes trialing Pro state directly to the DB (mock path — no Stripe API or webhooks).
  */
 export async function applyMockTrialToWorkspace(slug: string) {
   const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
@@ -48,7 +46,9 @@ export async function applyMockTrialToWorkspace(slug: string) {
   });
 
   const trialEndsAt = new Date();
-  trialEndsAt.setDate(trialEndsAt.getDate() + PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS);
+  trialEndsAt.setDate(
+    trialEndsAt.getDate() + PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
+  );
 
   await prisma.project.update({
     where: { slug },
