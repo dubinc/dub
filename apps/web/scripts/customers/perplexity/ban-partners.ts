@@ -4,10 +4,10 @@ import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
-import { linkCache } from "../../lib/api/links/cache";
-import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
-import { queueBatchEmail } from "../../lib/email/queue-batch-email";
-import { recordLink } from "../../lib/tinybird";
+import { linkCache } from "../../../lib/api/links/cache";
+import { syncTotalCommissions } from "../../../lib/api/partners/sync-total-commissions";
+import { queueBatchEmail } from "../../../lib/email/queue-batch-email";
+import { recordLink } from "../../../lib/tinybird";
 
 let partnersToBan: string[] = [];
 const bannedReason = "fraud";
