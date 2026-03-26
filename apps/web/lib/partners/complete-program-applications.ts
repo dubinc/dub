@@ -179,6 +179,7 @@ export async function completeProgramApplications(userEmail: string) {
         context: {
           country: partner.country,
           email: partner.email,
+          identityVerificationStatus: partner.identityVerificationStatus,
         },
       });
 

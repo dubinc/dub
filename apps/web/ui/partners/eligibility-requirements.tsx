@@ -35,6 +35,10 @@ const CONDITION_CONFIGS: Record<
     label: "email domain",
     operators: ["is", "is_not"],
   },
+  identityVerification: {
+    label: "identity verification",
+    operators: ["is"],
+  },
 };
 
 const OPERATOR_LABELS: Record<EligibilityOperator, string> = {

@@ -27,7 +27,7 @@ import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 
 export const eligibilityConditionSchema = z
   .object({
-    key: z.enum(["country", "emailDomain"]),
+    key: z.enum(["country", "emailDomain", "identityVerification"]),
     operator: z.enum(["is", "is_not"]),
     value: z.array(z.string()).min(1),
   })

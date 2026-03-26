@@ -3,7 +3,11 @@ import { describe, expect, it } from "vitest";
 
 function evaluate(
   applicationRequirements: unknown,
-  context: { country?: string | null; email?: string | null },
+  context: {
+    country?: string | null;
+    email?: string | null;
+    identityVerificationStatus?: string | null;
+  },
 ) {
   return evaluateApplicationRequirements({ applicationRequirements, context });
 }
@@ -228,6 +232,94 @@ describe("evaluateApplicationRequirements", () => {
       });
       expect(result.valid).toBe(true);
       expect(result.reason).toBe("noRequirements");
+    });
+  });
+
+  describe("identityVerification", () => {
+    const condition = {
+      key: "identityVerification" as const,
+      operator: "is" as const,
+      value: ["required"],
+    };
+
+    it("returns valid when identityVerificationStatus is approved", () => {
+      const result = evaluate([condition], {
+        identityVerificationStatus: "approved",
+      });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("requirementsMet");
+    });
+
+    it("returns invalid when identityVerificationStatus is not approved", () => {
+      for (const status of [
+        "started",
+        "submitted",
+        "declined",
+        "expired",
+        "abandoned",
+        "review",
+        "resubmissionRequested",
+      ]) {
+        const result = evaluate([condition], {
+          identityVerificationStatus: status,
+        });
+        expect(result.valid).toBe(false);
+        expect(result.reason).toBe("requirementsNotMet");
+      }
+    });
+
+    it("returns invalid when identityVerificationStatus is null or undefined", () => {
+      const resultNull = evaluate([condition], {
+        identityVerificationStatus: null,
+      });
+      expect(resultNull.valid).toBe(false);
+      expect(resultNull.reason).toBe("requirementsNotMet");
+
+      const resultUndefined = evaluate([condition], {});
+      expect(resultUndefined.valid).toBe(false);
+      expect(resultUndefined.reason).toBe("requirementsNotMet");
+    });
+  });
+
+  describe("combined country + identityVerification", () => {
+    const conditions = [
+      {
+        key: "country" as const,
+        operator: "is" as const,
+        value: ["US"],
+      },
+      {
+        key: "identityVerification" as const,
+        operator: "is" as const,
+        value: ["required"],
+      },
+    ];
+
+    it("returns valid when both conditions are met", () => {
+      const result = evaluate(conditions, {
+        country: "US",
+        identityVerificationStatus: "approved",
+      });
+      expect(result.valid).toBe(true);
+      expect(result.reason).toBe("requirementsMet");
+    });
+
+    it("returns invalid when only country is met", () => {
+      const result = evaluate(conditions, {
+        country: "US",
+        identityVerificationStatus: "submitted",
+      });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
+    });
+
+    it("returns invalid when only identity verification is met", () => {
+      const result = evaluate(conditions, {
+        country: "GB",
+        identityVerificationStatus: "approved",
+      });
+      expect(result.valid).toBe(false);
+      expect(result.reason).toBe("requirementsNotMet");
     });
   });
 

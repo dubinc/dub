@@ -51,6 +51,7 @@ export function ProgramSidebar({
     context: {
       country: partner?.country,
       email: partner?.email,
+      identityVerificationStatus: partner?.identityVerificationStatus,
     },
   });
 

@@ -26,6 +26,10 @@ function formatConditionText(condition: EligibilityConditionDB): string {
     }
   }
 
+  if (condition.key === "identityVerification") {
+    return "Your identity is verified";
+  }
+
   // emailDomain — commented out, preserved for future use
   // if (condition.key === "emailDomain") {
   //   const joined = oxfordJoin(condition.value);
@@ -57,6 +61,7 @@ export function ProgramEligibilityCard({
   const context = {
     country: partner?.country,
     email: partner?.email,
+    identityVerificationStatus: partner?.identityVerificationStatus,
   };
 
   const unmet = requirements.filter(

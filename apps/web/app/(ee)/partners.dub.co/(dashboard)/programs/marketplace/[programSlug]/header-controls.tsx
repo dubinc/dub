@@ -68,6 +68,7 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
     context: {
       country: partner?.country,
       email: partner?.email,
+      identityVerificationStatus: partner?.identityVerificationStatus,
     },
   });
 

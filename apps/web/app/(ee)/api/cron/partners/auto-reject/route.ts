@@ -34,6 +34,7 @@ export const POST = withCron(async ({ rawBody }) => {
           name: true,
           email: true,
           country: true,
+          identityVerificationStatus: true,
         },
       },
       program: {
@@ -65,6 +66,8 @@ export const POST = withCron(async ({ rawBody }) => {
     context: {
       country: programEnrollment.partner.country,
       email: programEnrollment.partner.email,
+      identityVerificationStatus:
+        programEnrollment.partner.identityVerificationStatus,
     },
   });
 

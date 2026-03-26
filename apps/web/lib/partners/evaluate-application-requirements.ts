@@ -4,6 +4,7 @@ import { applicationRequirementsSchema } from "../zod/schemas/programs";
 interface Context {
   country?: string | null;
   email?: string | null;
+  identityVerificationStatus?: string | null;
 }
 
 interface Result {
@@ -122,6 +123,11 @@ export function evaluateCondition({
         emailMatchesPattern(context.email!, pattern),
       );
 
+      break;
+    }
+
+    case "identityVerification": {
+      matches = context.identityVerificationStatus === "approved";
       break;
     }
 
