@@ -30,7 +30,14 @@ export const POST = async (req: Request) => {
     .update(rawBody)
     .digest("hex");
 
-  if (computedSignature !== signature) {
+  const computedSignatureBuffer = Uint8Array.from(Buffer.from(computedSignature));
+  const signatureBuffer = Uint8Array.from(Buffer.from(signature));
+
+  const isSignatureValid =
+    computedSignatureBuffer.length === signatureBuffer.length &&
+    crypto.timingSafeEqual(computedSignatureBuffer, signatureBuffer);
+
+  if (!isSignatureValid) {
     return logAndRespond("Invalid signature.", { status: 400 });
   }
 
