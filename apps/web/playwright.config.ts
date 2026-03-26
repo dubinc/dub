@@ -23,10 +23,18 @@ export default defineConfig({
     {
       name: "setup-partner",
       testMatch: "**/auth.setup.ts",
+      use: {
+        baseURL:
+          process.env.PLAYWRIGHT_BASE_URL || "http://partners.localhost:8888",
+      },
     },
     {
-      name: "setup-dashboard",
-      testMatch: "**/dashboard-auth.setup.ts",
+      name: "setup-workspace",
+      testMatch: "**/workspace-auth.setup.ts",
+      use: {
+        baseURL:
+          process.env.PLAYWRIGHT_DASHBOARD_BASE_URL || "http://localhost:8888",
+      },
     },
     {
       name: "chromium-partners",
@@ -40,7 +48,7 @@ export default defineConfig({
       dependencies: ["setup-partner"],
     },
     {
-      name: "chromium-dashboard",
+      name: "chromium-workspace",
       testMatch: /billing-trial\.spec\.ts/,
       use: {
         ...devices["Desktop Chrome"],
@@ -48,7 +56,7 @@ export default defineConfig({
         baseURL:
           process.env.PLAYWRIGHT_DASHBOARD_BASE_URL || "http://localhost:8888",
       },
-      dependencies: ["setup-dashboard"],
+      dependencies: ["setup-workspace"],
     },
   ],
   webServer: process.env.CI
