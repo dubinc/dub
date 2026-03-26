@@ -1,12 +1,15 @@
 import { expect, test } from "@playwright/test";
 
-const partnerAuth = "playwright/.auth/partner.json";
+test.describe("Partner onboarding (unauthenticated)", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("unauthenticated redirect to login", async ({ page }) => {
+    await page.goto("/onboarding");
+    await expect(page).toHaveURL(/\/login/);
+  });
+});
 
 test.describe("Partner onboarding", () => {
-  // Must run before the unauthenticated describe below: an earlier test.use({ storageState: empty })
-  // in this file was leaving these tests without session cookies (middleware → /login).
-  test.use({ storageState: partnerAuth });
-
   test("onboarding page renders", async ({ page }) => {
     await page.goto("/onboarding");
 
@@ -116,14 +119,5 @@ test.describe("Partner onboarding", () => {
     });
     await skipLink.click();
     await expect(page).toHaveURL(/\/programs/);
-  });
-});
-
-test.describe("Partner onboarding (unauthenticated)", () => {
-  test.use({ storageState: { cookies: [], origins: [] } });
-
-  test("unauthenticated redirect to login", async ({ page }) => {
-    await page.goto("/onboarding");
-    await expect(page).toHaveURL(/\/login/);
   });
 });

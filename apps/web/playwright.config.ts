@@ -25,6 +25,10 @@ export default defineConfig({
       testMatch: "**/auth.setup.ts",
     },
     {
+      name: "setup-dashboard",
+      testMatch: "**/dashboard-auth.setup.ts",
+    },
+    {
       name: "chromium-partners",
       testMatch: /partner.*\.spec\.ts/,
       use: {
@@ -34,10 +38,6 @@ export default defineConfig({
           process.env.PLAYWRIGHT_BASE_URL || "http://partners.localhost:8888",
       },
       dependencies: ["setup-partner"],
-    },
-    {
-      name: "setup-dashboard",
-      testMatch: "**/dashboard-auth.setup.ts",
     },
     {
       name: "chromium-dashboard",
