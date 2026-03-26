@@ -75,6 +75,7 @@ export type EventsFilters = Partial<
     // Accept plain string (from partner-profile/cron routes) or ParsedFilter (from API schema)
     partnerId?: string | ParsedFilter;
     linkId?: string | ParsedFilter;
+    includeMetadata?: boolean;
   };
 
 const partnerAnalyticsSchema = analyticsQuerySchema

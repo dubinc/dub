@@ -113,6 +113,7 @@ export async function POST(req: Request) {
     const eventsFilters = {
       ...parsedParams,
       workspaceId: program.workspaceId,
+      includeMetadata: false,
       ...(parsedParams.linkId
         ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
