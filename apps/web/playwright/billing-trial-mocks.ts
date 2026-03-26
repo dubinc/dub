@@ -18,6 +18,25 @@ export async function installBillingCheckoutMocks(
   const origin = baseURL.replace(/\/$/, "");
   const successUrl = `${origin}/${slug}?upgraded=true&plan=pro&period=monthly`;
 
+  await page.route("https://js.stripe.com/**", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/javascript; charset=utf-8",
+      body: `
+        window.Stripe = function Stripe() {
+          return {
+            redirectToCheckout: function (opts) {
+              var id = opts && opts.sessionId ? String(opts.sessionId) : "";
+              window.location.href =
+                "https://checkout.stripe.com/c/pay/cs_test_e2e_redirect#" +
+                encodeURIComponent(id);
+            },
+          };
+        };
+      `,
+    });
+  });
+
   const isUpgradePost = (url: URL) =>
     url.pathname === `/api/workspaces/${slug}/billing/upgrade`;
 

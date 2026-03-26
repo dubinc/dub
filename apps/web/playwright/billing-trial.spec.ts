@@ -43,7 +43,7 @@ test.describe("Billing trial checkout", () => {
           url.searchParams.get("upgraded") === "true"
         );
       },
-      { timeout: 30_000 },
+      { timeout: 30_000, waitUntil: "domcontentloaded" },
     );
 
     await expect
