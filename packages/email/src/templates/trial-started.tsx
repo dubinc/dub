@@ -33,8 +33,8 @@ export default function TrialStartedEmail({
     <Html>
       <Head />
       <Preview>
-        {trialDays} days of Dub — domains, tracking, partners, and API. Here
-        are your first steps.
+        {String(trialDays)} days of Dub — domains, tracking, partners, and API.
+        Here are your first steps.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -43,11 +43,12 @@ export default function TrialStartedEmail({
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-semibold text-black">
-              Welcome to your free {trialDays}-day trial of Dub!
+              Welcome to your free {String(trialDays)}-day trial of Dub!
             </Heading>
             <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              You&apos;re now on a {trialDays}-day trial of {planLabel}. Explore
-              how Dub connects links, partners, and revenue in one system.
+              You&apos;re now on a {String(trialDays)}-day trial of {planLabel}.
+              Explore how Dub connects links, partners, and revenue in one
+              system.
             </Text>
 
             <Heading className="mx-0 mb-3 mt-2 p-0 text-base font-semibold text-black">
