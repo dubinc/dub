@@ -42,7 +42,7 @@ function TrustedAtLabel({
   );
 }
 
-export default function TrustedPartnersPage() {
+export default function PartnersPage() {
   const [partnerIdOrEmail, setPartnerIdOrEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [partnerToRemove, setPartnerToRemove] = useState<TrustedPartner | null>(

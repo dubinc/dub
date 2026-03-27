@@ -1,8 +1,8 @@
 import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { linkCache } from "../../lib/api/links/cache";
-import { queueBatchEmail } from "../../lib/email/queue-batch-email";
+import { linkCache } from "../../../lib/api/links/cache";
+import { queueBatchEmail } from "../../../lib/email/queue-batch-email";
 
 async function main() {
   const programId = "prog_xxx";

@@ -12,7 +12,7 @@ import "dotenv-flow/config";
 import * as fs from "fs";
 import { userAgent } from "next/server";
 import * as Papa from "papaparse";
-import { recordLeadWithTimestamp } from "../../lib/tinybird/record-lead";
+import { recordLeadWithTimestamp } from "../../../lib/tinybird/record-lead";
 
 let leadsToBackfill: {
   customerExternalId: string;
