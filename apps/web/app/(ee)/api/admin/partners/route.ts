@@ -19,11 +19,32 @@ export const GET = withAdmin(async () => {
       name: true,
       email: true,
       image: true,
+      description: true,
       trustedAt: true,
+      platforms: {
+        select: {
+          type: true,
+          identifier: true,
+          verifiedAt: true,
+          subscribers: true,
+          posts: true,
+          views: true,
+        },
+      },
     },
   });
 
-  return NextResponse.json({ partners });
+  return NextResponse.json({
+    partners: partners.map((partner) => ({
+      ...partner,
+      platforms: partner.platforms.map((platform) => ({
+        ...platform,
+        subscribers: Number(platform.subscribers),
+        posts: Number(platform.posts),
+        views: Number(platform.views),
+      })),
+    })),
+  });
 });
 
 // POST /api/admin/partners

@@ -16,7 +16,7 @@ interface WithAdminHandler {
   }): Promise<Response>;
 }
 
-const getDubAdminRole = async (userId: string) => {
+export const getDubAdminRole = async (userId: string) => {
   const response = await prisma.projectUsers.findUnique({
     where: {
       userId_projectId: {
