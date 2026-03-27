@@ -71,6 +71,7 @@ export const DUB_DOMAINS = [
           placeholder: "https://cal.com/steven",
           allowedHostnames: [
             "app.acuityscheduling.com",
+            "app.apollo.io",
             "cal.com",
             "calendly.com",
             "calendar.app.google",
