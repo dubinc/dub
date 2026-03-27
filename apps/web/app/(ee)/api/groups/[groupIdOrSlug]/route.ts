@@ -14,24 +14,39 @@ import {
   GroupSchema,
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
+import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const getGroupQuerySchema = z.object({
+  includeExpandedFields: booleanQuerySchema.optional(),
+  includeBounties: booleanQuerySchema.optional(),
+});
 
 // GET /api/groups/[groupIdOrSlug] - get information about a group
 export const GET = withWorkspace(
-  async ({ params, workspace }) => {
+  async ({ params, workspace, searchParams }) => {
+    const { includeExpandedFields, includeBounties } =
+      getGroupQuerySchema.parse(searchParams);
+
     const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const schema =
+      includeExpandedFields || includeBounties
+        ? GroupWithProgramSchema
+        : GroupSchema;
 
     const group = await getGroupOrThrow({
       programId,
       groupId: params.groupIdOrSlug,
-      includeExpandedFields: true,
-      includeBounties: true,
+      includeExpandedFields,
+      includeBounties,
     });
 
-    return NextResponse.json(GroupWithProgramSchema.parse(group));
+    return NextResponse.json(schema.parse(group));
   },
   {
     requiredPermissions: ["groups.read"],
