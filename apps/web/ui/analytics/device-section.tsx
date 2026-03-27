@@ -129,6 +129,7 @@ export function DeviceSection() {
               onClearFilter={onClearFilter}
               onClearSelection={() => setSelectedItems([])}
               onApplyFilterValues={onApplyFilterValues}
+              onImmediateFilter={(val) => onApplyFilterValues([val])}
               {...(limit && { limit })}
             />
           ) : (
