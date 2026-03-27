@@ -26,7 +26,7 @@ function formatConditionText(condition: EligibilityConditionDB): string {
     }
   }
 
-  if (condition.key === "identityVerification") {
+  if (condition.key === "identityVerificationStatus") {
     return "Your identity is verified";
   }
 
@@ -60,7 +60,6 @@ export function ProgramEligibilityCard({
 
   const context = {
     country: partner?.country,
-    email: partner?.email,
     identityVerificationStatus: partner?.identityVerificationStatus,
   };
 

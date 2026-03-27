@@ -1,12 +1,12 @@
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import { IdentityVerificationStatus } from "@dub/prisma/client";
 import { describe, expect, it } from "vitest";
 
 function evaluate(
   applicationRequirements: unknown,
   context: {
     country?: string | null;
-    email?: string | null;
-    identityVerificationStatus?: string | null;
+    identityVerificationStatus?: IdentityVerificationStatus | null;
   },
 ) {
   return evaluateApplicationRequirements({ applicationRequirements, context });
@@ -63,134 +63,23 @@ describe("evaluateApplicationRequirements", () => {
     });
   });
 
-  describe("emailDomain — is (exact match)", () => {
-    const condition = {
-      key: "emailDomain" as const,
-      operator: "is" as const,
-      value: ["@acme.com"],
-    };
-
-    it("returns valid when domain matches exactly", () => {
-      const result = evaluate([condition], { email: "jane@acme.com" });
-      expect(result.valid).toBe(true);
-      expect(result.reason).toBe("requirementsMet");
-    });
-
-    it("returns invalid for a subdomain — exact match is strict", () => {
-      const result = evaluate([condition], { email: "jane@sub.acme.com" });
-      expect(result.valid).toBe(false);
-      expect(result.reason).toBe("requirementsNotMet");
-    });
-
-    it("returns invalid when domain contains the pattern as a suffix but is a different domain", () => {
-      const result = evaluate([condition], { email: "jane@notacme.com" });
-      expect(result.valid).toBe(false);
-      expect(result.reason).toBe("requirementsNotMet");
-    });
-  });
-
-  describe("emailDomain — is (wildcard)", () => {
-    it("@*.edu matches any .edu email", () => {
-      const condition = {
-        key: "emailDomain" as const,
-        operator: "is" as const,
-        value: ["@*.edu"],
-      };
-      const resultMatch = evaluate([condition], { email: "jane@mit.edu" });
-      expect(resultMatch.valid).toBe(true);
-      expect(resultMatch.reason).toBe("requirementsMet");
-
-      const resultNoMatch = evaluate([condition], { email: "jane@mit.edu.uk" });
-      expect(resultNoMatch.valid).toBe(false);
-      expect(resultNoMatch.reason).toBe("requirementsNotMet");
-    });
-
-    it("@*.acme.com matches subdomains but not the root domain", () => {
-      const condition = {
-        key: "emailDomain" as const,
-        operator: "is" as const,
-        value: ["@*.acme.com"],
-      };
-      const resultMatch = evaluate([condition], {
-        email: "jane@mail.acme.com",
-      });
-      expect(resultMatch.valid).toBe(true);
-      expect(resultMatch.reason).toBe("requirementsMet");
-
-      const resultNoMatch = evaluate([condition], { email: "jane@acme.com" });
-      expect(resultNoMatch.valid).toBe(false);
-      expect(resultNoMatch.reason).toBe("requirementsNotMet");
-    });
-  });
-
-  describe("emailDomain — is_not", () => {
-    const condition = {
-      key: "emailDomain" as const,
-      operator: "is_not" as const,
-      value: ["@gmail.com"],
-    };
-
-    it("returns invalid when domain matches, valid when it does not", () => {
-      const resultMatch = evaluate([condition], { email: "jane@gmail.com" });
-      expect(resultMatch.valid).toBe(false);
-      expect(resultMatch.reason).toBe("requirementsNotMet");
-
-      const resultNoMatch = evaluate([condition], { email: "jane@acme.com" });
-      expect(resultNoMatch.valid).toBe(true);
-      expect(resultNoMatch.reason).toBe("requirementsMet");
-    });
-  });
-
-  describe("emailDomain — missing or malformed data", () => {
-    const condition = {
-      key: "emailDomain" as const,
-      operator: "is" as const,
-      value: ["@acme.com"],
-    };
-
-    it("returns invalid when context has no email", () => {
-      const result = evaluate([condition], { email: null });
-      expect(result.valid).toBe(false);
-      expect(result.reason).toBe("requirementsNotMet");
-    });
-
-    it("returns invalid when email has no @ sign", () => {
-      const result = evaluate([condition], { email: "notanemail" });
-      expect(result.valid).toBe(false);
-      expect(result.reason).toBe("requirementsNotMet");
-    });
-  });
-
-  describe("case insensitivity", () => {
-    it("matches uppercase email domain against a lowercase pattern", () => {
-      const condition = {
-        key: "emailDomain" as const,
-        operator: "is" as const,
-        value: ["@acme.com"],
-      };
-      const result = evaluate([condition], { email: "JANE@ACME.COM" });
-      expect(result.valid).toBe(true);
-      expect(result.reason).toBe("requirementsMet");
-    });
-  });
-
   describe("multiple requirements (all must be met)", () => {
     const countryCondition = {
       key: "country" as const,
       operator: "is" as const,
       value: ["US"],
     };
-    const emailCondition = {
-      key: "emailDomain" as const,
+    const identityCondition = {
+      key: "identityVerificationStatus" as const,
       operator: "is" as const,
-      value: ["@acme.com"],
+      value: "approved" as const,
     };
-    const requirements = [countryCondition, emailCondition];
+    const requirements = [countryCondition, identityCondition];
 
     it("returns valid when all conditions are met", () => {
       const result = evaluate(requirements, {
         country: "US",
-        email: "jane@acme.com",
+        identityVerificationStatus: "approved",
       });
       expect(result.valid).toBe(true);
       expect(result.reason).toBe("requirementsMet");
@@ -199,7 +88,7 @@ describe("evaluateApplicationRequirements", () => {
     it("returns invalid when one condition is unmet", () => {
       const result = evaluate(requirements, {
         country: "GB",
-        email: "jane@acme.com",
+        identityVerificationStatus: "approved",
       });
       expect(result.valid).toBe(false);
       expect(result.reason).toBe("requirementsNotMet");
@@ -210,7 +99,6 @@ describe("evaluateApplicationRequirements", () => {
     it("returns valid when requirements array is empty", () => {
       const result = evaluate([], {
         country: "US",
-        email: "jane@acme.com",
       });
       expect(result.valid).toBe(true);
       expect(result.reason).toBe("noRequirements");
@@ -219,7 +107,6 @@ describe("evaluateApplicationRequirements", () => {
     it("returns valid when applicationRequirements is null", () => {
       const result = evaluate(null, {
         country: "US",
-        email: "jane@acme.com",
       });
       expect(result.valid).toBe(true);
       expect(result.reason).toBe("noRequirements");
@@ -228,18 +115,17 @@ describe("evaluateApplicationRequirements", () => {
     it("returns valid when applicationRequirements is undefined", () => {
       const result = evaluate(undefined, {
         country: "US",
-        email: "jane@acme.com",
       });
       expect(result.valid).toBe(true);
       expect(result.reason).toBe("noRequirements");
     });
   });
 
-  describe("identityVerification", () => {
+  describe("identityVerificationStatus", () => {
     const condition = {
-      key: "identityVerification" as const,
+      key: "identityVerificationStatus" as const,
       operator: "is" as const,
-      value: ["required"],
+      value: "approved" as const,
     };
 
     it("returns valid when identityVerificationStatus is approved", () => {
@@ -259,7 +145,7 @@ describe("evaluateApplicationRequirements", () => {
         "abandoned",
         "review",
         "resubmissionRequested",
-      ]) {
+      ] as const) {
         const result = evaluate([condition], {
           identityVerificationStatus: status,
         });
@@ -281,7 +167,7 @@ describe("evaluateApplicationRequirements", () => {
     });
   });
 
-  describe("combined country + identityVerification", () => {
+  describe("combined country + identityVerificationStatus", () => {
     const conditions = [
       {
         key: "country" as const,
@@ -289,9 +175,9 @@ describe("evaluateApplicationRequirements", () => {
         value: ["US"],
       },
       {
-        key: "identityVerification" as const,
+        key: "identityVerificationStatus" as const,
         operator: "is" as const,
-        value: ["required"],
+        value: "approved" as const,
       },
     ];
 

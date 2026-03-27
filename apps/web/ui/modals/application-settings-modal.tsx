@@ -60,7 +60,7 @@ function ApplicationSettingsModal({
         [];
       const selectedCondition =
         applicationRequirements.find(
-          (condition) => condition.key === "identityVerification",
+          (condition) => condition.key === "identityVerificationStatus",
         ) ??
         applicationRequirements.find(
           (condition) => condition.key === "country",
@@ -93,12 +93,31 @@ function ApplicationSettingsModal({
     if (!workspaceId) return;
 
     const eligibilityConditions = data.eligibilityConditions
-      ?.filter((c) => c.key && c.operator && c.value && c.value.length > 0)
-      ?.map(({ key, operator, value }) => ({
-        key: key!,
-        operator: operator!,
-        value: value!,
-      }));
+      ?.map((condition) => {
+        const { key, operator, value } = condition;
+        if (!key || !operator || value == null) return null;
+
+        if (key === "identityVerificationStatus") {
+          return {
+            key: "identityVerificationStatus" as const,
+            operator: "is" as const,
+            value: "approved" as const,
+          };
+        }
+
+        if (!Array.isArray(value) || value.length === 0) return null;
+
+        if (key === "country") {
+          return {
+            key,
+            operator,
+            value,
+          };
+        }
+
+        return null;
+      })
+      .filter((condition) => condition !== null);
 
     const result = await executeAsync({
       ...data,

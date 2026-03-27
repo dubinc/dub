@@ -1,11 +1,9 @@
 import { IdentityVerificationStatus } from "@dub/prisma/client";
-import { extractEmailDomain } from "../email/extract-email-domain";
 import { EligibilityConditionDB } from "../types";
 import { applicationRequirementsSchema } from "../zod/schemas/programs";
 
 interface Context {
   country?: string | null;
-  email?: string | null;
   identityVerificationStatus?: IdentityVerificationStatus | null;
 }
 
@@ -16,33 +14,6 @@ interface Result {
     | "noRequirements"
     | "requirementsMet"
     | "requirementsNotMet";
-}
-
-// valid: @domain.com, @*.edu, @*.acme.com, @sub.domain.co.uk
-// wildcard: @*.<optional-segments.>tld  e.g. @*.edu, @*.acme.com
-// exact:    @<segment.>+tld             e.g. @acme.com, @mail.acme.com
-const DOMAIN_PATTERN =
-  /^@(\*\.([a-z0-9][a-z0-9-]*\.)*[a-z]{2,}|[a-z0-9][a-z0-9-]*(\.[a-z0-9][a-z0-9-]*)*\.[a-z]{2,})$/i;
-
-export function isValidDomainPattern(v: string): boolean {
-  return DOMAIN_PATTERN.test(v.trim());
-}
-
-function emailMatchesPattern(email: string, pattern: string): boolean {
-  const domainPart = extractEmailDomain(email);
-
-  if (!domainPart) {
-    return false;
-  }
-
-  const domain = `@${domainPart}`;
-
-  if (pattern.startsWith("@*")) {
-    const suffix = pattern.slice(2);
-    return domain.endsWith(suffix);
-  }
-
-  return domain === pattern;
 }
 
 export function evaluateApplicationRequirements({
@@ -116,19 +87,7 @@ export function evaluateCondition({
       break;
     }
 
-    case "emailDomain": {
-      if (!context.email) {
-        return false;
-      }
-
-      matches = condition.value.some((pattern) =>
-        emailMatchesPattern(context.email!, pattern),
-      );
-
-      break;
-    }
-
-    case "identityVerification": {
+    case "identityVerificationStatus": {
       matches = context.identityVerificationStatus === "approved";
       break;
     }

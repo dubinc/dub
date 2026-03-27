@@ -31,12 +31,8 @@ const CONDITION_CONFIGS: Record<
     label: "country",
     operators: ["is", "is_not"],
   },
-  emailDomain: {
-    label: "email domain",
-    operators: ["is", "is_not"],
-  },
-  identityVerification: {
-    label: "identity verification",
+  identityVerificationStatus: {
+    label: "identity",
     operators: ["is"],
   },
 };
@@ -224,7 +220,7 @@ function ConditionRow({
   onRemove: () => void;
 }) {
   const selectedKey = condition.key;
-  const isIdentityCondition = selectedKey === "identityVerification";
+  const isIdentityCondition = selectedKey === "identityVerificationStatus";
   const keyConfig = selectedKey ? CONDITION_CONFIGS[selectedKey] : null;
 
   const handleOperatorChange = (operator: EligibilityOperator) => {
@@ -232,12 +228,12 @@ function ConditionRow({
   };
 
   const handleKeyChange = (key: ConditionKey) => {
-    if (key === "identityVerification") {
+    if (key === "identityVerificationStatus") {
       onChange({
         ...condition,
-        key,
+        key: "identityVerificationStatus",
         operator: "is",
-        value: ["required"],
+        value: ["approved"],
       });
       return;
     }
@@ -266,15 +262,18 @@ function ConditionRow({
 
       <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-1 text-sm font-medium leading-relaxed text-neutral-800">
         If partner
-        <InlineBadgePopover text={keyConfig?.label ?? "attribute"} invalid={!selectedKey}>
+        <InlineBadgePopover
+          text={keyConfig?.label ?? "attribute"}
+          invalid={!selectedKey}
+        >
           <InlineBadgePopoverMenu
             selectedValue={selectedKey ?? undefined}
             onSelect={(key) => handleKeyChange(key as ConditionKey)}
             items={[
               { text: CONDITION_CONFIGS.country.label, value: "country" },
               {
-                text: CONDITION_CONFIGS.identityVerification.label,
-                value: "identityVerification",
+                text: CONDITION_CONFIGS.identityVerificationStatus.label,
+                value: "identityVerificationStatus",
               },
             ]}
           />
@@ -293,7 +292,9 @@ function ConditionRow({
             >
               <InlineBadgePopoverMenu
                 selectedValue={condition.operator ?? undefined}
-                onSelect={(op) => handleOperatorChange(op as EligibilityOperator)}
+                onSelect={(op) =>
+                  handleOperatorChange(op as EligibilityOperator)
+                }
                 items={CONDITION_CONFIGS.country.operators.map((op) => ({
                   text: OPERATOR_LABELS[op],
                   value: op,
@@ -303,7 +304,7 @@ function ConditionRow({
             {condition.operator && (
               <ValueBadge
                 conditionKey="country"
-                value={condition.value}
+                value={Array.isArray(condition.value) ? condition.value : null}
                 onChange={handleValueChange}
               />
             )}
