@@ -3,7 +3,7 @@ import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
-import { recordLink } from "../../lib/tinybird/record-link";
+import { recordLink } from "../../../lib/tinybird/record-link";
 
 const programId = "prog_xxx";
 

@@ -3,7 +3,7 @@ import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 import * as z from "zod/v4";
-import { tb } from "../../lib/tinybird/client";
+import { tb } from "../../../lib/tinybird/client";
 
 /*
   Script to convert framer-combined.csv that Framer gave us

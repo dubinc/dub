@@ -6,8 +6,8 @@ import { linkConstructorSimple, nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
-import { recordLeadWithTimestamp } from "../../lib/tinybird/record-lead";
-import { recordSaleWithTimestamp } from "../../lib/tinybird/record-sale";
+import { recordLeadWithTimestamp } from "../../../lib/tinybird/record-lead";
+import { recordSaleWithTimestamp } from "../../../lib/tinybird/record-sale";
 
 /*
   Script to backfill events in Tinybird

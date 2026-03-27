@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { linkCache } from "../../lib/api/links/cache";
+import { linkCache } from "../../../lib/api/links/cache";
 
 // update links
 async function main() {
