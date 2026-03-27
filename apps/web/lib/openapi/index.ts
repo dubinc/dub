@@ -12,6 +12,7 @@ import { domainsPaths } from "./domains";
 import { embedTokensPaths } from "./embed-tokens";
 import { eventsPath } from "./events";
 import { foldersPaths } from "./folders";
+import { groupsPaths } from "./groups";
 import { linksPaths } from "./links";
 import { partnersPaths } from "./partners";
 import { payoutsPaths } from "./payouts";
@@ -52,6 +53,7 @@ export const document = createDocument({
     ...domainsPaths,
     ...trackPaths,
     ...customersPaths,
+    ...groupsPaths,
     ...partnersPaths,
     ...commissionsPaths,
     ...payoutsPaths,
