@@ -418,7 +418,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 <div className="flex items-center gap-2.5">
                                   <RewardIconSquare icon={CalendarIcon} />
                                   <span className="text-content-default text-sm leading-relaxed">
-                                    Partners can submit{" "}
+                                    Partners can only submit{" "}
                                     <SubmissionWindowBadge
                                       value={submissionWindow}
                                       onChange={handleSubmissionWindowChange}
