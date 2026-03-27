@@ -1,22 +1,13 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
+import { updateApplicationSettingsSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
-import { Category } from "@dub/prisma/client";
-import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const schema = z.object({
-  workspaceId: z.string(),
-  description: z.string().optional(),
-  categories: z.array(z.enum(Category)).optional(),
-  eligibilityConditions: applicationRequirementsSchema.optional(),
-});
-
 export const updateApplicationSettingsAction = authActionClient
-  .inputSchema(schema)
+  .inputSchema(updateApplicationSettingsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { description, categories, eligibilityConditions } = parsedInput;
@@ -28,7 +19,7 @@ export const updateApplicationSettingsAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await prisma.program.update({
+    await prisma.program.update({
       where: {
         id: programId,
       },
@@ -45,6 +36,4 @@ export const updateApplicationSettingsAction = authActionClient
         }),
       },
     });
-
-    return program;
   });

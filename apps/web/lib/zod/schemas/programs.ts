@@ -253,3 +253,10 @@ export const deletePartnerCommentSchema = z.object({
   workspaceId: z.string(),
   commentId: z.string(),
 });
+
+export const updateApplicationSettingsSchema = z.object({
+  workspaceId: z.string(),
+  description: z.string().optional(),
+  categories: z.array(z.enum(Category)).optional(),
+  eligibilityConditions: applicationRequirementsSchema.optional(),
+});
