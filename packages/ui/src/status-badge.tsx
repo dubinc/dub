@@ -11,7 +11,7 @@ import {
 import { DynamicTooltipWrapper } from "./tooltip";
 
 const statusBadgeVariants = cva(
-  "flex gap-1.5 items-center max-w-fit rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap",
+  "flex gap-1.5 items-center max-w-fit max-h-fit rounded-md px-2 py-1 text-xs font-medium whitespace-nowrap",
   {
     variants: {
       variant: {
