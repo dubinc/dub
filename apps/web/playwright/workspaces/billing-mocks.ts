@@ -13,7 +13,7 @@ const MOCK_CHECKOUT_SESSION_ID = "cs_test_e2e_mock_session";
 /**
  * Writes trialing Pro state directly to the DB (mock path — no Stripe API or webhooks).
  */
-async function applyMockTrialToWorkspace(slug: string) {
+export async function applyMockTrialToWorkspace(slug: string) {
   const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
     planLimits: PRO_PLAN.limits,
     subscriptionStatus: "trialing",
@@ -32,6 +32,7 @@ async function applyMockTrialToWorkspace(slug: string) {
       planPeriod: "monthly",
       trialEndsAt,
       billingCycleStart: new Date().getDate(),
+      stripeId: `cus_e2e_mock_${slug}`,
       usageLimit: limits.clicks,
       linksLimit: limits.links,
       payoutsLimit: limits.payouts,

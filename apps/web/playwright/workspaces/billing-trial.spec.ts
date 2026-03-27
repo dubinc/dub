@@ -1,5 +1,8 @@
 import { expect, test } from "@playwright/test";
-import { installBillingCheckoutMocks } from "./billing-mocks";
+import {
+  applyMockTrialToWorkspace,
+  installBillingCheckoutMocks,
+} from "./billing-mocks";
 
 function matchesDashboardOrigin(url: URL, baseURL: string) {
   const base = new URL(baseURL);
@@ -73,5 +76,84 @@ test.describe("Billing trial checkout", () => {
     await expect(page.getByText("Free trial", { exact: true })).toBeVisible({
       timeout: 15_000,
     });
+  });
+});
+
+test.describe("Free trial user navigation", () => {
+  let slug: string;
+  let workspaceId: string;
+
+  test.beforeAll(async ({ request }) => {
+    const res = await request.get("/api/workspaces");
+    expect(res.ok()).toBeTruthy();
+    const [workspace] = (await res.json()) as { id: string; slug: string }[];
+    slug = workspace.slug;
+    workspaceId = workspace.id;
+
+    await applyMockTrialToWorkspace(slug);
+  });
+
+  test("billing settings page shows trial banner and CTAs", async ({
+    page,
+  }) => {
+    await page.goto(`/${slug}/settings/billing`);
+
+    await expect(page.getByText(/Trial ends on/)).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(
+      page.getByRole("button", { name: "Start paid plan" }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "View plans" })).toBeVisible();
+  });
+
+  test("upgrade page shows Activate plan for current Pro plan", async ({
+    page,
+  }) => {
+    await page.goto(`/${slug}/settings/billing/upgrade`);
+
+    await expect(
+      page.getByRole("heading", { name: "Plans", exact: true }),
+    ).toBeVisible({ timeout: 30_000 });
+    await expect(
+      page.getByRole("button", { name: "Activate plan" }),
+    ).toBeVisible();
+  });
+
+  test("activating plan from billing page shows upgraded modal", async ({
+    page,
+  }) => {
+    await page.route(
+      (url) =>
+        url.pathname === `/api/workspaces/${workspaceId}/billing/end-trial`,
+      async (route) => {
+        if (route.request().method() !== "POST") return route.continue();
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({ ok: true }),
+        });
+      },
+    );
+
+    await page.goto(`/${slug}/settings/billing`);
+
+    // Open the confirmation modal
+    await page.getByRole("button", { name: "Start paid plan" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Plan start confirmation" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("You'll be charged today and your trial will end."),
+    ).toBeVisible();
+
+    // Confirm — triggers the mocked end-trial POST.
+    // Two "Start paid plan" buttons exist: the page-level CTA and the modal confirm.
+    await page.getByRole("button", { name: "Start paid plan" }).last().click();
+
+    // Upgraded modal appears when ?upgraded=true lands in the URL
+    await expect(
+      page.getByRole("heading", { name: /Dub Pro looks good on you/i }),
+    ).toBeVisible({ timeout: 15_000 });
   });
 });

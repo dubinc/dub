@@ -10,8 +10,6 @@ test.describe("Partner onboarding (unauthenticated)", () => {
 });
 
 test.describe("Partner onboarding", () => {
-  test.use({ storageState: "playwright/.auth/partner.json" });
-
   test("onboarding page renders", async ({ page }) => {
     await page.goto("/onboarding");
 
