@@ -87,10 +87,10 @@ export const handleDecisionEvent = async ({
 
       if (isDuplicate) {
         effectiveReason =
-          "This identity has already been verified on another account.";
+          "This identity has already been verified on another account";
       } else if (isCountryMismatch) {
         effectiveReason =
-          "Your document country does not match your account country.";
+          "Your document country does not match your account country";
       }
     }
   }
