@@ -294,11 +294,10 @@ export const rewardConditionsArraySchema = z
   .array(rewardConditionsSchema)
   .min(1);
 
-const decimalToNumber = z
-  .any()
-  .transform((val) => (val != null && val !== "" ? Number(val) : null))
-  .nullable()
-  .optional();
+const decimalToNumber = z.preprocess(
+  (val) => (val != null && val !== "" ? Number(val) : null),
+  z.number().nullable().optional(),
+);
 
 export const RewardSchema = z.object({
   id: z.string(),
