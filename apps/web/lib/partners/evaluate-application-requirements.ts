@@ -1,10 +1,12 @@
+import { IdentityVerificationStatus } from "@dub/prisma/client";
+import { extractEmailDomain } from "../email/extract-email-domain";
 import { EligibilityConditionDB } from "../types";
 import { applicationRequirementsSchema } from "../zod/schemas/programs";
 
 interface Context {
   country?: string | null;
   email?: string | null;
-  identityVerificationStatus?: string | null;
+  identityVerificationStatus?: IdentityVerificationStatus | null;
 }
 
 interface Result {
@@ -26,14 +28,14 @@ export function isValidDomainPattern(v: string): boolean {
   return DOMAIN_PATTERN.test(v.trim());
 }
 
-function getEmailDomain(email: string): string {
-  const parts = email.split("@");
-  return parts.length === 2 ? `@${parts[1].toLowerCase()}` : "";
-}
-
 function emailMatchesPattern(email: string, pattern: string): boolean {
-  const domain = getEmailDomain(email);
-  if (!domain) return false;
+  const domainPart = extractEmailDomain(email);
+
+  if (!domainPart) {
+    return false;
+  }
+
+  const domain = `@${domainPart}`;
 
   if (pattern.startsWith("@*")) {
     const suffix = pattern.slice(2);

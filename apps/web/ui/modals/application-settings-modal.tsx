@@ -11,7 +11,7 @@ import {
   generateId,
 } from "@/ui/partners/eligibility-requirements";
 import { Category } from "@dub/prisma/client";
-import { Button, Modal, Switch, ToggleGroup, useEnterSubmit } from "@dub/ui";
+import { Button, Modal, ToggleGroup, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -30,7 +30,6 @@ type FormData = {
   description: string;
   categories: Category[];
   eligibilityConditions: EligibilityCondition[];
-  identityVerificationRequired: boolean;
 };
 
 function ApplicationSettingsModal({
@@ -53,20 +52,26 @@ function ApplicationSettingsModal({
     register,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<FormData>({
-    defaultValues: {
-      description: program?.description ?? "",
-      categories: program?.categories ?? [],
-      eligibilityConditions: (
+    defaultValues: (() => {
+      const applicationRequirements =
         (program?.applicationRequirements as ApplicationRequirementsDB | null) ??
-        []
-      )
-        .filter((c) => c.key === "country")
-        .map((c) => ({ ...c, key: "country" as const, id: generateId() })),
-      identityVerificationRequired: (
-        (program?.applicationRequirements as ApplicationRequirementsDB | null) ??
-        []
-      ).some((c) => c.key === "identityVerification"),
-    },
+        [];
+      const selectedCondition =
+        applicationRequirements.find(
+          (condition) => condition.key === "identityVerification",
+        ) ??
+        applicationRequirements.find(
+          (condition) => condition.key === "country",
+        );
+
+      return {
+        description: program?.description ?? "",
+        categories: program?.categories ?? [],
+        eligibilityConditions: selectedCondition
+          ? [{ ...selectedCondition, id: generateId() }]
+          : [],
+      };
+    })(),
   });
 
   const { handleKeyDown } = useEnterSubmit();
@@ -85,7 +90,7 @@ function ApplicationSettingsModal({
   const onSubmit = handleSubmit(async (data) => {
     if (!workspaceId) return;
 
-    const countryConditions = data.eligibilityConditions
+    const eligibilityConditions = data.eligibilityConditions
       .filter((c) => c.key && c.operator && c.value && c.value.length > 0)
       .map(({ id: _id, key, operator, value }) => ({
         key: key!,
@@ -96,18 +101,7 @@ function ApplicationSettingsModal({
     const result = await executeAsync({
       workspaceId: workspaceId!,
       ...data,
-      eligibilityConditions: [
-        ...countryConditions,
-        ...(data.identityVerificationRequired
-          ? [
-              {
-                key: "identityVerification" as const,
-                operator: "is" as const,
-                value: ["required"],
-              },
-            ]
-          : []),
-      ],
+      eligibilityConditions,
     });
 
     if (result?.serverError || result?.validationErrors) {
@@ -189,27 +183,6 @@ function ApplicationSettingsModal({
                     )}
                   />
                 </div>
-
-                <Controller
-                  control={control}
-                  name="identityVerificationRequired"
-                  render={({ field }) => (
-                    <div className="flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-3">
-                      <div>
-                        <p className="text-sm font-medium text-neutral-900">
-                          Require identity verification
-                        </p>
-                        <p className="text-sm text-neutral-500">
-                          Partners must verify their identity before applying.
-                        </p>
-                      </div>
-                      <Switch
-                        checked={field.value}
-                        fn={field.onChange}
-                      />
-                    </div>
-                  )}
-                />
 
                 <div className="space-y-2">
                   <div>

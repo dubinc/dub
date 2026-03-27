@@ -223,10 +223,31 @@ function ConditionRow({
   onChange: (updated: EligibilityCondition) => void;
   onRemove: () => void;
 }) {
-  const keyConfig = CONDITION_CONFIGS["country"];
+  const selectedKey = condition.key;
+  const isIdentityCondition = selectedKey === "identityVerification";
+  const keyConfig = selectedKey ? CONDITION_CONFIGS[selectedKey] : null;
 
   const handleOperatorChange = (operator: EligibilityOperator) => {
     onChange({ ...condition, operator, value: null });
+  };
+
+  const handleKeyChange = (key: ConditionKey) => {
+    if (key === "identityVerification") {
+      onChange({
+        ...condition,
+        key,
+        operator: "is",
+        value: ["required"],
+      });
+      return;
+    }
+
+    onChange({
+      ...condition,
+      key,
+      operator: null,
+      value: null,
+    });
   };
 
   const handleValueChange = (value: string[]) => {
@@ -236,34 +257,57 @@ function ConditionRow({
   return (
     <div className="flex items-start gap-2 rounded-xl border border-neutral-200 bg-white p-2.5 shadow-sm">
       <div className="flex size-7 shrink-0 items-center justify-center rounded-md bg-neutral-100">
-        <Users2 className="size-4 text-neutral-800" />
+        {isIdentityCondition ? (
+          <CircleCheck className="size-4 text-neutral-800" />
+        ) : (
+          <Users2 className="size-4 text-neutral-800" />
+        )}
       </div>
 
       <span className="flex min-w-0 flex-1 flex-wrap items-center gap-x-1 gap-y-1 text-sm font-medium leading-relaxed text-neutral-800">
-        If partner {keyConfig.label}
-        <InlineBadgePopover
-          text={
-            condition.operator
-              ? OPERATOR_LABELS[condition.operator]
-              : "operator"
-          }
-          invalid={!condition.operator}
-        >
+        If partner
+        <InlineBadgePopover text={keyConfig?.label ?? "attribute"} invalid={!selectedKey}>
           <InlineBadgePopoverMenu
-            selectedValue={condition.operator ?? undefined}
-            onSelect={(op) => handleOperatorChange(op as EligibilityOperator)}
-            items={keyConfig.operators.map((op) => ({
-              text: OPERATOR_LABELS[op],
-              value: op,
-            }))}
+            selectedValue={selectedKey ?? undefined}
+            onSelect={(key) => handleKeyChange(key as ConditionKey)}
+            items={[
+              { text: CONDITION_CONFIGS.country.label, value: "country" },
+              {
+                text: CONDITION_CONFIGS.identityVerification.label,
+                value: "identityVerification",
+              },
+            ]}
           />
         </InlineBadgePopover>
-        {condition.operator && (
-          <ValueBadge
-            conditionKey="country"
-            value={condition.value}
-            onChange={handleValueChange}
-          />
+        {isIdentityCondition ? (
+          <>is verified</>
+        ) : (
+          <>
+            <InlineBadgePopover
+              text={
+                condition.operator
+                  ? OPERATOR_LABELS[condition.operator]
+                  : "operator"
+              }
+              invalid={!condition.operator}
+            >
+              <InlineBadgePopoverMenu
+                selectedValue={condition.operator ?? undefined}
+                onSelect={(op) => handleOperatorChange(op as EligibilityOperator)}
+                items={CONDITION_CONFIGS.country.operators.map((op) => ({
+                  text: OPERATOR_LABELS[op],
+                  value: op,
+                }))}
+              />
+            </InlineBadgePopover>
+            {condition.operator && (
+              <ValueBadge
+                conditionKey="country"
+                value={condition.value}
+                onChange={handleValueChange}
+              />
+            )}
+          </>
         )}
       </span>
 
@@ -290,9 +334,7 @@ export function EligibilityRequirements({
 
   const handleAdd = () => {
     if (hasCondition) return;
-    onChange([
-      { id: generateId(), key: "country", operator: null, value: null },
-    ]);
+    onChange([{ id: generateId(), key: null, operator: null, value: null }]);
   };
 
   const handleChange = (updated: EligibilityCondition) => {

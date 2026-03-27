@@ -54,6 +54,21 @@ describe("eligibilityConditionSchema — country (no normalization)", () => {
   });
 });
 
+describe("eligibilityConditionSchema — identity verification", () => {
+  it("accepts the identity verification requirement payload", () => {
+    const result = eligibilityConditionSchema.parse({
+      key: "identityVerification",
+      operator: "is",
+      value: ["required"],
+    });
+    expect(result).toEqual({
+      key: "identityVerification",
+      operator: "is",
+      value: ["required"],
+    });
+  });
+});
+
 describe("eligibilityConditionSchema — validation", () => {
   it("rejects an empty value array", () => {
     expect(() =>
