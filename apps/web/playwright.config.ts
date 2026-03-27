@@ -20,43 +20,57 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
+    // Partner tests
     {
-      name: "setup-partner",
-      testMatch: "**/auth.setup.ts",
+      name: "partner-setup",
+      testMatch: /partners\/auth\.setup\.ts/,
       use: {
         baseURL:
           process.env.PLAYWRIGHT_BASE_URL || "http://partners.localhost:8888",
       },
     },
     {
-      name: "setup-workspace",
-      testMatch: "**/workspace-auth.setup.ts",
-      use: {
-        baseURL:
-          process.env.PLAYWRIGHT_DASHBOARD_BASE_URL || "http://localhost:8888",
-      },
-    },
-    {
-      name: "chromium-partners",
-      testMatch: /partner.*\.spec\.ts/,
+      name: "partners",
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/partner.json",
         baseURL:
           process.env.PLAYWRIGHT_BASE_URL || "http://partners.localhost:8888",
       },
-      dependencies: ["setup-partner"],
+      testDir: "./playwright/partners",
+      testIgnore: /auth\.setup\.ts/,
+      dependencies: ["partner-setup"],
+    },
+    // Workspace onboarding tests
+    {
+      name: "workspace-setup",
+      testMatch: /workspaces\/auth\.setup\.ts/,
+      use: {
+        baseURL: "http://app.localhost:8888",
+      },
     },
     {
-      name: "chromium-workspace",
-      testMatch: /billing-trial\.spec\.ts/,
+      name: "workspaces",
       use: {
         ...devices["Desktop Chrome"],
-        storageState: "playwright/.auth/dashboard.json",
+        baseURL: "http://app.localhost:8888",
+        storageState: "playwright/.auth/workspace.json",
+      },
+      testDir: "./playwright/workspaces",
+      testIgnore: /auth\.setup\.ts|billing-trial\.spec\.ts/,
+      dependencies: ["workspace-setup"],
+    },
+    // Billing tests — runs after workspace onboarding so the workspace exists
+    {
+      name: "chromium-workspace",
+      testMatch: /workspaces\/billing-trial\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "playwright/.auth/workspace.json",
         baseURL:
           process.env.PLAYWRIGHT_DASHBOARD_BASE_URL || "http://localhost:8888",
       },
-      dependencies: ["setup-workspace"],
+      dependencies: ["workspaces"],
     },
   ],
   webServer: process.env.CI

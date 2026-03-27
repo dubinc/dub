@@ -1,9 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { resetE2eWorkspaceForBillingTest } from "./apply-mock-trial";
-import { installBillingCheckoutMocks } from "./billing-trial-mocks";
-import { E2E_DASHBOARD } from "./e2e-dashboard-constants";
-
-const slug = E2E_DASHBOARD.workspaceSlug;
+import { installBillingCheckoutMocks } from "./billing-mocks";
 
 function matchesDashboardOrigin(url: URL, baseURL: string) {
   const base = new URL(baseURL);
@@ -20,7 +16,12 @@ test.describe("Billing trial checkout", () => {
       process.env.PLAYWRIGHT_DASHBOARD_BASE_URL ??
       "http://localhost:8888";
 
-    await resetE2eWorkspaceForBillingTest(slug);
+    // Discover the workspace created during onboarding
+    const res = await page.request.get("/api/workspaces");
+    expect(res.ok()).toBeTruthy();
+    const [workspace] = (await res.json()) as { slug: string }[];
+    const slug = workspace.slug;
+
     await installBillingCheckoutMocks(page, {
       slug,
       baseURL: dashboardOrigin,

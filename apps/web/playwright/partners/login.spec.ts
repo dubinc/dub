@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { env } from "./env";
+import { env } from "../env";
 
 test.use({
   storageState: {
