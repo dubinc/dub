@@ -4,8 +4,8 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
-import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
-import { queueBatchEmail } from "../../lib/email/queue-batch-email";
+import { syncTotalCommissions } from "../../../lib/api/partners/sync-total-commissions";
+import { queueBatchEmail } from "../../../lib/email/queue-batch-email";
 
 const userId = "user_xxx";
 

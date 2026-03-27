@@ -38,7 +38,7 @@ export const getFinalUrl = (
 
   if (clickId) {
     /*
-       custom query param for stripe payment links + Dub Conversions
+       custom query param for stripe payment links:
        - if there is a clickId and dub_client_reference_id is 1
        - then set client_reference_id to dub_id_${clickId} and drop the dub_client_reference_id param
        - our Stripe integration will then detect `dub_id_${clickId}` as the dubClickId in the `checkout.session.completed` webhook

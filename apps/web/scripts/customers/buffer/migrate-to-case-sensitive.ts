@@ -2,8 +2,8 @@ import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { linkConstructorSimple } from "@dub/utils";
 import "dotenv-flow/config";
-import { linkCache } from "../../lib/api/links/cache";
-import { encodeKeyIfCaseSensitive } from "../../lib/api/links/case-sensitivity";
+import { linkCache } from "../../../lib/api/links/cache";
+import { encodeKeyIfCaseSensitive } from "../../../lib/api/links/case-sensitivity";
 
 const domain = "buff.ly";
 const userId = "user_EzRuKzR9sG3WmHapVV6aEec7";
