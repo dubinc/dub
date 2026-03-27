@@ -36,10 +36,10 @@ export const additionalPartnerLinkSchema = z.object({
     .refine((v) => isValidDomainFormatWithLocalhost(v), {
       message: "Please enter a valid domain (eg: acme.com or localhost:3000).",
     })
-    .transform((v) => v.toLowerCase()),
+    .overwrite((v) => v.toLowerCase()),
   path: z
     .string()
-    .transform((v) => v.toLowerCase())
+    .overwrite((v) => v.toLowerCase())
     .optional()
     .default(""),
   validationMode: z.enum([
@@ -52,14 +52,6 @@ export const additionalPartnerLinkSchemaOptionalPath =
   additionalPartnerLinkSchema.extend({
     path: z.string().optional(),
   });
-
-// Output-only version of additionalPartnerLinkSchema (no transforms/refines)
-// Used in response schemas like GroupSchema for OpenAPI compatibility
-const additionalPartnerLinkOutputSchema = z.object({
-  domain: z.string(),
-  path: z.string().optional().default(""),
-  validationMode: z.enum(["domain", "exact"]),
-});
 
 // This is the standard response we send for all /api/groups/** endpoints
 export const GroupSchema = z.object({
@@ -77,7 +69,7 @@ export const GroupSchema = z.object({
   saleReward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
   utmTemplate: UTMTemplateSchema.nullish(),
-  additionalLinks: z.array(additionalPartnerLinkOutputSchema).nullable(),
+  additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.enum(PartnerLinkStructure),
   moveRules: z.array(workflowConditionSchema).nullish().default(null),
