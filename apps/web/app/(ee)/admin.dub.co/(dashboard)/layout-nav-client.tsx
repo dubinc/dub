@@ -29,6 +29,10 @@ const tabs = [
     label: "Payouts",
   },
   {
+    href: "/partners",
+    label: "Partners",
+  },
+  {
     href: "/revenue",
     label: "Revenue",
   },

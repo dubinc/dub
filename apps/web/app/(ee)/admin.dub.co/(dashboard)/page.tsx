@@ -1,15 +1,9 @@
-import { constructMetadata } from "@dub/utils";
 import { BanLink } from "./components/ban-link";
 import { DeletePartnerAccount } from "./components/delete-partner-account";
 import { ImpersonateUser } from "./components/impersonate-user";
 import { ImpersonateWorkspace } from "./components/impersonate-workspace";
 import { RefreshDomain } from "./components/refresh-domain";
 import { ResetLoginAttempts } from "./components/reset-login-attempts";
-
-export const metadata = constructMetadata({
-  title: "Dub Admin",
-  noIndex: true,
-});
 
 export default function AdminPage() {
   return (
