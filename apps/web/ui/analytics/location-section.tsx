@@ -162,6 +162,7 @@ export function LocationSection() {
               onClearFilter={onClearFilter}
               onClearSelection={() => setSelectedItems([])}
               onApplyFilterValues={onApplyFilterValues}
+              onImmediateFilter={(val) => onApplyFilterValues([val])}
               {...(limit && { limit })}
             />
           ) : (

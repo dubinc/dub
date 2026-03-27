@@ -44,6 +44,7 @@ export function BarList({
   onClearFilter,
   onClearSelection,
   onApplyFilterValues,
+  onImmediateFilter,
 }: {
   tab: string;
   unit: string;
@@ -78,6 +79,7 @@ export function BarList({
   onClearFilter?: () => void;
   onClearSelection?: () => void;
   onApplyFilterValues?: (values: string[]) => void;
+  onImmediateFilter?: (value: string) => void;
 }) {
   const [search, setSearch] = useState("");
   const [modalSelectedValues, setModalSelectedValues] = useState<string[]>(
@@ -161,6 +163,15 @@ export function BarList({
           ? () => onToggleFilter(data.filterValue!)
           : undefined
       : undefined,
+    onRowClick:
+      data.filterValue && onImmediateFilter
+        ? !limit
+          ? () => {
+              onImmediateFilter(data.filterValue!);
+              setShowModal(false);
+            }
+          : () => onImmediateFilter(data.filterValue!)
+        : undefined,
   }));
 
   const filterButtons = hasSelection &&
@@ -291,6 +302,7 @@ export function LineItem({
   isSelected,
   isActivelyFiltered,
   onFilterClick,
+  onRowClick,
   href,
 }: {
   icon: ReactNode;
@@ -310,6 +322,7 @@ export function LineItem({
   isSelected?: boolean;
   isActivelyFiltered?: boolean;
   onFilterClick?: () => void;
+  onRowClick?: () => void;
   href?: string;
 }) {
   const [isHovered, setIsHovered] = useState(false);
@@ -414,16 +427,19 @@ export function LineItem({
   );
 
   const rowClickable =
-    (onFilterClick && !isActivelyFiltered) || (!!href && !onFilterClick);
+    (!isActivelyFiltered && (!!onRowClick || !!onFilterClick)) ||
+    (!!href && !onFilterClick && !onRowClick);
 
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={() => {
-        if (onFilterClick && !isActivelyFiltered) {
+        if (onRowClick && !isActivelyFiltered) {
+          onRowClick();
+        } else if (onFilterClick && !isActivelyFiltered) {
           onFilterClick();
-        } else if (href && !onFilterClick) {
+        } else if (href && !onFilterClick && !onRowClick) {
           router.push(href);
           setShowModal(false);
         }
