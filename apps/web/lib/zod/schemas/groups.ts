@@ -53,6 +53,14 @@ export const additionalPartnerLinkSchemaOptionalPath =
     path: z.string().optional(),
   });
 
+// Output-only version of additionalPartnerLinkSchema (no transforms/refines)
+// Used in response schemas like GroupSchema for OpenAPI compatibility
+const additionalPartnerLinkOutputSchema = z.object({
+  domain: z.string(),
+  path: z.string().optional().default(""),
+  validationMode: z.enum(["domain", "exact"]),
+});
+
 // This is the standard response we send for all /api/groups/** endpoints
 export const GroupSchema = z.object({
   id: z.string(),
@@ -69,7 +77,7 @@ export const GroupSchema = z.object({
   saleReward: RewardSchema.nullish(),
   discount: DiscountSchema.nullish(),
   utmTemplate: UTMTemplateSchema.nullish(),
-  additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
+  additionalLinks: z.array(additionalPartnerLinkOutputSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.enum(PartnerLinkStructure),
   moveRules: z.array(workflowConditionSchema).nullish().default(null),
