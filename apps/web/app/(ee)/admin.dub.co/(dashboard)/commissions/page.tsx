@@ -22,10 +22,18 @@ import {
   OG_AVATAR_URL,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { Fragment, useCallback, useMemo } from "react";
+import { Fragment, Suspense, useCallback, useMemo } from "react";
 import useSWR from "swr";
 
 export default function CommissionsPage() {
+  return (
+    <Suspense>
+      <CommissionsPageClient />
+    </Suspense>
+  );
+}
+
+function CommissionsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
   const { interval, start, end, programId } = searchParamsObj;
 

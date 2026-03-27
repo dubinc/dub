@@ -26,7 +26,7 @@ import {
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { Fragment, useCallback, useMemo, useState } from "react";
+import { Fragment, Suspense, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
 interface TimeseriesData {
@@ -54,6 +54,14 @@ type Tab = {
 };
 
 export default function PayoutsPage() {
+  return (
+    <Suspense>
+      <PayoutsPageClient />
+    </Suspense>
+  );
+}
+
+function PayoutsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
   const { interval, start, end, status, programId } = searchParamsObj;
 

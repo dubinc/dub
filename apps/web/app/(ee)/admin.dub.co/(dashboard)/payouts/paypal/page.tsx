@@ -24,10 +24,18 @@ import {
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft } from "lucide-react";
 import Link from "next/link";
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import useSWR from "swr";
 
 export default function PaypalPayoutsPage() {
+  return (
+    <Suspense>
+      <PaypalPayoutsPageClient />
+    </Suspense>
+  );
+}
+
+function PaypalPayoutsPageClient() {
   const { getQueryString } = useRouterStuff();
 
   const { data: payouts = [], isLoading } = useSWR<PaypalPayoutResponse[]>(

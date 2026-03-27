@@ -10,10 +10,18 @@ import {
 } from "@dub/ui";
 import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import useSWR from "swr";
 
 export default function RevenuePage() {
+  return (
+    <Suspense>
+      <RevenuePageClient />
+    </Suspense>
+  );
+}
+
+function RevenuePageClient() {
   const { getQueryString } = useRouterStuff();
 
   const { data: { programs } = {}, isLoading } = useSWR<{
