@@ -38,6 +38,10 @@ export async function GET(req: Request) {
             "elegance.ai",
           ],
         },
+        // exclude domains that belong to a partner program
+        partnerProgram: {
+          is: null,
+        },
       },
       select: {
         slug: true,
