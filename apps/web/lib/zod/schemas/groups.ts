@@ -36,10 +36,10 @@ export const additionalPartnerLinkSchema = z.object({
     .refine((v) => isValidDomainFormatWithLocalhost(v), {
       message: "Please enter a valid domain (eg: acme.com or localhost:3000).",
     })
-    .transform((v) => v.toLowerCase()),
+    .overwrite((v) => v.toLowerCase()),
   path: z
     .string()
-    .transform((v) => v.toLowerCase())
+    .overwrite((v) => v.toLowerCase())
     .optional()
     .default(""),
   validationMode: z.enum([

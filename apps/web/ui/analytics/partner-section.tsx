@@ -259,9 +259,7 @@ export function PartnerSection() {
                 filterParamKey ? onApplyFilterValues : undefined
               }
               onImmediateFilter={
-                filterParamKey
-                  ? (val) => onApplyFilterValues([val])
-                  : undefined
+                filterParamKey ? (val) => onApplyFilterValues([val]) : undefined
               }
               {...(limit && { limit })}
             />

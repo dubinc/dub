@@ -18,8 +18,12 @@ const postSchema = z.object({
 // POST /api/admin/partners/platforms
 export const POST = withAdmin(
   async ({ req }) => {
-    const { partnerId, platform, identifier: rawIdentifier, postUrl } = postSchema
-      .parse(await req.json());
+    const {
+      partnerId,
+      platform,
+      identifier: rawIdentifier,
+      postUrl,
+    } = postSchema.parse(await req.json());
 
     const partner = await prisma.partner.findUnique({
       where: { id: partnerId },

@@ -25,7 +25,7 @@ export default function useGroup<T = GroupProps>(
     mutate: mutateGroup,
   } = useSWR<T>(
     workspaceId && groupIdOrSlug
-      ? `/api/groups/${groupIdOrSlug}?${new URLSearchParams({ workspaceId, ...query }).toString()}`
+      ? `/api/groups/${groupIdOrSlug}?${new URLSearchParams({ workspaceId, includeExpandedFields: "true", ...query }).toString()}`
       : null,
     fetcher,
     {
