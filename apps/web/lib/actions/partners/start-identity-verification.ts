@@ -10,18 +10,11 @@ import { MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS } from "@/lib/zod/schemas/pa
 import { prisma } from "@dub/prisma";
 import { Partner } from "@dub/prisma/client";
 import { addDays } from "date-fns/addDays";
-import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
-const inputSchema = z.object({
-  legalName: z.string().trim().min(1),
-});
-
-export const startIdentityVerificationAction = authPartnerActionClient
-  .inputSchema(inputSchema)
-  .action(async ({ ctx, parsedInput }) => {
+export const startIdentityVerificationAction = authPartnerActionClient.action(
+  async ({ ctx }) => {
     const { partner } = ctx;
-    const { legalName } = parsedInput;
 
     if (partner.identityVerificationStatus) {
       switch (partner.identityVerificationStatus) {
@@ -75,7 +68,6 @@ export const startIdentityVerificationAction = authPartnerActionClient
     // Create a new session
     const { verification } = await createVeriffSession({
       partner,
-      legalName,
     });
 
     await prisma.partner.update({
@@ -86,21 +78,19 @@ export const startIdentityVerificationAction = authPartnerActionClient
         veriffSessionId: verification.id,
         veriffSessionUrl: verification.url,
         veriffSessionExpiresAt: addDays(new Date(), 7),
-        legalName,
       },
     });
 
     return {
       sessionUrl: verification.url,
     };
-  });
+  },
+);
 
 async function createVeriffSession({
   partner,
-  legalName,
 }: {
-  partner: Pick<Partner, "id" | "email">;
-  legalName: string;
+  partner: Pick<Partner, "id" | "email" | "name">;
 }) {
   const apiKey = process.env.VERIFF_API_KEY;
 
@@ -108,9 +98,9 @@ async function createVeriffSession({
     throw new Error("VERIFF_API_KEY is not configured.");
   }
 
-  const nameParts = legalName.split(" ");
-  const firstName = nameParts[0] || legalName;
-  const lastName = nameParts.slice(1).join(" ") || legalName;
+  const nameParts = partner.name.split(" ");
+  const firstName = nameParts[0] || partner.name;
+  const lastName = nameParts.slice(1).join(" ") || partner.name;
 
   const input = veriffCreateSessionInputSchema.parse({
     verification: {

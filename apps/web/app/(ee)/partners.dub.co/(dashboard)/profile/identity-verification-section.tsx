@@ -14,7 +14,6 @@ import {
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useState } from "react";
 import { toast } from "sonner";
 
 export function IdentityVerificationSection({
@@ -23,9 +22,6 @@ export function IdentityVerificationSection({
   partner?: PartnerProps;
 }) {
   const { mutate } = usePartnerProfile();
-  const [legalName, setLegalName] = useState(
-    partner?.legalName ?? partner?.name ?? "",
-  );
 
   const { executeAsync, isPending } = useAction(
     startIdentityVerificationAction,
@@ -121,20 +117,6 @@ export function IdentityVerificationSection({
 
   return (
     <div className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium text-neutral-800">Legal name</span>
-        <input
-          type="text"
-          value={legalName}
-          onChange={(e) => setLegalName(e.target.value)}
-          className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-          placeholder={partner.name}
-        />
-        <span className="text-xs text-neutral-500">
-          Only used to verify your identity
-        </span>
-      </label>
-
       <div
         className={cn(
           failedReason && "overflow-hidden rounded-lg bg-amber-100 p-1",
@@ -188,11 +170,7 @@ export function IdentityVerificationSection({
                     ? "You have reached the maximum number of verification attempts. Please contact support if you need help."
                     : undefined
                 }
-                onClick={(e) =>
-                  executeAsync({
-                    legalName: legalName.trim(),
-                  })
-                }
+                onClick={() => executeAsync()}
                 loading={isPending}
                 className="h-10 w-fit rounded-lg px-4 py-1.5"
               />
