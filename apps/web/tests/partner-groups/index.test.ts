@@ -45,6 +45,7 @@ describe.sequential("/groups/**", async () => {
     // Fetch the default group to get its default values
     const { data: defaultGroup } = await http.get<GroupWithProgramProps>({
       path: `/groups/${DEFAULT_PARTNER_GROUP.slug}`,
+      query: { includeExpandedFields: "true" },
     });
 
     const groupName = generateRandomName();
@@ -79,9 +80,35 @@ describe.sequential("/groups/**", async () => {
     group = data;
   });
 
-  test("GET /groups/[groupId] - fetch single group", async () => {
+  test("GET /groups/[groupId] - fetch single group without extended params", async () => {
+    const { status, data } = await http.get<GroupProps>({
+      path: `/groups/${group.id}`,
+    });
+
+    expect(status).toEqual(200);
+    expect(() => GroupSchema.parse(data)).not.toThrow();
+    expect(data).not.toHaveProperty("program");
+    expect(data).not.toHaveProperty("applicationFormData");
+    expect(data).not.toHaveProperty("landerData");
+    expect(data).toMatchObject({
+      id: group.id,
+      name: group.name,
+      slug: group.slug,
+      color: group.color,
+      logo: group.logo,
+      wordmark: group.wordmark,
+      brandColor: group.brandColor,
+      holdingPeriodDays: group.holdingPeriodDays,
+      maxPartnerLinks: group.maxPartnerLinks,
+      linkStructure: group.linkStructure,
+      additionalLinks: group.additionalLinks,
+    });
+  });
+
+  test("GET /groups/[groupId] - fetch single group with includeExpandedFields", async () => {
     const { status, data } = await http.get<GroupWithProgramProps>({
       path: `/groups/${group.id}`,
+      query: { includeExpandedFields: "true" },
     });
 
     const {
@@ -95,6 +122,7 @@ describe.sequential("/groups/**", async () => {
     } = data;
 
     expect(status).toEqual(200);
+    expect(program).toBeDefined();
     expect(fetchedGroup).toStrictEqual({
       ...group,
       utmTemplate: null,
@@ -161,6 +189,7 @@ describe.sequential("/groups/**", async () => {
     // Fetch the group to verify moveRules was persisted
     const { data: fetchedGroup } = await http.get<GroupWithProgramProps>({
       path: `/groups/${group.id}`,
+      query: { includeExpandedFields: "true" },
     });
 
     const {
@@ -206,6 +235,7 @@ describe.sequential("/groups/**", async () => {
     // Fetch the group to verify moveRules was updated
     const { data: fetchedGroup } = await http.get<GroupWithProgramProps>({
       path: `/groups/${group.id}`,
+      query: { includeExpandedFields: "true" },
     });
 
     const {
@@ -238,6 +268,7 @@ describe.sequential("/groups/**", async () => {
     // Fetch the group to verify moveRules was removed
     const { data: fetchedGroup } = await http.get<GroupWithProgramProps>({
       path: `/groups/${group.id}`,
+      query: { includeExpandedFields: "true" },
     });
 
     const {
