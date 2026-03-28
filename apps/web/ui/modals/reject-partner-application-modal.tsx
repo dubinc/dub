@@ -2,7 +2,7 @@ import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-pa
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { Button, Checkbox, Modal, useKeyboardShortcut } from "@dub/ui";
+import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -32,7 +32,6 @@ export function RejectPartnerApplicationModal({
   confirmShortcutOptions,
 }: RejectPartnerApplicationModalProps) {
   const { id: workspaceId } = useWorkspace();
-  const [reportFraud, setReportFraud] = useState(false);
 
   const { executeAsync: rejectPartnerApplication, isPending } = useAction(
     rejectPartnerApplicationAction,
@@ -42,7 +41,6 @@ export function RejectPartnerApplicationModal({
           `Partner ${partner.email} has been rejected from your program.`,
         );
         setShowRejectPartnerApplicationModal(false);
-        setReportFraud(false);
         await onConfirm?.();
       },
       onError: ({ error }) => {
@@ -57,13 +55,11 @@ export function RejectPartnerApplicationModal({
     await rejectPartnerApplication({
       workspaceId,
       partnerId: partner.id,
-      reportFraud,
     });
-  }, [workspaceId, partner, reportFraud, rejectPartnerApplication]);
+  }, [workspaceId, partner, rejectPartnerApplication]);
 
   const handleClose = useCallback(() => {
     setShowRejectPartnerApplicationModal(false);
-    setReportFraud(false);
   }, [setShowRejectPartnerApplicationModal]);
 
   useKeyboardShortcut("r", handleConfirm, {
@@ -101,18 +97,6 @@ export function RejectPartnerApplicationModal({
             This will reject the partner application and prevent them from
             joining your program.
           </p>
-
-          <label className="flex items-start gap-2.5">
-            <Checkbox
-              className="mt-1 size-4 rounded border-neutral-300 focus:border-neutral-500 focus:ring-neutral-500 focus-visible:border-neutral-500 focus-visible:ring-neutral-500 data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
-              checked={reportFraud}
-              onCheckedChange={(checked) => setReportFraud(Boolean(checked))}
-            />
-            <span className="text-sm text-neutral-600">
-              Select this if you believe the application shows signs of fraud.
-              This helps keep the network safe.
-            </span>
-          </label>
         </div>
       )}
 

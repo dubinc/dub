@@ -1,7 +1,6 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { reportFraudToNetwork } from "@/lib/api/fraud/report-fraud-to-network";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
@@ -16,7 +15,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
   .inputSchema(bulkRejectPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerIds, reportFraud } = parsedInput;
+    const { partnerIds } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -71,10 +70,6 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
         "Resolved automatically because the partner application was rejected.",
     });
 
-    const rejectedPartnerIds = [
-      ...new Set(programEnrollments.map((pe) => pe.partner.id)),
-    ];
-
     waitUntil(
       (async () => {
         await Promise.allSettled([
@@ -94,13 +89,6 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
               ],
             })),
           ),
-
-          reportFraud && rejectedPartnerIds.length > 0
-            ? reportFraudToNetwork({
-                programId,
-                partnerIds: rejectedPartnerIds,
-              })
-            : Promise.resolve(),
         ]);
       })(),
     );
