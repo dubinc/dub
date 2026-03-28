@@ -1,4 +1,4 @@
-import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-partner-application";
+import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
@@ -13,10 +13,11 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-interface RejectPartnerApplicationModalProps {
-  showRejectPartnerApplicationModal: boolean;
-  setShowRejectPartnerApplicationModal: Dispatch<SetStateAction<boolean>>;
+interface ApprovePartnerApplicationModalProps {
+  showApprovePartnerApplicationModal: boolean;
+  setShowApprovePartnerApplicationModal: Dispatch<SetStateAction<boolean>>;
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
+  groupId?: string | null;
   onConfirm?: () => void | Promise<void>;
   confirmShortcutOptions?: {
     modal?: boolean;
@@ -24,27 +25,28 @@ interface RejectPartnerApplicationModalProps {
   };
 }
 
-export function RejectPartnerApplicationModal({
-  showRejectPartnerApplicationModal,
-  setShowRejectPartnerApplicationModal,
+export function ApprovePartnerApplicationModal({
+  showApprovePartnerApplicationModal,
+  setShowApprovePartnerApplicationModal,
   partner,
+  groupId,
   onConfirm,
   confirmShortcutOptions,
-}: RejectPartnerApplicationModalProps) {
+}: ApprovePartnerApplicationModalProps) {
   const { id: workspaceId } = useWorkspace();
 
-  const { executeAsync: rejectPartnerApplication, isPending } = useAction(
-    rejectPartnerApplicationAction,
+  const { executeAsync: approvePartnerApplication, isPending } = useAction(
+    approvePartnerAction,
     {
       onSuccess: async () => {
         toast.success(
-          `Partner ${partner.email} has been rejected from your program.`,
+          `Partner ${partner.email} has been approved to your program.`,
         );
-        setShowRejectPartnerApplicationModal(false);
+        setShowApprovePartnerApplicationModal(false);
         await onConfirm?.();
       },
       onError: ({ error }) => {
-        toast.error(error.serverError || "Failed to reject partner.");
+        toast.error(error.serverError || "Failed to approve partner.");
       },
     },
   );
@@ -52,29 +54,32 @@ export function RejectPartnerApplicationModal({
   const handleConfirm = useCallback(async () => {
     if (!workspaceId || !partner) return;
 
-    await rejectPartnerApplication({
+    await approvePartnerApplication({
       workspaceId,
       partnerId: partner.id,
+      groupId: groupId ?? undefined,
     });
-  }, [workspaceId, partner, rejectPartnerApplication]);
+  }, [workspaceId, partner, groupId, approvePartnerApplication]);
 
   const handleClose = useCallback(() => {
-    setShowRejectPartnerApplicationModal(false);
-  }, [setShowRejectPartnerApplicationModal]);
+    setShowApprovePartnerApplicationModal(false);
+  }, [setShowApprovePartnerApplicationModal]);
 
-  useKeyboardShortcut("r", handleConfirm, {
-    enabled: showRejectPartnerApplicationModal,
+  useKeyboardShortcut("a", handleConfirm, {
+    enabled: showApprovePartnerApplicationModal,
     ...(confirmShortcutOptions || { modal: true }),
   });
 
   return (
     <Modal
-      showModal={showRejectPartnerApplicationModal}
-      setShowModal={setShowRejectPartnerApplicationModal}
+      showModal={showApprovePartnerApplicationModal}
+      setShowModal={setShowApprovePartnerApplicationModal}
       onClose={handleClose}
     >
       <div className="border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Reject application</h3>
+        <h3 className="text-lg font-medium leading-none">
+          Approve application
+        </h3>
       </div>
 
       {partner && (
@@ -105,11 +110,11 @@ export function RejectPartnerApplicationModal({
         />
         <Button
           className="h-8 w-fit px-3"
-          text="Reject"
+          text="Approve"
           variant="primary"
           loading={isPending}
           autoFocus
-          shortcut="R"
+          shortcut="A"
           onClick={handleConfirm}
         />
       </div>
@@ -117,12 +122,14 @@ export function RejectPartnerApplicationModal({
   );
 }
 
-export function useRejectPartnerApplicationModal({
+export function useApprovePartnerApplicationModal({
   partner,
+  groupId,
   onConfirm,
   confirmShortcutOptions,
 }: {
   partner: Pick<PartnerProps, "id" | "name" | "email" | "image">;
+  groupId?: string | null;
   onConfirm?: () => void | Promise<void>;
   confirmShortcutOptions?: {
     modal?: boolean;
@@ -130,37 +137,39 @@ export function useRejectPartnerApplicationModal({
   };
 }) {
   const [
-    showRejectPartnerApplicationModal,
-    setShowRejectPartnerApplicationModal,
+    showApprovePartnerApplicationModal,
+    setShowApprovePartnerApplicationModal,
   ] = useState(false);
 
-  const RejectPartnerApplicationModalCallback = useMemo(() => {
+  const ApprovePartnerApplicationModalCallback = useMemo(() => {
     return (
-      <RejectPartnerApplicationModal
-        showRejectPartnerApplicationModal={showRejectPartnerApplicationModal}
-        setShowRejectPartnerApplicationModal={
-          setShowRejectPartnerApplicationModal
+      <ApprovePartnerApplicationModal
+        showApprovePartnerApplicationModal={showApprovePartnerApplicationModal}
+        setShowApprovePartnerApplicationModal={
+          setShowApprovePartnerApplicationModal
         }
         partner={partner}
+        groupId={groupId}
         onConfirm={onConfirm}
         confirmShortcutOptions={confirmShortcutOptions}
       />
     );
   }, [
-    showRejectPartnerApplicationModal,
+    showApprovePartnerApplicationModal,
     partner,
+    groupId,
     onConfirm,
     confirmShortcutOptions,
   ]);
 
   return useMemo(
     () => ({
-      setShowRejectPartnerApplicationModal,
-      RejectPartnerApplicationModal: RejectPartnerApplicationModalCallback,
+      setShowApprovePartnerApplicationModal,
+      ApprovePartnerApplicationModal: ApprovePartnerApplicationModalCallback,
     }),
     [
-      setShowRejectPartnerApplicationModal,
-      RejectPartnerApplicationModalCallback,
+      setShowApprovePartnerApplicationModal,
+      ApprovePartnerApplicationModalCallback,
     ],
   );
 }

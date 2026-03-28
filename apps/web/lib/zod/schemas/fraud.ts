@@ -247,7 +247,6 @@ export const updateFraudRuleSettingsSchema = z.object({
   customerEmailSuspiciousDomain: toggleOnlyFraudRuleSchema,
   partnerCrossProgramBan: toggleOnlyFraudRuleSchema,
   partnerDuplicatePayoutMethod: toggleOnlyFraudRuleSchema,
-  partnerFraudReport: toggleOnlyFraudRuleSchema,
 });
 
 const baseFraudEventSchema = z.object({
@@ -322,6 +321,4 @@ export const fraudEventSchemas = {
   }),
 
   partnerDuplicatePayoutMethod: baseFraudEventSchema,
-
-  partnerFraudReport: baseFraudEventSchema,
 };

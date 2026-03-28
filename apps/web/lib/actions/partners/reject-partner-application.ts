@@ -1,7 +1,6 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { reportFraudToNetwork } from "@/lib/api/fraud/report-fraud-to-network";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -16,7 +15,7 @@ export const rejectPartnerApplicationAction = authActionClient
   .inputSchema(rejectPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, reportFraud } = parsedInput;
+    const { partnerId } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -84,13 +83,6 @@ export const rejectPartnerApplicationAction = authActionClient
             resolutionReason:
               "Resolved automatically because the partner application was rejected.",
           }),
-
-          reportFraud
-            ? reportFraudToNetwork({
-                programId,
-                partnerIds: [partnerId],
-              })
-            : Promise.resolve(),
         ]);
       })(),
     );
