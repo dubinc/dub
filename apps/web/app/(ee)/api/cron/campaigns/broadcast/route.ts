@@ -152,6 +152,14 @@ export async function POST(req: Request) {
             in: campaignGroupIds,
           },
         }),
+        ...(campaign.programId === "prog_1K0QHV7MP3PR05CJSCF5VN93X" && {
+          partner: {
+            country: "US",
+            email: {
+              endsWith: ".edu",
+            },
+          },
+        }),
       },
       select: {
         id: true,
