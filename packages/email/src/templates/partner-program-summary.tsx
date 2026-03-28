@@ -82,22 +82,22 @@ export default function PartnerProgramSummary({
     createdAt: new Date(),
   },
   previousMonth = {
+    earnings: 12500,
     clicks: 200,
-    leads: 300,
-    sales: 50,
-    earnings: 100,
+    leads: 50,
+    sales: 20,
   },
   currentMonth = {
-    clicks: 100,
-    leads: 100,
-    sales: 100,
-    earnings: 100,
+    earnings: 12850,
+    clicks: 210,
+    leads: 55,
+    sales: 25,
   },
   lifetime = {
-    clicks: 200,
-    leads: 200,
-    sales: 200,
-    earnings: 200,
+    earnings: 11241050,
+    clicks: 398585,
+    leads: 23409,
+    sales: 1492,
   },
   reportingPeriod = {
     month: "May 2025",
@@ -115,22 +115,22 @@ export default function PartnerProgramSummary({
     createdAt: Date;
   };
   previousMonth: {
+    earnings: number;
     clicks: number;
     leads: number;
     sales: number;
-    earnings: number;
   };
   currentMonth: {
+    earnings: number;
     clicks: number;
     leads: number;
     sales: number;
-    earnings: number;
   };
   lifetime: {
+    earnings: number;
     clicks: number;
     leads: number;
     sales: number;
-    earnings: number;
   };
   reportingPeriod: {
     month: string;
@@ -139,6 +139,11 @@ export default function PartnerProgramSummary({
   };
 }) {
   const monthlyStats = [
+    {
+      title: "Earnings",
+      value: currencyFormatter(currentMonth.earnings),
+      percent: getPercentChange(currentMonth.earnings, previousMonth.earnings),
+    },
     {
       title: "Clicks",
       value: nFormatter(currentMonth.clicks),
@@ -154,14 +159,13 @@ export default function PartnerProgramSummary({
       value: nFormatter(currentMonth.sales),
       percent: getPercentChange(currentMonth.sales, previousMonth.sales),
     },
-    {
-      title: "Earnings",
-      value: currencyFormatter(currentMonth.earnings),
-      percent: getPercentChange(currentMonth.earnings, previousMonth.earnings),
-    },
   ];
 
   const lifetimeStats = [
+    {
+      title: "Earnings",
+      value: currencyFormatter(lifetime.earnings),
+    },
     {
       title: "Clicks",
       value: nFormatter(lifetime.clicks),
@@ -174,16 +178,19 @@ export default function PartnerProgramSummary({
       title: "Sales",
       value: nFormatter(lifetime.sales),
     },
-    {
-      title: "Earnings",
-      value: currencyFormatter(lifetime.earnings),
-    },
   ];
 
   return (
     <Html>
       <Head />
-      <Preview>{`Your ${reportingPeriod.month} performance report for ${program.name} program.`}</Preview>
+      <Preview>
+        {monthlyStats
+          .map(
+            ({ title, value, percent }) =>
+              `${title.toUpperCase()} ${value} (${getPercentState(percent).sign}${percent}%)`,
+          )
+          .join(" | ")}
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] space-y-10 px-3 py-5">

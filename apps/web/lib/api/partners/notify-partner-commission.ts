@@ -136,7 +136,7 @@ export async function notifyPartnerCommission({
     ...partnerEmailsToNotify.map(
       (email) =>
         ({
-          subject: `You've made a new ${currencyFormatter(commission.earnings)} commission!`,
+          subject: `You've made a ${currencyFormatter(commission.earnings)} commission from ${program.name}`,
           variant: "notifications",
           to: email,
           replyTo: program.supportEmail || "noreply",
