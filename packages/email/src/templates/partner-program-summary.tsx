@@ -85,12 +85,12 @@ export default function PartnerProgramSummary({
     earnings: 12500,
     clicks: 200,
     leads: 50,
-    sales: 20,
+    sales: 25,
   },
   currentMonth = {
     earnings: 12850,
     clicks: 210,
-    leads: 55,
+    leads: 45,
     sales: 25,
   },
   lifetime = {
@@ -180,17 +180,17 @@ export default function PartnerProgramSummary({
     },
   ];
 
+  const previewText = monthlyStats
+    .map(
+      ({ title, value, percent }) =>
+        `${title.toUpperCase()} ${value} (${getPercentState(percent).sign}${Math.abs(percent)}%)`,
+    )
+    .join(" | ");
+
   return (
     <Html>
       <Head />
-      <Preview>
-        {monthlyStats
-          .map(
-            ({ title, value, percent }) =>
-              `${title.toUpperCase()} ${value} (${getPercentState(percent).sign}${percent}%)`,
-          )
-          .join(" | ")}
-      </Preview>
+      <Preview>{previewText}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] space-y-10 px-3 py-5">
@@ -228,10 +228,7 @@ export default function PartnerProgramSummary({
 
               <Section className="space-y-6 rounded-xl border-t border-solid border-neutral-200 bg-white p-6">
                 <Section>
-                  <Heading
-                    as="h4"
-                    className="mt-0 text-base font-semibold leading-6 text-neutral-800"
-                  >
+                  <Heading className="mb-4 mt-0 text-base font-semibold leading-6 text-neutral-800">
                     Stats for {reportingPeriod.month} (vs previous month)
                   </Heading>
 
@@ -241,10 +238,7 @@ export default function PartnerProgramSummary({
                 <Hr className="mx-0 my-8 w-full border border-neutral-200" />
 
                 <Section>
-                  <Heading
-                    as="h4"
-                    className="mt-0 text-base font-semibold leading-6 text-neutral-800"
-                  >
+                  <Heading className="mb-4 mt-0 text-base font-semibold leading-6 text-neutral-800">
                     All-time Performance
                   </Heading>
 
