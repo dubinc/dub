@@ -63,6 +63,7 @@ export const rejectPartnerApplicationAction = authActionClient
               reviewedAt,
               rejectionReason: rejectionReason ?? null,
               rejectionNote: rejectionNote ?? null,
+              userId: user.id,
             },
           });
         }
@@ -101,6 +102,7 @@ export const rejectPartnerApplicationAction = authActionClient
               reviewedAt,
               rejectionReason: rejectionReason ?? null,
               rejectionNote: rejectionNote ?? null,
+              userId: user.id,
             },
           });
         }

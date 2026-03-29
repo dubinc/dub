@@ -76,6 +76,7 @@ export const bulkApprovePartnersAction = authActionClient
           reviewedAt,
           rejectionReason: null,
           rejectionNote: null,
+          userId: user.id,
         },
       });
     }

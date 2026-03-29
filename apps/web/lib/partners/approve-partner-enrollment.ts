@@ -66,6 +66,7 @@ export async function approvePartnerEnrollment({
           reviewedAt,
           rejectionReason: null,
           rejectionNote: null,
+          userId,
         },
       });
     }

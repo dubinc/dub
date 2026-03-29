@@ -70,6 +70,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           reviewedAt,
           rejectionReason: null,
           rejectionNote: null,
+          userId: user.id,
         },
       });
     }
