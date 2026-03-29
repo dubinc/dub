@@ -1,12 +1,42 @@
+"use client";
+
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
 import { ProgramEnrollmentProps } from "@/lib/types";
-import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
+import {
+  BlurImage,
+  DynamicTooltipWrapper,
+  Link4,
+  MiniAreaChart,
+} from "@dub/ui";
 import { formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
+
+function rejectedApplicationTooltipLines(
+  application: ProgramEnrollmentProps["application"],
+): string[] | null {
+  if (!application) {
+    return null;
+  }
+  const lines: string[] = [];
+  const reasonLabel = getProgramApplicationRejectionReasonLabel(
+    application.rejectionReason ?? undefined,
+  );
+  if (reasonLabel) {
+    lines.push(`Reason: ${reasonLabel}`);
+  }
+  if (application.rejectionNote?.trim()) {
+    lines.push(`Notes: ${application.rejectionNote.trim()}`);
+  }
+  if (application.reviewedAt) {
+    lines.push(`Reviewed ${formatDate(application.reviewedAt)}`);
+  }
+  return lines.length > 0 ? lines : null;
+}
 
 export function ProgramCard({
   programEnrollment,
@@ -62,7 +92,31 @@ export function ProgramCard({
           {status === "pending" ? (
             `Applied ${formatDate(createdAt)}`
           ) : status === "rejected" ? (
-            `${statusDescription} You can re-apply in 30 days.`
+            (() => {
+              const tipLines = rejectedApplicationTooltipLines(
+                programEnrollment.application,
+              );
+              const body = (
+                <>
+                  {statusDescription} You can re-apply in 30 days.
+                </>
+              );
+              return tipLines ? (
+                <DynamicTooltipWrapper
+                  tooltipProps={{
+                    content: tipLines.join("\n\n"),
+                    contentClassName: "!text-left max-w-xs",
+                    side: "top",
+                  }}
+                >
+                  <div className="cursor-help underline decoration-dotted decoration-neutral-400 underline-offset-2">
+                    {body}
+                  </div>
+                </DynamicTooltipWrapper>
+              ) : (
+                body
+              );
+            })()
           ) : statusDescription ? (
             <p>
               {statusDescription}{" "}

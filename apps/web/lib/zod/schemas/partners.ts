@@ -1,4 +1,5 @@
 import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
+import { PROGRAM_APPLICATION_REJECTION_REASON_LABELS } from "@/lib/partners/program-application-rejection";
 import {
   IndustryInterest,
   MonthlyTraffic,
@@ -7,6 +8,7 @@ import {
   PartnerProfileType,
   PlatformType,
   PreferredEarningStructure,
+  ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@dub/prisma/client";
@@ -844,9 +846,29 @@ export const bulkApprovePartnersSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
+export { PROGRAM_APPLICATION_REJECTION_REASON_LABELS };
+
+export const partnerApplicationRejectionReasonSchema = z.nativeEnum(
+  ProgramApplicationRejectionReason,
+);
+
+/** Max length for optional `rejectionNote` on `ProgramApplication`. */
+export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 5000;
+
 export const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
+  rejectionReason: partnerApplicationRejectionReasonSchema.optional(),
+  rejectionNote: z
+    .string()
+    .max(PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH)
+    .optional()
+    .transform((s) => {
+      const t = s?.trim();
+      return t === "" ? undefined : t;
+    }),
+  /** When true, pending enrollment is removed so the partner can submit a new application immediately. */
+  allowImmediateReapply: z.boolean().optional().default(false),
 });
 
 export const bulkRejectPartnersSchema = z.object({

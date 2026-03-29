@@ -35,25 +35,42 @@ export async function approvePartnerEnrollment({
     groupId: groupId || program.defaultGroupId,
   });
 
-  const programEnrollment = await prisma.programEnrollment.update({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
+  const reviewedAt = new Date();
+
+  const programEnrollment = await prisma.$transaction(async (tx) => {
+    const enrollment = await tx.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
       },
-    },
-    data: {
-      status: "approved",
-      createdAt: new Date(),
-      groupId: group.id,
-      clickRewardId: group.clickRewardId,
-      leadRewardId: group.leadRewardId,
-      saleRewardId: group.saleRewardId,
-      discountId: group.discountId,
-    },
-    include: {
-      partner: true,
-    },
+      data: {
+        status: "approved",
+        createdAt: new Date(),
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
+      },
+      include: {
+        partner: true,
+      },
+    });
+
+    if (enrollment.applicationId) {
+      await tx.programApplication.update({
+        where: { id: enrollment.applicationId },
+        data: {
+          reviewedAt,
+          rejectionReason: null,
+          rejectionNote: null,
+        },
+      });
+    }
+
+    return enrollment;
   });
 
   waitUntil(

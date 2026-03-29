@@ -10,6 +10,7 @@ import {
   Category,
   EventType,
   PartnerBannedReason,
+  ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
 } from "@dub/prisma/client";
@@ -122,6 +123,21 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   saleAmount: true,
 });
 
+export const ProgramEnrollmentApplicationSchema = z.object({
+  rejectionReason: z
+    .nativeEnum(ProgramApplicationRejectionReason)
+    .nullable()
+    .describe("Preset reason when the application was rejected."),
+  rejectionNote: z
+    .string()
+    .nullable()
+    .describe("Free-form note when the application was rejected."),
+  reviewedAt: z
+    .coerce.date()
+    .nullable()
+    .describe("When the application was approved or rejected."),
+});
+
 export const ProgramEnrollmentSchema = z.object({
   programId: z.string().describe("The program's unique ID on Dub."),
   groupId: z.string().nullish().describe("The partner's group ID on Dub."),
@@ -179,6 +195,9 @@ export const ProgramEnrollmentSchema = z.object({
   customerDataSharingEnabledAt: z.date().nullable(),
   groupMoveDisabledAt: z.date().nullable(),
   referralFormData: referralFormSchema.nullish(),
+  application: ProgramEnrollmentApplicationSchema.nullish().describe(
+    "Linked program application, including review outcome when applicable.",
+  ),
 });
 
 export const ProgramInviteSchema = z.object({

@@ -64,6 +64,22 @@ export const bulkApprovePartnersAction = authActionClient
       },
     });
 
+    const applicationIds = programEnrollments
+      .map(({ applicationId }) => applicationId)
+      .filter((id): id is string => Boolean(id));
+
+    if (applicationIds.length > 0) {
+      const reviewedAt = new Date();
+      await prisma.programApplication.updateMany({
+        where: { id: { in: applicationIds } },
+        data: {
+          reviewedAt,
+          rejectionReason: null,
+          rejectionNote: null,
+        },
+      });
+    }
+
     waitUntil(
       (async () => {
         // Refetch the updated program enrollments with the partner

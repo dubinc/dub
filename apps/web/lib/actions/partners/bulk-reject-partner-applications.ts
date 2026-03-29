@@ -34,6 +34,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
       },
       select: {
         id: true,
+        applicationId: true,
         partner: true,
       },
     });
@@ -56,6 +57,22 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
         discountId: null,
       },
     });
+
+    const applicationIds = programEnrollments
+      .map(({ applicationId }) => applicationId)
+      .filter((id): id is string => Boolean(id));
+
+    if (applicationIds.length > 0) {
+      const reviewedAt = new Date();
+      await prisma.programApplication.updateMany({
+        where: { id: { in: applicationIds } },
+        data: {
+          reviewedAt,
+          rejectionReason: null,
+          rejectionNote: null,
+        },
+      });
+    }
 
     await resolveFraudGroups({
       where: {
