@@ -6,36 +6,95 @@ import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-tim
 import { ProgramEnrollmentProps } from "@/lib/types";
 import {
   BlurImage,
+  CalendarIcon,
+  CircleInfo,
   DynamicTooltipWrapper,
   Link4,
   MiniAreaChart,
+  Note,
 } from "@dub/ui";
 import { formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 
-function rejectedApplicationTooltipLines(
+function RejectionTooltipRow({
+  icon,
+  label,
+  value,
+  valueClassName,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  valueClassName?: string;
+}) {
+  return (
+    <div className="flex gap-3">
+      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">
+        {icon}
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+          {label}
+        </p>
+        <p
+          className={
+            valueClassName ??
+            "mt-0.5 text-sm font-medium leading-snug text-neutral-800"
+          }
+        >
+          {value}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function rejectedApplicationTooltipContent(
   application: ProgramEnrollmentProps["application"],
-): string[] | null {
+): ReactNode | null {
   if (!application) {
     return null;
   }
-  const lines: string[] = [];
+
   const reasonLabel = getProgramApplicationRejectionReasonLabel(
     application.rejectionReason ?? undefined,
   );
-  if (reasonLabel) {
-    lines.push(`Reason: ${reasonLabel}`);
+  const note = application.rejectionNote?.trim();
+  const reviewedAt = application.reviewedAt;
+
+  if (!reasonLabel && !note && !reviewedAt) {
+    return null;
   }
-  if (application.rejectionNote?.trim()) {
-    lines.push(`Notes: ${application.rejectionNote.trim()}`);
-  }
-  if (application.reviewedAt) {
-    lines.push(`Reviewed ${formatDate(application.reviewedAt)}`);
-  }
-  return lines.length > 0 ? lines : null;
+
+  return (
+    <div className="flex w-full min-w-0 max-w-[min(100vw-2rem,17.5rem)] flex-col gap-3.5 self-start px-4 py-3 text-left">
+      {reasonLabel ? (
+        <RejectionTooltipRow
+          icon={<CircleInfo className="size-4 shrink-0" aria-hidden />}
+          label="Reason"
+          value={reasonLabel}
+        />
+      ) : null}
+      {note ? (
+        <RejectionTooltipRow
+          icon={<Note className="size-4 shrink-0" aria-hidden />}
+          label="Notes"
+          value={note}
+          valueClassName="mt-0.5 whitespace-pre-wrap text-sm font-normal leading-snug text-neutral-700"
+        />
+      ) : null}
+      {reviewedAt ? (
+        <RejectionTooltipRow
+          icon={<CalendarIcon className="size-4 shrink-0" aria-hidden />}
+          label="Reviewed"
+          value={formatDate(reviewedAt)}
+        />
+      ) : null}
+    </div>
+  );
 }
 
 export function ProgramCard({
@@ -93,7 +152,7 @@ export function ProgramCard({
             `Applied ${formatDate(createdAt)}`
           ) : status === "rejected" ? (
             (() => {
-              const tipLines = rejectedApplicationTooltipLines(
+              const tipContent = rejectedApplicationTooltipContent(
                 programEnrollment.application,
               );
               const body = (
@@ -101,11 +160,10 @@ export function ProgramCard({
                   {statusDescription} You can re-apply in 30 days.
                 </>
               );
-              return tipLines ? (
+              return tipContent ? (
                 <DynamicTooltipWrapper
                   tooltipProps={{
-                    content: tipLines.join("\n\n"),
-                    contentClassName: "!text-left max-w-xs",
+                    content: tipContent,
                     side: "top",
                   }}
                 >

@@ -2,11 +2,7 @@ import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/progra
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramApplication } from "@dub/prisma/client";
-import {
-  CircleHalfDottedClock,
-  Combobox,
-  ComboboxOption,
-} from "@dub/ui";
+import { CircleHalfDottedClock, Combobox, ComboboxOption } from "@dub/ui";
 import { cn, fetcher, formatDate, formatDateTime } from "@dub/utils";
 import Linkify from "linkify-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -60,7 +56,9 @@ function PartnerApplicationReviewOutcome({
             <h4 className="text-content-emphasis font-semibold">
               Additional notes
             </h4>
-            <p className="mt-1.5 whitespace-pre-wrap text-neutral-600">{note}</p>
+            <p className="mt-1.5 whitespace-pre-wrap text-neutral-600">
+              {note}
+            </p>
           </div>
         ) : null}
       </div>
@@ -151,11 +149,7 @@ export function PartnerApplicationDetails({
     () =>
       historyItems.map((item) => ({
         value: item.id,
-        label: `${formatDate(item.createdAt, {
-          month: "short",
-          day: "numeric",
-          year: "numeric",
-        })} application`,
+        label: `${formatDate(item.createdAt)} application`,
       })),
     [historyItems],
   );
@@ -299,9 +293,7 @@ export function PartnerApplicationDetails({
             ))}
           </div>
           <PartnerApplicationReviewOutcome application={application} />
-          <PartnerApplicationReviewFooter
-            reviewedAt={application.reviewedAt}
-          />
+          <PartnerApplicationReviewFooter reviewedAt={application.reviewedAt} />
         </>
       )}
     </div>

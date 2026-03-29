@@ -103,7 +103,7 @@ export default function PartnerApplicationRejected({
             ) : null}
 
             {notes ? (
-              <Text className="text-sm leading-6 text-neutral-600">
+              <Text className="whitespace-pre-line text-sm leading-6 text-neutral-600">
                 <strong>Additional notes:</strong>
                 <br />
                 {notes}
