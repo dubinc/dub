@@ -4,7 +4,10 @@ import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-applica
 import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
 import { prisma } from "@dub/prisma";
-import { ProgramEnrollmentStatus } from "@dub/prisma/client";
+import {
+  ProgramApplicationRejectionReason,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -74,21 +77,47 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const { count } = await prisma.programEnrollment.updateMany({
-    where: {
-      id: programEnrollment.id,
-      status: ProgramEnrollmentStatus.pending,
-    },
-    data: {
-      status: ProgramEnrollmentStatus.rejected,
-      clickRewardId: null,
-      leadRewardId: null,
-      saleRewardId: null,
-      discountId: null,
-    },
+  const { skipped } = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.programEnrollment.updateMany({
+      where: {
+        id: programEnrollment.id,
+        status: ProgramEnrollmentStatus.pending,
+      },
+      data: {
+        status: ProgramEnrollmentStatus.rejected,
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        discountId: null,
+      },
+    });
+
+    if (count === 0) {
+      return {
+        skipped: true,
+      };
+    }
+
+    if (programEnrollment.applicationId) {
+      await tx.programApplication.update({
+        where: {
+          id: programEnrollment.applicationId,
+        },
+        data: {
+          reviewedAt: new Date(),
+          rejectionReason:
+            ProgramApplicationRejectionReason.doesNotMeetRequirements,
+          rejectionNote: null,
+        },
+      });
+    }
+
+    return {
+      skipped: false,
+    };
   });
 
-  if (count === 0) {
+  if (skipped) {
     return logAndRespond(
       `Partner ${partnerId} is no longer pending in program ${programId}. Skipping auto-reject.`,
     );
