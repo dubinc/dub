@@ -1,10 +1,13 @@
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { prisma } from "@dub/prisma";
 
 // Mark the commissions as canceled
 export async function cancelCommissions({
+  workspaceId,
   programId,
   partnerId,
 }: {
+  workspaceId: string;
   programId: string;
   partnerId: string;
 }) {
@@ -34,6 +37,9 @@ export async function cancelCommissions({
         },
         select: {
           id: true,
+          amount: true,
+          earnings: true,
+          status: true,
         },
         orderBy: {
           id: "asc",
@@ -54,6 +60,13 @@ export async function cancelCommissions({
         data: {
           status: "canceled",
         },
+      });
+
+      await trackCommissionStatusUpdate({
+        workspaceId,
+        programId,
+        commissions,
+        newStatus: "canceled",
       });
 
       canceledCommissions += count;

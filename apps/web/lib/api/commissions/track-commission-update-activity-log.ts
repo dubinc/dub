@@ -2,7 +2,8 @@ import {
   trackActivityLog,
   type TrackActivityLogInput,
 } from "@/lib/api/activity-log/track-activity-log";
-import type { Commission } from "@dub/prisma/client";
+import type { Commission, CommissionStatus } from "@dub/prisma/client";
+import { groupBy } from "@dub/utils";
 import { getResourceDiff } from "../activity-log/get-resource-diff";
 
 interface TrackActivityLogParams
@@ -10,8 +11,8 @@ interface TrackActivityLogParams
     TrackActivityLogInput,
     "action" | "changeSet" | "resourceType" | "batchId" | "resourceId"
   > {
-  old: Commission[] | null;
-  new: Commission[] | null;
+  old: Pick<Commission, "id" | "amount" | "earnings" | "status">[] | null;
+  new: Pick<Commission, "id" | "amount" | "earnings" | "status">[] | null;
 }
 
 const COMMISSION_ACTIVITY_FIELDS = ["amount", "earnings", "status"];
@@ -70,4 +71,81 @@ export async function trackCommissionActivityLog({
   }
 
   return await trackActivityLog(activityLogs);
+}
+
+// Track activity logs for commissions that are all being updated to the same new status.
+// Useful for bulk operations like aggregate-due-commissions, ban/unban, payouts, etc.
+export async function trackCommissionStatusUpdate({
+  commissions,
+  newStatus,
+  ...baseInput
+}: {
+  commissions: Pick<Commission, "id" | "amount" | "earnings" | "status">[];
+  newStatus: CommissionStatus;
+} & Pick<TrackActivityLogInput, "workspaceId" | "programId" | "userId">) {
+  if (commissions.length === 0) {
+    return;
+  }
+
+  return await trackActivityLog(
+    commissions.map((commission) => ({
+      ...baseInput,
+      resourceType: "commission",
+      resourceId: commission.id,
+      action: "commission.updated",
+      changeSet: {
+        commission: {
+          old: toCommissionActivitySnapshot(commission),
+          new: toCommissionActivitySnapshot({
+            amount: commission.amount,
+            earnings: commission.earnings,
+            status: newStatus,
+          }),
+        },
+      },
+    })),
+  );
+}
+
+// For payouts that may span multiple programs: resolve workspace from payouts, then
+// delegate to trackCommissionStatusUpdate once per program.
+export async function trackCommissionStatusUpdatesByProgram({
+  commissions,
+  payouts,
+  newStatus = "paid",
+}: {
+  commissions: Pick<
+    Commission,
+    "id" | "amount" | "earnings" | "status" | "programId"
+  >[];
+  payouts: Array<{ program: { id: string; workspaceId: string } }>;
+  newStatus?: CommissionStatus;
+}) {
+  if (commissions.length === 0) {
+    return;
+  }
+
+  const workspaceByProgram = new Map(
+    payouts.map((p) => [p.program.id, p.program.workspaceId]),
+  );
+
+  const commissionsByProgram = groupBy(commissions, (c) => c.programId);
+
+  for (const [programId, commissions] of Object.entries(commissionsByProgram)) {
+    const workspaceId = workspaceByProgram.get(programId);
+
+    if (!workspaceId) {
+      console.error(
+        `Workspace not found for program ${programId}. Skipping...`,
+      );
+      continue;
+    }
+
+    await trackCommissionStatusUpdate({
+      workspaceId,
+      programId,
+      commissions,
+      newStatus,
+    });
+  }
 }
