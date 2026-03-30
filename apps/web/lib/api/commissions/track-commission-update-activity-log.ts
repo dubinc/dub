@@ -14,16 +14,15 @@ interface TrackActivityLogParams
   new: Commission[] | null;
 }
 
-const COMMISSION_ACTIVITY_FIELDS = ["amount", "earnings", "status", "currency"];
+const COMMISSION_ACTIVITY_FIELDS = ["amount", "earnings", "status"];
 
 function toCommissionActivitySnapshot(
-  commission: Pick<Commission, "amount" | "earnings" | "status" | "currency">,
+  commission: Pick<Commission, "amount" | "earnings" | "status">,
 ) {
   return {
     amount: commission.amount,
     earnings: commission.earnings,
     status: commission.status,
-    currency: commission.currency,
   };
 }
 
