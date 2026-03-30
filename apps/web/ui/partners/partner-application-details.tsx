@@ -9,28 +9,24 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { formatApplicationFormData } from "../../lib/partners/format-application-form-data";
 
-type ApplicationHistoryItem = {
-  id: string;
-  createdAt: string;
-  reviewedAt: string | null;
-};
-
 type ApplicationHistoryResponse = {
-  applications: ApplicationHistoryItem[];
+  applications: {
+    id: string;
+    createdAt: string;
+    reviewedAt: string | null;
+  }[];
 };
-
-function hasApplicationReviewData(application: ProgramApplication) {
-  return Boolean(
-    application.rejectionReason || application.rejectionNote?.trim(),
-  );
-}
 
 function PartnerApplicationReviewOutcome({
   application,
 }: {
   application: ProgramApplication;
 }) {
-  if (!hasApplicationReviewData(application)) {
+  const hasApplicationReviewData = Boolean(
+    application.rejectionReason || application.rejectionNote?.trim(),
+  );
+
+  if (!hasApplicationReviewData) {
     return null;
   }
 
@@ -99,13 +95,13 @@ export function PartnerApplicationDetails({
     string | null
   >(null);
 
-  const historyKey =
-    program && workspaceId && partnerId
-      ? `/api/programs/${program.id}/applications/history?partnerId=${encodeURIComponent(partnerId)}&workspaceId=${workspaceId}`
-      : null;
-
   const { data: historyData, isLoading: historyLoading } =
-    useSWR<ApplicationHistoryResponse>(historyKey, fetcher);
+    useSWR<ApplicationHistoryResponse>(
+      program && workspaceId && partnerId
+        ? `/api/programs/${program.id}/applications/history?partnerId=${encodeURIComponent(partnerId)}&workspaceId=${workspaceId}`
+        : null,
+      fetcher,
+    );
 
   const historyItems = historyData?.applications ?? [];
 
