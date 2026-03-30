@@ -58,6 +58,7 @@ export const crawlBitly = async (req: NextRequest) => {
                   },
                   data: {
                     linksUsage: { increment: 1 },
+                    totalLinks: { increment: 1 },
                   },
                 }),
               ]),

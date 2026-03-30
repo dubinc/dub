@@ -12,13 +12,11 @@ import { usePayoutConnectFlow } from "./use-payout-connect-flow";
 interface ConnectPayoutButtonProps extends ButtonProps {
   payoutMethod?: PartnerPayoutMethod;
   connected?: boolean;
-  allowWhenPayoutsEnabled?: boolean;
 }
 
 export function ConnectPayoutButton({
   payoutMethod,
   connected,
-  allowWhenPayoutsEnabled,
   ...props
 }: ConnectPayoutButtonProps) {
   const { partner, availablePayoutMethods } = usePartnerProfile();
@@ -57,10 +55,6 @@ export function ConnectPayoutButton({
   );
 
   if (partner && !hasPermission(partner.role, "payout_settings.update")) {
-    return null;
-  }
-
-  if (partner?.payoutsEnabledAt && !allowWhenPayoutsEnabled) {
     return null;
   }
 

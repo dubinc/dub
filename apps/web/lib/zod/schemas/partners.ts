@@ -8,6 +8,7 @@ import {
   PartnerProfileType,
   PlatformType,
   PreferredEarningStructure,
+  ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@dub/prisma/client";
@@ -867,15 +868,27 @@ export const bulkApprovePartnersSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
+/** Max length for optional `rejectionNote` on `ProgramApplication`. */
+export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 5000;
+
 export const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  reportFraud: z
+  rejectionReason: z.enum(ProgramApplicationRejectionReason).optional(),
+  rejectionNote: z
+    .string()
+    .max(PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH)
+    .optional()
+    .transform((s) => {
+      const t = s?.trim();
+      return t === "" ? undefined : t;
+    }),
+  allowImmediateReapply: z
     .boolean()
     .optional()
     .default(false)
     .describe(
-      "Whether to report this partner for suspected fraud to help keep the network safe.",
+      "When true, pending enrollment is removed so the partner can submit a new application immediately",
     ),
 });
 
@@ -886,13 +899,6 @@ export const bulkRejectPartnersSchema = z.object({
     .max(100)
     .min(1)
     .transform((v) => [...new Set(v)]),
-  reportFraud: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      "Whether to report these partners for suspected fraud to help keep the network safe.",
-    ),
 });
 
 export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;

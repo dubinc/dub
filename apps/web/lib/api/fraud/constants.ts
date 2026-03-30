@@ -39,15 +39,6 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
 
   // Partner rules
   {
-    type: "partnerFraudReport",
-    name: "Fraud report",
-    description:
-      "This partner was rejected from another program due to suspected fraud during their application.",
-    scope: "partner",
-    severity: "high",
-    configurable: true,
-  },
-  {
     type: "partnerCrossProgramBan",
     name: "Cross-program ban",
     description:

@@ -33,16 +33,12 @@ function PartnerProfileSheetContent({ partner }: PartnerProfileSheetProps) {
           <h3 className="text-content-emphasis text-lg font-semibold">About</h3>
           <PartnerAbout partner={partner} />
 
-          {partner.applicationId && (
-            <div className="border-border-subtle border-t pt-6">
-              <h3 className="text-content-emphasis mb-6 text-lg font-semibold">
-                Application
-              </h3>
-              <PartnerApplicationDetails
-                applicationId={partner.applicationId}
-              />
-            </div>
-          )}
+          <div className="border-border-subtle border-t pt-6">
+            <PartnerApplicationDetails
+              partnerId={partner.id}
+              preferredApplicationId={partner.applicationId ?? null}
+            />
+          </div>
         </div>
       </div>
     </div>

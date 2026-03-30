@@ -44,7 +44,7 @@ export function BarList({
   onClearFilter,
   onClearSelection,
   onApplyFilterValues,
-  onImmediateFilter,
+  onRowFilterItem,
 }: {
   tab: string;
   unit: string;
@@ -79,7 +79,7 @@ export function BarList({
   onClearFilter?: () => void;
   onClearSelection?: () => void;
   onApplyFilterValues?: (values: string[]) => void;
-  onImmediateFilter?: (value: string) => void;
+  onRowFilterItem?: (value: string) => void;
 }) {
   const [search, setSearch] = useState("");
   const [modalSelectedValues, setModalSelectedValues] = useState<string[]>(
@@ -164,13 +164,13 @@ export function BarList({
           : undefined
       : undefined,
     onRowClick:
-      data.filterValue && onImmediateFilter
+      data.filterValue && onRowFilterItem
         ? !limit
           ? () => {
-              onImmediateFilter(data.filterValue!);
+              onRowFilterItem(data.filterValue!);
               setShowModal(false);
             }
-          : () => onImmediateFilter(data.filterValue!)
+          : () => onRowFilterItem(data.filterValue!)
         : undefined,
   }));
 

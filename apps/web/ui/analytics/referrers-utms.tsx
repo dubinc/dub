@@ -78,9 +78,12 @@ export function ReferrersUTMs() {
   const onApplyFilterValues = useCallback(
     (values: string[]) => {
       if (values.length === 0) {
-        queryParams({ del: singularTabName });
+        queryParams({ del: singularTabName, scroll: false });
       } else {
-        queryParams({ set: { [singularTabName]: values.join(",") } });
+        queryParams({
+          set: { [singularTabName]: values.join(",") },
+          scroll: false,
+        });
       }
       setSelectedItems([]);
     },
@@ -216,7 +219,7 @@ export function ReferrersUTMs() {
                 onClearFilter={onClearFilter}
                 onClearSelection={() => setSelectedItems([])}
                 onApplyFilterValues={onApplyFilterValues}
-                onImmediateFilter={(val) => onApplyFilterValues([val])}
+                onRowFilterItem={(val) => onApplyFilterValues([val])}
                 {...(limit && { limit })}
               />
             ) : (

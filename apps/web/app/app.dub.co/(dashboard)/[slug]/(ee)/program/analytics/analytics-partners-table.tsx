@@ -59,6 +59,7 @@ export function AnalyticsPartnersTable() {
     queryParams({
       set: { partnerId: stagedPartnerIds.join(",") },
       del: "page",
+      scroll: false,
     });
     setStagedPartnerIds(null);
   }, [queryParams, stagedPartnerIds]);
@@ -66,7 +67,7 @@ export function AnalyticsPartnersTable() {
   const clearFilter = useCallback(() => {
     setStagedPartnerIds(null);
     if (searchParams.has("partnerId")) {
-      queryParams({ del: ["partnerId", "page"] });
+      queryParams({ del: ["partnerId", "page"], scroll: false });
     }
   }, [queryParams, searchParams]);
 
@@ -116,7 +117,7 @@ export function AnalyticsPartnersTable() {
               isApplied={activePartnerIdsFromUrl.includes(partnerId)}
               onToggle={() => toggleStagePartner(partnerId)}
               onApplyImmediate={() => {
-                queryParams({ set: { partnerId }, del: "page" });
+                queryParams({ set: { partnerId }, del: "page", scroll: false });
                 setStagedPartnerIds(null);
               }}
             />

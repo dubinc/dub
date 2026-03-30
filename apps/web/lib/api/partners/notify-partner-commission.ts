@@ -13,7 +13,7 @@ import {
   Project,
   User,
 } from "@dub/prisma/client";
-import { chunk } from "@dub/utils";
+import { chunk, currencyFormatter } from "@dub/utils";
 
 // Send email to partner and program owners when a commission is created
 export async function notifyPartnerCommission({
@@ -136,7 +136,7 @@ export async function notifyPartnerCommission({
     ...partnerEmailsToNotify.map(
       (email) =>
         ({
-          subject: "You just made a commission via Dub Partners!",
+          subject: `You've made a ${currencyFormatter(commission.earnings)} commission from ${program.name}`,
           variant: "notifications",
           to: email,
           replyTo: program.supportEmail || "noreply",
@@ -151,7 +151,7 @@ export async function notifyPartnerCommission({
       ? workspaceUsers.map(
           ({ user }) =>
             ({
-              subject: `New customer referred by ${partner.name}`,
+              subject: `New ${currencyFormatter(commission.amount)} sale referred by ${partner.name}`,
               variant: "notifications",
               to: user.email!,
               react: NewSaleAlertProgramOwner({

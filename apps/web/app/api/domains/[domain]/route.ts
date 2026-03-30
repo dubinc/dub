@@ -49,7 +49,11 @@ export const PATCH = withWorkspace(
       domain: params.domain,
       dubDomainChecks: true,
     });
-    const { slug: domain, registeredDomain, partnerProgram } = existingDomain;
+    const {
+      slug: currentDomain,
+      registeredDomain,
+      partnerProgram,
+    } = existingDomain;
 
     const {
       slug: newDomain,
@@ -93,10 +97,10 @@ export const PATCH = withWorkspace(
       }
     }
 
-    const domainUpdated =
-      newDomain && newDomain.toLowerCase() !== domain.toLowerCase();
+    const domainChanged =
+      newDomain && newDomain.toLowerCase() !== currentDomain.toLowerCase();
 
-    if (domainUpdated) {
+    if (domainChanged) {
       if (registeredDomain) {
         throw new DubApiError({
           code: "forbidden",
@@ -136,7 +140,7 @@ export const PATCH = withWorkspace(
         id: existingDomain.id,
       },
       data: {
-        ...(domainUpdated && { slug: newDomain }),
+        ...(domainChanged && { slug: newDomain }),
         archived,
         placeholder,
         expiredUrl,
@@ -181,7 +185,7 @@ export const PATCH = withWorkspace(
         if (autoRenew === false) {
           waitUntil(
             setRenewOption({
-              domain,
+              domain: currentDomain,
               autoRenew,
             }),
           );
@@ -198,14 +202,14 @@ export const PATCH = withWorkspace(
           });
         }
 
-        if (domainUpdated) {
+        if (domainChanged) {
           await Promise.all([
             // remove old domain from Vercel
-            removeDomainFromVercel(domain),
+            removeDomainFromVercel(currentDomain),
 
             // trigger the queue to rename the redis keys and update the links in Tinybird
             queueDomainUpdate({
-              oldDomain: domain,
+              oldDomain: currentDomain,
               newDomain: newDomain,
               ...(partnerProgram && { programId: partnerProgram.id }),
             }),
@@ -217,7 +221,7 @@ export const PATCH = withWorkspace(
                       id: partnerProgram.id,
                     },
                     data: {
-                      domain,
+                      domain: newDomain,
                     },
                   }),
                   prisma.partnerGroupDefaultLink.updateMany({
@@ -225,35 +229,40 @@ export const PATCH = withWorkspace(
                       programId: partnerProgram.id,
                     },
                     data: {
-                      domain,
+                      domain: newDomain,
                     },
                   }),
                 ]
               : []),
           ]);
-        }
 
-        // invalidate static / isr cached for notfound links
-        if (
-          notFoundUrl !== undefined &&
-          notFoundUrl !== existingDomain.notFoundUrl
-        ) {
-          revalidateTag(`static:${domain.toLowerCase()}`);
-          revalidatePath(`/${domain.toLowerCase()}/notfound`);
-        }
+          // only need to run invalidations on currentDomain if domain was not changed
+        } else {
+          // invalidate static / isr cached for notfound links
+          if (
+            notFoundUrl !== undefined &&
+            notFoundUrl !== existingDomain.notFoundUrl
+          ) {
+            revalidateTag(`static:${currentDomain.toLowerCase()}`);
+            revalidatePath(`/${currentDomain.toLowerCase()}/notfound`);
+          }
 
-        // invalidate static / isr cached for expired links
-        if (
-          expiredUrl !== undefined &&
-          expiredUrl !== existingDomain.expiredUrl
-        ) {
-          revalidateTag(`static:${domain.toLowerCase()}`);
-          revalidatePath(`/${domain.toLowerCase()}/expired`);
-        }
+          // invalidate static / isr cached for expired links
+          if (
+            expiredUrl !== undefined &&
+            expiredUrl !== existingDomain.expiredUrl
+          ) {
+            revalidateTag(`static:${currentDomain.toLowerCase()}`);
+            revalidatePath(`/${currentDomain.toLowerCase()}/expired`);
+          }
 
-        // invalidate wellknown cache if any of the wellknown files have changed
-        if (appleAppSiteAssociation !== undefined || assetLinks !== undefined) {
-          revalidateTag(`wellknown:${domain.toLowerCase()}`);
+          // invalidate wellknown cache if any of the wellknown files have changed
+          if (
+            appleAppSiteAssociation !== undefined ||
+            assetLinks !== undefined
+          ) {
+            revalidateTag(`wellknown:${currentDomain.toLowerCase()}`);
+          }
         }
       })(),
     );
