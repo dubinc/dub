@@ -105,6 +105,9 @@ export function PartnerApplicationDetails({
 
   const historyItems = historyData?.applications ?? [];
 
+  const resolvedApplicationId =
+    selectedApplicationId ?? preferredApplicationId ?? null;
+
   useEffect(() => {
     if (historyLoading || !historyData) {
       return;
@@ -135,8 +138,8 @@ export function PartnerApplicationDetails({
   const applicationKey =
     program &&
     workspaceId &&
-    selectedApplicationId &&
-    `/api/programs/${program.id}/applications/${selectedApplicationId}?workspaceId=${workspaceId}`;
+    resolvedApplicationId &&
+    `/api/programs/${program.id}/applications/${resolvedApplicationId}?workspaceId=${workspaceId}`;
 
   const { data: application, isLoading: applicationLoading } =
     useSWR<ProgramApplication>(applicationKey, fetcher);
@@ -151,14 +154,14 @@ export function PartnerApplicationDetails({
   );
 
   const selectedComboboxOption = useMemo(() => {
-    if (!selectedApplicationId) {
+    if (!resolvedApplicationId) {
       return null;
     }
     return (
-      applicationSelectOptions.find((o) => o.value === selectedApplicationId) ??
+      applicationSelectOptions.find((o) => o.value === resolvedApplicationId) ??
       null
     );
-  }, [applicationSelectOptions, selectedApplicationId]);
+  }, [applicationSelectOptions, resolvedApplicationId]);
 
   const setSelectedFromCombobox = useCallback(
     (option: ComboboxOption | null) => {
@@ -203,7 +206,7 @@ export function PartnerApplicationDetails({
     );
   }
 
-  if (!selectedApplicationId) {
+  if (!resolvedApplicationId) {
     return (
       <div className="grid grid-cols-1 gap-4">
         <h3 className="text-content-emphasis text-lg font-semibold">
