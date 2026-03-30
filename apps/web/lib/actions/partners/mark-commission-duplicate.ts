@@ -30,6 +30,7 @@ export const markCommissionDuplicateAction = authActionClient
     const commission = await updatePartnerCommission({
       programId,
       commissionId,
+      userId: user.id,
       status: "duplicate",
       currency: "usd",
     });

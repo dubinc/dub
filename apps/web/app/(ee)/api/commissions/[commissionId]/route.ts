@@ -113,6 +113,7 @@ export const PATCH = withWorkspace(
     const updatedCommission = await updatePartnerCommission({
       programId,
       commissionId,
+      userId: session.user.id,
       saleAmount: saleAmount ?? amount,
       modifySaleAmount: modifySaleAmount ?? modifyAmount,
       currency,

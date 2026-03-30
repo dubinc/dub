@@ -1,7 +1,10 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { getResourceDiff } from "@/lib/api/activity-log/get-resource-diff";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { updateCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
+import { Commission } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
@@ -10,20 +13,27 @@ import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-
 import { calculateSaleEarnings } from "../sales/calculate-sale-earnings";
 
 type UpdatePartnerCommissionProps = z.infer<typeof updateCommissionSchema> & {
-  // workspaceId: string;
   programId: string;
   commissionId: string;
-  // user: Session["user"];
+  userId?: string;
 };
 
 // TODO:
-// Track activity log
-// Send email to partners
+// Send email to partners about the commission update
+
+const COMMISSION_ACTIVITY_FIELDS = [
+  "amount",
+  "earnings",
+  "status",
+  "payoutId",
+  "currency",
+] as const;
 
 export async function updatePartnerCommission({
   programId,
   commissionId,
   status,
+  userId,
 
   // Sale commission fields
   saleAmount,
@@ -38,6 +48,11 @@ export async function updatePartnerCommission({
       id: commissionId,
     },
     include: {
+      program: {
+        select: {
+          workspaceId: true,
+        },
+      },
       payout: {
         select: {
           id: true,
@@ -58,8 +73,6 @@ export async function updatePartnerCommission({
       message: `Commission ${commissionId} not found.`,
     });
   }
-
-  console.log("Commission to update", commission);
 
   if (commission.status === "paid") {
     throw new DubApiError({
@@ -166,14 +179,6 @@ export async function updatePartnerCommission({
     finalEarnings = earnings;
   }
 
-  console.log("New values", {
-    finalSaleAmount,
-    finalEarnings,
-    originalSaleAmount,
-    originalEarnings,
-    status,
-  });
-
   const isRefunded = finalSaleAmount === 0 || finalEarnings === 0;
 
   const updatedCommission = await prisma.commission.update({
@@ -191,6 +196,7 @@ export async function updatePartnerCommission({
     },
     include: {
       customer: true,
+      partner: true,
     },
   });
 
@@ -199,12 +205,34 @@ export async function updatePartnerCommission({
     await reconcilePayoutAmount(commission.payoutId);
   }
 
+  const changeSet = userId
+    ? getResourceDiff(
+        toCommissionActivitySnapshot(commission),
+        toCommissionActivitySnapshot(updatedCommission),
+        { fields: [...COMMISSION_ACTIVITY_FIELDS] },
+      )
+    : null;
+
   waitUntil(
     Promise.allSettled([
       syncTotalCommissions({
         partnerId: commission.partnerId,
         programId: commission.programId,
       }),
+      ...(changeSet && userId
+        ? [
+            trackActivityLog({
+              workspaceId: commission.program.workspaceId,
+              programId,
+              resourceType: "commission",
+              resourceId: commission.id,
+              userId,
+              action: "commission.updated",
+              description: `Commission ${commission.id} updated`,
+              changeSet,
+            }),
+          ]
+        : []),
     ]),
   );
 
@@ -254,4 +282,20 @@ async function reconcilePayoutAmount(payoutId: string) {
       `[reconcilePayoutAmount] Updated payout amount for payout ${payoutId} to ${newPayoutAmount}`,
     );
   });
+}
+
+// Convert the commission to a snapshot for the activity log
+function toCommissionActivitySnapshot(
+  row: Pick<
+    Commission,
+    "amount" | "earnings" | "status" | "payoutId" | "currency"
+  >,
+) {
+  return {
+    amount: row.amount,
+    earnings: row.earnings,
+    status: row.status,
+    payoutId: row.payoutId,
+    currency: row.currency,
+  };
 }
