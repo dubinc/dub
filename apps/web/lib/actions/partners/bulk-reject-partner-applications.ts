@@ -43,42 +43,44 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
       return;
     }
 
-    await prisma.programEnrollment.updateMany({
-      where: {
-        id: {
-          in: programEnrollments.map(({ id }) => id),
-        },
-      },
-      data: {
-        status: ProgramEnrollmentStatus.rejected,
-        clickRewardId: null,
-        leadRewardId: null,
-        saleRewardId: null,
-        discountId: null,
-      },
-    });
-
     const applicationIds = programEnrollments
       .map(({ applicationId }) => applicationId)
       .filter((id): id is string => Boolean(id));
 
-    if (applicationIds.length > 0) {
-      const reviewedAt = new Date();
+    const reviewedAt = new Date();
 
-      await prisma.programApplication.updateMany({
+    await prisma.$transaction(async (tx) => {
+      await tx.programEnrollment.updateMany({
         where: {
           id: {
-            in: applicationIds,
+            in: programEnrollments.map(({ id }) => id),
           },
         },
         data: {
-          reviewedAt,
-          rejectionReason: null,
-          rejectionNote: null,
-          userId: user.id,
+          status: ProgramEnrollmentStatus.rejected,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
+          discountId: null,
         },
       });
-    }
+
+      if (applicationIds.length > 0) {
+        await tx.programApplication.updateMany({
+          where: {
+            id: {
+              in: applicationIds,
+            },
+          },
+          data: {
+            reviewedAt,
+            rejectionReason: null,
+            rejectionNote: null,
+            userId: user.id,
+          },
+        });
+      }
+    });
 
     waitUntil(
       Promise.allSettled([
