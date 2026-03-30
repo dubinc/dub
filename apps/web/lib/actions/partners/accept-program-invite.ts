@@ -1,6 +1,6 @@
 "use server";
 
-import { throwIfPartnerEnrollmentTrialCapExceeded } from "@/lib/partners/assert-partner-enrollment-trial-cap";
+import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -28,7 +28,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
     });
 
-    await throwIfPartnerEnrollmentTrialCapExceeded({
+    await throwIfTrialProgramEnrollmentLimitExceeded({
       programId,
       additionalApproved: 1,
       trialEndsAt: program.workspace.trialEndsAt,

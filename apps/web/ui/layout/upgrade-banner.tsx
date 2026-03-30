@@ -5,7 +5,7 @@ import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-mod
 import { Crown } from "@dub/ui";
 import {
   cn,
-  getTrialLimitKindForOverageBanner,
+  getTrialLimitResourceForOverageBanner,
   isWorkspaceBillingTrialActive,
 } from "@dub/utils";
 import { motion } from "motion/react";
@@ -28,7 +28,7 @@ export function UpgradeBanner() {
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const needsUpgrade = exceededEvents || exceededLinks || exceededPayouts;
-  const overageLimitKind = getTrialLimitKindForOverageBanner({
+  const overageLimitResource = getTrialLimitResourceForOverageBanner({
     exceededEvents: Boolean(exceededEvents),
     exceededLinks: Boolean(exceededLinks),
     exceededPayouts: Boolean(exceededPayouts),
@@ -77,7 +77,7 @@ export function UpgradeBanner() {
           trialActive ? (
             <button
               type="button"
-              onClick={() => openTrialLimitModal(overageLimitKind)}
+              onClick={() => openTrialLimitModal(overageLimitResource)}
               className={cn(
                 "bg-bg-default text-content-emphasis border-border-subtle ml-4 flex h-7 items-center justify-center rounded-lg border px-2.5 text-sm font-medium",
                 "hover:bg-bg-subtle transition-colors duration-150",

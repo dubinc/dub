@@ -1,8 +1,8 @@
 import type { PlanDetails } from "./pricing-plans";
 
-export const TRIAL_PARTNER_ENROLLMENT_CAP = 100;
+export const TRIAL_PROGRAM_ENROLLMENT_LIMIT = 100;
 
-export const TRIAL_CAPS = {
+export const TRIAL_LIMITS = {
   links: 100,
   clicks: 5_000,
   payouts: 0,
@@ -17,12 +17,12 @@ export const TRIAL_CAPS = {
   analyticsApi: 2,
 } as const;
 
-export type TrialLimitKind =
-  | keyof typeof TRIAL_CAPS
+export type TrialLimitResource =
+  | keyof typeof TRIAL_LIMITS
   | "partnerEnrollments"
   | "dublink";
 
-export const TRIAL_LIMIT_FEATURE_PHRASES: Record<TrialLimitKind, string> = {
+export const TRIAL_LIMIT_FEATURE_PHRASES: Record<TrialLimitResource, string> = {
   links: "create more links",
   clicks: "track more events",
   payouts: "send a payout",
@@ -39,11 +39,11 @@ export const TRIAL_LIMIT_FEATURE_PHRASES: Record<TrialLimitKind, string> = {
   dublink: "claim a fee .link domain",
 };
 
-export function getTrialLimitFeaturePhrase(kind: TrialLimitKind): string {
+export function getTrialLimitFeaturePhrase(kind: TrialLimitResource): string {
   return TRIAL_LIMIT_FEATURE_PHRASES[kind];
 }
 
-export function getTrialLimitKindForOverageBanner({
+export function getTrialLimitResourceForOverageBanner({
   exceededEvents,
   exceededLinks,
   exceededPayouts,
@@ -51,7 +51,7 @@ export function getTrialLimitKindForOverageBanner({
   exceededEvents: boolean;
   exceededLinks: boolean;
   exceededPayouts: boolean;
-}): TrialLimitKind {
+}): TrialLimitResource {
   if (exceededEvents) return "clicks";
   if (exceededLinks) return "links";
   if (exceededPayouts) return "payouts";
@@ -83,15 +83,15 @@ export function getWorkspaceLimitsForStripeSubscriptionStatus({
 
   return {
     ...planLimits,
-    links: TRIAL_CAPS.links,
-    clicks: TRIAL_CAPS.clicks,
-    payouts: TRIAL_CAPS.payouts,
-    users: TRIAL_CAPS.users,
-    domains: TRIAL_CAPS.domains,
-    tags: TRIAL_CAPS.tags,
-    folders: TRIAL_CAPS.folders,
-    groups: TRIAL_CAPS.groups,
-    networkInvites: TRIAL_CAPS.networkInvites,
-    ai: TRIAL_CAPS.ai,
+    links: TRIAL_LIMITS.links,
+    clicks: TRIAL_LIMITS.clicks,
+    payouts: TRIAL_LIMITS.payouts,
+    users: TRIAL_LIMITS.users,
+    domains: TRIAL_LIMITS.domains,
+    tags: TRIAL_LIMITS.tags,
+    folders: TRIAL_LIMITS.folders,
+    groups: TRIAL_LIMITS.groups,
+    networkInvites: TRIAL_LIMITS.networkInvites,
+    ai: TRIAL_LIMITS.ai,
   };
 }

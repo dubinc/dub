@@ -2,14 +2,14 @@ import { DubApiError } from "@/lib/api/errors";
 import { prisma } from "@dub/prisma";
 import {
   isWorkspaceBillingTrialActive,
-  TRIAL_PARTNER_ENROLLMENT_CAP,
+  TRIAL_PROGRAM_ENROLLMENT_LIMIT,
 } from "@dub/utils";
 
 /**
- * Caps approved enrollments per program while the workspace billing trial is active.
+ * Limits approved enrollments per program while the workspace billing trial is active.
  * Pass `trialEndsAt` from an already-loaded workspace so non-trial paths skip the count query.
  */
-export async function throwIfPartnerEnrollmentTrialCapExceeded({
+export async function throwIfTrialProgramEnrollmentLimitExceeded({
   programId,
   additionalApproved = 1,
   trialEndsAt,
@@ -29,10 +29,10 @@ export async function throwIfPartnerEnrollmentTrialCapExceeded({
     },
   });
 
-  if (approvedCount + additionalApproved > TRIAL_PARTNER_ENROLLMENT_CAP) {
+  if (approvedCount + additionalApproved > TRIAL_PROGRAM_ENROLLMENT_LIMIT) {
     throw new DubApiError({
       code: "forbidden",
-      message: `During your free trial you can have at most ${TRIAL_PARTNER_ENROLLMENT_CAP} enrolled partners. Upgrade to add more.`,
+      message: `During your free trial you can have at most ${TRIAL_PROGRAM_ENROLLMENT_LIMIT} enrolled partners. Upgrade to add more.`,
     });
   }
 }

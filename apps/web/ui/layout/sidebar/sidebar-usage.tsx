@@ -20,7 +20,7 @@ import {
   INFINITY_NUMBER,
   isWorkspaceBillingTrialActive,
   nFormatter,
-  TRIAL_PARTNER_ENROLLMENT_CAP,
+  TRIAL_PROGRAM_ENROLLMENT_LIMIT,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { ChevronRight } from "lucide-react";
@@ -174,7 +174,7 @@ function UsageInner() {
                   icon={Users}
                   label="Partners"
                   usage={defaultProgramId ? partnersCount : 0}
-                  limit={TRIAL_PARTNER_ENROLLMENT_CAP}
+                  limit={TRIAL_PROGRAM_ENROLLMENT_LIMIT}
                   showNextPlan={false}
                   nextPlanLimit={undefined}
                   warning={false}

@@ -37,7 +37,10 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
-import { isWorkspaceBillingTrialActive, type TrialLimitKind } from "@dub/utils";
+import {
+  isWorkspaceBillingTrialActive,
+  type TrialLimitResource,
+} from "@dub/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
@@ -415,7 +418,7 @@ function ImportOption({
 }: {
   children: ReactNode;
   onClick: () => void;
-  openTrialLimitModal: (kind: TrialLimitKind) => void;
+  openTrialLimitModal: (resource: TrialLimitResource) => void;
 }) {
   const { slug, exceededLinks, plan, nextPlan, trialEndsAt } = useWorkspace();
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);

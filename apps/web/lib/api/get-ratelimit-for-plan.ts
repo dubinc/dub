@@ -1,7 +1,7 @@
 import {
   FREE_PLAN,
   PLANS,
-  TRIAL_CAPS,
+  TRIAL_LIMITS,
   isWorkspaceBillingTrialActive,
 } from "@dub/utils";
 
@@ -26,8 +26,8 @@ export const getRatelimitForWorkspace = ({
       ...base,
       limits: {
         ...base.limits,
-        api: TRIAL_CAPS.api,
-        analyticsApi: TRIAL_CAPS.analyticsApi,
+        api: TRIAL_LIMITS.api,
+        analyticsApi: TRIAL_LIMITS.analyticsApi,
       },
     };
   }

@@ -4,7 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
-import { throwIfPartnerEnrollmentTrialCapExceeded } from "@/lib/partners/assert-partner-enrollment-trial-cap";
+import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -47,7 +47,7 @@ export const bulkApprovePartnersAction = authActionClient
       groupId: groupId ?? program.defaultGroupId,
     });
 
-    await throwIfPartnerEnrollmentTrialCapExceeded({
+    await throwIfTrialProgramEnrollmentLimitExceeded({
       programId: program.id,
       additionalApproved: programEnrollments.length,
       trialEndsAt: workspace.trialEndsAt,

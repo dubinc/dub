@@ -5,7 +5,7 @@ import { Button, Modal, useRouterStuff } from "@dub/ui";
 import {
   getTrialLimitFeaturePhrase,
   isWorkspaceBillingTrialActive,
-  type TrialLimitKind,
+  type TrialLimitResource,
 } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -13,7 +13,7 @@ import { toast } from "sonner";
 /**
  * Colocate `useTrialLimitActivateModal` + `<TrialLimitActivateModal />` where you open the modal.
  *
- * Phrase mapping (`getTrialLimitFeaturePhrase` / `TrialLimitKind`):
+ * Phrase mapping (`getTrialLimitFeaturePhrase` / `TrialLimitResource`):
  * - links → link builder, import menu, upgrade banner
  * - clicks → program analytics / exceeded-events surfaces, upgrade banner
  * - payouts → upgrade banner when payouts over limit
@@ -26,17 +26,17 @@ import { toast } from "sonner";
 function TrialLimitActivateModalInner({
   showModal,
   setShowModal,
-  limitKind,
+  limitResource,
 }: {
   showModal: boolean;
   setShowModal: (open: boolean) => void;
-  limitKind: TrialLimitKind;
+  limitResource: TrialLimitResource;
 }) {
   const { id: workspaceId, plan, trialEndsAt, mutate } = useWorkspace();
   const { queryParams } = useRouterStuff();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const featurePhrase = getTrialLimitFeaturePhrase(limitKind);
+  const featurePhrase = getTrialLimitFeaturePhrase(limitResource);
 
   const trialEndLabel =
     trialEndsAt != null && isWorkspaceBillingTrialActive(trialEndsAt)
@@ -126,19 +126,20 @@ function TrialLimitActivateModalInner({
 
 export function useTrialLimitActivateModal() {
   const [showModal, setShowModal] = useState(false);
-  const [limitKind, setLimitKind] = useState<TrialLimitKind>("links");
+  const [limitResource, setLimitResource] =
+    useState<TrialLimitResource>("links");
 
-  const openTrialLimitModal = useCallback((kind: TrialLimitKind) => {
-    setLimitKind(kind);
+  const openTrialLimitModal = useCallback((resource: TrialLimitResource) => {
+    setLimitResource(resource);
     setShowModal(true);
   }, []);
 
   const setShowTrialLimitActivateModal = useCallback(
-    (value: boolean | { open: boolean; limitKind: TrialLimitKind }) => {
+    (value: boolean | { open: boolean; limitResource: TrialLimitResource }) => {
       if (typeof value === "boolean") {
         setShowModal(value);
       } else {
-        setLimitKind(value.limitKind);
+        setLimitResource(value.limitResource);
         setShowModal(value.open);
       }
     },
@@ -150,10 +151,10 @@ export function useTrialLimitActivateModal() {
       <TrialLimitActivateModalInner
         showModal={showModal}
         setShowModal={setShowModal}
-        limitKind={limitKind}
+        limitResource={limitResource}
       />
     );
-  }, [showModal, limitKind]);
+  }, [showModal, limitResource]);
 
   return useMemo(
     () => ({
