@@ -2,6 +2,7 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { updateCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
+import { Commission } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
@@ -9,7 +10,10 @@ import { syncTotalCommissions } from "../partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "../sales/calculate-sale-earnings";
 import { reconcilePayoutAmounts } from "./reconcile-payout-amounts";
-import { trackCommissionActivityLog } from "./track-commission-update-activity-log";
+import {
+  trackCommissionActivityLog,
+  trackCommissionStatusUpdate,
+} from "./track-commission-update-activity-log";
 
 type UpdatePartnerCommissionProps = z.infer<typeof updateCommissionSchema> & {
   workspaceId: string;
@@ -27,12 +31,10 @@ export async function updatePartnerCommission({
   commissionId,
   status,
   userId,
-
   // Sale commission fields
   saleAmount,
   modifySaleAmount,
   currency,
-
   // Custom commission fields
   earnings,
 }: UpdatePartnerCommissionProps) {
@@ -164,6 +166,7 @@ export async function updatePartnerCommission({
   }
 
   const isRefunded = finalSaleAmount === 0 || finalEarnings === 0;
+  const finalStatus = status ?? (isRefunded ? "refunded" : undefined);
 
   const updatedCommission = await prisma.commission.update({
     where: {
@@ -175,8 +178,8 @@ export async function updatePartnerCommission({
       // same goes for updating status to refunded, duplicate, canceled, or fraudulent
       amount: isRefunded ? undefined : finalSaleAmount,
       earnings: isRefunded ? undefined : finalEarnings,
-      status: status ?? (isRefunded ? "refunded" : undefined),
-      ...(status || isRefunded ? { payoutId: null } : {}),
+      status: finalStatus,
+      ...(finalStatus ? { payoutId: null } : {}),
     },
     include: {
       customer: true,
@@ -184,9 +187,64 @@ export async function updatePartnerCommission({
     },
   });
 
-  // If the commission has already been added to a payout, we need to update the payout amount
-  if (commission.status === "processed" && commission.payoutId) {
-    await reconcilePayoutAmounts([commission.payoutId]);
+  // For fraud/canceled on sale/lead commissions, also update all related
+  // historical commissions for the same customer + partner combination
+  let relatedCommissions: Pick<
+    Commission,
+    "id" | "amount" | "earnings" | "status" | "payoutId"
+  >[] = [];
+
+  if (
+    (finalStatus === "fraud" || finalStatus === "canceled") &&
+    (commission.type === "sale" || commission.type === "lead")
+  ) {
+    relatedCommissions = await prisma.commission.findMany({
+      where: {
+        partnerId: commission.partnerId,
+        customerId: commission.customerId,
+        status: {
+          in: ["pending", "processed"],
+        },
+        id: {
+          not: commission.id,
+        },
+      },
+      select: {
+        id: true,
+        amount: true,
+        earnings: true,
+        status: true,
+        payoutId: true,
+      },
+    });
+
+    if (relatedCommissions.length > 0) {
+      await prisma.commission.updateMany({
+        where: {
+          id: {
+            in: relatedCommissions.map(({ id }) => id),
+          },
+        },
+        data: {
+          status: finalStatus,
+          payoutId: null,
+        },
+      });
+    }
+  }
+
+  // Reconcile payout amounts for all affected payouts
+  const affectedPayoutIds = [
+    ...(commission.status === "processed" && commission.payoutId
+      ? [commission.payoutId]
+      : []),
+    ...relatedCommissions
+      .filter(({ payoutId }) => payoutId)
+      .map(({ payoutId }) => payoutId!),
+  ];
+
+  if (affectedPayoutIds.length > 0) {
+    await reconcilePayoutAmounts(affectedPayoutIds);
   }
 
   waitUntil(
@@ -203,6 +261,16 @@ export async function updatePartnerCommission({
         old: [commission],
         new: [updatedCommission],
       }),
+
+      relatedCommissions.length > 0
+        ? trackCommissionStatusUpdate({
+            workspaceId,
+            programId,
+            userId,
+            commissions: relatedCommissions,
+            newStatus: finalStatus!,
+          })
+        : Promise.resolve(),
     ]),
   );
 
