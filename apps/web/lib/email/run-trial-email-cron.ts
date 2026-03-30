@@ -4,13 +4,18 @@ import {
   getTrialEmailSubject,
 } from "@/lib/email/trial-email-schedule";
 import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
-import { sendEmail as defaultSendEmail } from "@dub/email";
+import { sendBatchEmail as defaultSendBatchEmail } from "@dub/email";
 import type { PrismaClient } from "@dub/prisma/client";
-import { APP_DOMAIN, log } from "@dub/utils";
+import { APP_DOMAIN, chunk, log } from "@dub/utils";
+
+const WORKSPACE_PAGE_SIZE = 50;
+const EMAIL_BATCH_SIZE = 100;
 
 export type RunTrialEmailCronResult = {
   sentCount: number;
   workspaceCount: number;
+  hasMore: boolean;
+  nextStartingAfter?: string;
 };
 
 /** Only the Prisma methods this cron uses (easy to mock in tests). */
@@ -19,14 +24,37 @@ export type TrialEmailCronPrisma = {
   sentEmail: Pick<PrismaClient["sentEmail"], "create">;
 };
 
+type SendBatchEmail = typeof defaultSendBatchEmail;
+
+function dedupeRecipients(
+  users: { user: { email: string | null; name: string | null } }[],
+): { email: string; name: string | null }[] {
+  const byEmail = new Map<string, { email: string; name: string | null }>();
+
+  for (const { user } of users) {
+    if (!user.email) {
+      continue;
+    }
+
+    const key = user.email.toLowerCase();
+    if (!byEmail.has(key)) {
+      byEmail.set(key, { email: user.email, name: user.name });
+    }
+  }
+
+  return [...byEmail.values()];
+}
+
 export async function runTrialEmailCron({
   now,
   prisma,
-  sendEmail = defaultSendEmail,
+  startingAfter,
+  sendBatchEmail = defaultSendBatchEmail,
 }: {
   now: Date;
   prisma: TrialEmailCronPrisma;
-  sendEmail?: typeof defaultSendEmail;
+  startingAfter?: string;
+  sendBatchEmail?: SendBatchEmail;
 }): Promise<RunTrialEmailCronResult> {
   const workspaces = await prisma.project.findMany({
     where: {
@@ -36,6 +64,16 @@ export async function runTrialEmailCron({
       plan: {
         not: "free",
       },
+    },
+    take: WORKSPACE_PAGE_SIZE,
+    skip: startingAfter ? 1 : 0,
+    ...(startingAfter && {
+      cursor: {
+        id: startingAfter,
+      },
+    }),
+    orderBy: {
+      id: "asc",
     },
     select: {
       id: true,
@@ -65,6 +103,11 @@ export async function runTrialEmailCron({
     },
   });
 
+  const hasMore = workspaces.length === WORKSPACE_PAGE_SIZE;
+  const nextStartingAfter = hasMore
+    ? workspaces[workspaces.length - 1]?.id
+    : undefined;
+
   let sentCount = 0;
 
   for (const workspace of workspaces) {
@@ -73,9 +116,8 @@ export async function runTrialEmailCron({
       continue;
     }
 
-    const owner = workspace.users[0]?.user;
-    const email = owner?.email;
-    if (!email) {
+    const recipients = dedupeRecipients(workspace.users);
+    if (recipients.length === 0) {
       continue;
     }
 
@@ -85,42 +127,67 @@ export async function runTrialEmailCron({
       sent,
       now,
     });
-
     if (due.length === 0) {
       continue;
     }
 
-    const unsubscribeUrl = `${APP_DOMAIN}/unsubscribe/${generateUnsubscribeToken(email)}`;
-    const name = owner.name;
-
     for (const type of due) {
-      try {
-        await sendEmail({
-          to: email,
-          replyTo: "steven.tey@dub.co",
-          subject: getTrialEmailSubject(type),
-          react: renderTrialEmail(type, {
-            email,
-            name,
-            unsubscribeUrl,
-            plan: workspace.plan,
-            workspaceSlug: workspace.slug,
-          }),
-          variant: "marketing",
-        });
+      const payloads = recipients.map((recipient) => ({
+        to: recipient.email,
+        replyTo: "steven.tey@dub.co",
+        subject: getTrialEmailSubject(type),
+        react: renderTrialEmail(type, {
+          email: recipient.email,
+          name: recipient.name,
+          unsubscribeUrl: `${APP_DOMAIN}/unsubscribe/${generateUnsubscribeToken(recipient.email)}`,
+          plan: workspace.plan,
+          workspaceSlug: workspace.slug,
+        }),
+        variant: "marketing" as const,
+      }));
 
-        await prisma.sentEmail.create({
-          data: {
-            projectId: workspace.id,
-            type,
-          },
-        });
-        sentCount++;
-      } catch (error) {
-        await log({
-          message: `Failed to send trial email *${type}* for workspace ${workspace.id}: ${error instanceof Error ? error.message : String(error)}`,
-          type: "errors",
-        });
+      let groupFailed = false;
+      const batches = chunk(payloads, EMAIL_BATCH_SIZE);
+      for (let i = 0; i < batches.length; i++) {
+        const batch = batches[i]!;
+        const pageKey = startingAfter ?? "start";
+        const idempotencyKey = `trial-emails/${workspace.id}/${type}/${pageKey}/c${i}`;
+
+        try {
+          const { error } = await sendBatchEmail(batch, { idempotencyKey });
+          if (error) {
+            groupFailed = true;
+            await log({
+              message: `Failed to send trial email batch *${type}* for workspace ${workspace.id}: ${String(error)}`,
+              type: "errors",
+            });
+            break;
+          }
+        } catch (error) {
+          groupFailed = true;
+          await log({
+            message: `Failed to send trial email batch *${type}* for workspace ${workspace.id}: ${error instanceof Error ? error.message : String(error)}`,
+            type: "errors",
+          });
+          break;
+        }
+      }
+
+      if (!groupFailed) {
+        try {
+          await prisma.sentEmail.create({
+            data: {
+              projectId: workspace.id,
+              type,
+            },
+          });
+          sentCount += payloads.length;
+        } catch (error) {
+          await log({
+            message: `Failed to record SentEmail for *${type}* workspace ${workspace.id}: ${error instanceof Error ? error.message : String(error)}`,
+            type: "errors",
+          });
+        }
       }
     }
   }
@@ -128,5 +195,7 @@ export async function runTrialEmailCron({
   return {
     sentCount,
     workspaceCount: workspaces.length,
+    hasMore,
+    ...(nextStartingAfter ? { nextStartingAfter } : {}),
   };
 }
