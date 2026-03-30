@@ -80,19 +80,6 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
       });
     }
 
-    await resolveFraudGroups({
-      where: {
-        programEnrollment: {
-          id: {
-            in: programEnrollments.map(({ id }) => id),
-          },
-        },
-      },
-      userId: user.id,
-      resolutionReason:
-        "Resolved automatically because the partner application was rejected.",
-    });
-
     waitUntil(
       Promise.allSettled([
         recordAuditLog(
@@ -111,6 +98,19 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
             ],
           })),
         ),
+
+        resolveFraudGroups({
+          where: {
+            programEnrollment: {
+              id: {
+                in: programEnrollments.map(({ id }) => id),
+              },
+            },
+          },
+          userId: user.id,
+          resolutionReason:
+            "Resolved automatically because the partner application was rejected.",
+        }),
       ]),
     );
   });
