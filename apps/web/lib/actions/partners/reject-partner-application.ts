@@ -52,8 +52,6 @@ export const rejectPartnerApplicationAction = authActionClient
       return;
     }
 
-    const reviewedAt = new Date();
-
     await prisma.$transaction(async (tx) => {
       if (programEnrollment.applicationId) {
         await tx.programApplication.update({
@@ -61,7 +59,7 @@ export const rejectPartnerApplicationAction = authActionClient
             id: programEnrollment.applicationId,
           },
           data: {
-            reviewedAt,
+            reviewedAt: new Date(),
             rejectionReason,
             rejectionNote,
             userId: user.id,
