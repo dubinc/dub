@@ -132,8 +132,8 @@ export const ProgramEnrollmentApplicationSchema = z.object({
     .string()
     .nullable()
     .describe("Free-form note when the application was rejected."),
-  reviewedAt: z
-    .coerce.date()
+  reviewedAt: z.coerce
+    .date()
     .nullable()
     .describe("When the application was approved or rejected."),
 });

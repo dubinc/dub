@@ -35,8 +35,6 @@ export async function approvePartnerEnrollment({
     groupId: groupId || program.defaultGroupId,
   });
 
-  const reviewedAt = new Date();
-
   const programEnrollment = await prisma.$transaction(async (tx) => {
     const enrollment = await tx.programEnrollment.update({
       where: {
@@ -61,9 +59,11 @@ export async function approvePartnerEnrollment({
 
     if (enrollment.applicationId) {
       await tx.programApplication.update({
-        where: { id: enrollment.applicationId },
+        where: {
+          id: enrollment.applicationId,
+        },
         data: {
-          reviewedAt,
+          reviewedAt: new Date(),
           rejectionReason: null,
           rejectionNote: null,
           userId,

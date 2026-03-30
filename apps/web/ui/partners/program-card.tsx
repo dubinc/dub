@@ -60,7 +60,7 @@ function rejectedApplicationTooltipContent(
   }
 
   const reasonLabel = getProgramApplicationRejectionReasonLabel(
-    application.rejectionReason ?? undefined,
+    application.rejectionReason,
   );
   const note = application.rejectionNote?.trim();
   const reviewedAt = application.reviewedAt;
@@ -156,9 +156,7 @@ export function ProgramCard({
                 programEnrollment.application,
               );
               const body = (
-                <>
-                  {statusDescription} You can re-apply in 30 days.
-                </>
+                <>{statusDescription} You can re-apply in 30 days.</>
               );
               return tipContent ? (
                 <DynamicTooltipWrapper
@@ -167,7 +165,7 @@ export function ProgramCard({
                     side: "top",
                   }}
                 >
-                  <div className="cursor-help underline decoration-dotted decoration-neutral-400 underline-offset-2">
+                  <div className="cursor-help underline decoration-neutral-400 decoration-dotted underline-offset-2">
                     {body}
                   </div>
                 </DynamicTooltipWrapper>

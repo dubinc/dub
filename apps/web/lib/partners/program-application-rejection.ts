@@ -1,8 +1,13 @@
+import { ProgramApplicationRejectionReason } from "@dub/prisma/client";
+
 /**
  * Labels for `ProgramApplicationRejectionReason` (Prisma enum values as keys).
  * Kept prisma-free so client components can import safely.
  */
-export const PROGRAM_APPLICATION_REJECTION_REASON_LABELS = {
+export const PROGRAM_APPLICATION_REJECTION_REASON_LABELS: Record<
+  ProgramApplicationRejectionReason,
+  string
+> = {
   needsMoreDetail: "Application needs more detail",
   doesNotMeetRequirements: "Does not meet requirements",
   notTheRightFit: "Not the right fit",
@@ -26,9 +31,6 @@ export function getProgramApplicationRejectionReasonLabel(
   if (!reason) {
     return null;
   }
-  return (
-    PROGRAM_APPLICATION_REJECTION_REASON_LABELS[
-      reason as ProgramApplicationRejectionReasonKey
-    ] ?? null
-  );
+
+  return PROGRAM_APPLICATION_REJECTION_REASON_LABELS[reason] ?? null;
 }

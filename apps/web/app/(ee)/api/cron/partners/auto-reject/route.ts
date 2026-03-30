@@ -99,7 +99,9 @@ export const POST = withCron(async ({ rawBody }) => {
 
   if (programEnrollment.applicationId) {
     await prisma.programApplication.update({
-      where: { id: programEnrollment.applicationId },
+      where: {
+        id: programEnrollment.applicationId,
+      },
       data: {
         reviewedAt: new Date(),
         rejectionReason:

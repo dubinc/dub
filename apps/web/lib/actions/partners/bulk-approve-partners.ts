@@ -70,8 +70,13 @@ export const bulkApprovePartnersAction = authActionClient
 
     if (applicationIds.length > 0) {
       const reviewedAt = new Date();
+
       await prisma.programApplication.updateMany({
-        where: { id: { in: applicationIds } },
+        where: {
+          id: {
+            in: applicationIds,
+          },
+        },
         data: {
           reviewedAt,
           rejectionReason: null,

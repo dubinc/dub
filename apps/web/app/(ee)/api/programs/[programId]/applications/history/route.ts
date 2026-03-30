@@ -14,21 +14,24 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
   const { partnerId } = querySchema.parse(searchParams);
 
-  const partner = await prisma.partner.findFirst({
+  const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
-      id: partnerId,
-      programs: {
-        some: {
-          programId,
-        },
+      partnerId_programId: {
+        partnerId,
+        programId,
       },
     },
     select: {
-      email: true,
+      applicationId: true,
+      partner: {
+        select: {
+          email: true,
+        },
+      },
     },
   });
 
-  if (!partner?.email) {
+  if (!programEnrollment?.partner?.email) {
     throw new DubApiError({
       code: "not_found",
       message: "Partner not found in this program.",
@@ -38,7 +41,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const applicationsByEmail = await prisma.programApplication.findMany({
     where: {
       programId,
-      email: partner.email,
+      email: programEnrollment.partner.email,
     },
     orderBy: {
       createdAt: "desc",
@@ -50,27 +53,15 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
   });
 
-  const enrollment = await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
-    },
-    select: {
-      applicationId: true,
-    },
-  });
-
   let applications = applicationsByEmail;
 
   if (
-    enrollment?.applicationId &&
-    !applications.some((a) => a.id === enrollment.applicationId)
+    programEnrollment?.applicationId &&
+    !applications.some((a) => a.id === programEnrollment.applicationId)
   ) {
     const fromEnrollment = await prisma.programApplication.findFirst({
       where: {
-        id: enrollment.applicationId,
+        id: programEnrollment.applicationId,
         programId,
       },
       select: {
@@ -79,6 +70,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         reviewedAt: true,
       },
     });
+
     if (fromEnrollment) {
       applications = [...applications, fromEnrollment].sort(
         (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),

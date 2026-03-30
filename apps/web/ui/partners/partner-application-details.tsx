@@ -35,7 +35,7 @@ function PartnerApplicationReviewOutcome({
   }
 
   const reasonLabel = getProgramApplicationRejectionReasonLabel(
-    application.rejectionReason ?? undefined,
+    application.rejectionReason,
   );
   const note = application.rejectionNote?.trim();
 

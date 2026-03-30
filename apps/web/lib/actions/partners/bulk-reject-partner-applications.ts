@@ -64,8 +64,13 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
 
     if (applicationIds.length > 0) {
       const reviewedAt = new Date();
+
       await prisma.programApplication.updateMany({
-        where: { id: { in: applicationIds } },
+        where: {
+          id: {
+            in: applicationIds,
+          },
+        },
         data: {
           reviewedAt,
           rejectionReason: null,
@@ -89,25 +94,23 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          recordAuditLog(
-            programEnrollments.map(({ partner }) => ({
-              workspaceId: workspace.id,
-              programId,
-              action: "partner_application.rejected",
-              description: `Partner application rejected for ${partner.id}`,
-              actor: user,
-              targets: [
-                {
-                  type: "partner",
-                  id: partner.id,
-                  metadata: partner,
-                },
-              ],
-            })),
-          ),
-        ]);
-      })(),
+      Promise.allSettled([
+        recordAuditLog(
+          programEnrollments.map(({ partner }) => ({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner_application.rejected",
+            description: `Partner application rejected for ${partner.id}`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: partner.id,
+                metadata: partner,
+              },
+            ],
+          })),
+        ),
+      ]),
     );
   });

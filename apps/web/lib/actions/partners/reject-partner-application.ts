@@ -3,7 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { PROGRAM_APPLICATION_REJECTION_REASON_LABELS } from "@/lib/partners/program-application-rejection";
+import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
@@ -58,7 +58,9 @@ export const rejectPartnerApplicationAction = authActionClient
       if (allowImmediateReapply) {
         if (programEnrollment.applicationId) {
           await tx.programApplication.update({
-            where: { id: programEnrollment.applicationId },
+            where: {
+              id: programEnrollment.applicationId,
+            },
             data: {
               reviewedAt,
               rejectionReason: rejectionReason ?? null,
@@ -97,7 +99,9 @@ export const rejectPartnerApplicationAction = authActionClient
 
         if (programEnrollment.applicationId) {
           await tx.programApplication.update({
-            where: { id: programEnrollment.applicationId },
+            where: {
+              id: programEnrollment.applicationId,
+            },
             data: {
               reviewedAt,
               rejectionReason: rejectionReason ?? null,
@@ -108,13 +112,6 @@ export const rejectPartnerApplicationAction = authActionClient
         }
       }
     });
-
-    const { partner, program } = programEnrollment;
-
-    const rejectionReasonLabel =
-      rejectionReason != null
-        ? PROGRAM_APPLICATION_REJECTION_REASON_LABELS[rejectionReason]
-        : undefined;
 
     waitUntil(
       (async () => {
@@ -146,6 +143,8 @@ export const rejectPartnerApplicationAction = authActionClient
           }),
         ]);
 
+        const { partner, program } = programEnrollment;
+
         if (partner.email) {
           try {
             await sendEmail({
@@ -163,7 +162,8 @@ export const rejectPartnerApplicationAction = authActionClient
                   slug: program.slug,
                   supportEmail: program.supportEmail ?? undefined,
                 },
-                rejectionReason: rejectionReasonLabel,
+                rejectionReason:
+                  getProgramApplicationRejectionReasonLabel(rejectionReason),
                 additionalNotes: rejectionNote ?? undefined,
                 canReapplyImmediately: allowImmediateReapply,
               }),

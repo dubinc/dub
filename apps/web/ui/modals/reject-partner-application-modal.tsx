@@ -1,6 +1,6 @@
 import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-partner-application";
 import {
-  PROGRAM_APPLICATION_REJECTION_REASON_LABELS,
+  getProgramApplicationRejectionReasonLabel,
   PROGRAM_APPLICATION_REJECTION_REASON_ORDER,
 } from "@/lib/partners/program-application-rejection";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -33,7 +33,7 @@ import { toast } from "sonner";
 const REJECTION_REASON_COMBO_OPTIONS: ComboboxOption[] =
   PROGRAM_APPLICATION_REJECTION_REASON_ORDER.map((value) => ({
     value,
-    label: PROGRAM_APPLICATION_REJECTION_REASON_LABELS[value],
+    label: getProgramApplicationRejectionReasonLabel(value),
   }));
 
 interface RejectPartnerApplicationModalProps {
