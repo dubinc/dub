@@ -27,7 +27,6 @@ function toCommissionActivitySnapshot(
   };
 }
 
-// both commissions are sorted by id ascending
 export async function trackCommissionActivityLog({
   old: oldCommissions,
   new: newCommissions,
