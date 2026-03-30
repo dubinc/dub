@@ -194,32 +194,44 @@ export const createCommissionSchema = z.object({
 });
 
 export const updateCommissionSchema = z.object({
-  amount: z
+  saleAmount: z
     .number()
     .min(0)
+    .optional()
     .describe(
       "The new absolute amount for the sale. Paid commissions cannot be updated.",
-    )
-    .optional(),
-  modifyAmount: z
+    ),
+  modifySaleAmount: z
     .number()
+    .optional()
     .describe(
-      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `amount`. Paid commissions cannot be updated.",
-    )
-    .optional(),
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `saleAmount`. Paid commissions cannot be updated.",
+    ),
+  earnings: z
+    .number()
+    .min(0)
+    .optional()
+    .describe(
+      "The new absolute earnings for the custom commission. Paid commissions cannot be updated.",
+    ),
   currency: z
     .string()
+    .optional()
     .default("usd")
     .transform((val) => val.toLowerCase())
     .describe(
       "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
     ),
   status: z
-    .enum(["refunded", "duplicate", "canceled", "fraud"])
+    .enum(["pending", "refunded", "duplicate", "canceled", "fraud"])
     .optional()
     .describe(
-      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Takes precedence over `amount` and `modifyAmount`. When a commission is marked as refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
+      "Useful for marking a commission as pending, refunded, duplicate, canceled, or fraudulent. Takes precedence over `amount` and `modifyAmount`. When a commission is marked as pending, processed, refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
     ),
+
+  // Deprecated fields
+  amount: z.number().min(0).optional().meta({ deprecated: true }),
+  modifyAmount: z.number().optional().meta({ deprecated: true }),
 });
 
 export const CLAWBACK_REASONS = [
