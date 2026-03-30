@@ -1,4 +1,4 @@
-import { bulkUpdatePartnerCommissions } from "@/lib/api/commissions/update-partner-commission-bulk";
+import { bulkUpdatePartnerCommissions } from "@/lib/api/commissions/bulk-update-partner-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -15,12 +15,11 @@ export const PATCH = withWorkspace(
     );
 
     const updatedCommissions = await bulkUpdatePartnerCommissions({
+      workspaceId: workspace.id,
       programId,
+      commissionIds,
       status,
       userId: session.user.id,
-      commissionIds,
-      workspaceId: workspace.id,
-      actor: session.user,
     });
 
     return NextResponse.json(

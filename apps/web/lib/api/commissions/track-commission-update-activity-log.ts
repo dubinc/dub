@@ -34,21 +34,19 @@ export async function trackCommissionActivityLog({
 }: TrackActivityLogParams) {
   const activityLogs: TrackActivityLogInput[] = [];
 
-  const length = Math.max(
-    oldCommissions?.length ?? 0,
-    newCommissions?.length ?? 0,
-  );
+  const oldById = new Map((oldCommissions ?? []).map((c) => [c.id, c]));
+  const newById = new Map((newCommissions ?? []).map((c) => [c.id, c]));
 
-  for (let i = 0; i < length; i++) {
-    const oldCommission = oldCommissions?.[i];
-    const newCommission = newCommissions?.[i];
+  const commissionIds = [
+    ...new Set([...oldById.keys(), ...newById.keys()]),
+  ].sort();
 
-    if (oldCommission === undefined || newCommission === undefined) {
-      continue;
-    }
+  for (const id of commissionIds) {
+    const oldCommission = oldById.get(id);
+    const newCommission = newById.get(id);
 
     // Commission created
-    if (oldCommission === null && newCommission !== null) {
+    if (!oldCommission && newCommission) {
       activityLogs.push({
         ...baseInput,
         resourceId: newCommission.id,
@@ -61,10 +59,11 @@ export async function trackCommissionActivityLog({
           },
         },
       });
+      continue;
     }
 
     // Commission updated
-    if (oldCommission !== null && newCommission !== null) {
+    if (oldCommission && newCommission) {
       const oldSnapshot = toCommissionActivitySnapshot(oldCommission);
       const newSnapshot = toCommissionActivitySnapshot(newCommission);
 

@@ -15,6 +15,9 @@ type BulkUpdatePartnerCommissionsProps = z.infer<
   userId: string;
 };
 
+// TODO:
+// Send email to partners about the commission update
+
 export async function bulkUpdatePartnerCommissions({
   workspaceId,
   programId,
