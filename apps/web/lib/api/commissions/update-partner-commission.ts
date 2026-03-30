@@ -219,6 +219,7 @@ export async function updatePartnerCommission({
         partnerId: commission.partnerId,
         programId: commission.programId,
       }),
+
       ...(changeSet && userId
         ? [
             trackActivityLog({
@@ -228,7 +229,6 @@ export async function updatePartnerCommission({
               resourceId: commission.id,
               userId,
               action: "commission.updated",
-              description: `Commission ${commission.id} updated`,
               changeSet,
             }),
           ]
