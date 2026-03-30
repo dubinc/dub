@@ -46,10 +46,6 @@ export const bulkApprovePartnersAction = authActionClient
       groupId: groupId ?? program.defaultGroupId,
     });
 
-    const applicationIds = programEnrollments
-      .map(({ applicationId }) => applicationId)
-      .filter((id): id is string => Boolean(id));
-
     const now = new Date();
 
     await prisma.$transaction(async (tx) => {
@@ -69,6 +65,10 @@ export const bulkApprovePartnersAction = authActionClient
           discountId: group.discountId,
         },
       });
+
+      const applicationIds = programEnrollments
+        .map(({ applicationId }) => applicationId)
+        .filter((id): id is string => Boolean(id));
 
       if (applicationIds.length > 0) {
         await tx.programApplication.updateMany({
