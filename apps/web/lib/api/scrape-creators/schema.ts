@@ -17,6 +17,18 @@ export const socialProfileSchema = z.preprocess(
         };
       }
 
+      // Check for "account is restricted" response
+      if (
+        "message" in data &&
+        typeof data.message === "string" &&
+        data.message.toLowerCase().includes("restricted")
+      ) {
+        return {
+          ...data,
+          platform: "account_restricted",
+        };
+      }
+
       // YouTube detection
       if ("description" in data && "channelId" in data) {
         return {
@@ -56,6 +68,12 @@ export const socialProfileSchema = z.preprocess(
   z.discriminatedUnion("platform", [
     z.object({
       platform: z.literal("account_not_found"),
+      handle: z.string().optional(),
+      message: z.string().optional(),
+    }),
+
+    z.object({
+      platform: z.literal("account_restricted"),
       handle: z.string().optional(),
       message: z.string().optional(),
     }),
