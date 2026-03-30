@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
@@ -115,6 +116,14 @@ export const markCommissionFraudOrCanceledAction = authActionClient
     waitUntil(
       (async () => {
         await Promise.allSettled([
+          trackCommissionStatusUpdate({
+            workspaceId: workspace.id,
+            programId,
+            commissions,
+            newStatus: status,
+            userId: user.id,
+          }),
+
           syncTotalCommissions({
             partnerId: commission.partnerId,
             programId,
