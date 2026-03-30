@@ -22,6 +22,7 @@ export const activityLogActionSchema = z.enum([
 
   "partner.groupChanged",
 
+  "commission.created",
   "commission.updated",
 
   "reward.created",

@@ -28,6 +28,7 @@ export const markCommissionDuplicateAction = authActionClient
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const commission = await updatePartnerCommission({
+      workspaceId: workspace.id,
       programId,
       commissionId,
       userId: user.id,

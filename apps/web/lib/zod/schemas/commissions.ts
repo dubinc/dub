@@ -193,6 +193,14 @@ export const createCommissionSchema = z.object({
   productId: z.string().nullish(),
 });
 
+export const commissionPatchStatusSchema = z.enum([
+  "pending",
+  "refunded",
+  "duplicate",
+  "canceled",
+  "fraud",
+]);
+
 export const updateCommissionSchema = z.object({
   saleAmount: z
     .number()
@@ -222,14 +230,26 @@ export const updateCommissionSchema = z.object({
     .describe(
       "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
     ),
-  status: z
-    .enum(["pending", "refunded", "duplicate", "canceled", "fraud"])
+  status: commissionPatchStatusSchema
     .optional()
     .describe(
       "Useful for marking a commission as pending, refunded, duplicate, canceled, or fraudulent. Takes precedence over `saleAmount` and `modifySaleAmount`. When a commission is marked as pending, refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
     ),
   amount: z.number().min(0).optional().meta({ deprecated: true }),
   modifyAmount: z.number().optional().meta({ deprecated: true }),
+});
+
+export const bulkUpdateCommissionsSchema = z.object({
+  commissionIds: z
+    .array(z.string())
+    .min(1, "At least one commission ID is required.")
+    .max(100, "You can only update up to 100 commissions at a time.")
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: "commissionIds must be unique.",
+    }),
+  status: commissionPatchStatusSchema.describe(
+    "The status to apply to every commission in the batch.",
+  ),
 });
 
 export const CLAWBACK_REASONS = [

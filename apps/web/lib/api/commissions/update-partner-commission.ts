@@ -1,18 +1,18 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
-import { getResourceDiff } from "@/lib/api/activity-log/get-resource-diff";
-import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { updateCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { Commission } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { DubApiError } from "../errors";
 import { syncTotalCommissions } from "../partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "../programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "../sales/calculate-sale-earnings";
+import { reconcilePayoutAmounts } from "./reconcile-payout-amounts";
+import { trackCommissionActivityLog } from "./track-commission-update-activity-log";
 
 type UpdatePartnerCommissionProps = z.infer<typeof updateCommissionSchema> & {
+  workspaceId: string;
   programId: string;
   commissionId: string;
   userId?: string;
@@ -21,15 +21,8 @@ type UpdatePartnerCommissionProps = z.infer<typeof updateCommissionSchema> & {
 // TODO:
 // Send email to partners about the commission update
 
-const COMMISSION_ACTIVITY_FIELDS = [
-  "amount",
-  "earnings",
-  "status",
-  "payoutId",
-  "currency",
-] as const;
-
 export async function updatePartnerCommission({
+  workspaceId,
   programId,
   commissionId,
   status,
@@ -48,11 +41,6 @@ export async function updatePartnerCommission({
       id: commissionId,
     },
     include: {
-      program: {
-        select: {
-          workspaceId: true,
-        },
-      },
       payout: {
         select: {
           id: true,
@@ -88,11 +76,7 @@ export async function updatePartnerCommission({
     });
   }
 
-  const {
-    partner,
-    amount: originalSaleAmount,
-    earnings: originalEarnings,
-  } = commission;
+  const { partner, amount: originalSaleAmount } = commission;
 
   let finalSaleAmount: number | undefined;
   let finalEarnings: number | undefined;
@@ -202,16 +186,8 @@ export async function updatePartnerCommission({
 
   // If the commission has already been added to a payout, we need to update the payout amount
   if (commission.status === "processed" && commission.payoutId) {
-    await reconcilePayoutAmount(commission.payoutId);
+    await reconcilePayoutAmounts([commission.payoutId]);
   }
-
-  const changeSet = userId
-    ? getResourceDiff(
-        toCommissionActivitySnapshot(commission),
-        toCommissionActivitySnapshot(updatedCommission),
-        { fields: [...COMMISSION_ACTIVITY_FIELDS] },
-      )
-    : null;
 
   waitUntil(
     Promise.allSettled([
@@ -220,82 +196,15 @@ export async function updatePartnerCommission({
         programId: commission.programId,
       }),
 
-      ...(changeSet && userId
-        ? [
-            trackActivityLog({
-              workspaceId: commission.program.workspaceId,
-              programId,
-              resourceType: "commission",
-              resourceId: commission.id,
-              userId,
-              action: "commission.updated",
-              changeSet,
-            }),
-          ]
-        : []),
+      trackCommissionActivityLog({
+        workspaceId,
+        programId,
+        userId,
+        old: [commission],
+        new: [updatedCommission],
+      }),
     ]),
   );
 
   return updatedCommission;
-}
-
-// Reconcile the payout amount
-async function reconcilePayoutAmount(payoutId: string) {
-  return await prisma.$transaction(async (tx) => {
-    const commissionAggregate = await tx.commission.aggregate({
-      where: {
-        payoutId,
-      },
-      _sum: {
-        earnings: true,
-      },
-    });
-
-    const newPayoutAmount = commissionAggregate._sum.earnings ?? 0;
-
-    // if the payout amount is 0, delete the payout
-    if (newPayoutAmount === 0) {
-      await tx.payout.delete({
-        where: {
-          id: payoutId,
-        },
-      });
-
-      console.log(
-        `[reconcilePayoutAmount] Deleted payout ${payoutId} because it has no commissions.`,
-      );
-
-      return;
-    }
-
-    // otherwise, update the payout amount
-    await tx.payout.update({
-      where: {
-        id: payoutId,
-      },
-      data: {
-        amount: newPayoutAmount,
-      },
-    });
-
-    console.log(
-      `[reconcilePayoutAmount] Updated payout amount for payout ${payoutId} to ${newPayoutAmount}`,
-    );
-  });
-}
-
-// Convert the commission to a snapshot for the activity log
-function toCommissionActivitySnapshot(
-  row: Pick<
-    Commission,
-    "amount" | "earnings" | "status" | "payoutId" | "currency"
-  >,
-) {
-  return {
-    amount: row.amount,
-    earnings: row.earnings,
-    status: row.status,
-    payoutId: row.payoutId,
-    currency: row.currency,
-  };
 }

@@ -111,6 +111,7 @@ export const PATCH = withWorkspace(
     } = updateCommissionSchema.parse(await parseRequestBody(req));
 
     const updatedCommission = await updatePartnerCommission({
+      workspaceId: workspace.id,
       programId,
       commissionId,
       userId: session.user.id,
