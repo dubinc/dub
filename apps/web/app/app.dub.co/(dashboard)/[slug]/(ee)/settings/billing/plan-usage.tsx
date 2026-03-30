@@ -78,8 +78,8 @@ export default function PlanUsage() {
     usersLimit,
     billingCycleStart,
     trialEndsAt,
-    subscriptionCancelAtPeriodEnd,
-    subscriptionCurrentPeriodEnd,
+    subscriptionCanceledAt,
+    billingCycleEndsAt,
   } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
@@ -175,11 +175,8 @@ export default function PlanUsage() {
   }, [plan, payoutFee, payoutFeeWaiverLimit, payoutFeeWaiverUsage]);
 
   const pendingCancellationEndDate =
-    subscriptionCancelAtPeriodEnd &&
-    subscriptionCurrentPeriodEnd &&
-    plan !== "free" &&
-    stripeId
-      ? subscriptionCurrentPeriodEnd
+    subscriptionCanceledAt && billingCycleEndsAt && plan !== "free" && stripeId
+      ? billingCycleEndsAt
       : null;
 
   const showPendingCancellation = pendingCancellationEndDate != null;

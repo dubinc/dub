@@ -49,17 +49,17 @@ export const WorkspaceSchema = z
       .describe(
         "When the current Stripe subscription billing trial ends, if applicable.",
       ),
-    subscriptionCancelAtPeriodEnd: z
-      .boolean()
-      .default(false)
-      .describe(
-        "Whether the Stripe subscription is scheduled to cancel at the end of the current period.",
-      ),
-    subscriptionCurrentPeriodEnd: z
+    subscriptionCanceledAt: z
       .date()
       .nullish()
       .describe(
-        "When the current Stripe subscription period ends (from Stripe current_period_end); relevant when subscriptionCancelAtPeriodEnd is true.",
+        "When the workspace's subscription was canceled (or set to cancel).",
+      ),
+    billingCycleEndsAt: z
+      .date()
+      .nullish()
+      .describe(
+        "When the current Stripe subscription period ends (derived from Stripe current_period_end).",
       ),
     billingCycleStart: z
       .number()

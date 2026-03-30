@@ -25,56 +25,8 @@ import {
 } from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
-import Stripe from "stripe";
-import {
-  getPlanPeriodFromStripeSubscription,
-  type SubscriptionItemsForPlanPeriod,
-} from "./stripe-plan-period";
-
-/** Fields read from Stripe subscription objects in webhooks (SDK types omit some API fields). */
-type StripeSubscriptionForWorkspacePlan = SubscriptionItemsForPlanPeriod & {
-  status: Stripe.Subscription.Status;
-  trial_end: number | null;
-  cancel_at_period_end?: boolean | null;
-  current_period_end?: number | null;
-};
-
-function getTrialEndsAtFromStripeSubscription(
-  subscription?: Pick<StripeSubscriptionForWorkspacePlan, "status" | "trial_end">,
-): Date | null | undefined {
-  if (!subscription) {
-    return undefined;
-  }
-  if (subscription.status === "trialing" && subscription.trial_end) {
-    return new Date(subscription.trial_end * 1000);
-  }
-  return null;
-}
-
-function getSubscriptionCancellationFields(
-  subscription?: Pick<
-    StripeSubscriptionForWorkspacePlan,
-    "cancel_at_period_end" | "current_period_end"
-  >,
-): {
-  subscriptionCancelAtPeriodEnd: boolean;
-  subscriptionCurrentPeriodEnd: Date | null;
-} {
-  if (!subscription) {
-    return {
-      subscriptionCancelAtPeriodEnd: false,
-      subscriptionCurrentPeriodEnd: null,
-    };
-  }
-  const cancelAtPeriodEnd = subscription.cancel_at_period_end ?? false;
-  return {
-    subscriptionCancelAtPeriodEnd: cancelAtPeriodEnd,
-    subscriptionCurrentPeriodEnd:
-      cancelAtPeriodEnd && subscription.current_period_end != null
-        ? new Date(Number(subscription.current_period_end) * 1000)
-        : null,
-  };
-}
+import type Stripe from "stripe";
+import { getPlanPeriodFromStripeSubscription } from "./stripe-plan-period";
 
 export async function updateWorkspacePlan({
   workspace,
@@ -98,7 +50,7 @@ export async function updateWorkspacePlan({
     }[];
   };
   priceId: string;
-  subscription?: StripeSubscriptionForWorkspacePlan;
+  subscription?: Stripe.Subscription;
 }) {
   const { plan: newPlan, planTier: newPlanTier } = getPlanAndTierFromPriceId({
     priceId,
@@ -116,7 +68,7 @@ export async function updateWorkspacePlan({
     subscriptionStatus: subscription?.status ?? "active",
   });
 
-  const trialEndsAt = getTrialEndsAtFromStripeSubscription(subscription);
+  const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
   const cancellationFields = getSubscriptionCancellationFields(subscription);
   const planPeriod = subscription
     ? getPlanPeriodFromStripeSubscription(subscription)
@@ -333,4 +285,39 @@ export async function updateWorkspacePlan({
       },
     });
   }
+}
+
+function getSubscriptionTrialEndsAt(
+  subscription?: Pick<Stripe.Subscription, "status" | "trial_end">,
+): Date | null | undefined {
+  if (!subscription) {
+    return undefined;
+  }
+  if (subscription.status === "trialing" && subscription.trial_end) {
+    return new Date(subscription.trial_end * 1000);
+  }
+  return null;
+}
+
+function getSubscriptionCancellationFields(
+  subscription?: Pick<Stripe.Subscription, "cancel_at_period_end" | "items">,
+): {
+  subscriptionCanceledAt: Date | null;
+  billingCycleEndsAt: Date | null;
+} {
+  if (!subscription) {
+    return {
+      subscriptionCanceledAt: null,
+      billingCycleEndsAt: null,
+    };
+  }
+  const cancelAtPeriodEnd = subscription.cancel_at_period_end ?? false;
+  const currentPeriodEnd = subscription.items.data[0]?.current_period_end;
+  return {
+    subscriptionCanceledAt: cancelAtPeriodEnd ? new Date() : null,
+    billingCycleEndsAt:
+      cancelAtPeriodEnd && currentPeriodEnd != null
+        ? new Date(Number(currentPeriodEnd) * 1000)
+        : null,
+  };
 }

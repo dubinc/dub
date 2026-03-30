@@ -39,6 +39,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       plan: true,
       planTier: true,
       foldersUsage: true,
+      subscriptionCanceledAt: true,
       paymentFailedAt: true,
       payoutsLimit: true,
       defaultProgramId: true,
@@ -113,9 +114,11 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       data: {
         plan: "free",
         trialEndsAt: null,
-        subscriptionCancelAtPeriodEnd: false,
-        subscriptionCurrentPeriodEnd: null,
         planPeriod: null,
+        billingCycleEndsAt: null,
+        subscriptionCanceledAt: workspace.subscriptionCanceledAt
+          ? undefined
+          : new Date(),
         usageLimit: FREE_PLAN.limits.clicks!,
         linksLimit: FREE_PLAN.limits.links!,
         payoutsLimit: FREE_PLAN.limits.payouts!,
