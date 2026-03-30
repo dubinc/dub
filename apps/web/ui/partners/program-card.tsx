@@ -97,12 +97,69 @@ function rejectedApplicationTooltipContent(
   );
 }
 
+function ProgramCardNonApprovedStatus({
+  programEnrollment,
+  statusDescription,
+}: {
+  programEnrollment: ProgramEnrollmentProps;
+  statusDescription: string | undefined;
+}) {
+  const router = useRouter();
+  const { status, createdAt, program, application } = programEnrollment;
+
+  if (status === "pending") {
+    return `Applied ${formatDate(createdAt)}`;
+  }
+
+  if (status === "rejected") {
+    const tipContent = rejectedApplicationTooltipContent(application);
+    const body = <>{statusDescription} You can re-apply in 30 days.</>;
+
+    if (tipContent) {
+      return (
+        <DynamicTooltipWrapper
+          tooltipProps={{
+            content: tipContent,
+            side: "top",
+          }}
+        >
+          <div className="cursor-help underline decoration-neutral-400 decoration-dotted underline-offset-2">
+            {body}
+          </div>
+        </DynamicTooltipWrapper>
+      );
+    }
+
+    return body;
+  }
+
+  if (statusDescription) {
+    return (
+      <p>
+        {statusDescription}{" "}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            router.push(`/messages/${program.slug}`);
+          }}
+          className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+        >
+          Reach out to the {program.name} team
+        </button>{" "}
+        if you have any questions.
+      </p>
+    );
+  }
+
+  return null;
+}
+
 export function ProgramCard({
   programEnrollment,
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
-  const router = useRouter();
   const { program, status, createdAt, group } = programEnrollment;
 
   const defaultLink = programEnrollment.links?.[0];
@@ -148,47 +205,10 @@ export function ProgramCard({
         <ProgramCardEarnings programEnrollment={programEnrollment} />
       ) : (
         <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
-          {status === "pending" ? (
-            `Applied ${formatDate(createdAt)}`
-          ) : status === "rejected" ? (
-            (() => {
-              const tipContent = rejectedApplicationTooltipContent(
-                programEnrollment.application,
-              );
-              const body = (
-                <>{statusDescription} You can re-apply in 30 days.</>
-              );
-              return tipContent ? (
-                <DynamicTooltipWrapper
-                  tooltipProps={{
-                    content: tipContent,
-                    side: "top",
-                  }}
-                >
-                  <div className="cursor-help underline decoration-neutral-400 decoration-dotted underline-offset-2">
-                    {body}
-                  </div>
-                </DynamicTooltipWrapper>
-              ) : (
-                body
-              );
-            })()
-          ) : statusDescription ? (
-            <p>
-              {statusDescription}{" "}
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  router.push(`/messages/${program.slug}`);
-                }}
-                className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
-              >
-                Reach out to the {program.name} team
-              </button>{" "}
-              if you have any questions.
-            </p>
-          ) : null}
+          <ProgramCardNonApprovedStatus
+            programEnrollment={programEnrollment}
+            statusDescription={statusDescription}
+          />
         </div>
       )}
     </Link>
