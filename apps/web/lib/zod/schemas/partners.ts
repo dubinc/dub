@@ -847,13 +847,6 @@ export const bulkApprovePartnersSchema = z.object({
 export const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  reportFraud: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      "Whether to report this partner for suspected fraud to help keep the network safe.",
-    ),
 });
 
 export const bulkRejectPartnersSchema = z.object({
@@ -863,13 +856,6 @@ export const bulkRejectPartnersSchema = z.object({
     .max(100)
     .min(1)
     .transform((v) => [...new Set(v)]),
-  reportFraud: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      "Whether to report these partners for suspected fraud to help keep the network safe.",
-    ),
 });
 
 export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;

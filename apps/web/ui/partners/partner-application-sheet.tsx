@@ -1,11 +1,8 @@
-import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
-import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -16,11 +13,8 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { isWorkspaceBillingTrialActive } from "@dub/utils";
-import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { toast } from "sonner";
 import { PartnerAbout } from "./partner-about";
 import { PartnerApplicationDetails } from "./partner-application-details";
 import { PartnerComments } from "./partner-comments";
@@ -234,53 +228,26 @@ function PartnerApproval({
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
 }) {
-  const { id: workspaceId, trialEndsAt } = useWorkspace();
-  const { program } = useProgram();
-  const { openTrialLimitModal, TrialLimitActivateModal } =
-    useTrialLimitActivateModal();
-  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
-
-  const { executeAsync, isPending } = useAction(approvePartnerAction, {
-    onSuccess: () => {
-      onNext ? onNext() : setIsOpen(false);
-      toast.success(`Successfully approved ${partner.email} to your program.`);
-      mutatePrefix("/api/partners");
-    },
-    onError({ error }) {
-      const msg = error.serverError ?? "";
-      toast.error(msg || "Failed to approve partner.");
-      if (
-        trialActive &&
-        (msg.includes("free trial") || msg.includes("enrolled partners"))
-      ) {
-        openTrialLimitModal("partnerEnrollments");
-      }
-    },
-  });
-
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Approve Partner",
-    description: "Are you sure you want to approve this partner application?",
-    confirmText: "Approve",
-    confirmShortcut: "a",
-    confirmShortcutOptions: { sheet: true, modal: true },
+  const {
+    ApprovePartnerApplicationModal,
+    setShowApprovePartnerApplicationModal,
+  } = useApprovePartnerApplicationModal({
+    partner,
+    groupId,
     onConfirm: async () => {
-      if (!program || !workspaceId) return;
-
-      await executeAsync({
-        workspaceId: workspaceId,
-        partnerId: partner.id,
-        groupId,
-      });
+      onNext ? onNext() : setIsOpen(false);
+      await mutatePrefix("/api/partners");
     },
+    confirmShortcutOptions: { sheet: true, modal: true },
   });
 
-  useKeyboardShortcut("a", () => setShowConfirmModal(true), { sheet: true });
+  useKeyboardShortcut("a", () => setShowApprovePartnerApplicationModal(true), {
+    sheet: true,
+  });
 
   return (
     <>
-      <TrialLimitActivateModal />
-      {confirmModal}
+      {ApprovePartnerApplicationModal}
       <div className="flex justify-end gap-2">
         {partner.status !== "rejected" && (
           <div className="flex-shrink-0">
@@ -296,8 +263,7 @@ function PartnerApproval({
           variant="primary"
           text="Approve"
           shortcut="A"
-          loading={isPending}
-          onClick={() => setShowConfirmModal(true)}
+          onClick={() => setShowApprovePartnerApplicationModal(true)}
           className="w-fit shrink-0"
         />
       </div>

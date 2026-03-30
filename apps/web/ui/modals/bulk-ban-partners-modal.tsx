@@ -104,7 +104,6 @@ function BulkBanPartnersModal({
           ? executeReject({
               workspaceId,
               partnerIds: pendingPartners.map((p) => p.id),
-              reportFraud: false,
             })
           : Promise.resolve(null),
       ]);
