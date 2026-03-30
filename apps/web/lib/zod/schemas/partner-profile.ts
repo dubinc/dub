@@ -247,7 +247,7 @@ export const getPartnerCustomersQuerySchema = z
         "A filter on the list based on the customer's `linkId` field (the referral link ID).",
       ),
     sortBy: z
-      .enum(["createdAt", "saleAmount"])
+      .enum(["createdAt", "firstSaleAt", "subscriptionCanceledAt"])
       .optional()
       .default("createdAt")
       .describe(
