@@ -87,24 +87,14 @@ export async function trackCommissionStatusUpdate({
     return;
   }
 
-  return await trackActivityLog(
-    commissions.map((commission) => ({
-      ...baseInput,
-      resourceType: "commission",
-      resourceId: commission.id,
-      action: "commission.updated",
-      changeSet: {
-        commission: {
-          old: toCommissionActivitySnapshot(commission),
-          new: toCommissionActivitySnapshot({
-            amount: commission.amount,
-            earnings: commission.earnings,
-            status: newStatus,
-          }),
-        },
-      },
+  return trackCommissionActivityLog({
+    ...baseInput,
+    old: commissions,
+    new: commissions.map((commission) => ({
+      ...commission,
+      status: newStatus,
     })),
-  );
+  });
 }
 
 // For payouts that may span multiple programs: resolve workspace from payouts, then
