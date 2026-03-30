@@ -1,5 +1,6 @@
 "use client";
 
+import { shouldEnableStripeCheckoutTrial } from "@/lib/billing/trial-checkout-experiment";
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -32,11 +33,17 @@ export function UpgradePlanButton({
   const searchParams = useSearchParams();
   const {
     slug: workspaceSlug,
+    id: workspaceId,
     plan: currentPlan,
     stripeId,
     defaultProgramId,
     trialEndsAt,
+    flags,
   } = useWorkspace();
+
+  const checkoutTrialEnabled = Boolean(
+    workspaceId && shouldEnableStripeCheckoutTrial(flags, workspaceId),
+  );
 
   const plausible = usePlausible();
 
@@ -76,7 +83,11 @@ export function UpgradePlanButton({
       }),
     })
       .then(async (res) => {
-        plausible("Opened Checkout");
+        plausible(
+          checkoutTrialEnabled
+            ? "Opened Checkout Trial"
+            : "Opened Checkout No Trial",
+        );
         if (!stripeId || currentPlan === "free") {
           const data = await res.json();
           const { id: sessionId } = data;
@@ -126,7 +137,9 @@ export function UpgradePlanButton({
               ? "Activate plan"
               : "Your current plan"
             : currentPlan === "free"
-              ? `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
+              ? checkoutTrialEnabled
+                ? `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
+                : `Get started with ${selectedPlan.name} ${capitalize(period)}`
               : `Switch to ${selectedPlan.name} ${capitalize(period)}`
         }
         loading={clicked}

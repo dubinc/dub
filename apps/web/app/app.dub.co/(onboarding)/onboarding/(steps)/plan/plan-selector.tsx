@@ -1,5 +1,7 @@
 "use client";
 
+import { shouldEnableStripeCheckoutTrial } from "@/lib/billing/trial-checkout-experiment";
+import useWorkspace from "@/lib/swr/use-workspace";
 import X from "@/ui/shared/icons/x";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import {
@@ -28,6 +30,12 @@ import { CSSProperties, isValidElement, ReactNode, useState } from "react";
 import { OnboardingProduct } from "../../use-onboarding-product";
 
 export function PlanSelector({ product }: { product: OnboardingProduct }) {
+  const { id: workspaceId, flags } = useWorkspace();
+
+  const checkoutTrialEnabled = Boolean(
+    workspaceId && shouldEnableStripeCheckoutTrial(flags, workspaceId),
+  );
+
   const plans =
     product === "partners"
       ? [BUSINESS_PLAN, ADVANCED_PLAN, ENTERPRISE_PLAN]
@@ -111,8 +119,9 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                   </div>
                   {product === "partners" && plan.name !== "Enterprise" && (
                     <p className="mt-1 text-xs text-neutral-500">
-                      {PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · card
-                      required
+                      {checkoutTrialEnabled
+                        ? `${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · card required`
+                        : "Card required"}
                     </p>
                   )}
 
@@ -179,7 +188,6 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                     <UpgradePlanButton
                       plan={plan.name.toLowerCase()}
                       period={period}
-                      text={`Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial`}
                       className="h-10 rounded-lg shadow-sm"
                     />
                   )}

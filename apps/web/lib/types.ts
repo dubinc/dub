@@ -252,7 +252,10 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 
 export type PlanProps = (typeof plans)[number];
 
-export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
+export type BetaFeatures =
+  | "noDubLink"
+  | "analyticsSettingsSiteVisitTracking"
+  | "freeTrialCheckout";
 
 export type PartnerBetaFeatures = "postbacks";
 
