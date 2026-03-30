@@ -55,62 +55,46 @@ export const rejectPartnerApplicationAction = authActionClient
     const reviewedAt = new Date();
 
     await prisma.$transaction(async (tx) => {
-      if (allowImmediateReapply) {
-        if (programEnrollment.applicationId) {
-          await tx.programApplication.update({
-            where: {
-              id: programEnrollment.applicationId,
-            },
-            data: {
-              reviewedAt,
-              rejectionReason: rejectionReason ?? null,
-              rejectionNote: rejectionNote ?? null,
-              userId: user.id,
-            },
-          });
-        }
-
-        const { count } = await tx.programEnrollment.deleteMany({
+      if (programEnrollment.applicationId) {
+        await tx.programApplication.update({
           where: {
-            id: programEnrollment.id,
-            status: "pending",
-          },
-        });
-
-        if (count === 0) {
-          throw new Error(
-            "This application is no longer pending and could not be removed.",
-          );
-        }
-      } else {
-        await tx.programEnrollment.update({
-          where: {
-            id: programEnrollment.id,
-            status: "pending",
+            id: programEnrollment.applicationId,
           },
           data: {
-            status: ProgramEnrollmentStatus.rejected,
-            clickRewardId: null,
-            leadRewardId: null,
-            saleRewardId: null,
-            discountId: null,
+            reviewedAt,
+            rejectionReason,
+            rejectionNote,
+            userId: user.id,
+          },
+        });
+      }
+
+      // If the partner can immediately re-apply, delete the application
+      if (allowImmediateReapply) {
+        await tx.programEnrollment.deleteMany({
+          where: {
+            id: programEnrollment.id,
+            status: "pending",
           },
         });
 
-        if (programEnrollment.applicationId) {
-          await tx.programApplication.update({
-            where: {
-              id: programEnrollment.applicationId,
-            },
-            data: {
-              reviewedAt,
-              rejectionReason: rejectionReason ?? null,
-              rejectionNote: rejectionNote ?? null,
-              userId: user.id,
-            },
-          });
-        }
+        return;
       }
+
+      // If the partner cannot immediately re-apply, reject the application
+      await tx.programEnrollment.update({
+        where: {
+          id: programEnrollment.id,
+          status: "pending",
+        },
+        data: {
+          status: ProgramEnrollmentStatus.rejected,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
+          discountId: null,
+        },
+      });
     });
 
     waitUntil(
