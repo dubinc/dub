@@ -1,0 +1,209 @@
+"use client";
+
+import { useActivityLogs } from "@/lib/swr/use-activity-logs";
+import { ActivityLog, CommissionDetail } from "@/lib/types";
+import { ActivityEvent } from "@/ui/partners/activity-event";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { CommentCardDisplay } from "@/ui/partners/partner-comments";
+import { UserAvatar } from "@/ui/users/user-avatar";
+import { InvoiceDollar, StatusBadge } from "@dub/ui";
+import { currencyFormatter } from "@dub/utils";
+import Link from "next/link";
+
+function getNewStatusFromLog(
+  log: ActivityLog,
+): keyof typeof CommissionStatusBadges | null {
+  const changeSet = log.changeSet as Record<
+    string,
+    { old: Record<string, unknown>; new: Record<string, unknown> }
+  > | null;
+
+  const newStatus = changeSet?.commission?.new?.status;
+
+  if (typeof newStatus === "string" && newStatus in CommissionStatusBadges) {
+    return newStatus as keyof typeof CommissionStatusBadges;
+  }
+
+  return null;
+}
+
+export function CommissionActivity({
+  commission,
+  slug,
+}: {
+  commission: CommissionDetail;
+  slug: string;
+}) {
+  const { activityLogs, loading } = useActivityLogs({
+    query: {
+      resourceType: "commission",
+      resourceId: commission.id,
+    },
+    enabled: !!commission.id,
+  });
+
+  const createdEvent = {
+    icon: CommissionStatusBadges["pending"].icon,
+    timestamp: commission.createdAt,
+    note: (() => {
+      const text = commission.reward
+        ? `Earn ${
+            commission.reward.type === "percentage"
+              ? `${commission.reward.amountInPercentage ?? 0}%`
+              : currencyFormatter(commission.reward.amountInCents ?? 0, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })
+          } per ${commission.reward.event}`
+        : commission.description ?? null;
+
+      if (!text) return undefined;
+
+      return (
+        <CommentCardDisplay
+          user={commission.user}
+          timestamp={commission.createdAt}
+          text={text}
+        />
+      );
+    })(),
+    children: (
+      <>
+        <span className="text-sm text-neutral-700">Commission</span>
+        <StatusBadge
+          icon={null}
+          variant={CommissionStatusBadges["pending"].variant}
+        >
+          {CommissionStatusBadges["pending"].label}
+        </StatusBadge>
+        {commission.user ? (
+          <>
+            <span className="text-sm text-neutral-500">by</span>
+            <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
+              <UserAvatar user={commission.user} className="size-4" />
+              <span className="text-[13px] text-neutral-700">
+                {commission.user.name}
+              </span>
+            </div>
+          </>
+        ) : null}
+      </>
+    ),
+  };
+
+  if (loading) {
+    return (
+      <div className="mt-6">
+        <h3 className="mb-4 text-base font-medium text-neutral-900">
+          Activity
+        </h3>
+        <div className="flex flex-col gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex gap-3">
+              <div className="size-6 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+              <div className="flex flex-1 flex-col gap-1">
+                <div className="h-5 w-3/4 animate-pulse rounded bg-neutral-200" />
+                <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const logEvents = (activityLogs ?? [])
+    .map((log) => {
+      const newStatus = getNewStatusFromLog(log);
+
+      if (!newStatus) {
+        return null;
+      }
+
+      const badge = CommissionStatusBadges[newStatus];
+      const isTerminal = [
+        "canceled",
+        "duplicate",
+        "fraud",
+        "refunded",
+      ].includes(newStatus);
+
+      return {
+        icon: badge.icon,
+        timestamp: log.createdAt,
+        note: log.description ? (
+          <CommentCardDisplay
+            user={log.user}
+            timestamp={log.createdAt}
+            text={log.description}
+          />
+        ) : undefined,
+        children: (
+          <>
+            <span className="text-sm text-neutral-700">
+              {isTerminal ? "Commission marked as" : "Commission"}
+            </span>
+            <StatusBadge icon={null} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
+            {newStatus === "processed" && commission.holdingPeriodDays ? (
+              <span className="text-sm text-neutral-700">
+                after {commission.holdingPeriodDays}-day{" "}
+                <a
+                  href="https://dub.co/help/article/partner-payouts#payout-holding-period"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="cursor-help underline decoration-dotted underline-offset-2"
+                >
+                  holding period
+                </a>
+              </span>
+            ) : null}
+            {log.user ? (
+              <>
+                <span className="text-sm text-neutral-500">by</span>
+                <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
+                  <UserAvatar user={log.user} className="size-4" />
+                  <span className="text-[13px] text-neutral-700">
+                    {log.user.name}
+                  </span>
+                </div>
+              </>
+            ) : null}
+            {newStatus === "paid" && commission.payout?.id ? (
+              <Link
+                href={`/${slug}/program/payouts/${commission.payout.id}`}
+                className="flex h-6 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 transition-colors hover:bg-neutral-200"
+              >
+                <InvoiceDollar className="size-4 shrink-0 text-neutral-500" />
+                <span className="font-mono text-[13px] text-neutral-700">
+                  {commission.payout.id}
+                </span>
+              </Link>
+            ) : null}
+          </>
+        ),
+      };
+    })
+    .filter((event): event is NonNullable<typeof event> => event !== null);
+
+  const allEvents = [...logEvents, createdEvent];
+
+  return (
+    <div className="mt-6">
+      <h3 className="mb-4 text-base font-medium text-neutral-900">Activity</h3>
+      <div className="flex flex-col">
+        {allEvents.map((event, index) => (
+          <ActivityEvent
+            key={index}
+            icon={event.icon}
+            timestamp={event.timestamp}
+            note={event.note}
+            isLast={index === allEvents.length - 1}
+          >
+            {event.children}
+          </ActivityEvent>
+        ))}
+      </div>
+    </div>
+  );
+}
