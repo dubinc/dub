@@ -90,6 +90,7 @@ model Project {
   yearInReviews         YearInReview[]
 
   @@index(usageLastChecked(sort: Asc))
+  @@index(trialEndsAt)
 }
 
 enum WorkspaceRole {

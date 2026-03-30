@@ -32,7 +32,7 @@ export async function sendAdvancedDowngradeNoticeEmailIfNeeded({
 
   await sendEmail({
     to: ownerEmail,
-    subject: "Your Advanced plan features have been updated",
+    subject: "Your Advanced plan features have been removed",
     react: AdvancedPlanDowngradeNotice({
       email: ownerEmail,
       workspace: {

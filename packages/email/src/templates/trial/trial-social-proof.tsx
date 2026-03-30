@@ -12,8 +12,8 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { Footer } from "../components/footer";
-import { type TrialMarketingEmailProps } from "../types/trial-marketing-email";
+import { Footer } from "../../components/footer";
+import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email";
 
 const FRAMER_CASE_IMAGE =
   "https://assets.dub.co/cms/trial-email-framer-thumbnail.png";

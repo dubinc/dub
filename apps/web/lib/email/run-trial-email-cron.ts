@@ -1,8 +1,8 @@
+import { renderTrialEmail } from "@/lib/email/render-trial-email";
 import {
   getDueTrialEmailTypes,
   getTrialEmailSubject,
 } from "@/lib/email/trial-email-schedule";
-import { renderTrialEmail } from "@/lib/email/render-trial-email";
 import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
 import { sendEmail as defaultSendEmail } from "@dub/email";
 import type { PrismaClient } from "@dub/prisma/client";
@@ -49,7 +49,6 @@ export async function runTrialEmailCron({
       trialEndsAt: true,
       users: {
         where: {
-          role: "owner",
           user: {
             isMachine: false,
           },
@@ -62,7 +61,6 @@ export async function runTrialEmailCron({
             },
           },
         },
-        take: 1,
       },
     },
   });

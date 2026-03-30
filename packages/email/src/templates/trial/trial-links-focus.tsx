@@ -13,25 +13,24 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { Footer } from "../components/footer";
-import { type TrialMarketingEmailProps } from "../types/trial-marketing-email";
+import { Footer } from "../../components/footer";
+import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email";
 
-export default function TrialPartnerFocusEmail({
+export default function TrialLinksFocusEmail({
   email = "panic@thedis.co",
   unsubscribeUrl,
   plan: _plan,
   workspaceSlug,
 }: TrialMarketingEmailProps) {
   const dashboardUrl = `https://app.dub.co/${workspaceSlug}`;
-  const programUrl = `${dashboardUrl}/program`;
+  const linksUrl = `${dashboardUrl}/links`;
   const upgradeUrl = `${dashboardUrl}/settings/billing/upgrade`;
-  const trackingUrl = `${dashboardUrl}/settings/tracking`;
 
   return (
     <Html>
       <Head />
       <Preview>
-        Tracking, programs, landing pages, and incentives for partners.
+        Custom domains, short links, previews, and A/B tests — start here.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -41,12 +40,12 @@ export default function TrialPartnerFocusEmail({
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-xl font-semibold text-black">
-              Turn partners into a growth channel
+              Get more from your links
             </Heading>
 
             <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              With Dub, you can create a modern affiliate program for partnering
-              with affiliates, influencers, and your users.
+              Create the best links and connect your domain so everything you
+              share is branded, trusted, and trackable.
             </Text>
 
             <Heading className="mx-0 mb-3 mt-2 p-0 text-base font-semibold text-black">
@@ -54,53 +53,62 @@ export default function TrialPartnerFocusEmail({
             </Heading>
 
             <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              1. Track conversions:{" "}
+              1. Use a custom domain —{" "}
               <Link
-                href={trackingUrl}
+                href="https://dub.co/help/article/how-to-add-custom-domain"
                 className="text-neutral-600 underline underline-offset-2"
               >
-                Install the Dub tracking script
+                Add a custom domain
               </Link>{" "}
-              to track your partner conversions with accurate attribution.
+              and increase trust and click-through rates on every link.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              2. Create a program:{" "}
+              2. Create your first link:{" "}
               <Link
-                href="https://dub.co/docs/partners/quickstart"
+                href="https://dub.co/help/article/how-to-create-link"
                 className="text-neutral-600 underline underline-offset-2"
               >
-                Set up your Dub partner program
+                Learn how to create short links
               </Link>{" "}
-              to grow your revenue on autopilot with advanced reward structures
-              and more.
+              and start tracking clicks in seconds.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              3. Open applications:{" "}
+              3. Customize your link preview:{" "}
               <Link
-                href="https://dub.co/help/article/program-landing-page"
+                href="https://dub.co/help/article/custom-link-previews"
                 className="text-neutral-600 underline underline-offset-2"
               >
-                Create your program landing page
-              </Link>
-              , and share it online with the partners you want to apply.
+                Control the title, image, and description
+              </Link>{" "}
+              to improve how your links appear and perform.
+            </Text>
+
+            <Text className="mb-4 text-sm leading-6 text-neutral-600">
+              4. Enable link cloaking:{" "}
+              <Link
+                href="https://dub.co/help/article/link-cloaking"
+                className="text-neutral-600 underline underline-offset-2"
+              >
+                Keep your brand visible
+              </Link>{" "}
+              in the URL bar instead of the destination link.
             </Text>
 
             <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              4. Incentivize partners:{" "}
+              5. Run A/B tests:{" "}
               <Link
-                href="https://dub.co/help/article/dual-sided-incentives"
+                href="https://dub.co/help/article/ab-testing"
                 className="text-neutral-600 underline underline-offset-2"
               >
-                Create dual-sided incentives
+                Compare multiple destinations
               </Link>{" "}
-              to give new customers who sign up via a referral link special
-              discounts.
+              to see which drives more clicks and conversions.
             </Text>
 
             <Text className="mb-8 text-sm leading-6 text-neutral-600">
-              Take your affiliate program to the next level with Dub, and you
+              Enjoy all the additional link features during your trial, and you
               can{" "}
               <Link
                 href={upgradeUrl}
@@ -115,16 +123,16 @@ export default function TrialPartnerFocusEmail({
               <Row>
                 <Link
                   className="mr-2 inline w-fit rounded-lg bg-black px-4 py-2.5 text-center text-[14px] font-medium text-white no-underline"
-                  href={programUrl}
+                  href={linksUrl}
                 >
-                  View your program
+                  View your links
                 </Link>
 
                 <Link
                   className="inline w-fit rounded-lg border border-solid border-neutral-200 bg-white px-4 py-2.5 text-center text-[14px] font-medium text-black no-underline"
-                  href="https://dub.co/help/article/dub-partners"
+                  href="https://dub.co/help/article/dub-links"
                 >
-                  Learn more about programs
+                  Learn more about links
                 </Link>
               </Row>
             </Section>

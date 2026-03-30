@@ -2,22 +2,22 @@ import {
   TRIAL_EMAIL_TYPE,
   type TrialEmailType,
 } from "@/lib/email/trial-email-schedule";
-import Trial3DaysRemainingEmail from "@dub/email/templates/trial-3-days-remaining";
-import Trial7DaysRemainingEmail from "@dub/email/templates/trial-7-days-remaining";
-import TrialEndsTodayEmail from "@dub/email/templates/trial-ends-today";
-import TrialLinksFocusEmail from "@dub/email/templates/trial-links-focus";
-import TrialPartnerFocusEmail from "@dub/email/templates/trial-partner-focus";
-import TrialSocialProofEmail from "@dub/email/templates/trial-social-proof";
-import TrialStartedEmail from "@dub/email/templates/trial-started";
+import Trial3DaysRemainingEmail from "@dub/email/templates/trial/trial-3-days-remaining";
+import Trial7DaysRemainingEmail from "@dub/email/templates/trial/trial-7-days-remaining";
+import TrialEndsTodayEmail from "@dub/email/templates/trial/trial-ends-today";
+import TrialLinksFocusEmail from "@dub/email/templates/trial/trial-links-focus";
+import TrialPartnerFocusEmail from "@dub/email/templates/trial/trial-partner-focus";
+import TrialSocialProofEmail from "@dub/email/templates/trial/trial-social-proof";
+import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
 
 export function renderTrialEmail(
   type: TrialEmailType,
   props: {
     email: string;
     name: string | null;
-    unsubscribeUrl: string;
     plan: string;
     workspaceSlug: string;
+    unsubscribeUrl: string;
   },
 ) {
   switch (type) {

@@ -1,4 +1,4 @@
-import { capitalize, DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Container,
@@ -12,24 +12,25 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { Footer } from "../components/footer";
-import { type TrialMarketingEmailProps } from "../types/trial-marketing-email";
+import { Footer } from "../../components/footer";
+import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email";
 
-export default function TrialEndsTodayEmail({
+export default function Trial3DaysRemainingEmail({
   email = "panic@thedis.co",
   unsubscribeUrl,
-  plan,
+  plan: _plan,
   workspaceSlug,
 }: TrialMarketingEmailProps) {
   const dashboardUrl = `https://app.dub.co/${workspaceSlug}`;
+  const upgradeUrl = `${dashboardUrl}/settings/billing/upgrade`;
   const billingUrl = `${dashboardUrl}/settings/billing`;
-  const planName = capitalize(plan);
 
   return (
     <Html>
       <Head />
       <Preview>
-        Your links, partner program, and workflows stay live on your plan.
+        Keep links, partners, and revenue running — choose a plan that fits your
+        team.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -39,37 +40,44 @@ export default function TrialEndsTodayEmail({
             </Section>
 
             <Heading className="mx-0 my-7 p-0 text-xl font-semibold text-black">
-              Your Dub trial ends today
+              You have 3 days left in your Dub trial
             </Heading>
 
-            <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              You&apos;ve had full access to everything, from branded links to
-              partner programs to revenue tracking.
+            <Text className="mb-8 text-sm leading-6 text-neutral-600">
+              By now, you&apos;ve seen how links, partners, and revenue work
+              together on Dub.{" "}
+              <Link
+                href={upgradeUrl}
+                className="text-neutral-600 underline underline-offset-2"
+              >
+                Choose a plan
+              </Link>{" "}
+              that fits your team and keep everything running as is.
+            </Text>
+
+            <Text className="mb-3 text-sm font-semibold leading-6 text-neutral-800">
+              What that means for you:
+            </Text>
+
+            <Text className="mb-3 text-sm leading-6 text-neutral-600">
+              • Every link is branded and trackable
+            </Text>
+            <Text className="mb-3 text-sm leading-6 text-neutral-600">
+              • Every click ties back to real outcomes
+            </Text>
+            <Text className="mb-8 text-sm leading-6 text-neutral-600">
+              • Every partner becomes a channel for growth
             </Text>
 
             <Text className="mb-8 text-sm leading-6 text-neutral-600">
-              To keep everything running, your workspace{" "}
+              When your trial ends, your workspace will{" "}
               <Link
                 href={billingUrl}
                 className="text-neutral-600 underline underline-offset-2"
               >
-                will continue on the {planName} plan
-              </Link>
-              .
-            </Text>
-
-            <Text className="mb-3 text-sm font-semibold leading-6 text-neutral-800">
-              What stays in place:
-            </Text>
-
-            <Text className="mb-0 mt-0 text-sm leading-6 text-neutral-600">
-              • Your links, data, and tracking stay live
-            </Text>
-            <Text className="mb-0 mt-0 text-sm leading-6 text-neutral-600">
-              • Your partner program keeps driving growth
-            </Text>
-            <Text className="mb-8 mt-0 text-sm leading-6 text-neutral-600">
-              • Your workflows continue without interruption
+                continue on the current plan
+              </Link>{" "}
+              so everything stays live without interruption.
             </Text>
 
             <Section className="mb-8">

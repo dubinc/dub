@@ -16,14 +16,14 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { Footer } from "../components/footer";
-import { type TrialMarketingEmailProps } from "../types/trial-marketing-email";
+import { Footer } from "../../components/footer";
+import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email";
 
 export default function TrialStartedEmail({
   email = "panic@thedis.co",
+  plan = "Advanced",
+  workspaceSlug = "acme",
   unsubscribeUrl,
-  plan,
-  workspaceSlug,
 }: TrialMarketingEmailProps) {
   const trialDays = PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS;
   const planLabel = capitalize(plan);

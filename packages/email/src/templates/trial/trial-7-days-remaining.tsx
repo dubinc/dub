@@ -12,8 +12,8 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
-import { Footer } from "../components/footer";
-import { type TrialMarketingEmailProps } from "../types/trial-marketing-email";
+import { Footer } from "../../components/footer";
+import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email";
 
 export default function Trial7DaysRemainingEmail({
   email = "panic@thedis.co",
@@ -46,13 +46,8 @@ export default function Trial7DaysRemainingEmail({
             </Heading>
 
             <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              {name ? `Hi ${name},` : "Hi,"}
-            </Text>
-
-            <Text className="mb-6 text-sm leading-6 text-neutral-600">
               It&apos;s been a week since you started your Dub trial, and we
-              wanted to check in, see how things were going, and see if you had
-              everything you needed.
+              wanted to check in to see how things were going.
             </Text>
 
             <Text className="mb-8 text-sm leading-6 text-neutral-600">

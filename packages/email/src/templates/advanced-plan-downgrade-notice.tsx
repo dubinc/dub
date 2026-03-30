@@ -30,7 +30,10 @@ export default function AdvancedPlanDowngradeNotice({
   return (
     <Html>
       <Head />
-      <Preview>Your workspace is no longer on the Advanced plan</Preview>
+      <Preview>
+        Removed features: Email campaigns, messaging center, advanced reward
+        conditions, fraud detection, embedded referral dashboard
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -38,7 +41,7 @@ export default function AdvancedPlanDowngradeNotice({
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-medium text-black">
-              Advanced-only features have been updated
+              Advanced plan features have been removed
             </Heading>
             <Text className="text-sm leading-6 text-black">
               Your workspace <strong>{workspace.name}</strong> is no longer on
@@ -46,24 +49,64 @@ export default function AdvancedPlanDowngradeNotice({
               your current subscription:
             </Text>
             <Text className="text-sm leading-6 text-black">
-              • Advanced reward conditions (modifiers) on your program rewards
-              have been cleared.
+              •{" "}
+              <Link
+                href="https://dub.co/help/article/email-campaigns"
+                className="font-medium text-black underline underline-offset-2"
+              >
+                Email campaigns
+              </Link>{" "}
+              have been paused or canceled.
             </Text>
             <Text className="text-sm leading-6 text-black">
-              • Email campaigns that required Advanced (scheduled marketing
-              sends and active transactional campaigns) have been paused or
-              canceled.
+              •{" "}
+              <Link
+                href="https://dub.co/help/article/messaging-partners"
+                className="font-medium text-black underline underline-offset-2"
+              >
+                Messaging center
+              </Link>{" "}
+              has been disabled.
             </Text>
             <Text className="text-sm leading-6 text-black">
-              Partner messaging and other plan limits now follow your new plan.
-              You can review rewards and campaigns in Dub anytime.
+              •{" "}
+              <Link
+                href="https://dub.co/help/article/partner-rewards"
+                className="font-medium text-black underline underline-offset-2"
+              >
+                Advanced reward conditions
+              </Link>{" "}
+              have been removed.
+            </Text>
+            <Text className="text-sm leading-6 text-black">
+              •{" "}
+              <Link
+                href="https://dub.co/help/article/fraud-detection"
+                className="font-medium text-black underline underline-offset-2"
+              >
+                Fraud events
+              </Link>{" "}
+              are still being tracked, but you need to upgrade to view them.
+            </Text>
+            <Text className="text-sm leading-6 text-black">
+              • If you've set up the{" "}
+              <Link
+                href="https://dub.co/docs/partners/embedded-referrals"
+                className="font-medium text-black underline underline-offset-2"
+              >
+                Embedded Referral Dashboard
+              </Link>
+              , it will no longer work.
+            </Text>
+            <Text className="text-sm leading-6 text-black">
+              To reactivate these features, please upgrade to the Advanced plan.
             </Text>
             <Section className="mb-8 mt-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href={`https://app.dub.co/${workspace.slug}`}
+                href={`https://app.dub.co/${workspace.slug}/settings/billing/upgrade?plan=advanced`}
               >
-                Open workspace
+                Upgrade to Advanced
               </Link>
             </Section>
             <Footer email={email} />
