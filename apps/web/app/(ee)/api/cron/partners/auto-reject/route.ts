@@ -77,38 +77,50 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const { count } = await prisma.programEnrollment.updateMany({
-    where: {
-      id: programEnrollment.id,
-      status: ProgramEnrollmentStatus.pending,
-    },
-    data: {
-      status: ProgramEnrollmentStatus.rejected,
-      clickRewardId: null,
-      leadRewardId: null,
-      saleRewardId: null,
-      discountId: null,
-    },
+  const { skipped } = await prisma.$transaction(async (tx) => {
+    const { count } = await tx.programEnrollment.updateMany({
+      where: {
+        id: programEnrollment.id,
+        status: ProgramEnrollmentStatus.pending,
+      },
+      data: {
+        status: ProgramEnrollmentStatus.rejected,
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        discountId: null,
+      },
+    });
+
+    if (count === 0) {
+      return {
+        skipped: true,
+      };
+    }
+
+    if (programEnrollment.applicationId) {
+      await tx.programApplication.update({
+        where: {
+          id: programEnrollment.applicationId,
+        },
+        data: {
+          reviewedAt: new Date(),
+          rejectionReason:
+            ProgramApplicationRejectionReason.doesNotMeetRequirements,
+          rejectionNote: null,
+        },
+      });
+    }
+
+    return {
+      skipped: false,
+    };
   });
 
-  if (count === 0) {
+  if (skipped) {
     return logAndRespond(
       `Partner ${partnerId} is no longer pending in program ${programId}. Skipping auto-reject.`,
     );
-  }
-
-  if (programEnrollment.applicationId) {
-    await prisma.programApplication.update({
-      where: {
-        id: programEnrollment.applicationId,
-      },
-      data: {
-        reviewedAt: new Date(),
-        rejectionReason:
-          ProgramApplicationRejectionReason.doesNotMeetRequirements,
-        rejectionNote: null,
-      },
-    });
   }
 
   await resolveFraudGroups({

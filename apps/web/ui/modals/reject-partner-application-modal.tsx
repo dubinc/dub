@@ -93,8 +93,6 @@ export function RejectPartnerApplicationModal({
   const handleConfirm = useCallback(async () => {
     if (!workspaceId || !partner) return;
 
-    const trimmedNote = rejectionNote.trim();
-
     allowImmediateReapplyOutcomeRef.current = allowImmediateReapply;
 
     await rejectPartnerApplication({
@@ -105,7 +103,7 @@ export function RejectPartnerApplicationModal({
         rejectionReason:
           selectedReason.value as ProgramApplicationRejectionReason,
       }),
-      ...(trimmedNote ? { rejectionNote: trimmedNote } : {}),
+      ...(rejectionNote ? { rejectionNote } : {}),
     });
   }, [
     workspaceId,

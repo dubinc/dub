@@ -337,8 +337,10 @@ function PartnerApplicationDetailsSkeleton() {
     <div className="grid grid-cols-1 gap-5">
       {[...Array(3)].map((_, idx) => (
         <div key={idx}>
-          <h4 className="text-content-emphasis font-semibold" />
-          <div className="h-5 w-32 animate-pulse rounded-md bg-neutral-200" />
+          <div
+            className="h-5 w-40 max-w-[min(100%,11rem)] min-w-0 animate-pulse rounded-md bg-neutral-200"
+            aria-hidden
+          />
 
           <div className="mt-2">
             <div className="h-4 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
