@@ -226,10 +226,8 @@ export const updateCommissionSchema = z.object({
     .enum(["pending", "refunded", "duplicate", "canceled", "fraud"])
     .optional()
     .describe(
-      "Useful for marking a commission as pending, refunded, duplicate, canceled, or fraudulent. Takes precedence over `amount` and `modifyAmount`. When a commission is marked as pending, processed, refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
+      "Useful for marking a commission as pending, refunded, duplicate, canceled, or fraudulent. Takes precedence over `saleAmount` and `modifySaleAmount`. When a commission is marked as pending, refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
     ),
-
-  // Deprecated fields
   amount: z.number().min(0).optional().meta({ deprecated: true }),
   modifyAmount: z.number().optional().meta({ deprecated: true }),
 });
