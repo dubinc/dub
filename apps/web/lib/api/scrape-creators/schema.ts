@@ -9,23 +9,12 @@ export const socialProfileSchema = z.preprocess(
         typeof data.message === "string" &&
         (data.message.toLowerCase().includes("doesn't exist") ||
           data.message.toLowerCase().includes("does not exist") ||
-          data.message.toLowerCase().includes("not found"))
+          data.message.toLowerCase().includes("not found") ||
+          data.message.toLowerCase().includes("restricted"))
       ) {
         return {
           ...data,
           platform: "account_not_found",
-        };
-      }
-
-      // Check for "account is restricted" response
-      if (
-        "message" in data &&
-        typeof data.message === "string" &&
-        data.message.toLowerCase().includes("restricted")
-      ) {
-        return {
-          ...data,
-          platform: "account_restricted",
         };
       }
 
@@ -68,12 +57,6 @@ export const socialProfileSchema = z.preprocess(
   z.discriminatedUnion("platform", [
     z.object({
       platform: z.literal("account_not_found"),
-      handle: z.string().optional(),
-      message: z.string().optional(),
-    }),
-
-    z.object({
-      platform: z.literal("account_restricted"),
       handle: z.string().optional(),
       message: z.string().optional(),
     }),

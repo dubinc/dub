@@ -20,13 +20,6 @@ export class AccountNotFoundError extends Error {
   }
 }
 
-export class AccountRestrictedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "AccountRestrictedError";
-  }
-}
-
 export async function getSocialProfile({
   platform,
   handle,
@@ -54,13 +47,6 @@ export async function getSocialProfile({
   if (data.platform === "account_not_found") {
     throw new AccountNotFoundError(
       (data as { message?: string }).message || "Account doesn't exist",
-    );
-  }
-
-  // Check if account is restricted
-  if (data.platform === "account_restricted") {
-    throw new AccountRestrictedError(
-      (data as { message?: string }).message || "Account is restricted",
     );
   }
 
