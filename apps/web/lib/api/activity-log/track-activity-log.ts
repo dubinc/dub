@@ -12,7 +12,6 @@ const ACTIONS_WITHOUT_CHANGE_SET: ActivityLogAction[] = [
   "referral.created",
   "reward.created",
   "reward.deleted",
-  "commission.created",
 ];
 
 export interface TrackActivityLogInput

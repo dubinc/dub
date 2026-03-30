@@ -16,7 +16,7 @@ interface TrackActivityLogParams
 
 const COMMISSION_ACTIVITY_FIELDS = ["amount", "earnings", "status"];
 
-function toCommissionActivitySnapshot(
+export function toCommissionActivitySnapshot(
   commission: Pick<Commission, "amount" | "earnings" | "status">,
 ) {
   return {
@@ -44,24 +44,6 @@ export async function trackCommissionActivityLog({
     const oldCommission = oldById.get(id);
     const newCommission = newById.get(id);
 
-    // Commission created
-    if (!oldCommission && newCommission) {
-      activityLogs.push({
-        ...baseInput,
-        resourceId: newCommission.id,
-        resourceType: "commission",
-        action: "commission.created",
-        changeSet: {
-          commission: {
-            old: null,
-            new: toCommissionActivitySnapshot(newCommission),
-          },
-        },
-      });
-      continue;
-    }
-
-    // Commission updated
     if (oldCommission && newCommission) {
       const oldSnapshot = toCommissionActivitySnapshot(oldCommission);
       const newSnapshot = toCommissionActivitySnapshot(newCommission);
