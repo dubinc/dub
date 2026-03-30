@@ -3,6 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -12,6 +13,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTrialLimitActivateModal } from "./trial-limit-activate-modal";
 
 interface ApprovePartnerApplicationModalProps {
   showApprovePartnerApplicationModal: boolean;
@@ -33,7 +35,12 @@ export function ApprovePartnerApplicationModal({
   onConfirm,
   confirmShortcutOptions,
 }: ApprovePartnerApplicationModalProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, trialEndsAt } = useWorkspace();
+
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const { executeAsync: approvePartnerApplication, isPending } = useAction(
     approvePartnerAction,
@@ -46,7 +53,15 @@ export function ApprovePartnerApplicationModal({
         await onConfirm?.();
       },
       onError: ({ error }) => {
-        toast.error(error.serverError || "Failed to approve partner.");
+        const msg = String(error.serverError ?? "");
+        if (
+          trialActive &&
+          (msg.includes("free trial") || msg.includes("enrolled partners"))
+        ) {
+          openTrialLimitModal("partnerEnrollments");
+        } else {
+          toast.error(msg || "Failed to approve partner.");
+        }
       },
     },
   );
