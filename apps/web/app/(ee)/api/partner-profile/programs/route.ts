@@ -35,6 +35,13 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           },
         },
       },
+      application: {
+        select: {
+          rejectionReason: true,
+          rejectionNote: true,
+          reviewedAt: true,
+        },
+      },
       ...(includeRewardsDiscounts && {
         clickReward: true,
         leadReward: true,
@@ -62,6 +69,13 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             enrollment.saleReward,
           ].filter((r): r is Reward => r !== null)
         : [],
+      application: enrollment.application
+        ? {
+            rejectionReason: enrollment.application.rejectionReason,
+            rejectionNote: enrollment.application.rejectionNote,
+            reviewedAt: enrollment.application.reviewedAt,
+          }
+        : null,
     };
   });
 

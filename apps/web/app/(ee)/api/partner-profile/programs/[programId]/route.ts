@@ -18,6 +18,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       saleReward: true,
       discount: true,
       partnerGroup: true,
+      application: {
+        select: {
+          rejectionReason: true,
+          rejectionNote: true,
+          reviewedAt: true,
+        },
+      },
     },
   });
 
@@ -32,6 +39,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       ...programEnrollment,
       rewards,
       group: programEnrollment.partnerGroup,
+      application: programEnrollment.application
+        ? {
+            rejectionReason: programEnrollment.application.rejectionReason,
+            rejectionNote: programEnrollment.application.rejectionNote,
+            reviewedAt: programEnrollment.application.reviewedAt,
+          }
+        : null,
     }),
   );
 });
