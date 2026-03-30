@@ -169,15 +169,11 @@ function PartnerApplicationAbout({
 }) {
   return (
     <div className="grid grid-cols-1 gap-5 text-sm text-neutral-600">
-      {partner.applicationId && (
-        <>
-          <h3 className="text-content-emphasis text-lg font-semibold">
-            Application
-          </h3>
-          <PartnerApplicationDetails applicationId={partner.applicationId} />
-          <hr className="border-neutral-200" />
-        </>
-      )}
+      <PartnerApplicationDetails
+        partnerId={partner.id}
+        preferredApplicationId={partner.applicationId ?? null}
+      />
+      <hr className="border-neutral-200" />
       <PartnerAbout partner={partner} />
     </div>
   );
