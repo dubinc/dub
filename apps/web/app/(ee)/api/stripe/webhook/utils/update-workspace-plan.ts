@@ -15,6 +15,10 @@ import {
   wouldGainPartnerAccess,
   wouldLosePartnerAccess,
 } from "@/lib/plans/has-partner-access";
+import {
+  getSubscriptionCancellationFields,
+  getSubscriptionTrialEndsAt,
+} from "@/lib/stripe/workspace-subscription-fields";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
@@ -285,39 +289,4 @@ export async function updateWorkspacePlan({
       },
     });
   }
-}
-
-function getSubscriptionTrialEndsAt(
-  subscription?: Pick<Stripe.Subscription, "status" | "trial_end">,
-): Date | null | undefined {
-  if (!subscription) {
-    return undefined;
-  }
-  if (subscription.status === "trialing" && subscription.trial_end) {
-    return new Date(subscription.trial_end * 1000);
-  }
-  return null;
-}
-
-function getSubscriptionCancellationFields(
-  subscription?: Pick<Stripe.Subscription, "cancel_at_period_end" | "items">,
-): {
-  subscriptionCanceledAt: Date | null;
-  billingCycleEndsAt: Date | null;
-} {
-  if (!subscription) {
-    return {
-      subscriptionCanceledAt: null,
-      billingCycleEndsAt: null,
-    };
-  }
-  const cancelAtPeriodEnd = subscription.cancel_at_period_end ?? false;
-  const currentPeriodEnd = subscription.items.data[0]?.current_period_end;
-  return {
-    subscriptionCanceledAt: cancelAtPeriodEnd ? new Date() : null,
-    billingCycleEndsAt:
-      cancelAtPeriodEnd && currentPeriodEnd != null
-        ? new Date(Number(currentPeriodEnd) * 1000)
-        : null,
-  };
 }
