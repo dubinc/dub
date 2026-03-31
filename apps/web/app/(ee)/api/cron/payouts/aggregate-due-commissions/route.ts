@@ -1,3 +1,4 @@
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
@@ -62,6 +63,7 @@ async function handler(req: Request) {
             select: {
               id: true,
               name: true,
+              workspaceId: true,
             },
           },
         },
@@ -103,7 +105,9 @@ async function handler(req: Request) {
         select: {
           id: true,
           createdAt: true,
+          amount: true,
           earnings: true,
+          status: true,
           partnerId: true,
           programId: true,
         },
@@ -218,6 +222,19 @@ async function handler(req: Request) {
                 payoutId: payoutToUse.id,
               },
             });
+
+            const workspaceId = partnerGroups.find(
+              (p) => p.program.id === programId,
+            )?.program.workspaceId;
+
+            if (workspaceId) {
+              await trackCommissionStatusUpdate({
+                workspaceId,
+                programId,
+                commissions,
+                newStatus: "processed",
+              });
+            }
 
             // if we're reusing a pending payout, we need to update the amount and periodEnd
             if (existingPendingPayouts.find((p) => p.id === payoutToUse.id)) {
