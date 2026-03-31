@@ -1,13 +1,13 @@
 import { veriffDecisionEventSchema } from "@/lib/veriff/schema";
+import {
+  mergeVeriffMetadata,
+  parseVeriffMetadata,
+} from "@/lib/veriff/veriff-metadata";
 import { sendEmail } from "@dub/email";
 import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-identity-verification-failed";
 import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
 import { prisma } from "@dub/prisma";
-import {
-  IdentityVerificationStatus,
-  Partner,
-  Prisma,
-} from "@dub/prisma/client";
+import { IdentityVerificationStatus, Partner } from "@dub/prisma/client";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import { createHash } from "crypto";
 import * as z from "zod/v4";
@@ -44,6 +44,7 @@ export const handleDecisionEvent = async ({
       email: true,
       country: true,
       identityVerifiedAt: true,
+      veriffMetadata: true,
     },
   });
 
@@ -55,7 +56,12 @@ export const handleDecisionEvent = async ({
     return logAndRespond("[Veriff Webhook] Partner already verified.");
   }
 
-  const toUpdate: Prisma.PartnerUpdateInput = {};
+  // undefined = don't update, null = clear the field
+  let veriffIdentityHash: string | null | undefined = undefined;
+  let identityVerifiedAt: Date | null | undefined = undefined;
+  let veriffSessionId: string | null | undefined = undefined;
+  let { sessionUrl, attemptCount, declineReason, sessionExpiresAt } =
+    parseVeriffMetadata(partner.veriffMetadata);
 
   // If the verification was approved, compute the identity hash and check for duplicates and country mismatch
   if (effectiveStatus === "approved") {
@@ -74,14 +80,11 @@ export const handleDecisionEvent = async ({
     const checkPassed = !isDuplicate && !isCountryMismatch;
 
     if (checkPassed) {
-      toUpdate.identityVerificationDeclineReason = null;
-      toUpdate.veriffIdentityHash = identityHash;
-      toUpdate.veriffSessionExpiresAt = null;
-      toUpdate.veriffSessionUrl = null;
-      toUpdate.veriffSessionId = null;
-      toUpdate.identityVerifiedAt = decisionTime
-        ? new Date(decisionTime)
-        : new Date();
+      declineReason = null;
+      sessionExpiresAt = null;
+      sessionUrl = null;
+      veriffIdentityHash = identityHash;
+      identityVerifiedAt = decisionTime ? new Date(decisionTime) : new Date();
     } else {
       effectiveStatus = "declined";
 
@@ -97,33 +100,42 @@ export const handleDecisionEvent = async ({
 
   // If the verification failed, reset the session
   if (["expired", "abandoned", "declined"].includes(effectiveStatus)) {
-    toUpdate.identityVerifiedAt = null;
-    toUpdate.veriffSessionExpiresAt = null;
-    toUpdate.veriffSessionUrl = null;
-    toUpdate.veriffSessionId = null;
-    toUpdate.identityVerificationDeclineReason = effectiveReason;
+    identityVerifiedAt = null;
+    veriffSessionId = null;
+    sessionExpiresAt = null;
+    sessionUrl = null;
+    declineReason = effectiveReason;
   }
 
   // Can reuse the same session for resubmission
   if (effectiveStatus === "resubmission_requested") {
-    toUpdate.identityVerifiedAt = null;
-    toUpdate.identityVerificationDeclineReason = effectiveReason;
+    identityVerifiedAt = null;
+    declineReason = effectiveReason;
   }
 
   if (["approved", "declined"].includes(effectiveStatus)) {
-    toUpdate.identityVerificationAttemptCount = {
-      increment: 1,
-    };
+    attemptCount = attemptCount + 1;
   }
 
-  toUpdate.identityVerificationStatus = veriffStatusMap[effectiveStatus];
+  const veriffMetadata = mergeVeriffMetadata(partner.veriffMetadata, {
+    attemptCount,
+    declineReason,
+    sessionExpiresAt,
+    sessionUrl,
+  });
 
   await prisma.partner.update({
     where: {
       id: partner.id,
       identityVerifiedAt: null,
     },
-    data: toUpdate,
+    data: {
+      identityVerificationStatus: veriffStatusMap[effectiveStatus],
+      veriffIdentityHash,
+      identityVerifiedAt,
+      veriffSessionId,
+      veriffMetadata,
+    },
   });
 
   if (partner.email) {
@@ -141,7 +153,9 @@ export const handleDecisionEvent = async ({
           },
         }),
       });
-    } else {
+    } else if (
+      ["declined", "resubmissionRequested"].includes(effectiveStatus)
+    ) {
       await sendEmail({
         to: partner.email,
         subject: "Your identity verification was declined",
@@ -185,7 +199,7 @@ async function checkDuplicateIdentity({
     },
   });
 
-  return duplicatePartner ? true : false;
+  return !!duplicatePartner;
 }
 
 function checkCountryMismatch({

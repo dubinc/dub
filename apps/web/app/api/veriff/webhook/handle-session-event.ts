@@ -1,4 +1,5 @@
 import { veriffSessionEventSchema } from "@/lib/veriff/schema";
+import { mergeVeriffMetadata } from "@/lib/veriff/veriff-metadata";
 import { prisma } from "@dub/prisma";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import * as z from "zod/v4";
@@ -16,6 +17,7 @@ export const handleSessionEvent = async ({
     select: {
       id: true,
       identityVerifiedAt: true,
+      veriffMetadata: true,
     },
   });
 
@@ -34,7 +36,9 @@ export const handleSessionEvent = async ({
     },
     data: {
       identityVerificationStatus: action,
-      identityVerificationDeclineReason: null,
+      veriffMetadata: mergeVeriffMetadata(partner.veriffMetadata, {
+        declineReason: null,
+      }),
       veriffIdentityHash: null,
     },
   });

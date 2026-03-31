@@ -6,6 +6,10 @@ import {
   veriffCreateSessionInputSchema,
   veriffCreateSessionOutputSchema,
 } from "@/lib/veriff/schema";
+import {
+  mergeVeriffMetadata,
+  parseVeriffMetadata,
+} from "@/lib/veriff/veriff-metadata";
 import { MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { Partner } from "@dub/prisma/client";
@@ -30,9 +34,10 @@ export const startIdentityVerificationAction = authPartnerActionClient.action(
       }
     }
 
+    const veriffMetadata = parseVeriffMetadata(partner.veriffMetadata);
+
     if (
-      partner.identityVerificationAttemptCount >=
-      MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS
+      veriffMetadata.attemptCount >= MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS
     ) {
       throw new Error(
         "You've reached the maximum number of identity verification attempts. Please contact support if you need help.",
@@ -43,12 +48,12 @@ export const startIdentityVerificationAction = authPartnerActionClient.action(
     // this is to avoid creating duplicate sessions
     if (
       partner.veriffSessionId &&
-      partner.veriffSessionUrl &&
-      partner.veriffSessionExpiresAt &&
-      partner.veriffSessionExpiresAt > new Date()
+      veriffMetadata.sessionUrl &&
+      veriffMetadata.sessionExpiresAt &&
+      veriffMetadata.sessionExpiresAt > new Date()
     ) {
       return {
-        sessionUrl: partner.veriffSessionUrl,
+        sessionUrl: veriffMetadata.sessionUrl,
       };
     }
 
@@ -76,8 +81,10 @@ export const startIdentityVerificationAction = authPartnerActionClient.action(
       },
       data: {
         veriffSessionId: verification.id,
-        veriffSessionUrl: verification.url,
-        veriffSessionExpiresAt: addDays(new Date(), 7),
+        veriffMetadata: mergeVeriffMetadata(partner.veriffMetadata, {
+          sessionUrl: verification.url,
+          sessionExpiresAt: addDays(new Date(), 7),
+        }),
       },
     });
 

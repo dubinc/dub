@@ -45,14 +45,11 @@ model Partner {
   country     String?
 
   // identity verification fields
-  identityVerificationStatus        IdentityVerificationStatus?
-  identityVerificationAttemptCount  Int                         @default(0)
-  identityVerificationDeclineReason String?                     @db.Text
-  identityVerifiedAt                DateTime?
-  veriffSessionExpiresAt            DateTime?
-  veriffSessionUrl                  String?                     @db.Text
-  veriffSessionId                   String?                     @unique
-  veriffIdentityHash                String?                     @unique
+  identityVerificationStatus IdentityVerificationStatus?
+  identityVerifiedAt         DateTime?
+  veriffSessionId            String?                     @unique
+  veriffIdentityHash         String?                     @unique
+  veriffMetadata             Json?
 
   // payout fields
   defaultPayoutMethod          PartnerPayoutMethod?
