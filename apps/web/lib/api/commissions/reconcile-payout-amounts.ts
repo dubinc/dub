@@ -1,3 +1,4 @@
+import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { prisma } from "@dub/prisma";
 
 export async function reconcilePayoutAmounts(payoutIds: string[]) {
@@ -43,6 +44,9 @@ export async function reconcilePayoutAmounts(payoutIds: string[]) {
           id: {
             in: toDelete,
           },
+          status: {
+            in: MUTABLE_PAYOUT_STATUSES,
+          },
         },
       });
     }
@@ -52,6 +56,9 @@ export async function reconcilePayoutAmounts(payoutIds: string[]) {
         tx.payout.update({
           where: {
             id,
+            status: {
+              in: MUTABLE_PAYOUT_STATUSES,
+            },
           },
           data: {
             amount,

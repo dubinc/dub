@@ -1,7 +1,5 @@
-import {
-  bulkUpdateCommissionsSchema,
-  PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE,
-} from "@/lib/zod/schemas/commissions";
+import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
+import { bulkUpdateCommissionsSchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -73,9 +71,7 @@ export async function bulkUpdatePartnerCommissions({
   }
 
   const blockedByPayout = commissions.filter(
-    (c) =>
-      c.payout &&
-      PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE.includes(c.payout.status),
+    (c) => c.payout && !MUTABLE_PAYOUT_STATUSES.includes(c.payout.status),
   );
 
   if (blockedByPayout.length > 0) {

@@ -1,9 +1,7 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { MUTABLE_PAYOUT_STATUSES } from "@/lib/constants/payouts";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import {
-  PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE,
-  updateCommissionSchemaExtended,
-} from "@/lib/zod/schemas/commissions";
+import { updateCommissionSchemaExtended } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { Commission } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -80,9 +78,7 @@ export async function updatePartnerCommission({
 
   if (
     commission.payout &&
-    PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE.includes(
-      commission.payout.status,
-    )
+    !MUTABLE_PAYOUT_STATUSES.includes(commission.payout.status)
   ) {
     throw new DubApiError({
       code: "bad_request",
