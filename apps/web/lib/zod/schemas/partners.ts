@@ -31,7 +31,7 @@ import { centsSchema, centsSchemaWithDefault, parseUrlSchema } from "./utils";
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
 export const MAX_PARTNER_DESCRIPTION_LENGTH = 500;
-export const MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS = 5;
+export const MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS = 2;
 
 export const ACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
   ProgramEnrollmentStatus.approved,
