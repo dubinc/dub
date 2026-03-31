@@ -1,73 +1,105 @@
 import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
-import { getFeatureFlags } from "@/lib/edge-config";
-import { parseTrackedSitemaps } from "@/lib/sitemaps/import-tracked-sitemaps";
-import { findVerifiedSiteLinksDomain } from "@/lib/sitemaps/site-visit-tracking";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Prisma } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-// GET /api/cron/sitemaps/queue - queue sitemap import jobs for eligible workspaces
-export const GET = withCron(async () => {
-  const workspaces = await prisma.project.findMany({
-    select: {
-      id: true,
-      siteVisitTrackingSettings: true,
-    },
-  });
+const SITEMAP_QUEUE_BATCH_SIZE = 50;
 
-  if (workspaces.length === 0) {
-    return logAndRespond("No workspaces found.");
+const bodySchema = z.object({
+  startingAfter: z.string().optional(),
+});
+
+async function runSitemapQueueBatch(startingAfter?: string) {
+  const cursorFragment = startingAfter
+    ? Prisma.sql`AND p.id > ${startingAfter}`
+    : Prisma.sql``;
+
+  const rows = await prisma.$queryRaw<Array<{ id: string }>>(
+    Prisma.sql`
+      SELECT p.id
+      FROM Project p
+      INNER JOIN Domain d ON d.projectId = p.id
+        AND d.slug = JSON_UNQUOTE(JSON_EXTRACT(p.siteVisitTrackingSettings, '$.siteDomainSlug'))
+        AND d.archived = false
+        AND d.verified = true
+      WHERE p.siteVisitTrackingSettings IS NOT NULL
+        AND JSON_LENGTH(JSON_EXTRACT(p.siteVisitTrackingSettings, '$.trackedSitemaps')) > 0
+        AND CHAR_LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(p.siteVisitTrackingSettings, '$.siteDomainSlug')), ''))) > 0
+        ${cursorFragment}
+      ORDER BY p.id ASC
+      LIMIT ${SITEMAP_QUEUE_BATCH_SIZE}
+    `,
+  );
+
+  if (rows.length === 0) {
+    return {
+      queued: 0,
+      hasMore: false,
+      lastId: undefined as string | undefined,
+    };
   }
 
   const dayKey = new Date().toISOString().slice(0, 10);
-  let queued = 0;
-  let withTrackedSitemaps = 0;
-  let withFeatureFlag = 0;
 
-  for (const workspace of workspaces) {
-    const trackedSitemaps = parseTrackedSitemaps(
-      workspace.siteVisitTrackingSettings,
-    );
+  await Promise.all(
+    rows.map(({ id }) =>
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/sitemaps/import`,
+        method: "POST",
+        body: {
+          workspaceId: id,
+        },
+        deduplicationId: `sitemap-import-${dayKey}-${id}`,
+      }),
+    ),
+  );
 
-    if (trackedSitemaps.length === 0) {
-      continue;
-    }
+  return {
+    queued: rows.length,
+    hasMore: rows.length === SITEMAP_QUEUE_BATCH_SIZE,
+    lastId: rows[rows.length - 1]?.id,
+  };
+}
 
-    const siteLinksDomain = await findVerifiedSiteLinksDomain(
-      workspace.id,
-      workspace.siteVisitTrackingSettings,
-    );
-    if (!siteLinksDomain) {
-      continue;
-    }
+const handler = withCron(async ({ rawBody }) => {
+  const { startingAfter } = bodySchema.parse(
+    JSON.parse(rawBody?.trim() ? rawBody : "{}"),
+  );
 
-    withTrackedSitemaps++;
+  const { queued, hasMore, lastId } = await runSitemapQueueBatch(startingAfter);
 
-    const flags = await getFeatureFlags({
-      workspaceId: workspace.id,
-    });
-
-    if (!flags.analyticsSettingsSiteVisitTracking) {
-      continue;
-    }
-    withFeatureFlag++;
-
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/sitemaps/import`,
+  if (hasMore && lastId) {
+    const qstashResponse = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/sitemaps/queue`,
       method: "POST",
       body: {
-        workspaceId: workspace.id,
+        startingAfter: lastId,
       },
-      deduplicationId: `sitemap-import-${dayKey}-${workspace.id}`,
     });
 
-    queued++;
+    if (!qstashResponse.messageId) {
+      await log({
+        message: `Error scheduling next sitemap queue batch: ${JSON.stringify(qstashResponse)}`,
+        type: "errors",
+        mention: true,
+      });
+    }
+
+    return logAndRespond(
+      `Queued ${queued} sitemap import job(s) for this batch. Scheduling next batch (startingAfter: ${lastId}).`,
+    );
   }
 
   return logAndRespond(
-    `Queued sitemap import jobs for ${queued} workspace(s).`,
+    queued === 0 && !startingAfter
+      ? "No eligible workspaces for sitemap import."
+      : `Queued ${queued} sitemap import job(s) for this batch. No further batches.`,
   );
 });
+
+export { handler as GET, handler as POST };

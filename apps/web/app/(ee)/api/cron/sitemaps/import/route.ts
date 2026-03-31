@@ -1,5 +1,4 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { getFeatureFlags } from "@/lib/edge-config";
 import {
   importTrackedSitemaps,
   parseTrackedSitemaps,
@@ -36,20 +35,6 @@ export const POST = withCron(async ({ rawBody }) => {
 
   if (!workspace) {
     return logAndRespond(`Workspace ${workspaceId} not found. Skipping...`);
-  }
-
-  const flags = await getFeatureFlags({
-    workspaceId: workspace.id,
-  });
-
-  if (!flags.analyticsSettingsSiteVisitTracking) {
-    console.info("[sitemaps.cron.import] feature flag disabled", {
-      workspaceId: workspace.id,
-      workspaceSlug: workspace.slug,
-    });
-    return logAndRespond(
-      `Workspace ${workspace.slug} does not have site visit tracking beta enabled. Skipping...`,
-    );
   }
 
   const trackedSitemaps = parseTrackedSitemaps(
