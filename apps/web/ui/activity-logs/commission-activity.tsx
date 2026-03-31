@@ -22,12 +22,31 @@ type CommissionChangeSet = Record<
   }
 >;
 
-function getNewStatusFromLog(log: ActivityLog) {
+function parseChangeSet(log: ActivityLog) {
   const changeSet = log.changeSet as CommissionChangeSet | null;
+  const old = changeSet?.commission?.old ?? null;
+  const cur = changeSet?.commission?.new ?? null;
 
-  const newStatus = changeSet?.commission?.new?.status;
+  if (!cur) return null;
 
-  return newStatus;
+  const statusChanged =
+    old?.status !== cur.status &&
+    typeof cur.status === "string" &&
+    cur.status in CommissionStatusBadges;
+
+  const amountChanged =
+    !statusChanged &&
+    (old?.amount !== cur.amount || old?.earnings !== cur.earnings);
+
+  return {
+    old,
+    cur,
+    statusChanged,
+    amountChanged,
+    newStatus: statusChanged
+      ? (cur.status as keyof typeof CommissionStatusBadges)
+      : null,
+  };
 }
 
 export function CommissionActivity({
@@ -76,17 +95,6 @@ export function CommissionActivity({
         >
           {CommissionStatusBadges["pending"].label}
         </StatusBadge>
-        {commission.user ? (
-          <>
-            <span className="text-sm text-neutral-500">by</span>
-            <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
-              <UserAvatar user={commission.user} className="size-4" />
-              <span className="text-[13px] text-neutral-700">
-                {commission.user.name}
-              </span>
-            </div>
-          </>
-        ) : null}
       </>
     ),
   };
@@ -112,79 +120,124 @@ export function CommissionActivity({
     );
   }
 
+  const fmt = (v: number) =>
+    currencyFormatter(v, { trailingZeroDisplay: "stripIfInteger" });
+
   const logEvents = (activityLogs ?? [])
     .map((log) => {
-      const newStatus = getNewStatusFromLog(log);
+      const parsed = parseChangeSet(log);
+      if (!parsed) return null;
 
-      if (!newStatus) {
-        return null;
+      const { old, cur, statusChanged, amountChanged, newStatus } = parsed;
+
+      const note = log.description ? (
+        <CommentCardDisplay timestamp={log.createdAt} text={log.description} />
+      ) : undefined;
+
+      const userByline = log.user ? (
+        <>
+          <span className="text-sm text-neutral-500">by</span>
+          <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
+            <UserAvatar user={log.user} className="size-4" />
+            <span className="text-[13px] text-neutral-700">
+              {log.user.name}
+            </span>
+          </div>
+        </>
+      ) : null;
+
+      if (statusChanged && newStatus) {
+        const badge = CommissionStatusBadges[newStatus];
+
+        return {
+          key: log.id,
+          icon: badge.icon,
+          timestamp: log.createdAt,
+          note,
+          children: (
+            <>
+              <span className="text-sm text-neutral-700">
+                Status changed to
+              </span>
+              <StatusBadge icon={null} variant={badge.variant}>
+                {badge.label}
+              </StatusBadge>
+              {newStatus === "processed" && commission.holdingPeriodDays ? (
+                <span className="text-sm text-neutral-700">
+                  after {commission.holdingPeriodDays}-day{" "}
+                  <a
+                    href="https://dub.co/help/article/partner-payouts#payout-holding-period"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cursor-help underline decoration-dotted underline-offset-2"
+                  >
+                    holding period
+                  </a>
+                </span>
+              ) : null}
+              {userByline}
+              {newStatus === "paid" && commission.payout?.id ? (
+                <Link
+                  href={`/${slug}/program/payouts/${commission.payout.id}`}
+                  className="flex h-6 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 transition-colors hover:bg-neutral-200"
+                >
+                  <InvoiceDollar className="size-4 shrink-0 text-neutral-500" />
+                  <span className="font-mono text-[13px] text-neutral-700">
+                    {commission.payout.id}
+                  </span>
+                </Link>
+              ) : null}
+            </>
+          ),
+        };
       }
 
-      const badge = CommissionStatusBadges[newStatus];
-      const isTerminal = [
-        "canceled",
-        "duplicate",
-        "fraud",
-        "refunded",
-      ].includes(newStatus);
+      if (amountChanged) {
+        const parts: React.ReactNode[] = [];
 
-      return {
-        key: log.id,
-        icon: badge.icon,
-        timestamp: log.createdAt,
-        note: log.description ? (
-          <CommentCardDisplay
-            user={log.user}
-            timestamp={log.createdAt}
-            text={log.description}
-          />
-        ) : undefined,
-        children: (
-          <>
-            <span className="text-sm text-neutral-700">
-              {isTerminal ? "Commission marked as" : "Commission"}
-            </span>
-            <StatusBadge icon={null} variant={badge.variant}>
-              {badge.label}
-            </StatusBadge>
-            {newStatus === "processed" && commission.holdingPeriodDays ? (
-              <span className="text-sm text-neutral-700">
-                after {commission.holdingPeriodDays}-day{" "}
-                <a
-                  href="https://dub.co/help/article/partner-payouts#payout-holding-period"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="cursor-help underline decoration-dotted underline-offset-2"
-                >
-                  holding period
-                </a>
-              </span>
-            ) : null}
-            {log.user ? (
-              <>
-                <span className="text-sm text-neutral-500">by</span>
-                <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
-                  <UserAvatar user={log.user} className="size-4" />
-                  <span className="text-[13px] text-neutral-700">
-                    {log.user.name}
-                  </span>
-                </div>
-              </>
-            ) : null}
-            {newStatus === "paid" && commission.payout?.id ? (
-              <Link
-                href={`/${slug}/program/payouts/${commission.payout.id}`}
-                className="flex h-6 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 transition-colors hover:bg-neutral-200"
-              >
-                <InvoiceDollar className="size-4 shrink-0 text-neutral-500" />
-                <span className="font-mono text-[13px] text-neutral-700">
-                  {commission.payout.id}
-                </span>
-              </Link>
-            ) : null}
-          </>
-        ),
-      };
+        if (old?.amount !== cur.amount) {
+          parts.push(
+            <span key="amount" className="text-sm text-neutral-700">
+              Amount changed to
+            </span>,
+            <span
+              key="amount-val"
+              className="rounded-md bg-neutral-100 px-2 py-0.5 font-mono text-[13px] text-neutral-700"
+            >
+              {fmt(old?.amount ?? 0)} → {fmt(cur.amount)}
+            </span>,
+          );
+        }
+
+        if (old?.earnings !== cur.earnings) {
+          parts.push(
+            <span key="earnings" className="text-sm text-neutral-700">
+              Earnings changed to
+            </span>,
+            <span
+              key="earnings-val"
+              className="rounded-md bg-neutral-100 px-2 py-0.5 font-mono text-[13px] text-neutral-700"
+            >
+              {fmt(old?.earnings ?? 0)} → {fmt(cur.earnings)}
+            </span>,
+          );
+        }
+
+        return {
+          key: log.id,
+          icon: InvoiceDollar,
+          timestamp: log.createdAt,
+          note,
+          children: (
+            <>
+              {parts}
+              {userByline}
+            </>
+          ),
+        };
+      }
+
+      return null;
     })
     .filter((event): event is NonNullable<typeof event> => event !== null);
 
