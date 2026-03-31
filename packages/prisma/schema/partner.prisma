@@ -49,7 +49,7 @@ model Partner {
   identityVerifiedAt         DateTime?
   veriffSessionId            String?                     @unique
   veriffIdentityHash         String?                     @unique
-  veriffMetadata             Json?
+  veriffMetadata             Json? // see veriffMetadataSchema
 
   // payout fields
   defaultPayoutMethod          PartnerPayoutMethod?
