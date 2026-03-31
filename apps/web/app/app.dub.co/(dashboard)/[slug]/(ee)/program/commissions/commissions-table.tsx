@@ -381,7 +381,12 @@ export function CommissionsTable() {
           text="Edit commissions"
           icon={<Pen2 className="size-3.5 shrink-0" />}
           className="h-7 w-fit rounded-lg px-2.5"
-          disabled={hasPaidCommission || exceedsLimit}
+          disabledTooltip={
+            hasPaidCommission
+              ? "Some of the selected commissions have already been paid and cannot be edited."
+              : undefined
+          }
+          disabled={exceedsLimit && !hasPaidCommission}
           onClick={() => {
             openBulkEditCommissionsModal(selectedCommissions);
           }}
