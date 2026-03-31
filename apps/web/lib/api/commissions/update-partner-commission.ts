@@ -84,7 +84,7 @@ export async function updatePartnerCommission({
   let finalEarnings: number | undefined;
 
   // Commission for sale events
-  if (saleAmount || modifySaleAmount) {
+  if (saleAmount !== undefined || modifySaleAmount !== undefined) {
     if (commission.type !== "sale") {
       throw new DubApiError({
         code: "bad_request",
@@ -95,16 +95,16 @@ export async function updatePartnerCommission({
     // if currency is not USD, convert it to USD  based on the current FX rate
     // TODO: allow custom "defaultCurrency" on workspace table in the future
     if (currency !== "usd") {
-      const valueToConvert = modifySaleAmount || saleAmount;
+      const valueToConvert = modifySaleAmount ?? saleAmount;
 
-      if (valueToConvert) {
+      if (valueToConvert !== undefined) {
         const { currency: convertedCurrency, amount: convertedAmount } =
           await convertCurrency({
             currency,
             amount: valueToConvert,
           });
 
-        if (modifySaleAmount) {
+        if (modifySaleAmount !== undefined) {
           modifySaleAmount = convertedAmount;
         } else {
           saleAmount = convertedAmount;
@@ -115,7 +115,7 @@ export async function updatePartnerCommission({
     }
 
     finalSaleAmount = Math.max(
-      modifySaleAmount
+      modifySaleAmount !== undefined
         ? originalSaleAmount + modifySaleAmount
         : saleAmount ?? originalSaleAmount,
       0, // Ensure the amount is not negative
@@ -154,7 +154,7 @@ export async function updatePartnerCommission({
   }
 
   // Commission for custom events
-  if (earnings) {
+  if (earnings !== undefined) {
     if (commission.type !== "custom") {
       throw new DubApiError({
         code: "bad_request",
@@ -200,6 +200,7 @@ export async function updatePartnerCommission({
   ) {
     relatedCommissions = await prisma.commission.findMany({
       where: {
+        programId: commission.programId,
         partnerId: commission.partnerId,
         customerId: commission.customerId,
         status: {

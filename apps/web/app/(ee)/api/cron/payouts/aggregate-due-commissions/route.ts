@@ -228,7 +228,7 @@ async function handler(req: Request) {
             )?.program.workspaceId;
 
             if (workspaceId) {
-              trackCommissionStatusUpdate({
+              await trackCommissionStatusUpdate({
                 workspaceId,
                 programId,
                 commissions,

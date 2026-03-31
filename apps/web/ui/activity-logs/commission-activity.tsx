@@ -43,6 +43,7 @@ export function CommissionActivity({
   });
 
   const createdEvent = {
+    key: "created",
     icon: CommissionStatusBadges["pending"].icon,
     timestamp: commission.createdAt,
     note: (() => {
@@ -128,6 +129,7 @@ export function CommissionActivity({
       ].includes(newStatus);
 
       return {
+        key: log.id,
         icon: badge.icon,
         timestamp: log.createdAt,
         note: log.description ? (
@@ -194,7 +196,7 @@ export function CommissionActivity({
       <div className="flex flex-col">
         {allEvents.map((event, index) => (
           <ActivityEvent
-            key={index}
+            key={event.key}
             icon={event.icon}
             timestamp={event.timestamp}
             note={event.note}
