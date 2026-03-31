@@ -9,7 +9,7 @@ export async function reconcilePayoutAmounts(payoutIds: string[]) {
   }
 
   await prisma.$transaction(async (tx) => {
-    const aggregates = await prisma.commission.groupBy({
+    const aggregates = await tx.commission.groupBy({
       by: ["payoutId"],
       where: {
         payoutId: {

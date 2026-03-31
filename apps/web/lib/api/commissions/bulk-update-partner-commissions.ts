@@ -95,10 +95,24 @@ export async function bulkUpdatePartnerCommissions({
   // Update the commissions to the new status
   await prisma.commission.updateMany({
     where: {
-      programId,
       id: {
-        in: commissionIds,
+        in: commissions.map((c) => c.id),
       },
+      status: {
+        not: "paid",
+      },
+      OR: [
+        {
+          payoutId: null,
+        },
+        {
+          payout: {
+            status: {
+              in: MUTABLE_PAYOUT_STATUSES,
+            },
+          },
+        },
+      ],
     },
     data: {
       status,
