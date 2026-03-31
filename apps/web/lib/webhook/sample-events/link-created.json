@@ -11,6 +11,7 @@
   "archived": false,
   "expiresAt": null,
   "expiredUrl": null,
+  "disabledAt": null,
   "password": null,
   "proxy": false,
   "title": null,

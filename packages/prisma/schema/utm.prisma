@@ -21,6 +21,8 @@ model UtmTemplate {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  partnerGroup PartnerGroup?
+
   @@unique([projectId, name])
   @@index(userId)
 }

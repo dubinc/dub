@@ -17,7 +17,7 @@ export default function ManageSubscriptionButton(props: ButtonProps) {
       {...props}
       text={props.text || "Manage Subscription"}
       variant={props.variant || "secondary"}
-      className={cn(props.className, "h-9")}
+      className={cn("h-9", props.className)}
       onClick={() => {
         setClicked(true);
         fetch(`/api/workspaces/${workspaceId}/billing/manage`, {

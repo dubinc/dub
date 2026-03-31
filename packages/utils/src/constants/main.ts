@@ -29,6 +29,7 @@ export const API_HOSTNAMES = new Set([
   `api-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   `api.${SHORT_DOMAIN}`,
   "api.localhost:8888",
+  "api.localhost",
 ]);
 
 export const API_DOMAIN =
@@ -41,12 +42,14 @@ export const API_DOMAIN =
 export const ADMIN_HOSTNAMES = new Set([
   `admin.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "admin.localhost:8888",
+  "admin.localhost",
 ]);
 
 export const PARTNERS_HOSTNAMES = new Set([
   `partners.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   `partners-staging.${process.env.NEXT_PUBLIC_APP_DOMAIN}`,
   "partners.localhost:8888",
+  "partners.localhost",
 ]);
 
 export const PARTNERS_DOMAIN =
@@ -64,6 +67,7 @@ export const PARTNERS_DOMAIN_WITH_NGROK =
       : process.env.NEXT_PUBLIC_NGROK_URL || "http://partners.localhost:8888";
 
 export const DUB_LOGO = "https://assets.dub.co/logo.png";
+export const DUB_LOGO_SQUARE = "https://assets.dub.co/logo-square.png";
 export const DUB_QR_LOGO = "https://assets.dub.co/logo.png";
 export const DUB_WORDMARK = "https://assets.dub.co/wordmark.png";
 export const DUB_THUMBNAIL = "https://assets.dub.co/thumbnail.jpg";

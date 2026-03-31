@@ -1,7 +1,8 @@
 import { createId } from "@/lib/api/create-id";
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { getFolders } from "@/lib/folder/get-folders";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -33,22 +34,13 @@ export const GET = withWorkspace(
   },
   {
     requiredPermissions: ["folders.read"],
-    requiredPlan: [
-      "pro",
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
   },
 );
 
 // POST /api/folders - create a folder for a workspace
 export const POST = withWorkspace(
   async ({ req, workspace, headers, session }) => {
-    const { name, accessLevel } = createFolderSchema.parse(
+    const { name, description, accessLevel } = createFolderSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -87,6 +79,7 @@ export const POST = withWorkspace(
               id: createId({ prefix: "fold_" }),
               projectId: workspace.id,
               name,
+              description,
               accessLevel,
               users: {
                 create: {

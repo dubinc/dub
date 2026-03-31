@@ -4,18 +4,17 @@ import { BlurImage } from "@dub/ui";
 import {
   AppleLogo,
   Cube,
-  CursorRays,
   Desktop,
   GamingConsole,
   MobilePhone,
-  QRCode,
   TV,
   Tablet,
   Watch,
   Window,
 } from "@dub/ui/icons";
+import { TRIGGER_DISPLAY } from "./trigger-display";
 
-export default function DeviceIcon({
+export function DeviceIcon({
   display,
   tab,
   className,
@@ -89,11 +88,8 @@ export default function DeviceIcon({
         );
     }
   } else if (tab === "triggers") {
-    if (display === "qr") {
-      return <QRCode className={className} />;
-    } else {
-      return <CursorRays className={className} />;
-    }
+    const { icon: Icon } = TRIGGER_DISPLAY[display ?? "link"];
+    return <Icon className={className} />;
   } else {
     return (
       <BlurImage

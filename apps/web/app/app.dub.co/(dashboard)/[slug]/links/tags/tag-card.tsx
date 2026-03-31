@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TagProps } from "@/lib/types";
@@ -10,6 +11,7 @@ import {
   Button,
   CardList,
   Popover,
+  useClickHandlers,
   useCopyToClipboard,
   useIntersectionObserver,
   useKeyboardShortcut,
@@ -33,7 +35,7 @@ export function TagCard({
   tag: TagProps & { _count?: { links: number } };
 }) {
   const router = useRouter();
-  const { id, slug } = useWorkspace();
+  const { id, slug, role } = useWorkspace();
 
   const linksCount = tag._count?.links;
 
@@ -48,6 +50,11 @@ export function TagCard({
   const { AddEditTagModal, setShowAddEditTagModal } = useAddEditTagModal({
     props: tag,
   });
+
+  const permissionsError = clientAccessCheck({
+    action: "tags.write",
+    role,
+  }).error;
 
   const [copiedTagId, copyToClipboard] = useCopyToClipboard();
 
@@ -99,15 +106,11 @@ export function TagCard({
 
       <CardList.Card
         key={tag.id}
-        onClick={(e) => {
-          if (e.metaKey || e.ctrlKey) window.open(linkPageUrl, "_blank");
-          else router.push(linkPageUrl);
-        }}
-        onAuxClick={() => window.open(linkPageUrl, "_blank")}
         innerClassName={cn(
           "flex items-center justify-between gap-5 sm:gap-8 md:gap-12 cursor-pointer text-sm transition-opacity",
           processing && "opacity-50",
         )}
+        {...useClickHandlers(linkPageUrl, router)}
       >
         <div ref={ref} className="flex min-w-0 grow items-center gap-3">
           <TagBadge color={tag.color} withIcon className="sm:p-1.5" />
@@ -140,6 +143,7 @@ export function TagCard({
                   icon={<PenWriting className="h-4 w-4" />}
                   shortcut="E"
                   className="h-9 px-2 font-medium"
+                  disabledTooltip={permissionsError || undefined}
                 />
                 <Button
                   text="Copy Tag ID"
@@ -162,6 +166,7 @@ export function TagCard({
                   icon={<Delete className="h-4 w-4" />}
                   shortcut="X"
                   className="h-9 px-2 font-medium"
+                  disabledTooltip={permissionsError || undefined}
                 />
               </div>
             }

@@ -1,11 +1,12 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useUsers from "@/lib/swr/use-users";
-import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
-import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
+import { UserAvatar } from "@/ui/users/user-avatar";
+import { BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
 import { GOOGLE_FAVICON_URL, nFormatter } from "@dub/utils";
 import { useContext, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -13,31 +14,22 @@ import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 export function useLinkFilters() {
-  const { defaultFolderId } = useWorkspace();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const { searchParams } = useRouterStuff();
-
-  // Decide on the folderId to use
-  let folderId = searchParams.get("folderId");
-  if (folderId) {
-    folderId = folderId === "unsorted" ? "" : folderId;
-  } else {
-    folderId = defaultFolderId ?? "";
-  }
+  const { folderId } = useCurrentFolderId();
 
   const { tags, tagsAsync } = useTagFilterOptions({
     search: selectedFilter === "tagIds" ? debouncedSearch : "",
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const domains = useDomainFilterOptions({
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const users = useUserFilterOptions({
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const { queryParams, searchParamsObj } = useRouterStuff();
@@ -49,6 +41,7 @@ export function useLinkFilters() {
         icon: Tag,
         label: "Tag",
         multiple: true,
+        hideOperator: true,
         shouldFilter: !tagsAsync,
         getOptionIcon: (value, props) => {
           const tagColor =
@@ -57,6 +50,11 @@ export function useLinkFilters() {
           return tagColor ? (
             <TagBadge color={tagColor} withIcon className="sm:p-1" />
           ) : null;
+        },
+        getOptionLabel: (value, props) => {
+          if (props.option?.label) return props.option.label;
+          const tag = tags?.find(({ id }) => id === value);
+          return tag?.name ?? value;
         },
         options:
           tags?.map(({ id, name, color, count, hideDuringSearch }) => ({
@@ -92,12 +90,11 @@ export function useLinkFilters() {
         icon: User,
         label: "Creator",
         options:
-          // @ts-expect-error
-          users?.map(({ id, name, email, image, count }) => ({
+          users?.map(({ id, name, image, count }) => ({
             value: id,
-            label: name || email,
+            label: name,
             icon: (
-              <Avatar
+              <UserAvatar
                 user={{
                   id,
                   name,
@@ -121,10 +118,10 @@ export function useLinkFilters() {
     const { domain, tagIds, userId } = searchParamsObj;
     return [
       ...(domain ? [{ key: "domain", value: domain }] : []),
-      ...(tagIds ? [{ key: "tagIds", value: selectedTagIds }] : []),
+      ...(tagIds ? [{ key: "tagIds", values: selectedTagIds }] : []),
       ...(userId ? [{ key: "userId", value: userId }] : []),
     ];
-  }, [searchParamsObj]);
+  }, [searchParamsObj, selectedTagIds]);
 
   const onSelect = (key: string, value: any) => {
     if (key === "tagIds") {
@@ -162,6 +159,12 @@ export function useLinkFilters() {
     }
   };
 
+  const onRemoveFilter = (key: string) => {
+    queryParams({
+      del: [key, "page"],
+    });
+  };
+
   const onRemoveAll = () => {
     queryParams({
       del: ["domain", "tagIds", "userId", "search"],
@@ -173,6 +176,7 @@ export function useLinkFilters() {
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     setSearch,
     setSelectedFilter,
@@ -272,7 +276,7 @@ function useDomainFilterOptions({ folderId }: { folderId: string }) {
 }
 
 function useUserFilterOptions({ folderId }: { folderId: string }) {
-  const { users } = useUsers();
+  const { users } = useWorkspaceUsers();
   const { showArchived } = useContext(LinksDisplayContext);
 
   const { data: usersCount } = useLinksCount<
@@ -299,13 +303,7 @@ function useUserFilterOptions({ folderId }: { folderId: string }) {
                 0,
             }))
             .sort((a, b) => b.count - a.count)
-        : usersCount
-          ? usersCount.map(({ userId, _count }) => ({
-              id: userId,
-              name: userId,
-              count: _count,
-            }))
-          : null,
+        : null,
     [users, usersCount],
   );
 }

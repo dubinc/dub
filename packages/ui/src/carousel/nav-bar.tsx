@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
-import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "motion/react";
 import * as React from "react";
 import { AUTOPLAY_DEFAULT_DELAY, CarouselApi, useCarousel } from "./carousel";
 
@@ -89,8 +89,8 @@ export const CarouselNavBar = ({
                     transition={{
                       type: "tween",
                       duration:
-                        (autoplay?.options.delay ?? AUTOPLAY_DEFAULT_DELAY) /
-                        1000,
+                        ((autoplay?.options.delay ??
+                          AUTOPLAY_DEFAULT_DELAY) as number) / 1000,
                     }}
                     className="animate-fill-width h-full w-full rounded-full bg-black"
                   />

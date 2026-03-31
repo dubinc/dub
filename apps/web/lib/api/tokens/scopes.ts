@@ -1,4 +1,4 @@
-import { Role } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 
@@ -16,6 +16,8 @@ export const SCOPES = [
   "workspaces.write",
   "webhooks.read",
   "webhooks.write",
+  "groups.read",
+  "groups.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -25,14 +27,14 @@ export type Scope = (typeof SCOPES)[number];
 // Scopes available for Workspace API keys
 export const RESOURCE_SCOPES: {
   scope: Scope;
-  roles: Role[];
+  roles: WorkspaceRole[];
   permissions: PermissionAction[];
   type?: "read" | "write";
   resource?: ResourceKey;
 }[] = [
   {
     scope: "links.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["links.read"],
     type: "read",
     resource: "links",
@@ -46,7 +48,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "tags.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["tags.read"],
     type: "read",
     resource: "tags",
@@ -60,7 +62,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "folders.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["folders.read"],
     type: "read",
     resource: "folders",
@@ -74,7 +76,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "domains.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["domains.read"],
     type: "read",
     resource: "domains",
@@ -87,8 +89,22 @@ export const RESOURCE_SCOPES: {
     resource: "domains",
   },
   {
-    scope: "workspaces.read",
+    scope: "groups.read",
+    roles: ["owner", "member", "viewer", "billing"],
+    permissions: ["groups.read"],
+    type: "read",
+    resource: "groups",
+  },
+  {
+    scope: "groups.write",
     roles: ["owner", "member"],
+    permissions: ["groups.write", "groups.read"],
+    type: "write",
+    resource: "groups",
+  },
+  {
+    scope: "workspaces.read",
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["workspaces.read"],
     type: "read",
     resource: "workspaces",
@@ -102,14 +118,14 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "analytics.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["analytics.read"],
     type: "read",
     resource: "analytics",
   },
   {
     scope: "webhooks.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: ["webhooks.read"],
     type: "read",
     resource: "webhooks",
@@ -123,7 +139,7 @@ export const RESOURCE_SCOPES: {
   },
   {
     scope: "apis.read",
-    roles: ["owner", "member"],
+    roles: ["owner", "member", "viewer", "billing"],
     permissions: [
       "links.read",
       "tags.read",
@@ -131,6 +147,7 @@ export const RESOURCE_SCOPES: {
       "domains.read",
       "workspaces.read",
       "analytics.read",
+      "groups.read",
     ],
   },
   {
@@ -148,6 +165,8 @@ export const RESOURCE_SCOPES: {
       "workspaces.read",
       "workspaces.write",
       "analytics.read",
+      "groups.read",
+      "groups.write",
     ],
   },
 ];
@@ -176,7 +195,7 @@ export const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   return acc;
 }, {});
 
-// Role to scopes mapping
+// WorkspaceRole to scopes mapping
 export const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   scope.roles.forEach((role) => {
     if (!acc[role]) {
@@ -189,7 +208,7 @@ export const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   return acc;
 }, {});
 
-// // For each scope, get the permissions it grants access to and return array of permissions
+// For each scope, get the permissions it grants access to and return array of permissions
 export const mapScopesToPermissions = (scopes: Scope[]) => {
   const permissions: PermissionAction[] = [];
 
@@ -203,7 +222,7 @@ export const mapScopesToPermissions = (scopes: Scope[]) => {
 };
 
 // Get SCOPES_BY_RESOURCE based on user role in a workspace
-export const getScopesByResourceForRole = (role: Role) => {
+export const getScopesByResourceForRole = (role: WorkspaceRole) => {
   const groupedByResource = {};
 
   const allowedScopes = RESOURCE_SCOPES.map((scope) => {
@@ -264,7 +283,7 @@ export const scopesToName = (scopes: string[]) => {
   };
 };
 
-export const validateScopesForRole = (scopes: Scope[], role: Role) => {
+export const validateScopesForRole = (scopes: Scope[], role: WorkspaceRole) => {
   const allowedScopes = ROLE_SCOPES_MAP[role];
   const invalidScopes = scopes.filter(
     (scope) => !allowedScopes.includes(scope),
@@ -274,7 +293,7 @@ export const validateScopesForRole = (scopes: Scope[], role: Role) => {
 };
 
 // Get the scopes for a role
-export const getScopesForRole = (role: Role) => {
+export const getScopesForRole = (role: WorkspaceRole) => {
   return ROLE_SCOPES_MAP[role];
 };
 

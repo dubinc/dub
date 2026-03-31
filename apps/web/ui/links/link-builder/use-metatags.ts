@@ -18,7 +18,7 @@ export function useMetatags({ enabled = true }: { enabled?: boolean } = {}) {
   const { generatingMetatags, setGeneratingMetatags } = useLinkBuilderContext();
 
   useEffect(() => {
-    // no need to generate metatags if proxy is enabled, or if any of the metatags are set
+    // no need to generate metatags if proxy is enabled
     if (proxy) {
       setGeneratingMetatags(false);
       return;
@@ -47,12 +47,12 @@ export function useMetatags({ enabled = true }: { enabled?: boolean } = {}) {
             const results = await res.json();
             const truncatedTitle = truncate(results.title, 120);
             const truncatedDescription = truncate(results.description, 240);
-            if (title !== truncatedTitle) {
+            if (truncatedTitle) {
               setValue("title", truncatedTitle);
             }
-            if (description !== truncatedDescription)
+            if (truncatedDescription)
               setValue("description", truncatedDescription);
-            if (image !== results.image) setValue("image", results.image);
+            if (results.image) setValue("image", results.image);
           }
           // set timeout to prevent flickering
           setTimeout(() => setGeneratingMetatags(false), 200);

@@ -19,6 +19,10 @@ const REQUIREMENTS: {
     name: "Lowercase letter",
     check: (p) => /[a-z]/.test(p),
   },
+  {
+    name: "8 chars",
+    check: (p) => p.length >= 8,
+  },
 ];
 
 /**

@@ -11,7 +11,7 @@ const dub = new Dub({
 });
 
 await dub.track.sale({
-  externalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
+  customerExternalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
   amount: 3000, // sale amount in cents
   currency: "usd",
   paymentProcessor: "stripe",
@@ -30,7 +30,7 @@ const response = await fetch("https://api.dub.co/track/sale", {
     "Content-Type": "application/json",
   },
   body: JSON.stringify({
-    externalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
+    customerExternalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
     amount: 3000, // sale amount in cents
     paymentProcessor: "stripe",
     eventName: "Invoice paid",

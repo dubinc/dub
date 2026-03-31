@@ -1,8 +1,11 @@
 import { prisma } from "@dub/prisma";
+import { Customer, Link, Project } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
-import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
+import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { PartnerStackApi } from "./api";
@@ -14,7 +17,7 @@ import {
 import { PartnerStackCustomer, PartnerStackImportPayload } from "./types";
 
 export async function importCustomers(payload: PartnerStackImportPayload) {
-  const { programId, startingAfter } = payload;
+  const { importId, programId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -90,6 +93,9 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
               key: true,
               domain: true,
               url: true,
+              partnerId: true,
+              programId: true,
+              lastLeadAt: true,
             },
           },
         },
@@ -105,6 +111,42 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
         partnerIdToLinks.set(partnerId, [...existing, ...links]);
       }
 
+      const partnerKeysToLatestLeadAt = customers.reduce(
+        (acc, customer) => {
+          if (!customer.partnership_key) {
+            return acc;
+          }
+          const existing = acc[customer.partnership_key] ?? new Date(0);
+          if (new Date(customer.created_at) > existing) {
+            acc[customer.partnership_key] = new Date(customer.created_at);
+          }
+          return acc;
+        },
+        {} as Record<string, Date>,
+      );
+
+      const existingCustomers = await prisma.customer.findMany({
+        where: {
+          projectId: program.workspace.id,
+          OR: [
+            {
+              email: {
+                in: customers
+                  .map(({ email }) => email)
+                  .filter((e): e is string => e != null),
+              },
+            },
+            {
+              externalId: {
+                in: customers
+                  .map(({ customer_key }) => customer_key)
+                  .filter((c): c is string => c != null),
+              },
+            },
+          ],
+        },
+      });
+
       await Promise.allSettled(
         customers.map((customer) => {
           const partnerId = partnerKeysToId[customer.partnership_key];
@@ -114,6 +156,9 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
             workspace: program.workspace,
             links,
             customer,
+            existingCustomers,
+            latestLeadAt: partnerKeysToLatestLeadAt[customer.partnership_key],
+            importId,
           });
         }),
       );
@@ -125,11 +170,9 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
     currentStartingAfter = customers[customers.length - 1].key;
   }
 
-  delete payload?.startingAfter;
-
   await partnerStackImporter.queue({
     ...payload,
-    ...(hasMore && { startingAfter: currentStartingAfter }),
+    startingAfter: hasMore ? currentStartingAfter : undefined,
     action: hasMore ? "import-customers" : "import-commissions",
   });
 
@@ -142,30 +185,52 @@ async function createCustomer({
   workspace,
   links,
   customer,
+  existingCustomers,
+  latestLeadAt,
+  importId,
 }: {
   workspace: Pick<Project, "id" | "stripeConnectId">;
-  links: Pick<Link, "id" | "key" | "domain" | "url">[];
+  links: Pick<
+    Link,
+    "id" | "key" | "domain" | "url" | "partnerId" | "programId" | "lastLeadAt"
+  >[];
   customer: PartnerStackCustomer;
+  existingCustomers: Customer[];
+  latestLeadAt: Date;
+  importId: string;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "customer",
+    entity_id: customer.customer_key || customer.email,
+  } as const;
+
   if (links.length === 0) {
-    console.log(
-      `Link not found for customer. See the details at https://app.partnerstack.com/partners/${customer.partnership_key}/details`,
-    );
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `Link not found for customer ${customer.customer_key}.`,
+    });
+
     return;
   }
 
   if (!customer.email) {
-    console.log("Customer email not found, skipping...");
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "CUSTOMER_EMAIL_NOT_FOUND",
+      message: `Email not found for customer ${customer.customer_key}.`,
+    });
+
     return;
   }
 
   // Find the customer by email address
-  const customerFound = await prisma.customer.findFirst({
-    where: {
-      projectId: workspace.id,
-      OR: [{ email: customer.email }, { externalId: customer.customer_key }],
-    },
-  });
+  const customerFound = existingCustomers.find(
+    (c) => c.email === customer.email || c.externalId === customer.customer_key,
+  );
 
   if (customerFound) {
     console.log(`A customer already exists with email ${customer.email}`);
@@ -186,12 +251,12 @@ async function createCustomer({
 
   const clickData = await recordClick({
     req: dummyRequest,
-    linkId: link.id,
     clickId: nanoid(16),
-    url: link.url,
+    workspaceId: workspace.id,
+    linkId: link.id,
     domain: link.domain,
     key: link.key,
-    workspaceId: workspace.id,
+    url: link.url,
     skipRatelimit: true,
     timestamp: new Date(customer.created_at).toISOString(),
   });
@@ -218,6 +283,8 @@ async function createCustomer({
         projectConnectId: workspace.stripeConnectId,
         clickId: clickEvent.click_id,
         linkId: link.id,
+        programId: link.programId,
+        partnerId: link.partnerId,
         country: clickEvent.country,
         clickedAt: new Date(customer.created_at),
         createdAt: new Date(customer.created_at),
@@ -242,8 +309,23 @@ async function createCustomer({
           leads: {
             increment: 1,
           },
+          lastLeadAt: updateLinkStatsForImporter({
+            currentTimestamp: link.lastLeadAt,
+            newTimestamp: latestLeadAt,
+          }),
         },
       }),
+
+      // partner links should always have a partnerId and programId, but we're doing this to make TS happy
+      ...(link.partnerId && link.programId
+        ? [
+            syncPartnerLinksStats({
+              partnerId: link.partnerId,
+              programId: link.programId,
+              eventType: "lead",
+            }),
+          ]
+        : []),
     ]);
   } catch (error) {
     console.error("Error creating customer", customer, error);

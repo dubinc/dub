@@ -4,6 +4,7 @@ enum ProgramEnrollmentStatus {
   rejected // program rejected the partner
   invited // partner who has been invited
   declined // partner declined the invite
+  deactivated // partner is deactivated by the program
   banned // partner is banned from the program
   archived // partner is archived by the program
 }
@@ -17,103 +18,200 @@ enum PartnerBannedReason {
   brand_abuse
 }
 
-enum LinkStructure {
-  short
-  query
-  path
+enum ProgramPayoutMode {
+  internal // All payouts are handled by Dub
+  hybrid // Partners with payouts enabled are paid by Dub, others via external
+  external // All payouts are processed through external
 }
 
 model Program {
-  id                           String        @id @default(cuid())
-  workspaceId                  String
-  defaultFolderId              String?
-  name                         String
-  slug                         String        @unique
-  logo                         String?
-  wordmark                     String?
-  brandColor                   String?
-  domain                       String?
-  url                          String?
-  cookieLength                 Int           @default(90)
-  holdingPeriodDays            Int           @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int           @default(0) // Default minimum payout amount of $0
-  embedData                    Json?         @db.Json
-  landerData                   Json?         @db.Json
-  landerPublishedAt            DateTime?
-  resources                    Json?         @db.Json
-  termsUrl                     String?       @db.Text
-  helpUrl                      String?       @db.Text
-  supportEmail                 String?
-  ageVerification              Int?
-  linkStructure                LinkStructure @default(short)
-  linkParameter                String? // null for SHORT, "via" for QUERY, "refer" for PATH
-  autoApprovePartnersEnabledAt DateTime?
-  createdAt                    DateTime      @default(now())
-  updatedAt                    DateTime      @updatedAt
+  id                 String            @id @default(cuid())
+  workspaceId        String
+  defaultFolderId    String
+  defaultGroupId     String
+  name               String
+  slug               String            @unique
+  domain             String?           @unique
+  url                String?
+  logo               String?
+  description        String?           @db.Text
+  primaryRewardEvent EventType         @default(sale)
+  minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
+  payoutMode         ProgramPayoutMode @default(internal)
 
-  workspace     Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners      ProgramEnrollment[]
-  payouts       Payout[]
-  invoices      Invoice[]
-  applications  ProgramApplication[]
-  links         Link[]
-  commissions   Commission[]
-  rewards       Reward[]
-  discounts     Discount[]           @relation("ProgramDiscounts")
+  inviteEmailData          Json?   @db.Json
+  embedData                Json?   @db.Json
+  resources                Json?   @db.Json
+  referralFormData         Json?   @db.Json
+  applicationRequirements  Json?   @db.Json
+  termsUrl         String? @db.Text
+  helpUrl          String? @db.Text
+  supportEmail     String?
+
+  messagingEnabledAt      DateTime?
+  partnerNetworkEnabledAt DateTime?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  startedAt               DateTime?
+  deactivatedAt           DateTime?
+
+  addedToMarketplaceAt    DateTime?
+  featuredOnMarketplaceAt DateTime?
+  marketplaceHeaderImage  String?
+  marketplaceRanking      Int       @default(2147483647)
+
+  workspace                Project                   @relation(fields: [workspaceId], references: [id])
+  customDomain             Domain?                   @relation(fields: [domain], references: [slug])
+  partners                 ProgramEnrollment[]
+  payouts                  Payout[]
+  invoices                 Invoice[]
+  applications             ProgramApplication[]
+  links                    Link[]
+  customers                Customer[]
+  commissions              Commission[]
+  rewards                  Reward[]
+  discounts                Discount[]                @relation("ProgramDiscounts")
+  discountCodes            DiscountCode[]
+  groups                   PartnerGroup[]
+  partnerGroupDefaultLinks PartnerGroupDefaultLink[]
+  bounties                 Bounty[]
+  bountySubmissions        BountySubmission[]
+  workflows                Workflow[]
+  messages                 Message[]
+  comments                 PartnerComment[]
+  campaigns                Campaign[]
+  emailDomains             EmailDomain[]
+  discoveredPartners       DiscoveredPartner[]
+  similarPrograms          ProgramSimilarity[]
+  similarToPrograms        ProgramSimilarity[]       @relation("SimilarProgram")
+  categories               ProgramCategory[]
+  fraudRules               FraudRule[]
+  fraudEventGroups         FraudEventGroup[]
+  sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
+  referrals                PartnerReferral[]
 
   @@index(workspaceId)
-  @@index(domain)
+  @@index(addedToMarketplaceAt)
 }
 
 model ProgramEnrollment {
-  id               String                  @id @default(cuid())
-  partnerId        String
-  programId        String
-  tenantId         String?
-  discountId       String? // custom discount for this partner
-  clickRewardId    String?
-  leadRewardId     String?
-  saleRewardId     String?
-  applicationId    String?                 @unique
-  status           ProgramEnrollmentStatus @default(pending)
-  totalCommissions Int                     @default(0) // total commissions earned by the partner (in cents)
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-  bannedAt         DateTime?
-  bannedReason     PartnerBannedReason?
+  id            String                  @id @default(cuid())
+  partnerId     String
+  programId     String
+  tenantId      String?
+  groupId       String?
+  applicationId String?                 @unique
+  clickRewardId String?
+  leadRewardId  String?
+  saleRewardId  String?
+  discountId    String?
+  status        ProgramEnrollmentStatus @default(pending)
 
-  partner     Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program     Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links       Link[]
-  discount    Discount?           @relation(fields: [discountId], references: [id])
-  application ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward  Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward  Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  // partner stats
+  totalClicks      Int    @default(0) // total clicks
+  totalLeads       Int    @default(0) // total leads
+  totalConversions Int    @default(0) // total conversions
+  totalSales       Int    @default(0) // total sales
+  totalSaleAmount  BigInt @default(0) // total sale amount (in cents)
+  totalCommissions BigInt @default(0) // total commissions earned by the partner (in cents)
 
+  // calculated stats
+  netRevenue              BigInt    @default(0) // totalSaleAmount - totalCommissions
+  earningsPerClick        Float     @default(0) // totalSaleAmount / totalClicks
+  averageLifetimeValue    Float? // totalSaleAmount / totalConversions (in cents)
+  clickToLeadRate         Float? // totalLeads / totalClicks
+  clickToConversionRate   Float? // totalConversions / totalClicks
+  leadToConversionRate    Float? // totalConversions / totalLeads
+  returnOnAdSpend         Float? // totalSaleAmount / totalCommissions
+  lastConversionAt        DateTime? // latest conversion from partner's links
+  daysSinceLastConversion Int? // days since lastConversionAt
+  consistencyScore        Int? // based on daysSinceLastConversion
+
+  createdAt                    DateTime             @default(now())
+  updatedAt                    DateTime             @updatedAt
+  customerDataSharingEnabledAt DateTime?
+  groupMoveDisabledAt          DateTime?
+  bannedAt                     DateTime?
+  bannedReason                 PartnerBannedReason?
+
+  partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links             Link[]
+  customers         Customer[]
+  partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
+  application       ProgramApplication? @relation(fields: [applicationId], references: [id])
+  clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  discount          Discount?           @relation(fields: [discountId], references: [id])
+  bountySubmissions BountySubmission[]
+  discountCodes     DiscountCode[]
+  commissions       Commission[]
+  payouts           Payout[]
+  messages          Message[]
+  fraudEventGroups  FraudEventGroup[]
+  referrals         PartnerReferral[]
+
+  // unique constraints
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
-  @@index(programId)
-  @@index(discountId)
+  // indexes for sorting partners
+  @@index([programId, status, totalClicks])
+  @@index([programId, status, totalLeads])
+  @@index([programId, status, totalConversions])
+  @@index([programId, status, totalSaleAmount])
+  @@index([programId, status, totalCommissions])
+  @@index([programId, status, netRevenue])
+  @@index([programId, status, earningsPerClick])
+  @@index([programId, status, averageLifetimeValue])
+  @@index([programId, status, clickToLeadRate])
+  @@index([programId, status, clickToConversionRate])
+  @@index([programId, status, leadToConversionRate])
+  @@index([programId, status, returnOnAdSpend])
+  // other indexes
+  @@index([programId, groupId])
+  @@index([groupId, status])
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
+  @@index(discountId)
+}
+
+enum ProgramApplicationRejectionReason {
+  needsMoreDetail
+  doesNotMeetRequirements
+  notTheRightFit
+  other
 }
 
 model ProgramApplication {
-  id        String   @id @default(cuid())
-  programId String
-  name      String
-  email     String
-  proposal  String?  @db.Text
-  website   String?  @db.Text
-  comments  String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String                           @id @default(cuid())
+  programId       String
+  groupId         String?
+  name            String
+  email           String
+  country         String?
+  website         String?                          @db.Text
+  youtube         String?                          @db.Text
+  twitter         String?                          @db.Text
+  linkedin        String?                          @db.Text
+  instagram       String?                          @db.Text
+  tiktok          String?                          @db.Text
+  formData        Json?                            @db.Json
+  userId          String? // user who reviewed the application
+  rejectionReason ProgramApplicationRejectionReason?
+  rejectionNote   String?                          @db.Text
+  reviewedAt      DateTime?
+  createdAt       DateTime                         @default(now())
+  updatedAt       DateTime                         @updatedAt
 
-  program    Program            @relation(fields: [programId], references: [id])
-  enrollment ProgramEnrollment?
+  program      Program            @relation(fields: [programId], references: [id])
+  partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])
+  enrollment   ProgramEnrollment?
+  user         User?              @relation(fields: [userId], references: [id])
 
   @@index(programId)
+  @@index(groupId)
+  @@index(email)
+  @@index(userId)
 }

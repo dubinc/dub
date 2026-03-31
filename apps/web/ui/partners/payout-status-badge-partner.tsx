@@ -10,7 +10,7 @@ export const PayoutStatusBadgePartner = ({
   payout,
   program,
 }: {
-  payout: Pick<Payout, "status" | "amount"> & {
+  payout: Pick<Payout, "status" | "amount" | "method"> & {
     failureReason?: string | null;
   };
   program: Pick<Program, "minPayoutAmount">;
@@ -23,26 +23,36 @@ export const PayoutStatusBadgePartner = ({
     if (!partner) {
       return undefined;
     }
+
     if (payout.status === "failed" && payout.failureReason) {
       return payout.failureReason;
     }
+
     if (
       payout.status === "pending" &&
       payout.amount < program.minPayoutAmount
     ) {
-      return `This program's minimum payout amount is ${currencyFormatter(
-        program.minPayoutAmount / 100,
+      return `This program's [minimum payout amount](https://dub.co/help/article/commissions-payouts#what-does-minimum-payout-amount-mean) is ${currencyFormatter(
+        program.minPayoutAmount,
+        { trailingZeroDisplay: "stripIfInteger" },
       )}. This payout will be accrued and processed during the next payout period.`;
     }
-    return (
-      PAYOUT_STATUS_DESCRIPTIONS?.[
-        partner?.paypalEmail ? "paypal" : "stripe"
-      ]?.[payout.status] || PAYOUT_STATUS_DESCRIPTIONS?.paypal?.[payout.status]
-    );
+
+    const payoutMethod = payout.method ?? partner?.defaultPayoutMethod;
+
+    if (!payoutMethod) {
+      return undefined;
+    }
+
+    return PAYOUT_STATUS_DESCRIPTIONS[payoutMethod][payout.status];
   }, [payout, program, partner]);
 
   return badge ? (
-    <StatusBadge icon={badge.icon} variant={badge.variant}>
+    <StatusBadge
+      icon={badge.icon}
+      variant={badge.variant}
+      className={badge.className}
+    >
       <Tooltip content={tooltipContent}>
         <div>{badge.label}</div>
       </Tooltip>

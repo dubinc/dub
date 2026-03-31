@@ -1,10 +1,11 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps, WebhookTrigger } from "@/lib/types";
 import {
   LINK_LEVEL_WEBHOOK_TRIGGERS,
+  PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
@@ -25,7 +26,7 @@ export function ConfigureWebhook({
   supportedEvents: WebhookTrigger[]; // Not all integrations support all events.
 }) {
   const [saving, setSaving] = useState(false);
-  const { id: workspaceId, plan, role } = useWorkspace();
+  const { id: workspaceId, plan, role, defaultProgramId } = useWorkspace();
 
   const { data: webhook, isLoading } = useSWR<WebhookProps>(
     `/api/webhooks/${webhookId}?workspaceId=${workspaceId}`,
@@ -90,6 +91,11 @@ export function ConfigureWebhook({
     triggers.includes(trigger),
   );
 
+  const availableWebhookTriggers = [
+    ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
+    ...(defaultProgramId ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS : []),
+  ];
+
   return (
     <form onSubmit={onSubmit}>
       <div className="w-full rounded-lg border border-neutral-200 bg-white">
@@ -109,45 +115,47 @@ export function ConfigureWebhook({
               </span>
             </label>
             <div className="mt-3 flex flex-col gap-2">
-              {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
-                (trigger) =>
-                  canManageWebhook && supportedEvents.includes(trigger),
-              ).map((trigger) => (
-                <div key={trigger} className="group flex gap-2">
-                  <Checkbox
-                    value={trigger}
-                    id={trigger}
-                    checked={triggers.includes(trigger)}
-                    disabled={
-                      !canManageWebhook || !supportedEvents.includes(trigger)
-                    }
-                    onCheckedChange={(checked) => {
-                      setData({
-                        ...data,
-                        triggers: checked
-                          ? [...triggers, trigger]
-                          : triggers.filter((t) => t !== trigger),
-                      });
-                    }}
-                    title={
-                      !supportedEvents.includes(trigger)
-                        ? "Not supported"
-                        : undefined
-                    }
-                  />
-                  <label
-                    htmlFor={trigger}
-                    className={cn(
-                      "select-none text-sm text-neutral-600",
-                      supportedEvents.includes(trigger)
-                        ? "group-hover:text-neutral-800"
-                        : "opacity-50",
-                    )}
-                  >
-                    {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
-                  </label>
-                </div>
-              ))}
+              {availableWebhookTriggers
+                .filter(
+                  (trigger) =>
+                    canManageWebhook && supportedEvents.includes(trigger),
+                )
+                .map((trigger) => (
+                  <div key={trigger} className="group flex gap-2">
+                    <Checkbox
+                      value={trigger}
+                      id={trigger}
+                      checked={triggers.includes(trigger)}
+                      disabled={
+                        !canManageWebhook || !supportedEvents.includes(trigger)
+                      }
+                      onCheckedChange={(checked) => {
+                        setData({
+                          ...data,
+                          triggers: checked
+                            ? [...triggers, trigger]
+                            : triggers.filter((t) => t !== trigger),
+                        });
+                      }}
+                      title={
+                        !supportedEvents.includes(trigger)
+                          ? "Not supported"
+                          : undefined
+                      }
+                    />
+                    <label
+                      htmlFor={trigger}
+                      className={cn(
+                        "select-none text-sm text-neutral-600",
+                        supportedEvents.includes(trigger)
+                          ? "group-hover:text-neutral-800"
+                          : "opacity-50",
+                      )}
+                    >
+                      {WEBHOOK_TRIGGER_DESCRIPTIONS[trigger]}
+                    </label>
+                  </div>
+                ))}
             </div>
           </div>
 

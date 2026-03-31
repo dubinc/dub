@@ -10,6 +10,7 @@ import { LinkIcon } from "@/ui/links/link-icon";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
+import { CommissionType } from "@dub/prisma/client";
 import { Filter, LoadingSpinner, ToggleGroup, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
 import { CircleDotted, Hyperlink, Sliders, User } from "@dub/ui/icons";
@@ -22,7 +23,6 @@ import {
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { CommissionType } from "@prisma/client";
 import { endOfDay, startOfDay } from "date-fns";
 import { Fragment, useMemo, useState } from "react";
 
@@ -92,7 +92,7 @@ export function EarningsCompositeChart() {
             .map((item, idx) => ({
               id: item,
               isActive: true,
-              valueAccessor: (d) => (d.values[item] || 0) / 100,
+              valueAccessor: (d) => d.values[item] || 0,
               colorClassName:
                 groupBy === "type"
                   ? EVENT_TYPE_LINE_COLORS[item]
@@ -179,10 +179,7 @@ export function EarningsCompositeChart() {
                         })}
                       </p>
                       <p className="text-right leading-none text-neutral-500">
-                        {currencyFormatter((d.values.total || 0) / 100, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {currencyFormatter(d.values.total || 0)}
                       </p>
                     </div>
                     <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">
@@ -204,10 +201,7 @@ export function EarningsCompositeChart() {
                               </span>
                             </div>
                             <p className="text-right text-neutral-500">
-                              {currencyFormatter(valueAccessor(d), {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
+                              {currencyFormatter(valueAccessor(d))}
                             </p>
                           </Fragment>
                         );
@@ -371,7 +365,7 @@ function EarningsTableControls() {
 
   return (
     <div>
-      <div className="flex flex-col gap-3 md:flex-row">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center">
         <Filter.Select
           filters={filters}
           activeFilters={activeFilters}
@@ -379,10 +373,7 @@ function EarningsTableControls() {
           onRemove={onRemove}
           onSelectedFilterChange={setSelectedFilter}
         />
-        <SimpleDateRangePicker
-          className="w-full sm:min-w-[200px] md:w-fit"
-          align="start"
-        />
+        <SimpleDateRangePicker className="w-full md:w-fit" align="start" />
       </div>
 
       <div
@@ -394,6 +385,7 @@ function EarningsTableControls() {
       <Filter.List
         filters={filters}
         activeFilters={activeFilters}
+        onSelect={onSelect}
         onRemove={onRemove}
         onRemoveAll={onRemoveAll}
       />

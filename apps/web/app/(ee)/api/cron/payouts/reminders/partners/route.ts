@@ -1,26 +1,44 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { MIN_PAYOUT_AMOUNT_FOR_REMINDERS } from "@/lib/constants/misc";
+import { qstash } from "@/lib/cron";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import { prisma } from "@dub/prisma";
-import { chunk, log } from "@dub/utils";
-import { NextResponse } from "next/server";
+import { ACME_PROGRAM_ID, APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";
+
+const BATCH_SIZE = 1000;
 
 // This route is used to send reminders to partners who have pending payouts
 // but haven't configured payouts yet.
 // Runs once a day at 7AM PST but only notifies partners every 3 days
-// GET /api/cron/payouts/reminders/partners
-export async function GET(req: Request) {
+// + calls itself recursively to process all partners in batches
+async function handler(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    if (req.method === "GET") {
+      await verifyVercelSignature(req);
+    } else if (req.method === "POST") {
+      const rawBody = await req.text();
+      await verifyQstashSignature({
+        req,
+        rawBody,
+      });
+    }
 
-    const pendingPayouts = await prisma.payout.groupBy({
+    // Get unsent payouts grouped by partner and program, ordered by amount desc
+    const unsentPayouts = await prisma.payout.groupBy({
       by: ["partnerId", "programId"],
       where: {
-        status: "pending",
+        status: {
+          in: ["pending", "processing", "processed", "failed"],
+        },
+        programId: {
+          not: ACME_PROGRAM_ID,
+        },
         partner: {
           payoutsEnabledAt: null,
           OR: [
@@ -32,6 +50,9 @@ export async function GET(req: Request) {
             },
           ],
         },
+        amount: {
+          gte: MIN_PAYOUT_AMOUNT_FOR_REMINDERS,
+        },
       },
       _sum: {
         amount: true,
@@ -41,42 +62,52 @@ export async function GET(req: Request) {
           amount: "desc",
         },
       },
+      take: BATCH_SIZE,
     });
 
-    if (!pendingPayouts.length) {
-      return NextResponse.json("No action needed.");
+    if (!unsentPayouts.length) {
+      return logAndRespond("No action needed.");
     }
+
+    const hasMoreToProcess = unsentPayouts.length === BATCH_SIZE;
+
+    console.log(
+      `Found ${unsentPayouts.length} partner-program combinations needing reminders${hasMoreToProcess ? " (more to process)" : ""}`,
+    );
 
     const [partnerData, programData] = await Promise.all([
       prisma.partner.findMany({
         where: {
           id: {
-            in: pendingPayouts.map((payout) => payout.partnerId),
+            in: unsentPayouts.map((payout) => payout.partnerId),
           },
+          OR: [
+            {
+              users: {
+                none: {},
+              },
+            },
+            {
+              users: {
+                some: {
+                  notificationPreferences: {
+                    connectPayoutReminder: true,
+                  },
+                },
+              },
+            },
+          ],
         },
       }),
 
       prisma.program.findMany({
         where: {
           id: {
-            in: pendingPayouts.map((payout) => payout.programId),
+            in: unsentPayouts.map((payout) => payout.programId),
           },
         },
       }),
     ]);
-
-    if (!resend) {
-      await log({
-        message: "Resend is not configured, skipping email sending.",
-        type: "errors",
-      });
-
-      console.warn("Resend is not configured, skipping email sending.");
-
-      return NextResponse.json(
-        "Resend is not configured, skipping email sending.",
-      );
-    }
 
     const partnerProgramMap = new Map<
       string,
@@ -95,7 +126,7 @@ export async function GET(req: Request) {
       }
     >();
 
-    for (const payout of pendingPayouts) {
+    for (const payout of unsentPayouts) {
       const { partnerId, programId } = payout;
       const { amount } = payout._sum;
 
@@ -126,39 +157,74 @@ export async function GET(req: Request) {
     }
 
     const partnerPrograms = Array.from(partnerProgramMap.values());
-    const partnerProgramsChunks = chunk(partnerPrograms, 100);
     const connectPayoutsLastRemindedAt = new Date();
 
-    for (const partnerProgramsChunk of partnerProgramsChunks) {
-      await resend.batch.send(
-        partnerProgramsChunk.map(({ partner, programs }) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: partner.email,
-          subject: "Connect your payout details on Dub Partners",
-          variant: "notifications",
-          react: ConnectPayoutReminder({
-            email: partner.email,
-            programs,
-          }),
-        })),
-      );
+    console.log(
+      `Processing ConnectPayoutReminder for ${partnerPrograms.length} partners`,
+    );
 
-      console.info(partnerProgramsChunk);
+    await queueBatchEmail<typeof ConnectPayoutReminder>(
+      partnerPrograms.map(({ partner, programs }) => ({
+        variant: "notifications",
+        to: partner.email,
+        subject: "Connect your payout details on Dub Partners",
+        templateName: "ConnectPayoutReminder",
+        templateProps: {
+          email: partner.email,
+          programs,
+        },
+      })),
+    );
 
-      await prisma.partner.updateMany({
-        where: {
-          id: {
-            in: partnerProgramsChunk.map(({ partner }) => partner.id),
-          },
+    console.log(
+      `Queued ConnectPayoutReminder emails for ${partnerPrograms.length} partners`,
+    );
+
+    await prisma.partner.updateMany({
+      where: {
+        id: {
+          in: partnerPrograms.map(({ partner }) => partner.id),
         },
-        data: {
-          connectPayoutsLastRemindedAt,
-        },
+      },
+      data: {
+        connectPayoutsLastRemindedAt,
+      },
+    });
+
+    if (hasMoreToProcess) {
+      console.log("More partners need reminders, scheduling next batch...");
+
+      const qstashResponse = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/reminders/partners`,
+        body: {},
       });
+      if (qstashResponse.messageId) {
+        console.log(
+          `Message sent to Qstash with id ${qstashResponse.messageId}`,
+        );
+      } else {
+        // should never happen, but just in case
+        await log({
+          message: `Error sending message to Qstash to schedule next batch of payout reminders: ${JSON.stringify(qstashResponse)}`,
+          type: "errors",
+          mention: true,
+        });
+      }
+      return logAndRespond(
+        "Finished sending payout reminders for current batch. Scheduling next batch...",
+      );
     }
 
-    return NextResponse.json("OK");
+    return logAndRespond("Finished sending payout reminders for all batches.");
   } catch (error) {
+    await log({
+      message: `Error sending payout reminders: ${error.message}`,
+      type: "errors",
+      mention: true,
+    });
     return handleAndReturnErrorResponse(error);
   }
 }
+
+// GET/POST /api/cron/payouts/reminders/partners
+export { handler as GET, handler as POST };

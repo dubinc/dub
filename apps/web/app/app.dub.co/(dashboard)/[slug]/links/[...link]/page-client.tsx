@@ -39,16 +39,20 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { notFound, useParams, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { memo, useEffect, useRef, useState } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 import { toast } from "sonner";
 
 export function LinkPageClient() {
-  const params = useParams<{ link: string | string[] }>();
+  const { slug: workspaceSlug, link: linkParams } = useParams<{
+    slug: string;
+    link: string | string[];
+  }>();
 
-  const linkParts = Array.isArray(params.link) ? params.link : null;
-  if (!linkParts) notFound();
+  const linkParts = Array.isArray(linkParams) ? linkParams : null;
+
+  if (!linkParts) redirect(`/${workspaceSlug}/links`);
 
   const domain = linkParts[0];
   const slug = linkParts.length > 1 ? linkParts.slice(1).join("/") : "_root";
@@ -135,7 +139,7 @@ function LinkBuilder({ link }: { link: ExpandedLinkProps }) {
   const [isChangingLink, setIsChangingLink] = useState(false);
 
   return (
-    <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
+    <div className="flex min-h-[calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] flex-col rounded-t-[inherit] bg-white">
       <div className="py-2 pl-4 pr-5">
         <LinkBuilderHeader
           onSelectLink={(selectedLink) => {
@@ -304,7 +308,7 @@ const Controls = memo(({ link }: { link: ExpandedLinkProps }) => {
 
 function LoadingSkeleton() {
   return (
-    <div className="flex min-h-[calc(100vh-8px)] flex-col rounded-t-[inherit] bg-white">
+    <div className="flex min-h-[calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] flex-col rounded-t-[inherit] bg-white">
       <div className="flex items-center justify-between gap-4 py-2.5 pl-4 pr-5">
         <div className="h-8 w-64 max-w-full animate-pulse rounded-md bg-neutral-100" />
         <div className="h-7 w-32 max-w-full animate-pulse rounded-md bg-neutral-100" />

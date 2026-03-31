@@ -1,15 +1,17 @@
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { stripeAppClient } from "@/lib/stripe";
+import { StripeMode } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
 // Handle event "charge.refunded"
-export async function chargeRefunded(event: Stripe.Event) {
+export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
   const charge = event.data.object as Stripe.Charge;
   const stripeAccountId = event.account as string;
 
   const stripe = stripeAppClient({
-    livemode: event.livemode,
+    mode,
   });
 
   // Charge doesn't have invoice property, so we need to get the invoice from the payment intent
@@ -59,9 +61,10 @@ export async function chargeRefunded(event: Stripe.Event) {
     },
     select: {
       id: true,
+      amount: true,
+      earnings: true,
       status: true,
       payoutId: true,
-      earnings: true,
       partnerId: true,
       programId: true,
     },
@@ -110,6 +113,13 @@ export async function chargeRefunded(event: Stripe.Event) {
   await syncTotalCommissions({
     partnerId: commission.partnerId,
     programId: commission.programId,
+  });
+
+  await trackCommissionStatusUpdate({
+    workspaceId: workspace.id,
+    programId: commission.programId,
+    commissions: [commission],
+    newStatus: "refunded",
   });
 
   return `Commission ${commission.id} updated to status "refunded"`;

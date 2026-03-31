@@ -10,7 +10,7 @@ Then, make sure to activate the script by following these steps:
 4. In the theme editor, select the **App embeds** tab.
 5. Locate the **Analytics Script** for the Dub Conversions app and toggle it to activate.
 
-![Enable the Dub Analytics script in your Shopify theme](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/shopify/shopify-enable-tracking-script.png)
+![Enable the Dub client-side script in your Shopify theme](https://mintlify.s3.us-west-1.amazonaws.com/dub/images/shopify/shopify-enable-tracking-script.png)
 
 ### Installation video
 

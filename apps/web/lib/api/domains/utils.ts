@@ -1,14 +1,6 @@
 import { prisma } from "@dub/prisma";
-import { validDomainRegex } from "@dub/utils";
 import { DubApiError } from "../errors";
-
-export const isValidDomain = (domain: string) => {
-  return (
-    validDomainRegex.test(domain) &&
-    // make sure the domain doesn't contain dub.co/dub.sh/d.to
-    !/^(dub\.co|.*\.dub\.co|dub\.sh|.*\.dub\.sh|d\.to|.*\.d\.to)$/i.test(domain)
-  );
-};
+import { isValidDomain } from "./is-valid-domain";
 
 export const validateDomain = async (
   domain: string,
@@ -42,3 +34,8 @@ export interface CustomResponse extends Response {
   json: () => Promise<any>;
   error?: { code: string; projectId: string; message: string };
 }
+
+// special case for domains that use a reverse proxy in front of Dub (not recommended)
+export const isProxiedDomain = (domain: string) => {
+  return ["go.zillow.com"].includes(domain);
+};

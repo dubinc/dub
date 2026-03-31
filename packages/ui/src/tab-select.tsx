@@ -1,8 +1,8 @@
 import { cn } from "@dub/utils";
 import { cva, VariantProps } from "class-variance-authority";
-import { LayoutGroup, motion } from "framer-motion";
+import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useId } from "react";
+import { Dispatch, ReactNode, SetStateAction, useId } from "react";
 import { ArrowUpRight } from "./icons";
 
 const tabSelectButtonVariants = cva("p-4 transition-colors duration-75", {
@@ -38,7 +38,7 @@ export function TabSelect<T extends string>({
   onSelect,
   className,
 }: VariantProps<typeof tabSelectButtonVariants> & {
-  options: { id: T; label: string; href?: string; target?: string }[];
+  options: { id: T; label: ReactNode; href?: string; target?: string }[];
   selected: string | null;
   onSelect?: Dispatch<SetStateAction<T>> | ((id: T) => void);
   className?: string;

@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 import {
   CommissionEnrichedSchema,
   getCommissionsQuerySchema,
@@ -9,8 +9,21 @@ import { openApiErrorResponses } from "../responses";
 export const listCommissions: ZodOpenApiOperationObject = {
   operationId: "listCommissions",
   "x-speakeasy-name-override": "list",
-  summary: "Get commissions for a program.",
-  description: "Retrieve a list of commissions for a program.",
+  "x-speakeasy-pagination": {
+    type: "cursor",
+    inputs: [
+      {
+        name: "startingAfter",
+        in: "parameters",
+        type: "cursor",
+      },
+    ],
+    outputs: {
+      nextCursor: "$[-1].id",
+    },
+  },
+  summary: "List all commissions",
+  description: "Retrieve a list of commissions for your partner program.",
   requestParams: {
     query: getCommissionsQuerySchema,
   },

@@ -1,0 +1,19 @@
+export const isZeroDecimalCurrency = (currency: string) =>
+  [
+    "BIF",
+    "CLP",
+    "DJF",
+    "GNF",
+    "JPY",
+    "KMF",
+    "KRW",
+    "MGA",
+    "PYG",
+    "RWF",
+    "UGX",
+    "VND",
+    "VUV",
+    "XAF",
+    "XOF",
+    "XPF",
+  ].includes(currency.toUpperCase());

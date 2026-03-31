@@ -9,27 +9,43 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import {
   CSSProperties,
   HTMLAttributes,
   memo,
+  MouseEvent,
   useEffect,
   useMemo,
+  useRef,
   useState,
+  type JSX,
+  type ReactNode,
 } from "react";
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
 import { LoadingSpinner, SortOrder } from "../icons";
+import { Tooltip } from "../tooltip";
 import { SelectionToolbar } from "./selection-toolbar";
 import { TableProps, UseTableProps } from "./types";
 
-const tableCellClassName = (columnId: string, clickable?: boolean) =>
+const SELECT_COLUMN_WIDTH = 48;
+const MENU_COLUMN_WIDTH = 40;
+const FIXED_UTILITY_COLUMN_IDS = new Set(["select", "menu"]);
+
+const tableCellClassName = (
+  columnId: string,
+  clickable?: boolean,
+  hasSelectBefore?: boolean,
+) =>
   cn([
-    "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-border-subtle px-4 relative",
+    "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-border-subtle relative",
     "border-l border-b",
-    columnId === "select" && "py-0 pr-0 pl-2",
+    columnId === "select" && "w-12 min-w-12 max-w-12 px-0 py-0",
     columnId === "menu" && "bg-bg-default border-l-transparent py-0 px-1",
+    !["select", "menu"].includes(columnId) &&
+      (hasSelectBefore ? "pl-1 pr-4" : "px-4"),
     clickable && "group-hover/row:bg-bg-muted transition-colors duration-75",
     "group-data-[selected=true]/row:bg-blue-50",
   ]);
@@ -71,6 +87,8 @@ export function useTable<T extends any>(
     props.selectedRows ?? {},
   );
 
+  const lastSelectedRowId = useRef<string | null>(null);
+
   // Manually unset row selection if the row is no longer in the data
   // There doesn't seem to be a proper solution for this: https://github.com/TanStack/table/issues/4498
   useEffect(() => {
@@ -111,6 +129,21 @@ export function useTable<T extends any>(
     props.onColumnVisibilityChange?.(columnVisibility);
   }, [columnVisibility]);
 
+  const normalizedColumns = useMemo(
+    () =>
+      columns.map((column: any) =>
+        column?.id === "menu"
+          ? {
+              ...column,
+              minSize: MENU_COLUMN_WIDTH,
+              size: MENU_COLUMN_WIDTH,
+              maxSize: MENU_COLUMN_WIDTH,
+            }
+          : column,
+      ),
+    [columns],
+  );
+
   const tableColumns = useMemo(
     () => [
       ...(selectionEnabled
@@ -118,13 +151,21 @@ export function useTable<T extends any>(
             {
               id: "select",
               enableHiding: false,
-              minSize: 30,
-              size: 30,
-              maxSize: 30,
+              minSize: SELECT_COLUMN_WIDTH,
+              size: SELECT_COLUMN_WIDTH,
+              maxSize: SELECT_COLUMN_WIDTH,
               header: ({ table }: { table: TableType<T> }) => (
-                <div className="flex size-full items-center justify-center">
+                <button
+                  type="button"
+                  className="flex size-full items-center justify-center"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    table.toggleAllRowsSelected();
+                  }}
+                  title="Select all"
+                >
                   <Checkbox
-                    className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                    className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                     checked={
                       table.getIsAllRowsSelected()
                         ? true
@@ -132,27 +173,91 @@ export function useTable<T extends any>(
                           ? "indeterminate"
                           : false
                     }
-                    onCheckedChange={() => table.toggleAllRowsSelected()}
-                    title="Select all"
                   />
-                </div>
+                </button>
               ),
-              cell: ({ row }: { row: Row<T> }) => (
-                <div className="flex size-full items-center justify-center">
-                  <Checkbox
-                    className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
-                    checked={row.getIsSelected()}
-                    onCheckedChange={row.getToggleSelectedHandler()}
+              cell: ({ row, table }: { row: Row<T>; table: TableType<T> }) => {
+                const onSelectRow = (e: MouseEvent<HTMLButtonElement>) => {
+                  e.stopPropagation();
+                  const currentId = getRowId?.(row.original);
+                  const rows = table.getRowModel().rows;
+                  const lastSelectedIndex =
+                    lastSelectedRowId.current !== null
+                      ? rows.findIndex(
+                          (row) =>
+                            getRowId?.(row.original) ===
+                            lastSelectedRowId.current,
+                        )
+                      : -1;
+
+                  if (
+                    e.shiftKey &&
+                    lastSelectedRowId.current !== null &&
+                    lastSelectedIndex !== -1
+                  ) {
+                    // Multi-select w/ shift key
+                    const currentIndex =
+                      currentId !== undefined
+                        ? rows.findIndex(
+                            (row) => getRowId?.(row.original) === currentId,
+                          )
+                        : -1;
+                    if (currentIndex === -1) {
+                      row.toggleSelected();
+                      lastSelectedRowId.current = currentId ?? null;
+                      return;
+                    }
+
+                    const start = Math.min(lastSelectedIndex, currentIndex);
+                    const end = Math.max(lastSelectedIndex, currentIndex);
+                    const rangeIds = rows
+                      .slice(start, end + 1)
+                      .map((row) => getRowId?.(row.original))
+                      .filter((id): id is string => id !== undefined);
+
+                    table.setRowSelection((rowSelection) => {
+                      const validRangeIds = rangeIds.filter(
+                        (id): id is string => id !== undefined,
+                      );
+                      const alreadySelected =
+                        currentId !== undefined &&
+                        (rowSelection?.[currentId] ?? false);
+
+                      return {
+                        ...rowSelection,
+                        ...Object.fromEntries(
+                          validRangeIds.map((id) => [id, !alreadySelected]),
+                        ),
+                      };
+                    });
+
+                    lastSelectedRowId.current = currentId ?? null;
+                  } else {
+                    row.toggleSelected();
+                    lastSelectedRowId.current = currentId ?? null;
+                  }
+                };
+
+                return (
+                  <button
+                    type="button"
+                    className="flex size-full items-center justify-center"
+                    onClick={onSelectRow}
                     title="Select"
-                  />
-                </div>
-              ),
+                  >
+                    <Checkbox
+                      className="border-border-default pointer-events-none size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                      checked={row.getIsSelected()}
+                    />
+                  </button>
+                );
+              },
             },
           ]
         : []),
-      ...columns,
+      ...normalizedColumns,
     ],
-    [selectionEnabled, columns],
+    [selectionEnabled, normalizedColumns],
   );
 
   const table = useReactTable({
@@ -160,9 +265,9 @@ export function useTable<T extends any>(
     rowCount,
     columns: tableColumns,
     defaultColumn: {
-      minSize: 120,
-      size: 0,
-      maxSize: 300,
+      minSize: enableColumnResizing ? 120 : 0,
+      size: enableColumnResizing ? 120 : 0,
+      maxSize: enableColumnResizing ? 300 : undefined,
       enableResizing: enableColumnResizing,
       ...defaultColumn,
     },
@@ -196,13 +301,17 @@ type ResizableTableRowProps<T> = {
   row: Row<T>;
   rowProps?: HTMLAttributes<HTMLTableRowElement>;
   table: TableType<T>;
-} & Pick<TableProps<T>, "cellRight" | "tdClassName" | "onRowClick">;
+} & Pick<
+  TableProps<T>,
+  "cellRight" | "tdClassName" | "onRowClick" | "onRowAuxClick"
+>;
 
 // Memoized row component to prevent re-renders during column resizing
 const ResizableTableRow = memo(
   function ResizableTableRow<T>({
     row,
     onRowClick,
+    onRowAuxClick,
     rowProps,
     cellRight,
     tdClassName,
@@ -231,36 +340,82 @@ const ResizableTableRow = memo(
               }
             : undefined
         }
+        onAuxClick={
+          onRowAuxClick
+            ? (e) => {
+                // Ignore if click is on an interactive child
+                if (isClickOnInteractiveChild(e)) return;
+                onRowAuxClick(row, e);
+              }
+            : undefined
+        }
         data-selected={row.getIsSelected()}
         {...rest}
       >
-        {row.getVisibleCells().map((cell) => (
-          <td
-            key={cell.id}
-            className={cn(
-              tableCellClassName(cell.column.id, !!onRowClick),
-              "text-content-default group",
-              getCommonPinningClassNames(
-                cell.column,
-                row.index === table.getRowModel().rows.length - 1,
-              ),
-              typeof tdClassName === "function"
-                ? tdClassName(cell.column.id)
-                : tdClassName,
-            )}
-            style={{
-              width: cell.column.getSize(),
-              ...getCommonPinningStyles(cell.column),
-            }}
-          >
-            <div className="flex w-full items-center justify-between overflow-hidden truncate">
-              <div className="min-w-0 shrink grow truncate">
-                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-              </div>
-              {cellRight?.(cell)}
-            </div>
-          </td>
-        ))}
+        {row.getVisibleCells().map((cell, index, cells) => {
+          const isUtilityColumn = ["select", "menu"].includes(cell.column.id);
+          const isSelectColumn = cell.column.id === "select";
+          const isColumnAfterSelect = cells[index - 1]?.column.id === "select";
+          const disableTruncate = !!(cell.column.columnDef.meta as any)
+            ?.disableTruncate;
+
+          return (
+            <td
+              key={cell.id}
+              className={cn(
+                tableCellClassName(
+                  cell.column.id,
+                  !!onRowClick,
+                  isColumnAfterSelect,
+                ),
+                "text-content-default group",
+                getCommonPinningClassNames(
+                  cell.column,
+                  row.index === table.getRowModel().rows.length - 1,
+                ),
+                typeof tdClassName === "function"
+                  ? tdClassName(cell.column.id, row)
+                  : tdClassName,
+              )}
+              style={{
+                width: cell.column.getSize(),
+                ...getCommonPinningStyles(cell.column),
+              }}
+            >
+              {isSelectColumn ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </div>
+              ) : (
+                <div
+                  className={cn(
+                    "flex items-center",
+                    isUtilityColumn
+                      ? "justify-center"
+                      : "w-full justify-between",
+                    !isUtilityColumn &&
+                      (disableTruncate
+                        ? "overflow-visible"
+                        : "overflow-hidden truncate"),
+                  )}
+                >
+                  <div
+                    className={cn(
+                      disableTruncate ? "whitespace-nowrap" : "truncate",
+                      isUtilityColumn ? "shrink-0" : "min-w-0 shrink grow",
+                      disableTruncate &&
+                        !isUtilityColumn &&
+                        "min-w-max shrink-0",
+                    )}
+                  >
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </div>
+                  {!isUtilityColumn && cellRight?.(cell)}
+                </div>
+              )}
+            </td>
+          );
+        })}
       </tr>
     );
   },
@@ -288,12 +443,15 @@ export function Table<T>({
   className,
   containerClassName,
   scrollWrapperClassName,
+  emptyWrapperClassName,
   thClassName,
   tdClassName,
   table,
   pagination,
+  paginationAllRowsHref, // to show all rows link in the pagination
   resourceName,
   onRowClick,
+  onRowAuxClick,
   onRowSelectionChange,
   selectionControls,
   rowProps,
@@ -302,14 +460,21 @@ export function Table<T>({
   enableColumnResizing = false,
 }: TableProps<T>) {
   const selectionEnabled = !!onRowSelectionChange || !!selectionControls;
+  const visibleColumns = table.getVisibleLeafColumns();
+  const columnsAfterSelect = new Set<string>();
+  for (let i = 1; i < visibleColumns.length; i++) {
+    if (visibleColumns[i - 1].id === "select") {
+      columnsAfterSelect.add(visibleColumns[i].id);
+    }
+  }
+  const scrollWrapperRef = useRef<HTMLDivElement>(null);
+  const utilityColumnWidths = new Map(
+    visibleColumns.map((column) => [column.id, column.getSize()]),
+  );
+  const getUtilityColumnWidth = (columnId: string, fallback: number) =>
+    utilityColumnWidths.get(columnId) ?? fallback;
 
-  // Memoize table width calculation
-  const tableWidth = useMemo(() => {
-    if (!enableColumnResizing) return "100%";
-    return table
-      .getVisibleLeafColumns()
-      .reduce((acc, column) => acc + column.getSize(), 0);
-  }, [enableColumnResizing, table.getVisibleLeafColumns()]);
+  const As = paginationAllRowsHref ? Link : "span";
 
   return (
     <div
@@ -329,6 +494,7 @@ export function Table<T>({
             />
           )}
           <div
+            ref={scrollWrapperRef}
             className={cn(
               "relative min-h-[400px] overflow-x-auto rounded-[inherit]",
               scrollWrapperClassName,
@@ -349,7 +515,11 @@ export function Table<T>({
               style={{
                 width: "100%",
                 tableLayout: enableColumnResizing ? "fixed" : "auto",
-                minWidth: tableWidth,
+                minWidth: enableColumnResizing
+                  ? table
+                      .getVisibleLeafColumns()
+                      .reduce((acc, column) => acc + column.getSize(), 0)
+                  : "100%",
               }}
             >
               <thead className="relative">
@@ -360,13 +530,20 @@ export function Table<T>({
                         header.column.id,
                       );
                       const ButtonOrDiv = isSortableColumn ? "button" : "div";
+                      const isColumnAfterSelect = columnsAfterSelect.has(
+                        header.column.id,
+                      );
 
                       return (
                         <th
                           key={header.id}
                           colSpan={header.colSpan}
                           className={cn(
-                            tableCellClassName(header.id),
+                            tableCellClassName(
+                              header.column.id,
+                              false,
+                              isColumnAfterSelect,
+                            ),
                             "text-content-emphasis select-none font-medium",
                             getCommonPinningClassNames(
                               header.column,
@@ -378,15 +555,31 @@ export function Table<T>({
                             enableColumnResizing && "relative",
                           )}
                           style={{
-                            width: header.getSize(),
+                            width: FIXED_UTILITY_COLUMN_IDS.has(
+                              header.column.id,
+                            )
+                              ? getUtilityColumnWidth(
+                                  header.column.id,
+                                  header.getSize(),
+                                )
+                              : enableColumnResizing
+                                ? header.getSize()
+                                : undefined,
                             ...getCommonPinningStyles(header.column),
                           }}
                         >
-                          <div className="flex items-center justify-between gap-6 !pr-0">
+                          <div
+                            className={cn(
+                              header.column.id === "select"
+                                ? "absolute inset-0 flex items-center justify-center"
+                                : "flex items-center justify-between gap-6 !pr-0",
+                            )}
+                          >
                             <ButtonOrDiv
                               className={cn(
-                                "flex items-center gap-2",
-                                header.column.id === "select" && "size-full",
+                                header.column.id === "select"
+                                  ? "flex size-full items-center justify-center"
+                                  : "flex items-center gap-2",
                               )}
                               {...(isSortableColumn && {
                                 type: "button",
@@ -406,10 +599,23 @@ export function Table<T>({
                             >
                               {header.isPlaceholder
                                 ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext(),
-                                  )}
+                                : (() => {
+                                    const headerContent = flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext(),
+                                    );
+                                    const headerTooltip = (
+                                      header.column.columnDef.meta as any
+                                    )?.headerTooltip;
+
+                                    return (
+                                      <HeaderWithTooltip
+                                        tooltip={headerTooltip}
+                                      >
+                                        {headerContent}
+                                      </HeaderWithTooltip>
+                                    );
+                                  })()}
                               {isSortableColumn &&
                                 sortBy === header.column.id && (
                                   <SortOrder
@@ -449,6 +655,7 @@ export function Table<T>({
                         .join(",")}`}
                       row={row}
                       onRowClick={onRowClick}
+                      onRowAuxClick={onRowAuxClick}
                       rowProps={props}
                       cellRight={cellRight}
                       tdClassName={tdClassName}
@@ -473,41 +680,108 @@ export function Table<T>({
                             }
                           : undefined
                       }
+                      onAuxClick={
+                        onRowAuxClick
+                          ? (e) => {
+                              if (isClickOnInteractiveChild(e)) return;
+                              onRowAuxClick(row, e);
+                            }
+                          : undefined
+                      }
                       data-selected={row.getIsSelected()}
                       {...rest}
                     >
-                      {row.getVisibleCells().map((cell) => (
-                        <td
-                          key={cell.id}
-                          className={cn(
-                            tableCellClassName(cell.column.id, !!onRowClick),
-                            "text-content-default group",
-                            getCommonPinningClassNames(
-                              cell.column,
-                              row.index === table.getRowModel().rows.length - 1,
-                            ),
-                            typeof tdClassName === "function"
-                              ? tdClassName(cell.column.id)
-                              : tdClassName,
-                          )}
-                          style={{
-                            minWidth: cell.column.columnDef.minSize,
-                            maxWidth: cell.column.columnDef.maxSize,
-                            width: cell.column.columnDef.size || "auto",
-                            ...getCommonPinningStyles(cell.column),
-                          }}
-                        >
-                          <div className="flex w-full items-center justify-between overflow-hidden truncate">
-                            <div className="min-w-0 shrink grow truncate">
-                              {flexRender(
-                                cell.column.columnDef.cell,
-                                cell.getContext(),
-                              )}
-                            </div>
-                            {cellRight?.(cell)}
-                          </div>
-                        </td>
-                      ))}
+                      {row.getVisibleCells().map((cell) => {
+                        const isUtilityColumn = ["select", "menu"].includes(
+                          cell.column.id,
+                        );
+                        const isSelectColumn = cell.column.id === "select";
+                        const isColumnAfterSelect = columnsAfterSelect.has(
+                          cell.column.id,
+                        );
+                        const disableTruncate = !!(
+                          cell.column.columnDef.meta as any
+                        )?.disableTruncate;
+
+                        return (
+                          <td
+                            key={cell.id}
+                            className={cn(
+                              tableCellClassName(
+                                cell.column.id,
+                                !!onRowClick,
+                                isColumnAfterSelect,
+                              ),
+                              "text-content-default group",
+                              getCommonPinningClassNames(
+                                cell.column,
+                                row.index ===
+                                  table.getRowModel().rows.length - 1,
+                              ),
+                              typeof tdClassName === "function"
+                                ? tdClassName(cell.column.id, row)
+                                : tdClassName,
+                            )}
+                            style={{
+                              minWidth: cell.column.columnDef.minSize,
+                              maxWidth: cell.column.columnDef.maxSize,
+                              width: FIXED_UTILITY_COLUMN_IDS.has(
+                                cell.column.id,
+                              )
+                                ? getUtilityColumnWidth(
+                                    cell.column.id,
+                                    cell.column.getSize(),
+                                  )
+                                : enableColumnResizing
+                                  ? cell.column.columnDef.size
+                                  : "auto",
+                              ...getCommonPinningStyles(cell.column),
+                            }}
+                          >
+                            {isSelectColumn ? (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext(),
+                                )}
+                              </div>
+                            ) : (
+                              <div
+                                className={cn(
+                                  "flex items-center",
+                                  isUtilityColumn
+                                    ? "justify-center"
+                                    : "w-full justify-between",
+                                  !isUtilityColumn &&
+                                    (disableTruncate
+                                      ? "overflow-visible"
+                                      : "overflow-hidden truncate"),
+                                )}
+                              >
+                                <div
+                                  className={cn(
+                                    disableTruncate
+                                      ? "whitespace-nowrap"
+                                      : "truncate",
+                                    isUtilityColumn
+                                      ? "shrink-0"
+                                      : "min-w-0 shrink grow",
+                                    disableTruncate &&
+                                      !isUtilityColumn &&
+                                      "min-w-max shrink-0",
+                                  )}
+                                >
+                                  {flexRender(
+                                    cell.column.columnDef.cell,
+                                    cell.getContext(),
+                                  )}
+                                </div>
+                                {!isUtilityColumn && cellRight?.(cell)}
+                              </div>
+                            )}
+                          </td>
+                        );
+                      })}
                     </tr>
                   );
                 })}
@@ -517,14 +791,19 @@ export function Table<T>({
           </div>
         </>
       ) : (
-        <div className="text-content-subtle flex h-96 w-full items-center justify-center text-sm">
+        <div
+          className={cn(
+            "text-content-subtle flex h-96 w-full items-center justify-center text-sm",
+            emptyWrapperClassName,
+          )}
+        >
           {error ||
             emptyState ||
             `No ${resourceName?.(true) || "items"} found.`}
         </div>
       )}
       {pagination && !error && !!data?.length && !!rowCount && (
-        <div className="border-border-subtle bg-bg-default text-content-default sticky bottom-0 mx-auto -mt-px flex w-full max-w-full items-center justify-between rounded-b-[inherit] border-t px-4 py-3.5 text-sm leading-6">
+        <div className="border-border-subtle bg-bg-default text-content-default sticky bottom-0 z-10 mx-auto -mt-px flex w-full max-w-full items-center justify-between rounded-b-[inherit] border-t px-4 py-3.5 text-sm leading-6">
           <div>
             <span className="hidden sm:inline-block">Viewing</span>{" "}
             <span className="font-medium">
@@ -540,10 +819,10 @@ export function Table<T>({
               ).toLocaleString()}
             </span>{" "}
             of{" "}
-            <span className="font-medium">
-              {table.getRowCount().toLocaleString()}
-            </span>{" "}
-            {resourceName?.(table.getRowCount() !== 1) || "items"}
+            <As href={paginationAllRowsHref ?? "#"} className="font-medium">
+              {table.getRowCount().toLocaleString()}{" "}
+              {resourceName?.(table.getRowCount() !== 1) || "items"}
+            </As>
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -572,9 +851,10 @@ export function Table<T>({
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="bg-bg-default/50 absolute inset-0 h-full"
+            className="bg-bg-default/50 absolute inset-0 h-full rounded-xl"
           >
-            <div className="flex h-[75vh] w-full items-center justify-center">
+            {/* here we're using min(75%,75vh) to ensure proper placement on full height vs partial height tables */}
+            <div className="flex h-[min(75%,75vh)] w-full items-center justify-center">
               <LoadingSpinner />
             </div>
           </motion.div>
@@ -590,6 +870,7 @@ const getCommonPinningClassNames = (
 ): string => {
   const isPinned = column.getIsPinned();
   return cn(
+    isPinned && "bg-bg-default py-0",
     isPinned &&
       !isLastRow &&
       "animate-table-pinned-shadow [animation-timeline:scroll(inline)]",
@@ -605,3 +886,24 @@ const getCommonPinningStyles = (column: Column<any>): CSSProperties => {
     position: isPinned ? "sticky" : "relative",
   };
 };
+
+// Component to wrap header content with optional tooltip
+function HeaderWithTooltip({
+  children,
+  tooltip,
+}: {
+  children: ReactNode;
+  tooltip?: string;
+}) {
+  if (!tooltip) {
+    return <>{children}</>;
+  }
+
+  return (
+    <Tooltip content={tooltip}>
+      <span className="cursor-help underline decoration-dotted underline-offset-2">
+        {children}
+      </span>
+    </Tooltip>
+  );
+}

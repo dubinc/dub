@@ -1,16 +1,16 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
-import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const deleteDiscountSchema = z.object({
   workspaceId: z.string(),
@@ -18,116 +18,92 @@ const deleteDiscountSchema = z.object({
 });
 
 export const deleteDiscountAction = authActionClient
-  .schema(deleteDiscountSchema)
+  .inputSchema(deleteDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { discountId } = parsedInput;
 
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
     });
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
 
     const discount = await getDiscountOrThrow({
       programId,
       discountId,
     });
 
-    if (!discount.default) {
-      let offset = 0;
+    // Cache discount codes to delete them later
+    const discountCodes = await prisma.discountCode.findMany({
+      where: {
+        discountId: discount.id,
+      },
+    });
 
-      while (true) {
-        const partners = await prisma.programEnrollment.findMany({
-          where: {
-            programId,
-            discountId,
-          },
-          select: {
-            partnerId: true,
-          },
-          skip: offset,
-          take: 1000,
-        });
-
-        if (partners.length === 0) {
-          break;
-        }
-
-        await redis.lpush(
-          `discount-partners:${discountId}`,
-          partners.map((partner) => partner.partnerId),
-        );
-
-        offset += 1000;
-      }
-    }
-
-    const deletedDiscountId = await prisma.$transaction(async (tx) => {
-      // 1. Find the default discount (if it exists)
-      const defaultDiscount = await tx.discount.findFirst({
+    const group = await prisma.$transaction(async (tx) => {
+      const group = await tx.partnerGroup.update({
         where: {
-          programId,
-          default: true,
-        },
-      });
-
-      // 2. Update current associations
-      await tx.programEnrollment.updateMany({
-        where: {
-          programId,
           discountId: discount.id,
         },
         data: {
-          // Replace the current discount with the default discount if it exists
-          // and the discount we're deleting is not the default discount
-          discountId: discount.default
-            ? null
-            : defaultDiscount
-              ? defaultDiscount.id
-              : null,
+          discountId: null,
         },
       });
 
-      // 3. Finally, delete the current discount
+      await tx.programEnrollment.updateMany({
+        where: {
+          discountId: discount.id,
+        },
+        data: {
+          discountId: null,
+        },
+      });
+
+      await tx.discountCode.updateMany({
+        where: {
+          discountId: discount.id,
+        },
+        data: {
+          discountId: null,
+        },
+      });
+
       await tx.discount.delete({
         where: {
           id: discount.id,
         },
       });
 
-      return discountId;
+      return group;
     });
 
-    if (deletedDiscountId) {
-      waitUntil(
-        Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-            body: {
-              programId,
-              discountId,
-              isDefault: discount.default,
-              action: "discount-deleted",
-            },
-          }),
+    waitUntil(
+      Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          body: {
+            groupId: group.id,
+          },
+        }),
 
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "discount.deleted",
-            description: `Discount ${discountId} deleted`,
-            actor: user,
-            targets: [
-              {
-                type: "discount",
-                id: discountId,
-                metadata: discount,
-              },
-            ],
-          }),
-        ]),
-      );
-    }
+        deleteDiscountCodes(discountCodes),
+
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "discount.deleted",
+          description: `Discount ${discountId} deleted`,
+          actor: user,
+          targets: [
+            {
+              type: "discount",
+              id: discountId,
+              metadata: discount,
+            },
+          ],
+        }),
+      ]),
+    );
   });

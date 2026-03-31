@@ -1,4 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import { ExpandedLinkProps } from "@/lib/types";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -8,7 +9,6 @@ import {
   IconMenu,
   PenWriting,
   Popover,
-  SimpleTooltipContent,
   useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
@@ -18,10 +18,11 @@ import {
   Copy,
   FolderBookmark,
   QRCode,
+  Trash,
 } from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid } from "@dub/utils";
-import { CopyPlus, Delete, FolderInput } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { CopyPlus, FolderInput } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useLinkBuilder } from "../modals/link-builder";
@@ -67,7 +68,6 @@ export function LinkControls({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
-  const searchParams = useSearchParams();
 
   const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
@@ -100,7 +100,8 @@ export function LinkControls({
 
   const isRootLink = link.key === "_root";
   const isProgramLinkWithLeads = link.programId !== null && link.leads > 0;
-  const folderId = link.folderId || searchParams.get("folderId");
+  const { folderId: currentFolderId } = useCurrentFolderId();
+  const folderId = link.folderId || currentFolderId;
 
   // Duplicate link Modal
   const {
@@ -320,15 +321,11 @@ export function LinkControls({
                   shortcut="T"
                   className="h-9 px-2 font-medium"
                   disabledTooltip={
-                    !isDubDomain(link.domain) ? (
-                      <SimpleTooltipContent
-                        title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
-                        cta="Learn more."
-                        href="https://dub.co/help/article/how-to-transfer-domains"
-                      />
-                    ) : !canManageLink ? (
-                      "You don't have permission to transfer this link."
-                    ) : undefined
+                    !isDubDomain(link.domain)
+                      ? "Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well. [Learn more.](https://dub.co/help/article/how-to-transfer-domains)"
+                      : !canManageLink
+                        ? "You don't have permission to transfer this link."
+                        : undefined
                   }
                 />
               )}
@@ -340,7 +337,7 @@ export function LinkControls({
                     setOpenPopover(false);
                     setShowDeleteLinkModal(true);
                   }}
-                  icon={<Delete className="size-4" />}
+                  icon={<Trash className="size-4" />}
                   shortcut="X"
                   className="h-9 px-2 font-medium"
                   disabled={isRootLink || isProgramLinkWithLeads}
@@ -362,7 +359,7 @@ export function LinkControls({
                     onClick={() => handleBanLink()}
                     className="group flex w-full items-center justify-between rounded-md p-2 text-left text-sm font-medium text-red-600 transition-all duration-75 hover:bg-red-600 hover:text-white"
                   >
-                    <IconMenu text="Ban" icon={<Delete className="size-4" />} />
+                    <IconMenu text="Ban" icon={<Trash className="size-4" />} />
                     <kbd className="hidden rounded bg-red-100 px-2 py-0.5 text-xs font-light text-red-600 transition-all duration-75 group-hover:bg-red-500 group-hover:text-white sm:inline-block">
                       B
                     </kbd>

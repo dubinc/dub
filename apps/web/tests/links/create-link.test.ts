@@ -1,9 +1,9 @@
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
-import z from "@/lib/zod";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { Link, Tag } from "@dub/prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, onTestFinished, test } from "vitest";
+import * as z from "zod/v4";
 import { randomId, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";
@@ -584,6 +584,7 @@ describe.sequential("POST /links?workspaceId=xxx", async () => {
 
     const { status, data: link } = await http.post<Link>({
       path: "/links",
+      query: { workspaceId },
       body: {
         url,
         domain,

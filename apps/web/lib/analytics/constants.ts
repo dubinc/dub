@@ -1,5 +1,3 @@
-import { THE_BEGINNING_OF_TIME } from "@dub/utils";
-
 export const DATE_RANGE_INTERVAL_PRESETS = [
   "24h",
   "7d",
@@ -63,55 +61,6 @@ export const INTERVAL_DISPLAYS = [
   },
 ];
 
-export const INTERVAL_DATA: Record<
-  string,
-  {
-    startDate: Date;
-    granularity: "minute" | "hour" | "day" | "month";
-  }
-> = {
-  "24h": {
-    startDate: new Date(Date.now() - 86400000),
-    granularity: "hour",
-  },
-  "7d": {
-    startDate: new Date(Date.now() - 604800000),
-    granularity: "day",
-  },
-  "30d": {
-    startDate: new Date(Date.now() - 2592000000),
-    granularity: "day",
-  },
-  "90d": {
-    startDate: new Date(Date.now() - 7776000000),
-    granularity: "day",
-  },
-  "1y": {
-    startDate: new Date(Date.now() - 31556952000),
-    granularity: "month",
-  },
-  mtd: {
-    startDate: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
-    granularity: "day",
-  },
-  qtd: {
-    startDate: new Date(
-      new Date().getFullYear(),
-      Math.floor(new Date().getMonth() / 3) * 3,
-      1,
-    ),
-    granularity: "day",
-  },
-  ytd: {
-    startDate: new Date(new Date().getFullYear(), 0, 1),
-    granularity: "month",
-  },
-  all: {
-    startDate: THE_BEGINNING_OF_TIME,
-    granularity: "month",
-  },
-};
-
 export const VALID_ANALYTICS_ENDPOINTS = [
   "count",
   "timeseries",
@@ -126,9 +75,14 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "triggers",
   "referers",
   "referer_urls",
-  "top_partners",
+  "top_folders",
+  "top_link_tags",
+  "top_domains",
   "top_links",
   "top_urls",
+  "top_base_urls",
+  "top_partners",
+  "top_groups",
   "utm_sources",
   "utm_mediums",
   "utm_campaigns",
@@ -137,6 +91,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
 ] as const;
 
 export const SINGULAR_ANALYTICS_ENDPOINTS = {
+  timeseries: "start",
   continents: "continent",
   regions: "region",
   countries: "country",
@@ -152,14 +107,30 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   utm_campaigns: "utm_campaign",
   utm_terms: "utm_term",
   utm_contents: "utm_content",
+  // extra fields
+  top_folders: "folderId",
+  top_link_tags: "tagId",
+  top_domains: "domain",
+  top_links: "linkId",
+  top_urls: "url",
+  top_base_urls: "url",
+  top_groups: "groupId",
+  top_partners: "partnerId",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
   "domain",
   "key",
+  "linkId",
+  "tagId",
+  "folderId",
+  "groupId",
+  "partnerId",
+  "customerId",
   "interval",
   "start",
   "end",
+  // more filter facets
   "country",
   "city",
   "region",
@@ -171,18 +142,16 @@ export const VALID_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
-  "partnerId",
-  "folderId",
-  "tagId",
-  "tagIds",
-  "customerId",
-  "qr", // deprecated, but keeping for now for backwards compatibility
-  "root",
   "utm_source",
   "utm_medium",
   "utm_campaign",
   "utm_term",
   "utm_content",
+  "root",
+  "saleType",
+  // deprecated filters, but keeping for now for backwards compatibility
+  "tagIds",
+  "qr",
 ];
 
 // possible analytics filters for a given linkId
@@ -198,23 +167,22 @@ export const DIMENSIONAL_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
+  "saleType",
   "qr", // deprecated, but keeping for now for backwards compatibility
   "utm_source",
   "utm_medium",
   "utm_campaign",
   "utm_term",
   "utm_content",
+  "query",
 ];
 
-export const TRIGGER_DISPLAY = {
-  qr: "QR Scan",
-  link: "Link Click",
-};
-export const TRIGGER_TYPES = ["qr", "link"] as const;
+export const TRIGGER_TYPES = ["qr", "link", "pageview", "deeplink"] as const;
 
 export const EVENT_TYPES = ["clicks", "leads", "sales"] as const;
 
 export const ANALYTICS_VIEWS = ["timeseries", "funnel"] as const;
+
 export const ANALYTICS_SALE_UNIT = ["sales", "saleAmount"] as const;
 
 export const OLD_ANALYTICS_ENDPOINTS = [

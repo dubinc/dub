@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@dub/utils";
-import { LayoutGroup, motion } from "framer-motion";
+import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useId } from "react";
 
@@ -16,6 +16,7 @@ export function ToggleGroup({
   options,
   selected,
   selectAction,
+  layout = true,
   className,
   optionClassName,
   indicatorClassName,
@@ -24,6 +25,7 @@ export function ToggleGroup({
   options: ToggleOption[];
   selected: string | null;
   selectAction?: (option: string) => void;
+  layout?: boolean;
   className?: string;
   optionClassName?: string;
   indicatorClassName?: string;
@@ -34,7 +36,7 @@ export function ToggleGroup({
   return (
     <LayoutGroup id={layoutGroupId}>
       <motion.div
-        layout
+        layout={layout}
         className={cn(
           "border-border-subtle bg-bg-default relative z-0 inline-flex items-center gap-1 rounded-xl border p-1",
           className,

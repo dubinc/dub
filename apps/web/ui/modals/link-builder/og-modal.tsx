@@ -6,19 +6,17 @@ import {
 import { Link } from "@/ui/shared/icons";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
+import { useCompletion } from "@ai-sdk/react";
 import {
   Button,
   ButtonTooltip,
   FileUpload,
   Modal,
   Popover,
-  SimpleTooltipContent,
   Tooltip,
 } from "@dub/ui";
 import { LoadingCircle, Magic, Unsplash } from "@dub/ui/icons";
 import { resizeImage } from "@dub/utils";
-import { useCompletion } from "ai/react";
-import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -108,6 +106,7 @@ function OGModalInner({
     complete: completeTitle,
   } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    streamProtocol: "text",
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
@@ -120,12 +119,8 @@ function OGModalInner({
         toast.error(error.message);
       }
     },
-    onFinish: (_, completion) => {
+    onFinish: () => {
       mutate();
-      posthog.capture("ai_meta_title_generated", {
-        title: completion,
-        url,
-      });
     },
   });
 
@@ -157,6 +152,7 @@ function OGModalInner({
     complete: completeDescription,
   } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    streamProtocol: "text",
     onError: (error) => {
       if (error.message.includes("Upgrade to Pro")) {
         toast.custom(() => (
@@ -169,12 +165,8 @@ function OGModalInner({
         toast.error(error.message);
       }
     },
-    onFinish: (_, completion) => {
+    onFinish: (_, __) => {
       mutate();
-      posthog.capture("ai_meta_description_generated", {
-        description: completion,
-        url,
-      });
     },
   });
 
@@ -222,15 +214,7 @@ function OGModalInner({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <h3 className="text-lg font-medium">Link Preview</h3>
-              <ProBadgeTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags)."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/custom-link-previews"
-                  />
-                }
-              />
+              <ProBadgeTooltip content="Customize how your links look when shared on social media to improve click-through rates. When enabled, the preview settings below will be shown publicly (instead of the URL's original metatags). [Learn more.](https://dub.co/help/article/custom-link-previews)" />
             </div>
             <div className="max-md:hidden">
               <Tooltip

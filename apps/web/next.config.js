@@ -1,15 +1,38 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
-const { withAxiom } = require("next-axiom");
+
+// Suppress specific external package warnings
+const originalConsoleWarn = console.warn;
+console.warn = (...args) => {
+  const message = args.join(" ");
+  if (
+    message.includes("Package mongodb can't be external") ||
+    message.includes("Package pg can't be external") ||
+    message.includes("Package sqlite3 can't be external") ||
+    message.includes("Package typeorm can't be external") ||
+    message.includes("matches serverExternalPackages") ||
+    message.includes("Try to install it into the project directory")
+  ) {
+    return; // Suppress these warnings
+  }
+  originalConsoleWarn.apply(console, args);
+};
 
 /** @type {import('next').NextConfig} */
-module.exports = withAxiom({
+module.exports = {
   reactStrictMode: false,
   transpilePackages: [
+    "prettier",
     "shiki",
     "@dub/prisma",
     "@dub/email",
     "@boxyhq/saml-jackson",
   ],
+  outputFileTracingIncludes: {
+    "/api/auth/saml/token": [
+      "./node_modules/jose/**/*",
+      "./node_modules/openid-client/**/*",
+    ],
+  },
   experimental: {
     optimizePackageImports: [
       "@dub/email",
@@ -17,7 +40,9 @@ module.exports = withAxiom({
       "@dub/utils",
       "@team-plain/typescript-sdk",
     ],
-    esmExternals: "loose",
+    serverActions: {
+      bodySizeLimit: "2mb",
+    },
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
@@ -177,24 +202,6 @@ module.exports = withAxiom({
         source: "/_proxy/dub/track/click",
         destination: "https://api.dub.co/track/click",
       },
-      // for posthog proxy
-      {
-        source: "/_proxy/posthog/ingest/static/:path*",
-        destination: "https://us-assets.i.posthog.com/static/:path*",
-      },
-      {
-        source: "/_proxy/posthog/ingest/:path*",
-        destination: "https://us.i.posthog.com/:path*",
-      },
-      // for plausible proxy
-      {
-        source: "/_proxy/plausible/script.js",
-        destination: "https://plausible.io/js/script.js",
-      },
-      {
-        source: "/_proxy/plausible/event",
-        destination: "https://plausible.io/api/event",
-      },
     ];
   },
-});
+};

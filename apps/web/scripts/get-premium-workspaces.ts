@@ -1,4 +1,4 @@
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import * as fs from "fs";

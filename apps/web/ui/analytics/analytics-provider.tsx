@@ -13,12 +13,13 @@ import {
   EventType,
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
 import { useLocalStorage } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useParams, usePathname, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   createContext,
   PropsWithChildren,
@@ -32,13 +33,25 @@ import { defaultConfig } from "swr/_internal";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { useAnalyticsQuery } from "./use-analytics-query";
 
-export interface AnalyticsDashboardProps {
-  domain: string;
-  key: string;
-  url: string;
+export type AnalyticsDashboardProps = {
   showConversions?: boolean;
   workspacePlan?: PlanProps;
-}
+} & (
+  | {
+      domain: string;
+      key: string;
+      url: string;
+      folderId?: never;
+      folderName?: never;
+    }
+  | {
+      folderId: string;
+      folderName: string;
+      domain?: never;
+      key?: never;
+      url?: never;
+    }
+);
 
 export const AnalyticsContext = createContext<{
   basePath: string;
@@ -50,17 +63,20 @@ export const AnalyticsContext = createContext<{
   domain?: string;
   key?: string;
   url?: string;
+  folderId?: string;
   queryString: string;
   start?: Date;
   end?: Date;
   interval?: string;
-  tagIds?: string;
+  tagId?: string;
   totalEvents?: {
     [key in AnalyticsResponseOptions]: number;
   };
+  totalEventsLoading?: boolean;
   adminPage?: boolean;
   partnerPage?: boolean;
   showConversions?: boolean;
+  fetchCompositeStats?: boolean;
   requiresUpgrade?: boolean;
   dashboardProps?: AnalyticsDashboardProps;
 }>({
@@ -77,6 +93,7 @@ export const AnalyticsContext = createContext<{
   adminPage: false,
   partnerPage: false,
   showConversions: false,
+  fetchCompositeStats: false,
   requiresUpgrade: false,
   dashboardProps: undefined,
 });
@@ -90,8 +107,7 @@ export default function AnalyticsProvider({
   dashboardProps?: AnalyticsDashboardProps;
 }>) {
   const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { slug, domains } = useWorkspace();
+  const { slug: workspaceSlug, plan: workspacePlan, domains } = useWorkspace();
 
   const [requiresUpgrade, setRequiresUpgrade] = useState(false);
 
@@ -147,14 +163,14 @@ export default function AnalyticsProvider({
         eventsApiPath: "/api/admin/events",
         domain: domainSlug,
       };
-    } else if (slug) {
+    } else if (workspaceSlug) {
       return {
-        basePath: `/${slug}/analytics`,
+        basePath: `/${workspaceSlug}/analytics`,
         baseApiPath: "/api/analytics",
         eventsApiPath: "/api/events",
         domain: domainSlug,
       };
-    } else if (partner?.id && programSlug) {
+    } else if (partnerPage) {
       return {
         basePath: `/api/partner-profile/programs/${programSlug}/analytics`,
         baseApiPath: `/api/partner-profile/programs/${programSlug}/analytics`,
@@ -166,7 +182,7 @@ export default function AnalyticsProvider({
       return {
         basePath: `/share/${dashboardId}`,
         baseApiPath: "/api/analytics/dashboard",
-        domain: dashboardProps?.domain,
+        domain: dashboardProps?.domain ?? null,
       };
     } else {
       return {
@@ -177,49 +193,59 @@ export default function AnalyticsProvider({
     }
   }, [
     adminPage,
-    slug,
-    pathname,
+    workspaceSlug,
+    partnerPage,
     dashboardProps?.domain,
     dashboardId,
-    partner?.id,
-    programSlug,
     domainSlug,
   ]);
 
-  const { queryString, key, start, end, interval, tagIds, selectedTab } =
-    useAnalyticsQuery({
-      domain: domain ?? undefined,
-      defaultKey: dashboardProps?.key,
-      defaultInterval: partnerPage
-        ? DUB_PARTNERS_ANALYTICS_INTERVAL
-        : DUB_LINKS_ANALYTICS_INTERVAL,
-
-      /*
-      If not explicitly set, show root domain links if:
-        - it's filtered by a link, or
-        - the workspace has more than 50 domains
-        - is admin page
-        - is filtered by a folder or tag
-      Otherwise, hide root domain links
-    */
-      defaultRoot: ({ key, folderId, tagIds }) =>
-        (domain && key) ||
-        (domains && domains.length > 50) ||
-        adminPage ||
-        folderId ||
-        tagIds
-          ? undefined
-          : "false",
-    });
+  const {
+    queryString,
+    key,
+    start,
+    end,
+    interval,
+    tagId,
+    folderId,
+    selectedTab,
+  } = useAnalyticsQuery({
+    domain: domain ?? undefined,
+    defaultKey: dashboardProps?.key,
+    defaultFolderId: dashboardProps?.folderId,
+    defaultInterval: partnerPage
+      ? DUB_PARTNERS_ANALYTICS_INTERVAL
+      : DUB_LINKS_ANALYTICS_INTERVAL,
+  });
 
   // Reset requiresUpgrade when query changes
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
-  const { data: totalEvents } = useSWR<{
+  const { canTrackConversions } = getPlanCapabilities(workspacePlan);
+
+  const fetchCompositeStats = useMemo(() => {
+    // show composite stats if:
+    // - shared dashboard and show conversions is set to true
+    // - it's an admin or partner page
+    // - it's a workspace that has tracked conversions/customers/leads before
+    return dashboardProps?.showConversions ||
+      adminPage ||
+      partnerPage ||
+      canTrackConversions === true
+      ? true
+      : false;
+  }, [
+    dashboardProps?.showConversions,
+    adminPage,
+    partnerPage,
+    canTrackConversions,
+  ]);
+
+  const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     `${baseApiPath}?${editQueryString(queryString, {
-      event: "composite",
+      event: fetchCompositeStats ? "composite" : "clicks",
     })}`,
     fetcher,
     {
@@ -266,16 +292,19 @@ export default function AnalyticsProvider({
         domain: domain || undefined, // domain for the link (e.g. dub.sh, stey.me, etc.)
         key: key ? decodeURIComponent(key) : undefined, // link key (e.g. github, weathergpt, etc.)
         url: dashboardProps?.url, // url for the link (only for public stats pages)
+        folderId: folderId || undefined, // id of the folder(s) to filter by
+        tagId, // ids of the tag(s) to filter by
         start, // start of time period
         end, // end of time period
         interval, /// time period interval
-        tagIds, // ids of the tags to filter by
         totalEvents, // totalEvents (clicks, leads, sales)
+        totalEventsLoading: totalEventsLoading,
         adminPage, // whether the user is an admin
         partnerPage, // whether the user is viewing partner analytics
-        dashboardProps,
-        showConversions, // Whether to show conversions tabs/data
+        showConversions, // whether to show conversions tabs/data
+        fetchCompositeStats, // whether to pull composite stats or just clicks
         requiresUpgrade, // whether an upgrade is required to perform the query
+        dashboardProps,
       }}
     >
       {children}

@@ -66,15 +66,15 @@ export function AuditLogs() {
   };
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white">
-      <div className="flex flex-col gap-6 p-5 sm:p-10">
-        <div className="flex flex-col gap-1.5">
-          <h2 className="text-xl font-semibold">Audit Logs</h2>
+    <div className="mb-6 rounded-xl border border-neutral-200 bg-white">
+      <div className="relative flex flex-col gap-5 p-5">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-base font-medium text-neutral-900">Audit Logs</h2>
           <p className="text-sm text-neutral-500">
             Workspace partner and payout history
           </p>
         </div>
-        <div className="flex flex-col gap-4 rounded-md border border-neutral-200 bg-neutral-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2 sm:bg-white">
+        <div className="flex flex-col items-start justify-between space-y-4 rounded-xl border border-neutral-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <SimpleDateRangePicker
             className="w-full sm:max-w-xs"
             align="start"
@@ -104,7 +104,7 @@ export function AuditLogs() {
       </div>
 
       {!canExportAuditLogs && (
-        <div className="flex items-center justify-between rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-3 py-3 sm:px-10">
+        <div className="flex flex-col items-start justify-between space-y-3 rounded-b-xl border-t border-neutral-200 bg-neutral-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <span className="text-sm text-neutral-500">
             Audit logs are available on the{" "}
             <a

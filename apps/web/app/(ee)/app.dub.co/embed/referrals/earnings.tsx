@@ -1,26 +1,36 @@
-import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
+import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/constants/misc";
 import { PartnerEarningsResponse } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
-import { Gift, StatusBadge, Table, usePagination, useTable } from "@dub/ui";
+import {
+  Gift,
+  StatusBadge,
+  TAB_ITEM_ANIMATION_SETTINGS,
+  Table,
+  usePagination,
+  useTable,
+} from "@dub/ui";
 import {
   currencyFormatter,
   fetcher,
   formatDate,
   formatDateTime,
-  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
+import { useReferralsEmbedData } from "./page-client";
 
-export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
+export function ReferralsEmbedEarnings() {
   const token = useEmbedToken();
+  const {
+    earnings: { totalCount: earningsCount },
+  } = useReferralsEmbedData();
 
   const { pagination, setPagination } = usePagination(
     REFERRALS_EMBED_EARNINGS_LIMIT,
   );
   const { data: earnings, isLoading } = useSWR<PartnerEarningsResponse[]>(
-    `/api/embed/referrals/earnings?page=${pagination.pageIndex}`,
+    `/api/embed/referrals/earnings?page=${pagination.pageIndex}&pageSize=${pagination.pageSize}&interval=all`,
     (url) =>
       fetcher(url, {
         headers: {
@@ -56,10 +66,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
         id: "amount",
         header: "Amount",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          return currencyFormatter(row.original.amount);
         },
       },
       {
@@ -67,10 +74,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
         header: "Earnings",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          return currencyFormatter(row.original.earnings);
         },
       },
       {
@@ -88,7 +92,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
     ],
     pagination,
     onPaginationChange: setPagination,
-    rowCount: salesCount,
+    rowCount: earningsCount,
     emptyState: (
       <div className="flex w-full flex-col items-center justify-center gap-2">
         <Gift className="text-content-muted size-6" />
@@ -100,7 +104,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
     ),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (plural) => `sale${plural ? "s" : ""}`,
+    resourceName: (plural) => `commission${plural ? "s" : ""}`,
   });
 
   return (

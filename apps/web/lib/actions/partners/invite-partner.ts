@@ -2,61 +2,49 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
+import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import PartnerInvite from "@dub/email/templates/partner-invite";
-import { prisma } from "@dub/prisma";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { waitUntil } from "@vercel/functions";
-import { getLinkOrThrow } from "../../api/links/get-link-or-throw";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 export const invitePartnerAction = authActionClient
-  .schema(invitePartnerSchema)
+  .inputSchema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { name, email, linkId, rewardId, discountId } = parsedInput;
+    const { groupId, email, username, name } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    let [program, link, reward] = await Promise.all([
-      getProgramOrThrow({
-        workspaceId: workspace.id,
-        programId,
-      }),
-
-      linkId
-        ? getLinkOrThrow({
-            workspaceId: workspace.id,
-            linkId,
-          })
-        : null,
-
-      rewardId
-        ? getRewardOrThrow({
-            programId,
-            rewardId,
-          })
-        : null,
-    ]);
-
-    if (link?.partnerId) {
-      throw new Error("Link is already associated with another partner.");
-    }
-
-    const programEnrollment = await prisma.programEnrollment.findFirst({
-      where: {
-        programId: program.id,
-        partner: {
-          email,
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+      include: {
+        partners: {
+          where: {
+            partner: {
+              email,
+            },
+          },
+        },
+        emailDomains: {
+          where: {
+            status: "verified",
+          },
         },
       },
     });
 
-    if (programEnrollment) {
+    if (program.partners.length > 0) {
       const statusMessages = {
         invited: "has already been invited to",
         approved: "is already enrolled in",
@@ -65,71 +53,95 @@ export const invitePartnerAction = authActionClient
         pending: "has a pending application to join",
       };
 
-      const message = statusMessages[programEnrollment.status];
+      const message = statusMessages[program.partners[0].status];
 
       if (message) {
         throw new Error(`Partner ${email} ${message} this program.`);
       }
     }
 
-    // If the link is not provided, create a new one
-    if (!link) {
-      link = await createPartnerLink({
-        workspace,
-        program,
-        partner: {
-          name,
-          email,
-        },
-        userId: user.id,
-      });
+    if (!groupId && !program.defaultGroupId) {
+      throw new Error("No group ID provided and no default group ID found.");
     }
 
     const enrolledPartner = await createAndEnrollPartner({
-      program,
-      link,
       workspace,
+      program,
       partner: {
-        name,
         email,
+        username,
+        name,
+        ...(groupId && { groupId }),
       },
+      userId: user.id,
       skipEnrollmentCheck: true,
       status: "invited",
-      ...(reward && { reward }),
-      ...(discountId && { discountId }),
     });
 
-    waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          sendEmail({
-            subject: `${program.name} invited you to join Dub Partners`,
-            email,
-            react: PartnerInvite({
-              email,
-              program: {
-                name: program.name,
-                slug: program.slug,
-                logo: program.logo,
-              },
-            }),
-          }),
+    // Use saved invite email data from program if available
+    const inviteEmailData = program.inviteEmailData;
 
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner.invited",
-            description: `Partner ${enrolledPartner.id} invited`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: enrolledPartner.id,
-                metadata: enrolledPartner,
-              },
-            ],
+    const sendPartnerInvitePromise = (async () => {
+      try {
+        const rewardsAndBounties = await getGroupRewardsAndBounties({
+          programId,
+          groupId: enrolledPartner.groupId || program.defaultGroupId,
+        });
+
+        await sendEmail({
+          subject:
+            inviteEmailData?.subject ||
+            `${program.name} invited you to join Dub Partners`,
+          variant: "notifications",
+          // use the first verified email domain as the from email address
+          from:
+            program.emailDomains.length > 0
+              ? `${program.name} <partners@${program.emailDomains[0].slug}>`
+              : undefined,
+          to: email,
+          replyTo: program.supportEmail || "noreply",
+          react: ProgramInvite({
+            email,
+            name: enrolledPartner.name,
+            program: {
+              name: program.name,
+              slug: program.slug,
+              logo: program.logo,
+            },
+            ...(inviteEmailData?.subject && {
+              subject: inviteEmailData.subject,
+            }),
+            ...(inviteEmailData?.title && { title: inviteEmailData.title }),
+            ...(inviteEmailData?.body && { body: inviteEmailData.body }),
+            ...rewardsAndBounties,
           }),
-        ]);
-      })(),
+        });
+      } catch (error) {
+        console.error("Failed to send partner invite email", {
+          error,
+          partnerId: enrolledPartner.partnerId || enrolledPartner.id,
+          programId,
+        });
+      }
+    })();
+
+    waitUntil(
+      Promise.allSettled([
+        sendPartnerInvitePromise,
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner.invited",
+          description: `Partner ${enrolledPartner.id} invited`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: enrolledPartner.id,
+              metadata: enrolledPartner,
+            },
+          ],
+        }),
+      ]),
     );
   });

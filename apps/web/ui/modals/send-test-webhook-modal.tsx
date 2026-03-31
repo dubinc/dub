@@ -2,13 +2,7 @@ import { sendTestWebhookEvent } from "@/lib/actions/send-test-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { WebhookProps, WebhookTrigger } from "@/lib/types";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "@/lib/webhook/constants";
-import {
-  Button,
-  InputSelect,
-  InputSelectItemProps,
-  Logo,
-  Modal,
-} from "@dub/ui";
+import { Button, Combobox, ComboboxOption, Modal } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -29,8 +23,9 @@ function SendTestWebhookModal({
   webhook: WebhookProps | undefined;
 }) {
   const workspace = useWorkspace();
-  const [selectedTrigger, setSelectedTrigger] =
-    useState<InputSelectItemProps | null>(null);
+  const [selectedTrigger, setSelectedTrigger] = useState<ComboboxOption | null>(
+    null,
+  );
 
   const { execute, isPending } = useAction(sendTestWebhookEvent, {
     onSuccess: () => {
@@ -44,8 +39,8 @@ function SendTestWebhookModal({
 
   const triggers = Object.entries(WEBHOOK_TRIGGER_DESCRIPTIONS).map(
     ([key, value]) => ({
-      id: key,
-      value: value,
+      value: key,
+      label: value,
     }),
   );
 
@@ -54,12 +49,10 @@ function SendTestWebhookModal({
       showModal={showSendTestWebhookModal}
       setShowModal={setShowSendTestWebhookModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <Logo />
-        <h3 className="text-lg font-medium">Send test webhook event</h3>
-        <p className="text-center text-sm text-neutral-500">
-          Choose a webhook event to send to your receiver endpoint
-        </p>
+      <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+        <h3 className="text-lg font-medium leading-none">
+          Send test webhook event
+        </h3>
       </div>
       <form
         onSubmit={async (e) => {
@@ -72,23 +65,39 @@ function SendTestWebhookModal({
           execute({
             workspaceId: workspace.id!,
             webhookId: webhook.id,
-            trigger: selectedTrigger?.id as WebhookTrigger,
+            trigger: selectedTrigger?.value as WebhookTrigger,
           });
         }}
       >
-        <div className="flex flex-col space-y-28 bg-neutral-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
-          <InputSelect
-            items={triggers}
-            selectedItem={selectedTrigger}
-            setSelectedItem={setSelectedTrigger}
-            inputAttrs={{
-              placeholder: "Select a webhook event",
-            }}
+        <div className="bg-neutral-50 p-4 sm:p-6">
+          <p className="text-sm text-neutral-800">
+            Choose a webhook event to send to your receiver endpoint
+          </p>
+
+          <div className="mt-4">
+            <Combobox
+              options={triggers}
+              selected={selectedTrigger}
+              setSelected={setSelectedTrigger}
+              placeholder="Select a webhook event"
+              matchTriggerWidth
+              caret
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+          <Button
+            onClick={() => setShowSendTestWebhookModal(false)}
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
           />
           <Button
             disabled={!selectedTrigger}
             text="Send test webhook"
             loading={isPending}
+            className="h-8 w-fit px-3"
           />
         </div>
       </form>

@@ -2,41 +2,34 @@ import { SVGProps } from "react";
 
 export function UserCheck(props: SVGProps<SVGSVGElement>) {
   return (
-    <svg
-      height="18"
-      width="18"
-      viewBox="0 0 18 18"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <g fill="currentColor">
-        <circle
-          cx="9"
-          cy="4.5"
+    <svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <g fill="currentColor" clipPath="url(#user-check-clip)">
+        <path
+          d="M7.00022 5.63911C8.18166 5.63911 9.13911 4.68166 9.13911 3.50022C9.13911 2.31877 8.18166 1.36133 7.00022 1.36133C5.81877 1.36133 4.86133 2.31877 4.86133 3.50022C4.86133 4.68166 5.81877 5.63911 7.00022 5.63911Z"
           fill="none"
-          r="2.75"
           stroke="currentColor"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
         />
         <path
-          d="M13.314,11.5c-1.121-1.078-2.635-1.75-4.313-1.75-2.551,0-4.739,1.53-5.709,3.72-.365,.825,.087,1.774,.947,2.045,1.225,.386,2.846,.734,4.762,.734"
+          d="M7.32045 7.59994C7.21452 7.59294 7.10904 7.58398 7.00124 7.58398C5.01713 7.58398 3.31536 8.77399 2.56092 10.4773C2.27703 11.119 2.62858 11.857 3.29747 12.068C4.10542 12.3224 5.1457 12.5452 6.34869 12.6101"
           fill="none"
           stroke="currentColor"
+          strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
-          strokeWidth="1.5"
         />
-        <polyline
-          fill="none"
-          points="11.25 14.75 12.859 16.25 16.256 11.75"
-          stroke="currentColor"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="1.5"
+        <path
+          d="M10.8894 7.77734C9.17358 7.77734 7.77832 9.17299 7.77832 10.8885C7.77832 12.6039 9.17358 13.9996 10.8894 13.9996C12.6053 13.9996 14.0005 12.6039 14.0005 10.8885C14.0005 9.17299 12.6053 7.77734 10.8894 7.77734ZM12.6842 10.3067L10.9342 12.2511C10.8271 12.37 10.676 12.4395 10.5157 12.4437C10.5104 12.4441 10.5058 12.4441 10.5005 12.4441C10.3464 12.4441 10.1975 12.383 10.0881 12.2732L9.11586 11.301C8.88798 11.0731 8.88798 10.704 9.11586 10.4762C9.34375 10.2483 9.71289 10.2483 9.9407 10.4762L10.4785 11.0135L11.8168 9.52594C12.0332 9.28748 12.4009 9.26772 12.6409 9.48262C12.8802 9.6983 12.8999 10.067 12.6842 10.3067Z"
+          fill="currentColor"
         />
       </g>
+      <defs>
+        <clipPath id="user-check-clip">
+          <rect width="14" height="14" fill="white" />
+        </clipPath>
+      </defs>
     </svg>
   );
 }

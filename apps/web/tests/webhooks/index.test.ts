@@ -8,12 +8,15 @@ import {
   leadWebhookEventSchema,
   saleWebhookEventSchema,
 } from "@/lib/webhook/schemas";
-import z from "@/lib/zod";
-import { CommissionEnrichedSchema } from "@/lib/zod/schemas/commissions";
+import { BountySchema } from "@/lib/zod/schemas/bounties";
+import { CommissionWebhookSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
+import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { describe, expect, test } from "vitest";
+import * as z from "zod/v4";
 
 const webhook = {
   id: "wh_IFL4j0toU6RAMz4R7mXjJ6C5", // dummy id
@@ -34,23 +37,42 @@ const saleWebhookEventSchemaExtended = saleWebhookEventSchema.extend({
 });
 
 const enrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
-  createdAt: z.string().transform((str) => new Date(str)),
-  payoutsEnabledAt: z
-    .string()
-    .transform((str) => (str ? new Date(str) : null))
-    .nullable(),
+  payoutsEnabledAt: z.string().nullable(),
+  createdAt: z.string(),
 });
 
-const commissionWebhookEventSchemaExtended = CommissionEnrichedSchema.extend({
+const commissionWebhookEventSchemaExtended = CommissionWebhookSchema.extend({
   createdAt: z.string().transform((str) => new Date(str)),
   updatedAt: z.string().transform((str) => new Date(str)),
-  partner: CommissionEnrichedSchema.shape.partner.extend({
+  partner: CommissionWebhookSchema.shape.partner.extend({
     payoutsEnabledAt: z
       .string()
       .transform((str) => (str ? new Date(str) : null))
       .nullable(),
   }),
   customer: customerSchemaExtended,
+});
+
+const bountyWebhookEventSchemaExtended = BountySchema.extend({
+  startsAt: z.string().transform((str) => new Date(str)),
+  endsAt: z.string().transform((str) => (str ? new Date(str) : null)),
+});
+
+const payoutWebhookEventSchemaExtended = payoutWebhookEventSchema.extend({
+  periodStart: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+  periodEnd: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+  createdAt: z.string().transform((str) => new Date(str)),
+  initiatedAt: z.string().transform((str) => new Date(str)),
+  paidAt: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
 });
 
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
@@ -60,8 +82,12 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.clicked": clickWebhookEventSchema,
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
+  "partner.application_submitted": partnerApplicationWebhookSchema,
   "partner.enrolled": enrolledPartnerSchemaExtended,
   "commission.created": commissionWebhookEventSchemaExtended,
+  "bounty.created": bountyWebhookEventSchemaExtended,
+  "bounty.updated": bountyWebhookEventSchemaExtended,
+  "payout.confirmed": payoutWebhookEventSchemaExtended,
 };
 
 describe("Webhooks", () => {

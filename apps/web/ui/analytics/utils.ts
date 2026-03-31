@@ -1,8 +1,9 @@
+import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { fetcher } from "@dub/utils";
 import { ContextType, useContext } from "react";
-import useSWR, { useSWRConfig } from "swr";
+import useSWR from "swr";
 import { AnalyticsContext } from "./analytics-provider";
 
 type AnalyticsFilterResult = {
@@ -23,36 +24,47 @@ export function useAnalyticsFilterOption(
     | AnalyticsGroupByOptions
     | ({ groupBy: AnalyticsGroupByOptions } & Record<string, any>),
   options?: {
-    cacheOnly?: boolean;
+    disabled?: boolean;
+    omitGroupByFilterKey?: boolean; // for Filter.Select and Filter.List, we need to show all options by default, so we need to omit the groupBy filter key
     context?: Pick<
       ContextType<typeof AnalyticsContext>,
       "baseApiPath" | "queryString" | "selectedTab" | "requiresUpgrade"
     >;
   },
 ): AnalyticsFilterResult {
-  const { cache } = useSWRConfig();
-
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     options?.context ?? useContext(AnalyticsContext);
 
-  const enabled =
-    !options?.cacheOnly ||
-    [...cache.keys()].includes(
-      `${baseApiPath}?${editQueryString(queryString, {
-        ...(typeof groupByOrParams === "string"
-          ? { groupBy: groupByOrParams }
-          : groupByOrParams),
-      })}`,
-    );
+  const groupBy =
+    typeof groupByOrParams === "string"
+      ? groupByOrParams
+      : groupByOrParams?.groupBy;
+
+  // Extract additional params (like root) from the params object
+  const additionalParams =
+    typeof groupByOrParams === "object" && groupByOrParams !== null
+      ? Object.fromEntries(
+          Object.entries(groupByOrParams).filter(([key]) => key !== "groupBy"),
+        )
+      : {};
 
   const { data, isLoading } = useSWR<Record<string, any>[]>(
-    enabled
-      ? `${baseApiPath}?${editQueryString(queryString, {
-          ...(typeof groupByOrParams === "string"
-            ? { groupBy: groupByOrParams }
-            : groupByOrParams),
-        })}`
-      : null,
+    !options?.disabled &&
+      `${baseApiPath}?${editQueryString(
+        queryString,
+        {
+          ...(groupBy && { groupBy }),
+          ...additionalParams,
+        },
+        // if theres no groupBy or we're not omitting the groupBy filter, skip
+        // else, we need to remove the filter for that groupBy param
+        (() => {
+          if (!groupBy || !options?.omitGroupByFilterKey) return undefined;
+          return SINGULAR_ANALYTICS_ENDPOINTS[groupBy]
+            ? SINGULAR_ANALYTICS_ENDPOINTS[groupBy]
+            : undefined;
+        })(),
+      )}`,
     fetcher,
     {
       shouldRetryOnError: !requiresUpgrade,

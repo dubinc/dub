@@ -1,5 +1,6 @@
 import {
   AnimatedSizeContainer,
+  ArrowUpRight2,
   BookOpen,
   ChevronLeft,
   ClientOnly,
@@ -7,10 +8,11 @@ import {
   Lock,
   NavWordmark,
   Tooltip,
+  useScrollProgress,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -20,9 +22,10 @@ import {
   ReactNode,
   Suspense,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import UserDropdown from "./user-dropdown";
+import { UserDropdown } from "./user-dropdown";
 
 export type NavItemCommon = {
   name: string;
@@ -30,6 +33,7 @@ export type NavItemCommon = {
   exact?: boolean;
   isActive?: (pathname: string, href: string) => boolean;
   badge?: ReactNode;
+  arrow?: boolean;
   locked?: boolean;
 };
 
@@ -49,6 +53,7 @@ export type NavGroupType = {
   popup?: ComponentType<{
     referenceElement: HTMLElement | null;
   }>;
+  badge?: ReactNode;
 
   description: string;
   learnMoreHref?: string;
@@ -116,9 +121,9 @@ export function SidebarNav<T extends Record<any, any>>({
               <div className="pb-1 pt-2">
                 <Link
                   href="/"
-                  className="block rounded-lg px-1 py-4 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
+                  className="block overflow-visible rounded-lg px-1 py-4 outline-none transition-opacity focus-visible:ring-2 focus-visible:ring-black/50"
                 >
-                  <NavWordmark className="h-5" isInApp />
+                  <NavWordmark className="h-5 overflow-visible" isInApp />
                 </Link>
               </div>
               {(!currentArea ||
@@ -144,100 +149,154 @@ export function SidebarNav<T extends Record<any, any>>({
               currentArea === null && "opacity-0",
             )}
           >
-            <div className="scrollbar-hide relative flex h-full w-[calc(var(--sidebar-areas-width)-0.5rem)] flex-col overflow-y-auto overflow-x-hidden rounded-xl bg-neutral-100">
-              <div className="relative flex grow flex-col p-3 text-neutral-500">
-                <div className="relative w-full grow">
-                  {Object.entries(areas).map(([area, areaConfig]) => {
-                    const { title, backHref, content, direction } =
-                      areaConfig(data);
-
-                    const TitleContainer = backHref ? Link : "div";
-
-                    return (
-                      <Area
-                        key={area}
-                        visible={area === currentArea}
-                        direction={direction ?? "right"}
-                      >
-                        {title &&
-                          (typeof title === "string" ? (
-                            <TitleContainer
-                              href={backHref ?? "#"}
-                              className="group mb-2 flex items-center gap-3 px-3 py-2"
-                            >
-                              {backHref && (
-                                <div
-                                  className={cn(
-                                    "text-content-muted bg-bg-emphasis flex size-6 items-center justify-center rounded-lg",
-                                    "group-hover:bg-bg-inverted/10 group-hover:text-content-subtle transition-[transform,background-color,color] duration-150 group-hover:-translate-x-0.5",
-                                  )}
-                                >
-                                  <ChevronLeft className="size-3 [&_*]:stroke-2" />
-                                </div>
-                              )}
-                              <span className="text-content-emphasis text-lg font-semibold">
-                                {title}
-                              </span>
-                            </TitleContainer>
-                          ) : (
-                            title
-                          ))}
-                        <div className="flex flex-col gap-8">
-                          {content.map(({ name, items }, idx) => (
-                            <div key={idx} className="flex flex-col gap-0.5">
-                              {name && (
-                                <div className="mb-2 pl-3 text-sm text-neutral-500">
-                                  {name}
-                                </div>
-                              )}
-                              {items.map((item) => (
-                                <NavItem key={item.name} item={item} />
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      </Area>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Fixed bottom sections */}
-              <div className="flex flex-col gap-2">
-                {data.showConversionGuides && (
-                  <div className="px-3 pb-2">
-                    <Link
-                      href={`/${data.slug}/guides`}
-                      className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
-                    >
-                      <BookOpen className="size-4" />
-                      Set up conversion tracking
-                    </Link>
-                  </div>
-                )}
-
-                <AnimatePresence>
-                  {currentArea && areas[currentArea](data).showNews && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 10 }}
-                      transition={{
-                        duration: 0.1,
-                        ease: "easeInOut",
-                      }}
-                    >
-                      {newsContent}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {bottom && <div className="flex flex-col">{bottom}</div>}
-              </div>
-            </div>
+            <SidebarAreasPanel
+              areas={areas}
+              data={data}
+              currentArea={currentArea}
+              newsContent={newsContent}
+              bottom={bottom}
+            />
           </div>
         </nav>
       </ClientOnly>
+    </div>
+  );
+}
+
+function SidebarAreasPanel<T extends Record<any, any>>({
+  areas,
+  data,
+  currentArea,
+  newsContent,
+  bottom,
+}: {
+  areas: SidebarNavAreas<T>;
+  data: T;
+  currentArea: string | null;
+  newsContent?: ReactNode;
+  bottom?: ReactNode;
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+  const showNews = currentArea && areas[currentArea]?.(data).showNews;
+
+  const hasOverflow = useMemo(() => {
+    if (!currentArea) return false;
+    const { content } = areas[currentArea](data);
+    const totalItems = content.flatMap((c) => c.items).length;
+    return totalItems > 10;
+  }, [currentArea, areas, data]);
+
+  return (
+    <div className="flex h-full w-[calc(var(--sidebar-areas-width)-0.5rem)] flex-col rounded-xl bg-neutral-100">
+      {/* Scrollable content with gradient overlay */}
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        <div
+          ref={scrollRef}
+          onScroll={updateScrollProgress}
+          className={cn(
+            "scrollbar-hide h-full overflow-x-hidden rounded-xl",
+            hasOverflow ? "overflow-y-auto" : "overflow-hidden",
+          )}
+        >
+          <div className="relative flex flex-col p-3 text-neutral-500">
+            <div className="relative w-full grow">
+              {Object.entries(areas).map(([area, areaConfig]) => {
+                const { title, backHref, content, direction } =
+                  areaConfig(data);
+
+                const TitleContainer = backHref ? Link : "div";
+
+                return (
+                  <Area
+                    key={area}
+                    visible={area === currentArea}
+                    direction={direction ?? "right"}
+                  >
+                    {title &&
+                      (typeof title === "string" ? (
+                        <TitleContainer
+                          href={backHref ?? "#"}
+                          className="group mb-2 flex items-center gap-3 px-3 py-2"
+                        >
+                          {backHref && (
+                            <div
+                              className={cn(
+                                "text-content-muted bg-bg-emphasis flex size-6 items-center justify-center rounded-lg",
+                                "group-hover:bg-bg-inverted/10 group-hover:text-content-subtle transition-[transform,background-color,color] duration-150 group-hover:-translate-x-0.5",
+                              )}
+                            >
+                              <ChevronLeft className="size-3 [&_*]:stroke-2" />
+                            </div>
+                          )}
+                          <span className="text-content-emphasis text-lg font-semibold">
+                            {title}
+                          </span>
+                        </TitleContainer>
+                      ) : (
+                        title
+                      ))}
+                    <div className="flex flex-col gap-8">
+                      {content.map(({ name, items }, idx) => (
+                        <div key={idx} className="flex flex-col gap-0.5">
+                          {name && (
+                            <div className="mb-2 pl-3 text-sm text-neutral-500">
+                              {name}
+                            </div>
+                          )}
+                          {items.map((item) => (
+                            <NavItem key={item.name} item={item} />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </Area>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+        {/* Bottom scroll fade - shows when content overflows */}
+        {hasOverflow && (
+          <div
+            className="pointer-events-none absolute bottom-0 left-0 z-10 h-16 w-full rounded-b-lg bg-gradient-to-t from-neutral-100 to-transparent"
+            style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
+          />
+        )}
+      </div>
+
+      {/* Fixed bottom sections - always visible */}
+      <div className="flex flex-shrink-0 flex-col gap-2 rounded-b-xl">
+        {data.showConversionGuides && (
+          <div className="px-3 pb-2">
+            <Link
+              href={`/${data.slug}/settings/tracking`}
+              className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
+            >
+              <BookOpen className="size-4" />
+              Set up conversion tracking
+            </Link>
+          </div>
+        )}
+
+        <AnimatePresence>
+          {showNews && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{
+                duration: 0.1,
+                ease: "easeInOut",
+              }}
+            >
+              {newsContent}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {bottom && <div className="flex flex-col">{bottom}</div>}
+      </div>
     </div>
   );
 }
@@ -302,6 +361,7 @@ function NavGroupItem({
     icon: Icon,
     href,
     active,
+    badge,
     onClick,
     popup: Popup,
   },
@@ -326,7 +386,7 @@ function NavGroupItem({
             onPointerLeave={() => setHovered(false)}
             onClick={onClick}
             className={cn(
-              "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
+              "relative flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
               "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
               active
                 ? "bg-white"
@@ -337,6 +397,11 @@ function NavGroupItem({
               className="text-content-default size-5"
               data-hovered={hovered}
             />
+            {badge && (
+              <div className="absolute right-0.5 top-0.5 flex size-3.5 items-center justify-center rounded-full bg-blue-600 text-[0.625rem] font-semibold text-white">
+                {badge}
+              </div>
+            )}
           </Link>
         </div>
       </NavGroupTooltip>
@@ -371,16 +436,16 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
       <Link
         href={locked ? "#" : href}
         data-active={isActive}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => setHovered(false)}
+        onPointerEnter={() => !locked && setHovered(true)}
+        onPointerLeave={() => !locked && setHovered(false)}
         className={cn(
           "text-content-default group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive && !items
             ? "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100"
-            : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
-
-          locked && "pointer-events-none",
+            : locked
+              ? "cursor-not-allowed opacity-75"
+              : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
         )}
         aria-disabled={locked}
       >
@@ -415,6 +480,9 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
           )}
           {items && (
             <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
+          )}
+          {item.arrow && (
+            <ArrowUpRight2 className="text-content-default size-3.5 transition-transform duration-75 group-hover:-translate-y-px group-hover:translate-x-px" />
           )}
         </span>
       </Link>
@@ -463,7 +531,7 @@ export function Area({
             ),
       )}
       aria-hidden={!visible ? "true" : undefined}
-      {...{ inert: !visible ? "" : undefined }}
+      inert={!visible}
     >
       {children}
     </div>

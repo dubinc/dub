@@ -3,13 +3,18 @@
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { mutate } from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { updateWorkspaceStore } from "../actions/update-workspace-store";
 import { workspaceStoreKeys } from "../zod/schemas/workspaces";
 import useWorkspace from "./use-workspace";
 
 export function useWorkspaceStore<T>(
   key: z.infer<typeof workspaceStoreKeys>,
+  {
+    mutateOnSet = false,
+  }: {
+    mutateOnSet?: boolean;
+  } = {},
 ): [
   T | undefined,
   (value: T) => Promise<void>,
@@ -33,6 +38,10 @@ export function useWorkspaceStore<T>(
     }
   }, [store, loadingWorkspace]);
 
+  const mutateWorkspace = () => {
+    mutate(`/api/workspaces/${slug}`);
+  };
+
   const setItem = async (value: T) => {
     setItemState(value);
 
@@ -41,10 +50,8 @@ export function useWorkspaceStore<T>(
       value,
       workspaceId: workspaceId!,
     });
-  };
 
-  const mutateWorkspace = () => {
-    mutate(`/api/workspaces/${slug}`);
+    mutateOnSet && mutateWorkspace();
   };
 
   return [item, setItem, { loading, mutateWorkspace }];

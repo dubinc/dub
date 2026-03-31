@@ -26,7 +26,7 @@ export function ProgramInvitationsPageClient() {
                 <div className="bg-bg-emphasis h-2.5 w-8 rounded" />
                 <div className="bg-bg-emphasis h-2.5 w-16 rounded" />
               </div>
-              <div className="bg-bg-inverted h-5 w-40 max-w-full rounded bg-neutral-800" />
+              <div className="h-5 w-40 max-w-full rounded bg-neutral-800" />
             </div>
           }
         />

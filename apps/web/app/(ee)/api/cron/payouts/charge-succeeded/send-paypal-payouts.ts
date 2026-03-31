@@ -1,16 +1,17 @@
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
+import { Invoice } from "@dub/prisma/client";
+import { currencyFormatter } from "@dub/utils";
 
-export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
+export async function sendPaypalPayouts(invoice: Pick<Invoice, "id">) {
   const payouts = await prisma.payout.findMany({
     where: {
-      invoiceId,
-      status: {
-        not: "completed",
-      },
+      invoiceId: invoice.id,
+      status: "processing",
+      mode: "internal",
+      method: "paypal",
       partner: {
         payoutsEnabledAt: {
           not: null,
@@ -43,26 +44,35 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
 
   const batchPayout = await createPayPalBatchPayout({
     payouts,
-    invoiceId,
+    invoiceId: invoice.id,
   });
 
   console.log("PayPal batch payout created", batchPayout);
 
-  const batchEmails = await resend?.batch.send(
-    payouts
-      .filter((payout) => payout.partner.email)
-      .map((payout) => ({
-        from: VARIANT_TO_FROM_MAP.notifications,
-        to: payout.partner.email!,
-        subject: "You've been paid!",
-        react: PartnerPayoutProcessed({
-          email: payout.partner.email!,
-          program: payout.program,
-          payout,
-          variant: "paypal",
-        }),
-      })),
-  );
+  // update the payouts to "sent" status
+  const updatedPayouts = await prisma.payout.updateMany({
+    where: {
+      id: { in: payouts.map((p) => p.id) },
+    },
+    data: {
+      status: "sent",
+      paidAt: new Date(),
+    },
+  });
 
-  console.log("Resend batch emails sent", batchEmails);
+  console.log(`Updated ${updatedPayouts.count} payouts to "sent" status`);
+
+  await queueBatchEmail<typeof PartnerPayoutProcessed>(
+    payouts.map((payout) => ({
+      variant: "notifications",
+      to: payout.partner.email!,
+      subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
+      templateName: "PartnerPayoutProcessed",
+      templateProps: {
+        email: payout.partner.email!,
+        program: payout.program,
+        payout,
+      },
+    })),
+  );
 }

@@ -1,3 +1,4 @@
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { includeTags } from "../lib/api/links/include-tags";
@@ -43,7 +44,10 @@ async function main() {
         in: links.map((link) => link.id),
       },
     },
-    include: includeTags,
+    include: {
+      ...includeTags,
+      ...includeProgramEnrollment,
+    },
   });
 
   console.table(updatedLinks);

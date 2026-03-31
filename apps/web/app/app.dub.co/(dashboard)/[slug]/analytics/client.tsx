@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import WorkspaceExceededClicks from "@/ui/workspaces/workspace-exceeded-clicks";
+import WorkspaceExceededEvents from "@/ui/workspaces/workspace-exceeded-events";
 import { ReactNode } from "react";
 
 export default function AnalyticsClient({
@@ -12,14 +12,14 @@ export default function AnalyticsClient({
   children: ReactNode;
   eventsPage?: boolean;
 }) {
-  const { exceededClicks, loading, plan } = useWorkspace();
+  const { exceededEvents, loading, plan } = useWorkspace();
 
   if (loading) {
     return <LayoutLoader />;
   }
 
-  if (exceededClicks && !(plan === "pro" && eventsPage)) {
-    return <WorkspaceExceededClicks />;
+  if (exceededEvents && !(plan === "pro" && eventsPage)) {
+    return <WorkspaceExceededEvents />;
   }
 
   return children;

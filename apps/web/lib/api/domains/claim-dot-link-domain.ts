@@ -2,8 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { createLink } from "@/lib/api/links";
 import { registerDomain } from "@/lib/dynadot/register-domain";
 import { WorkspaceWithUsers } from "@/lib/types";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
 import { DEFAULT_LINK_PROPS } from "@dub/utils";
@@ -175,10 +174,9 @@ export const sendDomainClaimedEmails = async ({
     },
   });
 
-  const emails = workspaceWithOwner.users
-    .filter(({ user }) => user.email)
-    .map(({ user }) => ({
-      from: VARIANT_TO_FROM_MAP.notifications,
+  return await sendBatchEmail(
+    workspaceWithOwner.users.map(({ user }) => ({
+      variant: "notifications",
       to: user.email!,
       subject: "Successfully claimed your .link domain!",
       react: DomainClaimed({
@@ -186,11 +184,6 @@ export const sendDomainClaimedEmails = async ({
         domain,
         workspaceSlug: workspace.slug,
       }),
-    }));
-
-  if (emails.length > 0) {
-    return await resend?.batch.send(emails);
-  }
-
-  return null;
+    })),
+  );
 };

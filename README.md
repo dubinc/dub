@@ -62,9 +62,37 @@ We love our contributors! Here's how you can contribute:
 - Follow the [local development guide](https://dub.co/docs/local-development) to get your local dev environment set up.
 - Make a [pull request](https://github.com/dubinc/dub/pull) to add new features/make quality-of-life improvements/fix bugs.
 
-<a href="https://github.com/dubinc/dub/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=dubinc/dub" />
-</a>
+### Recommended Versions
+
+| Package | Version  |
+| ------- | -------- |
+| node    | v23.11.0 |
+| pnpm    | 9.15.9   |
+
+### Common Local Development Issues
+
+- `The table <table-name> does not exist in the current database.` - Run `pnpm prisma:push` push the state of the Prisma schema file to the database without using migrations files.
+- The project is not building correctly locally - verify your versions of `node` and `pnpm` match the recommended versions above. Delete all `node_modules`, `.next`, and `.turbo` directories in the `apps` and `packages` directory. You may now reinstall `node_modules` by running `pnpm install` and attempt to rebuild the project with `pnpm build`.
+
+### Dev Seed Script
+
+This script seeds the database with development data for testing and development purposes.
+
+**Basic seeding (adds data without deleting existing data):**
+
+```bash
+cd apps/web
+pnpm run script dev/seed
+```
+
+**Truncate database before seeding (deletes all existing data first):**
+
+```bash
+cd apps/web
+pnpm run script dev/seed --truncate
+```
+
+When using `--truncate`, the script will ask for confirmation before deleting any data.
 
 ## Repo Activity
 

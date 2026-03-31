@@ -1,6 +1,11 @@
-import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
-import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
-import { motion } from "framer-motion";
+import {
+  Button,
+  Modal,
+  STAGGER_CHILD_VARIANTS,
+  useRouterStuff,
+  useScrollProgress,
+} from "@dub/ui";
+import { motion } from "motion/react";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
@@ -27,8 +32,8 @@ function ProgramWelcomeModal({
 
   const NEXT_STEPS = [
     {
-      text: "Create your program application page",
-      href: `/${workspaceSlug}/program/branding`,
+      text: "Create your program application form",
+      href: `/${workspaceSlug}/program/groups/default/branding`,
     },
     {
       text: "Set up a bank account for partner payouts",

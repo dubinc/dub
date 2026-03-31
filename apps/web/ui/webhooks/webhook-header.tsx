@@ -1,10 +1,11 @@
 "use client";
 
 import { enableOrDisableWebhook } from "@/lib/actions/enable-disable-webhook";
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
 import useWebhook from "@/lib/swr/use-webhook";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ThreeDots } from "@/ui/shared/icons";
+import { TokenAvatar } from "@/ui/token-avatar";
 import {
   Button,
   CircleCheck,
@@ -12,12 +13,11 @@ import {
   MaxWidthWrapper,
   Popover,
   TabSelect,
-  TokenAvatar,
   useCopyToClipboard,
 } from "@dub/ui";
 import { CircleX, Send, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { redirect, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
@@ -26,7 +26,6 @@ import { BackLink } from "../shared/back-link";
 import { WebhookStatus } from "./webhook-status";
 
 export default function WebhookHeader({ webhookId }: { webhookId: string }) {
-  const router = useRouter();
   const { webhook, isLoading, mutate } = useWebhook();
   const { slug, id: workspaceId, role } = useWorkspace();
   const [copiedWebhookId, copyToClipboard] = useCopyToClipboard();
@@ -62,7 +61,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   });
 
   if (!isLoading && !webhook) {
-    return notFound();
+    redirect(`/${slug}/settings/webhooks`);
   }
 
   const copyWebhookId = () => {

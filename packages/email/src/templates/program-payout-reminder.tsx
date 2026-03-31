@@ -63,9 +63,10 @@ export default function ProgramPayoutReminder({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You have some partners awaiting their payout for {program.name}.
-              Completing these on time will keep your program running smooth and
-              your partners happy.
+              You have <strong>{payout.partnersCount}</strong> partners awaiting
+              their payout for <strong>{program.name}</strong>. Completing these
+              on time will keep your program running smoothly and your partners
+              happy.
             </Text>
 
             <Section className="rounded-lg border border-solid border-neutral-200 p-4">
@@ -74,10 +75,7 @@ export default function ProgramPayoutReminder({
                   <Stats
                     title="Total payout amount"
                     icon="https://assets.dub.co/misc/icons/nucleo/money-bills.png"
-                    value={currencyFormatter(payout.amount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    value={currencyFormatter(payout.amount)}
                   />
                 </Column>
 
@@ -92,7 +90,7 @@ export default function ProgramPayoutReminder({
 
               <Section className="mt-6 text-center">
                 <Link
-                  href={`https://app.dub.co/${workspace.slug}/program/payouts?status=pending&sortBy=amount&confirmPayouts=true`}
+                  href={`https://app.dub.co/${workspace.slug}/program/payouts?status=pending&confirmPayouts=true`}
                   className="box-border block w-full rounded-lg bg-black px-0 py-4 text-center text-sm leading-none text-white no-underline"
                 >
                   Review and confirm payouts

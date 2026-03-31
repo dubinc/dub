@@ -6,8 +6,8 @@ import { Grid } from "../../grid";
 import { DiamondTurnRightFill, MicrophoneFill, UsersFill } from "../../icons";
 import {
   ContentLinkCard,
+  NAV_UTM_PARAMS,
   contentHeadingClassName,
-  getUtmParams,
 } from "./shared";
 
 const mainLinks = [
@@ -41,11 +41,11 @@ export function SolutionsContent({ domain }: { domain: string }) {
             <NavigationMenuLink key={title} asChild>
               <Link
                 key={title}
-                href={createHref(
-                  href,
-                  domain,
-                  getUtmParams({ domain, utm_content: title }),
-                )}
+                href={createHref(href, domain, {
+                  ...NAV_UTM_PARAMS,
+                  utm_campaign: domain,
+                  utm_content: title,
+                })}
                 className={cn(
                   "group relative isolate z-0 flex flex-col justify-between overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 px-5 py-4 transition-colors duration-75",
                   "dark:border-white/20 dark:bg-neutral-900",
@@ -87,11 +87,11 @@ export function SolutionsContent({ domain }: { domain: string }) {
             <ContentLinkCard
               key={href}
               className="-mx-2"
-              href={createHref(
-                href,
-                domain,
-                getUtmParams({ domain, utm_content: title }),
-              )}
+              href={createHref(href, domain, {
+                ...NAV_UTM_PARAMS,
+                utm_campaign: domain,
+                utm_content: title,
+              })}
               icon={
                 <div className="shrink-0 rounded-[10px] border border-neutral-200 bg-white/50 p-1 dark:border-white/20 dark:bg-white/10">
                   <Icon

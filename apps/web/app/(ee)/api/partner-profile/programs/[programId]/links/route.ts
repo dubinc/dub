@@ -1,24 +1,46 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { getApexDomain } from "@dub/utils";
+import {
+  createPartnerLinkSchema,
+  INACTIVE_ENROLLMENT_STATUSES,
+} from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
+import { getUTMParamsFromURL } from "@dub/utils";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links } = await getProgramEnrollmentOrThrow({
+  const { links, discountCodes } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
+    include: {
+      links: true,
+      discountCodes: true,
+    },
   });
 
-  return NextResponse.json(
-    links.map((link) => PartnerProfileLinkSchema.parse(link)),
+  // Add discount code to the links
+  const linksByDiscountCode = new Map(
+    discountCodes?.map((discountCode) => [discountCode.linkId, discountCode]),
   );
+
+  const result = links.map((link) => {
+    const discountCode = linksByDiscountCode.get(link.id);
+
+    return {
+      ...link,
+      discountCode: discountCode?.code,
+    };
+  });
+
+  return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
 });
 
 // POST /api/partner-profile/[programId]/links - create a link for a partner
@@ -28,16 +50,26 @@ export const POST = withPartnerProfile(
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId, status } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-      });
+    const {
+      program,
+      links,
+      tenantId,
+      status,
+      partnerGroup: group,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+      include: {
+        program: true,
+        links: true,
+        partnerGroup: true,
+      },
+    });
 
-    if (status === "banned") {
+    if (INACTIVE_ENROLLMENT_STATUSES.includes(status)) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are banned from this program.",
+        message: `You cannot create links in this program because you have been ${status}`,
       });
     }
 
@@ -49,25 +81,45 @@ export const POST = withPartnerProfile(
       });
     }
 
-    if (links.length >= PARTNER_LINKS_LIMIT) {
+    if (!group) {
       throw new DubApiError({
-        code: "bad_request",
-        message: `You have reached the limit of ${PARTNER_LINKS_LIMIT} program links.`,
+        code: "forbidden",
+        message:
+          "You’re not part of any group yet. Please reach out to the program owner to be added.",
       });
     }
 
-    if (url && getApexDomain(url) !== getApexDomain(program.url)) {
+    if (links.length >= group.maxPartnerLinks) {
       throw new DubApiError({
         code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
+        message: `You have reached this program's limit of ${group.maxPartnerLinks} partner links.`,
       });
     }
+
+    validatePartnerLinkUrl({ group, url });
+
+    // check if the group has a UTM template
+    const groupUtmTemplate = group.utmTemplateId
+      ? await prisma.utmTemplate.findUnique({
+          where: {
+            id: group.utmTemplateId,
+          },
+        })
+      : null;
+
+    const linkUrl = url || program.url;
 
     const { link, error, code } = await processLink({
       payload: {
         domain: program.domain,
         key: key || undefined,
-        url: url || program.url,
+        url: linkUrl,
+        ...(groupUtmTemplate
+          ? {
+              ...extractUtmParams(groupUtmTemplate),
+              ...getUTMParamsFromURL(linkUrl),
+            }
+          : {}),
         programId: program.id,
         tenantId,
         partnerId: partner.id,
@@ -78,6 +130,7 @@ export const POST = withPartnerProfile(
       workspace: {
         id: program.workspaceId,
         plan: "business",
+        users: [{ role: "owner" }],
       },
       userId: session.user.id, // TODO: Hm, this is the partner user, not the workspace user?
       skipFolderChecks: true, // can't be changed by the partner

@@ -12,8 +12,8 @@ import {
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CSSProperties, forwardRef, useMemo, useState } from "react";
@@ -195,19 +195,7 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
           {!loading ? (
             <div className="flex items-center">
               <span className="text-xs font-medium text-neutral-600">
-                <NumberFlow
-                  value={label === "Sales" ? usage / 100 : usage}
-                  format={
-                    label === "Sales"
-                      ? {
-                          style: "currency",
-                          currency: "USD",
-                          maximumFractionDigits: 0,
-                        }
-                      : undefined
-                  }
-                />{" "}
-                of{" "}
+                <NumberFlow value={usage} /> of{" "}
                 <motion.span
                   className={cn(
                     "relative transition-colors duration-150",
@@ -216,8 +204,7 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
                       : "text-neutral-600",
                   )}
                 >
-                  {label === "Sales" ? "$" : ""}
-                  {formatNumber(label === "Sales" ? limit / 100 : limit)}
+                  {formatNumber(limit)}
                   {showNextPlan && nextPlanLimit && (
                     <motion.span
                       className="absolute bottom-[45%] left-0 h-[1px] bg-neutral-400"
@@ -244,10 +231,7 @@ const UsageRow = forwardRef<HTMLDivElement, UsageRowProps>(
                     }}
                   >
                     <motion.span className="ml-1 whitespace-nowrap text-xs font-medium text-blue-600">
-                      {label === "Sales" ? "$" : ""}
-                      {formatNumber(
-                        label === "Sales" ? nextPlanLimit / 100 : nextPlanLimit,
-                      )}
+                      {formatNumber(nextPlanLimit)}
                     </motion.span>
                   </motion.div>
                 )}

@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const deleteLink: ZodOpenApiOperationObject = {
   operationId: "deleteLink",
@@ -10,7 +10,7 @@ export const deleteLink: ZodOpenApiOperationObject = {
   description: "Delete a link for the authenticated workspace.",
   requestParams: {
     path: z.object({
-      linkId: z.string().openapi({
+      linkId: z.string().meta({
         description:
           "The id of the link to delete. You may use either `linkId` (obtained via `/links/info` endpoint) or `externalId` prefixed with `ext_`.",
       }),
@@ -22,7 +22,7 @@ export const deleteLink: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.object({
-            id: z.string().openapi({ description: "The ID of the link." }),
+            id: z.string().meta({ description: "The ID of the link." }),
           }),
         },
       },

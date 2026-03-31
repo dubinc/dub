@@ -14,7 +14,7 @@ export const deleteScreenshots = async (
   return await Promise.all(
     images.map(async (image: string) => {
       if (image.startsWith(`${R2_URL}/integration-screenshots`)) {
-        return storage.delete(image.replace(`${R2_URL}/`, ""));
+        return storage.delete({ key: image.replace(`${R2_URL}/`, "") });
       }
     }),
   );

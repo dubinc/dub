@@ -48,7 +48,7 @@ export const sendDomainTransferredEmail = async ({
 
   await sendEmail({
     subject: "Domain transfer completed",
-    email: ownerEmail,
+    to: ownerEmail,
     react: DomainTransferred({
       email: ownerEmail,
       domain,

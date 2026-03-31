@@ -1,10 +1,10 @@
 import { createId } from "@/lib/api/create-id";
-import { addDomainToVercel } from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { ProcessedLinkProps, WorkspaceProps } from "@/lib/types";
+import { ProcessedLinkProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { linkMappingSchema } from "@/lib/zod/schemas/import-csv";
 import { createLinkBodySchema } from "@/lib/zod/schemas/links";
@@ -21,7 +21,7 @@ import {
 } from "@dub/utils";
 import { getUrlObjFromString } from "@dub/utils/src";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { sendCsvImportEmails } from "./utils";
 
 export const dynamic = "force-dynamic";
@@ -352,7 +352,7 @@ const processMappedLinks = async ({
   }
 
   if (selectedDomains.length > 0) {
-    await redis.sadd(`${redisKey}:domains`, ...selectedDomains);
+    await redis.sadd(`${redisKey}:domains`, ...(selectedDomains as [string]));
   }
 
   // Process the links
@@ -384,6 +384,11 @@ const processMappedLinks = async ({
     select: {
       id: true,
       plan: true,
+      users: {
+        where: {
+          userId,
+        },
+      },
     },
   });
 
@@ -397,10 +402,7 @@ const processMappedLinks = async ({
             folderId,
           }),
         },
-        workspace: {
-          id: workspaceId,
-          plan: workspace.plan as WorkspaceProps["plan"],
-        },
+        workspace,
         userId,
         bulk: true,
       }),

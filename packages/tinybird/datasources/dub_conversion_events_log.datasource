@@ -1,4 +1,5 @@
-# A datasource for logging conversion events for debugging purposes
+TOKEN "dub_tinybird_token" APPEND
+
 
 SCHEMA >
     `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),

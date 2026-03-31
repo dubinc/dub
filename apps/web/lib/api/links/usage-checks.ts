@@ -1,5 +1,6 @@
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { WorkspaceWithUsers } from "@/lib/types";
-import { DubApiError, exceededLimitError } from "../errors";
+import { DubApiError } from "../errors";
 
 // Workspace clicks usage overage checks
 export const throwIfClicksUsageExceeded = (workspace: WorkspaceWithUsers) => {
@@ -19,7 +20,7 @@ export const throwIfClicksUsageExceeded = (workspace: WorkspaceWithUsers) => {
 export const throwIfLinksUsageExceeded = (workspace: WorkspaceWithUsers) => {
   if (
     workspace.linksUsage >= workspace.linksLimit &&
-    (workspace.plan === "free" || workspace.plan === "pro")
+    workspace.plan !== "enterprise" //  don't throw an error for enterprise plans
   ) {
     throw new DubApiError({
       code: "forbidden",

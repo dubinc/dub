@@ -1,11 +1,13 @@
 "use client";
 
-import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { EXTERNAL_PAYOUTS_PROGRAM_IDS } from "@/lib/constants/program";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
   LINK_LEVEL_WEBHOOK_TRIGGERS,
-  PARTNERS_WEBHOOK_TRIGGERS,
+  PROGRAM_LEVEL_WEBHOOK_TRIGGERS,
   WEBHOOK_TRIGGER_DESCRIPTIONS,
   WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
 } from "@/lib/webhook/constants";
@@ -33,12 +35,13 @@ export default function AddEditWebhookForm({
   newSecret?: string;
 }) {
   const router = useRouter();
+  const { program } = useProgram();
   const [saving, setSaving] = useState(false);
   const {
     id: workspaceId,
     slug: workspaceSlug,
     role,
-    partnersEnabled,
+    defaultProgramId,
   } = useWorkspace();
 
   const [data, setData] = useState<NewWebhook | WebhookProps>(
@@ -119,11 +122,18 @@ export default function AddEditWebhookForm({
     triggers.includes(trigger),
   );
 
-  const workspaceLevelTriggers = WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter(
-    (trigger) =>
-      PARTNERS_WEBHOOK_TRIGGERS.includes(trigger as any)
-        ? partnersEnabled
-        : true,
+  const availableWebhookTriggers = useMemo(
+    () => [
+      ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
+      ...(defaultProgramId
+        ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS.filter(
+            (trigger) =>
+              trigger !== "payout.confirmed" ||
+              EXTERNAL_PAYOUTS_PROGRAM_IDS.includes(defaultProgramId),
+          )
+        : []),
+    ],
+    [defaultProgramId],
   );
 
   return (
@@ -204,7 +214,7 @@ export default function AddEditWebhookForm({
             </span>
           </label>
           <div className="mt-3 flex flex-col gap-2">
-            {workspaceLevelTriggers.map((trigger) => (
+            {availableWebhookTriggers.map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
                   value={trigger}

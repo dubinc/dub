@@ -2,69 +2,112 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
-import { LinkStructure, ProgramEnrollmentStatus } from "@dub/prisma/client";
-import { z } from "zod";
+import {
+  ALLOWED_MIN_PAYOUT_AMOUNTS,
+  PAYOUT_HOLDING_PERIOD_DAYS,
+} from "@/lib/constants/payouts";
+import {
+  Category,
+  EventType,
+  PartnerBannedReason,
+  ProgramApplicationRejectionReason,
+  ProgramEnrollmentStatus,
+  ProgramPayoutMode,
+} from "@dub/prisma/client";
+import { COUNTRY_CODES } from "@dub/utils";
+import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
+import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
-import { programLanderSchema } from "./program-lander";
+import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
+import { programInviteEmailDataSchema } from "./program-invite-email";
+import { referralFormSchema } from "./referral-form";
 import { RewardSchema } from "./rewards";
-import { parseDateSchema } from "./utils";
+import { UserSchema } from "./users";
+import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 
-export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
+export const eligibilityConditionSchema = z
+  .object({
+    key: z.enum(["country", "emailDomain"]),
+    operator: z.enum(["is", "is_not"]),
+    value: z.array(z.string()).min(1),
+  })
+  .transform((data) => {
+    if (data.key === "emailDomain") {
+      return {
+        ...data,
+        value: data.value.map((v) => {
+          const t = v.trim().toLowerCase();
+          return t.startsWith("@") ? t : `@${t}`;
+        }),
+      };
+    }
+    return data;
+  })
+  .refine(
+    (data) =>
+      data.key !== "emailDomain" ||
+      data.value.every((v) => v.length > 1 && v !== "@"),
+    { message: "Email domain values must be valid domain patterns" },
+  );
+
+export const applicationRequirementsSchema = z
+  .array(eligibilityConditionSchema)
+  .max(2);
 
 export const ProgramSchema = z.object({
   id: z.string(),
   name: z.string(),
   slug: z.string(),
   logo: z.string().nullable(),
-  brandColor: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  cookieLength: z.number(),
-  holdingPeriodDays: z.number(),
+  description: z.string().nullish(),
+  primaryRewardEvent: z.enum(EventType).default("sale"),
   minPayoutAmount: z.number(),
-  linkStructure: z.nativeEnum(LinkStructure),
-  linkParameter: z.string().nullish(),
-  landerPublishedAt: z.date().nullish(),
-  autoApprovePartnersEnabledAt: z.date().nullish(),
+  addedToMarketplaceAt: z.date().nullish(),
+  messagingEnabledAt: z.date().nullish(),
+  partnerNetworkEnabledAt: z.date().nullish(),
+  payoutMode: z.enum(ProgramPayoutMode).default("internal"),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
-  defaultFolderId: z.string().nullable(),
-  wordmark: z.string().nullable(),
+  categories: z.array(z.enum(Category)).nullish(),
+  defaultFolderId: z.string(),
+  defaultGroupId: z.string(),
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
-  ageVerification: z.number().nullish(),
+  referralFormData: z.record(z.string(), z.any()).nullish(),
+  applicationRequirements: applicationRequirementsSchema.nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  startedAt: z.date().nullish(),
 });
 
-export const ProgramWithLanderDataSchema = ProgramSchema.extend({
-  landerData: programLanderSchema.nullish(),
-  landerPublishedAt: z.date().nullish(),
+// TODO: move to group-level soon
+export const ProgramSchemaWithInviteEmailData = ProgramSchema.extend({
+  inviteEmailData: programInviteEmailDataSchema,
 });
 
 export const updateProgramSchema = z.object({
   name: z.string(),
-  cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  defaultFolderId: z.string().nullable(),
   holdingPeriodDays: z.coerce
     .number()
-    .refine((val) => HOLDING_PERIOD_DAYS.includes(val), {
-      message: `Holding period must be ${HOLDING_PERIOD_DAYS.join(", ")} days`,
+    .refine((val) => PAYOUT_HOLDING_PERIOD_DAYS.includes(val), {
+      message: `Holding period must be ${PAYOUT_HOLDING_PERIOD_DAYS.join(", ")} days`,
     }),
   minPayoutAmount: z.coerce
     .number()
     .refine((val) => ALLOWED_MIN_PAYOUT_AMOUNTS.includes(val), {
       message: `Minimum payout amount must be one of ${ALLOWED_MIN_PAYOUT_AMOUNTS.join(", ")}`,
     }),
-  linkStructure: z.nativeEnum(LinkStructure),
-  supportEmail: z.string().email().max(255).nullish(),
-  helpUrl: z.string().url().max(500).nullish(),
-  termsUrl: z.string().url().max(500).nullish(),
+  supportEmail: z.email().max(255).nullish(),
+  helpUrl: z.url().max(500).nullish(),
+  termsUrl: z.url().max(500).nullish(),
+  messagingEnabledAt: z.coerce.date().nullish(),
+  referralFormData: referralFormSchema.nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
@@ -75,11 +118,29 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   url: true,
   clicks: true,
   leads: true,
+  conversions: true,
   sales: true,
   saleAmount: true,
 });
 
+export const ProgramEnrollmentApplicationSchema = z.object({
+  rejectionReason: z
+    .nativeEnum(ProgramApplicationRejectionReason)
+    .nullable()
+    .describe("Preset reason when the application was rejected."),
+  rejectionNote: z
+    .string()
+    .nullable()
+    .describe("Free-form note when the application was rejected."),
+  reviewedAt: z.coerce
+    .date()
+    .nullable()
+    .describe("When the application was approved or rejected."),
+});
+
 export const ProgramEnrollmentSchema = z.object({
+  programId: z.string().describe("The program's unique ID on Dub."),
+  groupId: z.string().nullish().describe("The partner's group ID on Dub."),
   partnerId: z.string().describe("The partner's unique ID on Dub."),
   tenantId: z
     .string()
@@ -87,19 +148,56 @@ export const ProgramEnrollmentSchema = z.object({
     .describe(
       "The partner's unique ID within your database. Can be useful for associating the partner with a user in your database and retrieving/update their data in the future.",
     ),
-  programId: z.string().describe("The program's unique ID on Dub."),
   program: ProgramSchema,
+  createdAt: z.date(),
   status: z
-    .nativeEnum(ProgramEnrollmentStatus)
+    .enum(ProgramEnrollmentStatus)
     .describe("The status of the partner's enrollment in the program."),
   links: z
     .array(ProgramPartnerLinkSchema)
     .nullable()
     .describe("The partner's referral links in this program."),
-  totalCommissions: z.number().default(0),
+  totalCommissions: centsSchemaWithDefault,
   rewards: z.array(RewardSchema).nullish(),
+  clickRewardId: z.string().nullish(),
+  leadRewardId: z.string().nullish(),
+  saleRewardId: z.string().nullish(),
   discount: DiscountSchema.nullish(),
-  createdAt: z.date(),
+  discountId: z.string().nullish(),
+  applicationId: z
+    .string()
+    .nullish()
+    .describe(
+      "If the partner submitted an application to join the program, this is the ID of the application.",
+    ),
+  bannedAt: z
+    .date()
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the date of the ban.",
+    ),
+  bannedReason: z
+    .enum(Object.keys(PartnerBannedReason) as [PartnerBannedReason])
+    .nullish()
+    .describe(
+      "If the partner was banned from the program, this is the reason for the ban.",
+    ),
+  group: GroupSchema.pick({
+    id: true,
+    logo: true,
+    wordmark: true,
+    brandColor: true,
+    holdingPeriodDays: true,
+    additionalLinks: true,
+    maxPartnerLinks: true,
+    linkStructure: true,
+  }).nullish(),
+  customerDataSharingEnabledAt: z.date().nullable(),
+  groupMoveDisabledAt: z.date().nullable(),
+  referralFormData: referralFormSchema.nullish(),
+  application: ProgramEnrollmentApplicationSchema.nullish().describe(
+    "Linked program application, including review outcome when applicable.",
+  ),
 });
 
 export const ProgramInviteSchema = z.object({
@@ -107,10 +205,6 @@ export const ProgramInviteSchema = z.object({
   email: z.string(),
   shortLink: z.string(),
   createdAt: z.date(),
-});
-
-export const getProgramQuerySchema = z.object({
-  includeLanderData: z.coerce.boolean().optional(),
 });
 
 export const getProgramMetricsQuerySchema = z.object({
@@ -137,9 +231,44 @@ export const ProgramMetricsSchema = z.object({
 
 export const createProgramApplicationSchema = z.object({
   programId: z.string(),
+  groupId: z.string().optional(),
   name: z.string().trim().min(1).max(100),
-  email: z.string().trim().email().min(1).max(100),
-  website: z.string().trim().max(100).optional(),
-  proposal: z.string().trim().min(1).max(5000),
-  comments: z.string().trim().max(5000).optional(),
+  email: z.email().trim().min(1).max(100),
+  country: z.enum(COUNTRY_CODES),
+  formData: programApplicationFormDataWithValuesSchema,
+  inAppApplication: z.boolean().optional(),
+});
+
+export const PartnerCommentSchema = z.object({
+  id: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  userId: z.string(),
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }),
+  text: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const MAX_PROGRAM_PARTNER_COMMENT_LENGTH = 2000;
+
+export const createPartnerCommentSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  text: z.string().min(1).max(MAX_PROGRAM_PARTNER_COMMENT_LENGTH),
+});
+
+export const updatePartnerCommentSchema = z.object({
+  workspaceId: z.string(),
+  id: z.string(),
+  text: z.string().min(1).max(MAX_PROGRAM_PARTNER_COMMENT_LENGTH),
+});
+
+export const deletePartnerCommentSchema = z.object({
+  workspaceId: z.string(),
+  commentId: z.string(),
 });

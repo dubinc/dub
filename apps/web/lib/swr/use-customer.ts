@@ -1,6 +1,6 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { CustomerEnriched, CustomerProps } from "../types";
 import { getCustomersQuerySchema } from "../zod/schemas/customers";
 import useWorkspace from "./use-workspace";

@@ -2,13 +2,19 @@ import { useMemo } from "react";
 import { FolderLinkCount } from "../types";
 import useLinksCount from "./use-links-count";
 
-export function useFolderLinkCount({ folderId }: { folderId: string | null }) {
+export function useFolderLinkCount({
+  folderId,
+  enabled = true,
+}: {
+  folderId: string | null;
+  enabled?: boolean;
+}) {
   const { data: folderLinksCount, loading } = useLinksCount<FolderLinkCount[]>({
+    enabled,
     query: {
       groupBy: "folderId",
     },
     ignoreParams: true,
-    enabled: Boolean(folderId && folderId !== "unsorted"),
   });
 
   const folderLinkCount = useMemo(() => {

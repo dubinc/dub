@@ -1,19 +1,47 @@
+import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import { Button, ReferredVia, useMediaQuery } from "@dub/ui";
+import { useSearchParams } from "next/navigation";
 import { memo, useContext } from "react";
-import { useShareDashboardModal } from "../modals/share-dashboard-modal";
+import {
+  ShareDashboardModalInnerProps,
+  useShareDashboardModal,
+} from "../modals/share-dashboard-modal";
 import { AnalyticsContext } from "./analytics-provider";
 
 export function ShareButton() {
-  const { domain, key } = useContext(AnalyticsContext);
+  const searchParams = useSearchParams();
+  const { domain, key, folderId, partnerPage } = useContext(AnalyticsContext);
 
-  return domain && key ? <ShareButtonInner domain={domain} _key={key} /> : null;
+  const canUpdateFolder = useCheckFolderPermission(
+    folderId ?? null,
+    "folders.write",
+  );
+
+  if (partnerPage) return null;
+
+  const linkId = searchParams.get("linkId");
+
+  return linkId && !linkId.includes(",") ? (
+    <ShareButtonInner linkId={linkId} />
+  ) : domain && key ? (
+    <ShareButtonInner domain={domain} _key={key} />
+  ) : folderId && !folderId.includes(",") && canUpdateFolder ? (
+    <ShareButtonInner folderId={folderId} />
+  ) : null;
 }
 
 const ShareButtonInner = memo(
-  ({ domain, _key }: { domain: string; _key: string }) => {
-    const { ShareDashboardModal, setShowShareDashboardModal } =
-      useShareDashboardModal({ domain, _key });
+  ({ linkId, domain, _key, folderId }: ShareDashboardModalInnerProps) => {
     const { isMobile } = useMediaQuery();
+    const { ShareDashboardModal, setShowShareDashboardModal } =
+      useShareDashboardModal(
+        linkId
+          ? { linkId }
+          : domain && _key
+            ? { domain, _key }
+            : { folderId: folderId! },
+      );
+
     return (
       <>
         <ShareDashboardModal />

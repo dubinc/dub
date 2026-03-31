@@ -1,5 +1,5 @@
-import z from "@/lib/zod";
 import "dotenv-flow/config";
+import * as z from "zod/v4";
 import { tb } from "../../lib/tinybird/client";
 import { recordLeadWithTimestamp } from "../../lib/tinybird/record-lead";
 

@@ -1,23 +1,31 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { processLink, updateLink } from "@/lib/api/links";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { linkEventSchema } from "@/lib/zod/schemas/links";
+import {
+  createPartnerLinkSchema,
+  INACTIVE_ENROLLMENT_STATUSES,
+} from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
-import { getApexDomain } from "@dub/utils";
+import { prisma } from "@dub/prisma";
+import { getPrettyUrl } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
 export const PATCH = withReferralsEmbedToken(
-  async ({ req, params, programEnrollment, program, links }) => {
+  async ({ req, params, programEnrollment, program, links, group }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
 
-    if (programEnrollment.status === "banned") {
+    if (INACTIVE_ENROLLMENT_STATUSES.includes(programEnrollment.status)) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are banned from this program hence cannot create links.",
+        message: `You are ${programEnrollment.status} from this program hence cannot create links.`,
       });
     }
 
@@ -38,12 +46,19 @@ export const PATCH = withReferralsEmbedToken(
       });
     }
 
-    if (url && getApexDomain(url) !== getApexDomain(program.url)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-      });
+    if (link.partnerGroupDefaultLinkId) {
+      const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
+
+      if (linkUrlChanged) {
+        throw new DubApiError({
+          code: "forbidden",
+          message:
+            "You cannot update the destination URL of your default link.",
+        });
+      }
     }
+
+    validatePartnerLinkUrl({ group, url });
 
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
@@ -62,6 +77,7 @@ export const PATCH = withReferralsEmbedToken(
       workspace: {
         id: program.workspaceId,
         plan: "business",
+        users: [{ role: "owner" }],
       },
       userId: link.userId!,
       skipKeyChecks,
@@ -85,6 +101,27 @@ export const PATCH = withReferralsEmbedToken(
       },
       updatedLink: processedLink,
     });
+
+    waitUntil(
+      (async () => {
+        const workspace = await prisma.project.findUnique({
+          where: {
+            id: program.workspaceId,
+          },
+          select: {
+            id: true,
+            webhookEnabled: true,
+          },
+        });
+        if (workspace) {
+          await sendWorkspaceWebhook({
+            trigger: "link.updated",
+            workspace,
+            data: linkEventSchema.parse(partnerLink),
+          });
+        }
+      })(),
+    );
 
     return NextResponse.json(ReferralsEmbedLinkSchema.parse(partnerLink));
   },

@@ -37,6 +37,7 @@
     "archived": false,
     "expiresAt": "1970-01-01T00:00:00.000Z",
     "expiredUrl": null,
+    "disabledAt": null,
     "password": null,
     "proxy": false,
     "title": "GitHub - dubinc/dub: Open-source link management infrastructure. Loved by modern marketing teams like Vercel, Raycast...",
@@ -80,5 +81,6 @@
     "currency": "usd",
     "paymentProcessor": "stripe",
     "invoiceId": "INV_AUTi534JCiBUVdYmevCSYQ9G"
-  }
+  },
+  "metadata": null
 }

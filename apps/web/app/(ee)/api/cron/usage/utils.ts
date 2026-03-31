@@ -1,16 +1,14 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { qstash } from "@/lib/cron";
-import { limiter } from "@/lib/cron/limiter";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { WorkspaceProps } from "@/lib/types";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail } from "@dub/email";
 import ClicksSummary from "@dub/email/templates/clicks-summary";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
   capitalize,
   getAdjustedBillingCycleStart,
-  getPrettyUrl,
   log,
 } from "@dub/utils";
 
@@ -126,14 +124,13 @@ export const updateUsage = async () => {
           root: false,
         });
 
-        const topFive = topLinks.slice(0, 5);
-        const topFiveLinkIds = topFive.map(({ link }) => link);
+        const topLinkIds = topLinks.slice(0, 100).map(({ link }) => link);
 
         const linksMetadata = await prisma.link.findMany({
           where: {
             projectId: workspace.id,
             id: {
-              in: topFiveLinkIds,
+              in: topLinkIds,
             },
           },
           select: {
@@ -142,13 +139,15 @@ export const updateUsage = async () => {
           },
         });
 
-        const topFiveLinks = topFive.map((d) => ({
-          link:
-            getPrettyUrl(
-              linksMetadata.find((l) => l.id === d.link)?.shortLink,
-            ) || d.link,
-          clicks: d.clicks,
-        }));
+        const topFiveLinks = topLinks
+          .filter((d: { link: string; clicks: number }) =>
+            linksMetadata.find((l) => l.id === d.link),
+          )
+          .slice(0, 5)
+          .map((d: { link: string; clicks: number }) => ({
+            link: linksMetadata.find((l) => l.id === d.link)!, // coerce here since we're already filtering out links that don't exist
+            clicks: d.clicks,
+          }));
 
         const totalClicks = topLinks.reduce(
           (acc, curr) => acc + curr.clicks,
@@ -159,24 +158,20 @@ export const updateUsage = async () => {
           (user) => user.user.email,
         ) as string[];
 
-        await Promise.allSettled(
-          emails.map((email) => {
-            limiter.schedule(() =>
-              sendEmail({
-                subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
-                email,
-                react: ClicksSummary({
-                  email,
-                  workspaceName: workspace.name,
-                  workspaceSlug: workspace.slug,
-                  totalClicks,
-                  createdLinks: workspace.linksUsage,
-                  topLinks: topFiveLinks,
-                }),
-                variant: "notifications",
-              }),
-            );
-          }),
+        await sendBatchEmail(
+          emails.map((email) => ({
+            subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
+            to: email,
+            react: ClicksSummary({
+              email,
+              workspaceName: workspace.name,
+              workspaceSlug: workspace.slug,
+              totalClicks,
+              createdLinks: workspace.linksUsage,
+              topLinks: topFiveLinks,
+            }),
+            variant: "notifications",
+          })),
         );
       }
     }),

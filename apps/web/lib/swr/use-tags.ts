@@ -1,7 +1,7 @@
 import { TagProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getTagsQuerySchema } from "../zod/schemas/tags";
 import useWorkspace from "./use-workspace";
 

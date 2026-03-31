@@ -1,12 +1,13 @@
 import { createId } from "@/lib/api/create-id";
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
-  TagSchema,
+  LinkTagSchema,
   createTagBodySchema,
   getTagsQuerySchemaExtended,
 } from "@/lib/zod/schemas/tags";
-import { COLORS_LIST, randomBadgeColor } from "@/ui/links/tag-badge";
+import { randomBadgeColor } from "@/ui/links/tag-badge";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -18,7 +19,7 @@ export const GET = withWorkspace(
       ids,
       sortBy,
       sortOrder,
-      page,
+      page = 1,
       pageSize,
       includeLinksCount,
     } = getTagsQuerySchemaExtended.parse(searchParams);
@@ -103,15 +104,12 @@ export const POST = withWorkspace(
       data: {
         id: createId({ prefix: "tag_" }),
         name: tag || name!,
-        color:
-          color && COLORS_LIST.map(({ color }) => color).includes(color)
-            ? color
-            : randomBadgeColor(),
+        color: color || randomBadgeColor(),
         projectId: workspace.id,
       },
     });
 
-    return NextResponse.json(TagSchema.parse(response), {
+    return NextResponse.json(LinkTagSchema.parse(response), {
       headers,
       status: 201,
     });

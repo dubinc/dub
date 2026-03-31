@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parse } from "./utils";
+import { parse } from "./utils/parse";
 
-export default function EmbedMiddleware(req: NextRequest) {
-  const { searchParamsObj, fullPath } = parse(req);
+export function EmbedMiddleware(req: NextRequest) {
+  const { path, searchParamsObj, fullPath } = parse(req);
+
+  if (path.startsWith("/embed/support-chat")) {
+    return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));
+  }
 
   if (searchParamsObj.token) {
     return NextResponse.rewrite(new URL(`/app.dub.co${fullPath}`, req.url));

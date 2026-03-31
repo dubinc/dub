@@ -17,7 +17,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type LinksDisplayKey = keyof z.infer<typeof linksDisplaySchema>;
 type LinksDisplayValue<K extends LinksDisplayKey> = z.infer<

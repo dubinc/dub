@@ -1,4 +1,4 @@
-import { InfoTooltip, SimpleTooltipContent, useEnterSubmit } from "@dub/ui";
+import { InfoTooltip, useEnterSubmit } from "@dub/ui";
 import { memo } from "react";
 import { Controller } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
@@ -17,11 +17,7 @@ export const LinkCommentsInput = memo(() => {
         </label>
         <InfoTooltip
           content={
-            <SimpleTooltipContent
-              title="Use comments to add context to your short links – for you and your team."
-              cta="Learn more."
-              href="https://dub.co/help/article/link-comments"
-            />
+            "Use comments to add context to your short links – for you and your team. [Learn more.](https://dub.co/help/article/link-comments)"
           }
         />
       </div>

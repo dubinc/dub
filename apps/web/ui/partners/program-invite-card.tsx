@@ -13,6 +13,7 @@ import { formatDateSmart, OG_AVATAR_URL } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export function ProgramInviteCard({
@@ -20,12 +21,14 @@ export function ProgramInviteCard({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
+  const router = useRouter();
   const { program } = programEnrollment;
 
   const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
     onSuccess: async () => {
       await mutatePrefix("/api/partner-profile/programs");
       toast.success("Program invite accepted!");
+      router.push(`/programs/${program.slug}`);
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
@@ -52,14 +55,23 @@ export function ProgramInviteCard({
 
       <p className="mt-3 font-medium text-neutral-900">{program.name}</p>
 
-      <p className="my-2 text-balance text-xs text-neutral-600">
-        <ProgramRewardDescription
-          reward={reward}
-          discount={discount}
-          amountClassName="font-light"
-          periodClassName="font-light"
-        />
-      </p>
+      <div className="my-2 flex flex-col gap-0.5 text-balance text-xs text-neutral-600">
+        <div>
+          <ProgramRewardDescription
+            reward={reward}
+            amountClassName="font-light"
+            periodClassName="font-light"
+          />
+        </div>
+
+        <div>
+          <ProgramRewardDescription
+            discount={discount}
+            amountClassName="font-light"
+            periodClassName="font-light"
+          />
+        </div>
+      </div>
 
       <div className="mt-2 flex grow flex-col justify-end">
         <div className="grid grid-cols-2 gap-2">
@@ -68,7 +80,7 @@ export function ProgramInviteCard({
               "flex h-8 items-center justify-center whitespace-nowrap rounded-md border px-2 text-sm",
               buttonVariants({ variant: "secondary" }),
             )}
-            href={`/programs/${program.slug}/apply`}
+            href={`/programs/${program.slug}/invite`}
           >
             Learn more
           </Link>
@@ -78,7 +90,6 @@ export function ProgramInviteCard({
             loading={isPending}
             onClick={async () =>
               await executeAsync({
-                partnerId: programEnrollment.partnerId,
                 programId: programEnrollment.programId,
               })
             }

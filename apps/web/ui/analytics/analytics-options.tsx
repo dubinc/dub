@@ -2,9 +2,10 @@ import { Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useState } from "react";
 import { ThreeDots } from "../shared/icons";
-import ExportButton from "./export-button";
+import { AnalyticsExportButton } from "./analytics-export-button";
+import { EventsExportButton } from "./events/events-export-button";
 
-export default function AnalyticsOptions() {
+export function AnalyticsOptions({ page }: { page: "analytics" | "events" }) {
   const [openPopover, setOpenPopover] = useState(false);
 
   return (
@@ -12,7 +13,12 @@ export default function AnalyticsOptions() {
       align="end"
       content={
         <div className="grid w-screen gap-px p-2 sm:w-48">
-          <ExportButton setOpenPopover={setOpenPopover} />
+          {page === "analytics" && (
+            <AnalyticsExportButton setOpenPopover={setOpenPopover} />
+          )}
+          {page === "events" && (
+            <EventsExportButton setOpenPopover={setOpenPopover} />
+          )}
         </div>
       }
       openPopover={openPopover}

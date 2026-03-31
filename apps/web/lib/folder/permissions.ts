@@ -2,11 +2,15 @@
 
 import { Folder, FolderPermission } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { FolderUser, Project } from "@dub/prisma/client";
+import {
+  FolderUser,
+  FolderUserRole,
+  Project,
+  WorkspaceRole,
+} from "@dub/prisma/client";
 import { DubApiError } from "../api/errors";
 import { getPlanCapabilities } from "../plan-capabilities";
 import {
-  FOLDER_USER_ROLE,
   FOLDER_USER_ROLE_TO_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS_TO_FOLDER_USER_ROLE,
 } from "./constants";
@@ -18,7 +22,9 @@ export const verifyFolderAccess = async ({
   folderId,
   requiredPermission,
 }: {
-  workspace: Pick<Project, "id" | "plan">;
+  workspace: Pick<Project, "id" | "plan"> & {
+    users: { role: WorkspaceRole }[];
+  };
   userId: string;
   folderId: string;
   requiredPermission: FolderPermission;
@@ -29,6 +35,11 @@ export const verifyFolderAccess = async ({
     userId,
   });
 
+  // Workspace owners have full control over all folders
+  if (workspace.users[0]?.role === WorkspaceRole.owner) {
+    return folder;
+  }
+
   const { canManageFolderPermissions } = getPlanCapabilities(workspace.plan);
 
   // If the plan doesn't support folder permissions, we can skip the check
@@ -36,9 +47,10 @@ export const verifyFolderAccess = async ({
     return folder;
   }
 
-  const folderUserRole = findUserFolderRole({
+  const folderUserRole = findFolderUserRole({
     folder,
     user: folder.user,
+    workspaceRole: workspace.users[0]?.role,
   });
 
   if (!folderUserRole) {
@@ -60,49 +72,30 @@ export const verifyFolderAccess = async ({
   return folder;
 };
 
-// Get the permissions for a folder for a given user role
-export const getFolderPermissions = (
-  role: keyof typeof FOLDER_USER_ROLE | null,
-) => {
-  if (!role) {
-    return [];
-  }
-
-  return FOLDER_USER_ROLE_TO_PERMISSIONS[role] || [];
-};
-
-export const findUserFolderRole = ({
-  folder,
-  user,
-}: {
-  folder: Pick<Folder, "accessLevel">;
-  user: Pick<FolderUser, "role"> | null;
-}) => {
-  if (user) {
-    return user.role;
-  }
-
-  if (!folder.accessLevel) {
-    return null;
-  }
-
-  return FOLDER_WORKSPACE_ACCESS_TO_FOLDER_USER_ROLE[folder.accessLevel];
-};
-
-export const checkFolderPermissions = async ({
-  workspaceId,
+export const verifyFolderAccessBulk = async ({
+  workspace,
   userId,
   folderIds,
   requiredPermission,
 }: {
-  workspaceId: string;
+  workspace: Pick<Project, "id" | "plan"> & {
+    users: { role: WorkspaceRole }[];
+  };
   userId: string;
   folderIds: string[];
   requiredPermission: FolderPermission;
 }) => {
+  // Workspace owners have full control over all folders
+  if (workspace.users[0]?.role === WorkspaceRole.owner) {
+    return folderIds.map((folderId) => ({
+      folderId,
+      hasPermission: true,
+    }));
+  }
+
   const folders = await prisma.folder.findMany({
     where: {
-      projectId: workspaceId,
+      projectId: workspace.id,
       id: {
         in: folderIds,
       },
@@ -118,12 +111,13 @@ export const checkFolderPermissions = async ({
   });
 
   return folders.map((folder) => {
-    const folderUserRole = findUserFolderRole({
+    const folderUserRole = findFolderUserRole({
       folder,
       user: folder.users[0],
+      workspaceRole: workspace.users[0]?.role,
     });
 
-    if (!folderUserRole) {
+    if (folderUserRole == null) {
       return {
         folderId: folder.id,
         hasPermission: false,
@@ -137,4 +131,37 @@ export const checkFolderPermissions = async ({
       hasPermission: permissions.includes(requiredPermission),
     };
   });
+};
+
+export const findFolderUserRole = ({
+  folder,
+  user,
+  workspaceRole,
+}: {
+  folder: Pick<Folder, "accessLevel">;
+  user: Pick<FolderUser, "role"> | null;
+  workspaceRole: WorkspaceRole;
+}) => {
+  if (workspaceRole === WorkspaceRole.owner) {
+    return FolderUserRole.owner;
+  }
+
+  if (user) {
+    return user.role;
+  }
+
+  if (!folder.accessLevel) {
+    return null;
+  }
+
+  return FOLDER_WORKSPACE_ACCESS_TO_FOLDER_USER_ROLE[folder.accessLevel];
+};
+
+// Get the permissions for a folder for a given user role
+export const getFolderPermissions = (role: string | null) => {
+  if (!role) {
+    return [];
+  }
+
+  return FOLDER_USER_ROLE_TO_PERMISSIONS[role] || [];
 };

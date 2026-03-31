@@ -1,14 +1,18 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { linkCache } from "@/lib/api/links/cache";
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
+import { includeTags } from "@/lib/api/links/include-tags";
+import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
+import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { FREE_PLAN, log } from "@dub/utils";
-import { NextResponse } from "next/server";
+import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import Stripe from "stripe";
-import { sendCancellationFeedback } from "./utils";
+import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
+import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
 export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const subscriptionDeleted = event.data.object as Stripe.Subscription;
@@ -24,18 +28,19 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     select: {
       id: true,
       slug: true,
-      domains: true,
+      plan: true,
+      planTier: true,
       foldersUsage: true,
+      paymentFailedAt: true,
+      payoutsLimit: true,
+      defaultProgramId: true,
       links: {
         where: {
           key: "_root",
         },
         include: {
-          tags: {
-            select: {
-              tag: true,
-            },
-          },
+          ...includeTags,
+          ...includeProgramEnrollment,
         },
       },
       users: {
@@ -63,12 +68,25 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   });
 
   if (!workspace) {
-    console.log(
-      "Workspace with Stripe ID *`" +
-        stripeId +
-        "`* not found in Stripe webhook `customer.subscription.deleted` callback",
-    );
-    return NextResponse.json({ received: true });
+    return `Workspace with Stripe ID ${stripeId} not found in customer.subscription.deleted callback.`;
+  }
+
+  // Check if the customer has another active subscription
+  const { data: activeSubscriptions } = await stripe.subscriptions.list({
+    customer: stripeId,
+    status: "active",
+  });
+
+  if (activeSubscriptions.length > 0) {
+    const activeSubscription = activeSubscriptions[0];
+    const priceId = activeSubscription.items.data[0].price.id;
+
+    await updateWorkspacePlan({
+      workspace,
+      priceId,
+    });
+
+    return `Workspace ${workspace.slug} has another active subscription; updated plan.`;
   }
 
   const workspaceLinks = workspace.links;
@@ -77,17 +95,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const isBlacklistedCancellation = await isBlacklistedEmail(
     workspaceUsers.filter(({ email }) => email).map(({ email }) => email!),
   );
-
-  const pipeline = redis.pipeline();
-  // remove root domain redirect for all domains from Redis
-  workspaceLinks.forEach(({ id, domain }) => {
-    pipeline.hset(domain.toLowerCase(), {
-      _root: {
-        id,
-        projectId: workspace.id,
-      },
-    });
-  });
 
   await Promise.allSettled([
     prisma.project.update({
@@ -103,19 +110,10 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         aiLimit: FREE_PLAN.limits.ai!,
         tagsLimit: FREE_PLAN.limits.tags!,
         foldersLimit: FREE_PLAN.limits.folders!,
+        groupsLimit: FREE_PLAN.limits.groups!,
+        networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
         usersLimit: FREE_PLAN.limits.users!,
         paymentFailedAt: null,
-        foldersUsage: 0,
-      },
-    }),
-
-    // update rate limit for all restricted tokens for the workspace
-    prisma.restrictedToken.updateMany({
-      where: {
-        projectId: workspace.id,
-      },
-      data: {
-        rateLimit: FREE_PLAN.limits.api,
       },
     }),
 
@@ -151,7 +149,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
 
-    pipeline.exec(),
+    // expire root domain link cache from Redis
+    linkCache.expireMany(workspaceLinks),
 
     // record root domain link for all domains from Tinybird
     recordLink(
@@ -165,7 +164,9 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       message:
         ":cry: Workspace *`" +
         workspace.slug +
-        "`* deleted their subscription" +
+        "`* deleted their *`" +
+        capitalize(workspace.plan) +
+        "`* subscription" +
         (isBlacklistedCancellation ? " (blacklisted / banned)" : ""),
       type: "cron",
       mention: true,
@@ -218,9 +219,15 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
 
   await webhookCache.mset(webhooks);
 
-  if (workspace.foldersUsage > 0) {
-    await deleteWorkspaceFolders({
-      workspaceId: workspace.id,
-    });
+  await deleteWorkspaceFolders({
+    workspaceId: workspace.id,
+    defaultProgramId: workspace.defaultProgramId,
+  });
+
+  // Deactivate the program if the workspace had partner access
+  if (workspace.defaultProgramId) {
+    await deactivateProgram(workspace.defaultProgramId);
   }
+
+  return `Workspace ${workspace.slug} subscription deleted; downgraded to free.`;
 }

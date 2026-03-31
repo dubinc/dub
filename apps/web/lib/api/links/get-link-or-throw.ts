@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
-import { prefixWorkspaceId } from "../workspace-id";
+import { prefixWorkspaceId } from "../workspaces/workspace-id";
 import {
   decodeLinkIfCaseSensitive,
   encodeKeyIfCaseSensitive,

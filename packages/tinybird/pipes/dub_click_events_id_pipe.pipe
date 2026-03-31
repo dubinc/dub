@@ -1,7 +1,9 @@
+TAGS "Dub MV Pipes"
+
 NODE mv
 SQL >
 
-    SELECT * FROM dub_click_events
+    SELECT * FROM dub_click_events_mv
 
 TYPE materialized
 DATASOURCE dub_click_events_id

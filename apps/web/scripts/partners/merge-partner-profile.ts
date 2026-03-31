@@ -1,3 +1,4 @@
+import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { includeTags } from "../../lib/api/links/include-tags";
@@ -35,7 +36,6 @@ async function main() {
       partnerId: newPartnerId,
     },
   });
-  console.log("commissions", commissions);
 
   // update payouts
 
@@ -48,7 +48,6 @@ async function main() {
       partnerId: newPartnerId,
     },
   });
-  console.log("payouts", payouts);
 
   // update links + recordLink in TB
   await prisma.link.updateMany({
@@ -66,8 +65,12 @@ async function main() {
       programId,
       partnerId: newPartnerId,
     },
-    include: includeTags,
+    include: {
+      ...includeTags,
+      ...includeProgramEnrollment,
+    },
   });
+
   console.log("updatedLinks", updatedLinks);
 
   const tbRes = await recordLink(updatedLinks);

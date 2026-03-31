@@ -1,39 +1,26 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { PageContent } from "@/ui/layout/page-content";
-import { ReactNode, useEffect, useState } from "react";
-import { PartnersUpgradeCTA } from "./partners-ugrade-cta";
+import { isLegacyBusinessPlan } from "@dub/utils";
+import { ReactNode } from "react";
+import { PartnersUpgradeCTA } from "./partners-upgrade-cta";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
-  const {
-    slug,
-    plan,
-    defaultProgramId,
-    partnersEnabled,
-    loading,
-    mutate: mutateWorkspace,
-  } = useWorkspace();
+  const { plan, defaultProgramId, payoutsLimit, loading } = useWorkspace();
+  const { loading: programLoading } = useProgram();
 
-  // Whether the workspace has been refreshed or doesn't need to be
-  const [isFresh, setIsFresh] = useState(false);
-
-  useEffect(() => {
-    if (!defaultProgramId && !isFresh)
-      mutateWorkspace().then(() => setIsFresh(true));
-    else setIsFresh(true);
-  }, [defaultProgramId, mutateWorkspace, isFresh]);
-
-  if (loading || !isFresh) {
+  if (loading || (defaultProgramId && programLoading)) {
     return <LayoutLoader />;
   }
 
   if (
-    !partnersEnabled ||
+    !defaultProgramId ||
     !getPlanCapabilities(plan).canManageProgram ||
-    !defaultProgramId
+    isLegacyBusinessPlan({ plan, payoutsLimit })
   ) {
     return (
       <PageContent>

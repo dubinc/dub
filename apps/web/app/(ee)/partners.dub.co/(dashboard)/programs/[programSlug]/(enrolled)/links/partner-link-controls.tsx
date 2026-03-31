@@ -1,20 +1,22 @@
 import { PartnerProfileLinkProps } from "@/lib/types";
+import { useDeletePartnerLinkModal } from "@/ui/modals/delete-partner-link-modal";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import { usePartnerLinkQRModal } from "@/ui/modals/partner-link-qr-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, PenWriting, Popover } from "@dub/ui";
-import { QRCode } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
-import { useState } from "react";
+import { Button, PenWriting, Popover, useKeyboardShortcut } from "@dub/ui";
+import { QRCode, Trash } from "@dub/ui/icons";
+import { CopyPlus } from "lucide-react";
 
-// this is unused for now
-// at least until we have more controls available for partner links
 export function PartnerLinkControls({
   link,
-  programId,
+  openPopover,
+  setOpenPopover,
+  shortcutsEnabled,
 }: {
   link: PartnerProfileLinkProps;
-  programId: string;
+  openPopover: boolean;
+  setOpenPopover: (open: boolean) => void;
+  shortcutsEnabled: boolean;
 }) {
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({
     link,
@@ -25,15 +27,66 @@ export function PartnerLinkControls({
       domain: link.domain,
       key: link.key,
     },
-    programId: programId,
   });
 
-  const [openPopover, setOpenPopover] = useState(false);
+  const {
+    setShowPartnerLinkModal: setShowDuplicateLinkModal,
+    PartnerLinkModal: DuplicateLinkModal,
+  } = usePartnerLinkModal({
+    link: {
+      ...link,
+      id: "",
+      key: "",
+    },
+  });
+
+  const canDelete =
+    !link.partnerGroupDefaultLinkId &&
+    link.clicks === 0 &&
+    link.leads === 0 &&
+    link.saleAmount === 0;
+
+  const { setShowDeletePartnerLinkModal, DeletePartnerLinkModal } =
+    useDeletePartnerLinkModal({
+      link,
+      onSuccess: () => {
+        setOpenPopover(false);
+      },
+    });
+
+  useKeyboardShortcut(
+    ["e", "q", "d", "x"],
+    (e) => {
+      setOpenPopover(false);
+      switch (e.key) {
+        case "e":
+          setShowPartnerLinkModal(true);
+          break;
+        case "q":
+          setShowLinkQRModal(true);
+          break;
+        case "d":
+          setShowDuplicateLinkModal(true);
+          break;
+        case "x":
+          if (canDelete) {
+            setShowDeletePartnerLinkModal(true);
+          }
+          break;
+      }
+    },
+    {
+      enabled: shortcutsEnabled,
+      priority: 1,
+    },
+  );
 
   return (
     <div className="flex justify-end">
+      <DeletePartnerLinkModal />
       <LinkQRModal />
       <PartnerLinkModal />
+      <DuplicateLinkModal />
       <Popover
         content={
           <div className="w-full sm:w-48">
@@ -46,7 +99,8 @@ export function PartnerLinkControls({
                   setShowPartnerLinkModal(true);
                 }}
                 icon={<PenWriting className="size-4" />}
-                className="h-9 justify-start px-2 font-medium"
+                shortcut="E"
+                className="h-9 px-2 font-medium"
               />
               <Button
                 text="QR Code"
@@ -56,7 +110,38 @@ export function PartnerLinkControls({
                   setShowLinkQRModal(true);
                 }}
                 icon={<QRCode className="size-4" />}
-                className="h-9 justify-start px-2 font-medium"
+                shortcut="Q"
+                className="h-9 px-2 font-medium"
+              />
+              <Button
+                text="Duplicate"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDuplicateLinkModal(true);
+                }}
+                icon={<CopyPlus className="size-4" />}
+                shortcut="D"
+                className="h-9 px-2 font-medium"
+              />
+              <Button
+                text="Delete"
+                variant="danger-outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDeletePartnerLinkModal(true);
+                }}
+                icon={<Trash className="size-4" />}
+                shortcut="X"
+                className="h-9 px-2 font-medium"
+                disabled={!canDelete}
+                disabledTooltip={
+                  link.partnerGroupDefaultLinkId
+                    ? "You cannot delete your default link."
+                    : !canDelete
+                      ? "You can only delete links with 0 clicks, 0 leads, and $0 in sales."
+                      : undefined
+                }
               />
             </div>
           </div>
@@ -67,10 +152,7 @@ export function PartnerLinkControls({
       >
         <Button
           variant="secondary"
-          className={cn(
-            "h-8 px-1.5 outline-none transition-all duration-200",
-            "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
-          )}
+          className="h-8 border-neutral-200 px-1.5 outline-none transition-all duration-200"
           icon={<ThreeDots className="h-5 w-5 shrink-0" />}
           onClick={() => {
             setOpenPopover(!openPopover);

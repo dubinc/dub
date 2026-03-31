@@ -1,5 +1,6 @@
 import { mergePartnerAccountsAction } from "@/lib/actions/partners/merge-partner-accounts";
 import useUser from "@/lib/swr/use-user";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button } from "@dub/ui";
 import { AlertTriangle, ArrowDown } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -55,13 +56,13 @@ export function MergeAccountForm({
       <div className="flex flex-col gap-4">
         <AccountInputGroup title="Source account">
           <div className="flex items-center gap-4">
-            <img
-              src={
-                sourceAccount.avatarUrl ||
-                `https://api.dub.co/og/avatar/${sourceAccount.email}`
-              }
-              alt={sourceAccount.name}
-              className="size-12 rounded-full object-cover"
+            <PartnerAvatar
+              partner={{
+                image: sourceAccount.avatarUrl,
+                name: sourceAccount.name,
+                id: sourceAccount.email,
+              }}
+              className="size-12 object-cover"
             />
             <div>
               <div className="text-base font-semibold leading-4 text-neutral-900">
@@ -80,13 +81,13 @@ export function MergeAccountForm({
 
         <AccountInputGroup title="Target account">
           <div className="flex items-center gap-4">
-            <img
-              src={
-                targetAccount.avatarUrl ||
-                `https://api.dub.co/og/avatar/${targetAccount.email}`
-              }
-              alt={targetAccount.name}
-              className="size-12 rounded-full object-cover"
+            <PartnerAvatar
+              partner={{
+                image: targetAccount.avatarUrl,
+                name: targetAccount.name,
+                id: targetAccount.email,
+              }}
+              className="size-12 object-cover"
             />
             <div>
               <div className="text-base font-semibold leading-4 text-neutral-900">
@@ -100,17 +101,19 @@ export function MergeAccountForm({
         </AccountInputGroup>
 
         <div className="mt-2 flex flex-col gap-3 rounded-lg border border-amber-200 bg-amber-50 px-5 py-4">
-          <AlertTriangle className="size-4 text-amber-500" />
+          <AlertTriangle className="size-4 text-amber-600" />
           <h3 className="text-sm font-semibold leading-5 text-amber-900">
-            This action can’t be undone.
+            This action can't be undone.
           </h3>
           <p className="text-sm font-normal leading-5 text-amber-900">
             All data — including links, commissions, and payouts from{" "}
-            {sourceAccount.email} will be merged into {targetAccount.email}.
+            {sourceAccount.email} will be transferred to {targetAccount.email}.
+            Duplicate bounty submissions from {sourceAccount.email} will also be
+            deleted.
             <br />
             <br />
             After the merge, {sourceAccount.email} will be permanently deleted.
-            If you’re unsure, please contact our support team before proceeding.
+            If you're unsure, please contact our support team before proceeding.
           </p>
         </div>
       </div>

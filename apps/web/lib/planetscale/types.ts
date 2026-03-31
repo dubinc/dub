@@ -3,6 +3,7 @@ export interface EdgeLinkProps {
   domain: string;
   key: string;
   url: string;
+  shortLink: string;
   proxy: number;
   title: string;
   description: string;
@@ -22,6 +23,11 @@ export interface EdgeLinkProps {
   programId: string | null;
   partnerId: string | null;
 }
+
+/** Link from edge (getLinkViaEdge) with webhooks, matching ExpandedLink shape */
+export type EdgeLinkWithWebhooks = EdgeLinkProps & {
+  webhooks: { webhookId: string }[];
+};
 
 export interface EdgeDomainProps {
   id: string;

@@ -10,17 +10,25 @@ import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
-import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  CardList,
+  ToggleGroup,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
-import { CursorRays, Hyperlink } from "@dub/ui/icons";
-import { useParams } from "next/navigation";
-import { createContext, useContext, useMemo } from "react";
+import { CursorRays, GridIcon, GridLayoutRows, Hyperlink } from "@dub/ui/icons";
+import { createContext, useContext, useEffect, useState } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
 
 const PartnerLinksContext = createContext<{
   start?: Date;
   end?: Date;
   interval: (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
+  openMenuLinkId: string | null;
+  setOpenMenuLinkId: (id: string | null) => void;
+  displayOption: "full" | "cards";
 } | null>(null);
 
 export function usePartnerLinksContext() {
@@ -34,11 +42,21 @@ export function usePartnerLinksContext() {
 }
 
 export function ProgramLinksPageClient() {
-  const { programSlug } = useParams() as { programSlug: string };
   const { searchParamsObj } = useRouterStuff();
   const { links, error, loading, isValidating } = usePartnerLinks();
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal();
+  const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
+
+  const [displayOption, setDisplayOption] = useState<"full" | "cards">("full");
+
+  useEffect(() => {
+    if ((links && links.length > 5) || !showDetailedAnalytics) {
+      setDisplayOption("cards");
+    } else {
+      setDisplayOption("full");
+    }
+  }, [links, showDetailedAnalytics]);
 
   const {
     start,
@@ -50,17 +68,22 @@ export function ProgramLinksPageClient() {
     interval?: IntervalOptions;
   };
 
-  // Get first link sorted by createdAt
-  const defaultLinkId = useMemo(
-    () =>
-      links?.sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      )[0]?.id,
-    [links],
-  );
+  const { program, group, status } = programEnrollment ?? {};
+  const maxPartnerLinks = group?.maxPartnerLinks;
+  const additionalLinks = group?.additionalLinks;
 
-  useKeyboardShortcut("c", () => setShowPartnerLinkModal(true));
+  const hasLinksLimitReached =
+    links && maxPartnerLinks && links.length >= maxPartnerLinks;
+  const hasAdditionalLinks = additionalLinks && additionalLinks.length > 0;
+
+  const canCreateNewLink = !hasLinksLimitReached && hasAdditionalLinks;
+
+  useKeyboardShortcut("c", () => setShowPartnerLinkModal(true), {
+    enabled: canCreateNewLink ?? false,
+  });
+
+  const showAllTimeAnalytics =
+    !showDetailedAnalytics || displayOption === "cards";
 
   return (
     <div className="flex flex-col gap-5">
@@ -69,28 +92,65 @@ export function ProgramLinksPageClient() {
         <SimpleDateRangePicker
           className="w-fit"
           align="start"
-          defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
+          defaultInterval={
+            showAllTimeAnalytics ? "all" : DUB_PARTNERS_ANALYTICS_INTERVAL
+          }
+          disabled={showAllTimeAnalytics}
         />
-        {!["framer"].includes(programSlug) && (
+        <div className="flex items-center gap-3">
+          {!!showDetailedAnalytics && (
+            <ToggleGroup
+              className="rounded-lg"
+              options={[
+                {
+                  value: "full",
+                  label: (
+                    <div className="p-1">
+                      <GridIcon className="size-4" />
+                    </div>
+                  ),
+                },
+                {
+                  value: "cards",
+                  label: (
+                    <div className="p-1">
+                      <GridLayoutRows className="size-4" />
+                    </div>
+                  ),
+                },
+              ]}
+              selected={displayOption}
+              selectAction={(option) =>
+                setDisplayOption(option as "full" | "cards")
+              }
+            />
+          )}
           <Button
             text="Create Link"
             className="w-fit"
             shortcut="C"
             onClick={() => setShowPartnerLinkModal(true)}
-            disabled={programEnrollment?.status === "banned"}
+            disabled={!canCreateNewLink}
             disabledTooltip={
-              programEnrollment?.status === "banned"
-                ? "You are banned from this program."
-                : undefined
+              status === "deactivated"
+                ? "You cannot create links in this program because your partnership has been deactivated."
+                : hasLinksLimitReached
+                  ? `You have reached the limit of ${maxPartnerLinks} referral links.`
+                  : !hasAdditionalLinks
+                    ? `${program?.name ?? "This"} program does not allow partners to create new links.`
+                    : undefined
             }
           />
-        )}
+        </div>
       </div>
       <PartnerLinksContext.Provider
         value={{
           start: start ? new Date(start) : undefined,
           end: end ? new Date(end) : undefined,
           interval,
+          openMenuLinkId,
+          setOpenMenuLinkId,
+          displayOption,
         }}
       >
         <ChartTooltipSync>

@@ -1,6 +1,11 @@
-import { DiscountProps, PartnerProps } from "@/lib/types";
+import {
+  DiscountProps,
+  PartnerProps,
+  ProgramEnrollmentProps,
+} from "@/lib/types";
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
-import { prefixWorkspaceId } from "../../workspace-id";
+import { toCentsNumber } from "@dub/utils";
+import { prefixWorkspaceId } from "../../workspaces/workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 
 // used in API (e.g. transformLink)
@@ -9,11 +14,17 @@ export type ExpandedLink = Link & {
   tags?: { tag: Pick<Tag, "id" | "name" | "color"> }[];
   webhooks?: { webhookId: string }[];
   dashboard?: Dashboard | null;
-  partner?: Pick<PartnerProps, "id" | "name" | "image"> | null;
+  partner?:
+    | (Pick<PartnerProps, "id" | "name" | "image"> & {
+        groupId?: string | null;
+        tenantId?: string | null;
+      })
+    | null;
   discount?: Pick<
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
   > | null;
+  programEnrollment?: Pick<ProgramEnrollmentProps, "groupId"> | null;
 };
 
 // Transform link with additional properties
@@ -28,11 +39,21 @@ export const transformLink = (
     link = decodeLinkIfCaseSensitive(link);
   }
 
-  // remove webhooks array, dashboard from link
-  const { webhooks, dashboard, ...rest } = link;
+  const {
+    // remove webhooks array, dashboard, partnerGroupDefaultLinkId
+    webhooks,
+    dashboard,
+    partnerGroupDefaultLinkId,
+    // hide undocumented fields from the API response for now
+    lastLeadAt,
+    lastConversionAt,
+    programEnrollment,
+    ...rest
+  } = link;
 
   return {
     ...rest,
+    saleAmount: toCentsNumber(rest.saleAmount),
     identifier: null, // backwards compatibility
     tagId: tags?.[0]?.id ?? null, // backwards compatibility
     tags,

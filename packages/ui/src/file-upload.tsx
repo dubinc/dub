@@ -125,7 +125,7 @@ export type FileUploadProps = FileUploadReadFileProps & {
   targetResolution?: { width: number; height: number };
 
   /**
-   * A maximum file size (in megabytes) to check upon file selection
+   * A maximum file size (in megabytes) to check upon file selection. Default is 5MB.
    */
   maxFileSizeMB?: number;
 
@@ -153,7 +153,7 @@ export function FileUpload({
   clickToUpload = true,
   showHoverOverlay = true,
   content,
-  maxFileSizeMB = 0,
+  maxFileSizeMB = 5,
   targetResolution,
   accessibilityLabel = "File upload",
   disabled = false,

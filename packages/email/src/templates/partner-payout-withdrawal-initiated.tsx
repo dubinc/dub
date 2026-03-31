@@ -17,14 +17,21 @@ import { Footer } from "../components/footer";
 // Send this email after initiating a Stripe payout to the partner
 export default function PartnerPayoutWithdrawalInitiated({
   email = "panic@thedis.co",
-  amount = 45590,
+  payout = {
+    amount: 260689,
+    currency: "vnd",
+    arrivalDate: 1722163200,
+  },
 }: {
   email: string;
-  amount: number;
+  payout: {
+    amount: number;
+    currency: string;
+    arrivalDate: number;
+  };
 }) {
-  const amountInDollars = currencyFormatter(amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+  const finalPayoutAmount = currencyFormatter(payout.amount, {
+    currency: payout.currency,
   });
 
   return (
@@ -45,24 +52,31 @@ export default function PartnerPayoutWithdrawalInitiated({
             <Text className="text-sm leading-6 text-neutral-600">
               Good news!{" "}
               <span className="font-semibold text-neutral-800">
-                {amountInDollars}
+                {finalPayoutAmount}
               </span>{" "}
-              is being transferred to your bank account.
+              is being transferred from your Stripe Express account to your
+              connected bank account.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Depending on your bank's location, this process can{" "}
+              The funds are expected to arrive in your bank account by{" "}
               <span className="font-semibold text-neutral-800">
-                can take anywhere between 1-14 business days
+                {new Date(payout.arrivalDate * 1000).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "short",
+                    day: "numeric",
+                  },
+                )}
               </span>
-              . If there are any delays, please contact{" "}
+              . If there are any delays, please{" "}
               <Link
-                href="https://support.stripe.com/express"
+                href="https://dub.co/contact/support"
                 className="font-medium text-black underline"
               >
-                Stripe support
-              </Link>
-              .
+                reach out to us
+              </Link>{" "}
+              and we'd be happy to help.
             </Text>
 
             <Section className="mb-12 mt-8">

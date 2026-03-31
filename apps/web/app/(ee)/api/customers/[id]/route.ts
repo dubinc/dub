@@ -57,9 +57,8 @@ export const PATCH = withWorkspace(
     const { includeExpandedFields } =
       getCustomersQuerySchema.parse(searchParams);
 
-    const { name, email, avatar, externalId } = updateCustomerBodySchema.parse(
-      await parseRequestBody(req),
-    );
+    const { name, email, avatar, externalId, stripeCustomerId } =
+      updateCustomerBodySchema.parse(await parseRequestBody(req));
 
     const customer = await getCustomerOrThrow(
       {
@@ -91,24 +90,36 @@ export const PATCH = withWorkspace(
           email,
           avatar: finalCustomerAvatar,
           externalId,
+          stripeCustomerId,
         },
       });
 
       if (avatar && !isStored(avatar) && finalCustomerAvatar) {
         waitUntil(
-          Promise.allSettled([
-            storage.upload(
-              finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-              avatar,
-              {
+          storage
+            .upload({
+              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              body: avatar,
+              opts: {
                 width: 128,
                 height: 128,
               },
-            ),
-            oldCustomerAvatar &&
-              isStored(oldCustomerAvatar) &&
-              storage.delete(oldCustomerAvatar.replace(`${R2_URL}/`, "")),
-          ]),
+            })
+            .then(() => {
+              if (oldCustomerAvatar && isStored(oldCustomerAvatar)) {
+                storage.delete({
+                  key: oldCustomerAvatar.replace(`${R2_URL}/`, ""),
+                });
+              }
+            })
+            .catch(async (error) => {
+              console.error("Error persisting customer avatar to R2", error);
+              // if the avatar fails to upload to R2, set the avatar to null in the database
+              await prisma.customer.update({
+                where: { id: customer.id },
+                data: { avatar: null },
+              });
+            }),
         );
       }
 
@@ -147,6 +158,7 @@ export const PATCH = withWorkspace(
       "advanced",
       "enterprise",
     ],
+    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -167,7 +179,7 @@ export const DELETE = withWorkspace(
     });
 
     if (customer.avatar && isStored(customer.avatar)) {
-      storage.delete(customer.avatar.replace(`${R2_URL}/`, ""));
+      storage.delete({ key: customer.avatar.replace(`${R2_URL}/`, "") });
     }
 
     return NextResponse.json({
@@ -183,5 +195,6 @@ export const DELETE = withWorkspace(
       "advanced",
       "enterprise",
     ],
+    requiredRoles: ["owner", "member"],
   },
 );

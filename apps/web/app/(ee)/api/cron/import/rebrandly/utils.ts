@@ -160,7 +160,7 @@ export const importLinksFromRebrandly = async ({
       // send email to user
       sendEmail({
         subject: `Your Rebrandly links have been imported!`,
-        email: ownerEmail,
+        to: ownerEmail,
         react: LinksImported({
           email: ownerEmail,
           provider: "Rebrandly",

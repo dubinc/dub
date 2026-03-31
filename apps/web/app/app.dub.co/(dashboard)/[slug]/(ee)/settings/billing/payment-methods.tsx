@@ -1,6 +1,7 @@
 "use client";
 
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
+import { clientAccessCheck } from "@/lib/client-access-check";
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/constants/payouts";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useAddPaymentMethodModal } from "@/ui/modals/add-payment-method-modal";
@@ -17,7 +18,7 @@ export default function PaymentMethods() {
   const router = useRouter();
   const { paymentMethods } = usePaymentMethods();
   const [isLoading, setIsLoading] = useState(false);
-  const { slug, stripeId, partnersEnabled, plan } = useWorkspace();
+  const { slug, stripeId, plan, role } = useWorkspace();
 
   const regularPaymentMethods = paymentMethods?.filter(
     (pm) => !DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
@@ -45,7 +46,7 @@ export default function PaymentMethods() {
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white">
+    <div className="mb-8 rounded-xl border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:flex-row md:items-center md:p-8">
         <div>
           <h2 className="text-xl font-medium">Payment methods</h2>
@@ -60,10 +61,16 @@ export default function PaymentMethods() {
             className="h-9 w-fit"
             onClick={() => managePaymentMethods()}
             loading={isLoading}
+            disabledTooltip={
+              clientAccessCheck({
+                action: "billing.write",
+                role,
+              }).error
+            }
           />
         )}
       </div>
-      <div className="grid gap-4 border-t border-neutral-200 bg-neutral-100 p-6">
+      <div className="grid gap-4 rounded-b-xl border-t border-neutral-200 bg-neutral-100 p-6">
         {regularPaymentMethods ? (
           regularPaymentMethods.length > 0 ? (
             regularPaymentMethods.map((paymentMethod) => (
@@ -90,25 +97,21 @@ export default function PaymentMethods() {
           <PaymentMethodCardSkeleton />
         )}
 
-        {partnersEnabled && (
-          <>
-            {partnerPaymentMethods ? (
-              partnerPaymentMethods.length > 0 ? (
-                partnerPaymentMethods.map((paymentMethod) => (
-                  <PaymentMethodCard
-                    key={paymentMethod.id}
-                    type={paymentMethod.type}
-                    paymentMethod={paymentMethod}
-                    forPayouts={true}
-                  />
-                ))
-              ) : (
-                <NoPartnerPaymentMethods />
-              )
-            ) : (
-              <PaymentMethodCardSkeleton />
-            )}
-          </>
+        {partnerPaymentMethods ? (
+          partnerPaymentMethods.length > 0 ? (
+            partnerPaymentMethods.map((paymentMethod) => (
+              <PaymentMethodCard
+                key={paymentMethod.id}
+                type={paymentMethod.type}
+                paymentMethod={paymentMethod}
+                forPayouts={true}
+              />
+            ))
+          ) : (
+            <NoPartnerPaymentMethods />
+          )
+        ) : (
+          <PaymentMethodCardSkeleton />
         )}
       </div>
     </div>
@@ -167,8 +170,14 @@ const PaymentMethodCard = ({
 };
 
 const NoPartnerPaymentMethods = () => {
+  const { stripeId } = useWorkspace();
   const { setShowAddPaymentMethodModal, AddPaymentMethodModal } =
     useAddPaymentMethodModal();
+  const { role } = useWorkspace();
+
+  if (!stripeId) {
+    return null;
+  }
 
   return (
     <>
@@ -197,6 +206,13 @@ const NoPartnerPaymentMethods = () => {
             className="h-9 w-fit"
             text="Connect"
             onClick={() => setShowAddPaymentMethodModal(true)}
+            disabledTooltip={
+              clientAccessCheck({
+                action: "billing.write",
+                role,
+                customPermissionDescription: "connect payment methods",
+              }).error || undefined
+            }
           />
         </div>
       </RecommendedForPayoutsWrapper>

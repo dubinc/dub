@@ -3,6 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
+import { useCompletion } from "@ai-sdk/react";
 import {
   AnimatedSizeContainer,
   ArrowTurnRight2,
@@ -26,10 +27,8 @@ import {
   punycode,
   truncate,
 } from "@dub/utils";
-import { useCompletion } from "ai/react";
 import { TriangleAlert } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
-import posthog from "posthog-js";
 import {
   forwardRef,
   HTMLProps,
@@ -44,12 +43,13 @@ import { useDebounce } from "use-debounce";
 import { FreeDotLinkBanner } from "../domains/free-dot-link-banner";
 import { AlertCircleFill, Random } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+import { DisabledLinkTooltip } from "./disabled-link-tooltip";
 import { useAvailableDomains } from "./use-available-domains";
 
 type ShortLinkInputProps = {
   domain?: string;
   _key?: string;
-  existingLinkProps?: Pick<LinkProps, "key">;
+  existingLinkProps?: Pick<LinkProps, "key" | "disabledAt">;
   error?: string;
   onChange: (data: { domain?: string; key?: string }) => void;
   data: Pick<LinkProps, "url" | "title" | "description">;
@@ -151,6 +151,7 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       complete,
     } = useCompletion({
       api: `/api/ai/completion?workspaceId=${workspaceId}`,
+      streamProtocol: "text",
       onError: (error) => {
         if (error.message.includes("Upgrade to Pro")) {
           toast.custom(() => (
@@ -166,10 +167,6 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
       onFinish: (_, completion) => {
         setGeneratedKeys((prev) => [...prev, completion]);
         mutateWorkspace();
-        posthog.capture("ai_key_generated", {
-          key: completion,
-          url: data.url,
-        });
       },
     });
 
@@ -205,9 +202,10 @@ export const ShortLinkInput = forwardRef<HTMLInputElement, ShortLinkInputProps>(
         <div className="flex items-center justify-between">
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-neutral-700"
+            className="flex items-center gap-2 text-sm font-medium text-neutral-700"
           >
             Short Link
+            {existingLinkProps?.disabledAt && <DisabledLinkTooltip />}
           </label>
           {lockKey ? (
             <button

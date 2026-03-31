@@ -37,7 +37,12 @@ export async function GET(req: NextRequest) {
         poweredBy: "Dub - The Modern Link Attribution Platform",
       },
       {
-        headers: corsHeaders,
+        headers: {
+          ...corsHeaders,
+          "Cache-Control": "public, max-age=300",
+          "Vercel-CDN-Cache-Control":
+            "s-maxage=3600, stale-while-revalidate=86400",
+        },
       },
     );
   } catch (error) {

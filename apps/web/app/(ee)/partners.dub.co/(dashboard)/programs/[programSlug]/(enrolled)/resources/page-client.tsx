@@ -5,17 +5,23 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { ResourceSection } from "@/ui/partners/resources/resource-section";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { FileContent, FileZip2, Palette2, Post } from "@dub/ui/icons";
-import { formatFileSize } from "@dub/utils";
+import { FileContent, FileZip2, Link4, Palette2, Post } from "@dub/ui/icons";
+import {
+  formatFileSize,
+  getApexDomain,
+  getFileExtension,
+  getPrettyUrl,
+  GOOGLE_FAVICON_URL,
+} from "@dub/utils";
 
-const emptyStateIcons = [Post, Palette2, FileZip2];
+const emptyStateIcons = [Post, Palette2, FileZip2, Link4];
 
 export function ResourcesPageClient() {
   const { resources, isLoading, isValidating } = useProgramResources();
 
   const isEmpty =
     !isLoading &&
-    ["logos", "colors", "files"].every(
+    ["logos", "colors", "files", "links"].every(
       (resource) => !resources?.[resource]?.length,
     );
 
@@ -44,12 +50,41 @@ export function ResourcesPageClient() {
                     </div>
                   }
                   title={logo.name || "Logo"}
-                  description={formatFileSize(logo.size, 0)}
+                  description={`${getFileExtension(logo.url) || "Unknown"}・${formatFileSize(logo.size, 0)}`}
                   downloadUrl={logo.url}
                 />
               ))}
             </ResourceSection>
           )}
+
+          {(isLoading || !!resources?.links?.length) && (
+            <ResourceSection
+              resource="link"
+              title="Links"
+              isLoading={isLoading}
+              isValidating={isValidating}
+            >
+              {resources?.links?.map((link) => (
+                <ResourceCard
+                  key={link.id}
+                  resourceType="link"
+                  icon={
+                    <div className="flex size-full items-center justify-center bg-neutral-50">
+                      <img
+                        src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
+                        alt={link.name}
+                        className="size-6 rounded-full object-contain"
+                      />
+                    </div>
+                  }
+                  title={link.name}
+                  description={getPrettyUrl(link.url)}
+                  visitUrl={link.url}
+                />
+              ))}
+            </ResourceSection>
+          )}
+
           {(isLoading || !!resources?.colors?.length) && (
             <ResourceSection
               resource="color"
@@ -74,6 +109,7 @@ export function ResourcesPageClient() {
               ))}
             </ResourceSection>
           )}
+
           {(isLoading || !!resources?.files?.length) && (
             <ResourceSection
               resource="file"
@@ -91,7 +127,7 @@ export function ResourcesPageClient() {
                     </div>
                   }
                   title={file.name || "File"}
-                  description={formatFileSize(file.size, 0)}
+                  description={`${getFileExtension(file.url) || "Unknown"}・${formatFileSize(file.size, 0)}`}
                   downloadUrl={file.url}
                 />
               ))}

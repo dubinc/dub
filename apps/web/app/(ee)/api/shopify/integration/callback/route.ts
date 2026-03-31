@@ -6,17 +6,17 @@ import { prisma } from "@dub/prisma";
 import { SHOPIFY_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const updateWorkspaceSchema = z.object({
-  shopifyStoreId: z.string().nullable(),
-});
+import * as z from "zod/v4";
 
 // PATCH /api/shopify/integration/callback – update a shopify store id
 export const PATCH = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { shopifyStoreId } = updateWorkspaceSchema.parse(body);
+    const { shopifyStoreId } = z
+      .object({
+        shopifyStoreId: z.string().nullable(),
+      })
+      .parse(body);
 
     try {
       const response = await prisma.project.update({
@@ -85,7 +85,7 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredPermissions: ["workspaces.write"],
+    requiredRoles: ["owner", "member"],
     requiredPlan: [
       "business",
       "business plus",

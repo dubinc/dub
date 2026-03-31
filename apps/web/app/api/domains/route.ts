@@ -1,25 +1,33 @@
 import { createId } from "@/lib/api/create-id";
-import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
-import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { validateDomain } from "@/lib/api/domains/utils";
+import { DubApiError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
+import { isNonEmptyJson } from "@/lib/api/utils/is-non-empty-json";
 import { withWorkspace } from "@/lib/auth";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { storage } from "@/lib/storage";
 import {
-  createDomainBodySchema,
+  createDomainBodySchemaExtended,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
+import { Link, Prisma } from "@dub/prisma/client";
 import { combineWords, DEFAULT_LINK_PROPS, nanoid } from "@dub/utils";
-import { Link, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/domains – get all domains for a workspace
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { search, archived, page, pageSize, includeLink } =
-      getDomainsQuerySchemaExtended.parse(searchParams);
+    const {
+      search,
+      archived,
+      page = 1,
+      pageSize,
+      includeLink,
+    } = getDomainsQuerySchemaExtended.parse(searchParams);
 
     const domains = await prisma.domain.findMany({
       where: {
@@ -96,7 +104,8 @@ export const POST = withWorkspace(
       placeholder,
       assetLinks,
       appleAppSiteAssociation,
-    } = await createDomainBodySchema.parseAsync(body);
+      deepviewData,
+    } = await createDomainBodySchemaExtended.parseAsync(body);
 
     if (workspace.plan === "free") {
       if (
@@ -104,15 +113,17 @@ export const POST = withWorkspace(
         expiredUrl ||
         notFoundUrl ||
         assetLinks ||
-        appleAppSiteAssociation
+        appleAppSiteAssociation ||
+        isNonEmptyJson(deepviewData)
       ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
-            assetLinks && "asset links",
+            assetLinks && "Asset Links",
             appleAppSiteAssociation && "Apple App Site Association",
+            isNonEmptyJson(deepviewData) && "Deep View",
           ].filter(Boolean) as string[],
         );
 
@@ -132,19 +143,25 @@ export const POST = withWorkspace(
       });
     }
 
-    const vercelResponse = await addDomainToVercel(slug);
+    // Add domain to Vercel if preview/production
+    if (process.env.VERCEL === "1") {
+      const vercelResponse = await addDomainToVercel(slug);
 
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use" // ignore this error
-    ) {
-      return new Response(vercelResponse.error.message, { status: 422 });
+      if (
+        vercelResponse.error &&
+        vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+      ) {
+        return new Response(vercelResponse.error.message, { status: 422 });
+      }
     }
 
     const domainId = createId({ prefix: "dom_" });
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     const domainRecord = await prisma.$transaction(
@@ -178,6 +195,9 @@ export const POST = withWorkspace(
             ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
             ...(appleAppSiteAssociation && {
               appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+            }),
+            ...(deepviewData && {
+              deepviewData: JSON.parse(deepviewData),
             }),
           },
         });

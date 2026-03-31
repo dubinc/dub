@@ -15,7 +15,6 @@ import {
   Flask,
   InfoTooltip,
   Modal,
-  SimpleTooltipContent,
   Tooltip,
   TriangleWarning,
   useKeyboardShortcut,
@@ -34,11 +33,12 @@ import {
   useCallback,
   useId,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { TrafficSplitSlider } from "./traffic-split-slider";
 
 const parseTests = (testVariants: LinkFormData["testVariants"]) =>
@@ -91,6 +91,7 @@ function ABTestingEdit({
   setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const id = useId();
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const {
     watch: watchParent,
@@ -285,15 +286,7 @@ function ABTestingEdit({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <h3 className="text-lg font-medium">A/B Testing</h3>
-            <BusinessBadgeTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Test different URLs against each other to optimize your conversion rates."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/ab-testing"
-                />
-              }
-            />
+            <BusinessBadgeTooltip content="Test different URLs against each other to optimize your conversion rates. [Learn more.](https://dub.co/help/article/ab-testing)" />
           </div>
           <div className="max-md:hidden">
             <Tooltip
@@ -319,15 +312,7 @@ function ABTestingEdit({
             <label className="block text-sm font-medium text-neutral-700">
               Testing URLs
             </label>
-            <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Add up to 3 additional destination URLs to test for this short link."
-                  cta="Learn more"
-                  href="https://dub.co/help/article/ab-testing" // TODO: Add article
-                />
-              }
-            />
+            <InfoTooltip content="Add up to 3 additional destination URLs to test for this short link. [Learn more](https://dub.co/help/article/ab-testing)" />
           </div>
           <div className="mt-2">
             <AnimatedSizeContainer
@@ -347,7 +332,7 @@ function ABTestingEdit({
                         placeholder={
                           domains?.find(({ slug }) => slug === domain)
                             ?.placeholder ||
-                          "https://dub.co/help/article/what-is-dub"
+                          "https://dub.co/help/article/dub-links"
                         }
                         className="block h-9 grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:ring-0 sm:text-sm"
                         {...register(`testVariants.${index}.url`, {
@@ -430,18 +415,11 @@ function ABTestingEdit({
             >
               Completion Date
             </label>
-            <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Set when the A/B test should complete. After this date, all traffic will go to the best performing URL."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/ab-testing"
-                />
-              }
-            />
+            <InfoTooltip content="Set when the A/B test should complete. After this date, all traffic will go to the best performing URL. [Learn more.](https://dub.co/help/article/ab-testing)" />
           </div>
           <div className="mt-2 flex w-full items-center justify-between rounded-md border border-neutral-300 bg-white shadow-sm transition-all focus-within:border-neutral-800 focus-within:outline-none focus-within:ring-1 focus-within:ring-neutral-500">
             <input
+              ref={inputRef}
               id={`${id}-testCompletedAt`}
               type="text"
               placeholder='E.g. "in 2 weeks" or "next month"'
@@ -475,6 +453,9 @@ function ABTestingEdit({
                 setValue("testCompletedAt", completeDate, {
                   shouldDirty: true,
                 });
+                if (inputRef.current) {
+                  inputRef.current.value = formatDateTime(completeDate);
+                }
               }}
               className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
             />

@@ -1,20 +1,19 @@
 import { HeroBackground } from "@/ui/partners/hero-background";
-import { Button, Copy, Wordmark } from "@dub/ui";
+import { Button, Copy } from "@dub/ui";
 import { Suspense } from "react";
 import { DynamicHeightMessenger } from "./dynamic-height-messenger";
+import { getReferralsEmbedData } from "./get-referrals-embed-data";
 import { ReferralsEmbedPageClient } from "./page-client";
 import { parseThemeOptions, ThemeOptions } from "./theme-options";
-import { getReferralsEmbedData } from "./utils";
 
-export default function ReferralsEmbedPage({
-  searchParams,
-}: {
-  searchParams: {
+export default async function ReferralsEmbedPage(props: {
+  searchParams: Promise<{
     token: string;
     themeOptions?: string;
     dynamicHeight?: string;
-  };
+  }>;
 }) {
+  const searchParams = await props.searchParams;
   const {
     token,
     themeOptions: themeOptionsRaw,
@@ -67,11 +66,11 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
       <div className="p-5">
         <div className="border-border-default relative flex flex-col overflow-hidden rounded-lg border p-4 md:p-6">
           <HeroBackground color="#737373" />
-          <span className="text-base font-semibold text-neutral-800">
+          <span className="text-content-emphasis text-base font-semibold">
             Referral link
           </span>
           <div className="xs:flex-row relative mt-3 flex flex-col items-center gap-2">
-            <div className="xs:w-60 border-border-default bg-bg-muted h-10 w-full rounded-md border" />
+            <div className="xs:w-72 border-border-default bg-bg-muted h-10 w-full rounded-md border" />
             <Button
               icon={<Copy className="size-4" />}
               text="Copy link"
@@ -79,21 +78,10 @@ function EmbedInlineLoading({ themeOptions }: { themeOptions: ThemeOptions }) {
               disabled
             />
           </div>
-          <span className="mt-12 text-base font-semibold text-neutral-800">
+          <span className="text-content-emphasis mt-12 text-base font-semibold">
             Rewards
           </span>
-          <div className="relative mt-2 flex flex-col gap-2">
-            <div className="bg-bg-muted h-6 w-60 rounded-md" />
-            <div className="bg-bg-muted h-6 w-40 rounded-md" />
-          </div>
-          <a
-            href="https://dub.co/partners"
-            target="_blank"
-            className="hover:text-content-default text-content-subtle mt-4 flex items-center justify-center gap-1.5 transition-colors duration-75 md:absolute md:bottom-3 md:right-3 md:mt-0 md:translate-x-0"
-          >
-            <p className="text-xs font-medium">Powered by</p>
-            <Wordmark className="text-content-emphasis h-3.5" />
-          </a>
+          <div className="bg-bg-default border-border-subtle mt-2 h-20 w-[28rem] rounded-md border" />
         </div>
         <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
           <div className="border-border-subtle bg-bg-muted h-full w-full rounded-lg border sm:col-span-2" />

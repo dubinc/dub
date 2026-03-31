@@ -4,7 +4,6 @@ import {
   VALID_ANALYTICS_FILTERS,
 } from "@/lib/analytics/constants";
 import { EventType } from "@/lib/analytics/types";
-import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import { useSearchParams } from "next/navigation";
@@ -14,18 +13,14 @@ export function useAnalyticsQuery({
   defaultEvent = "clicks",
   domain: domainParam,
   defaultKey,
+  defaultFolderId,
   defaultInterval = DUB_LINKS_ANALYTICS_INTERVAL,
-  defaultRoot,
 }: {
   defaultEvent?: EventType;
   domain?: string;
   defaultKey?: string;
+  defaultFolderId?: string;
   defaultInterval?: string;
-  defaultRoot?: (props: {
-    key?: string;
-    folderId?: string;
-    tagIds?: string;
-  }) => boolean | string | undefined;
 } = {}) {
   const searchParams = useSearchParams();
   const { id: workspaceId } = useWorkspace();
@@ -34,13 +29,9 @@ export function useAnalyticsQuery({
   // key can be a query param (stats pages in app) or passed as a staticKey (shared analytics dashboards)
   const key = searchParams?.get("key") || defaultKey;
 
-  const tagIds = combineTagIds({
-    tagId: searchParams?.get("tagId"),
-    tagIds: searchParams?.get("tagIds")?.split(","),
-  })?.join(",");
-
-  const folderId = searchParams?.get("folderId") ?? undefined;
-
+  const folderId =
+    searchParams?.get("folderId") ?? defaultFolderId ?? undefined;
+  const tagId = searchParams?.get("tagId") ?? undefined;
   const customerId = searchParams?.get("customerId") ?? undefined;
 
   // Default to last 24 hours
@@ -64,11 +55,7 @@ export function useAnalyticsQuery({
   const interval =
     start || end ? undefined : searchParams?.get("interval") ?? defaultInterval;
 
-  const root = searchParams.get("root")
-    ? searchParams.get("root") === "true"
-    : defaultRoot
-      ? defaultRoot({ key, folderId, tagIds })
-      : "false";
+  const root = searchParams.get("root");
 
   const selectedTab: EventType = useMemo(() => {
     const event = searchParams.get("event");
@@ -88,17 +75,17 @@ export function useAnalyticsQuery({
     );
     return new URLSearchParams({
       ...availableFilterParams,
+      event: selectedTab,
       ...(workspaceId && { workspaceId }),
       ...(domain && { domain }),
       ...(key && { key }),
       ...(start &&
         end && { start: start.toISOString(), end: end.toISOString() }),
       ...(interval && { interval }),
-      ...(tagIds && { tagIds }),
-      ...(root && { root: root.toString() }),
-      event: selectedTab,
       ...(folderId && { folderId }),
+      ...(tagId && { tagId }),
       ...(customerId && { customerId }),
+      ...(root && { root: root.toString() }),
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     }).toString();
   }, [
@@ -109,10 +96,10 @@ export function useAnalyticsQuery({
     start,
     end,
     interval,
-    tagIds,
+    folderId,
+    tagId,
     root,
     selectedTab,
-    folderId,
     customerId,
   ]);
 
@@ -123,10 +110,10 @@ export function useAnalyticsQuery({
     start,
     end,
     interval,
-    tagIds,
+    folderId,
+    tagId,
     root,
     selectedTab,
-    folderId,
     customerId,
   };
 }

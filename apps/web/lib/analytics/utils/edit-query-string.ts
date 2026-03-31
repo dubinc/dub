@@ -9,8 +9,9 @@ export const editQueryString = (
     searchParams.set(key, data[key]);
   }
 
-  if (del)
+  if (del) {
     (Array.isArray(del) ? del : [del]).forEach((d) => searchParams.delete(d));
+  }
 
   return searchParams.toString();
 };

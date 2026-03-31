@@ -10,7 +10,9 @@ export default function usePartnerCustomer({
 }) {
   const { programSlug } = useParams<{ programSlug: string }>();
 
-  const { data, isLoading } = useSWR<PartnerProfileCustomerProps>(
+  const { data, isLoading } = useSWR<
+    PartnerProfileCustomerProps & { name?: string | null }
+  >(
     programSlug &&
       customerId &&
       `/api/partner-profile/programs/${programSlug}/customers/${customerId}`,

@@ -19,6 +19,7 @@ model Commission {
   id          String           @id @default(cuid())
   programId   String
   partnerId   String
+  rewardId    String?
   linkId      String?
   payoutId    String?
   invoiceId   String? // only for sales (idempotency key, each sale event is associated with a unique invoice)
@@ -35,18 +36,26 @@ model Commission {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  program  Program   @relation(fields: [programId], references: [id])
-  partner  Partner   @relation(fields: [partnerId], references: [id])
-  payout   Payout?   @relation(fields: [payoutId], references: [id])
-  link     Link?     @relation(fields: [linkId], references: [id])
-  customer Customer? @relation(fields: [customerId], references: [id])
+  program           Program           @relation(fields: [programId], references: [id])
+  partner           Partner           @relation(fields: [partnerId], references: [id])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  payout            Payout?           @relation(fields: [payoutId], references: [id])
+  link              Link?             @relation(fields: [linkId], references: [id])
+  customer          Customer?         @relation(fields: [customerId], references: [id])
+  reward            Reward?           @relation(fields: [rewardId], references: [id])
+  bountySubmission  BountySubmission?
+  user              User?             @relation(fields: [userId], references: [id])
 
   @@unique([invoiceId, programId])
-  @@index([earnings, programId, partnerId, status])
-  @@index([programId, createdAt, status, amount, earnings])
+  @@index([earnings, programId, partnerId, status]) // old index
+  @@index([programId, partnerId]) // for programEnrollment relation (used in cron/payouts/aggregate-due-commissions)
+  @@index([programId, status, createdAt, amount, earnings]) // for program/commissions (scoped by programId)
+  @@index([createdAt, status, programId, earnings]) // for admin/commissions
   @@index([partnerId, customerId])
   @@index(payoutId)
   @@index(customerId)
   @@index(linkId)
   @@index(status)
+  @@index(rewardId)
+  @@index(userId)
 }

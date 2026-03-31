@@ -2,21 +2,36 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { AxiomRequest, withAxiom } from "next-axiom";
+import { headers } from "next/headers";
+import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
 import {
   PermissionAction,
   getPermissionsByRole,
 } from "../api/rbac/permissions";
-import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
-import { normalizeWorkspaceId } from "../api/workspace-id";
+import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
+import { withAxiomBodyLog } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
-import { tokenCache } from "./token-cache";
+import { rateLimitRequest } from "./rate-limit-request";
+import { TokenCacheItem, tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
+
+const RATE_LIMIT_FOR_SESSIONS = {
+  api: {
+    limit: 600,
+    interval: "1 m",
+  },
+  analyticsApi: {
+    limit: 12,
+    interval: "1 s",
+  },
+} as const;
 
 interface WithWorkspaceHandler {
   ({
@@ -27,14 +42,16 @@ interface WithWorkspaceHandler {
     session,
     workspace,
     permissions,
+    token,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
-    headers?: Record<string, string>;
+    headers?: Headers;
     session: Session;
     permissions: PermissionAction[];
     workspace: WorkspaceWithUsers;
+    token: TokenCacheItem | null;
   }): Promise<Response>;
 }
 
@@ -51,31 +68,37 @@ export const withWorkspace = (
       "advanced",
       "enterprise",
     ], // if the action needs a specific plan
-    featureFlag, // if the action needs a specific feature flag
     requiredPermissions = [],
-    skipPermissionChecks, // if the action doesn't need to check for required permission(s)
+    requiredRoles = [],
+    featureFlag, // if the action needs a specific feature flag
   }: {
     requiredPlan?: Array<PlanProps>;
-    featureFlag?: BetaFeatures;
     requiredPermissions?: PermissionAction[];
-    skipPermissionChecks?: boolean;
+    requiredRoles?: WorkspaceRole[];
+    featureFlag?: BetaFeatures;
   } = {},
 ) => {
-  return withAxiom(
+  return withAxiomBodyLog(
     async (
-      req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      req,
+      { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      // Clone the request early so handlers can read the body without cloning
+      // Keep the original for withAxiomBodyLog to read in onSuccess
+      const clonedReq = req.clone();
+
+      const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
 
       let apiKey: string | undefined = undefined;
-      let headers = {};
+      let requestHeaders = await headers();
+      let responseHeaders = new Headers();
       let workspace: WorkspaceWithUsers | undefined;
 
       try {
-        const authorizationHeader = req.headers.get("Authorization");
+        const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
-          if (!authorizationHeader.includes("Bearer ")) {
+          if (!authorizationHeader.startsWith("Bearer ")) {
             throw new DubApiError({
               code: "bad_request",
               message:
@@ -85,11 +108,13 @@ export const withWorkspace = (
           apiKey = authorizationHeader.replace("Bearer ", "");
         }
 
+        const url = new URL(req.url || "", API_DOMAIN);
+
         let session: Session | undefined;
         let workspaceId: string | undefined;
         let workspaceSlug: string | undefined;
         let permissions: PermissionAction[] = [];
-        let token: any | null = null;
+        let token: TokenCacheItem | null = null;
         const isRestrictedToken = apiKey?.startsWith("dub_");
 
         const idOrSlug =
@@ -107,15 +132,15 @@ export const withWorkspace = (
         if (!idOrSlug && !isRestrictedToken) {
           // special case for anonymous link creation
           if (
-            req.headers.has("dub-anonymous-link-creation") &&
+            requestHeaders.has("dub-anonymous-link-creation") &&
             ["/links", "/api/links"].includes(req.nextUrl.pathname)
           ) {
             // @ts-expect-error
             return await handler({
-              req,
+              req: clonedReq,
               params,
               searchParams,
-              headers,
+              headers: responseHeaders,
             });
             // missing authorization header
           } else if (!authorizationHeader) {
@@ -141,6 +166,10 @@ export const withWorkspace = (
           }
         }
 
+        const isAnalytics =
+          url.pathname.includes("/analytics") ||
+          url.pathname.includes("/events");
+
         if (apiKey) {
           const hashedKey = await hashToken(apiKey);
 
@@ -154,21 +183,18 @@ export const withWorkspace = (
                 hashedKey,
               },
               select: {
+                expires: true,
                 ...(isRestrictedToken && {
                   scopes: true,
-                  rateLimit: true,
                   projectId: true,
-                  expires: true,
                   installationId: true,
-                }),
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    isMachine: true,
+                  project: {
+                    select: {
+                      plan: true,
+                    },
                   },
-                },
+                }),
+                user: true,
               },
             };
 
@@ -205,19 +231,25 @@ export const withWorkspace = (
           }
 
           // Rate limit checks for API keys
-          const rateLimit = token.rateLimit || 600;
+          let limit = 0;
+          let interval: `${number} s` | `${number} m` = isAnalytics
+            ? "1 s"
+            : "1 m";
 
-          const { success, limit, reset, remaining } = await ratelimit(
-            rateLimit,
-            "1 m",
-          ).limit(apiKey);
+          const planLimit = getRatelimitForPlan(token.project?.plan || "free");
+          limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
 
-          headers = {
-            "Retry-After": reset.toString(),
-            "X-RateLimit-Limit": limit.toString(),
-            "X-RateLimit-Remaining": remaining.toString(),
-            "X-RateLimit-Reset": reset.toString(),
-          };
+          const { success, headers } = await rateLimitRequest({
+            identifier: `workspace:ratelimit:${hashedKey}`,
+            requests: limit,
+            interval,
+          });
+
+          if (headers) {
+            for (const [key, value] of Object.entries(headers)) {
+              responseHeaders.set(key, value);
+            }
+          }
 
           if (!success) {
             throw new DubApiError({
@@ -227,26 +259,36 @@ export const withWorkspace = (
           }
 
           // Find workspaceId if it's a restricted token
-          if (isRestrictedToken) {
+          if (isRestrictedToken && token?.projectId) {
             workspaceId = token.projectId;
           }
 
           waitUntil(
-            // update last used time for the token
+            // update last used time for the token (only once every minute)
             (async () => {
-              const prismaArgs = {
-                where: {
-                  hashedKey,
-                },
-                data: {
-                  lastUsed: new Date(),
-                },
-              };
+              try {
+                const { success } = await ratelimit(1, "1 m").limit(
+                  `last-used-${hashedKey}`,
+                );
 
-              if (isRestrictedToken) {
-                await prisma.restrictedToken.update(prismaArgs);
-              } else {
-                await prisma.token.update(prismaArgs);
+                if (success) {
+                  const prismaArgs = {
+                    where: {
+                      hashedKey,
+                    },
+                    data: {
+                      lastUsed: new Date(),
+                    },
+                  };
+
+                  if (isRestrictedToken) {
+                    await prisma.restrictedToken.update(prismaArgs);
+                  } else {
+                    await prisma.token.update(prismaArgs);
+                  }
+                }
+              } catch (error) {
+                console.error(error);
               }
             })(),
           );
@@ -266,6 +308,27 @@ export const withWorkspace = (
             throw new DubApiError({
               code: "unauthorized",
               message: "Unauthorized: Login required.",
+            });
+          }
+
+          // Rate limit checks for session requests
+          const rateLimit =
+            RATE_LIMIT_FOR_SESSIONS[isAnalytics ? "analyticsApi" : "api"];
+
+          const { success, headers } = await rateLimitRequest({
+            identifier: `workspace:ratelimit:${session.user.id}`,
+            requests: rateLimit.limit,
+            interval: rateLimit.interval,
+          });
+
+          for (const [key, value] of Object.entries(headers)) {
+            responseHeaders.set(key, value);
+          }
+
+          if (!success) {
+            throw new DubApiError({
+              code: "rate_limit_exceeded",
+              message: "Too many requests.",
             });
           }
         }
@@ -338,15 +401,15 @@ export const withWorkspace = (
         permissions = getPermissionsByRole(workspace.users[0].role);
 
         // Find the subset of permissions that the user has access to based on the token scopes
-        if (isRestrictedToken) {
-          const tokenScopes: Scope[] = token.scopes.split(" ") || [];
+        if (isRestrictedToken && token?.scopes) {
+          const tokenScopes = (token.scopes.split(" ") as Scope[]) || [];
           permissions = mapScopesToPermissions(tokenScopes).filter((p) =>
             permissions.includes(p),
           );
         }
 
         // Check user has permission to make the action
-        if (!skipPermissionChecks) {
+        if (requiredPermissions.length > 0) {
           throwIfNoAccess({
             permissions,
             requiredPermissions,
@@ -355,9 +418,20 @@ export const withWorkspace = (
           });
         }
 
+        // role checks
+        if (
+          requiredRoles.length > 0 &&
+          !requiredRoles.includes(workspace.users[0].role)
+        ) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: `You don't have the required role to access this endpoint. Required role(s): ${requiredRoles.join(", ")}.`,
+          });
+        }
+
         // beta feature checks
         if (featureFlag) {
-          let flags = await getFeatureFlags({
+          const flags = await getFeatureFlags({
             workspaceId: workspace.id,
           });
 
@@ -368,8 +442,6 @@ export const withWorkspace = (
             });
           }
         }
-
-        const url = new URL(req.url || "", API_DOMAIN);
 
         // plan checks
         if (!requiredPlan.includes(workspace.plan)) {
@@ -392,17 +464,16 @@ export const withWorkspace = (
         }
 
         return await handler({
-          req,
+          req: clonedReq,
           params,
           searchParams,
-          headers,
+          headers: responseHeaders,
           session,
           workspace,
           permissions,
+          token,
         });
       } catch (error) {
-        req.log.error(error);
-
         // Log the conversion events for debugging purposes
         waitUntil(
           (async () => {
@@ -418,7 +489,7 @@ export const withWorkspace = (
           })(),
         );
 
-        return handleAndReturnErrorResponse(error, headers);
+        return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
   );

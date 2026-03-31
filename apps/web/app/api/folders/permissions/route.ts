@@ -1,7 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import {
-  findUserFolderRole,
+  findFolderUserRole,
   getFolderPermissions,
 } from "@/lib/folder/permissions";
 import { prisma } from "@dub/prisma";
@@ -30,15 +30,16 @@ export const GET = withWorkspace(
         folderUsers.find((folderUser) => folderUser.folderId === folder.id) ||
         null;
 
-      const role = findUserFolderRole({
+      const userFolderRole = findFolderUserRole({
         folder,
         user: folderUser,
+        workspaceRole: workspace.users[0]?.role,
       });
 
       return {
         id: folder.id,
         name: folder.name,
-        permissions: getFolderPermissions(role),
+        permissions: getFolderPermissions(userFolderRole),
       };
     });
 

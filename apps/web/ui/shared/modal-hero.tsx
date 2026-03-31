@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export function ModalHero() {
   return (
-    <div className="relative h-48 w-full overflow-hidden bg-white">
+    <div className="relative h-48 w-full overflow-hidden rounded-t-2xl bg-white">
       <BackgroundGradient className="opacity-15" />
       <Image
         src="https://assets.dub.co/misc/welcome-modal-background.svg"

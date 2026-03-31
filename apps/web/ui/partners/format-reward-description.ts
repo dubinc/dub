@@ -1,11 +1,11 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
 
-export function formatRewardDescription({
-  reward,
-}: {
-  reward: Pick<RewardProps, "amount" | "type" | "event" | "maxDuration">;
-}): string {
+export function formatRewardDescription(reward: RewardProps) {
+  if (reward.description) {
+    return reward.description;
+  }
+
   const rewardAmount = constructRewardAmount(reward);
   const parts: string[] = [];
 

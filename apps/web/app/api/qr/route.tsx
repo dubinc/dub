@@ -10,10 +10,10 @@ import { NextRequest } from "next/server";
 
 export const runtime = "edge";
 
-const CORS_HEADERS = {
+const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
-};
+});
 
 export async function GET(req: NextRequest) {
   try {

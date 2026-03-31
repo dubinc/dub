@@ -1,29 +1,22 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { RewardProps } from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { BlockMarkdown } from "@/ui/partners/lander/blocks/block-markdown";
-import { Program } from "@dub/prisma/client";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/ui";
-import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
+import { useReferralsEmbedData } from "./page-client";
 
-export function ReferralsEmbedFAQ({
-  program,
-  reward,
-}: {
-  program: Program;
-  reward: RewardProps | null;
-}) {
+export function ReferralsEmbedFAQ() {
+  const { program, rewards } = useReferralsEmbedData();
+  const reward = rewards[0];
+
   const rewardDescription = reward
-    ? `For each new customer you refer, you'll earn a ${constructRewardAmount({
-        amount: reward.amount,
-        type: reward.type,
-      })} commission on their subscription${
+    ? `For each new customer you refer, you'll earn a ${constructRewardAmount(reward)} commission on their subscription${
         reward.maxDuration === null
           ? " for their lifetime"
           : reward.maxDuration && reward.maxDuration > 1
@@ -36,13 +29,13 @@ export function ReferralsEmbedFAQ({
 
   const items = programEmbedData?.faq || [
     {
-      title: `What is the ${program.name} Affiliate Program?`,
-      content: `The ${program.name} Affiliate Program is a way for you to earn money by referring new customers to ${program.name}. ${rewardDescription}`,
+      title: `What is the ${program.name} Referral Program?`,
+      content: `The ${program.name} Referral Program is a way for you to earn money by referring new customers to ${program.name}. ${rewardDescription}`,
     },
 
     {
       title: "What counts as a successful conversion?",
-      content: `New customers that sign up for a paid plan within ${program.cookieLength} days of using your referral link will be counted as a successful conversion. Attributions are done on a last-click basis, so your link must be the last link clicked before the customer signs up for an account on ${program.name}.`,
+      content: `New customers that sign up for a paid plan within 90 days of using your referral link will be counted as a successful conversion. Attributions are done on a last-click basis, so your link must be the last link clicked before the customer signs up for an account on ${program.name}.`,
     },
     {
       title: "How should I promote the program?",

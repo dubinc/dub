@@ -1,31 +1,45 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { ProgramProps } from "@/lib/types";
+import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
+import {
+  DEFAULT_PARTNER_GROUP,
+  PartnerProgramGroupSchema,
+} from "@/lib/zod/schemas/groups";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
 import {
+  ArrowTurnRight2,
   Button,
   buttonVariants,
+  CircleCheck,
   CircleCheckFill,
   Grid,
-  Link4,
+  LoadingSpinner,
   Sheet,
 } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
-import { useForm } from "react-hook-form";
-import ReactTextareaAutosize from "react-textarea-autosize";
+import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
-import { z } from "zod";
+import useSWR, { mutate } from "swr";
+import * as z from "zod/v4";
+import { ProgramApplicationFormField } from "./groups/design/application-form/fields";
+import { formDataForApplicationFormData } from "./groups/design/application-form/form-data-for-application-form-data";
+import { PartnerAvatar } from "./partner-avatar";
 
 interface ProgramApplicationSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  program?: ProgramProps;
+  program: Pick<
+    ProgramProps,
+    "id" | "slug" | "defaultGroupId" | "name" | "domain" | "logo" | "termsUrl"
+  >;
+  programEnrollment?: ProgramEnrollmentProps;
+  backDestination?: "programs" | "marketplace";
   onSuccess?: () => void;
 }
 
@@ -38,20 +52,73 @@ type FormData = Omit<
 
 function ProgramApplicationSheetContent({
   program,
-  onSuccess,
+  programEnrollment,
+  ...rest
 }: ProgramApplicationSheetProps) {
+  const groupIdOrSlug =
+    programEnrollment?.groupId ||
+    program?.defaultGroupId ||
+    DEFAULT_PARTNER_GROUP.slug;
+
+  const {
+    data: group,
+    isLoading: isGroupLoading,
+    error: groupError,
+  } = useSWR<z.infer<typeof PartnerProgramGroupSchema>>(
+    groupIdOrSlug
+      ? `/api/partner-profile/programs/${program.id}/groups/${groupIdOrSlug}`
+      : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  return group ? (
+    <ProgramApplicationSheetForm
+      program={program}
+      programEnrollment={programEnrollment}
+      group={group}
+      {...rest}
+    />
+  ) : (
+    <div className="flex h-full items-center justify-center">
+      {groupError ? (
+        <p className="text-content-subtle text-sm">
+          Failed to load application form
+        </p>
+      ) : (
+        <LoadingSpinner />
+      )}
+    </div>
+  );
+}
+
+function ProgramApplicationSheetForm({
+  program,
+  backDestination = "programs",
+  onSuccess,
+  group,
+}: ProgramApplicationSheetProps & {
+  group: z.infer<typeof PartnerProgramGroupSchema>;
+}) {
   const { partner } = usePartnerProfile();
+
+  const form = useForm<FormData>({
+    defaultValues: {
+      termsAgreement: false,
+      formData: formDataForApplicationFormData(
+        group?.applicationFormData?.fields ?? [],
+      ),
+    },
+  });
 
   const {
     register,
     handleSubmit,
     setError,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = useForm<FormData>({
-    defaultValues: {
-      termsAgreement: false,
-    },
-  });
+  } = form;
 
   const { executeAsync } = useAction(createProgramApplicationAction, {
     onSuccess: () => {
@@ -61,28 +128,30 @@ function ProgramApplicationSheetContent({
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!program || !partner?.email) return;
+    if (!group || !program || !partner?.email || !partner.country) return;
 
     const result = await executeAsync({
       ...data,
       email: partner.email,
       name: partner.name,
-      website: partner.website ?? undefined,
+      country: partner.country,
       programId: program.id,
+      groupId: group.id,
+      inAppApplication: true,
     });
 
     if (result?.serverError || result?.validationErrors) {
       setError("root.serverError", {
         message: "Failed to submit application",
       });
-      toast.error("Failed to submit application");
+      toast.error(parseActionError(result, "Failed to submit application"));
     }
   };
 
-  if (!program) return null;
+  const fields = group?.applicationFormData?.fields || [];
 
   return (
-    <div className="relative h-full">
+    <FormProvider {...form}>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className={cn(
@@ -93,108 +162,100 @@ function ProgramApplicationSheetContent({
           inert: isSubmitSuccessful,
         }}
       >
-        <div className="flex items-start justify-between bg-neutral-50 p-6">
-          <Sheet.Title asChild className="min-w-0">
-            <div>
-              <div className="flex items-center gap-3">
-                <img
-                  src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-                  alt={program.name}
-                  className="size-10 rounded-full border border-black/10"
-                />
-                <div className="min-w-0">
-                  <span className="block truncate text-base font-semibold leading-tight text-neutral-900">
-                    {program.name}
-                  </span>
-
-                  <div className="flex items-center gap-1 text-neutral-500">
-                    <Link4 className="size-3 shrink-0" />
-                    <span className="min-w-0 truncate text-sm font-medium">
-                      {program.domain}
+        <div className="sticky top-0 z-10 border-b border-neutral-200 bg-neutral-50">
+          <div className="flex items-start justify-between p-6">
+            <Sheet.Title asChild className="min-w-0">
+              <div>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+                    alt={program.name}
+                    className="size-10 rounded-full border border-black/10"
+                  />
+                  <div className="min-w-0">
+                    <span className="block truncate text-base font-semibold leading-tight text-neutral-900">
+                      {program.name}
                     </span>
+
+                    <div className="flex items-center gap-1 text-neutral-500">
+                      <ArrowTurnRight2 className="size-3.5 shrink-0" />
+                      <a
+                        href={`https://${program.domain}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="min-w-0 cursor-alias truncate text-sm font-medium underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+                      >
+                        {program.domain}
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </Sheet.Title>
-          <Sheet.Close asChild>
-            <Button
-              variant="outline"
-              icon={<X className="size-5" />}
-              className="h-auto w-fit p-1"
-            />
-          </Sheet.Close>
-        </div>
-
-        <div className="flex flex-col gap-6 p-5 sm:p-8">
-          <label>
-            <span className="text-sm font-medium text-neutral-800">
-              How do you plan to promote {program.name}?
-            </span>
-            <ReactTextareaAutosize
-              className={cn(
-                "mt-2 block max-h-48 min-h-12 w-full rounded-md focus:outline-none sm:text-sm",
-                errors.proposal
-                  ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
-              )}
-              placeholder=""
-              minRows={3}
-              {...register("proposal", { required: true })}
-            />
-          </label>
-
-          <label>
-            <span className="text-sm font-medium text-neutral-800">
-              Any additional questions or comments?
-              <span className="font-normal text-neutral-500"> (optional)</span>
-            </span>
-            <ReactTextareaAutosize
-              className={cn(
-                "mt-2 block max-h-48 min-h-12 w-full rounded-md focus:outline-none sm:text-sm",
-                errors.comments
-                  ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
-              )}
-              placeholder=""
-              minRows={3}
-              {...register("comments")}
-            />
-          </label>
-
-          {program.termsUrl && (
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="termsAgreement"
-                className={cn(
-                  "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
-                  errors.termsAgreement && "border-red-400 focus:ring-red-500",
-                )}
-                {...register("termsAgreement", {
-                  required: true,
-                  validate: (v) => v === true,
-                })}
+            </Sheet.Title>
+            <Sheet.Close asChild>
+              <Button
+                variant="outline"
+                icon={<X className="size-5" />}
+                className="h-auto w-fit p-1"
               />
-              <label
-                htmlFor="termsAgreement"
-                className="text-sm text-neutral-800"
-              >
-                I agree to the{" "}
-                <a
-                  href={program.termsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[var(--brand)] underline hover:opacity-80"
-                >
-                  {program.name} Partner Program Terms ↗
-                </a>
-              </label>
-            </div>
-          )}
+            </Sheet.Close>
+          </div>
         </div>
 
-        <div className="flex grow flex-col justify-end p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="flex flex-col gap-6 p-5 sm:p-8">
+            {fields?.length ? (
+              fields.map((field, index) => {
+                return (
+                  <ProgramApplicationFormField
+                    key={field.id}
+                    field={field}
+                    keyPath={`formData.fields.${index}`}
+                  />
+                );
+              })
+            ) : (
+              <p className="text-content-subtle flex items-center gap-1 text-sm">
+                <CircleCheck className="inline-block size-4 text-green-500" />
+                No additional information required to apply
+              </p>
+            )}
+
+            {program.termsUrl && (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="termsAgreement"
+                  className={cn(
+                    "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
+                    errors.termsAgreement &&
+                      "border-red-400 focus:ring-red-500",
+                  )}
+                  {...register("termsAgreement", {
+                    required: true,
+                    validate: (v) => v === true,
+                  })}
+                />
+                <label
+                  htmlFor="termsAgreement"
+                  className="text-sm text-neutral-800"
+                >
+                  I agree to the{" "}
+                  <a
+                    href={program.termsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[var(--brand)] underline hover:opacity-80"
+                  >
+                    {program.name} Program Terms ↗
+                  </a>
+                </label>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white p-5">
           <Button
             type="submit"
             variant="primary"
@@ -210,9 +271,7 @@ function ProgramApplicationSheetContent({
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-4 opacity-0",
         )}
-        {...{
-          inert: !isSubmitSuccessful,
-        }}
+        inert={!isSubmitSuccessful}
       >
         <Grid
           cellSize={60}
@@ -225,10 +284,13 @@ function ProgramApplicationSheetContent({
               alt={program.name}
               className="z-10 size-20 rotate-[-15deg] rounded-full drop-shadow-md"
             />
-            <img
-              src={partner?.image || `${OG_AVATAR_URL}${partner?.name}`}
-              alt={partner?.name}
-              className="-ml-4 size-20 rotate-[15deg] rounded-full drop-shadow-md"
+            <PartnerAvatar
+              partner={{
+                id: partner?.id,
+                name: partner?.name,
+                image: partner?.image,
+              }}
+              className="-ml-4 size-20 rotate-[15deg] drop-shadow-md"
             />
             <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
               <CircleCheckFill className="size-8 text-green-500" />
@@ -242,17 +304,21 @@ function ProgramApplicationSheetContent({
             you once approved.
           </p>
           <Link
-            href="/programs"
+            href={
+              backDestination === "marketplace"
+                ? "/programs/marketplace"
+                : "/programs"
+            }
             className={cn(
               buttonVariants({ variant: "primary" }),
-              "mt-8 flex h-10 w-fit cursor-pointer items-center rounded-md border px-4 text-sm",
+              "mt-8 flex h-9 w-fit cursor-pointer items-center rounded-lg border px-4 text-sm",
             )}
           >
-            Back to programs
+            Back to {backDestination}
           </Link>
         </div>
       </div>
-    </div>
+    </FormProvider>
   );
 }
 

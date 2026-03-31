@@ -5,9 +5,16 @@ import { RegisterDomainForm } from "../domains/register-domain-form";
 interface RegisterDomainProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
+  onSuccess?: (domain: string) => void;
+  setRegisteredParam?: boolean;
 }
 
-const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
+const RegisterDomain = ({
+  showModal,
+  setShowModal,
+  onSuccess,
+  setRegisteredParam,
+}: RegisterDomainProps) => {
   const { queryParams } = useRouterStuff();
 
   return (
@@ -23,8 +30,11 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
         <RegisterDomainForm
           variant="modal"
           onSuccess={(domain) => {
+            onSuccess?.(domain);
             setShowModal(false);
-            queryParams({ set: { registered: domain.toLowerCase() } });
+
+            if (setRegisteredParam !== false)
+              queryParams({ set: { registered: domain.toLowerCase() } });
           }}
           onCancel={() => setShowModal(false)}
         />
@@ -33,7 +43,9 @@ const RegisterDomain = ({ showModal, setShowModal }: RegisterDomainProps) => {
   );
 };
 
-export function useRegisterDomainModal() {
+export function useRegisterDomainModal(
+  props: Omit<RegisterDomainProps, "showModal" | "setShowModal"> = {},
+) {
   const [showRegisterDomainModal, setShowRegisterDomainModal] = useState(false);
 
   const RegisterDomainModal = useCallback(() => {
@@ -41,9 +53,10 @@ export function useRegisterDomainModal() {
       <RegisterDomain
         showModal={showRegisterDomainModal}
         setShowModal={setShowRegisterDomainModal}
+        {...props}
       />
     );
-  }, [showRegisterDomainModal, setShowRegisterDomainModal]);
+  }, [showRegisterDomainModal, setShowRegisterDomainModal, props]);
 
   return useMemo(
     () => ({ setShowRegisterDomainModal, RegisterDomainModal }),

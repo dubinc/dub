@@ -1,16 +1,17 @@
 import { sendEmail } from "@dub/email";
-import CampaignImported from "@dub/email/templates/campaign-imported";
+import ProgramImported from "@dub/email/templates/program-imported";
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
-import { log } from "@dub/utils";
+import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
+import { logImportError } from "../tinybird/log-import-error";
 import { MAX_BATCHES, partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload } from "./types";
 
 const CUSTOMERS_PER_BATCH = 20;
 
 const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { livemode: true }),
+  ...(process.env.VERCEL_ENV && { mode: "live" }),
 });
 
 // PartnerStack API doesn't return the Stripe customer ID,
@@ -18,7 +19,7 @@ const stripe = stripeAppClient({
 export async function updateStripeCustomers(
   payload: PartnerStackImportPayload,
 ) {
-  const { programId, userId, startingAfter } = payload;
+  const { importId, programId, userId, startingAfter } = payload;
 
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
@@ -59,7 +60,7 @@ export async function updateStripeCustomers(
         email: true,
       },
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
       take: CUSTOMERS_PER_BATCH,
       skip: currentStartingAfter ? 1 : 0,
@@ -75,11 +76,12 @@ export async function updateStripeCustomers(
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       customers.map((customer) =>
         searchStripeAndUpdateCustomer({
           workspace,
           customer,
+          importId,
         }),
       ),
     );
@@ -117,9 +119,9 @@ export async function updateStripeCustomers(
 
   if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email: workspaceUser.user.email,
+      to: workspaceUser.user.email,
       subject: "PartnerStack program imported",
-      react: CampaignImported({
+      react: ProgramImported({
         email: workspaceUser.user.email,
         workspace,
         program,
@@ -132,45 +134,88 @@ export async function updateStripeCustomers(
 async function searchStripeAndUpdateCustomer({
   workspace,
   customer,
+  importId,
 }: {
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   customer: Pick<Customer, "id" | "email">;
+  importId: string;
 }) {
-  const stripeCustomers = await stripe.customers.search(
-    {
-      query: `email:'${customer.email}'`,
-    },
-    {
-      stripeAccount: workspace.stripeConnectId!,
-    },
-  );
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "customer",
+    entity_id: customer.id,
+  } as const;
 
-  if (stripeCustomers.data.length === 0) {
-    console.error(`Stripe search returned no customer for ${customer.email}`);
-    return null;
-  }
-
-  if (stripeCustomers.data.length > 1) {
-    await log({
-      message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug}`,
-      type: "errors",
-    });
-
-    console.error(
-      `Stripe search returned multiple customers for ${customer.email}`,
+  try {
+    const stripeCustomers = await stripe.customers.search(
+      {
+        query: `email:'${customer.email}'`,
+        expand: ["data.subscriptions"],
+      },
+      {
+        stripeAccount: workspace.stripeConnectId!,
+      },
     );
 
-    return null;
+    if (stripeCustomers.data.length === 0) {
+      await logImportError({
+        ...commonImportLogInputs,
+        code: "STRIPE_CUSTOMER_NOT_FOUND",
+        message: `Stripe search returned no customer for ${customer.email}`,
+      });
+
+      return null;
+    }
+
+    let stripeCustomer: Stripe.Customer;
+
+    if (stripeCustomers.data.length > 1) {
+      // look for the one with metadata.customer_key set
+      const partnerStackStripeCustomer = stripeCustomers.data.find(
+        ({ metadata }) => metadata.customer_key,
+      );
+
+      if (partnerStackStripeCustomer) {
+        stripeCustomer = partnerStackStripeCustomer;
+      } else {
+        // look for the one with subscriptions
+        const customerWithSubcription = stripeCustomers.data.find(
+          ({ subscriptions }) => subscriptions && subscriptions.data.length > 0,
+        );
+
+        if (customerWithSubcription) {
+          console.log(
+            `Found Stripe customer with subscriptions for ${customer.email}: ${customerWithSubcription.id}`,
+          );
+          stripeCustomer = customerWithSubcription;
+        } else {
+          await logImportError({
+            ...commonImportLogInputs,
+            code: "STRIPE_CUSTOMER_NOT_FOUND",
+            message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.customer_key set`,
+          });
+          return null;
+        }
+      }
+    } else {
+      stripeCustomer = stripeCustomers.data[0];
+    }
+
+    await prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        stripeCustomerId: stripeCustomer.id,
+      },
+    });
+
+    console.log(
+      `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
+    );
+  } catch (error) {
+    console.error(error);
   }
-
-  const stripeCustomer = stripeCustomers.data[0];
-
-  await prisma.customer.update({
-    where: {
-      id: customer.id,
-    },
-    data: {
-      stripeCustomerId: stripeCustomer.id,
-    },
-  });
 }

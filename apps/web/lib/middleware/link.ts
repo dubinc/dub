@@ -1,23 +1,16 @@
-import {
-  createResponseWithCookies,
-  detectBot,
-  getFinalUrl,
-  isSupportedDeeplinkProtocol,
-  parse,
-} from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
 import {
+  APP_DOMAIN,
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
-  LOCALHOST_IP,
   isDubDomain,
   isUnsupportedKey,
   nanoid,
   punyEncode,
 } from "@dub/utils";
-import { ipAddress } from "@vercel/functions";
+import { geolocation } from "@vercel/functions";
 import { cookies } from "next/headers";
 import {
   NextFetchEvent,
@@ -29,23 +22,24 @@ import { linkCache } from "../api/links/cache";
 import { isCaseSensitiveDomain } from "../api/links/case-sensitivity";
 import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
-import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
-import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { getPartnerEnrollmentInfo } from "../planetscale/get-partner-enrollment-info";
+import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
+import { createResponseWithCookies } from "./utils/create-response-with-cookies";
+import { detectBot } from "./utils/detect-bot";
+import { getFinalUrl } from "./utils/get-final-url";
+import { getIdentityHash } from "./utils/get-identity-hash";
+import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
+import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
+import { isSupportedCustomURIScheme } from "./utils/is-supported-custom-uri-scheme";
+import { parse } from "./utils/parse";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
-export default async function LinkMiddleware(
-  req: NextRequest,
-  ev: NextFetchEvent,
-) {
-  let { domain, fullKey: originalKey } = parse(req);
+export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
+  let { domain, fullKey: originalKey, fullPath } = parse(req);
 
   if (!domain) {
     return NextResponse.next();
-  }
-
-  if (domain === "dev.buff.ly") {
-    domain = "buff.ly";
   }
 
   // encode the key to ascii
@@ -66,6 +60,14 @@ export default async function LinkMiddleware(
   if (key === "") {
     key = "_root";
   }
+
+  const STATIC_PAGES_CACHE_HEADERS = {
+    "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+    "Vercel-Cache-Tag": linkCache._createStaticPagesCacheKeys({
+      domain,
+      key: originalKey || "_root",
+    }),
+  };
 
   // we don't support .php links (too much bot traffic)
   // hence we redirect to the root domain and add `dub-no-track` header to avoid tracking bot traffic
@@ -93,23 +95,12 @@ export default async function LinkMiddleware(
         return await crawlBitly(req);
       }
 
-      // check if domain has notFoundUrl configured
-      const domainData = await getDomainViaEdge(domain);
-      if (domainData?.notFoundUrl) {
-        return NextResponse.redirect(domainData.notFoundUrl, {
-          headers: {
-            ...DUB_HEADERS,
-            "X-Robots-Tag": "googlebot: noindex",
-            // pass the Referer value to the not found URL
-            Referer: req.url,
-          },
-          status: 302,
-        });
-      } else {
-        return NextResponse.rewrite(new URL(`/${domain}/not-found`, req.url), {
-          headers: DUB_HEADERS,
-        });
-      }
+      return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
+        headers: {
+          ...DUB_HEADERS,
+          ...STATIC_PAGES_CACHE_HEADERS,
+        },
+      });
     }
 
     isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
@@ -124,7 +115,7 @@ export default async function LinkMiddleware(
           return;
         }
 
-        const { partner, discount } = await getPartnerAndDiscount({
+        const { partner, discount } = await getPartnerEnrollmentInfo({
           programId: linkData.programId,
           partnerId: linkData.partnerId,
         });
@@ -143,12 +134,13 @@ export default async function LinkMiddleware(
     id: linkId,
     password,
     trackConversion,
+    geo: geoTargeting,
     proxy,
     rewrite,
     expiresAt,
+    disabledAt,
     ios,
     android,
-    geo,
     expiredUrl,
     doIndex,
     webhookIds,
@@ -157,7 +149,7 @@ export default async function LinkMiddleware(
     projectId: workspaceId,
   } = cachedLink;
 
-  const testUrl = resolveABTestURL({
+  const testUrl = await resolveABTestURL({
     testVariants,
     testCompletedAt,
   });
@@ -167,7 +159,9 @@ export default async function LinkMiddleware(
   // if the following is true, we need to cache the clickId data (so it's available for subsequent /track/lead requests):
   // - trackConversion is enabled
   // - it's a partner link
-  const shouldCacheClickId = trackConversion || isPartnerLink;
+  // - it's a Singular tracking URL
+  const shouldCacheClickId =
+    trackConversion || isPartnerLink || isSingularTrackingUrl(url);
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -176,7 +170,7 @@ export default async function LinkMiddleware(
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
     return NextResponse.rewrite(
-      new URL(`/inspect/${domain}/${encodeURIComponent(key)}+`, req.url),
+      new URL(`/${domain}/${encodeURIComponent(key)}/inspect`, req.url),
       {
         headers: {
           ...DUB_HEADERS,
@@ -213,10 +207,21 @@ export default async function LinkMiddleware(
 
   // if the link is banned
   if (workspaceId === LEGAL_WORKSPACE_ID) {
-    return NextResponse.rewrite(new URL("/banned", req.url), {
+    return NextResponse.rewrite(new URL(`/${domain}/banned`, req.url), {
       headers: {
         ...DUB_HEADERS,
-        ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+        ...STATIC_PAGES_CACHE_HEADERS,
+        "X-Robots-Tag": "googlebot: noindex",
+      },
+    });
+  }
+
+  // handle disabled links
+  if (disabledAt) {
+    return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
+      headers: {
+        ...DUB_HEADERS,
+        ...STATIC_PAGES_CACHE_HEADERS,
       },
     });
   }
@@ -232,9 +237,10 @@ export default async function LinkMiddleware(
         status: 302,
       });
     } else {
-      return NextResponse.rewrite(new URL(`/expired/${domain}`, req.url), {
+      return NextResponse.rewrite(new URL(`/${domain}/expired`, req.url), {
         headers: {
           ...DUB_HEADERS,
+          ...STATIC_PAGES_CACHE_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       });
@@ -243,14 +249,16 @@ export default async function LinkMiddleware(
 
   const dubIdCookieName = `dub_id_${domain}_${key}`;
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
     // if we need to pass the clickId, check if clickId is cached in Redis
     if (shouldCacheClickId) {
-      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-
-      clickId = (await recordClickCache.get({ domain, key, ip })) || undefined;
+      const identityHash = await getIdentityHash(req);
+      clickId =
+        (await recordClickCache
+          .get({ domain, key, identityHash })
+          .catch(() => undefined)) || undefined;
     }
 
     // if there's still no clickId, generate a new one
@@ -260,7 +268,7 @@ export default async function LinkMiddleware(
   }
 
   const cookieData = {
-    path: `/${originalKey}`,
+    path: `/${encodeURI(originalKey)}`,
     dubIdCookieName,
     dubIdCookieValue: clickId,
     dubTestUrlValue: testUrl,
@@ -272,38 +280,44 @@ export default async function LinkMiddleware(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
         url,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
 
-    return createResponseWithCookies(
-      NextResponse.rewrite(new URL(`/${domain}`, req.url), {
+    const rewriteResponse = NextResponse.rewrite(
+      new URL(`/${domain}`, req.url),
+      {
         headers: {
           ...DUB_HEADERS,
-          // we only index root domain links if they're not subdomains
-          ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...STATIC_PAGES_CACHE_HEADERS,
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-      }),
-      cookieData,
+      },
     );
+    return createResponseWithCookies(rewriteResponse, cookieData);
   }
 
   const isBot = detectBot(req);
+  const ua = userAgent(req);
 
   const { country } =
-    process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
+    process.env.VERCEL === "1" && geolocation(req)
+      ? geolocation(req)
+      : LOCALHOST_GEO_DATA;
 
-  // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
+  // rewrite to proxy page ([domain]/[key]/proxy) if it's a bot and proxy is enabled
   if (isBot && proxy) {
     return createResponseWithCookies(
       NextResponse.rewrite(
-        new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+        new URL(`/${domain}/${encodeURIComponent(key)}/proxy`, req.url),
         {
           headers: {
             ...DUB_HEADERS,
@@ -314,34 +328,32 @@ export default async function LinkMiddleware(
       cookieData,
     );
 
-    // rewrite to deeplink page if the link is a mailto: or tel:
-  } else if (isSupportedDeeplinkProtocol(url)) {
+    // rewrite to custom-uri-scheme page if the link is a custom URI scheme
+  } else if (isSupportedCustomURIScheme(url)) {
+    const finalUrl = getFinalUrl(url, {
+      req,
+      ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
+    });
     ev.waitUntil(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
-        url,
+        url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
 
     return createResponseWithCookies(
       NextResponse.rewrite(
-        new URL(
-          `/deeplink/${encodeURIComponent(
-            getFinalUrl(url, {
-              req,
-              ...(shouldCacheClickId && { clickId }),
-              ...(isPartnerLink && { via: key }),
-            }),
-          )}`,
-          req.url,
-        ),
+        new URL(`/custom-uri-scheme/${encodeURIComponent(finalUrl)}`, req.url),
         {
           headers: {
             ...DUB_HEADERS,
@@ -354,32 +366,30 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
   } else if (rewrite) {
+    const finalUrl = getFinalUrl(url, {
+      req,
+      ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
+    });
     ev.waitUntil(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
-        url,
+        url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
 
     return createResponseWithCookies(
       NextResponse.rewrite(
-        new URL(
-          `/cloaked/${encodeURIComponent(
-            getFinalUrl(url, {
-              req,
-              ...(shouldCacheClickId && { clickId }),
-              ...(isPartnerLink && { via: key }),
-            }),
-          )}`,
-          req.url,
-        ),
+        new URL(`/cloaked/${encodeURIComponent(finalUrl)}`, req.url),
         {
           headers: {
             ...DUB_HEADERS,
@@ -393,138 +403,173 @@ export default async function LinkMiddleware(
     );
 
     // redirect to iOS link if it is specified and the user is on an iOS device
-  } else if (ios && userAgent(req).os?.name === "iOS") {
+  } else if (ios && ua.os?.name === "iOS") {
+    const finalUrl = getFinalUrl(ios, {
+      req,
+      ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
+    });
     ev.waitUntil(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
-        url: ios,
+        url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
 
-    return createResponseWithCookies(
-      NextResponse.redirect(
-        getFinalUrl(ios, {
+    // if it's an iOS app store URL (and skip_deeplink_preview is not set)
+    // we need to show the interstitial page + cache deep link click data
+    if (
+      isIosAppStoreUrl(ios) &&
+      !req.nextUrl.searchParams.get("skip_deeplink_preview")
+    ) {
+      ev.waitUntil(
+        cacheDeepLinkClickData({
           req,
-          ...(shouldCacheClickId && { clickId }),
-          ...(isPartnerLink && { via: key }),
-        }),
-        {
-          headers: {
-            ...DUB_HEADERS,
-            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          clickId,
+          link: {
+            id: linkId,
+            domain,
+            key,
+            url, // pass the main destination URL to the cache (for deferred deep linking)
           },
-          status: key === "_root" ? 301 : 302,
+        }),
+      );
+
+      // redirect to the deeplink interstitial splash page "DeepLinkPreviewPage"
+      // we're doing this because the interstitial page needs to be on a different domain than the actual deep link domain
+      // @see: https://stackoverflow.com/a/78189982/10639526
+      return createResponseWithCookies(
+        NextResponse.redirect(
+          new URL(`/deeplink/${domain}${fullPath}`, APP_DOMAIN),
+          {
+            headers: {
+              ...DUB_HEADERS,
+              ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+            },
+          },
+        ),
+        cookieData,
+      );
+    }
+    return createResponseWithCookies(
+      NextResponse.redirect(finalUrl, {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-      ),
+        status: key === "_root" ? 301 : 302,
+      }),
       cookieData,
     );
 
     // redirect to Android link if it is specified and the user is on an Android device
-  } else if (android && userAgent(req).os?.name === "Android") {
+  } else if (android && ua.os?.name === "Android") {
+    const finalUrl = getFinalUrl(android, {
+      req,
+      ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
+    });
     ev.waitUntil(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
-        url: android,
+        url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
 
     return createResponseWithCookies(
-      NextResponse.redirect(
-        getFinalUrl(android, {
-          req,
-          ...(shouldCacheClickId && { clickId }),
-          ...(isPartnerLink && { via: key }),
-        }),
-        {
-          headers: {
-            ...DUB_HEADERS,
-            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
-          },
-          status: key === "_root" ? 301 : 302,
+      NextResponse.redirect(finalUrl, {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-      ),
+        status: key === "_root" ? 301 : 302,
+      }),
       cookieData,
     );
 
-    // redirect to geo-specific link if it is specified and the user is in the specified country
-  } else if (geo && country && country in geo) {
+    // redirect to geo-targeting link if it is specified and the user is in the specified country
+  } else if (geoTargeting && country && country in geoTargeting) {
+    const finalUrl = getFinalUrl(geoTargeting[country], {
+      req,
+      ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
+    });
     ev.waitUntil(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
-        url: geo[country],
+        url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
 
     return createResponseWithCookies(
-      NextResponse.redirect(
-        getFinalUrl(geo[country], {
-          req,
-          ...(shouldCacheClickId && { clickId }),
-          ...(isPartnerLink && { via: key }),
-        }),
-        {
-          headers: {
-            ...DUB_HEADERS,
-            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
-          },
-          status: key === "_root" ? 301 : 302,
+      NextResponse.redirect(finalUrl, {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-      ),
+        status: key === "_root" ? 301 : 302,
+      }),
       cookieData,
     );
 
     // regular redirect
   } else {
+    const finalUrl = getFinalUrl(url, {
+      req,
+      ...(shouldCacheClickId && { clickId }),
+      ...(isPartnerLink && { via: key }),
+    });
     ev.waitUntil(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
-        url,
+        url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
 
     return createResponseWithCookies(
-      NextResponse.redirect(
-        getFinalUrl(url, {
-          req,
-          ...(shouldCacheClickId && { clickId }),
-          ...(isPartnerLink && { via: key }),
-        }),
-        {
-          headers: {
-            ...DUB_HEADERS,
-            ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
-          },
-          status: key === "_root" ? 301 : 302,
+      NextResponse.redirect(finalUrl, {
+        headers: {
+          ...DUB_HEADERS,
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-      ),
+        status: key === "_root" ? 301 : 302,
+      }),
       cookieData,
     );
   }

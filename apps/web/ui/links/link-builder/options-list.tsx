@@ -4,10 +4,10 @@ import {
 } from "@/ui/links/link-builder/constants";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
-import { SimpleTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
+import { Tooltip, useMediaQuery } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
 import { fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { ReactNode, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import useSWR from "swr";
@@ -22,7 +22,11 @@ export function OptionsList() {
   const data = useWatch({ control });
 
   const enabledToggles = useMemo(
-    () => TOGGLES.filter(({ key }) => data[key]),
+    () =>
+      TOGGLES.filter(({ key, enabled }) =>
+        // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
+        enabled ? enabled(data) : data[key],
+      ),
     [data],
   );
 
@@ -58,8 +62,7 @@ export function OptionsList() {
             >
               <Component
                 toggle={item}
-                {...(item.type === "modal" &&
-                  "enabled" in item &&
+                {...("enabled" in item &&
                   typeof item.enabled === "function" &&
                   // @ts-ignore - useWatch returns a deep partial, should be fixed in a future react-hook-form release
                   item.enabled(data) && {
@@ -161,11 +164,7 @@ function LinkCloakingToggleBadge({
             <p>Your link will be successfully cloaked.</p>
           </div>
         ) : (
-          <SimpleTooltipContent
-            title="Your link is not cloakable – make sure you have the right security headers set on your target URL."
-            cta="Learn more"
-            href="https://dub.co/help/article/link-cloaking#link-cloaking-with-security-headers"
-          />
+          "Your link is not cloakable – make sure you have the right security headers set on your target URL. [Learn more](https://dub.co/help/article/link-cloaking#link-cloaking-with-security-headers)"
         )
       }
     >

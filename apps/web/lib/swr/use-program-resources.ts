@@ -1,7 +1,7 @@
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { programResourcesSchema } from "../zod/schemas/program-resources";
 import useWorkspace from "./use-workspace";
 

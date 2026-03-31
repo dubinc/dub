@@ -10,7 +10,6 @@ import {
   Modal,
   Popover,
   ShimmerDots,
-  SimpleTooltipContent,
   Tooltip,
   useCopyToClipboard,
   useLocalStorage,
@@ -18,7 +17,7 @@ import {
 } from "@dub/ui";
 import { Check, Copy, Download, Hyperlink, Photo } from "@dub/ui/icons";
 import { API_DOMAIN, linkConstructor } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Dispatch,
   PropsWithChildren,
@@ -50,7 +49,6 @@ export type QRCodeDesign = {
 
 type PartnerLinkQRModalProps = {
   props: QRLinkProps;
-  programId: string;
   onSave?: (data: QRCodeDesign) => void;
 };
 
@@ -73,7 +71,6 @@ function PartnerLinkQRModal(
 
 function PartnerLinkQRModalInner({
   props,
-  programId,
   onSave,
   setShowLinkQRModal,
 }: {
@@ -91,7 +88,7 @@ function PartnerLinkQRModalInner({
   }, [props.key, props.domain]);
 
   const [dataPersisted, setDataPersisted] = useLocalStorage<QRCodeDesign>(
-    `qr-code-design-program-${programId}`,
+    `qr-code-design-program-${programEnrollment?.program?.id}`,
     {
       fgColor: "#000000",
       logo: logo ?? undefined,
@@ -130,15 +127,7 @@ function PartnerLinkQRModalInner({
     >
       <div className="flex items-center gap-2">
         <h3 className="text-lg font-medium">QR Code</h3>
-        <InfoTooltip
-          content={
-            <SimpleTooltipContent
-              title="Set a custom QR code design to improve click-through rates."
-              cta="Learn more."
-              href="https://dub.co/help/article/custom-qr-codes"
-            />
-          }
-        />
+        <InfoTooltip content="Set a custom QR code design to improve click-through rates. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
       </div>
 
       <div>
@@ -147,15 +136,7 @@ function PartnerLinkQRModalInner({
             <span className="text-sm font-medium text-neutral-700">
               QR Code Preview
             </span>
-            <InfoTooltip
-              content={
-                <SimpleTooltipContent
-                  title="Customize your QR code to fit your brand."
-                  cta="Learn more."
-                  href="https://dub.co/help/article/custom-qr-codes"
-                />
-              }
-            />
+            <InfoTooltip content="Customize your QR code to fit your brand. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
           </div>
           {url && qrData && (
             <div className="flex items-center gap-2">

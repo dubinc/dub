@@ -2,27 +2,50 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
-import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
 
-const CORS_HEADERS = {
+const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "PATCH, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
-
-const updateWorkspaceSchema = z.object({
-  stripeAccountId: z.string().nullable(),
 });
 
 // PATCH /api/stripe/integration - update a workspace with a stripe connect account id
 export const PATCH = withWorkspace(
-  async ({ req, workspace, session }) => {
+  async ({ req, workspace, session, token }) => {
     const body = await parseRequestBody(req);
-    const { stripeAccountId } = updateWorkspaceSchema.parse(body);
+    const { stripeAccountId } = z
+      .object({
+        stripeAccountId: z.string().nullable(),
+      })
+      .parse(body);
+
+    if (!token?.installationId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not authorized to update the stripe integration.",
+      });
+    }
+
+    const installation = await prisma.installedIntegration.findUnique({
+      where: {
+        id: token.installationId,
+      },
+      select: {
+        integrationId: true,
+      },
+    });
+
+    if (!installation || installation.integrationId !== STRIPE_INTEGRATION_ID) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not authorized to update the stripe integration.",
+      });
+    }
 
     try {
       const response = await prisma.project.update({
@@ -93,7 +116,6 @@ export const PATCH = withWorkspace(
     }
   },
   {
-    requiredPermissions: ["workspaces.write"],
     requiredPlan: [
       "business",
       "business plus",
@@ -102,6 +124,7 @@ export const PATCH = withWorkspace(
       "advanced",
       "enterprise",
     ],
+    requiredRoles: ["owner", "member"],
   },
 );
 

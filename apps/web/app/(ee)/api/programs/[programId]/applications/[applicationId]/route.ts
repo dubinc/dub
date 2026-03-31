@@ -11,6 +11,9 @@ export const GET = withWorkspace(async ({ workspace, params }) => {
     where: {
       id: params.applicationId,
     },
+    include: {
+      partnerGroup: true,
+    },
   });
 
   if (!application || application.programId !== programId) {

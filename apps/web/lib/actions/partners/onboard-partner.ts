@@ -4,7 +4,6 @@ import { createId } from "@/lib/api/create-id";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
-import { subscribe } from "@dub/email/resend/subscribe";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
@@ -15,11 +14,10 @@ import { authUserActionClient } from "../safe-action";
 // - If the Partner already exists and matches the user's email, update the Partner
 // - If the Partner doesn't exist, create it
 export const onboardPartnerAction = authUserActionClient
-  .schema(onboardPartnerSchema)
+  .inputSchema(onboardPartnerSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { user } = ctx;
-    const { name, image, country, description, profileType, companyName } =
-      parsedInput;
+    const { name, image, country, description, profileType } = parsedInput;
 
     const existingPartner = await prisma.partner.findUnique({
       where: {
@@ -31,22 +29,22 @@ export const onboardPartnerAction = authUserActionClient
       ? existingPartner.id
       : createId({ prefix: "pn_" });
 
-    const imageUrl = await storage
-      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
-      .then(({ url }) => url);
+    const imageUrl = image
+      ? await storage
+          .upload({
+            key: `partners/${partnerId}/image_${nanoid(7)}`,
+            body: image,
+          })
+          .then(({ url }) => url)
+      : undefined;
 
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
       name: name || user.email,
       email: user.email,
-      // you can only update these fields if the partner doesn't already have a stripeConnectId
-      ...(existingPartner?.stripeConnectId
-        ? {}
-        : {
-            country,
-            profileType,
-            companyName,
-          }),
+      // can only update these fields if it's not already set (else you need to update under profile settings)
+      ...(existingPartner?.country ? {} : { country }),
+      ...(existingPartner?.profileType ? {} : { profileType }),
       ...(description && { description }),
       image: imageUrl,
       users: {
@@ -60,12 +58,15 @@ export const onboardPartnerAction = authUserActionClient
           create: {
             userId: user.id,
             role: "owner",
+            notificationPreferences: {
+              create: {},
+            },
           },
         },
       },
     };
 
-    const [partner] = await Promise.all([
+    await Promise.all([
       existingPartner
         ? prisma.partner.update({
             where: {
@@ -80,7 +81,7 @@ export const onboardPartnerAction = authUserActionClient
             },
           }),
 
-      // only set the default partner ID if the user doesn't already have one
+      // if the user doesn't have a default partner id, set the new partner id as the user's default partner id
       !user.defaultPartnerId &&
         prisma.user.update({
           where: {
@@ -92,16 +93,25 @@ export const onboardPartnerAction = authUserActionClient
         }),
     ]);
 
-    waitUntil(
-      Promise.allSettled([
-        // Complete any outstanding program application
-        completeProgramApplications(user.id),
-        // Subscribe the partner to the partners.dub.co Resend audience
-        subscribe({
-          email: user.email,
-          name: user.name || partner.name || undefined,
-          audience: "partners.dub.co",
-        }),
-      ]),
-    );
+    // Complete any outstanding program application
+    waitUntil(completeProgramApplications(user.email));
+
+    // if the user doesn't have an image, set the uploaded image as the user's image
+    if (!user.image && image) {
+      waitUntil(
+        storage
+          .upload({
+            key: `avatars/${user.id}`,
+            body: image,
+          })
+          .then(({ url }) => {
+            prisma.user.update({
+              where: {
+                id: user.id,
+              },
+              data: { image: url },
+            });
+          }),
+      );
+    }
   });

@@ -1,13 +1,13 @@
 "use server";
 
-import { z } from "zod";
+import * as z from "zod/v4";
+import { onboardingStepCache } from "../api/workspaces/onboarding-step-cache";
 import { ONBOARDING_STEPS } from "../onboarding/types";
-import { redis } from "../upstash";
 import { authUserActionClient } from "./safe-action";
 
 // Generate a new client secret for an integration
 export const setOnboardingProgress = authUserActionClient
-  .schema(
+  .inputSchema(
     z.object({
       onboardingStep: z.enum(ONBOARDING_STEPS).nullable(),
     }),
@@ -16,7 +16,12 @@ export const setOnboardingProgress = authUserActionClient
     const { onboardingStep } = parsedInput;
 
     try {
-      await redis.set(`onboarding-step:${ctx.user.id}`, onboardingStep);
+      if (onboardingStep) {
+        await onboardingStepCache.set({
+          userId: ctx.user.id,
+          step: onboardingStep,
+        });
+      }
     } catch (e) {
       console.error("Failed to update onboarding step", e);
       throw new Error("Failed to update onboarding step");

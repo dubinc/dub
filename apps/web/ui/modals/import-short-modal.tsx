@@ -1,3 +1,4 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ImportedDomainCountProps } from "@/lib/types";
 import {
@@ -6,7 +7,6 @@ import {
   LoadingSpinner,
   Logo,
   Modal,
-  SimpleTooltipContent,
   Switch,
   buttonVariants,
   useMediaQuery,
@@ -37,7 +37,7 @@ function ImportShortModal({
   const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
 
   const {
     data: domains,
@@ -211,7 +211,7 @@ function ImportShortModal({
                 import your links.
               </p>
               <a
-                href="mailto:support@dub.co?subject=I%20need%20help%20with%20importing%20my%20Short.io%20links"
+                href="https://dub.co/support"
                 className={cn(
                   buttonVariants({ variant: "secondary" }),
                   "flex h-8 items-center justify-center rounded-md border px-4 text-sm",
@@ -253,13 +253,7 @@ function ImportShortModal({
                   Short.io API Key
                 </h2>
                 <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title={`Your Short.io API Key can be found in your Short.io account under "Integrations & API".`}
-                      cta="Read the guide."
-                      href="https://dub.co/help/article/migrating-from-short"
-                    />
-                  }
+                  content={`Your Short.io API Key can be found in your Short.io account under "Integrations & API". [Read the guide.](https://dub.co/help/article/migrating-from-short)`}
                 />
               </div>
               <input

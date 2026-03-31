@@ -1,12 +1,14 @@
 import {
   partnerStackCommission,
   partnerStackCustomer,
+  partnerStackGroup,
   partnerStackLink,
   partnerStackPartner,
 } from "./schemas";
 import {
   PartnerStackCommission,
   PartnerStackCustomer,
+  PartnerStackGroup,
   PartnerStackLink,
   PartnerStackListResponse,
   PartnerStackPartner,
@@ -61,6 +63,17 @@ export class PartnerStackApi {
     }
   }
 
+  async listGroups() {
+    const {
+      data: { items },
+    } =
+      await this.fetch<PartnerStackListResponse<PartnerStackGroup>>(
+        `/groups?limit=100`,
+      );
+
+    return partnerStackGroup.array().parse(items);
+  }
+
   async listPartners({ startingAfter }: { startingAfter?: string }) {
     const searchParams = new URLSearchParams();
     searchParams.append("approved_status", "approved");
@@ -106,12 +119,22 @@ export class PartnerStackApi {
     return partnerStackCustomer.array().parse(items);
   }
 
-  async listCommissions({ startingAfter }: { startingAfter?: string }) {
+  async listCommissions({
+    startingAfter,
+    status,
+  }: {
+    startingAfter?: string;
+    status?: PartnerStackCommission["reward_status"];
+  }) {
     const searchParams = new URLSearchParams();
     searchParams.append("limit", PAGE_LIMIT.toString());
 
     if (startingAfter) {
       searchParams.append("starting_after", startingAfter);
+    }
+
+    if (status) {
+      searchParams.append("status", status);
     }
 
     const {

@@ -6,14 +6,13 @@ import {
   Button,
   InfoTooltip,
   ShimmerDots,
-  SimpleTooltipContent,
   useInViewport,
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { DUB_QR_LOGO, linkConstructor } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";
@@ -79,11 +78,7 @@ export function QRCodePreview() {
           <h2 className="text-sm font-medium text-neutral-700">QR Code</h2>
           <InfoTooltip
             content={
-              <SimpleTooltipContent
-                title="Set a custom QR code design to improve click-through rates."
-                cta="Learn more."
-                href="https://dub.co/help/article/custom-qr-codes"
-              />
+              "Set a custom QR code design to improve click-through rates. [Learn more.](https://dub.co/help/article/custom-qr-codes)"
             }
           />
         </div>

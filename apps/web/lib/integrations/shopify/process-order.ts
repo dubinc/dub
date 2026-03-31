@@ -20,16 +20,14 @@ export async function processOrder({
     if (customerId) {
       const leadEvent = await getLeadEvent({ customerId });
 
-      if (!leadEvent || leadEvent.data.length === 0) {
+      if (!leadEvent) {
         return new Response(
           `[Shopify] Lead event with customer ID ${customerId} not found, skipping...`,
         );
       }
 
-      const leadData = leadEvent.data[0];
-
       await createShopifySale({
-        leadData,
+        leadData: leadEvent,
         event,
         workspaceId,
         customerId,

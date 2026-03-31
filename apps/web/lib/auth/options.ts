@@ -7,6 +7,7 @@ import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
@@ -16,9 +17,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
+import { isProduction, skipAuthThrottling } from "../api/environment";
+import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
@@ -27,7 +28,7 @@ import {
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
-import { trackLead } from "./track-lead";
+import { trackDubLead } from "./track-dub-lead";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -39,6 +40,9 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         data: {
           ...data,
           id: createId({ prefix: "user_" }),
+          notificationPreferences: {
+            create: {},
+          },
         },
       });
     },
@@ -49,16 +53,16 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
-        if (process.env.NODE_ENV === "development") {
+        if (!isProduction) {
           console.log(`Login link: ${url}`);
           return;
-        } else {
-          sendEmail({
-            email: identifier,
-            subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-            react: LoginLink({ url, email: identifier }),
-          });
         }
+
+        sendEmail({
+          to: identifier,
+          subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+          react: LoginLink({ url, email: identifier }),
+        });
       },
     }),
     GoogleProvider({
@@ -104,6 +108,9 @@ export const authOptions: NextAuthOptions = {
               name: `${profile.firstName || ""} ${
                 profile.lastName || ""
               }`.trim(),
+              notificationPreferences: {
+                create: {},
+              },
             },
           });
         }
@@ -175,6 +182,9 @@ export const authOptions: NextAuthOptions = {
               name: `${userInfo.firstName || ""} ${
                 userInfo.lastName || ""
               }`.trim(),
+              notificationPreferences: {
+                create: {},
+              },
             },
           });
         }
@@ -213,12 +223,21 @@ export const authOptions: NextAuthOptions = {
           throw new Error("no-credentials");
         }
 
-        const { success } = await ratelimit(5, "1 m").limit(
-          `login-attempts:${email}`,
-        );
+        if (!skipAuthThrottling) {
+          const { success } = await ratelimit(5, "1 m").limit(
+            `login-attempts:${email}`,
+          );
 
-        if (!success) {
-          throw new Error("too-many-login-attempts");
+          if (!success) {
+            throw new Error("too-many-login-attempts");
+          }
+        }
+
+        // SSO enforcement check
+        const ssoEnforced = await isSamlEnforcedForEmailDomain(email);
+
+        if (ssoEnforced) {
+          throw new Error("require-saml-sso");
         }
 
         const user = await prisma.user.findUnique({
@@ -288,7 +307,13 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.FRAMER_CLIENT_ID,
       clientSecret: process.env.FRAMER_CLIENT_SECRET,
       checks: ["state"],
-      authorization: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+      authorization: {
+        url: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+        params: {
+          scope: "email",
+          response_type: "code",
+        },
+      },
       token: `${FRAMER_API_HOST}/auth/oauth/token`,
       userinfo: `${FRAMER_API_HOST}/auth/oauth/profile`,
       profile({ sub, email, name, picture }) {
@@ -335,6 +360,19 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
 
+      // If the user is not using SAML, we need to check if SAML is enforced for the email domain
+      if (
+        account?.provider !== "saml" &&
+        account?.provider !== "saml-idp" &&
+        account?.provider !== "credentials" // for credentials, we do the check in the CredentialsProvider
+      ) {
+        const ssoEnforced = await isSamlEnforcedForEmailDomain(user.email);
+
+        if (ssoEnforced) {
+          throw new Error("require-saml-sso");
+        }
+      }
+
       if (account?.provider === "google" || account?.provider === "github") {
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },
@@ -354,10 +392,10 @@ export const authOptions: NextAuthOptions = {
             (!userExists.image || !isStored(userExists.image)) &&
             profilePic
           ) {
-            const { url } = await storage.upload(
-              `avatars/${userExists.id}`,
-              profilePic,
-            );
+            const { url } = await storage.upload({
+              key: `avatars/${userExists.id}`,
+              body: profilePic,
+            });
             newAvatar = url;
           }
           await prisma.user.update({
@@ -388,19 +426,41 @@ export const authOptions: NextAuthOptions = {
         if (!samlProfile?.requested?.tenant) {
           return false;
         }
+
         const workspace = await prisma.project.findUnique({
           where: {
             id: samlProfile.requested.tenant,
           },
+          select: {
+            id: true,
+            ssoEmailDomain: true,
+          },
         });
+
         if (workspace) {
+          const { ssoEmailDomain } = workspace;
+          const emailDomain = user.email.split("@")[1];
+
+          // ssoEmailDomain should be required for all SAML enabled workspace
+          // this should not happen
+          if (!ssoEmailDomain) {
+            return false;
+          }
+
+          if (
+            emailDomain.toLocaleLowerCase() !==
+            ssoEmailDomain.toLocaleLowerCase()
+          ) {
+            return false;
+          }
+
           await Promise.allSettled([
             // add user to workspace
             prisma.projectUsers.upsert({
               where: {
                 userId_projectId: {
-                  projectId: workspace.id,
                   userId: user.id,
+                  projectId: workspace.id,
                 },
               },
               update: {},
@@ -475,8 +535,8 @@ export const authOptions: NextAuthOptions = {
             email: true,
             image: true,
             isMachine: true,
-            defaultPartnerId: true,
             defaultWorkspace: true,
+            defaultPartnerId: true,
           },
         });
 
@@ -529,11 +589,11 @@ export const authOptions: NextAuthOptions = {
         waitUntil(
           Promise.allSettled([
             // track lead if dub_id cookie is present
-            trackLead(user),
-            // trigger welcome workflow 15 minutes after the user signed up
+            trackDubLead(user),
+            // trigger welcome workflow 45 minutes after the user signed up
             qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/welcome-user`,
-              delay: 15 * 60,
+              delay: 45 * 60,
               body: { userId: user.id },
             }),
           ]),
@@ -545,10 +605,10 @@ export const authOptions: NextAuthOptions = {
       if (currentImage && !isStored(currentImage)) {
         waitUntil(
           (async () => {
-            const { url } = await storage.upload(
-              `avatars/${message.user.id}`,
-              currentImage,
-            );
+            const { url } = await storage.upload({
+              key: `avatars/${message.user.id}`,
+              body: currentImage,
+            });
             await prisma.user.update({
               where: {
                 id: message.user.id,
@@ -562,7 +622,9 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Complete any outstanding program applications
-      waitUntil(completeProgramApplications(message.user.id));
+      if (message.user.email) {
+        waitUntil(completeProgramApplications(message.user.email));
+      }
     },
   },
 };

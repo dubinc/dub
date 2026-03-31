@@ -1,34 +1,52 @@
+import { withAxiom } from "@/lib/axiom/server";
 import { stripe } from "@/lib/stripe";
-import { withAxiom } from "next-axiom";
+import { StripeMode } from "@/lib/types";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
 import { chargeRefunded } from "./charge-refunded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
+import { couponDeleted } from "./coupon-deleted";
 import { customerCreated } from "./customer-created";
+import { customerSubscriptionCreated } from "./customer-subscription-created";
+import { customerSubscriptionDeleted } from "./customer-subscription-deleted";
 import { customerUpdated } from "./customer-updated";
 import { invoicePaid } from "./invoice-paid";
+import { promotionCodeUpdated } from "./promotion-code-updated";
 
 const relevantEvents = new Set([
+  "account.application.deauthorized",
+  "charge.refunded",
+  "checkout.session.completed",
+  "coupon.deleted",
   "customer.created",
   "customer.updated",
-  "checkout.session.completed",
+  "customer.subscription.created",
+  "customer.subscription.deleted",
   "invoice.paid",
-  "charge.refunded",
-  "account.application.deauthorized",
+  "promotion_code.updated",
 ]);
 
 // POST /api/stripe/integration/webhook – listen to Stripe webhooks (for Stripe Integration)
 export const POST = withAxiom(async (req: Request) => {
   const pathname = new URL(req.url).pathname;
-  const testConnectWebhook = pathname.endsWith("/test");
-
   const buf = await req.text();
   const sig = req.headers.get("Stripe-Signature");
 
   // @see https://github.com/dubinc/dub/blob/main/apps/web/app/(ee)/api/stripe/integration/webhook/test/route.ts
-  const webhookSecret = testConnectWebhook
-    ? process.env.STRIPE_APP_WEBHOOK_SECRET_TEST
-    : process.env.STRIPE_APP_WEBHOOK_SECRET;
+  let webhookSecret: string | undefined;
+  let mode: StripeMode;
+
+  if (pathname.endsWith("/test")) {
+    webhookSecret = process.env.STRIPE_APP_WEBHOOK_SECRET_TEST;
+    mode = "test";
+  } else if (pathname.endsWith("/sandbox")) {
+    webhookSecret = process.env.STRIPE_APP_WEBHOOK_SECRET_SANDBOX;
+    mode = "sandbox";
+  } else {
+    webhookSecret = process.env.STRIPE_APP_WEBHOOK_SECRET;
+    mode = "live";
+  }
 
   if (!sig || !webhookSecret) {
     return new Response("Invalid request", {
@@ -53,30 +71,50 @@ export const POST = withAxiom(async (req: Request) => {
     });
   }
 
+  // When an app is installed in both live & test mode,
+  // test mode events are sent to both the test mode and live mode endpoints,
+  // and live mode events are sent to the live mode endpoint.
+  // See: https://docs.stripe.com/stripe-apps/build-backend#event-behavior-depends-on-install-mode
+  if (!event.livemode && mode === "live") {
+    return logAndRespond(
+      `Received a test webhook event (${event.type}) on our live webhook receiver endpoint, skipping...`,
+    );
+  }
+
   let response = "OK";
 
   switch (event.type) {
+    case "account.application.deauthorized":
+      response = await accountApplicationDeauthorized(event, mode);
+      break;
+    case "charge.refunded":
+      response = await chargeRefunded(event, mode);
+      break;
+    case "checkout.session.completed":
+      response = await checkoutSessionCompleted(event, mode);
+      break;
+    case "coupon.deleted":
+      response = await couponDeleted(event);
+      break;
     case "customer.created":
       response = await customerCreated(event);
       break;
     case "customer.updated":
       response = await customerUpdated(event);
       break;
-    case "checkout.session.completed":
-      response = await checkoutSessionCompleted(event);
+    case "customer.subscription.created":
+      response = await customerSubscriptionCreated(event, mode);
+      break;
+    case "customer.subscription.deleted":
+      response = await customerSubscriptionDeleted(event);
       break;
     case "invoice.paid":
-      response = await invoicePaid(event);
+      response = await invoicePaid(event, mode);
       break;
-    case "charge.refunded":
-      response = await chargeRefunded(event);
-      break;
-    case "account.application.deauthorized":
-      response = await accountApplicationDeauthorized(event);
+    case "promotion_code.updated":
+      response = await promotionCodeUpdated(event);
       break;
   }
 
-  return new Response(response, {
-    status: 200,
-  });
+  return logAndRespond(`[${event.type}]: ${response}`);
 });

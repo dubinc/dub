@@ -3,15 +3,14 @@ import {
   supportedWellKnownFiles,
   WellKnownConfig,
 } from "@/lib/well-known";
-import { prismaEdge } from "@dub/prisma/edge";
+import { prisma } from "@dub/prisma";
 import { NextRequest, NextResponse } from "next/server";
-
-export const runtime = "edge";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { domain: string; file: SupportedWellKnownFiles } },
+  props: { params: Promise<{ domain: string; file: SupportedWellKnownFiles }> },
 ) {
+  const params = await props.params;
   const { domain, file } = params;
 
   if (!supportedWellKnownFiles.includes(file)) {
@@ -19,7 +18,7 @@ export async function GET(
   }
 
   const { appleAppSiteAssociation, assetLinks } =
-    (await prismaEdge.domain.findUnique({
+    (await prisma.domain.findUnique({
       where: {
         slug: domain,
       },
@@ -48,5 +47,10 @@ export async function GET(
       break;
   }
 
-  return NextResponse.json(response);
+  return NextResponse.json(response, {
+    headers: {
+      "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+      "Vercel-Cache-Tag": `wellknown:${domain.toLowerCase()}`,
+    },
+  });
 }

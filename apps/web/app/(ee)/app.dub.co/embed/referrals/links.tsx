@@ -3,17 +3,7 @@ import { ReferralsEmbedCreateUpdateLink } from "./add-edit-link";
 import { ReferralsEmbedLinksList } from "./links-list";
 import { ReferralsEmbedLink } from "./types";
 
-interface Props {
-  links: ReferralsEmbedLink[];
-  destinationDomain: string;
-  shortLinkDomain: string;
-}
-
-export default function ReferralsEmbedLinks({
-  links,
-  destinationDomain,
-  shortLinkDomain,
-}: Props) {
+export function ReferralsEmbedLinks() {
   const [createLink, setCreateLink] = useState(false);
   const [link, setLink] = useState<ReferralsEmbedLink | null>(null);
 
@@ -21,8 +11,6 @@ export default function ReferralsEmbedLinks({
     <div className="flex flex-col space-y-6">
       {createLink ? (
         <ReferralsEmbedCreateUpdateLink
-          destinationDomain={destinationDomain}
-          shortLinkDomain={shortLinkDomain}
           link={link}
           onCancel={() => {
             setCreateLink(false);
@@ -31,7 +19,6 @@ export default function ReferralsEmbedLinks({
         />
       ) : (
         <ReferralsEmbedLinksList
-          links={links}
           onCreateLink={() => setCreateLink(true)}
           onEditLink={(link) => {
             setLink(link);

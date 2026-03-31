@@ -1,21 +1,26 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { MIN_WITHDRAWAL_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { fundFinancialAccount } from "@/lib/stripe/fund-financial-account";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
+import { logAndRespond } from "../../utils";
+import { queueExternalPayouts } from "./queue-external-payouts";
+import { queueStripePayouts } from "./queue-stripe-payouts";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
-import { sendStripePayouts } from "./send-stripe-payouts";
+import { scheduleDelayedStablecoinPayouts } from "./utils";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 600; // This function can run for a maximum of 10 minutes
 
 const payloadSchema = z.object({
   invoiceId: z.string(),
 });
 
 // POST /api/cron/payouts/charge-succeeded
-// This route is used to process the charge-succeeded event from Stripe
-// we're intentionally offloading this to a cron job to avoid blocking the main thread
-// so that we can return a 200 to Stripe immediately
+// This route is used to process the charge-succeeded event from Stripe.
+// We're intentionally offloading this to a cron job so we can return a 200 to Stripe immediately.
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -32,9 +37,7 @@ export async function POST(req: Request) {
           select: {
             payouts: {
               where: {
-                status: {
-                  not: "completed",
-                },
+                status: "processing",
               },
             },
           },
@@ -43,28 +46,80 @@ export async function POST(req: Request) {
     });
 
     if (!invoice) {
-      console.log(`Invoice with id ${invoiceId} not found.`);
-      return new Response(`Invoice with id ${invoiceId} not found.`);
+      return logAndRespond(`Invoice ${invoiceId} not found.`);
     }
 
     if (invoice._count.payouts === 0) {
-      console.log("No payouts found with status not completed, skipping...");
-      return new Response(
-        `No payouts found with status not completed for invoice ${invoiceId}`,
+      return logAndRespond(
+        `No payouts found with status 'processing' for invoice ${invoiceId}, skipping...`,
       );
     }
 
-    await Promise.allSettled([
-      sendStripePayouts({
-        invoiceId,
-      }),
+    // Set the method for each payout in the invoice to the corresponding partner's default payout method
+    await prisma.$executeRaw`
+      UPDATE Payout p
+      INNER JOIN Partner pr ON p.partnerId = pr.id
+      SET p.method = pr.defaultPayoutMethod
+      WHERE p.invoiceId = ${invoice.id}
+      AND pr.defaultPayoutMethod IS NOT NULL
+      AND p.status = 'processing'
+    `;
 
-      sendPaypalPayouts({
-        invoiceId,
-      }),
+    // Fund the total stablecoin payout amount for this invoice
+    const { _sum } = await prisma.payout.aggregate({
+      _sum: { amount: true },
+      where: {
+        invoiceId: invoice.id,
+        method: "stablecoin",
+        // only transfer funds for stablecoin payouts >= minimum withdrawal amount
+        // for payouts below the minimum withdrawal amount, we will just mark them as processed
+        // and users can force withdraw them manually later (which triggers another fundFinancialAccount call)
+        amount: {
+          gte: MIN_WITHDRAWAL_AMOUNT_CENTS,
+        },
+      },
+    });
+
+    let skipStablecoinPayouts = false;
+    const stablecoinFundingAmount = _sum.amount ?? 0;
+
+    // Send money to Financial Account to handle stablecoin payouts
+    if (stablecoinFundingAmount > 0) {
+      const { nextAction } = await scheduleDelayedStablecoinPayouts(invoice);
+
+      if (nextAction === "executeNow") {
+        try {
+          await fundFinancialAccount({
+            amount: stablecoinFundingAmount,
+            idempotencyKey: invoiceId,
+          });
+        } catch (error) {
+          await log({
+            message: `Failed to fund Dub's financial account for stablecoin payouts: ${error.message}`,
+            type: "errors",
+          });
+
+          skipStablecoinPayouts = true;
+        }
+      }
+
+      if (nextAction === "skip") {
+        skipStablecoinPayouts = true;
+      }
+    }
+
+    await Promise.allSettled([
+      // Queue Stripe payouts
+      queueStripePayouts(invoice, skipStablecoinPayouts),
+      // Send PayPal payouts
+      sendPaypalPayouts(invoice),
+      // Queue external payouts
+      queueExternalPayouts(invoice),
     ]);
 
-    return new Response(`Invoice ${invoiceId} processed.`);
+    return logAndRespond(
+      `Completed processing all payouts for invoice ${invoiceId}.`,
+    );
   } catch (error) {
     await log({
       message: `Error sending payouts for invoice: ${error.message}`,

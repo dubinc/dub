@@ -1,9 +1,9 @@
 import { qstash } from "@/lib/cron";
 import { redis } from "@/lib/upstash";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { partnerStackImportPayloadSchema } from "./schemas";
-import { PartnerStackConfig } from "./types";
+import { PartnerStackCredentials } from "./types";
 
 export const MAX_BATCHES = 5;
 export const CACHE_EXPIRY = 60 * 60 * 24;
@@ -11,14 +11,17 @@ export const CACHE_KEY_PREFIX = "partnerStack:import";
 export const PARTNER_IDS_KEY_PREFIX = "partnerStack:import:partnerIds";
 
 class PartnerStackImporter {
-  async setCredentials(workspaceId: string, payload: PartnerStackConfig) {
-    await redis.set(`${CACHE_KEY_PREFIX}:${workspaceId}`, payload, {
+  async setCredentials(
+    workspaceId: string,
+    credentials: PartnerStackCredentials,
+  ) {
+    await redis.set(`${CACHE_KEY_PREFIX}:${workspaceId}`, credentials, {
       ex: CACHE_EXPIRY,
     });
   }
 
   async getCredentials(workspaceId: string) {
-    const config = await redis.get<PartnerStackConfig>(
+    const config = await redis.get<PartnerStackCredentials>(
       `${CACHE_KEY_PREFIX}:${workspaceId}`,
     );
 
@@ -37,6 +40,7 @@ class PartnerStackImporter {
     return await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/import/partnerstack`,
       body,
+      contentBasedDeduplication: true,
     });
   }
 }

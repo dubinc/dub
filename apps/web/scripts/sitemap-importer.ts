@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 import { XMLParser } from "fast-xml-parser";
-import { bulkCreateLinks } from "../lib/api/links";
+import { bulkCreateLinks } from "../lib/api/links/bulk-create-links";
 
 async function fetchSitemap(url: string) {
   const response = await fetch(url);
@@ -14,19 +14,21 @@ async function fetchSitemap(url: string) {
 
 const sitemapUrl = "https://dub.co/sitemap.xml";
 const domain = "site.dub.co";
-const projectId = "xxx";
-const userId = "xxx";
-const folderId = "xxx";
+const projectId = "ws_xxx";
+const userId = "user_xxx";
+const folderId = "fold_xxx";
 
 async function main() {
   // Fetch and parse sitemap
   const sitemapUrls = await fetchSitemap(sitemapUrl);
 
-  // Filter out homepage and invalid URLs
   const validUrls = sitemapUrls
+    // filter out other sitemaps
+    .filter((url: string) => !url.endsWith("sitemap.xml"))
     .map((url: string) => {
       const urlObj = new URL(url);
       let key = urlObj.pathname.slice(1);
+      // convert homepage to _root
       if (key === "") {
         key = "_root";
       }

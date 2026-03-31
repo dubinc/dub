@@ -1,4 +1,3 @@
-import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { DubApiError } from "@/lib/api/errors";
@@ -31,12 +30,12 @@ export const POST = withWorkspace(
     if (newWorkspaceId === workspace.id) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Please select another workspace to transfer the domain to.",
+        message: "You cannot transfer a domain to the same workspace.",
       });
     }
 
-    // Allow only 1 domain transfer per workspace per hour
-    const { success } = await ratelimit(1, "1 h").limit(
+    // Allow up to 5 domain transfer per workspace per hour
+    const { success } = await ratelimit(5, "1 h").limit(
       `domain-transfer:${workspace.id}`,
     );
 
@@ -103,49 +102,17 @@ export const POST = withWorkspace(
       });
     }
 
-    const { clicks: totalLinkClicks } = await getAnalytics({
-      domain,
-      event: "clicks",
-      groupBy: "count",
-      workspaceId: workspace.id,
-      interval: "30d",
-    });
-
     // Update the domain to use the new workspace
-    const [domainResponse] = await Promise.all([
-      prisma.domain.update({
-        where: { slug: domain, projectId: workspace.id },
-        data: {
-          projectId: newWorkspaceId,
-          primary: newWorkspace.domains.length === 0,
-        },
-        include: {
-          registeredDomain: true,
-        },
-      }),
-      prisma.project.update({
-        where: { id: workspace.id },
-        data: {
-          usage: {
-            set: Math.max(workspace.usage - totalLinkClicks, 0),
-          },
-          linksUsage: {
-            set: Math.max(workspace.linksUsage - linksCount, 0),
-          },
-        },
-      }),
-      prisma.project.update({
-        where: { id: newWorkspaceId },
-        data: {
-          usage: {
-            increment: totalLinkClicks,
-          },
-          linksUsage: {
-            increment: linksCount,
-          },
-        },
-      }),
-    ]);
+    const domainResponse = await prisma.domain.update({
+      where: { slug: domain, projectId: workspace.id },
+      data: {
+        projectId: newWorkspaceId,
+        primary: newWorkspace.domains.length === 0,
+      },
+      include: {
+        registeredDomain: true,
+      },
+    });
 
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/domains/transfer`,

@@ -1,18 +1,71 @@
-import { redis } from "@/lib/upstash";
-import { DUB_HEADERS } from "@dub/utils";
+import { createId } from "@/lib/api/create-id";
+import { linkCache } from "@/lib/api/links/cache";
+import { encodeKeyIfCaseSensitive } from "@/lib/api/links/case-sensitivity";
+import { recordLink } from "@/lib/tinybird";
+import { prisma } from "@dub/prisma";
+import {
+  DUB_HEADERS,
+  getUrlFromStringIfValid,
+  linkConstructorSimple,
+} from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 import { parse } from "./parse";
 
-export const crawlBitly = async (req: NextRequest) => {
-  const { domain, fullKey } = parse(req);
+const BUFFER_WORKSPACE_ID = "cm05wnnpo000711ztj05wwdbu";
+const BUFFER_USER_ID = "cm05wnd49000411ztg2xbup0i";
+const BUFFER_FOLDER_ID = "fold_1JNQBVZV8P0NA0YGB11W2HHSQ";
+const BUFFER_BITLY_API_KEY = process.env.BUFFER_BITLY_API_KEY;
 
-  // bitly doesn't support the following characters: ` ~ , . < > ; ‘ : “ / \ [ ] ^ { } ( ) = + ! * @ & $ £ ? % # |
+export const crawlBitly = async (req: NextRequest) => {
+  const { domain, fullKey: key } = parse(req);
+
+  // bitly doesn't support the following characters: ` ~ , . < > ; ‘ : " / \ [ ] ^ { } ( ) = + ! * @ & $ £ ? % # |
   // @see: https://support.bitly.com/hc/en-us/articles/360030780892-What-characters-are-supported-when-customizing-links
   const invalidBitlyKeyRegex = /[`~,.<>;':"/\\[\]^{}()=+!*@&$£?%#|]/;
 
-  if (fullKey && !invalidBitlyKeyRegex.test(fullKey)) {
-    const link = await fetchBitlyLink({ domain, key: fullKey });
+  if (key && !invalidBitlyKeyRegex.test(key)) {
+    const link = await fetchBitlyLink({ domain, key });
     if (link) {
+      const sanitizedUrl = getUrlFromStringIfValid(link.long_url);
+      if (sanitizedUrl) {
+        console.log(
+          `[Bitly] Creating link on-demand: ${domain}/${key} (createdAt: ${link.created_at})`,
+        );
+        const encodedKey = encodeKeyIfCaseSensitive({ domain, key });
+        waitUntil(
+          prisma.link
+            .create({
+              data: {
+                id: createId({ prefix: "link_" }),
+                domain,
+                key: encodedKey,
+                url: sanitizedUrl,
+                shortLink: linkConstructorSimple({ domain, key: encodedKey }),
+                projectId: BUFFER_WORKSPACE_ID,
+                userId: BUFFER_USER_ID,
+                folderId: BUFFER_FOLDER_ID,
+                createdAt: new Date(link.created_at),
+              },
+            })
+            .then((data) =>
+              Promise.allSettled([
+                // console log outputs
+                recordLink(data),
+                prisma.project.update({
+                  where: {
+                    id: BUFFER_WORKSPACE_ID,
+                  },
+                  data: {
+                    linksUsage: { increment: 1 },
+                    totalLinks: { increment: 1 },
+                  },
+                }),
+              ]),
+            ),
+        );
+      }
+
       return NextResponse.redirect(link.long_url, {
         headers: DUB_HEADERS,
         status: 302,
@@ -21,12 +74,17 @@ export const crawlBitly = async (req: NextRequest) => {
   }
 
   return NextResponse.redirect("https://buffer.com", {
-    headers: DUB_HEADERS,
+    headers: {
+      ...DUB_HEADERS,
+      "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+      "Vercel-Cache-Tag": linkCache._createStaticPagesCacheKeys({
+        domain,
+        key,
+      }),
+    },
     status: 302,
   });
 };
-
-const BUFFER_WORKSPACE_ID = "cm05wnnpo000711ztj05wwdbu";
 
 async function fetchBitlyLink({
   domain,
@@ -35,20 +93,11 @@ async function fetchBitlyLink({
   domain: string;
   key: string;
 }) {
-  const apiKey = await redis.get<string>(`import:bitly:${BUFFER_WORKSPACE_ID}`);
-
-  if (!apiKey) {
-    console.error(
-      `[Bitly] No API key found for workspace ${BUFFER_WORKSPACE_ID}`,
-    );
-    return null;
-  }
-
   const response = await fetch(
     `https://api-ssl.bitly.com/v4/bitlinks/${domain}/${key}`,
     {
       headers: {
-        Authorization: `Bearer ${apiKey}`,
+        Authorization: `Bearer ${BUFFER_BITLY_API_KEY}`,
       },
     },
   );

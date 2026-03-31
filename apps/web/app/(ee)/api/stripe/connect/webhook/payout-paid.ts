@@ -1,42 +1,36 @@
-import { prisma } from "@dub/prisma";
+import { qstash } from "@/lib/cron";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
+
+const queue = qstash.queue({
+  queueName: "handle-payout-paid",
+});
 
 export async function payoutPaid(event: Stripe.Event) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {
-    console.error(
-      `Stripe connect account ${stripeAccount} not found. Skipping...`,
-    );
-    return;
-  }
-
-  const partner = await prisma.partner.findUnique({
-    where: {
-      stripeConnectId: stripeAccount,
-    },
-  });
-
-  if (!partner) {
-    console.error(
-      `Partner not found with Stripe connect account ${stripeAccount}. Skipping...`,
-    );
-    return;
+    return "No stripeConnectId found in event. Skipping...";
   }
 
   const stripePayout = event.data.object as Stripe.Payout;
+  const stripePayoutTraceId = stripePayout.trace_id?.value ?? null;
 
-  const updatedPayouts = await prisma.payout.updateMany({
-    where: {
-      status: "sent",
-      stripePayoutId: stripePayout.id,
-    },
-    data: {
-      status: "completed",
+  const response = await queue.enqueueJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/payout-paid`,
+    deduplicationId: event.id,
+    method: "POST",
+    body: {
+      stripeAccount,
+      stripePayout: {
+        id: stripePayout.id,
+        traceId: stripePayoutTraceId,
+        amount: stripePayout.amount,
+        currency: stripePayout.currency,
+        arrivalDate: stripePayout.arrival_date,
+      },
     },
   });
 
-  console.log(
-    `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to "completed" status`,
-  );
+  return `Enqueued payout paid for partner ${stripeAccount}: ${response.messageId}`;
 }

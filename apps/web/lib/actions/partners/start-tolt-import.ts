@@ -1,19 +1,28 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { toltImporter } from "@/lib/tolt/importer";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
+  toltProgramId: z.string().trim().min(1),
 });
 
 export const startToltImportAction = authActionClient
-  .schema(schema)
-  .action(async ({ ctx }) => {
-    const { workspace } = ctx;
+  .inputSchema(schema)
+  .action(async ({ ctx, parsedInput }) => {
+    const { workspace, user } = ctx;
+    const { toltProgramId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -39,7 +48,10 @@ export const startToltImportAction = authActionClient
     }
 
     await toltImporter.queue({
-      action: "import-affiliates",
-      programId,
+      importId: createId({ prefix: "import_" }),
+      userId: user.id,
+      programId: program.id,
+      toltProgramId,
+      action: "import-partners",
     });
   });

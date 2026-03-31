@@ -1,11 +1,12 @@
 import { createId } from "@/lib/api/create-id";
 import { transformCustomer } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { getCustomers } from "@/lib/customers/api/get-customers";
 import { generateRandomName } from "@/lib/names";
 import { isStored, storage } from "@/lib/storage";
-import z from "@/lib/zod";
 import {
   createCustomerBodySchema,
   CustomerEnrichedSchema,
@@ -15,108 +16,30 @@ import {
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
-import {
-  Customer,
-  Discount,
-  Link,
-  Partner,
-  Program,
-  ProgramEnrollment,
-} from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-
-interface CustomerResponse extends Customer {
-  link: Link & {
-    programEnrollment: ProgramEnrollment & {
-      program: Program;
-      partner: Partner;
-      discount: Discount | null;
-    };
-  };
-}
 
 // GET /api/customers – Get all customers
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const {
-      email,
-      externalId,
-      search,
-      country,
-      linkId,
-      includeExpandedFields,
-      page,
-      pageSize,
-      customerIds,
-      sortBy,
-      sortOrder,
-    } = getCustomersQuerySchemaExtended.parse(searchParams);
+    const filters = getCustomersQuerySchemaExtended.parse(searchParams);
 
-    const customers = (await prisma.customer.findMany({
-      where: {
-        ...(customerIds
-          ? {
-              id: { in: customerIds },
-            }
-          : {}),
-        projectId: workspace.id,
-        ...(email
-          ? { email }
-          : externalId
-            ? { externalId }
-            : {
-                ...(search && {
-                  OR: [
-                    { email: { startsWith: search } },
-                    { externalId: { startsWith: search } },
-                    { name: { startsWith: search } },
-                  ],
-                }),
-                ...(country && {
-                  country,
-                }),
-                ...(linkId && {
-                  linkId,
-                }),
-              }),
-      },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      ...(includeExpandedFields
-        ? {
-            include: {
-              link: {
-                include: {
-                  programEnrollment: {
-                    include: {
-                      partner: {
-                        select: {
-                          id: true,
-                          name: true,
-                          email: true,
-                          image: true,
-                        },
-                      },
-                      discount: true,
-                    },
-                  },
-                },
-              },
-            },
-          }
-        : {}),
-    })) as CustomerResponse[];
+    let { programId, partnerId, includeExpandedFields } = filters;
+
+    if (programId || partnerId) {
+      programId = getDefaultProgramIdOrThrow(workspace);
+    }
+
+    const customers = await getCustomers({
+      ...filters,
+      workspaceId: workspace.id,
+      programId,
+    });
 
     const responseSchema = includeExpandedFields
-      ? CustomerEnrichedSchema.merge(
-          z.object({
-            discount: DiscountSchemaWithDeprecatedFields,
-          }),
-        )
+      ? CustomerEnrichedSchema.extend({
+          discount: DiscountSchemaWithDeprecatedFields,
+        })
       : CustomerSchema;
 
     const response = responseSchema
@@ -140,9 +63,8 @@ export const GET = withWorkspace(
 // POST /api/customers – Create a customer
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
-    const { email, name, avatar, externalId } = createCustomerBodySchema.parse(
-      await parseRequestBody(req),
-    );
+    const { email, name, avatar, externalId, stripeCustomerId, country } =
+      createCustomerBodySchema.parse(await parseRequestBody(req));
 
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName = name || email || generateRandomName();
@@ -159,6 +81,8 @@ export const POST = withWorkspace(
           email,
           avatar: finalCustomerAvatar,
           externalId,
+          stripeCustomerId,
+          country,
           projectId: workspace.id,
           projectConnectId: workspace.stripeConnectId,
         },
@@ -166,14 +90,27 @@ export const POST = withWorkspace(
 
       if (avatar && !isStored(avatar) && finalCustomerAvatar) {
         waitUntil(
-          storage.upload(
-            finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-            avatar,
-            {
-              width: 128,
-              height: 128,
-            },
-          ),
+          storage
+            .upload({
+              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              body: avatar,
+              opts: {
+                width: 128,
+                height: 128,
+              },
+            })
+            .catch(async (error) => {
+              console.error("Error persisting customer avatar to R2", error);
+              // if the avatar fails to upload to R2, set the avatar to null in the database
+              await prisma.customer.update({
+                where: {
+                  id: customer.id,
+                },
+                data: {
+                  avatar: null,
+                },
+              });
+            }),
         );
       }
 
@@ -206,5 +143,6 @@ export const POST = withWorkspace(
       "advanced",
       "enterprise",
     ],
+    requiredRoles: ["owner", "member"],
   },
 );

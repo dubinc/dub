@@ -1,13 +1,15 @@
 "use server";
 
+import { trackRewardActivityLog } from "@/lib/api/activity-log/track-reward-activity-log";
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const deleteRewardSchema = z.object({
   workspaceId: z.string(),
@@ -15,10 +17,15 @@ const deleteRewardSchema = z.object({
 });
 
 export const deleteRewardAction = authActionClient
-  .schema(deleteRewardSchema)
+  .inputSchema(deleteRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { rewardId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -27,56 +34,64 @@ export const deleteRewardAction = authActionClient
       programId,
     });
 
-    if (reward.default) {
-      throw new Error(`Default ${reward.event} reward cannot be deleted.`);
-    }
-
     const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
 
-    await prisma.$transaction(async (tx) => {
-      // 1. Find the default reward for the same event (if it exists)
-      const defaultReward = await tx.reward.findFirst({
+    const partnerGroup = await prisma.$transaction(async (tx) => {
+      const group = await tx.partnerGroup.update({
+        // @ts-ignore
         where: {
-          programId,
-          event: reward.event,
-          default: true,
-        },
-      });
-
-      // 2. Update current associations
-      await tx.programEnrollment.updateMany({
-        where: {
-          programId,
           [rewardIdColumn]: reward.id,
         },
         data: {
-          // Replace the current reward with the default reward for the same event if it exists
-          [rewardIdColumn]: defaultReward ? defaultReward.id : null,
+          [rewardIdColumn]: null,
         },
       });
 
-      // 3. Finally, delete the current reward
+      await tx.programEnrollment.updateMany({
+        where: {
+          [rewardIdColumn]: reward.id,
+        },
+        data: {
+          [rewardIdColumn]: null,
+        },
+      });
+
       await tx.reward.delete({
         where: {
           id: reward.id,
         },
       });
+
+      return group;
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "reward.deleted",
-        description: `Reward ${rewardId} deleted`,
-        actor: user,
-        targets: [
-          {
-            type: "reward",
-            id: rewardId,
-            metadata: reward,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "reward.deleted",
+          description: `Reward ${rewardId} deleted`,
+          actor: user,
+          targets: [
+            {
+              type: "reward",
+              id: rewardId,
+              metadata: reward,
+            },
+          ],
+        }),
+
+        trackRewardActivityLog({
+          workspaceId: workspace.id,
+          programId,
+          userId: user.id,
+          resourceId: reward.id,
+          parentResourceType: "group",
+          parentResourceId: partnerGroup?.id,
+          old: reward,
+          new: null,
+        }),
+      ]),
     );
   });

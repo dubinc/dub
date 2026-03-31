@@ -1,12 +1,14 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sendEmail } from "@dub/email";
-import PartnerInvite from "@dub/email/templates/partner-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
-import z from "../../zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const resendProgramInviteSchema = z.object({
   workspaceId: z.string(),
@@ -14,10 +16,15 @@ const resendProgramInviteSchema = z.object({
 });
 
 export const resendProgramInviteAction = authActionClient
-  .schema(resendProgramInviteSchema)
+  .inputSchema(resendProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace, user } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -50,18 +57,27 @@ export const resendProgramInviteAction = authActionClient
     }
 
     await Promise.allSettled([
-      sendEmail({
-        subject: `${program.name} invited you to join Dub Partners`,
-        email: partner.email!,
-        react: PartnerInvite({
-          email: partner.email!,
-          program: {
-            name: program.name,
-            slug: program.slug,
-            logo: program.logo,
-          },
-        }),
-      }),
+      (async () => {
+        await sendEmail({
+          subject: `${program.name} invited you to join Dub Partners`,
+          variant: "notifications",
+          to: partner.email!,
+          replyTo: program.supportEmail || "noreply",
+          react: ProgramInvite({
+            email: partner.email!,
+            name: partner.name,
+            program: {
+              name: program.name,
+              slug: program.slug,
+              logo: program.logo,
+            },
+            ...(await getGroupRewardsAndBounties({
+              programId,
+              groupId: programEnrollment.groupId || program.defaultGroupId,
+            })),
+          }),
+        });
+      })(),
 
       prisma.programEnrollment.update({
         where: {

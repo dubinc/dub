@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const getLinksCount: ZodOpenApiOperationObject = {
   operationId: "getLinksCount",
@@ -16,7 +16,7 @@ export const getLinksCount: ZodOpenApiOperationObject = {
       description: "A list of links",
       content: {
         "application/json": {
-          schema: z.number().openapi({
+          schema: z.number().meta({
             description: "The number of links matching the query.",
           }),
         },

@@ -82,22 +82,22 @@ export default function PartnerProgramSummary({
     createdAt: new Date(),
   },
   previousMonth = {
+    earnings: 12500,
     clicks: 200,
-    leads: 300,
-    sales: 50,
-    earnings: 100,
+    leads: 50,
+    sales: 25,
   },
   currentMonth = {
-    clicks: 100,
-    leads: 100,
-    sales: 100,
-    earnings: 100,
+    earnings: 12850,
+    clicks: 210,
+    leads: 45,
+    sales: 25,
   },
   lifetime = {
-    clicks: 200,
-    leads: 200,
-    sales: 200,
-    earnings: 200,
+    earnings: 11241050,
+    clicks: 398585,
+    leads: 23409,
+    sales: 1492,
   },
   reportingPeriod = {
     month: "May 2025",
@@ -115,22 +115,22 @@ export default function PartnerProgramSummary({
     createdAt: Date;
   };
   previousMonth: {
+    earnings: number;
     clicks: number;
     leads: number;
     sales: number;
-    earnings: number;
   };
   currentMonth: {
+    earnings: number;
     clicks: number;
     leads: number;
     sales: number;
-    earnings: number;
   };
   lifetime: {
+    earnings: number;
     clicks: number;
     leads: number;
     sales: number;
-    earnings: number;
   };
   reportingPeriod: {
     month: string;
@@ -139,6 +139,11 @@ export default function PartnerProgramSummary({
   };
 }) {
   const monthlyStats = [
+    {
+      title: "Earnings",
+      value: currencyFormatter(currentMonth.earnings),
+      percent: getPercentChange(currentMonth.earnings, previousMonth.earnings),
+    },
     {
       title: "Clicks",
       value: nFormatter(currentMonth.clicks),
@@ -154,17 +159,13 @@ export default function PartnerProgramSummary({
       value: nFormatter(currentMonth.sales),
       percent: getPercentChange(currentMonth.sales, previousMonth.sales),
     },
-    {
-      title: "Earnings",
-      value: currencyFormatter(currentMonth.earnings / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-      percent: getPercentChange(currentMonth.earnings, previousMonth.earnings),
-    },
   ];
 
   const lifetimeStats = [
+    {
+      title: "Earnings",
+      value: currencyFormatter(lifetime.earnings),
+    },
     {
       title: "Clicks",
       value: nFormatter(lifetime.clicks),
@@ -177,19 +178,19 @@ export default function PartnerProgramSummary({
       title: "Sales",
       value: nFormatter(lifetime.sales),
     },
-    {
-      title: "Earnings",
-      value: currencyFormatter(lifetime.earnings / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
-    },
   ];
+
+  const previewText = monthlyStats
+    .map(
+      ({ title, value, percent }) =>
+        `${title.toUpperCase()} ${value} (${getPercentState(percent).sign}${Math.abs(percent)}%)`,
+    )
+    .join(" | ");
 
   return (
     <Html>
       <Head />
-      <Preview>{`Your ${reportingPeriod.month} performance report for ${program.name} program.`}</Preview>
+      <Preview>{previewText}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] space-y-10 px-3 py-5">
@@ -227,10 +228,7 @@ export default function PartnerProgramSummary({
 
               <Section className="space-y-6 rounded-xl border-t border-solid border-neutral-200 bg-white p-6">
                 <Section>
-                  <Heading
-                    as="h4"
-                    className="mt-0 text-base font-semibold leading-6 text-neutral-800"
-                  >
+                  <Heading className="mb-4 mt-0 text-base font-semibold leading-6 text-neutral-800">
                     Stats for {reportingPeriod.month} (vs previous month)
                   </Heading>
 
@@ -240,10 +238,7 @@ export default function PartnerProgramSummary({
                 <Hr className="mx-0 my-8 w-full border border-neutral-200" />
 
                 <Section>
-                  <Heading
-                    as="h4"
-                    className="mt-0 text-base font-semibold leading-6 text-neutral-800"
-                  >
+                  <Heading className="mb-4 mt-0 text-base font-semibold leading-6 text-neutral-800">
                     All-time Performance
                   </Heading>
 

@@ -7,7 +7,7 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import UserInfo, { UserInfoProps } from "./user-info";
 
-export default function ImpersonateUser() {
+export function ImpersonateUser() {
   const [data, setData] = useState<UserInfoProps | null>(null);
 
   return (
@@ -82,7 +82,17 @@ const Form = () => {
           "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
           pending && "bg-neutral-100",
         )}
-        placeholder="stey@vercel.com"
+        onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+          // remove mailto: on paste
+          e.preventDefault();
+          const text = e.clipboardData.getData("text/plain");
+          if (text.startsWith("mailto:")) {
+            e.currentTarget.value = text.replace("mailto:", "");
+          } else {
+            e.currentTarget.value = text;
+          }
+        }}
+        placeholder="panic@thedis.co"
         aria-invalid="true"
       />
       {pending && (

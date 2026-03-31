@@ -1,5 +1,5 @@
-import { AnimatePresence } from "framer-motion";
 import Cookies from "js-cookie";
+import { AnimatePresence } from "motion/react";
 import { ReactNode, createContext, useState } from "react";
 import { ClientOnly } from "./client-only";
 

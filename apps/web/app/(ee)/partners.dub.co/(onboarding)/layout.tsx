@@ -1,6 +1,7 @@
 import Toolbar from "@/ui/layout/toolbar/toolbar";
 import { Grid, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { SignedInHint } from "app/app.dub.co/(onboarding)/signed-in-hint";
 import Link from "next/link";
 
 export default function PartnerOnboardingLayout({
@@ -47,7 +48,7 @@ export default function PartnerOnboardingLayout({
         ))}
       </div>
 
-      <div className="relative flex min-h-screen w-full flex-col items-center justify-between">
+      <div className="relative flex min-h-[100dvh] min-h-screen w-full flex-col items-center justify-between">
         <div className="grow basis-0">
           <div className="pt-4">
             <Link href="https://dub.co/home" target="_blank" className="block">
@@ -66,6 +67,7 @@ export default function PartnerOnboardingLayout({
       </div>
 
       <Toolbar show={["help"]} />
+      <SignedInHint />
     </>
   );
 }

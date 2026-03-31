@@ -11,38 +11,43 @@ import {
 import { NextResponse } from "next/server";
 
 // DELETE /api/admin/links/ban – ban a dub.sh link by key
-export const DELETE = withAdmin(async ({ searchParams }) => {
-  const { domain, key } = domainKeySchema.parse(searchParams);
+export const DELETE = withAdmin(
+  async ({ searchParams }) => {
+    const { domain, key } = domainKeySchema.parse(searchParams);
 
-  const link = await prisma.link.findUnique({
-    where: { domain_key: { domain, key } },
-  });
+    const link = await prisma.link.findUnique({
+      where: { domain_key: { domain, key } },
+    });
 
-  if (!link) {
-    return NextResponse.json({ error: "Link not found" }, { status: 404 });
-  }
+    if (!link) {
+      return NextResponse.json({ error: "Link not found" }, { status: 404 });
+    }
 
-  const urlDomain = getDomainWithoutWWW(link.url);
+    const urlDomain = getDomainWithoutWWW(link.url);
 
-  const response = await Promise.all([
-    prisma.link.update({
-      where: {
-        id: link.id,
-      },
-      data: {
-        userId: LEGAL_USER_ID,
-        projectId: LEGAL_WORKSPACE_ID,
-      },
-    }),
-
-    linkCache.set({ ...link, projectId: LEGAL_WORKSPACE_ID }),
-
-    urlDomain &&
-      updateConfig({
-        key: "domains",
-        value: urlDomain,
+    const response = await Promise.all([
+      prisma.link.update({
+        where: {
+          id: link.id,
+        },
+        data: {
+          userId: LEGAL_USER_ID,
+          projectId: LEGAL_WORKSPACE_ID,
+        },
       }),
-  ]);
 
-  return NextResponse.json(response);
-});
+      linkCache.set({ ...link, projectId: LEGAL_WORKSPACE_ID }),
+
+      urlDomain &&
+        updateConfig({
+          key: "domains",
+          value: urlDomain,
+        }),
+    ]);
+
+    return NextResponse.json(response);
+  },
+  {
+    requiredRoles: ["owner"],
+  },
+);

@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ABTestVariantsSchema } from "@/lib/zod/schemas/links";
-import { fetcher } from "@dub/utils";
-import { motion } from "framer-motion";
+import { fetcher, getPrettyUrl } from "@dub/utils";
+import { motion } from "motion/react";
 import { memo, useMemo } from "react";
 import useSWR from "swr";
 import { LinkAnalyticsBadge } from "./link-analytics-badge";
@@ -41,7 +41,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
       showTests &&
       `/api/analytics?${new URLSearchParams({
         event: "composite",
-        groupBy: "top_urls",
+        groupBy: "top_base_urls",
         linkId: link.id,
         workspaceId: workspaceId!,
         ...(link.testStartedAt && {
@@ -82,7 +82,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
 
                 {/* Test name */}
                 <span className="truncate text-sm font-medium text-neutral-800">
-                  {test.url}
+                  {getPrettyUrl(test.url)}
                 </span>
               </div>
 
@@ -107,7 +107,6 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
                         sales: analytics?.sales ?? 0,
                         saleAmount: analytics?.saleAmount ?? 0,
                       }}
-                      url={test.url}
                       sharingEnabled={false}
                     />
                   )}

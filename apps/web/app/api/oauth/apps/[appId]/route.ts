@@ -83,10 +83,10 @@ export const PATCH = withWorkspace(
 
       // Logo has been changed
       if (logoUpdated) {
-        const result = await storage.upload(
-          `integrations/${params.appId}_${nanoid(7)}`,
-          logo,
-        );
+        const result = await storage.upload({
+          key: `integrations/${params.appId}_${nanoid(7)}`,
+          body: logo,
+        });
 
         logoUrl = result.url;
       }
@@ -127,7 +127,9 @@ export const PATCH = withWorkspace(
               `${R2_URL}/integrations/${params.appId}`,
             )
           ) {
-            await storage.delete(integration.logo.replace(`${R2_URL}/`, ""));
+            await storage.delete({
+              key: integration.logo.replace(`${R2_URL}/`, ""),
+            });
           }
 
           // Remove old screenshots
@@ -196,7 +198,9 @@ export const DELETE = withWorkspace(
           integration.logo &&
           integration.logo.startsWith(`${R2_URL}/integrations`)
         ) {
-          await storage.delete(integration.logo.replace(`${R2_URL}/`, ""));
+          await storage.delete({
+            key: integration.logo.replace(`${R2_URL}/`, ""),
+          });
         }
 
         await deleteScreenshots(integration.screenshots);

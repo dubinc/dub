@@ -1,13 +1,17 @@
 import { VALID_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
-import { convertToCSV, validDateRangeForPlan } from "@/lib/analytics/utils";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { convertToCSV } from "@/lib/analytics/utils";
+import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
+import { parseAnalyticsQuery } from "@/lib/zod/schemas/analytics";
 import { Link } from "@dub/prisma/client";
 import JSZip from "jszip";
 
@@ -16,28 +20,62 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
-    const parsedParams = analyticsQuerySchema.parse(searchParams);
+    const parsedParams = parseAnalyticsQuery(searchParams);
 
-    const { interval, start, end, linkId, externalId, domain, key, folderId } =
-      parsedParams;
+    let {
+      interval,
+      start,
+      end,
+      folderId,
+      domain,
+      key,
+      linkId,
+      externalId,
+      programId,
+    } = parsedParams;
 
     let link: Link | null = null;
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
+    let programStartedAt: Date | null | undefined = null;
+    if (programId) {
+      const workspaceProgramId = getDefaultProgramIdOrThrow(workspace);
+      if (programId !== workspaceProgramId) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: `Program ${programId} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
+        });
+      }
+      // dataAvailableFrom for timeseries is resolved per-endpoint below
+      const program = await getProgramOrThrow({
+        workspaceId: workspace.id,
+        programId,
+      });
+      programStartedAt = program.startedAt;
     }
 
-    if (linkId || externalId || (domain && key)) {
-      link = await getLinkOrThrow({
+    let folderIdToVerify = getFirstFilterValue(folderId);
+    if (!linkId && (externalId || (domain && key))) {
+      const link = await getLinkOrThrow({
         workspaceId: workspace.id,
         linkId,
         externalId,
-        domain,
+        domain: getFirstFilterValue(domain),
         key,
       });
-    }
 
-    const folderIdToVerify = link?.folderId || folderId;
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
+
+      // since we're filtering for a specific link, exclude domain from filters
+      parsedParams.domain = undefined;
+
+      if (link.folderId && !folderIdToVerify) {
+        folderIdToVerify = link.folderId;
+      }
+    }
 
     if (folderIdToVerify) {
       await verifyFolderAccess({
@@ -48,21 +86,16 @@ export const GET = withWorkspace(
       });
     }
 
-    validDateRangeForPlan({
+    assertValidDateRangeForPlan({
       plan: workspace.plan,
       dataAvailableFrom: workspace.createdAt,
       interval,
       start,
       end,
-      throwError: true,
     });
 
-    const folderIds = folderIdToVerify
-      ? undefined
-      : await getFolderIdsToFilter({
-          workspace,
-          userId: session.user.id,
-        });
+    // When domain+key resolves a specific link, exclude domain from filters
+    const { domain: _domain, key: _key, ...filterParams } = parsedParams;
 
     const zip = new JSZip();
 
@@ -75,13 +108,13 @@ export const GET = withWorkspace(
         if (endpoint === "count") return;
 
         const response = await getAnalytics({
-          ...parsedParams,
+          ...(link ? filterParams : parsedParams),
           workspaceId: workspace.id,
-          ...(link && { linkId: link.id }),
-          event: "clicks",
           groupBy: endpoint,
-          folderIds,
-          folderId: folderId || "",
+          isDeprecatedClicksEndpoint: false,
+          ...(endpoint === "timeseries" && {
+            dataAvailableFrom: programStartedAt ?? workspace.createdAt,
+          }),
         });
 
         if (!response || response.length === 0) return;
@@ -93,7 +126,7 @@ export const GET = withWorkspace(
 
     const zipData = await zip.generateAsync({ type: "nodebuffer" });
 
-    return new Response(zipData, {
+    return new Response(zipData as unknown as BodyInit, {
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": "attachment; filename=analytics_export.zip",

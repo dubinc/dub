@@ -5,18 +5,16 @@ import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import TagBadge from "@/ui/links/tag-badge";
+import { useCompletion } from "@ai-sdk/react";
 import {
   AnimatedSizeContainer,
   Combobox,
   InfoTooltip,
   Magic,
-  SimpleTooltipContent,
   Tag,
   Tooltip,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useCompletion } from "ai/react";
-import posthog from "posthog-js";
 import { memo, useEffect, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -107,6 +105,7 @@ export const TagSelect = memo(() => {
 
   const { complete } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
+    streamProtocol: "text",
     body: {
       model: "claude-3-5-haiku-latest",
     },
@@ -157,13 +156,7 @@ export const TagSelect = memo(() => {
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-neutral-700">Tags</p>
           <InfoTooltip
-            content={
-              <SimpleTooltipContent
-                title={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard.`}
-                cta="Learn more."
-                href="https://dub.co/help/article/how-to-use-tags"
-              />
-            }
+            content={`Tags are used to organize your links in your ${process.env.NEXT_PUBLIC_APP_NAME} dashboard. [Learn more.](https://dub.co/help/article/how-to-use-tags)`}
           />
         </div>
         <a
@@ -202,6 +195,7 @@ export const TagSelect = memo(() => {
             selectedTags.length === 0 && "text-neutral-400",
           ),
         }}
+        createLabel={(search) => `Create ${search ? `"${search}"` : "new tag"}`}
         onCreate={(search) => createTag(search)}
         open={isOpen}
         onOpenChange={setIsOpen}
@@ -246,10 +240,6 @@ export const TagSelect = memo(() => {
                   setSuggestedTags((tags) =>
                     tags.filter(({ id }) => id !== tag.id),
                   );
-                  posthog.capture("ai_suggested_tag_selected", {
-                    tag: tag.name,
-                    url: url,
-                  });
                 }}
                 className="group flex items-center transition-all active:scale-95"
               >

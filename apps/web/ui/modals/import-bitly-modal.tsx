@@ -1,3 +1,5 @@
+import { createOAuthUrl } from "@/lib/actions/create-oauth-url";
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BitlyGroupProps } from "@/lib/types";
 import {
@@ -9,8 +11,9 @@ import {
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
-import { APP_DOMAIN_WITH_NGROK, fetcher } from "@dub/utils";
+import { fetcher } from "@dub/utils";
 import { ArrowRight, ServerOff } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -32,10 +35,24 @@ function ImportBitlyModal({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
   const { id: workspaceId } = useWorkspace();
+  const [importing, setImporting] = useState(false);
+  const { queryParams } = useRouterStuff();
 
-  const [redirecting, setRedirecting] = useState(false);
+  const { executeAsync, isPending } = useAction(createOAuthUrl, {
+    onSuccess: ({ data }) => {
+      if (!data?.url) {
+        toast.error("Failed to generate OAuth URL.");
+        return;
+      }
+
+      router.push(data.url);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError || "Failed to generate OAuth URL.");
+    },
+  });
 
   const {
     data: groups,
@@ -63,8 +80,6 @@ function ImportBitlyModal({
   >([]);
   const [selectedGroupTags, setSelectedGroupTags] = useState<string[]>([]);
 
-  const [importing, setImporting] = useState(false);
-
   useEffect(() => {
     if (searchParams?.get("import") === "bitly") {
       mutate();
@@ -74,18 +89,21 @@ function ImportBitlyModal({
     }
   }, [searchParams]);
 
-  const bitlyOAuthURL = `https://bitly.com/oauth/authorize?client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&redirect_uri=${APP_DOMAIN_WITH_NGROK}/api/callback/bitly&state=${JSON.stringify(
-    {
-      workspaceId,
-      ...(folderId ? { folderId } : {}),
-    },
-  )}`;
-
   const isSelected = (domain: string) => {
     return selectedDomains.find((d) => d.domain === domain) ? true : false;
   };
 
-  const { queryParams } = useRouterStuff();
+  const signInWithBitly = async () => {
+    if (!workspaceId) {
+      return;
+    }
+
+    await executeAsync({
+      provider: "bitly",
+      workspaceId,
+      ...(folderId ? { folderId } : {}),
+    });
+  };
 
   return (
     <Modal
@@ -234,19 +252,21 @@ function ImportBitlyModal({
               loading={importing}
               disabled={selectedDomains.length === 0}
             />
-            <a
-              href={bitlyOAuthURL}
-              className="text-center text-xs text-neutral-500 underline underline-offset-4 transition-colors hover:text-neutral-800"
+            <button
+              type="button"
+              onClick={signInWithBitly}
+              disabled={isPending}
+              className="text-center text-xs text-neutral-500 underline underline-offset-4 transition-colors hover:text-neutral-800 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Sign in to a different Bitly account?
-            </a>
+            </button>
           </form>
         ) : (
           <div className="flex flex-col space-y-2">
             <Button
               text="Sign in with Bitly"
               variant="secondary"
-              loading={redirecting}
+              loading={isPending}
               icon={
                 <img
                   src="https://assets.dub.co/misc/icons/bitly.svg"
@@ -254,10 +274,7 @@ function ImportBitlyModal({
                   className="h-5 w-5 rounded-full border border-neutral-200"
                 />
               }
-              onClick={() => {
-                setRedirecting(true);
-                router.push(bitlyOAuthURL);
-              }}
+              onClick={signInWithBitly}
             />
             <a
               href="https://dub.co/help/article/migrating-from-bitly"

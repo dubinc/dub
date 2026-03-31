@@ -1,32 +1,36 @@
-import { PARTNER_LINKS_LIMIT } from "@/lib/embed/constants";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Button, CopyButton, Table, Users, useTable } from "@dub/ui";
-import { Pen2, Plus2 } from "@dub/ui/icons";
+import {
+  Button,
+  CopyButton,
+  TAB_ITEM_ANIMATION_SETTINGS,
+  Table,
+  Users,
+  useTable,
+} from "@dub/ui";
+import { ArrowTurnRight2, Pen2, Plus2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
   fetcher,
+  getApexDomain,
   getPrettyUrl,
   nFormatter,
-  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { useEmbedToken } from "../use-embed-token";
+import { useReferralsEmbedData } from "./page-client";
 import { ReferralsEmbedLink } from "./types";
 
 interface Props {
-  links: ReferralsEmbedLink[];
   onCreateLink: () => void;
   onEditLink: (link: ReferralsEmbedLink) => void;
 }
 
-export function ReferralsEmbedLinksList({
-  links,
-  onCreateLink,
-  onEditLink,
-}: Props) {
+export function ReferralsEmbedLinksList({ onCreateLink, onEditLink }: Props) {
   const token = useEmbedToken();
+  const { links, program, group } = useReferralsEmbedData();
   const [partnerLinks, setPartnerLinks] = useState<ReferralsEmbedLink[]>(links);
 
   const { data: refreshedLinks, isLoading } = useSWR<ReferralsEmbedLink[]>(
@@ -48,7 +52,9 @@ export function ReferralsEmbedLinksList({
     }
   }, [refreshedLinks]);
 
-  const linksLimitReached = partnerLinks.length >= PARTNER_LINKS_LIMIT;
+  const hasLinksLimitReached = partnerLinks.length >= group.maxPartnerLinks;
+  const hasAdditionalLinks = group.additionalLinks?.length > 0;
+  const canCreateNewLink = !hasLinksLimitReached && hasAdditionalLinks;
 
   const { table, ...tableProps } = useTable({
     data: partnerLinks,
@@ -58,12 +64,42 @@ export function ReferralsEmbedLinksList({
         header: "Link",
         minSize: 200,
         cell: ({ row }) => {
+          const partnerLink = constructPartnerLink({
+            group,
+            link: row.original,
+          });
+
+          const destinationUrl = row.original.url;
+
           return (
-            <div className="flex items-center gap-2">
-              <CopyButton value={row.original.shortLink} />
-              <span className="text-sm">
-                {getPrettyUrl(row.original.shortLink)}
-              </span>
+            <div className="flex min-w-0 items-center gap-2">
+              <div className="border-border-subtle has-[:hover]:bg-bg-muted bg-bg-default rounded-md border transition-colors">
+                <CopyButton
+                  value={partnerLink}
+                  variant="neutral"
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md p-0 hover:bg-transparent active:bg-transparent"
+                />
+              </div>
+
+              <div className="flex min-w-0 flex-col">
+                <span
+                  className="text-content-emphasis min-w-0 truncate text-xs font-medium"
+                  title={partnerLink}
+                >
+                  {getPrettyUrl(partnerLink)}
+                </span>
+                <div className="flex min-w-0 max-w-[300px] items-center gap-1">
+                  <ArrowTurnRight2 className="text-content-muted size-3 shrink-0" />
+                  <a
+                    className="text-content-subtle min-w-0 cursor-alias truncate text-xs font-normal decoration-dotted underline-offset-2 hover:underline"
+                    href={destinationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {destinationUrl ? getApexDomain(destinationUrl) : ""}
+                  </a>
+                </div>
+              </div>
             </div>
           );
         },
@@ -87,7 +123,7 @@ export function ReferralsEmbedLinksList({
         header: "Sales",
         minSize: 80,
         maxSize: 100,
-        cell: ({ row }) => currencyFormatter(row.original.saleAmount / 100),
+        cell: ({ row }) => currencyFormatter(row.original.saleAmount),
       },
       {
         id: "actions",
@@ -97,11 +133,13 @@ export function ReferralsEmbedLinksList({
             className="h-7 w-7 p-1.5"
             icon={<Plus2 className="size-4" />}
             onClick={onCreateLink}
-            disabled={linksLimitReached}
+            disabled={!canCreateNewLink}
             disabledTooltip={
-              linksLimitReached
-                ? `You have reached the limit of ${PARTNER_LINKS_LIMIT} referral links.`
-                : undefined
+              hasLinksLimitReached
+                ? `You have reached the limit of ${group.maxPartnerLinks} referral links.`
+                : !hasAdditionalLinks
+                  ? `${program.name} program does not allow partners to create new links.`
+                  : undefined
             }
           />
         ),
@@ -138,7 +176,7 @@ export function ReferralsEmbedLinksList({
             text="Create link"
             variant="primary"
             onClick={onCreateLink}
-            className="bg-bg-inverted h-9 rounded-md hover:bg-neutral-800"
+            className="bg-bg-inverted text-content-inverted h-9 rounded-md hover:opacity-80"
           />
         }
       />

@@ -7,7 +7,7 @@ import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 import UserInfo, { UserInfoProps } from "./user-info";
 
-export default function ImpersonateWorkspace() {
+export function ImpersonateWorkspace() {
   const [data, setData] = useState<UserInfoProps | null>(null);
 
   return (

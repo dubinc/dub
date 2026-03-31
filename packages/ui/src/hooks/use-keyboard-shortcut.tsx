@@ -67,6 +67,7 @@ export function useKeyboardShortcut(
       if (
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
+        target.isContentEditable ||
         !!existingModalBackdrop !== !!options.modal ||
         !!existingSheetBackdrop !== !!options.sheet
       )

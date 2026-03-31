@@ -115,7 +115,7 @@ export function addDubLead(
   dub.track.lead({
     clickId: dub_id,
     eventName: "Sign Up",
-    externalId: user.$id,
+    customerExternalId: user.$id,
     customerName: user.name,
     customerEmail: user.email,
   });

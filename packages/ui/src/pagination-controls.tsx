@@ -19,7 +19,7 @@ export function PaginationControls({
 }: PropsWithChildren<{
   pagination: PaginationState;
   setPagination: (pagination: PaginationState) => void;
-  totalCount: number;
+  totalCount?: number;
   unit?: string | ((plural: boolean) => string);
   className?: string;
   showTotalCount?: boolean;
@@ -33,28 +33,36 @@ export function PaginationControls({
     >
       <div className="flex items-center gap-2">
         <div>
-          <span className="hidden sm:inline-block">Viewing</span>{" "}
-          {totalCount > 0 && (
+          {totalCount === undefined ? (
+            <div className="h-5 w-24 animate-pulse rounded-lg bg-neutral-200" />
+          ) : (
             <>
-              <span className="font-medium">
-                {(
-                  (pagination.pageIndex - 1) * pagination.pageSize +
-                  1
-                ).toLocaleString()}
-                -
-                {Math.min(
-                  (pagination.pageIndex - 1) * pagination.pageSize +
-                    pagination.pageSize,
-                  totalCount,
-                ).toLocaleString()}
-              </span>{" "}
-              {showTotalCount && "of "}
+              <span className="hidden sm:inline-block">Viewing</span>{" "}
+              {totalCount > 0 && (
+                <>
+                  <span className="font-medium">
+                    {(
+                      (pagination.pageIndex - 1) * pagination.pageSize +
+                      1
+                    ).toLocaleString()}
+                    -
+                    {Math.min(
+                      (pagination.pageIndex - 1) * pagination.pageSize +
+                        pagination.pageSize,
+                      totalCount,
+                    ).toLocaleString()}
+                  </span>{" "}
+                  {showTotalCount && "of "}
+                </>
+              )}
+              {showTotalCount && (
+                <span className="font-medium">
+                  {totalCount.toLocaleString()}
+                </span>
+              )}{" "}
+              {typeof unit === "function" ? unit(totalCount !== 1) : unit}
             </>
           )}
-          {showTotalCount && (
-            <span className="font-medium">{totalCount.toLocaleString()}</span>
-          )}{" "}
-          {typeof unit === "function" ? unit(totalCount !== 1) : unit}
         </div>
         {children}
       </div>
@@ -82,9 +90,10 @@ export function PaginationControls({
             })
           }
           disabled={
+            !totalCount ||
             (pagination.pageIndex - 1) * pagination.pageSize +
               pagination.pageSize >=
-            totalCount
+              totalCount
           }
         >
           Next

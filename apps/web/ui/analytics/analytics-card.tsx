@@ -28,7 +28,9 @@ export function AnalyticsCard<T extends string>({
   selectedSubTabId,
   onSelectSubTab,
   expandLimit,
-  hasMore,
+  dataLength,
+  isFilterActive,
+  onClearFilter,
   children,
   className,
 }: {
@@ -41,7 +43,9 @@ export function AnalyticsCard<T extends string>({
     | Dispatch<SetStateAction<string>>
     | ((subTabId: string) => void);
   expandLimit: number;
-  hasMore?: boolean;
+  dataLength?: number;
+  isFilterActive?: boolean;
+  onClearFilter?: () => void;
   children: (props: {
     limit?: number;
     event?: EventType;
@@ -57,6 +61,11 @@ export function AnalyticsCard<T extends string>({
   const selectedTab = tabs.find(({ id }) => id === selectedTabId) || tabs[0];
   const SelectedTabIcon = selectedTab.icon;
   const { isMobile } = useMediaQuery();
+  const hasSecondaryTabs = !!(subTabs && selectedSubTabId && onSelectSubTab);
+  const effectiveExpandLimit = hasSecondaryTabs
+    ? Math.max(1, expandLimit - 1)
+    : expandLimit;
+  const showViewAll = (dataLength ?? 0) > effectiveExpandLimit;
 
   return (
     <>
@@ -89,7 +98,7 @@ export function AnalyticsCard<T extends string>({
       </Modal>
       <div
         className={cn(
-          "group relative z-0 h-[400px] overflow-hidden border border-neutral-200 bg-white sm:rounded-xl",
+          "group relative z-0 h-[400px] overflow-hidden rounded-lg border border-neutral-200 bg-white sm:rounded-xl",
           className,
         )}
       >
@@ -168,22 +177,36 @@ export function AnalyticsCard<T extends string>({
         </AnimatedSizeContainer>
         <div className="py-4">
           {children({
-            limit: expandLimit,
+            limit: effectiveExpandLimit,
             event,
             setShowModal,
           })}
         </div>
-        {hasMore && (
+        {/* View All when filtered: modal shows full list (items not on card). */}
+        {(showViewAll || isFilterActive) && (
           <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">
             <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />
-            <button
-              onClick={() => setShowModal(true)}
-              className="group relative flex w-full items-center justify-center py-4"
-            >
-              <div className="rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-sm text-neutral-950 group-hover:bg-neutral-100 group-active:border-neutral-300">
+            <div className="relative flex w-full items-center justify-center gap-2 py-4">
+              <button
+                onClick={() => setShowModal(true)}
+                className={cn(
+                  "h-8 w-fit rounded-lg px-3 text-sm transition-colors",
+                  isFilterActive
+                    ? "text-content-inverted hover:bg-inverted hover:ring-border-subtle border-black bg-black hover:ring-4"
+                    : "border border-neutral-200 bg-white text-neutral-950 hover:bg-neutral-100 active:border-neutral-300",
+                )}
+              >
                 View All
-              </div>
-            </button>
+              </button>
+              {isFilterActive && onClearFilter && (
+                <button
+                  onClick={onClearFilter}
+                  className="h-8 w-fit rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 active:border-neutral-300"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </div>
         )}
       </div>

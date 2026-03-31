@@ -1,12 +1,11 @@
-import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { DomainSchema } from "@/lib/zod/schemas/domains";
-import { LinkErrorSchema, LinkSchema } from "@/lib/zod/schemas/links";
-import { TagSchema } from "@/lib/zod/schemas/tags";
-import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
+import { DomainSchema } from "../zod/schemas/domains";
 import { FolderSchema } from "../zod/schemas/folders";
+import { LinkErrorSchema, LinkSchema } from "../zod/schemas/links";
+import { LinkTagSchema } from "../zod/schemas/tags";
 import { analyticsPath } from "./analytics";
+import { bountiesPaths } from "./bounties";
 import { commissionsPaths } from "./commissions";
 import { customersPaths } from "./customers";
 import { domainsPaths } from "./domains";
@@ -15,22 +14,23 @@ import { eventsPath } from "./events";
 import { foldersPaths } from "./folders";
 import { linksPaths } from "./links";
 import { partnersPaths } from "./partners";
+import { payoutsPaths } from "./payouts";
 import { qrCodePaths } from "./qr";
+import { openApiErrorResponsesComponents } from "./responses";
 import { tagsPaths } from "./tags";
 import { trackPaths } from "./track";
-import { workspacesPaths } from "./workspaces";
 
 export const document = createDocument({
   openapi: "3.0.3",
   info: {
     title: "Dub API",
     description:
-      "Dub is link management infrastructure for companies to create marketing campaigns, link sharing features, and referral programs.",
+      "Dub is the modern link attribution platform for short links, conversion tracking, and affiliate programs.",
     version: "0.0.1",
     contact: {
       name: "Dub Support",
       email: "support@dub.co",
-      url: "https://dub.co/api",
+      url: "https://dub.co/support",
     },
     license: {
       name: "AGPL-3.0 license",
@@ -54,15 +54,15 @@ export const document = createDocument({
     ...customersPaths,
     ...partnersPaths,
     ...commissionsPaths,
-    ...workspacesPaths,
+    ...payoutsPaths,
     ...embedTokensPaths,
     ...qrCodePaths,
+    ...bountiesPaths,
   },
   components: {
     schemas: {
       LinkSchema,
-      WorkspaceSchema,
-      TagSchema,
+      LinkTagSchema,
       FolderSchema,
       DomainSchema,
       webhookEventSchema,
@@ -77,7 +77,7 @@ export const document = createDocument({
       },
     },
     responses: {
-      ...openApiErrorResponses,
+      ...openApiErrorResponsesComponents,
     },
   },
 });

@@ -3,8 +3,8 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CommissionPopoverButtons } from "./commission-popover-buttons";
-import { CommissionStats } from "./commission-stats";
-import { CommissionTable } from "./commission-table";
+import { CommissionsStats } from "./commissions-stats";
+import { CommissionsTable } from "./commissions-table";
 import { CreateCommissionButton } from "./create-commission-button";
 
 export default function ProgramCommissions() {
@@ -24,9 +24,9 @@ export default function ProgramCommissions() {
       }
     >
       <PageWidthWrapper>
-        <CommissionStats />
+        <CommissionsStats />
         <div className="mt-6">
-          <CommissionTable />
+          <CommissionsTable />
         </div>
       </PageWidthWrapper>
     </PageContent>

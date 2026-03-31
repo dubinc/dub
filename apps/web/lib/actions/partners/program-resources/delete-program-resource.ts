@@ -8,8 +8,9 @@ import {
 } from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../../safe-action";
+import { throwIfNoPermission } from "../../throw-if-no-permission";
 
 // Schema for deleting a program resource
 const deleteProgramResourceSchema = z.object({
@@ -19,10 +20,16 @@ const deleteProgramResourceSchema = z.object({
 });
 
 export const deleteProgramResourceAction = authActionClient
-  .schema(deleteProgramResourceSchema)
+  .inputSchema(deleteProgramResourceSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { resourceType, resourceId } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     // Verify the program exists and belongs to the workspace
@@ -53,7 +60,7 @@ export const deleteProgramResourceAction = authActionClient
     // Delete file-based resources from storage
     if ((resourceType === "logo" || resourceType === "file") && resource.url) {
       try {
-        await storage.delete(resource.url.replace(`${R2_URL}/`, ""));
+        await storage.delete({ key: resource.url.replace(`${R2_URL}/`, "") });
       } catch (error) {
         console.error(
           "Failed to delete program resource file from storage:",

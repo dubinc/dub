@@ -1,16 +1,25 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useCustomersCount from "@/lib/swr/use-customers-count";
+import { REFERRAL_ENABLED_PROGRAM_IDS } from "@/lib/referrals/constants";
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
+import { useFraudGroupCount } from "@/lib/swr/use-fraud-groups-count";
+import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
+import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
+import useProgram from "@/lib/swr/use-program";
+import { useProgramReferralsCount } from "@/lib/swr/use-program-referrals-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaces from "@/lib/swr/use-workspaces";
 import { useRouterStuff } from "@dub/ui";
 import {
+  Bell,
   Brush,
-  CircleInfo,
   ConnectedDots,
   CubeSettings,
   DiamondTurnRight,
-  Discount,
   Folder,
   Gauge6,
   Gear2,
@@ -18,23 +27,28 @@ import {
   Globe,
   InvoiceDollar,
   Key,
+  LifeRing,
   LinesY as LinesYStatic,
+  MarketingTarget,
   MoneyBills2,
+  Msgs,
   PaperPlane,
   Receipt2,
   ShieldCheck,
   ShieldKeyhole,
   Sliders,
   Tag,
+  Trophy,
   UserCheck,
-  Users2,
+  UserPlus,
+  Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
-import { ReactNode, useMemo } from "react";
+import { ReactNode, useEffect, useMemo } from "react";
 import { DubPartnersPopup } from "./dub-partners-popup";
 import { Compass } from "./icons/compass";
 import { ConnectedDots4 } from "./icons/connected-dots4";
@@ -54,11 +68,15 @@ type SidebarNavData = {
   defaultProgramId?: string;
   session?: Session | null;
   showNews?: boolean;
+  pendingPayoutsCount?: number;
   applicationsCount?: number;
+  submittedBountiesCount?: number;
+  unreadMessagesCount?: number;
+  pendingFraudEventsCount?: number;
+  pendingReferralsCount?: number;
   showConversionGuides?: boolean;
+  partnerNetworkEnabled?: boolean;
 };
-
-const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   slug,
@@ -77,10 +95,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
       pathname.startsWith(`/${slug}`) &&
       !pathname.startsWith(`/${slug}/program`) &&
       !pathname.startsWith(`/${slug}/settings`),
-
-    onClick: () => {
-      document.cookie = `dub_product:${slug}=links;path=/;max-age=${FIVE_YEARS_SECONDS}`;
-    },
   },
   {
     name: "Partner Program",
@@ -91,12 +105,6 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: slug ? `/${slug}/program` : "/program",
     active: pathname.startsWith(`/${slug}/program`),
     popup: DubPartnersPopup,
-
-    onClick: defaultProgramId
-      ? () => {
-          document.cookie = `dub_product:${slug}=program;path=/;max-age=${FIVE_YEARS_SECONDS}`;
-        }
-      : undefined,
   },
 ];
 
@@ -181,7 +189,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   }),
 
   // Program
-  program: ({ slug, showNews, applicationsCount }) => ({
+  program: ({
+    slug,
+    showNews,
+    pendingPayoutsCount,
+    applicationsCount,
+    submittedBountiesCount,
+    unreadMessagesCount,
+    pendingFraudEventsCount,
+    pendingReferralsCount,
+    partnerNetworkEnabled,
+  }) => ({
     title: "Partner Program",
     showNews,
     direction: "left",
@@ -197,7 +215,22 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Payouts",
             icon: MoneyBills2,
-            href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+            href: `/${slug}/program/payouts?status=pending`,
+            badge: pendingPayoutsCount
+              ? pendingPayoutsCount > 99
+                ? "99+"
+                : pendingPayoutsCount
+              : undefined,
+          },
+          {
+            name: "Messages",
+            icon: Msgs,
+            href: `/${slug}/program/messages`,
+            badge: unreadMessagesCount
+              ? unreadMessagesCount > 99
+                ? "99+"
+                : unreadMessagesCount
+              : undefined,
           },
         ],
       },
@@ -206,10 +239,27 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "All Partners",
-            icon: Users2,
+            icon: Users,
             href: `/${slug}/program/partners`,
-            exact: true,
+            isActive: (pathname: string, href: string) =>
+              pathname.startsWith(href) &&
+              !pathname.startsWith(`${href}/applications`),
           },
+          {
+            name: "Groups",
+            icon: Users6,
+            href: `/${slug}/program/groups`,
+          },
+          ...(partnerNetworkEnabled
+            ? [
+                {
+                  name: "Partner Network",
+                  icon: UserPlus,
+                  href: `/${slug}/program/network` as `/${string}`,
+                  badge: "New",
+                },
+              ]
+            : []),
           {
             name: "Applications",
             icon: UserCheck,
@@ -229,7 +279,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Analytics",
             icon: LinesYStatic,
             href: `/${slug}/program/analytics`,
-            badge: "New",
+          },
+          {
+            name: "Customers",
+            icon: User,
+            href: `/${slug}/program/customers`,
+            badge: pendingReferralsCount
+              ? pendingReferralsCount > 99
+                ? "99+"
+                : pendingReferralsCount
+              : undefined,
           },
           {
             name: "Commissions",
@@ -237,9 +296,39 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/commissions`,
           },
           {
-            name: "Fraud & Risk",
+            name: "Fraud Detection",
             icon: ShieldKeyhole,
             href: `/${slug}/program/fraud`,
+            badge: pendingFraudEventsCount
+              ? pendingFraudEventsCount > 99
+                ? "99+"
+                : pendingFraudEventsCount
+              : undefined,
+          },
+        ],
+      },
+      {
+        name: "Engagement",
+        items: [
+          {
+            name: "Bounties",
+            icon: Trophy,
+            href: `/${slug}/program/bounties`,
+            badge: submittedBountiesCount
+              ? submittedBountiesCount > 99
+                ? "99+"
+                : submittedBountiesCount
+              : "",
+          },
+          {
+            name: "Email Campaigns",
+            icon: PaperPlane,
+            href: `/${slug}/program/campaigns` as `/${string}`,
+          },
+          {
+            name: "Resources",
+            icon: LifeRing,
+            href: `/${slug}/program/resources`,
           },
         ],
       },
@@ -249,27 +338,23 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Rewards",
             icon: Gift,
-            href: `/${slug}/program/rewards`,
+            href: `/${slug}/program/groups/default/rewards`,
+            arrow: true,
+            isActive: () => false,
           },
           {
-            name: "Discounts",
-            icon: Discount,
-            href: `/${slug}/program/discounts`,
+            name: "Links",
+            icon: Sliders,
+            href: `/${slug}/program/groups/default/links`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Branding",
             icon: Brush,
-            href: `/${slug}/program/branding`,
-          },
-          {
-            name: "Link Settings",
-            icon: Sliders,
-            href: `/${slug}/program/link-settings`,
-          },
-          {
-            name: "Communication",
-            icon: PaperPlane,
-            href: `/${slug}/program/communication`,
+            arrow: true,
+            href: `/${slug}/program/groups/default/branding`,
+            isActive: () => false,
           },
         ],
       },
@@ -301,19 +386,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/domains`,
           },
           {
-            name: "People",
+            name: "Members",
             icon: Users6,
-            href: `/${slug}/settings/people`,
+            href: `/${slug}/settings/members`,
           },
           {
             name: "Integrations",
             icon: ConnectedDots,
             href: `/${slug}/settings/integrations`,
-          },
-          {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/settings/analytics`,
           },
           {
             name: "Security",
@@ -331,14 +411,19 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/tokens`,
           },
           {
-            name: "OAuth Apps",
-            icon: CubeSettings,
-            href: `/${slug}/settings/oauth-apps`,
+            name: "Tracking",
+            icon: MarketingTarget,
+            href: `/${slug}/settings/tracking`,
           },
           {
             name: "Webhooks",
             icon: Webhook,
             href: `/${slug}/settings/webhooks`,
+          },
+          {
+            name: "OAuth Apps",
+            icon: CubeSettings,
+            href: `/${slug}/settings/oauth-apps`,
           },
         ],
       },
@@ -347,7 +432,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "Notifications",
-            icon: CircleInfo,
+            icon: Bell,
             href: `/${slug}/settings/notifications`,
           },
         ],
@@ -380,6 +465,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: Gift,
             href: "/account/settings/referrals",
           },
+          {
+            name: "Notifications",
+            icon: Bell,
+            href: `/${slug}/settings/notifications`,
+            arrow: true,
+          },
         ],
       },
     ],
@@ -393,34 +484,123 @@ export function AppSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { slug } = useParams() as { slug?: string };
+  const { slug: paramsSlug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const { plan, defaultProgramId } = useWorkspace();
-  const { canTrackConversions } = getPlanCapabilities(plan);
+  const { workspaces } = useWorkspaces();
+
+  // Store the current workspace slug in sessionStorage so we can remember it on account settings pages
+  useEffect(() => {
+    if (paramsSlug) {
+      sessionStorage.setItem("dub_last_workspace", paramsSlug);
+    }
+  }, [paramsSlug]);
+
+  // Validate and clear sessionStorage if user doesn't have access to the stored workspace
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      // Clear sessionStorage on logout
+      sessionStorage.removeItem("dub_last_workspace");
+      return;
+    }
+
+    if (workspaces && typeof window !== "undefined") {
+      const storedSlug = sessionStorage.getItem("dub_last_workspace");
+      if (storedSlug && !paramsSlug) {
+        // Only validate if we're not currently on a workspace page (to avoid clearing during navigation)
+        const hasAccess = workspaces.some((w) => w.slug === storedSlug);
+        if (!hasAccess) {
+          // User doesn't have access to the stored workspace, clear it
+          sessionStorage.removeItem("dub_last_workspace");
+        }
+      }
+    }
+  }, [workspaces, status, paramsSlug]);
+
+  // Use params slug when available, otherwise try sessionStorage (last visited workspace), then fall back to default workspace
+  const slug =
+    paramsSlug ||
+    (typeof window !== "undefined" && workspaces
+      ? (() => {
+          const storedSlug = sessionStorage.getItem("dub_last_workspace");
+          // Validate that the stored slug is accessible by the current user
+          if (storedSlug && workspaces.some((w) => w.slug === storedSlug)) {
+            return storedSlug;
+          }
+          return null;
+        })()
+      : null) ||
+    session?.user?.["defaultWorkspace"];
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : // hacky fix for guides because slug is undefined at render time
-          // TODO: remove when we migrate to Next.js 15 + PPR
-          pathname.endsWith("/guides") || pathname.includes("/guides/")
+        : pathname.includes("/program/campaigns/") ||
+            pathname.includes("/program/messages/") ||
+            pathname.endsWith("/program/payouts/success")
           ? null
           : pathname.startsWith(`/${slug}/program`)
             ? "program"
             : "default";
   }, [slug, pathname]);
 
+  const { program } = useProgram({
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
+  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount<
+    number | undefined
+  >({
+    eligibility: "eligible",
+    status: "pending",
+    ignoreParams: true,
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
   const applicationsCount = useProgramApplicationsCount({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const { data: customersCount } = useCustomersCount({
-    enabled: canTrackConversions === true,
+  const { submissionsCount } = useBountySubmissionsCount<
+    SubmissionsCountByStatus[]
+  >({
+    ignoreParams: true,
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
+
+  const submittedBountiesCount =
+    submissionsCount?.find(({ status }) => status === "submitted")?.count || 0;
+
+  const { count: unreadMessagesCount } = usePartnerMessagesCount({
+    enabled: Boolean(currentArea === "program"),
+    query: {
+      unread: true,
+    },
+  });
+
+  const { fraudGroupCount: pendingFraudEventsCount } = useFraudGroupCount<
+    number | undefined
+  >({
+    query: { status: "pending" },
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+    ignoreParams: true,
+  });
+
+  const { data: pendingReferralsCount } = useProgramReferralsCount<number>({
+    query: { status: "pending" },
+    ignoreParams: true,
+    enabled: Boolean(
+      currentArea === "program" &&
+        defaultProgramId &&
+        REFERRAL_ENABLED_PROGRAM_IDS.includes(defaultProgramId),
+    ),
+  });
+
+  const { canTrackConversions } = getPlanCapabilities(plan);
 
   return (
     <SidebarNav
@@ -431,13 +611,21 @@ export function AppSidebarNav({
         slug: slug || "",
         pathname,
         queryString: getQueryString(undefined, {
-          include: ["folderId", "tagIds"],
+          include: ["folderId"],
         }),
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
+        showNews: true,
         defaultProgramId: defaultProgramId || undefined,
+        pendingPayoutsCount,
         applicationsCount,
-        showConversionGuides: canTrackConversions && customersCount === 0,
+        submittedBountiesCount,
+        unreadMessagesCount,
+        pendingFraudEventsCount,
+        pendingReferralsCount,
+        showConversionGuides:
+          canTrackConversions && pathname.startsWith(`/${slug}/links`),
+        partnerNetworkEnabled:
+          program && program.partnerNetworkEnabledAt !== null,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}

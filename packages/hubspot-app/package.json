@@ -1,0 +1,23 @@
+{
+  "name": "dub-hubspot-app",
+  "version": "0.0.1",
+  "description": "HubSpot app for Dub",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "hs": "hs"
+  },
+  "dependencies": {
+    "@hubspot/cli": "^7.6.2"
+  },
+  "devDependencies": {
+    "@types/node": "18.11.9",
+    "rimraf": "^5.0.10",
+    "tsup": "^6.7.0",
+    "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "license": "MIT"
+}

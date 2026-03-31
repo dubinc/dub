@@ -1,4 +1,4 @@
-import { Program } from "@dub/prisma/client";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import {
   Button,
   Carousel,
@@ -7,49 +7,59 @@ import {
   CarouselNavBar,
   Check,
   Copy,
+  TAB_ITEM_ANIMATION_SETTINGS,
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, DUB_LOGO, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { motion } from "framer-motion";
-import { ReferralsEmbedLink } from "./types";
+import { cn, DUB_LOGO } from "@dub/utils";
+import { motion } from "motion/react";
+import { useReferralsEmbedData } from "./page-client";
 
-const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
+const BUTTON_CLASSNAME =
+  "bg-bg-inverted text-content-inverted h-9 rounded-lg hover:opacity-80";
 
 export function ReferralsEmbedQuickstart({
-  program,
-  link,
   hasResources,
   setSelectedTab,
 }: {
-  program: Program;
-  link: ReferralsEmbedLink | undefined;
   hasResources: boolean;
   setSelectedTab: (tab: "Links" | "Resources") => void;
 }) {
+  const { program, group, links, earnings } = useReferralsEmbedData();
+
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
-
-  const payoutsDisabled = !link || link.saleAmount === 0;
+  const payoutsDisabled = earnings.upcoming === 0 && earnings.paid === 0;
 
   const items = [
     {
       title: "Share your link",
-      description: `Sharing is caring! Recommend ${program.name} to all your friends, family, and social followers.`,
+      description: `Use your ${program.name} link to drive traffic and track every click, lead, and conversion.`,
       illustration: <ShareLink />,
       cta: (
         <Button
           className={BUTTON_CLASSNAME}
           onClick={() => {
-            if (link) {
-              copyToClipboard(link.shortLink);
+            if (links.length > 0) {
+              copyToClipboard(
+                constructPartnerLink({
+                  group,
+                  link: links[0],
+                }),
+              );
             } else {
               setSelectedTab("Links");
             }
           }}
-          text={link ? (copied ? "Copied link" : "Copy link") : "Create a link"}
+          text={
+            links.length > 0
+              ? copied
+                ? "Copied link"
+                : "Copy link"
+              : "Create a link"
+          }
           icon={
-            link ? (
+            links.length > 0 ? (
               <div className="relative size-4">
                 <div
                   className={cn(
@@ -74,10 +84,10 @@ export function ReferralsEmbedQuickstart({
       ),
     },
     {
-      title: "Success kit",
+      title: "Program resources",
       description:
-        "Make sure you get setup for success with the official brand files and supportive content and documents.",
-      illustration: <SuccessKit logo={program.logo ?? DUB_LOGO} />,
+        "Access files, assets, and materials provided to support you, anywhere you share your link.",
+      illustration: <SuccessKit logo={group.logo ?? DUB_LOGO} />,
       cta: (
         <Button
           className="h-9 rounded-lg"
@@ -92,8 +102,8 @@ export function ReferralsEmbedQuickstart({
     {
       title: "Receive earnings",
       description:
-        "After your payouts are connected, you'll get paid out automatically for all your sales.",
-      illustration: <ConnectPayouts logo={program.logo ?? DUB_LOGO} />,
+        "Connect payouts to get rewarded for the activity you drive, with earnings tracked automatically.",
+      illustration: <ConnectPayouts logo={group.logo ?? DUB_LOGO} />,
       cta: (
         <Button
           className={payoutsDisabled ? "h-9 rounded-lg" : BUTTON_CLASSNAME}

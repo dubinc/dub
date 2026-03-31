@@ -4,11 +4,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { UtmTemplateWithUserProps } from "@/lib/types";
 import { useAddEditUtmTemplateModal } from "@/ui/modals/add-edit-utm-template.modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import {
-  Avatar,
   Button,
   CardList,
   Popover,
+  TimestampTooltip,
   Tooltip,
   useKeyboardShortcut,
   UTM_PARAMETERS,
@@ -82,7 +83,7 @@ export function TemplateCard({
             </span>
           </div>
           <div className="shrink-0">
-            <UserAvatar template={template} />
+            <UserTemplateAvatar template={template} />
           </div>
         </div>
 
@@ -108,7 +109,14 @@ export function TemplateCard({
         </Tooltip>
 
         <div className="hidden text-sm text-neutral-500 sm:block">
-          {formatDate(template.updatedAt, { month: "short" })}
+          <TimestampTooltip
+            timestamp={template.updatedAt}
+            rows={["local"]}
+            side="left"
+            delayDuration={150}
+          >
+            <span>{formatDate(template.updatedAt, { month: "short" })}</span>
+          </TimestampTooltip>
         </div>
 
         <div className="flex items-center gap-5 sm:gap-8 md:gap-12">
@@ -198,14 +206,18 @@ function TemplateCardKeyboardShortcuts({
   return null;
 }
 
-function UserAvatar({ template }: { template: UtmTemplateWithUserProps }) {
+function UserTemplateAvatar({
+  template,
+}: {
+  template: UtmTemplateWithUserProps;
+}) {
   const { user } = template;
 
   return (
     <Tooltip
       content={
         <div className="w-full p-3">
-          <Avatar user={user} className="h-8 w-8" />
+          <UserAvatar user={user} className="h-8 w-8" />
           <div className="mt-2 flex items-center gap-1.5">
             <p className="text-sm font-semibold text-neutral-700">
               {user?.name || user?.email || "Anonymous User"}
@@ -218,7 +230,7 @@ function UserAvatar({ template }: { template: UtmTemplateWithUserProps }) {
       }
     >
       <div>
-        <Avatar user={user} className="h-4 w-4" />
+        <UserAvatar user={user} className="h-4 w-4" />
       </div>
     </Tooltip>
   );

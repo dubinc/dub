@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { isBlacklistedKey, isReservedUsername } from "@/lib/edge-config";
 import { checkIfKeyExists } from "@/lib/planetscale";
-import { WorkspaceProps } from "@/lib/types";
+import { Project } from "@dub/prisma/client";
 import {
   DEFAULT_REDIRECTS,
   isDubDomain,
@@ -16,7 +16,7 @@ export async function keyChecks({
 }: {
   domain: string;
   key: string;
-  workspace?: Pick<WorkspaceProps, "plan">;
+  workspace?: Pick<Project, "plan">;
 }): Promise<{ error: string | null; code?: DubApiError["code"] }> {
   if ((key.length === 0 || key === "_root") && workspace?.plan === "free") {
     return {

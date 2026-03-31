@@ -1,27 +1,30 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
+import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
+import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
-  buttonVariants,
   FileUpload,
   ToggleGroup,
+  TooltipContent,
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils/src/functions";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { cn } from "@dub/utils";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 type FormData = z.infer<typeof onboardPartnerSchema>;
 
@@ -42,9 +45,12 @@ export function OnboardingForm({
   > | null;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
+  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
   const { data: session, update: refreshSession } = useSession();
+  const countryChangeWarning = useCountryChangeWarningModal();
 
   const {
     register,
@@ -72,7 +78,7 @@ export function OnboardingForm({
       !name && setValue("name", session.user.name ?? "");
       !image && setValue("image", session.user.image ?? "");
     }
-  }, [session?.user, name, image]);
+  }, [session?.user, name, image, setValue]);
 
   // refresh the session after the Partner account is created
   useEffect(() => {
@@ -84,10 +90,18 @@ export function OnboardingForm({
   const { executeAsync, isPending } = useAction(onboardPartnerAction, {
     onSuccess: () => {
       setAccountCreated(true);
-      router.push("/onboarding/online-presence");
+      const next = getValidInternalRedirectPath({
+        redirectPath: searchParams.get("next"),
+        currentUrl: window.location.href,
+      });
+      if (next) {
+        router.push(next);
+      } else {
+        router.push("/onboarding/platforms");
+      }
     },
     onError: ({ error, input }) => {
-      toast.error(error.serverError);
+      toast.error(parseActionError(error, "An unknown error occurred."));
       reset(input);
     },
   });
@@ -101,8 +115,9 @@ export function OnboardingForm({
       onSubmit={handleSubmit(async (data) => await executeAsync(data))}
       className="flex w-full flex-col gap-6 text-left"
     >
+      {countryChangeWarning.modal}
       <label>
-        <span className="text-sm font-medium text-neutral-800">Full Name</span>
+        <span className="text-sm font-medium text-neutral-800">Name</span>
         <input
           type="text"
           className={cn(
@@ -120,22 +135,18 @@ export function OnboardingForm({
 
       <label>
         <span className="text-sm font-medium text-neutral-800">
-          Profile Image
+          Profile image
         </span>
         <div className="flex items-center gap-5">
           <Controller
             control={control}
             name="image"
-            rules={{ required: true }}
             render={({ field }) => (
               <FileUpload
                 accept="images"
-                className={cn(
-                  "mt-1.5 size-20 rounded-full border border-neutral-300",
-                  errors.image && "border-0 ring-2 ring-red-500",
-                )}
+                className="mt-1.5 size-20 rounded-full border border-neutral-300"
                 iconClassName="size-5"
-                previewClassName="size-10 rounded-full"
+                previewClassName="size-20 rounded-full"
                 variant="plain"
                 imageSrc={field.value}
                 readFile
@@ -147,16 +158,11 @@ export function OnboardingForm({
             )}
           />
           <div>
-            <div
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-7 w-fit cursor-pointer items-center rounded-md border px-2 text-xs",
-              )}
-            >
-              Upload image
-            </div>
-            <p className="mt-1.5 text-xs text-neutral-500">
-              Recommended size: 160x160px
+            <p className="text-xs text-neutral-500">
+              Square image recommended, up to 2 MB.
+            </p>
+            <p className="mt-0.5 text-xs font-medium text-neutral-500">
+              Adding an image can improve your approval rates.
             </p>
           </div>
         </div>
@@ -171,18 +177,39 @@ export function OnboardingForm({
           render={({ field }) => (
             <CountryCombobox
               {...field}
-              disabledTooltip={
-                partner?.payoutsEnabledAt
-                  ? "Since you've already received payouts, you cannot change your country. Contact support if you need to update your country."
-                  : undefined
-              }
               error={errors.country ? true : false}
+              open={isCountryComboboxOpen}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setIsCountryComboboxOpen(false);
+                  return;
+                }
+
+                const shouldShowCountryChangeWarning =
+                  !partner?.payoutsEnabledAt;
+
+                if (shouldShowCountryChangeWarning) {
+                  countryChangeWarning.acknowledgeAndContinue(() => {
+                    setIsCountryComboboxOpen(true);
+                  });
+                  return;
+                }
+
+                setIsCountryComboboxOpen(true);
+              }}
+              disabledTooltip={
+                partner?.payoutsEnabledAt ? (
+                  <TooltipContent
+                    title="Since you've already connected your bank account for payouts, you cannot change your profile country."
+                    cta="Contact support"
+                    href="https://dub.co/support"
+                    target="_blank"
+                  />
+                ) : undefined
+              }
             />
           )}
         />
-        <p className="mt-1.5 text-xs text-neutral-500">
-          Your country cannot be changed once set.
-        </p>
       </label>
 
       <label>
@@ -237,6 +264,9 @@ export function OnboardingForm({
               )}
               indicatorClassName="bg-white"
             />
+            <p className="mt-1.5 text-xs text-neutral-500">
+              You can update this later in your partner profile settings.
+            </p>
           </div>
         </div>
 
@@ -272,9 +302,6 @@ export function OnboardingForm({
                     required: profileType === "company",
                   })}
                 />
-                <p className="mt-1.5 text-xs text-neutral-500">
-                  This cannot be changed once set.
-                </p>
               </label>
             </motion.div>
           )}

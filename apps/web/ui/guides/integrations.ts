@@ -1,17 +1,18 @@
-import { Appwrite } from "@/ui/layout/sidebar/conversions/icons/appwrite";
-import { Auth0 } from "@/ui/layout/sidebar/conversions/icons/auth0";
-import { BetterAuth } from "@/ui/layout/sidebar/conversions/icons/better-auth";
-import { Clerk } from "@/ui/layout/sidebar/conversions/icons/clerk";
-import { CodeEditor } from "@/ui/layout/sidebar/conversions/icons/code-editor";
-import { Framer } from "@/ui/layout/sidebar/conversions/icons/framer";
-import { NextAuth } from "@/ui/layout/sidebar/conversions/icons/next-auth";
-import { React } from "@/ui/layout/sidebar/conversions/icons/react";
-import { Segment } from "@/ui/layout/sidebar/conversions/icons/segment";
-import { Shopify } from "@/ui/layout/sidebar/conversions/icons/shopify";
-import { Stripe } from "@/ui/layout/sidebar/conversions/icons/stripe";
-import { Supabase } from "@/ui/layout/sidebar/conversions/icons/supabase";
-import { Webflow } from "@/ui/layout/sidebar/conversions/icons/webflow";
-import { Wordpress } from "@/ui/layout/sidebar/conversions/icons/wordpress";
+import { Appwrite } from "@/ui/guides/icons/appwrite";
+import { Auth0 } from "@/ui/guides/icons/auth0";
+import { BetterAuth } from "@/ui/guides/icons/better-auth";
+import { Clerk } from "@/ui/guides/icons/clerk";
+import { CodeEditor } from "@/ui/guides/icons/code-editor";
+import { Framer } from "@/ui/guides/icons/framer";
+import { GoogleTagManager } from "@/ui/guides/icons/gtm";
+import { NextAuth } from "@/ui/guides/icons/next-auth";
+import { React } from "@/ui/guides/icons/react";
+import { Segment } from "@/ui/guides/icons/segment";
+import { Shopify } from "@/ui/guides/icons/shopify";
+import { Supabase } from "@/ui/guides/icons/supabase";
+import { Webflow } from "@/ui/guides/icons/webflow";
+import { Wordpress } from "@/ui/guides/icons/wordpress";
+import { StripeIcon } from "@dub/ui/icons";
 
 export type IntegrationType = "client-sdk" | "track-lead" | "track-sale";
 
@@ -22,6 +23,9 @@ export type IntegrationGuide = {
   description?: string;
   subtitle?: string;
   icon: any;
+  iconProps?: {
+    fullSize?: boolean;
+  };
   recommended?: boolean;
   content?: string;
   url: string;
@@ -91,6 +95,13 @@ export const guides: IntegrationGuide[] = [
   },
   {
     type: "client-sdk",
+    key: "gtm-client-sdk",
+    title: "Google Tag Manager",
+    icon: GoogleTagManager,
+    url: "https://dub.co/docs/sdks/client-side/installation-guides/google-tag-manager",
+  },
+  {
+    type: "client-sdk",
     key: "manual-client-sdk",
     title: "Manual Installation",
     description: "Manual Installation",
@@ -99,6 +110,28 @@ export const guides: IntegrationGuide[] = [
   },
 
   // Track Leads
+  {
+    type: "track-lead",
+    key: "manual-track-lead",
+    title: "Custom Integration",
+    description: "Manual Lead Tracking",
+    icon: CodeEditor,
+    url: "https://dub.co/docs/conversions/leads/introduction",
+  },
+  {
+    type: "track-lead",
+    key: "segment-track-lead",
+    title: "Segment",
+    icon: Segment,
+    url: "https://dub.co/docs/conversions/leads/segment",
+  },
+  {
+    type: "track-lead",
+    key: "gtm-track-lead",
+    title: "Google Tag Manager",
+    icon: GoogleTagManager,
+    url: "https://dub.co/docs/conversions/leads/google-tag-manager",
+  },
   {
     type: "track-lead",
     key: "clerk",
@@ -141,21 +174,6 @@ export const guides: IntegrationGuide[] = [
     icon: Appwrite,
     url: "https://dub.co/docs/conversions/leads/appwrite",
   },
-  {
-    type: "track-lead",
-    key: "segment-track-lead",
-    title: "Segment",
-    icon: Segment,
-    url: "https://dub.co/docs/conversions/leads/segment",
-  },
-  {
-    type: "track-lead",
-    key: "manual-track-lead",
-    title: "Custom Integration",
-    description: "Manual Lead Tracking",
-    icon: CodeEditor,
-    url: "https://dub.co/docs/conversions/leads/introduction",
-  },
 
   // Track Sales
   {
@@ -165,7 +183,10 @@ export const guides: IntegrationGuide[] = [
     subtitle: "Checkout",
     recommended: true,
     description: "Stripe Checkout",
-    icon: Stripe,
+    icon: StripeIcon,
+    iconProps: {
+      fullSize: true,
+    },
     url: "https://dub.co/docs/conversions/sales/stripe#option-2%3A-using-stripe-checkout-recommended",
   },
   {
@@ -174,7 +195,10 @@ export const guides: IntegrationGuide[] = [
     title: "Stripe",
     subtitle: "Payment Links",
     description: "Stripe Payment Links",
-    icon: Stripe,
+    icon: StripeIcon,
+    iconProps: {
+      fullSize: true,
+    },
     url: "https://dub.co/docs/conversions/sales/stripe#option-1%3A-using-stripe-payment-links",
   },
   {
@@ -183,7 +207,10 @@ export const guides: IntegrationGuide[] = [
     title: "Stripe",
     subtitle: "Customers",
     description: "Stripe Customers",
-    icon: Stripe,
+    icon: StripeIcon,
+    iconProps: {
+      fullSize: true,
+    },
     url: "https://dub.co/docs/conversions/sales/stripe#option-3%3A-using-stripe-customers",
   },
   {
@@ -192,6 +219,13 @@ export const guides: IntegrationGuide[] = [
     title: "Segment",
     icon: Segment,
     url: "https://dub.co/docs/conversions/sales/segment",
+  },
+  {
+    type: "track-sale",
+    key: "gtm-track-sale",
+    title: "Google Tag Manager",
+    icon: GoogleTagManager,
+    url: "https://dub.co/docs/conversions/sales/google-tag-manager",
   },
   {
     type: "track-sale",

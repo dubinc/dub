@@ -126,7 +126,7 @@ export async function trackLead({
       await dub.track.lead({
         clickId: dubId,
         eventName: "Sign Up",
-        externalId: id,
+        customerExternalId: id,
         customerName: name,
         customerEmail: email,
         customerAvatar: avatar,
@@ -167,7 +167,7 @@ export async function POST(req: NextRequest) {
     await dub.track.lead({
       clickId: dubId,
       eventName: "Sign Up",
-      externalId: id,
+      customerExternalId: id,
       customerName: name,
       customerEmail: email,
       customerAvatar: avatar,

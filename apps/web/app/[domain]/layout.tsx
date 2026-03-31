@@ -1,6 +1,6 @@
 import { Footer, Nav, NavMobile } from "@dub/ui";
 
-export default function CustomDomainLayout({
+export default function ExternalPagesLayout({
   children,
 }: {
   children: React.ReactNode;

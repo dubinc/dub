@@ -5,7 +5,7 @@ import { createWebhook } from "@/lib/webhook/create-webhook";
 import { WebhookReceiver } from "@dub/prisma/client";
 import { SEGMENT_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { installIntegration } from "../install";
 
 const schema = z.object({
@@ -14,7 +14,7 @@ const schema = z.object({
 });
 
 export const installSegmentAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { writeKey } = parsedInput;

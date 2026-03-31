@@ -3,9 +3,10 @@ import { recordLink } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { ABTestVariantsSchema, linkEventSchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
-import { Link } from "@prisma/client";
+import { Link } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { linkCache } from "./cache";
+import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";
 
 export async function completeABTests(link: Link) {
@@ -17,7 +18,7 @@ export async function completeABTests(link: Link) {
 
   const analytics: { url: string; leads: number }[] = await getAnalytics({
     event: "leads",
-    groupBy: "top_urls",
+    groupBy: "top_base_urls",
     linkId: link.id,
     workspaceId: link.projectId,
     start: link.testStartedAt ? new Date(link.testStartedAt) : undefined,
@@ -66,6 +67,7 @@ export async function completeABTests(link: Link) {
     },
     include: {
       ...includeTags,
+      ...includeProgramEnrollment,
       project: true,
     },
   });

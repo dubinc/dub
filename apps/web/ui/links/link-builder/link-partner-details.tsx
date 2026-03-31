@@ -1,14 +1,10 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { PartnerStatusBadgeWithTooltip } from "@/ui/partners/partner-status-badge-with-tooltip";
 import { ArrowUpRight } from "@dub/ui/icons";
-import { currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
+import { currencyFormatter } from "@dub/utils";
 import Link from "next/link";
-
-const formatCurrency = (value: number) =>
-  currencyFormatter(value / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 export function LinkPartnerDetails({
   link,
@@ -22,25 +18,24 @@ export function LinkPartnerDetails({
   return (
     <div>
       <Link
-        href={`/${slug}/program/partners?partnerId=${link.partnerId}`}
+        href={`/${slug}/program/partners/${link.partnerId}`}
         className="border-border-subtle group flex items-center justify-between overflow-hidden rounded-t-lg border bg-neutral-100 px-4 py-3"
         target="_blank"
       >
         <div className="flex min-w-0 items-center gap-3">
           {partner ? (
-            <img
-              src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-              alt={partner.name}
-              className="size-8 rounded-full"
-            />
+            <PartnerAvatar partner={partner} className="size-8" />
           ) : (
             <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
           )}
           <div className="min-w-0">
             {partner ? (
-              <span className="block truncate text-xs font-semibold leading-tight text-neutral-900">
-                {partner.name}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="block truncate text-xs font-semibold leading-tight text-neutral-900">
+                  {partner.name}
+                </span>
+                <PartnerStatusBadgeWithTooltip partner={partner} size="sm" />
+              </div>
             ) : (
               <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
             )}
@@ -60,14 +55,17 @@ export function LinkPartnerDetails({
       </Link>
       <div className="border-border-subtle grid grid-cols-1 divide-y divide-neutral-200 rounded-b-lg border-x border-b sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {[
-          ["Revenue", partner ? formatCurrency(partner.saleAmount) : undefined],
+          [
+            "Revenue",
+            partner ? currencyFormatter(partner.totalSaleAmount) : undefined,
+          ],
           [
             "Commissions",
-            partner ? formatCurrency(partner.totalCommissions) : undefined,
+            partner ? currencyFormatter(partner.totalCommissions) : undefined,
           ],
           [
             "Net revenue",
-            partner ? formatCurrency(partner.netRevenue) : undefined,
+            partner ? currencyFormatter(partner.netRevenue) : undefined,
           ],
         ].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-1 px-4 py-3">

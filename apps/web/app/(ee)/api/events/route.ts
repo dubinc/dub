@@ -1,15 +1,14 @@
+import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { getEvents } from "@/lib/analytics/get-events";
-import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
-import { validDateRangeForPlan } from "@/lib/analytics/utils";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
-import { Folder, Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
+// GET /api/events
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
@@ -21,34 +20,39 @@ export const GET = withWorkspace(
       interval,
       start,
       end,
-      linkId,
-      externalId,
+      folderId,
       domain,
       key,
-      folderId,
+      linkId,
+      externalId,
     } = parsedParams;
 
-    let link: Link | null = null;
-
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
-
-    if (linkId || externalId || (domain && key)) {
-      link = await getLinkOrThrow({
+    let folderIdToVerify = getFirstFilterValue(folderId);
+    if (!linkId && (externalId || (domain && key))) {
+      const link = await getLinkOrThrow({
         workspaceId: workspace.id,
         linkId,
         externalId,
-        domain,
+        domain: getFirstFilterValue(domain),
         key,
       });
+
+      parsedParams.linkId = {
+        operator: "IS",
+        sqlOperator: "IN",
+        values: [link.id],
+      };
+
+      // since we're filtering for a specific link, exclude domain from filters
+      parsedParams.domain = undefined;
+
+      if (link.folderId && !folderIdToVerify) {
+        folderIdToVerify = link.folderId;
+      }
     }
 
-    const folderIdToVerify = link?.folderId || folderId;
-
-    let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
     if (folderIdToVerify) {
-      selectedFolder = await verifyFolderAccess({
+      await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId: folderIdToVerify,
@@ -56,31 +60,21 @@ export const GET = withWorkspace(
       });
     }
 
-    validDateRangeForPlan({
+    assertValidDateRangeForPlan({
       plan: workspace.plan,
       dataAvailableFrom: workspace.createdAt,
       interval,
       start,
       end,
-      throwError: true,
     });
 
-    const folderIds = folderIdToVerify
-      ? undefined
-      : await getFolderIdsToFilter({
-          workspace,
-          userId: session.user.id,
-        });
-
+    console.time("getEvents");
     const response = await getEvents({
       ...parsedParams,
       event,
-      ...(link && { linkId: link.id }),
       workspaceId: workspace.id,
-      folderIds,
-      folderId: folderId || "",
-      isMegaFolder: selectedFolder?.type === "mega",
     });
+    console.timeEnd("getEvents");
 
     return NextResponse.json(response);
   },

@@ -1,47 +1,77 @@
+import { getEarningsForPartner } from "@/lib/api/partner-profile/get-earnings-for-partner";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
-import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
-import z from "@/lib/zod";
-import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
+import { getPartnerEarningsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const querySchema = getPartnerEarningsQuerySchema
+  .pick({
+    start: true,
+    end: true,
+    page: true,
+    pageSize: true,
+    interval: true,
+    timezone: true,
+  })
+  .extend({
+    withTotal: z
+      .string()
+      .optional()
+      .transform((v) => v?.toLowerCase() === "true")
+      .default(false),
+  });
 
 // GET /api/embed/referrals/earnings – get commissions for a partner from an embed token
 export const GET = withReferralsEmbedToken(
   async ({ programEnrollment, searchParams }) => {
-    const { page } = z
-      .object({ page: z.coerce.number().optional().default(1) })
-      .parse(searchParams);
+    const { withTotal, start, end, pageSize, page, interval, timezone } =
+      querySchema.parse(searchParams);
 
-    const earnings = await prisma.commission.findMany({
-      where: {
-        earnings: {
-          gt: 0,
-        },
+    const [earnings, total] = await Promise.all([
+      getEarningsForPartner({
+        page,
+        pageSize,
+        start,
+        end,
+        interval,
+        timezone,
+        sortBy: "createdAt",
+        sortOrder: "desc",
         programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
-      },
-      include: {
-        customer: {
-          select: {
-            id: true,
-            email: true,
-          },
-        },
-        link: {
-          select: {
-            id: true,
-            shortLink: true,
-            url: true,
-          },
-        },
-      },
-      take: REFERRALS_EMBED_EARNINGS_LIMIT,
-      skip: (page - 1) * REFERRALS_EMBED_EARNINGS_LIMIT,
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+        customerDataSharingEnabledAt:
+          programEnrollment.customerDataSharingEnabledAt,
+      }),
 
-    return NextResponse.json(z.array(PartnerEarningsSchema).parse(earnings));
+      withTotal
+        ? prisma.commission.count({
+            where: {
+              earnings: {
+                not: 0,
+              },
+              programId: programEnrollment.programId,
+              partnerId: programEnrollment.partnerId,
+              ...(start || end
+                ? {
+                    createdAt: {
+                      ...(start && { gte: start }),
+                      ...(end && { lte: end }),
+                    },
+                  }
+                : {}),
+            },
+          })
+        : Promise.resolve(null),
+    ]);
+
+    if (withTotal) {
+      return NextResponse.json({
+        data: earnings,
+        total,
+      });
+    }
+
+    return NextResponse.json(earnings);
   },
 );

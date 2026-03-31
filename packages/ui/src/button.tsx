@@ -10,10 +10,10 @@ export const buttonVariants = cva("transition-all", {
       primary:
         "border-black bg-black dark:bg-white dark:border-white text-content-inverted hover:bg-inverted hover:ring-4 hover:ring-border-subtle",
       secondary: cn(
-        "border-border-subtle bg-white dark:bg-black text-content-emphasis hover:bg-bg-muted focus-visible:border-border-emphasis outline-none",
+        "border-border-subtle bg-bg-default text-content-emphasis hover:bg-bg-muted focus-visible:border-border-emphasis outline-none",
         "data-[state=open]:border-border-emphasis data-[state=open]:ring-4 data-[state=open]:ring-border-subtle",
       ),
-      outline: "border-transparent text-content-default hover:bg-bg-subtle",
+      outline: "border-transparent text-content-default hover:bg-neutral-900/5",
       success:
         "border-blue-500 bg-blue-500 text-white hover:bg-blue-600 hover:ring-4 hover:ring-blue-100",
       danger:
@@ -107,7 +107,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           "group flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border px-4 text-sm",
           props.disabled || loading
-            ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400 outline-none"
+            ? "border-border-subtle bg-bg-subtle text-content-subtle cursor-not-allowed outline-none"
             : buttonVariants({ variant }),
           className,
         )}
@@ -137,6 +137,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
                   variant === "secondary",
                 "bg-neutral-100 text-neutral-500 group-hover:bg-neutral-200":
                   variant === "outline",
+                "bg-red-400 text-white": variant === "danger",
                 "bg-red-100 text-red-600 group-hover:bg-red-500 group-hover:text-white":
                   variant === "danger-outline",
               },

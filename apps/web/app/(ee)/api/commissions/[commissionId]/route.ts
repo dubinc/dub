@@ -1,19 +1,94 @@
-import { convertCurrency } from "@/lib/analytics/convert-currency";
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { updatePartnerCommission } from "@/lib/api/commissions/update-partner-commission";
+import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
-import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import {
+  CommissionDetailSchema,
   CommissionEnrichedSchema,
-  updateCommissionSchema,
+  updateCommissionSchemaExtended,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+
+// GET /api/commissions/:commissionId - get a single commission by ID
+export const GET = withWorkspace(async ({ workspace, params }) => {
+  const programId = getDefaultProgramIdOrThrow(workspace);
+
+  const { commissionId } = params;
+
+  const commission = await prisma.commission.findUnique({
+    where: {
+      id: commissionId,
+      programId,
+    },
+    include: {
+      partner: true,
+      programEnrollment: {
+        select: {
+          partnerGroup: {
+            select: {
+              id: true,
+              holdingPeriodDays: true,
+            },
+          },
+        },
+      },
+      customer: true,
+      reward: {
+        select: {
+          description: true,
+          type: true,
+          event: true,
+          amountInCents: true,
+          amountInPercentage: true,
+        },
+      },
+      user: true,
+      payout: {
+        select: {
+          id: true,
+          paidAt: true,
+          initiatedAt: true,
+          user: true,
+        },
+      },
+    },
+  });
+
+  if (!commission) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Commission ${commissionId} not found.`,
+    });
+  }
+
+  const { partner, programEnrollment, customer, reward, ...rest } = commission;
+
+  return NextResponse.json(
+    CommissionDetailSchema.parse({
+      ...rest,
+      partner: {
+        ...partner,
+        groupId: programEnrollment.partnerGroup?.id ?? null,
+      },
+      customer: transformCustomerForCommission(customer),
+      reward: reward
+        ? {
+            ...reward,
+            amountInPercentage: reward.amountInPercentage
+              ? Number(reward.amountInPercentage)
+              : null,
+          }
+        : null,
+      holdingPeriodDays:
+        rest.type === "custom"
+          ? 0
+          : programEnrollment.partnerGroup?.holdingPeriodDays ?? 0,
+    }),
+  );
+});
 
 // PATCH /api/commissions/:commissionId - update a commission
 export const PATCH = withWorkspace(
@@ -22,166 +97,39 @@ export const PATCH = withWorkspace(
 
     const { commissionId } = params;
 
-    const commission = await prisma.commission.findUnique({
-      where: {
-        id: commissionId,
-        programId,
-      },
-      include: {
-        partner: true,
-      },
+    const {
+      saleAmount,
+      modifySaleAmount,
+      earnings,
+      currency,
+      status,
+      updateHistoricalCommissions,
+      // Deprecated fields
+      amount,
+      modifyAmount,
+    } = updateCommissionSchemaExtended.parse(await parseRequestBody(req));
+
+    const updatedCommission = await updatePartnerCommission({
+      workspaceId: workspace.id,
+      programId,
+      commissionId,
+      userId: session.user.id,
+      saleAmount: saleAmount ?? amount,
+      modifySaleAmount: modifySaleAmount ?? modifyAmount,
+      currency,
+      status,
+      earnings,
+      updateHistoricalCommissions,
     });
 
-    if (!commission) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Commission ${commissionId} not found.`,
-      });
-    }
-
-    if (commission.status === "paid") {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Cannot update amount: Commission ${commissionId} has already been paid.`,
-      });
-    }
-
-    const { partner, amount: originalAmount } = commission;
-
-    let { amount, modifyAmount, currency, status } =
-      updateCommissionSchema.parse(await parseRequestBody(req));
-
-    let finalAmount: number | undefined;
-    let finalEarnings: number | undefined;
-
-    if (amount || modifyAmount) {
-      if (commission.type !== "sale") {
-        throw new DubApiError({
-          code: "bad_request",
-          message: `Cannot update amount: Commission ${commissionId} is not a sale commission.`,
-        });
-      }
-
-      // if currency is not USD, convert it to USD  based on the current FX rate
-      // TODO: allow custom "defaultCurrency" on workspace table in the future
-      if (currency !== "usd") {
-        const valueToConvert = modifyAmount || amount;
-        if (valueToConvert) {
-          const { currency: convertedCurrency, amount: convertedAmount } =
-            await convertCurrency({ currency, amount: valueToConvert });
-
-          if (modifyAmount) {
-            modifyAmount = convertedAmount;
-          } else {
-            amount = convertedAmount;
-          }
-          currency = convertedCurrency;
-        }
-      }
-
-      finalAmount = Math.max(
-        modifyAmount ? originalAmount + modifyAmount : amount ?? originalAmount,
-        0, // Ensure the amount is not negative
-      );
-
-      const reward = await determinePartnerReward({
-        event: "sale",
-        partnerId: partner.id,
-        programId,
-      });
-
-      if (!reward) {
-        throw new DubApiError({
-          code: "not_found",
-          message: `No reward found for partner ${partner.id} in program ${programId}.`,
-        });
-      }
-
-      // Recalculate the earnings based on the new amount
-      finalEarnings = calculateSaleEarnings({
-        reward,
-        sale: {
-          amount: finalAmount,
-          quantity: commission.quantity,
-        },
-      });
-    }
-
-    const updatedCommission = await prisma.commission.update({
-      where: {
-        id: commission.id,
-      },
-      data: {
-        amount: finalAmount,
-        earnings: finalEarnings,
-        status,
-        // need to update payoutId to null if the commission has no earnings
-        // or is being updated to refunded, duplicate, canceled, or fraudulent
-        ...(finalEarnings === 0 || status ? { payoutId: null } : {}),
-      },
-      include: {
-        customer: true,
-        partner: true,
-      },
-    });
-
-    // If the commission has already been added to a payout, we need to update the payout amount
-    if (commission.status === "processed" && commission.payoutId) {
-      waitUntil(
-        prisma.$transaction(async (tx) => {
-          const commissionAggregate = await tx.commission.aggregate({
-            where: {
-              payoutId: commission.payoutId,
-            },
-            _sum: {
-              earnings: true,
-            },
-          });
-
-          const newPayoutAmount = commissionAggregate._sum.earnings ?? 0;
-
-          if (newPayoutAmount === 0) {
-            console.log(`Deleting payout ${commission.payoutId}`);
-            await tx.payout.delete({ where: { id: commission.payoutId! } });
-          } else {
-            console.log(
-              `Updating payout ${commission.payoutId} to ${newPayoutAmount}`,
-            );
-            await tx.payout.update({
-              where: { id: commission.payoutId! },
-              data: { amount: newPayoutAmount },
-            });
-          }
-        }),
-      );
-    }
-
-    waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          syncTotalCommissions({
-            partnerId: commission.partnerId,
-            programId: commission.programId,
-          }),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "commission.updated",
-            description: `Commission ${commissionId} updated`,
-            actor: session.user,
-            targets: [
-              {
-                type: "commission",
-                id: commission.id,
-                metadata: updatedCommission,
-              },
-            ],
-          }),
-        ]);
-      })(),
+    return NextResponse.json(
+      CommissionEnrichedSchema.parse({
+        ...updatedCommission,
+        customer: transformCustomerForCommission(updatedCommission.customer),
+      }),
     );
-
-    return NextResponse.json(CommissionEnrichedSchema.parse(updatedCommission));
+  },
+  {
+    requiredRoles: ["owner", "member"],
   },
 );

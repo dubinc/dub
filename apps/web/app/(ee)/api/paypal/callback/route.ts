@@ -1,14 +1,13 @@
 import { getSession } from "@/lib/auth";
-import { paypalOAuth } from "@/lib/paypal/oauth";
+import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
+import { paypalOAuthProvider } from "@/lib/paypal/oauth";
+import { sendEmail } from "@dub/email";
+import ConnectedPaypalAccount from "@dub/email/templates/connected-paypal-account";
 import { prisma } from "@dub/prisma";
-import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
+import { Prisma } from "@dub/prisma/client";
+import { PARTNERS_DOMAIN } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
-import { z } from "zod";
-
-const oAuthCallbackSchema = z.object({
-  code: z.string(),
-  state: z.string(),
-});
 
 // GET /api/paypal/callback - callback from PayPal
 export const GET = async (req: Request) => {
@@ -38,24 +37,18 @@ export const GET = async (req: Request) => {
       throw new Error("partner_not_found");
     }
 
-    const { code, state } = oAuthCallbackSchema.parse(getSearchParams(req.url));
+    const { token, contextId } =
+      await paypalOAuthProvider.exchangeCodeForToken<string>(req);
 
-    const isStateValid = await paypalOAuth.verifyState({
-      state,
-      dubUserId: session.user.id,
+    await prisma.user.findUniqueOrThrow({
+      where: {
+        id: contextId,
+      },
     });
 
-    if (!isStateValid) {
-      throw new Error("invalid_state");
-    }
-
-    const accessToken = await paypalOAuth.exchangeCodeForToken({
-      code,
-    });
-
-    const paypalUser = await paypalOAuth.getUserInfo({
-      token: accessToken,
-    });
+    const paypalUser = await paypalOAuthProvider.getUserInfo(
+      token.access_token,
+    );
 
     if (!paypalUser.email_verified) {
       throw new Error("paypal_email_not_verified");
@@ -73,29 +66,51 @@ export const GET = async (req: Request) => {
       },
     });
 
-    await prisma.partner.update({
+    const { payoutsEnabledAt, defaultPayoutMethod } =
+      await recomputePartnerPayoutState({
+        ...partner,
+        paypalEmail: paypalUser.email,
+      });
+
+    const updatedPartner = await prisma.partner.update({
       where: {
         id: defaultPartnerId,
       },
       data: {
         paypalEmail: paypalUser.email,
-        ...(!partner.payoutsEnabledAt && {
-          payoutsEnabledAt: new Date(),
-        }),
+        payoutsEnabledAt,
+        defaultPayoutMethod,
       },
     });
 
-    // TODO:
     // Send an email to the partner to inform them that their PayPal account has been connected
+    if (updatedPartner.email && updatedPartner.paypalEmail) {
+      waitUntil(
+        sendEmail({
+          variant: "notifications",
+          subject: "Successfully connected PayPal account",
+          to: updatedPartner.email,
+          react: ConnectedPaypalAccount({
+            email: updatedPartner.email,
+            paypalEmail: updatedPartner.paypalEmail,
+          }),
+        }),
+      );
+    }
   } catch (e) {
     console.error(e);
 
-    if (e instanceof Error) {
+    if (
+      e instanceof Prisma.PrismaClientKnownRequestError &&
+      e.code === "P2002"
+    ) {
+      error = "paypal_account_already_in_use";
+    } else {
       error = e.message;
     }
   }
 
   redirect(
-    `/settings/payouts${error ? `?error=${encodeURIComponent(error)}` : ""}`,
+    `/payouts?settings=true${error ? `&error=${encodeURIComponent(error)}` : ""}`,
   );
 };

@@ -23,6 +23,7 @@ export default function useFolder({
     data: folder,
     isValidating,
     isLoading,
+    error,
   } = useSWR<Folder>(
     swrEnabled ? `/api/folders/${folderId}?workspaceId=${workspaceId}` : null,
     fetcher,
@@ -36,5 +37,6 @@ export default function useFolder({
     folder,
     loading: isLoading,
     isValidating,
+    error,
   };
 }

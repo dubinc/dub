@@ -6,7 +6,7 @@ import { Menu3 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { useContext } from "react";
 import AnalyticsProvider, { AnalyticsContext } from "../analytics-provider";
-import Toggle from "../toggle";
+import { AnalyticsToggle } from "../toggle";
 import EventsTable from "./events-table";
 import EventsTabs from "./events-tabs";
 
@@ -22,7 +22,7 @@ export default function AnalyticsEvents({
   return (
     <AnalyticsProvider {...{ staticDomain, staticUrl, adminPage }}>
       <div className="pb-10">
-        <Toggle page="events" />
+        <AnalyticsToggle page="events" />
         <AnalyticsContext.Consumer>
           {({ dashboardProps }) => (
             <div

@@ -1,55 +1,37 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { importAffiliates } from "@/lib/rewardful/import-affiliates";
-import { importCampaign } from "@/lib/rewardful/import-campaign";
+import { importAffiliateCoupons } from "@/lib/rewardful/import-affiliate-coupons";
+import { importCampaigns } from "@/lib/rewardful/import-campaigns";
 import { importCommissions } from "@/lib/rewardful/import-commissions";
-import { importReferrals } from "@/lib/rewardful/import-referrals";
-import { importSteps } from "@/lib/rewardful/importer";
+import { importCustomers } from "@/lib/rewardful/import-customers";
+import { importPartners } from "@/lib/rewardful/import-partners";
+import { rewardfulImportPayloadSchema } from "@/lib/rewardful/schemas";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 export const dynamic = "force-dynamic";
-
-const schema = z.object({
-  programId: z.string(),
-  rewardId: z.string().optional(),
-  action: importSteps,
-  page: z.number().optional().default(1),
-});
 
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { programId, rewardId, action, page } = schema.parse(
-      JSON.parse(rawBody),
-    );
+    const payload = rewardfulImportPayloadSchema.parse(JSON.parse(rawBody));
 
-    switch (action) {
-      case "import-campaign":
-        await importCampaign({
-          programId,
-        });
+    switch (payload.action) {
+      case "import-campaigns":
+        await importCampaigns(payload);
         break;
-      case "import-affiliates":
-        await importAffiliates({
-          programId,
-          rewardId,
-          page,
-        });
+      case "import-partners":
+        await importPartners(payload);
         break;
-      case "import-referrals":
-        await importReferrals({
-          programId,
-          page,
-        });
+      case "import-affiliate-coupons":
+        await importAffiliateCoupons(payload);
+        break;
+      case "import-customers":
+        await importCustomers(payload);
         break;
       case "import-commissions":
-        await importCommissions({
-          programId,
-          page,
-        });
+        await importCommissions(payload);
         break;
     }
 

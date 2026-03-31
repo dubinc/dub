@@ -1,10 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { limiter } from "@/lib/cron/limiter";
+import { INVOICE_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/constants/payouts";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
-import { pluralize } from "@dub/utils";
+import { chunk, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +85,11 @@ export async function GET(req: Request) {
         },
       });
 
+      // if there are no pending payouts, skip this program
+      if (!pendingPayout._sum?.amount) {
+        continue;
+      }
+
       pendingPayouts.push({
         programId: program.id,
         _sum: pendingPayout._sum,
@@ -108,12 +113,18 @@ export async function GET(req: Request) {
       },
     });
 
-    // only send notifications for programs that have not paid out any invoices in the last week
+    // only send notifications for programs that:
+    // - have a total payout amount greater than or equal to $10 (INVOICE_MIN_PAYOUT_AMOUNT_CENTS)
+    // - have not paid out any invoices in the last 2 weeks
     const payoutsToNotify = pendingPayouts.filter((p) => {
+      const invoiceTotal = p._sum?.amount ?? 0;
       const recentPaidInvoicesForProgram = recentPaidInvoices.filter(
         (i) => i.programId === p.programId,
       );
-      return recentPaidInvoicesForProgram.length === 0;
+      return (
+        invoiceTotal >= INVOICE_MIN_PAYOUT_AMOUNT_CENTS ||
+        recentPaidInvoicesForProgram.length === 0
+      );
     });
 
     const programs = await prisma.program.findMany({
@@ -176,31 +187,30 @@ export async function GET(req: Request) {
 
     console.table(programsWithPendingPayoutsToNotify);
 
-    await Promise.all(
-      programsWithPendingPayoutsToNotify.map(
-        ({ workspace, user, program, payout }) =>
-          limiter.schedule(() =>
-            sendEmail({
-              subject: `${payout.partnersCount} ${pluralize(
-                "partner",
-                payout.partnersCount,
-              )} awaiting your payout for ${program.name}`,
-              email: user.email!,
-              react: ProgramPayoutReminder({
-                email: user.email!,
-                workspace,
-                program,
-                payout,
-              }),
-              variant: "notifications",
-            }),
-          ),
-      ),
-    );
+    const programOwnerChunks = chunk(programsWithPendingPayoutsToNotify, 100);
 
-    return NextResponse.json(
-      `Sent reminders for ${programsWithPendingPayoutsToNotify.length} programs with pending payouts.`,
-    );
+    for (const programOwnerChunk of programOwnerChunks) {
+      const res = await sendBatchEmail(
+        programOwnerChunk.map(({ workspace, user, program, payout }) => ({
+          variant: "notifications",
+          to: user.email!,
+          subject: `${payout.partnersCount} ${pluralize(
+            "partner",
+            payout.partnersCount,
+          )} awaiting your payout for ${program.name}`,
+          react: ProgramPayoutReminder({
+            email: user.email!,
+            workspace,
+            program,
+            payout,
+          }),
+        })),
+      );
+
+      console.log(`Sent ${programOwnerChunk.length} emails`, res);
+    }
+
+    return NextResponse.json("OK");
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

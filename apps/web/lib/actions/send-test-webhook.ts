@@ -1,11 +1,12 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
+import * as z from "zod/v4";
 import { WEBHOOK_TRIGGERS } from "../webhook/constants";
 import { sendWebhooks } from "../webhook/qstash";
 import { samplePayload } from "../webhook/sample-events/payload";
-import z from "../zod";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -15,10 +16,15 @@ const schema = z.object({
 
 // Test send webhook event
 export const sendTestWebhookEvent = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { webhookId, trigger } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["webhooks.write"],
+    });
 
     const webhook = await prisma.webhook.findUniqueOrThrow({
       where: {

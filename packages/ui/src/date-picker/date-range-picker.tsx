@@ -1,4 +1,5 @@
 import { cn } from "@dub/utils";
+import { endOfDay, isSameDay, startOfDay } from "date-fns";
 import { enUS } from "date-fns/locale";
 import { PropsWithChildren, useEffect, useMemo, useRef, useState } from "react";
 import { SelectRangeEventHandler } from "react-day-picker";
@@ -83,6 +84,16 @@ const DateRangePickerInner = ({
     const newRange =
       range?.from && range?.to ? { from: selectedDay } : selectedRange;
 
+    // Handle same-day selection: set start of day and end of day with local timezone
+    if (
+      newRange?.from &&
+      newRange?.to &&
+      isSameDay(newRange.from, newRange.to)
+    ) {
+      newRange.from = startOfDay(newRange.from);
+      newRange.to = endOfDay(newRange.to);
+    }
+
     setRange(newRange);
     setPreset(undefined);
     if (newRange?.from && newRange?.to) {
@@ -92,9 +103,23 @@ const DateRangePickerInner = ({
   };
 
   const onPresetSelected = (preset: DateRangePreset) => {
-    setRange(preset.dateRange);
+    let adjustedDateRange = preset.dateRange;
+
+    // Handle same-day selection for presets: set start of day and end of day with local timezone
+    if (
+      adjustedDateRange?.from &&
+      adjustedDateRange?.to &&
+      isSameDay(adjustedDateRange.from, adjustedDateRange.to)
+    ) {
+      adjustedDateRange = {
+        from: startOfDay(adjustedDateRange.from),
+        to: endOfDay(adjustedDateRange.to),
+      };
+    }
+
+    setRange(adjustedDateRange);
     setPreset(preset);
-    onChange?.(preset.dateRange, preset);
+    onChange?.(adjustedDateRange, preset);
     setOpen(false);
   };
 

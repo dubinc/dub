@@ -9,7 +9,7 @@ export default function useRewards() {
   const { data: rewards, error } = useSWR<RewardProps[]>(
     workspaceId &&
       defaultProgramId &&
-      `/api/programs/${defaultProgramId}/rewards?workspaceId=${workspaceId}`,
+      `/api/rewards?workspaceId=${workspaceId}`,
     fetcher,
     {
       dedupingInterval: 60000,

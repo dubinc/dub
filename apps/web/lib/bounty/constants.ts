@@ -1,0 +1,31 @@
+import { BountySubmissionFrequency } from "@dub/prisma/client";
+
+export const BOUNTY_DESCRIPTION_MAX_LENGTH = 5000;
+
+export const BOUNTY_MAX_SUBMISSIONS = 50;
+
+export const BOUNTY_MAX_SUBMISSION_FILES = 4;
+
+export const BOUNTY_DEFAULT_SUBMISSION_URLS = 10;
+
+export const BOUNTY_MAX_SUBMISSION_URLS = 100;
+
+export const BOUNTY_MAX_SUBMISSION_DESCRIPTION_LENGTH = 1000;
+
+export const BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH = 5000;
+
+export const BOUNTY_SUBMISSION_REQUIREMENTS = ["image", "url"] as const;
+
+export const REJECT_BOUNTY_SUBMISSION_REASONS = {
+  invalidProof: "Invalid proof",
+  duplicateSubmission: "Duplicate submission",
+  outOfTimeWindow: "Out of time window",
+  didNotMeetCriteria: "Did not meet criteria",
+  other: "Other",
+} as const;
+
+export const SUBMISSION_FREQUENCY_OPTIONS = [
+  { label: "Once a day", value: BountySubmissionFrequency.day },
+  { label: "Once a week", value: BountySubmissionFrequency.week },
+  { label: "Once a month", value: BountySubmissionFrequency.month },
+] as const;

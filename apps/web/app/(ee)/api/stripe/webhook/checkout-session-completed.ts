@@ -1,23 +1,25 @@
+import { createProgram } from "@/lib/actions/partners/create-program";
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
-import { inviteUser } from "@/lib/api/users";
+import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { limiter } from "@/lib/cron/limiter";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { Invite } from "@/lib/zod/schemas/invites";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
-import { User } from "@dub/prisma/client";
-import { getPlanFromPriceId, log } from "@dub/utils";
+import { Program, User } from "@dub/prisma/client";
+import { getPlanAndTierFromPriceId, log, prettyPrint } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
-  if (checkoutSession.mode === "setup") {
-    return;
+  if (
+    checkoutSession.mode === "setup" ||
+    checkoutSession.payment_status !== "paid"
+  ) {
+    return "Session is setup mode or not paid, skipping...";
   }
 
   if (
@@ -28,7 +30,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       message: "Missing items in Stripe webhook callback",
       type: "errors",
     });
-    return;
+    return "Missing client_reference_id or customer in checkout session.";
   }
 
   const subscription = await stripe.subscriptions.retrieve(
@@ -36,13 +38,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   );
   const priceId = subscription.items.data[0].price.id;
 
-  const plan = getPlanFromPriceId(priceId);
+  const { plan, planTier } = getPlanAndTierFromPriceId({ priceId });
 
   if (!plan) {
-    console.log(
-      `Invalid price ID in checkout.session.completed event: ${priceId}`,
-    );
-    return;
+    return `Invalid price ID in checkout.session.completed event: ${priceId}`;
   }
 
   const stripeId = checkoutSession.customer.toString();
@@ -61,17 +60,22 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       stripeId,
       billingCycleStart: new Date().getDate(),
       plan: planName,
-      usageLimit: plan.limits.clicks!,
-      linksLimit: plan.limits.links!,
-      payoutsLimit: plan.limits.payouts!,
-      domainsLimit: plan.limits.domains!,
-      aiLimit: plan.limits.ai!,
-      tagsLimit: plan.limits.tags!,
-      foldersLimit: plan.limits.folders!,
-      usersLimit: plan.limits.users!,
+      planTier: planTier,
+      usageLimit: plan.limits.clicks,
+      linksLimit: plan.limits.links,
+      payoutsLimit: plan.limits.payouts,
+      domainsLimit: plan.limits.domains,
+      aiLimit: plan.limits.ai,
+      tagsLimit: plan.limits.tags,
+      foldersLimit: plan.limits.folders,
+      groupsLimit: plan.limits.groups,
+      networkInvitesLimit: plan.limits.networkInvites,
+      usersLimit: plan.limits.users,
       paymentFailedAt: null,
     },
     select: {
+      plan: true,
+      defaultProgramId: true,
       users: {
         select: {
           user: {
@@ -104,30 +108,20 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   await Promise.allSettled([
     completeOnboarding({ users, workspaceId }),
-    ...users.map((user) => {
-      limiter.schedule(() =>
-        sendEmail({
+    sendBatchEmail(
+      users.map((user) => ({
+        to: user.email as string,
+        replyTo: "steven.tey@dub.co",
+        subject: `Thank you for upgrading to Dub ${plan.name}!`,
+        react: UpgradeEmail({
+          name: user.name,
           email: user.email as string,
-          replyTo: "steven.tey@dub.co",
-          subject: `Thank you for upgrading to Dub ${plan.name}!`,
-          react: UpgradeEmail({
-            name: user.name,
-            email: user.email as string,
-            plan: plan.name,
-          }),
-          variant: "marketing",
+          plan: plan.name,
+          planTier: planTier,
         }),
-      );
-    }),
-    // update rate limits for restricted tokens for the workspace
-    prisma.restrictedToken.updateMany({
-      where: {
-        projectId: workspaceId,
-      },
-      data: {
-        rateLimit: plan.limits.api,
-      },
-    }),
+        variant: "marketing",
+      })),
+    ),
     // enable dub.link premium default domain for the workspace
     prisma.defaultDomains.update({
       where: {
@@ -142,13 +136,15 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
   ]);
+
+  return `Checkout completed for workspace ${workspaceId}, upgraded to ${plan.name}.`;
 }
 
 async function completeOnboarding({
   users,
   workspaceId,
 }: {
-  users: Pick<User, "id">[];
+  users: Pick<User, "id" | "email">[];
   workspaceId: string;
 }) {
   const workspace = (await prisma.project.findUnique({
@@ -157,8 +153,9 @@ async function completeOnboarding({
     },
     include: {
       users: true,
+      programs: true,
     },
-  })) as unknown as WorkspaceProps | null;
+  })) as unknown as (WorkspaceProps & { programs: Program[] }) | null;
 
   if (!workspace) {
     console.error("Failed to complete onboarding for workspace", workspaceId);
@@ -167,50 +164,53 @@ async function completeOnboarding({
 
   await Promise.allSettled([
     // Complete onboarding for workspace users
-    ...users.map(({ id }) => redis.set(`onboarding-step:${id}`, "completed")),
+    onboardingStepCache.mset({
+      userIds: users.map(({ id }) => id),
+      step: "completed",
+    }),
 
-    // Send saved invite emails
     (async () => {
-      const invites = await redis.get<Invite[]>(`invites:${workspaceId}`);
-
-      if (!invites?.length) return;
-
-      if (!workspace) return;
-
-      await Promise.allSettled(
-        invites.map(({ email, role }) =>
-          inviteUser({
-            email,
-            role,
-            workspace,
-          }),
-        ),
-      );
-
-      await redis.del(`invites:${workspaceId}`);
-    })(),
-
-    // Register saved domain
-    (async () => {
+      // Register saved domain
       const data = await redis.get<{ domain: string; userId: string }>(
         `onboarding-domain:${workspaceId}`,
       );
-      if (!data || !data.domain || !data.userId) return;
-      const { domain, userId } = data;
+      if (data && data.domain && data.userId) {
+        const { domain, userId } = data;
 
-      try {
-        await claimDotLinkDomain({
-          domain,
-          userId,
-          workspace,
-        });
-        await redis.del(`onboarding-domain:${workspaceId}`);
-      } catch (e) {
-        console.error(
-          "Failed to register saved domain from onboarding",
-          { domain, userId, workspace },
-          e,
-        );
+        try {
+          await claimDotLinkDomain({
+            domain,
+            userId,
+            workspace,
+          });
+          await redis.del(`onboarding-domain:${workspaceId}`);
+        } catch (e) {
+          console.error(
+            "Failed to register saved domain from onboarding",
+            { domain, userId, workspace },
+            e,
+          );
+        }
+      }
+
+      // Create program
+      if (
+        users.length > 0 &&
+        workspace.programs.length === 0 &&
+        workspace.store?.programOnboarding
+      ) {
+        try {
+          await createProgram({
+            workspace,
+            user: users[0],
+          });
+        } catch (e) {
+          console.error(
+            "Failed to create program from onboarding",
+            prettyPrint({ workspace, user: users[0] }),
+            e,
+          );
+        }
       }
     })(),
   ]);

@@ -3,6 +3,7 @@
   "include": [
     "src/**/*"
   ],
+  "typeRoots": ["node_modules/@types", "src"],
   "exclude": [
     "node_modules"
   ],
@@ -12,6 +13,7 @@
     "moduleResolution": "NodeNext",
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "strict": true
+    "strict": true,
+    "skipLibCheck": true
   }
 }

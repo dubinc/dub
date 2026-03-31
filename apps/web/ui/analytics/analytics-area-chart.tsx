@@ -27,7 +27,7 @@ const DEMO_DATA = [
   }))
   .reverse();
 
-export default function AnalyticsAreaChart({
+export function AnalyticsAreaChart({
   resource,
   demo,
 }: {
@@ -36,8 +36,19 @@ export default function AnalyticsAreaChart({
 }) {
   const { createdAt: workspaceCreatedAt } = useWorkspace();
   const { programEnrollment } = useProgramEnrollment();
-  const dataAvailableFrom =
-    workspaceCreatedAt ?? programEnrollment?.program.createdAt;
+  const dataAvailableFrom = [
+    workspaceCreatedAt,
+    programEnrollment?.program.startedAt,
+    programEnrollment?.program.createdAt,
+  ]
+    .filter(Boolean)
+    .reduce(
+      (earliest, current) =>
+        !earliest || (current && new Date(current) < new Date(earliest))
+          ? current
+          : earliest,
+      null,
+    ) as Date;
 
   const {
     baseApiPath,
@@ -78,7 +89,7 @@ export default function AnalyticsAreaChart({
               clicks,
               leads,
               sales,
-              saleAmount: (saleAmount ?? 0) / 100,
+              saleAmount,
             },
           })) ?? null,
     [data, demo],
@@ -166,7 +177,10 @@ export default function AnalyticsAreaChart({
             showGridLines
             tickFormat={
               resource === "sales" && saleUnit === "saleAmount"
-                ? (v) => `$${nFormatter(v)}`
+                ? (v) =>
+                    currencyFormatter(v, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
                 : nFormatter
             }
           />

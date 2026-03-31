@@ -1,6 +1,7 @@
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export const partnerStackImportSteps = z.enum([
+  "import-groups",
   "import-partners",
   "import-links",
   "import-customers",
@@ -8,11 +9,24 @@ export const partnerStackImportSteps = z.enum([
   "update-stripe-customers",
 ]);
 
+export const partnerStackCredentialsSchema = z.object({
+  publicKey: z.string().min(1),
+  secretKey: z.string().min(1),
+});
+
 export const partnerStackImportPayloadSchema = z.object({
+  importId: z.string(),
   userId: z.string(),
   programId: z.string(),
   action: partnerStackImportSteps,
   startingAfter: z.string().optional(),
+});
+
+export const partnerStackGroup = z.object({
+  key: z.string(),
+  name: z.string(),
+  slug: z.string(),
+  default: z.boolean(),
 });
 
 export const partnerStackPartner = z.object({
@@ -28,8 +42,15 @@ export const partnerStackPartner = z.object({
   stats: z.object({
     CUSTOMER_COUNT: z
       .number()
+      .optional()
+      .default(0)
       .describe("Only import if CUSTOMER_COUNT is greater than 0."),
   }),
+  group: z
+    .object({
+      slug: z.string(),
+    })
+    .nullable(),
 });
 
 export const partnerStackLink = z.object({
@@ -40,7 +61,7 @@ export const partnerStackLink = z.object({
 
 export const partnerStackCustomer = z.object({
   key: z.string(),
-  name: z.string(),
+  name: z.string().nullable(),
   email: z.string(),
   provider_key: z
     .string()
@@ -59,6 +80,7 @@ export const partnerStackCustomer = z.object({
 export const partnerStackCommission = z.object({
   key: z.string(),
   amount: z.number().describe("The amount of the reward in cents (USD)."),
+  currency: z.string(),
   created_at: z.number(),
   customer: z
     .object({
@@ -72,5 +94,15 @@ export const partnerStackCommission = z.object({
       currency: z.string(),
     })
     .nullable(),
-  reward_status: z.enum(["hold", "pending", "approved", "declined", "paid"]),
+  reward_status: z.enum([
+    "hold",
+    "pending",
+    "approved",
+    "declined",
+    "paid",
+    "scheduled",
+  ]),
+  partnership: z.object({
+    email: z.string().nullable(),
+  }),
 });

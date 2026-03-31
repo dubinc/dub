@@ -10,7 +10,6 @@ import {
   Button,
   ChartLine,
   DateRangePicker,
-  ExpandingArrow,
   Filter,
   SquareLayoutGrid6,
   TooltipContent,
@@ -31,13 +30,13 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useContext } from "react";
-import AnalyticsOptions from "./analytics-options";
+import { FolderIcon } from "../folders/folder-icon";
+import { AnalyticsOptions } from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
-import EventsOptions from "./events/events-options";
 import { ShareButton } from "./share-button";
 import { useAnalyticsFilters } from "./use-analytics-filters";
 
-export default function Toggle({
+export function AnalyticsToggle({
   page = "analytics",
 }: {
   page?: "analytics" | "events";
@@ -66,12 +65,12 @@ export default function Toggle({
   const {
     filters,
     activeFilters,
-    setSearch,
-    setSelectedFilter,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     onOpenFilter,
+    onToggleOperator,
     streaming,
     activeFiltersWithStreaming,
   } = useAnalyticsFilters({ partnerPage, dashboardProps });
@@ -81,18 +80,17 @@ export default function Toggle({
       className="w-full md:w-fit"
       filters={filters}
       activeFilters={activeFilters}
-      onSearchChange={setSearch}
-      onSelectedFilterChange={setSelectedFilter}
       onSelect={onSelect}
       onRemove={onRemove}
       onOpenFilter={onOpenFilter}
+      isAdvancedFilter
       askAI
     />
   );
 
   const dateRangePicker = (
     <DateRangePicker
-      className="w-full sm:min-w-[160px] md:w-fit lg:min-w-[200px]"
+      className="w-full md:w-fit"
       align={dashboardProps ? "end" : "center"}
       value={
         start && end
@@ -122,7 +120,7 @@ export default function Toggle({
         if (!range || !range.from || !range.to) return;
 
         queryParams({
-          del: "preset",
+          del: "interval",
           set: {
             start: range.from.toISOString(),
             end: range.to.toISOString(),
@@ -141,7 +139,7 @@ export default function Toggle({
                 interval: value,
                 start,
                 end,
-              });
+              }).valid;
 
         const { startDate, endDate } = getStartEndDates({
           interval: value,
@@ -195,34 +193,36 @@ export default function Toggle({
               },
             )}
           >
-            {dashboardProps && (
-              <a
-                className="group flex items-center text-lg font-semibold text-neutral-800"
-                href={linkConstructor({ domain, key })}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <BlurImage
-                  alt={url || "Dub"}
-                  src={
-                    url
-                      ? `${GOOGLE_FAVICON_URL}${getApexDomain(url)}`
-                      : DUB_LOGO
-                  }
-                  className="mr-2 h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
-                  width={48}
-                  height={48}
-                />
-                <p className="max-w-[192px] truncate sm:max-w-[400px]">
-                  {linkConstructor({
-                    domain,
-                    key,
-                    pretty: true,
-                  })}
-                </p>
-                <ExpandingArrow className="h-5 w-5" />
-              </a>
-            )}
+            {dashboardProps &&
+              (dashboardProps.folderId ? (
+                <div className="flex items-center gap-2 text-lg font-semibold text-neutral-800">
+                  <FolderIcon shape="square" iconClassName="size-3" />
+                  <p className="max-w-[192px] truncate sm:max-w-[400px]">
+                    {dashboardProps.folderName}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex items-center text-lg font-semibold text-neutral-800">
+                  <BlurImage
+                    alt={url || "Dub"}
+                    src={
+                      url
+                        ? `${GOOGLE_FAVICON_URL}${getApexDomain(url)}`
+                        : DUB_LOGO
+                    }
+                    className="mr-2 h-6 w-6 flex-shrink-0 overflow-hidden rounded-full"
+                    width={48}
+                    height={48}
+                  />
+                  <p className="max-w-[192px] truncate sm:max-w-[400px]">
+                    {linkConstructor({
+                      domain,
+                      key,
+                      pretty: true,
+                    })}
+                  </p>
+                </div>
+              ))}
             <div
               className={cn(
                 "flex w-full flex-col-reverse items-center gap-2 min-[550px]:flex-row",
@@ -240,7 +240,7 @@ export default function Toggle({
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
                       <>
-                        {domain && key && <ShareButton />}
+                        <ShareButton />
                         <Link
                           href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`}
                         >
@@ -250,10 +250,9 @@ export default function Toggle({
                             icon={
                               <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                             }
-                            text={isMobile ? undefined : "Switch to Events"}
+                            text={isMobile ? undefined : "View Events"}
                           />
                         </Link>
-                        <AnalyticsOptions />
                       </>
                     )}
                     {page === "events" && (
@@ -267,12 +266,12 @@ export default function Toggle({
                             icon={
                               <ChartLine className="h-4 w-4 text-neutral-600" />
                             }
-                            text={isMobile ? undefined : "Switch to Analytics"}
+                            text={isMobile ? undefined : "View Analytics"}
                           />
                         </Link>
-                        <EventsOptions />
                       </>
                     )}
+                    <AnalyticsOptions page={page} />
                   </div>
                 )}
               </div>
@@ -290,8 +289,12 @@ export default function Toggle({
         <Filter.List
           filters={filters}
           activeFilters={activeFiltersWithStreaming}
+          onSelect={onSelect}
           onRemove={onRemove}
+          onRemoveFilter={onRemoveFilter}
           onRemoveAll={onRemoveAll}
+          onToggleOperator={onToggleOperator}
+          isAdvancedFilter
         />
         <div
           className={cn(

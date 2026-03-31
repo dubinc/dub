@@ -1,0 +1,166 @@
+name: Playwright E2E Tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/**"
+      - "packages/**"
+      - ".github/workflows/playwright.yaml"
+
+concurrency:
+  group: e2e-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    permissions:
+      contents: read
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+
+    env:
+      CI: "true"
+      NODE_OPTIONS: "--max-old-space-size=8192"
+      DATABASE_URL: "mysql://root:@localhost:3306/planetscale"
+      PLANETSCALE_DATABASE_URL: "http://root:unused@localhost:3900/planetscale"
+
+      NEXTAUTH_SECRET: "e2e-test-secret-at-least-32-chars-long"
+      NEXTAUTH_URL: "http://partners.localhost:8888"
+
+      NEXT_PUBLIC_APP_NAME: "Dub"
+      NEXT_PUBLIC_APP_DOMAIN: "localhost:8888"
+      NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
+
+      E2E_PARTNER_EMAIL: "partner1@dub-internal-test.com"
+      E2E_PARTNER_PASSWORD: "password"
+
+      TINYBIRD_API_KEY: "xx"
+      TINYBIRD_API_URL: "xx"
+
+      # serverless-redis-http (SRH) — must match jobs.e2e.services.srh env
+      SRH_TOKEN: "e2e_srh_token"
+      UPSTASH_REDIS_REST_URL: "http://127.0.0.1:8079"
+      UPSTASH_REDIS_REST_TOKEN: "e2e_srh_token"
+      UPSTASH_VECTOR_REST_URL: "https://sensible-camel-xxxx.upstash.io"
+      UPSTASH_VECTOR_REST_TOKEN: "xx"
+      QSTASH_TOKEN: "xx"
+      QSTASH_CURRENT_SIGNING_KEY: "xx"
+      QSTASH_NEXT_SIGNING_KEY: "xx"
+
+      AXIOM_TOKEN: ""
+      AXIOM_DATASET: ""
+
+      # RESEND_API_KEY must be unset so emails route through SMTP to MailHog
+      SMTP_HOST: "localhost"
+      SMTP_PORT: "1025"
+      SMTP_USER: "smtpUser"
+      SMTP_PASSWORD: "smtpPassword"
+
+      EMBEDDING_SYNC_SECRET: "xx"
+      ANTHROPIC_API_KEY: "xx"
+
+      STRIPE_SECRET_KEY: "xx"
+      STRIPE_WEBHOOK_SECRET: "xx"
+      STRIPE_CONNECT_WEBHOOK_SECRET: "xx"
+      STRIPE_APP_WEBHOOK_SECRET_TEST: "xx"
+      STRIPE_APP_SECRET_KEY_TEST: "xx"
+      STRIPE_CONNECT_V2_WEBHOOK_SECRET: "xx"
+      STRIPE_APP_SECRET_KEY_SANDBOX: "xx"
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_DATABASE: planetscale
+          MYSQL_ROOT_HOST: "%"
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 3306:3306
+
+      mailhog:
+        image: mailhog/mailhog:latest
+        ports:
+          - 1025:1025
+          - 8025:8025
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+      srh:
+        image: hiett/serverless-redis-http:latest
+        env:
+          SRH_MODE: env
+          SRH_TOKEN: "e2e_srh_token"
+          SRH_CONNECTION_STRING: redis://redis:6379
+        ports:
+          - 8079:80
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Start PlanetScale simulator
+        run: |
+          docker run -d --name ps-http-sim \
+            --network host \
+            ghcr.io/mattrobenolt/ps-http-sim:latest \
+            -listen-addr=0.0.0.0 \
+            -listen-port=3900 \
+            -mysql-dbname=planetscale \
+            -mysql-no-pass \
+            -mysql-addr=127.0.0.1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('apps/web/package.json') }}
+
+      - name: Install Playwright Chromium
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter web exec playwright install chromium
+
+      - name: Generate Prisma client
+        working-directory: apps/web
+        run: pnpm prisma:generate
+
+      - name: Push database schema
+        working-directory: apps/web
+        run: pnpm prisma:push
+
+      - name: Seed test data
+        working-directory: apps/web
+        run: pnpm tsx playwright/seed.ts
+
+      - name: Build application
+        run: pnpm turbo build --filter=web
+
+      - name: Run Playwright tests
+        working-directory: apps/web
+        run: pnpm test:e2e

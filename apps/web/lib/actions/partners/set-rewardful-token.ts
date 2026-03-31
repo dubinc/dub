@@ -2,8 +2,9 @@
 
 import { RewardfulApi } from "@/lib/rewardful/api";
 import { rewardfulImporter } from "@/lib/rewardful/importer";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
@@ -11,14 +12,15 @@ const schema = z.object({
 });
 
 export const setRewardfulTokenAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace, user } = ctx;
+    const { workspace } = ctx;
     const { token } = parsedInput;
 
-    if (!workspace.partnersEnabled) {
-      throw new Error("You are not allowed to perform this action.");
-    }
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const rewardfulApi = new RewardfulApi({ token });
 
@@ -30,9 +32,7 @@ export const setRewardfulTokenAction = authActionClient
     }
 
     await rewardfulImporter.setCredentials(workspace.id, {
-      userId: user.id,
       token,
-      campaignId: "", // We'll set in the second step after choosing the campaign
     });
 
     return {

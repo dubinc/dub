@@ -1,0 +1,49 @@
+import { ACME_PROGRAM_ID } from "@dub/utils";
+
+export const PROGRAM_ONBOARDING_PARTNERS_LIMIT = 5;
+export const MAX_PARTNERS_INVITES_PER_REQUEST = 50;
+
+export const MAX_PROGRAM_CATEGORIES = 3;
+export const PROGRAM_SIMILARITY_SCORE_THRESHOLD = 0.3;
+
+export const PROGRAM_IMPORT_SOURCES = [
+  {
+    id: "rewardful",
+    value: "Rewardful",
+    image: "https://assets.dub.co/misc/icons/rewardful.svg",
+    helpUrl: "https://dub.co/help/article/migrating-from-rewardful",
+  },
+  {
+    id: "tolt",
+    value: "Tolt",
+    image: "https://assets.dub.co/misc/icons/tolt.svg",
+    helpUrl: "https://dub.co/help/article/migrating-from-tolt",
+  },
+  {
+    id: "partnerstack",
+    value: "PartnerStack",
+    image: "https://assets.dub.co/misc/icons/partnerstack.svg",
+    helpUrl: "https://dub.co/help/article/migrating-from-partnerstack",
+  },
+  {
+    id: "firstpromoter",
+    value: "FirstPromoter",
+    image: "https://assets.dub.co/misc/icons/firstpromoter.svg",
+    helpUrl: "https://dub.co/help/article/migrating-from-firstpromoter",
+  },
+] as const;
+
+export const PROGRAM_APPLICATION_IMAGE_MAX_FILE_SIZE_MB = 5;
+
+export const PROGRAM_APPLICATION_IMAGE_ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+] as const;
+
+export const PROGRAM_APPLICATION_IMAGE_ALLOWED_TYPES_LABEL = "JPG, PNG, WebP";
+
+export const EXTERNAL_PAYOUTS_PROGRAM_IDS = [
+  ACME_PROGRAM_ID, // Acme
+  "prog_1JWVR53QX1NM7NDEK62E3J19H", // Polymarket
+];

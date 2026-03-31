@@ -1,3 +1,4 @@
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { RewardProps } from "@/lib/types";
 import { Commission } from "@dub/prisma/client";
 
@@ -8,20 +9,20 @@ export const calculateSaleEarnings = ({
   reward,
   sale,
 }: {
-  reward: Pick<RewardProps, "amount" | "type">;
+  reward: Pick<RewardProps, "type" | "amountInCents" | "amountInPercentage">;
   sale: Pick<Commission, "quantity" | "amount">;
 }) => {
   if (!reward) {
     return 0;
   }
 
-  if (reward.type === "percentage") {
-    return sale.amount * (reward.amount / 100);
-  }
+  const amount = getRewardAmount(reward);
 
   if (reward.type === "flat") {
-    return sale.quantity * reward.amount;
+    return sale.quantity * amount;
+  } else if (reward.type === "percentage") {
+    return sale.amount * (amount / 100);
   }
 
-  throw new Error("Invalid reward type");
+  return 0;
 };

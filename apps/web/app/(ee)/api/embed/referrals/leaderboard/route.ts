@@ -4,7 +4,7 @@ import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { OG_AVATAR_URL } from "@dub/utils";
 import { NextResponse } from "next/server";
-import z from "node_modules/zod/lib";
+import * as z from "zod/v4";
 
 // GET /api/embed/referrals/leaderboard – get leaderboard for a program
 export const GET = withReferralsEmbedToken(async ({ program }) => {
@@ -24,8 +24,6 @@ export const GET = withReferralsEmbedToken(async ({ program }) => {
 
   const response = partners.map((partner) => ({
     id: partner.id,
-    name: generateRandomName(partner.id),
-    image: `${OG_AVATAR_URL}${partner.id}`,
     totalCommissions: Number(partner.totalCommissions),
   }));
 

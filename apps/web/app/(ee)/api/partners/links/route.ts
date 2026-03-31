@@ -1,9 +1,12 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
+import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import {
@@ -12,10 +15,10 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
-import { getApexDomain } from "@dub/utils";
+import { getUTMParamsFromURL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/partners/links - get the partner links
 export const GET = withWorkspace(
@@ -24,6 +27,8 @@ export const GET = withWorkspace(
 
     const { partnerId, tenantId } =
       retrievePartnerLinksSchema.parse(searchParams);
+
+    throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: partnerId
@@ -57,6 +62,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );
 
@@ -81,24 +87,20 @@ export const POST = withWorkspace(
       });
     }
 
-    if (url && getApexDomain(url) !== getApexDomain(program.url)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-      });
-    }
-
-    if (!partnerId && !tenantId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "You must provide a partnerId or tenantId.",
-      });
-    }
+    throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
     const partner = await prisma.programEnrollment.findUnique({
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
+      include: {
+        partnerGroup: {
+          include: {
+            partnerGroupDefaultLinks: true,
+            utmTemplate: true,
+          },
+        },
+      },
     });
 
     if (!partner) {
@@ -108,12 +110,32 @@ export const POST = withWorkspace(
       });
     }
 
+    const partnerGroup = partner.partnerGroup;
+
+    // shouldn't happen but just in case
+    if (!partnerGroup) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "This partner is not part of a partner group.",
+      });
+    }
+
+    validatePartnerLinkUrl({ group: partnerGroup, url });
+
+    const linkUrl = url || partnerGroup.partnerGroupDefaultLinks[0].url;
+
     const { link, error, code } = await processLink({
       payload: {
         ...linkProps,
         domain: program.domain,
         key: key || undefined,
-        url: url || program.url,
+        url: linkUrl,
+        ...(partnerGroup.utmTemplate
+          ? {
+              ...extractUtmParams(partnerGroup.utmTemplate),
+              ...getUTMParamsFromURL(linkUrl),
+            }
+          : {}),
         programId: program.id,
         tenantId: partner.tenantId,
         partnerId: partner.partnerId,
@@ -146,5 +168,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredRoles: ["owner", "member"],
   },
 );

@@ -34,7 +34,7 @@ export function AnalyticsTimeseriesChart({
         {
           id: "amount",
           valueAccessor: (d) => d.values.amount,
-          colorClassName: "text-[#8B5CF6]",
+          colorClassName: "text-violet-500",
           isActive: true,
         },
       ]}
@@ -54,11 +54,8 @@ export function AnalyticsTimeseriesChart({
               </div>
               <p className="text-right font-medium text-neutral-900">
                 {selectedTab === "sales" && saleUnit === "saleAmount"
-                  ? currencyFormatter(d.values.amount, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })
-                  : nFormatter(d.values.amount)}
+                  ? currencyFormatter(d.values.amount)
+                  : nFormatter(d.values.amount, { full: true })}
               </p>
             </div>
           </>

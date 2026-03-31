@@ -1,6 +1,7 @@
 "use client";
 
 import { generateCsvMapping } from "@/lib/ai/generate-csv-mapping";
+import { readStreamableValue } from "@ai-sdk/rsc";
 import { Button, IconMenu, InfoTooltip, Popover, Tooltip } from "@dub/ui";
 import {
   ArrowRight,
@@ -16,7 +17,6 @@ import {
   parseDateTime,
   truncate,
 } from "@dub/utils";
-import { readStreamableValue } from "ai/rsc";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Controller } from "react-hook-form";

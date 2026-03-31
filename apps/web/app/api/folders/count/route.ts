@@ -1,6 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import { listFoldersQuerySchema } from "@/lib/zod/schemas/folders";
 import { prisma } from "@dub/prisma";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/folders/count - get count of folders
@@ -10,26 +11,32 @@ export const GET = withWorkspace(
       .omit({ page: true, pageSize: true })
       .parse(searchParams);
 
+    const workspaceRole = workspace.users[0]?.role;
+
     const count = await prisma.folder.count({
       where: {
         projectId: workspace.id,
-        OR: [
-          { accessLevel: { not: null } },
-          {
-            users: {
-              some: {
-                userId: session.user.id,
-                role: { not: null },
+        ...(workspaceRole !== WorkspaceRole.owner
+          ? {
+              OR: [
+                { accessLevel: { not: null } },
+                {
+                  users: {
+                    some: {
+                      userId: session.user.id,
+                      role: { not: null },
+                    },
+                  },
+                },
+              ],
+              users: {
+                none: {
+                  userId: session.user.id,
+                  role: null,
+                },
               },
-            },
-          },
-        ],
-        users: {
-          none: {
-            userId: session.user.id,
-            role: null,
-          },
-        },
+            }
+          : {}),
         ...(search && {
           name: {
             contains: search,

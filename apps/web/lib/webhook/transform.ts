@@ -3,12 +3,11 @@ import {
   webhookPayloadSchema,
 } from "@/lib/webhook/schemas";
 import { Webhook } from "@dub/prisma/client";
-import { OG_AVATAR_URL, nanoid, toCamelCase } from "@dub/utils";
+import { nanoid, toCamelCase } from "@dub/utils";
 import { ExpandedLink, transformLink } from "../api/links/utils/transform-link";
 import { generateRandomName } from "../names";
-import { WebhookTrigger } from "../types";
-import z from "../zod";
-import { clickEventSchema, clickEventSchemaTB } from "../zod/schemas/clicks";
+import { ClickEventTB, WebhookTrigger } from "../types";
+import { clickEventSchema } from "../zod/schemas/clicks";
 import { WebhookSchema } from "../zod/schemas/webhooks";
 import { WEBHOOK_EVENT_ID_PREFIX } from "./constants";
 import { leadWebhookEventSchema, saleWebhookEventSchema } from "./schemas";
@@ -30,7 +29,7 @@ export const transformWebhook = (webhook: TransformWebhookProps) => {
 };
 
 export const transformClickEventData = (
-  data: z.infer<typeof clickEventSchemaTB> & {
+  data: ClickEventTB & {
     link: any;
   },
 ) => {
@@ -38,11 +37,16 @@ export const transformClickEventData = (
     Object.entries(data).map(([key, value]) => [toCamelCase(key), value]),
   );
 
+  const parsedTimestamp = new Date(click.timestamp ?? Date.now());
+  const validTimestamp = Number.isNaN(parsedTimestamp.getTime())
+    ? new Date()
+    : parsedTimestamp;
+
   return clickWebhookEventSchema.parse({
     ...click,
     click: clickEventSchema.parse({
       ...click,
-      timestamp: new Date(click.timestamp),
+      timestamp: validTimestamp,
       id: click.clickId,
     }),
   });
@@ -54,7 +58,7 @@ const transformWebhookCustomer = (customer: any) => {
     name: customer.name || customer.email || generateRandomName(),
     externalId: customer.externalId || "",
     country: undefined,
-    avatar: customer.avatar || `${OG_AVATAR_URL}${customer.id}`,
+    avatar: customer.avatar,
   };
 };
 
@@ -75,6 +79,7 @@ export const transformLeadEventData = (data: any) => {
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
     link: transformLink(lead.link as ExpandedLink),
+    metadata: lead.metadata || null,
   });
 };
 
@@ -103,6 +108,7 @@ export const transformSaleEventData = (data: any) => {
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
     link: transformLink(sale.link as ExpandedLink),
+    metadata: sale.metadata ?? null,
   });
 };
 

@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { redis } from "@/lib/upstash";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -8,9 +8,14 @@ export const dynamic = "force-dynamic";
 
 // Cron to update the Foreign Exchange Rates in Redis
 // Runs once every day at 08:00 AM UTC (0 8 * * *)
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    const rawBody = await req.text();
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
 
     const res = await fetch("https://api.currencyapi.com/v3/latest", {
       headers: {

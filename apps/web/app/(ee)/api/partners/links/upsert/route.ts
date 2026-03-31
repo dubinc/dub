@@ -6,16 +6,19 @@ import {
   updateLink,
 } from "@/lib/api/links";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
+import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { upsertPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { deepEqual, getApexDomain } from "@dub/utils";
+import { deepEqual, getUTMParamsFromURL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -27,6 +30,8 @@ export const PUT = withWorkspace(
     const { partnerId, tenantId, url, key, linkProps } =
       upsertPartnerLinkSchema.parse(await parseRequestBody(req));
 
+    throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
+
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
@@ -36,21 +41,7 @@ export const PUT = withWorkspace(
       throw new DubApiError({
         code: "bad_request",
         message:
-          "You need to set a domain and url for this program before creating a partner.",
-      });
-    }
-
-    if (getApexDomain(url) !== getApexDomain(program.url)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-      });
-    }
-
-    if (!partnerId && !tenantId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "You must provide a partnerId or tenantId.",
+          "You need to set a domain and url for this program before upserting a partner link.",
       });
     }
 
@@ -58,6 +49,14 @@ export const PUT = withWorkspace(
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
+      include: {
+        partnerGroup: {
+          include: {
+            partnerGroupDefaultLinks: true,
+            utmTemplate: true,
+          },
+        },
+      },
     });
 
     if (!partner) {
@@ -66,6 +65,21 @@ export const PUT = withWorkspace(
         message: "Partner not found.",
       });
     }
+
+    const partnerGroup = partner.partnerGroup;
+
+    // shouldn't happen but just in case
+    if (!partnerGroup) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "This partner is not part of a partner group.",
+      });
+    }
+
+    validatePartnerLinkUrl({
+      group: partnerGroup,
+      url,
+    });
 
     const link = await prisma.link.findFirst({
       where: {
@@ -97,6 +111,7 @@ export const PUT = withWorkspace(
           link.testStartedAt instanceof Date
             ? link.testStartedAt.toISOString()
             : link.testStartedAt,
+
         // merge in new props
         ...linkProps,
         // set default fields
@@ -177,13 +192,21 @@ export const PUT = withWorkspace(
         });
       }
     } else {
+      const linkUrl = url || partnerGroup.partnerGroupDefaultLinks[0].url;
+
       // proceed with /api/partners/links POST logic
       const { link, error, code } = await processLink({
         payload: {
           ...linkProps,
           domain: program.domain,
           key: key || undefined,
-          url,
+          url: linkUrl,
+          ...(partnerGroup.utmTemplate
+            ? {
+                ...extractUtmParams(partnerGroup.utmTemplate),
+                ...getUTMParamsFromURL(linkUrl),
+              }
+            : {}),
           programId: program.id,
           tenantId: partner.tenantId,
           partnerId: partner.partnerId,

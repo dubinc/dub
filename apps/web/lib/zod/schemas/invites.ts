@@ -1,11 +1,11 @@
-import { roles } from "@/lib/types";
-import { z } from "zod";
+import { WorkspaceRole } from "@dub/prisma/client";
+import * as z from "zod/v4";
 
 export const inviteTeammatesSchema = z.object({
   teammates: z.array(
     z.object({
-      email: z.string().email(),
-      role: z.enum(roles),
+      email: z.email(),
+      role: z.enum(WorkspaceRole),
     }),
   ),
 });

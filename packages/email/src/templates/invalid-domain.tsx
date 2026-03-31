@@ -24,7 +24,7 @@ export default function InvalidDomain({
   domain: string;
   workspaceSlug: string;
   invalidDays: number;
-}): JSX.Element {
+}) {
   return (
     <Html>
       <Head />

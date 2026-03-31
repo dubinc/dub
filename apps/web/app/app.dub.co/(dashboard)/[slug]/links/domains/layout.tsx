@@ -1,7 +1,7 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ReactNode } from "react";
-import { DomainsHeader } from "../../settings/domains/header";
+import { DomainsHeader } from "../../(ee)/settings/domains/header";
 
 export default function DomainsLayout({ children }: { children: ReactNode }) {
   return (

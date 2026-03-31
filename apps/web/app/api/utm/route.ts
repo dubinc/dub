@@ -51,7 +51,7 @@ export const POST = withWorkspace(
       data: {
         id: createId({ prefix: "utm_" }),
         projectId: workspace.id,
-        userId: session?.user.id,
+        userId: session.user.id,
         ...props,
       },
     });

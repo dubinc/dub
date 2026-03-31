@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Project } from "@prisma/client";
+import { Project } from "@dub/prisma/client";
 import { getFolders } from "../folder/get-folders";
 import { getPlanCapabilities } from "../plan-capabilities";
 

@@ -1,20 +1,27 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
 import { CommissionStatus, CommissionType } from "@dub/prisma/client";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { CustomerSchema } from "./customers";
-import { getPaginationQuerySchema } from "./misc";
-import { PartnerSchema } from "./partners";
-import { parseDateSchema } from "./utils";
+import { LinkSchema } from "./links";
+import {
+  getCursorPaginationQuerySchema,
+  getPaginationQuerySchema,
+} from "./misc";
+import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
+import { PayoutSchema } from "./payouts";
+import { RewardSchema } from "./rewards";
+import { UserSchema } from "./users";
+import { centsSchema, parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
-  id: z.string().describe("The commission's unique ID on Dub.").openapi({
+  id: z.string().describe("The commission's unique ID on Dub.").meta({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.nativeEnum(CommissionType).optional(),
+  type: z.enum(CommissionType).optional(), // Note: Not sure the type will ever be optional
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
-  status: z.nativeEnum(CommissionStatus),
+  status: z.enum(CommissionStatus),
   invoiceId: z.string().nullable(),
   description: z.string().nullable(),
   quantity: z.number(),
@@ -27,23 +34,62 @@ export const CommissionSchema = z.object({
 });
 
 // Represents the commission object used in webhook and API responses (/api/commissions/**)
-export const CommissionEnrichedSchema = CommissionSchema.merge(
-  z.object({
-    partner: PartnerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      payoutsEnabledAt: true,
-      country: true,
-    }),
-    customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+export const CommissionEnrichedSchema = CommissionSchema.extend({
+  partner: EnrolledPartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    payoutsEnabledAt: true,
+    country: true,
+    groupId: true,
   }),
-);
+  customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+});
+
+// Schema for the commission detail page (GET /api/commissions/:commissionId)
+// TODO: Simplify this for OpenAPI and limit extra fields to in-app only – similar to getLinkInfoQuerySchemaExtended logic
+export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
+  user: UserSchema.nullish().describe("The user who created the commission."),
+  reward: RewardSchema.pick({
+    event: true,
+    description: true,
+    type: true,
+    amountInCents: true,
+    amountInPercentage: true,
+  }).nullish(),
+  payout: PayoutSchema.pick({
+    id: true,
+    paidAt: true,
+    initiatedAt: true,
+  })
+    .extend({
+      user: UserSchema.nullish().describe("The user who processed the payout."),
+    })
+    .nullish(),
+  holdingPeriodDays: z
+    .number()
+    .nullish()
+    .describe("The holding period days for the partner group."),
+});
+
+// "commission.created" webhook event schema
+export const CommissionWebhookSchema = CommissionSchema.extend({
+  partner: WebhookPartnerSchema,
+  customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+  link: LinkSchema.pick({
+    id: true,
+    shortLink: true,
+    domain: true,
+    key: true,
+  }).nullable(),
+});
+
+export const COMMISSIONS_MAX_PAGE_SIZE = 100;
 
 export const getCommissionsQuerySchema = z
   .object({
-    type: z.nativeEnum(CommissionType).optional(),
+    type: z.enum(CommissionType).optional(),
     customerId: z
       .string()
       .optional()
@@ -55,7 +101,21 @@ export const getCommissionsQuerySchema = z
     partnerId: z
       .string()
       .optional()
-      .describe("Filter the list of commissions by the associated partner."),
+      .describe(
+        "Filter the list of commissions by the associated partner. When specified, takes precedence over `tenantId`.",
+      ),
+    tenantId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated partner's `tenantId` (their unique ID within your database).",
+      ),
+    groupId: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the list of commissions by the associated partner group.",
+      ),
     invoiceId: z
       .string()
       .optional()
@@ -63,7 +123,7 @@ export const getCommissionsQuerySchema = z
         "Filter the list of commissions by the associated invoice. Since invoiceId is unique on a per-program basis, this will only return one commission per invoice.",
       ),
     status: z
-      .nativeEnum(CommissionStatus)
+      .enum(CommissionStatus)
       .optional()
       .describe(
         "Filter the list of commissions by their corresponding status.",
@@ -88,19 +148,32 @@ export const getCommissionsQuerySchema = z
     end: parseDateSchema
       .optional()
       .describe("The end date of the date range to filter the commissions by."),
+    timezone: z.string().optional(),
   })
-  .merge(getPaginationQuerySchema({ pageSize: 100 }));
+  .extend({
+    ...getCursorPaginationQuerySchema({
+      example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56",
+    }),
+    ...getPaginationQuerySchema({
+      pageSize: COMMISSIONS_MAX_PAGE_SIZE,
+      deprecated: true,
+    }),
+  });
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   page: true,
   pageSize: true,
   sortOrder: true,
   sortBy: true,
+  startingAfter: true,
+  endingBefore: true,
 });
 
 export const createCommissionSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
+  commissionType: z.enum(CommissionType),
+  useExistingEvents: z.boolean(),
 
   // Custom
   date: parseDateSchema.nullish(),
@@ -115,37 +188,81 @@ export const createCommissionSchema = z.object({
 
   // Sale
   saleEventDate: parseDateSchema.nullish(),
-  saleAmount: z.number().min(0).nullish(),
+  saleAmount: centsSchema.pipe(z.number().min(0)).nullish(),
   invoiceId: z.string().nullish(),
+  productId: z.string().nullish(),
 });
 
+export const commissionPatchStatusSchema = z.enum([
+  "pending",
+  "refunded",
+  "duplicate",
+  "canceled",
+  "fraud",
+]);
+
 export const updateCommissionSchema = z.object({
-  amount: z
+  saleAmount: z
     .number()
     .min(0)
+    .optional()
     .describe(
       "The new absolute amount for the sale. Paid commissions cannot be updated.",
-    )
-    .optional(),
-  modifyAmount: z
+    ),
+  modifySaleAmount: z
     .number()
+    .optional()
     .describe(
-      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `amount`. Paid commissions cannot be updated.",
-    )
-    .optional(),
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `saleAmount`. Paid commissions cannot be updated.",
+    ),
+  earnings: z
+    .number()
+    .min(0)
+    .optional()
+    .describe(
+      "The new absolute earnings for the custom commission. Paid commissions cannot be updated.",
+    ),
   currency: z
     .string()
+    .optional()
     .default("usd")
     .transform((val) => val.toLowerCase())
     .describe(
       "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
     ),
-  status: z
-    .enum(["refunded", "duplicate", "canceled", "fraud"])
+  status: commissionPatchStatusSchema
     .optional()
     .describe(
-      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Takes precedence over `amount` and `modifyAmount`. When a commission is marked as refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
+      "Useful for marking a commission as pending, refunded, duplicate, canceled, or fraudulent. Takes precedence over `saleAmount` and `modifySaleAmount`. When a commission is marked as pending, refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
     ),
+  amount: z
+    .number()
+    .min(0)
+    .optional()
+    .describe("Deprecated. Use `saleAmount` instead.")
+    .meta({ deprecated: true }),
+  modifyAmount: z
+    .number()
+    .optional()
+    .describe("Deprecated. Use `modifySaleAmount` instead.")
+    .meta({ deprecated: true }),
+});
+
+export const updateCommissionSchemaExtended = updateCommissionSchema.extend({
+  updateHistoricalCommissions: z.boolean().optional(),
+});
+
+export const bulkUpdateCommissionsSchema = z.object({
+  commissionIds: z
+    .array(z.string())
+    .min(1, "At least one commission ID is required.")
+    .max(100, "You can only update up to 100 commissions at a time.")
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: "commissionIds must be unique.",
+    }),
+  status: commissionPatchStatusSchema.describe(
+    "The status to apply to every commission in the batch.",
+  ),
 });
 
 export const CLAWBACK_REASONS = [
@@ -203,3 +320,84 @@ export const createClawbackSchema = z.object({
     CLAWBACK_REASONS.map((r) => r.value) as [string, ...string[]],
   ),
 });
+
+export const COMMISSION_EXPORT_COLUMNS = [
+  { id: "id", label: "ID", type: "string", default: true },
+  { id: "type", label: "Type", type: "string", default: true },
+  { id: "amount", label: "Amount", type: "number", default: true },
+  { id: "earnings", label: "Earnings", type: "number", default: true },
+  { id: "currency", label: "Currency", type: "string", default: true },
+  { id: "status", label: "Status", type: "string", default: true },
+  { id: "invoiceId", label: "Invoice ID", type: "string", default: true },
+  { id: "quantity", label: "Quantity", type: "number", default: true },
+  { id: "createdAt", label: "Created at", type: "date", default: true },
+  { id: "updatedAt", label: "Updated at", type: "date", default: false },
+  { id: "partnerId", label: "Partner ID", type: "string", default: false },
+  { id: "partnerName", label: "Partner name", type: "string", default: false },
+  {
+    id: "partnerEmail",
+    label: "Partner email",
+    type: "string",
+    default: false,
+  },
+  {
+    id: "partnerTenantId",
+    label: "Partner tenant ID",
+    type: "string",
+    default: false,
+  },
+  { id: "customerId", label: "Customer ID", type: "string", default: false },
+  {
+    id: "customerName",
+    label: "Customer name",
+    type: "string",
+    default: false,
+  },
+  {
+    id: "customerEmail",
+    label: "Customer email",
+    type: "string",
+    default: false,
+  },
+  {
+    id: "customerExternalId",
+    label: "Customer external ID",
+    type: "string",
+    default: false,
+  },
+] as const;
+
+type CommissionExportColumnId =
+  (typeof COMMISSION_EXPORT_COLUMNS)[number]["id"];
+
+export const DEFAULT_COMMISSION_EXPORT_COLUMNS =
+  COMMISSION_EXPORT_COLUMNS.filter((column) => column.default).map(
+    (column) => column.id,
+  );
+
+export const commissionsExportQuerySchema = getCommissionsQuerySchema
+  .omit({
+    page: true,
+    pageSize: true,
+    startingAfter: true,
+    endingBefore: true,
+  })
+  .extend({
+    columns: z
+      .string()
+      .default(DEFAULT_COMMISSION_EXPORT_COLUMNS.join(","))
+      .transform((v) => v.split(","))
+      .refine(
+        (columns): columns is CommissionExportColumnId[] => {
+          const validColumnIds = COMMISSION_EXPORT_COLUMNS.map((col) => col.id);
+
+          return columns.every((column): column is CommissionExportColumnId =>
+            validColumnIds.includes(column as CommissionExportColumnId),
+          );
+        },
+        {
+          message:
+            "Invalid column IDs provided. Please check the available columns.",
+        },
+      ),
+  });

@@ -1,52 +1,83 @@
 "use client";
 
-import { bulkApprovePartnersAction } from "@/lib/actions/partners/bulk-approve-partners";
-import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
-import { rejectPartnersBulkAction } from "@/lib/actions/partners/reject-partners-bulk";
+import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { EnrolledPartnerProps, PartnerPlatformProps } from "@/lib/types";
+import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
+import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
+import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
+import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { PlatformType } from "@dub/prisma/client";
 import {
+  AnimatedSizeContainer,
   Button,
   EditColumnsButton,
+  Filter,
   MenuItem,
   Popover,
   Table,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, LoadingSpinner, Users, UserXmark } from "@dub/ui/icons";
-import {
-  COUNTRIES,
-  fetcher,
-  formatDate,
-  getDomainWithoutWWW,
-  pluralize,
-} from "@dub/utils";
+import { Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
+import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
-import { useColumnVisibility } from "./use-column-visibility";
+import { usePartnerFilters } from "../use-partner-filters";
+
+const applicationsColumns = {
+  all: [
+    "partner",
+    "createdAt",
+    "location",
+    "website",
+    "youtube",
+    "twitter",
+    "linkedin",
+    "instagram",
+    "tiktok",
+  ],
+  defaultVisible: [
+    "partner",
+    "createdAt",
+    "location",
+    "website",
+    "youtube",
+    "linkedin",
+  ],
+};
 
 export function ProgramPartnersApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
-  const search = searchParams.get("search");
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
+
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
+      "groupId",
+      "country",
+    ]);
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
     status: "pending",
@@ -56,12 +87,14 @@ export function ProgramPartnersApplicationsPageClient() {
     data: partners,
     error,
     isValidating,
-    mutate,
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString(
       {
         workspaceId,
         status: "pending",
+        sortBy,
+        sortOrder,
+        includePartnerPlatforms: true,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -71,6 +104,23 @@ export function ProgramPartnersApplicationsPageClient() {
       revalidateOnFocus: false,
     },
   );
+
+  const { groups } = useGroups();
+
+  // Create a separate map for platform lookups by partner ID
+  const platformsMapByPartnerId = useMemo(() => {
+    const map = new Map<
+      string,
+      Record<PlatformType, PartnerPlatformProps | null>
+    >();
+
+    partners?.forEach((partner) => {
+      if (partner.platforms) {
+        map.set(partner.id, buildSocialPlatformLookup(partner.platforms));
+      }
+    });
+    return map;
+  }, [partners]);
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; partnerId: string | null }
@@ -88,72 +138,30 @@ export function ProgramPartnersApplicationsPageClient() {
       partnerId: detailsSheetState.partnerId,
     });
 
-  const { executeAsync: rejectPartners, isPending: isRejectingPartners } =
-    useAction(rejectPartnersBulkAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: ({ input }) => {
-        toast.success(
-          `${pluralize("Partner", input.partnerIds.length)} rejected`,
-        );
-        mutatePrefix(["/api/partners", "/api/partners/count"]);
-      },
-    });
-
-  const { executeAsync: approvePartners, isPending: isApprovingPartners } =
-    useAction(bulkApprovePartnersAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: async ({ input }) => {
-        await mutatePrefix("/api/partners");
-        toast.success(
-          `${pluralize("Partner", input.partnerIds.length)} approved`,
-        );
-      },
-    });
-
   // State for pending bulk actions
-  const [pendingApproveIds, setPendingApproveIds] = useState<string[]>([]);
-  const [pendingRejectIds, setPendingRejectIds] = useState<string[]>([]);
+  const [pendingApprovePartners, setPendingApprovePartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
 
-  // Confirmation modals
-  const {
-    setShowConfirmModal: setShowApproveModal,
-    confirmModal: approveModal,
-  } = useConfirmModal({
-    title: "Approve Applications",
-    description: "Are you sure you want to approve these applications?",
-    confirmText: "Approve",
-    onConfirm: async () => {
-      if (pendingApproveIds.length > 0) {
-        await approvePartners({
-          workspaceId: workspaceId!,
-          partnerIds: pendingApproveIds,
-        });
-        setPendingApproveIds([]);
-      }
-    },
-  });
+  const [pendingRejectPartners, setPendingRejectPartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
 
-  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
-    useConfirmModal({
-      title: "Reject Applications",
-      description: "Are you sure you want to reject these applications?",
-      confirmText: "Reject",
-      onConfirm: async () => {
-        if (pendingRejectIds.length > 0) {
-          await rejectPartners({
-            workspaceId: workspaceId!,
-            partnerIds: pendingRejectIds,
-          });
-          setPendingRejectIds([]);
-        }
-      },
+  const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
+    useBulkApprovePartnersModal({
+      partners: pendingApprovePartners,
     });
 
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+  const { setShowBulkRejectPartnersModal, BulkRejectPartnersModal } =
+    useBulkRejectPartnersModal({
+      partners: pendingRejectPartners,
+    });
+
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "applications-table-columns",
+    applicationsColumns,
+  );
+
   const { pagination, setPagination } = usePagination();
 
   const columns = useMemo(
@@ -168,7 +176,7 @@ export function ProgramPartnersApplicationsPageClient() {
             <PartnerRowItem
               partner={row.original}
               showPermalink={false}
-              showPayoutsEnabled={false}
+              showFraudIndicator={true}
             />
           );
         },
@@ -177,6 +185,34 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "createdAt",
         header: "Applied",
         accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+      },
+      {
+        id: "group",
+        header: "Group",
+        enableHiding: false,
+        minSize: 150,
+        cell: ({ row }) => {
+          if (!groups || !row.original.groupId) {
+            return "-";
+          }
+
+          const partnerGroup = groups.find(
+            (g) => g.id === row.original.groupId,
+          );
+
+          if (!partnerGroup) {
+            return "-";
+          }
+
+          return (
+            <div className="flex items-center gap-2">
+              <GroupColorCircle group={partnerGroup} />
+              <span className="truncate text-sm font-medium">
+                {partnerGroup.name}
+              </span>
+            </div>
+          );
+        },
       },
       {
         id: "location",
@@ -205,12 +241,13 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "website",
         header: "Website",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              value={getDomainWithoutWWW(row.original.website) ?? "-"}
-              verified={!!row.original.websiteVerifiedAt}
-              href={row.original.website}
+              platform={platformsMap?.website}
+              platformName="website"
             />
           );
         },
@@ -219,13 +256,13 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "youtube",
         header: "YouTube",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              at
-              value={row.original.youtube}
-              verified={!!row.original.youtubeVerifiedAt}
-              href={`https://youtube.com/@${row.original.youtube}`}
+              platform={platformsMap?.youtube}
+              platformName="youtube"
             />
           );
         },
@@ -234,13 +271,13 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "twitter",
         header: "X/Twitter",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              at
-              value={row.original.twitter}
-              verified={!!row.original.twitterVerifiedAt}
-              href={`https://x.com/${row.original.twitter}`}
+              platform={platformsMap?.twitter}
+              platformName="twitter"
             />
           );
         },
@@ -249,12 +286,13 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "linkedin",
         header: "LinkedIn",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              value={row.original.linkedin}
-              verified={!!row.original.linkedinVerifiedAt}
-              href={`https://linkedin.com/in/${row.original.linkedin}`}
+              platform={platformsMap?.linkedin}
+              platformName="linkedin"
             />
           );
         },
@@ -263,13 +301,13 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "instagram",
         header: "Instagram",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              at
-              value={row.original.instagram}
-              verified={!!row.original.instagramVerifiedAt}
-              href={`https://instagram.com/${row.original.instagram}`}
+              platform={platformsMap?.instagram}
+              platformName="instagram"
             />
           );
         },
@@ -278,13 +316,13 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "tiktok",
         header: "TikTok",
         minSize: 150,
-        cell: ({ row }) => {
+        cell: ({ row }: { row: Row<EnrolledPartnerProps> }) => {
+          const platformsMap = platformsMapByPartnerId.get(row.original.id);
+
           return (
             <PartnerSocialColumn
-              at
-              value={row.original.tiktok}
-              verified={!!row.original.tiktokVerifiedAt}
-              href={`https://tiktok.com/@${row.original.tiktok}`}
+              platform={platformsMap?.tiktok}
+              platformName="tiktok"
             />
           );
         },
@@ -294,21 +332,19 @@ export function ProgramPartnersApplicationsPageClient() {
       {
         id: "menu",
         enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
         header: ({ table }) => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} mutate={mutate} />
+          <RowMenuButton row={row} workspaceId={workspaceId!} />
         ),
       },
     ],
-    [workspaceId],
+    [workspaceId, groups, platformsMapByPartnerId],
   );
 
   const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
     data: partners || [],
     columns,
+    columnPinning: { right: ["menu"] },
     onRowClick: (row) => {
       queryParams({
         set: {
@@ -322,7 +358,6 @@ export function ProgramPartnersApplicationsPageClient() {
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
     sortableColumns: ["createdAt"],
-
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -342,28 +377,26 @@ export function ProgramPartnersApplicationsPageClient() {
           variant="primary"
           text="Approve"
           className="h-7 w-fit rounded-lg px-2.5"
-          loading={isApprovingPartners}
           onClick={() => {
-            const partnerIds = table
+            const partners = table
               .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
+              .rows.map((row) => row.original);
 
-            setPendingApproveIds(partnerIds);
-            setShowApproveModal(true);
+            setPendingApprovePartners(partners);
+            setShowBulkApprovePartnersModal(true);
           }}
         />
         <Button
           variant="secondary"
           text="Reject"
           className="h-7 w-fit rounded-lg px-2.5"
-          loading={isRejectingPartners}
           onClick={() => {
-            const partnerIds = table
+            const selectedPartners = table
               .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
+              .rows.map((row) => row.original);
 
-            setPendingRejectIds(partnerIds);
-            setShowRejectModal(true);
+            setPendingRejectPartners(selectedPartners);
+            setShowBulkRejectPartnersModal(true);
           }}
         />
       </>
@@ -377,6 +410,20 @@ export function ProgramPartnersApplicationsPageClient() {
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
+  const [previousPartnerId, nextPartnerId] = useMemo(() => {
+    if (!partners || !detailsSheetState.partnerId) return [null, null];
+
+    const currentIndex = partners.findIndex(
+      ({ id }) => id === detailsSheetState.partnerId,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? partners[currentIndex - 1].id : null,
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+    ];
+  }, [partners, detailsSheetState.partnerId]);
+
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.partnerId && currentPartner && (
@@ -386,26 +433,65 @@ export function ProgramPartnersApplicationsPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          onPrevious={
+            previousPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: previousPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+          onNext={
+            nextPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: nextPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
         />
       )}
-      {approveModal}
-      {rejectModal}
-      <div className="w-min">
-        <SearchBoxPersisted
-          placeholder="Search by name or email"
-          inputClassName="md:w-72"
-        />
+      <BulkApprovePartnersModal />
+      <BulkRejectPartnersModal />
+
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted
+            placeholder="Search by name, email, or company"
+            inputClassName="md:w-80"
+          />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onSelect={onSelect}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
       </div>
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
           title="No applications found"
-          description={
-            search
-              ? "No applications found for your search."
-              : "No applications have been submitted for this program."
-          }
+          description={`No applications found${isFiltered ? " for the selected filters" : " for this program"}.`}
           cardContent={() => (
             <>
               <Users className="size-4 text-neutral-700" />
@@ -421,41 +507,37 @@ export function ProgramPartnersApplicationsPageClient() {
 function RowMenuButton({
   row,
   workspaceId,
-  mutate,
 }: {
   row: Row<EnrolledPartnerProps>;
   workspaceId: string;
-  mutate: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { executeAsync: rejectPartner, isPending: isRejectingPartner } =
-    useAction(rejectPartnerAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: () => {
-        toast.success(`Partner application rejected`);
-        mutatePrefix(["/api/partners", "/api/partners/count"]);
-      },
-    });
+  const {
+    ApprovePartnerApplicationModal,
+    setShowApprovePartnerApplicationModal,
+  } = useApprovePartnerApplicationModal({
+    partner: row.original,
+    groupId: row.original.groupId,
+    onConfirm: async () => {
+      await mutatePrefix(["/api/partners", "/api/partners/count"]);
+    },
+  });
 
-  const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
-    useConfirmModal({
-      title: "Reject Application",
-      description: "Are you sure you want to reject this application?",
-      confirmText: "Reject",
-      onConfirm: async () => {
-        await rejectPartner({
-          workspaceId: workspaceId!,
-          partnerId: row.original.id,
-        });
-      },
-    });
+  const {
+    RejectPartnerApplicationModal,
+    setShowRejectPartnerApplicationModal,
+  } = useRejectPartnerApplicationModal({
+    partner: row.original,
+    onConfirm: async () => {
+      await mutatePrefix(["/api/partners", "/api/partners/count"]);
+    },
+  });
 
   return (
     <>
-      {rejectModal}
+      {ApprovePartnerApplicationModal}
+      {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -464,11 +546,21 @@ function RowMenuButton({
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               <MenuItem
                 as={Command.Item}
+                icon={UserCheck}
+                onSelect={() => {
+                  setIsOpen(false);
+                  setShowApprovePartnerApplicationModal(true);
+                }}
+              >
+                Approve application
+              </MenuItem>
+              <MenuItem
+                as={Command.Item}
                 icon={UserXmark}
                 variant="danger"
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowRejectModal(true);
+                  setShowRejectPartnerApplicationModal(true);
                 }}
               >
                 Reject application
@@ -480,15 +572,9 @@ function RowMenuButton({
       >
         <Button
           type="button"
-          className="h-8 whitespace-nowrap px-2"
+          className="size-8 shrink-0 whitespace-nowrap rounded-lg p-0"
           variant="outline"
-          icon={
-            isRejectingPartner ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <Dots className="size-4 shrink-0" />
-            )
-          }
+          icon={<Dots className="size-4 shrink-0" />}
         />
       </Popover>
     </>

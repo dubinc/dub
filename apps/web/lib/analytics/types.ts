@@ -1,4 +1,5 @@
-import z from "../zod";
+import { ParsedFilter } from "@dub/utils";
+import * as z from "zod/v4";
 import {
   analyticsQuerySchema,
   eventsQuerySchema,
@@ -12,6 +13,8 @@ import {
   EVENT_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
 } from "./constants";
+
+type Override<T, U> = Omit<T, keyof U> & U;
 
 export type IntervalOptions = (typeof DATE_RANGE_INTERVAL_PRESETS)[number];
 
@@ -35,23 +38,45 @@ export type AnalyticsSaleUnit = (typeof ANALYTICS_SALE_UNIT)[number];
 
 export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 
-export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
+export type AnalyticsFilters = Partial<
+  Omit<
+    z.infer<typeof analyticsQuerySchema>,
+    "start" | "end" | "partnerId" | "linkId"
+  >
+> & {
   workspaceId?: string;
   dataAvailableFrom?: Date;
-  isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
-  folderIds?: string[];
-  isMegaFolder?: boolean;
+  start?: Date | null;
+  end?: Date | null;
+  // Accept plain string (from partner-profile/cron routes) or ParsedFilter (from API schema)
+  partnerId?: string | ParsedFilter;
+  linkId?: string | ParsedFilter;
 };
 
-export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
-  workspaceId?: string;
-  dataAvailableFrom?: Date;
-  isDemo?: boolean;
-  customerId?: string;
-  folderIds?: string[];
-  isMegaFolder?: boolean;
-};
+// Structural fields from eventsQuerySchema that should remain required
+type EventsStructuralFields = Pick<
+  z.infer<typeof eventsQuerySchema>,
+  "event" | "page" | "limit" | "sortBy"
+>;
+
+export type EventsFilters = Partial<
+  Omit<
+    z.infer<typeof eventsQuerySchema>,
+    "start" | "end" | "partnerId" | "linkId" | keyof EventsStructuralFields
+  >
+> &
+  EventsStructuralFields & {
+    workspaceId?: string;
+    dataAvailableFrom?: Date;
+    customerId?: string;
+    start?: Date | null;
+    end?: Date | null;
+    // Accept plain string (from partner-profile/cron routes) or ParsedFilter (from API schema)
+    partnerId?: string | ParsedFilter;
+    linkId?: string | ParsedFilter;
+    includeMetadata?: boolean;
+  };
 
 const partnerAnalyticsSchema = analyticsQuerySchema
   .pick({
@@ -60,28 +85,12 @@ const partnerAnalyticsSchema = analyticsQuerySchema
     start: true,
     end: true,
     groupBy: true,
-    linkId: true,
   })
   .partial();
 
-export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema>;
+export type PartnerAnalyticsFilters = z.infer<typeof partnerAnalyticsSchema> & {
+  linkId?: string;
+};
 export type PartnerEarningsTimeseriesFilters = z.infer<
   typeof getPartnerEarningsTimeseriesSchema
 >;
-
-const partnerEventsSchema = eventsQuerySchema
-  .pick({
-    event: true,
-    interval: true,
-    start: true,
-    end: true,
-    groupBy: true,
-    page: true,
-    limit: true,
-    order: true,
-    sortOrder: true,
-    sortBy: true,
-  })
-  .partial();
-
-export type PartnerEventsFilters = z.infer<typeof partnerEventsSchema>;

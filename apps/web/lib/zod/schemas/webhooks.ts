@@ -1,5 +1,5 @@
 import { WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { parseUrlSchema } from "./utils";
 
 export const WebhookSchema = z.object({

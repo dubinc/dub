@@ -1,25 +1,22 @@
 import { prisma } from "@dub/prisma";
 import { Customer, Project } from "@dub/prisma/client";
-import { log } from "@dub/utils";
 import Stripe from "stripe";
 import { stripeAppClient } from "../stripe";
+import { logImportError } from "../tinybird/log-import-error";
 import { MAX_BATCHES, toltImporter } from "./importer";
+import { ToltImportPayload } from "./types";
 
 const CUSTOMERS_PER_BATCH = 20;
 
 const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { livemode: true }),
+  ...(process.env.VERCEL_ENV && { mode: "live" }),
 });
 
 // Tolt API doesn't return the Stripe customer ID,
 // so we'll search for Stripe customers by email and update the customer record with the Stripe customer ID, if found.
-export async function updateStripeCustomers({
-  programId,
-  startingAfter,
-}: {
-  programId: string;
-  startingAfter?: string;
-}) {
+export async function updateStripeCustomers(payload: ToltImportPayload) {
+  let { importId, programId, startingAfter } = payload;
+
   const { workspace } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
@@ -57,7 +54,7 @@ export async function updateStripeCustomers({
         email: true,
       },
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
       take: CUSTOMERS_PER_BATCH,
       skip: startingAfter ? 1 : 0,
@@ -73,11 +70,12 @@ export async function updateStripeCustomers({
       break;
     }
 
-    await Promise.all(
+    await Promise.allSettled(
       customers.map((customer) =>
         searchStripeAndUpdateCustomer({
           workspace,
           customer,
+          importId,
         }),
       ),
     );
@@ -89,65 +87,97 @@ export async function updateStripeCustomers({
   }
 
   await toltImporter.queue({
-    programId,
+    ...payload,
+    startingAfter: hasMore ? startingAfter : undefined,
     action: hasMore ? "update-stripe-customers" : "cleanup-partners",
-    ...(hasMore && { startingAfter }),
   });
 }
 
 async function searchStripeAndUpdateCustomer({
   workspace,
   customer,
+  importId,
 }: {
   workspace: Pick<Project, "id" | "slug" | "stripeConnectId">;
   customer: Pick<Customer, "id" | "email">;
+  importId: string;
 }) {
-  const stripeCustomers = await stripe.customers.search(
-    {
-      query: `email:'${customer.email}'`,
-    },
-    {
-      stripeAccount: workspace.stripeConnectId!,
-    },
-  );
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "tolt",
+    entity: "customer",
+    entity_id: customer.id,
+  } as const;
 
-  if (stripeCustomers.data.length === 0) {
-    console.error(`Stripe search returned no customer for ${customer.email}`);
-    return null;
-  }
-
-  let stripeCustomer: Stripe.Customer;
-
-  if (stripeCustomers.data.length > 1) {
-    // look for the one with metadata.tolt_referral set
-    const toltReferralStripeCustomer = stripeCustomers.data.find(
-      (customer) => customer.metadata.tolt_referral,
+  try {
+    const stripeCustomers = await stripe.customers.search(
+      {
+        query: `email:'${customer.email}'`,
+        expand: ["data.subscriptions"],
+      },
+      {
+        stripeAccount: workspace.stripeConnectId!,
+      },
     );
 
-    if (toltReferralStripeCustomer) {
-      stripeCustomer = toltReferralStripeCustomer;
-    } else {
-      await log({
-        message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
-        type: "errors",
+    if (stripeCustomers.data.length === 0) {
+      await logImportError({
+        ...commonImportLogInputs,
+        code: "STRIPE_CUSTOMER_NOT_FOUND",
+        message: `Stripe search returned no customer for ${customer.email}`,
       });
-
-      console.error(
-        `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
-      );
 
       return null;
     }
+
+    let stripeCustomer: Stripe.Customer;
+
+    if (stripeCustomers.data.length > 1) {
+      // look for the one with metadata.tolt_referral set
+      const toltReferralStripeCustomer = stripeCustomers.data.find(
+        ({ metadata }) => metadata.tolt_referral,
+      );
+
+      if (toltReferralStripeCustomer) {
+        stripeCustomer = toltReferralStripeCustomer;
+      } else {
+        // look for the one with subscriptions
+        const customerWithSubcription = stripeCustomers.data.find(
+          ({ subscriptions }) => subscriptions && subscriptions.data.length > 0,
+        );
+
+        if (customerWithSubcription) {
+          console.log(
+            `Found Stripe customer with subscriptions for ${customer.email}: ${customerWithSubcription.id}`,
+          );
+          stripeCustomer = customerWithSubcription;
+        } else {
+          await logImportError({
+            ...commonImportLogInputs,
+            code: "STRIPE_CUSTOMER_NOT_FOUND",
+            message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.tolt_referral set`,
+          });
+          return null;
+        }
+      }
+    } else {
+      stripeCustomer = stripeCustomers.data[0];
+    }
+
+    await prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        stripeCustomerId: stripeCustomer.id,
+      },
+    });
+
+    console.log(
+      `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
+    );
+  } catch (error) {
+    console.error(error);
   }
-
-  stripeCustomer = stripeCustomers.data[0];
-
-  await prisma.customer.update({
-    where: {
-      id: customer.id,
-    },
-    data: {
-      stripeCustomerId: stripeCustomer.id,
-    },
-  });
 }

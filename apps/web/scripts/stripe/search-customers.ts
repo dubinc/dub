@@ -5,7 +5,7 @@ async function main() {
   const email = "xxx";
 
   const stripeCustomers = await stripeAppClient({
-    livemode: true,
+    mode: "test",
   }).customers.search(
     {
       query: `email:'${email}'`,

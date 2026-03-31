@@ -8,7 +8,7 @@ Finally, when the user completes the checkout flow, Dub will automatically track
 
 Alternatively, if you have a marketing site that you're redirecting your users to first, you can do this instead:
 
-1. [Install the @dub/analytics client-side SDK](/sdks/client-side/introduction), which automatically detects the `dub_id` in the URL and stores it as a first-party cookie on your site.
+1. [Install the @dub/analytics client-side SDK](https://dub.co/docs/sdks/client-side/introduction), which automatically detects the `dub_id` in the URL and stores it as a first-party cookie on your site.
 2. Then, retrieve and append the `dub_id` value as the `client_reference_id` parameter to the payment links on your pricing page / CTA button (prefixed with `dub_id_`).
 
 ```javascript

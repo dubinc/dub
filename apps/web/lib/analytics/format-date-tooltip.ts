@@ -27,10 +27,7 @@ export const formatDateTooltip = (
   }
 
   if (start && end) {
-    const daysDifference = getDaysDifference(
-      typeof start === "string" ? new Date(start) : start,
-      typeof end === "string" ? new Date(end) : end,
-    );
+    const daysDifference = getDaysDifference(start, end);
 
     if (daysDifference <= 2)
       return targetDate.toLocaleTimeString("en-US", {

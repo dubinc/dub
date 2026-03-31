@@ -70,13 +70,13 @@ export const FolderIcon = ({
   innerClassName,
   iconClassName,
 }: {
-  folder: Pick<FolderProps, "id" | "accessLevel">;
+  folder?: Pick<FolderProps, "id" | "accessLevel">;
   shape?: "rounded" | "square";
   className?: string;
   innerClassName?: string;
   iconClassName?: string;
 }) => {
-  const iconType = determineFolderIcon(folder);
+  const iconType = folder ? determineFolderIcon(folder) : "write";
   const {
     borderColor,
     bgColor,

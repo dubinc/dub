@@ -1,74 +1,102 @@
 "use client";
 
 import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
-import {
-  ALLOWED_MIN_WITHDRAWAL_AMOUNTS,
-  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
-  MIN_WITHDRAWAL_AMOUNT_CENTS,
-} from "@/lib/partners/constants";
+import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
-import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
-import { PayoutMethodsDropdown } from "@/ui/partners/payout-methods-dropdown";
-import { Button, Sheet, Slider, useScrollProgress } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
-import NumberFlow from "@number-flow/react";
-import { PartyPopper } from "lucide-react";
-import { useAction } from "next-safe-action/hooks";
 import {
-  Dispatch,
-  SetStateAction,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { useForm } from "react-hook-form";
+  PAYOUT_METHODS,
+  PayoutMethodSelector,
+} from "@/ui/partners/payouts/payout-method-cards";
+import { PayoutMethodDropdown } from "@/ui/partners/payouts/payout-method-dropdown";
+import {
+  BlurImage,
+  Button,
+  InfoTooltip,
+  Sheet,
+  useRouterStuff,
+  useScrollProgress,
+} from "@dub/ui";
+import { OG_AVATAR_URL } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useForm, type UseFormRegister } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
-import { z } from "zod";
-
-type PartnerPayoutSettingsSheetProps = {
-  showPartnerPayoutSettingsSheet: boolean;
-  setShowPartnerPayoutSettingsSheet: Dispatch<SetStateAction<boolean>>;
-};
+import * as z from "zod/v4";
 
 type PartnerPayoutSettingsFormData = z.infer<
   typeof partnerPayoutSettingsSchema
 >;
 
-function PartnerPayoutSettingsSheet(props: PartnerPayoutSettingsSheetProps) {
-  const { showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet } =
-    props;
+function useExternalPayoutEnrollments() {
+  const { partner } = usePartnerProfile();
+  const { programEnrollments } = useProgramEnrollments();
+
+  const externalPayoutEnrollments = useMemo(() => {
+    if (!programEnrollments || !partner) return [];
+
+    return programEnrollments.filter((enrollment) => {
+      const payoutMode = getEffectivePayoutMode({
+        payoutMode: enrollment.program.payoutMode,
+        payoutsEnabledAt: partner.payoutsEnabledAt,
+      });
+
+      return payoutMode === "external";
+    });
+  }, [programEnrollments, partner]);
+
+  return {
+    externalPayoutEnrollments,
+  };
+}
+
+export function PartnerPayoutSettingsSheet() {
+  const { queryParams, searchParams } = useRouterStuff();
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const settings = searchParams.get("settings");
+
+    if (settings === "true") {
+      setIsOpen(true);
+    } else {
+      setIsOpen(false);
+    }
+  }, [searchParams]);
 
   return (
     <Sheet
-      open={showPartnerPayoutSettingsSheet}
-      onOpenChange={setShowPartnerPayoutSettingsSheet}
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      onClose={() => {
+        queryParams({
+          del: "settings",
+        });
+      }}
     >
-      <PartnerPayoutSettingsSheetInner {...props} />
+      <PartnerPayoutSettingsSheetInner />
     </Sheet>
   );
 }
 
-function PartnerPayoutSettingsSheetInner({
-  setShowPartnerPayoutSettingsSheet,
-}: PartnerPayoutSettingsSheetProps) {
+function PartnerPayoutSettingsSheetInner() {
   const { partner } = usePartnerProfile();
+  const { queryParams } = useRouterStuff();
 
   const {
     register,
     handleSubmit,
-    watch,
-    setValue,
     formState: { isDirty },
   } = useForm<PartnerPayoutSettingsFormData>({
     defaultValues: {
       companyName: partner?.companyName || undefined,
       address: partner?.invoiceSettings?.address || undefined,
       taxId: partner?.invoiceSettings?.taxId || undefined,
-      minWithdrawalAmount: partner?.minWithdrawalAmount,
     },
   });
 
@@ -77,7 +105,7 @@ function PartnerPayoutSettingsSheetInner({
     {
       onSuccess: async () => {
         toast.success("Payout settings updated successfully!");
-        setShowPartnerPayoutSettingsSheet(false);
+        queryParams({ del: "settings" });
         mutatePrefix("/api/partner-profile");
       },
       onError({ error }) {
@@ -90,16 +118,19 @@ function PartnerPayoutSettingsSheetInner({
     await executeAsync(data);
   };
 
-  const minWithdrawalAmount = watch("minWithdrawalAmount");
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <Sheet.Title className="text-lg font-semibold">
-          Payout settings
+        <Sheet.Title className="flex items-center gap-1 text-lg font-semibold">
+          Payout settings{" "}
+          <InfoTooltip
+            content={
+              "Learn how to set up your payout account and receive payouts. [Learn more.](https://dub.co/help/article/receiving-payouts)"
+            }
+          />
         </Sheet.Title>
       </div>
 
@@ -109,129 +140,10 @@ function PartnerPayoutSettingsSheetInner({
           onScroll={updateScrollProgress}
           className="scrollbar-hide h-full space-y-10 overflow-y-auto bg-neutral-50 p-4 sm:p-6"
         >
-          <div className="divide-y divide-neutral-200">
-            {/* Connected payout account */}
-            <div className="space-y-3 pb-6">
-              <div>
-                <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                  Connected payout account
-                </h4>
-              </div>
-
-              {!partner?.payoutsEnabledAt ? (
-                <ConnectPayoutButton className="h-10 rounded-lg px-4 py-2" />
-              ) : (
-                <PayoutMethodsDropdown />
-              )}
-            </div>
-
-            {/*  Minimum withdrawal amount */}
-            <div className="space-y-6 py-6">
-              <div>
-                <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                  Minimum withdrawal amount
-                </h4>
-                <p className="text-sm font-medium text-neutral-500">
-                  Set the minimum amount for funds to be withdrawn from Dub into
-                  your connected payout account.
-                </p>
-              </div>
-
-              <div>
-                <NumberFlow
-                  value={minWithdrawalAmount / 100}
-                  suffix=" USD"
-                  format={{
-                    style: "currency",
-                    currency: "USD",
-                    // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                    trailingZeroDisplay: "stripIfInteger",
-                  }}
-                  className="mb-2 text-2xl font-medium leading-6 text-neutral-800"
-                />
-
-                <Slider
-                  value={minWithdrawalAmount}
-                  min={ALLOWED_MIN_WITHDRAWAL_AMOUNTS[0]}
-                  max={
-                    ALLOWED_MIN_WITHDRAWAL_AMOUNTS[
-                      ALLOWED_MIN_WITHDRAWAL_AMOUNTS.length - 1
-                    ]
-                  }
-                  onChange={(value) => {
-                    const closest = ALLOWED_MIN_WITHDRAWAL_AMOUNTS.reduce(
-                      (prev, curr) =>
-                        Math.abs(curr - value) < Math.abs(prev - value)
-                          ? curr
-                          : prev,
-                    );
-
-                    setValue("minWithdrawalAmount", closest, {
-                      shouldDirty: true,
-                    });
-                  }}
-                  marks={ALLOWED_MIN_WITHDRAWAL_AMOUNTS}
-                  hint={
-                    minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS ? (
-                      `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} payout fee for payouts under $100`
-                    ) : (
-                      <div className="flex items-center gap-1 text-xs font-normal leading-4 text-neutral-500">
-                        <PartyPopper className="size-4" />
-                        Free payouts unlocked
-                      </div>
-                    )
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Invoice details */}
-            <div className="space-y-6 py-6">
-              <div>
-                <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                  Invoice details (optional)
-                </h4>
-                <p className="text-sm font-medium text-neutral-500">
-                  This information is added to your payout invoices.
-                </p>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-neutral-900">
-                  Business name
-                </label>
-                <div className="relative mt-1.5 rounded-md shadow-sm">
-                  <input
-                    autoFocus
-                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                    {...register("companyName")}
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-neutral-900">
-                  Business address
-                </label>
-                <TextareaAutosize
-                  className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  minRows={3}
-                  {...register("address")}
-                />
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-neutral-900">
-                  Business tax ID
-                </label>
-                <div className="relative mt-1.5 rounded-md shadow-sm">
-                  <input
-                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                    {...register("taxId")}
-                  />
-                </div>
-              </div>
-            </div>
+          <div className="space-y-8 divide-y divide-neutral-200">
+            <PayoutMethodsSection />
+            <ConnectedExternalAccounts />
+            <InvoiceDetailsSection register={register} />
           </div>
         </div>
         <div
@@ -246,7 +158,11 @@ function PartnerPayoutSettingsSheetInner({
           text="Cancel"
           disabled={isPending}
           className="h-8 w-fit px-3"
-          onClick={() => setShowPartnerPayoutSettingsSheet(false)}
+          onClick={() => {
+            queryParams({
+              del: "settings",
+            });
+          }}
         />
 
         <Button
@@ -261,24 +177,258 @@ function PartnerPayoutSettingsSheetInner({
   );
 }
 
+function PayoutMethodsSectionSkeleton() {
+  return (
+    <div
+      className="flex w-full cursor-default items-center justify-between rounded-lg border border-neutral-200 bg-white p-2"
+      aria-hidden
+    >
+      <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
+        <div className="size-8 shrink-0 animate-pulse rounded-lg bg-neutral-200" />
+        <div className="min-w-0">
+          <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
+          <div className="mt-1 h-3 w-44 animate-pulse rounded bg-neutral-200" />
+        </div>
+      </div>
+      <div className="size-4 shrink-0 animate-pulse rounded bg-neutral-200" />
+    </div>
+  );
+}
+
+function PayoutMethodsSection() {
+  const { availablePayoutMethods } = usePartnerProfile();
+  const [selectedMethodId, setSelectedMethodId] = useState<string | null>(null);
+
+  const {
+    payoutMethods: payoutMethodsData,
+    isLoading: isPayoutMethodsLoading,
+  } = usePartnerPayoutSettings();
+
+  const hasConnectedAccount =
+    payoutMethodsData?.some((m) => m.connected) ?? false;
+
+  const filteredMethods = PAYOUT_METHODS.filter((m) =>
+    availablePayoutMethods.includes(m.id),
+  );
+
+  const currentMethod = selectedMethodId
+    ? filteredMethods.find((m) => m.id === selectedMethodId) ||
+      filteredMethods[0]
+    : filteredMethods[0];
+
+  const otherMethods = filteredMethods.filter(
+    (m) => m.id !== currentMethod?.id,
+  );
+
+  if (availablePayoutMethods.length === 0) {
+    return null;
+  }
+
+  // Show stablecoin as a recommended option when available but not yet connected, to encourage partners to add it
+  const showStablecoinRecommended =
+    availablePayoutMethods.includes("stablecoin") &&
+    !payoutMethodsData?.some((m) => m.type === "stablecoin" && m.connected);
+
+  return (
+    <div>
+      <h4 className="text-content-emphasis mb-3 text-base font-semibold leading-6">
+        Payout account
+      </h4>
+      {isPayoutMethodsLoading ? (
+        <PayoutMethodsSectionSkeleton />
+      ) : hasConnectedAccount ? (
+        <div className="space-y-3">
+          <PayoutMethodDropdown />
+          {showStablecoinRecommended &&
+            payoutMethodsData?.some((m) => m.type === "stablecoin") && (
+              <PayoutMethodSelector
+                payoutMethods={payoutMethodsData!.filter(
+                  (m) => m.type === "stablecoin",
+                )}
+                variant="compact"
+              />
+            )}
+        </div>
+      ) : (
+        <PayoutMethodSelector
+          payoutMethods={
+            currentMethod && payoutMethodsData
+              ? payoutMethodsData.filter((m) => m.type === currentMethod.id)
+              : []
+          }
+          variant="compact"
+          actionFooter={(_setting) =>
+            otherMethods.length > 0 ? (
+              <div className="mt-1 flex justify-center">
+                {otherMethods.map((method) => (
+                  <button
+                    key={method.id}
+                    type="button"
+                    onClick={() => setSelectedMethodId(method.id)}
+                    className="text-xs font-medium text-neutral-400 transition-colors hover:text-neutral-600"
+                  >
+                    Connect {method.title}
+                    {method.recommended ? " (recommended)" : ""}
+                  </button>
+                ))}
+              </div>
+            ) : null
+          }
+        />
+      )}
+    </div>
+  );
+}
+
+function InvoiceDetailsSection({
+  register,
+}: {
+  register: UseFormRegister<PartnerPayoutSettingsFormData>;
+}) {
+  return (
+    <div className="space-y-4 py-6">
+      <div>
+        <h4 className="text-base font-semibold leading-6 text-neutral-900">
+          Invoice details (optional)
+        </h4>
+        <p className="text-sm font-medium text-neutral-500">
+          This information is added to your payout invoices.
+        </p>
+      </div>
+
+      <div>
+        <label
+          htmlFor="companyName"
+          className="text-sm font-medium text-neutral-900"
+        >
+          Business name
+        </label>
+        <div className="relative mt-1.5 rounded-md shadow-sm">
+          <input
+            id="companyName"
+            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+            {...register("companyName")}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label
+          htmlFor="address"
+          className="text-sm font-medium text-neutral-900"
+        >
+          Business address
+        </label>
+        <TextareaAutosize
+          id="address"
+          className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+          minRows={3}
+          {...register("address")}
+        />
+      </div>
+
+      <div>
+        <label htmlFor="taxId" className="text-sm font-medium text-neutral-900">
+          Business tax ID
+        </label>
+        <div className="relative mt-1.5 rounded-md shadow-sm">
+          <input
+            id="taxId"
+            className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+            {...register("taxId")}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ConnectedExternalAccounts() {
+  const { externalPayoutEnrollments } = useExternalPayoutEnrollments();
+
+  if (!externalPayoutEnrollments || externalPayoutEnrollments.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-3 py-6">
+      <div>
+        <h4 className="text-content-emphasis text-base font-semibold leading-6">
+          Connected external accounts
+        </h4>
+      </div>
+
+      <div className="space-y-2">
+        {externalPayoutEnrollments.map((enrollment) => (
+          <div
+            key={enrollment.programId}
+            className="flex h-12 items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white px-3 py-2"
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <BlurImage
+                width={24}
+                height={24}
+                src={
+                  enrollment.program.logo ||
+                  `${OG_AVATAR_URL}${enrollment.program.name}`
+                }
+                alt={enrollment.program.name}
+                className="size-6 shrink-0 rounded-full"
+              />
+              <span className="text-content-emphasis truncate text-sm font-semibold">
+                {enrollment.program.name}
+              </span>
+            </div>
+            <Link
+              href={`/programs/${enrollment.program.slug}`}
+              className="shrink-0"
+              target="_blank"
+            >
+              <Button
+                type="button"
+                variant="secondary"
+                text="View program"
+                className="border-border-subtle h-6 rounded-md px-2 py-3.5 text-sm"
+              />
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-content-subtle text-xs font-normal leading-4">
+        These programs manage payouts externally through their own systems.
+        <Link
+          href="https://dub.co/help/article/receiving-payouts"
+          target="_blank"
+          className="ml-1 underline underline-offset-2"
+        >
+          Learn more
+        </Link>
+      </p>
+    </div>
+  );
+}
+
 export function usePartnerPayoutSettingsSheet() {
-  const [showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet] =
-    useState(false);
+  const { queryParams } = useRouterStuff();
+
+  const openSettings = useCallback(() => {
+    queryParams({
+      set: {
+        settings: "true",
+      },
+    });
+  }, [queryParams]);
 
   const PartnerPayoutSettingsSheetCallback = useCallback(() => {
-    return (
-      <PartnerPayoutSettingsSheet
-        showPartnerPayoutSettingsSheet={showPartnerPayoutSettingsSheet}
-        setShowPartnerPayoutSettingsSheet={setShowPartnerPayoutSettingsSheet}
-      />
-    );
-  }, [showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet]);
+    return <PartnerPayoutSettingsSheet />;
+  }, []);
 
   return useMemo(
     () => ({
-      setShowPartnerPayoutSettingsSheet,
+      openSettings,
       PartnerPayoutSettingsSheet: PartnerPayoutSettingsSheetCallback,
     }),
-    [setShowPartnerPayoutSettingsSheet, PartnerPayoutSettingsSheetCallback],
+    [openSettings, PartnerPayoutSettingsSheetCallback],
   );
 }

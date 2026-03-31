@@ -11,7 +11,10 @@ import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
+import {
+  linkEventSchema,
+  updateLinkBodySchemaExtended,
+} from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { deepEqual, UTMTags } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -75,8 +78,9 @@ export const PATCH = withWorkspace(
     });
 
     const body =
-      (await updateLinkBodySchema.parseAsync(await parseRequestBody(req))) ||
-      {};
+      (await updateLinkBodySchemaExtended.parseAsync(
+        await parseRequestBody(req),
+      )) || {};
 
     await Promise.all([
       ...(link.folderId
@@ -110,15 +114,10 @@ export const PATCH = withWorkspace(
           ? link.expiresAt.toISOString()
           : link.expiresAt,
       geo: link.geo as NewLinkProps["geo"],
-
       ...body,
-      // for UTM tags, we only pass them to processLink if they have changed from their previous value
-      // or else they will override any changes to the UTM params in the destination URL
+      // Only pass UTM tags to processLink when explicitly provided in body (preserves existing values otherwise)
       ...Object.fromEntries(
-        UTMTags.map((tag) => [
-          tag,
-          body[tag] === link[tag] ? undefined : body[tag],
-        ]),
+        UTMTags.filter((tag) => tag in body).map((tag) => [tag, body[tag]]),
       ),
 
       // When root domain

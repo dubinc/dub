@@ -3,12 +3,14 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { throwIfNoPartnerIdOrTenantId } from "@/lib/partners/throw-if-no-partnerid-tenantid";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import {
   partnerAnalyticsQuerySchema,
   partnersTopLinksSchema,
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { parseFilterValue } from "@dub/utils";
 import { format } from "date-fns";
 import { NextResponse } from "next/server";
 
@@ -25,16 +27,12 @@ export const GET = withWorkspace(
       start,
       end,
       timezone,
+      query,
     } = partnerAnalyticsQuerySchema.parse(searchParams);
 
-    if (!partnerId && !tenantId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "You must provide a partnerId or tenantId.",
-      });
-    }
+    throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    const programEnrollment = await prisma.programEnrollment.findUnique({
       where: partnerId
         ? {
             partnerId_programId: {
@@ -50,15 +48,20 @@ export const GET = withWorkspace(
           },
       include: {
         program: true,
-        ...(groupBy === "top_links" && {
-          links: {
-            orderBy: {
-              clicks: "desc",
-            },
+        links: {
+          orderBy: {
+            clicks: "desc",
           },
-        }),
+        },
       },
     });
+
+    if (!programEnrollment) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `The partner with ${partnerId ? "partnerId" : "tenantId"} ${partnerId ?? tenantId} is not enrolled in your program.`,
+      });
+    }
 
     if (programEnrollment.program.workspaceId !== workspace.id) {
       throw new DubApiError({
@@ -68,21 +71,21 @@ export const GET = withWorkspace(
     }
 
     const analytics = await getAnalytics({
-      programId,
-      partnerId,
-      tenantId,
+      event: "composite",
       groupBy,
+      linkId: parseFilterValue(programEnrollment.links.map((link) => link.id)),
       interval,
       start,
       end,
       timezone,
-      event: "composite",
+      query,
     });
 
     const { startDate, endDate, granularity } = getStartEndDates({
       interval,
       start,
       end,
+      timezone,
     });
 
     // Group by count

@@ -1,76 +1,185 @@
 import { qstash } from "@/lib/cron";
+import { setRenewOption } from "@/lib/dynadot/set-renew-option";
+import { sendBatchEmail } from "@dub/email";
+import DomainRenewed from "@dub/email/templates/domain-renewed";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Invoice } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
+import { addDays } from "date-fns";
 import Stripe from "stripe";
 
 export async function chargeSucceeded(event: Stripe.Event) {
   const charge = event.data.object as Stripe.Charge;
 
-  const { id: chargeId, receipt_url, transfer_group, payment_intent } = charge;
+  const { transfer_group: invoiceId } = charge;
 
-  if (!transfer_group) {
-    console.log("No transfer group found, skipping...");
-    return;
+  if (!invoiceId) {
+    // check if the customer's workspace has paymentFailedAt, if so, reset it to null
+    const stripeId = charge.customer as string;
+    if (stripeId) {
+      const workspace = await prisma.project.findUnique({
+        where: {
+          stripeId,
+        },
+      });
+      if (workspace?.paymentFailedAt) {
+        console.log("Workspace has paymentFailedAt, resetting it to null...");
+        await prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            paymentFailedAt: null,
+          },
+        });
+      }
+    }
+    return "No transfer_group (invoiceId) found, skipping invoice update flow...";
   }
 
-  console.log({ chargeId, receipt_url, transfer_group });
-
-  const invoice = await prisma.invoice.findUnique({
+  let invoice = await prisma.invoice.findUnique({
     where: {
-      id: transfer_group,
-    },
-    include: {
-      payouts: {
-        where: {
-          status: {
-            not: "completed",
-          },
-        },
-        include: {
-          program: true,
-          partner: true,
-        },
-      },
+      id: invoiceId,
     },
   });
 
   if (!invoice) {
-    console.log(`Invoice with transfer group ${transfer_group} not found.`);
-    return;
+    return `Invoice with transfer group ${invoiceId} not found.`;
   }
 
   if (invoice.status === "completed") {
-    console.log("Invoice already completed, skipping...");
-    return;
+    return `Invoice ${invoice.id} already completed, skipping...`;
   }
 
-  if (invoice.payouts.length === 0) {
-    console.log("No payouts found with status not completed, skipping...");
-    return;
-  }
-
-  await prisma.invoice.update({
+  invoice = await prisma.invoice.update({
     where: {
       id: invoice.id,
     },
     data: {
-      receiptUrl: receipt_url,
+      receiptUrl: charge.receipt_url,
       status: "completed",
       paidAt: new Date(),
       stripeChargeMetadata: JSON.parse(JSON.stringify(charge)),
     },
   });
 
+  if (invoice.type === "partnerPayout") {
+    return await processPayoutInvoice({ invoice });
+  } else if (invoice.type === "domainRenewal") {
+    return await processDomainRenewalInvoice({ invoice });
+  }
+
+  return `Unsupported invoice type (${invoice.type}), skipping...`;
+}
+
+async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
+  const payoutsToProcess = await prisma.payout.count({
+    where: {
+      invoiceId: invoice.id,
+      status: {
+        not: "completed",
+      },
+    },
+  });
+
+  if (payoutsToProcess === 0) {
+    return `No payouts to process found for invoice ${invoice.id}, skipping...`;
+  }
+
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
+    flowControl: {
+      key: invoice.id,
+      rate: 1,
+    },
     body: {
       invoiceId: invoice.id,
     },
   });
 
   if (qstashResponse.messageId) {
-    console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+    return `Message sent to Qstash with id ${qstashResponse.messageId}`;
   } else {
-    console.error("Error sending message to Qstash", qstashResponse);
+    return `Error sending message to Qstash: ${JSON.stringify(qstashResponse)}`;
   }
+}
+
+async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
+  const domains = await prisma.registeredDomain.findMany({
+    where: {
+      slug: {
+        in: invoice.registeredDomains as string[],
+      },
+    },
+    orderBy: {
+      expiresAt: "asc",
+    },
+  });
+
+  if (domains.length === 0) {
+    return `No domains found for invoice ${invoice.id}, skipping...`;
+  }
+
+  const newExpiresAt = addDays(domains[0].expiresAt, 365);
+
+  await prisma.registeredDomain.updateMany({
+    where: {
+      id: {
+        in: domains.map(({ id }) => id),
+      },
+    },
+    data: {
+      expiresAt: newExpiresAt,
+      autoRenewalDisabledAt: null,
+    },
+  });
+
+  await Promise.allSettled(
+    domains.map((domain) =>
+      setRenewOption({
+        domain: domain.slug,
+        autoRenew: true,
+      }),
+    ),
+  );
+
+  const workspace = await prisma.project.findUniqueOrThrow({
+    where: {
+      id: invoice.workspaceId,
+    },
+    include: {
+      users: {
+        where: {
+          role: "owner",
+        },
+        select: {
+          user: true,
+        },
+      },
+    },
+  });
+
+  const workspaceOwners = workspace.users.filter(({ user }) => user.email);
+
+  if (workspaceOwners.length === 0) {
+    return "No users found to send domain renewal success email.";
+  }
+
+  await sendBatchEmail(
+    workspaceOwners.map(({ user }) => ({
+      variant: "notifications",
+      to: user.email!,
+      subject: `Your ${pluralize("domain", domains.length)} have been renewed`,
+      react: DomainRenewed({
+        email: user.email!,
+        workspace: {
+          slug: workspace.slug,
+        },
+        domains: domains.map(({ slug }) => ({ slug })),
+        expiresAt: newExpiresAt,
+      }),
+    })),
+  );
+
+  return `Domain renewal success email sent to ${workspaceOwners.length} users.`;
 }

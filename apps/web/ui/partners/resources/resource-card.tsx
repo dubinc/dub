@@ -1,7 +1,7 @@
 "use client";
 
 import { ProgramResourceType } from "@/lib/zod/schemas/program-resources";
-import { ThreeDots } from "@/ui/shared/icons";
+import { Link, ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
@@ -13,6 +13,7 @@ import {
   Trash,
   useCopyToClipboard,
 } from "@dub/ui";
+import { Pen2 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ReactNode, useState } from "react";
 import { toast } from "sonner";
@@ -34,17 +35,21 @@ export function ResourceCard({
   title,
   description,
   icon,
+  onEdit,
   onDelete,
   downloadUrl,
   copyText,
+  visitUrl,
 }: {
   resourceType: ProgramResourceType;
   title: string;
   description: string;
   icon: ReactNode;
+  onEdit?: () => void;
   onDelete?: () => Promise<boolean>;
   downloadUrl?: string;
   copyText?: string;
+  visitUrl?: string;
 }) {
   const [openPopover, setOpenPopover] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -52,7 +57,7 @@ export function ResourceCard({
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   return (
-    <div className="border-border-subtle flex w-full items-center justify-between gap-4 rounded-lg border p-4 shadow-sm">
+    <div className="border-border-subtle flex w-full items-center justify-between gap-4 overflow-hidden rounded-lg border p-4 shadow-sm">
       <div className="flex min-w-0 items-center gap-4">
         <div className="border-border-subtle flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-md border">
           {icon}
@@ -67,7 +72,7 @@ export function ResourceCard({
         </div>
       </div>
       <div className="relative">
-        {onDelete || (downloadUrl && copyText) ? (
+        {onEdit || onDelete || (downloadUrl && copyText && visitUrl) ? (
           <Popover
             content={
               <div className="grid w-full grid-cols-1 gap-px p-2 sm:w-48">
@@ -91,9 +96,10 @@ export function ResourceCard({
                     Download
                   </a>
                 )}
+
                 {copyText && (
                   <Button
-                    text="Copy"
+                    text={`Copy ${resourceType}`}
                     variant="outline"
                     onClick={() => {
                       copyToClipboard(copyText, {
@@ -105,6 +111,36 @@ export function ResourceCard({
                     className="h-9 justify-start px-2 font-medium"
                   />
                 )}
+
+                {visitUrl && (
+                  <a
+                    href={visitUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      buttonVariants({ variant: "outline" }),
+                      "flex h-9 items-center justify-start gap-2 rounded-md px-2 text-sm font-medium",
+                    )}
+                    onClick={() => setOpenPopover(false)}
+                  >
+                    <Link className="size-4" />
+                    Visit {resourceType}
+                  </a>
+                )}
+
+                {onEdit && (
+                  <Button
+                    text={`Edit ${resourceType}`}
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      onEdit();
+                    }}
+                    icon={<Pen2 className="size-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
+
                 {onDelete && (
                   <Button
                     text={`Delete ${resourceType}`}
@@ -200,6 +236,17 @@ export function ResourceCard({
                 className="h-8 px-3"
                 onClick={() => copyToClipboard(copyText)}
               />
+            )}
+            {visitUrl && (
+              <a href={visitUrl} target="_blank" rel="noopener noreferrer">
+                <Button
+                  icon={<Link className="size-4" />}
+                  text="Visit URL"
+                  variant="secondary"
+                  className="h-8 px-3"
+                  onClick={() => setOpenPopover(false)}
+                />
+              </a>
             )}
           </>
         )}

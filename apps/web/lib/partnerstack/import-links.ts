@@ -1,13 +1,14 @@
 import { prisma } from "@dub/prisma";
 import { createLink } from "../api/links";
-import { generatePartnerLink } from "../api/partners/create-partner-link";
+import { generatePartnerLink } from "../api/partners/generate-partner-link";
+import { logImportError } from "../tinybird/log-import-error";
 import { PartnerProps, ProgramProps, WorkspaceProps } from "../types";
 import { PartnerStackApi } from "./api";
 import { partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload, PartnerStackLink } from "./types";
 
 export async function importLinks(payload: PartnerStackImportPayload) {
-  const { programId, userId, startingAfter } = payload;
+  const { importId, programId, userId, startingAfter } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -15,6 +16,11 @@ export async function importLinks(payload: PartnerStackImportPayload) {
     },
     include: {
       workspace: true,
+      groups: {
+        include: {
+          partnerGroupDefaultLinks: true,
+        },
+      },
     },
   });
 
@@ -27,6 +33,9 @@ export async function importLinks(payload: PartnerStackImportPayload) {
     secretKey,
   });
 
+  // Create a map of group Id to group
+  const groupsById = new Map(program.groups.map((group) => [group.id, group]));
+
   let hasMore = true;
   let currentStartingAfter = startingAfter;
 
@@ -36,6 +45,7 @@ export async function importLinks(payload: PartnerStackImportPayload) {
     },
     select: {
       id: true,
+      groupId: true,
       partner: {
         select: {
           id: true,
@@ -59,7 +69,7 @@ export async function importLinks(payload: PartnerStackImportPayload) {
     currentStartingAfter = enrollments[enrollments.length - 1].id;
   }
 
-  for (const { partner } of enrollments) {
+  for (const { partner, groupId } of enrollments) {
     if (!partner.email) {
       console.log("Partner has no email. Skipping the link import.");
       continue;
@@ -75,14 +85,19 @@ export async function importLinks(payload: PartnerStackImportPayload) {
         continue;
       }
 
+      const partnerGroup = groupsById.get(groupId!);
+
       await Promise.allSettled(
-        links.map(async (link) =>
+        links.map(async (link, idx) =>
           createPartnerLink({
             workspace: program.workspace as WorkspaceProps,
             program,
             partner,
             link,
             userId,
+            importId,
+            partnerGroupDefaultLinkId:
+              partnerGroup?.partnerGroupDefaultLinks[idx]?.id ?? null,
           }),
         ),
       );
@@ -95,11 +110,9 @@ export async function importLinks(payload: PartnerStackImportPayload) {
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 
-  delete payload?.startingAfter;
-
   await partnerStackImporter.queue({
     ...payload,
-    ...(hasMore && { startingAfter: currentStartingAfter }),
+    startingAfter: hasMore ? currentStartingAfter : undefined,
     action: hasMore ? "import-links" : "import-customers",
   });
 }
@@ -110,17 +123,34 @@ async function createPartnerLink({
   partner,
   link,
   userId,
+  importId,
+  partnerGroupDefaultLinkId,
 }: {
   workspace: WorkspaceProps;
   program: ProgramProps;
   partner: Pick<PartnerProps, "id" | "name" | "email">;
   link: PartnerStackLink;
   userId: string;
+  importId: string;
+  partnerGroupDefaultLinkId: string | null;
 }) {
+  const commonImportLogInputs = {
+    workspace_id: workspace.id,
+    import_id: importId,
+    source: "partnerstack",
+    entity: "link",
+    entity_id: link.key,
+  } as const;
+
   const key = link.url.split("/").pop();
 
   if (!key) {
-    console.error(`No key found in the link ${link.url}`);
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `No key found in the link ${link.url}`,
+    });
+
     return null;
   }
 
@@ -137,7 +167,9 @@ async function createPartnerLink({
   });
 
   if (linkFound?.partnerId === partner.id) {
-    console.log(`Partner ${partner.id} already has a link with key ${key}`);
+    console.log(
+      `Partner ${partner.id} already has a link with key ${key}, skipping...`,
+    );
     return null;
   }
 
@@ -146,11 +178,16 @@ async function createPartnerLink({
       workspace,
       program,
       partner: {
+        id: partner.id,
         name: partner.name,
         email: partner.email!,
       },
-      key,
-      partnerId: partner.id,
+      link: {
+        domain: program.domain!,
+        url: link.url,
+        key,
+        partnerGroupDefaultLinkId,
+      },
       userId,
     });
 

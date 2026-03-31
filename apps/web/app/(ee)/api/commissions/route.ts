@@ -1,4 +1,6 @@
-import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { getCommissions } from "@/lib/api/commissions/get-commissions";
+import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -7,65 +9,59 @@ import {
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 // GET /api/commissions - get all commissions for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const {
-    status,
-    type,
-    customerId,
-    payoutId,
-    partnerId,
-    invoiceId,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-    start,
-    end,
-    interval,
-  } = getCommissionsQuerySchema.parse(searchParams);
+  const isHoldStatus = searchParams.status === "hold";
+  const { status: _status, ...restSearchParams } = searchParams;
 
-  const { startDate, endDate } = getStartEndDates({
-    interval,
-    start,
-    end,
-  });
+  let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema.parse(
+    isHoldStatus ? restSearchParams : searchParams,
+  );
 
-  const commissions = await prisma.commission.findMany({
-    where: invoiceId
-      ? {
-          invoiceId,
+  if (tenantId && !partnerId) {
+    const partner = await prisma.programEnrollment.findUnique({
+      where: {
+        tenantId_programId: {
+          tenantId,
           programId,
-        }
-      : {
-          earnings: {
-            not: 0,
-          },
-          programId,
-          partnerId,
-          status,
-          type,
-          customerId,
-          payoutId,
-          createdAt: {
-            gte: startDate.toISOString(),
-            lte: endDate.toISOString(),
-          },
         },
-    include: {
-      customer: true,
-      partner: true,
-    },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    orderBy: { [sortBy]: sortOrder },
+      },
+      select: {
+        partnerId: true,
+      },
+    });
+
+    if (!partner) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Partner with specified tenantId ${tenantId} not found.`,
+      });
+    }
+
+    partnerId = partner.partnerId;
+  }
+
+  const commissions = await getCommissions({
+    ...filters,
+    partnerId,
+    programId,
+    isHoldStatus,
   });
 
   return NextResponse.json(
-    z.array(CommissionEnrichedSchema).parse(commissions),
+    z.array(CommissionEnrichedSchema).parse(
+      commissions.map((c) => ({
+        ...c,
+        customer: transformCustomerForCommission(c.customer),
+        partner: {
+          ...c.partner,
+          groupId: c.programEnrollment.groupId,
+        },
+      })),
+    ),
   );
 });

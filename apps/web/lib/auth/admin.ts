@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
 import { getSession } from "./utils";
 
@@ -15,7 +16,7 @@ interface WithAdminHandler {
   }): Promise<Response>;
 }
 
-export const isDubAdmin = async (userId: string) => {
+export const getDubAdminRole = async (userId: string) => {
   const response = await prisma.projectUsers.findUnique({
     where: {
       userId_projectId: {
@@ -23,27 +24,41 @@ export const isDubAdmin = async (userId: string) => {
         projectId: DUB_WORKSPACE_ID,
       },
     },
+    select: {
+      role: true,
+    },
   });
   if (!response) {
-    return false;
+    return null;
   }
-  return true;
+  return response.role;
 };
 
 export const withAdmin =
-  (handler: WithAdminHandler) =>
+  (
+    handler: WithAdminHandler,
+    { requiredRoles = [] }: { requiredRoles?: WorkspaceRole[] } = {},
+  ) =>
   async (
     req: Request,
-    { params = {} }: { params: Record<string, string> | undefined },
+    { params: initialParams }: { params: Promise<Record<string, string>> },
   ) => {
+    const params = (await initialParams) || {};
     const session = await getSession();
     if (!session?.user) {
       return new Response("Unauthorized: Login required.", { status: 401 });
     }
 
-    const isAdminUser = await isDubAdmin(session.user.id);
-    if (!isAdminUser) {
+    const adminRole = await getDubAdminRole(session.user.id);
+    if (!adminRole) {
       return new Response("Unauthorized: Not an admin.", { status: 401 });
+    }
+
+    if (requiredRoles.length > 0 && !requiredRoles.includes(adminRole)) {
+      return new Response(
+        `Unauthorized: Missing required admin role(s): ${requiredRoles.join(", ")}.`,
+        { status: 403 },
+      );
     }
 
     const searchParams = getSearchParams(req.url);

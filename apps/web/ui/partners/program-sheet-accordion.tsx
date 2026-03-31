@@ -43,8 +43,8 @@ const ProgramSheetAccordionTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       // Completely custom trigger styling - force small text on all screen sizes, hide default icon
-      "flex items-center justify-between border-b border-neutral-200 bg-neutral-50 px-4 py-3 text-sm font-semibold text-neutral-800",
-      "transition-all hover:bg-neutral-100 data-[state=closed]:border-b-0 sm:text-sm",
+      "flex items-center justify-between bg-neutral-100 px-4 py-3 text-sm font-semibold text-neutral-800",
+      "transition-all hover:bg-neutral-200 data-[state=closed]:border-b-0 sm:text-sm",
       "[&>svg]:size-4 [&>svg]:text-neutral-400 [&[data-state=open]>svg]:rotate-180",
       className,
     )}
@@ -71,7 +71,7 @@ const ProgramSheetAccordionContent = React.forwardRef<
     <AccordionContent
       ref={ref}
       className={cn(
-        // Remove default animations and use framer-motion instead
+        // Remove default animations and use motion/react instead
         "bg-white px-4 py-4 data-[state=closed]:animate-none data-[state=open]:animate-none",
         className,
       )}

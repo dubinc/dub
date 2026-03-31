@@ -18,12 +18,14 @@ export default function UpgradeEmail({
   name = "Brendon Urie",
   email = "panic@thedis.co",
   plan = "Business",
+  planTier = 1,
 }: {
   name: string | null;
   email: string;
   plan: string;
+  planTier: number;
 }) {
-  const planDetails = getPlanDetails(plan);
+  const planDetails = getPlanDetails({ plan, planTier });
   return (
     <Html>
       <Head />

@@ -7,10 +7,10 @@ import { X } from "@/ui/shared/icons";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
+  Combobox,
   InfoTooltip,
   Modal,
   ShimmerDots,
-  SimpleTooltipContent,
   useCopyToClipboard,
   useEnterSubmit,
   useLocalStorage,
@@ -24,16 +24,21 @@ import {
 } from "@dub/ui/icons";
 import {
   cn,
+  getApexDomain,
   getDomainWithoutWWW,
+  getPathnameFromUrl,
   linkConstructor,
-  regexEscape,
+  nanoid,
+  punycode,
 } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
+import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -41,12 +46,13 @@ import {
 import { useForm } from "react-hook-form";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { useDebounce } from "use-debounce";
 import type { QRCodeDesign } from "./partner-link-qr-modal";
 import { usePartnerLinkQRModal } from "./partner-link-qr-modal";
 
 interface PartnerLinkFormData {
-  url: string;
   key: string;
+  pathname: string;
   comments?: string;
 }
 
@@ -76,12 +82,10 @@ export function PartnerLinkModal({
 }
 
 function QRCodePreview({
-  programId,
   shortLink,
   shortLinkDomain,
   _key,
 }: {
-  programId: string;
   shortLink: string;
   shortLinkDomain: string;
   _key: string;
@@ -91,7 +95,7 @@ function QRCodePreview({
   const { logo } = programEnrollment?.program ?? {};
 
   const [data, setData] = useLocalStorage<QRCodeDesign>(
-    `qr-code-design-program-${programId}`,
+    `qr-code-design-program-${programEnrollment?.program?.id}`,
     {
       fgColor: "#000000",
       logo: logo ?? undefined,
@@ -103,7 +107,6 @@ function QRCodePreview({
       domain: shortLinkDomain,
       key: _key,
     },
-    programId,
     onSave: (data) => setData(data),
   });
 
@@ -112,15 +115,7 @@ function QRCodePreview({
       <LinkQRModal />
       <div className="flex items-center gap-2">
         <h4 className="text-sm font-medium text-neutral-700">QR Code</h4>
-        <InfoTooltip
-          content={
-            <SimpleTooltipContent
-              title="Set a custom QR code design to improve click-through rates."
-              cta="Learn more."
-              href="https://dub.co/help/article/custom-qr-codes"
-            />
-          }
-        />
+        <InfoTooltip content="Set a custom QR code design to improve click-through rates. [Learn more.](https://dub.co/help/article/custom-qr-codes)" />
       </div>
       <div className="relative mt-2 h-24 overflow-hidden rounded-md border border-neutral-300">
         <Button
@@ -167,47 +162,95 @@ function PartnerLinkModalContent({
   link?: PartnerProfileLinkProps;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const isCreatingLink = !link;
+  const isEditingLink = Boolean(link?.id); // When duplicating the id will be empty
+
   const { programSlug } = useParams();
-  const { programEnrollment } = useProgramEnrollment();
-  const destinationDomain =
-    getDomainWithoutWWW(programEnrollment?.program?.url || "https://dub.co") ??
-    "dub.co";
-  const shortLinkDomain = programEnrollment?.program?.domain ?? "dub.sh";
-
-  const [lockKey, setLockKey] = useState(Boolean(link));
+  const { isMobile } = useMediaQuery();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [, copyToClipboard] = useCopyToClipboard();
+  const { handleKeyDown } = useEnterSubmit(formRef);
+  const [lockKey, setLockKey] = useState(isEditingLink);
   const [isLoading, setIsLoading] = useState(false);
+  const { data: session } = useSession();
+  const { programEnrollment } = useProgramEnrollment();
+  const [keyInputFocused, setKeyInputFocused] = useState(false);
 
-  const form = useForm<PartnerLinkFormData>({
+  const { shortLinkDomain, additionalLinks } = useMemo(() => {
+    return {
+      shortLinkDomain: programEnrollment?.program?.domain ?? "dub.sh",
+      additionalLinks: programEnrollment?.group?.additionalLinks ?? [],
+    };
+  }, [programEnrollment]);
+
+  const destinationDomains = useMemo(
+    () =>
+      additionalLinks
+        .map((link) => link.domain)
+        .filter((d): d is string => d != null),
+    [additionalLinks],
+  );
+
+  const [destinationDomain, setDestinationDomain] = useState(
+    link
+      ? (getDomainWithoutWWW(link.url) as string)
+      : destinationDomains?.[0] ?? null,
+  );
+
+  const selectedAdditionalLink = useMemo(
+    () => additionalLinks.find((link) => link.domain === destinationDomain),
+    [destinationDomain, additionalLinks],
+  );
+
+  const isExactMode = useMemo(
+    () => selectedAdditionalLink?.validationMode === "exact",
+    [selectedAdditionalLink],
+  );
+
+  const {
+    register,
+    watch,
+    handleSubmit,
+    setValue,
+    formState: { isDirty, errors },
+  } = useForm<PartnerLinkFormData>({
     defaultValues: link
       ? {
-          url: link.url.replace(
-            new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
-            "",
-          ),
+          pathname: getPathnameFromUrl(link.url),
           key: link.key,
           comments: link.comments ?? "",
         }
       : undefined,
   });
 
-  const formRef = useRef<HTMLFormElement>(null);
-  const { handleKeyDown } = useEnterSubmit(formRef);
+  const [key, pathname] = watch(["key", "pathname"]);
 
-  const {
-    register,
-    watch,
-    handleSubmit,
-    formState: { isDirty },
-  } = form;
+  // Auto-generate short link key for new links
+  useEffect(() => {
+    if (!key && !keyInputFocused && !isLoading) {
+      setValue("key", nanoid(7), { shouldDirty: false });
+    }
+  }, [key, setValue, keyInputFocused, isLoading]);
 
-  const { isMobile } = useMediaQuery();
-  const [, copyToClipboard] = useCopyToClipboard();
+  useEffect(() => {
+    if (!selectedAdditionalLink || isEditingLink) {
+      return;
+    }
 
-  const [key, _url] = watch("key", "url");
+    if (isExactMode) {
+      setValue("pathname", selectedAdditionalLink.path, { shouldDirty: true });
+    } else {
+      setValue("pathname", "", { shouldDirty: true });
+    }
+  }, [selectedAdditionalLink, isExactMode, isEditingLink]);
 
   const saveDisabled = useMemo(
-    () => Boolean(isLoading || (link && !isDirty)),
-    [isLoading, link, isDirty],
+    () =>
+      Boolean(
+        isLoading ||
+          (isEditingLink ? !isDirty : destinationDomains.length === 0),
+      ),
+    [isLoading, isEditingLink, isDirty, destinationDomains],
   );
 
   const shortLink = useMemo(
@@ -224,13 +267,14 @@ function PartnerLinkModalContent({
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
         setIsLoading(true);
+
         try {
           const response = await fetch(
             `/api/partner-profile/programs/${programEnrollment?.program?.id}/links${
-              link ? `/${link.id}` : ""
+              isEditingLink ? `/${link!.id}` : ""
             }`,
             {
-              method: link ? "PATCH" : "POST",
+              method: isEditingLink ? "PATCH" : "POST",
               headers: {
                 "Content-Type": "application/json",
               },
@@ -238,7 +282,7 @@ function PartnerLinkModalContent({
                 ...data,
                 url: linkConstructor({
                   domain: destinationDomain,
-                  key: data.url,
+                  key: getPathnameFromUrl(pathname),
                 }),
               }),
             },
@@ -257,14 +301,16 @@ function PartnerLinkModalContent({
             mutateSuffix("/links"),
           ]);
 
-          if (!link) {
+          if (isCreatingLink) {
             try {
               await copyToClipboard(result.shortLink);
               toast.success("Copied short link to clipboard!");
             } catch (err) {
               toast.success("Successfully created link!");
             }
-          } else toast.success("Successfully updated short link!");
+          } else {
+            toast.success("Successfully updated short link!");
+          }
 
           setShowPartnerLinkModal(false);
         } finally {
@@ -275,7 +321,7 @@ function PartnerLinkModalContent({
       <div className="flex flex-col items-start justify-between gap-6 px-6 py-4">
         <div className="flex w-full items-center justify-between">
           <h3 className="text-lg font-medium">
-            {link ? "Edit Link" : "New Link"}
+            {isEditingLink ? "Edit Link" : "New Link"}
           </h3>
           <button
             type="button"
@@ -296,15 +342,7 @@ function PartnerLinkModalContent({
                 >
                   Short Link
                 </label>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="This is the short link that will redirect to your destination URL."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/how-to-create-link"
-                    />
-                  }
-                />
+                <InfoTooltip content="This is the short link that will redirect to your destination URL. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
               </div>
               {lockKey && (
                 <button
@@ -325,21 +363,34 @@ function PartnerLinkModalContent({
                 {shortLinkDomain}
               </span>
               <input
-                {...register("key", { required: true })}
+                {...register("key", {
+                  required: "Short link key is required.",
+                })}
                 type="text"
                 id="key"
-                autoFocus={!isMobile}
+                autoFocus={Boolean(
+                  link?.partnerGroupDefaultLinkId && !isMobile,
+                )}
+                onFocus={() => setKeyInputFocused(true)}
+                onBlur={() => setKeyInputFocused(false)}
                 disabled={lockKey}
                 className={cn(
                   "block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   {
                     "cursor-not-allowed border border-neutral-300 bg-neutral-100 text-neutral-500":
                       lockKey,
+                    "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
+                      errors.key,
                   },
                 )}
                 placeholder="short-link"
               />
             </div>
+            {errors.key && (
+              <p className="mt-2 text-sm text-red-600" id="key-error">
+                {errors.key.message}
+              </p>
+            )}
           </div>
 
           <div>
@@ -350,37 +401,68 @@ function PartnerLinkModalContent({
               >
                 Destination URL
               </label>
-              <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="The URL your users will get redirected to when they visit your short link."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/how-to-create-link"
-                  />
-                }
-              />
+              <InfoTooltip content="The URL your users will get redirected to when they visit your short link. [Learn more.](https://dub.co/help/article/how-to-create-link)" />
             </div>
-            <div className="mt-2 flex rounded-md">
-              <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                {destinationDomain}
-              </span>
+            <div className="relative mt-1 flex rounded-md shadow-sm">
+              <div className="z-[1]">
+                {destinationDomains.length === 1 ||
+                link?.partnerGroupDefaultLinkId ? (
+                  <div
+                    className={cn(
+                      "flex h-full w-fit items-center justify-start rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-2.5 text-sm text-neutral-700",
+                      {
+                        "cursor-not-allowed bg-neutral-100 text-neutral-500":
+                          link?.partnerGroupDefaultLinkId,
+                      },
+                    )}
+                  >
+                    {punycode(destinationDomains[0])}
+                  </div>
+                ) : (
+                  <DestinationDomainCombobox
+                    selectedDomain={destinationDomain}
+                    setSelectedDomain={setDestinationDomain}
+                    destinationDomains={destinationDomains}
+                    disabled={Boolean(
+                      isEditingLink || link?.partnerGroupDefaultLinkId,
+                    )}
+                  />
+                )}
+              </div>
               <input
-                {...register("url", { required: false })}
+                {...register("pathname", { required: false })}
                 type="text"
-                id="url"
                 placeholder="(optional)"
+                autoFocus={Boolean(
+                  !link?.partnerGroupDefaultLinkId && !isMobile,
+                )}
+                disabled={Boolean(
+                  isExactMode || link?.partnerGroupDefaultLinkId,
+                )}
                 onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                  if (isExactMode || link?.partnerGroupDefaultLinkId) return;
+
                   e.preventDefault();
-                  // if pasting in a URL, extract the pathname
+                  // if pasting in a URL, extract the pathname + query params
                   const text = e.clipboardData.getData("text/plain");
+                  let newValue: string;
                   try {
                     const url = new URL(text);
-                    e.currentTarget.value = url.pathname.slice(1);
+                    newValue = url.pathname.slice(1) + url.search;
                   } catch (err) {
-                    e.currentTarget.value = text;
+                    newValue = text;
                   }
+
+                  // Use setValue to properly dirty the form
+                  setValue("pathname", newValue, { shouldDirty: true });
                 }}
-                className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className={cn(
+                  "z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  {
+                    "cursor-not-allowed border bg-neutral-100 text-neutral-500":
+                      isExactMode || link?.partnerGroupDefaultLinkId,
+                  },
+                )}
               />
             </div>
           </div>
@@ -393,15 +475,7 @@ function PartnerLinkModalContent({
               >
                 Comments
               </label>
-              <InfoTooltip
-                content={
-                  <SimpleTooltipContent
-                    title="Use comments to add context to your short links – for you and your team."
-                    cta="Learn more."
-                    href="https://dub.co/help/article/link-comments"
-                  />
-                }
-              />
+              <InfoTooltip content="Use comments to add context to your short links – for you and your team. [Learn more.](https://dub.co/help/article/link-comments)" />
             </div>
             <TextareaAutosize
               {...register("comments")}
@@ -415,7 +489,6 @@ function PartnerLinkModalContent({
 
           {programEnrollment && (
             <QRCodePreview
-              programId={programEnrollment.program.id}
               shortLink={shortLink}
               shortLinkDomain={shortLinkDomain}
               _key={key}
@@ -431,7 +504,7 @@ function PartnerLinkModalContent({
           loading={isLoading}
           text={
             <span className="flex items-center gap-2">
-              {link ? "Save changes" : "Create link"}
+              {isEditingLink ? "Save changes" : "Create link"}
               <div className="rounded border border-white/20 p-1">
                 <ArrowTurnLeft className="size-3.5" />
               </div>
@@ -441,6 +514,84 @@ function PartnerLinkModalContent({
         />
       </div>
     </form>
+  );
+}
+
+function DestinationDomainCombobox({
+  selectedDomain,
+  setSelectedDomain,
+  destinationDomains,
+  disabled = false,
+}: {
+  selectedDomain?: string | null;
+  setSelectedDomain: (domain: string) => void;
+  destinationDomains: string[];
+  disabled?: boolean;
+}) {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const options = useMemo(() => {
+    const allDomains = selectedDomain
+      ? [
+          selectedDomain,
+          ...destinationDomains.filter((d) => d !== selectedDomain),
+        ]
+      : destinationDomains;
+
+    if (!debouncedSearch) {
+      return allDomains.map((domain) => ({
+        value: domain,
+        label: punycode(domain),
+      }));
+    }
+
+    return allDomains
+      .filter((domain) =>
+        punycode(domain).toLowerCase().includes(debouncedSearch.toLowerCase()),
+      )
+      .map((domain) => ({
+        value: getApexDomain(domain!),
+        label: punycode(domain),
+      }));
+  }, [selectedDomain, destinationDomains, debouncedSearch]);
+
+  return (
+    <Combobox
+      selected={
+        selectedDomain
+          ? {
+              value: selectedDomain!,
+              label: punycode(selectedDomain),
+            }
+          : null
+      }
+      setSelected={(option) => {
+        if (!option) return;
+        setSelectedDomain(option.value);
+      }}
+      options={options}
+      caret={true}
+      placeholder="Select domain..."
+      searchPlaceholder="Search domains..."
+      buttonProps={{
+        className: cn(
+          "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
+          "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+          "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+          {
+            "cursor-not-allowed bg-neutral-100 text-neutral-500": disabled,
+          },
+        ),
+        disabled,
+      }}
+      optionClassName="sm:max-w-[225px]"
+      shouldFilter={false}
+      open={disabled ? false : isOpen}
+      onOpenChange={disabled ? undefined : setIsOpen}
+      onSearchChange={disabled ? undefined : setSearch}
+    />
   );
 }
 

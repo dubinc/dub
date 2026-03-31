@@ -1,0 +1,374 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { DubApiError } from "@/lib/api/errors";
+import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
+import { withWorkspace } from "@/lib/auth";
+import { generatePerformanceBountyName } from "@/lib/bounty/api/generate-performance-bounty-name";
+import { getBountyWithDetails } from "@/lib/bounty/api/get-bounty-with-details";
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/bounty/api/performance-bounty-scope-attributes";
+import { validateBounty } from "@/lib/bounty/api/validate-bounty";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { WorkflowCondition } from "@/lib/types";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import {
+  BountySchema,
+  submissionRequirementsSchema,
+  updateBountySchema,
+} from "@/lib/zod/schemas/bounties";
+import { prisma } from "@dub/prisma";
+import { PartnerGroup, Prisma } from "@dub/prisma/client";
+import { arrayEqual, deepEqual } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
+import { NextResponse } from "next/server";
+
+// GET /api/bounties/[bountyId] - get a bounty
+export const GET = withWorkspace(
+  async ({ workspace, params }) => {
+    const { bountyId } = params;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    console.time("getBountyWithDetails");
+    const bounty = await getBountyWithDetails({
+      bountyId,
+      programId,
+    });
+    console.timeEnd("getBountyWithDetails");
+
+    return NextResponse.json(BountySchema.parse(bounty));
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+  },
+);
+
+// PATCH /api/bounties/[bountyId] - update a bounty
+export const PATCH = withWorkspace(
+  async ({ workspace, params, req, session }) => {
+    const { bountyId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const {
+      name,
+      description,
+      startsAt,
+      endsAt,
+      submissionsOpenAt,
+      submissionFrequency,
+      maxSubmissions,
+      rewardAmount,
+      rewardDescription,
+      submissionRequirements,
+      performanceCondition,
+      groupIds,
+    } = updateBountySchema.parse(await parseRequestBody(req));
+
+    const bounty = await prisma.bounty.findUniqueOrThrow({
+      where: {
+        id: bountyId,
+        programId,
+      },
+      include: {
+        groups: true,
+        workflow: true,
+        _count: {
+          select: {
+            submissions: true,
+          },
+        },
+      },
+    });
+
+    validateBounty({
+      type: bounty.type,
+      startsAt,
+      endsAt: endsAt !== undefined ? endsAt : bounty.endsAt,
+      submissionsOpenAt,
+      submissionFrequency:
+        submissionFrequency !== undefined
+          ? submissionFrequency
+          : bounty.submissionFrequency,
+      maxSubmissions:
+        maxSubmissions !== undefined ? maxSubmissions : bounty.maxSubmissions,
+      submissionRequirements,
+      rewardAmount,
+      rewardDescription,
+      performanceScope: bounty.performanceScope,
+    });
+
+    if (
+      submissionRequirements !== undefined &&
+      submissionRequirements?.socialMetrics &&
+      !getPlanCapabilities(workspace.plan).canUseBountySocialMetrics
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Social metrics criteria require Advanced plan or above.",
+      });
+    }
+
+    // TODO:
+    // When we do archive, make sure it disables the workflow
+
+    // if groupIds is provided and is different from the current groupIds, update the groups
+    let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
+    if (
+      groupIds &&
+      !arrayEqual(
+        bounty.groups.map((group) => group.groupId),
+        groupIds,
+      )
+    ) {
+      updatedPartnerGroups = await throwIfInvalidGroupIds({
+        programId,
+        groupIds,
+      });
+    }
+
+    // Prevent updates if `performanceCondition.attribute` differs from the current value if there are existing submissions
+    if (performanceCondition && bounty.workflow) {
+      const submissionCount = bounty._count.submissions;
+      const currentCondition = bounty.workflow
+        .triggerConditions?.[0] as WorkflowCondition;
+
+      if (
+        currentCondition &&
+        currentCondition.attribute !== performanceCondition.attribute &&
+        submissionCount > 0
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `You cannot change the performance condition from "${PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[currentCondition.attribute].toLowerCase()}" to "${PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute].toLowerCase()}" because the bounty has submissions.`,
+        });
+      }
+    }
+
+    // Prevent update if `submissionRequirements.socialMetrics` differs from the current value if there are existing submissions
+    if (submissionRequirements) {
+      const submissionCount = bounty._count.submissions;
+
+      const currentSocialMetrics = bounty.submissionRequirements
+        ? submissionRequirementsSchema.parse(bounty.submissionRequirements)
+            .socialMetrics ?? {}
+        : {};
+
+      const incomingSocialMetrics =
+        submissionRequirementsSchema.parse(submissionRequirements)
+          .socialMetrics ?? {};
+
+      if (
+        !deepEqual(currentSocialMetrics, incomingSocialMetrics) &&
+        submissionCount > 0
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "You cannot change the social metrics criteria because the bounty has submissions.",
+        });
+      }
+    }
+
+    // Bounty name
+    let bountyName = name;
+
+    if (bounty.type === "performance" && performanceCondition) {
+      bountyName = generatePerformanceBountyName({
+        rewardAmount: rewardAmount ?? 0, // this shouldn't happen since we return early if rewardAmount is null
+        condition: performanceCondition,
+      });
+    }
+
+    const data = await prisma.$transaction(async (tx) => {
+      const updatedBounty = await tx.bounty.update({
+        where: {
+          id: bounty.id,
+        },
+        data: {
+          name: bountyName ?? undefined,
+          description,
+          startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
+          endsAt,
+          submissionsOpenAt:
+            bounty.type === "submission" ? submissionsOpenAt : null,
+          ...(bounty.type === "submission" &&
+            submissionFrequency !== undefined && { submissionFrequency }),
+          ...(bounty.type === "submission" &&
+            maxSubmissions !== undefined && {
+              maxSubmissions: maxSubmissions ?? 1,
+            }),
+          rewardAmount:
+            rewardAmount !== undefined ? rewardAmount : bounty.rewardAmount,
+          rewardDescription,
+          ...(bounty.type === "submission" &&
+            submissionRequirements !== undefined && {
+              submissionRequirements: submissionRequirements ?? Prisma.DbNull,
+            }),
+          ...(updatedPartnerGroups && {
+            groups: {
+              deleteMany: {},
+              create: updatedPartnerGroups.map((group) => ({
+                groupId: group.id,
+              })),
+            },
+          }),
+        },
+        include: {
+          workflow: true,
+          groups: true,
+        },
+      });
+
+      if (updatedBounty.workflowId && performanceCondition) {
+        await tx.workflow.update({
+          where: {
+            id: updatedBounty.workflowId,
+          },
+          data: {
+            triggerConditions: [performanceCondition],
+          },
+        });
+      }
+
+      return {
+        ...updatedBounty,
+        performanceCondition,
+      };
+    });
+
+    const updatedBounty = BountySchema.parse({
+      ...data,
+      groups: data.groups.map(({ groupId }) => ({ id: groupId })),
+      performanceCondition: data.workflow?.triggerConditions?.[0],
+    });
+
+    waitUntil(
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "bounty.updated",
+          description: `Bounty ${bounty.id} updated`,
+          actor: session?.user,
+          targets: [
+            {
+              type: "bounty",
+              id: bounty.id,
+              metadata: updatedBounty,
+            },
+          ],
+        }),
+
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "bounty.updated",
+          data: updatedBounty,
+        }),
+      ]),
+    );
+
+    return NextResponse.json(updatedBounty);
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+    requiredRoles: ["owner", "member"],
+  },
+);
+
+// DELETE /api/bounties/[bountyId] - delete a bounty
+export const DELETE = withWorkspace(
+  async ({ workspace, params, session }) => {
+    const { bountyId } = params;
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const bounty = await prisma.bounty.findUniqueOrThrow({
+      where: {
+        id: bountyId,
+        programId,
+      },
+      include: {
+        groups: true,
+        workflow: true,
+        _count: {
+          select: {
+            submissions: true,
+          },
+        },
+      },
+    });
+
+    if (bounty._count.submissions > 0) {
+      throw new DubApiError({
+        message:
+          "Bounties with submissions cannot be deleted. You can archive them instead.",
+        code: "bad_request",
+      });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      const bounty = await tx.bounty.delete({
+        where: {
+          id: bountyId,
+        },
+      });
+
+      if (bounty.workflowId) {
+        await tx.workflow.delete({
+          where: {
+            id: bounty.workflowId,
+          },
+        });
+      }
+    });
+
+    const deletedBounty = BountySchema.parse({
+      ...bounty,
+      groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
+      performanceCondition: bounty.workflow?.triggerConditions?.[0],
+    });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "bounty.deleted",
+        description: `Bounty ${bountyId} deleted`,
+        actor: session?.user,
+        targets: [
+          {
+            type: "bounty",
+            id: bountyId,
+            metadata: deletedBounty,
+          },
+        ],
+      }),
+    );
+
+    return NextResponse.json({ id: bountyId });
+  },
+  {
+    requiredPlan: [
+      "business",
+      "business plus",
+      "business extra",
+      "business max",
+      "advanced",
+      "enterprise",
+    ],
+    requiredRoles: ["owner", "member"],
+  },
+);

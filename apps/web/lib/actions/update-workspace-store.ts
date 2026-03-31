@@ -1,9 +1,10 @@
 "use server";
 
 import { prisma } from "@dub/prisma";
-import z from "../zod";
+import * as z from "zod/v4";
 import { workspaceStoreKeys } from "../zod/schemas/workspaces";
 import { authActionClient } from "./safe-action";
+import { throwIfNoPermission } from "./throw-if-no-permission";
 
 const updateWorkspaceStoreSchema = z.object({
   workspaceId: z.string(),
@@ -17,10 +18,15 @@ const updateWorkspaceStoreSchema = z.object({
 
 // Update a workspace store item
 export const updateWorkspaceStore = authActionClient
-  .schema(updateWorkspaceStoreSchema)
+  .inputSchema(updateWorkspaceStoreSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace } = ctx;
     const { key, value } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["workspaces.write"],
+    });
 
     const store = workspace.store;
 

@@ -1,14 +1,20 @@
 "use client";
 
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { FolderDropdown } from "@/ui/folders/folder-dropdown";
+import {
+  FolderInfoPanel,
+  FolderInfoPanelControls,
+} from "@/ui/folders/folder-info-panel";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
+import { PageContentWithSidePanel } from "@/ui/layout/page-content/page-content-with-side-panel";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
@@ -30,27 +36,34 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
-import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
 import { ReactNode, useEffect, useState } from "react";
 
 export default function WorkspaceLinksClient() {
-  const { data: session } = useSession();
-
-  useEffect(() => {
-    if (session?.user) {
-      posthog.identify(session.user["id"], {
-        email: session.user.email,
-        name: session.user.name,
-      });
-    }
-  }, [session?.user]);
+  const { folderId } = useCurrentFolderId();
 
   return (
-    <LinksDisplayProvider>
-      <WorkspaceLinks />
-    </LinksDisplayProvider>
+    <PageContentWithSidePanel
+      title={
+        <div className="-ml-2">
+          <FolderDropdown hideFolderIcon={true} />
+        </div>
+      }
+      controls={<WorkspaceLinksPageControls />}
+      sidePanel={
+        folderId
+          ? {
+              title: "Folder",
+              content: <FolderInfoPanel />,
+              controls: <FolderInfoPanelControls />,
+            }
+          : undefined
+      }
+    >
+      <LinksDisplayProvider>
+        <WorkspaceLinks />
+      </LinksDisplayProvider>
+    </PageContentWithSidePanel>
   );
 }
 
@@ -61,7 +74,7 @@ export function WorkspaceLinksPageControls() {
     <>
       <LinkBuilder />
       <div className="hidden sm:block">
-        <CreateLinkButton />
+        <CreateLinkButton className="h-9" />
       </div>
     </>
   );
@@ -80,14 +93,13 @@ function WorkspaceLinks() {
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     setSearch,
     setSelectedFilter,
   } = useLinkFilters();
 
-  const folderId = searchParams.get("folderId");
-  const { isMegaFolder } = useIsMegaFolder();
-
+  const { folderId } = useCurrentFolderId();
   const { isLoading } = useFolderPermissions();
   const canCreateLinks = useCheckFolderPermission(
     folderId,
@@ -140,7 +152,7 @@ function WorkspaceLinks() {
         <PageWidthWrapper className="flex flex-col gap-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex w-full grow gap-2 md:w-auto">
-              {!isMegaFolder && (
+              {!workspace.isMegaWorkspace && (
                 <div className="grow basis-0 md:grow-0">
                   <Filter.Select
                     filters={filters}
@@ -209,7 +221,7 @@ function WorkspaceLinks() {
                   loading={isValidating}
                   inputClassName="h-10"
                   placeholder={
-                    isMegaFolder
+                    workspace.isMegaWorkspace
                       ? "Search by short link"
                       : "Search by short link or URL"
                   }
@@ -217,10 +229,7 @@ function WorkspaceLinks() {
               </div>
 
               {isLoading ? (
-                <div className="flex grow-0 animate-pulse items-center space-x-2">
-                  <div className="h-10 w-24 rounded-md bg-neutral-200" />
-                  <div className="h-10 w-10 rounded-md bg-neutral-200" />
-                </div>
+                <div className="h-10 w-[2.125rem] animate-pulse rounded-md bg-neutral-200" />
               ) : canCreateLinks ? (
                 <MoreLinkOptions />
               ) : (
@@ -237,7 +246,9 @@ function WorkspaceLinks() {
           <Filter.List
             filters={filters}
             activeFilters={activeFilters}
+            onSelect={onSelect}
             onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
             onRemoveAll={onRemoveAll}
           />
         </PageWidthWrapper>
@@ -393,13 +404,13 @@ function ImportOption({
   children: ReactNode;
   onClick: () => void;
 }) {
-  const { slug, exceededLinks, nextPlan } = useWorkspace();
+  const { slug, exceededLinks, plan, nextPlan } = useWorkspace();
 
-  return exceededLinks ? (
+  return exceededLinks && plan !== "enterprise" ? (
     <Tooltip
       content={
         <TooltipContent
-          title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
+          title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
           cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
           href={`/${slug}/upgrade`}
         />

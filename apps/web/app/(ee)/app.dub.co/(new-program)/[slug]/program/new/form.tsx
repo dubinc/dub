@@ -104,14 +104,14 @@ export function Form() {
         <label className="block text-sm font-medium text-neutral-800">
           Company name
         </label>
-        <p className="mb-4 mt-1 text-sm text-neutral-600">
+        <p className="mt-1 text-sm text-neutral-600">
           The name of your company
         </p>
         <Input
           {...register("name", { required: true })}
           placeholder="Acme"
           autoFocus={!isMobile}
-          className="mt-2 max-w-full"
+          className="mt-3 max-w-full"
         />
       </div>
 

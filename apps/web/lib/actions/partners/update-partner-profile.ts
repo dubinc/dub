@@ -1,44 +1,40 @@
 "use server";
 
+import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
 import { storage } from "@/lib/storage";
+import { stripe } from "@/lib/stripe";
+import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  MAX_PARTNER_DESCRIPTION_LENGTH,
+  PartnerProfileSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { Partner, PartnerProfileType } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   COUNTRIES,
   deepEqual,
   nanoid,
+  PARTNERS_DOMAIN,
 } from "@dub/utils";
-import { PartnerProfileType, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { stripe } from "../../stripe";
-import z from "../../zod";
+import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/misc";
 import { authPartnerActionClient } from "../safe-action";
 
 const updatePartnerProfileSchema = z
   .object({
-    name: z.string(),
-    email: z.string().email(),
+    name: z.string().trim().min(1, "Name is required").optional(),
+    email: z.email().optional(),
     image: uploadedImageSchema.nullish(),
-    description: z.string().nullable(),
-    country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullable(),
-    profileType: z.nativeEnum(PartnerProfileType),
-    companyName: z.string().nullable(),
+    description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
+    country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
+    profileType: z.enum(PartnerProfileType).optional(),
+    companyName: z.string().nullish(),
   })
-  .refine(
-    (data) => {
-      if (data.profileType === "company") {
-        return !!data.companyName;
-      }
-
-      return true;
-    },
-    {
-      message: "Legal company name is required.",
-      path: ["companyName"],
-    },
-  )
+  .extend(PartnerProfileSchema.partial().shape)
   .transform((data) => ({
     ...data,
     companyName: data.profileType === "individual" ? null : data.companyName,
@@ -46,77 +42,52 @@ const updatePartnerProfileSchema = z
 
 // Update a partner profile
 export const updatePartnerProfileAction = authPartnerActionClient
-  .schema(updatePartnerProfileSchema)
+  .inputSchema(updatePartnerProfileSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "partner_profile.update",
+    });
+
     const {
       name,
-      email,
+      email: newEmail,
       image,
       description,
       country,
       profileType,
       companyName,
+      monthlyTraffic,
+      industryInterests,
+      preferredEarningStructures,
+      salesChannels,
     } = parsedInput;
 
-    const emailChanged = partner.email !== email;
-
-    const countryChanged =
-      partner.country?.toLowerCase() !== country?.toLowerCase();
-
-    const profileTypeChanged =
-      partner.profileType.toLowerCase() !== profileType.toLowerCase();
-
-    const companyNameChanged =
-      partner.companyName?.toLowerCase() !== companyName?.toLowerCase();
-
     if (
-      (emailChanged ||
-        countryChanged ||
-        profileTypeChanged ||
-        companyNameChanged) &&
-      partner.stripeConnectId
-    ) {
-      // Partner is not able to update their country, profile type, or company name
-      // if they have already have a Stripe Express account + any sent / completed payouts
-      const completedPayoutsCount = await prisma.payout.count({
-        where: {
-          partnerId: partner.id,
-          status: {
-            in: ["sent", "completed"],
-          },
-        },
+      profileType === "company" &&
+      (companyName === undefined ? !partner.companyName : !companyName)
+    )
+      throw new Error("Legal company name is required.");
+
+    await updatedComplianceFieldsChecks({
+      partner,
+      input: parsedInput,
+    });
+
+    let imageUrl: string | null = null;
+    let needsEmailVerification = false;
+    const emailChanged = newEmail !== undefined && partner.email !== newEmail;
+
+    // Upload the new image
+    if (image) {
+      const uploaded = await storage.upload({
+        key: `partners/${partner.id}/image_${nanoid(7)}`,
+        body: image,
       });
-
-      if (completedPayoutsCount > 0) {
-        throw new Error(
-          "Since you've already received payouts on Dub, you cannot change your email, country or profile type. Please contact support to update those fields.",
-        );
-      }
-
-      const response = await stripe.accounts.del(partner.stripeConnectId);
-
-      if (response.deleted) {
-        await prisma.partner.update({
-          where: {
-            id: partner.id,
-          },
-          data: {
-            stripeConnectId: null,
-            payoutsEnabledAt: null,
-          },
-        });
-      }
+      imageUrl = uploaded.url;
     }
-
-    const imageUrl = image
-      ? (
-          await storage.upload(
-            `partners/${partner.id}/image_${nanoid(7)}`,
-            image,
-          )
-        ).url
-      : null;
 
     try {
       const updatedPartner = await prisma.partner.update({
@@ -125,51 +96,168 @@ export const updatePartnerProfileAction = authPartnerActionClient
         },
         data: {
           name,
-          email,
           description,
           ...(imageUrl && { image: imageUrl }),
           country,
           profileType,
           companyName,
+          monthlyTraffic,
+          ...(industryInterests && {
+            industryInterests: {
+              deleteMany: {},
+              create: industryInterests.map((name) => ({
+                industryInterest: name,
+              })),
+            },
+          }),
+
+          ...(preferredEarningStructures && {
+            preferredEarningStructures: {
+              deleteMany: {},
+              create: preferredEarningStructures.map((name) => ({
+                preferredEarningStructure: name,
+              })),
+            },
+          }),
+
+          ...(salesChannels && {
+            salesChannels: {
+              deleteMany: {},
+              create: salesChannels.map((name) => ({
+                salesChannel: name,
+              })),
+            },
+          }),
+        },
+        include: {
+          preferredEarningStructures: true,
+          salesChannels: true,
+          programs: true,
+          platforms: true,
         },
       });
 
-      waitUntil(
-        (async () => {
-          const shouldExpireCache = !deepEqual(
-            {
-              name: partner.name,
-              image: partner.image,
-            },
-            {
-              name: updatedPartner.name,
-              image: updatedPartner.image,
-            },
+      // If the email is being changed, we need to verify the new email address
+      if (emailChanged) {
+        const partnerWithEmail = await prisma.partner.findUnique({
+          where: {
+            email: newEmail,
+          },
+        });
+
+        if (partnerWithEmail) {
+          throw new Error(
+            `Email ${newEmail} is already in use. Do you want to merge your partner accounts instead? (https://d.to/merge-partners)`,
           );
+        }
 
-          if (!shouldExpireCache) {
-            return;
-          }
+        await confirmEmailChange({
+          email: partner.email!,
+          newEmail,
+          identifier: partner.id,
+          isPartnerProfile: true,
+          hostName: PARTNERS_DOMAIN,
+        });
 
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-            body: {
-              partnerId: partner.id,
-            },
-          });
-        })(),
+        needsEmailVerification = true;
+      }
+
+      waitUntil(
+        Promise.allSettled([
+          (async () => {
+            const shouldExpireCache = !deepEqual(
+              {
+                name: partner.name,
+                image: partner.image,
+              },
+              {
+                name: updatedPartner.name,
+                image: updatedPartner.image,
+              },
+            );
+
+            if (!shouldExpireCache) {
+              return;
+            }
+
+            await qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+              body: {
+                partnerId: partner.id,
+              },
+            });
+          })(),
+        ]),
       );
+
+      return {
+        needsEmailVerification,
+      };
     } catch (error) {
       console.error(error);
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2002"
-      ) {
-        throw new Error(
-          "Email already in use. Do you want to merge your partner accounts instead? (https://d.to/merge-partners)",
-        );
-      }
 
       throw new Error(error.message);
     }
   });
+
+const updatedComplianceFieldsChecks = async ({
+  partner,
+  input,
+}: {
+  partner: Partner;
+  input: z.infer<typeof updatePartnerProfileSchema>;
+}) => {
+  const countryChanged =
+    input.country !== undefined &&
+    partner.country?.toLowerCase() !== input.country?.toLowerCase();
+
+  const profileTypeChanged =
+    input.profileType !== undefined &&
+    partner.profileType.toLowerCase() !== input.profileType.toLowerCase();
+
+  if (!countryChanged && !profileTypeChanged) {
+    return;
+  }
+
+  if (partner.payoutsEnabledAt) {
+    throw new Error(
+      "Since you've already connected your bank account for payouts, you cannot change your country or profile type. Please contact support to update those fields.",
+    );
+  }
+
+  const partnerChangeHistoryLog = partner.changeHistoryLog
+    ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
+    : [];
+
+  if (countryChanged) {
+    partnerChangeHistoryLog.push({
+      field: "country",
+      from: partner.country as string,
+      to: input.country as string,
+      changedAt: new Date(),
+    });
+  }
+
+  if (profileTypeChanged) {
+    partnerChangeHistoryLog.push({
+      field: "profileType",
+      from: partner.profileType,
+      to: input.profileType as PartnerProfileType,
+      changedAt: new Date(),
+    });
+  }
+
+  if (partner.stripeConnectId) {
+    await stripe.accounts.del(partner.stripeConnectId);
+  }
+
+  await prisma.partner.update({
+    where: {
+      id: partner.id,
+    },
+    data: {
+      stripeConnectId: null,
+      changeHistoryLog: partnerChangeHistoryLog,
+    },
+  });
+};

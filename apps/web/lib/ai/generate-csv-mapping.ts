@@ -1,9 +1,9 @@
 "use server";
 
 import { anthropic } from "@ai-sdk/anthropic";
+import { createStreamableValue } from "@ai-sdk/rsc";
 import { streamObject } from "ai";
-import { createStreamableValue } from "ai/rsc";
-import { z } from "zod";
+import * as z from "zod/v4";
 
 export async function generateCsvMapping(
   fieldColumns: string[],

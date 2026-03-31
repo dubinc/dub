@@ -10,19 +10,29 @@ import { sendEmail } from "@dub/email";
 import APIKeyCreated from "@dub/email/templates/api-key-created";
 import { prisma } from "@dub/prisma";
 import { Prisma, User } from "@dub/prisma/client";
-import { getCurrentPlan, nanoid } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
 
 const MAX_WORKSPACE_TOKENS = 100;
 
+const getTokensQuerySchema = z.object({
+  userId: z.string().optional(),
+});
+
 // GET /api/tokens - get all tokens for a workspace
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
+    const { userId } = getTokensQuerySchema.parse(searchParams);
+
     const tokens = await prisma.restrictedToken.findMany({
       where: {
         projectId: workspace.id,
         installationId: null,
+        ...(userId && {
+          userId,
+        }),
       },
       select: {
         id: true,
@@ -70,19 +80,7 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
-    let machineUser: Pick<User, "id"> | null = null;
-
-    const { role } = await prisma.projectUsers.findUniqueOrThrow({
-      where: {
-        userId_projectId: {
-          userId: session.user.id,
-          projectId: workspace.id,
-        },
-      },
-      select: {
-        role: true,
-      },
-    });
+    const role = workspace.users[0].role;
 
     // Only workspace owners can create machine users
     if (isMachine && role !== "owner") {
@@ -120,6 +118,8 @@ export const POST = withWorkspace(
           });
         }
 
+        let machineUser: Pick<User, "id"> | null = null;
+
         // Create machine user if needed
         if (isMachine) {
           machineUser = await tx.user.create({
@@ -150,7 +150,6 @@ export const POST = withWorkspace(
             partialKey,
             userId: isMachine ? machineUser?.id! : session.user.id,
             projectId: workspace.id,
-            rateLimit: getCurrentPlan(workspace.plan).limits.api,
             scopes:
               scopes && scopes.length > 0
                 ? [...new Set(scopes)].join(" ")
@@ -167,7 +166,7 @@ export const POST = withWorkspace(
 
     waitUntil(
       sendEmail({
-        email: session.user.email,
+        to: session.user.email,
         subject: `A new API key has been created for your workspace ${workspace.name} on Dub`,
         react: APIKeyCreated({
           email: session.user.email,

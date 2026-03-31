@@ -5,7 +5,6 @@ import {
   DiamondTurnRight,
   InfoTooltip,
   Modal,
-  SimpleTooltipContent,
   Tooltip,
   UTM_PARAMETERS,
   UTMBuilder,
@@ -172,11 +171,7 @@ function UTMModalInner({ setShowUTMModal }: UTMModalProps) {
           <h3 className="text-lg font-medium">UTM Builder</h3>
           <InfoTooltip
             content={
-              <SimpleTooltipContent
-                title="Add UTM parameters to your short links for conversion tracking."
-                cta="Learn more."
-                href="https://dub.co/help/article/utm-builder"
-              />
+              "Add UTM parameters to your short links for conversion tracking. [Learn more.](https://dub.co/help/article/utm-builder)"
             }
           />
         </div>

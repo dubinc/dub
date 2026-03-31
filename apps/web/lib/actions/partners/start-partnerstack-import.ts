@@ -1,23 +1,29 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { PartnerStackApi } from "@/lib/partnerstack/api";
 import { partnerStackImporter } from "@/lib/partnerstack/importer";
-import { z } from "zod";
+import { partnerStackCredentialsSchema } from "@/lib/partnerstack/schemas";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const schema = z.object({
+const schema = partnerStackCredentialsSchema.extend({
   workspaceId: z.string(),
-  publicKey: z.string().min(1),
-  secretKey: z.string().min(1),
 });
 
 export const startPartnerStackImportAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
     const { publicKey, secretKey } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -47,8 +53,9 @@ export const startPartnerStackImportAction = authActionClient
     });
 
     await partnerStackImporter.queue({
+      importId: createId({ prefix: "import_" }),
       programId,
       userId: user.id,
-      action: "import-partners",
+      action: "import-groups",
     });
   });

@@ -1,10 +1,10 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import z from "@/lib/zod";
 import {
   partnerAnalyticsQuerySchema,
   partnerAnalyticsResponseSchema,
 } from "@/lib/zod/schemas/partners";
 import { ZodOpenApiOperationObject } from "zod-openapi";
+import * as z from "zod/v4";
 
 export const retrievePartnerAnalytics: ZodOpenApiOperationObject = {
   operationId: "retrievePartnerAnalytics",
@@ -21,9 +21,19 @@ export const retrievePartnerAnalytics: ZodOpenApiOperationObject = {
       content: {
         "application/json": {
           schema: z.union([
-            partnerAnalyticsResponseSchema.count,
-            z.array(partnerAnalyticsResponseSchema.timeseries),
-            z.array(partnerAnalyticsResponseSchema.top_links),
+            partnerAnalyticsResponseSchema.count.meta({
+              id: "PartnerAnalyticsCount",
+            }),
+            z.array(
+              partnerAnalyticsResponseSchema.timeseries.meta({
+                id: "PartnerAnalyticsTimeseries",
+              }),
+            ),
+            z.array(
+              partnerAnalyticsResponseSchema.top_links.meta({
+                id: "PartnerAnalyticsTopLinks",
+              }),
+            ),
           ]),
         },
       },

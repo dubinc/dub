@@ -4,7 +4,6 @@ import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
 import { getPlanDetails, PLANS, PRO_PLAN } from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { useSearchParams } from "next/navigation";
-import posthog from "posthog-js";
 import {
   Dispatch,
   SetStateAction,
@@ -39,15 +38,10 @@ function UpgradedModal({
 
   const handlePlanUpgrade = async () => {
     if (planId) {
-      const currentPlan = getPlanDetails(planId);
+      const currentPlan = getPlanDetails({ plan: planId });
       const period = searchParams.get("period");
       if (currentPlan && period) {
         plausible(`Upgraded to ${currentPlan.name}`);
-        posthog.capture("plan_upgraded", {
-          plan: currentPlan.name,
-          period,
-          revenue: currentPlan.price[period],
-        });
       }
     }
   };

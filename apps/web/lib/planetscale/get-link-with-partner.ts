@@ -41,6 +41,8 @@ export const getLinkWithPartner = async ({
         Partner.id as partnerId,
         Partner.name as partnerName,
         Partner.image as partnerImage,
+        ProgramEnrollment.groupId as groupId,
+        ProgramEnrollment.tenantId as tenantId,
         PartnerDiscount.id as discountId,
         PartnerDiscount.amount as discountAmount,
         PartnerDiscount.type as discountType,
@@ -69,6 +71,8 @@ export const getLinkWithPartner = async ({
     partnerId,
     partnerName,
     partnerImage,
+    groupId,
+    tenantId,
     discountId,
     discountAmount,
     discountType,
@@ -87,6 +91,8 @@ export const getLinkWithPartner = async ({
           id: partnerId,
           name: partnerName,
           image: partnerImage,
+          groupId,
+          tenantId,
         }
       : null,
     discount:

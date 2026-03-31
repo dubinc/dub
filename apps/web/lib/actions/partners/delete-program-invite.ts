@@ -4,8 +4,9 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
-import z from "../../zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const deleteProgramInviteSchema = z.object({
   workspaceId: z.string(),
@@ -13,10 +14,15 @@ const deleteProgramInviteSchema = z.object({
 });
 
 export const deleteProgramInviteAction = authActionClient
-  .schema(deleteProgramInviteSchema)
+  .inputSchema(deleteProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { partnerId } = parsedInput;
     const { workspace, user } = ctx;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 

@@ -50,13 +50,15 @@ export default function UpdateDefaultWorkspace() {
           error: (error) => error,
         });
       }}
-      className="rounded-lg border border-neutral-200 bg-white"
+      className="rounded-xl border border-neutral-200 bg-white"
     >
-      <div className="flex flex-col space-y-3 p-5 sm:p-10">
-        <h2 className="text-xl font-medium">Your Default Workspace</h2>
-        <p className="text-sm text-neutral-500">
-          Choose the workspace to show by default when you sign in.
-        </p>
+      <div className="flex flex-col space-y-6 p-6">
+        <div className="flex flex-col space-y-1">
+          <h2 className="text-base font-semibold">Your Default Workspace</h2>
+          <p className="text-sm text-neutral-500">
+            Choose the workspace to show by default when you sign in.
+          </p>
+        </div>
         <div className="mt-1 max-w-md">
           <WorkspaceSelector
             selectedWorkspace={selectedWorkspace || ""}
@@ -65,7 +67,7 @@ export default function UpdateDefaultWorkspace() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between space-x-4 rounded-b-lg border-t border-neutral-200 bg-neutral-50 p-3 sm:px-10">
+      <div className="flex flex-col items-start justify-start gap-4 rounded-b-xl border-t border-neutral-200 bg-neutral-50 px-6 py-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <a
           href="https://dub.co/help/article/how-to-change-default-workspace"
           target="_blank"

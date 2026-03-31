@@ -1,36 +1,82 @@
 "use server";
 
-import { exceededLimitError } from "@/lib/api/errors";
+import { createId } from "@/lib/api/create-id";
+import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
+import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import {
+  CUTOFF_PERIOD_MAX_PAYOUTS,
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  INVOICE_MIN_PAYOUT_AMOUNT_CENTS,
+  PAYMENT_METHOD_TYPES,
+  STRIPE_PAYMENT_METHOD_NORMALIZATION,
+} from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
-import { PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
+import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
+import { checkPaymentMethodMandate } from "@/lib/stripe/check-payment-method-mandate";
+import { getWebhooks } from "@/lib/webhook/get-webhooks";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import z from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutId: z.string().optional(),
+  excludedPayoutIds: z.array(z.string()).optional(),
+  fastSettlement: z.boolean().optional().default(false),
+  amount: z.number(),
+  fee: z.number(),
+  total: z.number(),
 });
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
-  .schema(confirmPayoutsSchema)
+  .inputSchema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { paymentMethodId, cutoffPeriod } = parsedInput;
+    const {
+      paymentMethodId,
+      cutoffPeriod,
+      selectedPayoutId,
+      excludedPayoutIds,
+      fastSettlement,
+      amount,
+      fee,
+      total,
+    } = parsedInput;
 
-    if (workspace.role !== "owner") {
-      throw new Error("Only workspace owners can confirm payouts.");
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredPermissions: ["payouts.write"],
+    });
 
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
-    if (workspace.payoutsUsage > workspace.payoutsLimit) {
+    if (fastSettlement && !workspace.fastDirectDebitPayouts) {
+      throw new Error(
+        "Fast settlement is not enabled for this program. Contact sales to enable it.",
+      );
+    }
+
+    // if workspace's payouts usage + the current invoice amount
+    // is greater than the workspace's payouts limit, throw an error
+    if (workspace.payoutsUsage + amount > workspace.payoutsLimit) {
       throw new Error(
         exceededLimitError({
           plan: workspace.plan,
@@ -38,6 +84,65 @@ export const confirmPayoutsAction = authActionClient
           type: "payouts",
         }),
       );
+    }
+
+    if (amount < INVOICE_MIN_PAYOUT_AMOUNT_CENTS) {
+      throw new Error(
+        "Your payout total is less than the minimum invoice amount of $10.",
+      );
+    }
+
+    // TODO: Remove this once we can support cutoff periods for invoices with > 1,000 payouts
+    if (cutoffPeriod) {
+      const totalEligiblePayouts = await prisma.payout.aggregate({
+        where: {
+          ...(selectedPayoutId
+            ? { id: selectedPayoutId }
+            : excludedPayoutIds && excludedPayoutIds.length > 0
+              ? { id: { notIn: excludedPayoutIds } }
+              : {}),
+          ...getPayoutEligibilityFilter({ program, workspace }),
+        },
+        _count: true,
+      });
+
+      if (totalEligiblePayouts._count > CUTOFF_PERIOD_MAX_PAYOUTS) {
+        throw new Error(
+          `You cannot specify a cutoff period when the number of eligible payouts is greater than ${CUTOFF_PERIOD_MAX_PAYOUTS}.`,
+        );
+      }
+    }
+
+    if (program.payoutMode !== "internal") {
+      const [eligiblePayouts, payoutWebhooks] = await Promise.all([
+        getEligiblePayouts({
+          program,
+          workspace,
+          cutoffPeriod,
+          selectedPayoutId,
+          excludedPayoutIds,
+          page: 1,
+          pageSize: Infinity,
+        }),
+
+        getWebhooks({
+          workspaceId: workspace.id,
+          triggers: ["payout.confirmed"],
+          disabled: false,
+          installationId: null,
+        }),
+      ]);
+
+      // Check if the invoice includes any external payouts
+      const hasExternalPayouts = eligiblePayouts.find(
+        (payout) => payout.mode === "external",
+      );
+
+      if (hasExternalPayouts && payoutWebhooks.length === 0) {
+        throw new Error(
+          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "payout.confirmed" event. Please set one up before proceeding.`,
+        );
+      }
     }
 
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
@@ -54,14 +159,69 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
+    if (fastSettlement && paymentMethod.type !== "us_bank_account") {
+      throw new Error("Fast settlement is only supported for ACH payment.");
+    }
+
+    // if it's a direct debit payment method, we need to check to make sure mandate is valid
+    if (DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)) {
+      const mandate = await checkPaymentMethodMandate({
+        paymentMethodId,
+      });
+
+      if (!mandate) {
+        // if mandate is not valid, remove the payment method
+        await stripe.paymentMethods.detach(paymentMethodId);
+        throw new Error(
+          "No active mandate found for this bank account. Please set up a new bank account for payouts under your billing settings page.",
+        );
+      }
+    }
+
+    const invoice = await prisma.$transaction(async (tx) => {
+      // Generate the next invoice number by counting the number of invoices for the workspace
+      const totalInvoices = await tx.invoice.count({
+        where: {
+          workspaceId: workspace.id,
+        },
+      });
+
+      const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
+      const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
+
+      // Create the invoice and return it
+      return await tx.invoice.create({
+        data: {
+          id: createId({ prefix: "inv_" }),
+          number: invoiceNumber,
+          programId,
+          workspaceId: workspace.id,
+          // these numbers will be updated later in the payouts/process cron job
+          // but we're adding them now for the program/payouts/success screen
+          amount,
+          fee,
+          total,
+          paymentMethod: fastSettlement
+            ? "ach_fast"
+            : STRIPE_PAYMENT_METHOD_NORMALIZATION[paymentMethod.type],
+          payoutMode: program.payoutMode,
+        },
+      });
+    });
+
+    // Send the message to Qstash to process the payouts
     const qstashResponse = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/confirm`,
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/process`,
       body: {
         workspaceId: workspace.id,
         userId: user.id,
+        invoiceId: invoice.id,
         paymentMethodId,
         cutoffPeriod,
+        selectedPayoutId,
+        excludedPayoutIds,
       },
+      deduplicationId: `process-payouts-${invoice.id}`,
     });
 
     if (qstashResponse.messageId) {
@@ -69,4 +229,8 @@ export const confirmPayoutsAction = authActionClient
     } else {
       console.error("Error sending message to Qstash", qstashResponse);
     }
+
+    return {
+      invoiceId: invoice.id,
+    };
   });

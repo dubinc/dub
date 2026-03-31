@@ -1,11 +1,11 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { EnrolledPartnerProps } from "../types";
-import { partnersQuerySchema } from "../zod/schemas/partners";
+import { getPartnersQuerySchemaExtended } from "../zod/schemas/partners";
 import useWorkspace from "./use-workspace";
 
-const partialQuerySchema = partnersQuerySchema.partial();
+const partialQuerySchema = getPartnersQuerySchemaExtended.partial();
 
 export default function usePartners(
   {
@@ -27,7 +27,10 @@ export default function usePartners(
         } as Record<string, any>).toString()}`
       : undefined,
     fetcher,
-    swrOptions,
+    {
+      keepPreviousData: true,
+      ...swrOptions,
+    },
   );
 
   return {

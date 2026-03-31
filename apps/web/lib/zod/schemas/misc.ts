@@ -1,14 +1,15 @@
-import { plans, roles } from "@/lib/types";
-import z from "@/lib/zod";
-import { R2_URL } from "@dub/utils";
+import { plans } from "@/lib/types";
+import { WorkspaceRole } from "@dub/prisma/client";
+import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
+import * as z from "zod/v4";
 
-export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24, 36];
+export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 18, 24, 36, 48];
 
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 
 export const roleSchema = z
-  .enum(roles)
+  .enum(WorkspaceRole)
   .describe("The role of the authenticated user in the workspace.");
 
 const allowedImageTypes = [
@@ -19,39 +20,75 @@ const allowedImageTypes = [
   "image/webp",
 ];
 
-// A boolean query schema that coerces the value to a boolean
 export const booleanQuerySchema = z
-  .enum(["true", "false"])
-  .transform((value) => value == "true")
-  .openapi({
+  .stringbool({
+    truthy: ["true"],
+    falsy: ["false"],
+  })
+  .meta({
     type: "boolean",
   });
 
 // Pagination
-export const getPaginationQuerySchema = ({ pageSize }: { pageSize: number }) =>
-  z.object({
-    page: z.coerce
-      .number({ invalid_type_error: "Page must be a number." })
-      .positive({ message: "Page must be greater than 0." })
-      .optional()
-      .default(1)
-      .describe("The page number for pagination.")
-      .openapi({
-        example: 1,
-      }),
-    pageSize: z.coerce
-      .number({ invalid_type_error: "Page size must be a number." })
-      .positive({ message: "Page size must be greater than 0." })
-      .max(pageSize, {
-        message: `Max page size is ${pageSize}.`,
-      })
-      .optional()
-      .default(pageSize)
-      .describe("The number of items per page.")
-      .openapi({
-        example: 50,
-      }),
-  });
+export const getPaginationQuerySchema = ({
+  pageSize,
+  deprecated = false,
+}: {
+  pageSize: number;
+  deprecated?: boolean;
+}) => ({
+  page: z.coerce
+    .number({ error: "Page must be a number." })
+    .positive({ message: "Page must be greater than 0." })
+    .optional()
+    .describe(
+      deprecated
+        ? "DEPRECATED. Use `startingAfter` instead."
+        : "The page number for pagination.",
+    )
+    .meta({
+      example: 1,
+      deprecated,
+    }),
+  pageSize: z.coerce
+    .number({ error: "Page size must be a number." })
+    .positive({ message: "Page size must be greater than 0." })
+    .max(pageSize, {
+      message: `Max page size is ${pageSize}.`,
+    })
+    .optional()
+    .default(pageSize)
+    .describe("The number of items per page.")
+    .meta({
+      example: 50,
+    }),
+});
+
+// Cursor-based pagination
+export const getCursorPaginationQuerySchema = ({
+  example,
+}: {
+  example: string;
+}) => ({
+  endingBefore: z
+    .string()
+    .optional()
+    .describe(
+      "If specified, the query only searches for results before this cursor. Mutually exclusive with `startingAfter`.",
+    )
+    .meta({
+      example,
+    }),
+  startingAfter: z
+    .string()
+    .optional()
+    .describe(
+      "If specified, the query only searches for results after this cursor. Mutually exclusive with `endingBefore`.",
+    )
+    .meta({
+      example,
+    }),
+});
 
 export const maxDurationSchema = z.coerce
   .number()
@@ -100,30 +137,50 @@ export const base64ImageAllowSVGSchema = z
   })
   .transform((v) => v || null);
 
-export const uploadedImageUrlSchema = z
-  .string()
+export const storedR2ImageUrlSchema = z
   .url()
   .trim()
   .refine((url) => url.startsWith(R2_URL), {
     message: `URL must start with ${R2_URL}`,
   });
 
-// Base64 encoded image or R2_URL
+// Google user content URL schema - supports URLs like https://lh3.googleusercontent.com/...
+// This is needed when users sign up via Google OAuth and want to use their Google profile image
+// as their workspace logo or avatar
+export const googleUserContentUrlSchema = z
+  .url()
+  .trim()
+  .refine((url) => url.startsWith("https://lh3.googleusercontent.com/"), {
+    message: "Image URL must be a valid Google user content URL",
+  });
+
+// Google favicon URL schema - supports URLs starting with GOOGLE_FAVICON_URL
+export const googleFaviconUrlSchema = z
+  .url()
+  .trim()
+  .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+    message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+  });
+
+// Uploaded image could be any of the following:
+// - Base64 encoded image
+// - R2_URL
+// - Special case for GOOGLE_FAVICON_URL
+// - Google user content URLs (e.g., https://lh3.googleusercontent.com/...)
 // This schema contains an async refinement check for base64 image validation,
 // which requires using parseAsync() instead of parse() when validating
 export const uploadedImageSchema = z
-  .union([base64ImageSchema, uploadedImageUrlSchema])
+  .union([base64ImageSchema, storedR2ImageUrlSchema, googleFaviconUrlSchema])
   .transform((v) => v || null);
 
 // Base64 encoded image/SVG or R2_URL
 // This schema contains an async refinement check for base64 image validation,
 // which requires using parseAsync() instead of parse() when validating
 export const uploadedImageAllowSVGSchema = z
-  .union([base64ImageAllowSVGSchema, uploadedImageUrlSchema])
+  .union([base64ImageAllowSVGSchema, storedR2ImageUrlSchema])
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z
-  .string()
   .url()
   .trim()
   .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {

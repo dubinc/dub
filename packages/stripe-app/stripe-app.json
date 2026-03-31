@@ -1,8 +1,25 @@
 {
+  "$schema": "https://stripe.com/stripe-app.schema.json",
   "id": "dub.co",
-  "version": "0.0.10",
-  "name": "Dub - Conversion Analytics",
+  "name": "Dub Partners",
+  "version": "0.0.24",
   "icon": "./stripe-icon.png",
+  "ui_extension": {
+    "views": [
+      {
+        "viewport": "settings",
+        "component": "AppSettings"
+      }
+    ],
+    "content_security_policy": {
+      "connect-src": [
+        "https://api.dub.co/oauth/",
+        "https://api.dub.co/stripe/integration"
+      ],
+      "purpose": ""
+    }
+  },
+  "extensions": null,
   "permissions": [
     {
       "permission": "customer_read",
@@ -15,6 +32,10 @@
     {
       "permission": "invoice_read",
       "purpose": "Allows Dub to read invoice information."
+    },
+    {
+      "permission": "charge_read",
+      "purpose": "Allows Dub to read charges to detect refunded payments."
     },
     {
       "permission": "checkout_session_read",
@@ -39,34 +60,32 @@
     {
       "permission": "secret_write",
       "purpose": "Allows storing Dub access tokens in Stripe for an account."
+    },
+    {
+      "permission": "coupon_write",
+      "purpose": "Allows Dub to create coupons for an account."
+    },
+    {
+      "permission": "coupon_read",
+      "purpose": "Allows Dub to read coupons for an account."
+    },
+    {
+      "permission": "promotion_code_write",
+      "purpose": "Allows Dub to create promotion codes for an account."
+    },
+    {
+      "permission": "promotion_code_read",
+      "purpose": "Allows Dub to read promotion codes for an account."
     }
   ],
-  "ui_extension": {
-    "views": [
-      {
-        "viewport": "settings",
-        "component": "AppSettings"
-      }
-    ],
-    "content_security_policy": {
-      "connect-src": [
-        "https://api.dub.co/oauth/",
-        "https://api-staging.dub.co/oauth/",
-        "https://api.dub.co/stripe/integration",
-        "https://api-staging.dub.co/stripe/integration"
-      ],
-      "image-src": null,
-      "purpose": ""
-    }
-  },
   "post_install_action": {
     "type": "settings",
     "url": ""
   },
   "allowed_redirect_uris": [
-    "https://app.dub.co/api/stripe/integration/callback",
-    "https://preview.dub.co/api/stripe/integration/callback"
+    "https://app.dub.co/api/stripe/integration/callback"
   ],
+  "distribution_type": "public",
   "stripe_api_access_type": "oauth",
-  "distribution_type": "public"
+  "sandbox_install_compatible": true
 }

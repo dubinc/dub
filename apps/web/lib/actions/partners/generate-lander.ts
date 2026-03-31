@@ -1,7 +1,8 @@
 "use server";
 
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   programLanderSchema,
   programLanderSimpleSchema,
@@ -10,26 +11,33 @@ import { formatDiscountDescription } from "@/ui/partners/format-discount-descrip
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { anthropic } from "@ai-sdk/anthropic";
 import { prisma } from "@dub/prisma";
+import { Reward } from "@dub/prisma/client";
 import FireCrawlApp, {
   ErrorResponse,
   ScrapeResponse,
 } from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
-import { z } from "zod";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
+import { throwIfNoPermission } from "../throw-if-no-permission";
 
 const schema = z.object({
   workspaceId: z.string(),
-  websiteUrl: z.string().url(),
+  websiteUrl: z.url(),
   landerData: programLanderSchema.optional(),
   prompt: z.string().optional(),
 });
 
 export const generateLanderAction = authActionClient
-  .schema(schema)
+  .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
     const { websiteUrl, landerData, prompt } = parsedInput;
+
+    throwIfNoPermission({
+      role: workspace.role,
+      requiredRoles: ["owner", "member"],
+    });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     const program = await prisma.program.findUniqueOrThrow({
@@ -37,13 +45,25 @@ export const generateLanderAction = authActionClient
         id: programId,
       },
       include: {
-        rewards: true,
-        discounts: true,
+        groups: {
+          where: {
+            slug: DEFAULT_PARTNER_GROUP.slug,
+          },
+          include: {
+            clickReward: true,
+            saleReward: true,
+            leadReward: true,
+            discount: true,
+          },
+        },
       },
     });
 
-    const { rewards, discount } =
-      getProgramApplicationRewardsAndDiscount(program);
+    const group = program.groups[0];
+    const discount = group.discount;
+    const rewards = [group.clickReward, group.leadReward, group.saleReward]
+      .filter((r): r is Reward => r !== null)
+      .map(serializeReward);
 
     const firecrawl = new FireCrawlApp({
       apiKey: process.env.FIRECRAWL_API_KEY,
@@ -98,9 +118,9 @@ export const generateLanderAction = authActionClient
         // Program details
         `\n\nProgram details:` +
         `\n\nName: ${program.name}\n` +
-        `\nAffiliate rewards: ${rewards.map((reward) => formatRewardDescription({ reward })).join(", ")}` +
+        `\nAffiliate rewards: ${rewards.map((reward) => formatRewardDescription(reward)).join(", ")}` +
         (discount
-          ? `\nDiscounts for referred users: ${formatDiscountDescription({ discount })}`
+          ? `\nDiscounts for referred users: ${formatDiscountDescription(discount)}`
           : "") +
         // Existing page
         (landerData

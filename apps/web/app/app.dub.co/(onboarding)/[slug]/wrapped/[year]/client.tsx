@@ -1,16 +1,11 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BlurImage, ExpandingArrow } from "@dub/ui";
-import {
-  cn,
-  OG_AVATAR_URL,
-  smartTruncate,
-  STAGGER_CHILD_VARIANTS,
-} from "@dub/utils";
+import { BlurImage, ExpandingArrow, STAGGER_CHILD_VARIANTS } from "@dub/ui";
+import { cn, OG_AVATAR_URL, smartTruncate } from "@dub/utils";
 import { COUNTRIES } from "@dub/utils/src/constants/countries";
 import NumberFlow from "@number-flow/react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";

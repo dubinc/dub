@@ -4,7 +4,6 @@ import {
   CrownSmall,
   FlaskSmall,
   InfoTooltip,
-  SimpleTooltipContent,
   Switch,
   TooltipContent,
 } from "@dub/ui";
@@ -45,11 +44,7 @@ export const ConversionTrackingToggle = memo(() => {
           Conversion Tracking
           <InfoTooltip
             content={
-              <SimpleTooltipContent
-                title="View analytics on conversions from your short links."
-                cta="Learn more."
-                href="https://dub.co/docs/conversions/quickstart"
-              />
+              "View analytics on conversions from your short links. [Learn more.](https://dub.co/docs/conversions/quickstart)"
             }
           />
         </span>

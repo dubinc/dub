@@ -326,7 +326,7 @@ export function HeroBackground({
 
       <div
         className={cn(
-          "absolute right-4 top-4 block size-6 min-[300px]:size-8",
+          "absolute right-4 top-3 block size-6 min-[300px]:size-8",
 
           // Position based on cqh to adjust for container height
           "",

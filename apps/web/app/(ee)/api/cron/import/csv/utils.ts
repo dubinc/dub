@@ -65,7 +65,7 @@ export async function sendCsvImportEmails({
   if (count > 0) {
     sendEmail({
       subject: `Your CSV links have been imported!`,
-      email: ownerEmail,
+      to: ownerEmail,
       react: LinksImported({
         email: ownerEmail,
         provider: "CSV",
@@ -81,7 +81,7 @@ export async function sendCsvImportEmails({
   if (errorLinks.length > 0) {
     sendEmail({
       subject: `Some CSV links failed to import`,
-      email: ownerEmail,
+      to: ownerEmail,
       react: LinksImportErrors({
         email: ownerEmail,
         provider: "CSV",
