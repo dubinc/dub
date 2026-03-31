@@ -112,7 +112,7 @@ async function main() {
         activityLogs.push({
           ...base,
           action: "commission.updated",
-          createdAt: commission.payout?.createdAt,
+          createdAt: commission.updatedAt,
           changeSet: {
             commission: {
               old: {
@@ -129,26 +129,33 @@ async function main() {
           },
         });
 
-        // processed → paid
-        activityLogs.push({
-          ...base,
-          action: "commission.updated",
-          createdAt: commission.payout?.paidAt,
-          changeSet: {
-            commission: {
-              old: {
-                amount,
-                earnings,
-                status: "processed",
-              },
-              new: {
-                amount,
-                earnings,
-                status: "paid",
+        // this should be there but just in case
+        if (commission.payout?.paidAt) {
+          // processed → paid
+          activityLogs.push({
+            ...base,
+            action: "commission.updated",
+            createdAt: commission.payout?.paidAt,
+            changeSet: {
+              commission: {
+                old: {
+                  amount,
+                  earnings,
+                  status: "processed",
+                },
+                new: {
+                  amount,
+                  earnings,
+                  status: "paid",
+                },
               },
             },
-          },
-        });
+          });
+        } else {
+          console.warn(
+            `No paidAt for commission ${commission.id} payout ${commission.payoutId}`,
+          );
+        }
 
         continue;
       }

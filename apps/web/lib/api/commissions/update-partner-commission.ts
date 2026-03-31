@@ -2,7 +2,7 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import {
   PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE,
-  updateCommissionSchema,
+  updateCommissionSchemaExtended,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { Commission } from "@dub/prisma/client";
@@ -18,7 +18,9 @@ import {
   trackCommissionStatusUpdate,
 } from "./track-commission-update-activity-log";
 
-type UpdatePartnerCommissionProps = z.infer<typeof updateCommissionSchema> & {
+type UpdatePartnerCommissionProps = z.infer<
+  typeof updateCommissionSchemaExtended
+> & {
   workspaceId: string;
   programId: string;
   commissionId: string;
@@ -40,6 +42,7 @@ export async function updatePartnerCommission({
   currency,
   // Custom commission fields
   earnings,
+  updateHistoricalCommissions = false,
 }: UpdatePartnerCommissionProps) {
   const commission = await prisma.commission.findUnique({
     where: {
@@ -211,6 +214,7 @@ export async function updatePartnerCommission({
   >[] = [];
 
   if (
+    updateHistoricalCommissions &&
     (finalStatus === "fraud" || finalStatus === "canceled") &&
     (commission.type === "sale" || commission.type === "lead")
   ) {

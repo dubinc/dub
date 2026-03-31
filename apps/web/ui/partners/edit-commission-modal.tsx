@@ -3,7 +3,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { CommissionResponse } from "@/lib/types";
 import { commissionPatchStatusSchema } from "@/lib/zod/schemas/commissions";
-import { Button, Modal } from "@dub/ui";
+import { Button, Combobox, Modal, StatusBadge, Switch } from "@dub/ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -14,6 +14,7 @@ import { PartnerAvatar } from "./partner-avatar";
 type FormData = {
   earnings: number | null;
   status: z.infer<typeof commissionPatchStatusSchema>;
+  updateHistoricalCommissions: boolean;
 };
 
 interface EditCommissionModalProps {
@@ -35,19 +36,28 @@ function EditCommissionModal({
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { isDirty },
   } = useForm<FormData>({
     defaultValues: {
       earnings: isCustom ? commission.earnings / 100 : null,
       status: commission.status as FormData["status"],
+      updateHistoricalCommissions: false,
     },
   });
+
+  const selectedStatus = watch("status");
+  const showUpdateHistoricalCommissionsCheckbox =
+    (commission.type === "sale" || commission.type === "lead") &&
+    (selectedStatus === "fraud" || selectedStatus === "canceled") &&
+    selectedStatus !== commission.status;
 
   useEffect(() => {
     if (showModal) {
       reset({
         earnings: isCustom ? commission.earnings / 100 : null,
         status: commission.status as FormData["status"],
+        updateHistoricalCommissions: false,
       });
     }
   }, [showModal, commission, reset, isCustom]);
@@ -57,6 +67,13 @@ function EditCommissionModal({
 
     if (data.status !== commission.status) {
       body.status = data.status;
+    }
+
+    if (
+      showUpdateHistoricalCommissionsCheckbox &&
+      data.updateHistoricalCommissions
+    ) {
+      body.updateHistoricalCommissions = true;
     }
 
     if (isCustom && data.earnings !== null) {
@@ -83,6 +100,34 @@ function EditCommissionModal({
   };
 
   const statusOptions = commissionPatchStatusSchema.options;
+  const statusComboboxOptions = useMemo(
+    () =>
+      statusOptions.map((status) => {
+        const badge = CommissionStatusBadges[status];
+        const StatusIcon = badge?.icon;
+        const statusTextClass = badge?.className
+          ?.split(" ")
+          .find((className) => className.startsWith("text-"));
+
+        return {
+          value: status,
+          label: badge?.label ?? status,
+          variant: badge?.variant ?? "neutral",
+          icon: StatusIcon ? (
+            <StatusIcon
+              className={`size-4 ${statusTextClass ?? "text-neutral-500"}`}
+            />
+          ) : undefined,
+        };
+      }),
+    [statusOptions, commission.status],
+  );
+
+  const selectedStatusOption = useMemo(
+    () =>
+      statusComboboxOptions.find((option) => option.value === selectedStatus),
+    [statusComboboxOptions, selectedStatus],
+  );
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
@@ -145,29 +190,79 @@ function EditCommissionModal({
 
             <div>
               <label className="text-content-emphasis text-sm font-normal">
-                Status
+                New status
               </label>
               <Controller
                 name="status"
                 control={control}
                 render={({ field }) => (
-                  <select
-                    className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                    value={field.value}
-                    onChange={field.onChange}
-                  >
-                    {statusOptions.map((status) => {
-                      const badge = CommissionStatusBadges[status];
-                      return (
-                        <option key={status} value={status}>
-                          {badge?.label ?? status}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  <div className="mt-2">
+                    <Combobox
+                      options={statusComboboxOptions}
+                      selected={selectedStatusOption ?? null}
+                      setSelected={(option) => {
+                        if (!option) return;
+                        field.onChange(option.value);
+                      }}
+                      placeholder="Select status"
+                      searchPlaceholder="Search status..."
+                      matchTriggerWidth
+                      buttonProps={{
+                        className:
+                          "w-full justify-start border-neutral-300 px-3 data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500 focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                      }}
+                    >
+                      {selectedStatusOption ? (
+                        <span className="flex items-center gap-2">
+                          {selectedStatusOption.icon}
+                          <span>{selectedStatusOption.label}</span>
+                        </span>
+                      ) : (
+                        "Select status"
+                      )}
+                    </Combobox>
+                  </div>
                 )}
               />
             </div>
+
+            {showUpdateHistoricalCommissionsCheckbox && (
+              <Controller
+                name="updateHistoricalCommissions"
+                control={control}
+                render={({ field }) => (
+                  <div className="rounded-lg border border-neutral-200 bg-white p-3">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-1.5">
+                        <Switch
+                          fn={(checked) => field.onChange(checked)}
+                          checked={field.value}
+                          trackDimensions="w-8 h-4"
+                          thumbDimensions="w-3 h-3"
+                          thumbTranslate="translate-x-4"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <h3 className="text-sm font-medium text-neutral-700">
+                          Mark all previous commissions for this
+                          customer-partner pair as{" "}
+                          <StatusBadge
+                            className="inline-flex translate-y-px gap-1 px-1 py-0.5 text-xs"
+                            variant={selectedStatusOption?.variant}
+                          >
+                            {selectedStatusOption?.label}
+                          </StatusBadge>
+                        </h3>
+                        <p className="mt-1 text-xs text-neutral-500">
+                          This will also prevent this partner from receiving
+                          commissions from this customer in the future.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              />
+            )}
           </div>
 
           <div className="flex items-center justify-end border-t border-neutral-200 px-4 py-4 sm:px-6">

@@ -7,7 +7,7 @@ import { withWorkspace } from "@/lib/auth";
 import {
   CommissionDetailSchema,
   CommissionEnrichedSchema,
-  updateCommissionSchema,
+  updateCommissionSchemaExtended,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -103,10 +103,11 @@ export const PATCH = withWorkspace(
       earnings,
       currency,
       status,
+      updateHistoricalCommissions,
       // Deprecated fields
       amount,
       modifyAmount,
-    } = updateCommissionSchema.parse(await parseRequestBody(req));
+    } = updateCommissionSchemaExtended.parse(await parseRequestBody(req));
 
     const updatedCommission = await updatePartnerCommission({
       workspaceId: workspace.id,
@@ -118,6 +119,7 @@ export const PATCH = withWorkspace(
       currency,
       status,
       earnings,
+      updateHistoricalCommissions,
     });
 
     return NextResponse.json(

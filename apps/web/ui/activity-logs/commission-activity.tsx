@@ -157,7 +157,7 @@ export function CommissionActivity({
           children: (
             <>
               <span className="text-sm text-neutral-700">
-                Status changed to
+                Status updated to
               </span>
               <StatusBadge icon={null} variant={badge.variant}>
                 {badge.label}
@@ -212,7 +212,7 @@ export function CommissionActivity({
         if (old?.earnings !== cur.earnings) {
           parts.push(
             <span key="earnings" className="text-sm text-neutral-700">
-              Earnings changed to
+              Earnings updated
             </span>,
             <span
               key="earnings-val"

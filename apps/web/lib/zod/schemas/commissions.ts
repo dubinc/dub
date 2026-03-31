@@ -239,8 +239,21 @@ export const updateCommissionSchema = z.object({
     .describe(
       "Useful for marking a commission as pending, refunded, duplicate, canceled, or fraudulent. Takes precedence over `saleAmount` and `modifySaleAmount`. When a commission is marked as pending, refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
     ),
-  amount: z.number().min(0).optional().meta({ deprecated: true }),
-  modifyAmount: z.number().optional().meta({ deprecated: true }),
+  amount: z
+    .number()
+    .min(0)
+    .optional()
+    .describe("Deprecated. Use `saleAmount` instead.")
+    .meta({ deprecated: true }),
+  modifyAmount: z
+    .number()
+    .optional()
+    .describe("Deprecated. Use `modifySaleAmount` instead.")
+    .meta({ deprecated: true }),
+});
+
+export const updateCommissionSchemaExtended = updateCommissionSchema.extend({
+  updateHistoricalCommissions: z.boolean().optional(),
 });
 
 export const PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE: PayoutStatus[] = [
