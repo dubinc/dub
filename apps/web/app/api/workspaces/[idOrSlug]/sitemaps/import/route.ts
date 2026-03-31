@@ -15,7 +15,7 @@ const bodySchema = z.object({
 
 // POST /api/workspaces/[idOrSlug]/sitemaps/import - import tracked sitemap(s) immediately
 export const POST = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     const { sitemapUrl } = bodySchema.parse(await req.json());
 
     const trackedSitemaps = parseTrackedSitemaps(workspace.trackedSitemaps);
@@ -61,6 +61,7 @@ export const POST = withWorkspace(
         trackedSitemaps: targetTrackedSitemaps,
         domain: selectedDomain.slug,
         projectId: workspace.id,
+        userId: session.user.id,
         skipRedisCache: true,
       });
 

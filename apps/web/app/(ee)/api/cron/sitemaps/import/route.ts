@@ -72,11 +72,33 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
+  const owner = await prisma.projectUsers.findFirst({
+    where: {
+      projectId: workspace.id,
+      role: "owner",
+    },
+    select: {
+      userId: true,
+    },
+  });
+
+  if (!owner) {
+    console.info("[sitemaps.cron.import] no workspace owner", {
+      workspaceId: workspace.id,
+      workspaceSlug: workspace.slug,
+    });
+
+    return logAndRespond(
+      `Workspace ${workspace.slug} has no owner user. Skipping...`,
+    );
+  }
+
   const { linksToCreate, createdLinks, updatedTrackedSitemaps } =
     await importTrackedSitemaps({
       trackedSitemaps,
       domain: selectedDomain.slug,
       projectId: workspace.id,
+      userId: owner.userId,
       skipRedisCache: true,
     });
 
