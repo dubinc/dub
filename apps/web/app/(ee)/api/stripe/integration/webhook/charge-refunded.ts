@@ -1,3 +1,4 @@
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
@@ -60,9 +61,10 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
     },
     select: {
       id: true,
+      amount: true,
+      earnings: true,
       status: true,
       payoutId: true,
-      earnings: true,
       partnerId: true,
       programId: true,
     },
@@ -111,6 +113,13 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
   await syncTotalCommissions({
     partnerId: commission.partnerId,
     programId: commission.programId,
+  });
+
+  await trackCommissionStatusUpdate({
+    workspaceId: workspace.id,
+    programId: commission.programId,
+    commissions: [commission],
+    newStatus: "refunded",
   });
 
   return `Commission ${commission.id} updated to status "refunded"`;

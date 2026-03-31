@@ -1,9 +1,11 @@
+import { trackCommissionStatusUpdatesByProgram } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { sendEmail } from "@dub/email";
 import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { PartnerPayoutMethod, Prisma } from "@dub/prisma/client";
 import { currencyFormatter, prettyPrint } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
@@ -54,8 +56,10 @@ export const createStablecoinPayout = async ({
   const commonInclude: Prisma.PayoutInclude = {
     program: {
       select: {
+        id: true,
         name: true,
         logo: true,
+        workspaceId: true,
       },
     },
   };
@@ -227,11 +231,28 @@ export const createStablecoinPayout = async ({
     return;
   }
 
+  const payoutIds = allPayouts.map((p) => p.id);
+
+  const commissions = await prisma.commission.findMany({
+    where: {
+      payoutId: {
+        in: payoutIds,
+      },
+    },
+    select: {
+      id: true,
+      amount: true,
+      earnings: true,
+      status: true,
+      programId: true,
+    },
+  });
+
   await prisma.$transaction([
     prisma.payout.updateMany({
       where: {
         id: {
-          in: allPayouts.map((p) => p.id),
+          in: payoutIds,
         },
       },
       data: {
@@ -245,7 +266,7 @@ export const createStablecoinPayout = async ({
     prisma.commission.updateMany({
       where: {
         payoutId: {
-          in: allPayouts.map((p) => p.id),
+          in: payoutIds,
         },
       },
       data: {
@@ -253,6 +274,14 @@ export const createStablecoinPayout = async ({
       },
     }),
   ]);
+
+  waitUntil(
+    trackCommissionStatusUpdatesByProgram({
+      commissions,
+      payouts: allPayouts,
+      newStatus: "paid",
+    }),
+  );
 
   if (!partner.email) {
     console.warn(

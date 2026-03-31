@@ -38,12 +38,12 @@ export function PartnerApplicationRiskSummary({
 
   const { canManageFraudEvents } = getPlanCapabilities(plan);
 
-  if (!canManageFraudEvents && !isLoading) {
-    return <PartnerApplicationRiskSummaryUpsell />;
-  }
-
   if (isLoading || triggeredFraudRules.length === 0) {
     return null;
+  }
+
+  if (!canManageFraudEvents) {
+    return <PartnerApplicationRiskSummaryUpsell />;
   }
 
   return (

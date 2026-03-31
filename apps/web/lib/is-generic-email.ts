@@ -38,6 +38,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "email.cz",
   "email.de",
   "t-online.de",
+  "sina.com",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [
