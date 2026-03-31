@@ -2,6 +2,7 @@ import {
   trackActivityLog,
   type TrackActivityLogInput,
 } from "@/lib/api/activity-log/track-activity-log";
+import { CommissionActivitySnapshot } from "@/lib/types";
 import type { Commission, CommissionStatus } from "@dub/prisma/client";
 import { groupBy } from "@dub/utils";
 import { getResourceDiff } from "../activity-log/get-resource-diff";
@@ -18,8 +19,8 @@ interface TrackActivityLogParams
 const COMMISSION_ACTIVITY_FIELDS = ["amount", "earnings", "status"];
 
 export function toCommissionActivitySnapshot(
-  commission: Pick<Commission, "amount" | "earnings" | "status">,
-) {
+  commission: Pick<Commission, "id" | "amount" | "earnings" | "status">,
+): CommissionActivitySnapshot {
   return {
     amount: commission.amount,
     earnings: commission.earnings,
