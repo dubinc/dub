@@ -199,8 +199,7 @@ export function PartnerInfoCards({
             ];
           })()
         : []),
-      ...(partner?.identityVerificationStatus === "approved" &&
-      partner?.identityVerifiedAt
+      ...(partner?.identityVerifiedAt
         ? [
             {
               id: "identityVerifiedAt",
