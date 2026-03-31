@@ -92,26 +92,25 @@ function BulkEditCommissionsModal({
           }}
         >
           <div className="flex flex-col gap-4 px-4 py-6 text-left sm:px-6">
-            <div className="flex flex-col gap-2 rounded-lg border border-neutral-200 bg-neutral-100 p-3">
-              {singlePartner && (
-                <div className="flex items-center gap-3">
-                  <PartnerAvatar
-                    partner={singlePartner}
-                    className="size-8 bg-white"
-                  />
-                  <h4 className="truncate text-sm font-medium text-neutral-900">
-                    {singlePartner.name}
-                  </h4>
+            <div className="bg rounded-xl border border-neutral-200 bg-white">
+              <div className="divide-y divide-neutral-200">
+                {singlePartner && (
+                  <div className="flex items-center gap-3 p-3">
+                    <PartnerAvatar partner={singlePartner} className="size-7" />
+                    <h4 className="truncate text-sm font-semibold text-neutral-900">
+                      {singlePartner.name}
+                    </h4>
+                  </div>
+                )}
+                <div className="flex items-center gap-3 p-3">
+                  <div className="flex size-7 items-center justify-center rounded-full border border-neutral-200 bg-neutral-100">
+                    <InvoiceDollar className="text-content-default size-4" />
+                  </div>
+                  <span className="text-sm font-semibold text-neutral-900">
+                    {commissions.length}{" "}
+                    {pluralize("commission", commissions.length)} selected
+                  </span>
                 </div>
-              )}
-              <div className="flex items-center gap-3">
-                <div className="flex size-8 items-center justify-center">
-                  <InvoiceDollar className="size-4 text-neutral-500" />
-                </div>
-                <span className="text-sm font-medium text-neutral-900">
-                  {commissions.length}{" "}
-                  {pluralize("commission", commissions.length)} selected
-                </span>
               </div>
             </div>
 
@@ -148,14 +147,14 @@ function BulkEditCommissionsModal({
                 type="button"
                 variant="secondary"
                 text="Cancel"
-                className="h-9 w-fit"
+                className="h-8 w-fit rounded-lg"
                 onClick={() => setShowModal(false)}
                 disabled={isSubmitting}
               />
               <Button
                 type="submit"
                 text="Save"
-                className="h-9 w-fit"
+                className="h-8 w-fit rounded-lg"
                 loading={isSubmitting}
                 disabled={!isDirty}
               />

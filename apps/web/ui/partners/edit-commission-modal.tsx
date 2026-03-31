@@ -1,11 +1,8 @@
-import { handleMoneyKeyDown } from "@/lib/form-utils";
+import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { CommissionResponse } from "@/lib/types";
-import {
-  commissionPatchStatusSchema,
-  updateCommissionSchema,
-} from "@/lib/zod/schemas/commissions";
+import { commissionPatchStatusSchema } from "@/lib/zod/schemas/commissions";
 import { Button, Modal } from "@dub/ui";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -14,7 +11,10 @@ import * as z from "zod/v4";
 import { CommissionStatusBadges } from "./commission-status-badges";
 import { PartnerAvatar } from "./partner-avatar";
 
-type FormData = Pick<z.infer<typeof updateCommissionSchema>, "earnings" | "status">;
+type FormData = {
+  earnings: number | null;
+  status: z.infer<typeof commissionPatchStatusSchema>;
+};
 
 interface EditCommissionModalProps {
   showModal: boolean;
@@ -39,7 +39,7 @@ function EditCommissionModal({
   } = useForm<FormData>({
     defaultValues: {
       earnings: isCustom ? commission.earnings / 100 : null,
-      status: commission.status,
+      status: commission.status as FormData["status"],
     },
   });
 
@@ -47,7 +47,7 @@ function EditCommissionModal({
     if (showModal) {
       reset({
         earnings: isCustom ? commission.earnings / 100 : null,
-        status: commission.status,
+        status: commission.status as FormData["status"],
       });
     }
   }, [showModal, commission, reset, isCustom]);
@@ -98,13 +98,13 @@ function EditCommissionModal({
           }}
         >
           <div className="flex flex-col gap-4 px-4 py-6 text-left sm:px-6">
-            <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
-              <div className="flex items-center gap-4">
+            <div className="bg rounded-xl border border-neutral-200 bg-white p-3">
+              <div className="flex items-center gap-3">
                 <PartnerAvatar
                   partner={commission.partner}
-                  className="size-10 bg-white"
+                  className="size-7"
                 />
-                <h4 className="truncate text-sm font-medium text-neutral-900">
+                <h4 className="truncate text-sm font-semibold text-neutral-900">
                   {commission.partner.name}
                 </h4>
               </div>
@@ -125,13 +125,12 @@ function EditCommissionModal({
                     rules={{ required: true, min: 0 }}
                     render={({ field }) => (
                       <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        onWheel={(e) => e.currentTarget.blur()}
+                        type="text"
+                        inputMode="decimal"
                         className="block w-full rounded-md border-neutral-300 pl-6 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                         value={field.value ?? ""}
                         onChange={(e) => {
+                          handleMoneyInputChange(e);
                           const val = e.target.value;
                           field.onChange(val === "" ? null : parseFloat(val));
                         }}
@@ -177,14 +176,14 @@ function EditCommissionModal({
                 type="button"
                 variant="secondary"
                 text="Cancel"
-                className="h-9 w-fit"
+                className="h-8 w-fit rounded-lg"
                 onClick={() => setShowModal(false)}
                 disabled={isSubmitting}
               />
               <Button
                 type="submit"
                 text="Save"
-                className="h-9 w-fit"
+                className="h-8 w-fit rounded-lg"
                 loading={isSubmitting}
                 disabled={!isDirty}
               />
