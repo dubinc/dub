@@ -143,7 +143,7 @@ export function IdentityVerificationSection({
             <ShieldCheck className="size-6 text-neutral-400" />
           )}
 
-          {identityVerificationStatus === "approved" ? (
+          {identityVerificationStatus === "approved" && (
             <StatusBadge
               variant="success"
               className="rounded-lg font-semibold"
@@ -151,7 +151,9 @@ export function IdentityVerificationSection({
             >
               Identity verified
             </StatusBadge>
-          ) : isPendingReview ? (
+          )}
+
+          {isPendingReview && (
             <StatusBadge
               variant="pending"
               className="rounded-lg font-semibold"
@@ -159,21 +161,25 @@ export function IdentityVerificationSection({
             >
               Pending review
             </StatusBadge>
-          ) : buttonText ? (
-            <Button
-              text={buttonText}
-              variant="secondary"
-              disabled={isMaxAttemptsReached}
-              disabledTooltip={
-                isMaxAttemptsReached
-                  ? "You have reached the maximum number of verification attempts. Please contact support if you need help."
-                  : undefined
-              }
-              onClick={() => executeAsync()}
-              loading={isPending}
-              className="h-10 w-fit rounded-lg px-4 py-1.5"
-            />
-          ) : null}
+          )}
+
+          {identityVerificationStatus !== "approved" &&
+            !isPendingReview &&
+            buttonText && (
+              <Button
+                text={buttonText}
+                variant="secondary"
+                disabled={isMaxAttemptsReached}
+                disabledTooltip={
+                  isMaxAttemptsReached
+                    ? "You have reached the maximum number of verification attempts. Please contact support if you need help."
+                    : undefined
+                }
+                onClick={() => executeAsync()}
+                loading={isPending}
+                className="h-10 w-fit rounded-lg px-4 py-1.5"
+              />
+            )}
 
           <div className="flex items-center gap-1 text-xs font-medium text-neutral-400">
             <span>Powered by</span>

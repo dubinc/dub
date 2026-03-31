@@ -26,19 +26,27 @@ export default function PartnerIdentityVerificationFailed({
     name: string;
     email: string;
   };
-  failureType?: "declined" | "countryChange";
+  failureType?: "declined" | "resubmissionRequested" | "countryChange";
   failureReasonText: string;
 }) {
   const isCountryChange = failureType === "countryChange";
+  const isResubmission = failureType === "resubmissionRequested";
+
+  let previewText = "Your identity verification failed";
+  let headingText = "Identity verification failed";
+
+  if (isCountryChange) {
+    previewText = "Identity re-verification required";
+    headingText = "Identity re-verification required";
+  } else if (isResubmission) {
+    previewText = "Please resubmit your identity verification";
+    headingText = "Resubmission requested";
+  }
 
   return (
     <Html>
       <Head />
-      <Preview>
-        {isCountryChange
-          ? "Identity re-verification required"
-          : "Your identity verification failed"}
-      </Preview>
+      <Preview>{previewText}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -47,9 +55,7 @@ export default function PartnerIdentityVerificationFailed({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-semibold text-neutral-800">
-              {isCountryChange
-                ? "Identity re-verification required"
-                : "Identity verification failed"}
+              {headingText}
             </Heading>
 
             {isCountryChange ? (
@@ -63,6 +69,17 @@ export default function PartnerIdentityVerificationFailed({
 
                 <Text className="text-sm leading-6 text-neutral-600">
                   Please log in to your dashboard to start a new verification.
+                </Text>
+              </>
+            ) : isResubmission ? (
+              <>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  Hi {partner.name}, we need you to resubmit your identity
+                  verification because {failureReasonText}.
+                </Text>
+
+                <Text className="text-sm leading-6 text-neutral-600">
+                  Please log in to your dashboard and resubmit your documents.
                 </Text>
               </>
             ) : (

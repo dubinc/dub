@@ -1,9 +1,12 @@
 import { withCron } from "@/lib/cron/with-cron";
-import { fetchVeriffSessionDecision } from "@/lib/veriff/fetch-veriff-session-decission";
+import { fetchVeriffSessionDecision } from "@/lib/veriff/fetch-veriff-session-decision";
+import {
+  mergeVeriffMetadata,
+  parseVeriffMetadata,
+} from "@/lib/veriff/veriff-metadata";
 import { sendEmail } from "@dub/email";
 import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-identity-verification-failed";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import * as z from "zod/v4";
 
@@ -86,19 +89,29 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond("Country matches. No action needed.");
   }
 
-  // Mismatch — reset identity verification
+  // Mismatch — reset identity verification, but preserve attemptCount
   const declineReason =
     "Your account country no longer matches your verified identity document country. Please re-verify.";
+
+  const { attemptCount } = parseVeriffMetadata(partner.veriffMetadata);
 
   await prisma.partner.update({
     where: {
       id: partner.id,
+      identityVerifiedAt: {
+        not: null,
+      },
     },
     data: {
       identityVerificationStatus: null,
       identityVerifiedAt: null,
       veriffSessionId: null,
-      veriffMetadata: Prisma.DbNull,
+      veriffMetadata: mergeVeriffMetadata(partner.veriffMetadata, {
+        sessionExpiresAt: null,
+        sessionUrl: null,
+        declineReason,
+        attemptCount,
+      }),
     },
   });
 
@@ -106,6 +119,9 @@ export const POST = withCron(async ({ rawBody }) => {
     await sendEmail({
       to: partner.email,
       subject: "Identity re-verification required",
+      headers: {
+        "Idempotency-Key": `country-change-${partner.id}`,
+      },
       react: PartnerIdentityVerificationFailed({
         failureType: "countryChange",
         failureReasonText: declineReason,

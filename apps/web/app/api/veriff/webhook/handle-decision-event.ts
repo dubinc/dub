@@ -124,7 +124,7 @@ export const handleDecisionEvent = async ({
     sessionUrl,
   });
 
-  await prisma.partner.update({
+  const updatedPartner = await prisma.partner.update({
     where: {
       id: partner.id,
       identityVerifiedAt: null,
@@ -136,43 +136,18 @@ export const handleDecisionEvent = async ({
       veriffSessionId,
       veriffMetadata,
     },
+    select: {
+      identityVerificationStatus: true,
+      name: true,
+      email: true,
+    },
   });
 
-  if (partner.email) {
-    if (effectiveStatus === "approved") {
-      await sendEmail({
-        to: partner.email,
-        subject: "Your identity has been verified",
-        headers: {
-          "Idempotency-Key": `${attemptId}-verified`,
-        },
-        react: PartnerIdentityVerified({
-          partner: {
-            name: partner.name,
-            email: partner.email,
-          },
-        }),
-      });
-    } else if (
-      ["declined", "resubmission_requested"].includes(effectiveStatus)
-    ) {
-      await sendEmail({
-        to: partner.email,
-        subject: "Your identity verification was declined",
-        headers: {
-          "Idempotency-Key": `${attemptId}-verification-failed`,
-        },
-        react: PartnerIdentityVerificationFailed({
-          failureType: "declined",
-          failureReasonText: effectiveReason || "",
-          partner: {
-            name: partner.name,
-            email: partner.email,
-          },
-        }),
-      });
-    }
-  }
+  await sendEmailNotification({
+    partner: updatedPartner,
+    attemptId,
+    failureReasonText: effectiveReason || "",
+  });
 
   return logAndRespond("[Veriff Webhook] Decision event handled successfully.");
 };
@@ -214,8 +189,9 @@ function checkCountryMismatch({
     verification.document?.country || verification.person?.nationality
   )?.toUpperCase();
 
+  // If either country is missing, skip the check — don't decline for missing data
   if (!veriffCountry || !partner.country) {
-    return true;
+    return false;
   }
 
   return partner.country.toUpperCase() !== veriffCountry;
@@ -250,4 +226,72 @@ function computeIdentityHash(
   }
 
   return null;
+}
+
+async function sendEmailNotification({
+  partner,
+  attemptId,
+  failureReasonText,
+}: {
+  partner: Pick<Partner, "name" | "email" | "identityVerificationStatus">;
+  attemptId: string;
+  failureReasonText: string;
+}) {
+  const { name, email, identityVerificationStatus } = partner;
+
+  if (!email) {
+    return;
+  }
+
+  if (identityVerificationStatus === "approved") {
+    return await sendEmail({
+      to: email,
+      subject: "Your identity has been verified",
+      headers: {
+        "Idempotency-Key": `${attemptId}-verified`,
+      },
+      react: PartnerIdentityVerified({
+        partner: {
+          name,
+          email,
+        },
+      }),
+    });
+  }
+
+  if (identityVerificationStatus === "resubmissionRequested") {
+    return await sendEmail({
+      to: email,
+      subject: "Please resubmit your identity verification",
+      headers: {
+        "Idempotency-Key": `${attemptId}-resubmission-requested`,
+      },
+      react: PartnerIdentityVerificationFailed({
+        failureType: "resubmissionRequested",
+        failureReasonText,
+        partner: {
+          name,
+          email,
+        },
+      }),
+    });
+  }
+
+  if (identityVerificationStatus === "declined") {
+    return await sendEmail({
+      to: email,
+      subject: "Your identity verification was declined",
+      headers: {
+        "Idempotency-Key": `${attemptId}-verification-failed`,
+      },
+      react: PartnerIdentityVerificationFailed({
+        failureType: "declined",
+        failureReasonText,
+        partner: {
+          name,
+          email,
+        },
+      }),
+    });
+  }
 }
