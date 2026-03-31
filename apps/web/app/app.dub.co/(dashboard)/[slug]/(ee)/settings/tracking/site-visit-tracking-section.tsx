@@ -373,107 +373,110 @@ export function SiteVisitTrackingSection() {
         }}
         initial={false}
       >
-        <div className="flex flex-col gap-2 border-t border-neutral-200 p-3">
+        <div className="flex flex-col gap-4 border-t border-neutral-200 p-3">
           <div className="flex flex-col gap-2">
-            <div>
-              <label className="text-content-emphasis mb-1 block text-sm font-semibold">
+            <div className="flex flex-col">
+              <label className="text-content-emphasis text-sm font-semibold">
                 Domain for sitemap imports
               </label>
-              <p className="text-content-subtle mb-2 text-xs font-medium">
+              <p className="text-content-subtle text-xs font-medium">
                 This domain will be used for links we create when importing
                 pages from the sitemaps you add.
               </p>
-              <DomainSelector
-                selectedDomain={siteDomainSlug}
-                setSelectedDomain={(slug) => void setSiteDomainSlug(slug)}
-                disabled={Boolean(permissionsError)}
-                disabledTooltip={permissionsError || undefined}
-              />
             </div>
-          </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-1">
-              <h2 className="text-content-emphasis text-sm font-semibold">
-                Sitemaps
-              </h2>
-              <InfoTooltip content="Required for conversion tracking." />
-            </div>
-            <div className="flex w-full items-center gap-2 sm:w-auto">
-              {siteVisitTrackingEnabled && (
-                <input
-                  type="text"
-                  value={newSitemapUrl}
-                  onChange={(e) => setNewSitemapUrl(e.target.value)}
-                  placeholder="e.g. www.acme.com/sitemap.xml"
-                  className="h-7 w-full rounded-lg border border-neutral-300 px-2.5 text-sm focus:border-neutral-500 focus:outline-none focus:ring-0 sm:w-[260px]"
-                />
-              )}
-              <Button
-                text="Add sitemap"
-                className="h-7 w-fit rounded-lg px-2.5 py-1 text-sm font-medium"
-                onClick={() =>
-                  siteVisitTrackingEnabled
-                    ? addSitemap()
-                    : toast.info("Coming soon")
-                }
-                loading={addingSitemap}
-                disabled={
-                  Boolean(permissionsError) ||
-                  (siteVisitTrackingEnabled && !siteDomainSlug)
-                }
-                disabledTooltip={
-                  permissionsError ||
-                  (siteVisitTrackingEnabled && !siteDomainSlug
-                    ? "Choose a domain for imports first"
-                    : undefined)
-                }
-              />
-            </div>
+            <DomainSelector
+              selectedDomain={siteDomainSlug}
+              setSelectedDomain={(slug) => void setSiteDomainSlug(slug)}
+              disabled={Boolean(permissionsError)}
+              disabledTooltip={permissionsError || undefined}
+            />
           </div>
 
           <div className="flex flex-col gap-2">
-            {siteVisitTrackingEnabled && sitemaps.length === 0 ? (
-              <div className="text-content-subtle rounded-xl border border-dashed border-neutral-300 bg-white p-3 text-sm">
-                No tracked sitemaps configured yet.
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-center gap-1">
+                <h2 className="text-content-emphasis text-sm font-semibold">
+                  Sitemaps
+                </h2>
+                <InfoTooltip content="Required for conversion tracking." />
               </div>
-            ) : (
-              sitemaps.map((sitemap) => (
-                <div
-                  key={sitemap.url}
-                  className="border-border-subtle flex items-center justify-between gap-4 rounded-xl border bg-white p-3"
-                >
-                  <div className="flex min-w-0 items-center gap-2">
-                    <div className="flex size-[28px] items-center justify-center rounded-md bg-neutral-100">
-                      <Sitemap className="size-4 text-neutral-800" />
-                    </div>
-                    <div className="flex min-w-0 flex-col">
-                      <span className="text-content-emphasis min-w-0 truncate text-sm font-semibold">
-                        {sitemap.url}
-                      </span>
-                      <span className="text-content-subtle text-xs font-medium">
-                        {sitemap.lastCrawledAt
-                          ? `Last crawled ${formatDate(sitemap.lastCrawledAt)}`
-                          : "Not crawled yet"}
-                        {sitemap.lastUrlCount !== null
-                          ? ` · ${sitemap.lastUrlCount} URLs found`
-                          : ""}
-                      </span>
-                    </div>
-                  </div>
-                  {siteVisitTrackingEnabled && (
-                    <SitemapRowMenu
-                      onRefresh={() => refreshSitemap(sitemap.url)}
-                      onDelete={() => deleteSitemap(sitemap.url)}
-                      loading={
-                        refreshingSitemapUrl === sitemap.url ||
-                        deletingSitemapUrl === sitemap.url
-                      }
-                    />
-                  )}
+              <div className="flex w-full items-center gap-2 sm:w-auto">
+                {siteVisitTrackingEnabled && (
+                  <input
+                    type="text"
+                    value={newSitemapUrl}
+                    onChange={(e) => setNewSitemapUrl(e.target.value)}
+                    placeholder="e.g. www.acme.com/sitemap.xml"
+                    className="h-7 w-full rounded-lg border border-neutral-300 px-2.5 text-sm focus:border-neutral-500 focus:outline-none focus:ring-0 sm:w-[260px]"
+                  />
+                )}
+                <Button
+                  text="Add sitemap"
+                  className="h-7 w-fit rounded-lg px-2.5 py-1 text-sm font-medium"
+                  onClick={() =>
+                    siteVisitTrackingEnabled
+                      ? addSitemap()
+                      : toast.info("Coming soon")
+                  }
+                  loading={addingSitemap}
+                  disabled={
+                    Boolean(permissionsError) ||
+                    (siteVisitTrackingEnabled && !siteDomainSlug)
+                  }
+                  disabledTooltip={
+                    permissionsError ||
+                    (siteVisitTrackingEnabled && !siteDomainSlug
+                      ? "Choose a domain for imports first"
+                      : undefined)
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              {siteVisitTrackingEnabled && sitemaps.length === 0 ? (
+                <div className="text-content-subtle rounded-xl border border-dashed border-neutral-300 bg-white p-3 text-sm">
+                  No tracked sitemaps configured yet.
                 </div>
-              ))
-            )}
+              ) : (
+                sitemaps.map((sitemap) => (
+                  <div
+                    key={sitemap.url}
+                    className="border-border-subtle flex items-center justify-between gap-4 rounded-xl border bg-white p-3"
+                  >
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div className="flex size-[28px] items-center justify-center rounded-md bg-neutral-100">
+                        <Sitemap className="size-4 text-neutral-800" />
+                      </div>
+                      <div className="flex min-w-0 flex-col">
+                        <span className="text-content-emphasis min-w-0 truncate text-sm font-semibold">
+                          {sitemap.url}
+                        </span>
+                        <span className="text-content-subtle text-xs font-medium">
+                          {sitemap.lastCrawledAt
+                            ? `Last crawled ${formatDate(sitemap.lastCrawledAt)}`
+                            : "Not crawled yet"}
+                          {sitemap.lastUrlCount !== null
+                            ? ` · ${sitemap.lastUrlCount} URLs found`
+                            : ""}
+                        </span>
+                      </div>
+                    </div>
+                    {siteVisitTrackingEnabled && (
+                      <SitemapRowMenu
+                        onRefresh={() => refreshSitemap(sitemap.url)}
+                        onDelete={() => deleteSitemap(sitemap.url)}
+                        loading={
+                          refreshingSitemapUrl === sitemap.url ||
+                          deletingSitemapUrl === sitemap.url
+                        }
+                      />
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       </motion.div>
