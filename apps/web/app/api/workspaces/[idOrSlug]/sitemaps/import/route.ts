@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { getOrCreateSiteLinksFolder } from "@/lib/sitemaps/get-or-create-site-links-folder";
 import {
   importTrackedSitemaps,
   parseTrackedSitemaps,
@@ -56,12 +57,18 @@ export const POST = withWorkspace(
       });
     }
 
+    const siteLinksFolderId = await getOrCreateSiteLinksFolder({
+      projectId: workspace.id,
+      userId: session.user.id,
+    });
+
     const { linksToCreate, createdLinks, updatedTrackedSitemaps } =
       await importTrackedSitemaps({
         trackedSitemaps: targetTrackedSitemaps,
         domain: selectedDomain.slug,
         projectId: workspace.id,
         userId: session.user.id,
+        folderId: siteLinksFolderId,
         skipRedisCache: true,
       });
 

@@ -1,5 +1,6 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { getFeatureFlags } from "@/lib/edge-config";
+import { getOrCreateSiteLinksFolder } from "@/lib/sitemaps/get-or-create-site-links-folder";
 import {
   importTrackedSitemaps,
   parseTrackedSitemaps,
@@ -93,12 +94,18 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
+  const siteLinksFolderId = await getOrCreateSiteLinksFolder({
+    projectId: workspace.id,
+    userId: owner.userId,
+  });
+
   const { linksToCreate, createdLinks, updatedTrackedSitemaps } =
     await importTrackedSitemaps({
       trackedSitemaps,
       domain: selectedDomain.slug,
       projectId: workspace.id,
       userId: owner.userId,
+      folderId: siteLinksFolderId,
       skipRedisCache: true,
     });
 

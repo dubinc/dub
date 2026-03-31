@@ -219,6 +219,10 @@ export const OnboardingUsageSchema = z.object({
   partners: z.boolean(),
 });
 
+export const siteVisitTrackingSettingsSchema = z.object({
+  siteLinksFolderId: z.string().optional(),
+});
+
 export const workspaceStoreKeys = z.enum([
   "onboardingUsage", // json
   "programOnboarding", // json
@@ -231,6 +235,7 @@ export const workspaceStoreKeys = z.enum([
   "analyticsSettingsConnectionSetupComplete", // boolean
   "analyticsSettingsLeadTrackingSetupComplete", // boolean
   "analyticsSettingsSaleTrackingSetupComplete", // boolean
+  "siteVisitTrackingSettings", // { siteLinksFolderId?: string }
 ]);
 
 export const getWorkspaceUsersQuerySchema = z.object({
