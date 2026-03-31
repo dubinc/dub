@@ -4,14 +4,14 @@ import { veriffDecisionEventSchema } from "./schema";
 // GET /v1/sessions/{sessionId}/decision
 export async function fetchVeriffSessionDecision(sessionId: string) {
   const apiKey = process.env.VERIFF_API_KEY;
-  const sharedSecret = process.env.VERIFF_WEBHOOK_SECRET;
+  const sharedSecret = process.env.VERIFF_SHARED_SECRET;
 
   if (!apiKey) {
     throw new Error("VERIFF_API_KEY is not configured.");
   }
 
   if (!sharedSecret) {
-    throw new Error("VERIFF_WEBHOOK_SECRET is not configured.");
+    throw new Error("VERIFF_SHARED_SECRET is not configured.");
   }
 
   const hmacSignature = crypto

@@ -29,6 +29,10 @@ export const handleSessionEvent = async ({
     return logAndRespond("[Veriff Webhook] Partner already verified.");
   }
 
+  const veriffMetadata = mergeVeriffMetadata(partner.veriffMetadata, {
+    declineReason: null,
+  });
+
   await prisma.partner.update({
     where: {
       id: partner.id,
@@ -36,10 +40,8 @@ export const handleSessionEvent = async ({
     },
     data: {
       identityVerificationStatus: action,
-      veriffMetadata: mergeVeriffMetadata(partner.veriffMetadata, {
-        declineReason: null,
-      }),
       veriffIdentityHash: null,
+      veriffMetadata,
     },
   });
 

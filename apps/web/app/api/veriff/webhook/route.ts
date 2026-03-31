@@ -9,7 +9,7 @@ export const POST = async (req: Request) => {
 
   const signature = req.headers.get("x-hmac-signature");
   const authClient = req.headers.get("x-auth-client");
-  const webhookSecret = process.env.VERIFF_WEBHOOK_SECRET;
+  const webhookSecret = process.env.VERIFF_SHARED_SECRET;
 
   if (!signature) {
     return logAndRespond("No signature provided.", { status: 401 });
@@ -32,7 +32,7 @@ export const POST = async (req: Request) => {
   }
 
   if (!webhookSecret) {
-    return logAndRespond("VERIFF_WEBHOOK_SECRET is not configured.", {
+    return logAndRespond("VERIFF_SHARED_SECRET is not configured.", {
       status: 500,
     });
   }
