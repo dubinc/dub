@@ -1,4 +1,3 @@
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { updatePartnerCommission } from "@/lib/api/commissions/update-partner-commission";
 import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
@@ -11,7 +10,6 @@ import {
   updateCommissionSchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/commissions/:commissionId - get a single commission by ID
@@ -121,25 +119,6 @@ export const PATCH = withWorkspace(
       status,
       earnings,
     });
-
-    waitUntil(
-      Promise.allSettled([
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "commission.updated",
-          description: `Commission ${commissionId} updated`,
-          actor: session.user,
-          targets: [
-            {
-              type: "commission",
-              id: commissionId,
-              metadata: updatedCommission,
-            },
-          ],
-        }),
-      ]),
-    );
 
     return NextResponse.json(
       CommissionEnrichedSchema.parse({
