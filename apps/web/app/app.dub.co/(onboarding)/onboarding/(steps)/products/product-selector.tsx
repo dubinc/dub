@@ -28,11 +28,13 @@ const products = {
 };
 
 export function ProductSelector() {
-  const { id: workspaceId, flags } = useWorkspace();
+  const { id: workspaceId, flags, loading: workspaceLoading } = useWorkspace();
 
   const checkoutTrialEnabled = Boolean(
     workspaceId && shouldEnableStripeCheckoutTrial(flags, workspaceId),
   );
+
+  const workspaceReady = !workspaceLoading && Boolean(workspaceId);
 
   return (
     <div className="animate-fade-in mx-auto grid w-full max-w-[312px] gap-4 sm:max-w-[600px] sm:grid-cols-2">
@@ -56,7 +58,9 @@ export function ProductSelector() {
           }
           description={product.description}
           cta={`Continue with ${product.title}`}
-          paidPlanRequired={product.paidPlanRequired && !checkoutTrialEnabled}
+          paidPlanRequired={
+            workspaceReady && product.paidPlanRequired && !checkoutTrialEnabled
+          }
         />
       ))}
     </div>

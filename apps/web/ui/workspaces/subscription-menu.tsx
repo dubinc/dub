@@ -21,12 +21,7 @@ import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmati
 import { ThreeDots } from "../shared/icons";
 
 export default function SubscriptionMenu() {
-  const {
-    id: workspaceId,
-    role,
-    plan,
-    defaultProgramId,
-  } = useWorkspace();
+  const { id: workspaceId, role, plan, defaultProgramId } = useWorkspace();
   const router = useRouter();
 
   const permissionsError = clientAccessCheck({

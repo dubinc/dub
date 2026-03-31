@@ -112,10 +112,6 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
 
-      # Linux runners do not always resolve *.localhost reliably; E2E uses partners + app subdomains.
-      - name: Map *.localhost subdomains to loopback
-        run: echo '127.0.0.1 partners.localhost app.localhost' | sudo tee -a /etc/hosts
-
       - name: Start PlanetScale simulator
         run: |
           docker run -d --name ps-http-sim \

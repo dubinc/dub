@@ -37,7 +37,7 @@ export default defineConfig({
       testIgnore: /auth\.setup\.ts/,
       dependencies: ["partner-setup"],
     },
-    // Workspace onboarding tests
+    // Workspace tests
     {
       name: "workspace-setup",
       testMatch: /workspaces\/auth\.setup\.ts/,

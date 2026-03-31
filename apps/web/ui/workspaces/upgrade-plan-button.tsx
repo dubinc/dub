@@ -143,7 +143,7 @@ export function UpgradePlanButton({
               : "Your current plan"
             : currentPlan === "free"
               ? checkoutTrialEnabled
-                ? `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
+                ? `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial`
                 : `Get started with ${selectedPlan.name} ${capitalize(period)}`
               : `Switch to ${selectedPlan.name} ${capitalize(period)}`
         }
