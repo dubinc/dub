@@ -46,22 +46,22 @@ export const veriffDecisionEventSchema = z.object({
       "abandoned",
       "review",
     ]),
-    reason: z.string().optional(),
-    reasonCode: z.number().optional(),
+    reason: z.string().nullable(),
+    reasonCode: z.number().nullable(),
     person: z
       .object({
-        firstName: z.string().optional(),
-        lastName: z.string().optional(),
-        dateOfBirth: z.string().optional(),
-        nationality: z.string().optional(),
-        idNumber: z.string().optional(),
+        firstName: z.string().nullable(),
+        lastName: z.string().nullable(),
+        dateOfBirth: z.string().nullable(),
+        nationality: z.string().nullable(),
+        idNumber: z.string().nullable(),
       })
       .optional(),
     document: z
       .object({
-        number: z.string().optional(),
-        type: z.string().optional(),
-        country: z.string().optional(),
+        number: z.string().nullable(),
+        type: z.string().nullable(),
+        country: z.string().nullable(),
       })
       .optional(),
   }),

@@ -70,6 +70,7 @@ export const POST = withCron(async ({ rawBody }) => {
       `Failed to fetch Veriff decision for partner ${partnerId}:`,
       error,
     );
+
     // Don't revoke on uncertainty — QStash will retry
     throw error;
   }

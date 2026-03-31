@@ -41,7 +41,7 @@ export async function createVeriffSession({
   const response = await rawResponse.json();
 
   if (!rawResponse.ok) {
-    console.error("[Veriff] Error", rawResponse);
+    console.error("[Veriff] Error", response);
     throw new Error("Failed to create verification session.");
   }
 
