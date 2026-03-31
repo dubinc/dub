@@ -170,9 +170,7 @@ export function SiteVisitTrackingSection() {
     });
 
     if (ok) {
-      toast.success(
-        slug ? "Site links domain updated." : "Site links domain cleared.",
-      );
+      toast.success(slug ? "Domain saved." : "Domain cleared.");
     }
   };
 
@@ -188,7 +186,7 @@ export function SiteVisitTrackingSection() {
     }
 
     if (!siteDomainSlug) {
-      toast.error("Select a short link domain before adding sitemaps.");
+      toast.error("Choose a domain for sitemap imports before adding sources.");
       return;
     }
 
@@ -379,11 +377,11 @@ export function SiteVisitTrackingSection() {
           <div className="flex flex-col gap-2">
             <div>
               <label className="text-content-emphasis mb-1 block text-sm font-semibold">
-                Short link domain
+                Domain for sitemap imports
               </label>
               <p className="text-content-subtle mb-2 text-xs font-medium">
-                Short links created from sitemap imports use this domain (must
-                be verified).
+                This domain will be used for links we create when importing
+                pages from the sitemaps you add.
               </p>
               <DomainSelector
                 selectedDomain={siteDomainSlug}
@@ -427,7 +425,7 @@ export function SiteVisitTrackingSection() {
                 disabledTooltip={
                   permissionsError ||
                   (siteVisitTrackingEnabled && !siteDomainSlug
-                    ? "Select a short link domain first"
+                    ? "Choose a domain for imports first"
                     : undefined)
                 }
               />
