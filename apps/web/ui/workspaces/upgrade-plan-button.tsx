@@ -83,6 +83,11 @@ export function UpgradePlanButton({
       }),
     })
       .then(async (res) => {
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.error?.message ?? "Failed to start checkout.");
+        }
+
         plausible(
           checkoutTrialEnabled
             ? "Opened Checkout Trial"

@@ -35,9 +35,34 @@ function UpgradedModal({
     dotLinkClaimed,
     trialEndsAt,
     loading: workspaceLoading,
+    mutate: mutateWorkspaceData,
   } = useWorkspace();
 
+  const checkoutSuccess = searchParams.get("upgraded") === "true";
+  const [checkoutWorkspaceSynced, setCheckoutWorkspaceSynced] = useState(
+    () => !checkoutSuccess,
+  );
+
+  useEffect(() => {
+    if (!checkoutSuccess) {
+      setCheckoutWorkspaceSynced(true);
+      return;
+    }
+
+    let cancelled = false;
+    void mutateWorkspaceData().finally(() => {
+      if (!cancelled) {
+        setCheckoutWorkspaceSynced(true);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutSuccess, mutateWorkspaceData]);
+
   const showDotLinkClaimUi =
+    checkoutWorkspaceSynced &&
     !workspaceLoading &&
     !dotLinkClaimed &&
     !isWorkspaceBillingTrialActive(trialEndsAt);
