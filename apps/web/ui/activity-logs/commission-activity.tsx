@@ -1,7 +1,11 @@
 "use client";
 
 import { useActivityLogs } from "@/lib/swr/use-activity-logs";
-import { ActivityLog, CommissionDetail } from "@/lib/types";
+import {
+  ActivityLog,
+  CommissionActivitySnapshot,
+  CommissionDetail,
+} from "@/lib/types";
 import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommentCardDisplay } from "@/ui/partners/partner-comments";
@@ -10,21 +14,20 @@ import { InvoiceDollar, StatusBadge } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
-function getNewStatusFromLog(
-  log: ActivityLog,
-): keyof typeof CommissionStatusBadges | null {
-  const changeSet = log.changeSet as Record<
-    string,
-    { old: Record<string, unknown>; new: Record<string, unknown> }
-  > | null;
+type CommissionChangeSet = Record<
+  string,
+  {
+    old: CommissionActivitySnapshot | null;
+    new: CommissionActivitySnapshot;
+  }
+>;
+
+function getNewStatusFromLog(log: ActivityLog) {
+  const changeSet = log.changeSet as CommissionChangeSet | null;
 
   const newStatus = changeSet?.commission?.new?.status;
 
-  if (typeof newStatus === "string" && newStatus in CommissionStatusBadges) {
-    return newStatus as keyof typeof CommissionStatusBadges;
-  }
-
-  return null;
+  return newStatus;
 }
 
 export function CommissionActivity({
@@ -35,11 +38,11 @@ export function CommissionActivity({
   slug: string;
 }) {
   const { activityLogs, loading } = useActivityLogs({
+    enabled: !!commission.id,
     query: {
       resourceType: "commission",
       resourceId: commission.id,
     },
-    enabled: !!commission.id,
   });
 
   const createdEvent = {
@@ -60,13 +63,10 @@ export function CommissionActivity({
       if (!text) return undefined;
 
       return (
-        <CommentCardDisplay
-          user={commission.user}
-          timestamp={commission.createdAt}
-          text={text}
-        />
+        <CommentCardDisplay timestamp={commission.createdAt} text={text} />
       );
     })(),
+
     children: (
       <>
         <span className="text-sm text-neutral-700">Commission</span>
