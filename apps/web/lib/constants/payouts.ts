@@ -1,3 +1,4 @@
+import { PayoutStatus } from "@dub/prisma/client";
 import Stripe from "stripe";
 import { PaymentMethodOption } from "../types";
 
@@ -17,6 +18,8 @@ export const INVOICE_MIN_PAYOUT_AMOUNT_CENTS = 1000; // $10
 export const MIN_WITHDRAWAL_AMOUNT_CENTS = 1000; // $10
 export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50; // $0.50
 export const MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS = 100; // $1 (doesn't make sense to force a withdrawal for less than $1)
+
+export const MUTABLE_PAYOUT_STATUSES: PayoutStatus[] = ["pending", "canceled"];
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {

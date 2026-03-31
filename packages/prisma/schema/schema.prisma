@@ -48,6 +48,7 @@ model User {
   utmTemplates            UtmTemplate[]
   payouts                 Payout[]
   bountySubmissions       BountySubmission[]
+  programApplications     ProgramApplication[]
   sentMessages            Message[]
   partnerComments         PartnerComment[]
   fraudEventGroups        FraudEventGroup[]

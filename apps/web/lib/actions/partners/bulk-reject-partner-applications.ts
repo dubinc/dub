@@ -1,7 +1,6 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { reportFraudToNetwork } from "@/lib/api/fraud/report-fraud-to-network";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
@@ -16,7 +15,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
   .inputSchema(bulkRejectPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerIds, reportFraud } = parsedInput;
+    const { partnerIds } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -35,6 +34,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
       },
       select: {
         id: true,
+        applicationId: true,
         partner: true,
       },
     });
@@ -43,65 +43,76 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
       return;
     }
 
-    await prisma.programEnrollment.updateMany({
-      where: {
-        id: {
-          in: programEnrollments.map(({ id }) => id),
-        },
-      },
-      data: {
-        status: ProgramEnrollmentStatus.rejected,
-        clickRewardId: null,
-        leadRewardId: null,
-        saleRewardId: null,
-        discountId: null,
-      },
-    });
+    const applicationIds = programEnrollments
+      .map(({ applicationId }) => applicationId)
+      .filter((id): id is string => Boolean(id));
 
-    await resolveFraudGroups({
-      where: {
-        programEnrollment: {
+    const reviewedAt = new Date();
+
+    await prisma.$transaction(async (tx) => {
+      await tx.programEnrollment.updateMany({
+        where: {
           id: {
             in: programEnrollments.map(({ id }) => id),
           },
         },
-      },
-      userId: user.id,
-      resolutionReason:
-        "Resolved automatically because the partner application was rejected.",
+        data: {
+          status: ProgramEnrollmentStatus.rejected,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
+          discountId: null,
+        },
+      });
+
+      if (applicationIds.length > 0) {
+        await tx.programApplication.updateMany({
+          where: {
+            id: {
+              in: applicationIds,
+            },
+          },
+          data: {
+            reviewedAt,
+            rejectionReason: null,
+            rejectionNote: null,
+            userId: user.id,
+          },
+        });
+      }
     });
 
-    const rejectedPartnerIds = [
-      ...new Set(programEnrollments.map((pe) => pe.partner.id)),
-    ];
-
     waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          recordAuditLog(
-            programEnrollments.map(({ partner }) => ({
-              workspaceId: workspace.id,
-              programId,
-              action: "partner_application.rejected",
-              description: `Partner application rejected for ${partner.id}`,
-              actor: user,
-              targets: [
-                {
-                  type: "partner",
-                  id: partner.id,
-                  metadata: partner,
-                },
-              ],
-            })),
-          ),
+      Promise.allSettled([
+        recordAuditLog(
+          programEnrollments.map(({ partner }) => ({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner_application.rejected",
+            description: `Partner application rejected for ${partner.id}`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: partner.id,
+                metadata: partner,
+              },
+            ],
+          })),
+        ),
 
-          reportFraud && rejectedPartnerIds.length > 0
-            ? reportFraudToNetwork({
-                programId,
-                partnerIds: rejectedPartnerIds,
-              })
-            : Promise.resolve(),
-        ]);
-      })(),
+        resolveFraudGroups({
+          where: {
+            programEnrollment: {
+              id: {
+                in: programEnrollments.map(({ id }) => id),
+              },
+            },
+          },
+          userId: user.id,
+          resolutionReason:
+            "Resolved automatically because the partner application was rejected.",
+        }),
+      ]),
     );
   });

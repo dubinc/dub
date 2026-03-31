@@ -1,24 +1,25 @@
 import Stripe from "stripe";
-import {
-  DUB_API_HOST,
-  DUB_CLIENT_ID,
-  DUB_HOST,
-  STRIPE_REDIRECT_URL,
-} from "./constants";
+import { DUB_API_HOST, DUB_CLIENT_ID, DUB_HOST } from "./constants";
 import { getSecret, setSecret } from "./secrets";
-import { Token, Workspace } from "./types";
+import { StripeMode, Token, Workspace } from "./types";
+
+function getRedirectUrl(mode: StripeMode) {
+  return `https://dashboard.stripe.com/${mode === "live" ? "" : "test/"}apps-oauth/dub.co`;
+}
 
 // Returns the authorization URL
 export function getOAuthUrl({
   state,
   challenge,
+  mode,
 }: {
   state: string;
   challenge: string;
+  mode: StripeMode;
 }) {
   const searchParams = {
     client_id: DUB_CLIENT_ID,
-    redirect_uri: STRIPE_REDIRECT_URL,
+    redirect_uri: getRedirectUrl(mode),
     response_type: "code",
     code_challenge: challenge,
     code_challenge_method: "S256",
@@ -32,21 +33,21 @@ export function getOAuthUrl({
 export async function getToken({
   code,
   verifier,
+  mode,
 }: {
   code: string;
   verifier: string;
+  mode: StripeMode;
 }) {
-  const url = `${DUB_API_HOST}/oauth/token`;
-
   try {
-    const response = await fetch(url, {
+    const response = await fetch(`${DUB_API_HOST}/oauth/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
         client_id: DUB_CLIENT_ID,
-        redirect_uri: STRIPE_REDIRECT_URL,
+        redirect_uri: getRedirectUrl(mode),
         grant_type: "authorization_code",
         code_verifier: verifier,
         code,

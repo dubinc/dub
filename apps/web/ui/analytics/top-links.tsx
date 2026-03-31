@@ -94,9 +94,12 @@ export function TopLinks() {
       if (!filterParamKey) return;
 
       if (values.length === 0) {
-        queryParams({ del: filterParamKey });
+        queryParams({ del: filterParamKey, scroll: false });
       } else {
-        queryParams({ set: { [filterParamKey]: values.join(",") } });
+        queryParams({
+          set: { [filterParamKey]: values.join(",") },
+          scroll: false,
+        });
       }
 
       setSelectedItems([]);
@@ -250,6 +253,9 @@ export function TopLinks() {
               onClearSelection={() => setSelectedItems([])}
               onApplyFilterValues={
                 filterParamKey ? onApplyFilterValues : undefined
+              }
+              onRowFilterItem={
+                filterParamKey ? (val) => onApplyFilterValues([val]) : undefined
               }
               {...(limit && { limit })}
             />

@@ -2,7 +2,7 @@ import { FRAUD_RULES } from "@/lib/api/fraud/constants";
 import { ExtendedFraudRuleType, FraudSeverity } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { useMemo } from "react";
-import useSWR from "swr";
+import useSWRImmutable from "swr/immutable";
 import useWorkspace from "./use-workspace";
 
 type FraudRisksResponse = {
@@ -20,7 +20,7 @@ export function usePartnerApplicationRisks({
   const { id: workspaceId } = useWorkspace();
   const { partnerId } = filters;
 
-  const { data, isLoading, error } = useSWR<FraudRisksResponse>(
+  const { data, isLoading, error } = useSWRImmutable<FraudRisksResponse>(
     enabled && partnerId && workspaceId
       ? `/api/partners/${partnerId}/application-risks?workspaceId=${workspaceId}`
       : null,

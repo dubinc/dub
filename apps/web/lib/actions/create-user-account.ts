@@ -6,6 +6,7 @@ import { waitUntil } from "@vercel/functions";
 import { flattenValidationErrors } from "next-safe-action";
 import * as z from "zod/v4";
 import { createId } from "../api/create-id";
+import { skipAuthThrottling } from "../api/environment";
 import { hashPassword } from "../auth/password";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -30,13 +31,17 @@ export const createUserAccountAction = actionClient
 
     const signupAttemptKey = `signup:attempts:${email}`;
 
-    const { remaining: attemptsRemaining } = await ratelimit(
-      MAX_OTP_ATTEMPTS,
-      OTP_LOCKOUT_DURATION,
-    ).getRemaining(signupAttemptKey);
+    if (!skipAuthThrottling) {
+      const { remaining: attemptsRemaining } = await ratelimit(
+        MAX_OTP_ATTEMPTS,
+        OTP_LOCKOUT_DURATION,
+      ).getRemaining(signupAttemptKey);
 
-    if (attemptsRemaining <= 0) {
-      throw new Error("Too many failed attempts. You have to try again later.");
+      if (attemptsRemaining <= 0) {
+        throw new Error(
+          "Too many failed attempts. You have to try again later.",
+        );
+      }
     }
 
     const verificationToken = await prisma.emailVerificationToken.findUnique({

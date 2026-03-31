@@ -123,9 +123,7 @@ export function usePartnerNetworkFilters({
         getOptionLabel: (value: PlatformType) => platformLabels[value] || value,
         options:
           platformsCount
-            ?.filter(({ platform }) =>
-              ["youtube", "twitter", "instagram", "tiktok"].includes(platform),
-            )
+            ?.filter(({ platform }) => platform !== "website")
             .map(({ platform, _count }) => ({
               value: platform,
               label: platformLabels[platform] || platform,

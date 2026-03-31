@@ -20,14 +20,36 @@ export default defineConfig({
     screenshot: "only-on-failure",
   },
   projects: [
-    { name: "setup", testMatch: /auth\.setup\.ts/ },
+    // Partner tests
     {
-      name: "chromium",
+      name: "partner-setup",
+      testMatch: /partners\/auth\.setup\.ts/,
+    },
+    {
+      name: "partners",
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/partner.json",
       },
-      dependencies: ["setup"],
+      testDir: "./playwright/partners",
+      testIgnore: /auth\.setup\.ts/,
+      dependencies: ["partner-setup"],
+    },
+    // Workspace tests
+    {
+      name: "workspace-setup",
+      testMatch: /workspaces\/auth\.setup\.ts/,
+    },
+    {
+      name: "workspaces",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://app.localhost:8888",
+        storageState: "playwright/.auth/workspace.json",
+      },
+      testDir: "./playwright/workspaces",
+      testIgnore: /auth\.setup\.ts/,
+      dependencies: ["workspace-setup"],
     },
   ],
   webServer: process.env.CI

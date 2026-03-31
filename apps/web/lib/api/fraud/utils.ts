@@ -102,9 +102,6 @@ function getIdentityFieldsForFraudEvent({
       return {
         sourceProgramId,
       };
-
-    case "partnerFraudReport":
-      return {};
   }
 }
 

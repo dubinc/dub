@@ -13,6 +13,7 @@ const GENERIC_EMAIL_DOMAINS = [
   "mac.com",
   "msn.com",
   "live.com",
+  "live.dk",
   "web.de",
   "protonmail.com",
   "proton.me",
@@ -29,6 +30,15 @@ const GENERIC_EMAIL_DOMAINS = [
   "naver.com",
   "yeah.net",
   "example.com",
+  "wp.pl",
+  "seznam.cz",
+  "myyahoo.com",
+  "mail.com",
+  "mail.ru",
+  "email.cz",
+  "email.de",
+  "t-online.de",
+  "sina.com",
 ];
 
 const GENERIC_EMAIL_DOMAIN_PREFIXES = [

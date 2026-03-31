@@ -24,7 +24,7 @@ export function generateStaticParams() {
   return [];
 }
 
-export default async function BannedPage() {
+export default function BannedPage() {
   return (
     <div>
       <Hero>
