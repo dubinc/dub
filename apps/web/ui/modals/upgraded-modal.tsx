@@ -77,7 +77,9 @@ function UpgradedModal({
     queryParams({
       del: ["upgraded", "plan", "period"],
     });
-    await setDotLinkOfferDismissed(new Date().toISOString());
+    if (showDotLinkClaimUi) {
+      await setDotLinkOfferDismissed(new Date().toISOString());
+    }
     mutateWorkspace();
   };
 

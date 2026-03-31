@@ -32,8 +32,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     ) {
       return "Subscription checkout session not completed (payment status), skipping...";
     }
-  } else if (checkoutSession.payment_status !== "paid") {
-    return "Session is not paid, skipping...";
+  } else {
+    return `Session mode ${checkoutSession.mode} is not handled here, skipping...`;
   }
 
   if (

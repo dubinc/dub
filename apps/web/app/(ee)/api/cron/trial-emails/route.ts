@@ -1,10 +1,8 @@
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
-import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { withCron } from "@/lib/cron/with-cron";
 import { runTrialEmailCron } from "@/lib/email/run-trial-email-cron";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../utils";
 
@@ -61,27 +59,8 @@ async function executeTrialEmailCronPage(startingAfter?: string) {
 // GET /api/cron/trial-emails
 export const GET = withCron(async () => executeTrialEmailCronPage(undefined));
 
-// POST /api/cron/trial-emails
-export async function POST(req: Request) {
-  try {
-    const rawBody = await req.text();
-
-    await verifyQstashSignature({
-      req,
-      rawBody,
-    });
-
-    const { startingAfter } = postBodySchema.parse(JSON.parse(rawBody));
-
-    return await executeTrialEmailCronPage(startingAfter);
-  } catch (error) {
-    await log({
-      message:
-        "Trial email cron (continuation) failed. Error: " +
-        (error instanceof Error ? error.message : String(error)),
-      type: "errors",
-    });
-
-    return handleAndReturnErrorResponse(error);
-  }
-}
+// POST /api/cron/trial-emails (QStash continuation)
+export const POST = withCron(async ({ rawBody }) => {
+  const { startingAfter } = postBodySchema.parse(JSON.parse(rawBody));
+  return await executeTrialEmailCronPage(startingAfter);
+});

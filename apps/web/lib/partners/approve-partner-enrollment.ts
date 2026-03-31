@@ -36,13 +36,14 @@ export async function approvePartnerEnrollment({
     groupId: groupId || program.defaultGroupId,
   });
 
-  await throwIfTrialProgramEnrollmentLimitExceeded({
-    programId,
-    additionalApproved: 1,
-    trialEndsAt: program.workspace.trialEndsAt,
-  });
-
   const programEnrollment = await prisma.$transaction(async (tx) => {
+    await throwIfTrialProgramEnrollmentLimitExceeded({
+      programId,
+      additionalApproved: 1,
+      trialEndsAt: program.workspace.trialEndsAt,
+      tx,
+    });
+
     const enrollment = await tx.programEnrollment.update({
       where: {
         partnerId_programId: {

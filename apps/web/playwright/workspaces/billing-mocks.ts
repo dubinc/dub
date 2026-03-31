@@ -28,6 +28,8 @@ export async function applyMockTrialToWorkspace(slug: string) {
     where: { slug },
     data: {
       plan: "pro",
+      subscriptionCanceledAt: null,
+      billingCycleEndsAt: null,
       planTier: 1,
       planPeriod: "monthly",
       trialEndsAt,

@@ -86,54 +86,57 @@ export function ApprovePartnerApplicationModal({
   });
 
   return (
-    <Modal
-      showModal={showApprovePartnerApplicationModal}
-      setShowModal={setShowApprovePartnerApplicationModal}
-      onClose={handleClose}
-    >
-      <div className="border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">
-          Approve application
-        </h3>
-      </div>
+    <>
+      <Modal
+        showModal={showApprovePartnerApplicationModal}
+        setShowModal={setShowApprovePartnerApplicationModal}
+        onClose={handleClose}
+      >
+        <div className="border-b border-neutral-200 p-4 sm:p-6">
+          <h3 className="text-lg font-medium leading-none">
+            Approve application
+          </h3>
+        </div>
 
-      {partner && (
-        <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
-          <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
-            <div className="flex items-center gap-4">
-              <PartnerAvatar partner={partner} className="size-10 bg-white" />
-              <div className="flex min-w-0 flex-col">
-                <h4 className="truncate text-sm font-medium text-neutral-900">
-                  {partner.name}
-                </h4>
-                <p className="truncate text-xs text-neutral-500">
-                  {partner.email}
-                </p>
+        {partner && (
+          <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
+            <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
+              <div className="flex items-center gap-4">
+                <PartnerAvatar partner={partner} className="size-10 bg-white" />
+                <div className="flex min-w-0 flex-col">
+                  <h4 className="truncate text-sm font-medium text-neutral-900">
+                    {partner.name}
+                  </h4>
+                  <p className="truncate text-xs text-neutral-500">
+                    {partner.email}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4">
-        <Button
-          variant="secondary"
-          text="Cancel"
-          className="h-8 w-fit px-3"
-          onClick={handleClose}
-          disabled={isPending}
-        />
-        <Button
-          className="h-8 w-fit px-3"
-          text="Approve"
-          variant="primary"
-          loading={isPending}
-          autoFocus
-          shortcut="A"
-          onClick={handleConfirm}
-        />
-      </div>
-    </Modal>
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4">
+          <Button
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+            onClick={handleClose}
+            disabled={isPending}
+          />
+          <Button
+            className="h-8 w-fit px-3"
+            text="Approve"
+            variant="primary"
+            loading={isPending}
+            autoFocus
+            shortcut="A"
+            onClick={handleConfirm}
+          />
+        </div>
+      </Modal>
+      <TrialLimitActivateModal />
+    </>
   );
 }
 

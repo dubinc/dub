@@ -73,6 +73,13 @@ function TrialLimitActivateModalInner({
           "Could not end trial. Try again or use the billing portal.";
         toast.error(message);
       }
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not end trial. Please try again or use the billing portal.",
+      );
     } finally {
       setIsSubmitting(false);
     }

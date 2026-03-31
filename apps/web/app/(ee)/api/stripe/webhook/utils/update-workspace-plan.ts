@@ -156,6 +156,20 @@ export async function updateWorkspacePlan({
         : []),
     ]);
 
+    // Checkout skips enabling dub.link during Stripe billing trial; turn it on when the
+    // subscription becomes active (e.g. trialing → active).
+    if (subscription?.status === "active" && newPlanName !== "free") {
+      await prisma.defaultDomains.updateMany({
+        where: {
+          projectId: workspace.id,
+          dublink: false,
+        },
+        data: {
+          dublink: true,
+        },
+      });
+    }
+
     // Disable the webhooks if the new plan does not support webhooks
     if (shouldDisableWebhooks) {
       await Promise.all([

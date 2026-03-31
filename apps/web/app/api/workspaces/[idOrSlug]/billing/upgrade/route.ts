@@ -159,20 +159,27 @@ export const POST = withWorkspace(
         },
       });
 
-      await prisma.project.update({
-        where: { id: workspace.id },
-        data: {
-          store: {
-            ...existingStore,
-            trialCheckoutExperiment: {
-              featureFlag: flags.freeTrialCheckout,
-              variant: trialAbVariant,
-              checkoutTrialEnabled,
-              updatedAt: new Date().toISOString(),
+      try {
+        await prisma.project.update({
+          where: { id: workspace.id },
+          data: {
+            store: {
+              ...existingStore,
+              trialCheckoutExperiment: {
+                featureFlag: flags.freeTrialCheckout,
+                variant: trialAbVariant,
+                checkoutTrialEnabled,
+                updatedAt: new Date().toISOString(),
+              },
             },
           },
-        },
-      });
+        });
+      } catch (e) {
+        console.error(
+          "Failed to persist trialCheckoutExperiment after checkout session create",
+          { workspaceId: workspace.id, error: e },
+        );
+      }
 
       return NextResponse.json({ id: stripeSession.id });
     }

@@ -46,7 +46,11 @@ function PlanChangeConfirmationModal({
 
   const displayName = program?.name ?? workspaceName ?? "";
   const logoSrc =
-    program?.logo ?? workspaceLogo ?? `${OG_AVATAR_URL}${displayName}`;
+    program?.logo ??
+    workspaceLogo ??
+    (displayName
+      ? `${OG_AVATAR_URL}${displayName}`
+      : `${OG_AVATAR_URL}default`);
 
   return (
     <Modal

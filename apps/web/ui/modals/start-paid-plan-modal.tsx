@@ -68,9 +68,14 @@ function StartPaidPlanModal({
         const body = await res.json().catch(() => null);
         const message =
           body?.error?.message ??
-          "Could not end trial. Try again or use the billing portal.";
+          "Failed to start paid plan. Please try again or use the billing portal.";
         toast.error(message);
       }
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        "Failed to start paid plan. Please try again or use the billing portal.",
+      );
     } finally {
       setIsSubmitting(false);
     }

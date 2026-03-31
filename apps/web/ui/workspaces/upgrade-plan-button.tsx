@@ -143,7 +143,10 @@ export function UpgradePlanButton({
               : `Switch to ${selectedPlan.name} ${capitalize(period)}`
         }
         loading={clicked}
-        disabled={!workspaceSlug || isCurrentPlan}
+        disabled={
+          !workspaceSlug ||
+          (isCurrentPlan && !isWorkspaceBillingTrialActive(trialEndsAt))
+        }
         onClick={handleClick}
         {...rest}
       />

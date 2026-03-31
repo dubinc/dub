@@ -44,15 +44,22 @@ function BulkApprovePartnersModal({
       toast.success(`${pluralize("Partner", partners.length)} approved.`);
     },
     onError({ error }) {
-      const msg = error.serverError ?? "";
-      toast.error(msg);
+      const serverMsg = String(error.serverError ?? "").trim();
       if (
         trialActive &&
-        (String(msg).includes("free trial") ||
-          String(msg).includes("enrolled partners"))
+        (serverMsg.includes("free trial") ||
+          serverMsg.includes("enrolled partners"))
       ) {
         openTrialLimitModal("partnerEnrollments");
+        return;
       }
+      const message =
+        serverMsg ||
+        ("message" in error &&
+        typeof (error as { message?: unknown }).message === "string"
+          ? String((error as { message: string }).message).trim()
+          : "");
+      toast.error(message || "An error occurred");
     },
   });
 

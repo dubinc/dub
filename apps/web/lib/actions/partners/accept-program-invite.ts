@@ -28,27 +28,30 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
     });
 
-    await throwIfTrialProgramEnrollmentLimitExceeded({
-      programId,
-      additionalApproved: 1,
-      trialEndsAt: program.workspace.trialEndsAt,
-    });
+    const enrollment = await prisma.$transaction(async (tx) => {
+      await throwIfTrialProgramEnrollmentLimitExceeded({
+        programId,
+        additionalApproved: 1,
+        trialEndsAt: program.workspace.trialEndsAt,
+        tx,
+      });
 
-    const enrollment = await prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
+      return tx.programEnrollment.update({
+        where: {
+          partnerId_programId: {
+            partnerId: partner.id,
+            programId,
+          },
+          status: "invited",
         },
-        status: "invited",
-      },
-      data: {
-        status: "approved",
-        createdAt: new Date(),
-      },
-      include: {
-        links: true,
-      },
+        data: {
+          status: "approved",
+          createdAt: new Date(),
+        },
+        include: {
+          links: true,
+        },
+      });
     });
 
     waitUntil(

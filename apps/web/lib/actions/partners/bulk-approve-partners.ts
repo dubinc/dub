@@ -47,15 +47,16 @@ export const bulkApprovePartnersAction = authActionClient
       groupId: groupId ?? program.defaultGroupId,
     });
 
-    await throwIfTrialProgramEnrollmentLimitExceeded({
-      programId: program.id,
-      additionalApproved: programEnrollments.length,
-      trialEndsAt: workspace.trialEndsAt,
-    });
-
     const now = new Date();
 
     await prisma.$transaction(async (tx) => {
+      await throwIfTrialProgramEnrollmentLimitExceeded({
+        programId: program.id,
+        additionalApproved: programEnrollments.length,
+        trialEndsAt: workspace.trialEndsAt,
+        tx,
+      });
+
       await tx.programEnrollment.updateMany({
         where: {
           id: {

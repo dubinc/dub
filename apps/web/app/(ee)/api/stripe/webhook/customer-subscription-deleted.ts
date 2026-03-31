@@ -80,23 +80,32 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     return `Workspace with Stripe ID ${stripeId} not found in customer.subscription.deleted callback.`;
   }
 
-  // Check if the customer has another active subscription
-  const { data: activeSubscriptions } = await stripe.subscriptions.list({
-    customer: stripeId,
-    status: "active",
-  });
+  // Check if the customer has another subscription still in force (active or trialing)
+  const [{ data: activeSubscriptions }, { data: trialingSubscriptions }] =
+    await Promise.all([
+      stripe.subscriptions.list({
+        customer: stripeId,
+        status: "active",
+      }),
+      stripe.subscriptions.list({
+        customer: stripeId,
+        status: "trialing",
+      }),
+    ]);
 
-  if (activeSubscriptions.length > 0) {
-    const activeSubscription = activeSubscriptions[0];
-    const priceId = activeSubscription.items.data[0].price.id;
+  const fallbackSubscription =
+    activeSubscriptions[0] ?? trialingSubscriptions[0];
+
+  if (fallbackSubscription) {
+    const priceId = fallbackSubscription.items.data[0].price.id;
 
     await updateWorkspacePlan({
       workspace,
       priceId,
-      subscription: activeSubscription,
+      subscription: fallbackSubscription,
     });
 
-    return `Workspace ${workspace.slug} has another active subscription; updated plan.`;
+    return `Workspace ${workspace.slug} has another subscription; updated plan.`;
   }
 
   const workspaceLinks = workspace.links;
@@ -106,33 +115,33 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     workspaceUsers.filter(({ email }) => email).map(({ email }) => email!),
   );
 
-  await Promise.allSettled([
-    prisma.project.update({
-      where: {
-        stripeId,
-      },
-      data: {
-        plan: "free",
-        trialEndsAt: null,
-        planPeriod: null,
-        billingCycleEndsAt: null,
-        subscriptionCanceledAt: workspace.subscriptionCanceledAt
-          ? undefined
-          : new Date(),
-        usageLimit: FREE_PLAN.limits.clicks!,
-        linksLimit: FREE_PLAN.limits.links!,
-        payoutsLimit: FREE_PLAN.limits.payouts!,
-        domainsLimit: FREE_PLAN.limits.domains!,
-        aiLimit: FREE_PLAN.limits.ai!,
-        tagsLimit: FREE_PLAN.limits.tags!,
-        foldersLimit: FREE_PLAN.limits.folders!,
-        groupsLimit: FREE_PLAN.limits.groups!,
-        networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
-        usersLimit: FREE_PLAN.limits.users!,
-        paymentFailedAt: null,
-      },
-    }),
+  await prisma.project.update({
+    where: {
+      stripeId,
+    },
+    data: {
+      plan: "free",
+      trialEndsAt: null,
+      planPeriod: null,
+      billingCycleEndsAt: null,
+      subscriptionCanceledAt: workspace.subscriptionCanceledAt
+        ? undefined
+        : new Date(),
+      usageLimit: FREE_PLAN.limits.clicks!,
+      linksLimit: FREE_PLAN.limits.links!,
+      payoutsLimit: FREE_PLAN.limits.payouts!,
+      domainsLimit: FREE_PLAN.limits.domains!,
+      aiLimit: FREE_PLAN.limits.ai!,
+      tagsLimit: FREE_PLAN.limits.tags!,
+      foldersLimit: FREE_PLAN.limits.folders!,
+      groupsLimit: FREE_PLAN.limits.groups!,
+      networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
+      usersLimit: FREE_PLAN.limits.users!,
+      paymentFailedAt: null,
+    },
+  });
 
+  await Promise.allSettled([
     // disable dub.link premium default domain for the workspace
     prisma.defaultDomains.update({
       where: {

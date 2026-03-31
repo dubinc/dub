@@ -19,9 +19,12 @@ export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
   });
 
   for (const campaign of marketingCampaigns) {
+    let qstashDeleteSucceeded = !campaign.qstashMessageId;
+
     if (campaign.qstashMessageId) {
       try {
         await qstash.messages.delete(campaign.qstashMessageId);
+        qstashDeleteSucceeded = true;
       } catch (error) {
         console.warn(
           `Failed to delete QStash message ${campaign.qstashMessageId} for campaign ${campaign.id}:`,
@@ -34,7 +37,7 @@ export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
       where: { id: campaign.id },
       data: {
         status: CampaignStatus.canceled,
-        qstashMessageId: null,
+        ...(qstashDeleteSucceeded ? { qstashMessageId: null } : {}),
       },
     });
   }

@@ -115,6 +115,7 @@ type ProjectBillingRow = {
 type BackfillCounters = {
   updated: number;
   skippedNoSubscription: number;
+  failed: number;
 };
 
 async function backfillOneProject(
@@ -208,6 +209,7 @@ async function backfillOneProject(
       counters.skippedNoSubscription++;
       return;
     }
+    counters.failed++;
     console.error(
       `[error] ${project.id} (${project.slug}):`,
       e instanceof Error ? e.message : e,
@@ -247,6 +249,7 @@ async function main() {
   const counters: BackfillCounters = {
     updated: 0,
     skippedNoSubscription: 0,
+    failed: 0,
   };
 
   /** Single-record mode: no cursor pagination */
@@ -292,9 +295,15 @@ async function main() {
       processed,
       updated: counters.updated,
       skippedNoSubscription: counters.skippedNoSubscription,
+      failed: counters.failed,
       slug: slug ?? null,
       projectId: projectId ?? null,
     });
+    if (counters.failed > 0) {
+      throw new Error(
+        `Backfill finished with ${counters.failed} project error(s); see [error] logs above.`,
+      );
+    }
     return;
   }
 
@@ -345,8 +354,14 @@ async function main() {
     processed,
     updated: counters.updated,
     skippedNoSubscription: counters.skippedNoSubscription,
+    failed: counters.failed,
     limit: limit ?? null,
   });
+  if (counters.failed > 0) {
+    throw new Error(
+      `Backfill finished with ${counters.failed} project error(s); see [error] logs above.`,
+    );
+  }
 }
 
 main().catch((e) => {

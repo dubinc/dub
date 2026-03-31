@@ -181,6 +181,34 @@ export default function PlanUsage() {
 
   const showPendingCancellation = pendingCancellationEndDate != null;
 
+  const handleResubscribe = async () => {
+    setResubscribePortalLoading(true);
+
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/billing/manage`, {
+        method: "POST",
+      });
+
+      if (res.ok) {
+        const url = await res.json();
+        router.push(url);
+      } else {
+        try {
+          const body = await res.json();
+          toast.error(body?.error?.message ?? "Failed to open billing portal.");
+        } catch (error) {
+          console.error(error);
+          toast.error("Failed to open billing portal.");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to open billing portal.");
+    } finally {
+      setResubscribePortalLoading(false);
+    }
+  };
+
   return (
     <>
       <StartPaidPlanModal />
@@ -271,21 +299,7 @@ export default function PlanUsage() {
                     className="h-9"
                     loading={resubscribePortalLoading}
                     disabled={Boolean(permissionsError)}
-                    onClick={() => {
-                      setResubscribePortalLoading(true);
-                      fetch(`/api/workspaces/${workspaceId}/billing/manage`, {
-                        method: "POST",
-                      }).then(async (res) => {
-                        if (res.ok) {
-                          const url = await res.json();
-                          router.push(url);
-                        } else {
-                          const { error } = await res.json();
-                          toast.error(error.message);
-                          setResubscribePortalLoading(false);
-                        }
-                      });
-                    }}
+                    onClick={handleResubscribe}
                   />
                 </DynamicTooltipWrapper>
               ) : (

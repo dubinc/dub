@@ -36,7 +36,7 @@ export const TRIAL_LIMIT_FEATURE_PHRASES: Record<TrialLimitResource, string> = {
   api: "make more API requests",
   analyticsApi: "use the Analytics API more",
   partnerEnrollments: "add more partners",
-  dublink: "claim a fee .link domain",
+  dublink: "claim a free .link domain",
 };
 
 export function getTrialLimitFeaturePhrase(kind: TrialLimitResource): string {
@@ -93,5 +93,7 @@ export function getWorkspaceLimitsForStripeSubscriptionStatus({
     groups: TRIAL_LIMITS.groups,
     networkInvites: TRIAL_LIMITS.networkInvites,
     ai: TRIAL_LIMITS.ai,
+    api: TRIAL_LIMITS.api,
+    analyticsApi: TRIAL_LIMITS.analyticsApi,
   };
 }
