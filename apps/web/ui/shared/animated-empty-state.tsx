@@ -49,7 +49,7 @@ export function AnimatedEmptyState({
       >
         <div
           style={{ "--scroll": "-50%" } as CSSProperties}
-          className="animate-infinite-scroll-y flex flex-col [animation-duration:10s]"
+          className="animate-infinite-scroll-y flex flex-col [animation-duration:40s]"
         >
           {[...Array(cardCount * 2)].map((_, idx) => (
             <Card key={idx} className={cardClassName}>
