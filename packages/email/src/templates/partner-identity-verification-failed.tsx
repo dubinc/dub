@@ -18,20 +18,27 @@ export default function PartnerIdentityVerificationFailed({
   partner = {
     name: "John",
     email: "panic@thedis.co",
-    identityVerificationDeclineReason:
-      "Document Obscured: ID document is partially obscured (e.g. by fingers)",
   },
+  failureType = "countryChange",
+  failureReasonText = "Document Obscured: ID document is partially obscured (e.g. by fingers)",
 }: {
   partner: {
     name: string;
     email: string;
-    identityVerificationDeclineReason: string;
   };
+  failureType?: "declined" | "countryChange";
+  failureReasonText: string;
 }) {
+  const isCountryChange = failureType === "countryChange";
+
   return (
     <Html>
       <Head />
-      <Preview>Your identity verification failed</Preview>
+      <Preview>
+        {isCountryChange
+          ? "Identity re-verification required"
+          : "Your identity verification failed"}
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -40,17 +47,37 @@ export default function PartnerIdentityVerificationFailed({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-semibold text-neutral-800">
-              Identity verification failed
+              {isCountryChange
+                ? "Identity re-verification required"
+                : "Identity verification failed"}
             </Heading>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              Hi {partner.name}, your identity verification couldn't be
-              completed because {partner.identityVerificationDeclineReason}.
-            </Text>
+            {isCountryChange ? (
+              <>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  Hi {partner.name}, you recently changed your account country.
+                  Because your new country doesn't match the country on your
+                  verified identity document, you need to complete identity
+                  verification again.
+                </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              Please log back in to your dashboard and resubmit your details.
-            </Text>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  Please log in to your dashboard to start a new verification.
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  Hi {partner.name}, your identity verification couldn't be
+                  completed because {failureReasonText}.
+                </Text>
+
+                <Text className="text-sm leading-6 text-neutral-600">
+                  Please log back in to your dashboard and resubmit your
+                  details.
+                </Text>
+              </>
+            )}
 
             <Section className="mb-10 mt-6">
               <Link

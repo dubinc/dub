@@ -154,7 +154,7 @@ export const handleDecisionEvent = async ({
         }),
       });
     } else if (
-      ["declined", "resubmissionRequested"].includes(effectiveStatus)
+      ["declined", "resubmission_requested"].includes(effectiveStatus)
     ) {
       await sendEmail({
         to: partner.email,
@@ -163,10 +163,11 @@ export const handleDecisionEvent = async ({
           "Idempotency-Key": `${attemptId}-verification-failed`,
         },
         react: PartnerIdentityVerificationFailed({
+          failureType: "declined",
+          failureReasonText: effectiveReason || "",
           partner: {
             name: partner.name,
             email: partner.email,
-            identityVerificationDeclineReason: effectiveReason || "",
           },
         }),
       });
