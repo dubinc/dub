@@ -60,7 +60,9 @@ async function main() {
 
     cursor = commissions[commissions.length - 1].id;
 
-    const commissionsToBackfill = commissions.filter((c) => c.id);
+    // Reset every batch (avoid accidental accumulation / re-inserts)
+    let commissionsToBackfill = [] as typeof commissions;
+    commissionsToBackfill = commissions.filter((c) => c.id);
 
     if (commissionsToBackfill.length === 0) {
       totalProcessed += commissions.length;
