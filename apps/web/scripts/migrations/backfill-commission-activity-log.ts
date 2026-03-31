@@ -35,7 +35,6 @@ async function main() {
         },
         payout: {
           select: {
-            createdAt: true,
             paidAt: true,
           },
         },
@@ -88,7 +87,7 @@ async function main() {
         activityLogs.push({
           ...base,
           action: "commission.updated",
-          createdAt: commission.payout?.createdAt,
+          createdAt: commission.updatedAt,
           changeSet: {
             commission: {
               old: {
