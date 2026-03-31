@@ -34,8 +34,8 @@ export function PageContentOld({
   return (
     <div
       className={cn(
-        "mt-3 bg-neutral-100 md:bg-white",
-        (hasTitle || hasDescription) && "md:mt-6 md:py-3",
+        "mt-3 bg-neutral-100 lg:bg-white",
+        (hasTitle || hasDescription) && "lg:mt-6 lg:py-3",
         className,
       )}
     >
@@ -61,7 +61,7 @@ export function PageContentOld({
                   </div>
                 )}
                 {hasDescription && (
-                  <p className="mt-1 hidden text-base text-neutral-500 md:block">
+                  <p className="mt-1 hidden text-base text-neutral-500 lg:block">
                     {description}
                   </p>
                 )}
@@ -69,10 +69,10 @@ export function PageContentOld({
             )}
           </div>
           {titleControls && (
-            <div className="hidden md:block">{titleControls}</div>
+            <div className="hidden lg:block">{titleControls}</div>
           )}
           {showControls && (
-            <div className="flex items-center gap-4 md:hidden">
+            <div className="flex items-center gap-4 lg:hidden">
               <HelpButton />
               <UserDropdown />
             </div>
@@ -81,13 +81,13 @@ export function PageContentOld({
       </MaxWidthWrapper>
       <div
         className={cn(
-          "bg-white pt-2.5 max-md:mt-3 max-md:rounded-t-[16px]",
+          "bg-white pt-2.5 max-lg:mt-3 max-lg:rounded-t-[16px]",
           contentWrapperClassName,
         )}
       >
         {hasDescription && (
           <MaxWidthWrapper>
-            <p className="mb-3 mt-1 text-base text-neutral-500 md:hidden">
+            <p className="mb-3 mt-1 text-base text-neutral-500 lg:hidden">
               {description}
             </p>
           </MaxWidthWrapper>
