@@ -12,17 +12,19 @@ import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import { useEditCommissionModal } from "@/ui/partners/edit-commission-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
-import { UserAvatar } from "@/ui/users/user-avatar";
 import {
+  Button,
   ChevronRight,
   InvoiceDollar,
   StatusBadge,
   Table,
   useTable,
 } from "@dub/ui";
+import { Pen2 } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -102,6 +104,9 @@ function CommissionDetailsContent({
 }) {
   const { groups } = useGroups();
   const group = groups?.find((g) => g.id === commission.partner.groupId);
+
+  const { openEditCommissionModal, EditCommissionModal } =
+    useEditCommissionModal();
 
   const statusBadge = CommissionStatusBadges[commission.status];
 
@@ -267,6 +272,7 @@ function CommissionDetailsContent({
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
+      <EditCommissionModal />
       <div className="order-last min-w-0 flex-1 lg:order-first">
         <Table {...itemsTable} />
 
@@ -275,9 +281,20 @@ function CommissionDetailsContent({
 
       <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
         <div className="rounded-xl border border-neutral-200 bg-white p-4">
-          <h3 className="text-content-emphasis mb-2 text-base font-semibold">
-            Commission details
-          </h3>
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-content-emphasis text-base font-semibold">
+              Commission details
+            </h3>
+            {commission.status !== "paid" && (
+              <Button
+                variant="secondary"
+                icon={<Pen2 className="size-3.5" />}
+                text="Edit"
+                className="h-7 w-fit rounded-lg px-2"
+                onClick={() => openEditCommissionModal(commission)}
+              />
+            )}
+          </div>
           <div className="flex flex-col gap-1">
             {Object.entries(detailRows).map(([key, value]) => (
               <div

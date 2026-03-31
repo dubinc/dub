@@ -9,6 +9,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, FraudGroupCountByPartner } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { useBulkEditCommissionsModal } from "@/ui/partners/bulk-edit-commissions-modal";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
@@ -19,6 +20,7 @@ import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
+  Button,
   EditColumnsButton,
   Filter,
   StatusBadge,
@@ -30,7 +32,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2 } from "@dub/ui/icons";
+import { MoneyBill2, Pen2 } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -132,6 +134,9 @@ export function CommissionsTable() {
   });
 
   const { canManageFraudEvents } = getPlanCapabilities(workspace?.plan ?? "");
+
+  const { openBulkEditCommissionsModal, BulkEditCommissionsModal } =
+    useBulkEditCommissionsModal();
 
   const columns = useMemo(
     () =>
@@ -315,7 +320,7 @@ export function CommissionsTable() {
     [slug, groups, program, workspace, fraudGroupCount],
   );
 
-  const table = useTable<CommissionResponse>({
+  const { table, ...tableProps } = useTable<CommissionResponse>({
     data: commissions || [],
     columns,
     columnPinning: { right: ["menu"] },
@@ -359,6 +364,30 @@ export function CommissionsTable() {
         )
       );
     },
+    getRowId: (row) => row.id,
+    selectionControls: (table) => {
+      const selectedCommissions = table
+        .getSelectedRowModel()
+        .rows.map((row) => row.original);
+
+      const hasPaidCommission = selectedCommissions.some(
+        (c) => c.status === "paid",
+      );
+      const exceedsLimit = selectedCommissions.length > 100;
+
+      return (
+        <Button
+          variant="primary"
+          text="Edit commissions"
+          icon={<Pen2 className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5"
+          disabled={hasPaidCommission || exceedsLimit}
+          onClick={() => {
+            openBulkEditCommissionsModal(selectedCommissions);
+          }}
+        />
+      );
+    },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `commission${p ? "s" : ""}`,
@@ -376,9 +405,10 @@ export function CommissionsTable() {
 
   return (
     <div className="flex flex-col gap-3">
+      <BulkEditCommissionsModal />
       <CommissionsFilters />
       {commissions?.length !== 0 || isLoading ? (
-        <Table {...table} />
+        <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
           title="No commissions found"
