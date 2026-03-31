@@ -42,7 +42,7 @@ function RejectionTooltipRow({
         <p
           className={
             valueClassName ??
-            "mt-0.5 text-xs font-reg leading-4 tracking-[-0.24px] text-neutral-500"
+            "mt-0.5 text-xs font-normal leading-4 tracking-[-0.24px] text-neutral-500"
           }
         >
           {value}
