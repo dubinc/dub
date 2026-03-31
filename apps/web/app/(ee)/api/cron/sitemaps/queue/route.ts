@@ -2,6 +2,7 @@ import { qstash } from "@/lib/cron";
 import { withCron } from "@/lib/cron/with-cron";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { parseTrackedSitemaps } from "@/lib/sitemaps/import-tracked-sitemaps";
+import { findVerifiedSiteLinksDomain } from "@/lib/sitemaps/site-visit-tracking";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { logAndRespond } from "../../utils";
@@ -13,7 +14,7 @@ export const GET = withCron(async () => {
   const workspaces = await prisma.project.findMany({
     select: {
       id: true,
-      trackedSitemaps: true,
+      siteVisitTrackingSettings: true,
     },
   });
 
@@ -27,11 +28,22 @@ export const GET = withCron(async () => {
   let withFeatureFlag = 0;
 
   for (const workspace of workspaces) {
-    const trackedSitemaps = parseTrackedSitemaps(workspace.trackedSitemaps);
+    const trackedSitemaps = parseTrackedSitemaps(
+      workspace.siteVisitTrackingSettings,
+    );
 
     if (trackedSitemaps.length === 0) {
       continue;
     }
+
+    const siteLinksDomain = await findVerifiedSiteLinksDomain(
+      workspace.id,
+      workspace.siteVisitTrackingSettings,
+    );
+    if (!siteLinksDomain) {
+      continue;
+    }
+
     withTrackedSitemaps++;
 
     const flags = await getFeatureFlags({

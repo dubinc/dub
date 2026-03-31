@@ -3,6 +3,7 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { DomainSelector } from "@/ui/domains/domain-selector";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
@@ -24,8 +25,9 @@ export function SiteVisitTrackingSection() {
   const switchId = useId();
   const workspace = useWorkspace();
   const { role, id, mutate } = workspace;
-  const trackedSitemaps = (workspace as { trackedSitemaps?: unknown })
-    .trackedSitemaps;
+  const siteVisitTrackingSettings = workspace.siteVisitTrackingSettings;
+  const trackedSitemaps = siteVisitTrackingSettings?.trackedSitemaps;
+  const siteDomainSlug = siteVisitTrackingSettings?.siteDomainSlug ?? "";
   const [newSitemapUrl, setNewSitemapUrl] = useState("");
   const [addingSitemap, setAddingSitemap] = useState(false);
   const [refreshingSitemapUrl, setRefreshingSitemapUrl] = useState<
@@ -88,6 +90,23 @@ export function SiteVisitTrackingSection() {
         },
       ];
 
+  const serializeSitemaps = (
+    input: {
+      url: string;
+      lastCrawledAt: Date | null;
+      lastUrlCount: number | null;
+    }[],
+  ) =>
+    input.map((sitemap) => ({
+      url: sitemap.url,
+      ...(sitemap.lastCrawledAt
+        ? { lastCrawledAt: sitemap.lastCrawledAt.toISOString() }
+        : {}),
+      ...(typeof sitemap.lastUrlCount === "number"
+        ? { lastUrlCount: sitemap.lastUrlCount }
+        : {}),
+    }));
+
   const normalizeSitemapUrl = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) {
@@ -106,6 +125,57 @@ export function SiteVisitTrackingSection() {
     }
   };
 
+  const persistSiteVisitTrackingSettings = async (payload: {
+    trackedSitemaps: {
+      url: string;
+      lastCrawledAt?: string;
+      lastUrlCount?: number;
+    }[];
+    siteDomainSlug?: string | null;
+  }) => {
+    if (!id) {
+      toast.error("Workspace is still loading. Please try again.");
+      return false;
+    }
+
+    const response = await fetch(`/api/workspaces/${id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        siteVisitTrackingSettings: payload,
+      }),
+    });
+
+    if (!response.ok) {
+      const { error } = await response.json();
+      toast.error(error?.message || "Failed to save settings.");
+      return false;
+    }
+
+    await mutate();
+    return true;
+  };
+
+  const setSiteDomainSlug = async (slug: string) => {
+    if (permissionsError) {
+      toast.error(permissionsError);
+      return;
+    }
+
+    const ok = await persistSiteVisitTrackingSettings({
+      trackedSitemaps: serializeSitemaps(trackedSitemapRows),
+      siteDomainSlug: slug ? slug : null,
+    });
+
+    if (ok) {
+      toast.success(
+        slug ? "Site links domain updated." : "Site links domain cleared.",
+      );
+    }
+  };
+
   const addSitemap = async () => {
     if (permissionsError) {
       toast.error(permissionsError);
@@ -114,6 +184,11 @@ export function SiteVisitTrackingSection() {
 
     if (!id) {
       toast.error("Workspace is still loading. Please try again.");
+      return;
+    }
+
+    if (!siteDomainSlug) {
+      toast.error("Select a short link domain before adding sitemaps.");
       return;
     }
 
@@ -136,30 +211,17 @@ export function SiteVisitTrackingSection() {
     setAddingSitemap(true);
 
     try {
-      const response = await fetch(`/api/workspaces/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          trackedSitemaps: [
-            ...sitemaps.map((sitemap) => ({
-              url: sitemap.url,
-              ...(sitemap.lastCrawledAt
-                ? { lastCrawledAt: sitemap.lastCrawledAt.toISOString() }
-                : {}),
-              ...(typeof sitemap.lastUrlCount === "number"
-                ? { lastUrlCount: sitemap.lastUrlCount }
-                : {}),
-            })),
-            {
-              url: normalizedSitemapUrl,
-            },
-          ],
-        }),
+      const ok = await persistSiteVisitTrackingSettings({
+        trackedSitemaps: [
+          ...serializeSitemaps(sitemaps),
+          {
+            url: normalizedSitemapUrl,
+          },
+        ],
+        siteDomainSlug,
       });
 
-      if (response.ok) {
+      if (ok) {
         const importResponse = await fetch(
           `/api/workspaces/${id}/sitemaps/import`,
           {
@@ -176,15 +238,17 @@ export function SiteVisitTrackingSection() {
         if (importResponse.ok) {
           toast.success("Sitemap added and crawled.");
         } else {
-          const { error } = await importResponse.json();
-          toast.error(error?.message || "Sitemap added, but crawl failed.");
+          try {
+            const { error } = await importResponse.json();
+            toast.error(error?.message || "Sitemap added, but crawl failed.");
+          } catch {
+            toast.error("Sitemap added, but crawl failed.");
+          }
         }
 
         setNewSitemapUrl("");
-        mutate();
-      } else {
-        const { error } = await response.json();
-        toast.error(error?.message || "Failed to add sitemap.");
+        // Import updates crawl metadata on the server; revalidate so the row shows last crawled / URL count.
+        await mutate();
       }
     } catch {
       toast.error("Network error, please try again or contact support.");
@@ -192,23 +256,6 @@ export function SiteVisitTrackingSection() {
       setAddingSitemap(false);
     }
   };
-
-  const serializeSitemaps = (
-    input: {
-      url: string;
-      lastCrawledAt: Date | null;
-      lastUrlCount: number | null;
-    }[],
-  ) =>
-    input.map((sitemap) => ({
-      url: sitemap.url,
-      ...(sitemap.lastCrawledAt
-        ? { lastCrawledAt: sitemap.lastCrawledAt.toISOString() }
-        : {}),
-      ...(typeof sitemap.lastUrlCount === "number"
-        ? { lastUrlCount: sitemap.lastUrlCount }
-        : {}),
-    }));
 
   const refreshSitemap = async (sitemapUrl: string) => {
     if (permissionsError) {
@@ -266,22 +313,12 @@ export function SiteVisitTrackingSection() {
     );
 
     try {
-      const response = await fetch(`/api/workspaces/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          trackedSitemaps: serializeSitemaps(remainingSitemaps),
-        }),
+      const ok = await persistSiteVisitTrackingSettings({
+        trackedSitemaps: serializeSitemaps(remainingSitemaps),
       });
 
-      if (response.ok) {
+      if (ok) {
         toast.success("Sitemap deleted.");
-        mutate();
-      } else {
-        const { error } = await response.json();
-        toast.error(error?.message || "Failed to delete sitemap.");
       }
     } catch {
       toast.error("Network error, please try again.");
@@ -339,6 +376,24 @@ export function SiteVisitTrackingSection() {
         initial={false}
       >
         <div className="flex flex-col gap-2 border-t border-neutral-200 p-3">
+          <div className="flex flex-col gap-2">
+            <div>
+              <label className="text-content-emphasis mb-1 block text-sm font-semibold">
+                Short link domain
+              </label>
+              <p className="text-content-subtle mb-2 text-xs font-medium">
+                Short links created from sitemap imports use this domain (must
+                be verified).
+              </p>
+              <DomainSelector
+                selectedDomain={siteDomainSlug}
+                setSelectedDomain={(slug) => void setSiteDomainSlug(slug)}
+                disabled={Boolean(permissionsError)}
+                disabledTooltip={permissionsError || undefined}
+              />
+            </div>
+          </div>
+
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-1">
               <h2 className="text-content-emphasis text-sm font-semibold">
@@ -365,7 +420,16 @@ export function SiteVisitTrackingSection() {
                     : toast.info("Coming soon")
                 }
                 loading={addingSitemap}
-                disabledTooltip={permissionsError || undefined}
+                disabled={
+                  Boolean(permissionsError) ||
+                  (siteVisitTrackingEnabled && !siteDomainSlug)
+                }
+                disabledTooltip={
+                  permissionsError ||
+                  (siteVisitTrackingEnabled && !siteDomainSlug
+                    ? "Select a short link domain first"
+                    : undefined)
+                }
               />
             </div>
           </div>

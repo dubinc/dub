@@ -1,12 +1,15 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { getOrCreateSiteLinksFolder } from "@/lib/sitemaps/get-or-create-site-links-folder";
 import {
   importTrackedSitemaps,
   parseTrackedSitemaps,
 } from "@/lib/sitemaps/import-tracked-sitemaps";
+import {
+  findVerifiedSiteLinksDomain,
+  getOrCreateSiteLinksFolder,
+  replaceTrackedSitemapsInColumn,
+} from "@/lib/sitemaps/site-visit-tracking";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -19,7 +22,9 @@ export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const { sitemapUrl } = bodySchema.parse(await req.json());
 
-    const trackedSitemaps = parseTrackedSitemaps(workspace.trackedSitemaps);
+    const trackedSitemaps = parseTrackedSitemaps(
+      workspace.siteVisitTrackingSettings,
+    );
 
     if (trackedSitemaps.length === 0) {
       throw new DubApiError({
@@ -39,21 +44,16 @@ export const POST = withWorkspace(
       });
     }
 
-    const selectedDomain = await prisma.domain.findFirst({
-      where: {
-        projectId: workspace.id,
-        primary: true,
-        archived: false,
-      },
-      select: {
-        slug: true,
-      },
-    });
+    const selectedDomain = await findVerifiedSiteLinksDomain(
+      workspace.id,
+      workspace.siteVisitTrackingSettings,
+    );
 
     if (!selectedDomain?.slug) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Primary domain not configured.",
+        message:
+          "Configure a verified site links domain in site visit tracking settings.",
       });
     }
 
@@ -80,10 +80,10 @@ export const POST = withWorkspace(
     // concurrent structural edits (add/delete) that happened during the import.
     const freshWorkspace = await prisma.project.findUnique({
       where: { id: workspace.id },
-      select: { trackedSitemaps: true },
+      select: { siteVisitTrackingSettings: true },
     });
     const freshTrackedSitemaps = parseTrackedSitemaps(
-      freshWorkspace?.trackedSitemaps,
+      freshWorkspace?.siteVisitTrackingSettings,
     );
 
     const mergedTrackedSitemaps = freshTrackedSitemaps.map((sitemap) => {
@@ -95,8 +95,10 @@ export const POST = withWorkspace(
         id: workspace.id,
       },
       data: {
-        trackedSitemaps:
-          mergedTrackedSitemaps as unknown as Prisma.InputJsonValue,
+        siteVisitTrackingSettings: replaceTrackedSitemapsInColumn(
+          freshWorkspace?.siteVisitTrackingSettings,
+          mergedTrackedSitemaps,
+        ),
       },
     });
 

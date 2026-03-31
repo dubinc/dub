@@ -1,10 +1,14 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { getFeatureFlags } from "@/lib/edge-config";
-import { getOrCreateSiteLinksFolder } from "@/lib/sitemaps/get-or-create-site-links-folder";
 import {
   importTrackedSitemaps,
   parseTrackedSitemaps,
 } from "@/lib/sitemaps/import-tracked-sitemaps";
+import {
+  findVerifiedSiteLinksDomain,
+  getOrCreateSiteLinksFolder,
+  replaceTrackedSitemapsInColumn,
+} from "@/lib/sitemaps/site-visit-tracking";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -26,7 +30,7 @@ export const POST = withCron(async ({ rawBody }) => {
     select: {
       id: true,
       slug: true,
-      trackedSitemaps: true,
+      siteVisitTrackingSettings: true,
     },
   });
 
@@ -48,7 +52,9 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const trackedSitemaps = parseTrackedSitemaps(workspace.trackedSitemaps);
+  const trackedSitemaps = parseTrackedSitemaps(
+    workspace.siteVisitTrackingSettings,
+  );
 
   if (trackedSitemaps.length === 0) {
     return logAndRespond(
@@ -56,20 +62,14 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const selectedDomain = await prisma.domain.findFirst({
-    where: {
-      projectId: workspace.id,
-      primary: true,
-      archived: false,
-    },
-    select: {
-      slug: true,
-    },
-  });
+  const selectedDomain = await findVerifiedSiteLinksDomain(
+    workspace.id,
+    workspace.siteVisitTrackingSettings,
+  );
 
   if (!selectedDomain?.slug) {
     return logAndRespond(
-      `Workspace ${workspace.slug} has no primary domain configured. Skipping...`,
+      `Workspace ${workspace.slug} has no verified site links domain configured. Skipping...`,
     );
   }
 
@@ -114,7 +114,10 @@ export const POST = withCron(async ({ rawBody }) => {
       id: workspace.id,
     },
     data: {
-      trackedSitemaps: updatedTrackedSitemaps,
+      siteVisitTrackingSettings: replaceTrackedSitemapsInColumn(
+        workspace.siteVisitTrackingSettings,
+        updatedTrackedSitemaps,
+      ),
     },
   });
 

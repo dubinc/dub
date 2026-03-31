@@ -32,69 +32,80 @@ const sitemapindexXml = (sitemaps: string[]) =>
 </sitemapindex>`;
 
 describe("parseTrackedSitemaps", () => {
-  it("returns empty array for non-array input", () => {
+  it("returns empty array for invalid top-level input", () => {
     expect(parseTrackedSitemaps(null)).toEqual([]);
     expect(parseTrackedSitemaps(undefined)).toEqual([]);
     expect(parseTrackedSitemaps("string")).toEqual([]);
     expect(parseTrackedSitemaps(42)).toEqual([]);
+    expect(parseTrackedSitemaps([])).toEqual([]);
     expect(parseTrackedSitemaps({})).toEqual([]);
   });
 
   it("filters out invalid items (null, primitives, objects without url)", () => {
-    expect(parseTrackedSitemaps([null, undefined, 42, "string", {}])).toEqual(
-      [],
-    );
+    expect(
+      parseTrackedSitemaps({
+        trackedSitemaps: [null, undefined, 42, "string", {}],
+      }),
+    ).toEqual([]);
   });
 
   it("filters out items with empty or whitespace-only URL", () => {
-    expect(parseTrackedSitemaps([{ url: "" }, { url: "   " }])).toEqual([]);
+    expect(
+      parseTrackedSitemaps({
+        trackedSitemaps: [{ url: "" }, { url: "   " }],
+      }),
+    ).toEqual([]);
   });
 
   it("trims URL whitespace", () => {
-    const result = parseTrackedSitemaps([
-      { url: "  https://example.com/sitemap.xml  " },
-    ]);
+    const result = parseTrackedSitemaps({
+      trackedSitemaps: [{ url: "  https://example.com/sitemap.xml  " }],
+    });
     expect(result).toEqual([{ url: "https://example.com/sitemap.xml" }]);
   });
 
   it("preserves optional metadata fields when valid", () => {
-    const input = [
+    const trackedSitemaps = [
       {
         url: "https://example.com/sitemap.xml",
         lastCrawledAt: "2026-03-23T00:00:00.000Z",
         lastUrlCount: 42,
       },
     ];
-    expect(parseTrackedSitemaps(input)).toEqual(input);
+    expect(parseTrackedSitemaps({ trackedSitemaps })).toEqual(trackedSitemaps);
   });
 
   it("omits lastCrawledAt when not a string", () => {
     expect(
-      parseTrackedSitemaps([
-        { url: "https://example.com/sitemap.xml", lastCrawledAt: 12345 },
-      ]),
+      parseTrackedSitemaps({
+        trackedSitemaps: [
+          { url: "https://example.com/sitemap.xml", lastCrawledAt: 12345 },
+        ],
+      }),
     ).toEqual([{ url: "https://example.com/sitemap.xml" }]);
   });
 
   it("omits lastUrlCount when not a number", () => {
     expect(
-      parseTrackedSitemaps([
-        {
-          url: "https://example.com/sitemap.xml",
-          lastUrlCount: "not-a-number",
-        },
-      ]),
+      parseTrackedSitemaps({
+        trackedSitemaps: [
+          {
+            url: "https://example.com/sitemap.xml",
+            lastUrlCount: "not-a-number",
+          },
+        ],
+      }),
     ).toEqual([{ url: "https://example.com/sitemap.xml" }]);
   });
 
   it("handles mixed valid/invalid items in the same array", () => {
-    const input = [
+    const trackedSitemaps = [
       null,
       { url: "https://a.com/sitemap.xml" },
       { url: "" },
       { url: "https://b.com/sitemap.xml", lastUrlCount: 10 },
     ];
-    expect(parseTrackedSitemaps(input)).toEqual([
+    expect(parseTrackedSitemaps({ trackedSitemaps })).toEqual([
       { url: "https://a.com/sitemap.xml" },
       { url: "https://b.com/sitemap.xml", lastUrlCount: 10 },
     ]);
@@ -180,7 +191,9 @@ describe("crawlSitemapUrls", () => {
           ),
         );
 
-      const { urls } = await crawlSitemapUrls("https://example.com/sitemap.xml");
+      const { urls } = await crawlSitemapUrls(
+        "https://example.com/sitemap.xml",
+      );
 
       expect(mockFetch).toHaveBeenCalledTimes(2);
       expect(urls).toContain("https://example.com/page-1");
@@ -325,7 +338,9 @@ describe("crawlSitemapUrls", () => {
       const xml = urlsetXml(["https://example.com/page-1"]);
       mockFetch.mockResolvedValue(makeFetchResponse(Buffer.from(xml)));
 
-      const { urls } = await crawlSitemapUrls("https://example.com/sitemap.xml");
+      const { urls } = await crawlSitemapUrls(
+        "https://example.com/sitemap.xml",
+      );
 
       expect(urls).toContain("https://example.com/page-1");
     });

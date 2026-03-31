@@ -1,7 +1,7 @@
 import {
   getOrCreateSiteLinksFolder,
   SITE_LINKS_FOLDER_NAME,
-} from "@/lib/sitemaps/get-or-create-site-links-folder";
+} from "@/lib/sitemaps/site-visit-tracking";
 import { prisma } from "@dub/prisma";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -29,13 +29,10 @@ describe("getOrCreateSiteLinksFolder", () => {
     vi.mocked(prisma.folder.upsert).mockReset();
   });
 
-  it("returns stored folder id when it still exists in the workspace", async () => {
+  it("returns stored folder id from the column when it still exists", async () => {
     vi.mocked(prisma.project.findUnique).mockResolvedValue({
-      store: {
-        siteVisitTrackingSettings: {
-          siteLinksFolderId: "fold_existing",
-        },
-        otherKey: true,
+      siteVisitTrackingSettings: {
+        siteLinksFolderId: "fold_existing",
       },
     } as never);
 
@@ -50,13 +47,10 @@ describe("getOrCreateSiteLinksFolder", () => {
     expect(prisma.project.update).not.toHaveBeenCalled();
   });
 
-  it("upserts by name when stored id is missing or stale, then merges store", async () => {
+  it("upserts by name when stored id is missing or stale, then persists to column", async () => {
     vi.mocked(prisma.project.findUnique).mockResolvedValue({
-      store: {
-        otherKey: "keep-me",
-        siteVisitTrackingSettings: {
-          siteLinksFolderId: "fold_deleted",
-        },
+      siteVisitTrackingSettings: {
+        siteLinksFolderId: "fold_deleted",
       },
     } as never);
 
@@ -90,14 +84,11 @@ describe("getOrCreateSiteLinksFolder", () => {
 
     expect(prisma.project.update).toHaveBeenCalledWith({
       where: { id: projectId },
-      data: expect.objectContaining({
-        store: expect.objectContaining({
-          otherKey: "keep-me",
-          siteVisitTrackingSettings: {
-            siteLinksFolderId: "fold_from_upsert",
-          },
+      data: {
+        siteVisitTrackingSettings: expect.objectContaining({
+          siteLinksFolderId: "fold_from_upsert",
         }),
-      }),
+      },
     });
   });
 });

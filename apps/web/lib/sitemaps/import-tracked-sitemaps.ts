@@ -1,14 +1,12 @@
 import { bulkCreateLinks } from "@/lib/api/links/bulk-create-links";
 import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
+import type { TrackedSitemap } from "@/lib/sitemaps/site-visit-tracking";
 import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { XMLParser } from "fast-xml-parser";
 
-export interface TrackedSitemap {
-  url: string;
-  lastCrawledAt?: string;
-  lastUrlCount?: number;
-}
+export { parseTrackedSitemaps } from "@/lib/sitemaps/site-visit-tracking";
+export type { TrackedSitemap } from "@/lib/sitemaps/site-visit-tracking";
 
 type SitemapXmlUrlEntry = {
   loc?: string;
@@ -24,37 +22,6 @@ type SitemapXmlResult = {
 };
 
 const parser = new XMLParser();
-
-export function parseTrackedSitemaps(value: unknown): TrackedSitemap[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value
-    .map((item) => {
-      if (!item || typeof item !== "object") {
-        return null;
-      }
-
-      const sitemap = item as TrackedSitemap;
-      const url = typeof sitemap.url === "string" ? sitemap.url.trim() : "";
-
-      if (!url) {
-        return null;
-      }
-
-      return {
-        url,
-        ...(typeof sitemap.lastCrawledAt === "string"
-          ? { lastCrawledAt: sitemap.lastCrawledAt }
-          : {}),
-        ...(typeof sitemap.lastUrlCount === "number"
-          ? { lastUrlCount: sitemap.lastUrlCount }
-          : {}),
-      };
-    })
-    .filter((sitemap): sitemap is TrackedSitemap => Boolean(sitemap));
-}
 
 function toArray<T>(value: T | T[] | undefined): T[] {
   if (!value) {

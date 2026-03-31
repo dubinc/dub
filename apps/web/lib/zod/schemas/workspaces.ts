@@ -1,3 +1,4 @@
+import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
@@ -9,12 +10,10 @@ import {
   roleSchema,
   uploadedImageSchema,
 } from "./misc";
-
-export const trackedSitemapSchema = z.object({
-  url: z.string().url(),
-  lastCrawledAt: z.string().optional(),
-  lastUrlCount: z.number().int().nonnegative().optional(),
-});
+export {
+  siteVisitTrackingSettingsPatchSchema,
+  trackedSitemapSchema,
+} from "./site-visit-tracking";
 
 export const workspaceIdSchema = z.object({
   workspaceId: z
@@ -144,13 +143,11 @@ export const WorkspaceSchema = z
       .record(z.string(), z.any())
       .nullable()
       .describe("The miscellaneous key-value store of the workspace."),
-    trackedSitemaps: z
-      .array(trackedSitemapSchema)
+    siteVisitTrackingSettings: workspaceSiteVisitTrackingSettingsFieldSchema
       .nullable()
       .optional()
-      .transform((value) => value ?? null)
       .describe(
-        "Configured sitemap sources for site visit tracking and their latest crawl metadata.",
+        "Site visit tracking: sitemaps, short-link domain slug, and Site Links folder id.",
       ),
     allowedHostnames: z
       .array(z.string())
@@ -219,10 +216,6 @@ export const OnboardingUsageSchema = z.object({
   partners: z.boolean(),
 });
 
-export const siteVisitTrackingSettingsSchema = z.object({
-  siteLinksFolderId: z.string().optional(),
-});
-
 export const workspaceStoreKeys = z.enum([
   "onboardingUsage", // json
   "programOnboarding", // json
@@ -235,7 +228,6 @@ export const workspaceStoreKeys = z.enum([
   "analyticsSettingsConnectionSetupComplete", // boolean
   "analyticsSettingsLeadTrackingSetupComplete", // boolean
   "analyticsSettingsSaleTrackingSetupComplete", // boolean
-  "siteVisitTrackingSettings", // { siteLinksFolderId?: string }
 ]);
 
 export const getWorkspaceUsersQuerySchema = z.object({
