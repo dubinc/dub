@@ -846,7 +846,7 @@ export const bulkApprovePartnersSchema = z.object({
 });
 
 /** Max length for optional `rejectionNote` on `ProgramApplication`. */
-export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 5000;
+export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
 
 export const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
