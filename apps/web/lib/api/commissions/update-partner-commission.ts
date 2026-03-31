@@ -186,6 +186,14 @@ export async function updatePartnerCommission({
   const updatedCommission = await prisma.commission.update({
     where: {
       id: commission.id,
+      status: {
+        not: "paid",
+      },
+      payout: {
+        status: {
+          in: MUTABLE_PAYOUT_STATUSES,
+        },
+      },
     },
     data: {
       // if the sale/commission is fully refunded, we don't need to update the amount or earnings
@@ -240,6 +248,14 @@ export async function updatePartnerCommission({
         where: {
           id: {
             in: relatedCommissions.map(({ id }) => id),
+          },
+          status: {
+            not: "paid",
+          },
+          payout: {
+            status: {
+              in: MUTABLE_PAYOUT_STATUSES,
+            },
           },
         },
         data: {
