@@ -33,12 +33,14 @@ export const POST = withWorkspace(
 
     const { canTrackConversions } = getPlanCapabilities(workspace.plan);
 
-    if ("key" in params) {
-      const { domain, key } = params;
+    if ("linkId" in params || ("domain" in params && "key" in params)) {
       const link = await getLinkOrThrow({
         workspaceId: workspace.id,
-        domain,
-        key,
+        ...("linkId" in params
+          ? { linkId: params.linkId }
+          : "domain" in params && "key" in params
+            ? { domain: params.domain, key: params.key }
+            : {}),
       });
 
       if (link.folderId) {

@@ -37,3 +37,17 @@ export function wouldLosePartnerAccess({
   // Losing access means going from having access to not having access
   return hasCurrentAccess && !hasNewAccess;
 }
+
+// Check if changing from currentPlan to newPlan would gain partner access
+export function wouldGainPartnerAccess({
+  currentPlan,
+  newPlan,
+}: {
+  currentPlan: string;
+  newPlan: string;
+}): boolean {
+  const hasCurrentAccess = planHasPartnerAccess(currentPlan);
+  const hasNewAccess = planHasPartnerAccess(newPlan);
+
+  return !hasCurrentAccess && hasNewAccess;
+}

@@ -101,15 +101,13 @@ function StablecoinPayoutModal({
               <strong className="underline underline-offset-2">
                 correct stablecoin wallet address and network
               </strong>{" "}
-              when connecting your wallet.
-              <br />
-              <br />
-              Since stablecoin payouts are irreversible, incorrect details may
-              result in payout failures and lost funds.
+              when connecting your wallet. Since stablecoin payouts are
+              irreversible, incorrect details may result in payout failures and
+              lost funds.
             </p>
           </div>
 
-          <div className="mt-4">
+          <div className="mt-2">
             <label className="mb-4 flex cursor-pointer gap-3 rounded-lg border border-neutral-300 p-3">
               <div className="flex h-5 items-center">
                 <input
@@ -120,9 +118,8 @@ function StablecoinPayoutModal({
                 />
               </div>
               <span className="text-sm leading-5 text-neutral-900">
-                I acknowledge that I will triple-check my stablecoin wallet
-                address and network, and any payout failures due to incorrect
-                details will be my sole responsibility.
+                I acknowledge that any payout failures due to incorrect details
+                will be my sole responsibility.
               </span>
             </label>
 

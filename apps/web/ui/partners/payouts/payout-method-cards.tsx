@@ -44,12 +44,10 @@ export function PayoutMethodSelector({
   payoutMethods,
   variant: variantProp,
   actionFooter,
-  allowConnectWhenPayoutsEnabled,
 }: {
   payoutMethods: PartnerPayoutMethodSetting[];
   variant?: "default" | "compact";
   actionFooter?: (setting: PartnerPayoutMethodSetting) => ReactNode;
-  allowConnectWhenPayoutsEnabled?: boolean;
 }) {
   const filteredMethods = PAYOUT_METHODS.filter((m) =>
     payoutMethods.some((s) => s.type === m.id),
@@ -98,7 +96,6 @@ export function PayoutMethodSelector({
                   "w-full rounded-lg",
                   isSingleOption ? "h-10" : "h-9",
                 )}
-                allowWhenPayoutsEnabled={allowConnectWhenPayoutsEnabled}
               />
             }
             actionFooter={actionFooter?.(setting)}

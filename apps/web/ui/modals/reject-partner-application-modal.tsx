@@ -1,17 +1,40 @@
 import { rejectPartnerApplicationAction } from "@/lib/actions/partners/reject-partner-application";
+import {
+  getProgramApplicationRejectionReasonLabel,
+  PROGRAM_APPLICATION_REJECTION_REASON_ORDER,
+} from "@/lib/partners/program-application-rejection";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
+import { PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { Button, Checkbox, Modal, useKeyboardShortcut } from "@dub/ui";
+import { ProgramApplicationRejectionReason } from "@dub/prisma/client";
+import {
+  Button,
+  Checkbox,
+  Combobox,
+  ComboboxOption,
+  Modal,
+  useKeyboardShortcut,
+} from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
+  useId,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
+
+const REJECTION_REASON_COMBO_OPTIONS: ComboboxOption[] =
+  PROGRAM_APPLICATION_REJECTION_REASON_ORDER.map((value) => ({
+    value,
+    label: getProgramApplicationRejectionReasonLabel(value),
+  }));
 
 interface RejectPartnerApplicationModalProps {
   showRejectPartnerApplicationModal: boolean;
@@ -32,17 +55,33 @@ export function RejectPartnerApplicationModal({
   confirmShortcutOptions,
 }: RejectPartnerApplicationModalProps) {
   const { id: workspaceId } = useWorkspace();
-  const [reportFraud, setReportFraud] = useState(false);
+  const allowReapplyCheckboxId = useId();
+  const allowImmediateReapplyOutcomeRef = useRef(false);
+
+  const [selectedReason, setSelectedReason] = useState<ComboboxOption | null>(
+    null,
+  );
+  const [rejectionNote, setRejectionNote] = useState("");
+  const [allowImmediateReapply, setAllowImmediateReapply] = useState(false);
+
+  useEffect(() => {
+    if (!showRejectPartnerApplicationModal) {
+      setSelectedReason(null);
+      setRejectionNote("");
+      setAllowImmediateReapply(false);
+    }
+  }, [showRejectPartnerApplicationModal]);
 
   const { executeAsync: rejectPartnerApplication, isPending } = useAction(
     rejectPartnerApplicationAction,
     {
       onSuccess: async () => {
         toast.success(
-          `Partner ${partner.email} has been rejected from your program.`,
+          allowImmediateReapplyOutcomeRef.current
+            ? `Application rejected — ${partner.email} can reapply immediately.`
+            : `Partner ${partner.email} has been rejected from your program.`,
         );
         setShowRejectPartnerApplicationModal(false);
-        setReportFraud(false);
         await onConfirm?.();
       },
       onError: ({ error }) => {
@@ -54,16 +93,29 @@ export function RejectPartnerApplicationModal({
   const handleConfirm = useCallback(async () => {
     if (!workspaceId || !partner) return;
 
+    allowImmediateReapplyOutcomeRef.current = allowImmediateReapply;
+
     await rejectPartnerApplication({
       workspaceId,
       partnerId: partner.id,
-      reportFraud,
+      allowImmediateReapply,
+      ...(selectedReason && {
+        rejectionReason:
+          selectedReason.value as ProgramApplicationRejectionReason,
+      }),
+      ...(rejectionNote ? { rejectionNote } : {}),
     });
-  }, [workspaceId, partner, reportFraud, rejectPartnerApplication]);
+  }, [
+    workspaceId,
+    partner,
+    rejectPartnerApplication,
+    selectedReason,
+    rejectionNote,
+    allowImmediateReapply,
+  ]);
 
   const handleClose = useCallback(() => {
     setShowRejectPartnerApplicationModal(false);
-    setReportFraud(false);
   }, [setShowRejectPartnerApplicationModal]);
 
   useKeyboardShortcut("r", handleConfirm, {
@@ -97,26 +149,85 @@ export function RejectPartnerApplicationModal({
             </div>
           </div>
 
-          <p className="text-sm text-neutral-600">
-            This will reject the partner application and prevent them from
-            joining your program.
-          </p>
-
-          <label className="flex items-start gap-2.5">
-            <Checkbox
-              className="mt-1 size-4 rounded border-neutral-300 focus:border-neutral-500 focus:ring-neutral-500 focus-visible:border-neutral-500 focus-visible:ring-neutral-500 data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
-              checked={reportFraud}
-              onCheckedChange={(checked) => setReportFraud(Boolean(checked))}
+          <div>
+            <label className="block text-sm font-medium text-neutral-900">
+              Reason for rejection (optional)
+            </label>
+            <Combobox
+              options={REJECTION_REASON_COMBO_OPTIONS}
+              selected={selectedReason}
+              setSelected={setSelectedReason}
+              placeholder="Select"
+              hideSearch
+              caret
+              matchTriggerWidth
+              buttonProps={{
+                className: cn(
+                  "mt-1.5 h-9 w-full justify-start border border-neutral-300 bg-white px-3 shadow-sm",
+                  "data-[state=open]:border-neutral-500 data-[state=open]:ring-1 data-[state=open]:ring-neutral-500",
+                  "focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500",
+                  !selectedReason && "text-neutral-400",
+                ),
+              }}
             />
-            <span className="text-sm text-neutral-600">
-              Select this if you believe the application shows signs of fraud.
-              This helps keep the network safe.
-            </span>
-          </label>
+            <p className="mt-1.5 text-xs text-neutral-500">
+              Included in rejection email
+            </p>
+          </div>
+
+          <div>
+            <label
+              htmlFor="reject-rejection-note"
+              className="block text-sm font-medium text-neutral-900"
+            >
+              Additional notes (optional)
+            </label>
+            <div className="relative mt-1.5 rounded-md shadow-sm">
+              <textarea
+                id="reject-rejection-note"
+                rows={4}
+                maxLength={PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH}
+                placeholder="Add context for the partner (optional)"
+                value={rejectionNote}
+                onChange={(e) => setRejectionNote(e.target.value)}
+                disabled={isPending}
+                className={cn(
+                  "block w-full resize-y rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400",
+                  "focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500",
+                )}
+              />
+            </div>
+            <p className="mt-1.5 text-xs text-neutral-500">
+              Included in rejection email
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <div className="flex gap-2">
+              <Checkbox
+                id={allowReapplyCheckboxId}
+                checked={allowImmediateReapply}
+                onCheckedChange={(checked) =>
+                  setAllowImmediateReapply(checked === true)
+                }
+                disabled={isPending}
+              />
+              <label
+                htmlFor={allowReapplyCheckboxId}
+                className="select-none text-sm font-medium text-neutral-700"
+              >
+                Allow partner to reapply immediately
+              </label>
+            </div>
+            <p className="pl-7 text-xs text-neutral-500">
+              This will skip the 30 day waiting period and allow the partner to
+              resubmit another application.
+            </p>
+          </div>
         </div>
       )}
 
-      <div className="flex items-center justify-end gap-2 bg-neutral-50 px-4 pb-5 sm:px-6">
+      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4">
         <Button
           variant="secondary"
           text="Cancel"

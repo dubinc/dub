@@ -4,8 +4,10 @@ import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
 import { LearnMoreButton } from "@/ui/placeholders/learn-more-button";
+import { prisma } from "@dub/prisma";
 import { GlobeSearch } from "@dub/ui";
 import { cn, constructMetadata } from "@dub/utils";
+import { redirect } from "next/navigation";
 
 export const revalidate = false; // cache indefinitely
 
@@ -26,7 +28,20 @@ export function generateStaticParams() {
   return [];
 }
 
-export default async function NotFoundLinkPage() {
+export default async function NotFoundLinkPage(props: {
+  params: Promise<{ domain: string }>;
+}) {
+  const { domain } = await props.params;
+  const domainData = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+    },
+  });
+
+  if (domainData?.notFoundUrl) {
+    redirect(domainData.notFoundUrl);
+  }
+
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <Hero>
