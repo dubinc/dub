@@ -1,6 +1,9 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
-import { updateCommissionSchema } from "@/lib/zod/schemas/commissions";
+import {
+  PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE,
+  updateCommissionSchema,
+} from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { Commission } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -47,6 +50,7 @@ export async function updatePartnerCommission({
         select: {
           id: true,
           amount: true,
+          status: true,
         },
       },
       partner: {
@@ -68,6 +72,18 @@ export async function updatePartnerCommission({
     throw new DubApiError({
       code: "bad_request",
       message: `Cannot update commission: Commission ${commissionId} has already been paid.`,
+    });
+  }
+
+  if (
+    commission.payout &&
+    PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE.includes(
+      commission.payout.status,
+    )
+  ) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Cannot update commission: Its payout is already ${commission.payout.status}.`,
     });
   }
 

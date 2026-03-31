@@ -1,5 +1,9 @@
 import { DATE_RANGE_INTERVAL_PRESETS } from "@/lib/analytics/constants";
-import { CommissionStatus, CommissionType } from "@dub/prisma/client";
+import {
+  CommissionStatus,
+  CommissionType,
+  PayoutStatus,
+} from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
@@ -238,6 +242,13 @@ export const updateCommissionSchema = z.object({
   amount: z.number().min(0).optional().meta({ deprecated: true }),
   modifyAmount: z.number().optional().meta({ deprecated: true }),
 });
+
+export const PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE: PayoutStatus[] = [
+  "processing",
+  "processed",
+  "sent",
+  "completed",
+];
 
 export const bulkUpdateCommissionsSchema = z.object({
   commissionIds: z

@@ -1,4 +1,7 @@
-import { bulkUpdateCommissionsSchema } from "@/lib/zod/schemas/commissions";
+import {
+  bulkUpdateCommissionsSchema,
+  PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE,
+} from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
@@ -38,6 +41,12 @@ export async function bulkUpdatePartnerCommissions({
           workspaceId: true,
         },
       },
+      payout: {
+        select: {
+          id: true,
+          status: true,
+        },
+      },
     },
     orderBy: {
       id: "asc",
@@ -60,6 +69,19 @@ export async function bulkUpdatePartnerCommissions({
     throw new DubApiError({
       code: "bad_request",
       message: `Cannot update commissions: The following commission(s) have already been paid: ${paidIds.join(", ")}`,
+    });
+  }
+
+  const blockedByPayout = commissions.filter(
+    (c) =>
+      c.payout &&
+      PAYOUT_STATUSES_BLOCKING_COMMISSION_UPDATE.includes(c.payout.status),
+  );
+
+  if (blockedByPayout.length > 0) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Cannot update commissions: ${blockedByPayout.map((c) => `${c.id} (its payout is already ${c.payout!.status})`).join(", ")}`,
     });
   }
 
