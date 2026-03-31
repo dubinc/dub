@@ -62,7 +62,7 @@ export function PayoutProvider({
         <ConnectPayoutButton text="Connect payouts" />
 
         <Link
-          href={next ?? "/programs"}
+          href="/programs"
           className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
         >
           I'll complete this later
