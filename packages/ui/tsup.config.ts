@@ -14,7 +14,7 @@ export default defineConfig((options: Options) => ({
   },
   dts: true,
   minify: true,
-  clean: true,
+  clean: process.env.VERCEL === "1",
   external: ["react"],
   ...options,
 }));
