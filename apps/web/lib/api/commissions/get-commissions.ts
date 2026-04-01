@@ -72,9 +72,7 @@ export async function getCommissions(filters: CommissionsFilters) {
       },
     });
 
-    eventIds = fraudEvents
-      .map((e) => e.eventId)
-      .filter((id): id is string => id !== null);
+    eventIds = fraudEvents.map((e) => e.eventId!);
   }
 
   const { startDate, endDate } = getStartEndDates({

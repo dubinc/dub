@@ -2,6 +2,7 @@
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
@@ -23,11 +24,11 @@ import {
 } from "@dub/ui";
 import { cn, formatDateTime } from "@dub/utils";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
+import { useMarkAllAsFraudModal } from "./mark-all-as-fraud-modal";
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
 import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
 import { ResolvedFraudGroupTable } from "./resolved-fraud-group-table";
@@ -54,7 +55,16 @@ function FraudReviewSheetContent({
 }: FraudReviewSheetProps) {
   const { partner, user } = fraudGroup;
 
-  const { slug } = useParams();
+  const { slug } = useWorkspace();
+
+  const { setShowMarkAllAsFraudModal, MarkAllAsFraudModal } =
+    useMarkAllAsFraudModal({
+      fraudGroup,
+      onConfirm: async () => {
+        onNext?.();
+        mutatePrefix("/api/fraud/groups");
+      },
+    });
 
   const { setShowResolveFraudGroupModal, ResolveFraudGroupModal } =
     useResolveFraudGroupModal({
@@ -112,6 +122,7 @@ function FraudReviewSheetContent({
       {ResolveFraudGroupModal}
       {RejectPartnerApplicationModal}
       <BanPartnerModal />
+      {MarkAllAsFraudModal}
       <div
         className={cn("flex h-full flex-col transition-opacity duration-200")}
       >
@@ -240,6 +251,7 @@ function FraudReviewSheetContent({
                       variant="secondary"
                       text="Mark all as fraud"
                       className="h-7 w-fit shrink-0 rounded-lg px-2.5 py-2"
+                      onClick={() => setShowMarkAllAsFraudModal(true)}
                     />
                   </div>
                   <CommissionsOnHoldTable fraudGroup={fraudGroup} />
