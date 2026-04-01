@@ -6,6 +6,7 @@ import {
   booleanQuerySchema,
   getCursorPaginationQuerySchema,
   getPaginationQuerySchema,
+  preprocessLinkPreviewImage,
   publicHostedImageSchema,
 } from "./misc";
 import { LinkTagSchema } from "./tags";
@@ -550,7 +551,10 @@ export const createLinkBodySchema = z.object({
 });
 
 export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
-  image: z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
+  image: z.preprocess(
+    preprocessLinkPreviewImage,
+    z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
+  ),
 });
 
 export const updateLinkBodySchema = createLinkBodySchemaAsync

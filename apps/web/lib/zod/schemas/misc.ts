@@ -3,6 +3,7 @@ import { WorkspaceRole } from "@dub/prisma/client";
 import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
 import { fileTypeFromBuffer } from "file-type";
 import * as z from "zod/v4";
+import { linkPreviewImageBase64PrefixRegex } from "./utils";
 
 export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 18, 24, 36, 48];
 
@@ -101,7 +102,7 @@ export const maxDurationSchema = z.coerce
 export const base64ImageSchema = z
   .string()
   .trim()
-  .regex(/^data:image\/(png|jpeg|jpg|gif|webp);base64,/, {
+  .regex(linkPreviewImageBase64PrefixRegex, {
     message: "Invalid image format, supports only png, jpeg, jpg, gif, webp.",
   })
   .refine(
@@ -186,3 +187,15 @@ export const publicHostedImageSchema = z
   .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
     message: "Image URL must start with http:// or https://",
   });
+
+/** Coerce unusable preview strings (e.g. data:favicons) to null before create/update link validation. */
+export function preprocessLinkPreviewImage(val: unknown): unknown {
+  if (val === undefined) return undefined;
+  if (val === null || val === "") return null;
+  if (typeof val !== "string") return null;
+  const s = val.trim();
+  if (s === "") return null;
+  if (s.startsWith("http://") || s.startsWith("https://")) return s;
+  if (linkPreviewImageBase64PrefixRegex.test(s)) return s;
+  return null;
+}
