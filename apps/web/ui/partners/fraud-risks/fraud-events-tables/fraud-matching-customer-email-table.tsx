@@ -22,9 +22,9 @@ const MATCH_TYPE_LABELS: Record<CustomerEmailMatchType, string> = {
 };
 
 export function FraudMatchingCustomerEmailTable({
-  showMatchType = true,
+  showMatchType,
 }: {
-  showMatchType?: boolean;
+  showMatchType: boolean;
 }) {
   const { slug: workspaceSlug } = useWorkspace();
 
