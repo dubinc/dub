@@ -25,8 +25,6 @@ interface WithPartnerProfileHandler {
     session,
     partner,
     partnerUser,
-    assignedProgramIds,
-    assignedLinkIds,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -34,9 +32,10 @@ interface WithPartnerProfileHandler {
     headers?: Headers;
     session: Session;
     partner: Omit<PartnerProps, "role" | "userId">;
-    partnerUser: Pick<PartnerUser, "id" | "userId" | "role">;
-    assignedProgramIds: string[];
-    assignedLinkIds: string[];
+    partnerUser: Pick<PartnerUser, "id" | "userId" | "role"> & {
+      assignedProgramIds: string[];
+      assignedLinkIds: string[];
+    };
   }): Promise<Response>;
 }
 
@@ -318,9 +317,9 @@ export const withPartnerProfile = (
             id: partnerUser.id,
             userId: partnerUser.userId,
             role: partnerUser.role,
+            assignedProgramIds,
+            assignedLinkIds,
           },
-          assignedProgramIds,
-          assignedLinkIds,
           headers: responseHeaders,
         });
       } catch (error) {

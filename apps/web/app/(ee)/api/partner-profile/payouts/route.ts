@@ -8,7 +8,7 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/payouts - get all payouts for a partner
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams, assignedProgramIds }) => {
+  async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
     const {
       programId,
       status,

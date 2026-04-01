@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/payouts/count – get payouts count for a partner
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams, assignedProgramIds }) => {
+  async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
     const { programId, groupBy, status } =
       payoutsCountQuerySchema.parse(searchParams);
 

@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages - get messages grouped by program
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams, assignedProgramIds }) => {
+  async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
     const {
       programSlug,
       sortBy,

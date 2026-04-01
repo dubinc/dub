@@ -8,7 +8,7 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs - get all program enrollments for a given partnerId
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams, assignedProgramIds }) => {
+  async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
     const { includeRewardsDiscounts, status } =
       partnerProfileProgramsQuerySchema.parse(searchParams);
 
