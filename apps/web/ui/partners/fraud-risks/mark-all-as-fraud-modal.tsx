@@ -53,7 +53,7 @@ function MarkAllAsFraudModal({
     },
   });
 
-  const { data: commissions } = useSWR<CommissionResponse[]>(
+  const { data: commissions, isLoading } = useSWR<CommissionResponse[]>(
     workspaceId
       ? `/api/commissions?${new URLSearchParams({
           workspaceId,
@@ -270,6 +270,7 @@ function MarkAllAsFraudModal({
                 text={resolveFraudEvent ? "Save and resolve" : "Save"}
                 className="h-8 w-fit rounded-lg"
                 loading={isSaving}
+                disabled={isLoading}
               />
             </div>
           </div>
