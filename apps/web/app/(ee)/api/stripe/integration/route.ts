@@ -18,9 +18,13 @@ const CORS_HEADERS = new Headers({
 export const PATCH = withWorkspace(
   async ({ req, workspace, session, token }) => {
     const body = await parseRequestBody(req);
-    const { stripeAccountId } = z
+    const { stripeAccountId, stripeMode } = z
       .object({
         stripeAccountId: z.string().nullable(),
+        stripeMode: z
+          .enum(["live", "test", "sandbox"])
+          .optional()
+          .default("live"),
       })
       .parse(body);
 
@@ -37,6 +41,7 @@ export const PATCH = withWorkspace(
       },
       select: {
         integrationId: true,
+        settings: true,
       },
     });
 

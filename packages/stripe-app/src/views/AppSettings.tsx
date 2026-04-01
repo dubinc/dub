@@ -58,6 +58,7 @@ const AppSettings = ({
       await updateWorkspace({
         token,
         accountId: null,
+        stripeMode: environment.mode,
       });
     }
 
@@ -101,6 +102,7 @@ const AppSettings = ({
     await updateWorkspace({
       token,
       accountId: userContext.account.id,
+      stripeMode: environment.mode,
     });
 
     await setSecret({
