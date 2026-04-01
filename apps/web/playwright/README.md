@@ -29,11 +29,6 @@
 
    # Optional — defaults to http://partners.localhost:8888
    PLAYWRIGHT_BASE_URL=http://partners.localhost:8888
-
-   # Optional — dashboard E2E (default http://localhost:8888)
-   # PLAYWRIGHT_DASHBOARD_BASE_URL=http://localhost:8888
-   # E2E_DASHBOARD_EMAIL=…
-   # E2E_DASHBOARD_PASSWORD=…
    ```
 
    The seeded test user (`E2E_PARTNER_EMAIL`) must exist in your local database — run `tsx apps/web/playwright/seed.ts` to create it. Signup tests generate a fresh user each run via MailHog email verification.

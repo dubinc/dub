@@ -41,6 +41,8 @@ export function UpgradePlanButton({
     flags,
   } = useWorkspace();
 
+  const isTrialActive = isWorkspaceBillingTrialActive(trialEndsAt);
+
   const checkoutTrialEnabled = Boolean(
     workspaceId && shouldEnableStripeCheckoutTrial(flags, workspaceId),
   );
@@ -120,7 +122,7 @@ export function UpgradePlanButton({
     useStartPaidPlanModal();
 
   const handleClick = () => {
-    if (isCurrentPlan && isWorkspaceBillingTrialActive(trialEndsAt)) {
+    if (isCurrentPlan && isTrialActive) {
       setShowStartPaidPlanModal(true);
       return;
     }
@@ -138,7 +140,7 @@ export function UpgradePlanButton({
       <Button
         text={
           isCurrentPlan
-            ? isWorkspaceBillingTrialActive(trialEndsAt)
+            ? isTrialActive
               ? "Activate plan"
               : "Your current plan"
             : currentPlan === "free"
@@ -148,10 +150,7 @@ export function UpgradePlanButton({
               : `Switch to ${selectedPlan.name} ${capitalize(period)}`
         }
         loading={clicked}
-        disabled={
-          !workspaceSlug ||
-          (isCurrentPlan && !isWorkspaceBillingTrialActive(trialEndsAt))
-        }
+        disabled={!workspaceSlug || (isCurrentPlan && !isTrialActive)}
         onClick={handleClick}
         {...rest}
       />

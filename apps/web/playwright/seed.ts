@@ -1,7 +1,9 @@
 import "dotenv-flow/config";
 
-import { prisma } from "@dub/prisma";
+import { PrismaClient } from "@prisma/client";
 import { hashSync } from "bcryptjs";
+
+const prisma = new PrismaClient();
 
 const E2E_PARTNER = {
   name: "Partner 1",
@@ -63,6 +65,4 @@ main()
     console.error(e);
     process.exit(1);
   })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+  .finally(() => prisma.$disconnect());
