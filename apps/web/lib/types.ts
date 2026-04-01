@@ -10,6 +10,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
+  Commission,
   CommissionStatus,
   FolderUserRole,
   FraudEvent,
@@ -894,4 +895,9 @@ export type NullableOptional<T> = {
 
 export type PartnerBountySubmission = z.infer<
   typeof partnerBountySubmissionSchema
+>;
+
+export type CommissionActivitySnapshot = Pick<
+  Commission,
+  "amount" | "earnings" | "status"
 >;

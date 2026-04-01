@@ -1,45 +1,22 @@
 import { CommissionResponse } from "@/lib/types";
 import { Button, Icon, Popover, useCopyToClipboard } from "@dub/ui";
-import {
-  CircleCheck,
-  CircleXmark,
-  Dots,
-  Duplicate,
-  InvoiceDollar,
-  ShieldAlert,
-} from "@dub/ui/icons";
+import { CircleCheck, Dots, InvoiceDollar, Pen2 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useState } from "react";
 import { toast } from "sonner";
-import { useMarkCommissionDuplicateModal } from "./mark-commission-duplicate-modal";
-import { useMarkCommissionFraudOrCanceledModal } from "./mark-commission-fraud-or-canceled-modal";
+import { useEditCommissionModal } from "./edit-commission-modal";
 
 export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const {
-    setShowModal: setShowMarkCommissionDuplicateModal,
-    MarkCommissionDuplicateModal,
-  } = useMarkCommissionDuplicateModal({
-    commission: row.original,
-  });
-
-  const [commissionStatus, setCommissionStatus] = useState<
-    "fraud" | "canceled"
-  >("fraud");
-
-  const { setShowModal, MarkCommissionFraudOrCanceledModal } =
-    useMarkCommissionFraudOrCanceledModal({
-      commission: row.original,
-      status: commissionStatus,
-    });
+  const { openEditCommissionModal, EditCommissionModal } =
+    useEditCommissionModal();
 
   const [copiedInvoiceId, copyInvoiceIdToClipboard] = useCopyToClipboard();
 
-  const showUpdateActions =
-    row.original.status === "pending" || row.original.status === "processed";
+  const showUpdateActions = row.original.status !== "paid";
 
   if (!showUpdateActions && !row.original.invoiceId) {
     return null;
@@ -47,8 +24,7 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
 
   return (
     <>
-      <MarkCommissionDuplicateModal />
-      <MarkCommissionFraudOrCanceledModal />
+      <EditCommissionModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -58,30 +34,10 @@ export function CommissionRowMenu({ row }: { row: Row<CommissionResponse> }) {
               {showUpdateActions && (
                 <Command.Group className="p-1.5">
                   <MenuItem
-                    icon={Duplicate}
-                    label="Mark as duplicate"
+                    icon={Pen2}
+                    label="Edit commission"
                     onSelect={() => {
-                      setShowMarkCommissionDuplicateModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={ShieldAlert}
-                    label="Mark as fraud"
-                    onSelect={() => {
-                      setCommissionStatus("fraud");
-                      setShowModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={CircleXmark}
-                    label="Mark as canceled"
-                    onSelect={() => {
-                      setCommissionStatus("canceled");
-                      setShowModal(true);
+                      openEditCommissionModal(row.original);
                       setIsOpen(false);
                     }}
                   />

@@ -4,26 +4,27 @@ import { useCommission } from "@/lib/swr/use-commission";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionDetail, CommissionResponse } from "@/lib/types";
+import { CommissionActivity } from "@/ui/activity-logs/commission-activity";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ActivityEvent } from "@/ui/partners/activity-event";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
+import { useEditCommissionModal } from "@/ui/partners/edit-commission-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { CommentCardDisplay } from "@/ui/partners/partner-comments";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
-import { UserAvatar } from "@/ui/users/user-avatar";
 import {
+  Button,
   ChevronRight,
   InvoiceDollar,
   StatusBadge,
   Table,
   useTable,
 } from "@dub/ui";
+import { Pen2 } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -32,7 +33,6 @@ import {
   pluralize,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { addDays } from "date-fns";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -104,6 +104,9 @@ function CommissionDetailsContent({
 }) {
   const { groups } = useGroups();
   const group = groups?.find((g) => g.id === commission.partner.groupId);
+
+  const { openEditCommissionModal, EditCommissionModal } =
+    useEditCommissionModal();
 
   const statusBadge = CommissionStatusBadges[commission.status];
 
@@ -269,6 +272,7 @@ function CommissionDetailsContent({
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
+      <EditCommissionModal />
       <div className="order-last min-w-0 flex-1 lg:order-first">
         <Table {...itemsTable} />
 
@@ -277,9 +281,20 @@ function CommissionDetailsContent({
 
       <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
         <div className="rounded-xl border border-neutral-200 bg-white p-4">
-          <h3 className="text-content-emphasis mb-2 text-base font-semibold">
-            Commission details
-          </h3>
+          <div className="mb-2 flex items-center justify-between">
+            <h3 className="text-content-emphasis text-base font-semibold">
+              Commission details
+            </h3>
+            {commission.status !== "paid" && (
+              <Button
+                variant="secondary"
+                icon={<Pen2 className="size-3.5" />}
+                text="Edit"
+                className="h-7 w-fit rounded-lg px-2"
+                onClick={() => openEditCommissionModal(commission)}
+              />
+            )}
+          </div>
           <div className="flex flex-col gap-1">
             {Object.entries(detailRows).map(([key, value]) => (
               <div
@@ -296,194 +311,6 @@ function CommissionDetailsContent({
             ))}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function CommissionActivity({
-  commission,
-  slug,
-}: {
-  commission: CommissionDetail;
-  slug: string;
-}) {
-  return (
-    <div className="mt-6">
-      <h3 className="mb-4 text-base font-medium text-neutral-900">Activity</h3>
-      <div className="flex flex-col">
-        {[
-          // Paid event
-          ...(commission.status === "paid" && commission.payout?.id
-            ? [
-                {
-                  icon: CommissionStatusBadges["paid"].icon,
-                  timestamp: commission.payout?.paidAt ?? null,
-                  children: (
-                    <>
-                      <span className="text-sm text-neutral-700">
-                        Commission
-                      </span>
-                      <StatusBadge
-                        icon={null}
-                        variant={CommissionStatusBadges["paid"].variant}
-                      >
-                        {CommissionStatusBadges["paid"].label}
-                      </StatusBadge>
-                      {commission.payout.user && (
-                        <>
-                          <span className="text-sm text-neutral-500">by</span>
-                          <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
-                            <UserAvatar
-                              user={commission.payout.user}
-                              className="size-4"
-                            />
-                            <span className="text-[13px] text-neutral-700">
-                              {commission.payout.user.name}
-                            </span>
-                          </div>
-                        </>
-                      )}
-                      <Link
-                        href={`/${slug}/program/payouts/${commission.payout.id}`}
-                        className="flex h-6 cursor-pointer items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1 transition-colors hover:bg-neutral-200"
-                      >
-                        <InvoiceDollar className="size-4 shrink-0 text-neutral-500" />
-                        <span className="font-mono text-[13px] text-neutral-700">
-                          {commission.payout.id}
-                        </span>
-                      </Link>
-                    </>
-                  ),
-                },
-              ]
-            : []),
-
-          // Processed event
-          ...(["paid", "processed"].includes(commission.status)
-            ? [
-                {
-                  icon: CommissionStatusBadges["processed"].icon,
-                  timestamp: addDays(
-                    commission.createdAt,
-                    commission.holdingPeriodDays ?? 0,
-                  ),
-                  children: (
-                    <>
-                      <span className="text-sm text-neutral-700">
-                        Commission
-                      </span>
-                      <StatusBadge
-                        icon={null}
-                        variant={CommissionStatusBadges["processed"].variant}
-                      >
-                        {CommissionStatusBadges["processed"].label}
-                      </StatusBadge>
-                      {commission.holdingPeriodDays ? (
-                        <span className="text-sm text-neutral-700">
-                          after {commission.holdingPeriodDays}-day{" "}
-                          <a
-                            href="https://dub.co/help/article/partner-payouts#payout-holding-period"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="cursor-help underline decoration-dotted underline-offset-2"
-                          >
-                            holding period
-                          </a>
-                        </span>
-                      ) : null}
-                    </>
-                  ),
-                },
-              ]
-            : []),
-
-          ...(["canceled", "duplicate", "fraud", "refunded"].includes(
-            commission.status,
-          )
-            ? [
-                {
-                  icon: CommissionStatusBadges[commission.status].icon,
-                  timestamp: commission.updatedAt,
-                  children: (
-                    <>
-                      <span className="text-sm text-neutral-700">
-                        Commission marked as
-                      </span>
-                      <StatusBadge
-                        icon={null}
-                        variant={
-                          CommissionStatusBadges[commission.status].variant
-                        }
-                      >
-                        {CommissionStatusBadges[commission.status].label}
-                      </StatusBadge>
-                    </>
-                  ),
-                },
-              ]
-            : []),
-
-          // Pending / created event
-          {
-            icon: CommissionStatusBadges["pending"].icon,
-            timestamp: commission.createdAt,
-            note: (() => {
-              const text = commission.reward
-                ? `Earn ${
-                    commission.reward.type === "percentage"
-                      ? `${commission.reward.amountInPercentage ?? 0}%`
-                      : currencyFormatter(
-                          commission.reward.amountInCents ?? 0,
-                          { trailingZeroDisplay: "stripIfInteger" },
-                        )
-                  } per ${commission.reward.event}`
-                : commission.description ?? null;
-
-              if (!text) return undefined;
-
-              return (
-                <CommentCardDisplay
-                  user={commission.user}
-                  timestamp={commission.createdAt}
-                  text={text}
-                />
-              );
-            })(),
-            children: (
-              <>
-                <span className="text-sm text-neutral-700">Commission</span>
-                <StatusBadge
-                  icon={null}
-                  variant={CommissionStatusBadges["pending"].variant}
-                >
-                  {CommissionStatusBadges["pending"].label}
-                </StatusBadge>
-                {commission.user ? (
-                  <>
-                    <span className="text-sm text-neutral-500">by</span>
-                    <div className="flex h-6 items-center gap-2 rounded-lg bg-neutral-100 px-2 py-1">
-                      <UserAvatar user={commission.user} className="size-4" />
-                      <span className="text-[13px] text-neutral-700">
-                        {commission.user.name}
-                      </span>
-                    </div>
-                  </>
-                ) : null}
-              </>
-            ),
-          },
-        ].map((event, index, arr) => (
-          <ActivityEvent
-            key={index}
-            icon={event.icon}
-            timestamp={event.timestamp}
-            note={event.note}
-            isLast={index === arr.length - 1}
-          >
-            {event.children}
-          </ActivityEvent>
-        ))}
       </div>
     </div>
   );
