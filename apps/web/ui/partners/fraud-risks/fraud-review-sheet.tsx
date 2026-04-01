@@ -26,7 +26,7 @@ import { cn, fetcher, formatDateTime } from "@dub/utils";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
 import useSWR from "swr";
-import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
+import { AssociatedCommissionsTable } from "./associated-commissions-table";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
 import { useMarkAllAsFraudModal } from "./mark-all-as-fraud-modal";
@@ -255,15 +255,9 @@ function FraudReviewSheetContent({
               COMMISSION_BLOCKING_FRAUD_TYPE.includes(fraudGroup.type) && (
                 <div className="flex flex-col gap-4">
                   <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-content-emphasis font-semibold leading-6">
-                        Associated commissions
-                      </h3>
-                      <p className="text-content-subtle text-xs font-normal leading-4">
-                        If none are marked as fraud, these move to Pending on
-                        resolve
-                      </p>
-                    </div>
+                    <h3 className="text-content-emphasis font-semibold leading-6">
+                      Associated commissions
+                    </h3>
                     <Button
                       type="button"
                       variant="secondary"
@@ -276,7 +270,7 @@ function FraudReviewSheetContent({
                       onClick={() => setShowMarkAllAsFraudModal(true)}
                     />
                   </div>
-                  <CommissionsOnHoldTable fraudGroup={fraudGroup} />
+                  <AssociatedCommissionsTable fraudGroup={fraudGroup} />
                 </div>
               )}
 

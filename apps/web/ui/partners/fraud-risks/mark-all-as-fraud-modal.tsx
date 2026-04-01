@@ -27,6 +27,8 @@ type FormData = {
   resolutionReason: string;
 };
 
+// TODO: Consolidate with bulk-edit-commissions-modal
+
 function MarkAllAsFraudModal({
   showModal,
   setShowModal,

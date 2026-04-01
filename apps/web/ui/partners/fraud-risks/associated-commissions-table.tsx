@@ -24,7 +24,7 @@ import { CommissionTypeBadge } from "../commission-type-badge";
 
 const COMMISSIONS_ON_HOLD_PAGE_SIZE = 10;
 
-export function CommissionsOnHoldTable({
+export function AssociatedCommissionsTable({
   fraudGroup,
 }: {
   fraudGroup: FraudGroupProps;
@@ -180,7 +180,7 @@ export function CommissionsOnHoldTable({
             <LoadingSpinner />
           ) : (
             <p className="text-content-subtle text-sm">
-              No commissions are on hold yet
+              No associated commissions found for this fraud event
             </p>
           )}
         </div>
