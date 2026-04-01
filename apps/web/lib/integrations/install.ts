@@ -8,6 +8,7 @@ interface InstallIntegration {
   workspaceId: string;
   integrationId: string;
   credentials?: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
 // Install an integration for a user in a workspace
@@ -16,6 +17,7 @@ export const installIntegration = async ({
   workspaceId,
   integrationId,
   credentials,
+  settings,
 }: InstallIntegration) => {
   const installation = await prisma.installedIntegration.upsert({
     create: {
@@ -23,6 +25,7 @@ export const installIntegration = async ({
       projectId: workspaceId,
       integrationId,
       credentials,
+      settings,
     },
     update: {
       credentials,
