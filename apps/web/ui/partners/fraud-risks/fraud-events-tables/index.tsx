@@ -9,12 +9,8 @@ import { FraudReferralSourceBannedTable } from "./fraud-referral-source-banned-t
 
 const FRAUD_EVENTS_TABLES: Partial<Record<FraudRuleType, React.ComponentType>> =
   {
-    customerEmailMatch: () => (
-      <FraudMatchingCustomerEmailTable showMatchType={true} />
-    ),
-    customerEmailSuspiciousDomain: () => (
-      <FraudMatchingCustomerEmailTable showMatchType={false} />
-    ),
+    customerEmailMatch: () => <FraudMatchingCustomerEmailTable showMatchType />,
+    customerEmailSuspiciousDomain: () => <FraudMatchingCustomerEmailTable />,
     referralSourceBanned: FraudReferralSourceBannedTable,
     paidTrafficDetected: FraudPaidTrafficDetectedTable,
     partnerCrossProgramBan: FraudCrossProgramBanTable,
