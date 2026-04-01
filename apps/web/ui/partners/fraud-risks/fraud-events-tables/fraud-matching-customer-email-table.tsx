@@ -21,7 +21,11 @@ const MATCH_TYPE_LABELS: Record<CustomerEmailMatchType, string> = {
   [CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH]: "Historical domain match",
 };
 
-export function FraudMatchingCustomerEmailTable() {
+export function FraudMatchingCustomerEmailTable({
+  showMatchType,
+}: {
+  showMatchType?: boolean;
+}) {
   const { slug: workspaceSlug } = useWorkspace();
 
   const {
@@ -80,21 +84,25 @@ export function FraudMatchingCustomerEmailTable() {
           );
         },
       },
-      {
-        id: "matchType",
-        header: "Match type",
-        minSize: 120,
-        size: 180,
-        cell: ({ row }) => {
-          const matchType = row.original.metadata?.matchType ?? "exact";
+      ...(showMatchType
+        ? [
+            {
+              id: "matchType",
+              header: "Match type",
+              minSize: 120,
+              size: 180,
+              cell: ({ row }: { row: { original: EventDataProps } }) => {
+                const matchType = row.original.metadata?.matchType;
 
-          return (
-            <span className="text-sm text-neutral-600">
-              {MATCH_TYPE_LABELS[matchType]}
-            </span>
-          );
-        },
-      },
+                return (
+                  <span className="text-sm text-neutral-600">
+                    {matchType ? MATCH_TYPE_LABELS[matchType] : "-"}
+                  </span>
+                );
+              },
+            },
+          ]
+        : []),
       {
         id: "view",
         header: "",

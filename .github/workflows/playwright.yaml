@@ -38,6 +38,9 @@ jobs:
       TINYBIRD_API_KEY: "xx"
       TINYBIRD_API_URL: "xx"
 
+      AXIOM_TOKEN: "xx"
+      AXIOM_DATASET: "xx"
+
       # serverless-redis-http (SRH) — must match jobs.e2e.services.srh env
       SRH_TOKEN: "e2e_srh_token"
       UPSTASH_REDIS_REST_URL: "http://127.0.0.1:8079"
