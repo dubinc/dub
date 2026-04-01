@@ -4,6 +4,7 @@ import { UserSchema } from "./users";
 export const activityLogResourceTypeSchema = z.enum([
   "referral",
   "partner",
+  "commission",
   "clickReward",
   "saleReward",
   "leadReward",
@@ -20,6 +21,8 @@ export const activityLogActionSchema = z.enum([
   "referral.closedLost",
 
   "partner.groupChanged",
+
+  "commission.updated",
 
   "reward.created",
   "reward.updated",

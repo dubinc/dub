@@ -193,33 +193,76 @@ export const createCommissionSchema = z.object({
   productId: z.string().nullish(),
 });
 
+export const commissionPatchStatusSchema = z.enum([
+  "pending",
+  "refunded",
+  "duplicate",
+  "canceled",
+  "fraud",
+]);
+
 export const updateCommissionSchema = z.object({
-  amount: z
+  saleAmount: z
     .number()
     .min(0)
+    .optional()
     .describe(
       "The new absolute amount for the sale. Paid commissions cannot be updated.",
-    )
-    .optional(),
-  modifyAmount: z
+    ),
+  modifySaleAmount: z
     .number()
+    .optional()
     .describe(
-      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `amount`. Paid commissions cannot be updated.",
-    )
-    .optional(),
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `saleAmount`. Paid commissions cannot be updated.",
+    ),
+  earnings: z
+    .number()
+    .min(0)
+    .optional()
+    .describe(
+      "The new absolute earnings for the custom commission. Paid commissions cannot be updated.",
+    ),
   currency: z
     .string()
+    .optional()
     .default("usd")
     .transform((val) => val.toLowerCase())
     .describe(
       "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
     ),
-  status: z
-    .enum(["refunded", "duplicate", "canceled", "fraud"])
+  status: commissionPatchStatusSchema
     .optional()
     .describe(
-      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Takes precedence over `amount` and `modifyAmount`. When a commission is marked as refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
+      "Useful for marking a commission as pending, refunded, duplicate, canceled, or fraudulent. Takes precedence over `saleAmount` and `modifySaleAmount`. When a commission is marked as pending, refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
     ),
+  amount: z
+    .number()
+    .min(0)
+    .optional()
+    .describe("Deprecated. Use `saleAmount` instead.")
+    .meta({ deprecated: true }),
+  modifyAmount: z
+    .number()
+    .optional()
+    .describe("Deprecated. Use `modifySaleAmount` instead.")
+    .meta({ deprecated: true }),
+});
+
+export const updateCommissionSchemaExtended = updateCommissionSchema.extend({
+  updateHistoricalCommissions: z.boolean().optional(),
+});
+
+export const bulkUpdateCommissionsSchema = z.object({
+  commissionIds: z
+    .array(z.string())
+    .min(1, "At least one commission ID is required.")
+    .max(100, "You can only update up to 100 commissions at a time.")
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: "commissionIds must be unique.",
+    }),
+  status: commissionPatchStatusSchema.describe(
+    "The status to apply to every commission in the batch.",
+  ),
 });
 
 export const CLAWBACK_REASONS = [
