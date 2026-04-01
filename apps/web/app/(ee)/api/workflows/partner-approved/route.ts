@@ -5,6 +5,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -12,6 +13,7 @@ import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
 
@@ -182,12 +184,27 @@ export const { POST } = serve<Payload>(
         },
         select: {
           stripeConnectId: true,
+          installedIntegrations: {
+            where: {
+              integrationId: STRIPE_INTEGRATION_ID,
+            },
+          },
         },
       });
 
       if (!workspace.stripeConnectId) {
+        console.log("Workspace does not have stripeConnectId");
         return;
       }
+
+      if (!workspace.installedIntegrations.length) {
+        console.log("Workspace does not have the Stripe integration installed");
+        return;
+      }
+
+      const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+        workspace.installedIntegrations[0].settings,
+      );
 
       const partnerLinks = await prisma.link.findMany({
         where: {
@@ -213,6 +230,7 @@ export const { POST } = serve<Payload>(
         try {
           await createDiscountCode({
             stripeConnectId: workspace.stripeConnectId,
+            stripeMode: stripeIntegrationSettings.stripeMode,
             partner,
             link,
             discount: group.discount,

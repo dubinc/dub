@@ -5,12 +5,14 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import {
   createDiscountCodeSchema,
   DiscountCodeSchema,
   getDiscountCodesQuerySchema,
 } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -63,6 +65,29 @@ export const POST = withWorkspace(
           "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
       });
     }
+
+    const installedStripeIntegration =
+      await prisma.installedIntegration.findFirst({
+        where: {
+          projectId: workspace.id,
+          integrationId: STRIPE_INTEGRATION_ID,
+        },
+        select: {
+          settings: true,
+        },
+      });
+
+    if (!installedStripeIntegration) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "The Stripe integration is not installed on your workspace. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
+      });
+    }
+
+    const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+      installedStripeIntegration.settings,
+    );
 
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
@@ -133,6 +158,7 @@ export const POST = withWorkspace(
     try {
       const discountCode = await createDiscountCode({
         stripeConnectId: workspace.stripeConnectId,
+        stripeMode: stripeIntegrationSettings.stripeMode,
         partner: programEnrollment.partner,
         link,
         discount,

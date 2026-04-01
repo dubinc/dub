@@ -5,6 +5,7 @@ import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { stripeAppClient } from "@/lib/stripe";
 import {
   dubDiscountToStripeCoupon,
@@ -13,15 +14,15 @@ import {
 } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, truncate } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  STRIPE_INTEGRATION_ID,
+  truncate,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { Stripe } from "stripe";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
 
 export const createDiscountAction = authActionClient
   .inputSchema(createDiscountSchema)
@@ -60,6 +61,31 @@ export const createDiscountAction = authActionClient
         "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount.",
       );
     }
+
+    const installedStripeIntegration =
+      await prisma.installedIntegration.findFirst({
+        where: {
+          projectId: workspace.id,
+          integrationId: STRIPE_INTEGRATION_ID,
+        },
+        select: {
+          settings: true,
+        },
+      });
+
+    if (!installedStripeIntegration) {
+      throw new Error(
+        "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount.",
+      );
+    }
+
+    const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+      installedStripeIntegration.settings,
+    );
+
+    const stripe = stripeAppClient({
+      mode: stripeIntegrationSettings.stripeMode,
+    });
 
     let stripeCoupon: Stripe.Coupon | undefined;
     try {

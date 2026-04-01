@@ -2,8 +2,10 @@ import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
 import { withCron } from "@/lib/cron/with-cron";
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@dub/prisma";
 import { DiscountCode } from "@dub/prisma/client";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -146,14 +148,24 @@ export const POST = withCron(async ({ rawBody }) => {
         },
         select: {
           stripeConnectId: true,
+          installedIntegrations: {
+            where: {
+              integrationId: STRIPE_INTEGRATION_ID,
+            },
+          },
         },
       });
 
       // Create discount code for the partner default links
-      if (workspace.stripeConnectId) {
+      if (workspace.stripeConnectId && workspace.installedIntegrations.length) {
+        const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+          workspace.installedIntegrations[0].settings,
+        );
+
         for (const link of links) {
           await createDiscountCode({
             stripeConnectId: workspace.stripeConnectId,
+            stripeMode: stripeIntegrationSettings.stripeMode,
             partner: link.programEnrollment!.partner,
             link,
             discount: group.discount,

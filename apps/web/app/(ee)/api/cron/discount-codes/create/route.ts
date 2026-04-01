@@ -1,6 +1,8 @@
 import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { withCron } from "@/lib/cron/with-cron";
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@dub/prisma";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -44,6 +46,11 @@ export const POST = withCron(async ({ rawBody }) => {
         select: {
           id: true,
           stripeConnectId: true,
+          installedIntegrations: {
+            where: {
+              integrationId: STRIPE_INTEGRATION_ID,
+            },
+          },
         },
       },
     },
@@ -78,14 +85,25 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
+  if (!workspace.installedIntegrations.length) {
+    return logAndRespond(
+      `Workspace ${workspace.id} does not have the Stripe integration installed. Skipping...`,
+    );
+  }
+
   if (!discount) {
     return logAndRespond(
       `Partner ${partner.id} does not have a discount with program ${program.id}. Skipping...`,
     );
   }
 
+  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+    workspace.installedIntegrations[0].settings,
+  );
+
   await createDiscountCode({
     stripeConnectId: workspace.stripeConnectId,
+    stripeMode: stripeIntegrationSettings.stripeMode,
     partner,
     link,
     discount,

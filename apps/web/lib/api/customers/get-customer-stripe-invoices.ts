@@ -1,11 +1,9 @@
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerInvoiceSchema } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import Stripe from "stripe";
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
 
 type ExpandedStripeInvoice = Stripe.Invoice & {
   id: string;
@@ -29,6 +27,30 @@ export async function getCustomerStripeInvoices({
   stripeConnectId: string;
   programId: string;
 }) {
+  const installedStripeIntegration =
+    await prisma.installedIntegration.findFirst({
+      where: {
+        project: {
+          stripeConnectId,
+        },
+        integrationId: STRIPE_INTEGRATION_ID,
+      },
+      select: {
+        settings: true,
+      },
+    });
+
+  if (!installedStripeIntegration) {
+    throw new Error("Stripe integration is not installed on your workspace.");
+  }
+
+  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+    installedStripeIntegration.settings,
+  );
+
+  const stripe = stripeAppClient({
+    mode: stripeIntegrationSettings.stripeMode,
+  });
   const { data } = await stripe.invoices.list(
     {
       customer: stripeCustomerId,

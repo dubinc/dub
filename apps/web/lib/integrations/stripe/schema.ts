@@ -15,4 +15,5 @@ export const stripeIntegrationSettingsSchema = z.object({
         ),
     })
     .nullish(),
+  stripeMode: z.enum(["live", "test", "sandbox"]).optional().default("test"),
 });
