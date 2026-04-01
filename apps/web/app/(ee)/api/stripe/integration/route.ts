@@ -16,7 +16,7 @@ const CORS_HEADERS = new Headers({
 
 // PATCH /api/stripe/integration - update a workspace with a stripe connect account id
 export const PATCH = withWorkspace(
-  async ({ req, workspace, session, token }) => {
+  async ({ req, workspace, token }) => {
     const body = await parseRequestBody(req);
     const { stripeAccountId, stripeMode } = z
       .object({
