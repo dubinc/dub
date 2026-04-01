@@ -22,9 +22,10 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, formatDateTime } from "@dub/utils";
+import { cn, fetcher, formatDateTime } from "@dub/utils";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
+import useSWR from "swr";
 import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
@@ -54,8 +55,25 @@ function FraudReviewSheetContent({
   onNext,
 }: FraudReviewSheetProps) {
   const { partner, user } = fraudGroup;
+  const { slug, id: workspaceId } = useWorkspace();
 
-  const { slug } = useWorkspace();
+  const showCommissionsOnHold =
+    fraudGroup.status === "pending" &&
+    COMMISSION_BLOCKING_FRAUD_TYPE.includes(fraudGroup.type);
+
+  const commissionsOnHoldCountKey =
+    showCommissionsOnHold && workspaceId
+      ? `/api/commissions/count?${new URLSearchParams({
+          workspaceId,
+          status: "pending",
+          fraudEventGroupId: fraudGroup.id,
+        }).toString()}`
+      : null;
+
+  const {
+    data: commissionsOnHoldCount,
+    isLoading: isCommissionsOnHoldCountLoading,
+  } = useSWR<{ all: { count: number } }>(commissionsOnHoldCountKey, fetcher);
 
   const { setShowMarkAllAsFraudModal, MarkAllAsFraudModal } =
     useMarkAllAsFraudModal({
@@ -251,6 +269,10 @@ function FraudReviewSheetContent({
                       variant="secondary"
                       text="Mark all as fraud"
                       className="h-7 w-fit shrink-0 rounded-lg px-2.5 py-2"
+                      disabled={
+                        isCommissionsOnHoldCountLoading ||
+                        (commissionsOnHoldCount?.all.count ?? 0) === 0
+                      }
                       onClick={() => setShowMarkAllAsFraudModal(true)}
                     />
                   </div>

@@ -41,7 +41,6 @@ export function CommissionsOnHoldTable({
   const query = {
     workspaceId: workspaceId!,
     status: "pending",
-    partnerId: fraudGroup.partner.id,
     fraudEventGroupId: fraudGroup.id,
   };
 
