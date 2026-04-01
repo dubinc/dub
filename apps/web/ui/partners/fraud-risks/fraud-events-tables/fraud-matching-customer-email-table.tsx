@@ -25,7 +25,7 @@ export function FraudMatchingCustomerEmailTable({
   showMatchType = true,
 }: {
   showMatchType?: boolean;
-} = {}) {
+}) {
   const { slug: workspaceSlug } = useWorkspace();
 
   const {
@@ -92,8 +92,7 @@ export function FraudMatchingCustomerEmailTable({
               minSize: 120,
               size: 180,
               cell: ({ row }: { row: { original: EventDataProps } }) => {
-                const matchType =
-                  row.original.metadata?.matchType ?? "exact";
+                const matchType = row.original.metadata?.matchType ?? "exact";
 
                 return (
                   <span className="text-sm text-neutral-600">

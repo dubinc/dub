@@ -7,14 +7,14 @@ import { FraudPaidTrafficDetectedTable } from "./fraud-paid-traffic-detected-tab
 import { FraudPartnerInfoTable } from "./fraud-partner-info-table";
 import { FraudReferralSourceBannedTable } from "./fraud-referral-source-banned-table";
 
-const FraudSuspiciousDomainEmailTable = () => (
-  <FraudMatchingCustomerEmailTable showMatchType={false} />
-);
-
 const FRAUD_EVENTS_TABLES: Partial<Record<FraudRuleType, React.ComponentType>> =
   {
-    customerEmailMatch: FraudMatchingCustomerEmailTable,
-    customerEmailSuspiciousDomain: FraudSuspiciousDomainEmailTable,
+    customerEmailMatch: () => (
+      <FraudMatchingCustomerEmailTable showMatchType={true} />
+    ),
+    customerEmailSuspiciousDomain: () => (
+      <FraudMatchingCustomerEmailTable showMatchType={false} />
+    ),
     referralSourceBanned: FraudReferralSourceBannedTable,
     paidTrafficDetected: FraudPaidTrafficDetectedTable,
     partnerCrossProgramBan: FraudCrossProgramBanTable,
