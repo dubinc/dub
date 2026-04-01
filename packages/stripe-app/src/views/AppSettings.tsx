@@ -58,7 +58,9 @@ const AppSettings = ({
       await updateWorkspace({
         token,
         accountId: null,
-        stripeMode: environment.mode,
+        stripeMode: userContext.account.isSandbox
+          ? "sandbox"
+          : environment.mode,
       });
     }
 
@@ -102,7 +104,7 @@ const AppSettings = ({
     await updateWorkspace({
       token,
       accountId: userContext.account.id,
-      stripeMode: environment.mode,
+      stripeMode: userContext.account.isSandbox ? "sandbox" : environment.mode,
     });
 
     await setSecret({
