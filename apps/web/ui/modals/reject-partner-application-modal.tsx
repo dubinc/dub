@@ -176,12 +176,17 @@ export function RejectPartnerApplicationModal({
           </div>
 
           <div>
-            <label
-              htmlFor="reject-rejection-note"
-              className="block text-sm font-medium text-neutral-900"
-            >
-              Additional notes (optional)
-            </label>
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor="reject-rejection-note"
+                className="block text-sm font-medium text-neutral-900"
+              >
+                Additional notes (optional)
+              </label>
+              <span className="text-xs text-neutral-400">
+                {rejectionNote.length}/{PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH}
+              </span>
+            </div>
             <div className="relative mt-1.5 rounded-md shadow-sm">
               <textarea
                 id="reject-rejection-note"

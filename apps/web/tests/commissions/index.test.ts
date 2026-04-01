@@ -81,9 +81,9 @@ describe.sequential("/commissions/**", async () => {
     });
   });
 
-  test("PATCH /commissions/{id} - modify amount", async () => {
+  test("PATCH /commissions/{id} - modify saleAmount", async () => {
     const toUpdate = {
-      modifyAmount: 1000, // Add $10.00 to existing amount
+      modifySaleAmount: 1000, // Add $10.00 to existing amount
       currency: "usd",
     };
 
@@ -98,7 +98,7 @@ describe.sequential("/commissions/**", async () => {
 
   test("PATCH /commissions/{id} - foreign currency conversion", async () => {
     const toUpdate = {
-      amount: 1580, // approximately 1000 USD cents
+      saleAmount: 1580, // approximately 1000 USD cents
       currency: "jpy",
     };
 
@@ -115,7 +115,7 @@ describe.sequential("/commissions/**", async () => {
 
   test("PATCH /commissions/{id} - error on lead commission", async () => {
     const toUpdate = {
-      amount: 5000,
+      saleAmount: 5000,
     };
 
     const response = await http.patch<CommissionResponse>({
@@ -129,7 +129,7 @@ describe.sequential("/commissions/**", async () => {
 
   test("PATCH /commissions/{id} - error on paid commission", async () => {
     const toUpdate = {
-      amount: 5000,
+      saleAmount: 5000,
     };
 
     const response = await http.patch<CommissionResponse>({

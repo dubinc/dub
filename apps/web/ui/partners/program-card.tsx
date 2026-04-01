@@ -7,7 +7,7 @@ import { ProgramEnrollmentProps } from "@/lib/types";
 import {
   BlurImage,
   CalendarIcon,
-  CircleInfo,
+  CircleQuestion,
   DynamicTooltipWrapper,
   Link4,
   MiniAreaChart,
@@ -31,18 +31,18 @@ function RejectionTooltipRow({
   valueClassName?: string;
 }) {
   return (
-    <div className="flex gap-3">
-      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-600">
+    <div className="flex w-full items-start gap-2">
+      <div className="flex size-[34px] shrink-0 items-center justify-center rounded-lg bg-neutral-100 text-neutral-500">
         {icon}
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500">
+        <p className="text-[10px] font-bold uppercase leading-[14px] tracking-[0.2px] text-neutral-800">
           {label}
         </p>
         <p
           className={
             valueClassName ??
-            "mt-0.5 text-sm font-medium leading-snug text-neutral-800"
+            "mt-0.5 text-xs font-normal leading-4 tracking-[-0.24px] text-neutral-500"
           }
         >
           {value}
@@ -70,10 +70,17 @@ function rejectedApplicationTooltipContent(
   }
 
   return (
-    <div className="flex w-full min-w-0 max-w-[min(100vw-2rem,17.5rem)] flex-col gap-3.5 self-start px-4 py-3 text-left">
+    <div className="flex w-full min-w-0 max-w-[min(100vw-2rem,17.5rem)] flex-col gap-2 p-3 pb-4 text-left">
+      {reviewedAt ? (
+        <RejectionTooltipRow
+          icon={<CalendarIcon className="size-4 shrink-0" aria-hidden />}
+          label="Reviewed"
+          value={formatDate(reviewedAt)}
+        />
+      ) : null}
       {reasonLabel ? (
         <RejectionTooltipRow
-          icon={<CircleInfo className="size-4 shrink-0" aria-hidden />}
+          icon={<CircleQuestion className="size-4 shrink-0" aria-hidden />}
           label="Reason"
           value={reasonLabel}
         />
@@ -83,14 +90,7 @@ function rejectedApplicationTooltipContent(
           icon={<Note className="size-4 shrink-0" aria-hidden />}
           label="Notes"
           value={note}
-          valueClassName="mt-0.5 whitespace-pre-wrap text-sm font-normal leading-snug text-neutral-700"
-        />
-      ) : null}
-      {reviewedAt ? (
-        <RejectionTooltipRow
-          icon={<CalendarIcon className="size-4 shrink-0" aria-hidden />}
-          label="Reviewed"
-          value={formatDate(reviewedAt)}
+          valueClassName="mt-0.5 whitespace-pre-wrap text-xs font-reg leading-4 tracking-[-0.24px] text-neutral-500"
         />
       ) : null}
     </div>

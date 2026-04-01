@@ -15,14 +15,14 @@ import { useSidebar } from "./sidebar-context";
 
 export function ProgramOnboardingHeader() {
   const pathname = usePathname();
-  const { isMobile } = useMediaQuery();
+  const { isDesktop } = useMediaQuery();
   const { getValues } = useFormContext();
   const { isOpen, setIsOpen } = useSidebar();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   useEffect(() => {
-    document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
-  }, [isOpen, isMobile]);
+    document.body.style.overflow = isOpen && !isDesktop ? "hidden" : "auto";
+  }, [isOpen, isDesktop]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onError: ({ error }) => {
@@ -62,14 +62,14 @@ export function ProgramOnboardingHeader() {
       <div className="flex items-center gap-5">
         <button
           onClick={() => setIsOpen(true)}
-          className="rounded-md p-1 hover:bg-neutral-100 md:hidden"
+          className="rounded-md p-1 hover:bg-neutral-100 lg:hidden"
         >
           <Menu className="h-5 w-5 text-neutral-600" />
         </button>
         <Link href={`/${workspaceSlug}`} className="flex items-center">
           <Wordmark className="h-7" />
         </Link>
-        <h1 className="hidden text-base font-semibold text-neutral-700 md:block">
+        <h1 className="hidden text-base font-semibold text-neutral-700 lg:block">
           Create partner program
         </h1>
       </div>

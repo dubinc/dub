@@ -13,15 +13,15 @@ import { useSidebar } from "./sidebar-context";
 
 export function ProgramOnboardingSteps() {
   const pathname = usePathname();
-  const { isMobile } = useMediaQuery();
+  const { isDesktop } = useMediaQuery();
   const { isOpen, setIsOpen } = useSidebar();
   const { slug } = useParams<{ slug: string }>();
   const [programOnboarding] =
     useWorkspaceStore<ProgramData>("programOnboarding");
 
   useEffect(() => {
-    document.body.style.overflow = isOpen && isMobile ? "hidden" : "auto";
-  }, [isOpen, isMobile]);
+    document.body.style.overflow = isOpen && !isDesktop ? "hidden" : "auto";
+  }, [isOpen, isDesktop]);
 
   const currentPath = pathname.replace(`/${slug}`, "");
 
@@ -40,10 +40,10 @@ export function ProgramOnboardingSteps() {
     <>
       <div
         className={cn(
-          "fixed left-0 top-14 z-20 h-[calc(100vh-3.5rem)] w-screen transition-[background-color,backdrop-filter] md:sticky md:top-0 md:z-0 md:h-[calc(100vh-3.5rem)] md:w-full md:bg-transparent",
+          "fixed left-0 top-14 z-20 h-[calc(100vh-3.5rem)] w-screen transition-[background-color,backdrop-filter] lg:sticky lg:top-0 lg:z-0 lg:h-[calc(100vh-3.5rem)] lg:w-full lg:bg-transparent",
           isOpen
             ? "bg-black/20 backdrop-blur-sm"
-            : "bg-transparent max-md:pointer-events-none",
+            : "bg-transparent max-lg:pointer-events-none",
         )}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
@@ -54,12 +54,12 @@ export function ProgramOnboardingSteps() {
       >
         <div
           className={cn(
-            "relative h-full w-[240px] max-w-full bg-white transition-transform md:translate-x-0",
+            "relative h-full w-[240px] max-w-full bg-white transition-transform lg:translate-x-0",
             !isOpen && "-translate-x-full",
           )}
         >
           <div className="p-4">
-            <div className="mb-4 flex items-center justify-between md:hidden">
+            <div className="mb-4 flex items-center justify-between lg:hidden">
               <h2 className="text-sm font-medium">Program Setup</h2>
               <button
                 onClick={() => setIsOpen(false)}

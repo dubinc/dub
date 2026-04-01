@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
@@ -55,6 +56,20 @@ export const unbanPartnerAction = authActionClient
       programId,
       groupId:
         programEnrollment.groupId || programEnrollment.program.defaultGroupId,
+    });
+
+    // Fetch canceled commissions before the transaction for activity logging
+    const canceledCommissions = await prisma.commission.findMany({
+      where: {
+        ...where,
+        status: "canceled",
+      },
+      select: {
+        id: true,
+        amount: true,
+        earnings: true,
+        status: true,
+      },
     });
 
     await prisma.$transaction([
@@ -128,6 +143,14 @@ export const unbanPartnerAction = authActionClient
 
           // Update Tinybird links metadata
           recordLink(links),
+
+          // Track commission activity logs for the unban
+          trackCommissionStatusUpdate({
+            workspaceId: workspace.id,
+            programId,
+            commissions: canceledCommissions,
+            newStatus: "pending",
+          }),
 
           recordAuditLog({
             workspaceId: workspace.id,

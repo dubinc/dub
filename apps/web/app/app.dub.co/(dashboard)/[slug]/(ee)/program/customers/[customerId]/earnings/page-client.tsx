@@ -94,7 +94,6 @@ const PartnerEarningsTable = memo(({ customerId }: { customerId: string }) => {
           ? undefined
           : totalCommissions?.all?.count ?? commissions?.length
       }
-      viewAllHref={`/${slug}/program/commissions?customerId=${customerId}`}
       isLoading={isComissionsLoading}
     />
   );
