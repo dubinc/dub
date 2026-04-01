@@ -78,7 +78,7 @@ function FraudReviewSheetContent({
   const { setShowMarkAllAsFraudModal, MarkAllAsFraudModal } =
     useMarkAllAsFraudModal({
       fraudGroup,
-      onConfirm: async () => {
+      onResolve: async () => {
         onNext?.();
         mutatePrefix("/api/fraud/groups");
       },

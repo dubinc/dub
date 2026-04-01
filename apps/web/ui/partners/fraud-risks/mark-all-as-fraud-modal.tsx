@@ -31,12 +31,14 @@ function MarkAllAsFraudModal({
   showModal,
   setShowModal,
   fraudGroup,
-  onConfirm,
+  onSuccess,
+  onResolve,
 }: {
   showModal: boolean;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   fraudGroup: FraudGroupProps;
-  onConfirm?: () => Promise<void>;
+  onSuccess?: () => Promise<void>; // Called when the commissions are marked as fraud
+  onResolve?: () => Promise<void>; // Called when the fraud event is resolved
 }) {
   const { id: workspaceId } = useWorkspace();
   const { makeRequest, isSubmitting } = useApiMutation();
@@ -122,7 +124,12 @@ function MarkAllAsFraudModal({
       reset();
       setResolveFraudEvent(false);
       await mutatePrefix(["/api/commissions", "/api/fraud/groups"]);
-      await onConfirm?.();
+
+      if (resolveFraudEvent) {
+        await onResolve?.();
+      } else {
+        await onSuccess?.();
+      }
 
       toast.success(
         `${commissionIds.length} ${pluralize("commission", commissionIds.length)} updated successfully!`,
@@ -274,10 +281,12 @@ function MarkAllAsFraudModal({
 
 export function useMarkAllAsFraudModal({
   fraudGroup,
-  onConfirm,
+  onSuccess,
+  onResolve,
 }: {
   fraudGroup: FraudGroupProps;
-  onConfirm?: () => Promise<void>;
+  onSuccess?: () => Promise<void>;
+  onResolve?: () => Promise<void>;
 }) {
   const [showMarkAllAsFraudModal, setShowMarkAllAsFraudModal] = useState(false);
 
@@ -287,14 +296,16 @@ export function useMarkAllAsFraudModal({
         showModal={showMarkAllAsFraudModal}
         setShowModal={setShowMarkAllAsFraudModal}
         fraudGroup={fraudGroup}
-        onConfirm={onConfirm}
+        onSuccess={onSuccess}
+        onResolve={onResolve}
       />
     ),
     [
       showMarkAllAsFraudModal,
       setShowMarkAllAsFraudModal,
       fraudGroup,
-      onConfirm,
+      onSuccess,
+      onResolve,
     ],
   );
 
