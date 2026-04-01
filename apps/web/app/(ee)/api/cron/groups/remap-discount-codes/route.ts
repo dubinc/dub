@@ -159,7 +159,7 @@ export const POST = withCron(async ({ rawBody }) => {
       // Create discount code for the partner default links
       if (workspace.stripeConnectId && workspace.installedIntegrations.length) {
         const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-          workspace.installedIntegrations[0].settings,
+          workspace.installedIntegrations[0].settings || {},
         );
 
         for (const link of links) {

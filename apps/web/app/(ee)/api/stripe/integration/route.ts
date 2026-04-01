@@ -2,6 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -21,17 +22,14 @@ export const PATCH = withWorkspace(
     const { stripeAccountId, stripeMode } = z
       .object({
         stripeAccountId: z.string().nullable(),
-        stripeMode: z
-          .enum(["live", "test", "sandbox"])
-          .optional()
-          .default("live"),
+        stripeMode: stripeIntegrationSettingsSchema.shape.stripeMode,
       })
       .parse(body);
 
     if (!token?.installationId) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are not authorized to update the stripe integration.",
+        message: "You are not authorized to update the Stripe integration.",
       });
     }
 
@@ -41,14 +39,13 @@ export const PATCH = withWorkspace(
       },
       select: {
         integrationId: true,
-        settings: true,
       },
     });
 
     if (!installation || installation.integrationId !== STRIPE_INTEGRATION_ID) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are not authorized to update the stripe integration.",
+        message: "You are not authorized to update the Stripe integration.",
       });
     }
 
@@ -77,6 +74,7 @@ export const PATCH = withWorkspace(
             },
             select: {
               id: true,
+              settings: true,
             },
           });
 
@@ -88,6 +86,9 @@ export const PATCH = withWorkspace(
               integrationId: STRIPE_INTEGRATION_ID,
               credentials: {
                 stripeConnectId: stripeAccountId,
+              },
+              settings: {
+                stripeMode,
               },
             });
           }

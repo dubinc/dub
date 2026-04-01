@@ -43,7 +43,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   }
 
   const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    installedStripeIntegration.settings,
+    installedStripeIntegration.settings || {},
   );
 
   const stripe = stripeAppClient({

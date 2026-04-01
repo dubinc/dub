@@ -86,7 +86,7 @@ export const POST = withWorkspace(
     }
 
     const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-      installedStripeIntegration.settings,
+      installedStripeIntegration.settings || {},
     );
 
     const programEnrollment = await getProgramEnrollmentOrThrow({

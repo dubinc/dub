@@ -203,7 +203,7 @@ export const { POST } = serve<Payload>(
       }
 
       const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-        workspace.installedIntegrations[0].settings,
+        workspace.installedIntegrations[0].settings || {},
       );
 
       const partnerLinks = await prisma.link.findMany({

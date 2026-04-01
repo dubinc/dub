@@ -39,7 +39,7 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    workspace.installedIntegrations[0].settings,
+    workspace.installedIntegrations[0].settings || {},
   );
 
   const disabledDiscountCode = await disableStripeDiscountCode({

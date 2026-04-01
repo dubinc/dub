@@ -80,7 +80,7 @@ export const createDiscountAction = authActionClient
     }
 
     const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-      installedStripeIntegration.settings,
+      installedStripeIntegration.settings || {},
     );
 
     const stripe = stripeAppClient({
