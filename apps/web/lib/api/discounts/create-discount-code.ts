@@ -1,17 +1,20 @@
 import { createId } from "@/lib/api/create-id";
 import { createStripeDiscountCode } from "@/lib/stripe/create-stripe-discount-code";
+import { StripeMode } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Discount, Link, Partner } from "@dub/prisma/client";
 import { constructDiscountCode } from "./construct-discount-code";
 
 export async function createDiscountCode({
   stripeConnectId,
+  stripeMode,
   partner,
   link,
   discount,
   code,
 }: {
   stripeConnectId: string;
+  stripeMode: StripeMode;
   partner: Pick<Partner, "id" | "name">;
   link: Pick<Link, "id">;
   discount: Pick<Discount, "id" | "programId" | "couponId" | "amount" | "type">;
@@ -29,6 +32,7 @@ export async function createDiscountCode({
 
   const stripeDiscountCode = await createStripeDiscountCode({
     stripeConnectId,
+    stripeMode,
     discount,
     code: finalCode,
     shouldRetry: code ? false : true,

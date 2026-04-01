@@ -49,7 +49,7 @@ export async function customerSubscriptionCreated(
   }
 
   const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    workspace.installedIntegrations[0].settings ?? {},
+    workspace.installedIntegrations[0].settings || {},
   );
 
   if (!stripeIntegrationSettings?.freeTrials?.enabled) {

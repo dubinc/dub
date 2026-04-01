@@ -12,4 +12,4 @@ export interface Workspace {
   logo: string;
 }
 
-export type StripeMode = "test" | "live";
+export type StripeMode = "live" | "test" | "sandbox";
