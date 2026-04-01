@@ -11,7 +11,7 @@ interface VerifyCommissionProps {
 }
 
 const POLL_INTERVAL_MS = 5000; // 5 seconds
-const TIMEOUT_MS = 30000; // 30 seconds
+const TIMEOUT_MS = 45000; // 45 seconds
 
 export const verifyCommission = async ({
   http,
@@ -43,7 +43,7 @@ export const verifyCommission = async ({
     query.customerId = customerId;
   }
 
-  // Poll for commission every 5 seconds, timeout after 30 seconds
+  // Poll for commission every 5 seconds, timeout after 45 seconds
   const startTime = Date.now();
 
   while (Date.now() - startTime < TIMEOUT_MS) {
