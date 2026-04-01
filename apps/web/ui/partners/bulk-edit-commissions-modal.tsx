@@ -2,17 +2,18 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { CommissionResponse } from "@/lib/types";
 import { commissionPatchStatusSchema } from "@/lib/zod/schemas/commissions";
-import { Button, Modal } from "@dub/ui";
+import { Button, Combobox, Modal } from "@dub/ui";
 import { InvoiceDollar } from "@dub/ui/icons";
 import { pluralize } from "@dub/utils";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { CommissionStatusBadges } from "./commission-status-badges";
+import * as z from "zod/v4";
 import { PartnerAvatar } from "./partner-avatar";
+import { useCommissionStatusCombobox } from "./use-commission-status-combobox";
 
 type FormData = {
-  status: string;
+  status: z.infer<typeof commissionPatchStatusSchema>;
 };
 
 interface BulkEditCommissionsModalProps {
@@ -44,20 +45,26 @@ function BulkEditCommissionsModal({
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { isDirty },
   } = useForm<FormData>({
     defaultValues: {
-      status: commissions[0]?.status ?? "pending",
+      status: (commissions[0]?.status ?? "pending") as FormData["status"],
     },
   });
+
+  const selectedStatus = watch("status");
 
   useEffect(() => {
     if (showModal) {
       reset({
-        status: commissions[0]?.status ?? "pending",
+        status: (commissions[0]?.status ?? "pending") as FormData["status"],
       });
     }
   }, [showModal, commissions, reset]);
+
+  const { statusComboboxOptions, selectedStatusOption } =
+    useCommissionStatusCombobox(selectedStatus);
 
   const onSubmit = async (data: FormData) => {
     await makeRequest("/api/commissions/bulk", {
@@ -75,8 +82,6 @@ function BulkEditCommissionsModal({
       },
     });
   };
-
-  const statusOptions = commissionPatchStatusSchema.options;
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
@@ -116,26 +121,38 @@ function BulkEditCommissionsModal({
 
             <div>
               <label className="text-content-emphasis text-sm font-normal">
-                Status
+                New status
               </label>
               <Controller
                 name="status"
                 control={control}
                 render={({ field }) => (
-                  <select
-                    className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                    value={field.value}
-                    onChange={field.onChange}
-                  >
-                    {statusOptions.map((status) => {
-                      const badge = CommissionStatusBadges[status];
-                      return (
-                        <option key={status} value={status}>
-                          {badge?.label ?? status}
-                        </option>
-                      );
-                    })}
-                  </select>
+                  <div className="mt-2">
+                    <Combobox
+                      options={statusComboboxOptions}
+                      selected={selectedStatusOption ?? null}
+                      setSelected={(option) => {
+                        if (!option) return;
+                        field.onChange(option.value);
+                      }}
+                      placeholder="Select status"
+                      searchPlaceholder="Search status..."
+                      matchTriggerWidth
+                      buttonProps={{
+                        className:
+                          "w-full justify-start border-neutral-300 px-3 data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500 focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+                      }}
+                    >
+                      {selectedStatusOption ? (
+                        <span className="flex items-center gap-2">
+                          {selectedStatusOption.icon}
+                          <span>{selectedStatusOption.label}</span>
+                        </span>
+                      ) : (
+                        "Select status"
+                      )}
+                    </Combobox>
+                  </div>
                 )}
               />
             </div>

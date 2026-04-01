@@ -16,7 +16,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   const isHoldStatus = searchParams.status === "hold";
-  const { status: _status, ...restSearchParams } = searchParams;
+  const {
+    status: _status,
+    fraudEventGroupId,
+    ...restSearchParams
+  } = searchParams;
 
   let { partnerId, tenantId, ...filters } = getCommissionsQuerySchema.parse(
     isHoldStatus ? restSearchParams : searchParams,
@@ -50,6 +54,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     partnerId,
     programId,
     isHoldStatus,
+    ...(fraudEventGroupId && { fraudEventGroupId }),
   });
 
   return NextResponse.json(

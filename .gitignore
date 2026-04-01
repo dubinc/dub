@@ -37,7 +37,7 @@ dist/
 next-env.d.ts
 
 # miscellaneous
-/pages/api/scripts*
+apps/web/scripts/fix.ts
 packages/stripe-app/.build/*
 .react-email
 .contentlayer

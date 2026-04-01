@@ -349,10 +349,10 @@ describe.sequential(
       expect(status).toEqual(422);
     });
 
-    test("POST /bounties - maxSubmissions above maximum (11) is rejected", async () => {
+    test("POST /bounties - maxSubmissions above maximum (50) is rejected", async () => {
       const { status } = await http.post({
         path: "/bounties",
-        body: { ...base, maxSubmissions: 11 },
+        body: { ...base, maxSubmissions: 51 },
       });
 
       expect(status).toEqual(422);
@@ -543,10 +543,10 @@ describe.sequential(
       expect(status).toEqual(422);
     });
 
-    test("PATCH /bounties/{bountyId} - maxSubmissions above maximum (11) is rejected", async () => {
+    test("PATCH /bounties/{bountyId} - maxSubmissions above maximum (50) is rejected", async () => {
       const { status } = await http.patch({
         path: `/bounties/${bountyId}`,
-        body: { maxSubmissions: 11 },
+        body: { maxSubmissions: 51 },
       });
 
       expect(status).toEqual(422);

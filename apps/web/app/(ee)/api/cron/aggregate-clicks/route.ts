@@ -188,6 +188,7 @@ async function handler(req: Request) {
           id: createId({ prefix: "cm_" }),
           programId,
           partnerId,
+          rewardId: programEnrollment.clickReward.id,
           linkId: id,
           quantity: linkClicks,
           type: CommissionType.click,

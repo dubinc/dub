@@ -8,6 +8,7 @@ interface InstallIntegration {
   workspaceId: string;
   integrationId: string;
   credentials?: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
 // Install an integration for a user in a workspace

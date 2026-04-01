@@ -8,8 +8,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod/v4";
-import { CommissionStatusBadges } from "./commission-status-badges";
 import { PartnerAvatar } from "./partner-avatar";
+import { useCommissionStatusCombobox } from "./use-commission-status-combobox";
 
 type FormData = {
   earnings: number | null;
@@ -99,35 +99,8 @@ function EditCommissionModal({
     });
   };
 
-  const statusOptions = commissionPatchStatusSchema.options;
-  const statusComboboxOptions = useMemo(
-    () =>
-      statusOptions.map((status) => {
-        const badge = CommissionStatusBadges[status];
-        const StatusIcon = badge?.icon;
-        const statusTextClass = badge?.className
-          ?.split(" ")
-          .find((className) => className.startsWith("text-"));
-
-        return {
-          value: status,
-          label: badge?.label ?? status,
-          variant: badge?.variant ?? "neutral",
-          icon: StatusIcon ? (
-            <StatusIcon
-              className={`size-4 ${statusTextClass ?? "text-neutral-500"}`}
-            />
-          ) : undefined,
-        };
-      }),
-    [statusOptions, commission.status],
-  );
-
-  const selectedStatusOption = useMemo(
-    () =>
-      statusComboboxOptions.find((option) => option.value === selectedStatus),
-    [statusComboboxOptions, selectedStatus],
-  );
+  const { statusComboboxOptions, selectedStatusOption } =
+    useCommissionStatusCombobox(selectedStatus);
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
