@@ -22,7 +22,7 @@ import { FirstPromoterCommission, FirstPromoterImportPayload } from "./types";
 const toDubStatus: Record<FirstPromoterCommission["status"], CommissionStatus> =
   {
     pending: "pending",
-    approved: "processed",
+    approved: "pending",
     denied: "canceled",
   };
 

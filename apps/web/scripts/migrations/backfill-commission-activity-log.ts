@@ -1,36 +1,39 @@
-import "dotenv-flow/config";
-
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { addDays } from "date-fns";
+import "dotenv-flow/config";
 
 const BATCH_SIZE = 500;
 const TERMINAL_STATUSES = ["refunded", "duplicate", "fraud", "canceled"];
 
-// REMOVE before running:
-// - "server-only" from any imported files if needed
-
-// Note: Activity log createdAt is not accurate, but it's the best we can do
-
 async function main() {
-  const programId = process.env.PROGRAM_ID;
-
   let cursor: string | undefined = undefined;
   let totalProcessed = 0;
   let totalLogsCreated = 0;
 
-  console.log(
-    `Starting commission activity log backfill${programId ? ` for program ${programId}` : ""}...`,
-  );
-
   while (true) {
     const commissions = await prisma.commission.findMany({
       where: {
-        ...(programId ? { programId } : {}),
+        status: {
+          not: "pending",
+        },
+        earnings: {
+          not: 0,
+        },
       },
       include: {
         program: {
           select: {
             workspaceId: true,
+          },
+        },
+        programEnrollment: {
+          select: {
+            partnerGroup: {
+              select: {
+                holdingPeriodDays: true,
+              },
+            },
           },
         },
         payout: {
@@ -59,22 +62,30 @@ async function main() {
 
     cursor = commissions[commissions.length - 1].id;
 
-    // Reset every batch (avoid accidental accumulation / re-inserts)
-    let commissionsToBackfill = [] as typeof commissions;
-    commissionsToBackfill = commissions.filter((c) => c.id);
-
-    if (commissionsToBackfill.length === 0) {
-      totalProcessed += commissions.length;
-      console.log(
-        `Batch skipped (all have logs). Total processed: ${totalProcessed}`,
-      );
-      continue;
-    }
+    const existingActivityLogs = await prisma.activityLog.findMany({
+      where: {
+        resourceType: "commission",
+        resourceId: {
+          in: commissions.map((c) => c.id),
+        },
+      },
+    });
 
     const activityLogs: Prisma.ActivityLogCreateManyInput[] = [];
 
-    for (const commission of commissionsToBackfill) {
-      const { amount, earnings, status, program } = commission;
+    for (const commission of commissions) {
+      const { amount, earnings, status, program, programEnrollment } =
+        commission;
+
+      const existingActivityLogsForCommission = existingActivityLogs.filter(
+        (log) => log.resourceId === commission.id,
+      );
+      if (existingActivityLogsForCommission.length > 0) {
+        console.log(
+          `Commission ${commission.id} already has ${existingActivityLogsForCommission.length} activity logs, skipping...`,
+        );
+        continue;
+      }
 
       const base = {
         workspaceId: program.workspaceId,
@@ -83,48 +94,75 @@ async function main() {
         resourceId: commission.id,
       };
 
-      if (status === "processed") {
+      const statusBecameProcessed =
+        commission.type === "custom"
+          ? commission.createdAt
+          : addDays(
+              commission.createdAt,
+              programEnrollment?.partnerGroup?.holdingPeriodDays ?? 0,
+            );
+
+      if (TERMINAL_STATUSES.includes(status)) {
+        if (!commission.rewardId) {
+          console.log(
+            `Commission ${commission.id} with status ${status} has no rewardId, likely imported from another source, skipping...`,
+          );
+          continue;
+        }
+
+        let statusBeforeTerminal = "pending";
+        // if the status became processed before it was updated to terminal
+        // we should include the processed activity log
+        if (statusBecameProcessed < commission.updatedAt) {
+          activityLogs.push({
+            ...base,
+            action: "commission.updated",
+            createdAt: statusBecameProcessed,
+            changeSet: {
+              commission: {
+                old: { amount, earnings, status: "pending" },
+                new: { amount, earnings, status: "processed" },
+              },
+            },
+          });
+          statusBeforeTerminal = "processed";
+        }
+
         activityLogs.push({
           ...base,
           action: "commission.updated",
           createdAt: commission.updatedAt,
           changeSet: {
             commission: {
-              old: {
-                amount,
-                earnings,
-                status: "pending",
-              },
-              new: {
-                amount,
-                earnings,
-                status: "processed",
-              },
+              old: { amount, earnings, status: statusBeforeTerminal },
+              new: { amount, earnings, status },
             },
           },
         });
+      } else {
+        if (status === "paid" && !commission.payout) {
+          console.log(
+            `Commission ${commission.id} is paid but has no payout, likely imported from another source, skipping...`,
+          );
+          continue;
+        }
 
-        continue;
-      }
+        const commissionPaidAt = commission.payout?.paidAt;
 
-      if (status === "paid") {
         // pending → processed
         activityLogs.push({
           ...base,
           action: "commission.updated",
-          createdAt: commission.updatedAt,
+          // if commissionPaidAt exists and is before statusBecameProcessed, use commission.createdAt
+          // otherwise use statusBecameProcessed
+          createdAt:
+            commissionPaidAt && commissionPaidAt < statusBecameProcessed
+              ? commission.createdAt
+              : statusBecameProcessed,
           changeSet: {
             commission: {
-              old: {
-                amount,
-                earnings,
-                status: "pending",
-              },
-              new: {
-                amount,
-                earnings,
-                status: "processed",
-              },
+              old: { amount, earnings, status: "pending" },
+              new: { amount, earnings, status: "processed" },
             },
           },
         });
@@ -151,42 +189,25 @@ async function main() {
               },
             },
           });
-        } else {
-          console.warn(
-            `No paidAt for commission ${commission.id} payout ${commission.payoutId}`,
-          );
         }
-
-        continue;
-      }
-
-      if (TERMINAL_STATUSES.includes(status)) {
-        activityLogs.push({
-          ...base,
-          action: "commission.updated",
-          createdAt: commission.updatedAt,
-          changeSet: {
-            commission: {
-              old: { amount, earnings, status: "pending" },
-              new: { amount, earnings, status },
-            },
-          },
-        });
       }
     }
 
+    let logsCreated = 0;
+
     if (activityLogs.length > 0) {
-      await prisma.activityLog.createMany({
+      const created = await prisma.activityLog.createMany({
         data: activityLogs,
         skipDuplicates: true,
       });
+      logsCreated = created.count;
+      totalLogsCreated += logsCreated;
     }
 
     totalProcessed += commissions.length;
-    totalLogsCreated += activityLogs.length;
 
     console.log(
-      `Batch done: ${commissionsToBackfill.length} commissions, ${activityLogs.length} logs created. Total processed: ${totalProcessed}, total logs: ${totalLogsCreated}`,
+      `Batch done: ${commissions.length} commissions, ${activityLogs.length} logs created. Total processed: ${totalProcessed}, total logs: ${totalLogsCreated}`,
     );
   }
 

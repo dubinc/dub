@@ -64,41 +64,6 @@ export function CommissionActivity({
     },
   });
 
-  const createdEvent = {
-    key: "created",
-    icon: CommissionStatusBadges["pending"].icon,
-    timestamp: commission.createdAt,
-    note: (() => {
-      const text = commission.reward
-        ? `Earn ${
-            commission.reward.type === "percentage"
-              ? `${commission.reward.amountInPercentage ?? 0}%`
-              : currencyFormatter(commission.reward.amountInCents ?? 0, {
-                  trailingZeroDisplay: "stripIfInteger",
-                })
-          } per ${commission.reward.event}`
-        : commission.description ?? null;
-
-      if (!text) return undefined;
-
-      return (
-        <CommentCardDisplay timestamp={commission.createdAt} text={text} />
-      );
-    })(),
-
-    children: (
-      <>
-        <span className="text-sm text-neutral-700">Commission</span>
-        <StatusBadge
-          icon={null}
-          variant={CommissionStatusBadges["pending"].variant}
-        >
-          {CommissionStatusBadges["pending"].label}
-        </StatusBadge>
-      </>
-    ),
-  };
-
   if (loading) {
     return (
       <div className="mt-6">
@@ -119,6 +84,64 @@ export function CommissionActivity({
       </div>
     );
   }
+
+  const createdEvent =
+    commission.status !== "pending" && activityLogs?.length === 0
+      ? {
+          key: "created",
+          icon: CommissionStatusBadges[commission.status].icon,
+          timestamp: commission.createdAt,
+          children: (
+            <>
+              <span className="text-sm text-neutral-700">
+                Commission imported as
+              </span>
+              <StatusBadge
+                icon={null}
+                variant={CommissionStatusBadges[commission.status].variant}
+              >
+                {CommissionStatusBadges[commission.status].label}
+              </StatusBadge>
+            </>
+          ),
+        }
+      : {
+          key: "created",
+          icon: CommissionStatusBadges["pending"].icon,
+          timestamp: commission.createdAt,
+          note: (() => {
+            const text = commission.reward
+              ? `Earn ${
+                  commission.reward.type === "percentage"
+                    ? `${commission.reward.amountInPercentage ?? 0}%`
+                    : currencyFormatter(commission.reward.amountInCents ?? 0, {
+                        trailingZeroDisplay: "stripIfInteger",
+                      })
+                } per ${commission.reward.event}`
+              : commission.description ?? null;
+
+            if (!text) return undefined;
+
+            return (
+              <CommentCardDisplay
+                timestamp={commission.createdAt}
+                text={text}
+              />
+            );
+          })(),
+
+          children: (
+            <>
+              <span className="text-sm text-neutral-700">Commission</span>
+              <StatusBadge
+                icon={null}
+                variant={CommissionStatusBadges["pending"].variant}
+              >
+                {CommissionStatusBadges["pending"].label}
+              </StatusBadge>
+            </>
+          ),
+        };
 
   const fmt = (v: number) =>
     currencyFormatter(v, { trailingZeroDisplay: "stripIfInteger" });
@@ -198,7 +221,7 @@ export function CommissionActivity({
         if (old?.amount !== cur.amount) {
           parts.push(
             <span key="amount" className="text-sm text-neutral-700">
-              Amount changed to
+              Sale amount updated
             </span>,
             <span
               key="amount-val"
