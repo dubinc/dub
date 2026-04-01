@@ -6,6 +6,7 @@ import {
 } from "@/lib/api/oauth/utils";
 import { PARTNER_PLATFORMS_PROVIDERS } from "@/lib/api/partner-profile/partner-platforms-providers";
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { generateOTP } from "@/lib/auth/utils";
 import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { isGenericEmail } from "@/lib/is-generic-email";
@@ -56,8 +57,13 @@ type VerificationParams = {
 export const startPartnerPlatformVerificationAction = authPartnerActionClient
   .inputSchema(startPartnerPlatformVerificationSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
     const { platform, handle, source } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "partner_profile.update",
+    });
 
     // Rate limit check
     const { success } = await ratelimit(5, "1 h").limit(

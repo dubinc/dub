@@ -12,26 +12,23 @@ const PERMISSIONS = [
   "payout_settings.update",
   "postbacks.read",
   "postbacks.write",
+  "messages.send",
+  "messages.mark_as_read",
+  "program_invites.accept",
+  "bounties.submit",
 ] as const;
 
-const ROLE_PERMISSIONS: Record<PartnerRole, Permission[]> = {
-  owner: [
-    "users.update",
-    "users.delete",
-    "user_invites.create",
-    "user_invites.delete",
-    "user_invites.update",
-    "partner_profile.update",
-    "payout_settings.update",
-    "postbacks.read",
-    "postbacks.write",
-  ],
-  member: [],
-  viewer: [],
+const ROLE_PERMISSIONS: Record<PartnerRole, Set<Permission>> = {
+  owner: new Set(PERMISSIONS),
+  member: new Set([
+    "messages.send",
+    "messages.mark_as_read",
+    "program_invites.accept",
+    "bounties.submit",
+  ]),
+  viewer: new Set([]),
 } as const;
 
 export function hasPermission(role: PartnerRole, permission: Permission) {
-  const allowed = ROLE_PERMISSIONS[role] ?? [];
-
-  return allowed.includes(permission);
+  return ROLE_PERMISSIONS[role]?.has(permission) ?? false;
 }

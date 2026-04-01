@@ -1,26 +1,24 @@
 "use server";
 
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
 
+const inputSchema = z.object({
+  programId: z.string(),
+});
+
 export const withdrawPartnerApplicationAction = authPartnerActionClient
-  .inputSchema(
-    z.object({
-      programId: z.string(),
-    }),
-  )
+  .inputSchema(inputSchema)
   .action(async ({ ctx, parsedInput }) => {
     const { programId } = parsedInput;
     const { partner } = ctx;
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
-        },
-      },
+    const programEnrollment = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId,
+      include: {},
     });
 
     if (programEnrollment.status !== "pending") {
