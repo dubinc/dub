@@ -92,11 +92,11 @@ export function FraudMatchingCustomerEmailTable({
               minSize: 120,
               size: 180,
               cell: ({ row }: { row: { original: EventDataProps } }) => {
-                const matchType = row.original.metadata?.matchType ?? "exact";
+                const matchType = row.original.metadata?.matchType;
 
                 return (
                   <span className="text-sm text-neutral-600">
-                    {MATCH_TYPE_LABELS[matchType]}
+                    {matchType ? MATCH_TYPE_LABELS[matchType] : "-"}
                   </span>
                 );
               },
