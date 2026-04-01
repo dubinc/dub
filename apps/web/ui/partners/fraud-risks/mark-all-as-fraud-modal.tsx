@@ -240,7 +240,7 @@ function MarkAllAsFraudModal({
                       control={control}
                     />
                   </div>
-                  <div className="relative mt-1.5 rounded-md shadow-sm">
+                  <div className="relative mt-1.5 rounded-md p-px shadow-sm">
                     <textarea
                       id="resolutionReason"
                       className={cn(
