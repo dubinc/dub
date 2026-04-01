@@ -1,20 +1,18 @@
 import { nanoid } from "@dub/utils";
 import { stripeAppClient } from ".";
-import { DiscountProps } from "../types";
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
+import { DiscountProps, StripeMode } from "../types";
 
 const MAX_ATTEMPTS = 3;
 
 export async function createStripeDiscountCode({
   stripeConnectId,
+  stripeMode,
   discount,
   code,
   shouldRetry = true,
 }: {
   stripeConnectId: string;
+  stripeMode: StripeMode;
   discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
   code: string;
   shouldRetry?: boolean; // we don't retry if the code is provided by the user
@@ -24,6 +22,10 @@ export async function createStripeDiscountCode({
       `stripeConnectId is required to create a Stripe discount code.`,
     );
   }
+
+  const stripe = stripeAppClient({
+    mode: stripeMode,
+  });
 
   if (!discount.couponId) {
     throw new Error(`couponId not found for discount ${discount.id}.`);
