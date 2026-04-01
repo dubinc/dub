@@ -8,6 +8,7 @@ import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-app
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { X } from "@/ui/shared/icons";
 import { UserAvatar } from "@/ui/users/user-avatar";
+import { FraudRuleType } from "@dub/prisma/client";
 import {
   Button,
   ChevronLeft,
@@ -37,6 +38,14 @@ interface FraudReviewSheetProps {
   onNext?: () => void;
   onPrevious?: () => void;
 }
+
+// These fraud types block commissions from being processed
+const COMMISSION_BLOCKING_FRAUD_TYPE: FraudRuleType[] = [
+  FraudRuleType.customerEmailMatch,
+  FraudRuleType.customerEmailSuspiciousDomain,
+  FraudRuleType.referralSourceBanned,
+  FraudRuleType.paidTrafficDetected,
+];
 
 function FraudReviewSheetContent({
   fraudGroup,
@@ -213,14 +222,29 @@ function FraudReviewSheetContent({
               <FraudEventsTableWrapper fraudGroup={fraudGroup} />
             </div>
 
-            {fraudGroup.status === "pending" && (
-              <div>
-                <h3 className="text-content-emphasis mb-4 font-semibold">
-                  Commissions on hold
-                </h3>
-                <CommissionsOnHoldTable fraudGroup={fraudGroup} />
-              </div>
-            )}
+            {fraudGroup.status === "pending" &&
+              COMMISSION_BLOCKING_FRAUD_TYPE.includes(fraudGroup.type) && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-content-emphasis font-semibold leading-6">
+                        Associated commissions
+                      </h3>
+                      <p className="text-content-subtle text-xs font-normal leading-4">
+                        If none are marked as fraud, these move to Pending on
+                        resolve
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      text="Mark all as fraud"
+                      className="h-7 w-fit shrink-0 rounded-lg px-2.5 py-2"
+                    />
+                  </div>
+                  <CommissionsOnHoldTable fraudGroup={fraudGroup} />
+                </div>
+              )}
 
             {fraudGroup.status === "pending" && (
               <ResolvedFraudGroupTable partnerId={partner.id} />

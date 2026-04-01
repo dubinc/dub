@@ -3,6 +3,7 @@ import { CommissionResponse, FraudGroupProps } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import {
   LoadingSpinner,
+  StatusBadge,
   Table,
   TimestampTooltip,
   useTable,
@@ -18,6 +19,7 @@ import {
 import { useState } from "react";
 import useSWR from "swr";
 import { CommissionRowMenu } from "../commission-row-menu";
+import { CommissionStatusBadges } from "../commission-status-badges";
 import { CommissionTypeBadge } from "../commission-type-badge";
 
 const COMMISSIONS_ON_HOLD_PAGE_SIZE = 10;
@@ -40,6 +42,7 @@ export function CommissionsOnHoldTable({
     workspaceId: workspaceId!,
     status: "pending",
     partnerId: fraudGroup.partner.id,
+    fraudEventGroupId: fraudGroup.id,
   };
 
   const {
@@ -130,6 +133,18 @@ export function CommissionsOnHoldTable({
             {currencyFormatter(row.original.earnings)}
           </span>
         ),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: () => {
+          const badge = CommissionStatusBadges.hold;
+          return (
+            <StatusBadge icon={null} variant={badge.variant} className="py-0.5">
+              {badge.label}
+            </StatusBadge>
+          );
+        },
       },
       // Menu
       {

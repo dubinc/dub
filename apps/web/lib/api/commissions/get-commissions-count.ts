@@ -9,6 +9,7 @@ type CommissionsCountFilters = z.infer<
 > & {
   programId: string;
   isHoldStatus?: boolean;
+  fraudEventGroupId?: string;
 };
 
 export async function getCommissionsCount(filters: CommissionsCountFilters) {
@@ -19,6 +20,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     payoutId,
     customerId,
     groupId,
+    fraudEventGroupId,
     start,
     end,
     interval,
@@ -26,6 +28,27 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     programId,
     isHoldStatus,
   } = filters;
+
+  // Resolve fraudEventGroupId to eventIds
+  let eventIds: string[] | undefined;
+
+  if (fraudEventGroupId) {
+    const fraudEvents = await prisma.fraudEvent.findMany({
+      where: {
+        fraudEventGroupId,
+        eventId: {
+          not: null,
+        },
+      },
+      select: {
+        eventId: true,
+      },
+    });
+
+    eventIds = fraudEvents
+      .map((e) => e.eventId)
+      .filter((id): id is string => id !== null);
+  }
 
   const { startDate, endDate } = getStartEndDates({
     interval,
@@ -67,6 +90,11 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
       type,
       payoutId,
       customerId,
+      ...(eventIds && {
+        eventId: {
+          in: eventIds,
+        },
+      }),
       createdAt: {
         gte: startDate,
         lte: endDate,
