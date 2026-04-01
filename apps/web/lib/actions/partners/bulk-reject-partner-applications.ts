@@ -26,17 +26,6 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      select: {
-        name: true,
-        slug: true,
-        supportEmail: true,
-      },
-    });
-
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId,
@@ -129,40 +118,44 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
           }),
         ]);
 
+        const program = await prisma.program.findUniqueOrThrow({
+          where: {
+            id: programId,
+          },
+          select: {
+            name: true,
+            slug: true,
+            supportEmail: true,
+          },
+        });
+
         const partnersWithEmail = programEnrollments
           .filter(({ partner }) => partner.email)
           .map(({ partner }) => partner);
 
         if (partnersWithEmail.length > 0) {
-          try {
-            await sendBatchEmail(
-              partnersWithEmail.map((partner) => ({
-                to: partner.email!,
-                subject: `Your application to ${program.name} was not approved`,
-                variant: "notifications" as const,
-                replyTo: program.supportEmail || "noreply",
-                react: PartnerApplicationRejected({
-                  partner: {
-                    name: partner.name ?? "there",
-                    email: partner.email!,
-                  },
-                  program: {
-                    name: program.name,
-                    slug: program.slug,
-                    supportEmail: program.supportEmail ?? undefined,
-                  },
-                  rejectionReason: undefined,
-                  additionalNotes: undefined,
-                  canReapplyImmediately: false,
-                }),
-              })),
-            );
-          } catch (error) {
-            console.error("Failed to send bulk rejection emails", {
-              error,
-              programId,
-            });
-          }
+          await sendBatchEmail(
+            partnersWithEmail.map((partner) => ({
+              to: partner.email!,
+              subject: `Your application to ${program.name} was not approved`,
+              variant: "notifications",
+              replyTo: program.supportEmail || "noreply",
+              react: PartnerApplicationRejected({
+                partner: {
+                  name: partner.name ?? "there",
+                  email: partner.email!,
+                },
+                program: {
+                  name: program.name,
+                  slug: program.slug,
+                  supportEmail: program.supportEmail ?? undefined,
+                },
+                rejectionReason: undefined,
+                additionalNotes: undefined,
+                canReapplyImmediately: false,
+              }),
+            })),
+          );
         }
       })(),
     );
