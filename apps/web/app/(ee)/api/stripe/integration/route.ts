@@ -1,7 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { installIntegration } from "@/lib/integrations/install";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
@@ -38,7 +37,9 @@ export const PATCH = withWorkspace(
         id: token.installationId,
       },
       select: {
+        id: true,
         integrationId: true,
+        settings: true,
       },
     });
 
@@ -64,40 +65,24 @@ export const PATCH = withWorkspace(
 
       waitUntil(
         (async () => {
-          const installation = await prisma.installedIntegration.findUnique({
-            where: {
-              userId_integrationId_projectId: {
-                userId: session.user.id,
-                projectId: workspace.id,
-                integrationId: STRIPE_INTEGRATION_ID,
-              },
-            },
-            select: {
-              id: true,
-              settings: true,
-            },
-          });
-
-          // Install the integration if it doesn't exist
-          if (!installation) {
-            await installIntegration({
-              userId: session.user.id,
-              workspaceId: workspace.id,
-              integrationId: STRIPE_INTEGRATION_ID,
-              credentials: {
-                stripeConnectId: stripeAccountId,
-              },
-              settings: {
-                stripeMode,
-              },
-            });
-          }
-
           // Uninstall the integration if the stripe account id is null
           if (installation && stripeAccountId === null) {
             await prisma.installedIntegration.delete({
               where: {
                 id: installation.id,
+              },
+            });
+            // else, update the Stripe mode for the installation
+          } else {
+            await prisma.installedIntegration.update({
+              where: {
+                id: installation.id,
+              },
+              data: {
+                settings: {
+                  ...((installation?.settings as any) || {}),
+                  stripeMode,
+                },
               },
             });
           }
