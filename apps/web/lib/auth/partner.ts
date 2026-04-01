@@ -275,6 +275,19 @@ export const withPartnerProfile = (
           ({ linkId }) => linkId,
         );
 
+        // If the user is scoped to specific programs and the route has a programId param,
+        // verify they have access to this program
+        if (
+          params.programId &&
+          assignedProgramIds.length > 0 &&
+          !assignedProgramIds.includes(params.programId)
+        ) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Program not found.",
+          });
+        }
+
         const {
           industryInterests,
           preferredEarningStructures,
