@@ -7,6 +7,7 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, PartnerPlatformProps } from "@/lib/types";
+import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
@@ -30,7 +31,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, Users, UserXmark } from "@dub/ui/icons";
+import { Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
 import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -513,6 +514,17 @@ function RowMenuButton({
   const [isOpen, setIsOpen] = useState(false);
 
   const {
+    ApprovePartnerApplicationModal,
+    setShowApprovePartnerApplicationModal,
+  } = useApprovePartnerApplicationModal({
+    partner: row.original,
+    groupId: row.original.groupId,
+    onConfirm: async () => {
+      await mutatePrefix(["/api/partners", "/api/partners/count"]);
+    },
+  });
+
+  const {
     RejectPartnerApplicationModal,
     setShowRejectPartnerApplicationModal,
   } = useRejectPartnerApplicationModal({
@@ -524,6 +536,7 @@ function RowMenuButton({
 
   return (
     <>
+      {ApprovePartnerApplicationModal}
       {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
@@ -531,6 +544,16 @@ function RowMenuButton({
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <MenuItem
+                as={Command.Item}
+                icon={UserCheck}
+                onSelect={() => {
+                  setIsOpen(false);
+                  setShowApprovePartnerApplicationModal(true);
+                }}
+              >
+                Approve application
+              </MenuItem>
               <MenuItem
                 as={Command.Item}
                 icon={UserXmark}

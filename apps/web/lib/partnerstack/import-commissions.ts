@@ -23,7 +23,7 @@ const toDubStatus: Record<
 > = {
   hold: "fraud",
   pending: "pending",
-  approved: "processed",
+  approved: "pending",
   declined: "canceled",
   paid: "paid",
   scheduled: "pending",

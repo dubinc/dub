@@ -1,3 +1,4 @@
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { prisma } from "@dub/prisma";
 import { payoutsItemSchema } from "./utils";
 
@@ -37,6 +38,18 @@ export async function payoutsItemSucceeded(event: any) {
     return;
   }
 
+  const commissions = await prisma.commission.findMany({
+    where: {
+      payoutId: payout.id,
+    },
+    select: {
+      id: true,
+      amount: true,
+      earnings: true,
+      status: true,
+    },
+  });
+
   await Promise.all([
     prisma.payout.update({
       where: {
@@ -58,4 +71,11 @@ export async function payoutsItemSucceeded(event: any) {
       },
     }),
   ]);
+
+  await trackCommissionStatusUpdate({
+    workspaceId: payout.program.workspaceId,
+    programId: payout.program.id,
+    commissions,
+    newStatus: "paid",
+  });
 }

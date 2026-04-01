@@ -25,7 +25,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   console.info(`Banning partner ${partnerId} from program ${programId}...`);
 
-  const { partner, links, ...programEnrollment } =
+  const { partner, links, program, ...programEnrollment } =
     await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
@@ -35,6 +35,11 @@ export const POST = withCron(async ({ rawBody }) => {
           include: {
             ...includeTags,
             discountCode: true,
+          },
+        },
+        program: {
+          select: {
+            workspaceId: true,
           },
         },
       },
@@ -109,6 +114,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Mark the commissions as canceled
   await cancelCommissions({
+    workspaceId: program.workspaceId,
     programId,
     partnerId,
   });

@@ -48,6 +48,7 @@ export const getEvents = async (params: EventsFilters) => {
     sortOrder,
     dataAvailableFrom,
     query,
+    includeMetadata = true,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -209,7 +210,10 @@ export const getEvents = async (params: EventsFilters) => {
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
-              metadata: evt.metadata ? JSON.parse(evt.metadata) : undefined,
+              metadata:
+                !includeMetadata || !evt.metadata
+                  ? undefined
+                  : JSON.parse(evt.metadata),
               customer: customersMap[evt.customer_id] ?? {
                 id: evt.customer_id,
                 name: "Deleted Customer",

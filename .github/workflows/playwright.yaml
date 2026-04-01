@@ -29,7 +29,7 @@ jobs:
       NEXTAUTH_URL: "http://partners.localhost:8888"
 
       NEXT_PUBLIC_APP_NAME: "Dub"
-      NEXT_PUBLIC_APP_DOMAIN: "dub.co"
+      NEXT_PUBLIC_APP_DOMAIN: "localhost:8888"
       NEXT_PUBLIC_APP_SHORT_DOMAIN: "dub.sh"
 
       E2E_PARTNER_EMAIL: "partner1@dub-internal-test.com"
@@ -38,8 +38,13 @@ jobs:
       TINYBIRD_API_KEY: "xx"
       TINYBIRD_API_URL: "xx"
 
-      UPSTASH_REDIS_REST_URL: "https://sensible-camel-xxxx.upstash.io"
-      UPSTASH_REDIS_REST_TOKEN: "xx"
+      AXIOM_TOKEN: "xx"
+      AXIOM_DATASET: "xx"
+
+      # serverless-redis-http (SRH) — must match jobs.e2e.services.srh env
+      SRH_TOKEN: "e2e_srh_token"
+      UPSTASH_REDIS_REST_URL: "http://127.0.0.1:8079"
+      UPSTASH_REDIS_REST_TOKEN: "e2e_srh_token"
       UPSTASH_VECTOR_REST_URL: "https://sensible-camel-xxxx.upstash.io"
       UPSTASH_VECTOR_REST_TOKEN: "xx"
       QSTASH_TOKEN: "xx"
@@ -86,6 +91,25 @@ jobs:
         ports:
           - 1025:1025
           - 8025:8025
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+      srh:
+        image: hiett/serverless-redis-http:latest
+        env:
+          SRH_MODE: env
+          SRH_TOKEN: "e2e_srh_token"
+          SRH_CONNECTION_STRING: redis://redis:6379
+        ports:
+          - 8079:80
 
     steps:
       - name: Check out code

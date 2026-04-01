@@ -133,7 +133,7 @@ export function EmbedBountyDetail({
           aria-label="Back to bounties"
           title="Back to bounties"
           onClick={onBack}
-          className="bg-bg-subtle flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 hover:bg-bg-emphasis active:scale-95"
+          className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
         >
           <Trophy className="size-4" />
         </button>

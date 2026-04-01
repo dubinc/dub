@@ -87,6 +87,18 @@ async function main() {
   console.log(
     `Updated ${updatedCommissions.count} commissions to have status "paid"`,
   );
+
+  const deletedActivityLogs = await prisma.activityLog.deleteMany({
+    where: {
+      resourceType: "commission",
+      resourceId: {
+        in: commissions.map((commission) => commission.id),
+      },
+    },
+  });
+  console.log(
+    `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
+  );
 }
 
 main();

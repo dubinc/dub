@@ -7,6 +7,7 @@ import {
   PartnerProfileType,
   PlatformType,
   PreferredEarningStructure,
+  ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@dub/prisma/client";
@@ -120,6 +121,11 @@ export const exportApplicationsColumnsDefault = [
 
 export const getPartnersQuerySchema = z
   .object({
+    groupId: z
+      .string()
+      .optional()
+      .describe("A filter on the list based on the partner's `groupId` field.")
+      .meta({ example: "grp_123" }),
     status: z
       .enum(ProgramEnrollmentStatus)
       .optional()
@@ -185,8 +191,68 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
-  groupId: z.string().optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
+  // metric range query fields (TODO: Add to public API once we finalize the syntax)
+  totalClicksMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total clicks (inclusive)."),
+  totalClicksMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total clicks (inclusive)."),
+  totalLeadsMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total leads (inclusive)."),
+  totalLeadsMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total leads (inclusive)."),
+  totalConversionsMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total conversions (inclusive)."),
+  totalConversionsMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total conversions (inclusive)."),
+  totalSaleAmountMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total sale amount (inclusive) in USD cents."),
+  totalSaleAmountMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total sale amount (inclusive) in USD cents."),
+  totalCommissionsMin: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Minimum total commissions (inclusive) in USD cents."),
+  totalCommissionsMax: z.coerce
+    .number()
+    .int()
+    .nonnegative()
+    .optional()
+    .describe("Maximum total commissions (inclusive) in USD cents."),
 });
 
 export const partnersExportQuerySchema = getPartnersQuerySchemaExtended
@@ -779,15 +845,27 @@ export const bulkApprovePartnersSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
+/** Max length for optional `rejectionNote` on `ProgramApplication`. */
+export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
+
 export const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  reportFraud: z
+  rejectionReason: z.enum(ProgramApplicationRejectionReason).optional(),
+  rejectionNote: z
+    .string()
+    .max(PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH)
+    .optional()
+    .transform((s) => {
+      const t = s?.trim();
+      return t === "" ? undefined : t;
+    }),
+  allowImmediateReapply: z
     .boolean()
     .optional()
     .default(false)
     .describe(
-      "Whether to report this partner for suspected fraud to help keep the network safe.",
+      "When true, pending enrollment is removed so the partner can submit a new application immediately",
     ),
 });
 
@@ -798,13 +876,6 @@ export const bulkRejectPartnersSchema = z.object({
     .max(100)
     .min(1)
     .transform((v) => [...new Set(v)]),
-  reportFraud: z
-    .boolean()
-    .optional()
-    .default(false)
-    .describe(
-      "Whether to report these partners for suspected fraud to help keep the network safe.",
-    ),
 });
 
 export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;

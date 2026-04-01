@@ -1,7 +1,12 @@
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
+import {
+  buildMetricRangeWhere,
+  buildPartnerEmailSearchWhere,
+  buildProgramEnrollmentWhereForList,
+} from "./program-enrollment-query";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
   programId: string;
@@ -10,33 +15,20 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
 ): Promise<T> {
-  const {
-    groupBy,
-    status,
-    country,
-    search,
-    email,
-    partnerIds,
-    groupId,
-    programId,
-  } = filters;
+  const { groupBy, programId, ...enrollmentFilters } = filters;
+  const enrollmentBase = { ...enrollmentFilters, programId };
+
+  const { status, country, search, email, partnerIds, groupId } =
+    enrollmentFilters;
 
   const commonWhere: Prisma.PartnerWhereInput = {
-    ...(email
-      ? { email }
-      : search
-        ? search.includes("@")
-          ? { email: search }
-          : {
-              email: { search: sanitizeFullTextSearch(search) },
-              name: { search: sanitizeFullTextSearch(search) },
-              companyName: { search: sanitizeFullTextSearch(search) },
-            }
-        : {}),
+    ...buildPartnerEmailSearchWhere({ email, search }),
     ...(partnerIds && {
       id: { in: partnerIds },
     }),
   };
+
+  const enrollmentMetricWhere = buildMetricRangeWhere(enrollmentBase);
 
   // Get partner count by country
   if (groupBy === "country") {
@@ -50,6 +42,7 @@ export async function getPartnersCount<T>(
               groupId,
             }),
             status,
+            ...enrollmentMetricWhere,
           },
         },
         ...commonWhere,
@@ -80,6 +73,7 @@ export async function getPartnersCount<T>(
           }),
           ...commonWhere,
         },
+        ...enrollmentMetricWhere,
       },
       _count: true,
       orderBy: {
@@ -96,7 +90,7 @@ export async function getPartnersCount<T>(
 
     // Add missing statuses with count 0
     missingStatuses.forEach((status) => {
-      partners.push({ _count: 0, status });
+      partners.push({ _count: 0, status: status });
     });
 
     return partners as T;
@@ -115,6 +109,7 @@ export async function getPartnersCount<T>(
           ...commonWhere,
         },
         status,
+        ...enrollmentMetricWhere,
       },
       _count: true,
       orderBy: {
@@ -129,19 +124,7 @@ export async function getPartnersCount<T>(
 
   // Get absolute count of partners
   const count = await prisma.programEnrollment.count({
-    where: {
-      programId,
-      status,
-      ...(groupId && {
-        groupId,
-      }),
-      partner: {
-        ...(country && {
-          country,
-        }),
-        ...commonWhere,
-      },
-    },
+    where: buildProgramEnrollmentWhereForList(enrollmentBase),
   });
 
   return count as T;
