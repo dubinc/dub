@@ -9,7 +9,8 @@ export const socialProfileSchema = z.preprocess(
         typeof data.message === "string" &&
         (data.message.toLowerCase().includes("doesn't exist") ||
           data.message.toLowerCase().includes("does not exist") ||
-          data.message.toLowerCase().includes("not found"))
+          data.message.toLowerCase().includes("not found") ||
+          data.message.toLowerCase().includes("restricted"))
       ) {
         return {
           ...data,
