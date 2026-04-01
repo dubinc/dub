@@ -202,48 +202,50 @@ function MarkAllAsFraudModal({
               />
             </div>
 
-            <div className="flex items-center gap-3">
-              <Switch checked={resolveFraudEvent} fn={setResolveFraudEvent} />
-              <label className="text-sm font-medium text-neutral-900">
-                Resolve fraud event
-              </label>
-            </div>
-
-            <motion.div
-              animate={{ height: resolveFraudEvent ? "auto" : 0 }}
-              transition={{ duration: 0.1 }}
-              initial={false}
-              className="-m-1 overflow-hidden p-1"
-              inert={!resolveFraudEvent}
-            >
-              <div>
-                <div className="flex items-center justify-between">
-                  <label
-                    htmlFor="resolutionReason"
-                    className="text-sm font-medium text-neutral-900"
-                  >
-                    Internal notes (optional)
-                  </label>
-                  <MaxCharactersCounter
-                    name="resolutionReason"
-                    maxLength={MAX_RESOLUTION_REASON_LENGTH}
-                    control={control}
-                  />
-                </div>
-                <div className="relative mt-1.5 rounded-md shadow-sm">
-                  <textarea
-                    id="resolutionReason"
-                    className={cn(
-                      "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    )}
-                    placeholder="Add notes about why event are resolved..."
-                    rows={3}
-                    maxLength={MAX_RESOLUTION_REASON_LENGTH}
-                    {...register("resolutionReason")}
-                  />
-                </div>
+            <div>
+              <div className="flex items-center gap-3">
+                <Switch checked={resolveFraudEvent} fn={setResolveFraudEvent} />
+                <label className="text-sm font-medium text-neutral-900">
+                  Resolve fraud event
+                </label>
               </div>
-            </motion.div>
+
+              <motion.div
+                animate={{ height: resolveFraudEvent ? "auto" : 0 }}
+                transition={{ duration: 0.1 }}
+                initial={false}
+                className="overflow-hidden"
+                inert={!resolveFraudEvent}
+              >
+                <div className="pt-6">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor="resolutionReason"
+                      className="text-sm font-medium text-neutral-900"
+                    >
+                      Internal notes (optional)
+                    </label>
+                    <MaxCharactersCounter
+                      name="resolutionReason"
+                      maxLength={MAX_RESOLUTION_REASON_LENGTH}
+                      control={control}
+                    />
+                  </div>
+                  <div className="relative mt-1.5 rounded-md shadow-sm">
+                    <textarea
+                      id="resolutionReason"
+                      className={cn(
+                        "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      )}
+                      placeholder="Add notes about why event are resolved..."
+                      rows={3}
+                      maxLength={MAX_RESOLUTION_REASON_LENGTH}
+                      {...register("resolutionReason")}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            </div>
           </div>
 
           <div className="flex items-center justify-end border-t border-neutral-200 px-4 py-4 sm:px-6">
