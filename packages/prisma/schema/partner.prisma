@@ -1,6 +1,7 @@
 enum PartnerRole {
   owner
   member
+  viewer
 }
 
 enum PartnerProfileType {
@@ -110,6 +111,8 @@ model PartnerUser {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   notificationPreferences PartnerNotificationPreferences?
+  assignedPrograms        PartnerUserProgram[]
+  assignedLinks           PartnerUserLink[]
 
   @@unique([userId, partnerId])
   @@index(partnerId)
@@ -158,4 +161,33 @@ model PartnerSalesChannel {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, salesChannel])
+}
+
+model PartnerUserProgram {
+  id            String   @id @default(cuid())
+  partnerUserId String
+  programId     String
+  createdAt     DateTime @default(now())
+
+  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+  program     Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerUserId, programId])
+  @@index(programId)
+}
+
+model PartnerUserLink {
+  id            String   @id @default(cuid())
+  partnerUserId String
+  linkId        String
+  programId     String
+  createdAt     DateTime @default(now())
+
+  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+  link        Link        @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  program     Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerUserId, linkId])
+  @@index(linkId)
+  @@index(programId)
 }

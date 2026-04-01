@@ -2,6 +2,7 @@ import { MAX_INVITES_PER_REQUEST } from "@/lib/constants/partner-profile";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { invitePartnerUserSchema } from "@/lib/zod/schemas/partner-profile";
+import { PartnerRole } from "@dub/prisma/client";
 import { Button, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, pluralize } from "@dub/utils";
@@ -126,7 +127,7 @@ function InvitePartnerUserModal({
                     defaultValue="member"
                     className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                   >
-                    {["owner", "member"].map((role) => (
+                    {Object.values(PartnerRole).map((role) => (
                       <option key={role} value={role}>
                         {capitalize(role)}
                       </option>

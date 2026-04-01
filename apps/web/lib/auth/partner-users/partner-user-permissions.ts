@@ -27,6 +27,7 @@ const ROLE_PERMISSIONS: Record<PartnerRole, Permission[]> = {
     "postbacks.write",
   ],
   member: [],
+  viewer: [],
 } as const;
 
 export function hasPermission(role: PartnerRole, permission: Permission) {

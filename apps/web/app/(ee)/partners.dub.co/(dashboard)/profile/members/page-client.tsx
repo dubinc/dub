@@ -29,10 +29,10 @@ import {
   User,
   UserCrown,
 } from "@dub/ui/icons";
-import { cn, fetcher, timeAgo } from "@dub/utils";
+import { capitalize, cn, fetcher, timeAgo } from "@dub/utils";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { UserMinus, UserPlus } from "lucide-react";
+import { EyeClosed, UserMinus, UserPlus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -89,6 +89,7 @@ export function ProfileMembersPageClient() {
         options: [
           { value: "owner", label: "Owner", icon: UserCrown },
           { value: "member", label: "Member", icon: User },
+          { value: "viewer", label: "Viewer", icon: EyeClosed },
         ],
       },
       {
@@ -342,8 +343,11 @@ function RoleCell({
               : undefined
         }
       >
-        <option value="owner">Owner</option>
-        <option value="member">Member</option>
+        {Object.values(PartnerRole).map((role) => (
+          <option key={role} value={role}>
+            {capitalize(role)}
+          </option>
+        ))}
       </select>
     </>
   );
@@ -378,6 +382,7 @@ function RowMenuButton({
   return (
     <>
       <RemovePartnerUserModal />
+
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}

@@ -25,6 +25,8 @@ interface WithPartnerProfileHandler {
     session,
     partner,
     partnerUser,
+    assignedProgramIds,
+    assignedLinkIds,
   }: {
     req: Request;
     params: Record<string, string>;
@@ -32,7 +34,9 @@ interface WithPartnerProfileHandler {
     headers?: Headers;
     session: Session;
     partner: Omit<PartnerProps, "role" | "userId">;
-    partnerUser: Pick<PartnerUser, "userId" | "role">;
+    partnerUser: Pick<PartnerUser, "id" | "userId" | "role">;
+    assignedProgramIds: string[];
+    assignedLinkIds: string[];
   }): Promise<Response>;
 }
 
@@ -224,6 +228,16 @@ export const withPartnerProfile = (
                 platforms: true,
               },
             },
+            assignedPrograms: {
+              select: {
+                programId: true,
+              },
+            },
+            assignedLinks: {
+              select: {
+                linkId: true,
+              },
+            },
           },
         });
 
@@ -254,6 +268,13 @@ export const withPartnerProfile = (
           }
         }
 
+        const assignedProgramIds = partnerUser.assignedPrograms.map(
+          ({ programId }) => programId,
+        );
+        const assignedLinkIds = partnerUser.assignedLinks.map(
+          ({ linkId }) => linkId,
+        );
+
         const {
           industryInterests,
           preferredEarningStructures,
@@ -281,9 +302,12 @@ export const withPartnerProfile = (
             platforms: partnerPlatformSchema.array().parse(platforms),
           } as Omit<PartnerProps, "role" | "userId">,
           partnerUser: {
+            id: partnerUser.id,
             userId: partnerUser.userId,
             role: partnerUser.role,
           },
+          assignedProgramIds,
+          assignedLinkIds,
           headers: responseHeaders,
         });
       } catch (error) {
