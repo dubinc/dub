@@ -191,6 +191,7 @@ function MarkAllAsFraudModal({
                       }}
                       placeholder="Select status"
                       searchPlaceholder="Search status..."
+                      caret
                       matchTriggerWidth
                       buttonProps={{
                         className:
