@@ -404,17 +404,21 @@ function EarningsChart() {
         </div>
       </div>
       <div className="relative mt-2 h-44 w-full">
-        {data ? (
+        {error ? (
+          <div className="flex size-full items-center justify-center">
+            <span className="text-sm text-neutral-500">
+              Failed to load earnings data.
+            </span>
+          </div>
+        ) : timeseries === undefined ? (
+          <div className="flex size-full items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : data && data.length > 0 ? (
           <BrandedChart data={data} currency />
         ) : (
           <div className="flex size-full items-center justify-center">
-            {error ? (
-              <span className="text-sm text-neutral-500">
-                Failed to load earnings data.
-              </span>
-            ) : (
-              <LoadingSpinner />
-            )}
+            <span className="text-sm text-neutral-500">No data available</span>
           </div>
         )}
       </div>
@@ -479,7 +483,17 @@ function StatCard({
         />
       </div>
       <div className="mt-2 h-44 w-full">
-        {timeseries ? (
+        {error ? (
+          <div className="flex size-full items-center justify-center">
+            <span className="text-sm text-neutral-500">
+              Failed to load data.
+            </span>
+          </div>
+        ) : timeseries === undefined ? (
+          <div className="flex size-full items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : timeseries.length > 0 ? (
           <BrandedChart
             data={timeseries.map((d) => ({
               date: new Date(d.start),
@@ -488,13 +502,7 @@ function StatCard({
           />
         ) : (
           <div className="flex size-full items-center justify-center">
-            {error ? (
-              <span className="text-sm text-neutral-500">
-                Failed to load data.
-              </span>
-            ) : (
-              <LoadingSpinner />
-            )}
+            <span className="text-sm text-neutral-500">No data available</span>
           </div>
         )}
       </div>
