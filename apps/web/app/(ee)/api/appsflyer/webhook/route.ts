@@ -1,5 +1,6 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { trackSale } from "@/lib/api/conversions/track-sale";
+import { isLocalDev } from "@/lib/api/environment";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { withAxiom } from "@/lib/axiom/server";
@@ -15,21 +16,28 @@ import * as z from "zod/v4";
 const querySchema = z.object({
   appId: z.string(),
   partnerEventId: z.string(),
+  eventValue: z.string().nullish(),
+});
+
+const eventValueSchema = z.object({
+  promo_code: z.string(),
 });
 
 // GET /api/appsflyer/webhook – listen to Postback events from AppsFlyer
 export const GET = withAxiom(async (req) => {
   try {
-    const ip = await getIP();
-    const isAllowed = APPSFLYER_IP_RANGES.some((range) =>
-      isIpInRange(ip, range),
-    );
+    if (!isLocalDev) {
+      const ip = await getIP();
+      const isAllowed = APPSFLYER_IP_RANGES.some((range) =>
+        isIpInRange(ip, range),
+      );
 
-    if (!isAllowed) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: `IP address ${ip} is not allowed.`,
-      });
+      if (!isAllowed) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: `IP address ${ip} is not allowed.`,
+        });
+      }
     }
 
     const queryParams = getSearchParams(req.url);
