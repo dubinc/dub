@@ -7,15 +7,19 @@ import { Prisma } from "@dub/prisma/client";
 import { format } from "date-fns";
 import * as z from "zod/v4";
 
+interface GetPartnerEarningsTimeseriesParams {
+  partnerId: string;
+  programId: string;
+  filters: z.infer<typeof getPartnerEarningsTimeseriesSchema>;
+  linkIds?: string[];
+}
+
 export async function getPartnerEarningsTimeseries({
   partnerId,
   programId,
   filters,
-}: {
-  partnerId: string;
-  programId: string;
-  filters: z.infer<typeof getPartnerEarningsTimeseriesSchema>;
-}) {
+  linkIds,
+}: GetPartnerEarningsTimeseriesParams) {
   const {
     groupBy,
     type,
@@ -64,6 +68,7 @@ export async function getPartnerEarningsTimeseries({
           ${type ? Prisma.sql`AND type = ${type}` : Prisma.sql``}
           ${payoutId ? Prisma.sql`AND payoutId = ${payoutId}` : Prisma.sql``}
           ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
+          ${linkIds ? Prisma.sql`AND linkId IN (${Prisma.join(linkIds)})` : Prisma.sql``}
           ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
           ${status ? Prisma.sql`AND status = ${status}` : Prisma.sql``}
           GROUP BY start${groupBy ? (groupBy === "type" ? Prisma.sql`, type` : Prisma.sql`, linkId`) : Prisma.sql``}

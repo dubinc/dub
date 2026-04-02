@@ -13,7 +13,12 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/:programId/customers/count – Get customer counts grouped by a field
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({
+    partner,
+    params,
+    searchParams,
+    partnerUser: { assignedLinkIds },
+  }) => {
     const { programId } = params;
     const { search, country, linkId, groupBy } =
       getPartnerCustomersCountQuerySchema.parse(searchParams);
@@ -61,6 +66,7 @@ export const GET = withPartnerProfile(
               name: { search: sanitizeFullTextSearch(search) },
             }
         : {}),
+      ...(assignedLinkIds ? { linkId: { in: assignedLinkIds } } : {}),
     };
 
     // Get customer count by country

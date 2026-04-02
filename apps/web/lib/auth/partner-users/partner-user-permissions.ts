@@ -10,6 +10,7 @@ const PERMISSIONS = [
   "user_invites.update",
   "partner_profile.update",
   "payout_settings.update",
+  "payout_settings.read",
   "postbacks.read",
   "postbacks.write",
   "messages.send",
@@ -24,6 +25,7 @@ const PERMISSIONS = [
 const ROLE_PERMISSIONS: Record<PartnerRole, Set<Permission>> = {
   owner: new Set(PERMISSIONS),
   member: new Set([
+    "payout_settings.read",
     "messages.send",
     "messages.mark_as_read",
     "program_invites.accept",
