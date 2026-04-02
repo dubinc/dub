@@ -84,6 +84,9 @@ export const AppsFlyerSettings = ({
                   placeholder="e.g., id123456789"
                   type="text"
                   autoComplete="off"
+                  aria-label={
+                    appIds.length > 1 ? `App ID ${index + 1}` : "App ID"
+                  }
                   value={appId}
                   onChange={(e) => {
                     const updated = [...appIds];
@@ -96,8 +99,13 @@ export const AppsFlyerSettings = ({
                 type="button"
                 onClick={() => setAppIds(appIds.filter((_, i) => i !== index))}
                 className="text-neutral-400 transition-colors hover:text-red-500"
+                aria-label={
+                  appIds.length > 1
+                    ? `Remove app ID ${index + 1}`
+                    : "Remove app ID"
+                }
               >
-                <Xmark className="size-4" />
+                <Xmark className="size-4" aria-hidden />
               </button>
             </div>
           ))}
@@ -140,12 +148,14 @@ export const AppsFlyerSettings = ({
                     value={param.key}
                     readOnly
                     disabled
+                    aria-label={`${param.description} — parameter key (${param.key})`}
                   />
                   <Input
                     className="max-w-none"
                     value={param.value}
                     readOnly
                     disabled
+                    aria-label={`${param.description} — parameter value`}
                   />
                 </div>
               ))}
@@ -166,6 +176,11 @@ export const AppsFlyerSettings = ({
                       placeholder="Key"
                       type="text"
                       autoComplete="off"
+                      aria-label={
+                        parameters.length > 1
+                          ? `Custom parameter key ${index + 1}`
+                          : "Custom parameter key"
+                      }
                       value={param.key}
                       onChange={(e) => {
                         const updated = [...parameters];
@@ -181,6 +196,11 @@ export const AppsFlyerSettings = ({
                       placeholder="e.g., {{PARTNER_NAME}}"
                       type="text"
                       autoComplete="off"
+                      aria-label={
+                        parameters.length > 1
+                          ? `Custom parameter value ${index + 1}`
+                          : "Custom parameter value"
+                      }
                       value={param.value}
                       onChange={(e) => {
                         const updated = [...parameters];
@@ -198,8 +218,13 @@ export const AppsFlyerSettings = ({
                       setParameters(parameters.filter((_, i) => i !== index))
                     }
                     className="text-neutral-400 transition-colors hover:text-red-500"
+                    aria-label={
+                      parameters.length > 1
+                        ? `Remove custom parameter ${index + 1}`
+                        : "Remove custom parameter"
+                    }
                   >
-                    <Xmark className="size-4" />
+                    <Xmark className="size-4" aria-hidden />
                   </button>
                 </div>
               ))}
