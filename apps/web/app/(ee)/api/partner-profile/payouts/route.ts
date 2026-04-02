@@ -58,4 +58,7 @@ export const GET = withPartnerProfile(
       z.array(PartnerPayoutResponseSchema).parse(transformedPayouts),
     );
   },
+  {
+    requiredPermission: "payouts.read",
+  },
 );

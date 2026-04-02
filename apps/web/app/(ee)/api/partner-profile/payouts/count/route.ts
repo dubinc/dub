@@ -58,4 +58,7 @@ export const GET = withPartnerProfile(
 
     return NextResponse.json(count);
   },
+  {
+    requiredPermission: "payouts.read",
+  },
 );
