@@ -117,7 +117,7 @@ export function Areas({
                 </Area>
 
                 {/* Latest value circle */}
-                {showLatestValueCircle && !tooltipData && (
+                {showLatestValueCircle && !tooltipData && data.length > 0 && (
                   <Circle
                     cx={xScale(data.at(-1)!.date)}
                     cy={yScale(s.valueAccessor(data.at(-1)!))}

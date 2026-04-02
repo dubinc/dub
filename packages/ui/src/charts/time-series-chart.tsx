@@ -22,7 +22,9 @@ export function TimeSeriesChart<T extends Datum>(
       {({ width, height }) => {
         return (
           width > 0 &&
-          height > 0 && (
+          height > 0 &&
+          props.data.length > 0 &&
+          props.series.length > 0 && (
             <TimeSeriesChartInner {...props} width={width} height={height} />
           )
         );
