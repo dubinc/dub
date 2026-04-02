@@ -5,6 +5,7 @@ import { importCustomers } from "@/lib/partnerstack/import-customers";
 import { importGroups } from "@/lib/partnerstack/import-groups";
 import { importLinks } from "@/lib/partnerstack/import-links";
 import { importPartners } from "@/lib/partnerstack/import-partners";
+import { importScheduledCommissions } from "@/lib/partnerstack/import-scheduled-commissions";
 import { partnerStackImportPayloadSchema } from "@/lib/partnerstack/schemas";
 import { updateStripeCustomers } from "@/lib/partnerstack/update-stripe-customers";
 import { NextResponse } from "next/server";
@@ -37,6 +38,9 @@ export async function POST(req: Request) {
         break;
       case "import-commissions":
         await importCommissions(payload);
+        break;
+      case "import-scheduled-commissions":
+        await importScheduledCommissions(payload);
         break;
       case "update-stripe-customers":
         await updateStripeCustomers(payload);
