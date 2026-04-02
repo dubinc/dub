@@ -16,6 +16,8 @@ const PERMISSIONS = [
   "messages.mark_as_read",
   "program_invites.accept",
   "bounties.submit",
+  "links.write",
+  "referrals.submit",
   "payouts.read",
 ] as const;
 
@@ -26,6 +28,8 @@ const ROLE_PERMISSIONS: Record<PartnerRole, Set<Permission>> = {
     "messages.mark_as_read",
     "program_invites.accept",
     "bounties.submit",
+    "links.write",
+    "referrals.submit",
     "payouts.read",
   ]),
   viewer: new Set([]),
