@@ -2,7 +2,6 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
-import { Lock } from "@/ui/shared/icons";
 import { Button, Input } from "@dub/ui";
 import { Plus, Xmark } from "@dub/ui/icons";
 import { useAction } from "next-safe-action/hooks";
@@ -127,14 +126,12 @@ export const AppsFlyerSettings = ({
         </div>
 
         <div className="space-y-4 p-4">
-          {/* Hardcoded parameters */}
+          {/* Default parameters */}
           <div>
-            <div className="mb-2 flex items-center gap-1.5">
-              <Lock className="size-3.5 text-neutral-400" />
-              <p className="text-xs font-medium uppercase text-neutral-500">
-                Default Parameters
-              </p>
-            </div>
+            <p className="text-content-subtle mb-2 text-xs font-medium">
+              Default Parameters
+            </p>
+
             <div className="space-y-2">
               {APPSFLYER_HARDCODED_PARAMETERS.map((param) => (
                 <div key={param.key} className="grid grid-cols-2 gap-2">
@@ -157,7 +154,7 @@ export const AppsFlyerSettings = ({
 
           {/* Custom parameters */}
           <div className="border-t border-neutral-200 pt-4">
-            <p className="mb-2 text-xs font-medium uppercase text-neutral-500">
+            <p className="text-content-subtle mb-2 text-xs font-medium">
               Custom Parameters
             </p>
             <div className="space-y-2">
