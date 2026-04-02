@@ -1,8 +1,8 @@
-import { applyAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import {
-  AppsFlyerSettings,
-  appsFlyerSettingsSchema,
-} from "@/lib/integrations/appsflyer/schema";
+  applyAppsFlyerParameters,
+  loadAppsFlyerParameters,
+} from "@/lib/integrations/appsflyer/apply-parameters";
+import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import {
   CreatePartnerProps,
@@ -10,13 +10,8 @@ import {
   UtmTemplateProps,
   WorkspaceProps,
 } from "@/lib/types";
-import { prisma } from "@dub/prisma";
 import { PartnerGroupDefaultLink } from "@dub/prisma/client";
-import {
-  APPSFLYER_INTEGRATION_ID,
-  constructURLFromUTMParams,
-  isFulfilled,
-} from "@dub/utils";
+import { constructURLFromUTMParams, isFulfilled } from "@dub/utils";
 import { bulkCreateLinks } from "../links";
 import { extractUtmParams } from "../utm/extract-utm-params";
 import {
@@ -62,25 +57,7 @@ export async function createPartnerDefaultLinks({
   let appsFlyerParameters: AppsFlyerSettings["parameters"] = [];
 
   if (hasAppsFlyerUrl) {
-    const installedIntegration = await prisma.installedIntegration.findFirst({
-      where: {
-        projectId: workspace.id,
-        integrationId: APPSFLYER_INTEGRATION_ID,
-      },
-      select: {
-        settings: true,
-      },
-    });
-
-    if (installedIntegration?.settings) {
-      const parsed = appsFlyerSettingsSchema.safeParse(
-        installedIntegration.settings,
-      );
-
-      if (parsed.success) {
-        appsFlyerParameters = parsed.data.parameters;
-      }
-    }
+    appsFlyerParameters = await loadAppsFlyerParameters(workspace.id);
   }
 
   const processedLinks = (

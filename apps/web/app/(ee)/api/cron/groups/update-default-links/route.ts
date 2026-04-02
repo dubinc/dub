@@ -3,7 +3,14 @@ import { linkCache } from "@/lib/api/links/cache";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import {
+  applyAppsFlyerParameters,
+  loadAppsFlyerParameters,
+} from "@/lib/integrations/appsflyer/apply-parameters";
+import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { prisma } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import {
   APP_DOMAIN_WITH_NGROK,
   constructURLFromUTMParams,
@@ -50,6 +57,11 @@ export async function POST(req: Request) {
             utmTemplate: true,
           },
         },
+        program: {
+          select: {
+            workspaceId: true,
+          },
+        },
       },
     });
 
@@ -77,12 +89,21 @@ export async function POST(req: Request) {
       `Updating default links for the partners (defaultLinkId=${defaultLink.id}, groupId=${group.id}).`,
     );
 
+    // Load AppsFlyer parameters if the default link is an AppsFlyer URL
+    let appsFlyerParameters: AppsFlyerSettings["parameters"] = [];
+
+    if (isAppsFlyerTrackingUrl(defaultLink.url)) {
+      appsFlyerParameters = await loadAppsFlyerParameters(
+        defaultLink.program.workspaceId,
+      );
+    }
+
     let hasMore = true;
     let currentCursor = cursor;
     let processedBatches = 0;
 
     while (processedBatches < MAX_BATCH) {
-      const linksToUpdate = await prisma.link.findMany({
+      const defaultPartnerLinks = await prisma.link.findMany({
         where: {
           ...(currentCursor && {
             id: {
@@ -95,36 +116,88 @@ export async function POST(req: Request) {
         orderBy: {
           id: "asc",
         },
+        select: {
+          id: true,
+          url: true,
+          domain: true,
+          key: true,
+          partner: {
+            select: {
+              name: true,
+            },
+          },
+        },
       });
 
-      if (linksToUpdate.length === 0) {
+      if (defaultPartnerLinks.length === 0) {
         hasMore = false;
         break;
       }
 
-      const updatedLinks = await prisma.link.updateMany({
-        where: {
-          id: {
-            in: linksToUpdate.map((link) => link.id),
+      const linksToUpdate: {
+        id: string;
+        link: Pick<
+          Link,
+          | "url"
+          | "utm_source"
+          | "utm_medium"
+          | "utm_campaign"
+          | "utm_term"
+          | "utm_content"
+        >;
+      }[] = [];
+
+      for (const defaultPartnerLink of defaultPartnerLinks) {
+        let url = constructURLFromUTMParams(
+          defaultLink.url,
+          extractUtmParams(group.utmTemplate),
+        );
+
+        // Inject AppsFlyer parameters with resolved macros
+        if (
+          appsFlyerParameters.length > 0 &&
+          isAppsFlyerTrackingUrl(defaultLink.url)
+        ) {
+          url = applyAppsFlyerParameters({
+            url,
+            parameters: appsFlyerParameters,
+            context: {
+              partnerName: defaultPartnerLink.partner?.name,
+              partnerLinkKey: defaultPartnerLink.key,
+            },
+          });
+        }
+
+        linksToUpdate.push({
+          id: defaultPartnerLink.id,
+          link: {
+            url,
+            ...extractUtmParams(group.utmTemplate, { excludeRef: true }),
           },
-        },
-        data: {
-          url: constructURLFromUTMParams(
-            defaultLink.url,
-            extractUtmParams(group.utmTemplate),
+        });
+      }
+
+      if (linksToUpdate.length > 0) {
+        await Promise.allSettled(
+          linksToUpdate.map(({ id, link }) =>
+            prisma.link.update({
+              where: {
+                id,
+              },
+              data: link,
+            }),
           ),
-          ...extractUtmParams(group.utmTemplate, { excludeRef: true }),
-        },
-      });
+        );
+      }
 
       console.log(
-        `Updated ${updatedLinks.count} links with url=${defaultLink.url} (via defaultLinkId=${defaultLink.id})`,
+        `Updated ${linksToUpdate.length} links with url=${defaultLink.url} (via defaultLinkId=${defaultLink.id})`,
       );
 
-      await linkCache.expireMany(linksToUpdate);
+      await linkCache.expireMany(defaultPartnerLinks);
 
       // Update cursor to the last processed record
-      currentCursor = linksToUpdate[linksToUpdate.length - 1].id;
+      currentCursor = defaultPartnerLinks[defaultPartnerLinks.length - 1].id;
       processedBatches++;
     }
 

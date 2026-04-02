@@ -1,9 +1,18 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
-import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
+import {
+  derivePartnerLinkKey,
+  generatePartnerLink,
+} from "@/lib/api/partners/generate-partner-link";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import {
+  applyAppsFlyerParameters,
+  loadAppsFlyerParameters,
+} from "@/lib/integrations/appsflyer/apply-parameters";
+import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import {
@@ -90,6 +99,13 @@ export async function POST(req: Request) {
       },
     });
 
+    // Load AppsFlyer parameters if the default link is an AppsFlyer URL
+    let appsFlyerParameters: AppsFlyerSettings["parameters"] = [];
+
+    if (isAppsFlyerTrackingUrl(defaultLink.url)) {
+      appsFlyerParameters = await loadAppsFlyerParameters(workspace.id);
+    }
+
     let hasMore = true;
     let currentCursor = cursor;
     let processedBatches = 0;
@@ -123,8 +139,32 @@ export async function POST(req: Request) {
       // Create a new defaultLink for each partner in the group
       const processedLinks = (
         await Promise.allSettled(
-          programEnrollments.map(({ partner, ...programEnrollment }) =>
-            generatePartnerLink({
+          programEnrollments.map(({ partner, ...programEnrollment }) => {
+            let url = constructURLFromUTMParams(
+              defaultLink.url,
+              extractUtmParams(group.utmTemplate),
+            );
+
+            const linkKey = derivePartnerLinkKey({
+              name: partner.name,
+              email: partner?.email!,
+            });
+
+            if (
+              appsFlyerParameters.length > 0 &&
+              isAppsFlyerTrackingUrl(defaultLink.url)
+            ) {
+              url = applyAppsFlyerParameters({
+                url,
+                parameters: appsFlyerParameters,
+                context: {
+                  partnerName: partner.name,
+                  partnerLinkKey: linkKey,
+                },
+              });
+            }
+
+            return generatePartnerLink({
               workspace: {
                 id: workspace.id,
                 plan: workspace.plan as WorkspaceProps["plan"],
@@ -141,17 +181,15 @@ export async function POST(req: Request) {
               },
               link: {
                 domain: defaultLink.domain,
-                url: constructURLFromUTMParams(
-                  defaultLink.url,
-                  extractUtmParams(group.utmTemplate),
-                ),
+                url,
                 ...extractUtmParams(group.utmTemplate, { excludeRef: true }),
                 tenantId: programEnrollment.tenantId ?? undefined,
                 partnerGroupDefaultLinkId: defaultLink.id,
+                key: linkKey,
               },
               userId,
-            }),
-          ),
+            });
+          }),
         )
       )
         .filter(isFulfilled)

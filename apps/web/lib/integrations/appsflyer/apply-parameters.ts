@@ -1,5 +1,11 @@
+import { prisma } from "@dub/prisma";
+import { APPSFLYER_INTEGRATION_ID } from "@dub/utils";
 import * as z from "zod/v4";
-import { appsFlyerParameterSchema } from "./schema";
+import {
+  AppsFlyerSettings,
+  appsFlyerParameterSchema,
+  appsFlyerSettingsSchema,
+} from "./schema";
 
 interface AppsFlyerParameterContext {
   partnerName: string | null | undefined;
@@ -37,4 +43,33 @@ export function applyAppsFlyerParameters({
   }
 
   return urlObj.toString();
+}
+
+// Load AppsFlyer parameters from the workspace's installed integration settings
+export async function loadAppsFlyerParameters(
+  workspaceId: string,
+): Promise<AppsFlyerSettings["parameters"]> {
+  const installedIntegration = await prisma.installedIntegration.findFirst({
+    where: {
+      projectId: workspaceId,
+      integrationId: APPSFLYER_INTEGRATION_ID,
+    },
+    select: {
+      settings: true,
+    },
+  });
+
+  if (!installedIntegration?.settings) {
+    return [];
+  }
+
+  const parsed = appsFlyerSettingsSchema.safeParse(
+    installedIntegration.settings,
+  );
+
+  if (!parsed.success) {
+    return [];
+  }
+
+  return parsed.data.parameters;
 }
