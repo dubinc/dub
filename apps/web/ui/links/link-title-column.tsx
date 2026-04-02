@@ -277,7 +277,7 @@ const LinkIcon = memo(({ link }: { link: ResponseLink }) => {
             data-checked={isSelected}
             onClick={(e) => handleLinkSelection(link.id, e)}
             className={cn(
-              "group relative hidden shrink-0 items-center justify-center outline-none sm:flex",
+              "group relative hidden size-8 shrink-0 items-center justify-center outline-none group-data-[variant=loose]/card-list:size-10 sm:flex",
               isSelectMode && "flex",
             )}
           >
@@ -285,7 +285,7 @@ const LinkIcon = memo(({ link }: { link: ResponseLink }) => {
             <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
             </div>
-            <div className="relative transition-[padding,transform] group-hover:scale-90 group-data-[variant=loose]/card-list:sm:p-2">
+            <div className="relative flex size-full items-center justify-center transition-transform group-hover:scale-90">
               <div className="hidden sm:block">
                 {link.archived ? (
                   <BoxArchive

@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { PAGE_LIMIT } from "./importer";
+import { FIRSTPROMOTER_PAGE_LIMIT } from "./importer";
 import {
   firstPromoterCampaignSchema,
   firstPromoterCommissionSchema,
@@ -46,7 +46,7 @@ export class FirstPromoterApi {
 
   async listCampaigns({ page }: { page?: number }) {
     const searchParams = new URLSearchParams({
-      per_page: PAGE_LIMIT.toString(),
+      per_page: FIRSTPROMOTER_PAGE_LIMIT.toString(),
       ...(page ? { page: page.toString() } : {}),
     });
 
@@ -61,7 +61,7 @@ export class FirstPromoterApi {
     const searchParams = new URLSearchParams();
     searchParams.set("filters[state]", "accepted");
     searchParams.set("filters[referrals_count][from]", "1");
-    searchParams.set("per_page", PAGE_LIMIT.toString());
+    searchParams.set("per_page", FIRSTPROMOTER_PAGE_LIMIT.toString());
     if (page) searchParams.set("page", page.toString());
 
     const response = await this.fetch(`/promoters?${searchParams.toString()}`);
@@ -77,7 +77,7 @@ export class FirstPromoterApi {
 
   async listCustomers({ page }: { page?: number }) {
     const searchParams = new URLSearchParams({
-      per_page: PAGE_LIMIT.toString(),
+      per_page: FIRSTPROMOTER_PAGE_LIMIT.toString(),
       ...(page ? { page: page.toString() } : {}),
     });
 
@@ -95,7 +95,7 @@ export class FirstPromoterApi {
 
   async listCommissions({ page }: { page?: number }) {
     const searchParams = new URLSearchParams({
-      per_page: PAGE_LIMIT.toString(),
+      per_page: FIRSTPROMOTER_PAGE_LIMIT.toString(),
       ...(page ? { page: page.toString() } : {}),
     });
 
