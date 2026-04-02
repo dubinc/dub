@@ -72,8 +72,8 @@ export const getFinalUrl = (
     urlObj.searchParams.set("af_siteid", via ?? "");
     urlObj.searchParams.set("c", via ?? "");
     urlObj.searchParams.set("clickid", clickId ?? "");
-    urlObj.searchParams.set("af_ua", ua?.ua ?? "");
-    urlObj.searchParams.set("af_ip", ip ?? "");
+    // urlObj.searchParams.set("af_ua", ua?.ua ?? "");
+    // urlObj.searchParams.set("af_ip", ip ?? "");
   }
 
   // Polyfill wpcn & wpcl params for Singular integration
