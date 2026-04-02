@@ -77,7 +77,17 @@ export const TagSelect = memo(() => {
       setValue("tags", [...tags, newTag], { shouldDirty: true });
       toast.success(`Successfully created tag!`);
       setIsOpen(false);
-      await mutate(`/api/tags?workspaceId=${workspaceId}`);
+      await mutate(
+        (key) => {
+          if (typeof key !== "string") return false;
+          if (!key.startsWith(`/api/tags?workspaceId=${workspaceId}`)) return false;
+          if (!key.includes("search=")) return true;
+          return key.includes("search=") && key.includes("search=&"); // Only base query
+        },
+        (data) => (data ? [newTag, ...data] : [newTag]),
+        false
+      );
+
       return true;
     } else {
       const { error } = await res.json();
