@@ -69,15 +69,25 @@ export const getFinalUrl = (
   if (isAppsFlyerTrackingUrl(url)) {
     const { ua } = userAgent(req);
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+
     // set hardcoded query params
     urlObj.searchParams.set("pid", "dubinc_int");
-    if (clickId) urlObj.searchParams.set("clickid", clickId);
+
+    if (clickId) {
+      urlObj.searchParams.set("clickid", clickId);
+    }
+
     urlObj.searchParams.set("af_ua", ua);
-    if (ip) urlObj.searchParams.set("af_ip", ip);
+
+    if (ip) {
+      urlObj.searchParams.set("af_ip", ip);
+    }
+
     // set dynamic params (if not exist)
     if (!urlObj.searchParams.has("c") && via) {
       urlObj.searchParams.set("c", via);
     }
+
     if (!urlObj.searchParams.has("af_siteid") && via) {
       urlObj.searchParams.set("af_siteid", via);
     }

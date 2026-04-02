@@ -2,6 +2,8 @@
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { installAppsFlyerAction } from "@/lib/integrations/appsflyer/install";
+import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/ui/settings";
 import { HubSpotSettings } from "@/lib/integrations/hubspot/ui/settings";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
 import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
@@ -43,6 +45,7 @@ import {
   Trash,
 } from "@dub/ui/icons";
 import {
+  APPSFLYER_INTEGRATION_ID,
   cn,
   DUB_WORKSPACE_ID,
   formatDate,
@@ -64,6 +67,7 @@ const integrationSettings = {
   [SEGMENT_INTEGRATION_ID]: SegmentSettings,
   [HUBSPOT_INTEGRATION_ID]: HubSpotSettings,
   [STRIPE_INTEGRATION_ID]: StripeIntegrationSettings,
+  [APPSFLYER_INTEGRATION_ID]: AppsFlyerSettings,
 };
 
 export default function IntegrationPageClient({
@@ -92,6 +96,18 @@ export default function IntegrationPageClient({
       toast.error(error.serverError);
     },
   });
+
+  const { execute: executeInstallAppsFlyer, isPending: isInstallingAppsFlyer } =
+    useAction(installAppsFlyerAction, {
+      onSuccess: () => {
+        toast.success("AppsFlyer integration enabled successfully.");
+      },
+      onError: ({ error }) => {
+        toast.error(
+          error.serverError || "Failed to enable AppsFlyer integration.",
+        );
+      },
+    });
 
   const { UninstallIntegrationModal, setShowUninstallIntegrationModal } =
     useUninstallIntegrationModal({
@@ -307,6 +323,13 @@ export default function IntegrationPageClient({
               integration.id !== SEGMENT_INTEGRATION_ID && (
                 <Button
                   onClick={() => {
+                    if (integration.id === APPSFLYER_INTEGRATION_ID) {
+                      executeInstallAppsFlyer({
+                        workspaceId: workspaceId!,
+                      });
+                      return;
+                    }
+
                     const { installUrl } = integration;
 
                     if (installUrl) {
@@ -320,7 +343,7 @@ export default function IntegrationPageClient({
                       integrationSlug: integration.slug,
                     });
                   }}
-                  loading={isPending}
+                  loading={isPending || isInstallingAppsFlyer}
                   text="Enable"
                   variant="primary"
                   className="h-9 px-3"

@@ -15,7 +15,6 @@ async function main() {
       verified: true,
       projectId: DUB_WORKSPACE_ID,
       category: "analytics",
-      guideUrl: "https://dub.co/docs/integrations/appsflyer",
     },
   });
 
