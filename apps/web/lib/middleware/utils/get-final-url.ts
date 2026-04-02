@@ -69,8 +69,9 @@ export const getFinalUrl = (
   if (isAppsFlyerTrackingUrl(url)) {
     const ua = userAgent(req);
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-    urlObj.searchParams.set("clickid", clickId ?? "");
     urlObj.searchParams.set("af_siteid", via ?? "");
+    urlObj.searchParams.set("c", via ?? "");
+    urlObj.searchParams.set("clickid", clickId ?? "");
     urlObj.searchParams.set("af_ua", ua?.ua ?? "");
     urlObj.searchParams.set("af_ip", ip ?? "");
   }
