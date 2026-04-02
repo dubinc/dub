@@ -1,7 +1,4 @@
-import {
-  applyAppsFlyerParameters,
-  loadAppsFlyerParameters,
-} from "@/lib/integrations/appsflyer/apply-parameters";
+import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import {
@@ -69,26 +66,6 @@ export async function createPartnerDefaultLinks({
           hasMoreThanOneDefaultLink,
         });
 
-        let url = constructURLFromUTMParams(
-          defaultLink.url,
-          extractUtmParams(utmTemplate),
-        );
-
-        // Inject AppsFlyer parameters with resolved macros
-        if (
-          appsFlyerParameters.length > 0 &&
-          isAppsFlyerTrackingUrl(defaultLink.url)
-        ) {
-          url = applyAppsFlyerParameters({
-            url,
-            parameters: appsFlyerParameters,
-            context: {
-              partnerName: partner.name,
-              partnerLinkKey: key,
-            },
-          });
-        }
-
         return generatePartnerLink({
           workspace,
           program,
@@ -97,18 +74,21 @@ export async function createPartnerDefaultLinks({
             ...link,
             key,
             domain: defaultLink.domain,
-            url,
+            url: constructURLFromUTMParams(
+              defaultLink.url,
+              extractUtmParams(utmTemplate),
+            ),
             ...extractUtmParams(utmTemplate, { excludeRef: true }),
             partnerGroupDefaultLinkId: defaultLink.id,
           },
           userId,
+          appsFlyerParameters,
         });
       }),
     )
   )
     .filter(isFulfilled)
     .map(({ value }) => value);
-
   return await bulkCreateLinks({
     links: processedLinks,
     skipRedisCache: true,
