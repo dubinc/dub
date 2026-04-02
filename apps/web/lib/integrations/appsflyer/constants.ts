@@ -26,6 +26,8 @@ export const APPSFLYER_HARDCODED_PARAMETERS = [
   },
 ];
 
+export const APPSFLYER_IP_RANGES = ["45.92.116.0/22", "194.28.46.0/23"];
+
 export const APPSFLYER_MACROS = [
   {
     macro: "{{PARTNER_NAME}}",
