@@ -153,6 +153,34 @@ export default function IntegrationPageClient({
     return variants[mode];
   }, [integration.id, integration.installed, integration.settings]);
 
+  const enableIntegrationDisabledTooltip = useMemo(() => {
+    if (!plan || !["free", "pro"].includes(plan)) {
+      return null;
+    }
+
+    if (integration.id === HUBSPOT_INTEGRATION_ID) {
+      return (
+        <TooltipContent
+          title="HubSpot integration is only available on Business plans and above. Upgrade to get started."
+          cta="Upgrade to Business"
+          href={`/${slug}/settings/billing/upgrade`}
+        />
+      );
+    }
+
+    if (integration.id === APPSFLYER_INTEGRATION_ID) {
+      return (
+        <TooltipContent
+          title="AppsFlyer integration is only available on Business plans and above. Upgrade to get started."
+          cta="Upgrade to Business"
+          href={`/${slug}/settings/billing/upgrade`}
+        />
+      );
+    }
+
+    return null;
+  }, [plan, integration.id, slug]);
+
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg grid-cols-1 gap-6">
       {integration.installed && <UninstallIntegrationModal />}
@@ -348,17 +376,7 @@ export default function IntegrationPageClient({
                   variant="primary"
                   className="h-9 px-3"
                   icon={<ConnectedDots className="size-4" />}
-                  disabledTooltip={
-                    integration.id === HUBSPOT_INTEGRATION_ID &&
-                    plan &&
-                    ["free", "pro"].includes(plan) ? (
-                      <TooltipContent
-                        title="Hubspot integration is only available on Business plans and above. Upgrade to get started."
-                        cta="Upgrade to Business"
-                        href={`/${slug}/settings/billing/upgrade`}
-                      />
-                    ) : null
-                  }
+                  disabledTooltip={enableIntegrationDisabledTooltip}
                 />
               )}
           </div>

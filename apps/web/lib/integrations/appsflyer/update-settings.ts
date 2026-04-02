@@ -17,7 +17,18 @@ export const updateAppsFlyerSettingsAction = authActionClient
   .inputSchema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { appIds, parameters } = parsedInput;
+
+    // Normalize: trim whitespace and drop empty entries
+    const appIds = parsedInput.appIds
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+
+    const parameters = parsedInput.parameters
+      .map((p) => ({
+        key: p.key.trim(),
+        value: p.value.trim(),
+      }))
+      .filter((p) => p.key.length > 0 && p.value.length > 0);
 
     const installedIntegration = await prisma.installedIntegration.findFirst({
       where: {

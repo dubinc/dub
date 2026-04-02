@@ -15,6 +15,12 @@ export const installAppsFlyerAction = authActionClient
   .action(async ({ ctx }) => {
     const { workspace, user } = ctx;
 
+    if (["free", "pro"].includes(workspace.plan)) {
+      throw new Error(
+        "AppsFlyer integration is only available on Business plans and above. Upgrade to get started.",
+      );
+    }
+
     await installIntegration({
       integrationId: APPSFLYER_INTEGRATION_ID,
       userId: user.id,
