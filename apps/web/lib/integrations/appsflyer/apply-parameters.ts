@@ -71,5 +71,5 @@ export async function loadAppsFlyerParameters(
     return [];
   }
 
-  return parsed.data.parameters;
+  return [...parsed.data.requiredParameters, ...parsed.data.parameters];
 }

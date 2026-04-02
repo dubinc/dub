@@ -26,6 +26,19 @@ export const APPSFLYER_HARDCODED_PARAMETERS = [
   },
 ];
 
+export const APPSFLYER_REQUIRED_PARAMETERS = [
+  {
+    key: "c",
+    value: "{{PARTNER_NAME}}",
+    description: "Campaign name",
+  },
+  {
+    key: "af_siteid",
+    value: "{{PARTNER_LINK_KEY}}",
+    description: "Site ID",
+  },
+];
+
 export const APPSFLYER_IP_RANGES = ["45.92.116.0/22", "194.28.46.0/23"];
 
 export const APPSFLYER_MACROS = [

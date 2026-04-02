@@ -23,6 +23,11 @@ export const updateAppsFlyerSettingsAction = authActionClient
       .map((id) => id.trim())
       .filter((id) => id.length > 0);
 
+    const requiredParameters = parsedInput.requiredParameters.map((p) => ({
+      key: p.key.trim(),
+      value: p.value.trim(),
+    }));
+
     const parameters = parsedInput.parameters
       .map((p) => ({
         key: p.key.trim(),
@@ -59,13 +64,16 @@ export const updateAppsFlyerSettingsAction = authActionClient
         settings: {
           ...current,
           appIds,
+          requiredParameters,
           parameters,
         },
       },
     });
 
     const parametersChanged =
-      JSON.stringify(current.parameters) !== JSON.stringify(parameters);
+      JSON.stringify(current.parameters) !== JSON.stringify(parameters) ||
+      JSON.stringify(current.requiredParameters) !==
+        JSON.stringify(requiredParameters);
 
     // Re-apply updated parameters to all existing AppsFlyer default links
     if (parametersChanged) {

@@ -11,6 +11,7 @@ import {
   APPSFLYER_DEFAULT_SETTINGS,
   APPSFLYER_HARDCODED_PARAMETERS,
   APPSFLYER_MACROS,
+  APPSFLYER_REQUIRED_PARAMETERS,
 } from "../constants";
 import { appsFlyerSettingsSchema } from "../schema";
 import { updateAppsFlyerSettingsAction } from "../update-settings";
@@ -27,6 +28,9 @@ export const AppsFlyerSettings = ({
   });
 
   const [appIds, setAppIds] = useState(appsFlyerSettings.appIds);
+  const [requiredParameters, setRequiredParameters] = useState(
+    appsFlyerSettings.requiredParameters,
+  );
   const [parameters, setParameters] = useState(appsFlyerSettings.parameters);
 
   const { executeAsync: executeUpdate, isPending: isUpdating } = useAction(
@@ -55,6 +59,7 @@ export const AppsFlyerSettings = ({
     await executeUpdate({
       workspaceId,
       appIds: filteredAppIds,
+      requiredParameters,
       parameters: filteredParameters,
     });
   };
@@ -159,6 +164,49 @@ export const AppsFlyerSettings = ({
                   />
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Required parameters */}
+          <div className="border-t border-neutral-200 pt-4">
+            <p className="text-content-subtle mb-2 text-xs font-medium">
+              Required Parameters
+            </p>
+
+            <div className="space-y-2">
+              {requiredParameters.map((param, index) => {
+                const defaultParam = APPSFLYER_REQUIRED_PARAMETERS.find(
+                  (p) => p.key === param.key,
+                );
+
+                return (
+                  <div key={param.key} className="grid grid-cols-2 gap-2">
+                    <Input
+                      className="max-w-none"
+                      value={param.key}
+                      readOnly
+                      disabled
+                      aria-label={`${defaultParam?.description ?? param.key} — parameter key`}
+                    />
+                    <Input
+                      className="max-w-none"
+                      placeholder={`e.g., ${defaultParam?.value ?? "{{PARTNER_NAME}}"}`}
+                      type="text"
+                      autoComplete="off"
+                      aria-label={`${defaultParam?.description ?? param.key} — parameter value`}
+                      value={param.value}
+                      onChange={(e) => {
+                        const updated = [...requiredParameters];
+                        updated[index] = {
+                          ...updated[index],
+                          value: e.target.value,
+                        };
+                        setRequiredParameters(updated);
+                      }}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
 

@@ -7,6 +7,10 @@ export const appsFlyerParameterSchema = z.object({
 
 export const appsFlyerSettingsSchema = z.object({
   appIds: z.array(z.string()).default([]),
+  requiredParameters: z.array(appsFlyerParameterSchema).default([
+    { key: "c", value: "{{PARTNER_NAME}}" },
+    { key: "af_siteid", value: "{{PARTNER_LINK_KEY}}" },
+  ]),
   parameters: z.array(appsFlyerParameterSchema).default([]),
 });
 
