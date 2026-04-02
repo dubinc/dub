@@ -32,6 +32,17 @@ interface AnalyticsResponse {
   saleAmount: number;
 }
 
+type PartnerProgramSummaryMonthMetrics = {
+  earnings: number;
+  clicks: number;
+  leads: number;
+  sales: number;
+};
+
+function monthHasNoActivity(m: PartnerProgramSummaryMonthMetrics) {
+  return m.earnings === 0 && m.clicks === 0 && m.leads === 0 && m.sales === 0;
+}
+
 // This route processes partner program summary emails for a specific program.
 // Called by the main route after enqueuing jobs for each program.
 // POST /api/cron/partner-program-summary/process
@@ -288,8 +299,23 @@ export const POST = withCron(async ({ rawBody }) => {
   const reportingMonth = format(currentMonth, "MMM yyyy");
   batchNumber = batchNumber || 1;
 
+  const summaryToSend = summary.filter(
+    (s) =>
+      !(
+        monthHasNoActivity(s.previousMonth) &&
+        monthHasNoActivity(s.currentMonth)
+      ),
+  );
+
+  const skippedEmpty = summary.length - summaryToSend.length;
+  if (skippedEmpty > 0) {
+    console.info(
+      `Skipped ${skippedEmpty} partner program summary email(s) with no activity in both reporting months.`,
+    );
+  }
+
   await sendBatchEmail(
-    summary.map(({ partner, ...rest }) => ({
+    summaryToSend.map(({ partner, ...rest }) => ({
       variant: "notifications",
       subject: `Your ${reportingMonth} performance report for ${program.name} program`,
       to: partner.email!,
