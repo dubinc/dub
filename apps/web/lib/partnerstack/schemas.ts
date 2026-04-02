@@ -6,6 +6,7 @@ export const partnerStackImportSteps = z.enum([
   "import-links",
   "import-customers",
   "import-commissions",
+  "import-scheduled-commissions",
   "update-stripe-customers",
 ]);
 
