@@ -1,14 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { stripeAppClient } from "@/lib/stripe";
 import { StripeCustomerSchema } from "@/lib/zod/schemas/customers";
 import { prisma } from "@dub/prisma";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
 
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const { search } = z
@@ -24,6 +22,33 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         "Your workspace isn't connected to Stripe yet. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
     });
   }
+
+  const installedStripeIntegration =
+    await prisma.installedIntegration.findFirst({
+      where: {
+        projectId: workspace.id,
+        integrationId: STRIPE_INTEGRATION_ID,
+      },
+      select: {
+        settings: true,
+      },
+    });
+
+  if (!installedStripeIntegration) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "The Stripe integration is not installed on your workspace. Please install the Stripe integration under /settings/integrations/stripe to proceed.",
+    });
+  }
+
+  const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+    installedStripeIntegration.settings || {},
+  );
+
+  const stripe = stripeAppClient({
+    mode: stripeIntegrationSettings.stripeMode,
+  });
 
   const { data } = await stripe.customers.search(
     {

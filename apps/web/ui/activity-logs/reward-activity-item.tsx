@@ -24,13 +24,13 @@ export function RewardActivityItem({
     <li className="relative flex min-w-0 gap-3">
       {!isLast && (
         <div
-          className="absolute left-[11px] top-6 h-[calc(100%-8px)] w-px bg-neutral-200"
+          className="absolute left-[11.5px] top-6 h-[calc(100%-8px)] w-px bg-neutral-200"
           aria-hidden="true"
         />
       )}
 
       <div
-        className="flex size-6 shrink-0 items-center justify-center text-neutral-500"
+        className="flex size-6 shrink-0 items-center justify-center rounded-full bg-white text-neutral-500"
         aria-hidden="true"
       >
         {icon}

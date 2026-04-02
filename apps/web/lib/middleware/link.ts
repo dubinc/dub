@@ -92,7 +92,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
     if (!linkData) {
       if (domain === "buff.ly") {
-        return await crawlBitly(req);
+        return await crawlBitly(req, ev);
       }
 
       return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
