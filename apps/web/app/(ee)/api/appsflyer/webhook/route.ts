@@ -106,14 +106,17 @@ export const GET = withAxiom(async (req) => {
     // Track sale event
     if (partnerEventId === "sale") {
       const { eventName, customerExternalId, amount, currency, invoiceId } =
-        trackSaleRequestSchema.parse(queryParams);
+        trackSaleRequestSchema.parse({
+          ...queryParams,
+          ...(queryParams.amount && { amount: Number(queryParams.amount) }),
+        });
 
       await trackSale({
         customerExternalId,
         amount,
         currency,
         eventName,
-        paymentProcessor: undefined,
+        paymentProcessor: "custom",
         invoiceId,
         leadEventName: undefined,
         metadata: null,
