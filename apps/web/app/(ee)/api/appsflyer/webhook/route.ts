@@ -5,64 +5,55 @@ import { withAxiom } from "@/lib/axiom/server";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
-import { getSearchParams } from "@dub/utils";
+import { APPSFLYER_INTEGRATION_ID, getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const querySchema = z.object({
-  publishableKey: z
-    .string()
-    .min(1, "publishableKey is required")
-    .startsWith("dub_pk_", "Invalid publishable key format.")
-    .describe("The workspace's publishable key on Dub."),
-  eventName: z.string().min(1, "eventName is required"),
+  appId: z.string(),
+  partnerEventId: z.string(),
 });
-
-// https://support.appsflyer.com/hc/en-us/articles/4410481112081-In-app-events-Event-structure#predefined-event-names
-const appsFlyerToDubEvent = {
-  af_complete_registration: "lead",
-  af_subscribe: "sale",
-};
-
-const supportedEvents = Object.keys(appsFlyerToDubEvent);
 
 // GET /api/appsflyer/webhook – listen to Postback events from AppsFlyer
 export const GET = withAxiom(async (req) => {
   try {
     const queryParams = getSearchParams(req.url);
 
-    const { publishableKey, eventName } = querySchema.parse(queryParams);
+    const { appId, partnerEventId } = querySchema.parse(queryParams);
 
-    const workspace = await prisma.project.findUnique({
+    if (!["lead", "sale"].includes(partnerEventId)) {
+      return NextResponse.json("partnerEventId is not supported. Skipping...");
+    }
+
+    // Find the installation
+    const installation = await prisma.installedIntegration.findFirst({
       where: {
-        publishableKey,
+        integrationId: APPSFLYER_INTEGRATION_ID,
+        settings: {
+          path: "$.appIds",
+          array_contains: appId,
+        },
       },
       select: {
-        id: true,
-        stripeConnectId: true,
-        webhookEnabled: true,
+        project: {
+          select: {
+            id: true,
+            stripeConnectId: true,
+            webhookEnabled: true,
+          },
+        },
       },
     });
 
-    if (!workspace) {
+    if (!installation) {
       throw new DubApiError({
-        code: "unauthorized",
-        message: "Invalid publishable key.",
-        docUrl:
-          "https://dub.co/docs/api-reference/authentication#create-a-publishable-key",
+        code: "bad_request",
+        message: "AppsFlyer integration is not configured for this app.",
       });
     }
 
-    if (!supportedEvents.includes(eventName)) {
-      console.error(
-        `Event ${eventName} is not supported by AppsFlyer <> Dub integration.`,
-      );
-
-      return NextResponse.json("OK");
-    }
-
     // Track lead event
-    if (eventName === "lead") {
+    if (partnerEventId === "lead") {
       const {
         clickId,
         eventName,
@@ -82,7 +73,7 @@ export const GET = withAxiom(async (req) => {
         eventQuantity: undefined,
         mode: undefined,
         metadata: null,
-        workspace,
+        workspace: installation.project,
         rawBody: queryParams,
       });
 
@@ -90,7 +81,7 @@ export const GET = withAxiom(async (req) => {
     }
 
     // Track sale event
-    if (eventName === "sale") {
+    if (partnerEventId === "sale") {
       const { eventName, customerExternalId, amount, currency, invoiceId } =
         trackSaleRequestSchema.parse(queryParams);
 
@@ -103,7 +94,7 @@ export const GET = withAxiom(async (req) => {
         invoiceId,
         leadEventName: undefined,
         metadata: null,
-        workspace,
+        workspace: installation.project,
         rawBody: queryParams,
       });
 
