@@ -1,15 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
-import {
-  derivePartnerLinkKey,
-  generatePartnerLink,
-} from "@/lib/api/partners/generate-partner-link";
+import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import {
-  applyAppsFlyerParameters,
-  loadAppsFlyerParameters,
-} from "@/lib/integrations/appsflyer/apply-parameters";
+import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
 import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
 import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { WorkspaceProps } from "@/lib/types";
@@ -135,19 +129,21 @@ export async function POST(req: Request) {
     console.log("linksToCreate", linksToCreate);
     console.log("linksToRemoveMapping", linksToRemoveMapping);
 
-    // Load AppsFlyer parameters if any new default links are AppsFlyer URLs
-    let appsFlyerParameters: AppsFlyerSettings["parameters"] = [];
-
-    const hasAppsFlyerUrl = partnerGroup.partnerGroupDefaultLinks.some((dl) =>
-      isAppsFlyerTrackingUrl(dl.url),
-    );
-
-    if (hasAppsFlyerUrl) {
-      appsFlyerParameters = await loadAppsFlyerParameters(program.workspace.id);
-    }
-
     // Create the links
     if (linksToCreate.length > 0) {
+      // Load AppsFlyer parameters if the default link is an AppsFlyer URL
+      let appsFlyerParameters: AppsFlyerSettings["parameters"] = [];
+
+      const hasAppsFlyerUrl = partnerGroup.partnerGroupDefaultLinks.some((dl) =>
+        isAppsFlyerTrackingUrl(dl.url),
+      );
+
+      if (hasAppsFlyerUrl) {
+        appsFlyerParameters = await loadAppsFlyerParameters(
+          program.workspace.id,
+        );
+      }
+
       const processedLinks = (
         await Promise.allSettled(
           linksToCreate.map((link) => {
@@ -156,27 +152,6 @@ export async function POST(req: Request) {
             );
 
             const partner = programEnrollment?.partner;
-
-            let url = link.url;
-
-            const linkKey = derivePartnerLinkKey({
-              name: partner?.name,
-              email: partner?.email ?? "",
-            });
-
-            if (
-              appsFlyerParameters.length > 0 &&
-              isAppsFlyerTrackingUrl(link.url)
-            ) {
-              url = applyAppsFlyerParameters({
-                url,
-                parameters: appsFlyerParameters,
-                context: {
-                  partnerName: partner?.name,
-                  partnerLinkKey: linkKey,
-                },
-              });
-            }
 
             return generatePartnerLink({
               workspace: {
@@ -190,17 +165,17 @@ export async function POST(req: Request) {
               partner: {
                 id: partner?.id,
                 name: partner?.name,
-                email: partner?.email ?? "",
+                email: partner?.email!,
                 tenantId: programEnrollment?.tenantId ?? undefined,
               },
               link: {
                 domain: link.domain,
-                url,
+                url: link.url,
                 tenantId: programEnrollment?.tenantId ?? undefined,
                 partnerGroupDefaultLinkId: link.partnerGroupDefaultLinkId,
-                key: linkKey,
               },
               userId: userId ?? undefined,
+              appsFlyerParameters,
             });
           }),
         )
