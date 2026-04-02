@@ -101,11 +101,12 @@ export default function ProgramPageClient() {
     link: defaultProgramLink,
   });
 
+  const hasPartnerLink = Boolean(partnerLink);
   const isDeactivated = programEnrollment?.status === "deactivated";
 
   return (
     <PageWidthWrapper className="pb-10">
-      {partnerLink && (
+      {program && (
         <AnimatePresence mode="wait" initial={false}>
           {!hideDetails && (
             <motion.div
@@ -137,70 +138,79 @@ export default function ProgramPageClient() {
                   Referral link
                 </span>
                 <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 md:max-w-[50%]">
-                  {partnerLink ? (
-                    <input
-                      type="text"
-                      readOnly
-                      value={getPrettyUrl(partnerLink)}
-                      disabled={isDeactivated}
-                      className={cn(
-                        "border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500",
-                        isDeactivated && "text-content-subtle cursor-default",
-                      )}
+                  <input
+                    type="text"
+                    readOnly
+                    value={
+                      hasPartnerLink ? getPrettyUrl(partnerLink) : "No link yet"
+                    }
+                    disabled={isDeactivated}
+                    className={cn(
+                      "border-border-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500",
+                      hasPartnerLink
+                        ? "text-content-default"
+                        : "text-content-subtle",
+                      isDeactivated && "text-content-subtle cursor-default",
+                    )}
+                  />
+                  {isDeactivated ? (
+                    (() => {
+                      const deactivatedBadge = PartnerStatusBadges.deactivated;
+                      return (
+                        <StatusBadge
+                          variant={deactivatedBadge.variant}
+                          icon={deactivatedBadge.icon}
+                          className="xs:w-fit absolute right-4 top-1/2 -translate-y-1/2 px-1.5 py-0.5"
+                        >
+                          {deactivatedBadge.label}
+                        </StatusBadge>
+                      );
+                    })()
+                  ) : hasPartnerLink ? (
+                    <Button
+                      icon={
+                        <div className="relative size-4">
+                          <div
+                            className={cn(
+                              "absolute inset-0 transition-[transform,opacity]",
+                              copied && "translate-y-1 opacity-0",
+                            )}
+                          >
+                            <Copy className="size-4" />
+                          </div>
+                          <div
+                            className={cn(
+                              "absolute inset-0 transition-[transform,opacity]",
+                              !copied && "translate-y-1 opacity-0",
+                            )}
+                          >
+                            <Check className="size-4" />
+                          </div>
+                        </div>
+                      }
+                      text={copied ? "Copied link" : "Copy link"}
+                      className="xs:w-fit"
+                      onClick={() => {
+                        copyToClipboard(partnerLink);
+                      }}
                     />
                   ) : (
-                    <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
-                  )}
-                  {isDeactivated
-                    ? (() => {
-                        const deactivatedBadge =
-                          PartnerStatusBadges.deactivated;
-                        return (
-                          <StatusBadge
-                            variant={deactivatedBadge.variant}
-                            icon={deactivatedBadge.icon}
-                            className="xs:w-fit absolute right-4 top-1/2 -translate-y-1/2 px-1.5 py-0.5"
-                          >
-                            {deactivatedBadge.label}
-                          </StatusBadge>
-                        );
-                      })()
-                    : !isDeactivated && (
-                        <Button
-                          icon={
-                            <div className="relative size-4">
-                              <div
-                                className={cn(
-                                  "absolute inset-0 transition-[transform,opacity]",
-                                  copied && "translate-y-1 opacity-0",
-                                )}
-                              >
-                                <Copy className="size-4" />
-                              </div>
-                              <div
-                                className={cn(
-                                  "absolute inset-0 transition-[transform,opacity]",
-                                  !copied && "translate-y-1 opacity-0",
-                                )}
-                              >
-                                <Check className="size-4" />
-                              </div>
-                            </div>
-                          }
-                          text={copied ? "Copied link" : "Copy link"}
-                          className="xs:w-fit"
-                          onClick={() => {
-                            if (partnerLink) {
-                              copyToClipboard(partnerLink);
-                            }
-                          }}
-                        />
+                    <Link
+                      href={`/programs/${programSlug}/links`}
+                      className={cn(
+                        buttonVariants({ variant: "primary" }),
+                        "xs:w-fit inline-flex h-10 items-center justify-center rounded-lg px-4 text-sm font-medium",
                       )}
+                    >
+                      Create link
+                    </Link>
+                  )}
                 </div>
 
-                {programEnrollment.group?.linkStructure === "query" && (
-                  <QueryLinkStructureHelpText link={defaultProgramLink} />
-                )}
+                {programEnrollment.group?.linkStructure === "query" &&
+                  defaultProgramLink && (
+                    <QueryLinkStructureHelpText link={defaultProgramLink} />
+                  )}
 
                 <span className="mt-12 text-base font-semibold text-neutral-800">
                   Rewards
