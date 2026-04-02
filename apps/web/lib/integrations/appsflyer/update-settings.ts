@@ -1,8 +1,10 @@
 "use server";
 
 import { authActionClient } from "@/lib/actions/safe-action";
+import { qstash } from "@/lib/cron";
+import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { prisma } from "@dub/prisma";
-import { APPSFLYER_INTEGRATION_ID } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, APPSFLYER_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
 import { appsFlyerSettingsSchema } from "./schema";
@@ -50,6 +52,41 @@ export const updateAppsFlyerSettingsAction = authActionClient
         },
       },
     });
+
+    const parametersChanged =
+      JSON.stringify(current.parameters) !== JSON.stringify(parameters);
+
+    // Re-apply updated parameters to all existing AppsFlyer default links
+    if (parametersChanged) {
+      const defaultLinks = await prisma.partnerGroupDefaultLink.findMany({
+        where: {
+          program: {
+            workspaceId: workspace.id,
+          },
+        },
+        select: {
+          id: true,
+          url: true,
+        },
+      });
+
+      const appsFlyerDefaultLinks = defaultLinks.filter((link) =>
+        isAppsFlyerTrackingUrl(link.url),
+      );
+
+      if (appsFlyerDefaultLinks.length > 0) {
+        await Promise.allSettled(
+          appsFlyerDefaultLinks.map((defaultLink) =>
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/update-default-links`,
+              body: {
+                defaultLinkId: defaultLink.id,
+              },
+            }),
+          ),
+        );
+      }
+    }
 
     revalidatePath(`/${workspace.slug}/settings/integrations/appsflyer`);
   });
