@@ -10,9 +10,18 @@ import { Plus } from "lucide-react";
 const MAX_VISIBLE_LOGOS = 3;
 const MAX_OVERFLOW_LABEL = 9;
 
-function ProgramsHover({ children }: { children: ReactNode }) {
+function ProgramsHover({
+  children,
+  onClick,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+}) {
   return (
-    <div className="group w-fit rounded-lg p-2 transition-colors duration-150 hover:cursor-pointer hover:bg-neutral-100">
+    <div
+      className="group w-fit rounded-lg p-2 transition-colors duration-150 hover:cursor-pointer hover:bg-neutral-100"
+      onClick={onClick}
+    >
       {children}
     </div>
   );
@@ -20,8 +29,10 @@ function ProgramsHover({ children }: { children: ReactNode }) {
 
 export function PartnerMemberProgramsCell({
   programs,
+  onClick,
 }: {
   programs: PartnerUserProps["programs"];
+  onClick?: () => void;
 }) {
   const { programEnrollments, isLoading: enrollmentsLoading } =
     useProgramEnrollments();
@@ -47,7 +58,7 @@ export function PartnerMemberProgramsCell({
 
   if (displayPrograms.length === 0) {
     return (
-      <ProgramsHover>
+      <ProgramsHover onClick={onClick}>
         <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200">
           <Plus className="size-3.5 text-neutral-500" strokeWidth={2.5} />
         </div>
@@ -62,7 +73,7 @@ export function PartnerMemberProgramsCell({
       : 0;
 
   return (
-    <ProgramsHover>
+    <ProgramsHover onClick={onClick}>
       <div className="flex items-center">
         {visible.map((p, index) => (
           <img

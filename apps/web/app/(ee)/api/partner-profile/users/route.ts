@@ -49,6 +49,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             select: {
               id: true,
               name: true,
+              slug: true,
               logo: true,
             },
           },

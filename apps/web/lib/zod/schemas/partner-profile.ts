@@ -188,6 +188,20 @@ export const getPartnerUsersQuerySchema = z.object({
   role: z.enum(PartnerRole).optional(),
 });
 
+export const assignProgramInputSchema = z.object({
+  programIds: z.array(z.string()),
+});
+
+export const assignedProgramOutputSchema = z.object({
+  program: ProgramSchema.pick({
+    id: true,
+    name: true,
+    slug: true,
+    logo: true,
+  }),
+  createdAt: z.coerce.date(),
+});
+
 export const partnerUserSchema = z.object({
   id: z.string().nullable(),
   name: z.string().nullable(),
@@ -199,6 +213,7 @@ export const partnerUserSchema = z.object({
     ProgramSchema.pick({
       id: true,
       name: true,
+      slug: true,
       logo: true,
     }),
   ),

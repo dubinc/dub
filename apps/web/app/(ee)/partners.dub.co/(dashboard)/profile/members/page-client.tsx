@@ -38,6 +38,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { PartnerMemberProgramsCell } from "./partner-member-programs-cell";
+import { PartnerMemberProgramsSheet } from "./partner-member-programs-sheet";
 
 export function ProfileMembersPageClient() {
   const { partner } = usePartnerProfile();
@@ -79,6 +80,10 @@ export function ProfileMembersPageClient() {
 
   const { InvitePartnerUserModal, setShowInvitePartnerUserModal } =
     useInvitePartnerUserModal();
+
+  const [selectedUserForPrograms, setSelectedUserForPrograms] =
+    useState<PartnerUserProps | null>(null);
+  const [showProgramsSheet, setShowProgramsSheet] = useState(false);
 
   // Combined filter configuration
   const filters = useMemo(
@@ -169,7 +174,13 @@ export function ProfileMembersPageClient() {
         maxSize: 80,
         meta: { disableTruncate: true },
         cell: ({ row }) => (
-          <PartnerMemberProgramsCell programs={row.original.programs} />
+          <PartnerMemberProgramsCell
+            programs={row.original.programs}
+            onClick={() => {
+              setSelectedUserForPrograms(row.original);
+              setShowProgramsSheet(true);
+            }}
+          />
         ),
       },
       {
@@ -237,6 +248,14 @@ export function ProfileMembersPageClient() {
   return (
     <>
       <InvitePartnerUserModal />
+      {selectedUserForPrograms && (
+        <PartnerMemberProgramsSheet
+          user={selectedUserForPrograms}
+          isCurrentUserOwner={isCurrentUserOwner}
+          showSheet={showProgramsSheet}
+          setShowSheet={setShowProgramsSheet}
+        />
+      )}
       <PageContent
         title="Members"
         titleInfo={{
