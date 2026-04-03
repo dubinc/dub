@@ -45,7 +45,7 @@ export default function DomainRenewed({
   return (
     <Html>
       <Head />
-      <Preview>Domain{hasSingleDomain ? "" : "s"} renewed</Preview>
+      <Preview>{pluralize("Domain", domains.length)} renewed</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] px-5 py-5">
@@ -54,7 +54,7 @@ export default function DomainRenewed({
             </Section>
 
             <Heading className="mx-0 mb-5 mt-10 p-0 text-lg font-semibold text-neutral-800">
-              Domain{hasSingleDomain ? "" : "s"} renewed
+              {pluralize("Domain", domains.length)} renewed
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
