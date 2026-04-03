@@ -3,10 +3,13 @@ import { DUB_FOUNDING_DATE, formatDate, validDomainRegex } from "@dub/utils";
 import * as z from "zod/v4";
 import {
   base64ImageSchema,
+  preprocessLinkPreviewImage,
+  publicHostedImageSchema,
+} from "./images";
+import {
   booleanQuerySchema,
   getCursorPaginationQuerySchema,
   getPaginationQuerySchema,
-  publicHostedImageSchema,
 } from "./misc";
 import { LinkTagSchema } from "./tags";
 import {
@@ -550,7 +553,10 @@ export const createLinkBodySchema = z.object({
 });
 
 export const createLinkBodySchemaAsync = createLinkBodySchema.extend({
-  image: z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
+  image: z.preprocess(
+    preprocessLinkPreviewImage,
+    z.union([base64ImageSchema, publicHostedImageSchema]).nullish(),
+  ),
 });
 
 export const updateLinkBodySchema = createLinkBodySchemaAsync

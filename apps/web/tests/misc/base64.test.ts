@@ -1,4 +1,4 @@
-import { base64ImageSchema } from "@/lib/zod/schemas/misc";
+import { base64ImageSchema } from "@/lib/zod/schemas/images";
 import { describe, expect, it } from "vitest";
 
 describe("base64ImageSchema", () => {
