@@ -14,6 +14,7 @@ import {
   APPSFLYER_MACROS,
   APPSFLYER_REQUIRED_PARAMETERS,
 } from "../constants";
+import { assertAppsFlyerMacroValueParses } from "../macro-template";
 import { appsFlyerSettingsSchema } from "../schema";
 import { updateAppsFlyerSettingsAction } from "../update-settings";
 
@@ -33,49 +34,47 @@ function cloneFormBaseline(data: AppsFlyerFormBaseline): AppsFlyerFormBaseline {
 
 type AppsFlyerMacroMeta = { description: string };
 
-const APPSFLYER_MACRO_COMBO_OPTIONS: ComboboxOption<AppsFlyerMacroMeta>[] =
+const REQUIRED_MACRO_COMBO_OPTIONS: ComboboxOption<AppsFlyerMacroMeta>[] =
   APPSFLYER_MACROS.map((m) => ({
     value: m.macro,
     label: m.macro,
     meta: { description: m.description },
   }));
 
-function AppsFlyerMacroCombobox({
+function AppsFlyerRequiredMacroCombobox({
   value,
   onValueChange,
-  placeholder,
   ariaLabel,
 }: {
   value: string;
   onValueChange: (value: string) => void;
-  placeholder?: string;
   ariaLabel: string;
 }) {
   const selected =
-    APPSFLYER_MACRO_COMBO_OPTIONS.find((o) => o.value === value) ?? null;
+    REQUIRED_MACRO_COMBO_OPTIONS.find((o) => o.value === value) ?? null;
 
   return (
     <Combobox
-      options={APPSFLYER_MACRO_COMBO_OPTIONS}
+      options={REQUIRED_MACRO_COMBO_OPTIONS}
       selected={selected}
       setSelected={(opt) => {
         if (opt) onValueChange(opt.value);
       }}
-      placeholder={placeholder ?? "Select macro"}
+      placeholder="Select macro"
       matchTriggerWidth
+      hideSearch
       caret={
         <ChevronDown className="text-content-muted size-3.5 shrink-0 transition-transform duration-75 group-data-[state=open]:rotate-180" />
       }
       popoverProps={{
         contentClassName: "rounded-md p-0.5",
       }}
-      inputClassName="py-2 pl-3 text-xs"
       optionClassName="px-2 py-1.5 text-xs leading-tight"
       optionDescription={(option) => option.meta?.description}
       buttonProps={{
         "aria-label": ariaLabel,
         className:
-          "h-full w-full max-w-none justify-between gap-1.5 px-2 py-0 text-xs font-normal shadow-none",
+          "h-8 w-full max-w-none justify-between gap-1.5 px-2 py-0 text-xs font-normal shadow-none",
       }}
       labelProps={{
         className: "font-mono",
@@ -170,6 +169,19 @@ export const AppsFlyerSettings = ({
         value: p.value.trim(),
       }))
       .filter((p) => p.key.length > 0 && p.value.length > 0);
+
+    for (const p of filteredParameters) {
+      try {
+        assertAppsFlyerMacroValueParses(p.value);
+      } catch (err) {
+        toast.error(
+          err instanceof Error
+            ? err.message
+            : "Invalid macro syntax in custom parameter value.",
+        );
+        return;
+      }
+    }
 
     pendingBaselineRef.current = cloneFormBaseline({
       appIds: filteredAppIds,
@@ -309,7 +321,7 @@ export const AppsFlyerSettings = ({
                       disabled
                       aria-label={`${defaultParam?.description ?? param.key} — parameter key`}
                     />
-                    <AppsFlyerMacroCombobox
+                    <AppsFlyerRequiredMacroCombobox
                       value={param.value}
                       onValueChange={(next) => {
                         const updated = [...requiredParameters];
@@ -356,22 +368,25 @@ export const AppsFlyerSettings = ({
                         setParameters(updated);
                       }}
                     />
-                    <AppsFlyerMacroCombobox
-                      value={param.value}
-                      onValueChange={(next) => {
-                        const updated = [...parameters];
-                        updated[index] = {
-                          ...updated[index],
-                          value: next,
-                        };
-                        setParameters(updated);
-                      }}
-                      placeholder="Select macro"
-                      ariaLabel={
+                    <Input
+                      className="max-w-none font-mono text-xs"
+                      placeholder="/path?code={{PARTNER_LINK_KEY}}"
+                      type="text"
+                      autoComplete="off"
+                      aria-label={
                         parameters.length > 1
                           ? `Custom parameter value ${index + 1}`
                           : "Custom parameter value"
                       }
+                      value={param.value}
+                      onChange={(e) => {
+                        const updated = [...parameters];
+                        updated[index] = {
+                          ...updated[index],
+                          value: e.target.value,
+                        };
+                        setParameters(updated);
+                      }}
                     />
                   </div>
                   <button
@@ -402,6 +417,11 @@ export const AppsFlyerSettings = ({
                 className="h-7 w-fit px-2 text-xs"
               />
             </div>
+
+            <p className="mt-3 text-xs text-neutral-400">
+              Custom values may include text and macros. Every {"{{...}}"} must
+              be a supported macro or saving will fail.
+            </p>
           </div>
         </div>
 

@@ -1,11 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { APPSFLYER_INTEGRATION_ID } from "@dub/utils";
-import * as z from "zod/v4";
-import {
-  AppsFlyerSettings,
-  appsFlyerParameterSchema,
-  appsFlyerSettingsSchema,
-} from "./schema";
+import { AppsFlyerSettings, appsFlyerSettingsSchema } from "./schema";
 
 interface AppsFlyerParameterContext {
   partnerName: string;
@@ -24,7 +19,7 @@ export function applyAppsFlyerParameters({
   context,
 }: {
   url: string;
-  parameters: z.infer<typeof appsFlyerParameterSchema>[];
+  parameters: { key: string; value: string }[];
   context: AppsFlyerParameterContext;
 }) {
   const urlObj = new URL(url);
