@@ -689,6 +689,8 @@ function ConfirmPayoutsSheetContent() {
     error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."
       : undefined,
+    onRowClick: (row) =>
+      window.open(`/${slug}/program/payouts/${row.original.id}`, "_blank"),
   });
 
   const { error: permissionsError } = clientAccessCheck({
@@ -835,25 +837,13 @@ function ConfirmPayoutsSheetContent() {
                 )
               </span>
             </span>
-            <Button
-              variant="secondary"
-              text="Review"
-              className="h-7 w-fit rounded-md border border-neutral-200 px-2 text-sm"
-              onClick={() =>
-                queryParams({
-                  set: {
-                    status: "hold",
-                  },
-                  del: [
-                    "confirmPayouts",
-                    "selectedPayoutId",
-                    "excludedPayoutIds",
-                    "payoutId",
-                    "page",
-                  ],
-                })
-              }
-            />
+            <a href={`/${slug}/program/payouts?status=hold`} target="_blank">
+              <Button
+                variant="secondary"
+                text="Review"
+                className="h-7 w-fit cursor-alias rounded-md border border-neutral-200 px-2 text-sm"
+              />
+            </a>
           </div>
         )}
       </div>
