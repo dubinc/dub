@@ -21,7 +21,7 @@ import {
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { uploadedImageSchema } from "../../zod/schemas/misc";
+import { uploadedImageSchema } from "../../zod/schemas/images";
 import { authPartnerActionClient } from "../safe-action";
 
 const updatePartnerProfileSchema = z

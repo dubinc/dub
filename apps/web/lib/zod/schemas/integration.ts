@@ -1,6 +1,6 @@
 import { R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
-import { uploadedImageSchema } from "./misc";
+import { uploadedImageSchema } from "./images";
 
 export const integrationSchema = z.object({
   id: z.string(),

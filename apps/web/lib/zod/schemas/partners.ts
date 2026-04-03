@@ -16,15 +16,14 @@ import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
-import { createLinkBodySchema } from "./links";
 import {
   base64ImageSchema,
-  booleanQuerySchema,
-  getPaginationQuerySchema,
   googleFaviconUrlSchema,
   publicHostedImageSchema,
   storedR2ImageUrlSchema,
-} from "./misc";
+} from "./images";
+import { createLinkBodySchema } from "./links";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { ProgramEnrollmentSchema } from "./programs";
 import { centsSchema, centsSchemaWithDefault, parseUrlSchema } from "./utils";
 
