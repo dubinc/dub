@@ -2,7 +2,7 @@
 
 import { partnerProfileFetch } from "@/lib/api/partner-profile/client";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import { PartnerUserProps } from "@/lib/types";
+import { PartnerUserProps, ProgramProps } from "@/lib/types";
 import { BlurImage, Button, Sheet } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { X } from "lucide-react";
@@ -29,29 +29,25 @@ function PartnerMemberProgramsSheetContent({
   const isTargetOwner = user.role === "owner";
   const canEdit = isCurrentUserOwner && !isTargetOwner;
 
-  const assignedProgramIds = new Set(user.programs.map((p) => p.id));
-
-  // Empty assignedPrograms means "access to all" (no restrictions)
-  const hasAllAccess = assignedProgramIds.size === 0;
-
   const [accessState, setAccessState] = useState<Record<string, boolean>>({});
 
   // Initialize access state from user's assigned programs when enrollments load
   useEffect(() => {
     if (!programEnrollments) return;
 
+    const ids = new Set(user.programs.map((p) => p.id));
+    const allAccess = isTargetOwner || ids.size === 0;
+
     const initial: Record<string, boolean> = {};
     for (const enrollment of programEnrollments) {
-      if (isTargetOwner || hasAllAccess) {
-        initial[enrollment.programId] = true;
-      } else {
-        initial[enrollment.programId] = assignedProgramIds.has(
-          enrollment.programId,
-        );
-      }
+      initial[enrollment.programId] =
+        allAccess || ids.has(enrollment.programId);
     }
     setAccessState(initial);
-  }, [programEnrollments, assignedProgramIds, isTargetOwner, hasAllAccess]);
+  }, [programEnrollments, user.programs, isTargetOwner]);
+
+  const assignedProgramIds = new Set(user.programs.map((p) => p.id));
+  const hasAllAccess = assignedProgramIds.size === 0;
 
   const hasChanges = programEnrollments
     ? programEnrollments.some((enrollment) => {
@@ -112,7 +108,7 @@ function PartnerMemberProgramsSheetContent({
       </div>
 
       <div className="flex flex-1 flex-col overflow-y-auto">
-        <div className="flex flex-col px-4">
+        <div className="flex flex-col px-4 py-6">
           {isLoading ? (
             [...Array(3)].map((_, i) => <ProgramRowPlaceholder key={i} />)
           ) : !programEnrollments || programEnrollments.length === 0 ? (
@@ -162,13 +158,13 @@ function ProgramRow({
   canEdit,
   onChange,
 }: {
-  program: Pick<PartnerUserProps["programs"][number], "name" | "slug" | "logo">;
+  program: Pick<ProgramProps, "name" | "slug" | "logo">;
   hasAccess: boolean;
   canEdit: boolean;
   onChange: (hasAccess: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg px-2 py-3 transition-colors duration-150 hover:bg-neutral-100">
+    <div className="flex items-center justify-between rounded-lg p-3 transition-colors duration-150 hover:cursor-pointer hover:bg-neutral-100">
       <div className="flex min-w-0 items-center gap-3">
         <BlurImage
           src={program.logo || `${OG_AVATAR_URL}${program.name}`}
