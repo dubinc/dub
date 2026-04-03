@@ -202,6 +202,20 @@ export const assignedProgramOutputSchema = z.object({
   createdAt: z.coerce.date(),
 });
 
+export const assignLinkInputSchema = z.object({
+  linkIds: z.array(z.string()),
+});
+
+export const assignedLinkOutputSchema = z.object({
+  link: LinkSchema.pick({
+    id: true,
+    domain: true,
+    key: true,
+    shortLink: true,
+  }),
+  createdAt: z.coerce.date(),
+});
+
 export const partnerUserSchema = z.object({
   id: z.string().nullable(),
   name: z.string().nullable(),

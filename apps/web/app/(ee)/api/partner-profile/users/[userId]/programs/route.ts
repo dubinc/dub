@@ -68,6 +68,18 @@ export const PUT = withPartnerProfile(
       }
     }
 
+    // If all enrolled programs are selected, normalize to empty (= "all access")
+    const totalEnrollments = await prisma.programEnrollment.count({
+      where: {
+        partnerId: partner.id,
+      },
+    });
+
+    const effectiveProgramIds =
+      programIds.length > 0 && programIds.length >= totalEnrollments
+        ? []
+        : programIds;
+
     // Replace all program assignments in a transaction
     // Also remove link assignments for programs that are being removed
     const result = await prisma.$transaction(async (tx) => {
@@ -81,7 +93,7 @@ export const PUT = withPartnerProfile(
         },
       });
 
-      const newProgramIdSet = new Set(programIds);
+      const newProgramIdSet = new Set(effectiveProgramIds);
       const removedProgramIds = currentAssignments
         .map((a) => a.programId)
         .filter((id) => !newProgramIdSet.has(id));
@@ -106,9 +118,9 @@ export const PUT = withPartnerProfile(
       }
 
       // Create new program assignments
-      if (programIds.length > 0) {
+      if (effectiveProgramIds.length > 0) {
         await tx.partnerUserProgram.createMany({
-          data: programIds.map((programId) => ({
+          data: effectiveProgramIds.map((programId) => ({
             partnerUserId: targetUser.id,
             programId,
           })),
