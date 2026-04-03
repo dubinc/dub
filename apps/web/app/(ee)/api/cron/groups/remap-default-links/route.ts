@@ -3,6 +3,9 @@ import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
+import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import { WorkspaceProps } from "@/lib/types";
 import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
@@ -128,6 +131,19 @@ export async function POST(req: Request) {
 
     // Create the links
     if (linksToCreate.length > 0) {
+      // Load AppsFlyer parameters if the default link is an AppsFlyer URL
+      let appsFlyerParameters: AppsFlyerSettings["parameters"] = [];
+
+      const hasAppsFlyerUrl = partnerGroup.partnerGroupDefaultLinks.some((dl) =>
+        isAppsFlyerTrackingUrl(dl.url),
+      );
+
+      if (hasAppsFlyerUrl) {
+        appsFlyerParameters = await loadAppsFlyerParameters(
+          program.workspace.id,
+        );
+      }
+
       const processedLinks = (
         await Promise.allSettled(
           linksToCreate.map((link) => {
@@ -159,6 +175,7 @@ export async function POST(req: Request) {
                 partnerGroupDefaultLinkId: link.partnerGroupDefaultLinkId,
               },
               userId: userId ?? undefined,
+              appsFlyerParameters,
             });
           }),
         )

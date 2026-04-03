@@ -1,5 +1,8 @@
 import { prisma } from "@dub/prisma";
-import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src";
+import {
+  APPSFLYER_INTEGRATION_ID,
+  HUBSPOT_INTEGRATION_ID,
+} from "@dub/utils/src";
 import { redirect } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 
@@ -46,7 +49,7 @@ export default async function IntegrationPage(props: {
     redirect(`/${params.slug}/settings/integrations`);
   }
 
-  if (integration.guideUrl) {
+  if (integration.guideUrl && integration.id !== APPSFLYER_INTEGRATION_ID) {
     redirect(integration.guideUrl);
   }
 

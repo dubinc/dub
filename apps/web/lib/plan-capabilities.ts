@@ -21,5 +21,7 @@ export const getPlanCapabilities = (
     canUseGroupMoveRule: !!plan && ["enterprise", "advanced"].includes(plan),
     canUseBountySocialMetrics:
       !!plan && ["enterprise", "advanced"].includes(plan),
+    canInstallAdvancedIntegrations:
+      !!plan && ["enterprise", "advanced"].includes(plan),
   };
 };
