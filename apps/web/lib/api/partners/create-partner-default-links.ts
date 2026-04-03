@@ -1,3 +1,6 @@
+import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
+import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import {
   CreatePartnerProps,
   ProgramProps,
@@ -43,6 +46,17 @@ export async function createPartnerDefaultLinks({
 
   const hasMoreThanOneDefaultLink = defaultLinks.length > 1;
 
+  // Check if any default link URL is an AppsFlyer URL and load settings once
+  const hasAppsFlyerUrl = defaultLinks.some((dl) =>
+    isAppsFlyerTrackingUrl(dl.url),
+  );
+
+  let appsFlyerParameters: AppsFlyerSettings["parameters"] = [];
+
+  if (hasAppsFlyerUrl) {
+    appsFlyerParameters = await loadAppsFlyerParameters(workspace.id);
+  }
+
   const processedLinks = (
     await Promise.allSettled(
       defaultLinks.map((defaultLink) => {
@@ -68,13 +82,13 @@ export async function createPartnerDefaultLinks({
             partnerGroupDefaultLinkId: defaultLink.id,
           },
           userId,
+          appsFlyerParameters,
         });
       }),
     )
   )
     .filter(isFulfilled)
     .map(({ value }) => value);
-
   return await bulkCreateLinks({
     links: processedLinks,
     skipRedisCache: true,
