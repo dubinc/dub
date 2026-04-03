@@ -5,6 +5,7 @@ import {
 import { getUrlFromStringIfValid } from "@dub/utils/src/functions";
 import { ipAddress } from "@vercel/functions";
 import { NextRequest, userAgent } from "next/server";
+import { isAppsFlyerTrackingUrl } from "./is-appsflyer-tracking-url";
 import { isGooglePlayStoreUrl } from "./is-google-play-store-url";
 import { isSingularTrackingUrl } from "./is-singular-tracking-url";
 import { parse } from "./parse";
@@ -55,6 +56,34 @@ export const getFinalUrl = (
     }
   }
 
+  // for AppsFlyer tracking links
+  if (isAppsFlyerTrackingUrl(url)) {
+    const { ua } = userAgent(req);
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+
+    // set hardcoded query params
+    urlObj.searchParams.set("pid", "dubinc_int");
+
+    if (clickId) {
+      urlObj.searchParams.set("clickid", clickId);
+    }
+
+    urlObj.searchParams.set("af_ua", ua);
+
+    if (ip) {
+      urlObj.searchParams.set("af_ip", ip);
+    }
+
+    // set dynamic params (if not exist)
+    if (!urlObj.searchParams.has("c") && via) {
+      urlObj.searchParams.set("c", via);
+    }
+
+    if (!urlObj.searchParams.has("af_siteid") && via) {
+      urlObj.searchParams.set("af_siteid", via);
+    }
+  }
+
   // for Singular tracking links
   if (isSingularTrackingUrl(url)) {
     const ua = userAgent(req);
@@ -62,18 +91,17 @@ export const getFinalUrl = (
     urlObj.searchParams.set("cl", clickId ?? "");
     urlObj.searchParams.set("ua", ua?.ua ?? "");
     urlObj.searchParams.set("ip", ip ?? "");
-  }
+    // Polyfill wpcn & wpcl params for Singular integration
+    const wpcn = urlObj.searchParams.get("wpcn");
+    const wpcl = urlObj.searchParams.get("wpcl");
 
-  // Polyfill wpcn & wpcl params for Singular integration
-  const wpcn = urlObj.searchParams.get("wpcn");
-  const wpcl = urlObj.searchParams.get("wpcl");
+    if (wpcn && wpcn === "{via}") {
+      urlObj.searchParams.set("wpcn", via ?? "");
+    }
 
-  if (wpcn && wpcn === "{via}") {
-    urlObj.searchParams.set("wpcn", via ?? "");
-  }
-
-  if (wpcl && wpcl === "{dub_id}") {
-    urlObj.searchParams.set("wpcl", clickId ?? "");
+    if (wpcl && wpcl === "{dub_id}") {
+      urlObj.searchParams.set("wpcl", clickId ?? "");
+    }
   }
 
   // for Google Play Store links
