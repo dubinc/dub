@@ -1,4 +1,5 @@
 import { recordMetatags } from "@/lib/upstash";
+import { linkPreviewImageBase64PrefixRegex } from "@/lib/zod/schemas/images";
 import { fetchWithTimeout, isValidUrl } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import he from "he";
@@ -62,12 +63,25 @@ export const getRelativeUrl = (url: string, imageUrl: string) => {
   if (!imageUrl) {
     return null;
   }
-  if (isValidUrl(imageUrl)) {
-    return imageUrl;
+  let resolved: string;
+  try {
+    resolved = isValidUrl(imageUrl)
+      ? new URL(imageUrl).toString()
+      : (() => {
+          const { protocol, host } = new URL(url);
+          const baseURL = `${protocol}//${host}`;
+          return new URL(imageUrl, baseURL).toString();
+        })();
+  } catch {
+    return null;
   }
-  const { protocol, host } = new URL(url);
-  const baseURL = `${protocol}//${host}`;
-  return new URL(imageUrl, baseURL).toString();
+  if (
+    /^https?:\/\//i.test(resolved) ||
+    linkPreviewImageBase64PrefixRegex.test(resolved)
+  ) {
+    return resolved;
+  }
+  return null;
 };
 
 const generateFallbackMetadata = (url: string) => {

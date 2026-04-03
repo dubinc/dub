@@ -156,7 +156,6 @@ export function FraudGroupTable() {
                 name: partner.name || "Unknown",
                 image: partner.image,
               }}
-              showPermalink={false}
               showFraudIndicator={false}
             />
           );
