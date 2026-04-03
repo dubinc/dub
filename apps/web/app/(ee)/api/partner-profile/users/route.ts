@@ -63,7 +63,8 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       ...rest,
       ...user,
       createdAt: rest.createdAt, // preserve the createdAt field from PartnerUser
-      programs: rest.role === "owner" ? [] : assignedPrograms,
+      programs:
+        rest.role === "owner" ? [] : assignedPrograms.map((ap) => ap.program),
     }),
   );
 
