@@ -63,17 +63,20 @@ export const getRelativeUrl = (url: string, imageUrl: string) => {
   if (!imageUrl) {
     return null;
   }
-  const resolved = isValidUrl(imageUrl)
-    ? imageUrl
-    : (() => {
-        const { protocol, host } = new URL(url);
-        const baseURL = `${protocol}//${host}`;
-        return new URL(imageUrl, baseURL).toString();
-      })();
-
+  let resolved: string;
+  try {
+    resolved = isValidUrl(imageUrl)
+      ? new URL(imageUrl).toString()
+      : (() => {
+          const { protocol, host } = new URL(url);
+          const baseURL = `${protocol}//${host}`;
+          return new URL(imageUrl, baseURL).toString();
+        })();
+  } catch {
+    return null;
+  }
   if (
-    resolved.startsWith("http://") ||
-    resolved.startsWith("https://") ||
+    /^https?:\/\//i.test(resolved) ||
     linkPreviewImageBase64PrefixRegex.test(resolved)
   ) {
     return resolved;
