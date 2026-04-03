@@ -57,7 +57,3 @@ export const parseDateSchema = z
   .string()
   .transform((v) => parseDateTime(v))
   .refine((v) => !!v, { message: "Invalid date" });
-
-/** Raster data-URL prefix for link preview images (base64ImageSchema, preprocess, metatags). */
-export const linkPreviewImageBase64PrefixRegex =
-  /^data:image\/(png|jpeg|jpg|gif|webp);base64,/i;
