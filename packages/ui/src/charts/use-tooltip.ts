@@ -178,6 +178,10 @@ export function useTooltip<T extends Datum>({
         else visxTooltip.hideTooltip();
         return;
       }
+      if (data.length === 0) {
+        visxTooltip.hideTooltip();
+        return;
+      }
       const index = bisectDate(data, x0, 1);
       const d0 = data[index - 1];
       const d1 = data[index];

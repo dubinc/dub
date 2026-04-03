@@ -1,10 +1,7 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import * as z from "zod/v4";
-import {
-  booleanQuerySchema,
-  getPaginationQuerySchema,
-  uploadedImageSchema,
-} from "./misc";
+import { uploadedImageSchema } from "./images";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { parseUrlSchemaAllowEmpty } from "./utils";
 
 export const RegisteredDomainSchema = z.object({
