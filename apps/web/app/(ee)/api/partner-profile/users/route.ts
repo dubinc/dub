@@ -40,14 +40,29 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     },
     include: {
       user: true,
+      assignedPrograms: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        include: {
+          program: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+            },
+          },
+        },
+      },
     },
   });
 
-  const parsedUsers = users.map(({ user, ...rest }) =>
+  const parsedUsers = users.map(({ user, assignedPrograms, ...rest }) =>
     partnerUserSchema.parse({
       ...rest,
       ...user,
       createdAt: rest.createdAt, // preserve the createdAt field from PartnerUser
+      programs: rest.role === "owner" ? [] : assignedPrograms,
     }),
   );
 

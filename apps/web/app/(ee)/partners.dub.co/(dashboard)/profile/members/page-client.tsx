@@ -37,6 +37,7 @@ import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
+import { PartnerMemberProgramsCell } from "./partner-member-programs-cell";
 
 export function ProfileMembersPageClient() {
   const { partner } = usePartnerProfile();
@@ -137,20 +138,20 @@ export function ProfileMembersPageClient() {
         id: "name",
         header: "Name",
         accessorFn: (row) => row.name || row.email,
-        minSize: 360,
-        size: 870,
-        maxSize: 900,
+        minSize: 250,
         cell: ({ row }) => {
           const user = row.original;
+          const isCurrentUser = session?.user?.email === user.email;
 
           return (
-            <div className="flex items-center space-x-3">
+            <div className="flex min-w-0 items-center space-x-3">
               <UserAvatar user={user} />
-              <div className="flex flex-col">
-                <h3 className="text-sm font-medium">
+              <div className="flex min-w-0 flex-col">
+                <h3 className="truncate text-sm font-medium text-neutral-900">
                   {user.name || user.email}
+                  {isCurrentUser ? <span> (You)</span> : null}
                 </h3>
-                <p className="text-xs text-neutral-500">
+                <p className="truncate text-xs text-neutral-500">
                   {status === "invited"
                     ? `Invited ${timeAgo(user.createdAt)}`
                     : user.email}
@@ -160,13 +161,24 @@ export function ProfileMembersPageClient() {
           );
         },
       },
+
+      {
+        id: "programs",
+        header: "Programs",
+        minSize: 80,
+        maxSize: 80,
+        meta: { disableTruncate: true },
+        cell: ({ row }) => (
+          <PartnerMemberProgramsCell programs={row.original.programs} />
+        ),
+      },
       {
         id: "role",
         header: "Role",
         accessorFn: (row) => row.role,
-        minSize: 120,
-        size: 150,
-        maxSize: 200,
+        minSize: 50,
+        maxSize: 50,
+        meta: { disableTruncate: true },
         cell: ({ row }) => (
           <RoleCell
             user={row.original}

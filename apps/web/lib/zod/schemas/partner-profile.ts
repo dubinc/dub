@@ -28,6 +28,7 @@ import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { ProgramSchema } from "./programs";
 import { referralFormDataSchema } from "./referral-form";
 import { centsSchema } from "./utils";
 
@@ -194,6 +195,13 @@ export const partnerUserSchema = z.object({
   role: z.enum(PartnerRole),
   image: z.string().nullish(),
   createdAt: z.date(),
+  programs: z.array(
+    ProgramSchema.pick({
+      id: true,
+      name: true,
+      logo: true,
+    }),
+  ),
 });
 
 export const partnerProfileChangeHistoryLogSchema = z.array(
