@@ -8,8 +8,8 @@ import {
 } from "./schema";
 
 interface AppsFlyerParameterContext {
-  partnerName: string | null | undefined;
-  partnerLinkKey: string | null;
+  partnerName: string;
+  partnerLinkKey: string;
 }
 
 const macroReplacements: Record<string, keyof AppsFlyerParameterContext> = {

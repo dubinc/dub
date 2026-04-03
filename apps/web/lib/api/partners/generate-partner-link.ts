@@ -154,7 +154,7 @@ export const generatePartnerLink = async ({
         url: processedLink.url,
         parameters: appsFlyerParameters,
         context: {
-          partnerName: partner.name,
+          partnerName: partner.name || currentKey,
           partnerLinkKey: currentKey,
         },
       });

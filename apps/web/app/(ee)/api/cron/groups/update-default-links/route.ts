@@ -162,7 +162,8 @@ export async function POST(req: Request) {
             url,
             parameters: appsFlyerParameters,
             context: {
-              partnerName: defaultPartnerLink.partner?.name,
+              partnerName:
+                defaultPartnerLink.partner?.name || defaultPartnerLink.key,
               partnerLinkKey: defaultPartnerLink.key,
             },
           });
