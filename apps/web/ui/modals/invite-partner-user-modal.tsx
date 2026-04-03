@@ -86,7 +86,6 @@ function InvitePartnerUserModal({
     <Modal
       showModal={showInvitePartnerUserModal}
       setShowModal={setShowInvitePartnerUserModal}
-      className="max-w-md"
     >
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">Invite Teammates</h3>
@@ -99,70 +98,93 @@ function InvitePartnerUserModal({
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-6 bg-neutral-50 px-4 py-4 sm:px-6"
+        className="flex flex-col bg-neutral-50"
       >
-        <div className="flex flex-col gap-2">
-          <span className="text-sm font-medium text-neutral-700">
-            {pluralize("Email", fields.length)}
-          </span>
+        <div className="flex flex-col gap-6 px-4 py-4 sm:px-6">
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-neutral-700">
+              {pluralize("Email", fields.length)}
+            </span>
 
-          {fields.map((field, index) => (
-            <div key={field.id} className="flex items-end gap-2">
-              <div className="flex-1">
-                <div className="flex rounded-md shadow-sm">
-                  <input
-                    type="email"
-                    placeholder="panic@thedis.co"
-                    autoFocus={index === 0 && !isMobile}
-                    autoComplete="off"
-                    className="flex-1 rounded-l-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                    {...register(`invites.${index}.email`, {
-                      required: index === 0,
-                    })}
-                  />
-                  <select
-                    {...register(`invites.${index}.role`, {
-                      required: index === 0,
-                    })}
-                    defaultValue="member"
-                    className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
-                  >
-                    {Object.values(PartnerRole).map((role) => (
-                      <option key={role} value={role}>
-                        {capitalize(role)}
-                      </option>
-                    ))}
-                  </select>
+            {fields.map((field, index) => (
+              <div key={field.id} className="flex items-end gap-2">
+                <div className="flex-1">
+                  <div className="flex rounded-md shadow-sm">
+                    <input
+                      type="email"
+                      placeholder="panic@thedis.co"
+                      autoFocus={index === 0 && !isMobile}
+                      autoComplete="off"
+                      className="flex-1 rounded-l-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                      {...register(`invites.${index}.email`, {
+                        required: index === 0,
+                      })}
+                    />
+                    <select
+                      {...register(`invites.${index}.role`, {
+                        required: index === 0,
+                      })}
+                      defaultValue="member"
+                      className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
+                    >
+                      {Object.values(PartnerRole).map((role) => (
+                        <option key={role} value={role}>
+                          {capitalize(role)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
+                {index > 0 && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    icon={<Trash className="size-4" />}
+                    className="h-10 w-10 shrink-0 p-0"
+                    onClick={() => remove(index)}
+                  />
+                )}
               </div>
-              {index > 0 && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  icon={<Trash className="size-4" />}
-                  className="h-10 w-10 shrink-0 p-0"
-                  onClick={() => remove(index)}
-                />
-              )}
-            </div>
-          ))}
+            ))}
 
-          <Button
-            type="button"
-            className="h-9 w-fit"
-            variant="secondary"
-            icon={<Plus className="size-4" />}
-            text="Add email"
-            onClick={() => append({ email: "", role: "member" })}
-            disabled={fields.length >= MAX_INVITES_PER_REQUEST}
-          />
+            <Button
+              type="button"
+              className="h-7 w-fit px-2.5"
+              variant="secondary"
+              icon={<Plus className="size-4" />}
+              text="Add email"
+              onClick={() => append({ email: "", role: "member" })}
+              disabled={fields.length >= MAX_INVITES_PER_REQUEST}
+            />
+          </div>
         </div>
 
-        <Button
-          type="submit"
-          loading={isSubmitting}
-          text={`Send ${pluralize("invite", fields.length)}`}
-        />
+        <div className="flex items-center justify-between gap-4 rounded-lg border-t border-neutral-200 bg-white px-4 py-4 sm:px-6">
+          <a
+            href="https://dub.co/help/article/managing-partner-teams"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="min-w-0 shrink text-sm text-neutral-500 underline hover:text-neutral-900"
+          >
+            Learn about roles
+          </a>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button
+              type="button"
+              variant="secondary"
+              text="Cancel"
+              className="h-8 w-fit rounded-lg"
+              onClick={() => setShowInvitePartnerUserModal(false)}
+            />
+            <Button
+              type="submit"
+              variant="primary"
+              loading={isSubmitting}
+              text={`Send ${pluralize("invite", fields.length)}`}
+              className="h-8 w-fit rounded-lg"
+            />
+          </div>
+        </div>
       </form>
     </Modal>
   );
