@@ -402,11 +402,6 @@ export const AppsFlyerSettings = ({
                 className="h-7 w-fit px-2 text-xs"
               />
             </div>
-
-            <p className="mt-3 text-xs text-neutral-400">
-              Parameter values must be a supported macro (see each option's
-              description in the menu).
-            </p>
           </div>
         </div>
 

@@ -180,6 +180,18 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     expect(response.status).toBe(302);
   });
 
+  test("appsflyer tracking url", async () => {
+    const response = await fetch(`${h.baseUrl}/appsflyer`, fetchOptions);
+
+    // location to include clickid, af_siteid, af_ip, af_ua query params
+    expect(response.headers.get("location")).toMatch(/pid=dubinc_int/);
+    expect(response.headers.get("location")).toMatch(/clickid=[a-zA-Z0-9]+/);
+    expect(response.headers.get("location")).toMatch(/af_ua=.+/);
+    expect(response.headers.get("location")).toMatch(/af_ip=[a-zA-Z0-9.]+/);
+    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
+    expect(response.status).toBe(302);
+  });
+
   test("singular tracking url", async () => {
     const response = await fetch(`${h.baseUrl}/singular`, fetchOptions);
 
@@ -208,18 +220,6 @@ describe.runIf(env.CI)("Link Redirects", async () => {
     // wpcl should be replaced from {dub_id} template to actual dub_id value
     expect(url.searchParams.get("wpcl")).toMatch(/^[a-zA-Z0-9]+$/);
 
-    expect(response.headers.get("x-powered-by")).toBe(poweredBy);
-    expect(response.status).toBe(302);
-  });
-
-  test("appsflyer tracking url", async () => {
-    const response = await fetch(`${h.baseUrl}/appsflyer`, fetchOptions);
-
-    // location to include clickid, af_siteid, af_ip, af_ua query params
-    expect(response.headers.get("location")).toMatch(/clickid=[a-zA-Z0-9]+/);
-    expect(response.headers.get("location")).toMatch(/af_siteid=/);
-    expect(response.headers.get("location")).toMatch(/af_ip=[a-zA-Z0-9.]+/);
-    expect(response.headers.get("location")).toMatch(/af_ua=.+/);
     expect(response.headers.get("x-powered-by")).toBe(poweredBy);
     expect(response.status).toBe(302);
   });

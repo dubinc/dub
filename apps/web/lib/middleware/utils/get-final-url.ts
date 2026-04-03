@@ -56,15 +56,6 @@ export const getFinalUrl = (
     }
   }
 
-  // for Singular tracking links
-  if (isSingularTrackingUrl(url)) {
-    const ua = userAgent(req);
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-    urlObj.searchParams.set("cl", clickId ?? "");
-    urlObj.searchParams.set("ua", ua?.ua ?? "");
-    urlObj.searchParams.set("ip", ip ?? "");
-  }
-
   // for AppsFlyer tracking links
   if (isAppsFlyerTrackingUrl(url)) {
     const { ua } = userAgent(req);
@@ -93,16 +84,24 @@ export const getFinalUrl = (
     }
   }
 
-  // Polyfill wpcn & wpcl params for Singular integration
-  const wpcn = urlObj.searchParams.get("wpcn");
-  const wpcl = urlObj.searchParams.get("wpcl");
+  // for Singular tracking links
+  if (isSingularTrackingUrl(url)) {
+    const ua = userAgent(req);
+    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    urlObj.searchParams.set("cl", clickId ?? "");
+    urlObj.searchParams.set("ua", ua?.ua ?? "");
+    urlObj.searchParams.set("ip", ip ?? "");
+    // Polyfill wpcn & wpcl params for Singular integration
+    const wpcn = urlObj.searchParams.get("wpcn");
+    const wpcl = urlObj.searchParams.get("wpcl");
 
-  if (wpcn && wpcn === "{via}") {
-    urlObj.searchParams.set("wpcn", via ?? "");
-  }
+    if (wpcn && wpcn === "{via}") {
+      urlObj.searchParams.set("wpcn", via ?? "");
+    }
 
-  if (wpcl && wpcl === "{dub_id}") {
-    urlObj.searchParams.set("wpcl", clickId ?? "");
+    if (wpcl && wpcl === "{dub_id}") {
+      urlObj.searchParams.set("wpcl", clickId ?? "");
+    }
   }
 
   // for Google Play Store links
