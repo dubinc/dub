@@ -7,6 +7,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import * as z from "zod/v4";
 
 // PUT /api/partner-profile/users/[userId]/programs - set assigned programs for a user
 export const PUT = withPartnerProfile(
@@ -134,7 +135,7 @@ export const PUT = withPartnerProfile(
     });
 
     return NextResponse.json(
-      assignedProgramOutputSchema.parse(
+      z.array(assignedProgramOutputSchema).parse(
         result.map((ap) => ({
           program: ap.program,
           createdAt: ap.createdAt,
