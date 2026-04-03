@@ -44,10 +44,14 @@ export const APPSFLYER_IP_RANGES = ["45.92.116.0/22", "194.28.46.0/23"];
 export const APPSFLYER_MACROS = [
   {
     macro: "{{PARTNER_NAME}}",
-    description: "The partner's name",
+    description: "The partner's name (e.g. 'John Doe')",
   },
   {
     macro: "{{PARTNER_LINK_KEY}}",
-    description: "The partner's link key",
+    description: "The partner's link key (e.g. 'john-doe')",
   },
-];
+] as const;
+
+export const APPSFLYER_MACRO_VALUES: readonly string[] = APPSFLYER_MACROS.map(
+  (m) => m.macro,
+);

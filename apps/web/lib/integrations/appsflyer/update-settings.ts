@@ -7,7 +7,7 @@ import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, APPSFLYER_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
-import { appsFlyerSettingsSchema } from "./schema";
+import { appsFlyerMacroValueSchema, appsFlyerSettingsSchema } from "./schema";
 
 const schema = appsFlyerSettingsSchema.extend({
   workspaceId: z.string(),
@@ -34,6 +34,16 @@ export const updateAppsFlyerSettingsAction = authActionClient
         value: p.value.trim(),
       }))
       .filter((p) => p.key.length > 0 && p.value.length > 0);
+
+    for (const p of [...requiredParameters, ...parameters]) {
+      const parsedMacro = appsFlyerMacroValueSchema.safeParse(p.value);
+      if (!parsedMacro.success) {
+        throw new Error(
+          parsedMacro.error.issues[0]?.message ??
+            `Invalid AppsFlyer macro for parameter "${p.key}".`,
+        );
+      }
+    }
 
     const installedIntegration = await prisma.installedIntegration.findFirst({
       where: {

@@ -2,10 +2,11 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
-import { Button, Input } from "@dub/ui";
+import { Button, Combobox, ComboboxOption, Input } from "@dub/ui";
 import { Plus, Xmark } from "@dub/ui/icons";
+import { ChevronDown } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   APPSFLYER_DEFAULT_SETTINGS,
@@ -15,6 +16,73 @@ import {
 } from "../constants";
 import { appsFlyerSettingsSchema } from "../schema";
 import { updateAppsFlyerSettingsAction } from "../update-settings";
+
+type AppsFlyerFormBaseline = {
+  appIds: string[];
+  requiredParameters: { key: string; value: string }[];
+  parameters: { key: string; value: string }[];
+};
+
+function cloneFormBaseline(data: AppsFlyerFormBaseline): AppsFlyerFormBaseline {
+  return {
+    appIds: [...data.appIds],
+    requiredParameters: data.requiredParameters.map((p) => ({ ...p })),
+    parameters: data.parameters.map((p) => ({ ...p })),
+  };
+}
+
+type AppsFlyerMacroMeta = { description: string };
+
+const APPSFLYER_MACRO_COMBO_OPTIONS: ComboboxOption<AppsFlyerMacroMeta>[] =
+  APPSFLYER_MACROS.map((m) => ({
+    value: m.macro,
+    label: m.macro,
+    meta: { description: m.description },
+  }));
+
+function AppsFlyerMacroCombobox({
+  value,
+  onValueChange,
+  placeholder,
+  ariaLabel,
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  placeholder?: string;
+  ariaLabel: string;
+}) {
+  const selected =
+    APPSFLYER_MACRO_COMBO_OPTIONS.find((o) => o.value === value) ?? null;
+
+  return (
+    <Combobox
+      options={APPSFLYER_MACRO_COMBO_OPTIONS}
+      selected={selected}
+      setSelected={(opt) => {
+        if (opt) onValueChange(opt.value);
+      }}
+      placeholder={placeholder ?? "Select macro"}
+      matchTriggerWidth
+      caret={
+        <ChevronDown className="text-content-muted size-3.5 shrink-0 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+      }
+      popoverProps={{
+        contentClassName: "rounded-md p-0.5",
+      }}
+      inputClassName="py-2 pl-3 text-xs"
+      optionClassName="px-2 py-1.5 text-xs leading-tight"
+      optionDescription={(option) => option.meta?.description}
+      buttonProps={{
+        "aria-label": ariaLabel,
+        className:
+          "h-full w-full max-w-none justify-between gap-1.5 px-2 py-0 text-xs font-normal shadow-none",
+      }}
+      labelProps={{
+        className: "font-mono",
+      }}
+    />
+  );
+}
 
 export const AppsFlyerSettings = ({
   installed,
@@ -33,13 +101,51 @@ export const AppsFlyerSettings = ({
   );
   const [parameters, setParameters] = useState(appsFlyerSettings.parameters);
 
+  const [baseline, setBaseline] = useState<AppsFlyerFormBaseline>(() =>
+    cloneFormBaseline(appsFlyerSettings),
+  );
+
+  const pendingBaselineRef = useRef<AppsFlyerFormBaseline | null>(null);
+
+  const settingsSignature = JSON.stringify(settings ?? null);
+
+  useEffect(() => {
+    const parsed = appsFlyerSettingsSchema.parse({
+      ...APPSFLYER_DEFAULT_SETTINGS,
+      ...(settings as any),
+    });
+    const next = cloneFormBaseline(parsed);
+    setBaseline(next);
+    setAppIds(next.appIds);
+    setRequiredParameters(next.requiredParameters);
+    setParameters(next.parameters);
+  }, [settingsSignature]);
+
+  const isDirty = useMemo(() => {
+    const current: AppsFlyerFormBaseline = {
+      appIds,
+      requiredParameters,
+      parameters,
+    };
+    return JSON.stringify(current) !== JSON.stringify(baseline);
+  }, [appIds, requiredParameters, parameters, baseline]);
+
   const { executeAsync: executeUpdate, isPending: isUpdating } = useAction(
     updateAppsFlyerSettingsAction,
     {
       async onSuccess() {
+        const next = pendingBaselineRef.current;
+        if (next) {
+          setBaseline(next);
+          setAppIds(next.appIds);
+          setRequiredParameters(next.requiredParameters);
+          setParameters(next.parameters);
+          pendingBaselineRef.current = null;
+        }
         toast.success("AppsFlyer settings updated successfully.");
       },
       onError({ error }) {
+        pendingBaselineRef.current = null;
         toast.error(
           error.serverError || "Failed to update AppsFlyer settings.",
         );
@@ -49,17 +155,32 @@ export const AppsFlyerSettings = ({
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!workspaceId) return;
+    if (!workspaceId || !isDirty) return;
 
-    const filteredAppIds = appIds.filter((id) => id.trim() !== "");
-    const filteredParameters = parameters.filter(
-      (p) => p.key.trim() !== "" && p.value.trim() !== "",
-    );
+    const filteredAppIds = appIds
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+    const normalizedRequired = requiredParameters.map((p) => ({
+      key: p.key.trim(),
+      value: p.value.trim(),
+    }));
+    const filteredParameters = parameters
+      .map((p) => ({
+        key: p.key.trim(),
+        value: p.value.trim(),
+      }))
+      .filter((p) => p.key.length > 0 && p.value.length > 0);
+
+    pendingBaselineRef.current = cloneFormBaseline({
+      appIds: filteredAppIds,
+      requiredParameters: normalizedRequired,
+      parameters: filteredParameters,
+    });
 
     await executeUpdate({
       workspaceId,
       appIds: filteredAppIds,
-      requiredParameters,
+      requiredParameters: normalizedRequired,
       parameters: filteredParameters,
     });
   };
@@ -156,7 +277,7 @@ export const AppsFlyerSettings = ({
                     aria-label={`${param.description} — parameter key (${param.key})`}
                   />
                   <Input
-                    className="max-w-none"
+                    className="max-w-none font-mono"
                     value={param.value}
                     readOnly
                     disabled
@@ -188,21 +309,17 @@ export const AppsFlyerSettings = ({
                       disabled
                       aria-label={`${defaultParam?.description ?? param.key} — parameter key`}
                     />
-                    <Input
-                      className="max-w-none"
-                      placeholder={`e.g., ${defaultParam?.value ?? "{{PARTNER_NAME}}"}`}
-                      type="text"
-                      autoComplete="off"
-                      aria-label={`${defaultParam?.description ?? param.key} — parameter value`}
+                    <AppsFlyerMacroCombobox
                       value={param.value}
-                      onChange={(e) => {
+                      onValueChange={(next) => {
                         const updated = [...requiredParameters];
                         updated[index] = {
                           ...updated[index],
-                          value: e.target.value,
+                          value: next,
                         };
                         setRequiredParameters(updated);
                       }}
+                      ariaLabel={`${defaultParam?.description ?? param.key} — parameter value`}
                     />
                   </div>
                 );
@@ -239,25 +356,22 @@ export const AppsFlyerSettings = ({
                         setParameters(updated);
                       }}
                     />
-                    <Input
-                      className="max-w-none"
-                      placeholder="e.g., {{PARTNER_NAME}}"
-                      type="text"
-                      autoComplete="off"
-                      aria-label={
+                    <AppsFlyerMacroCombobox
+                      value={param.value}
+                      onValueChange={(next) => {
+                        const updated = [...parameters];
+                        updated[index] = {
+                          ...updated[index],
+                          value: next,
+                        };
+                        setParameters(updated);
+                      }}
+                      placeholder="Select macro"
+                      ariaLabel={
                         parameters.length > 1
                           ? `Custom parameter value ${index + 1}`
                           : "Custom parameter value"
                       }
-                      value={param.value}
-                      onChange={(e) => {
-                        const updated = [...parameters];
-                        updated[index] = {
-                          ...updated[index],
-                          value: e.target.value,
-                        };
-                        setParameters(updated);
-                      }}
                     />
                   </div>
                   <button
@@ -290,8 +404,8 @@ export const AppsFlyerSettings = ({
             </div>
 
             <p className="mt-3 text-xs text-neutral-400">
-              Available macros:{" "}
-              {APPSFLYER_MACROS.map((m) => m.macro).join(", ")}
+              Parameter values must be a supported macro (see each option's
+              description in the menu).
             </p>
           </div>
         </div>
@@ -304,6 +418,7 @@ export const AppsFlyerSettings = ({
               text="Save changes"
               className="h-8 w-fit"
               loading={isUpdating}
+              disabled={!isDirty || isUpdating}
             />
           </div>
         </div>
