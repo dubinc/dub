@@ -4,4 +4,4 @@ export const SEGMENT_INTEGRATION_ID = "int_zGnSElTzimbz20OWnXerPoKv";
 export const ZAPIER_INTEGRATION_ID = "clzlmz336000fjeqynwhfv8vo";
 export const SHOPIFY_INTEGRATION_ID = "int_iWOtrZgmcyU6XDwKr4AYYqLN";
 export const HUBSPOT_INTEGRATION_ID = "int_ffw3qgrFAahY6qs1hXaH3wHS";
-export const APPSFLYER_INTEGRATION_ID = "int_1KN6FP8FTS3ZJH4EA9FMCD4GG"; // TODO: Update this
+export const APPSFLYER_INTEGRATION_ID = "int_1KN8JP7ET3VQQRF7ZQEVNFPJ5";

@@ -1,6 +1,7 @@
 "use server";
 
 import { authActionClient } from "@/lib/actions/safe-action";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { APPSFLYER_INTEGRATION_ID } from "@dub/utils";
 import { revalidatePath } from "next/cache";
 import * as z from "zod/v4";
@@ -15,9 +16,9 @@ export const installAppsFlyerAction = authActionClient
   .action(async ({ ctx }) => {
     const { workspace, user } = ctx;
 
-    if (["free", "pro"].includes(workspace.plan)) {
+    if (!getPlanCapabilities(workspace.plan).canInstallAdvancedIntegrations) {
       throw new Error(
-        "AppsFlyer integration is only available on Business plans and above. Upgrade to get started.",
+        "AppsFlyer integration is only available on Advanced and Enterprise plans.",
       );
     }
 

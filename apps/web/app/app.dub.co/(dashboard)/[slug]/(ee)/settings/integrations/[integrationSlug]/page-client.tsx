@@ -10,6 +10,7 @@ import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { StripeIntegrationSettings } from "@/lib/integrations/stripe/ui/settings";
 import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InstalledIntegrationInfoProps } from "@/lib/types";
 import { IntegrationLogo } from "@/ui/integrations/integration-logo";
@@ -153,33 +154,7 @@ export default function IntegrationPageClient({
     return variants[mode];
   }, [integration.id, integration.installed, integration.settings]);
 
-  const enableIntegrationDisabledTooltip = useMemo(() => {
-    if (!plan || !["free", "pro"].includes(plan)) {
-      return null;
-    }
-
-    if (integration.id === HUBSPOT_INTEGRATION_ID) {
-      return (
-        <TooltipContent
-          title="HubSpot integration is only available on Business plans and above. Upgrade to get started."
-          cta="Upgrade to Business"
-          href={`/${slug}/settings/billing/upgrade`}
-        />
-      );
-    }
-
-    if (integration.id === APPSFLYER_INTEGRATION_ID) {
-      return (
-        <TooltipContent
-          title="AppsFlyer integration is only available on Business plans and above. Upgrade to get started."
-          cta="Upgrade to Business"
-          href={`/${slug}/settings/billing/upgrade`}
-        />
-      );
-    }
-
-    return null;
-  }, [plan, integration.id, slug]);
+  const { canInstallAdvancedIntegrations } = getPlanCapabilities(plan);
 
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg grid-cols-1 gap-6">
@@ -376,7 +351,17 @@ export default function IntegrationPageClient({
                   variant="primary"
                   className="h-9 px-3"
                   icon={<ConnectedDots className="size-4" />}
-                  disabledTooltip={enableIntegrationDisabledTooltip}
+                  disabledTooltip={
+                    [HUBSPOT_INTEGRATION_ID, APPSFLYER_INTEGRATION_ID].includes(
+                      integration.id,
+                    ) && !canInstallAdvancedIntegrations ? (
+                      <TooltipContent
+                        title="This integration is only available on Advanced and Enterprise plans."
+                        cta="Upgrade to Advanced"
+                        href={`/${slug}/settings/billing/upgrade?plan=advanced`}
+                      />
+                    ) : undefined
+                  }
                 />
               )}
           </div>

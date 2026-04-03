@@ -9,7 +9,8 @@ async function main() {
       id: createId({ prefix: "int_" }),
       name: "AppsFlyer",
       slug: "appsflyer",
-      description: "Track AppsFlyer events with Dub.",
+      description:
+        "Listen to AppsFlyer postbacks and track them as lead/sale conversion events on Dub.",
       developer: "Dub",
       website: "https://dub.co",
       verified: true,

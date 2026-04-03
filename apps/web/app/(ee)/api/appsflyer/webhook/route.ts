@@ -19,10 +19,6 @@ const querySchema = z.object({
   eventValue: z.string().nullish(),
 });
 
-const eventValueSchema = z.object({
-  promo_code: z.string(),
-});
-
 // GET /api/appsflyer/webhook – listen to Postback events from AppsFlyer
 export const GET = withAxiom(async (req) => {
   try {
