@@ -44,16 +44,6 @@ export const base64ImageSchema = z
   )
   .transform((v) => v || null);
 
-// Base64 encoded raster image or SVG
-export const base64ImageAllowSVGSchema = z
-  .string()
-  .trim()
-  .regex(/^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);base64,/, {
-    message:
-      "Invalid image format, supports only png, jpeg, jpg, gif, webp, svg.",
-  })
-  .transform((v) => v || null);
-
 export const storedR2ImageUrlSchema = z
   .url()
   .trim()
