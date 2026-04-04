@@ -1,6 +1,8 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
+
+import { ApplicationTracker } from "@/ui/application-tracker/application-tracker";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
@@ -47,6 +49,7 @@ export default async function ApplyPage(props: {
         } as CSSProperties
       }
     >
+      <ApplicationTracker />
       <ApplyHeader group={program.group} />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />
