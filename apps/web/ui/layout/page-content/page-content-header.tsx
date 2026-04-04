@@ -42,8 +42,8 @@ export function PageContentHeader({
       <PageWidthWrapper>
         <div
           className={cn(
-            "flex h-12 items-center justify-between gap-4",
-            hasHeaderContent ? "sm:h-16" : "sm:h-0",
+            "flex flex-col items-start gap-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:py-0",
+            hasHeaderContent ? "sm:h-16" : "h-0 py-0 sm:h-0",
           )}
         >
           <div className="flex min-w-0 items-center gap-4">
@@ -66,7 +66,9 @@ export function PageContentHeader({
             )}
           </div>
           {controls && (
-            <div className="flex items-center gap-2">{controls}</div>
+            <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto sm:flex-nowrap">
+              {controls}
+            </div>
           )}
         </div>
         {headerContent && <div className="pb-3 pt-1">{headerContent}</div>}
