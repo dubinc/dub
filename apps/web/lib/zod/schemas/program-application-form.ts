@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { storedR2ImageUrlSchema } from "./misc";
+import { storedR2ImageUrlSchema } from "./images";
 
 // Common schema for all fields
 export const programApplicationFormFieldCommonSchema = z.object({
