@@ -532,10 +532,11 @@ export async function checkoutSessionCompleted(
         }),
       }),
 
-      ...(link?.partnerId
+      ...(link?.partnerId && linkUpdated?.programId
         ? [
             sendPartnerPostback({
               partnerId: link.partnerId,
+              programId: linkUpdated.programId,
               event: "sale.created",
               data: {
                 ...saleData,
@@ -720,10 +721,11 @@ async function attributeViaPromoCode({
           }),
         }),
 
-        ...(link.partnerId
+        ...(link.partnerId && linkUpdated.programId
           ? [
               sendPartnerPostback({
                 partnerId: link.partnerId,
+                programId: linkUpdated.programId,
                 event: "lead.created",
                 data: {
                   ...leadEvent,
