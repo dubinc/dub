@@ -5,12 +5,12 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ApplicationRequirementsDB } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { updateApplicationSettingsSchema } from "@/lib/zod/schemas/programs";
 import {
   EligibilityCondition,
   EligibilityRequirements,
   generateId,
 } from "@/ui/partners/eligibility-requirements";
-import { Category } from "@dub/prisma/client";
 import { Button, Modal, ToggleGroup, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -24,11 +24,13 @@ import {
 } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import * as z from "zod/v4";
 import { ProgramCategorySelect } from "../partners/program-category-select";
 
-type FormData = {
-  description: string;
-  categories: Category[];
+type FormData = Omit<
+  z.input<typeof updateApplicationSettingsSchema>,
+  "workspaceId" | "eligibilityConditions"
+> & {
   eligibilityConditions: EligibilityCondition[];
 };
 
@@ -52,16 +54,26 @@ function ApplicationSettingsModal({
     register,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<FormData>({
-    defaultValues: {
-      description: program?.description ?? "",
-      categories: program?.categories ?? [],
-      eligibilityConditions: (
+    defaultValues: (() => {
+      const applicationRequirements =
         (program?.applicationRequirements as ApplicationRequirementsDB | null) ??
-        []
-      )
-        .filter((c) => c.key === "country")
-        .map((c) => ({ ...c, key: "country" as const, id: generateId() })),
-    },
+        [];
+      const selectedCondition =
+        applicationRequirements.find(
+          (condition) => condition.key === "identityVerificationStatus",
+        ) ??
+        applicationRequirements.find(
+          (condition) => condition.key === "country",
+        );
+
+      return {
+        description: program?.description ?? "",
+        categories: program?.categories ?? [],
+        eligibilityConditions: selectedCondition
+          ? [{ ...selectedCondition, id: generateId() }]
+          : [],
+      };
+    })(),
   });
 
   const { handleKeyDown } = useEnterSubmit();
@@ -80,16 +92,37 @@ function ApplicationSettingsModal({
   const onSubmit = handleSubmit(async (data) => {
     if (!workspaceId) return;
 
+    const eligibilityConditions = data.eligibilityConditions
+      ?.map((condition) => {
+        const { key, operator, value } = condition;
+        if (!key || !operator || value == null) return null;
+
+        if (key === "identityVerificationStatus") {
+          return {
+            key: "identityVerificationStatus" as const,
+            operator: "is" as const,
+            value: "approved" as const,
+          };
+        }
+
+        if (!Array.isArray(value) || value.length === 0) return null;
+
+        if (key === "country") {
+          return {
+            key,
+            operator,
+            value,
+          };
+        }
+
+        return null;
+      })
+      .filter((condition) => condition !== null);
+
     const result = await executeAsync({
-      workspaceId: workspaceId!,
       ...data,
-      eligibilityConditions: data.eligibilityConditions
-        .filter((c) => c.key && c.operator && c.value && c.value.length > 0)
-        .map(({ id: _id, key, operator, value }) => ({
-          key: key!,
-          operator: operator!,
-          value: value!,
-        })),
+      workspaceId: workspaceId!,
+      eligibilityConditions,
     });
 
     if (result?.serverError || result?.validationErrors) {
@@ -165,7 +198,7 @@ function ApplicationSettingsModal({
                     name="eligibilityConditions"
                     render={({ field }) => (
                       <EligibilityRequirements
-                        value={field.value}
+                        value={field.value ?? []}
                         onChange={field.onChange}
                       />
                     )}
@@ -239,7 +272,7 @@ function ApplicationSettingsModal({
                         name="categories"
                         render={({ field }) => (
                           <ProgramCategorySelect
-                            selected={field.value}
+                            selected={field.value ?? []}
                             onChange={field.onChange}
                             buttonProps={{
                               className: cn(

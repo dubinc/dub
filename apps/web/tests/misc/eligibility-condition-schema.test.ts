@@ -1,48 +1,6 @@
 import { eligibilityConditionSchema } from "@/lib/zod/schemas/programs";
 import { describe, expect, it } from "vitest";
 
-describe("eligibilityConditionSchema — emailDomain normalization", () => {
-  it("prepends @ when missing", () => {
-    const result = eligibilityConditionSchema.parse({
-      key: "emailDomain",
-      operator: "is",
-      value: ["domain.com"],
-    });
-    expect(result.value).toEqual(["@domain.com"]);
-  });
-
-  it("lowercases the domain", () => {
-    const result = eligibilityConditionSchema.parse({
-      key: "emailDomain",
-      operator: "is",
-      value: ["@ACME.COM"],
-    });
-    expect(result.value).toEqual(["@acme.com"]);
-  });
-
-  it("normalizes each entry in the array independently", () => {
-    const result = eligibilityConditionSchema.parse({
-      key: "emailDomain",
-      operator: "is_not",
-      value: ["ACME.COM", " @Sub.Acme.Com ", "@already.com"],
-    });
-    expect(result.value).toEqual([
-      "@acme.com",
-      "@sub.acme.com",
-      "@already.com",
-    ]);
-  });
-
-  it("preserves and lowercases wildcard patterns", () => {
-    const result = eligibilityConditionSchema.parse({
-      key: "emailDomain",
-      operator: "is",
-      value: ["@*.EDU", "*.Acme.Com"],
-    });
-    expect(result.value).toEqual(["@*.edu", "@*.acme.com"]);
-  });
-});
-
 describe("eligibilityConditionSchema — country (no normalization)", () => {
   it("does not alter country codes", () => {
     const result = eligibilityConditionSchema.parse({
@@ -54,23 +12,38 @@ describe("eligibilityConditionSchema — country (no normalization)", () => {
   });
 });
 
+describe("eligibilityConditionSchema — identity verification", () => {
+  it("accepts the identity verification requirement payload", () => {
+    const result = eligibilityConditionSchema.parse({
+      key: "identityVerificationStatus",
+      operator: "is",
+      value: "approved",
+    });
+    expect(result).toEqual({
+      key: "identityVerificationStatus",
+      operator: "is",
+      value: "approved",
+    });
+  });
+});
+
 describe("eligibilityConditionSchema — validation", () => {
-  it("rejects an empty value array", () => {
+  it("rejects an empty country value array", () => {
     expect(() =>
       eligibilityConditionSchema.parse({
-        key: "emailDomain",
+        key: "country",
         operator: "is",
         value: [],
       }),
     ).toThrow();
   });
 
-  it("rejects a whitespace-only domain entry (normalizes to '@')", () => {
+  it("rejects invalid identity verification value", () => {
     expect(() =>
       eligibilityConditionSchema.parse({
-        key: "emailDomain",
+        key: "identityVerificationStatus",
         operator: "is",
-        value: ["   "],
+        value: "submitted",
       }),
     ).toThrow();
   });

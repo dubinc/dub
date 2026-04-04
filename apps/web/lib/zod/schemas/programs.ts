@@ -26,30 +26,22 @@ import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { centsSchemaWithDefault, parseDateSchema } from "./utils";
 
-export const eligibilityConditionSchema = z
-  .object({
-    key: z.enum(["country", "emailDomain"]),
-    operator: z.enum(["is", "is_not"]),
-    value: z.array(z.string()).min(1),
-  })
-  .transform((data) => {
-    if (data.key === "emailDomain") {
-      return {
-        ...data,
-        value: data.value.map((v) => {
-          const t = v.trim().toLowerCase();
-          return t.startsWith("@") ? t : `@${t}`;
-        }),
-      };
-    }
-    return data;
-  })
-  .refine(
-    (data) =>
-      data.key !== "emailDomain" ||
-      data.value.every((v) => v.length > 1 && v !== "@"),
-    { message: "Email domain values must be valid domain patterns" },
-  );
+const countryEligibilityConditionSchema = z.object({
+  key: z.literal("country"),
+  operator: z.enum(["is", "is_not"]),
+  value: z.array(z.string()).min(1),
+});
+
+const identityVerificationStatusEligibilityConditionSchema = z.object({
+  key: z.literal("identityVerificationStatus"),
+  operator: z.literal("is"),
+  value: z.literal("approved"),
+});
+
+export const eligibilityConditionSchema = z.union([
+  countryEligibilityConditionSchema,
+  identityVerificationStatusEligibilityConditionSchema,
+]);
 
 export const applicationRequirementsSchema = z
   .array(eligibilityConditionSchema)
@@ -271,4 +263,11 @@ export const updatePartnerCommentSchema = z.object({
 export const deletePartnerCommentSchema = z.object({
   workspaceId: z.string(),
   commentId: z.string(),
+});
+
+export const updateApplicationSettingsSchema = z.object({
+  workspaceId: z.string(),
+  description: z.string().optional(),
+  categories: z.array(z.enum(Category)).optional(),
+  eligibilityConditions: applicationRequirementsSchema.optional(),
 });

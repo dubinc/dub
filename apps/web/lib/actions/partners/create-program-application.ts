@@ -258,6 +258,7 @@ async function createApplicationAndEnrollment({
       // Always use the partner's country from their profile, if available
       country: partner.country ?? sanitizedData.country,
       email: partner.email,
+      identityVerificationStatus: partner.identityVerificationStatus,
     },
   });
 
