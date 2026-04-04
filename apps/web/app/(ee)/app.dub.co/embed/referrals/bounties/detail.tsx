@@ -23,6 +23,7 @@ import {
   BountyRewardsTable,
 } from "../../../../partners.dub.co/(dashboard)/programs/[programSlug]/(enrolled)/bounties/bounty-card";
 import { EmbedBountyPerformanceSection } from "./performance-section";
+import { useReferralsEmbedData } from "../page-client";
 import { EmbedBountySubmissionDetail } from "./submission-detail";
 import { EmbedBountySubmissionForm } from "./submission-form";
 import { EmbedBountySubmissionsTable } from "./submissions-table";
@@ -54,6 +55,7 @@ export function EmbedBountyDetail({
   onBountyUpdate?: (bounty: PartnerBountyProps) => void;
 }) {
   const [bounty, setBounty] = useState<PartnerBountyProps>(initialBounty);
+  const { themeOptions } = useReferralsEmbedData();
 
   const hasRewards = bounty.submissions.some((s) => s.commission != null);
 
@@ -126,7 +128,10 @@ export function EmbedBountyDetail({
   }
 
   return (
-    <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
+    <div
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
+      className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border"
+    >
       <div className="flex items-center gap-1.5 px-4 py-2">
         <button
           type="button"
@@ -151,7 +156,12 @@ export function EmbedBountyDetail({
             <h2 className="text-content-emphasis text-sm font-semibold">
               Progress
             </h2>
-            <div className="border-border-subtle bg-bg-default flex w-full flex-col gap-4 rounded-xl border px-5 pb-4 pt-6">
+            <div
+              style={{
+                backgroundColor: themeOptions.backgroundColor || "transparent",
+              }}
+              className="border-border-subtle bg-bg-default flex w-full flex-col gap-4 rounded-xl border px-5 pb-4 pt-6"
+            >
               {bounty.type === "performance" ? (
                 <PerformanceBountyProgress
                   bounty={bounty}
