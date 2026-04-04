@@ -236,6 +236,20 @@ const updatedComplianceFieldsChecks = async ({
       to: input.country as string,
       changedAt: new Date(),
     });
+
+    if (
+      partner.identityVerificationStatus === "approved" &&
+      partner.identityVerifiedAt
+    ) {
+      waitUntil(
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,
+          body: {
+            partnerId: partner.id,
+          },
+        }),
+      );
+    }
   }
 
   if (profileTypeChanged) {
