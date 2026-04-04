@@ -112,8 +112,8 @@ SQL >
                     required=True,
                 )
             }}
-            AND created_at >= {{ DateTime(start, '2025-09-03 00:00:00') }}
-            AND created_at < {{ DateTime(end, '2025-10-03 00:00:00') }}
+            AND toDateTime64(timestamp, 3) >= {{ DateTime(start, '2025-09-03 00:00:00') }}
+            AND toDateTime64(timestamp, 3) < {{ DateTime(end, '2025-10-03 00:00:00') }}
             {% if defined(folderId) %} AND folder_id = {{ folderId }}
             {% end %}
             {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}

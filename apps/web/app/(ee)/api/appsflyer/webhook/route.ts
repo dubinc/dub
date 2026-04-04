@@ -4,6 +4,7 @@ import { isLocalDev } from "@/lib/api/environment";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { withAxiom } from "@/lib/axiom/server";
+import { appsflyerAmountToDubCents } from "@/lib/integrations/appsflyer/amount-to-dub-cents";
 import { APPSFLYER_IP_RANGES } from "@/lib/integrations/appsflyer/constants";
 import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
@@ -101,10 +102,11 @@ export const GET = withAxiom(async (req) => {
 
     // Track sale event
     if (partnerEventId === "sale") {
+      const amountInCents = appsflyerAmountToDubCents(queryParams.amount);
       const { eventName, customerExternalId, amount, currency, invoiceId } =
         trackSaleRequestSchema.parse({
           ...queryParams,
-          ...(queryParams.amount && { amount: Number(queryParams.amount) }),
+          ...(amountInCents !== undefined && { amount: amountInCents }),
         });
 
       await trackSale({
