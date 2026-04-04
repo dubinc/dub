@@ -1,7 +1,7 @@
 import { convertToCSV } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getLinksCount } from "@/lib/api/links";
-import { formatLinksForExport } from "@/lib/api/links/format-links-for-export";
+import { formatLinksForExport } from "@/lib/exports/links/format";
 import { getLinksForWorkspace } from "@/lib/api/links/get-links-for-workspace";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";

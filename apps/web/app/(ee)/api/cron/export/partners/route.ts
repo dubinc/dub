@@ -1,10 +1,6 @@
-import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
-import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
-import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
-import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { exportPartners } from "@/lib/exports/partners/export";
 import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/export-ready";
@@ -12,7 +8,6 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
-import { fetchPartnersBatch } from "./fetch-partners-batch";
 
 const payloadSchema = partnersExportQuerySchema.extend({
   programId: z.string(),
@@ -65,24 +60,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch partners in batches and build CSV
-    const allPartners: any[] = [];
-    const partnersFilters = {
-      ...filters,
-      programId,
-    };
-
-    for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
-      allPartners.push(...formatPartnersForExport(partners, columns));
-    }
-
-    const csvData = convertToCSV(allPartners);
-
-    const { downloadUrl } = await createDownloadableExport({
-      fileKey: `exports/partners/${generateRandomString(16)}.csv`,
-      fileName: generateExportFilename("partners"),
-      body: csvData,
-      contentType: "text/csv",
+    const { downloadUrl, rowCount } = await exportPartners({
+      filters: {
+        ...filters,
+        programId,
+      },
+      columns,
     });
 
     await sendEmail({
@@ -99,7 +82,7 @@ export async function POST(req: Request) {
     });
 
     return logAndRespond(
-      `Export (${allPartners.length} partners) generated and email sent to user.`,
+      `Export (${rowCount} partners) generated and email sent to user.`,
     );
   } catch (error) {
     await log({

@@ -3,12 +3,12 @@ import {
   eventsExportColumnNames,
 } from "@/lib/analytics/events-export-helpers";
 import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
-import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
-import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
+import { convertToCSV } from "@/lib/exports/convert-to-csv";
+import { createDownloadableExport } from "@/lib/exports/create-downloadable-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
-import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
+import { generateExportFilename } from "@/lib/exports/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING } from "@/lib/constants/partner-profile";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";

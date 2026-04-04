@@ -1,4 +1,4 @@
-import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
+import { convertToCSV } from "@/lib/exports/convert-to-csv";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
