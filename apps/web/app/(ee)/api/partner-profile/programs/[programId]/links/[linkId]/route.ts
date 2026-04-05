@@ -153,55 +153,67 @@ export const PATCH = withPartnerProfile(
 
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));
   },
+  {
+    requiredPermission: "links.write",
+  },
 );
 
 // DELETE /api/partner-profile/[programId]/links/[linkId] - delete a link for a partner
-export const DELETE = withPartnerProfile(async ({ partner, params }) => {
-  const { programId, linkId } = params;
+export const DELETE = withPartnerProfile(
+  async ({ partner, params }) => {
+    const { programId, linkId } = params;
 
-  const { links, status } = await getProgramEnrollmentOrThrow({
-    partnerId: partner.id,
-    programId,
-    include: {
-      links: true,
-    },
-  });
-
-  if (["banned", "deactivated"].includes(status)) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "You are banned from this program.",
+    const { links, status } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId,
+      include: {
+        links: true,
+      },
     });
-  }
 
-  const link = links.find((link) => link.id === linkId);
+    if (["banned", "deactivated"].includes(status)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are banned from this program.",
+      });
+    }
 
-  if (!link) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Link not found.",
-    });
-  }
+    const link = links.find((link) => link.id === linkId);
 
-  // Check if this is a default link
-  if (link.partnerGroupDefaultLinkId) {
-    throw new DubApiError({
-      code: "forbidden",
-      message: "You cannot delete your default link.",
-    });
-  }
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Link not found.",
+      });
+    }
 
-  // Check if link has any clicks, leads, or sales
-  if (link.clicks > 0 || link.leads > 0 || toCentsNumber(link.saleAmount) > 0) {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        "You can only delete links with 0 clicks, 0 leads, and $0 in sales.",
-    });
-  }
+    // Check if this is a default link
+    if (link.partnerGroupDefaultLinkId) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You cannot delete your default link.",
+      });
+    }
 
-  // Delete the link
-  await deleteLink(link.id);
+    // Check if link has any clicks, leads, or sales
+    if (
+      link.clicks > 0 ||
+      link.leads > 0 ||
+      toCentsNumber(link.saleAmount) > 0
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "You can only delete links with 0 clicks, 0 leads, and $0 in sales.",
+      });
+    }
 
-  return NextResponse.json({ id: link.id });
-});
+    // Delete the link
+    await deleteLink(link.id);
+
+    return NextResponse.json({ id: link.id });
+  },
+  {
+    requiredPermission: "links.write",
+  },
+);

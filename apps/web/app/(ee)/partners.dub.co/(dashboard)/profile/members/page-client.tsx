@@ -29,14 +29,16 @@ import {
   User,
   UserCrown,
 } from "@dub/ui/icons";
-import { cn, fetcher, timeAgo } from "@dub/utils";
+import { capitalize, cn, fetcher, timeAgo } from "@dub/utils";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { UserMinus, UserPlus } from "lucide-react";
+import { EyeClosed, UserMinus, UserPlus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
+import { PartnerMemberProgramsCell } from "./partner-member-programs-cell";
+import { PartnerMemberProgramsSheet } from "./partner-member-programs-sheet";
 
 export function ProfileMembersPageClient() {
   const { partner } = usePartnerProfile();
@@ -79,6 +81,10 @@ export function ProfileMembersPageClient() {
   const { InvitePartnerUserModal, setShowInvitePartnerUserModal } =
     useInvitePartnerUserModal();
 
+  const [selectedUserForPrograms, setSelectedUserForPrograms] =
+    useState<PartnerUserProps | null>(null);
+  const [showProgramsSheet, setShowProgramsSheet] = useState(false);
+
   // Combined filter configuration
   const filters = useMemo(
     () => [
@@ -89,6 +95,7 @@ export function ProfileMembersPageClient() {
         options: [
           { value: "owner", label: "Owner", icon: UserCrown },
           { value: "member", label: "Member", icon: User },
+          { value: "viewer", label: "Viewer", icon: EyeClosed },
         ],
       },
       {
@@ -136,20 +143,20 @@ export function ProfileMembersPageClient() {
         id: "name",
         header: "Name",
         accessorFn: (row) => row.name || row.email,
-        minSize: 360,
-        size: 870,
-        maxSize: 900,
+        minSize: 250,
         cell: ({ row }) => {
           const user = row.original;
+          const isCurrentUser = session?.user?.email === user.email;
 
           return (
-            <div className="flex items-center space-x-3">
+            <div className="flex min-w-0 items-center space-x-3">
               <UserAvatar user={user} />
-              <div className="flex flex-col">
-                <h3 className="text-sm font-medium">
+              <div className="flex min-w-0 flex-col">
+                <h3 className="truncate text-sm font-medium text-neutral-900">
                   {user.name || user.email}
+                  {isCurrentUser ? <span> (You)</span> : null}
                 </h3>
-                <p className="text-xs text-neutral-500">
+                <p className="truncate text-xs text-neutral-500">
                   {status === "invited"
                     ? `Invited ${timeAgo(user.createdAt)}`
                     : user.email}
@@ -159,13 +166,30 @@ export function ProfileMembersPageClient() {
           );
         },
       },
+
+      {
+        id: "programs",
+        header: "Programs",
+        minSize: 80,
+        maxSize: 80,
+        meta: { disableTruncate: true },
+        cell: ({ row }) => (
+          <PartnerMemberProgramsCell
+            programs={row.original.programs}
+            onClick={() => {
+              setSelectedUserForPrograms(row.original);
+              setShowProgramsSheet(true);
+            }}
+          />
+        ),
+      },
       {
         id: "role",
         header: "Role",
         accessorFn: (row) => row.role,
-        minSize: 120,
-        size: 150,
-        maxSize: 200,
+        minSize: 50,
+        maxSize: 50,
+        meta: { disableTruncate: true },
         cell: ({ row }) => (
           <RoleCell
             user={row.original}
@@ -224,6 +248,14 @@ export function ProfileMembersPageClient() {
   return (
     <>
       <InvitePartnerUserModal />
+      {selectedUserForPrograms && (
+        <PartnerMemberProgramsSheet
+          user={selectedUserForPrograms}
+          isCurrentUserOwner={isCurrentUserOwner}
+          showSheet={showProgramsSheet}
+          setShowSheet={setShowProgramsSheet}
+        />
+      )}
       <PageContent
         title="Members"
         titleInfo={{
@@ -342,8 +374,11 @@ function RoleCell({
               : undefined
         }
       >
-        <option value="owner">Owner</option>
-        <option value="member">Member</option>
+        {Object.values(PartnerRole).map((role) => (
+          <option key={role} value={role}>
+            {capitalize(role)}
+          </option>
+        ))}
       </select>
     </>
   );
@@ -378,6 +413,7 @@ function RowMenuButton({
   return (
     <>
       <RemovePartnerUserModal />
+
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}

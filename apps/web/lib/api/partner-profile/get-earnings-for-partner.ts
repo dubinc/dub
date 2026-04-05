@@ -13,6 +13,7 @@ interface GetEarningsForPartnerParams
   programId: string;
   partnerId: string;
   customerDataSharingEnabledAt: Date | null;
+  linkIds?: string[];
 }
 
 export async function getEarningsForPartner(
@@ -35,6 +36,7 @@ export async function getEarningsForPartner(
     programId,
     partnerId,
     customerDataSharingEnabledAt,
+    linkIds,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -54,6 +56,7 @@ export async function getEarningsForPartner(
       status,
       type,
       linkId,
+      ...(linkIds ? { linkId: { in: linkIds } } : {}),
       customerId,
       payoutId,
       createdAt: {

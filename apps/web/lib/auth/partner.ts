@@ -32,7 +32,10 @@ interface WithPartnerProfileHandler {
     headers?: Headers;
     session: Session;
     partner: Omit<PartnerProps, "role" | "userId">;
-    partnerUser: Pick<PartnerUser, "userId" | "role">;
+    partnerUser: Pick<PartnerUser, "id" | "userId" | "role"> & {
+      assignedProgramIds: string[];
+      assignedLinkIds: string[];
+    };
   }): Promise<Response>;
 }
 
@@ -224,6 +227,16 @@ export const withPartnerProfile = (
                 platforms: true,
               },
             },
+            assignedPrograms: {
+              select: {
+                programId: true,
+              },
+            },
+            assignedLinks: {
+              select: {
+                linkId: true,
+              },
+            },
           },
         });
 
@@ -254,6 +267,26 @@ export const withPartnerProfile = (
           }
         }
 
+        const assignedProgramIds = partnerUser.assignedPrograms.map(
+          ({ programId }) => programId,
+        );
+        const assignedLinkIds = partnerUser.assignedLinks.map(
+          ({ linkId }) => linkId,
+        );
+
+        // If the user is scoped to specific programs and the route has a programId param,
+        // verify they have access to this program
+        if (
+          params.programId &&
+          assignedProgramIds.length > 0 &&
+          !assignedProgramIds.includes(params.programId)
+        ) {
+          throw new DubApiError({
+            code: "not_found",
+            message: "Program not found.",
+          });
+        }
+
         const {
           industryInterests,
           preferredEarningStructures,
@@ -281,8 +314,11 @@ export const withPartnerProfile = (
             platforms: partnerPlatformSchema.array().parse(platforms),
           } as Omit<PartnerProps, "role" | "userId">,
           partnerUser: {
+            id: partnerUser.id,
             userId: partnerUser.userId,
             role: partnerUser.role,
+            assignedProgramIds,
+            assignedLinkIds,
           },
           headers: responseHeaders,
         });

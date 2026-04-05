@@ -20,7 +20,12 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/:programId/customers – Get all customers for a partner program
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({
+    partner,
+    params,
+    searchParams,
+    partnerUser: { assignedLinkIds },
+  }) => {
     const { programId } = params;
     const {
       search,
@@ -60,6 +65,7 @@ export const GET = withPartnerProfile(
         projectId: program.workspaceId,
         ...(country && { country }),
         ...(linkId && { linkId }),
+        ...(assignedLinkIds ? { linkId: { in: assignedLinkIds } } : {}),
         // Only allow search if customer data sharing is enabled
         ...(search && customerDataSharingEnabledAt
           ? search.includes("@")

@@ -3,8 +3,13 @@ import { getPartnerPayoutMethods } from "@/lib/payouts/get-partner-payout-method
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/payouts/settings
-export const GET = withPartnerProfile(async ({ partner }) => {
-  const payoutMethods = await getPartnerPayoutMethods(partner);
+export const GET = withPartnerProfile(
+  async ({ partner }) => {
+    const payoutMethods = await getPartnerPayoutMethods(partner);
 
-  return NextResponse.json(payoutMethods);
-});
+    return NextResponse.json(payoutMethods);
+  },
+  {
+    requiredPermission: "payout_settings.read",
+  },
+);

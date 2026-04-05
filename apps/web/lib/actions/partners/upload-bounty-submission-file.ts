@@ -1,6 +1,7 @@
 "use server";
 
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getBountySubmissionUploadUrl } from "@/lib/bounty/api/get-bounty-submission-upload-url";
 import * as z from "zod/v4";
 import { authPartnerActionClient } from "../safe-action";
@@ -16,7 +17,12 @@ const schema = z.object({
 export const uploadBountySubmissionFileAction = authPartnerActionClient
   .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "bounties.submit",
+    });
     const { programId, bountyId, fileName, contentType, contentLength } =
       parsedInput;
 

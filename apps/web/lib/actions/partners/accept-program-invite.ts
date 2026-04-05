@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -14,8 +15,13 @@ const acceptProgramInviteSchema = z.object({
 export const acceptProgramInviteAction = authPartnerActionClient
   .inputSchema(acceptProgramInviteSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
     const { programId } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "program_invites.accept",
+    });
 
     const enrollment = await prisma.programEnrollment.update({
       where: {

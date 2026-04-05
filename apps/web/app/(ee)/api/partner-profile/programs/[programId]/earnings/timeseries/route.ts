@@ -5,13 +5,19 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/earnings/timeseries - get timeseries chart for a partner's earnings
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({
+    partner,
+    params,
+    searchParams,
+    partnerUser: { assignedLinkIds },
+  }) => {
     const filters = getPartnerEarningsTimeseriesSchema.parse(searchParams);
 
     const timeseries = await getPartnerEarningsTimeseries({
       partnerId: partner.id,
       programId: params.programId,
       filters,
+      linkIds: assignedLinkIds,
     });
 
     return NextResponse.json(timeseries);

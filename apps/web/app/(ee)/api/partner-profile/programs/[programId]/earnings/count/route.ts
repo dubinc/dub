@@ -10,7 +10,12 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({
+    partner,
+    params,
+    searchParams,
+    partnerUser: { assignedLinkIds },
+  }) => {
     const { program, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
@@ -50,6 +55,7 @@ export const GET = withPartnerProfile(
         gte: startDate,
         lte: endDate,
       },
+      ...(assignedLinkIds ? { linkId: { in: assignedLinkIds } } : {}),
     };
 
     if (groupBy) {

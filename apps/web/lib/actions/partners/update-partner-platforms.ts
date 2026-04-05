@@ -1,6 +1,7 @@
 "use server";
 
 import { upsertPartnerPlatform } from "@/lib/api/partner-profile/upsert-partner-platform";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { sanitizeSocialHandle, sanitizeWebsite } from "@/lib/social-utils";
 import { parseUrlSchemaAllowEmpty } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
@@ -59,7 +60,12 @@ const updatePartnerPlatformsSchema = z.object({
 export const updatePartnerPlatformsAction = authPartnerActionClient
   .inputSchema(updatePartnerPlatformsSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "partner_profile.update",
+    });
 
     const partnerPlatform = await prisma.partnerPlatform.findMany({
       where: {

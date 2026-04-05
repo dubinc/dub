@@ -28,6 +28,7 @@ import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
+import { ProgramSchema } from "./programs";
 import { referralFormDataSchema } from "./referral-form";
 import { centsSchema } from "./utils";
 
@@ -187,6 +188,34 @@ export const getPartnerUsersQuerySchema = z.object({
   role: z.enum(PartnerRole).optional(),
 });
 
+export const assignProgramInputSchema = z.object({
+  programIds: z.array(z.string()),
+});
+
+export const assignedProgramOutputSchema = z.object({
+  program: ProgramSchema.pick({
+    id: true,
+    name: true,
+    slug: true,
+    logo: true,
+  }),
+  createdAt: z.coerce.date(),
+});
+
+export const assignLinkInputSchema = z.object({
+  linkIds: z.array(z.string()),
+});
+
+export const assignedLinkOutputSchema = z.object({
+  link: LinkSchema.pick({
+    id: true,
+    domain: true,
+    key: true,
+    shortLink: true,
+  }),
+  createdAt: z.coerce.date(),
+});
+
 export const partnerUserSchema = z.object({
   id: z.string().nullable(),
   name: z.string().nullable(),
@@ -194,6 +223,14 @@ export const partnerUserSchema = z.object({
   role: z.enum(PartnerRole),
   image: z.string().nullish(),
   createdAt: z.date(),
+  programs: z.array(
+    ProgramSchema.pick({
+      id: true,
+      name: true,
+      slug: true,
+      logo: true,
+    }),
+  ),
 });
 
 export const partnerProfileChangeHistoryLogSchema = z.array(

@@ -151,4 +151,7 @@ export const POST = withPartnerProfile(
       status: 201,
     });
   },
+  {
+    requiredPermission: "links.write",
+  },
 );

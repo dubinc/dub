@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
 import { ratelimit } from "@/lib/upstash";
@@ -19,8 +20,13 @@ const schema = z.object({
 export const verifySocialAccountByCodeAction = authPartnerActionClient
   .inputSchema(schema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
     const { platform, handle, postUrl } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "partner_profile.update",
+    });
 
     if (!["youtube", "instagram", "linkedin"].includes(platform)) {
       throw new Error("Only YouTube, Instagram, and LinkedIn are supported.");
