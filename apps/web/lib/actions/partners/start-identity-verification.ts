@@ -1,6 +1,7 @@
 "use server";
 
 import { shouldApplyRateLimit } from "@/lib/api/environment";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { ratelimit } from "@/lib/upstash/ratelimit";
 import { createVeriffSession } from "@/lib/veriff/create-veriff-session";
 import {
@@ -14,7 +15,12 @@ import { authPartnerActionClient } from "../safe-action";
 
 export const startIdentityVerificationAction = authPartnerActionClient.action(
   async ({ ctx }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "partner_profile.update",
+    });
 
     if (partner.identityVerificationStatus) {
       switch (partner.identityVerificationStatus) {

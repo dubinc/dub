@@ -21,7 +21,7 @@ export async function createVeriffSession({
 
   const input = veriffCreateSessionInputSchema.parse({
     verification: {
-      vendorData: partner.id,
+      vendorData: partner.name,
       person: {
         firstName,
         lastName,

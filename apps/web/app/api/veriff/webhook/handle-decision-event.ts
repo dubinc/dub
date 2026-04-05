@@ -9,7 +9,6 @@ import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verif
 import { prisma } from "@dub/prisma";
 import { IdentityVerificationStatus, Partner } from "@dub/prisma/client";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
-import { createHash } from "crypto";
 import * as z from "zod/v4";
 
 type VeriffDecisionEvent = z.infer<typeof veriffDecisionEventSchema>;
@@ -57,7 +56,6 @@ export const handleDecisionEvent = async ({
   }
 
   // undefined = don't update, null = clear the field
-  let veriffIdentityHash: string | null | undefined = undefined;
   let identityVerifiedAt: Date | null | undefined = undefined;
   let veriffSessionId: string | null | undefined = undefined;
   let { sessionUrl, attemptCount, declineReason, sessionExpiresAt } =
@@ -65,36 +63,19 @@ export const handleDecisionEvent = async ({
 
   // If the verification was approved, compute the identity hash and check for duplicates and country mismatch
   if (effectiveStatus === "approved") {
-    const identityHash = computeIdentityHash(verification);
-
-    const isDuplicate = await checkDuplicateIdentity({
-      partner,
-      identityHash,
-    });
-
     const isCountryMismatch = checkCountryMismatch({
       partner,
       verification,
     });
 
-    const checkPassed = !isDuplicate && !isCountryMismatch;
-
-    if (checkPassed) {
+    if (isCountryMismatch) {
+      effectiveStatus = "declined";
+      effectiveReason = `Your document country (${verification.document?.country}) does not match your account country (${partner.country})`;
+    } else {
       declineReason = null;
       sessionExpiresAt = null;
       sessionUrl = null;
-      veriffIdentityHash = identityHash;
       identityVerifiedAt = decisionTime ? new Date(decisionTime) : new Date();
-    } else {
-      effectiveStatus = "declined";
-
-      if (isDuplicate) {
-        effectiveReason =
-          "This identity has already been verified on another account";
-      } else if (isCountryMismatch) {
-        effectiveReason =
-          "Your document country does not match your account country";
-      }
     }
   }
 
@@ -131,7 +112,6 @@ export const handleDecisionEvent = async ({
     },
     data: {
       identityVerificationStatus: veriffStatusMap[effectiveStatus],
-      veriffIdentityHash,
       identityVerifiedAt,
       veriffSessionId,
       veriffMetadata,
@@ -152,32 +132,6 @@ export const handleDecisionEvent = async ({
   return logAndRespond("[Veriff Webhook] Decision event handled successfully.");
 };
 
-async function checkDuplicateIdentity({
-  partner,
-  identityHash,
-}: {
-  partner: Pick<Partner, "id">;
-  identityHash: string | null;
-}): Promise<boolean> {
-  if (!identityHash) {
-    return false;
-  }
-
-  const duplicatePartner = await prisma.partner.findFirst({
-    where: {
-      veriffIdentityHash: identityHash,
-      id: {
-        not: partner.id,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return !!duplicatePartner;
-}
-
 function checkCountryMismatch({
   partner,
   verification,
@@ -195,37 +149,6 @@ function checkCountryMismatch({
   }
 
   return partner.country.toUpperCase() !== veriffCountry;
-}
-
-function computeIdentityHash(
-  verification: VeriffDecisionEvent["verification"],
-) {
-  const { person, document } = verification;
-
-  // Prefer document number (passport/ID number) — strongest unique signal
-  if (document?.number) {
-    const input = [
-      "doc",
-      document.number.toLowerCase().trim(),
-      document.country?.toUpperCase().trim() ?? "",
-    ].join("|");
-
-    return createHash("sha256").update(input).digest("hex");
-  }
-
-  // Fall back to name + date of birth
-  if (person?.firstName && person?.lastName && person?.dateOfBirth) {
-    const input = [
-      "person",
-      person.firstName.toLowerCase().trim(),
-      person.lastName.toLowerCase().trim(),
-      person.dateOfBirth.trim(),
-    ].join("|");
-
-    return createHash("sha256").update(input).digest("hex");
-  }
-
-  return null;
 }
 
 async function sendEmailNotification({

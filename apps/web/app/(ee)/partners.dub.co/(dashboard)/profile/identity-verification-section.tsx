@@ -2,6 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { startIdentityVerificationAction } from "@/lib/actions/partners/start-identity-verification";
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
 import { MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS } from "@/lib/zod/schemas/partners";
@@ -62,6 +63,11 @@ export function IdentityVerificationSection({
     identityVerificationDeclineReason,
     identityVerificationAttemptCount,
   } = partner;
+
+  const cannotUpdateProfile = !hasPermission(
+    partner.role,
+    "partner_profile.update",
+  );
 
   const isPendingReview =
     identityVerificationStatus === "submitted" ||
@@ -169,11 +175,13 @@ export function IdentityVerificationSection({
               <Button
                 text={buttonText}
                 variant="secondary"
-                disabled={isMaxAttemptsReached}
+                disabled={isMaxAttemptsReached || cannotUpdateProfile}
                 disabledTooltip={
-                  isMaxAttemptsReached
-                    ? "You have reached the maximum number of verification attempts. Please contact support if you need help."
-                    : undefined
+                  cannotUpdateProfile
+                    ? "You don't have permission to update this field"
+                    : isMaxAttemptsReached
+                      ? "You have reached the maximum number of verification attempts. Please contact support if you need help."
+                      : undefined
                 }
                 onClick={() => executeAsync()}
                 loading={isPending}
