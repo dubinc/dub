@@ -123,6 +123,7 @@ export function IdentityVerificationSection({
 
   return (
     <div
+      id="identity-verification"
       className={cn(
         failedReason && "overflow-hidden rounded-lg bg-amber-100 p-1",
       )}

@@ -33,7 +33,9 @@ export default function IdentityVerificationAnnouncement({
           }
         `}</style>
       </Head>
-      <Preview>Verify your identity and stand out across programs</Preview>
+      <Preview>
+        Build trust with programs and improve your approval chances
+      </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="email-container mx-auto my-10 max-w-[600px] px-10 py-5">
@@ -51,17 +53,17 @@ export default function IdentityVerificationAnnouncement({
             </Section>
 
             <Heading className="mx-auto mb-2 mt-10 max-w-[436px] text-center text-2xl font-semibold leading-8 tracking-tight text-neutral-800">
-              Verify your identity and stand out across programs
+              Verify your identity on Dub
             </Heading>
 
             <Text className="mx-auto mb-10 mt-0 max-w-[436px] text-center text-base leading-6 tracking-tight text-neutral-600">
-              Programs trust verified partners. It's the fastest way to stand
-              out and start earning.
+              We need you to verify your identity to keep your account secure
+              and compliant.
             </Text>
 
             <Section className="mb-10 text-center">
               <Img
-                src="https://assets.dub.co/email-assets/partner-verify-identity-hero.png"
+                src="https://assets.dub.co/email-assets/partner-verify-identity-hero.jpg"
                 width="196"
                 height="153"
                 alt="Identity verification"
@@ -72,27 +74,22 @@ export default function IdentityVerificationAnnouncement({
               />
             </Section>
 
-            <Heading className="mx-auto mb-2 mt-0 max-w-[420px] p-0 text-center text-lg font-semibold leading-7 tracking-tight text-neutral-800">
-              Stand out to programs
-            </Heading>
-
-            <Text className="mx-auto mb-8 mt-0 max-w-[420px] text-center text-sm leading-5 tracking-tight text-neutral-600">
-              Programs are looking for quality. Verified profiles rise to the
-              top, get approved faster, and unlock more opportunities across the
-              network.
+            <Text className="text mx-auto mb-8 mt-0 max-w-[420px] text-center text-base text-neutral-600">
+              Verified profiles also build trust with programs and can improve
+              your approval chances.
             </Text>
 
             <Section className="mb-10 text-center">
               <Link
                 className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
-                href="https://partners.dub.co/profile"
+                href="https://ship.dub.co/verify"
               >
-                Verify your identity
+                Start verification
               </Link>
             </Section>
 
             <Section className="mx-auto max-w-[400px] text-center">
-              <Footer email={email} marketing unsubscribeUrl={unsubscribeUrl} />
+              <Footer email={email} />
             </Section>
           </Container>
         </Body>
