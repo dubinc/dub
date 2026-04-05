@@ -1,14 +1,22 @@
 "use client";
 
+import { shouldEnableStripeCheckoutTrial } from "@/lib/billing/trial-checkout-experiment";
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
 import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, ButtonProps } from "@dub/ui";
-import { APP_DOMAIN, capitalize, SELF_SERVE_PAID_PLANS } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  capitalize,
+  isWorkspaceBillingTrialActive,
+  PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
+  SELF_SERVE_PAID_PLANS,
+} from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
+import { useStartPaidPlanModal } from "../modals/start-paid-plan-modal";
 
 export function UpgradePlanButton({
   plan,
@@ -25,10 +33,19 @@ export function UpgradePlanButton({
   const searchParams = useSearchParams();
   const {
     slug: workspaceSlug,
+    id: workspaceId,
     plan: currentPlan,
     stripeId,
     defaultProgramId,
+    trialEndsAt,
+    flags,
   } = useWorkspace();
+
+  const isTrialActive = isWorkspaceBillingTrialActive(trialEndsAt);
+
+  const checkoutTrialEnabled = Boolean(
+    workspaceId && shouldEnableStripeCheckoutTrial(flags, workspaceId),
+  );
 
   const plausible = usePlausible();
 
@@ -68,7 +85,16 @@ export function UpgradePlanButton({
       }),
     })
       .then(async (res) => {
-        plausible("Opened Checkout");
+        if (!res.ok) {
+          const body = await res.json().catch(() => null);
+          throw new Error(body?.error?.message ?? "Failed to start checkout.");
+        }
+
+        plausible(
+          checkoutTrialEnabled
+            ? "Opened Checkout Trial"
+            : "Opened Checkout No Trial",
+        );
         if (!stripeId || currentPlan === "free") {
           const data = await res.json();
           const { id: sessionId } = data;
@@ -92,7 +118,14 @@ export function UpgradePlanButton({
       onConfirm: performUpgrade,
     });
 
+  const { StartPaidPlanModal, setShowStartPaidPlanModal } =
+    useStartPaidPlanModal();
+
   const handleClick = () => {
+    if (isCurrentPlan && isTrialActive) {
+      setShowStartPaidPlanModal(true);
+      return;
+    }
     if (losesPartnerAccess) {
       setShowPlanChangeConfirmationModal(true);
     } else {
@@ -103,16 +136,21 @@ export function UpgradePlanButton({
   return (
     <>
       <PlanChangeConfirmationModal />
+      <StartPaidPlanModal />
       <Button
         text={
           isCurrentPlan
-            ? "Your current plan"
+            ? isTrialActive
+              ? "Activate plan"
+              : "Your current plan"
             : currentPlan === "free"
-              ? `Get started with ${selectedPlan.name} ${capitalize(period)}`
+              ? checkoutTrialEnabled
+                ? `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial`
+                : `Get started with ${selectedPlan.name} ${capitalize(period)}`
               : `Switch to ${selectedPlan.name} ${capitalize(period)}`
         }
         loading={clicked}
-        disabled={!workspaceSlug || isCurrentPlan}
+        disabled={!workspaceSlug || (isCurrentPlan && !isTrialActive)}
         onClick={handleClick}
         {...rest}
       />

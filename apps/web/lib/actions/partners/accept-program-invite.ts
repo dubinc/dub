@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -17,21 +18,40 @@ export const acceptProgramInviteAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId } = parsedInput;
 
-    const enrollment = await prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
+    const program = await prisma.program.findUniqueOrThrow({
+      where: { id: programId },
+      select: {
+        workspaceId: true,
+        workspace: {
+          select: { trialEndsAt: true },
         },
-        status: "invited",
       },
-      data: {
-        status: "approved",
-        createdAt: new Date(),
-      },
-      include: {
-        links: true,
-      },
+    });
+
+    const enrollment = await prisma.$transaction(async (tx) => {
+      await throwIfTrialProgramEnrollmentLimitExceeded({
+        programId,
+        additionalApproved: 1,
+        trialEndsAt: program.workspace.trialEndsAt,
+        tx,
+      });
+
+      return tx.programEnrollment.update({
+        where: {
+          partnerId_programId: {
+            partnerId: partner.id,
+            programId,
+          },
+          status: "invited",
+        },
+        data: {
+          status: "approved",
+          createdAt: new Date(),
+        },
+        include: {
+          links: true,
+        },
+      });
     });
 
     waitUntil(

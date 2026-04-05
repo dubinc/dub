@@ -3,6 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -12,6 +13,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { useTrialLimitActivateModal } from "./trial-limit-activate-modal";
 
 interface ApprovePartnerApplicationModalProps {
   showApprovePartnerApplicationModal: boolean;
@@ -33,7 +35,12 @@ export function ApprovePartnerApplicationModal({
   onConfirm,
   confirmShortcutOptions,
 }: ApprovePartnerApplicationModalProps) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, trialEndsAt } = useWorkspace();
+
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const { executeAsync: approvePartnerApplication, isPending } = useAction(
     approvePartnerAction,
@@ -46,7 +53,15 @@ export function ApprovePartnerApplicationModal({
         await onConfirm?.();
       },
       onError: ({ error }) => {
-        toast.error(error.serverError || "Failed to approve partner.");
+        const msg = String(error.serverError ?? "");
+        if (
+          trialActive &&
+          (msg.includes("free trial") || msg.includes("enrolled partners"))
+        ) {
+          openTrialLimitModal("partnerEnrollments");
+        } else {
+          toast.error(msg || "Failed to approve partner.");
+        }
       },
     },
   );
@@ -71,54 +86,57 @@ export function ApprovePartnerApplicationModal({
   });
 
   return (
-    <Modal
-      showModal={showApprovePartnerApplicationModal}
-      setShowModal={setShowApprovePartnerApplicationModal}
-      onClose={handleClose}
-    >
-      <div className="border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">
-          Approve application
-        </h3>
-      </div>
+    <>
+      <Modal
+        showModal={showApprovePartnerApplicationModal}
+        setShowModal={setShowApprovePartnerApplicationModal}
+        onClose={handleClose}
+      >
+        <div className="border-b border-neutral-200 p-4 sm:p-6">
+          <h3 className="text-lg font-medium leading-none">
+            Approve application
+          </h3>
+        </div>
 
-      {partner && (
-        <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
-          <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
-            <div className="flex items-center gap-4">
-              <PartnerAvatar partner={partner} className="size-10 bg-white" />
-              <div className="flex min-w-0 flex-col">
-                <h4 className="truncate text-sm font-medium text-neutral-900">
-                  {partner.name}
-                </h4>
-                <p className="truncate text-xs text-neutral-500">
-                  {partner.email}
-                </p>
+        {partner && (
+          <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
+            <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
+              <div className="flex items-center gap-4">
+                <PartnerAvatar partner={partner} className="size-10 bg-white" />
+                <div className="flex min-w-0 flex-col">
+                  <h4 className="truncate text-sm font-medium text-neutral-900">
+                    {partner.name}
+                  </h4>
+                  <p className="truncate text-xs text-neutral-500">
+                    {partner.email}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4">
-        <Button
-          variant="secondary"
-          text="Cancel"
-          className="h-8 w-fit px-3"
-          onClick={handleClose}
-          disabled={isPending}
-        />
-        <Button
-          className="h-8 w-fit px-3"
-          text="Approve"
-          variant="primary"
-          loading={isPending}
-          autoFocus
-          shortcut="A"
-          onClick={handleConfirm}
-        />
-      </div>
-    </Modal>
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 p-4">
+          <Button
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+            onClick={handleClose}
+            disabled={isPending}
+          />
+          <Button
+            className="h-8 w-fit px-3"
+            text="Approve"
+            variant="primary"
+            loading={isPending}
+            autoFocus
+            shortcut="A"
+            onClick={handleConfirm}
+          />
+        </div>
+      </Modal>
+      <TrialLimitActivateModal />
+    </>
   );
 }
 

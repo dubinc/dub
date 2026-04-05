@@ -1,5 +1,7 @@
 "use client";
 
+import { shouldEnableStripeCheckoutTrial } from "@/lib/billing/trial-checkout-experiment";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { Button, Crown, DubProductIcon } from "@dub/ui";
 import Image from "next/image";
@@ -26,6 +28,14 @@ const products = {
 };
 
 export function ProductSelector() {
+  const { id: workspaceId, flags, loading: workspaceLoading } = useWorkspace();
+
+  const checkoutTrialEnabled = Boolean(
+    workspaceId && shouldEnableStripeCheckoutTrial(flags, workspaceId),
+  );
+
+  const workspaceReady = !workspaceLoading && Boolean(workspaceId);
+
   return (
     <div className="animate-fade-in mx-auto grid w-full max-w-[312px] gap-4 sm:max-w-[600px] sm:grid-cols-2">
       {Object.entries(products).map(([key, product]) => (
@@ -48,7 +58,9 @@ export function ProductSelector() {
           }
           description={product.description}
           cta={`Continue with ${product.title}`}
-          paidPlanRequired={product.paidPlanRequired}
+          paidPlanRequired={
+            workspaceReady && product.paidPlanRequired && !checkoutTrialEnabled
+          }
         />
       ))}
     </div>
@@ -79,6 +91,7 @@ function ProductOption({
           Paid plan required
         </div>
       )}
+
       <div className="relative size-36">
         <Image
           src={icon}

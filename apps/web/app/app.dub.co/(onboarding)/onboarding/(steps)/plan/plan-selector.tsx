@@ -1,5 +1,7 @@
 "use client";
 
+import { shouldEnableStripeCheckoutTrial } from "@/lib/billing/trial-checkout-experiment";
+import useWorkspace from "@/lib/swr/use-workspace";
 import X from "@/ui/shared/icons/x";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import {
@@ -17,6 +19,7 @@ import {
   BUSINESS_PLAN,
   cn,
   ENTERPRISE_PLAN,
+  PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
   PRICING_PLAN_MAIN_FEATURES,
   PRICING_PLAN_TAGLINES,
   PRO_PLAN,
@@ -27,6 +30,12 @@ import { CSSProperties, isValidElement, ReactNode, useState } from "react";
 import { OnboardingProduct } from "../../use-onboarding-product";
 
 export function PlanSelector({ product }: { product: OnboardingProduct }) {
+  const { id: workspaceId, flags } = useWorkspace();
+
+  const checkoutTrialEnabled = Boolean(
+    workspaceId && shouldEnableStripeCheckoutTrial(flags, workspaceId),
+  );
+
   const plans =
     product === "partners"
       ? [BUSINESS_PLAN, ADVANCED_PLAN, ENTERPRISE_PLAN]
@@ -108,6 +117,13 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                       </>
                     )}
                   </div>
+                  {product === "partners" && plan.name !== "Enterprise" && (
+                    <p className="mt-1 text-xs text-neutral-500">
+                      {checkoutTrialEnabled
+                        ? `${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · card required`
+                        : "Card required"}
+                    </p>
+                  )}
 
                   {plan.name === "Enterprise" ? (
                     <div className="mt-4 flex items-center gap-1.5 text-neutral-400">
@@ -172,7 +188,6 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                     <UpgradePlanButton
                       plan={plan.name.toLowerCase()}
                       period={period}
-                      text="Get started"
                       className="h-10 rounded-lg shadow-sm"
                     />
                   )}

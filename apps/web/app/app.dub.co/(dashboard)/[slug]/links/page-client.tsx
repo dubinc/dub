@@ -24,6 +24,7 @@ import { useAddEditTagModal } from "@/ui/modals/add-edit-tag-modal";
 import { useDotLinkOfferModal } from "@/ui/modals/dot-link-offer-modal";
 import { useExportLinksModal } from "@/ui/modals/export-links-modal";
 import { useLinkBuilder } from "@/ui/modals/link-builder";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -36,6 +37,10 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { Download, Globe, TableIcon, Tag } from "@dub/ui/icons";
+import {
+  isWorkspaceBillingTrialActive,
+  type TrialLimitResource,
+} from "@dub/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 
@@ -119,6 +124,7 @@ function WorkspaceLinks() {
     // We show the .link offer modal if:
     // - The upgraded modal is not open
     // - The user has a paid plan (and valid stripe ID)
+    // - The user is not in a billing trial (.link cannot be claimed until trial ends)
     // - The user has no custom domains
     // - The user has not claimed their .link domain
     // - The user has not dismissed the .link offer modal
@@ -127,6 +133,7 @@ function WorkspaceLinks() {
       workspace.stripeId &&
       workspace.plan &&
       workspace.plan !== "free" &&
+      !isWorkspaceBillingTrialActive(workspace.trialEndsAt) &&
       workspace.domains?.length === 0 &&
       !workspace.dotLinkClaimed &&
       !loadingDotLinkOfferDismissed &&
@@ -268,6 +275,8 @@ const MoreLinkOptions = () => {
   const [openPopover, setOpenPopover] = useState(false);
   const [_state, setState] = useState<"default" | "import">("default");
   const { ExportLinksModal, setShowExportLinksModal } = useExportLinksModal();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
 
   useEffect(() => {
     if (!openPopover) setState("default");
@@ -275,6 +284,7 @@ const MoreLinkOptions = () => {
 
   return (
     <>
+      <TrialLimitActivateModal />
       <ExportLinksModal />
       <Popover
         content={
@@ -284,6 +294,7 @@ const MoreLinkOptions = () => {
                 Import Links
               </p>
               <ImportOption
+                openTrialLimitModal={openTrialLimitModal}
                 onClick={() => {
                   setOpenPopover(false);
                   queryParams({
@@ -305,6 +316,7 @@ const MoreLinkOptions = () => {
                 />
               </ImportOption>
               <ImportOption
+                openTrialLimitModal={openTrialLimitModal}
                 onClick={() => {
                   setOpenPopover(false);
                   queryParams({
@@ -326,6 +338,7 @@ const MoreLinkOptions = () => {
                 />
               </ImportOption>
               <ImportOption
+                openTrialLimitModal={openTrialLimitModal}
                 onClick={() => {
                   setOpenPopover(false);
                   queryParams({
@@ -347,6 +360,7 @@ const MoreLinkOptions = () => {
                 />
               </ImportOption>
               <ImportOption
+                openTrialLimitModal={openTrialLimitModal}
                 onClick={() => {
                   setOpenPopover(false);
                   queryParams({
@@ -400,20 +414,31 @@ const MoreLinkOptions = () => {
 function ImportOption({
   children,
   onClick,
+  openTrialLimitModal,
 }: {
   children: ReactNode;
   onClick: () => void;
+  openTrialLimitModal: (resource: TrialLimitResource) => void;
 }) {
-  const { slug, exceededLinks, plan, nextPlan } = useWorkspace();
+  const { slug, exceededLinks, plan, nextPlan, trialEndsAt } = useWorkspace();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   return exceededLinks && plan !== "enterprise" ? (
     <Tooltip
       content={
-        <TooltipContent
-          title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
-          cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
-          href={`/${slug}/upgrade`}
-        />
+        trialActive ? (
+          <TooltipContent
+            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
+            cta="Start paid plan"
+            onClick={() => openTrialLimitModal("links")}
+          />
+        ) : (
+          <TooltipContent
+            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
+            cta={nextPlan ? `Upgrade to ${nextPlan.name}` : "Contact support"}
+            href={`/${slug}/upgrade`}
+          />
+        )
       }
     >
       <div className="flex w-full cursor-not-allowed items-center justify-between space-x-2 rounded-md p-2 text-sm text-neutral-400 [&_img]:grayscale">

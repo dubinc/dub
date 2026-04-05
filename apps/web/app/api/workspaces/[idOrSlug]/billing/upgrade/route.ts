@@ -1,9 +1,15 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDubAdminRole, withWorkspace } from "@/lib/auth";
+import {
+  getTrialAbVariant,
+  shouldEnableStripeCheckoutTrial,
+} from "@/lib/billing/trial-checkout-experiment";
 import { getDubCustomer } from "@/lib/dub";
+import { getFeatureFlags } from "@/lib/edge-config";
 import { stripe } from "@/lib/stripe";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
-import { APP_DOMAIN } from "@dub/utils";
+import { prisma } from "@dub/prisma";
+import { APP_DOMAIN, PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -26,6 +32,7 @@ export const POST = withWorkspace(
 
     const lookupKey =
       tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
+
     const prices = await stripe.prices.list({
       lookup_keys: [lookupKey],
     });
@@ -37,13 +44,17 @@ export const POST = withWorkspace(
       });
     }
 
-    const activeSubscription = workspace.stripeId
+    const existingSubscription = workspace.stripeId
       ? await stripe.subscriptions
           .list({
             customer: workspace.stripeId,
-            status: "active",
+            limit: 20,
           })
-          .then((res) => res.data[0])
+          .then((res) =>
+            res.data.find(
+              (s) => s.status === "active" || s.status === "trialing",
+            ),
+          )
       : null;
 
     if (process.env.VERCEL === "1" && process.env.VERCEL_ENV === "preview") {
@@ -56,18 +67,18 @@ export const POST = withWorkspace(
       }
     }
 
-    // if the user has an active subscription, create billing portal to upgrade
-    if (workspace.stripeId && activeSubscription) {
+    // if the user has an active or trialing subscription, create billing portal to upgrade
+    if (workspace.stripeId && existingSubscription) {
       const { url } = await stripe.billingPortal.sessions.create({
         customer: workspace.stripeId,
         return_url: baseUrl,
         flow_data: {
           type: "subscription_update_confirm",
           subscription_update_confirm: {
-            subscription: activeSubscription.id,
+            subscription: existingSubscription.id,
             items: [
               {
-                id: activeSubscription.items.data[0].id,
+                id: existingSubscription.items.data[0].id,
                 quantity: 1,
                 price: prices.data[0].id,
               },
@@ -78,6 +89,19 @@ export const POST = withWorkspace(
       return NextResponse.json({ url });
     } else {
       const customer = await getDubCustomer(session.user.id);
+
+      const flags = await getFeatureFlags({
+        workspaceId: workspace.id,
+        workspaceSlug: workspace.slug,
+      });
+      const trialAbVariant = getTrialAbVariant(workspace.id);
+      const checkoutTrialEnabled = shouldEnableStripeCheckoutTrial(
+        flags,
+        workspace.id,
+      );
+
+      const existingStore =
+        (workspace.store as Record<string, unknown> | null) ?? {};
 
       // For both new users and users with canceled subscriptions
       const stripeSession = await stripe.checkout.sessions.create({
@@ -119,11 +143,43 @@ export const POST = withWorkspace(
           enabled: true,
         },
         mode: "subscription",
+        ...(checkoutTrialEnabled
+          ? {
+              subscription_data: {
+                trial_period_days: PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
+              },
+            }
+          : {}),
         client_reference_id: workspace.id,
         metadata: {
           dubCustomerId: session.user.id,
+          trialFeatureFlag: String(flags.freeTrialCheckout),
+          trialAbVariant,
+          checkoutTrialEnabled: String(checkoutTrialEnabled),
         },
       });
+
+      try {
+        await prisma.project.update({
+          where: { id: workspace.id },
+          data: {
+            store: {
+              ...existingStore,
+              trialCheckoutExperiment: {
+                featureFlag: flags.freeTrialCheckout,
+                variant: trialAbVariant,
+                checkoutTrialEnabled,
+                updatedAt: new Date().toISOString(),
+              },
+            },
+          },
+        });
+      } catch (e) {
+        console.error(
+          "Failed to persist trialCheckoutExperiment after checkout session create",
+          { workspaceId: workspace.id, error: e },
+        );
+      }
 
       return NextResponse.json({ id: stripeSession.id });
     }

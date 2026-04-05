@@ -1,3 +1,10 @@
+enum PlanPeriod {
+  monthly
+  yearly
+  quarterly
+  biweekly
+}
+
 model Project {
   id               String  @id @default(cuid())
   name             String
@@ -8,8 +15,12 @@ model Project {
 
   plan              String    @default("free")
   planTier          Int       @default(1)
+  planPeriod        PlanPeriod? // monthly, yearly, etc. from Stripe price.recurring.interval
   stripeId          String?   @unique // Stripe subscription ID
   billingCycleStart Int // day of the month when the billing cycle starts
+  billingCycleEndsAt  DateTime? // derived from Stripe current_period_end
+  trialEndsAt       DateTime? // when set and in the future, the workspace is on a Stripe subscription free trial
+  subscriptionCanceledAt  DateTime? // when the workspace's subscription was canceled (or set to cancel)
   paymentFailedAt   DateTime?
   invoicePrefix     String?   @unique // prefix used to generate unique invoice numbers (for Dub Payouts)
 
@@ -79,6 +90,7 @@ model Project {
   yearInReviews         YearInReview[]
 
   @@index(usageLastChecked(sort: Asc))
+  @@index(trialEndsAt)
 }
 
 enum WorkspaceRole {

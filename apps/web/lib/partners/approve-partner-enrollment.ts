@@ -3,6 +3,7 @@ import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { triggerWorkflows } from "../cron/qstash-workflow";
+import { throwIfTrialProgramEnrollmentLimitExceeded } from "./throw-if-trial-program-enrollment-exceeded";
 
 export async function approvePartnerEnrollment({
   programId,
@@ -36,6 +37,13 @@ export async function approvePartnerEnrollment({
   });
 
   const programEnrollment = await prisma.$transaction(async (tx) => {
+    await throwIfTrialProgramEnrollmentLimitExceeded({
+      programId,
+      additionalApproved: 1,
+      trialEndsAt: program.workspace.trialEndsAt,
+      tx,
+    });
+
     const enrollment = await tx.programEnrollment.update({
       where: {
         partnerId_programId: {

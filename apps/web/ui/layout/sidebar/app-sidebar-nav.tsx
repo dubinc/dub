@@ -45,6 +45,7 @@ import {
   Users6,
   Webhook,
 } from "@dub/ui/icons";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
@@ -488,7 +489,7 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session, status } = useSession();
-  const { plan, defaultProgramId } = useWorkspace();
+  const { plan, defaultProgramId, trialEndsAt } = useWorkspace();
   const { workspaces } = useWorkspaces();
 
   // Store the current workspace slug in sessionStorage so we can remember it on account settings pages
@@ -628,7 +629,14 @@ export function AppSidebarNav({
           program && program.partnerNetworkEnabledAt !== null,
       }}
       toolContent={toolContent}
-      newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}
+      newsContent={
+        plan &&
+        (plan === "free" || isWorkspaceBillingTrialActive(trialEndsAt) ? (
+          <SidebarUsage />
+        ) : (
+          newsContent
+        ))
+      }
       switcher={<WorkspaceDropdown />}
     />
   );

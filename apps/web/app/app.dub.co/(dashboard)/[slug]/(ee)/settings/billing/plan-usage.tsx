@@ -1,5 +1,6 @@
 "use client";
 
+import { clientAccessCheck } from "@/lib/client-access-check";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "@/lib/constants/misc";
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
@@ -8,10 +9,12 @@ import { useUsageTimeseries } from "@/lib/swr/use-usage-timeseries";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { useManageUsageModal } from "@/ui/modals/manage-usage-modal";
+import { useStartPaidPlanModal } from "@/ui/modals/start-paid-plan-modal";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import {
   AnimatedSizeContainer,
   Button,
+  DynamicTooltipWrapper,
   Icon,
   Tooltip,
   useRouterStuff,
@@ -34,17 +37,26 @@ import {
   getFirstAndLastDay,
   INFINITY_NUMBER,
   isLegacyBusinessPlan,
+  isWorkspaceBillingTrialActive,
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { CSSProperties, ReactNode, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { CSSProperties, ReactNode, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { UsageChart } from "./usage-chart";
 
 export default function PlanUsage() {
+  const router = useRouter();
+  const [resubscribePortalLoading, setResubscribePortalLoading] =
+    useState(false);
+
   const {
+    id: workspaceId,
     slug,
     plan,
+    role,
     stripeId,
     defaultProgramId,
     usage,
@@ -65,7 +77,18 @@ export default function PlanUsage() {
     tagsLimit,
     usersLimit,
     billingCycleStart,
+    trialEndsAt,
+    subscriptionCanceledAt,
+    billingCycleEndsAt,
   } = useWorkspace();
+
+  const permissionsError = clientAccessCheck({
+    action: "billing.write",
+    role,
+  }).error;
+
+  const { StartPaidPlanModal, setShowStartPaidPlanModal } =
+    useStartPaidPlanModal();
 
   const { data: tags } = useTagsCount();
   const { users } = useWorkspaceUsers();
@@ -151,121 +174,244 @@ export default function PlanUsage() {
     return `${payoutFee * 100}%`;
   }, [plan, payoutFee, payoutFeeWaiverLimit, payoutFeeWaiverUsage]);
 
+  const pendingCancellationEndDate =
+    subscriptionCanceledAt && billingCycleEndsAt && plan !== "free" && stripeId
+      ? billingCycleEndsAt
+      : null;
+
+  const showPendingCancellation = pendingCancellationEndDate != null;
+
+  const handleResubscribe = async () => {
+    setResubscribePortalLoading(true);
+
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/billing/manage`, {
+        method: "POST",
+      });
+
+      if (res.ok) {
+        const url = await res.json();
+        router.push(url);
+      } else {
+        try {
+          const body = await res.json();
+          toast.error(body?.error?.message ?? "Failed to open billing portal.");
+        } catch (error) {
+          console.error(error);
+          toast.error("Failed to open billing portal.");
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to open billing portal.");
+    } finally {
+      setResubscribePortalLoading(false);
+    }
+  };
+
   return (
-    <div className="rounded-xl border border-neutral-200 bg-white">
-      <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
-        <div>
-          <h2 className="text-xl font-medium">
-            {plan && isLegacyBusinessPlan({ plan, payoutsLimit })
-              ? "Business (Legacy)"
-              : capitalize(plan)}{" "}
-            Plan
-          </h2>
-          {billingStart && billingEnd && (
-            <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
-              <>
-                Current billing cycle:{" "}
-                <span className="font-normal">
-                  {billingStart} - {billingEnd}
-                </span>
-              </>
+    <>
+      <StartPaidPlanModal />
+      <div className="rounded-xl border border-neutral-200 bg-white">
+        {trialEndsAt != null && isWorkspaceBillingTrialActive(trialEndsAt) && (
+          <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-blue-50/50 px-3 py-2">
+            <p className="text-xs font-medium text-blue-600">
+              Trial ends on{" "}
+              <span className="font-semibold">
+                {new Date(trialEndsAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+              . Your card will be charged when the trial ends unless you cancel.
             </p>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {plan !== "enterprise" && (
-            <Link href={`/${slug}/settings/billing/upgrade`}>
+          </div>
+        )}
+
+        {showPendingCancellation && (
+          <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-amber-100/50 px-3 py-2">
+            <p className="text-center text-xs text-amber-900">
+              Your subscription will be canceled on{" "}
+              <span className="font-medium">
+                {new Date(pendingCancellationEndDate).toLocaleDateString(
+                  "en-US",
+                  {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
+                  },
+                )}
+              </span>
+              .
+            </p>
+          </div>
+        )}
+
+        <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
+          <div>
+            <h2 className="text-xl font-medium">
+              {plan && isLegacyBusinessPlan({ plan, payoutsLimit })
+                ? "Business (Legacy)"
+                : capitalize(plan)}{" "}
+              Plan
+            </h2>
+            {billingStart && billingEnd && (
+              <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
+                <>
+                  Current billing cycle:{" "}
+                  <span className="font-normal">
+                    {billingStart} - {billingEnd}
+                  </span>
+                </>
+              </p>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {plan !== "enterprise" &&
+              (plan === "free" ? (
+                <Link href={`/${slug}/settings/billing/upgrade`}>
+                  <Button text="Upgrade" variant="primary" className="h-9" />
+                </Link>
+              ) : isWorkspaceBillingTrialActive(trialEndsAt) ? (
+                <DynamicTooltipWrapper
+                  tooltipProps={
+                    permissionsError ? { content: permissionsError } : undefined
+                  }
+                >
+                  <Button
+                    text="Start paid plan"
+                    variant="primary"
+                    className="h-9"
+                    disabled={Boolean(permissionsError)}
+                    onClick={() => setShowStartPaidPlanModal(true)}
+                  />
+                </DynamicTooltipWrapper>
+              ) : showPendingCancellation ? (
+                <DynamicTooltipWrapper
+                  tooltipProps={
+                    permissionsError ? { content: permissionsError } : undefined
+                  }
+                >
+                  <Button
+                    text="Resubscribe"
+                    variant="primary"
+                    className="h-9"
+                    loading={resubscribePortalLoading}
+                    disabled={Boolean(permissionsError)}
+                    onClick={handleResubscribe}
+                  />
+                </DynamicTooltipWrapper>
+              ) : (
+                <Link href={`/${slug}/settings/billing/upgrade`}>
+                  <Button
+                    text="Manage plan"
+                    variant="primary"
+                    className="h-9"
+                  />
+                </Link>
+              ))}
+
+            <Link
+              href={
+                isWorkspaceBillingTrialActive(trialEndsAt)
+                  ? `/${slug}/settings/billing/upgrade`
+                  : `/${slug}/settings/billing/invoices`
+              }
+            >
               <Button
-                text={plan === "free" ? "Upgrade" : "Manage plan"}
-                variant="primary"
+                text={
+                  isWorkspaceBillingTrialActive(trialEndsAt)
+                    ? "View plans"
+                    : "View invoices"
+                }
+                variant="secondary"
                 className="h-9"
               />
             </Link>
-          )}
-          <Link href={`/${slug}/settings/billing/invoices`}>
-            <Button text="View invoices" variant="secondary" className="h-9" />
-          </Link>
-          {stripeId && plan !== "free" && <SubscriptionMenu />}
-        </div>
-      </div>
-      <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
-        <div>
-          <div className="grid gap-4 p-6 pb-0 sm:grid-cols-2 md:p-8 md:pb-0 lg:gap-6">
-            {usageTabs.map((tab) => (
-              <UsageTabCard key={tab.resource} {...tab} />
-            ))}
-          </div>
-          <div className="w-full px-2 pb-8 md:px-8">
-            <UsageChart />
+
+            {stripeId && plan !== "free" && <SubscriptionMenu />}
           </div>
         </div>
-        <div
-          className={cn(
-            "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
-            "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
-          )}
-        >
-          <UsageCategory
-            title="Custom Domains"
-            icon={Globe}
-            usage={domains?.length}
-            usageLimit={domainsLimit}
-            href={`/${slug}/settings/domains`}
-          />
-          <UsageCategory
-            title="Folders"
-            icon={Folder5}
-            usage={foldersUsage}
-            usageLimit={foldersLimit}
-            href={`/${slug}/settings/library/folders`}
-          />
-          <UsageCategory
-            title="Tags"
-            icon={Tag}
-            usage={tags}
-            usageLimit={tagsLimit}
-            href={`/${slug}/settings/library/tags`}
-          />
-          <UsageCategory
-            title="Teammates"
-            icon={Users}
-            usage={users?.filter((user) => !user.isMachine).length}
-            usageLimit={usersLimit}
-            href={`/${slug}/settings/people`}
-          />
-        </div>
-        <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-xl bg-neutral-200 md:grid-cols-4">
-          <UsageCategory
-            title="Partners"
-            icon={Users}
-            usage={partnersCount ?? 0}
-            usageLimit={INFINITY_NUMBER}
-            href={`/${slug}/program/partners`}
-          />
-          <UsageCategory
-            title="Partner Groups"
-            icon={Users6}
-            usage={groupsCount ?? 0}
-            usageLimit={groupsLimit}
-            href={`/${slug}/program/groups`}
-          />
-          <UsageCategory
-            title="Partner payouts"
-            icon={CreditCard}
-            usage={payoutsUsage}
-            usageLimit={payoutsLimit}
-            unit="$"
-            href={`/${slug}/program/payouts`}
-          />
-          <UsageCategory
-            title="Payout fees"
-            icon={CirclePercentage}
-            usage={payoutFeeDisplay}
-            href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
-          />
+        <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
+          <div>
+            <div className="grid gap-4 p-6 pb-0 sm:grid-cols-2 md:p-8 md:pb-0 lg:gap-6">
+              {usageTabs.map((tab) => (
+                <UsageTabCard key={tab.resource} {...tab} />
+              ))}
+            </div>
+            <div className="w-full px-2 pb-8 md:px-8">
+              <UsageChart />
+            </div>
+          </div>
+          <div
+            className={cn(
+              "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
+              "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
+            )}
+          >
+            <UsageCategory
+              title="Custom Domains"
+              icon={Globe}
+              usage={domains?.length}
+              usageLimit={domainsLimit}
+              href={`/${slug}/settings/domains`}
+            />
+            <UsageCategory
+              title="Folders"
+              icon={Folder5}
+              usage={foldersUsage}
+              usageLimit={foldersLimit}
+              href={`/${slug}/settings/library/folders`}
+            />
+            <UsageCategory
+              title="Tags"
+              icon={Tag}
+              usage={tags}
+              usageLimit={tagsLimit}
+              href={`/${slug}/settings/library/tags`}
+            />
+            <UsageCategory
+              title="Teammates"
+              icon={Users}
+              usage={users?.filter((user) => !user.isMachine).length}
+              usageLimit={usersLimit}
+              href={`/${slug}/settings/people`}
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-xl bg-neutral-200 md:grid-cols-4">
+            <UsageCategory
+              title="Partners"
+              icon={Users}
+              usage={partnersCount ?? 0}
+              usageLimit={INFINITY_NUMBER}
+              href={`/${slug}/program/partners`}
+            />
+            <UsageCategory
+              title="Partner Groups"
+              icon={Users6}
+              usage={groupsCount ?? 0}
+              usageLimit={groupsLimit}
+              href={`/${slug}/program/groups`}
+            />
+            <UsageCategory
+              title="Partner payouts"
+              icon={CreditCard}
+              usage={payoutsUsage}
+              usageLimit={payoutsLimit}
+              unit="$"
+              href={`/${slug}/program/payouts`}
+            />
+            <UsageCategory
+              title="Payout fees"
+              icon={CirclePercentage}
+              usage={payoutFeeDisplay}
+              href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

@@ -9,17 +9,31 @@ import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { Program, User } from "@dub/prisma/client";
-import { getPlanAndTierFromPriceId, log, prettyPrint } from "@dub/utils";
+import {
+  getPlanAndTierFromPriceId,
+  getWorkspaceLimitsForStripeSubscriptionStatus,
+  log,
+  prettyPrint,
+} from "@dub/utils";
 import Stripe from "stripe";
+import { getPlanPeriodFromStripeSubscription } from "./utils/stripe-plan-period";
 
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   const checkoutSession = event.data.object as Stripe.Checkout.Session;
 
-  if (
-    checkoutSession.mode === "setup" ||
-    checkoutSession.payment_status !== "paid"
-  ) {
-    return "Session is setup mode or not paid, skipping...";
+  if (checkoutSession.mode === "setup") {
+    return "Session is setup mode, skipping...";
+  }
+
+  if (checkoutSession.mode === "subscription") {
+    if (
+      checkoutSession.payment_status !== "paid" &&
+      checkoutSession.payment_status !== "no_payment_required"
+    ) {
+      return "Subscription checkout session not completed (payment status), skipping...";
+    }
+  } else {
+    return `Session mode ${checkoutSession.mode} is not handled here, skipping...`;
   }
 
   if (
@@ -44,9 +58,20 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     return `Invalid price ID in checkout.session.completed event: ${priceId}`;
   }
 
+  const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
+    planLimits: plan.limits,
+    subscriptionStatus: subscription.status,
+  });
+
+  const trialEndsAt =
+    subscription.status === "trialing" && subscription.trial_end
+      ? new Date(subscription.trial_end * 1000)
+      : null;
+
   const stripeId = checkoutSession.customer.toString();
   const workspaceId = checkoutSession.client_reference_id;
   const planName = plan.name.toLowerCase();
+  const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
   // when the workspace subscribes to a plan, set their stripe customer ID
   // in the database for easy identification in future webhook events
@@ -61,17 +86,19 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       billingCycleStart: new Date().getDate(),
       plan: planName,
       planTier: planTier,
-      usageLimit: plan.limits.clicks,
-      linksLimit: plan.limits.links,
-      payoutsLimit: plan.limits.payouts,
-      domainsLimit: plan.limits.domains,
-      aiLimit: plan.limits.ai,
-      tagsLimit: plan.limits.tags,
-      foldersLimit: plan.limits.folders,
-      groupsLimit: plan.limits.groups,
-      networkInvitesLimit: plan.limits.networkInvites,
-      usersLimit: plan.limits.users,
+      usageLimit: limits.clicks,
+      linksLimit: limits.links,
+      payoutsLimit: limits.payouts,
+      domainsLimit: limits.domains,
+      aiLimit: limits.ai,
+      tagsLimit: limits.tags,
+      foldersLimit: limits.folders,
+      groupsLimit: limits.groups,
+      networkInvitesLimit: limits.networkInvites,
+      usersLimit: limits.users,
+      trialEndsAt,
       paymentFailedAt: null,
+      ...(planPeriod !== undefined && { planPeriod }),
     },
     select: {
       plan: true,
@@ -122,15 +149,19 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         variant: "marketing",
       })),
     ),
-    // enable dub.link premium default domain for the workspace
-    prisma.defaultDomains.update({
-      where: {
-        projectId: workspaceId,
-      },
-      data: {
-        dublink: true,
-      },
-    }),
+    // enable dub.link premium default domain for the workspace (not during billing trial)
+    ...(subscription.status !== "trialing"
+      ? [
+          prisma.defaultDomains.update({
+            where: {
+              projectId: workspaceId,
+            },
+            data: {
+              dublink: true,
+            },
+          }),
+        ]
+      : []),
     // expire tokens cache
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),

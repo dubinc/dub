@@ -21,6 +21,7 @@ import {
   getSuggestedPlan,
   isDowngradePlan,
   isLegacyBusinessPlan,
+  isWorkspaceBillingTrialActive,
   PlanDetails,
   PLANS,
   PRICING_PLAN_COMPARE_FEATURES,
@@ -54,6 +55,7 @@ export function WorkspaceBillingUpgradePageClient() {
     planTier: currentPlanTier = 1,
     stripeId,
     payoutsLimit,
+    trialEndsAt,
   } = useWorkspace();
 
   const { error: permissionsError } = clientAccessCheck({
@@ -149,7 +151,7 @@ export function WorkspaceBillingUpgradePageClient() {
             >
               {plans.map(({ plan, planTier }, idx) => {
                 // disable upgrade button if user has a Stripe ID and is on the current plan
-                // (if there's no stripe id, they could be on a free trial so they should be able to upgrade)
+                // (trialing subscriptions still use Checkout in some edge cases; portal handles plan changes)
                 // edge case:
                 //    if the user is on the business plan and has a payout limit of 0,
                 //    it means they're on the legacy business plan – prompt them to upgrade to the new business plan
@@ -250,14 +252,18 @@ export function WorkspaceBillingUpgradePageClient() {
                           tier={planTier > 1 ? planTier : undefined}
                           period={period}
                           disabled={
-                            disableCurrentPlan || currentPlan === "enterprise"
+                            (disableCurrentPlan &&
+                              !isWorkspaceBillingTrialActive(trialEndsAt)) ||
+                            currentPlan === "enterprise"
                           }
                           disabledTooltip={permissionsError || undefined}
                           text={
                             currentPlan === "enterprise"
                               ? "Contact support"
                               : disableCurrentPlan
-                                ? "Current plan"
+                                ? isWorkspaceBillingTrialActive(trialEndsAt)
+                                  ? "Activate plan"
+                                  : "Current plan"
                                 : isDowngrade
                                   ? "Downgrade"
                                   : "Upgrade"
