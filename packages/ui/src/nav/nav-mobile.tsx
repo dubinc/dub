@@ -98,14 +98,14 @@ export function NavMobile({
         )}
       >
         {open ? (
-          <X className="h-5 w-5 text-neutral-600 dark:text-white/70" />
+          <X className="h-5 w-5 text-neutral-600 dark:text-white" />
         ) : (
-          <Menu className="h-5 w-5 text-neutral-600 dark:text-white/70" />
+          <Menu className="h-5 w-5 text-neutral-600 dark:text-white" />
         )}
       </button>
       <nav
         className={cn(
-          "fixed inset-0 z-20 hidden max-h-screen w-full overflow-y-auto bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white/70",
+          "fixed inset-0 z-20 hidden max-h-screen w-full overflow-y-auto bg-white px-5 py-16 lg:hidden dark:bg-black dark:text-white",
           open && "block",
         )}
       >
