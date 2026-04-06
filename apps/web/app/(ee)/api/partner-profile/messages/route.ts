@@ -1,4 +1,6 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
 import {
   ProgramMessagesSchema,
   getProgramMessagesQuerySchema,
@@ -6,12 +8,13 @@ import {
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// TODO:
-// Add program scope filter
-
 // GET /api/partner-profile/messages - get messages grouped by program
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams }) => {
+  async ({
+    partner,
+    searchParams,
+    partnerUser: { assignedProgramSlugs, assignedProgramIds },
+  }) => {
     const {
       programSlug,
       sortBy,
@@ -20,6 +23,17 @@ export const GET = withPartnerProfile(
     } = getProgramMessagesQuerySchema.parse(searchParams);
 
     const messagesLimit = messagesLimitArg ?? (programSlug ? undefined : 10);
+
+    if (
+      programSlug &&
+      assignedProgramSlugs &&
+      !assignedProgramSlugs.includes(programSlug)
+    ) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Program ${programSlug} not found.`,
+      });
+    }
 
     const programs = await prisma.program.findMany({
       where: {
@@ -79,6 +93,7 @@ export const GET = withPartnerProfile(
                 },
               ],
             }),
+        ...programScopeFilter(assignedProgramIds),
       },
       include: {
         messages: {
