@@ -3,6 +3,7 @@
 import { partnerProfileFetch } from "@/lib/api/partner-profile/client";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PartnerUserProps, ProgramProps } from "@/lib/types";
+import { ProgramAccessScope } from "@dub/prisma/client";
 import { BlurImage, Button, Sheet } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { X } from "lucide-react";
@@ -10,6 +11,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { PartnerLinksSelector } from "./partner-links-selector";
 
 interface PartnerMemberProgramsSheetProps {
   user: PartnerUserProps;
@@ -25,42 +27,86 @@ function PartnerMemberProgramsSheetContent({
 }: PartnerMemberProgramsSheetProps) {
   const [isSaving, setIsSaving] = useState(false);
   const { programEnrollments, isLoading } = useProgramEnrollments();
+  const [accessState, setAccessState] = useState<Record<string, boolean>>({});
+
+  const [programAccess, setProgramAccess] = useState<ProgramAccessScope>(
+    user.programAccess,
+  );
+
+  const [linkState, setLinkState] = useState<
+    Record<string, string[] | undefined>
+  >({});
 
   const isTargetOwner = user.role === "owner";
   const canEdit = isCurrentUserOwner && !isTargetOwner;
 
-  const [scopeMode, setScopeMode] = useState<"all" | "restricted">(
-    user.programAccess,
-  );
-  const [accessState, setAccessState] = useState<Record<string, boolean>>({});
-
-  // Initialize access state from user's assigned programs when enrollments load
   useEffect(() => {
     if (!programEnrollments) return;
 
-    const ids = new Set(user.programs.map((p) => p.id));
+    const programMap = new Map(user.programs.map((p) => [p.id, p]));
     const allAccess = isTargetOwner || user.programAccess === "all";
 
-    const initial: Record<string, boolean> = {};
+    const initialAccess: Record<string, boolean> = {};
+    const initialLinks: Record<string, string[] | undefined> = {};
+
     for (const enrollment of programEnrollments) {
-      initial[enrollment.programId] =
-        allAccess || ids.has(enrollment.programId);
+      const program = programMap.get(enrollment.programId);
+      initialAccess[enrollment.programId] =
+        allAccess || programMap.has(enrollment.programId);
+
+      // If program has explicit link assignments, use them; otherwise undefined = all links
+      if (program && program.links.length > 0) {
+        initialLinks[enrollment.programId] = program.links.map((l) => l.id);
+      } else {
+        initialLinks[enrollment.programId] = undefined;
+      }
     }
-    setAccessState(initial);
-    setScopeMode(isTargetOwner ? "all" : user.programAccess);
+
+    setAccessState(initialAccess);
+    setLinkState(initialLinks);
+    setProgramAccess(isTargetOwner ? "all" : user.programAccess);
   }, [programEnrollments, user.programs, user.programAccess, isTargetOwner]);
 
   const hasChanges = (() => {
-    if (scopeMode !== user.programAccess) return true;
-    if (scopeMode === "all") return false;
-
-    // Check if individual program selections changed
+    if (programAccess !== user.programAccess) return true;
+    if (programAccess === "all") return false;
     if (!programEnrollments) return false;
-    const assignedProgramIds = new Set(user.programs.map((p) => p.id));
+
+    const programMap = new Map(user.programs.map((p) => [p.id, p]));
+
     return programEnrollments.some((enrollment) => {
       const current = accessState[enrollment.programId] ?? false;
-      const original = assignedProgramIds.has(enrollment.programId);
-      return current !== original;
+      const original = programMap.has(enrollment.programId);
+      if (current !== original) return true;
+
+      // Check link changes for programs that have access
+      if (current) {
+        const program = programMap.get(enrollment.programId);
+        const originalLinkIds = program?.links.map((l) => l.id) ?? [];
+        const currentLinkIds = linkState[enrollment.programId];
+
+        // Both undefined = no change (all links)
+        if (currentLinkIds === undefined && originalLinkIds.length === 0) {
+          return false;
+        }
+
+        // One undefined, other not
+        if (currentLinkIds === undefined || originalLinkIds.length === 0) {
+          return currentLinkIds !== undefined || originalLinkIds.length !== 0;
+        }
+
+        // Compare arrays
+        const sortedOriginal = [...originalLinkIds].sort();
+        const sortedCurrent = [...currentLinkIds].sort();
+
+        if (sortedOriginal.length !== sortedCurrent.length) {
+          return true;
+        }
+
+        return sortedOriginal.some((id, i) => id !== sortedCurrent[i]);
+      }
+
+      return false;
     });
   })();
 
@@ -68,19 +114,33 @@ function PartnerMemberProgramsSheetContent({
     if (!user.id) return;
 
     const programIds =
-      scopeMode === "all"
+      programAccess === "all"
         ? []
         : Object.entries(accessState)
             .filter(([, hasAccess]) => hasAccess)
             .map(([id]) => id);
+
+    // Build linkIds map for accessible programs
+    const linkIds: Record<string, string[] | undefined> = {};
+    if (programAccess === "restricted") {
+      for (const programId of programIds) {
+        linkIds[programId] = linkState[programId];
+      }
+    }
 
     setIsSaving(true);
 
     await partnerProfileFetch(
       "@put/api/partner-profile/users/:userId/programs",
       {
-        params: { userId: user.id },
-        body: { programAccess: scopeMode, programIds },
+        params: {
+          userId: user.id,
+        },
+        body: {
+          programAccess,
+          programIds,
+          linkIds,
+        },
         onSuccess: async () => {
           toast.success("Program assignments updated!");
           await mutate(
@@ -124,9 +184,9 @@ function PartnerMemberProgramsSheetContent({
             </label>
             <select
               className="mt-1.5 w-full cursor-pointer appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300"
-              value={scopeMode}
+              value={programAccess}
               onChange={(e) =>
-                setScopeMode(e.target.value as "all" | "restricted")
+                setProgramAccess(e.target.value as ProgramAccessScope)
               }
             >
               <option value="all">All programs</option>
@@ -143,23 +203,37 @@ function PartnerMemberProgramsSheetContent({
               No programs available.
             </div>
           ) : (
-            programEnrollments.map((enrollment) => (
-              <ProgramRow
-                key={enrollment.programId}
-                program={enrollment.program}
-                hasAccess={
-                  scopeMode === "all" ||
-                  (accessState[enrollment.programId] ?? false)
-                }
-                canEdit={canEdit && scopeMode === "restricted"}
-                onChange={(hasAccess) =>
-                  setAccessState((prev) => ({
-                    ...prev,
-                    [enrollment.programId]: hasAccess,
-                  }))
-                }
-              />
-            ))
+            programEnrollments.map((enrollment) => {
+              const hasAccess =
+                programAccess === "all" ||
+                (accessState[enrollment.programId] ?? false);
+              const showLinkPicker =
+                canEdit && programAccess === "restricted" && hasAccess;
+
+              return (
+                <ProgramRow
+                  key={enrollment.programId}
+                  programId={enrollment.programId}
+                  program={enrollment.program}
+                  hasAccess={hasAccess}
+                  canEdit={canEdit && programAccess === "restricted"}
+                  showLinkPicker={showLinkPicker}
+                  selectedLinkIds={linkState[enrollment.programId]}
+                  onAccessChange={(newAccess) =>
+                    setAccessState((prev) => ({
+                      ...prev,
+                      [enrollment.programId]: newAccess,
+                    }))
+                  }
+                  onLinkChange={(ids) =>
+                    setLinkState((prev) => ({
+                      ...prev,
+                      [enrollment.programId]: ids,
+                    }))
+                  }
+                />
+              );
+            })
           )}
         </div>
       </div>
@@ -183,50 +257,73 @@ function PartnerMemberProgramsSheetContent({
 }
 
 function ProgramRow({
+  programId,
   program,
   hasAccess,
   canEdit,
-  onChange,
+  showLinkPicker,
+  selectedLinkIds,
+  onAccessChange,
+  onLinkChange,
 }: {
+  programId: string;
   program: Pick<ProgramProps, "name" | "slug" | "logo">;
   hasAccess: boolean;
   canEdit: boolean;
-  onChange: (hasAccess: boolean) => void;
+  showLinkPicker: boolean;
+  selectedLinkIds: string[] | undefined;
+  onAccessChange: (hasAccess: boolean) => void;
+  onLinkChange: (ids: string[] | undefined) => void;
 }) {
   return (
-    <div className="flex items-center justify-between rounded-lg p-3 transition-colors duration-150 hover:cursor-pointer hover:bg-neutral-100">
-      <div className="flex min-w-0 items-center gap-3">
-        <BlurImage
-          src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-          alt={program.name}
-          className="size-8 shrink-0 overflow-hidden rounded-full"
-          width={32}
-          height={32}
-        />
-        <span className="truncate text-sm font-medium text-neutral-800">
-          {program.name}
-        </span>
+    <div className="rounded-lg p-3 transition-colors duration-150 hover:bg-neutral-50">
+      <div className="flex items-center justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <BlurImage
+            src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+            alt={program.name}
+            className="size-8 shrink-0 overflow-hidden rounded-full"
+            width={32}
+            height={32}
+          />
+          <span className="truncate text-sm font-medium text-neutral-800">
+            {program.name}
+          </span>
+        </div>
+
+        {canEdit ? (
+          <select
+            className={cn(
+              "cursor-pointer appearance-none rounded-lg border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
+            )}
+            value={hasAccess ? "access" : "no_access"}
+            onChange={(e) => onAccessChange(e.target.value === "access")}
+          >
+            <option value="access">Access</option>
+            <option value="no_access">No access</option>
+          </select>
+        ) : (
+          <Link href={`/programs/${program.slug}`}>
+            <Button
+              variant="secondary"
+              text="View"
+              className="h-8 w-fit text-xs"
+            />
+          </Link>
+        )}
       </div>
 
-      {canEdit ? (
-        <select
-          className={cn(
-            "cursor-pointer appearance-none rounded-lg border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
-          )}
-          value={hasAccess ? "access" : "no_access"}
-          onChange={(e) => onChange(e.target.value === "access")}
-        >
-          <option value="access">Access</option>
-          <option value="no_access">No access</option>
-        </select>
-      ) : (
-        <Link href={`/programs/${program.slug}`}>
-          <Button
-            variant="secondary"
-            text="View"
-            className="h-8 w-fit text-xs"
+      {showLinkPicker && (
+        <div className="mt-2 pl-11">
+          <label className="mb-1 block text-xs font-medium text-neutral-500">
+            Links
+          </label>
+          <PartnerLinksSelector
+            programId={programId}
+            selectedLinkIds={selectedLinkIds}
+            setSelectedLinkIds={onLinkChange}
           />
-        </Link>
+        </div>
       )}
     </div>
   );

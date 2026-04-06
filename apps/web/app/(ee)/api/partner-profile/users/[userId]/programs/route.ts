@@ -13,9 +13,8 @@ import * as z from "zod/v4";
 export const PUT = withPartnerProfile(
   async ({ partner, params, req }) => {
     const { userId } = params;
-    const { programAccess, programIds } = assignProgramInputSchema.parse(
-      await parseRequestBody(req),
-    );
+    const { programAccess, programIds, linkIds } =
+      assignProgramInputSchema.parse(await parseRequestBody(req));
 
     const targetUser = await prisma.partnerUser.findUnique({
       where: {
@@ -40,13 +39,15 @@ export const PUT = withPartnerProfile(
       });
     }
 
+    const effectiveProgramIds = programAccess === "all" ? [] : programIds;
+
     // Validate all programIds are programs the partner is enrolled in
-    if (programAccess === "restricted" && programIds.length > 0) {
+    if (effectiveProgramIds.length > 0) {
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           partnerId: partner.id,
           programId: {
-            in: programIds,
+            in: effectiveProgramIds,
           },
         },
         select: {
@@ -55,10 +56,12 @@ export const PUT = withPartnerProfile(
       });
 
       const enrolledProgramIds = new Set(
-        programEnrollments.map((e) => e.programId),
+        programEnrollments.map(({ programId }) => programId),
       );
 
-      const invalidIds = programIds.filter((id) => !enrolledProgramIds.has(id));
+      const invalidIds = effectiveProgramIds.filter(
+        (id) => !enrolledProgramIds.has(id),
+      );
 
       if (invalidIds.length > 0) {
         throw new DubApiError({
@@ -68,27 +71,52 @@ export const PUT = withPartnerProfile(
       }
     }
 
-    // Replace all program assignments in a transaction
-    // Also remove link assignments for programs that are being removed
-    const result = await prisma.$transaction(async (tx) => {
-      // Get current program assignments to find removed programs
-      const currentAssignments = await tx.partnerUserProgram.findMany({
+    // Batch-validate all link IDs — each must exist and belong to one of the assigned programs
+    const allRequestedLinkIds = Object.entries(linkIds).flatMap(
+      ([, ids]) => ids ?? [],
+    );
+
+    if (allRequestedLinkIds.length > 0) {
+      const validLinks = await prisma.link.findMany({
         where: {
-          partnerUserId: targetUser.id,
+          id: {
+            in: allRequestedLinkIds,
+          },
+          programId: {
+            in: effectiveProgramIds,
+          },
         },
         select: {
-          programId: true,
+          id: true,
         },
       });
 
-      const effectiveProgramIds = programAccess === "all" ? [] : programIds;
+      const validLinkIdSet = new Set(validLinks.map((l) => l.id));
+      const invalidIds = allRequestedLinkIds.filter(
+        (id) => !validLinkIdSet.has(id),
+      );
 
-      const newProgramIdSet = new Set(effectiveProgramIds);
-      const removedProgramIds = currentAssignments
-        .map((a) => a.programId)
-        .filter((id) => !newProgramIdSet.has(id));
+      if (invalidIds.length > 0) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `Invalid link IDs: ${invalidIds.join(", ")}`,
+        });
+      }
+    }
 
-      // Update programAccess on the PartnerUser
+    // Pre-compute link assignment rows (undefined = all links = no restriction rows)
+    const newLinkAssignments = effectiveProgramIds.flatMap((programId) => {
+      const programLinkIds = linkIds[programId];
+      if (programLinkIds === undefined) return [];
+      return programLinkIds.map((linkId) => ({
+        partnerUserId: targetUser.id,
+        linkId,
+        programId,
+      }));
+    });
+
+    // Transaction: delete old, create new
+    await prisma.$transaction(async (tx) => {
       await tx.partnerUser.update({
         where: {
           id: targetUser.id,
@@ -98,52 +126,50 @@ export const PUT = withPartnerProfile(
         },
       });
 
-      // Delete all current program assignments
+      // Replace program assignments
       await tx.partnerUserProgram.deleteMany({
         where: {
           partnerUserId: targetUser.id,
         },
       });
 
-      // Remove link assignments for removed programs
-      if (removedProgramIds.length > 0) {
-        await tx.partnerUserLink.deleteMany({
-          where: {
-            partnerUserId: targetUser.id,
-            programId: {
-              in: removedProgramIds,
-            },
-          },
-        });
-      }
-
-      // Create new program assignments (only for restricted access)
       if (effectiveProgramIds.length > 0) {
         await tx.partnerUserProgram.createMany({
           data: effectiveProgramIds.map((programId) => ({
             partnerUserId: targetUser.id,
             programId,
           })),
-          skipDuplicates: true,
         });
       }
 
-      // Return the updated assignments
-      return tx.partnerUserProgram.findMany({
+      // Replace link assignments
+      await tx.partnerUserLink.deleteMany({
         where: {
           partnerUserId: targetUser.id,
         },
-        include: {
-          program: {
-            select: {
-              id: true,
-              name: true,
-              slug: true,
-              logo: true,
-            },
+      });
+
+      if (newLinkAssignments.length > 0) {
+        await tx.partnerUserLink.createMany({
+          data: newLinkAssignments,
+        });
+      }
+    });
+
+    const result = await prisma.partnerUserProgram.findMany({
+      where: {
+        partnerUserId: targetUser.id,
+      },
+      include: {
+        program: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            logo: true,
           },
         },
-      });
+      },
     });
 
     return NextResponse.json(

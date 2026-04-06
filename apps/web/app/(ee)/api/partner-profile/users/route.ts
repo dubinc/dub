@@ -8,6 +8,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
+import { groupBy } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -55,16 +56,41 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           },
         },
       },
+      assignedLinks: {
+        include: {
+          link: {
+            select: {
+              id: true,
+              domain: true,
+              key: true,
+              shortLink: true,
+            },
+          },
+        },
+      },
     },
   });
 
-  const parsedUsers = users.map(({ user, assignedPrograms, ...rest }) =>
-    partnerUserSchema.parse({
-      ...rest,
-      ...user,
-      createdAt: rest.createdAt, // preserve the createdAt field from PartnerUser
-      programs: assignedPrograms.map(({ program }) => program),
-    }),
+  const parsedUsers = users.map(
+    ({ user, assignedPrograms, assignedLinks, ...rest }) => {
+      const groupedByProgramId = groupBy(assignedLinks, (al) => al.programId);
+      const linksByProgramId = Object.fromEntries(
+        Object.entries(groupedByProgramId).map(([programId, items]) => [
+          programId,
+          items.map((al) => al.link),
+        ]),
+      );
+
+      return partnerUserSchema.parse({
+        ...rest,
+        ...user,
+        createdAt: rest.createdAt,
+        programs: assignedPrograms.map(({ program }) => ({
+          ...program,
+          links: linksByProgramId[program.id] ?? [],
+        })),
+      });
+    },
   );
 
   return NextResponse.json(parsedUsers);

@@ -192,6 +192,7 @@ export const getPartnerUsersQuerySchema = z.object({
 export const assignProgramInputSchema = z.object({
   programAccess: z.enum(ProgramAccessScope),
   programIds: z.array(z.string()),
+  linkIds: z.record(z.string(), z.array(z.string()).optional()),
 });
 
 export const assignedProgramOutputSchema = z.object({
@@ -232,6 +233,15 @@ export const partnerUserSchema = z.object({
       name: true,
       slug: true,
       logo: true,
+    }).extend({
+      links: z.array(
+        LinkSchema.pick({
+          id: true,
+          domain: true,
+          key: true,
+          shortLink: true,
+        }),
+      ),
     }),
   ),
 });
