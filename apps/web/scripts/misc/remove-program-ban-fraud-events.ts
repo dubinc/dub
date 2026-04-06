@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
-// script to remove fraud events for certain campaign ids
+// script to remove fraud events for cross-program bans
 async function main() {
   const fraudEventsToRemove = await prisma.fraudEvent.findMany({
     where: {
