@@ -6,6 +6,7 @@ import {
 } from "@/lib/veriff/veriff-metadata";
 import { sendEmail } from "@dub/email";
 import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-identity-verification-failed";
+import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
 import { prisma } from "@dub/prisma";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import * as z from "zod/v4";
@@ -77,51 +78,73 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Compare partner's current country with the verified document country
   if (partner.country.toLowerCase() === documentCountry.toLowerCase()) {
-    return logAndRespond("Country matches. No action needed.");
-  }
-
-  // Mismatch — reset identity verification, but preserve attemptCount
-  const declineReason =
-    "Your account country no longer matches your verified identity document country. Please re-verify.";
-
-  const { attemptCount } = parseVeriffMetadata(partner.veriffMetadata);
-
-  await prisma.partner.update({
-    where: {
-      id: partner.id,
-    },
-    data: {
-      identityVerificationStatus: null,
-      identityVerifiedAt: null,
-      veriffSessionId: null,
-      veriffMetadata: mergeVeriffMetadata(partner.veriffMetadata, {
-        sessionUrl: null,
-        sessionExpiresAt: null,
-        declineReason,
-        attemptCount,
-      }),
-    },
-  });
-
-  if (partner.email) {
-    await sendEmail({
-      to: partner.email,
-      subject: "Identity re-verification required",
-      headers: {
-        "Idempotency-Key": `country-change-${partner.id}`,
+    if (partner.identityVerifiedAt) {
+      return logAndRespond(
+        "Country matches and partner is already verified. No action needed.",
+      );
+    }
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
       },
-      react: PartnerIdentityVerificationFailed({
-        failureType: "countryChange",
-        failureReasonText: declineReason,
-        partner: {
-          name: partner.name,
-          email: partner.email,
-        },
-      }),
+      data: {
+        identityVerifiedAt: new Date(),
+      },
     });
-  }
+    if (partner.email) {
+      await sendEmail({
+        to: partner.email,
+        subject: "Your identity has been verified",
+        react: PartnerIdentityVerified({
+          partner: {
+            name: partner.name,
+            email: partner.email,
+          },
+        }),
+      });
+    }
+    return logAndRespond("Country matches, verified partner.");
+  } else {
+    // Mismatch — reset identity verification, but preserve attemptCount
+    const declineReason =
+      "Your account country no longer matches your verified identity document country. Please re-verify.";
 
-  return logAndRespond(
-    `Country mismatch detected for partner ${partnerId}. Verification reset and email sent.`,
-  );
+    const { attemptCount } = parseVeriffMetadata(partner.veriffMetadata);
+
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        identityVerificationStatus: null,
+        identityVerifiedAt: null,
+        veriffSessionId: null,
+        veriffMetadata: mergeVeriffMetadata(partner.veriffMetadata, {
+          sessionUrl: null,
+          sessionExpiresAt: null,
+          declineReason,
+          attemptCount,
+        }),
+      },
+    });
+
+    if (partner.email) {
+      await sendEmail({
+        to: partner.email,
+        subject: "Identity re-verification required",
+        react: PartnerIdentityVerificationFailed({
+          failureType: "countryChange",
+          failureReasonText: declineReason,
+          partner: {
+            name: partner.name,
+            email: partner.email,
+          },
+        }),
+      });
+    }
+
+    return logAndRespond(
+      `Country mismatch detected for partner ${partnerId}. Verification reset and email sent.`,
+    );
+  }
 });
