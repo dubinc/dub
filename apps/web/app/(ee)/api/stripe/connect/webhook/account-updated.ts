@@ -54,7 +54,7 @@ export async function accountUpdated(event: Stripe.Event) {
       id: partner.id,
     },
     data: {
-      country,
+      ...(country && { country }),
       ...(business_type && {
         profileType: business_type === "individual" ? "individual" : "company",
       }),
