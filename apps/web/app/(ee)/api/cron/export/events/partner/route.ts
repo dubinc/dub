@@ -54,6 +54,11 @@ export async function POST(req: Request) {
       },
       select: {
         email: true,
+        partners: {
+          select: {
+            assignedLinks: true,
+          },
+        },
       },
     });
 
@@ -65,13 +70,26 @@ export async function POST(req: Request) {
       return logAndRespond(`User ${userId} has no email. Skipping the export.`);
     }
 
+    const assignedLinkIds = user.partners.flatMap((partner) =>
+      partner.assignedLinks.map((link) => link.linkId),
+    );
+
     const { program, links, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId,
         programId,
         include: {
           program: true,
-          links: true,
+          links:
+            assignedLinkIds.length > 0
+              ? {
+                  where: {
+                    id: {
+                      in: assignedLinkIds,
+                    },
+                  },
+                }
+              : true,
         },
       });
 

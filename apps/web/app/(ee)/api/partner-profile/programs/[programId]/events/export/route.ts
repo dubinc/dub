@@ -34,14 +34,28 @@ const MAX_EVENTS_TO_EXPORT = 1000;
 
 // GET /api/partner-profile/programs/[programId]/events/export – get export data for partner profile events
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams, session }) => {
+  async ({
+    partner,
+    params,
+    searchParams,
+    session,
+    partnerUser: { assignedLinkIds },
+  }) => {
     const { program, links, totalCommissions, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
         include: {
           program: true,
-          links: true,
+          links: assignedLinkIds
+            ? {
+                where: {
+                  id: {
+                    in: assignedLinkIds,
+                  },
+                },
+              }
+            : true,
         },
       });
 

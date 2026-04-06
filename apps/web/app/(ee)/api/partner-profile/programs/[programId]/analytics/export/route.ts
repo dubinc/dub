@@ -16,14 +16,27 @@ import JSZip from "jszip";
 
 // GET /api/partner-profile/programs/[programId]/analytics/export – get export data for partner profile analytics
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({
+    partner,
+    params,
+    searchParams,
+    partnerUser: { assignedLinkIds },
+  }) => {
     const { program, links, totalCommissions } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
         include: {
           program: true,
-          links: true,
+          links: assignedLinkIds
+            ? {
+                where: {
+                  id: {
+                    in: assignedLinkIds,
+                  },
+                },
+              }
+            : true,
         },
       });
 
