@@ -232,7 +232,12 @@ export const withPartnerProfile = (
             },
             assignedPrograms: {
               select: {
-                programId: true,
+                program: {
+                  select: {
+                    id: true,
+                    slug: true,
+                  },
+                },
               },
             },
             assignedLinks: {
@@ -273,22 +278,32 @@ export const withPartnerProfile = (
         const assignedProgramIds =
           partnerUser.programAccess === "all"
             ? undefined
-            : partnerUser.assignedPrograms.map(({ programId }) => programId);
+            : partnerUser.assignedPrograms.map(({ program }) => program.id);
+        const assignedProgramSlugs =
+          partnerUser.programAccess === "all"
+            ? []
+            : partnerUser.assignedPrograms.map(({ program }) => program.slug);
         const assignedLinkIds = partnerUser.assignedLinks.map(
           ({ linkId }) => linkId,
         );
 
         // If the user is scoped to specific programs and the route has a programId param,
-        // verify they have access to this program
-        if (
-          params.programId &&
-          assignedProgramIds !== undefined &&
-          !assignedProgramIds.includes(params.programId)
-        ) {
-          throw new DubApiError({
-            code: "not_found",
-            message: "Program not found.",
-          });
+        // verify they have access to this program (param may be program id or slug)
+        if (params.programId && assignedProgramIds !== undefined) {
+          let hasAccess = false;
+
+          if (params.programId.startsWith("prog_")) {
+            hasAccess = assignedProgramIds.includes(params.programId);
+          } else {
+            hasAccess = assignedProgramSlugs.includes(params.programId);
+          }
+
+          if (!hasAccess) {
+            throw new DubApiError({
+              code: "not_found",
+              message: "Program not found.",
+            });
+          }
         }
 
         const {
