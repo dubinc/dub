@@ -10,6 +10,7 @@ import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-cust
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { linkIncludeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import { MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING } from "@/lib/constants/partner-profile";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateRandomName } from "@/lib/names";
@@ -80,16 +81,7 @@ export async function POST(req: Request) {
         programId,
         include: {
           program: true,
-          links:
-            assignedLinkIds.length > 0
-              ? {
-                  where: {
-                    id: {
-                      in: assignedLinkIds,
-                    },
-                  },
-                }
-              : true,
+          links: linkIncludeFilter(assignedLinkIds),
         },
       });
 

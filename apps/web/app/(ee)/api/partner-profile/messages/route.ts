@@ -6,6 +6,9 @@ import {
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
+// TODO:
+// Add program scope filter
+
 // GET /api/partner-profile/messages - get messages grouped by program
 export const GET = withPartnerProfile(
   async ({ partner, searchParams }) => {
