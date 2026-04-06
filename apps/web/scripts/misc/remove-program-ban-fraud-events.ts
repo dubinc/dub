@@ -26,7 +26,7 @@ async function main() {
 
   const fraudEventGroupsWithNoEvents = await prisma.fraudEventGroup.findMany({
     where: {
-      type: "paidTrafficDetected",
+      type: "partnerCrossProgramBan",
       status: "pending",
       fraudEvents: {
         none: {},
