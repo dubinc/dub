@@ -106,7 +106,13 @@ export const POST = withCron(async ({ rawBody }) => {
       status: "approved",
       partner: {
         users: {
-          some: {},
+          some: {
+            notificationPreferences: {
+              is: {
+                monthlyProgramSummary: true,
+              },
+            },
+          },
         },
       },
       links: {
