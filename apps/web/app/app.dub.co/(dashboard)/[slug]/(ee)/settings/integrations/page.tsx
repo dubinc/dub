@@ -1,6 +1,6 @@
 import { IntegrationsList } from "./integrations-list";
 
-export const revalidate = 300; // 5 minutes
+export const revalidate = 0;
 
 export default function IntegrationsPage() {
   return <IntegrationsList />;
