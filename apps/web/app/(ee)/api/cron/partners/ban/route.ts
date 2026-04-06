@@ -1,5 +1,4 @@
 import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
-import { reportCrossProgramBanToNetwork } from "@/lib/api/fraud/report-cross-program-ban-to-network";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
@@ -135,13 +134,6 @@ export const POST = withCron(async ({ rawBody }) => {
     // Queue discount code deletions
     deleteDiscountCodes(links.map((link) => link.discountCode)),
   ]);
-
-  await reportCrossProgramBanToNetwork({
-    partnerId,
-    programId,
-    bannedReason: programEnrollment.bannedReason,
-    bannedAt: programEnrollment.bannedAt,
-  });
 
   // Send email
   if (partner.email) {

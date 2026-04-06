@@ -28,46 +28,6 @@ export async function detectAndRecordFraudApplication({
     },
   });
 
-  // Check if partner has been banned in other programs
-  // indicates cross-program fraud risk
-  if (
-    isFraudRuleEnabled({
-      fraudRules,
-      ruleType: FraudRuleType.partnerCrossProgramBan,
-    })
-  ) {
-    const bannedProgramEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        partnerId: partner.id,
-        programId: {
-          not: program.id,
-        },
-        status: "banned",
-      },
-      select: {
-        programId: true,
-        bannedReason: true,
-        bannedAt: true,
-      },
-    });
-
-    // Create a fraud event for each program that banned the partner
-    if (bannedProgramEnrollments.length > 0) {
-      for (const bannedEnrollment of bannedProgramEnrollments) {
-        fraudEvents.push({
-          programId: program.id,
-          partnerId: partner.id,
-          type: FraudRuleType.partnerCrossProgramBan,
-          sourceProgramId: bannedEnrollment.programId,
-          metadata: {
-            bannedReason: bannedEnrollment.bannedReason,
-            bannedAt: bannedEnrollment.bannedAt,
-          },
-        });
-      }
-    }
-  }
-
   // Check if partner shares the same payoutMethodHash or cryptoWalletAddress with other partners
   // indicates potential duplicate account fraud
   if (
