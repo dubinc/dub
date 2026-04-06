@@ -1,8 +1,12 @@
+import { isLocalDev } from "@/lib/api/environment";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { getIP } from "@/lib/api/utils/get-ip";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withAxiom } from "@/lib/axiom/server";
+import { SINGULAR_IP_RANGES } from "@/lib/integrations/singular/singular-ip-ranges";
 import { trackSingularLeadEvent } from "@/lib/integrations/singular/track-lead";
 import { trackSingularSaleEvent } from "@/lib/integrations/singular/track-sale";
+import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -20,11 +24,7 @@ const singularToDubEvent = {
 
 const supportedEvents = Object.keys(singularToDubEvent);
 
-const authSchema = z.object({
-  dub_token: z
-    .string()
-    .min(1, "dub_token is required")
-    .describe("Global token to identify Singular events."),
+const querySchema = z.object({
   dub_workspace_id: z
     .string()
     .min(1, "dub_workspace_id is required")
@@ -34,30 +34,26 @@ const authSchema = z.object({
     .transform((v) => normalizeWorkspaceId(v)),
 });
 
-const singularWebhookToken = process.env.SINGULAR_WEBHOOK_TOKEN;
-
 // GET /api/singular/webhook – listen to Postback events from Singular
 export const GET = withAxiom(async (req) => {
   try {
-    if (!singularWebhookToken) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "SINGULAR_WEBHOOK_TOKEN is not set in the environment variables.",
-      });
+    if (!isLocalDev) {
+      const ip = await getIP();
+      const isAllowed = SINGULAR_IP_RANGES.some((range) =>
+        isIpInRange(ip, range),
+      );
+
+      if (!isAllowed) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: `IP address ${ip} is not allowed.`,
+        });
+      }
     }
 
     const queryParams = getSearchParams(req.url);
 
-    const { dub_token: token, dub_workspace_id: workspaceId } =
-      authSchema.parse(queryParams);
-
-    if (token !== singularWebhookToken) {
-      throw new DubApiError({
-        code: "unauthorized",
-        message: "Invalid Singular webhook token. Skipping event processing.",
-      });
-    }
+    const { dub_workspace_id: workspaceId } = querySchema.parse(queryParams);
 
     const { event_name: eventName } = queryParams;
 
@@ -96,7 +92,6 @@ export const GET = withAxiom(async (req) => {
 
     const dubEvent = singularToDubEvent[eventName];
 
-    delete queryParams.dub_token;
     delete queryParams.dub_workspace_id;
 
     if (dubEvent === "lead") {
