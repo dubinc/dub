@@ -41,7 +41,14 @@ export async function accountUpdated(event: Stripe.Event) {
     return `Partner with stripeConnectId ${account.id} not found, skipping...`;
   }
 
-  // Sync country and business_type unconditionally
+  const { payoutsEnabledAt, defaultPayoutMethod } =
+    await recomputePartnerPayoutState(partner);
+
+  const payoutStateChanged =
+    partner.payoutsEnabledAt !== payoutsEnabledAt ||
+    partner.defaultPayoutMethod !== defaultPayoutMethod;
+
+  // Always sync country and profileType; sync payout state only if changed
   await prisma.partner.update({
     where: {
       id: partner.id,
@@ -51,29 +58,16 @@ export async function accountUpdated(event: Stripe.Event) {
       ...(business_type && {
         profileType: business_type === "individual" ? "individual" : "company",
       }),
+      ...(payoutStateChanged && {
+        payoutsEnabledAt,
+        defaultPayoutMethod,
+      }),
     },
   });
-
-  const { payoutsEnabledAt, defaultPayoutMethod } =
-    await recomputePartnerPayoutState(partner);
-
-  const payoutStateChanged =
-    partner.payoutsEnabledAt !== payoutsEnabledAt ||
-    partner.defaultPayoutMethod !== defaultPayoutMethod;
 
   if (!payoutStateChanged) {
     return `No change in payout state for partner ${partner.email} (${partner.stripeConnectId}), skipping...`;
   }
-
-  await prisma.partner.update({
-    where: {
-      id: partner.id,
-    },
-    data: {
-      payoutsEnabledAt,
-      defaultPayoutMethod,
-    },
-  });
 
   if (partner.payoutsEnabledAt && !payoutsEnabledAt) {
     return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt null`;
