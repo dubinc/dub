@@ -1,5 +1,6 @@
 import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
 import { partnerProfilePayoutsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { PartnerPayoutResponseSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
@@ -8,7 +9,7 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/payouts - get all payouts for a partner
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams }) => {
+  async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
     const {
       programId,
       status,
@@ -22,6 +23,7 @@ export const GET = withPartnerProfile(
       where: {
         partnerId: partner.id,
         ...(programId && { programId }),
+        ...programScopeFilter(assignedProgramIds),
         ...(status && { status }),
       },
       include: {
