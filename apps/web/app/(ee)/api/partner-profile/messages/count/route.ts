@@ -5,17 +5,12 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages/count - count messages for a partner
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
+  async ({ partner, searchParams }) => {
     const { unread } = countMessagesQuerySchema.parse(searchParams);
 
     const count = await prisma.message.count({
       where: {
         partnerId: partner.id,
-        ...(assignedProgramIds.length > 0 && {
-          programId: {
-            in: assignedProgramIds,
-          },
-        }),
         ...(unread !== undefined && {
           // Only count messages from the program
           senderPartnerId: null,
@@ -31,5 +26,8 @@ export const GET = withPartnerProfile(
     });
 
     return NextResponse.json(count);
+  },
+  {
+    requiredPermission: "messages.read",
   },
 );

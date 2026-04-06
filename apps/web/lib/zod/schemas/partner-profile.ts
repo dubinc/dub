@@ -8,6 +8,7 @@ import {
   PartnerPayoutMethod,
   PartnerProfileType,
   PartnerRole,
+  ProgramAccessScope,
   ProgramEnrollmentStatus,
   ReferralStatus,
 } from "@dub/prisma/client";
@@ -189,6 +190,7 @@ export const getPartnerUsersQuerySchema = z.object({
 });
 
 export const assignProgramInputSchema = z.object({
+  programAccess: z.enum(ProgramAccessScope),
   programIds: z.array(z.string()),
 });
 
@@ -221,6 +223,7 @@ export const partnerUserSchema = z.object({
   name: z.string().nullable(),
   email: z.string(),
   role: z.enum(PartnerRole),
+  programAccess: z.enum(ProgramAccessScope),
   image: z.string().nullish(),
   createdAt: z.date(),
   programs: z.array(

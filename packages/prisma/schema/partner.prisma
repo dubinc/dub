@@ -4,6 +4,11 @@ enum PartnerRole {
   viewer
 }
 
+enum ProgramAccessScope {
+  all
+  restricted
+}
+
 enum PartnerProfileType {
   individual
   company
@@ -100,12 +105,13 @@ model PartnerInvite {
 }
 
 model PartnerUser {
-  id        String      @id @default(cuid())
-  role      PartnerRole @default(member)
-  userId    String
-  partnerId String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id            String             @id @default(cuid())
+  role          PartnerRole        @default(member)
+  programAccess ProgramAccessScope @default(all)
+  userId        String
+  partnerId     String
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)

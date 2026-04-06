@@ -83,7 +83,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: "/profile",
     active: pathname.startsWith("/profile"),
   },
-  ...(partnerRole && hasPermission(partnerRole, "messages.send")
+  ...(partnerRole && hasPermission(partnerRole, "messages.read")
     ? [
         {
           name: "Messages",
@@ -215,7 +215,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/programs/${programSlug}/links`,
             locked: isUnapproved,
           },
-          ...(partnerRole && hasPermission(partnerRole, "messages.send")
+          ...(partnerRole && hasPermission(partnerRole, "messages.read")
             ? [
                 {
                   name: "Messages",

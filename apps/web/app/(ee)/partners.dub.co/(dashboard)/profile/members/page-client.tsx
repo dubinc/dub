@@ -176,6 +176,7 @@ export function ProfileMembersPageClient() {
         cell: ({ row }) => (
           <PartnerMemberProgramsCell
             programs={row.original.programs}
+            programAccess={row.original.programAccess}
             onClick={() => {
               setSelectedUserForPrograms(row.original);
               setShowProgramsSheet(true);

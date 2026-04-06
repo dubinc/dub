@@ -1,4 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
 import { partnerProfileProgramsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -13,11 +14,7 @@ export const GET = withPartnerProfile(
       where: {
         partnerId: partner.id,
         ...(status && { status }),
-        ...(assignedProgramIds.length > 0 && {
-          programId: {
-            in: assignedProgramIds,
-          },
-        }),
+        ...programScopeFilter(assignedProgramIds),
       },
     });
 

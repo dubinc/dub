@@ -29,6 +29,9 @@ function PartnerMemberProgramsSheetContent({
   const isTargetOwner = user.role === "owner";
   const canEdit = isCurrentUserOwner && !isTargetOwner;
 
+  const [scopeMode, setScopeMode] = useState<"all" | "restricted">(
+    user.programAccess,
+  );
   const [accessState, setAccessState] = useState<Record<string, boolean>>({});
 
   // Initialize access state from user's assigned programs when enrollments load
@@ -36,7 +39,7 @@ function PartnerMemberProgramsSheetContent({
     if (!programEnrollments) return;
 
     const ids = new Set(user.programs.map((p) => p.id));
-    const allAccess = isTargetOwner || ids.size === 0;
+    const allAccess = isTargetOwner || user.programAccess === "all";
 
     const initial: Record<string, boolean> = {};
     for (const enrollment of programEnrollments) {
@@ -44,26 +47,32 @@ function PartnerMemberProgramsSheetContent({
         allAccess || ids.has(enrollment.programId);
     }
     setAccessState(initial);
-  }, [programEnrollments, user.programs, isTargetOwner]);
+    setScopeMode(isTargetOwner ? "all" : user.programAccess);
+  }, [programEnrollments, user.programs, user.programAccess, isTargetOwner]);
 
-  const assignedProgramIds = new Set(user.programs.map((p) => p.id));
-  const hasAllAccess = assignedProgramIds.size === 0;
+  const hasChanges = (() => {
+    if (scopeMode !== user.programAccess) return true;
+    if (scopeMode === "all") return false;
 
-  const hasChanges = programEnrollments
-    ? programEnrollments.some((enrollment) => {
-        const current = accessState[enrollment.programId] ?? false;
-        const original =
-          hasAllAccess || assignedProgramIds.has(enrollment.programId);
-        return current !== original;
-      })
-    : false;
+    // Check if individual program selections changed
+    if (!programEnrollments) return false;
+    const assignedProgramIds = new Set(user.programs.map((p) => p.id));
+    return programEnrollments.some((enrollment) => {
+      const current = accessState[enrollment.programId] ?? false;
+      const original = assignedProgramIds.has(enrollment.programId);
+      return current !== original;
+    });
+  })();
 
   const handleSave = async () => {
     if (!user.id) return;
 
-    const programIds = Object.entries(accessState)
-      .filter(([, hasAccess]) => hasAccess)
-      .map(([id]) => id);
+    const programIds =
+      scopeMode === "all"
+        ? []
+        : Object.entries(accessState)
+            .filter(([, hasAccess]) => hasAccess)
+            .map(([id]) => id);
 
     setIsSaving(true);
 
@@ -71,7 +80,7 @@ function PartnerMemberProgramsSheetContent({
       "@put/api/partner-profile/users/:userId/programs",
       {
         params: { userId: user.id },
-        body: { programIds },
+        body: { programAccess: scopeMode, programIds },
         onSuccess: async () => {
           toast.success("Program assignments updated!");
           await mutate(
@@ -108,6 +117,24 @@ function PartnerMemberProgramsSheetContent({
       </div>
 
       <div className="flex flex-1 flex-col overflow-y-auto">
+        {canEdit && (
+          <div className="border-b border-neutral-200 px-6 py-4">
+            <label className="text-sm font-medium text-neutral-700">
+              Program access
+            </label>
+            <select
+              className="mt-1.5 w-full cursor-pointer appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300"
+              value={scopeMode}
+              onChange={(e) =>
+                setScopeMode(e.target.value as "all" | "restricted")
+              }
+            >
+              <option value="all">All programs</option>
+              <option value="restricted">Restricted</option>
+            </select>
+          </div>
+        )}
+
         <div className="flex flex-col px-4 py-6">
           {isLoading ? (
             [...Array(3)].map((_, i) => <ProgramRowPlaceholder key={i} />)
@@ -120,8 +147,11 @@ function PartnerMemberProgramsSheetContent({
               <ProgramRow
                 key={enrollment.programId}
                 program={enrollment.program}
-                hasAccess={accessState[enrollment.programId] ?? false}
-                canEdit={canEdit}
+                hasAccess={
+                  scopeMode === "all" ||
+                  (accessState[enrollment.programId] ?? false)
+                }
+                canEdit={canEdit && scopeMode === "restricted"}
                 onChange={(hasAccess) =>
                   setAccessState((prev) => ({
                     ...prev,

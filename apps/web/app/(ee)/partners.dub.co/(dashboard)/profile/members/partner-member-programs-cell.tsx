@@ -29,9 +29,11 @@ function ProgramsHover({
 
 export function PartnerMemberProgramsCell({
   programs,
+  programAccess,
   onClick,
 }: {
   programs: PartnerUserProps["programs"];
+  programAccess: PartnerUserProps["programAccess"];
   onClick?: () => void;
 }) {
   const { programEnrollments, isLoading: enrollmentsLoading } =
@@ -43,9 +45,9 @@ export function PartnerMemberProgramsCell({
     logo: e.program.logo,
   }));
 
-  const displayPrograms = programs.length > 0 ? programs : fromEnrollments;
+  const displayPrograms = programAccess === "all" ? fromEnrollments : programs;
 
-  if (enrollmentsLoading && programs.length === 0) {
+  if (enrollmentsLoading && programAccess === "all") {
     return (
       <div className="inline-flex rounded-full bg-neutral-100 px-1 py-1">
         <div
@@ -67,10 +69,15 @@ export function PartnerMemberProgramsCell({
   }
 
   const visible = displayPrograms.slice(0, MAX_VISIBLE_LOGOS);
-  const extra =
-    displayPrograms.length > MAX_VISIBLE_LOGOS
-      ? Math.min(displayPrograms.length - MAX_VISIBLE_LOGOS, MAX_OVERFLOW_LABEL)
-      : 0;
+  const hiddenCount = Math.max(0, displayPrograms.length - MAX_VISIBLE_LOGOS);
+  const extra = hiddenCount > 0 ? Math.min(hiddenCount, MAX_OVERFLOW_LABEL) : 0;
+
+  const overflowLabel =
+    programAccess === "all" && hiddenCount > 0
+      ? hiddenCount > MAX_OVERFLOW_LABEL
+        ? `All ${MAX_OVERFLOW_LABEL}+`
+        : `All ${hiddenCount}`
+      : null;
 
   return (
     <ProgramsHover onClick={onClick}>
@@ -89,10 +96,11 @@ export function PartnerMemberProgramsCell({
         {extra > 0 ? (
           <div
             className={cn(
-              "-ml-1.5 flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200 text-xs font-medium text-neutral-600",
+              "-ml-1.5 flex h-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200 text-xs font-medium text-neutral-600",
+              overflowLabel ? "min-w-6 px-1.5" : "size-6",
             )}
           >
-            +{extra}
+            {overflowLabel ?? `+${extra}`}
           </div>
         ) : null}
       </div>

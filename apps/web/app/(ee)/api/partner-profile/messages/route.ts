@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages - get messages grouped by program
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
+  async ({ partner, searchParams }) => {
     const {
       programSlug,
       sortBy,
@@ -27,12 +27,6 @@ export const GET = withPartnerProfile(
             status: "banned",
           },
         },
-        ...(assignedProgramIds.length > 0 && {
-          id: {
-            in: assignedProgramIds,
-          },
-        }),
-
         ...(programSlug
           ? {
               slug: programSlug,
@@ -129,5 +123,8 @@ export const GET = withPartnerProfile(
           })),
       ),
     );
+  },
+  {
+    requiredPermission: "messages.read",
   },
 );

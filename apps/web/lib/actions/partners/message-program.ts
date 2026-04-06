@@ -21,7 +21,7 @@ export const messageProgramAction = authPartnerActionClient
 
     throwIfNoPermission({
       role: partnerUser.role,
-      permission: "messages.send",
+      permission: "messages.write",
     });
 
     const program = await prisma.program.findFirstOrThrow({

@@ -13,7 +13,7 @@ import * as z from "zod/v4";
 export const PUT = withPartnerProfile(
   async ({ partner, params, req }) => {
     const { userId } = params;
-    const { programIds } = assignProgramInputSchema.parse(
+    const { programAccess, programIds } = assignProgramInputSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -41,7 +41,7 @@ export const PUT = withPartnerProfile(
     }
 
     // Validate all programIds are programs the partner is enrolled in
-    if (programIds.length > 0) {
+    if (programAccess === "restricted" && programIds.length > 0) {
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           partnerId: partner.id,
@@ -68,18 +68,6 @@ export const PUT = withPartnerProfile(
       }
     }
 
-    // If all enrolled programs are selected, normalize to empty (= "all access")
-    const totalEnrollments = await prisma.programEnrollment.count({
-      where: {
-        partnerId: partner.id,
-      },
-    });
-
-    const effectiveProgramIds =
-      programIds.length > 0 && programIds.length >= totalEnrollments
-        ? []
-        : programIds;
-
     // Replace all program assignments in a transaction
     // Also remove link assignments for programs that are being removed
     const result = await prisma.$transaction(async (tx) => {
@@ -93,10 +81,22 @@ export const PUT = withPartnerProfile(
         },
       });
 
+      const effectiveProgramIds = programAccess === "all" ? [] : programIds;
+
       const newProgramIdSet = new Set(effectiveProgramIds);
       const removedProgramIds = currentAssignments
         .map((a) => a.programId)
         .filter((id) => !newProgramIdSet.has(id));
+
+      // Update programAccess on the PartnerUser
+      await tx.partnerUser.update({
+        where: {
+          id: targetUser.id,
+        },
+        data: {
+          programAccess,
+        },
+      });
 
       // Delete all current program assignments
       await tx.partnerUserProgram.deleteMany({
@@ -117,7 +117,7 @@ export const PUT = withPartnerProfile(
         });
       }
 
-      // Create new program assignments
+      // Create new program assignments (only for restricted access)
       if (effectiveProgramIds.length > 0) {
         await tx.partnerUserProgram.createMany({
           data: effectiveProgramIds.map((programId) => ({

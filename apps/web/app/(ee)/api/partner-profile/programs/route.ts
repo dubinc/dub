@@ -1,4 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
 import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
@@ -19,11 +20,7 @@ export const GET = withPartnerProfile(
         program: {
           deactivatedAt: null,
         },
-        ...(assignedProgramIds.length > 0 && {
-          programId: {
-            in: assignedProgramIds,
-          },
-        }),
+        ...programScopeFilter(assignedProgramIds),
       },
       include: {
         links: {

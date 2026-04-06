@@ -1,4 +1,5 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { PayoutStatus, Prisma } from "@dub/prisma/client";
@@ -13,11 +14,7 @@ export const GET = withPartnerProfile(
     const where: Prisma.PayoutWhereInput = {
       partnerId: partner.id,
       ...(programId && { programId }),
-      ...(assignedProgramIds.length > 0 && {
-        programId: {
-          in: assignedProgramIds,
-        },
-      }),
+      ...programScopeFilter(assignedProgramIds),
     };
 
     if (groupBy === "status") {

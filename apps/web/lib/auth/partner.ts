@@ -32,8 +32,11 @@ interface WithPartnerProfileHandler {
     headers?: Headers;
     session: Session;
     partner: Omit<PartnerProps, "role" | "userId">;
-    partnerUser: Pick<PartnerUser, "id" | "userId" | "role"> & {
-      assignedProgramIds: string[];
+    partnerUser: Pick<
+      PartnerUser,
+      "id" | "userId" | "role" | "programAccess"
+    > & {
+      assignedProgramIds: string[] | undefined;
       assignedLinkIds: string[];
     };
   }): Promise<Response>;
@@ -267,9 +270,10 @@ export const withPartnerProfile = (
           }
         }
 
-        const assignedProgramIds = partnerUser.assignedPrograms.map(
-          ({ programId }) => programId,
-        );
+        const assignedProgramIds =
+          partnerUser.programAccess === "all"
+            ? undefined
+            : partnerUser.assignedPrograms.map(({ programId }) => programId);
         const assignedLinkIds = partnerUser.assignedLinks.map(
           ({ linkId }) => linkId,
         );
@@ -278,7 +282,7 @@ export const withPartnerProfile = (
         // verify they have access to this program
         if (
           params.programId &&
-          assignedProgramIds.length > 0 &&
+          assignedProgramIds !== undefined &&
           !assignedProgramIds.includes(params.programId)
         ) {
           throw new DubApiError({
@@ -317,6 +321,7 @@ export const withPartnerProfile = (
             id: partnerUser.id,
             userId: partnerUser.userId,
             role: partnerUser.role,
+            programAccess: partnerUser.programAccess,
             assignedProgramIds,
             assignedLinkIds,
           },
