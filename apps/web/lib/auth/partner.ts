@@ -282,7 +282,7 @@ export const withPartnerProfile = (
             : partnerUser.assignedPrograms.map(({ program }) => program.id);
         const assignedProgramSlugs =
           partnerUser.programAccess === "all"
-            ? []
+            ? undefined
             : partnerUser.assignedPrograms.map(({ program }) => program.slug);
         const assignedLinkIds = partnerUser.assignedLinks.map(
           ({ linkId }) => linkId,
@@ -290,13 +290,17 @@ export const withPartnerProfile = (
 
         // If the user is scoped to specific programs and the route has a programId param,
         // verify they have access to this program (param may be program id or slug)
-        if (params.programId && assignedProgramIds !== undefined) {
+        if (
+          params.programId &&
+          assignedProgramIds !== undefined &&
+          assignedProgramSlugs !== undefined
+        ) {
           let hasAccess = false;
 
           if (params.programId.startsWith("prog_")) {
             hasAccess = assignedProgramIds.includes(params.programId);
           } else {
-            hasAccess = assignedProgramSlugs.includes(params.programId);
+            hasAccess = assignedProgramSlugs?.includes(params.programId);
           }
 
           if (!hasAccess) {
