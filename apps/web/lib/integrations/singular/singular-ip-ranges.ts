@@ -1,3 +1,4 @@
+// @see: https://support.singular.net/hc/en-us/articles/360058106812-Postback-Server-IP-Addresses
 export const SINGULAR_IP_RANGES = [
   "198.134.6.0/23",
   "44.239.146.125/32",
