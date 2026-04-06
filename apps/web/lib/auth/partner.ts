@@ -37,6 +37,7 @@ interface WithPartnerProfileHandler {
       "id" | "userId" | "role" | "programAccess"
     > & {
       assignedProgramIds: string[] | undefined;
+      assignedProgramSlugs: string[] | undefined;
       assignedLinkIds: string[] | undefined;
     };
   }): Promise<Response>;
@@ -338,6 +339,7 @@ export const withPartnerProfile = (
             role: partnerUser.role,
             programAccess: partnerUser.programAccess,
             assignedProgramIds,
+            assignedProgramSlugs,
             assignedLinkIds:
               assignedLinkIds.length > 0 ? assignedLinkIds : undefined,
           },
