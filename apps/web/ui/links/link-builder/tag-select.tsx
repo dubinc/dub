@@ -92,10 +92,12 @@ export const TagSelect = memo(() => {
     [availableTags],
   );
 
-  const selectedTags = useMemo(
-    () => tags.map((tag) => getTagOption(tag)),
-    [tags],
-  );
+  const selectedTags = useMemo(() => {
+    const resolved = (tags ?? []).filter(
+      (tag): tag is TagProps => tag != null && tag.id != null,
+    );
+    return resolved.map((tag) => getTagOption(tag));
+  }, [tags]);
 
   useLinkBuilderKeyboardShortcut("t", () => setIsOpen(true), {
     priority: 2,
@@ -172,15 +174,11 @@ export const TagSelect = memo(() => {
         selected={selectedTags}
         setSelected={(newTags) => {
           const selectedIds = newTags.map(({ value }) => value);
-          setValue(
-            "tags",
-            selectedIds.map((id) =>
-              [...(availableTags || []), ...(tags || [])]?.find(
-                (t) => t.id === id,
-              ),
-            ),
-            { shouldDirty: true },
-          );
+          const merged = [...(availableTags ?? []), ...(tags ?? [])];
+          const nextTags = selectedIds
+            .map((id) => merged.find((t) => t?.id === id))
+            .filter((t): t is TagProps => t != null);
+          setValue("tags", nextTags, { shouldDirty: true });
           setSuggestedTags((tags) =>
             tags.filter(({ id }) => !selectedIds.includes(id)),
           );
