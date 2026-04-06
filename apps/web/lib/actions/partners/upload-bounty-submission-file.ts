@@ -23,6 +23,7 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
       role: partnerUser.role,
       permission: "bounties.submit",
     });
+
     const { programId, bountyId, fileName, contentType, contentLength } =
       parsedInput;
 
