@@ -1,8 +1,8 @@
 "use server";
 
-import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { getLinkedInPost } from "@/lib/api/scrape-creators/get-linkedin-post";
 import { getSocialProfile } from "@/lib/api/scrape-creators/get-social-profile";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { ratelimit } from "@/lib/upstash";
 import { redis } from "@/lib/upstash/redis";
 import { prisma } from "@dub/prisma";
