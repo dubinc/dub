@@ -100,7 +100,7 @@ export async function accountUpdated(event: Stripe.Event) {
       ...(business_type && {
         profileType: business_type === "individual" ? "individual" : "company",
       }),
-      ...(partnerChangeHistoryLog && {
+      ...(partnerChangeHistoryLog.length > 0 && {
         changeHistoryLog: partnerChangeHistoryLog,
       }),
       ...(payoutStateChanged && {
