@@ -12,12 +12,12 @@ import { DubApiError } from "@/lib/api/errors";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { partnerProgramSummaryCohortWhere } from "../../cron/partner-program-summary/partner-program-summary-cohort-where";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+import { partnerProgramSummaryCohortWhere } from "../../cron/partner-program-summary/partner-program-summary-cohort-where";
 import { assertE2EWorkspace } from "../guard";
 
 const postBodySchema = z.object({
@@ -117,7 +117,13 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   };
 
   if (searchParams.partnerId) {
-    payload.eligible = partnerIds.includes(searchParams.partnerId);
+    const exists = await prisma.programEnrollment.count({
+      where: {
+        ...where,
+        partnerId: searchParams.partnerId,
+      },
+    });
+    payload.eligible = exists > 0;
   }
 
   return NextResponse.json(payload);
