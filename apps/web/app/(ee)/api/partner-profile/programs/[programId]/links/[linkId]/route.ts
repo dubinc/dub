@@ -14,12 +14,25 @@ import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
 export const PATCH = withPartnerProfile(
-  async ({ partner, params, req, session }) => {
+  async ({
+    partner,
+    params,
+    req,
+    session,
+    partnerUser: { assignedLinkIds },
+  }) => {
     const { url, key, comments } = createPartnerLinkSchema
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
     const { programId, linkId } = params;
+
+    if (assignedLinkIds && !assignedLinkIds.includes(linkId)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not authorized to access this link.",
+      });
+    }
 
     const {
       program,
@@ -160,8 +173,15 @@ export const PATCH = withPartnerProfile(
 
 // DELETE /api/partner-profile/[programId]/links/[linkId] - delete a link for a partner
 export const DELETE = withPartnerProfile(
-  async ({ partner, params }) => {
+  async ({ partner, params, partnerUser: { assignedLinkIds } }) => {
     const { programId, linkId } = params;
+
+    if (assignedLinkIds && !assignedLinkIds.includes(linkId)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not authorized to access this link.",
+      });
+    }
 
     const { links, status } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,

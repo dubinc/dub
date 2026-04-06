@@ -50,6 +50,7 @@ export const POST = withSession(async ({ session }) => {
         userId: session.user.id,
         role: invite.role,
         partnerId: partner.id,
+        programAccess: "all",
         notificationPreferences: {
           create: {},
         },

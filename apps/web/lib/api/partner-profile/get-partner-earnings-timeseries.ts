@@ -68,7 +68,7 @@ export async function getPartnerEarningsTimeseries({
           ${type ? Prisma.sql`AND type = ${type}` : Prisma.sql``}
           ${payoutId ? Prisma.sql`AND payoutId = ${payoutId}` : Prisma.sql``}
           ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
-          ${linkIds ? Prisma.sql`AND linkId IN (${Prisma.join(linkIds)})` : Prisma.sql``}
+          ${linkIds && linkIds.length > 0 ? Prisma.sql`AND linkId IN (${Prisma.join(linkIds)})` : Prisma.sql``}
           ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
           ${status ? Prisma.sql`AND status = ${status}` : Prisma.sql``}
           GROUP BY start${groupBy ? (groupBy === "type" ? Prisma.sql`, type` : Prisma.sql`, linkId`) : Prisma.sql``}
