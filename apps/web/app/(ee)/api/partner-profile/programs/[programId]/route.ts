@@ -1,5 +1,6 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { linkIncludeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { Reward } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -13,15 +14,7 @@ export const GET = withPartnerProfile(
       include: {
         program: true,
         partner: true,
-        links: assignedLinkIds
-          ? {
-              where: {
-                id: {
-                  in: assignedLinkIds,
-                },
-              },
-            }
-          : true,
+        links: linkIncludeFilter(assignedLinkIds),
         clickReward: true,
         leadReward: true,
         saleReward: true,

@@ -5,6 +5,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { linkIncludeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   createPartnerLinkSchema,
@@ -22,15 +23,7 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
       programId: params.programId,
       include: {
-        links: assignedLinkIds
-          ? {
-              where: {
-                id: {
-                  in: assignedLinkIds,
-                },
-              },
-            }
-          : true,
+        links: linkIncludeFilter(assignedLinkIds),
         discountCodes: true,
       },
     });

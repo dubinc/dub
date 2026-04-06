@@ -3,6 +3,7 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { linkIncludeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
@@ -26,15 +27,7 @@ export const GET = withPartnerProfile(
         programId: params.programId,
         include: {
           program: true,
-          links: assignedLinkIds
-            ? {
-                where: {
-                  id: {
-                    in: assignedLinkIds,
-                  },
-                },
-              }
-            : true,
+          links: linkIncludeFilter(assignedLinkIds),
         },
       });
 

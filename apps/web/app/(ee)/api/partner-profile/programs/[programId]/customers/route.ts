@@ -3,6 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { linkScopeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
@@ -65,7 +66,7 @@ export const GET = withPartnerProfile(
         projectId: program.workspaceId,
         ...(country && { country }),
         ...(linkId && { linkId }),
-        ...(assignedLinkIds ? { linkId: { in: assignedLinkIds } } : {}),
+        ...linkScopeFilter(assignedLinkIds),
         // Only allow search if customer data sharing is enabled
         ...(search && customerDataSharingEnabledAt
           ? search.includes("@")
