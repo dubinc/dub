@@ -84,6 +84,7 @@ export function Popover({
   return (
     <PopoverPrimitive.Root open={openPopover} onOpenChange={setOpenPopover}>
       {anchor &&
+        typeof document !== "undefined" &&
         createPortal(
           <PopoverPrimitive.Anchor asChild>{anchor}</PopoverPrimitive.Anchor>,
           document.body,
