@@ -237,10 +237,8 @@ const updatedComplianceFieldsChecks = async ({
       changedAt: new Date(),
     });
 
-    if (
-      partner.identityVerificationStatus === "approved" &&
-      partner.identityVerifiedAt
-    ) {
+    // if there was an existing veriff session, trigger a country change verification
+    if (partner.veriffSessionId) {
       waitUntil(
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,

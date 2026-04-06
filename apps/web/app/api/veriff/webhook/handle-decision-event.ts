@@ -31,7 +31,6 @@ export const handleDecisionEvent = async ({
   const { id, status, decisionTime, reason, attemptId } = verification;
 
   let effectiveStatus = status;
-  let effectiveReason = reason || null;
 
   const partner = await prisma.partner.findUnique({
     where: {
@@ -55,13 +54,16 @@ export const handleDecisionEvent = async ({
     return logAndRespond("[Veriff Webhook] Partner already verified.");
   }
 
-  // undefined = don't update, null = clear the field
-  let identityVerifiedAt: Date | null | undefined = undefined;
-  let veriffSessionId: string | null | undefined = undefined;
+  // since we're skipping verified partners, by default identityVerifiedAt is null
+  let identityVerifiedAt: Date | null = null;
+
   let { sessionUrl, attemptCount, declineReason, sessionExpiresAt } =
     parseVeriffMetadata(partner.veriffMetadata);
 
-  // If the verification was approved, compute the identity hash and check for duplicates and country mismatch
+  // set decline reason to the reason from the webhook
+  declineReason = reason;
+
+  // If the verification was approved, check for country mismatch
   if (effectiveStatus === "approved") {
     const isCountryMismatch = checkCountryMismatch({
       partner,
@@ -70,31 +72,16 @@ export const handleDecisionEvent = async ({
 
     if (isCountryMismatch) {
       effectiveStatus = "declined";
-      effectiveReason = `Your document country (${verification.document?.country}) does not match your account country (${partner.country})`;
+      declineReason = `Your document country (${verification.document?.country}) does not match your account country (${partner.country})`;
     } else {
-      declineReason = null;
-      sessionExpiresAt = null;
-      sessionUrl = null;
       identityVerifiedAt = decisionTime ? new Date(decisionTime) : new Date();
     }
   }
 
-  // If the verification failed, reset the session
-  if (["expired", "abandoned", "declined"].includes(effectiveStatus)) {
-    identityVerifiedAt = null;
-    veriffSessionId = null;
-    sessionExpiresAt = null;
+  // if not resubmission, clear the sessionUrl and sessionExpiresAt and increment the attempt count
+  if (effectiveStatus !== "resubmission_requested") {
     sessionUrl = null;
-    declineReason = effectiveReason;
-  }
-
-  // Can reuse the same session for resubmission
-  if (effectiveStatus === "resubmission_requested") {
-    identityVerifiedAt = null;
-    declineReason = effectiveReason;
-  }
-
-  if (["approved", "declined"].includes(effectiveStatus)) {
+    sessionExpiresAt = null;
     attemptCount = attemptCount + 1;
   }
 
@@ -113,7 +100,6 @@ export const handleDecisionEvent = async ({
     data: {
       identityVerificationStatus: veriffStatusMap[effectiveStatus],
       identityVerifiedAt,
-      veriffSessionId,
       veriffMetadata,
     },
     select: {
@@ -126,7 +112,7 @@ export const handleDecisionEvent = async ({
   await sendEmailNotification({
     partner: updatedPartner,
     attemptId,
-    failureReasonText: effectiveReason || "",
+    failureReasonText: declineReason || "",
   });
 
   return logAndRespond("[Veriff Webhook] Decision event handled successfully.");

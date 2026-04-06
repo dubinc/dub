@@ -40,14 +40,6 @@ export const POST = withCron(async ({ rawBody }) => {
     return logAndRespond("Partner not found.");
   }
 
-  // Exit if partner is no longer approved
-  if (
-    partner.identityVerificationStatus !== "approved" ||
-    !partner.identityVerifiedAt
-  ) {
-    return logAndRespond("Partner is not currently verified. Skipping.");
-  }
-
   if (!partner.veriffSessionId) {
     return logAndRespond("No Veriff session ID found. Skipping.");
   }
@@ -65,9 +57,8 @@ export const POST = withCron(async ({ rawBody }) => {
     );
 
     documentCountry =
-      (
-        verification.document?.country || verification.person?.nationality
-      )?.toUpperCase() ?? null;
+      (verification.document?.country || verification.person?.nationality) ??
+      null;
   } catch (error) {
     console.error(
       `Failed to fetch Veriff decision for partner ${partnerId}:`,
@@ -85,7 +76,7 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   // Compare partner's current country with the verified document country
-  if (partner.country.toUpperCase() === documentCountry) {
+  if (partner.country.toLowerCase() === documentCountry.toLowerCase()) {
     return logAndRespond("Country matches. No action needed.");
   }
 
@@ -98,17 +89,14 @@ export const POST = withCron(async ({ rawBody }) => {
   await prisma.partner.update({
     where: {
       id: partner.id,
-      identityVerifiedAt: {
-        not: null,
-      },
     },
     data: {
       identityVerificationStatus: null,
       identityVerifiedAt: null,
       veriffSessionId: null,
       veriffMetadata: mergeVeriffMetadata(partner.veriffMetadata, {
-        sessionExpiresAt: null,
         sessionUrl: null,
+        sessionExpiresAt: null,
         declineReason,
         attemptCount,
       }),

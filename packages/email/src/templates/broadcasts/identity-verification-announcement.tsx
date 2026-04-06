@@ -34,7 +34,8 @@ export default function IdentityVerificationAnnouncement({
         `}</style>
       </Head>
       <Preview>
-        Build trust with programs and improve your approval chances
+        To keep our partner network secure, please verify your identity at your
+        earliest convenience.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -57,8 +58,8 @@ export default function IdentityVerificationAnnouncement({
             </Heading>
 
             <Text className="mx-auto mb-10 mt-0 max-w-[436px] text-center text-base leading-6 tracking-tight text-neutral-600">
-              We need you to verify your identity to keep your account secure
-              and compliant.
+              To keep our partner network secure, please verify your identity at
+              your earliest convenience.
             </Text>
 
             <Section className="mb-10 text-center">
@@ -75,7 +76,7 @@ export default function IdentityVerificationAnnouncement({
             </Section>
 
             <Text className="text mx-auto mb-8 mt-0 max-w-[420px] text-center text-base text-neutral-600">
-              Verified profiles also build trust with programs and can improve
+              Verifying your identity builds trust with programs and improves
               your approval chances.
             </Text>
 
@@ -87,6 +88,12 @@ export default function IdentityVerificationAnnouncement({
                 Start verification
               </Link>
             </Section>
+
+            <Text className="mt-3 text-center text-xs text-neutral-500">
+              Identity verification is powered by Veriff.
+              <br />
+              No personal data is stored on Dub.
+            </Text>
 
             <Section className="mx-auto max-w-[400px] text-center">
               <Footer email={email} />

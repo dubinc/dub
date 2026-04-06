@@ -42,7 +42,7 @@ export const startIdentityVerificationAction = authPartnerActionClient.action(
       veriffMetadata.attemptCount >= MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS
     ) {
       throw new Error(
-        "You've reached the maximum number of identity verification attempts. Please contact support if you need help.",
+        "You've reached the maximum number of identity verification attempts. Please contact support: https://dub.co/support",
       );
     }
 
