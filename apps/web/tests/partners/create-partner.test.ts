@@ -1,6 +1,6 @@
 import { generateRandomName } from "@/lib/names";
 import { EnrolledPartnerSchema as EnrolledPartnerSchemaDate } from "@/lib/zod/schemas/partners";
-import { Link, Partner } from "@dub/prisma/client";
+import { Partner } from "@dub/prisma/client";
 import { R2_URL } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { describe, expect, test } from "vitest";
@@ -28,7 +28,7 @@ describe.sequential("POST /partners", async () => {
       groupId: E2E_PARTNER_GROUP.id,
     };
 
-    const { data, status } = await http.post<Link>({
+    const { data, status } = await http.post<Partner>({
       path: "/partners",
       body: partner,
     });
@@ -49,7 +49,7 @@ describe.sequential("POST /partners", async () => {
       country: "US",
     };
 
-    const { data, status } = await http.post<Link>({
+    const { data, status } = await http.post<Partner>({
       path: "/partners",
       body: {
         ...partner,
@@ -77,7 +77,7 @@ describe.sequential("POST /partners", async () => {
     );
   });
 
-  test("with link props", async () => {
+  test("with partner.username field", async () => {
     const username = randomId();
 
     const partner = {
@@ -86,7 +86,7 @@ describe.sequential("POST /partners", async () => {
       groupId: E2E_PARTNER_GROUP.id,
     };
 
-    const { data, status } = await http.post<Link>({
+    const { data, status } = await http.post<Partner>({
       path: "/partners",
       body: {
         username,
@@ -119,6 +119,26 @@ describe.sequential("POST /partners", async () => {
     );
   });
 
+  test("with invalid partner.username field", async () => {
+    const { status, data } = await http.post<Partner>({
+      path: "/partners",
+      body: {
+        email: randomPartnerEmail(),
+        username: "invalid username",
+      },
+    });
+    expect(status).toEqual(422);
+    expect(data).toStrictEqual({
+      error: {
+        code: "unprocessable_entity",
+        message:
+          "custom: username: Invalid username. Must be a URL-friendly string.",
+        doc_url:
+          "https://dub.co/docs/api-reference/errors#unprocessable-entity",
+      },
+    });
+  });
+
   test("with linkProps.prefix on default link", async () => {
     const id = randomId();
     const email = `prefix-e2e-${id}@example.com`;
@@ -127,7 +147,7 @@ describe.sequential("POST /partners", async () => {
       `^c/${reEscape(identitySlug)}(-[a-z0-9]{4})?$`,
     );
 
-    const { data, status } = await http.post<Link>({
+    const { data, status } = await http.post<Partner>({
       path: "/partners",
       body: {
         email,
