@@ -33,7 +33,7 @@ export const log = async ({
             text: {
               type: "mrkdwn",
               // prettier-ignore
-              text: `${mention ? "<@U0404G6J3NJ> " : ""}${(type === "alerts" || type === "errors") ? ":alert: " : ""}${message}`,
+              text: `${mention ? "<@U0404G6J3NJ> " : ""}${(type === "alerts" || type === "errors") ? ":alert: " : ""}${message}${process.env.VERCEL_GIT_COMMIT_REF ? ` [\`${process.env.VERCEL_GIT_COMMIT_REF}\`]` : ""}`,
             },
           },
         ],
