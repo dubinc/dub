@@ -173,8 +173,19 @@ function BanPartnerModal({
                   placeholder="Describe the suspected fraudulent activity..."
                   rows={3}
                   maxLength={MAX_FRAUD_REASON_LENGTH}
-                  {...register("fraudReason")}
+                  {...register("fraudReason", {
+                    required: flagForFraud && "Reason is required",
+                    maxLength: {
+                      value: MAX_FRAUD_REASON_LENGTH,
+                      message: `Must be ${MAX_FRAUD_REASON_LENGTH} characters or fewer`,
+                    },
+                  })}
                 />
+                {errors.fraudReason && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.fraudReason.message}
+                  </p>
+                )}
                 <MaxCharactersCounter
                   name="fraudReason"
                   maxLength={MAX_FRAUD_REASON_LENGTH}

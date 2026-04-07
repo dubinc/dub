@@ -101,7 +101,7 @@ model FraudAlert {
   partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
   reviewedBy        User?             @relation("FraudAlertReviewer", fields: [reviewedById], references: [id])
-  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade)
 
   @@index(partnerId)
   @@index(status)
