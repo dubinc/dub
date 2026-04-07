@@ -18,6 +18,7 @@ import { actionClient } from "./safe-action";
 const schema = z.object({
   email: emailSchema,
   password: passwordSchema.optional(),
+  isLoginFlow: z.boolean().optional().default(false), // for login flow, don't sent OTP if user doesn't exist
 });
 
 // Send OTP to email to verify account
@@ -28,7 +29,7 @@ export const sendOtpAction = actionClient
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
-    const { email } = parsedInput;
+    const { email, isLoginFlow } = parsedInput;
 
     const { success } = await ratelimit(2, "1 m").limit(
       `send-otp:${email}:${await getIP()}`,
@@ -36,6 +37,19 @@ export const sendOtpAction = actionClient
 
     if (!success) {
       throw new Error("Too many requests. Please try again later.");
+    }
+
+    if (isLoginFlow) {
+      const user = await prisma.user.findUnique({
+        where: {
+          email,
+        },
+      });
+      if (!user) {
+        // TODO: Don't throw an error, just return the OTP flow instead
+      }
+
+      // TODO: Skip to OTP flow
     }
 
     if (email.includes("+") && isGenericEmail(email)) {
@@ -98,9 +112,10 @@ export const sendOtpAction = actionClient
     });
 
     if (isExistingUser) {
-      throw new Error(
-        "User already exists. Please login instead of requesting a new OTP.",
-      );
+      // TODO: Don't throw an error, just return the OTP flow instead
+      // throw new Error(
+      //   "User already exists. Please login instead of requesting a new OTP.",
+      // );
     }
 
     const code = generateOTP();
