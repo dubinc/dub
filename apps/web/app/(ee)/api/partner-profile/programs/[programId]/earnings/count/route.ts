@@ -1,4 +1,5 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { DubApiError } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -45,6 +46,13 @@ export const GET = withPartnerProfile(
       timezone,
     });
 
+    if (linkId && assignedLinkIds && !assignedLinkIds.includes(linkId)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not authorized to view this link.",
+      });
+    }
+
     const where: Prisma.CommissionWhereInput = {
       earnings: {
         not: 0,
@@ -67,6 +75,7 @@ export const GET = withPartnerProfile(
           ...(status && groupBy !== "status" && { status }),
           ...(linkId && groupBy !== "linkId" && { linkId }),
           ...(customerId && groupBy !== "customerId" && { customerId }),
+          ...linkScopeFilter(assignedLinkIds),
         },
         _count: true,
         orderBy: {
