@@ -174,7 +174,7 @@ function PayoutDetailsContent({
             partner={payout.partner}
             className={cn(
               "size-5 shrink-0",
-              payout.partner.image ? "translate-y-px" : "-translate-y-px",
+              payout.partner.image ? "mt-px" : "-mt-px",
             )}
           />
           <span className="truncate leading-5">{payout.partner.name}</span>
