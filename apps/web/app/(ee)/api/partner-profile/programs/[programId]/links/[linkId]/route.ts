@@ -5,6 +5,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { throwIfNoLinkAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import { NewLinkProps } from "@/lib/types";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
@@ -14,25 +15,17 @@ import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
 export const PATCH = withPartnerProfile(
-  async ({
-    partner,
-    params,
-    req,
-    session,
-    partnerUser: { assignedLinkIds },
-  }) => {
+  async ({ partner, params, req, session, partnerUser }) => {
     const { url, key, comments } = createPartnerLinkSchema
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
     const { programId, linkId } = params;
 
-    if (assignedLinkIds && !assignedLinkIds.includes(linkId)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You are not authorized to access this link.",
-      });
-    }
+    throwIfNoLinkAccess({
+      linkId,
+      partnerUser,
+    });
 
     const {
       program,
@@ -173,15 +166,13 @@ export const PATCH = withPartnerProfile(
 
 // DELETE /api/partner-profile/[programId]/links/[linkId] - delete a link for a partner
 export const DELETE = withPartnerProfile(
-  async ({ partner, params, partnerUser: { assignedLinkIds } }) => {
+  async ({ partner, params, partnerUser }) => {
     const { programId, linkId } = params;
 
-    if (assignedLinkIds && !assignedLinkIds.includes(linkId)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You are not authorized to access this link.",
-      });
-    }
+    throwIfNoLinkAccess({
+      linkId,
+      partnerUser,
+    });
 
     const { links, status } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,

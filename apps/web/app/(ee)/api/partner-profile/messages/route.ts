@@ -1,6 +1,6 @@
-import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
+import { throwIfNoProgramAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import {
   ProgramMessagesSchema,
   getProgramMessagesQuerySchema,
@@ -10,11 +10,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages - get messages grouped by program
 export const GET = withPartnerProfile(
-  async ({
-    partner,
-    searchParams,
-    partnerUser: { assignedProgramSlugs, assignedProgramIds },
-  }) => {
+  async ({ partner, searchParams, partnerUser }) => {
     const {
       programSlug,
       sortBy,
@@ -24,16 +20,10 @@ export const GET = withPartnerProfile(
 
     const messagesLimit = messagesLimitArg ?? (programSlug ? undefined : 10);
 
-    if (
-      programSlug &&
-      assignedProgramSlugs &&
-      !assignedProgramSlugs.includes(programSlug)
-    ) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: `You're not authorized to view messages for program ${programSlug}.`,
-      });
-    }
+    throwIfNoProgramAccess({
+      programSlug,
+      partnerUser,
+    });
 
     const programs = await prisma.program.findMany({
       where: {
@@ -92,7 +82,7 @@ export const GET = withPartnerProfile(
                   },
                 },
               ],
-              ...programScopeFilter(assignedProgramIds),
+              ...programScopeFilter(partnerUser.assignedProgramIds),
             }),
       },
       include: {

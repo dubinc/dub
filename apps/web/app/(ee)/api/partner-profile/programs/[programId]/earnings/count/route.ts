@@ -1,9 +1,9 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { DubApiError } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { linkScopeFilter } from "@/lib/auth/partner-users/link-scope-filter";
+import { throwIfNoLinkAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import { generateRandomName } from "@/lib/names";
 import { getPartnerEarningsCountQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
@@ -12,12 +12,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment
 export const GET = withPartnerProfile(
-  async ({
-    partner,
-    params,
-    searchParams,
-    partnerUser: { assignedLinkIds },
-  }) => {
+  async ({ partner, params, searchParams, partnerUser }) => {
     const { program, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
@@ -46,12 +41,10 @@ export const GET = withPartnerProfile(
       timezone,
     });
 
-    if (linkId && assignedLinkIds && !assignedLinkIds.includes(linkId)) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "You are not authorized to view this link.",
-      });
-    }
+    throwIfNoLinkAccess({
+      linkId,
+      partnerUser,
+    });
 
     const where: Prisma.CommissionWhereInput = {
       earnings: {
@@ -64,7 +57,7 @@ export const GET = withPartnerProfile(
         gte: startDate,
         lte: endDate,
       },
-      ...linkScopeFilter(assignedLinkIds),
+      ...linkScopeFilter(partnerUser.assignedLinkIds),
     };
 
     if (groupBy) {
