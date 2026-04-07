@@ -6,8 +6,8 @@ async function main() {
   const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
     where: {
       partnerId_programId: {
-        partnerId: "pn_xx",
-        programId: "prog_xx",
+        partnerId: "pn_xxx",
+        programId: "prog_xxx",
       },
     },
     include: {
@@ -26,6 +26,33 @@ async function main() {
   });
 
   console.log("deleteLinkPrisma", deleteLinkPrisma);
+
+  const deletedFraudEvents = await prisma.fraudEvent.deleteMany({
+    where: {
+      programId: programEnrollment.programId,
+      partnerId: programEnrollment.partnerId,
+    },
+  });
+
+  console.log("deletedFraudEvents", deletedFraudEvents);
+
+  const deletedFraudEventGroups = await prisma.fraudEventGroup.deleteMany({
+    where: {
+      programId: programEnrollment.programId,
+      partnerId: programEnrollment.partnerId,
+    },
+  });
+
+  console.log("deletedFraudEventGroups", deletedFraudEventGroups);
+
+  const deletedMessages = await prisma.message.deleteMany({
+    where: {
+      programId: programEnrollment.programId,
+      partnerId: programEnrollment.partnerId,
+    },
+  });
+
+  console.log("deletedMessages", deletedMessages);
 
   const deleteProgramEnrollment = await prisma.programEnrollment.delete({
     where: {
