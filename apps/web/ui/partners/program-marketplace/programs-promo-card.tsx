@@ -17,7 +17,7 @@ export function ProgramsPromoCard() {
     return null;
   }
 
-  if (!partner.identityVerifiedAt) {
+  if (!partner.identityVerifiedAt && partner.email?.endsWith("@dub.co")) {
     return <IdentityVerificationCard />;
   }
 
