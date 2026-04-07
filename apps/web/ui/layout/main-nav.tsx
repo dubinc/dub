@@ -1,8 +1,12 @@
 "use client";
 
-import { useMediaQuery } from "@dub/ui";
+import {
+  consumePendingDashboardScrollTop,
+  DUB_DASHBOARD_MAIN_SCROLL_ID,
+  useMediaQuery,
+} from "@dub/ui";
 import { cn } from "@dub/utils";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   ComponentType,
   createContext,
@@ -11,6 +15,7 @@ import {
   ReactNode,
   SetStateAction,
   useEffect,
+  useLayoutEffect,
   useState,
 } from "react";
 import { useUpgradeBannerVisible } from "./upgrade-banner";
@@ -39,6 +44,7 @@ export function MainNav({
   newsContent?: ReactNode;
 }>) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const { isDesktop } = useMediaQuery();
   const [isOpen, setIsOpen] = useState(false);
@@ -53,6 +59,21 @@ export function MainNav({
   useEffect(() => {
     setIsOpen(false);
   }, [pathname]);
+
+  useLayoutEffect(() => {
+    const top = consumePendingDashboardScrollTop();
+    if (top === null) return;
+    const el = document.getElementById(DUB_DASHBOARD_MAIN_SCROLL_ID);
+    if (!el) return;
+    const apply = () => {
+      el.scrollTop = top;
+    };
+    apply();
+    // Next/React may reset nested scroll after layout; re-apply on the next frame(s).
+    requestAnimationFrame(() => {
+      requestAnimationFrame(apply);
+    });
+  }, [searchParams.toString()]);
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-[min-content_minmax(0,1fr)]">
@@ -90,7 +111,10 @@ export function MainNav({
           isUpgradeBannerVisible ? "mt-12 h-[calc(100vh-48px)]" : "h-screen",
         )}
       >
-        <div className="relative h-full overflow-y-auto bg-neutral-100 pt-px lg:rounded-xl lg:bg-white">
+        <div
+          id={DUB_DASHBOARD_MAIN_SCROLL_ID}
+          className="relative h-full overflow-y-auto bg-neutral-100 pt-px lg:rounded-xl lg:bg-white"
+        >
           <SideNavContext.Provider value={{ isOpen, setIsOpen }}>
             {children}
           </SideNavContext.Provider>

@@ -7,6 +7,18 @@ import {
 } from "next/navigation";
 import { useCallback } from "react";
 
+/** Scroll container for app dashboard main column (`MainNav`); not `window`. */
+export const DUB_DASHBOARD_MAIN_SCROLL_ID = "dub-dashboard-main-scroll";
+
+let pendingDashboardScrollTop: number | null = null;
+
+/** Call after URL updates (e.g. in `useLayoutEffect`) to restore nested scroll. */
+export function consumePendingDashboardScrollTop(): number | null {
+  const top = pendingDashboardScrollTop;
+  pendingDashboardScrollTop = null;
+  return top;
+}
+
 export function useRouterStuff() {
   const pathname = usePathname();
   const router = useRouter();
@@ -74,6 +86,16 @@ export function useRouterStuff() {
         queryString.length > 0 ? `?${queryString}` : ""
       }`;
       if (getNewPath) return newPath;
+
+      // Nested overflow container scroll is not preserved by Next's `scroll: false` (window-only).
+      if (
+        scroll === false &&
+        typeof document !== "undefined"
+      ) {
+        const el = document.getElementById(DUB_DASHBOARD_MAIN_SCROLL_ID);
+        if (el) pendingDashboardScrollTop = el.scrollTop;
+      }
+
       if (replace) {
         router.replace(newPath, { scroll: false });
       } else {

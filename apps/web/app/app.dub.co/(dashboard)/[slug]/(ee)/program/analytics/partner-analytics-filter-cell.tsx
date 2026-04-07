@@ -55,11 +55,7 @@ export function PartnerAnalyticsFilterCell({
             onClick={(e) => {
               e.stopPropagation();
               if (isApplied) return;
-              if (isStaged) {
-                onToggle();
-              } else {
-                onApplyImmediate();
-              }
+              onToggle();
             }}
             className={cn(
               "flex size-6 shrink-0 items-center justify-center rounded-lg transition-all duration-200",

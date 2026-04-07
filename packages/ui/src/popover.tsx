@@ -3,6 +3,7 @@
 import { cn } from "@dub/utils";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { PropsWithChildren, ReactNode, WheelEventHandler } from "react";
+import { createPortal } from "react-dom";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
 
@@ -22,6 +23,7 @@ export type PopoverProps = PropsWithChildren<{
   onEscapeKeyDown?: (event: KeyboardEvent) => void;
   onWheel?: WheelEventHandler;
   sideOffset?: number;
+  anchor?: ReactNode;
 }>;
 
 export function Popover({
@@ -41,6 +43,7 @@ export function Popover({
   onEscapeKeyDown,
   onWheel,
   sideOffset = 8,
+  anchor,
 }: PopoverProps) {
   const { isMobile } = useMediaQuery();
 
@@ -80,6 +83,12 @@ export function Popover({
 
   return (
     <PopoverPrimitive.Root open={openPopover} onOpenChange={setOpenPopover}>
+      {anchor &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <PopoverPrimitive.Anchor asChild>{anchor}</PopoverPrimitive.Anchor>,
+          document.body,
+        )}
       <PopoverPrimitive.Trigger className="sm:inline-flex" asChild>
         {children}
       </PopoverPrimitive.Trigger>
