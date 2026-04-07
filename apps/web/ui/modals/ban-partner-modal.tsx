@@ -3,10 +3,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import {
   BAN_PARTNER_REASONS,
+  MAX_FRAUD_REASON_LENGTH,
   banPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
-import { Button, Modal } from "@dub/ui";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
+import { Button, Modal, Switch } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -41,15 +43,20 @@ function BanPartnerModal({
     register,
     handleSubmit,
     watch,
+    setValue,
+    control,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<BanPartnerFormData>({
     defaultValues: {
       reason: "tos_violation",
+      flagForFraud: false,
+      fraudReason: "",
       confirm: "",
     },
   });
 
   const confirm = watch("confirm");
+  const flagForFraud = watch("flagForFraud");
 
   const { executeAsync, isPending } = useAction(banPartnerAction, {
     onSuccess: async () => {
@@ -136,6 +143,46 @@ function BanPartnerModal({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-sm font-medium text-neutral-900">
+                  Flag partner for potential fraud
+                </span>
+                <p className="mt-0.5 text-xs text-neutral-500">
+                  This will send the partner to Dub for review.
+                </p>
+              </div>
+              <Switch
+                checked={flagForFraud}
+                fn={(checked: boolean) => setValue("flagForFraud", checked)}
+              />
+            </div>
+            {flagForFraud && (
+              <div className="mt-3">
+                <label className="block text-sm font-medium text-neutral-900">
+                  Fraud reason
+                </label>
+                <textarea
+                  className={cn(
+                    "mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.fraudReason && "border-red-600",
+                  )}
+                  placeholder="Describe the suspected fraudulent activity..."
+                  rows={3}
+                  maxLength={MAX_FRAUD_REASON_LENGTH}
+                  {...register("fraudReason")}
+                />
+                <MaxCharactersCounter
+                  name="fraudReason"
+                  maxLength={MAX_FRAUD_REASON_LENGTH}
+                  control={control}
+                  className="mt-1 block text-right"
+                />
+              </div>
+            )}
           </div>
 
           <div>

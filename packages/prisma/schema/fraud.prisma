@@ -12,6 +12,12 @@ enum FraudRuleType {
   partnerDuplicatePayoutMethod // Duplicate payout method with other partners
 }
 
+enum FraudAlertStatus {
+  pending
+  confirmed
+  dismissed
+}
+
 model FraudRule {
   id         String        @id @default(cuid())
   programId  String
@@ -78,4 +84,26 @@ model FraudEvent {
   @@index(eventId)
   @@index(hash)
   @@index(sourceProgramId)
+}
+
+model FraudAlert {
+  id           String           @id @default(cuid())
+  partnerId    String
+  programId    String
+  reason       String           @db.Text
+  status       FraudAlertStatus @default(pending)
+  reviewedById String?
+  reviewedAt   DateTime?
+  reviewNote   String?          @db.Text
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
+  reviewedBy        User?             @relation("FraudAlertReviewer", fields: [reviewedById], references: [id])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
+
+  @@index(partnerId)
+  @@index(status)
+  @@index(createdAt)
 }

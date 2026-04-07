@@ -847,6 +847,8 @@ export const bulkApprovePartnersSchema = z.object({
 /** Max length for optional `rejectionNote` on `ProgramApplication`. */
 export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
 
+export const MAX_FRAUD_REASON_LENGTH = 500;
+
 export const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
@@ -888,10 +890,13 @@ export const banPartnerSchema = z.object({
       ...PartnerBannedReason[],
     ],
   ),
+  flagForFraud: z.boolean().optional().default(false),
+  fraudReason: z.string().max(MAX_FRAUD_REASON_LENGTH).optional(),
 });
 
 export const banPartnerApiSchema = partnerIdTenantIdSchema.extend(
-  banPartnerSchema.pick({ reason: true }).shape,
+  banPartnerSchema.pick({ reason: true, flagForFraud: true, fraudReason: true })
+    .shape,
 );
 
 export const bulkBanPartnersSchema = z.object({
