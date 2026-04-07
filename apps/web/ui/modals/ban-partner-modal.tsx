@@ -10,6 +10,7 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal, Switch } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -147,20 +148,24 @@ function BanPartnerModal({
 
           <div>
             <div className="flex items-center justify-between">
-              <div>
-                <span className="text-sm font-medium text-neutral-900">
-                  Flag partner for potential fraud
-                </span>
-                <p className="mt-0.5 text-xs text-neutral-500">
-                  This will send the partner to Dub for review.
-                </p>
-              </div>
+              <span className="text-sm font-medium text-neutral-900">
+                Flag partner for potential fraud
+              </span>
               <Switch
                 checked={flagForFraud}
                 fn={(checked: boolean) => setValue("flagForFraud", checked)}
               />
             </div>
-            {flagForFraud && (
+            <motion.div
+              initial={false}
+              animate={{
+                height: flagForFraud ? "auto" : 0,
+                opacity: flagForFraud ? 1 : 0,
+              }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              className="overflow-hidden"
+              inert={!flagForFraud}
+            >
               <div className="mt-3">
                 <label className="block text-sm font-medium text-neutral-900">
                   Fraud reason
@@ -193,7 +198,7 @@ function BanPartnerModal({
                   className="mt-1 block text-right"
                 />
               </div>
-            )}
+            </motion.div>
           </div>
 
           <div>
