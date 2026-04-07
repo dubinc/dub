@@ -10,6 +10,7 @@ export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;
 export const CUTOFF_PERIOD_MAX_PAYOUTS = 1000;
 
 export const STABLECOIN_PAYOUT_FEE_RATE = 0.005; // 0.5%
+export const STABLECOIN_PAYOUT_FIXED_FEE_CENTS = 50; // $0.50
 export const FAST_ACH_FEE_CENTS = 2500; // $25
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
 export const FOREX_MARKUP_RATE = 0.005; // 0.5%
