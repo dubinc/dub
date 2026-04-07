@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getPartnerEarningsTimeseries } from "@/lib/api/partner-profile/get-partner-earnings-timeseries";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
@@ -12,6 +13,17 @@ export const GET = withPartnerProfile(
     partnerUser: { assignedLinkIds },
   }) => {
     const filters = getPartnerEarningsTimeseriesSchema.parse(searchParams);
+
+    if (
+      filters.linkId &&
+      assignedLinkIds &&
+      !assignedLinkIds.includes(filters.linkId)
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not authorized to view this link.",
+      });
+    }
 
     const timeseries = await getPartnerEarningsTimeseries({
       partnerId: partner.id,
