@@ -2,10 +2,10 @@ import { Button, Popover } from "@dub/ui";
 import { FaceSmile } from "@dub/ui/icons";
 import { EmojiPicker as EmojiPickerBase } from "frimousse";
 import {
-  type KeyboardEvent as ReactKeyboardEvent,
   PropsWithChildren,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 
 type EmojiPickerProps = PropsWithChildren<{
@@ -13,6 +13,12 @@ type EmojiPickerProps = PropsWithChildren<{
   openPopover?: boolean;
   setOpenPopover?: (open: boolean) => void;
   onKeyboardDismissFocusEditor?: () => void;
+  anchorRect?: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  } | null;
 }>;
 
 export function EmojiPicker({
@@ -21,6 +27,7 @@ export function EmojiPicker({
   openPopover: controlledOpen,
   setOpenPopover: controlledSetOpen,
   onKeyboardDismissFocusEditor,
+  anchorRect,
 }: EmojiPickerProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled =
@@ -28,6 +35,19 @@ export function EmojiPicker({
   const openPopover = isControlled ? controlledOpen : internalOpen;
   const setOpenPopover = isControlled ? controlledSetOpen : setInternalOpen;
   const keyboardDismissRef = useRef(false);
+
+  const anchorEl = anchorRect ? (
+    <div
+      style={{
+        position: "fixed",
+        top: anchorRect.top,
+        left: anchorRect.left,
+        width: Math.max(anchorRect.right - anchorRect.left, 1),
+        height: Math.max(anchorRect.bottom - anchorRect.top, 1),
+        pointerEvents: "none",
+      }}
+    />
+  ) : undefined;
 
   const handleBackspaceClose = (e: ReactKeyboardEvent) => {
     if (e.key !== "Backspace") return;
@@ -47,7 +67,8 @@ export function EmojiPicker({
       setOpenPopover={setOpenPopover}
       side="top"
       align="start"
-      sideOffset={38}
+      sideOffset={anchorRect ? 6 : 38}
+      anchor={anchorEl}
       onEscapeKeyDown={() => {
         keyboardDismissRef.current = true;
       }}

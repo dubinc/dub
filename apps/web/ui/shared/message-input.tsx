@@ -40,10 +40,17 @@ export function MessageInput({
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
   const [typedMessage, setTypedMessage] = useState(defaultValue || "");
   const [emojiPickerOpen, setEmojiPickerOpenState] = useState(false);
+  const [cursorRect, setCursorRect] = useState<{
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  } | null>(null);
   const stripColonOnEmojiPickRef = useRef(false);
 
   const setEmojiPickerOpen = useCallback((open: boolean) => {
     stripColonOnEmojiPickRef.current = false;
+    if (!open) setCursorRect(null);
     setEmojiPickerOpenState(open);
   }, []);
 
@@ -99,6 +106,8 @@ export function MessageInput({
                     ),
                   );
                 if (atBlockStart || afterWhitespace || afterHardBreak) {
+                  const coords = view.coordsAtPos(view.state.selection.from);
+                  setCursorRect(coords);
                   setTimeout(() => {
                     stripColonOnEmojiPickRef.current = true;
                     setEmojiPickerOpenState(true);
@@ -119,6 +128,7 @@ export function MessageInput({
             emojiPickerOpen={emojiPickerOpen}
             setEmojiPickerOpen={setEmojiPickerOpen}
             stripColonOnEmojiPickRef={stripColonOnEmojiPickRef}
+            cursorRect={cursorRect}
           />
           <div className="flex items-center justify-between gap-2">
             {onCancel && (
@@ -266,10 +276,17 @@ function MessageInputToolbar({
   emojiPickerOpen,
   setEmojiPickerOpen,
   stripColonOnEmojiPickRef,
+  cursorRect,
 }: {
   emojiPickerOpen: boolean;
   setEmojiPickerOpen: (open: boolean) => void;
   stripColonOnEmojiPickRef: { current: boolean };
+  cursorRect: {
+    top: number;
+    bottom: number;
+    left: number;
+    right: number;
+  } | null;
 }) {
   const { editor } = useRichTextContext();
 
@@ -280,6 +297,7 @@ function MessageInputToolbar({
           openPopover={emojiPickerOpen}
           setOpenPopover={setEmojiPickerOpen}
           onKeyboardDismissFocusEditor={() => editor?.commands.focus()}
+          anchorRect={cursorRect}
           onSelect={(emoji) => {
             if (!editor) return;
             const stripColon = stripColonOnEmojiPickRef.current;
