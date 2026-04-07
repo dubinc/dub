@@ -1,6 +1,5 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { qstash } from "@/lib/cron";
-import { partnerProgramSummaryCohortWhere } from "../partner-program-summary-cohort-where";
 import { withCron } from "@/lib/cron/with-cron";
 import { sendBatchEmail } from "@dub/email";
 import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
@@ -102,7 +101,24 @@ export const POST = withCron(async ({ rawBody }) => {
   ]);
 
   const programEnrollments = await prisma.programEnrollment.findMany({
-    where: partnerProgramSummaryCohortWhere(program.id),
+    where: {
+      programId,
+      status: "approved",
+      totalLeads: {
+        gt: 0,
+      },
+      partner: {
+        users: {
+          some: {
+            notificationPreferences: {
+              is: {
+                monthlyProgramSummary: true,
+              },
+            },
+          },
+        },
+      },
+    },
     select: {
       id: true,
       partner: {

@@ -121,14 +121,4 @@ export class IntegrationHarness {
       path: `/campaigns/${id}`,
     });
   }
-
-  /** Teardown partner created by POST /api/e2e/partner-program-summary (@e2e.test email only). */
-  public async deletePartnerProgramSummaryE2ePartner(partnerId: string) {
-    if (!partnerId) return;
-
-    await this.http.delete({
-      path: "/e2e/partner-program-summary",
-      query: { partnerId },
-    });
-  }
 }
