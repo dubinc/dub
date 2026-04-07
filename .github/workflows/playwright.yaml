@@ -67,6 +67,7 @@ jobs:
       STRIPE_APP_SECRET_KEY_TEST: "xx"
       STRIPE_CONNECT_V2_WEBHOOK_SECRET: "xx"
       STRIPE_APP_SECRET_KEY_SANDBOX: "xx"
+      STRIPE_APP_SECRET_KEY: "xx"
 
     services:
       mysql:
