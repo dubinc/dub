@@ -104,15 +104,15 @@ export const POST = withCron(async ({ rawBody }) => {
     where: {
       programId: program.id,
       status: "approved",
+      totalLeads: {
+        gt: 0,
+      },
       partner: {
         users: {
-          some: {},
-        },
-      },
-      links: {
-        some: {
-          leads: {
-            gt: 0,
+          some: {
+            notificationPreferences: {
+              monthlyProgramSummary: true,
+            },
           },
         },
       },

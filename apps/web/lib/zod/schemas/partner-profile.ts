@@ -146,6 +146,7 @@ export const partnerNotificationTypes = z.enum([
   "newMessageFromProgram",
   "marketingCampaign",
   "connectPayoutReminder",
+  "monthlyProgramSummary",
 ]);
 
 export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
