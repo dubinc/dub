@@ -32,7 +32,7 @@ export function ReviewFraudAlertMenu({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: reviewAction,
-          ...(reviewNote.trim() && { reviewNote: reviewNote.trim() }),
+          reviewNote,
         }),
       });
 
