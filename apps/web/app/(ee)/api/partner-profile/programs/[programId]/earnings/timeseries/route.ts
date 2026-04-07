@@ -29,7 +29,7 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
       programId: params.programId,
       filters,
-      linkIds: assignedLinkIds,
+      assignedLinkIds,
     });
 
     return NextResponse.json(timeseries);

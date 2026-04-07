@@ -1,5 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { linkIncludeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
@@ -11,14 +12,14 @@ interface GetPartnerEarningsTimeseriesParams {
   partnerId: string;
   programId: string;
   filters: z.infer<typeof getPartnerEarningsTimeseriesSchema>;
-  linkIds?: string[];
+  assignedLinkIds?: string[];
 }
 
 export async function getPartnerEarningsTimeseries({
   partnerId,
   programId,
   filters,
-  linkIds,
+  assignedLinkIds,
 }: GetPartnerEarningsTimeseriesParams) {
   const {
     groupBy,
@@ -38,7 +39,7 @@ export async function getPartnerEarningsTimeseries({
     programId: programId,
     include: {
       program: true,
-      links: true,
+      links: linkIncludeFilter(assignedLinkIds),
     },
   });
 
@@ -68,7 +69,7 @@ export async function getPartnerEarningsTimeseries({
           ${type ? Prisma.sql`AND type = ${type}` : Prisma.sql``}
           ${payoutId ? Prisma.sql`AND payoutId = ${payoutId}` : Prisma.sql``}
           ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
-          ${linkIds && linkIds.length > 0 ? Prisma.sql`AND linkId IN (${Prisma.join(linkIds)})` : Prisma.sql``}
+          ${assignedLinkIds && assignedLinkIds.length > 0 ? Prisma.sql`AND linkId IN (${Prisma.join(assignedLinkIds)})` : Prisma.sql``}
           ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
           ${status ? Prisma.sql`AND status = ${status}` : Prisma.sql``}
           GROUP BY start${groupBy ? (groupBy === "type" ? Prisma.sql`, type` : Prisma.sql`, linkId`) : Prisma.sql``}

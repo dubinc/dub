@@ -75,7 +75,6 @@ export const GET = withPartnerProfile(
           ...(status && groupBy !== "status" && { status }),
           ...(linkId && groupBy !== "linkId" && { linkId }),
           ...(customerId && groupBy !== "customerId" && { customerId }),
-          ...linkScopeFilter(assignedLinkIds),
         },
         _count: true,
         orderBy: {
