@@ -162,7 +162,8 @@ export const GET = withPartnerProfile(
       workspaceId: program.workspaceId,
       ...(parsedParams.linkId
         ? { linkId: parsedParams.linkId }
-        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING &&
+            assignedLinkIds === undefined
           ? { partnerId: partner.id }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
@@ -202,7 +203,8 @@ export const GET = withPartnerProfile(
       includeMetadata: false,
       ...(parsedParams.linkId
         ? { linkId: parsedParams.linkId }
-        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING &&
+            assignedLinkIds === undefined
           ? { partnerId: partner.id }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       limit: MAX_EVENTS_TO_EXPORT,

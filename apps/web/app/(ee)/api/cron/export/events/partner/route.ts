@@ -126,7 +126,8 @@ export async function POST(req: Request) {
       includeMetadata: false,
       ...(parsedParams.linkId
         ? { linkId: parsedParams.linkId }
-        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING &&
+            assignedLinkIds.length === 0
           ? { partnerId }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,

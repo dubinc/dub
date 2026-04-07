@@ -58,6 +58,43 @@ export function PartnerMemberProgramsCell({
     );
   }
 
+  if (programAccess === "all") {
+    const totalCount = displayPrograms.length;
+
+    if (totalCount <= 1) {
+      const program = displayPrograms[0];
+
+      return (
+        <ProgramsHover onClick={onClick}>
+          {program ? (
+            <img
+              src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+              alt=""
+              className="size-6 shrink-0 rounded-full border-2 border-white object-cover"
+            />
+          ) : (
+            <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200">
+              <Plus className="size-3.5 text-neutral-500" strokeWidth={2.5} />
+            </div>
+          )}
+        </ProgramsHover>
+      );
+    }
+
+    const allLabel =
+      totalCount > MAX_OVERFLOW_LABEL
+        ? `All ${MAX_OVERFLOW_LABEL}+`
+        : `All ${totalCount}`;
+
+    return (
+      <ProgramsHover onClick={onClick}>
+        <div className="flex h-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 px-2 text-xs font-medium text-neutral-600">
+          {allLabel}
+        </div>
+      </ProgramsHover>
+    );
+  }
+
   if (displayPrograms.length === 0) {
     return (
       <ProgramsHover onClick={onClick}>
@@ -71,13 +108,6 @@ export function PartnerMemberProgramsCell({
   const visible = displayPrograms.slice(0, MAX_VISIBLE_LOGOS);
   const hiddenCount = Math.max(0, displayPrograms.length - MAX_VISIBLE_LOGOS);
   const extra = hiddenCount > 0 ? Math.min(hiddenCount, MAX_OVERFLOW_LABEL) : 0;
-
-  const overflowLabel =
-    programAccess === "all" && hiddenCount > 0
-      ? hiddenCount > MAX_OVERFLOW_LABEL
-        ? `All ${MAX_OVERFLOW_LABEL}+`
-        : `All ${hiddenCount}`
-      : null;
 
   return (
     <ProgramsHover onClick={onClick}>
@@ -94,13 +124,8 @@ export function PartnerMemberProgramsCell({
           />
         ))}
         {extra > 0 ? (
-          <div
-            className={cn(
-              "-ml-1.5 flex h-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200 text-xs font-medium text-neutral-600",
-              overflowLabel ? "min-w-6 px-1.5" : "size-6",
-            )}
-          >
-            {overflowLabel ?? `+${extra}`}
+          <div className="-ml-1.5 flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200 text-xs font-medium text-neutral-600">
+            +{extra}
           </div>
         ) : null}
       </div>

@@ -9,7 +9,7 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-// PUT /api/partner-profile/users/[userId]/programs - set assigned programs for a user
+// PUT /api/partner-profile/users/[userId]/programs
 export const PUT = withPartnerProfile(
   async ({ partner, params, req }) => {
     const { userId } = params;
