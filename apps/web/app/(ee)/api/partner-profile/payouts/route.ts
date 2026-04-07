@@ -1,6 +1,10 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
+import {
+  programScopeFilter,
+  resolveScopedProgramQueryToId,
+} from "@/lib/auth/partner-users/program-scope-filter";
 import { partnerProfilePayoutsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { PartnerPayoutResponseSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
@@ -23,8 +27,8 @@ export const GET = withPartnerProfile(
       where: {
         partnerId: partner.id,
         ...(programId && { programId }),
-        ...programScopeFilter(assignedProgramIds),
         ...(status && { status }),
+        ...programScopeFilter(assignedProgramIds),
       },
       include: {
         program: true,
