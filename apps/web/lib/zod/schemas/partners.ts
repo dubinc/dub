@@ -904,19 +904,32 @@ export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;
 export const banPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  reason: z.enum(
-    Object.keys(BAN_PARTNER_REASONS) as [
-      PartnerBannedReason,
-      ...PartnerBannedReason[],
-    ],
-  ),
-  flagForFraud: z.boolean().optional().default(false),
-  fraudReason: z.string().max(MAX_FRAUD_REASON_LENGTH).optional(),
+  reason: z
+    .enum(
+      Object.keys(BAN_PARTNER_REASONS) as [
+        PartnerBannedReason,
+        ...PartnerBannedReason[],
+      ],
+    )
+    .describe("The reason for banning the partner."),
+  flagForFraud: z
+    .boolean()
+    .optional()
+    .default(false)
+    .describe("Whether to flag the partner for fraud."),
+  fraudReason: z
+    .string()
+    .max(MAX_FRAUD_REASON_LENGTH)
+    .optional()
+    .describe("The reason for flagging the partner for fraud."),
 });
 
 export const banPartnerApiSchema = partnerIdTenantIdSchema.extend(
-  banPartnerSchema.pick({ reason: true, flagForFraud: true, fraudReason: true })
-    .shape,
+  banPartnerSchema.pick({
+    reason: true,
+    flagForFraud: true,
+    fraudReason: true,
+  }).shape,
 );
 
 export const bulkBanPartnersSchema = z.object({
