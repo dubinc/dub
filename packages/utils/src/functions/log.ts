@@ -18,6 +18,11 @@ export const log = async ({
   /* Log a message to the console */
   console.log(message);
 
+  if (process.env.VERCEL_ENV !== "production") {
+    console.log("Skipping log to Dub Slack in non-production environment.");
+    return;
+  }
+
   const HOOK = logTypeToEnv[type];
   if (!HOOK) return;
   try {
@@ -33,7 +38,7 @@ export const log = async ({
             text: {
               type: "mrkdwn",
               // prettier-ignore
-              text: `${mention ? "<@U0404G6J3NJ> " : ""}${(type === "alerts" || type === "errors") ? ":alert: " : ""}${message}${process.env.VERCEL_GIT_COMMIT_REF ? ` [\`${process.env.VERCEL_GIT_COMMIT_REF}\`]` : ""}`,
+              text: `${mention ? "<@U0404G6J3NJ> " : ""}${(type === "alerts" || type === "errors") ? ":alert: " : ""}${message}`,
             },
           },
         ],
