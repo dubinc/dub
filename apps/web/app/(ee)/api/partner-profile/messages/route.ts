@@ -30,8 +30,8 @@ export const GET = withPartnerProfile(
       !assignedProgramSlugs.includes(programSlug)
     ) {
       throw new DubApiError({
-        code: "not_found",
-        message: `Program ${programSlug} not found.`,
+        code: "forbidden",
+        message: `You're not authorized to view messages for program ${programSlug}.`,
       });
     }
 
@@ -92,8 +92,8 @@ export const GET = withPartnerProfile(
                   },
                 },
               ],
+              ...programScopeFilter(assignedProgramIds),
             }),
-        ...programScopeFilter(assignedProgramIds),
       },
       include: {
         messages: {

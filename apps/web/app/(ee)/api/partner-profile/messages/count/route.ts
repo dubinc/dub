@@ -22,8 +22,8 @@ export const GET = withPartnerProfile(
                 // Only count read messages
                 not: null,
               },
-          ...programScopeFilter(assignedProgramIds),
         }),
+        ...programScopeFilter(assignedProgramIds),
       },
     });
 
