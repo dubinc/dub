@@ -71,7 +71,7 @@ export const PUT = withPartnerProfile(
       }
     }
 
-    // Batch-validate all link IDs — each must exist and belong to one of the assigned programs
+    // Batch-validate all link IDs — each must exist and belong to the specific program it's listed under
     const allRequestedLinkIds = Object.entries(linkIds).flatMap(
       ([, ids]) => ids ?? [],
     );
@@ -88,13 +88,27 @@ export const PUT = withPartnerProfile(
         },
         select: {
           id: true,
+          programId: true,
         },
       });
 
-      const validLinkIdSet = new Set(validLinks.map((l) => l.id));
-      const invalidIds = allRequestedLinkIds.filter(
-        (id) => !validLinkIdSet.has(id),
+      const linkProgramMap = new Map(
+        validLinks.map((l) => [l.id, l.programId]),
       );
+
+      const invalidIds: string[] = [];
+
+      for (const [programId, programLinkIds] of Object.entries(linkIds)) {
+        if (!programLinkIds) continue;
+
+        for (const linkId of programLinkIds) {
+          const actualProgramId = linkProgramMap.get(linkId);
+
+          if (actualProgramId !== programId) {
+            invalidIds.push(linkId);
+          }
+        }
+      }
 
       if (invalidIds.length > 0) {
         throw new DubApiError({
