@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
@@ -10,6 +11,17 @@ export const GET = withPartnerProfile(
   async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
     const { programId, groupBy, status } =
       payoutsCountQuerySchema.parse(searchParams);
+
+    if (
+      programId &&
+      assignedProgramIds &&
+      !assignedProgramIds.includes(programId)
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not authorized to view this program.",
+      });
+    }
 
     const where: Prisma.PayoutWhereInput = {
       partnerId: partner.id,
