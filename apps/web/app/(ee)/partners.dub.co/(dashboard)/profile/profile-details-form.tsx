@@ -103,13 +103,15 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
         </FormProvider>
       </SettingsRow>
 
-      <SettingsRow
-        id="identity-verification"
-        heading="Identity verification"
-        description="Verify your identity to build trust with programs and get approved for programs faster."
-      >
-        <IdentityVerificationSection partner={partner} />
-      </SettingsRow>
+      {partner?.email?.endsWith("@dub.co") && (
+        <SettingsRow
+          id="identity-verification"
+          heading="Identity verification"
+          description="Verify your identity to build trust with programs and get approved for programs faster."
+        >
+          <IdentityVerificationSection partner={partner} />
+        </SettingsRow>
+      )}
 
       <SettingsRow
         id="platforms"

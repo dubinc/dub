@@ -90,7 +90,7 @@ export default function WelcomeEmailPartner({
               >
                 program marketplace
               </Link>{" "}
-              and earn commissions for your referrals
+              and earn commissions for your referrals.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
