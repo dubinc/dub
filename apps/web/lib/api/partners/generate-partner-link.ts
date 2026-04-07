@@ -25,11 +25,11 @@ export function derivePartnerLinkKey({
   email: string;
 }) {
   if (key) {
-    return key;
+    return slugify(key);
   }
 
   if (username) {
-    return username;
+    return slugify(username);
   }
 
   if (name) {

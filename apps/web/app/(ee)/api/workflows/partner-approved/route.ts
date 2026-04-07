@@ -78,7 +78,7 @@ export const { POST } = serve<Payload>(
 
     const { groupId } = programEnrollment;
 
-    let allPartnerLinks =
+    const allPartnerLinks =
       ProgramPartnerLinkSchema.array().parse(existingPartnerLinks);
 
     // Step 1: Create partner default links
