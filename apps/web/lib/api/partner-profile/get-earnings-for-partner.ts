@@ -46,6 +46,8 @@ export async function getEarningsForPartner(
     timezone,
   });
 
+  const finalLinkIds = linkId ? [linkId] : linkIds ? linkIds : [];
+
   const earnings = await prisma.commission.findMany({
     where: {
       earnings: {
@@ -55,8 +57,13 @@ export async function getEarningsForPartner(
       partnerId,
       status,
       type,
-      linkId,
-      ...(linkIds ? { linkId: { in: linkIds } } : {}),
+      ...(finalLinkIds.length > 0
+        ? {
+            linkId: {
+              in: finalLinkIds,
+            },
+          }
+        : {}),
       customerId,
       payoutId,
       createdAt: {
