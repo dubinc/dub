@@ -3,9 +3,13 @@ import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import { FramerButton } from "@/ui/auth/login/framer-button";
 import LoginForm from "@/ui/auth/login/login-form";
 import { AuthLayout } from "@/ui/layout/auth-layout";
-import { cn } from "@dub/utils";
+import { cn, constructMetadata } from "@dub/utils";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+
+export const metadata = constructMetadata({
+  fullTitle: "Login to partners.dub.co",
+});
 
 export default async function LoginPage(props: {
   params: Promise<{ programSlug?: string }>;
