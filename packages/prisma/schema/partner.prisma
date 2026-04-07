@@ -28,6 +28,18 @@ enum PartnerPayoutMethod {
   paypal
 }
 
+// https://devdocs.veriff.com/v1/docs/how-to-generate-sessions-manually#verification-session-statuses
+enum IdentityVerificationStatus {
+  started
+  submitted
+  approved
+  declined
+  resubmissionRequested
+  expired
+  abandoned
+  review
+}
+
 model Partner {
   id          String             @id @default(cuid())
   name        String
@@ -37,6 +49,12 @@ model Partner {
   image       String?            @db.Text
   description String?            @db.Text
   country     String?
+
+  // identity verification fields
+  identityVerificationStatus IdentityVerificationStatus?
+  identityVerifiedAt         DateTime?
+  veriffSessionId            String?                     @unique
+  veriffMetadata             Json? // see veriffMetadataSchema
 
   // payout fields
   defaultPayoutMethod          PartnerPayoutMethod?
@@ -88,6 +106,7 @@ model Partner {
   @@index(trustedAt)
   @@index(payoutMethodHash)
   @@index(cryptoWalletAddress)
+  @@index(identityVerifiedAt)
   @@fulltext([email, name, companyName]) // For full-text search
 }
 

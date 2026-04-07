@@ -1,6 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { PartnerBetaFeatures, PartnerProps } from "@/lib/types";
+import { flattenVeriffMetadata } from "@/lib/veriff/veriff-metadata";
 import { prisma } from "@dub/prisma";
 import { PartnerUser } from "@dub/prisma/client";
 import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
@@ -326,7 +327,7 @@ export const withPartnerProfile = (
           searchParams,
           session,
           partner: {
-            ...partner,
+            ...flattenVeriffMetadata(partner),
             industryInterests: industryInterests.map(
               ({ industryInterest }) => industryInterest,
             ),

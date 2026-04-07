@@ -3,6 +3,7 @@
 import { updatePartnerNotificationPreference } from "@/lib/actions/partners/update-partner-notification-preference";
 import { partnerNotificationTypes } from "@/lib/zod/schemas/partner-profile";
 import {
+  CalendarDays,
   CircleCheck,
   Flag6,
   InvoiceDollar,
@@ -48,6 +49,13 @@ const notifications = [
     title: "Connect payout reminder",
     description:
       "Reminder email to connect your payout details for receiving earnings from your programs.",
+  },
+  {
+    type: "monthlyProgramSummary",
+    icon: CalendarDays,
+    title: "Monthly program summary",
+    description:
+      "Monthly performance email for each program you promote (earnings, clicks, leads, and sales).",
   },
 ] as const;
 

@@ -4,7 +4,7 @@ import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions
 import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ConnectPayoutButton } from "@/ui/partners/payouts/connect-payout-button";
-import { Button } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { usePartnerPayoutSettingsSheet } from "./partner-payout-settings-sheet";
 
 export function PartnerPayoutSettingsButton() {
@@ -13,6 +13,8 @@ export function PartnerPayoutSettingsButton() {
 
   const { PartnerPayoutSettingsSheet, openSettings } =
     usePartnerPayoutSettingsSheet();
+
+  const { isMobile } = useMediaQuery();
 
   const hasConnectedPayoutMethod = payoutMethods.some((m) => m.connected);
 
@@ -25,12 +27,15 @@ export function PartnerPayoutSettingsButton() {
       <PartnerPayoutSettingsSheet />
 
       {!partner?.payoutsEnabledAt && !hasConnectedPayoutMethod && (
-        <ConnectPayoutButton className="h-9 px-3" />
+        <ConnectPayoutButton
+          className="h-9 px-3"
+          text={isMobile ? "Connect" : "Connect payout method"}
+        />
       )}
 
       <Button
         type="button"
-        text="Payout settings"
+        text={isMobile ? "Settings" : "Payout settings"}
         variant="secondary"
         className="h-9 px-3"
         onClick={openSettings}
