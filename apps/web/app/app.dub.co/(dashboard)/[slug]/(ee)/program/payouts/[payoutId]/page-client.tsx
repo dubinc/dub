@@ -172,9 +172,12 @@ function PayoutDetailsContent({
         >
           <PartnerAvatar
             partner={payout.partner}
-            className="size-5 shrink-0"
+            className={cn(
+              "size-5 shrink-0",
+              payout.partner.image ? "translate-y-px" : "-translate-y-px",
+            )}
           />
-          <span className="truncate">{payout.partner.name}</span>
+          <span className="truncate leading-5">{payout.partner.name}</span>
         </ConditionalLink>
       ),
 
