@@ -9,7 +9,11 @@ import * as z from "zod/v4";
 
 const reviewSchema = z.object({
   status: z.enum(["confirmed", "dismissed"]),
-  reviewNote: z.string().max(MAX_FRAUD_REASON_LENGTH).optional(),
+  reviewNote: z
+    .string()
+    .trim()
+    .max(MAX_FRAUD_REASON_LENGTH)
+    .optional(),
 });
 
 // PATCH /api/admin/fraud-alerts/[id]
