@@ -1,5 +1,6 @@
 import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import {
+  IdentityVerificationStatus,
   IndustryInterest,
   MonthlyTraffic,
   PartnerBannedReason,
@@ -27,6 +28,9 @@ import { ProgramEnrollmentSchema } from "./programs";
 import { centsSchema, centsSchemaWithDefault, parseUrlSchema } from "./utils";
 
 export const PARTNERS_MAX_PAGE_SIZE = 100;
+export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
+export const MAX_PARTNER_DESCRIPTION_LENGTH = 500;
+export const MAX_PARTNER_IDENTITY_VERIFICATION_ATTEMPTS = 2;
 
 export const ACTIVE_ENROLLMENT_STATUSES: ProgramEnrollmentStatus[] = [
   ProgramEnrollmentStatus.approved,
@@ -312,8 +316,6 @@ export const PartnerPartnerPlatformsSchema = z.object({
     .describe("The partner's TikTok username (e.g. `johndoe`)."),
 });
 
-export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
-
 export const PartnerProfileSchema = z.object({
   monthlyTraffic: z
     .enum(MonthlyTraffic)
@@ -339,8 +341,6 @@ export const PartnerProfileSchema = z.object({
     })
     .describe("The partner's sales channels."),
 });
-
-export const MAX_PARTNER_DESCRIPTION_LENGTH = 500;
 
 export const PartnerSchema = z
   .object({
@@ -421,6 +421,25 @@ export const PartnerSchema = z
       .describe(
         "The date when the partner received the trusted badge in the partner network.",
       ),
+    identityVerificationStatus: z
+      .enum(IdentityVerificationStatus)
+      .nullable()
+      .describe(
+        "The partner's identity verification status. Null means not yet initiated.",
+      ),
+    identityVerificationAttemptCount: z
+      .number()
+      .describe(
+        "The number of identity verification attempts started by the partner.",
+      ),
+    identityVerificationDeclineReason: z
+      .string()
+      .nullable()
+      .describe("The reason for the partner's identity verification decline."),
+    identityVerifiedAt: z
+      .date()
+      .nullable()
+      .describe("The date when the partner's identity was verified."),
   })
   .extend(PartnerPartnerPlatformsSchema.shape)
   .extend(PartnerProfileSchema.partial().shape);
@@ -457,6 +476,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   stripeConnectId: true,
   payoutsEnabledAt: true,
   trustedAt: true,
+  identityVerifiedAt: true,
 })
   .extend(
     ProgramEnrollmentSchema.omit({

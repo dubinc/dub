@@ -236,6 +236,18 @@ const updatedComplianceFieldsChecks = async ({
       to: input.country as string,
       changedAt: new Date(),
     });
+
+    // if there was an existing veriff session, trigger a country change verification
+    if (partner.veriffSessionId) {
+      waitUntil(
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,
+          body: {
+            partnerId: partner.id,
+          },
+        }),
+      );
+    }
   }
 
   if (profileTypeChanged) {
