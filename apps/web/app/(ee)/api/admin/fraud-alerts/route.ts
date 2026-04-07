@@ -62,6 +62,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
         },
         reviewedBy: {
           select: {
+            id: true,
             name: true,
           },
         },
