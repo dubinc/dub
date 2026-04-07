@@ -25,7 +25,7 @@ const FEATURES = [
     icon: MoneyBills2,
     title: "Get paid how you want",
     description:
-      "Connect your paoyut details and receive payouts from the programs you partner with.",
+      "Connect your payout details and receive payouts from the programs you partner with.",
   },
   {
     icon: LinesY,
