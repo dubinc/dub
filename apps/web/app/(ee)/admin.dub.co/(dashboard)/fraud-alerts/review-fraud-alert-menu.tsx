@@ -1,7 +1,7 @@
 "use client";
 
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { Button, Icon, Popover } from "@dub/ui";
+import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
+import { Button, Icon, Modal, Popover } from "@dub/ui";
 import { CircleCheck, CircleXmark, Dots } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
@@ -17,26 +17,32 @@ export function ReviewFraudAlertMenu({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviewAction, setReviewAction] = useState<
+    "confirmed" | "dismissed" | null
+  >(null);
+  const [reviewNote, setReviewNote] = useState("");
 
-  const handleReview = async (status: "confirmed" | "dismissed") => {
+  const handleReview = async () => {
+    if (!reviewAction) return;
+
     setIsSubmitting(true);
     try {
-      const res = await fetch(`/api/admin/fraud-alerts/${alertId}`, {
+      const response = await fetch(`/api/admin/fraud-alerts/${alertId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
+        body: JSON.stringify({
+          status: reviewAction,
+          ...(reviewNote.trim() && { reviewNote: reviewNote.trim() }),
+        }),
       });
 
-      if (!res.ok) {
-        const text = await res.text();
+      if (!response.ok) {
+        const text = await response.text();
         throw new Error(text);
       }
 
-      toast.success(
-        status === "confirmed"
-          ? "Partner marked as fraudulent and banned from all programs."
-          : "Fraud alert dismissed.",
-      );
+      setReviewAction(null);
+      setReviewNote("");
       await onReviewed();
     } catch (error) {
       toast.error(
@@ -46,29 +52,6 @@ export function ReviewFraudAlertMenu({
       setIsSubmitting(false);
     }
   };
-
-  const {
-    confirmModal: confirmFraudModal,
-    setShowConfirmModal: setShowConfirmFraudModal,
-  } = useConfirmModal({
-    title: "Confirm fraud",
-    description:
-      "This will permanently mark the partner as fraudulent and ban them from ALL programs across the network. This action cannot be undone.",
-    onConfirm: () => handleReview("confirmed"),
-    confirmText: "Confirm fraud",
-    confirmVariant: "danger",
-  });
-
-  const {
-    confirmModal: dismissModal,
-    setShowConfirmModal: setShowDismissModal,
-  } = useConfirmModal({
-    title: "Dismiss fraud alert",
-    description:
-      "This will dismiss the fraud alert. The partner ban will remain unchanged.",
-    onConfirm: () => handleReview("dismissed"),
-    confirmText: "Dismiss",
-  });
 
   return (
     <>
@@ -83,7 +66,7 @@ export function ReviewFraudAlertMenu({
                   icon={CircleCheck}
                   label="Confirm fraud"
                   onSelect={() => {
-                    setShowConfirmFraudModal(true);
+                    setReviewAction("confirmed");
                     setIsOpen(false);
                   }}
                   disabled={isSubmitting}
@@ -92,7 +75,7 @@ export function ReviewFraudAlertMenu({
                   icon={CircleXmark}
                   label="Dismiss"
                   onSelect={() => {
-                    setShowDismissModal(true);
+                    setReviewAction("dismissed");
                     setIsOpen(false);
                   }}
                   disabled={isSubmitting}
@@ -110,8 +93,59 @@ export function ReviewFraudAlertMenu({
           icon={<Dots className="h-4 w-4 shrink-0" />}
         />
       </Popover>
-      {confirmFraudModal}
-      {dismissModal}
+
+      <Modal
+        showModal={reviewAction !== null}
+        setShowModal={(show) => {
+          if (!show) {
+            setReviewAction(null);
+            setReviewNote("");
+          }
+        }}
+      >
+        <div className="p-5 text-left">
+          <h3 className="text-base font-semibold text-neutral-900">
+            Review fraud alert
+          </h3>
+
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-neutral-900">
+              Review note{" "}
+              <span className="font-normal text-neutral-400">(optional)</span>
+            </label>
+            <textarea
+              className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              placeholder="Add a note about this review..."
+              rows={3}
+              maxLength={MAX_FRAUD_REASON_LENGTH}
+              value={reviewNote}
+              onChange={(e) => setReviewNote(e.target.value)}
+            />
+            <p className="mt-1 text-right text-xs text-neutral-400">
+              {reviewNote.length}/{MAX_FRAUD_REASON_LENGTH}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-5 py-4">
+          <Button
+            variant="secondary"
+            className="h-8 w-fit px-3"
+            text="Cancel"
+            onClick={() => {
+              setReviewAction(null);
+              setReviewNote("");
+            }}
+          />
+          <Button
+            variant="primary"
+            className="h-8 w-fit px-3"
+            text={reviewAction === "confirmed" ? "Confirm fraud" : "Dismiss"}
+            loading={isSubmitting}
+            onClick={handleReview}
+          />
+        </div>
+      </Modal>
     </>
   );
 }
