@@ -168,12 +168,13 @@ function PayoutDetailsContent({
       Partner: (
         <ConditionalLink
           href={`/${slug}/program/partners/${payout.partner.id}`}
+          className="flex min-w-0 items-center gap-1.5 text-neutral-500"
         >
           <PartnerAvatar
             partner={payout.partner}
-            className="mr-1.5 inline-flex size-5 shrink-0"
+            className="size-5 shrink-0"
           />
-          {payout.partner.name}
+          <span className="truncate">{payout.partner.name}</span>
         </ConditionalLink>
       ),
 
