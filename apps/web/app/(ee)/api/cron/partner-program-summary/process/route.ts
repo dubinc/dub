@@ -102,7 +102,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
-      programId,
+      programId: program.id,
       status: "approved",
       totalLeads: {
         gt: 0,
@@ -111,9 +111,7 @@ export const POST = withCron(async ({ rawBody }) => {
         users: {
           some: {
             notificationPreferences: {
-              is: {
-                monthlyProgramSummary: true,
-              },
+              monthlyProgramSummary: true,
             },
           },
         },
