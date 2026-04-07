@@ -66,6 +66,7 @@ model PartnerNotificationPreferences {
   newMessageFromProgram Boolean @default(true)
   marketingCampaign     Boolean @default(true)
   connectPayoutReminder Boolean @default(true)
+  monthlyProgramSummary Boolean @default(true)
 
   partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
 }

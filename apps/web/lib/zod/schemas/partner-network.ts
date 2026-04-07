@@ -78,6 +78,8 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
   monthlyTraffic: true,
   preferredEarningStructures: true,
   salesChannels: true,
+  identityVerificationStatus: true,
+  identityVerifiedAt: true,
 }).extend({
   lastConversionAt: z.date().nullable(),
   conversionScore: PartnerConversionScoreSchema,

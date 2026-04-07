@@ -70,7 +70,7 @@ export function ConnectPayoutButton({
             ? "Manage"
             : payoutMethod
               ? "Connect"
-              : "Connect payout method"
+              : props.text || "Connect payout method"
         }
         loading={isPending}
         disabledTooltip={
