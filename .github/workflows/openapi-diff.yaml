@@ -31,6 +31,9 @@ jobs:
       - name: Install dependencies (PR)
         run: pnpm install
 
+      - name: Build packages (PR)
+        run: pnpm --filter @dub/utils --filter @dub/blocks build
+
       - name: Generate OpenAPI spec (PR)
         run: pnpm --filter web generate-openapi
 
@@ -45,6 +48,9 @@ jobs:
 
       - name: Install dependencies (main)
         run: pnpm install
+
+      - name: Build packages (main)
+        run: pnpm --filter @dub/utils --filter @dub/blocks build
 
       - name: Generate OpenAPI spec (main)
         run: pnpm --filter web generate-openapi
