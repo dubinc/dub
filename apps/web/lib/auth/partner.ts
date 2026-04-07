@@ -284,9 +284,10 @@ export const withPartnerProfile = (
           partnerUser.programAccess === "all"
             ? undefined
             : partnerUser.assignedPrograms.map(({ program }) => program.slug);
-        const assignedLinkIds = partnerUser.assignedLinks.map(
-          ({ linkId }) => linkId,
-        );
+        const assignedLinkIds =
+          partnerUser.programAccess === "all"
+            ? undefined
+            : partnerUser.assignedLinks.map(({ linkId }) => linkId);
 
         // If the user is scoped to specific programs and the route has a programId param,
         // verify they have access to this program (param may be program id or slug)
@@ -345,7 +346,9 @@ export const withPartnerProfile = (
             assignedProgramIds,
             assignedProgramSlugs,
             assignedLinkIds:
-              assignedLinkIds.length > 0 ? assignedLinkIds : undefined,
+              assignedLinkIds && assignedLinkIds.length > 0
+                ? assignedLinkIds
+                : undefined,
           },
           headers: responseHeaders,
         });
