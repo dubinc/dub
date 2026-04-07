@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getEarningsForPartner } from "@/lib/api/partner-profile/get-earnings-for-partner";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
@@ -20,6 +21,17 @@ export const GET = withPartnerProfile(
       });
 
     const parsedQuery = getPartnerEarningsQuerySchema.parse(searchParams);
+
+    if (
+      parsedQuery.linkId &&
+      assignedLinkIds &&
+      !assignedLinkIds.includes(parsedQuery.linkId)
+    ) {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "You are not authorized to view this link.",
+      });
+    }
 
     const earnings = await getEarningsForPartner({
       ...parsedQuery,

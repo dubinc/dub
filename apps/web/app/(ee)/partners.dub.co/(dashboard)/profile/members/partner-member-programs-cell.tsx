@@ -13,18 +13,29 @@ const MAX_OVERFLOW_LABEL = 9;
 function ProgramsHover({
   children,
   onClick,
+  "aria-label": ariaLabel,
 }: {
   children: ReactNode;
   onClick?: () => void;
+  "aria-label"?: string;
 }) {
-  return (
-    <div
-      className="group w-fit rounded-lg p-2 transition-colors duration-150 hover:cursor-pointer hover:bg-neutral-100"
-      onClick={onClick}
-    >
-      {children}
-    </div>
-  );
+  const className =
+    "group w-fit rounded-lg border-0 bg-transparent p-2 font-inherit text-inherit transition-colors duration-150 hover:cursor-pointer hover:bg-neutral-100";
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className={className}
+        onClick={onClick}
+        aria-label={ariaLabel}
+      >
+        {children}
+      </button>
+    );
+  }
+
+  return <div className={className}>{children}</div>;
 }
 
 export function PartnerMemberProgramsCell({
@@ -65,7 +76,14 @@ export function PartnerMemberProgramsCell({
       const program = displayPrograms[0];
 
       return (
-        <ProgramsHover onClick={onClick}>
+        <ProgramsHover
+          onClick={onClick}
+          aria-label={
+            program
+              ? `View programs for ${program.name}`
+              : "Open programs to assign or view access"
+          }
+        >
           {program ? (
             <img
               src={program.logo || `${OG_AVATAR_URL}${program.name}`}
@@ -74,7 +92,7 @@ export function PartnerMemberProgramsCell({
             />
           ) : (
             <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200">
-              <Plus className="size-3.5 text-neutral-500" strokeWidth={2.5} />
+              <Plus className="size-3.5 text-neutral-500" aria-hidden strokeWidth={2.5} />
             </div>
           )}
         </ProgramsHover>
@@ -87,7 +105,10 @@ export function PartnerMemberProgramsCell({
         : `All ${totalCount}`;
 
     return (
-      <ProgramsHover onClick={onClick}>
+      <ProgramsHover
+        onClick={onClick}
+        aria-label={`Open programs, ${allLabel}`}
+      >
         <div className="flex h-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 px-2 text-xs font-medium text-neutral-600">
           {allLabel}
         </div>
@@ -97,9 +118,12 @@ export function PartnerMemberProgramsCell({
 
   if (displayPrograms.length === 0) {
     return (
-      <ProgramsHover onClick={onClick}>
+      <ProgramsHover
+        onClick={onClick}
+        aria-label="Open programs to assign or view access"
+      >
         <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200">
-          <Plus className="size-3.5 text-neutral-500" strokeWidth={2.5} />
+          <Plus className="size-3.5 text-neutral-500" aria-hidden strokeWidth={2.5} />
         </div>
       </ProgramsHover>
     );
@@ -110,7 +134,10 @@ export function PartnerMemberProgramsCell({
   const extra = hiddenCount > 0 ? Math.min(hiddenCount, MAX_OVERFLOW_LABEL) : 0;
 
   return (
-    <ProgramsHover onClick={onClick}>
+    <ProgramsHover
+      onClick={onClick}
+      aria-label={`View programs, ${displayPrograms.length} enrolled`}
+    >
       <div className="flex items-center">
         {visible.map((p, index) => (
           <img
