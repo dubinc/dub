@@ -49,30 +49,37 @@ export async function POST(req: Request) {
     const { columns, partnerId, programId, userId, ...parsedParams } =
       payloadSchema.parse(JSON.parse(rawBody));
 
-    const user = await prisma.user.findUnique({
+    const partnerUser = await prisma.partnerUser.findUnique({
       where: {
-        id: userId,
+        userId_partnerId: {
+          userId,
+          partnerId,
+        },
       },
       select: {
-        email: true,
-        partners: {
+        assignedLinks: true,
+        user: {
           select: {
-            assignedLinks: true,
+            email: true,
           },
         },
       },
     });
 
-    if (!user) {
-      return logAndRespond(`User ${userId} not found. Skipping the export.`);
+    if (!partnerUser) {
+      return logAndRespond(
+        `Partner user ${userId} not found. Skipping the export.`,
+      );
     }
+
+    const { user } = partnerUser;
 
     if (!user.email) {
       return logAndRespond(`User ${userId} has no email. Skipping the export.`);
     }
 
-    const assignedLinkIds = user.partners.flatMap((partner) =>
-      partner.assignedLinks.map((link) => link.linkId),
+    const assignedLinkIds = partnerUser.assignedLinks.map(
+      ({ linkId }) => linkId,
     );
 
     const { program, links, customerDataSharingEnabledAt } =
