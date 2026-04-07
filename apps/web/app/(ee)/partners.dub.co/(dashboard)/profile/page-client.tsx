@@ -4,6 +4,7 @@ import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+
 import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Popover, Users2 } from "@dub/ui";
