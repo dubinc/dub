@@ -1,0 +1,17 @@
+NODE endpoint
+SQL >
+    %
+    SELECT
+        count() as count
+    FROM dub_api_logs
+    WHERE
+        true
+        {% if defined(workspaceId) %} AND workspace_id = {{ String(workspaceId) }} {% end %}
+        {% if defined(start) and defined(end) %}
+            AND timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
+            AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+        {% end %}
+        {% if defined(path) %} AND path = {{ String(path) }} {% end %}
+        {% if defined(method) %} AND method = {{ String(method) }} {% end %}
+        {% if defined(statusCode) %} AND status_code = {{ UInt16(statusCode) }} {% end %}
+        {% if defined(tokenId) %} AND token_id = {{ String(tokenId) }} {% end %}

@@ -1,7 +1,7 @@
 import { getPaginationQuerySchema } from "@/lib/zod/schemas/misc";
 import * as z from "zod/v4";
 
-export const API_LOGS_MAX_PAGE_SIZE = 50;
+export const API_LOGS_MAX_PAGE_SIZE = 100;
 
 // Schema for ingestion into Tinybird
 export const apiLogSchemaTB = z.object({
@@ -45,6 +45,17 @@ export const apiLogResponseSchemaTB = z.object({
   response_body: z.string(),
   token_id: z.string(),
   user_id: z.string(),
+});
+
+// Schema for count query filter params
+export const apiLogCountFilterSchemaTB = apiLogFilterSchemaTB.omit({
+  limit: true,
+  offset: true,
+});
+
+// Schema for count response
+export const apiLogCountResponseSchemaTB = z.object({
+  count: z.number(),
 });
 
 // Schema for single log lookup

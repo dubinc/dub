@@ -6,6 +6,8 @@ import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import {
   API_LOGS_MAX_PAGE_SIZE,
   apiLogByIdFilterSchemaTB,
+  apiLogCountFilterSchemaTB,
+  apiLogCountResponseSchemaTB,
   apiLogFilterSchemaTB,
   apiLogResponseSchemaTB,
 } from "./schemas";
@@ -48,6 +50,39 @@ export const getApiLogs = async ({
   });
 
   return events.data;
+};
+
+export const getApiLogsCount = async ({
+  workspaceId,
+  path,
+  method,
+  statusCode,
+  tokenId,
+  start,
+  end,
+}: Omit<GetApiLogsParams, "limit" | "offset">) => {
+  const pipe = tb.buildPipe({
+    pipe: "count_api_logs",
+    parameters: apiLogCountFilterSchemaTB,
+    data: apiLogCountResponseSchemaTB,
+  });
+
+  const { startDate, endDate } = getStartEndDates({
+    start,
+    end,
+  });
+
+  const result = await pipe({
+    workspaceId: prefixWorkspaceId(workspaceId),
+    start: formatUTCDateTimeClickhouse(startDate),
+    end: formatUTCDateTimeClickhouse(endDate),
+    ...(path && { path }),
+    ...(method && { method }),
+    ...(statusCode && { statusCode }),
+    ...(tokenId && { tokenId }),
+  });
+
+  return result.data[0]?.count ?? 0;
 };
 
 export const getApiLogById = async ({

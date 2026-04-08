@@ -2,17 +2,8 @@ import { WorkspaceWithUsers } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
 import { TokenCacheItem } from "../auth/token-cache";
 import { Session } from "../auth/utils";
+import { LOGGED_PATH_PREFIXES } from "./constants";
 import { recordApiLog } from "./record-api-log";
-
-const LOGGED_PATH_PREFIXES = [
-  "/api/track/lead",
-  "/api/track/sale",
-  "/api/track/open",
-  "/api/partners",
-  "/api/tokens/embed/referrals",
-  "/api/customers",
-  "/api/links",
-];
 
 export function shouldLogRoute(pathname: string) {
   return LOGGED_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
