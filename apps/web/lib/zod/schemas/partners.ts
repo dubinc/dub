@@ -875,8 +875,11 @@ export const bulkApprovePartnersSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
-/** Max length for optional `rejectionNote` on `ProgramApplication`. */
+// Max length for optional `rejectionNote` on `ProgramApplication`
 export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
+
+// Max length for optional `flagForFraudReason` on `FraudAlert`
+export const MAX_FRAUD_REASON_LENGTH = 2000;
 
 export const rejectPartnerSchema = z.object({
   workspaceId: z.string(),
@@ -913,16 +916,29 @@ export const retrievePartnerLinksSchema = partnerIdTenantIdSchema;
 export const banPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  reason: z.enum(
-    Object.keys(BAN_PARTNER_REASONS) as [
-      PartnerBannedReason,
-      ...PartnerBannedReason[],
-    ],
-  ),
+  reason: z
+    .enum(
+      Object.keys(BAN_PARTNER_REASONS) as [
+        PartnerBannedReason,
+        ...PartnerBannedReason[],
+      ],
+    )
+    .describe("The reason for banning the partner."),
+  flagForFraud: z
+    .boolean()
+    .optional()
+    .describe("Whether to flag the partner for fraud."),
+  flagForFraudReason: z
+    .string()
+    .max(MAX_FRAUD_REASON_LENGTH)
+    .optional()
+    .describe("The reason for flagging the partner for fraud."),
 });
 
 export const banPartnerApiSchema = partnerIdTenantIdSchema.extend(
-  banPartnerSchema.pick({ reason: true }).shape,
+  banPartnerSchema.pick({
+    reason: true,
+  }).shape,
 );
 
 export const bulkBanPartnersSchema = z.object({

@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { DUB_WORKSPACE_ID, getSearchParams } from "@dub/utils";
-import { getSession } from "./utils";
+import { getSession, type Session } from "./utils";
 
 // Internal use only (for admin portal)
 interface WithAdminHandler {
@@ -9,10 +9,12 @@ interface WithAdminHandler {
     req,
     params,
     searchParams,
+    session,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
+    session: Session;
   }): Promise<Response>;
 }
 
@@ -28,6 +30,7 @@ export const getDubAdminRole = async (userId: string) => {
       role: true,
     },
   });
+
   if (!response) {
     return null;
   }
@@ -62,5 +65,11 @@ export const withAdmin =
     }
 
     const searchParams = getSearchParams(req.url);
-    return handler({ req, params, searchParams });
+
+    return handler({
+      req,
+      params,
+      searchParams,
+      session,
+    });
   };

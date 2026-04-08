@@ -39,14 +39,14 @@ model Program {
   minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
   payoutMode         ProgramPayoutMode @default(internal)
 
-  inviteEmailData          Json?   @db.Json
-  embedData                Json?   @db.Json
-  resources                Json?   @db.Json
-  referralFormData         Json?   @db.Json
-  applicationRequirements  Json?   @db.Json
-  termsUrl         String? @db.Text
-  helpUrl          String? @db.Text
-  supportEmail     String?
+  inviteEmailData         Json?   @db.Json
+  embedData               Json?   @db.Json
+  resources               Json?   @db.Json
+  referralFormData        Json?   @db.Json
+  applicationRequirements Json?   @db.Json
+  termsUrl                String? @db.Text
+  helpUrl                 String? @db.Text
+  supportEmail            String?
 
   messagingEnabledAt      DateTime?
   partnerNetworkEnabledAt DateTime?
@@ -88,6 +88,7 @@ model Program {
   fraudRules               FraudRule[]
   fraudEventGroups         FraudEventGroup[]
   sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
+  fraudAlerts              FraudAlert[]
   referrals                PartnerReferral[]
 
   @@index(workspaceId)
@@ -151,6 +152,7 @@ model ProgramEnrollment {
   messages          Message[]
   fraudEventGroups  FraudEventGroup[]
   referrals         PartnerReferral[]
+  fraudAlerts       FraudAlert[]
 
   // unique constraints
   @@unique([partnerId, programId])
@@ -185,25 +187,25 @@ enum ProgramApplicationRejectionReason {
 }
 
 model ProgramApplication {
-  id              String                           @id @default(cuid())
+  id              String                             @id @default(cuid())
   programId       String
   groupId         String?
   name            String
   email           String
   country         String?
-  website         String?                          @db.Text
-  youtube         String?                          @db.Text
-  twitter         String?                          @db.Text
-  linkedin        String?                          @db.Text
-  instagram       String?                          @db.Text
-  tiktok          String?                          @db.Text
-  formData        Json?                            @db.Json
+  website         String?                            @db.Text
+  youtube         String?                            @db.Text
+  twitter         String?                            @db.Text
+  linkedin        String?                            @db.Text
+  instagram       String?                            @db.Text
+  tiktok          String?                            @db.Text
+  formData        Json?                              @db.Json
   userId          String? // user who reviewed the application
   rejectionReason ProgramApplicationRejectionReason?
-  rejectionNote   String?                          @db.Text
+  rejectionNote   String?                            @db.Text
   reviewedAt      DateTime?
-  createdAt       DateTime                         @default(now())
-  updatedAt       DateTime                         @updatedAt
+  createdAt       DateTime                           @default(now())
+  updatedAt       DateTime                           @updatedAt
 
   program      Program            @relation(fields: [programId], references: [id])
   partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])

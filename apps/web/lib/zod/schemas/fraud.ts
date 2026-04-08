@@ -1,9 +1,14 @@
 import { PAID_TRAFFIC_PLATFORMS } from "@/lib/api/fraud/constants";
-import { FraudEventStatus, FraudRuleType } from "@dub/prisma/client";
+import {
+  FraudAlertStatus,
+  FraudEventStatus,
+  FraudRuleType,
+} from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
+import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
 
 export const MAX_RESOLUTION_REASON_LENGTH = 200;
@@ -322,3 +327,27 @@ export const fraudEventSchemas = {
 
   partnerDuplicatePayoutMethod: baseFraudEventSchema,
 };
+
+export const fraudAlertSchema = z.object({
+  id: z.string(),
+  reason: z.string(),
+  status: z.enum(FraudAlertStatus),
+  reviewedAt: z.date().nullable(),
+  reviewNote: z.string().nullable(),
+  createdAt: z.date(),
+  partner: PartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+  }),
+  program: ProgramSchema.pick({
+    id: true,
+    name: true,
+    logo: true,
+  }),
+  reviewedBy: UserSchema.pick({
+    id: true,
+    name: true,
+  }).nullable(),
+});
