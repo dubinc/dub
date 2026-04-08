@@ -54,9 +54,14 @@ export async function calculatePartnerRanking({
 }: PartnerRankingParams) {
   const conditions: Prisma.Sql[] = [
     Prisma.sql`p.discoverableAt IS NOT NULL`,
-    Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
     Prisma.sql`COALESCE(pe.clickToConversionRate, 0) < 1`,
   ];
+
+  if (status === "ignored") {
+    conditions.push(Prisma.sql`dp.ignoredAt IS NOT NULL`);
+  } else {
+    conditions.push(Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`);
+  }
 
   if (partnerIds && partnerIds.length > 0) {
     conditions.push(Prisma.sql`p.id IN (${Prisma.join(partnerIds)})`);
@@ -118,12 +123,16 @@ export async function calculatePartnerRanking({
     conditions.push(
       Prisma.sql`enrolled.status = 'approved' AND dp.invitedAt IS NOT NULL`,
     );
+  } else if (status === "ignored") {
+    conditions.push(Prisma.sql`enrolled.id IS NULL`);
   }
 
-  if (starred === true) {
-    conditions.push(Prisma.sql`dp.starredAt IS NOT NULL`);
-  } else if (starred === false) {
-    conditions.push(Prisma.sql`(dp.starredAt IS NULL OR dp.id IS NULL)`);
+  if (status !== "ignored") {
+    if (starred === true) {
+      conditions.push(Prisma.sql`dp.starredAt IS NOT NULL`);
+    } else if (starred === false) {
+      conditions.push(Prisma.sql`(dp.starredAt IS NULL OR dp.id IS NULL)`);
+    }
   }
 
   const whereClause = Prisma.join(conditions, " AND ");
@@ -142,7 +151,9 @@ export async function calculatePartnerRanking({
         : Prisma.sql`finalScore DESC, p.id ASC`
       : status === "invited"
         ? Prisma.sql`dp.invitedAt ASC`
-        : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
+        : status === "ignored"
+          ? Prisma.sql`dp.ignoredAt DESC, p.id ASC`
+          : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
 
   const offset = (page - 1) * pageSize;
 

@@ -32,6 +32,7 @@ export const NetworkPartnersStatusSchema = z.enum([
   "discover",
   "invited",
   "recruited",
+  "ignored",
 ]);
 
 export const getNetworkPartnersQuerySchema = z

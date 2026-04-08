@@ -116,10 +116,21 @@ export const GET = withWorkspace(
           some: { programId, invitedAt: { not: null } },
         },
       },
+      ignored: {
+        programs: { none: { programId } },
+        discoveredByPrograms: {
+          some: { programId, ignoredAt: { not: null } },
+        },
+      },
     } as const;
 
+    const statusWhereForFacet =
+      status && status in statusWheres
+        ? statusWheres[status as keyof typeof statusWheres]
+        : statusWheres.discover;
+
     if (groupBy === "status") {
-      const [discover, invited, recruited] = await Promise.all([
+      const [discover, invited, recruited, ignored] = await Promise.all([
         !status || status === "discover"
           ? prisma.partner.count({
               where: {
@@ -144,18 +155,27 @@ export const GET = withWorkspace(
               },
             })
           : undefined,
+        !status || status === "ignored"
+          ? prisma.partner.count({
+              where: {
+                ...commonWhere,
+                ...statusWheres.ignored,
+              },
+            })
+          : undefined,
       ]);
 
       return NextResponse.json({
         discover,
         invited,
         recruited,
+        ignored,
       });
     } else if (groupBy === "country") {
       const countries = await prisma.partner.groupBy({
         by: ["country"],
         _count: true,
-        where: { ...commonWhere, ...statusWheres[status || "discover"] },
+        where: { ...commonWhere, ...statusWhereForFacet },
         orderBy: {
           _count: {
             country: "desc",
@@ -185,7 +205,7 @@ export const GET = withWorkspace(
       // Build partner where clause combining all filters
       const partnerWhere: Prisma.PartnerWhereInput = {
         ...commonWhere,
-        ...statusWheres[status || "discover"],
+        ...statusWhereForFacet,
         platforms: {
           some: platformPlatformFilter,
         },
@@ -238,7 +258,7 @@ export const GET = withWorkspace(
         subscriberRanges.map(async (range) => {
           const where: Prisma.PartnerWhereInput = {
             ...commonWhere,
-            ...statusWheres[status || "discover"],
+            ...statusWhereForFacet,
             platforms: {
               some: {
                 verifiedAt: { not: null },

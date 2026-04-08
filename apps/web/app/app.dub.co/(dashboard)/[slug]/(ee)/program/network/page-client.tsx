@@ -59,12 +59,20 @@ const tabs = [
   },
 ] as const;
 
-export function ProgramPartnerNetworkPageClient() {
+type ProgramPartnerNetworkPageClientProps = {
+  variant?: "default" | "ignored";
+};
+
+export function ProgramPartnerNetworkPageClient({
+  variant = "default",
+}: ProgramPartnerNetworkPageClientProps = {}) {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
 
   const status =
-    tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
+    variant === "ignored"
+      ? "ignored"
+      : tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
 
   const { data: partnerCounts, error: countError } = useNetworkPartnersCount();
 
@@ -81,7 +89,10 @@ export function ProgramPartnerNetworkPageClient() {
           status,
         },
         {
-          exclude: ["tab", "partnerId"],
+          exclude:
+            variant === "ignored"
+              ? ["tab", "partnerId", "starred"]
+              : ["tab", "partnerId"],
         },
       )}`,
     fetcher,
@@ -112,6 +123,7 @@ export function ProgramPartnerNetworkPageClient() {
   const { currentPartner } = useCurrentPartner({
     partners,
     partnerId: detailsSheetState.partnerId,
+    partnerListStatus: status,
   });
 
   const [previousPartnerId, nextPartnerId] = useMemo(() => {
@@ -137,6 +149,7 @@ export function ProgramPartnerNetworkPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          hideNotAFit={variant === "ignored"}
           onPrevious={
             previousPartnerId
               ? () =>
@@ -157,41 +170,43 @@ export function ProgramPartnerNetworkPageClient() {
           }
         />
       )}
-      <div className="grid grid-cols-3 gap-2">
-        {tabs.map((tab) => {
-          const isActive = status === tab.id;
+      {variant !== "ignored" && (
+        <div className="grid grid-cols-3 gap-2">
+          {tabs.map((tab) => {
+            const isActive = status === tab.id;
 
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              className={cn(
-                "border-border-subtle flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors duration-100",
-                isActive
-                  ? "border-black ring-1 ring-black"
-                  : "hover:bg-bg-muted",
-              )}
-              onClick={() => {
-                queryParams({
-                  set: { tab: tab.id },
-                  del: ["page", "starred"],
-                });
-              }}
-            >
-              <span className="text-content-default text-xs font-semibold">
-                {tab.label}
-              </span>
-              {partnerCounts ? (
-                <span className="text-content-emphasis text-base font-semibold">
-                  {(partnerCounts?.[tab.id] || 0).toLocaleString()}
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className={cn(
+                  "border-border-subtle flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors duration-100",
+                  isActive
+                    ? "border-black ring-1 ring-black"
+                    : "hover:bg-bg-muted",
+                )}
+                onClick={() => {
+                  queryParams({
+                    set: { tab: tab.id },
+                    del: ["page", "starred"],
+                  });
+                }}
+              >
+                <span className="text-content-default text-xs font-semibold">
+                  {tab.label}
                 </span>
-              ) : (
-                <div className="h-6 w-12 animate-pulse rounded-md bg-neutral-200" />
-              )}
-            </button>
-          );
-        })}
-      </div>
+                {partnerCounts ? (
+                  <span className="text-content-emphasis text-base font-semibold">
+                    {(partnerCounts?.[tab.id] || 0).toLocaleString()}
+                  </span>
+                ) : (
+                  <div className="h-6 w-12 animate-pulse rounded-md bg-neutral-200" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       <div>
         <div className="xs:flex-row xs:items-center flex flex-col gap-4">
@@ -253,45 +268,51 @@ export function ProgramPartnerNetworkPageClient() {
                   <PartnerCard
                     key={partner.id}
                     partner={partner}
-                    onToggleStarred={(starred) => {
-                      mutatePartners(
-                        // @ts-ignore SWR doesn't seem to have proper typing for partial data results w/ `populateCache`
-                        async () => {
-                          const result = await updateDiscoveredPartner({
-                            workspaceId: workspaceId!,
-                            partnerId: partner.id,
-                            starred,
-                          });
-                          if (!result?.data) {
-                            toast.error("Failed to star partner");
-                            throw new Error("Failed to star partner");
-                          }
+                    onToggleStarred={
+                      variant === "ignored"
+                        ? undefined
+                        : (starred) => {
+                            mutatePartners(
+                              // @ts-ignore SWR doesn't seem to have proper typing for partial data results w/ `populateCache`
+                              async () => {
+                                const result = await updateDiscoveredPartner({
+                                  workspaceId: workspaceId!,
+                                  partnerId: partner.id,
+                                  starred,
+                                });
+                                if (!result?.data) {
+                                  toast.error("Failed to star partner");
+                                  throw new Error("Failed to star partner");
+                                }
 
-                          return result.data;
-                        },
-                        {
-                          optimisticData: (data) =>
-                            (data || partners).map((p) =>
-                              p.id === partner.id
-                                ? {
-                                    ...p,
-                                    starredAt: starred ? new Date() : null,
-                                  }
-                                : p,
-                            ),
-                          populateCache: (
-                            result: { starredAt: Date | null },
-                            data,
-                          ) =>
-                            (data || partners).map((p) =>
-                              p.id === partner.id
-                                ? { ...p, starredAt: result.starredAt }
-                                : p,
-                            ),
-                          revalidate: false,
-                        },
-                      );
-                    }}
+                                return result.data;
+                              },
+                              {
+                                optimisticData: (data) =>
+                                  (data || partners).map((p) =>
+                                    p.id === partner.id
+                                      ? {
+                                          ...p,
+                                          starredAt: starred
+                                            ? new Date()
+                                            : null,
+                                        }
+                                      : p,
+                                  ),
+                                populateCache: (
+                                  result: { starredAt: Date | null },
+                                  data,
+                                ) =>
+                                  (data || partners).map((p) =>
+                                    p.id === partner.id
+                                      ? { ...p, starredAt: result.starredAt }
+                                      : p,
+                                  ),
+                                revalidate: false,
+                              },
+                            );
+                          }
+                    }
                   />
                 ))
               : [...Array(12)].map((_, idx) => <PartnerCard key={idx} />)}
@@ -300,7 +321,11 @@ export function ProgramPartnerNetworkPageClient() {
             <PaginationControls
               pagination={pagination}
               setPagination={setPagination}
-              totalCount={partnerCounts?.[status]}
+              totalCount={
+                variant === "ignored"
+                  ? partnerCounts?.ignored
+                  : partnerCounts?.[status]
+              }
               unit={(p) => `partner${p ? "s" : ""}`}
             />
           </div>
@@ -310,6 +335,7 @@ export function ProgramPartnerNetworkPageClient() {
           isFiltered={activeFilters.length > 0}
           isStarred={searchParams.get("starred") == "true"}
           onClearAllFilters={onRemoveAll}
+          variant={variant === "ignored" ? "ignored" : "default"}
         />
       )}
     </div>
@@ -666,9 +692,11 @@ function ListPill({ icon: Icon, label }: { icon?: Icon; label: string }) {
 function useCurrentPartner({
   partners,
   partnerId,
+  partnerListStatus,
 }: {
   partners?: NetworkPartnerProps[];
   partnerId: string | null;
+  partnerListStatus: string;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -681,7 +709,7 @@ function useCurrentPartner({
 
   const { data: fetchedPartners, isLoading } = useSWR<NetworkPartnerProps>(
     fetchPartnerId &&
-      `/api/network/partners?workspaceId=${workspaceId}&partnerIds=${fetchPartnerId}`,
+      `/api/network/partners?workspaceId=${workspaceId}&partnerIds=${fetchPartnerId}&status=${partnerListStatus}`,
     fetcher,
     {
       keepPreviousData: true,

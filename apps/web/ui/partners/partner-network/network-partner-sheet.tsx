@@ -31,6 +31,7 @@ type NetworkPartnerSheetProps = {
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  hideNotAFit?: boolean;
 };
 
 function NetworkPartnerSheetContent({
@@ -38,6 +39,7 @@ function NetworkPartnerSheetContent({
   onPrevious,
   onNext,
   setIsOpen,
+  hideNotAFit,
 }: NetworkPartnerSheetProps) {
   const { slug: workspaceSlug } = useWorkspace();
 
@@ -156,6 +158,7 @@ function NetworkPartnerSheetContent({
           partner={partner}
           groupId={selectedGroupId}
           setIsOpen={setIsOpen}
+          hideNotAFit={hideNotAFit}
         />
       </div>
     </div>
@@ -191,10 +194,12 @@ function PartnerControls({
   partner,
   setIsOpen,
   groupId,
+  hideNotAFit,
 }: {
   partner: NetworkPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   groupId?: string | null;
+  hideNotAFit?: boolean;
 }) {
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
@@ -247,9 +252,11 @@ function PartnerControls({
         <div className="mr-2">
           <InvitesUsage />
         </div>
-        <div className="flex-shrink-0">
-          <PartnerIgnoreButton partner={partner} setIsOpen={setIsOpen} />
-        </div>
+        {!hideNotAFit && (
+          <div className="flex-shrink-0">
+            <PartnerIgnoreButton partner={partner} setIsOpen={setIsOpen} />
+          </div>
+        )}
         <Button
           type="button"
           variant="primary"
