@@ -4,26 +4,31 @@ import type { ReactNode } from "react";
 
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PartnerUserProps } from "@/lib/types";
+import { Tooltip } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
-import { Plus } from "lucide-react";
 
 const MAX_VISIBLE_LOGOS = 3;
-const MAX_OVERFLOW_LABEL = 9;
 
 function ProgramsHover({
   children,
   onClick,
+  disabled,
+  tooltip,
   "aria-label": ariaLabel,
 }: {
   children: ReactNode;
   onClick?: () => void;
+  disabled?: boolean;
+  tooltip?: string;
   "aria-label"?: string;
 }) {
-  const className =
-    "group w-fit rounded-lg border-0 bg-transparent p-2 font-inherit text-inherit transition-colors duration-150 hover:cursor-pointer hover:bg-neutral-100";
+  const className = cn(
+    "group w-fit rounded-lg border-0 bg-transparent p-2 font-inherit text-inherit transition-colors duration-150",
+    disabled ? "cursor-default" : "hover:cursor-pointer hover:bg-neutral-100",
+  );
 
-  if (onClick) {
-    return (
+  const content =
+    onClick && !disabled ? (
       <button
         type="button"
         className={className}
@@ -32,35 +37,36 @@ function ProgramsHover({
       >
         {children}
       </button>
+    ) : (
+      <div className={className}>{children}</div>
     );
+
+  if (tooltip) {
+    return <Tooltip content={tooltip}>{content}</Tooltip>;
   }
 
-  return <div className={className}>{children}</div>;
+  return content;
 }
 
 export function PartnerMemberProgramsCell({
-  programs,
-  programAccess,
+  partnerUser,
   onClick,
 }: {
-  programs: PartnerUserProps["programs"];
-  programAccess: PartnerUserProps["programAccess"];
+  partnerUser: PartnerUserProps;
   onClick?: () => void;
 }) {
+  const { programAccess, programs, role } = partnerUser;
+  const isOwner = role === "owner";
+
   const { programEnrollments, isLoading: enrollmentsLoading } =
     useProgramEnrollments();
 
-  const fromEnrollments = (programEnrollments ?? []).map((e) => ({
-    id: e.programId,
-    name: e.program.name,
-    logo: e.program.logo,
-  }));
-
-  const displayPrograms = programAccess === "all" ? fromEnrollments : programs;
+  const displayPrograms =
+    programAccess === "all" ? programEnrollments ?? [] : programs;
 
   if (enrollmentsLoading && programAccess === "all") {
     return (
-      <div className="inline-flex rounded-full bg-neutral-100 px-1 py-1">
+      <div className="inline-flex rounded-lg bg-neutral-100 px-3 py-2">
         <div
           className="size-6 shrink-0 animate-pulse rounded-full bg-neutral-200"
           aria-hidden
@@ -69,69 +75,27 @@ export function PartnerMemberProgramsCell({
     );
   }
 
-  if (programAccess === "all") {
-    const totalCount = displayPrograms.length;
-
-    if (totalCount <= 1) {
-      const program = displayPrograms[0];
-
-      return (
-        <ProgramsHover
-          onClick={onClick}
-          aria-label={
-            program
-              ? `View programs for ${program.name}`
-              : "Open programs to assign or view access"
-          }
-        >
-          {program ? (
-            <img
-              src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-              alt=""
-              className="size-6 shrink-0 rounded-full border-2 border-white object-cover"
-            />
-          ) : (
-            <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200">
-              <Plus
-                className="size-3.5 text-neutral-500"
-                aria-hidden
-                strokeWidth={2.5}
-              />
-            </div>
-          )}
-        </ProgramsHover>
-      );
-    }
-
-    const allLabel =
-      totalCount > MAX_OVERFLOW_LABEL
-        ? `All ${MAX_OVERFLOW_LABEL}+`
-        : `All ${totalCount}`;
-
+  // Owner: always show "All" badge, disabled with tooltip
+  if (isOwner) {
     return (
       <ProgramsHover
-        onClick={onClick}
-        aria-label={`Open programs, ${allLabel}`}
+        disabled
+        tooltip="Owners have access to all programs"
+        aria-label="All programs"
       >
-        <div className="flex h-6 shrink-0 items-center justify-center rounded-full bg-neutral-200 px-2 text-xs font-medium text-neutral-600">
-          {allLabel}
+        <div className="flex shrink-0 items-center justify-center rounded-lg bg-neutral-200 px-3 py-2 text-xs font-medium text-neutral-600">
+          All
         </div>
       </ProgramsHover>
     );
   }
 
-  if (displayPrograms.length === 0) {
+  // Member/Viewer with "all" access
+  if (programAccess === "all") {
     return (
-      <ProgramsHover
-        onClick={onClick}
-        aria-label="Open programs to assign or view access"
-      >
-        <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200">
-          <Plus
-            className="size-3.5 text-neutral-500"
-            aria-hidden
-            strokeWidth={2.5}
-          />
+      <ProgramsHover onClick={onClick} aria-label="All programs">
+        <div className="flex shrink-0 items-center justify-center rounded-lg bg-neutral-200 px-3 py-2 text-xs font-medium text-neutral-600">
+          All
         </div>
       </ProgramsHover>
     );
@@ -139,7 +103,6 @@ export function PartnerMemberProgramsCell({
 
   const visible = displayPrograms.slice(0, MAX_VISIBLE_LOGOS);
   const hiddenCount = Math.max(0, displayPrograms.length - MAX_VISIBLE_LOGOS);
-  const extra = hiddenCount > 0 ? Math.min(hiddenCount, MAX_OVERFLOW_LABEL) : 0;
 
   return (
     <ProgramsHover
@@ -158,11 +121,11 @@ export function PartnerMemberProgramsCell({
             )}
           />
         ))}
-        {extra > 0 ? (
+        {hiddenCount > 0 && (
           <div className="-ml-1.5 flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200 text-xs font-medium text-neutral-600">
-            +{extra}
+            +{hiddenCount}
           </div>
-        ) : null}
+        )}
       </div>
     </ProgramsHover>
   );

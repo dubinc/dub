@@ -167,7 +167,6 @@ export function ProfileMembersPageClient() {
           );
         },
       },
-
       {
         id: "programs",
         header: "Programs",
@@ -176,8 +175,7 @@ export function ProfileMembersPageClient() {
         meta: { disableTruncate: true },
         cell: ({ row }) => (
           <PartnerMemberProgramsCell
-            programs={row.original.programs}
-            programAccess={row.original.programAccess}
+            partnerUser={row.original}
             onClick={() => {
               setSelectedUserForPrograms(row.original);
               setShowProgramsSheet(true);

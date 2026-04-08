@@ -7,7 +7,6 @@ import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 const ALL_LINKS_VALUE = "__all__";
-const MAX_DISPLAYED_LINKS = 5;
 
 export function PartnerLinksSelector({
   programId,
@@ -95,9 +94,6 @@ export function PartnerLinksSelector({
     }
   };
 
-  const displayedSelected = selected.slice(0, MAX_DISPLAYED_LINKS);
-  const plusCount = Math.max(0, selected.length - MAX_DISPLAYED_LINKS);
-
   return (
     <Combobox
       multiple
@@ -120,7 +116,7 @@ export function PartnerLinksSelector({
         <div className="py-0.5 text-neutral-500">Select links...</div>
       ) : (
         <div className="flex flex-wrap gap-2">
-          {displayedSelected.map((option) => (
+          {selected.map((option) => (
             <span
               key={option.value}
               className="animate-fade-in flex min-w-0 items-center gap-1 rounded-md bg-neutral-100 px-1.5 py-1 text-xs text-neutral-600"
@@ -138,11 +134,6 @@ export function PartnerLinksSelector({
               </span>
             </span>
           ))}
-          {plusCount > 0 && (
-            <span className="animate-fade-in flex rounded-md bg-neutral-100 px-1.5 py-1 text-xs font-medium text-neutral-600">
-              + {plusCount} more
-            </span>
-          )}
         </div>
       )}
     </Combobox>
