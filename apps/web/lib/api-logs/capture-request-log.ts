@@ -20,7 +20,6 @@ export function shouldLogRoute(pathname: string) {
 
 export function captureRequestLog({
   req,
-  clonedReq,
   response,
   workspace,
   session,
@@ -30,7 +29,6 @@ export function captureRequestLog({
   startTime,
 }: {
   req: Request;
-  clonedReq: Request;
   response: Response;
   workspace: WorkspaceWithUsers;
   session: Session | undefined;
@@ -46,7 +44,6 @@ export function captureRequestLog({
 
   const duration = Date.now() - startTime;
   const responseClone = response.clone();
-  const reqForLogging = clonedReq.clone();
 
   waitUntil(
     (async () => {
@@ -54,7 +51,7 @@ export function captureRequestLog({
       let responseBody = null;
 
       try {
-        requestBody = await reqForLogging.json();
+        requestBody = await req.json();
       } catch {}
 
       try {

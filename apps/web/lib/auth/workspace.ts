@@ -87,6 +87,7 @@ export const withWorkspace = (
       // Clone the request early so handlers can read the body without cloning
       // Keep the original for withAxiomBodyLog to read in onSuccess
       const clonedReq = req.clone();
+      const reqForLog = clonedReq.clone();
 
       const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
@@ -95,8 +96,11 @@ export const withWorkspace = (
       let requestHeaders = await headers();
       let responseHeaders = new Headers();
       let workspace: WorkspaceWithUsers | undefined;
+      let session: Session | undefined;
+      let token: TokenCacheItem | null = null;
 
       const startTime = Date.now();
+      const url = new URL(req.url || "", API_DOMAIN);
 
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
@@ -111,13 +115,9 @@ export const withWorkspace = (
           apiKey = authorizationHeader.replace("Bearer ", "");
         }
 
-        const url = new URL(req.url || "", API_DOMAIN);
-
-        let session: Session | undefined;
         let workspaceId: string | undefined;
         let workspaceSlug: string | undefined;
         let permissions: PermissionAction[] = [];
-        let token: TokenCacheItem | null = null;
         const isRestrictedToken = apiKey?.startsWith("dub_");
 
         const idOrSlug =
@@ -480,8 +480,7 @@ export const withWorkspace = (
 
         if (workspace) {
           captureRequestLog({
-            req,
-            clonedReq,
+            req: reqForLog,
             response,
             workspace,
             session,
@@ -516,8 +515,7 @@ export const withWorkspace = (
 
         if (workspace) {
           captureRequestLog({
-            req,
-            clonedReq,
+            req: reqForLog,
             response: errorResponse,
             workspace,
             session,

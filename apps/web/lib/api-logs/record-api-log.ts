@@ -1,7 +1,11 @@
 import { tb } from "@/lib/tinybird";
+import { log } from "@dub/utils";
+import * as z from "zod/v4";
 import { createId } from "../api/create-id";
 import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import { apiLogSchemaTB } from "./schemas";
+
+type ApiLogInput = z.infer<typeof apiLogSchemaTB>;
 
 const recordApiLogTB = tb.buildIngestEndpoint({
   datasource: "dub_api_logs",
@@ -32,24 +36,30 @@ export const recordApiLog = async ({
   tokenId: string | null;
   userId: string | null;
 }) => {
+  const apiLog: ApiLogInput = {
+    id: createId({ prefix: "req_" }),
+    timestamp: new Date().toISOString(),
+    workspace_id: prefixWorkspaceId(workspaceId),
+    method,
+    path,
+    status_code: statusCode,
+    duration,
+    user_agent: userAgent ?? "",
+    request_body: JSON.stringify(requestBody),
+    response_body: JSON.stringify(responseBody),
+    token_id: tokenId ?? "",
+    user_id: userId ?? "",
+  };
+
   try {
-    await recordApiLogTB([
-      {
-        id: createId({ prefix: "req_" }),
-        timestamp: new Date().toISOString(),
-        workspace_id: prefixWorkspaceId(workspaceId),
-        method,
-        path,
-        status_code: statusCode,
-        duration,
-        user_agent: userAgent ?? "",
-        request_body: JSON.stringify(requestBody),
-        response_body: JSON.stringify(responseBody),
-        token_id: tokenId ?? "",
-        user_id: userId ?? "",
-      },
-    ]);
+    await recordApiLogTB(apiLog);
   } catch (error) {
-    console.error("Failed to record API log", error);
+    console.error("Failed to record API log", error, JSON.stringify(apiLog));
+
+    await log({
+      message: "Failed to record API log. See logs for more details.",
+      type: "errors",
+      mention: true,
+    });
   }
 };
