@@ -51,7 +51,7 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "partnerDuplicatePayoutMethod",
     name: "Duplicate payout method",
     description:
-      "This partner is using a payout method that is already linked to another partner account, which may indicate account duplication or fraudulent behavior.",
+      "This payout method is already linked to another partner. May indicate duplicate accounts or fraud, and is flagged to prevent abuse of restrictions, caps, or bonuses.",
     scope: "partner",
     severity: "high",
     configurable: true,

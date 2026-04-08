@@ -1,3 +1,4 @@
+import { processKey } from "@/lib/api/links/utils";
 import { MAX_PARTNERS_INVITES_PER_REQUEST } from "@/lib/constants/program";
 import {
   IdentityVerificationStatus,
@@ -190,6 +191,10 @@ export const getPartnersQuerySchema = z
   .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
+  status: z
+    .enum(ProgramEnrollmentStatus)
+    .or(z.enum(["approved_invited"]))
+    .optional(),
   partnerIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
@@ -627,6 +632,12 @@ export const createPartnerSchema = z.object({
     .string()
     .max(100)
     .nullish()
+    .refine(
+      (v) => (v ? processKey({ domain: "d.to", key: v }) !== null : true),
+      {
+        message: "Invalid username. Must be a URL-friendly string.",
+      },
+    )
     .describe(
       "The partner's unique username in your system (max 100 characters). This will be used to create a short link for the partner using your program's default domain. If not provided, Dub will try to generate a username from the partner's name or email.",
     ),

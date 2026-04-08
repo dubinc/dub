@@ -41,7 +41,12 @@ export async function getPartnersCount<T>(
             ...(groupId && {
               groupId,
             }),
-            status,
+            status:
+              status === "approved_invited"
+                ? {
+                    in: ["approved", "invited"],
+                  }
+                : status,
             ...enrollmentMetricWhere,
           },
         },
@@ -108,7 +113,12 @@ export async function getPartnersCount<T>(
           }),
           ...commonWhere,
         },
-        status,
+        status:
+          status === "approved_invited"
+            ? {
+                in: ["approved", "invited"],
+              }
+            : status,
         ...enrollmentMetricWhere,
       },
       _count: true,

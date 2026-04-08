@@ -10,6 +10,7 @@ import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
@@ -60,18 +61,25 @@ export const { POST } = serve<Payload>(
       workflowRunId: context.workflowRunId,
     });
 
-    const { program, partner, links, ...programEnrollment } =
-      await getProgramEnrollmentOrThrow({
-        programId,
-        partnerId,
-        include: {
-          program: true,
-          partner: true,
-          links: true,
-        },
-      });
+    const {
+      program,
+      partner,
+      links: existingPartnerLinks,
+      ...programEnrollment
+    } = await getProgramEnrollmentOrThrow({
+      programId,
+      partnerId,
+      include: {
+        program: true,
+        partner: true,
+        links: true,
+      },
+    });
 
     const { groupId } = programEnrollment;
+
+    const allPartnerLinks =
+      ProgramPartnerLinkSchema.array().parse(existingPartnerLinks);
 
     // Step 1: Create partner default links
     await context.run("create-default-links", async () => {
@@ -105,8 +113,8 @@ export const { POST } = serve<Payload>(
         return;
       }
 
-      // Skip existing default links
-      for (const link of links) {
+      // Skip existing default links (should never happen since it's a new partner, but just in case)
+      for (const link of existingPartnerLinks) {
         if (link.partnerGroupDefaultLinkId) {
           partnerGroupDefaultLinks = partnerGroupDefaultLinks.filter(
             (defaultLink) => defaultLink.id !== link.partnerGroupDefaultLinkId,
@@ -155,6 +163,8 @@ export const { POST } = serve<Payload>(
           shortLink,
         })),
       });
+
+      allPartnerLinks.push(...partnerLinks);
 
       return;
     });
@@ -355,7 +365,7 @@ export const { POST } = serve<Payload>(
         ...polyfillSocialMediaFields(partnerPlatforms),
         id: partner.id,
         status: programEnrollment.status,
-        links,
+        links: allPartnerLinks,
       });
 
       const workspace = await prisma.project.findUniqueOrThrow({
