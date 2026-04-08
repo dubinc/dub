@@ -6,6 +6,7 @@ import { WorkspaceRole } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
+import { captureRequestLog } from "../api/api-logging";
 import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
 import {
   PermissionAction,
@@ -95,6 +96,8 @@ export const withWorkspace = (
       let responseHeaders = new Headers();
       let workspace: WorkspaceWithUsers | undefined;
 
+      const startTime = Date.now();
+
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
@@ -183,6 +186,7 @@ export const withWorkspace = (
                 hashedKey,
               },
               select: {
+                id: true,
                 expires: true,
                 ...(isRestrictedToken && {
                   scopes: true,
@@ -463,7 +467,7 @@ export const withWorkspace = (
           });
         }
 
-        return await handler({
+        const response = await handler({
           req: clonedReq,
           params,
           searchParams,
@@ -473,6 +477,22 @@ export const withWorkspace = (
           permissions,
           token,
         });
+
+        if (workspace) {
+          captureRequestLog({
+            req,
+            clonedReq,
+            response,
+            workspace,
+            session,
+            token,
+            url,
+            requestHeaders,
+            startTime,
+          });
+        }
+
+        return response;
       } catch (error) {
         // Log the conversion events for debugging purposes
         waitUntil(
@@ -489,7 +509,26 @@ export const withWorkspace = (
           })(),
         );
 
-        return handleAndReturnErrorResponse(error, responseHeaders);
+        const errorResponse = handleAndReturnErrorResponse(
+          error,
+          responseHeaders,
+        );
+
+        if (workspace) {
+          captureRequestLog({
+            req,
+            clonedReq,
+            response: errorResponse,
+            workspace,
+            session,
+            token,
+            url,
+            requestHeaders,
+            startTime,
+          });
+        }
+
+        return errorResponse;
       }
     },
   );

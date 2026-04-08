@@ -1,0 +1,20 @@
+TOKEN "dub_tinybird_token" APPEND
+
+SCHEMA >
+    `id` String `json:$.id`,
+    `timestamp` DateTime64(3) `json:$.timestamp`,
+    `workspace_id` String `json:$.workspace_id`,
+    `method` LowCardinality(String) `json:$.method`,
+    `path` String `json:$.path`,
+    `status_code` UInt16 `json:$.status_code`,
+    `duration` UInt32 `json:$.duration`,
+    `user_agent` String `json:$.user_agent`,
+    `request_body` String `json:$.request_body`,
+    `response_body` String `json:$.response_body`,
+    `token_id` String `json:$.token_id`,
+    `user_id` String `json:$.user_id`
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
+ENGINE_SORTING_KEY "workspace_id, path, timestamp"
+ENGINE_TTL "toDateTime(timestamp) + toIntervalDay(90)"
