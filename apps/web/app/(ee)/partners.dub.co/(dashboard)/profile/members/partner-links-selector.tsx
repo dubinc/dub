@@ -3,6 +3,7 @@
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import { Combobox, LinkLogo } from "@dub/ui";
 import { getApexDomain, linkConstructor, truncate } from "@dub/utils";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 const ALL_LINKS_VALUE = "__all__";
@@ -62,13 +63,13 @@ export function PartnerLinksSelector({
   const options = [
     {
       value: ALL_LINKS_VALUE,
-      label: "All links",
+      label: "All program links",
     },
     ...linkOptions,
   ];
 
   const selected = isAllLinksResolved
-    ? [{ value: ALL_LINKS_VALUE, label: "All links" }]
+    ? [{ value: ALL_LINKS_VALUE, label: "All program links" }]
     : linkOptions.filter((opt) => validSelectedLinkIds?.includes(opt.value));
 
   const handleSelect = ({ value }: { value: string }) => {
@@ -100,7 +101,7 @@ export function PartnerLinksSelector({
   return (
     <Combobox
       multiple
-      caret
+      caret={<ChevronDown className="size-3 shrink-0 text-neutral-400" />}
       matchTriggerWidth
       side="bottom"
       options={loading ? [] : options}
@@ -108,13 +109,13 @@ export function PartnerLinksSelector({
       onSelect={handleSelect}
       buttonProps={{
         className:
-          "h-auto py-1.5 px-2.5 w-full max-w-full text-neutral-700 border-neutral-300 items-start",
+          "h-auto min-h-10 w-full max-w-full rounded-lg border-neutral-200 bg-white px-3 py-1 text-sm font-normal tracking-[-0.28px] text-neutral-700 shadow-none hover:bg-white items-start",
       }}
     >
       {loading ? (
         <div className="my-0.5 h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
       ) : isAllLinks ? (
-        <div className="py-0.5">All links</div>
+        <div className="leading-5">All links</div>
       ) : selected.length === 0 ? (
         <div className="py-0.5 text-neutral-500">Select links...</div>
       ) : (

@@ -7,7 +7,7 @@ import { ProgramAccessScope } from "@dub/prisma/client";
 import { BlurImage, Button, Sheet } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -238,7 +238,7 @@ function PartnerMemberProgramsSheetContent({
           </div>
         )}
 
-        <div className="flex flex-col px-4 py-6">
+        <div className="flex flex-col gap-3 px-4 py-6">
           {isLoading ? (
             [...Array(3)].map((_, i) => <ProgramRowPlaceholder key={i} />)
           ) : !programEnrollments || programEnrollments.length === 0 ? (
@@ -319,48 +319,70 @@ function ProgramRow({
   onLinkChange: (ids: string[] | undefined) => void;
 }) {
   return (
-    <div className="rounded-lg p-3 transition-colors duration-150 hover:bg-neutral-50">
-      <div className="flex items-center justify-between">
-        <div className="flex min-w-0 items-center gap-3">
-          <BlurImage
-            src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-            alt={program.name}
-            className="size-8 shrink-0 overflow-hidden rounded-full"
-            width={32}
-            height={32}
-          />
-          <span className="truncate text-sm font-medium text-neutral-800">
+    <div
+      className={cn(
+        "overflow-hidden rounded-xl border border-neutral-200",
+        showLinkPicker ? "bg-neutral-50" : "bg-white",
+      )}
+    >
+      <div
+        className={cn(
+          "p-3",
+          showLinkPicker && "border-b border-neutral-200 bg-white",
+        )}
+      >
+        <div className="flex items-center gap-3">
+          <div className="size-8 shrink-0 overflow-hidden rounded-full border border-black/[0.08]">
+            <BlurImage
+              src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+              alt={program.name}
+              className="size-full object-cover"
+              width={32}
+              height={32}
+            />
+          </div>
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.28px] text-neutral-800">
             {program.name}
           </span>
-        </div>
 
-        {canEdit ? (
-          <select
-            className={cn(
-              "cursor-pointer appearance-none rounded-lg border border-neutral-200 bg-white pl-3 pr-8 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300",
-            )}
-            value={hasAccess ? "access" : "no_access"}
-            onChange={(e) => onAccessChange(e.target.value === "access")}
-          >
-            <option value="access">Access</option>
-            <option value="no_access">No access</option>
-          </select>
-        ) : (
-          <Link href={`/programs/${program.slug}`}>
-            <Button
-              variant="secondary"
-              text="View"
-              className="h-8 w-fit text-xs"
-            />
-          </Link>
-        )}
+          {canEdit ? (
+            <div className="relative shrink-0">
+              <select
+                className={cn(
+                  "h-8 w-max min-w-[6.75rem] cursor-pointer appearance-none rounded-lg border border-neutral-200 bg-neutral-100 py-1.5 pl-3 pr-9",
+                  "text-sm font-medium leading-5 tracking-[-0.28px] text-neutral-400",
+                  "outline-none focus:border-neutral-300 focus:ring-1 focus:ring-neutral-300",
+                )}
+                value={hasAccess ? "access" : "no_access"}
+                onChange={(e) => onAccessChange(e.target.value === "access")}
+              >
+                <option value="access">Access</option>
+                <option value="no_access">No access</option>
+              </select>
+              <ChevronDown
+                className="pointer-events-none absolute right-3 top-1/2 size-3 -translate-y-1/2 text-neutral-400"
+                aria-hidden
+              />
+            </div>
+          ) : (
+            <Link href={`/programs/${program.slug}`} className="shrink-0">
+              <Button
+                variant="secondary"
+                text="View"
+                className="h-8 w-fit rounded-lg border border-neutral-200 bg-neutral-100 px-3 text-sm font-medium tracking-[-0.28px] text-neutral-400 shadow-none hover:bg-neutral-100 hover:text-neutral-500"
+              />
+            </Link>
+          )}
+        </div>
       </div>
 
       {showLinkPicker && (
-        <div className="mt-2 pl-11">
-          <label className="mb-1 block text-xs font-medium text-neutral-500">
-            Links
-          </label>
+        <div className="flex flex-col gap-2 p-4">
+          <div className="flex h-[18px] items-center">
+            <span className="text-sm font-medium tracking-[-0.28px] text-neutral-900">
+              Links
+            </span>
+          </div>
           <PartnerLinksSelector
             programId={programId}
             selectedLinkIds={selectedLinkIds}
@@ -374,12 +396,14 @@ function ProgramRow({
 
 function ProgramRowPlaceholder() {
   return (
-    <div className="flex items-center justify-between gap-4 py-3">
-      <div className="flex items-center gap-3">
-        <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
-        <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+    <div className="overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+      <div className="border-b border-neutral-200 bg-white p-3">
+        <div className="flex items-center gap-3">
+          <div className="size-8 shrink-0 animate-pulse rounded-full border border-black/[0.08] bg-neutral-200" />
+          <div className="h-4 min-w-0 flex-1 animate-pulse rounded bg-neutral-200" />
+          <div className="h-8 w-[88px] shrink-0 animate-pulse rounded-lg bg-neutral-200" />
+        </div>
       </div>
-      <div className="h-8 w-20 animate-pulse rounded bg-neutral-200" />
     </div>
   );
 }
