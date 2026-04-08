@@ -7,6 +7,7 @@ import {
   Filter,
   StatusBadge,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
@@ -182,12 +183,11 @@ function FraudAlertsPageClient() {
         id: "reason",
         header: "Fraud Reason",
         cell: ({ row }) => (
-          <span
-            className="max-w-[300px] truncate text-sm text-neutral-600"
-            title={row.original.reason}
-          >
-            {row.original.reason}
-          </span>
+          <Tooltip content={row.original.reason}>
+            <span className="line-clamp-1 max-w-[200px] cursor-help truncate text-sm text-neutral-600">
+              {row.original.reason}
+            </span>
+          </Tooltip>
         ),
       },
       {
@@ -204,6 +204,33 @@ function FraudAlertsPageClient() {
         id: "createdAt",
         header: "Flagged",
         cell: ({ row }) => formatDateTime(row.original.createdAt),
+      },
+      {
+        id: "reviewNote",
+        header: "Review Note",
+        cell: ({ row }) => {
+          const { reviewNote, reviewedBy } = row.original;
+          if (!reviewNote) return "-";
+
+          return (
+            <Tooltip
+              content={
+                <div className="max-w-xs">
+                  <p className="text-sm">{reviewNote}</p>
+                  {reviewedBy && (
+                    <p className="mt-1 text-xs text-neutral-400">
+                      Reviewed by {reviewedBy.name}
+                    </p>
+                  )}
+                </div>
+              }
+            >
+              <span className="line-clamp-1 max-w-[150px] cursor-help truncate text-sm text-neutral-600">
+                {reviewNote}
+              </span>
+            </Tooltip>
+          );
+        },
       },
     ],
     pagination,

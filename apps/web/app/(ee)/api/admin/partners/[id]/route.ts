@@ -27,7 +27,13 @@ export const GET = withAdmin(async ({ params }) => {
           status: "banned",
         },
         include: {
-          program: true,
+          program: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+            },
+          },
         },
         orderBy: {
           bannedAt: "desc",
@@ -39,7 +45,13 @@ export const GET = withAdmin(async ({ params }) => {
           partnerId: id,
         },
         include: {
-          program: true,
+          program: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -49,6 +61,15 @@ export const GET = withAdmin(async ({ params }) => {
       prisma.payout.findMany({
         where: {
           partnerId: id,
+        },
+        include: {
+          program: {
+            select: {
+              id: true,
+              name: true,
+              logo: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -60,19 +81,11 @@ export const GET = withAdmin(async ({ params }) => {
           partnerId: id,
         },
         include: {
-          customer: {
+          program: {
             select: {
               id: true,
-              email: true,
-              country: true,
-            },
-          },
-          link: {
-            select: {
-              id: true,
-              domain: true,
-              key: true,
-              shortLink: true,
+              name: true,
+              logo: true,
             },
           },
         },

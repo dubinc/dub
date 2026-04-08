@@ -1,23 +1,38 @@
 "use client";
 
-import {
-  PartnerProps,
-  PayoutResponse,
-  ProgramEnrollmentProps,
-} from "@/lib/types";
+import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
+import { PartnerPlatformProps } from "@/lib/types";
+import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { fraudAlertSchema } from "@/lib/zod/schemas/fraud";
-import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
-import { MAX_FRAUD_REASON_LENGTH } from "@/lib/zod/schemas/partners";
+import {
+  MAX_FRAUD_REASON_LENGTH,
+  PartnerSchema,
+} from "@/lib/zod/schemas/partners";
+import { PayoutSchema } from "@/lib/zod/schemas/payouts";
+import {
+  ProgramEnrollmentSchema,
+  ProgramSchema,
+} from "@/lib/zod/schemas/programs";
+import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { FraudAlertStatus } from "@dub/prisma/client";
-import { Button, Sheet, StatusBadge } from "@dub/ui";
-import { Xmark } from "@dub/ui/icons";
+import {
+  Button,
+  LoadingSpinner,
+  Sheet,
+  StatusBadge,
+  Table,
+  Tooltip,
+  useTable,
+} from "@dub/ui";
+import { BadgeCheck2Fill, Xmark } from "@dub/ui/icons";
 import {
   currencyFormatter,
   formatDateTime,
-  nFormatter,
   OG_AVATAR_URL,
 } from "@dub/utils";
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
@@ -25,11 +40,26 @@ import * as z from "zod/v4";
 
 type FraudAlert = z.infer<typeof fraudAlertSchema>;
 
-type PartnerDetail = PartnerProps & {
-  programEnrollments: ProgramEnrollmentProps[];
+type ProgramInfo = Pick<z.infer<typeof ProgramSchema>, "id" | "name" | "logo">;
+
+type PartnerDetail = z.infer<typeof PartnerSchema> & {
+  platforms: PartnerPlatformProps[];
+  programEnrollments: (Pick<
+    z.infer<typeof ProgramEnrollmentSchema>,
+    "programId" | "status" | "bannedAt" | "bannedReason"
+  > & {
+    program: ProgramInfo;
+  })[];
   fraudAlerts: FraudAlert[];
-  payouts: PayoutResponse[];
-  commissions: z.infer<typeof PartnerEarningsSchema>[];
+  payouts: (z.infer<typeof PayoutSchema> & {
+    program: ProgramInfo;
+  })[];
+  commissions: (Pick<
+    z.infer<typeof CommissionSchema>,
+    "id" | "earnings" | "currency" | "status" | "createdAt"
+  > & {
+    program: ProgramInfo;
+  })[];
 };
 
 const FRAUD_ALERT_STATUS_BADGES: Record<
@@ -39,15 +69,6 @@ const FRAUD_ALERT_STATUS_BADGES: Record<
   pending: { label: "Pending", variant: "pending" },
   confirmed: { label: "Confirmed", variant: "error" },
   dismissed: { label: "Dismissed", variant: "neutral" },
-};
-
-const PLATFORM_LABELS: Record<string, string> = {
-  website: "Website",
-  youtube: "YouTube",
-  twitter: "Twitter/X",
-  linkedin: "LinkedIn",
-  instagram: "Instagram",
-  tiktok: "TikTok",
 };
 
 const BANNED_REASON_LABELS: Record<string, string> = {
@@ -75,7 +96,7 @@ export function ReviewFraudAlertSheet({
       open={isOpen}
       onOpenChange={setIsOpen}
       contentProps={{
-        className: "[--sheet-width:620px]",
+        className: "[--sheet-width:720px]",
       }}
     >
       {alert && (
@@ -153,7 +174,7 @@ function SheetContent({
       <div className="scrollbar-hide flex min-h-0 flex-1 flex-col overflow-y-auto">
         <div className="flex flex-col gap-6 p-6">
           {/* Current alert context */}
-          <Section title="Alert Details">
+          <div>
             <div className="flex items-center gap-3">
               <img
                 src={
@@ -171,12 +192,12 @@ function SheetContent({
               </span>
             </div>
             <p className="mt-2 text-sm text-neutral-600">{fraudAlert.reason}</p>
-          </Section>
+          </div>
 
           {/* Partner info */}
           <Section title="Partner">
             {isLoading ? (
-              <LoadingSkeleton />
+              <LoadingState />
             ) : partner ? (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
@@ -207,136 +228,90 @@ function SheetContent({
                   />
                 </div>
 
-                {/* Social handles */}
                 {partner.platforms.length > 0 && (
-                  <div className="mt-1">
-                    <p className="mb-1.5 text-xs font-medium uppercase text-neutral-400">
-                      Platforms
-                    </p>
-                    <div className="flex flex-col gap-1.5">
-                      {partner.platforms.map((platform) => (
-                        <div
-                          key={`${platform.type}-${platform.identifier}`}
-                          className="flex items-center justify-between text-sm"
-                        >
-                          <span className="text-neutral-600">
-                            {PLATFORM_LABELS[platform.type] || platform.type}:{" "}
-                            <span className="font-medium text-neutral-900">
-                              {platform.identifier}
-                            </span>
-                          </span>
-                          {platform.subscribers !== null && (
-                            <span className="text-xs text-neutral-400">
-                              {nFormatter(platform.subscribers)} subscribers
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    {PARTNER_PLATFORM_FIELDS.map(
+                      ({ label, icon: Icon, data: getPlatformData }) => {
+                        const { value, href, verified } =
+                          getPlatformData(partner.platforms);
+                        if (!value) return null;
+                        return (
+                          <Tooltip
+                            key={label}
+                            content={
+                              <Link
+                                href={href ?? "#"}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-neutral-700 hover:text-neutral-900"
+                              >
+                                <Icon className="size-3 shrink-0" />
+                                <span>{value}</span>
+                                {verified && (
+                                  <BadgeCheck2Fill className="size-3 text-green-600" />
+                                )}
+                              </Link>
+                            }
+                          >
+                            <Link
+                              href={href ?? "#"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="border-border-subtle hover:bg-bg-muted relative flex size-6 shrink-0 items-center justify-center rounded-full border"
+                            >
+                              <Icon className="size-3" />
+                              <span className="sr-only">{label}</span>
+                              {verified && (
+                                <BadgeCheck2Fill className="absolute -right-1 -top-1 size-3 text-green-600" />
+                              )}
+                            </Link>
+                          </Tooltip>
+                        );
+                      },
+                    )}
                   </div>
                 )}
               </div>
             ) : null}
           </Section>
 
-          {/* Financial stats */}
-          <Section title="Financial Summary">
+          {/* Payouts table */}
+          <Section title="Payouts">
             {isLoading ? (
-              <LoadingSkeleton />
+              <LoadingState />
             ) : partner ? (
-              <FinancialSummary partner={partner} />
+              <PayoutsTable payouts={partner.payouts} />
             ) : null}
           </Section>
 
-          {/* Ban history */}
-          <Section title="Ban History">
+          {/* Commissions table */}
+          <Section title="Commissions">
             {isLoading ? (
-              <LoadingSkeleton />
-            ) : partner && partner.programEnrollments.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                {partner.programEnrollments.map((enrollment) => (
-                  <div
-                    key={enrollment.programId}
-                    className="flex items-center justify-between rounded-lg border border-neutral-200 px-3 py-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <img
-                        src={
-                          enrollment.program.logo ||
-                          `${OG_AVATAR_URL}${enrollment.program.name}`
-                        }
-                        alt={enrollment.program.name}
-                        className="size-4 rounded-full"
-                      />
-                      <span className="text-sm font-medium">
-                        {enrollment.program.name}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-3 text-xs text-neutral-500">
-                      {enrollment.bannedReason && (
-                        <span className="rounded bg-red-50 px-1.5 py-0.5 text-red-600">
-                          {BANNED_REASON_LABELS[enrollment.bannedReason] ||
-                            enrollment.bannedReason}
-                        </span>
-                      )}
-                      {enrollment.bannedAt && (
-                        <span>{formatDateTime(enrollment.bannedAt)}</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-neutral-400">No ban history</p>
-            )}
+              <LoadingState />
+            ) : partner ? (
+              <CommissionsTable commissions={partner.commissions} />
+            ) : null}
           </Section>
 
-          {/* Previous fraud alerts */}
+          {/* Ban history table */}
+          <Section title="Ban History">
+            {isLoading ? (
+              <LoadingState />
+            ) : partner ? (
+              <BanHistoryTable enrollments={partner.programEnrollments} />
+            ) : null}
+          </Section>
+
+          {/* Previous fraud alerts table */}
           <Section title="Previous Fraud Alerts">
             {isLoading ? (
-              <LoadingSkeleton />
-            ) : partner && partner.fraudAlerts.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                {partner.fraudAlerts.map((fa) => {
-                  const badge = FRAUD_ALERT_STATUS_BADGES[fa.status];
-                  return (
-                    <div
-                      key={fa.id}
-                      className="rounded-lg border border-neutral-200 px-3 py-2"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={
-                              fa.program.logo ||
-                              `${OG_AVATAR_URL}${fa.program.name}`
-                            }
-                            alt={fa.program.name}
-                            className="size-4 rounded-full"
-                          />
-                          <span className="text-sm font-medium">
-                            {fa.program.name}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <StatusBadge variant={badge.variant}>
-                            {badge.label}
-                          </StatusBadge>
-                          <span className="text-xs text-neutral-400">
-                            {formatDateTime(fa.createdAt)}
-                          </span>
-                        </div>
-                      </div>
-                      <p className="mt-1 line-clamp-2 text-xs text-neutral-500">
-                        {fa.reason}
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="text-sm text-neutral-400">No previous alerts</p>
-            )}
+              <LoadingState />
+            ) : partner ? (
+              <FraudAlertsTable
+                fraudAlerts={partner.fraudAlerts}
+                currentAlertId={fraudAlert.id}
+              />
+            ) : null}
           </Section>
         </div>
       </div>
@@ -383,107 +358,254 @@ function SheetContent({
   );
 }
 
-function FinancialSummary({ partner }: { partner: PartnerDetail }) {
-  const totalPayoutAmount = partner.payouts.reduce(
-    (sum, p) => sum + p.amount,
-    0,
-  );
-  const totalCommissionEarnings = partner.commissions.reduce(
-    (sum, c) => sum + c.earnings,
-    0,
-  );
-  const fraudCommissions = partner.commissions.filter(
-    (c) => c.status === "fraud",
-  ).length;
+function PayoutsTable({ payouts }: { payouts: PartnerDetail["payouts"] }) {
+  const table = useTable({
+    data: payouts,
+    columns: [
+      {
+        id: "program",
+        header: "Program",
+        cell: ({ row }) => <ProgramCell program={row.original.program} />,
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        cell: ({ row }) => currencyFormatter(row.original.amount),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const badge =
+            PayoutStatusBadges[
+              row.original.status as keyof typeof PayoutStatusBadges
+            ];
+          return (
+            <StatusBadge
+              variant={
+                (badge?.variant as
+                  | "pending"
+                  | "success"
+                  | "error"
+                  | "neutral") ?? "neutral"
+              }
+            >
+              {badge?.label ?? row.original.status}
+            </StatusBadge>
+          );
+        },
+      },
+      {
+        id: "createdAt",
+        header: "Date",
+        cell: ({ row }) => formatDateTime(row.original.createdAt),
+      },
+    ],
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-0",
+  });
 
-  // Group payouts by status
-  const payoutsByStatus = partner.payouts.reduce(
-    (acc, p) => {
-      if (!acc[p.status]) {
-        acc[p.status] = { amount: 0, count: 0 };
-      }
-      acc[p.status].amount += p.amount;
-      acc[p.status].count += 1;
-      return acc;
-    },
-    {} as Record<string, { amount: number; count: number }>,
-  );
+  if (!payouts.length) {
+    return <EmptyState message="No payouts" />;
+  }
 
-  // Group commissions by status
-  const commissionsByStatus = partner.commissions.reduce(
-    (acc, c) => {
-      if (!acc[c.status]) {
-        acc[c.status] = { earnings: 0, count: 0 };
-      }
-      acc[c.status].earnings += c.earnings;
-      acc[c.status].count += 1;
-      return acc;
-    },
-    {} as Record<string, { earnings: number; count: number }>,
-  );
+  return <Table {...table} />;
+}
 
+function CommissionsTable({
+  commissions,
+}: {
+  commissions: PartnerDetail["commissions"];
+}) {
+  const table = useTable({
+    data: commissions,
+    columns: [
+      {
+        id: "program",
+        header: "Program",
+        cell: ({ row }) => <ProgramCell program={row.original.program} />,
+      },
+      {
+        id: "earnings",
+        header: "Earning",
+        cell: ({ row }) => currencyFormatter(row.original.earnings),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const badge =
+            CommissionStatusBadges[
+              row.original.status as keyof typeof CommissionStatusBadges
+            ];
+          return (
+            <StatusBadge
+              variant={
+                (badge?.variant as
+                  | "pending"
+                  | "success"
+                  | "error"
+                  | "neutral") ?? "neutral"
+              }
+            >
+              {badge?.label ?? row.original.status}
+            </StatusBadge>
+          );
+        },
+      },
+      {
+        id: "createdAt",
+        header: "Date",
+        cell: ({ row }) => formatDateTime(row.original.createdAt),
+      },
+    ],
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-0",
+  });
+
+  if (!commissions.length) {
+    return <EmptyState message="No commissions" />;
+  }
+
+  return <Table {...table} />;
+}
+
+function BanHistoryTable({
+  enrollments,
+}: {
+  enrollments: PartnerDetail["programEnrollments"];
+}) {
+  const table = useTable({
+    data: enrollments,
+    columns: [
+      {
+        id: "program",
+        header: "Program",
+        cell: ({ row }) => <ProgramCell program={row.original.program} />,
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => (
+          <StatusBadge variant="error">{row.original.status}</StatusBadge>
+        ),
+      },
+      {
+        id: "bannedAt",
+        header: "Banned At",
+        cell: ({ row }) =>
+          row.original.bannedAt ? formatDateTime(row.original.bannedAt) : "-",
+      },
+      {
+        id: "bannedReason",
+        header: "Banned Reason",
+        cell: ({ row }) =>
+          row.original.bannedReason
+            ? BANNED_REASON_LABELS[row.original.bannedReason] ||
+              row.original.bannedReason
+            : "-",
+      },
+    ],
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-0",
+  });
+
+  if (!enrollments.length) {
+    return <EmptyState message="No ban history" />;
+  }
+
+  return <Table {...table} />;
+}
+
+function FraudAlertsTable({
+  fraudAlerts,
+  currentAlertId,
+}: {
+  fraudAlerts: PartnerDetail["fraudAlerts"];
+  currentAlertId: string;
+}) {
+  const filtered = fraudAlerts.filter((fa) => fa.id !== currentAlertId);
+
+  const table = useTable({
+    data: filtered,
+    columns: [
+      {
+        id: "program",
+        header: "Program",
+        cell: ({ row }) => <ProgramCell program={row.original.program} />,
+      },
+      {
+        id: "reason",
+        header: "Reason",
+        cell: ({ row }) => (
+          <Tooltip content={row.original.reason}>
+            <span className="line-clamp-1 max-w-[200px] cursor-help truncate">
+              {row.original.reason}
+            </span>
+          </Tooltip>
+        ),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const badge = FRAUD_ALERT_STATUS_BADGES[row.original.status];
+          return (
+            <StatusBadge variant={badge.variant}>{badge.label}</StatusBadge>
+          );
+        },
+      },
+      {
+        id: "reviewedAt",
+        header: "Reviewed At",
+        cell: ({ row }) =>
+          row.original.reviewedAt
+            ? formatDateTime(row.original.reviewedAt)
+            : "-",
+      },
+      {
+        id: "reviewNote",
+        header: "Review Note",
+        cell: ({ row }) =>
+          row.original.reviewNote ? (
+            <Tooltip content={row.original.reviewNote}>
+              <span className="line-clamp-1 max-w-[150px] cursor-help truncate">
+                {row.original.reviewNote}
+              </span>
+            </Tooltip>
+          ) : (
+            "-"
+          ),
+      },
+    ],
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-0",
+  });
+
+  if (!filtered.length) {
+    return <EmptyState message="No previous fraud alerts" />;
+  }
+
+  return <Table {...table} />;
+}
+
+function ProgramCell({ program }: { program: ProgramInfo }) {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3">
-        <StatCard
-          label="Total Payouts"
-          value={currencyFormatter(totalPayoutAmount)}
-          sub={`${partner.payouts.length} payouts`}
-        />
-        <StatCard
-          label="Total Commissions"
-          value={currencyFormatter(totalCommissionEarnings)}
-          sub={`${partner.commissions.length} commissions`}
-        />
-        <StatCard
-          label="Fraud Commissions"
-          value={String(fraudCommissions)}
-          sub="flagged as fraud"
-          highlight={fraudCommissions > 0}
-        />
-      </div>
-
-      {/* Payout breakdown by status */}
-      {partner.payouts.length > 0 && (
-        <div>
-          <p className="mb-1.5 text-xs font-medium uppercase text-neutral-400">
-            Payouts by Status
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(payoutsByStatus).map(
-              ([status, { amount, count }]) => (
-                <span
-                  key={status}
-                  className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600"
-                >
-                  {status}: {currencyFormatter(amount)} ({count})
-                </span>
-              ),
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Commission breakdown by status */}
-      {partner.commissions.length > 0 && (
-        <div>
-          <p className="mb-1.5 text-xs font-medium uppercase text-neutral-400">
-            Commissions by Status
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(commissionsByStatus).map(
-              ([status, { earnings, count }]) => (
-                <span
-                  key={status}
-                  className="rounded-md border border-neutral-200 px-2 py-1 text-xs text-neutral-600"
-                >
-                  {status}: {currencyFormatter(earnings)} ({count})
-                </span>
-              ),
-            )}
-          </div>
-        </div>
-      )}
+    <div className="flex items-center gap-2">
+      <img
+        src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+        alt={program.name}
+        className="size-4 rounded-full"
+      />
+      <span className="truncate text-sm">{program.name}</span>
     </div>
   );
 }
@@ -496,7 +618,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-b border-neutral-200 pb-6 last:border-0">
+    <div>
       <h3 className="mb-3 text-sm font-semibold text-neutral-900">{title}</h3>
       {children}
     </div>
@@ -512,35 +634,18 @@ function DetailRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function StatCard({
-  label,
-  value,
-  sub,
-  highlight,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-  highlight?: boolean;
-}) {
+function EmptyState({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-neutral-200 p-3">
-      <p className="text-xs text-neutral-400">{label}</p>
-      <p
-        className={`mt-0.5 text-lg font-semibold ${highlight ? "text-red-600" : "text-neutral-900"}`}
-      >
-        {value}
-      </p>
-      <p className="text-xs text-neutral-400">{sub}</p>
+    <div className="flex h-24 flex-col items-center justify-center rounded-lg border border-neutral-200">
+      <p className="text-sm text-neutral-400">{message}</p>
     </div>
   );
 }
 
-function LoadingSkeleton() {
+function LoadingState() {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="h-4 w-3/4 animate-pulse rounded bg-neutral-100" />
-      <div className="h-4 w-1/2 animate-pulse rounded bg-neutral-100" />
+    <div className="flex h-24 flex-col items-center justify-center rounded-lg border border-neutral-200">
+      <LoadingSpinner />
     </div>
   );
 }
