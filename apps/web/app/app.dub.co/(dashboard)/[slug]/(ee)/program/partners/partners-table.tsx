@@ -124,7 +124,7 @@ export function PartnersTable() {
   const status = (
     searchParams.get("status") || searchParams.get("search")
       ? undefined
-      : "active"
+      : "approved_invited"
   ) as ProgramEnrollmentStatus;
 
   const sortBy =

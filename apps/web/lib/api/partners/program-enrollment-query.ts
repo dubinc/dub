@@ -154,7 +154,7 @@ export function buildProgramEnrollmentWhereForList(
       },
     }),
     status:
-      status === "active"
+      status === "approved_invited"
         ? {
             in: ["approved", "invited"],
           }

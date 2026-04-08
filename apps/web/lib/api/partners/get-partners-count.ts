@@ -42,7 +42,7 @@ export async function getPartnersCount<T>(
               groupId,
             }),
             status:
-              status === "active"
+              status === "approved_invited"
                 ? {
                     in: ["approved", "invited"],
                   }
@@ -114,7 +114,7 @@ export async function getPartnersCount<T>(
           ...commonWhere,
         },
         status:
-          status === "active"
+          status === "approved_invited"
             ? {
                 in: ["approved", "invited"],
               }

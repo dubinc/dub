@@ -193,7 +193,7 @@ export const getPartnersQuerySchema = z
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
   status: z
     .enum(ProgramEnrollmentStatus)
-    .or(z.enum(["active"]))
+    .or(z.enum(["approved_invited"]))
     .optional(),
   partnerIds: z
     .union([z.string(), z.array(z.string())])
