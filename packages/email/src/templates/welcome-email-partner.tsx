@@ -57,16 +57,45 @@ export default function WelcomeEmailPartner({
                 href="https://ship.dub.co/partner-profile"
                 className="font-semibold text-black underline underline-offset-4"
               >
-                filling out your partner profile and verifying your social
-                platforms
-              </Link>
-              . This will help you stand out from other partners in our partner
-              network.
+                filling out your partner profile
+              </Link>{" "}
+              and verifying your social platforms, which will allow you to start
+              applying to programs on Dub.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
-                2. Set up payouts
+                2. Verify your identity
+              </strong>
+              : Next, you'll need to{" "}
+              <Link
+                href="https://ship.dub.co/partner-profile"
+                className="font-semibold text-black underline underline-offset-4"
+              >
+                verify your identity
+              </Link>
+              . This will build trust with programs and improve your chances of
+              being approved.
+            </Text>
+
+            <Text className="mb-4 text-sm leading-6 text-gray-600">
+              <strong className="font-medium text-black">
+                3. Join a program
+              </strong>
+              : Now that your profile is ready, you can start applying to
+              programs via our{" "}
+              <Link
+                href="https://ship.dub.co/marketplace"
+                className="font-semibold text-black underline underline-offset-4"
+              >
+                program marketplace
+              </Link>{" "}
+              and earn commissions for your referrals.
+            </Text>
+
+            <Text className="mb-4 text-sm leading-6 text-gray-600">
+              <strong className="font-medium text-black">
+                4. Set up payouts
               </strong>
               :{" "}
               <Link
@@ -75,47 +104,15 @@ export default function WelcomeEmailPartner({
               >
                 Connect a payout method
               </Link>{" "}
-              to get paid for your referrals. Your payout bank account must
-              match your local currency for compliance reasons.{" "}
+              to get paid for your referrals. Learn more about{" "}
               <Link
-                href="https://ship.dub.co/payouts-guide"
+                href="https://dub.co/help/article/receiving-payouts"
                 className="font-semibold text-black underline underline-offset-4"
               >
-                Learn more ↗
+                receiving payouts on Dub
               </Link>
+              .
             </Text>
-
-            <Text className="mb-4 text-sm leading-6 text-gray-600">
-              <strong className="font-medium text-black">
-                3. Join a program
-              </strong>
-              : If you haven't already, join an affiliate program and start
-              earning commissions for your referrals
-            </Text>
-
-            <Text className="mb-4 text-sm leading-6 text-gray-600">
-              <strong className="font-medium text-black">
-                4. Start sharing your links
-              </strong>
-              : Once you've joined a program, you can start sharing and creating
-              additional referral links.
-            </Text>
-
-            <Text className="mb-8 text-sm leading-6 text-gray-600">
-              <strong className="font-medium text-black">
-                5. Track your performance
-              </strong>
-              : Monitor traffic and earnings with real-time analytics
-            </Text>
-
-            <Section className="mb-8">
-              <Link
-                className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href="https://ship.dub.co/partners-dashboard"
-              >
-                Go to your dashboard
-              </Link>
-            </Section>
 
             <Footer email={email} marketing unsubscribeUrl={unsubscribeUrl} />
           </Container>

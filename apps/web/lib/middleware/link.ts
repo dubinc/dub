@@ -29,7 +29,7 @@ import { createResponseWithCookies } from "./utils/create-response-with-cookies"
 import { detectBot } from "./utils/detect-bot";
 import { getFinalUrl } from "./utils/get-final-url";
 import { getIdentityHash } from "./utils/get-identity-hash";
-import { handleNotFoundLink } from "./utils/handle-not-found-link";
+import { isAppsFlyerTrackingUrl } from "./utils/is-appsflyer-tracking-url";
 import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { isSupportedCustomURIScheme } from "./utils/is-supported-custom-uri-scheme";
@@ -62,6 +62,14 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
     key = "_root";
   }
 
+  const STATIC_PAGES_CACHE_HEADERS = {
+    "Vercel-CDN-Cache-Control": "public, s-maxage=86400",
+    "Vercel-Cache-Tag": linkCache._createStaticPagesCacheKeys({
+      domain,
+      key: originalKey || "_root",
+    }),
+  };
+
   // we don't support .php links (too much bot traffic)
   // hence we redirect to the root domain and add `dub-no-track` header to avoid tracking bot traffic
   if (isUnsupportedKey(key)) {
@@ -85,10 +93,15 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
     if (!linkData) {
       if (domain === "buff.ly") {
-        return await crawlBitly(req);
+        return await crawlBitly(req, ev);
       }
 
-      return await handleNotFoundLink(req);
+      return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
+        headers: {
+          ...DUB_HEADERS,
+          ...STATIC_PAGES_CACHE_HEADERS,
+        },
+      });
     }
 
     isPartnerLink = Boolean(linkData.programId && linkData.partnerId);
@@ -147,9 +160,12 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   // if the following is true, we need to cache the clickId data (so it's available for subsequent /track/lead requests):
   // - trackConversion is enabled
   // - it's a partner link
-  // - it's a Singular tracking URL
+  // - it's a Singular or AppsFlyer tracking URL
   const shouldCacheClickId =
-    trackConversion || isPartnerLink || isSingularTrackingUrl(url);
+    trackConversion ||
+    isPartnerLink ||
+    isSingularTrackingUrl(url) ||
+    isAppsFlyerTrackingUrl(url);
 
   // by default, we only index default dub domain links (e.g. dub.sh)
   // everything else is not indexed by default, unless the user has explicitly set it to be indexed
@@ -158,7 +174,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   // only show inspect modal if the link is not password protected
   if (inspectMode && !password) {
     return NextResponse.rewrite(
-      new URL(`/inspect/${domain}/${encodeURIComponent(key)}+`, req.url),
+      new URL(`/${domain}/${encodeURIComponent(key)}/inspect`, req.url),
       {
         headers: {
           ...DUB_HEADERS,
@@ -195,17 +211,23 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
 
   // if the link is banned
   if (workspaceId === LEGAL_WORKSPACE_ID) {
-    return NextResponse.rewrite(new URL("/banned", req.url), {
+    return NextResponse.rewrite(new URL(`/${domain}/banned`, req.url), {
       headers: {
         ...DUB_HEADERS,
-        ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+        ...STATIC_PAGES_CACHE_HEADERS,
+        "X-Robots-Tag": "googlebot: noindex",
       },
     });
   }
 
   // handle disabled links
   if (disabledAt) {
-    return await handleNotFoundLink(req);
+    return NextResponse.rewrite(new URL(`/${domain}/notfound`, req.url), {
+      headers: {
+        ...DUB_HEADERS,
+        ...STATIC_PAGES_CACHE_HEADERS,
+      },
+    });
   }
 
   // if the link has expired
@@ -219,9 +241,10 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         status: 302,
       });
     } else {
-      return NextResponse.rewrite(new URL(`/expired/${domain}`, req.url), {
+      return NextResponse.rewrite(new URL(`/${domain}/expired`, req.url), {
         headers: {
           ...DUB_HEADERS,
+          ...STATIC_PAGES_CACHE_HEADERS,
           ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
       });
@@ -249,7 +272,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   }
 
   const cookieData = {
-    path: `/${originalKey}`,
+    path: `/${encodeURI(originalKey)}`,
     dubIdCookieName,
     dubIdCookieValue: clickId,
     dubTestUrlValue: testUrl,
@@ -273,16 +296,17 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       }),
     );
 
-    return createResponseWithCookies(
-      NextResponse.rewrite(new URL(`/${domain}`, req.url), {
+    const rewriteResponse = NextResponse.rewrite(
+      new URL(`/${domain}`, req.url),
+      {
         headers: {
           ...DUB_HEADERS,
-          // we only index root domain links if they're not subdomains
-          ...(shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+          ...STATIC_PAGES_CACHE_HEADERS,
+          ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
         },
-      }),
-      cookieData,
+      },
     );
+    return createResponseWithCookies(rewriteResponse, cookieData);
   }
 
   const isBot = detectBot(req);
@@ -293,11 +317,11 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       ? geolocation(req)
       : LOCALHOST_GEO_DATA;
 
-  // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
+  // rewrite to proxy page ([domain]/[key]/proxy) if it's a bot and proxy is enabled
   if (isBot && proxy) {
     return createResponseWithCookies(
       NextResponse.rewrite(
-        new URL(`/proxy/${domain}/${encodeURIComponent(key)}`, req.url),
+        new URL(`/${domain}/${encodeURIComponent(key)}/proxy`, req.url),
         {
           headers: {
             ...DUB_HEADERS,

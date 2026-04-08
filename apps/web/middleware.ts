@@ -49,9 +49,14 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     return ApiMiddleware(req);
   }
 
-  // for public stats pages (e.g. d.to/stats/try)
+  // for public stats pages (e.g. d.to/stats/try -> rewrite to [/domain]/[key]/stats)
   if (path.startsWith("/stats/")) {
-    return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
+    return NextResponse.rewrite(
+      new URL(
+        `/${domain}/${encodeURIComponent(path.replace("/stats/", ""))}/stats`,
+        req.url,
+      ),
+    );
   }
 
   // for .well-known routes

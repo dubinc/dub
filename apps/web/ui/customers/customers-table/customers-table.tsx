@@ -67,23 +67,14 @@ export function CustomersTable({
   const { canManageCustomers } = getPlanCapabilities(plan);
 
   const router = useRouter();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-    setSearch,
-    setSelectedFilter,
-  } = useCustomerFilters(
-    { sortBy, sortOrder },
-    { enabled: canManageCustomers },
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
   );
 
   const { data: customersCount, error: countError } = useCustomersCount({
@@ -151,18 +142,14 @@ export function CustomersTable({
           enableHiding: false,
           minSize: 250,
           cell: ({ row }) => {
-            return (
-              <CustomerRowItem
-                customer={row.original}
-                chartActivityIconMode="visible"
-              />
-            );
+            return <CustomerRowItem customer={row.original} />;
           },
         },
         {
           id: "country",
           header: "Country",
           accessorKey: "country",
+          minSize: 150,
           meta: {
             filterParams: ({ getValue }) =>
               getValue()
@@ -171,7 +158,6 @@ export function CustomersTable({
                   }
                 : undefined,
           },
-          minSize: 150,
           cell: ({ row }) => {
             const country = row.original.country;
             return (
@@ -193,6 +179,13 @@ export function CustomersTable({
         {
           id: "partner",
           header: "Partner",
+          cell: ({ row }) =>
+            row.original.partner ? (
+              <PartnerRowItem partner={row.original.partner} />
+            ) : (
+              "-"
+            ),
+          size: 200,
           meta: {
             filterParams: ({ row }) =>
               row.original.partner?.id
@@ -201,13 +194,6 @@ export function CustomersTable({
                   }
                 : undefined,
           },
-          cell: ({ row }) =>
-            row.original.partner ? (
-              <PartnerRowItem partner={row.original.partner} />
-            ) : (
-              "-"
-            ),
-          size: 200,
         },
         {
           id: "link",
@@ -394,11 +380,10 @@ export function CustomersTable({
       }),
     cellRight: (cell) => {
       const meta = cell.column.columnDef.meta as ColumnMeta | undefined;
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
+      if (!meta?.filterParams) return null;
+      const params = meta.filterParams(cell);
+      if (!params || Object.keys(params).length === 0) return null;
+      return <FilterButtonTableRow set={params} />;
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -414,61 +399,33 @@ export function CustomersTable({
   });
 
   return (
-    <div className="flex flex-col">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-          <SearchBoxPersisted
-            placeholder="Search by email or name"
-            inputClassName="md:w-[16rem]"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
-      <div className="mt-4">
-        {!canManageCustomers || customers?.length !== 0 ? (
-          <Table
-            {...tableProps}
-            table={table}
-            scrollWrapperClassName={
-              canManageCustomers ? undefined : "overflow-x-hidden"
-            }
-          >
-            {!canManageCustomers && (
-              <>
-                <div className="absolute inset-0 flex touch-pan-y flex-col items-center justify-center bg-gradient-to-t from-[#fff_75%] to-[#fff6] px-4 text-center">
-                  <div className="h-40 w-full max-w-[480px] overflow-hidden [mask-image:linear-gradient(black,transparent)]">
-                    <div className="relative h-96 w-full overflow-hidden rounded-lg border border-neutral-200">
-                      <Image
-                        src="https://assets.dub.co/misc/customer-screenshot.jpg"
-                        fill
-                        className="object-contain object-top"
-                        alt="Customer overview screenshot"
-                        draggable={false}
-                      />
-                    </div>
+    <div className="flex flex-col gap-3">
+      <CustomersFilters
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        enabled={canManageCustomers}
+        isProgramPage={isProgramPage}
+      />
+      {!canManageCustomers || customers?.length !== 0 ? (
+        <Table
+          {...tableProps}
+          table={table}
+          scrollWrapperClassName={
+            canManageCustomers ? undefined : "overflow-x-hidden"
+          }
+        >
+          {!canManageCustomers && (
+            <>
+              <div className="absolute inset-0 flex touch-pan-y flex-col items-center justify-center bg-gradient-to-t from-[#fff_75%] to-[#fff6] px-4 text-center">
+                <div className="h-40 w-full max-w-[480px] overflow-hidden [mask-image:linear-gradient(black,transparent)]">
+                  <div className="relative h-96 w-full overflow-hidden rounded-lg border border-neutral-200">
+                    <Image
+                      src="https://assets.dub.co/misc/customer-screenshot.jpg"
+                      fill
+                      className="object-contain object-top"
+                      alt="Customer overview screenshot"
+                      draggable={false}
+                    />
                   </div>
                   <div className="relative -mt-4 flex flex-col items-center justify-center">
                     <span className="text-lg font-semibold text-neutral-700">
@@ -527,6 +484,63 @@ export function CustomersTable({
           />
         )}
       </div>
+    </div>
+  );
+}
+
+function CustomersFilters({
+  sortBy,
+  sortOrder,
+  enabled,
+  isProgramPage,
+}: {
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+  enabled: boolean;
+  isProgramPage: boolean;
+}) {
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useCustomerFilters({ sortBy, sortOrder }, { enabled, isProgramPage });
+
+  return (
+    <div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        <SearchBoxPersisted
+          placeholder="Search by email or name"
+          inputClassName="md:w-[16rem]"
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
     </div>
   );
 }

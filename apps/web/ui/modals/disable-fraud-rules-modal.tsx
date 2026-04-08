@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  CONFIGURABLE_RULE_TYPES,
+  FRAUD_RULES_BY_TYPE,
+} from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -11,36 +15,7 @@ import { useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
 
-export const CONFIGURABLE_RULE_TYPES = [
-  "referralSourceBanned",
-  "paidTrafficDetected",
-  "customerEmailMatch",
-  "customerEmailSuspiciousDomain",
-] as const;
-
-export type ConfigurableRuleType = (typeof CONFIGURABLE_RULE_TYPES)[number];
-
-const RULE_DETAILS: Record<
-  ConfigurableRuleType,
-  { title: string; description: string }
-> = {
-  referralSourceBanned: {
-    title: "Referral source",
-    description: "Flag specific domains for referral traffic",
-  },
-  paidTrafficDetected: {
-    title: "Paid traffic",
-    description: "Flag paid advertising traffic",
-  },
-  customerEmailMatch: {
-    title: "Matching customer email",
-    description: "Flag when a partner's email matches a customer's email",
-  },
-  customerEmailSuspiciousDomain: {
-    title: "Suspicious customer email domain",
-    description: "Flag customers using disposable or temporary email domains",
-  },
-};
+export type ConfigurableRuleType = keyof UpdateFraudRuleSettings;
 
 interface DisableFraudRulesModalProps {
   showModal: boolean;
@@ -118,7 +93,7 @@ function DisableFraudRulesModal({
       <div className="px-5 pb-5">
         <div className="space-y-4">
           {rulesBeingDisabled.map((ruleType) => {
-            const { title, description } = RULE_DETAILS[ruleType];
+            const ruleInfo = FRAUD_RULES_BY_TYPE[ruleType];
 
             return (
               <div
@@ -127,10 +102,10 @@ function DisableFraudRulesModal({
               >
                 <div className="p-3">
                   <h4 className="text-sm font-semibold text-neutral-900">
-                    {title}
+                    {ruleInfo.name}
                   </h4>
                   <p className="text-content-subtle mt-0.5 text-xs font-normal tracking-normal">
-                    {description}
+                    {ruleInfo.description}
                   </p>
                 </div>
                 <div className="flex items-center gap-2 p-3">
@@ -202,35 +177,15 @@ export function getRulesBeingDisabled({
   previousFraudRules: FraudRuleProps[] | undefined;
   nextFraudRules: UpdateFraudRuleSettings;
 }): ConfigurableRuleType[] {
-  // Build "previous" map from API
-  const previous: Record<ConfigurableRuleType, boolean> = {
-    referralSourceBanned:
-      previousFraudRules?.find((r) => r.type === "referralSourceBanned")
-        ?.enabled ?? false,
-    paidTrafficDetected:
-      previousFraudRules?.find((r) => r.type === "paidTrafficDetected")
-        ?.enabled ?? false,
-    customerEmailMatch:
-      previousFraudRules?.find((r) => r.type === "customerEmailMatch")
-        ?.enabled ?? false,
-    customerEmailSuspiciousDomain:
-      previousFraudRules?.find(
-        (r) => r.type === "customerEmailSuspiciousDomain",
-      )?.enabled ?? false,
-  };
-
-  // Build "next" map from form
-  const next: Record<ConfigurableRuleType, boolean> = {
-    referralSourceBanned: nextFraudRules.referralSourceBanned?.enabled ?? false,
-    paidTrafficDetected: nextFraudRules.paidTrafficDetected?.enabled ?? false,
-    customerEmailMatch: nextFraudRules.customerEmailMatch?.enabled ?? false,
-    customerEmailSuspiciousDomain:
-      nextFraudRules.customerEmailSuspiciousDomain?.enabled ?? false,
-  };
-
-  // Detect rule disable transitions
   return CONFIGURABLE_RULE_TYPES.filter(
-    (type) => previous[type] && !next[type],
+    (type): type is ConfigurableRuleType => {
+      const wasEnabled =
+        previousFraudRules?.find((r) => r.type === type)?.enabled ?? false;
+      const isEnabled =
+        nextFraudRules[type as ConfigurableRuleType]?.enabled ?? false;
+
+      return wasEnabled && !isEnabled;
+    },
   );
 }
 

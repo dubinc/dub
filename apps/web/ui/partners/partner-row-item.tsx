@@ -2,12 +2,15 @@ import useProgram from "@/lib/swr/use-program";
 import { PartnerPayoutMethod } from "@dub/prisma/client";
 import { CircleArrowRight, DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn, formatDateTimeSmart } from "@dub/utils";
-import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
-import { getPayoutMethodLabel } from "./payouts/payout-method-config";
+import { PartnerAvatar } from "./partner-avatar";
+import {
+  getPayoutMethodIconConfig,
+  getPayoutMethodLabel,
+} from "./payouts/payout-method-config";
 
 interface PartnerRowItemProps {
   showPermalink?: boolean;
@@ -118,6 +121,11 @@ function PartnerPayoutStatusTooltip({
     partner.payoutsEnabledAt &&
     partner.defaultPayoutMethod;
 
+  const { Icon: MethodIcon, wrapperClass: methodWrapperClass } =
+    hasPayoutDetails
+      ? getPayoutMethodIconConfig(partner.defaultPayoutMethod!)
+      : { Icon: GreekTemple, wrapperClass: "" };
+
   return (
     <div className="max-w-xs">
       <div className="grid gap-2 p-2.5">
@@ -137,9 +145,17 @@ function PartnerPayoutStatusTooltip({
         </div>
       </div>
       {hasPayoutDetails && (
-        <div className="border-t border-neutral-100 p-2.5 text-xs text-neutral-600">
+        <div className="flex items-center gap-1.5 border-t border-neutral-100 p-2.5 text-xs text-neutral-600">
+          <div
+            className={cn(
+              "flex size-5 shrink-0 items-center justify-center rounded-md border",
+              methodWrapperClass,
+            )}
+          >
+            <MethodIcon className="size-3" />
+          </div>
           <span>
-            Connected {getPayoutMethodLabel(partner.defaultPayoutMethod!)}{" "}
+            {getPayoutMethodLabel(partner.defaultPayoutMethod!)} · Connected{" "}
             {formatDateTimeSmart(partner.payoutsEnabledAt!)}
           </span>
         </div>
@@ -176,11 +192,7 @@ export function PartnerRowItem({
           }
         >
           <div className="relative shrink-0">
-            <img
-              src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-              alt={partner.id}
-              className="size-5 shrink-0 rounded-full"
-            />
+            <PartnerAvatar partner={partner} className="size-5" />
             {showPayoutsEnabled && statusKey && (
               <div
                 className={cn(
@@ -196,6 +208,8 @@ export function PartnerRowItem({
       <As
         href={`/${slug}/program/partners/${partner.id}`}
         {...(showPermalink && { target: "_blank" })}
+        onClick={showPermalink ? (e) => e.stopPropagation() : undefined}
+        onAuxClick={showPermalink ? (e) => e.stopPropagation() : undefined}
         className={cn(
           "min-w-0 truncate",
           showPermalink && "cursor-alias decoration-dotted hover:underline",

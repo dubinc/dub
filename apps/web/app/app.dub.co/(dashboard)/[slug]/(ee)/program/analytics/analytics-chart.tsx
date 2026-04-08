@@ -3,7 +3,7 @@ import { AnalyticsFunnelChart } from "@/ui/analytics/analytics-funnel-chart";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { AnalyticsTabs } from "@/ui/analytics/analytics-tabs";
 import { ChartViewSwitcher } from "@/ui/analytics/chart-view-switcher";
-import { useRouterStuff } from "@dub/ui";
+import { ToggleGroup, useRouterStuff } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { useContext, useMemo } from "react";
@@ -89,7 +89,30 @@ export function AnalyticsChart() {
             ) : (
               <AnalyticsFunnelChart />
             )}
-            <ChartViewSwitcher className="absolute right-3 top-3" />
+            <div className="absolute right-3 top-3 flex items-center gap-2">
+              <ToggleGroup
+                className="flex w-fit shrink-0 items-center gap-1 border-neutral-100 bg-neutral-100 sm:hidden"
+                optionClassName="size-8 p-0 flex items-center justify-center"
+                indicatorClassName="border border-neutral-200 bg-white"
+                options={[
+                  {
+                    label: <div className="text-base">$</div>,
+                    value: "saleAmount",
+                  },
+                  {
+                    label: <div className="text-[11px]">123</div>,
+                    value: "sales",
+                  },
+                ]}
+                selected={saleUnit}
+                selectAction={(option) =>
+                  queryParams({
+                    set: { saleUnit: option },
+                  })
+                }
+              />
+              <ChartViewSwitcher />
+            </div>
           </>
         )}
       </div>

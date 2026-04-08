@@ -48,10 +48,12 @@ model User {
   utmTemplates            UtmTemplate[]
   payouts                 Payout[]
   bountySubmissions       BountySubmission[]
+  programApplications     ProgramApplication[]
   sentMessages            Message[]
   partnerComments         PartnerComment[]
   fraudEventGroups        FraudEventGroup[]
   activityLogs            ActivityLog[]
+  createdCommissions     Commission[]
 
   @@index(sentMail)
   @@index(source)

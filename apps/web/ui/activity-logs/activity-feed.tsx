@@ -5,7 +5,7 @@ import { RewardActivityItem } from "@/ui/activity-logs/reward-activity-item";
 import { ComponentType } from "react";
 
 const ACTIVITY_ITEM_MAP: Record<
-  ActivityLogResourceType,
+  Exclude<ActivityLogResourceType, "commission">,
   ComponentType<{ log: ActivityLog; isLast?: boolean }>
 > = {
   partner: PartnerGroupActivityItem,

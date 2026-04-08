@@ -46,9 +46,6 @@ export function PayoutTable() {
   const { payouts, error, loading } = usePartnerPayouts();
   const { payoutsCount } = usePartnerPayoutsCount<number>();
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    usePayoutFilters();
-
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; payout: PartnerPayoutResponse | null }
     | { open: true; payout: PartnerPayoutResponse }
@@ -233,47 +230,52 @@ export function PayoutTable() {
           payout={detailsSheetState.payout}
         />
       )}
-      <div className="flex flex-col">
-        <div className="flex flex-col">
-          <Filter.Select
-            className="w-full md:w-fit"
+      <div className="flex flex-col gap-3">
+        <PartnerPayoutFilters />
+        {payouts?.length !== 0 ? (
+          <Table {...table} />
+        ) : (
+          <AnimatedEmptyState
+            title="No payouts found"
+            description="No payouts have been initiated for this program yet."
+            cardContent={() => (
+              <>
+                <MoneyBill2 className="size-4 text-neutral-700" />
+                <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+              </>
+            )}
+          />
+        )}
+      </div>
+    </>
+  );
+}
+
+function PartnerPayoutFilters() {
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePayoutFilters();
+
+  return (
+    <div className="flex flex-col gap-3">
+      <Filter.Select
+        className="w-full md:w-fit"
+        filters={filters}
+        activeFilters={activeFilters}
+        onSelect={onSelect}
+        onRemove={onRemove}
+      />
+      <AnimatedSizeContainer height>
+        {activeFilters.length > 0 && (
+          <Filter.List
             filters={filters}
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+            onRemoveAll={onRemoveAll}
           />
-          <AnimatedSizeContainer height>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </AnimatedSizeContainer>
-        </div>
-        <div className="mt-4">
-          {payouts?.length !== 0 ? (
-            <Table {...table} />
-          ) : (
-            <AnimatedEmptyState
-              title="No payouts found"
-              description="No payouts have been initiated for this program yet."
-              cardContent={() => (
-                <>
-                  <MoneyBill2 className="size-4 text-neutral-700" />
-                  <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-                </>
-              )}
-            />
-          )}
-        </div>
-      </div>
-    </>
+        )}
+      </AnimatedSizeContainer>
+    </div>
   );
 }
 

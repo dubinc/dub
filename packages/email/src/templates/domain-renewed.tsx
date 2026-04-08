@@ -40,10 +40,12 @@ export default function DomainRenewed({
   }[];
   expiresAt: Date;
 }) {
+  const hasSingleDomain = domains.length === 1;
+
   return (
     <Html>
       <Head />
-      <Preview>Domain{domains.length > 1 ? "s" : ""} renewed</Preview>
+      <Preview>{pluralize("Domain", domains.length)} renewed</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] px-5 py-5">
@@ -52,12 +54,13 @@ export default function DomainRenewed({
             </Section>
 
             <Heading className="mx-0 mb-5 mt-10 p-0 text-lg font-semibold text-neutral-800">
-              Domain{domains.length > 1 ? "s" : ""} renewed
+              {pluralize("Domain", domains.length)} renewed
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              The following {pluralize("domain", domains.length)} have been
-              successfully renewed for 1 year:
+              The following {pluralize("domain", domains.length)}{" "}
+              {hasSingleDomain ? "has" : "have"} been successfully renewed for 1
+              year:
             </Text>
 
             <Section>
@@ -82,7 +85,8 @@ export default function DomainRenewed({
             </Section>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              These domains are now active until{" "}
+              {hasSingleDomain ? "This domain is" : "These domains are"} now
+              active until{" "}
               <span className="font-semibold text-black">
                 {formatDate(expiresAt)}
               </span>
@@ -90,8 +94,9 @@ export default function DomainRenewed({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              No further action is needed. If you don't want to renew your
-              domains next year, you can turn off auto-renewal in your{" "}
+              No further action is needed. If you don't want to renew your{" "}
+              {pluralize("domain", domains.length)} next year, you can turn off
+              auto-renewal in your{" "}
               <Link
                 href={`https://app.dub.co/${workspace.slug}/settings/domains`}
                 className="font-semibold text-black underline"
@@ -106,7 +111,7 @@ export default function DomainRenewed({
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
                 href={`https://app.dub.co/${workspace.slug}/settings/domains`}
               >
-                Manage your domains
+                Manage your {pluralize("domain", domains.length)}
               </Link>
             </Section>
 

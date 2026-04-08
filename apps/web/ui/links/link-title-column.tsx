@@ -5,9 +5,9 @@ import useDomain from "@/lib/swr/use-domain";
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   ArrowTurnRight2,
-  Avatar,
   CardList,
   CopyButton,
   LinkLogo,
@@ -267,64 +267,71 @@ const LinkIcon = memo(({ link }: { link: ResponseLink }) => {
   const isSelected = selectedLinkIds.includes(link.id);
 
   return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={isSelected}
-      data-checked={isSelected}
-      onClick={(e) => handleLinkSelection(link.id, e)}
-      className={cn(
-        "group relative hidden shrink-0 items-center justify-center outline-none sm:flex",
-        isSelectMode && "flex",
+    <CardList.Card.Context.Consumer>
+      {({ hovered }) => (
+        <div className="relative">
+          <button
+            type="button"
+            role="checkbox"
+            aria-checked={isSelected}
+            data-checked={isSelected}
+            onClick={(e) => handleLinkSelection(link.id, e)}
+            className={cn(
+              "group relative hidden size-8 shrink-0 items-center justify-center outline-none group-data-[variant=loose]/card-list:size-10 sm:flex",
+              isSelectMode && "flex",
+            )}
+          >
+            {/* Link logo background circle */}
+            <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
+              <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
+            </div>
+            <div className="relative flex size-full items-center justify-center transition-transform group-hover:scale-90">
+              <div className="hidden sm:block">
+                {link.archived ? (
+                  <BoxArchive
+                    className={cn(
+                      "shrink-0 p-0.5 text-neutral-600 transition-[width,height]",
+                      LOGO_SIZE_CLASS_NAME,
+                    )}
+                  />
+                ) : (
+                  <LinkLogo
+                    apexDomain={getApexDomain(link.url)}
+                    className={cn(
+                      "shrink-0 transition-[width,height]",
+                      LOGO_SIZE_CLASS_NAME,
+                    )}
+                    imageProps={{
+                      loading: "lazy",
+                    }}
+                  />
+                )}
+              </div>
+              <div className="size-5 group-data-[variant=loose]/card-list:size-6 sm:hidden" />
+            </div>
+            {/* Checkbox */}
+            <div
+              className={cn(
+                "pointer-events-none absolute inset-0 flex items-center justify-center rounded-full border border-neutral-400 bg-white ring-0 ring-black/5",
+                "opacity-100 max-sm:ring sm:opacity-0",
+                "transition-all duration-150 group-hover:opacity-100 group-hover:ring group-focus-visible:opacity-100 group-focus-visible:ring",
+                "group-data-[checked=true]:opacity-100",
+                hovered && "sm:opacity-100 sm:ring",
+              )}
+            >
+              <div
+                className={cn(
+                  "rounded-full bg-neutral-800 p-0.5 group-data-[variant=loose]/card-list:p-1",
+                  "scale-90 opacity-0 transition-[transform,opacity] duration-100 group-data-[checked=true]:scale-100 group-data-[checked=true]:opacity-100",
+                )}
+              >
+                <Check2 className="size-3 text-white" />
+              </div>
+            </div>
+          </button>
+        </div>
       )}
-    >
-      {/* Link logo background circle */}
-      <div className="absolute inset-0 shrink-0 rounded-full border border-neutral-200 opacity-0 transition-opacity group-data-[variant=loose]/card-list:sm:opacity-100">
-        <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
-      </div>
-      <div className="relative transition-[padding,transform] group-hover:scale-90 group-data-[variant=loose]/card-list:sm:p-2">
-        <div className="hidden sm:block">
-          {link.archived ? (
-            <BoxArchive
-              className={cn(
-                "shrink-0 p-0.5 text-neutral-600 transition-[width,height]",
-                LOGO_SIZE_CLASS_NAME,
-              )}
-            />
-          ) : (
-            <LinkLogo
-              apexDomain={getApexDomain(link.url)}
-              className={cn(
-                "shrink-0 transition-[width,height]",
-                LOGO_SIZE_CLASS_NAME,
-              )}
-              imageProps={{
-                loading: "lazy",
-              }}
-            />
-          )}
-        </div>
-        <div className="size-5 group-data-[variant=loose]/card-list:size-6 sm:hidden" />
-      </div>
-      {/* Checkbox */}
-      <div
-        className={cn(
-          "pointer-events-none absolute inset-0 flex items-center justify-center rounded-full border border-neutral-400 bg-white ring-0 ring-black/5",
-          "opacity-100 max-sm:ring sm:opacity-0",
-          "transition-all duration-150 group-hover:opacity-100 group-hover:ring group-focus-visible:opacity-100 group-focus-visible:ring",
-          "group-data-[checked=true]:opacity-100",
-        )}
-      >
-        <div
-          className={cn(
-            "rounded-full bg-neutral-800 p-0.5 group-data-[variant=loose]/card-list:p-1",
-            "scale-90 opacity-0 transition-[transform,opacity] duration-100 group-data-[checked=true]:scale-100 group-data-[checked=true]:opacity-100",
-          )}
-        >
-          <Check2 className="size-3 text-white" />
-        </div>
-      </div>
-    </button>
+    </CardList.Card.Context.Consumer>
   );
 });
 
@@ -381,7 +388,7 @@ const Details = memo(
             displayProperties.includes("user") && "sm:block",
           )}
         >
-          <UserAvatar user={link.user} />
+          <UserAvatarWithTooltip user={link.user} />
         </div>
         <div
           className={cn(
@@ -402,13 +409,13 @@ const Details = memo(
   },
 );
 
-export function UserAvatar({ user }: { user: UserProps }) {
+export function UserAvatarWithTooltip({ user }: { user: UserProps }) {
   const { slug } = useParams();
   return (
     <Tooltip
       content={
         <div className="w-full p-3">
-          <Avatar user={user} className="h-8 w-8" />
+          <UserAvatar user={user} className="h-8 w-8" />
           <div className="mt-2 flex items-center gap-1.5">
             <p className="text-sm font-semibold text-neutral-700">
               {user?.name || user?.email || "Anonymous User"}
@@ -430,7 +437,7 @@ export function UserAvatar({ user }: { user: UserProps }) {
       delayDuration={150}
     >
       <div>
-        <Avatar user={user} className="size-4" />
+        <UserAvatar user={user} className="size-4" />
       </div>
     </Tooltip>
   );

@@ -1,6 +1,4 @@
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import { PartnerGroupProps } from "@/lib/types";
-import { Program } from "@dub/prisma/client";
 import {
   Button,
   Carousel,
@@ -15,37 +13,28 @@ import {
 } from "@dub/ui";
 import { cn, DUB_LOGO } from "@dub/utils";
 import { motion } from "motion/react";
-import { ReferralsEmbedLink } from "./types";
+import { useReferralsEmbedData } from "./page-client";
 
-const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
+const BUTTON_CLASSNAME =
+  "bg-bg-inverted text-content-inverted h-9 rounded-lg hover:opacity-80";
 
 export function ReferralsEmbedQuickstart({
-  program,
-  group,
-  links,
-  earnings,
   hasResources,
   setSelectedTab,
 }: {
-  program: Program;
-  group: Pick<PartnerGroupProps, "logo" | "linkStructure">;
-  links: ReferralsEmbedLink[];
-  earnings: {
-    upcoming: number;
-    paid: number;
-  };
   hasResources: boolean;
   setSelectedTab: (tab: "Links" | "Resources") => void;
 }) {
+  const { program, group, links, earnings } = useReferralsEmbedData();
+
   const [copied, copyToClipboard] = useCopyToClipboard();
   const { isMobile } = useMediaQuery();
-
   const payoutsDisabled = earnings.upcoming === 0 && earnings.paid === 0;
 
   const items = [
     {
       title: "Share your link",
-      description: `Sharing is caring! Recommend ${program.name} to all your friends, family, and social followers.`,
+      description: `Use your ${program.name} link to drive traffic and track every click, lead, and conversion.`,
       illustration: <ShareLink />,
       cta: (
         <Button
@@ -95,9 +84,9 @@ export function ReferralsEmbedQuickstart({
       ),
     },
     {
-      title: "Success kit",
+      title: "Program resources",
       description:
-        "Make sure you get setup for success with the official brand files and supportive content and documents.",
+        "Access files, assets, and materials provided to support you, anywhere you share your link.",
       illustration: <SuccessKit logo={group.logo ?? DUB_LOGO} />,
       cta: (
         <Button
@@ -113,7 +102,7 @@ export function ReferralsEmbedQuickstart({
     {
       title: "Receive earnings",
       description:
-        "After your payouts are connected, you'll get paid out automatically for all your sales.",
+        "Connect payouts to get rewarded for the activity you drive, with earnings tracked automatically.",
       illustration: <ConnectPayouts logo={group.logo ?? DUB_LOGO} />,
       cta: (
         <Button

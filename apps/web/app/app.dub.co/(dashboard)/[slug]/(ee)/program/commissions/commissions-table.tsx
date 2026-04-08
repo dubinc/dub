@@ -9,6 +9,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse, FraudGroupCountByPartner } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
+import { useBulkEditCommissionsModal } from "@/ui/partners/bulk-edit-commissions-modal";
 import { CommissionRowMenu } from "@/ui/partners/commission-row-menu";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
@@ -19,6 +20,7 @@ import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   AnimatedSizeContainer,
+  Button,
   EditColumnsButton,
   Filter,
   StatusBadge,
@@ -30,7 +32,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2 } from "@dub/ui/icons";
+import { MoneyBill2, Pen2 } from "@dub/ui/icons";
 import {
   cn,
   currencyFormatter,
@@ -38,6 +40,7 @@ import {
   formatDateTimeSmart,
   nFormatter,
 } from "@dub/utils";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
 import { useCommissionFilters } from "./use-commission-filters";
@@ -65,19 +68,9 @@ const commissionsColumns = {
 };
 
 export function CommissionsTable() {
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-    setSearch,
-    setSelectedFilter,
-  } = useCommissionFilters();
-
   const workspace = useWorkspace();
   const { id: workspaceId, slug } = workspace;
+  const router = useRouter();
   const { program } = useProgram();
   const { groups } = useGroups();
 
@@ -87,6 +80,9 @@ export function CommissionsTable() {
     sortBy: string;
     sortOrder: "asc" | "desc";
   };
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const {
     data: commissions,
@@ -139,6 +135,9 @@ export function CommissionsTable() {
 
   const { canManageFraudEvents } = getPlanCapabilities(workspace?.plan ?? "");
 
+  const { openBulkEditCommissionsModal, BulkEditCommissionsModal } =
+    useBulkEditCommissionsModal();
+
   const columns = useMemo(
     () =>
       [
@@ -162,10 +161,12 @@ export function CommissionsTable() {
           maxSize: 250,
           cell: ({ row }) =>
             row.original.customer ? (
-              <CustomerRowItem
-                customer={row.original.customer}
-                href={`/${slug}/program/customers/${row.original.customer.id}`}
-              />
+              <div className="flex items-center gap-2">
+                <CustomerRowItem
+                  customer={row.original.customer}
+                  href={`/${slug}/program/customers/${row.original.customer.id}`}
+                />
+              </div>
             ) : (
               "-"
             ),
@@ -181,9 +182,7 @@ export function CommissionsTable() {
         {
           id: "partner",
           header: "Partner",
-          cell: ({ row }) => {
-            return <PartnerRowItem partner={row.original.partner} />;
-          },
+          cell: ({ row }) => <PartnerRowItem partner={row.original.partner} />,
           maxSize: 200,
           meta: {
             filterParams: ({ row }) => ({
@@ -217,14 +216,14 @@ export function CommissionsTable() {
           id: "type",
           header: "Type",
           accessorKey: "type",
+          meta: {
+            filterParams: ({ row }) => ({
+              type: row.original.type ?? "sale",
+            }),
+          },
           cell: ({ row }) => (
             <CommissionTypeBadge type={row.original.type ?? "sale"} />
           ),
-          meta: {
-            filterParams: ({ row }) => ({
-              type: row.original.type,
-            }),
-          },
         },
         {
           id: "amount",
@@ -321,23 +320,10 @@ export function CommissionsTable() {
     [slug, groups, program, workspace, fraudGroupCount],
   );
 
-  const table = useTable<CommissionResponse>({
+  const { table, ...tableProps } = useTable<CommissionResponse>({
     data: commissions || [],
     columns,
     columnPinning: { right: ["menu"] },
-    cellRight: (cell) => {
-      const meta = cell.column.columnDef.meta as
-        | {
-            filterParams?: any;
-          }
-        | undefined;
-
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
-    },
     pagination,
     onPaginationChange: setPagination,
     columnVisibility,
@@ -354,6 +340,59 @@ export function CommissionsTable() {
         del: "page",
         scroll: false,
       }),
+    onRowClick: (row, e) => {
+      const url = `/${slug}/program/commissions/${row.original.id}`;
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
+    },
+    onRowAuxClick: (row) =>
+      window.open(`/${slug}/program/commissions/${row.original.id}`, "_blank"),
+    rowProps: (row) => ({
+      onPointerEnter: () =>
+        router.prefetch(`/${slug}/program/commissions/${row.original.id}`),
+    }),
+    cellRight: (cell) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: any;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
+    getRowId: (row) => row.id,
+    selectionControls: (table) => {
+      const selectedCommissions = table
+        .getSelectedRowModel()
+        .rows.map((row) => row.original);
+
+      const hasPaidCommission = selectedCommissions.some(
+        (c) => c.status === "paid",
+      );
+      const exceedsLimit = selectedCommissions.length > 100;
+
+      return (
+        <Button
+          variant="primary"
+          text="Edit commissions"
+          icon={<Pen2 className="size-3.5 shrink-0" />}
+          className="h-7 w-fit rounded-lg px-2.5"
+          disabledTooltip={
+            hasPaidCommission
+              ? "Some of the selected commissions have already been paid and cannot be edited."
+              : undefined
+          }
+          disabled={exceedsLimit && !hasPaidCommission}
+          onClick={() => {
+            openBulkEditCommissionsModal(selectedCommissions);
+          }}
+        />
+      );
+    },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `commission${p ? "s" : ""}`,
@@ -370,50 +409,11 @@ export function CommissionsTable() {
   });
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-          <SimpleDateRangePicker
-            align="start"
-            className="w-fit"
-            defaultInterval="all"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={[
-                    ...filters,
-                    {
-                      key: "payoutId",
-                      icon: MoneyBill2,
-                      label: "Payout",
-                      options: [],
-                    },
-                  ]}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
+    <div className="flex flex-col gap-3">
+      <BulkEditCommissionsModal />
+      <CommissionsFilters />
       {commissions?.length !== 0 || isLoading ? (
-        <Table {...table} />
+        <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
           title="No commissions found"
@@ -430,6 +430,61 @@ export function CommissionsTable() {
           )}
         />
       )}
+    </div>
+  );
+}
+
+function CommissionsFilters() {
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    setSearch,
+    setSelectedFilter,
+  } = useCommissionFilters();
+
+  return (
+    <div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        <SimpleDateRangePicker
+          className="w-full sm:min-w-[200px] md:w-fit"
+          defaultInterval="all"
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={[
+                  ...filters,
+                  {
+                    key: "payoutId",
+                    icon: MoneyBill2,
+                    label: "Payout",
+                    options: [],
+                  },
+                ]}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
     </div>
   );
 }

@@ -1,0 +1,293 @@
+"use client";
+
+import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
+import { getPeriodLabel } from "@/lib/bounty/periods";
+import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
+import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
+import { BountySocialMetricsRewardsTable } from "@/ui/partners/bounties/bounty-social-metrics-rewards-table";
+import {
+  SocialContentPreview,
+  SubmissionRewardTable,
+} from "@/ui/partners/bounties/bounty-submission-details-sheet";
+import { ChevronRight, CopyButton, StatusBadge, Trophy } from "@dub/ui";
+import { formatDate } from "@dub/utils";
+import { Fragment } from "react";
+import { toast } from "sonner";
+
+export function EmbedBountySubmissionDetail({
+  bounty,
+  submission,
+  periodNumber,
+  onBack,
+  onBackToRoot,
+}: {
+  bounty: PartnerBountyProps;
+  submission: PartnerBountySubmission;
+  periodNumber: number;
+  onBack: () => void;
+  onBackToRoot: () => void;
+}) {
+  const title =
+    bounty.maxSubmissions > 1
+      ? `Submission (${getPeriodLabel(bounty.submissionFrequency, periodNumber - 1)})`
+      : "Submission";
+
+  return (
+    <div className="border-border-subtle bg-bg-default overflow-hidden rounded-xl border">
+      <div className="flex items-center gap-1.5 px-4 py-2">
+        <button
+          type="button"
+          aria-label="Back to bounties"
+          title="Back to bounties"
+          onClick={onBackToRoot}
+          className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
+        >
+          <Trophy className="size-4" />
+        </button>
+        <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+        <button
+          type="button"
+          aria-label="Back to bounty details"
+          title="Back to bounty details"
+          onClick={onBack}
+          className="text-content-default hover:text-content-emphasis shrink-0 text-sm font-medium transition-colors"
+        >
+          Bounty details
+        </button>
+        <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+        <span className="text-content-emphasis min-w-0 truncate text-sm font-semibold">
+          {title}
+        </span>
+      </div>
+
+      <div className="border-border-subtle border-t" />
+
+      <div className="divide-border-subtle grid grid-cols-1 divide-y lg:grid-cols-[minmax(0,1fr)_minmax(0,400px)] lg:divide-x lg:divide-y-0">
+        <SubmissionLeftColumn bounty={bounty} submission={submission} />
+        <SubmissionRightColumn bounty={bounty} submission={submission} />
+      </div>
+    </div>
+  );
+}
+
+function SubmissionLeftColumn({
+  bounty,
+  submission,
+}: {
+  bounty: PartnerBountyProps;
+  submission: PartnerBountySubmission;
+}) {
+  const bountyInfo = resolveBountyDetails(bounty);
+
+  return (
+    <div className="flex flex-col gap-5 p-5">
+      <SocialContentPreview bounty={bounty} submission={submission} />
+
+      {bountyInfo?.hasSocialMetrics ? null : (
+        <SubmissionRewardTable submission={submission} />
+      )}
+
+      {(Boolean(submission.files?.length) ||
+        (Boolean(submission.urls?.length) && !bountyInfo?.hasSocialMetrics) ||
+        submission.description) && (
+        <div className="flex flex-col gap-4">
+          {!bountyInfo?.hasSocialMetrics && (
+            <h2 className="text-content-emphasis text-base font-semibold">
+              Submitted content
+            </h2>
+          )}
+
+          {Boolean(submission.files?.length) && (
+            <div>
+              <h3 className="text-content-default text-sm font-medium">
+                Images
+              </h3>
+              <div className="mt-2 flex flex-wrap gap-3">
+                {submission.files!.map((file, idx) => (
+                  <a
+                    key={idx}
+                    className="border-border-subtle hover:border-border-default bg-bg-default group relative flex size-14 items-center justify-center rounded-md border"
+                    target="_blank"
+                    href={file.url}
+                    rel="noopener noreferrer"
+                  >
+                    <div className="relative size-full overflow-hidden rounded-md">
+                      <img
+                        src={file.url}
+                        alt={file.fileName || `File ${idx + 1}`}
+                        className="object-cover"
+                      />
+                    </div>
+                    <span className="sr-only">
+                      {file.fileName || `File ${idx + 1}`}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {Boolean(submission.urls?.length) &&
+            !bountyInfo?.hasSocialMetrics && (
+              <div>
+                <h3 className="text-content-default text-sm font-medium">
+                  URLs
+                </h3>
+                <div className="mt-2 flex flex-col gap-2">
+                  {submission.urls?.map((url, idx) => (
+                    <div
+                      className="relative"
+                      key={`${submission.id}-${idx}-${url}`}
+                    >
+                      <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pl-10 pr-12">
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-content-emphasis block cursor-alias truncate text-sm font-normal decoration-dotted underline-offset-2 hover:underline"
+                        >
+                          {url}
+                        </a>
+                      </div>
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-2.5">
+                        <div className="bg-bg-subtle text-content-subtle flex size-6 items-center justify-center rounded-full text-xs font-medium">
+                          {idx + 1}
+                        </div>
+                      </div>
+                      <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
+                        <CopyButton
+                          value={url}
+                          onCopy={() =>
+                            toast.success("URL copied to clipboard!")
+                          }
+                        />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          {submission.description && (
+            <div>
+              <h3 className="text-content-default text-sm font-medium">
+                Provide any additional details (optional)
+              </h3>
+              <p className="text-content-subtle mt-2 whitespace-pre-wrap text-sm">
+                {submission.description}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SubmissionRightColumn({
+  bounty,
+  submission,
+}: {
+  bounty: PartnerBountyProps;
+  submission: PartnerBountySubmission;
+}) {
+  const bountyInfo = resolveBountyDetails(bounty);
+  const statusBadge = BOUNTY_SUBMISSION_STATUS_BADGES[submission.status];
+  const submittedDate = submission.completedAt ?? submission.createdAt;
+
+  const textValue = (text: string) => (
+    <span className="text-content-emphasis text-sm font-medium">{text}</span>
+  );
+
+  const details: { label: string; value: React.ReactNode }[] = [];
+
+  if (statusBadge) {
+    details.push({
+      label: "Status",
+      value: (
+        <StatusBadge
+          variant={statusBadge.variant}
+          icon={statusBadge.icon}
+          className="w-fit rounded-lg py-1"
+        >
+          {submission.status === "submitted"
+            ? "Pending review"
+            : statusBadge.label}
+        </StatusBadge>
+      ),
+    });
+  }
+
+  if (submittedDate) {
+    details.push({
+      label: "Submitted",
+      value: textValue(
+        formatDate(submittedDate, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+      ),
+    });
+  }
+
+  if (submission.reviewedAt) {
+    details.push({
+      label: "Reviewed",
+      value: textValue(
+        formatDate(submission.reviewedAt, {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+      ),
+    });
+  }
+
+  if (submission.rejectionReason) {
+    details.push({
+      label: "Rejection reason",
+      value: textValue(
+        REJECT_BOUNTY_SUBMISSION_REASONS[submission.rejectionReason] ??
+          submission.rejectionReason,
+      ),
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-5 p-5">
+      <div>
+        <h2 className="text-content-emphasis text-base font-semibold">
+          Details
+        </h2>
+        <div className="mt-3 grid grid-cols-2 items-center gap-x-14 gap-y-1">
+          {details.map(({ label, value }) => (
+            <Fragment key={label}>
+              <span className="text-content-subtle text-sm font-medium">
+                {label}
+              </span>
+              <div>{value}</div>
+            </Fragment>
+          ))}
+        </div>
+      </div>
+
+      {submission.rejectionNote && (
+        <div className="bg-bg-attention rounded-lg p-4">
+          <p className="text-content-attention whitespace-pre-wrap text-sm leading-6">
+            {submission.rejectionNote}
+          </p>
+        </div>
+      )}
+
+      {bountyInfo?.hasSocialMetrics &&
+        ["draft", "submitted"].includes(submission.status) && (
+          <BountySocialMetricsRewardsTable
+            bounty={bounty}
+            submission={submission}
+          />
+        )}
+    </div>
+  );
+}

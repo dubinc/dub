@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { bulkDeleteLinks } from "../../lib/api/links/bulk-delete-links";
+import { conn } from "../../lib/planetscale";
 import { stripeConnectClient } from "../stripe/connect-client";
 
 async function main() {
@@ -17,57 +17,46 @@ async function main() {
     },
   });
 
-  if (partner.programs.length > 0) {
-    const programEnrollment = partner.programs[0];
-
-    if (programEnrollment.links.length === 0) {
-      throw new Error("Program has no links");
-    }
-
-    const links = programEnrollment.links;
-
-    const deleteLinkCaches = await bulkDeleteLinks(links);
-    console.log("Deleted link caches", deleteLinkCaches);
-
-    const deletedCustomers = await prisma.customer.deleteMany({
-      where: {
-        linkId: {
-          in: links.map((link) => link.id),
-        },
-      },
-    });
-    console.log("Deleted customers", deletedCustomers);
-
-    const deletedCommissions = await prisma.commission.deleteMany({
-      where: {
-        partnerId: partner.id,
-      },
-    });
-    console.log("Deleted commissions", deletedCommissions);
-
-    const deletedPayouts = await prisma.payout.deleteMany({
-      where: {
-        partnerId: partner.id,
-      },
-    });
-    console.log("Deleted payouts", deletedPayouts);
-
-    const deletedLinks = await prisma.link.deleteMany({
-      where: {
-        id: {
-          in: links.map((link) => link.id),
-        },
-      },
-    });
-    console.log("Deleted links", deletedLinks);
-  }
-
-  const deletedPartner = await prisma.partner.delete({
+  const deletedCustomers = await prisma.customer.deleteMany({
     where: {
-      id: partner.id,
+      partnerId: partner.id,
     },
   });
-  console.log("Deleted partner", deletedPartner);
+  console.log("Deleted customers", deletedCustomers);
+
+  const deletedCommissions = await prisma.commission.deleteMany({
+    where: {
+      partnerId: partner.id,
+    },
+  });
+  console.log("Deleted commissions", deletedCommissions);
+
+  const deletedPayouts = await prisma.payout.deleteMany({
+    where: {
+      partnerId: partner.id,
+    },
+  });
+  console.log("Deleted payouts", deletedPayouts);
+
+  const deletedLinks = await prisma.link.deleteMany({
+    where: {
+      partnerId: partner.id,
+    },
+  });
+  console.log("Deleted links", deletedLinks);
+
+  const deletedProgramEnrollments = await prisma.programEnrollment.deleteMany({
+    where: {
+      partnerId: partner.id,
+    },
+  });
+  console.log("Deleted program enrollments", deletedProgramEnrollments);
+
+  // using conn.execute here since Prisma is throwing a weird error
+  const res = await conn.execute(`DELETE FROM Partner WHERE id = ?`, [
+    partner.id,
+  ]);
+  console.log(JSON.stringify(res, null, 2));
 
   if (partner.stripeConnectId) {
     const res = await stripeConnectClient.accounts.del(partner.stripeConnectId);

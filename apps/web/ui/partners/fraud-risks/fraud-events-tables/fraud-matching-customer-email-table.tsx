@@ -1,5 +1,6 @@
 "use client";
 
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
 import { useFraudEventsPaginated } from "@/lib/swr/use-fraud-events-paginated";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -20,7 +21,11 @@ const MATCH_TYPE_LABELS: Record<CustomerEmailMatchType, string> = {
   [CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH]: "Historical domain match",
 };
 
-export function FraudMatchingCustomerEmailTable() {
+export function FraudMatchingCustomerEmailTable({
+  showMatchType,
+}: {
+  showMatchType?: boolean;
+}) {
   const { slug: workspaceSlug } = useWorkspace();
 
   const {
@@ -79,21 +84,25 @@ export function FraudMatchingCustomerEmailTable() {
           );
         },
       },
-      {
-        id: "matchType",
-        header: "Match type",
-        minSize: 120,
-        size: 180,
-        cell: ({ row }) => {
-          const matchType = row.original.metadata?.matchType ?? "exact";
+      ...(showMatchType
+        ? [
+            {
+              id: "matchType",
+              header: "Match type",
+              minSize: 120,
+              size: 180,
+              cell: ({ row }: { row: { original: EventDataProps } }) => {
+                const matchType = row.original.metadata?.matchType;
 
-          return (
-            <span className="text-sm text-neutral-600">
-              {MATCH_TYPE_LABELS[matchType]}
-            </span>
-          );
-        },
-      },
+                return (
+                  <span className="text-sm text-neutral-600">
+                    {matchType ? MATCH_TYPE_LABELS[matchType] : "-"}
+                  </span>
+                );
+              },
+            },
+          ]
+        : []),
       {
         id: "view",
         header: "",
@@ -106,7 +115,13 @@ export function FraudMatchingCustomerEmailTable() {
 
           return (
             <Link
-              href={`/${workspaceSlug}/program/customers/${row.original.customer.id}`}
+              href={
+                row.original.customer.email &&
+                row.original.metadata?.matchType ===
+                  CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH
+                  ? `/${workspaceSlug}/program/customers?partnerId=${row.original.partner.id}&search=${extractEmailDomain(row.original.customer.email)}`
+                  : `/${workspaceSlug}/events?event=leads&interval=all&customerId=${row.original.customer.id}`
+              }
               target="_blank"
             >
               <Button

@@ -32,6 +32,7 @@ export async function GET(req: Request) {
         minPayoutAmount: {
           gt: 0,
         },
+        deactivatedAt: null,
       },
     });
 
@@ -42,8 +43,11 @@ export async function GET(req: Request) {
         amount: {
           gt: 0,
         },
-        programId: {
-          notIn: programsWithCustomMinPayouts.map((p) => p.id),
+        program: {
+          id: {
+            notIn: programsWithCustomMinPayouts.map((p) => p.id),
+          },
+          deactivatedAt: null,
         },
         partner: {
           payoutsEnabledAt: {

@@ -1,3 +1,6 @@
+import { loadAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
+import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import {
   CreatePartnerProps,
   ProgramProps,
@@ -5,11 +8,11 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { PartnerGroupDefaultLink } from "@dub/prisma/client";
-import { constructURLFromUTMParams, isFulfilled, nanoid } from "@dub/utils";
+import { constructURLFromUTMParams, isFulfilled } from "@dub/utils";
 import { bulkCreateLinks } from "../links";
 import { extractUtmParams } from "../utm/extract-utm-params";
 import {
-  derivePartnerLinkKey,
+  buildPartnerDefaultLinkKey,
   generatePartnerLink,
 } from "./generate-partner-link";
 
@@ -43,18 +46,25 @@ export async function createPartnerDefaultLinks({
 
   const hasMoreThanOneDefaultLink = defaultLinks.length > 1;
 
+  // Check if any default link URL is an AppsFlyer URL and load settings once
+  const hasAppsFlyerUrl = defaultLinks.some((dl) =>
+    isAppsFlyerTrackingUrl(dl.url),
+  );
+
+  let appsFlyerParameters: AppsFlyerSettings["parameters"] = [];
+
+  if (hasAppsFlyerUrl) {
+    appsFlyerParameters = await loadAppsFlyerParameters(workspace.id);
+  }
+
   const processedLinks = (
     await Promise.allSettled(
       defaultLinks.map((defaultLink) => {
-        let key = derivePartnerLinkKey({
-          username: partner.username,
-          name: partner.name,
-          email: partner.email,
+        const key = buildPartnerDefaultLinkKey({
+          link,
+          partner,
+          hasMoreThanOneDefaultLink,
         });
-
-        key = hasMoreThanOneDefaultLink
-          ? `${key}-${nanoid(4).toLowerCase()}`
-          : key;
 
         return generatePartnerLink({
           workspace,
@@ -72,6 +82,7 @@ export async function createPartnerDefaultLinks({
             partnerGroupDefaultLinkId: defaultLink.id,
           },
           userId,
+          appsFlyerParameters,
         });
       }),
     )

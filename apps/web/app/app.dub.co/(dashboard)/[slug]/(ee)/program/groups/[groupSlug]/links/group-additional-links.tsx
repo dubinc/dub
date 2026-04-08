@@ -19,7 +19,7 @@ import {
   Switch,
 } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, getApexDomain, getPrettyUrl, getUrlFromString } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -285,6 +285,8 @@ function LinkFormat({
     onConfirm: deleteLinkFormat,
   });
 
+  const linkUrl = getUrlFromString(`${link.domain}${link.path}`);
+
   return (
     <>
       {confirmModal}
@@ -299,7 +301,7 @@ function LinkFormat({
             </div>
             <div className="relative z-10 p-2">
               <LinkLogo
-                apexDomain={link.domain}
+                apexDomain={getApexDomain(linkUrl)}
                 className="size-4 sm:size-6"
                 imageProps={{
                   loading: "lazy",
@@ -308,8 +310,7 @@ function LinkFormat({
             </div>
           </div>
           <span className="text-content-default min-w-0 truncate text-sm font-semibold">
-            {link.domain}
-            {link.path === "/" ? "" : link.path}
+            {getPrettyUrl(linkUrl)}
           </span>
         </div>
 

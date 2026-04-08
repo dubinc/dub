@@ -12,13 +12,11 @@ import { usePayoutConnectFlow } from "./use-payout-connect-flow";
 interface ConnectPayoutButtonProps extends ButtonProps {
   payoutMethod?: PartnerPayoutMethod;
   connected?: boolean;
-  allowWhenPayoutsEnabled?: boolean;
 }
 
 export function ConnectPayoutButton({
   payoutMethod,
   connected,
-  allowWhenPayoutsEnabled,
   ...props
 }: ConnectPayoutButtonProps) {
   const { partner, availablePayoutMethods } = usePartnerProfile();
@@ -60,10 +58,6 @@ export function ConnectPayoutButton({
     return null;
   }
 
-  if (partner?.payoutsEnabledAt && !allowWhenPayoutsEnabled) {
-    return null;
-  }
-
   return (
     <>
       {ConnectPayoutModal}
@@ -76,7 +70,7 @@ export function ConnectPayoutButton({
             ? "Manage"
             : payoutMethod
               ? "Connect"
-              : "Connect payout method"
+              : props.text || "Connect payout method"
         }
         loading={isPending}
         disabledTooltip={

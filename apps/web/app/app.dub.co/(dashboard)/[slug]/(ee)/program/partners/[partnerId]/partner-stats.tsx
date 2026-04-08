@@ -57,7 +57,7 @@ export function PartnerStats({
                 ? "-"
                 : undefined,
             href: partner?.id
-              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y`
+              ? `/${slug}/events?event=sales&partnerId=${partner.id}&interval=1y&saleType=new`
               : undefined,
           },
           {

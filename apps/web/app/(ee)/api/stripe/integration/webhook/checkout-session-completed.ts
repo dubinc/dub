@@ -29,7 +29,7 @@ import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { getPromotionCode } from "./utils/get-promotion-code";
-import { getSubscriptionProductId } from "./utils/get-subscription-product-id";
+import { getCheckoutSessionProductId } from "./utils/get-checkout-session-product-id";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
 // Handle event "checkout.session.completed"
@@ -445,8 +445,8 @@ export async function checkoutSessionCompleted(
     | undefined = undefined;
 
   if (link && link.programId && link.partnerId) {
-    const productId = await getSubscriptionProductId({
-      stripeSubscriptionId: charge.subscription as string,
+    const productId = await getCheckoutSessionProductId({
+      checkoutSessionId: charge.id,
       stripeAccountId,
       mode,
     });
@@ -505,7 +505,10 @@ export async function checkoutSessionCompleted(
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
             programEnrollment: pick(programEnrollment, ["status"]),
-            customer: pick(customer, ["id", "email", "name"]),
+            customer: {
+              ...pick(customer, ["id", "email", "name"]),
+              isFirstConversion: firstConversionFlag,
+            },
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },

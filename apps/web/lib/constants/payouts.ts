@@ -1,3 +1,4 @@
+import { PayoutStatus } from "@dub/prisma/client";
 import Stripe from "stripe";
 import { PaymentMethodOption } from "../types";
 
@@ -9,6 +10,7 @@ export const ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE = 500;
 export const CUTOFF_PERIOD_MAX_PAYOUTS = 1000;
 
 export const STABLECOIN_PAYOUT_FEE_RATE = 0.005; // 0.5%
+export const STABLECOIN_PAYOUT_FIXED_FEE_CENTS = 50; // $0.50
 export const FAST_ACH_FEE_CENTS = 2500; // $25
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
 export const FOREX_MARKUP_RATE = 0.005; // 0.5%
@@ -17,6 +19,8 @@ export const INVOICE_MIN_PAYOUT_AMOUNT_CENTS = 1000; // $10
 export const MIN_WITHDRAWAL_AMOUNT_CENTS = 1000; // $10
 export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50; // $0.50
 export const MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS = 100; // $1 (doesn't make sense to force a withdrawal for less than $1)
+
+export const MUTABLE_PAYOUT_STATUSES: PayoutStatus[] = ["pending", "canceled"];
 
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {

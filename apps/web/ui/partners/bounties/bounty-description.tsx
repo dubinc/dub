@@ -12,7 +12,7 @@ export function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
 
   return (
     <div>
-      <h3 className="text-content-emphasis text-lg font-semibold">
+      <h3 className="text-content-emphasis text-sm font-semibold">
         Bounty details
       </h3>
 
@@ -20,7 +20,7 @@ export function BountyDescription({ bounty }: { bounty: PartnerBountyProps }) {
         <Markdown
           className={cn(
             PROSE_STYLES.default,
-            "text-sm font-normal text-neutral-600",
+            "text-content-subtle text-sm font-normal",
           )}
         >
           {description}

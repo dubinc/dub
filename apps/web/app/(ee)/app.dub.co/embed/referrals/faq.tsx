@@ -1,8 +1,6 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { RewardProps } from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { BlockMarkdown } from "@/ui/partners/lander/blocks/block-markdown";
-import { Program } from "@dub/prisma/client";
 import {
   Accordion,
   AccordionContent,
@@ -11,14 +9,12 @@ import {
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/ui";
 import { motion } from "motion/react";
+import { useReferralsEmbedData } from "./page-client";
 
-export function ReferralsEmbedFAQ({
-  program,
-  reward,
-}: {
-  program: Program;
-  reward: RewardProps | null;
-}) {
+export function ReferralsEmbedFAQ() {
+  const { program, rewards } = useReferralsEmbedData();
+  const reward = rewards[0];
+
   const rewardDescription = reward
     ? `For each new customer you refer, you'll earn a ${constructRewardAmount(reward)} commission on their subscription${
         reward.maxDuration === null

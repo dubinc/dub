@@ -11,9 +11,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       <div className="min-h-screen bg-white">
         <ProgramOnboardingFormWrapper>
           <ProgramOnboardingHeader />
-          <div className="md:grid md:grid-cols-[240px_minmax(0,1fr)]">
+          <div className="lg:grid lg:grid-cols-[240px_minmax(0,1fr)]">
             <ProgramOnboardingSteps />
-            <main className="px-4 py-6 md:px-8">{children}</main>
+            <main className="px-4 py-6 lg:px-8">{children}</main>
           </div>
         </ProgramOnboardingFormWrapper>
       </div>

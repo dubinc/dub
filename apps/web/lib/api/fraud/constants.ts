@@ -18,14 +18,8 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     scope: "conversionEvent",
     configurable: true,
   },
-  {
-    type: "referralSourceBanned",
-    name: "Banned referral source",
-    description:
-      "A conversion, event, or click was made on a banned referral domain.",
-    scope: "conversionEvent",
-    configurable: true,
-  },
+
+  // Referral source rules
   {
     type: "paidTrafficDetected",
     name: "Paid traffic",
@@ -34,39 +28,39 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     scope: "conversionEvent",
     configurable: true,
   },
+  {
+    type: "referralSourceBanned",
+    name: "Banned referral source",
+    description:
+      "A conversion, event, or click was made on a banned referral domain.",
+    scope: "conversionEvent",
+    configurable: true,
+  },
 
   // Partner rules
-  {
-    type: "partnerFraudReport",
-    name: "Fraud report",
-    description:
-      "This partner was rejected from another program due to suspected fraud during their application.",
-    scope: "partner",
-    severity: "high",
-    configurable: false,
-  },
   {
     type: "partnerCrossProgramBan",
     name: "Cross-program ban",
     description:
-      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history. To protect security and privacy, specific details such as links, evidence, or notes are not shared across programs.",
+      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history.",
     scope: "partner",
     severity: "high",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "partnerDuplicatePayoutMethod",
     name: "Duplicate payout method",
     description:
-      "This partner is using a payout method that is already linked to another partner account, which may indicate account duplication or fraudulent behavior.",
+      "This payout method is already linked to another partner. May indicate duplicate accounts or fraud, and is flagged to prevent abuse of restrictions, caps, or bonuses.",
     scope: "partner",
     severity: "high",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "partnerEmailDomainMismatch",
     name: "Email domain mismatch with website",
-    description: "The custom email domain doesn't match the website provided.",
+    description:
+      "The partner's email domain doesn't match their website domain.",
     scope: "partner",
     severity: "low",
     configurable: false,
@@ -114,6 +108,10 @@ export const FRAUD_RULES_BY_SCOPE = FRAUD_RULES.reduce(
 
 export const CONFIGURABLE_FRAUD_RULES = FRAUD_RULES.filter(
   (rule) => rule.configurable,
+);
+
+export const CONFIGURABLE_RULE_TYPES = CONFIGURABLE_FRAUD_RULES.map(
+  (rule) => rule.type,
 );
 
 export const FRAUD_SEVERITY_CONFIG: Record<

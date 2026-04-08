@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import "dotenv-flow/config";
 
+// script to get the top google ads campaign ids in fraud events
 async function main() {
   const fraudEvents = await prisma.fraudEvent.findMany({
     where: {

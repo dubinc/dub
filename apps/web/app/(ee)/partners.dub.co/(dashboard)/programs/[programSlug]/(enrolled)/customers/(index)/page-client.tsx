@@ -20,13 +20,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { User } from "@dub/ui/icons";
-import {
-  COUNTRIES,
-  currencyFormatter,
-  formatDate,
-  getApexDomain,
-  getPrettyUrl,
-} from "@dub/utils";
+import { COUNTRIES, formatDate, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { usePartnerCustomerFilters } from "./use-partner-customer-filters";
@@ -64,7 +58,6 @@ export function ProgramCustomersPageClient() {
       "customer",
       "country",
       "link",
-      "saleAmount",
       "createdAt",
       "firstSaleAt",
       "subscriptionCanceledAt",
@@ -73,7 +66,6 @@ export function ProgramCustomersPageClient() {
       "customer",
       "country",
       "link",
-      "saleAmount",
       "createdAt",
       "firstSaleAt",
       "subscriptionCanceledAt",
@@ -94,12 +86,7 @@ export function ProgramCustomersPageClient() {
           enableHiding: false,
           minSize: 250,
           cell: ({ row }) => {
-            return (
-              <CustomerRowItem
-                customer={row.original}
-                chartActivityIconMode="visible"
-              />
-            );
+            return <CustomerRowItem customer={row.original} />;
           },
         },
         {
@@ -153,25 +140,6 @@ export function ProgramCustomersPageClient() {
               "-"
             ),
           size: 250,
-        },
-        {
-          id: "saleAmount",
-          header: "LTV",
-          meta: {
-            headerTooltip:
-              "The total amount of revenue the customer has generated over time (lifetime value).",
-          },
-          accessorKey: "activity.saleAmount",
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-2">
-              <span>
-                {currencyFormatter(getValue() ?? 0, {
-                  trailingZeroDisplay: "stripIfInteger",
-                })}
-              </span>
-              <span className="text-neutral-400">USD</span>
-            </div>
-          ),
         },
         {
           id: "createdAt",
@@ -275,7 +243,7 @@ export function ProgramCustomersPageClient() {
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
-    sortableColumns: ["saleAmount", "createdAt"],
+    sortableColumns: ["createdAt", "firstSaleAt", "subscriptionCanceledAt"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>

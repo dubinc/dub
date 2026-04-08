@@ -4,7 +4,7 @@ import { REJECT_BOUNTY_SUBMISSION_REASONS } from "@/lib/bounty/constants";
 import { getPeriodLabel } from "@/lib/bounty/periods";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
 import { resolveBountyDetails } from "@/lib/bounty/utils";
-import { PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { X } from "@/ui/shared/icons";
 import {
@@ -33,8 +33,6 @@ import { EmphasisNumber } from "./bounty-progress-bar-row";
 import { BountySocialContentPreview } from "./bounty-social-content-preview";
 import { BountySocialMetricsRewardsTable } from "./bounty-social-metrics-rewards-table";
 
-type PartnerBountySubmission = PartnerBountyProps["submissions"][number];
-
 interface BountySubmissionDetailsSheetProps {
   bounty: PartnerBountyProps;
   submission: PartnerBountySubmission;
@@ -44,7 +42,7 @@ interface BountySubmissionDetailsSheetProps {
   onPrevious?: () => void;
 }
 
-function SocialContentPreview({
+export function SocialContentPreview({
   bounty,
   submission,
 }: {
@@ -72,21 +70,21 @@ function SocialContentPreview({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-neutral-800">
+        <h2 className="text-content-emphasis text-base font-semibold">
           Submitted content
         </h2>
         {lastSyncedAt && (
-          <span className="text-xs font-medium text-neutral-400">
+          <span className="text-content-subtle text-xs font-medium">
             Last sync{" "}
             {formatDistanceToNow(new Date(lastSyncedAt), { addSuffix: true })}
           </span>
         )}
       </div>
 
-      <div className="rounded-xl border border-neutral-200 bg-neutral-50">
+      <div className="border-border-default bg-bg-subtle rounded-xl border">
         {/* Progress section */}
         <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
-          <div className="h-1 w-full rounded-full bg-neutral-200">
+          <div className="bg-bg-emphasis h-1 w-full rounded-full">
             <div
               className={cn(
                 "h-full rounded-full",
@@ -98,7 +96,7 @@ function SocialContentPreview({
 
           <div className="flex items-center gap-2">
             <PlatformIcon className="size-4 shrink-0" />
-            <p className="text-sm font-medium text-neutral-600">
+            <p className="text-content-subtle text-sm font-medium">
               <EmphasisNumber>
                 {nFormatter(socialMetricCount, { full: true })}
               </EmphasisNumber>
@@ -305,7 +303,7 @@ function SubmissionDetailsView({
   );
 }
 
-function SubmissionRewardTable({
+export function SubmissionRewardTable({
   submission,
 }: {
   submission: PartnerBountySubmission;
@@ -364,12 +362,12 @@ function SubmissionRewardTable({
 
   return (
     <div>
-      <h2 className="text-base font-semibold text-neutral-800">Rewards</h2>
+      <h2 className="text-content-emphasis text-base font-semibold">Rewards</h2>
       <div className="mt-2">
         <Table
           {...tableProps}
           table={table}
-          containerClassName="border-neutral-200"
+          containerClassName="border-border-default"
           scrollWrapperClassName="min-h-0"
           className="[&_tbody_tr:last-child_td]:border-b-0"
         />

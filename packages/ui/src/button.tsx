@@ -10,7 +10,7 @@ export const buttonVariants = cva("transition-all", {
       primary:
         "border-black bg-black dark:bg-white dark:border-white text-content-inverted hover:bg-inverted hover:ring-4 hover:ring-border-subtle",
       secondary: cn(
-        "border-border-subtle bg-white dark:bg-black text-content-emphasis hover:bg-bg-muted focus-visible:border-border-emphasis outline-none",
+        "border-border-subtle bg-bg-default text-content-emphasis hover:bg-bg-muted focus-visible:border-border-emphasis outline-none",
         "data-[state=open]:border-border-emphasis data-[state=open]:ring-4 data-[state=open]:ring-border-subtle",
       ),
       outline: "border-transparent text-content-default hover:bg-neutral-900/5",
@@ -107,7 +107,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           "group flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm",
           props.disabled || loading
-            ? "cursor-not-allowed border-neutral-200 bg-neutral-100 text-neutral-400 outline-none"
+            ? "border-border-subtle bg-bg-subtle text-content-subtle cursor-not-allowed outline-none"
             : buttonVariants({ variant }),
           className,
         )}

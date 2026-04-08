@@ -1,15 +1,13 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import {
-  bulkRejectPartnersSchema,
-  INACTIVE_ENROLLMENT_STATUSES,
-} from "@/lib/zod/schemas/partners";
+import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
+import { sendBatchEmail } from "@dub/email";
+import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -19,7 +17,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
   .inputSchema(bulkRejectPartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerIds, reportFraud } = parsedInput;
+    const { partnerIds } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -38,6 +36,7 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
       },
       select: {
         id: true,
+        applicationId: true,
         partner: true,
       },
     });
@@ -46,56 +45,47 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
       return;
     }
 
-    await prisma.programEnrollment.updateMany({
-      where: {
-        id: {
-          in: programEnrollments.map(({ id }) => id),
-        },
-      },
-      data: {
-        status: ProgramEnrollmentStatus.rejected,
-        clickRewardId: null,
-        leadRewardId: null,
-        saleRewardId: null,
-        discountId: null,
-      },
-    });
+    const applicationIds = programEnrollments
+      .map(({ applicationId }) => applicationId)
+      .filter((id): id is string => Boolean(id));
 
-    await resolveFraudGroups({
-      where: {
-        programEnrollment: {
+    const reviewedAt = new Date();
+
+    await prisma.$transaction(async (tx) => {
+      await tx.programEnrollment.updateMany({
+        where: {
           id: {
             in: programEnrollments.map(({ id }) => id),
           },
         },
-      },
-      userId: user.id,
-      resolutionReason:
-        "Resolved automatically because the partner application was rejected.",
+        data: {
+          status: ProgramEnrollmentStatus.rejected,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
+          discountId: null,
+        },
+      });
+
+      if (applicationIds.length > 0) {
+        await tx.programApplication.updateMany({
+          where: {
+            id: {
+              in: applicationIds,
+            },
+          },
+          data: {
+            reviewedAt,
+            rejectionReason: null,
+            rejectionNote: null,
+            userId: user.id,
+          },
+        });
+      }
     });
 
     waitUntil(
       (async () => {
-        const affectedProgramEnrollments = reportFraud
-          ? await prisma.programEnrollment.findMany({
-              where: {
-                partnerId: {
-                  in: partnerIds,
-                },
-                programId: {
-                  not: programId,
-                },
-                status: {
-                  notIn: INACTIVE_ENROLLMENT_STATUSES,
-                },
-              },
-              select: {
-                programId: true,
-                partnerId: true,
-              },
-            })
-          : [];
-
         await Promise.allSettled([
           recordAuditLog(
             programEnrollments.map(({ partner }) => ({
@@ -114,17 +104,59 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
             })),
           ),
 
-          // Create fraud report events in other programs where these partners are enrolled
-          // to help keep the network safe by alerting other programs about suspected fraud
-          createFraudEvents(
-            affectedProgramEnrollments.map((affectedEnrollment) => ({
-              programId: affectedEnrollment.programId,
-              partnerId: affectedEnrollment.partnerId,
-              type: FraudRuleType.partnerFraudReport,
-              sourceProgramId: programId, // The program that reported the fraud,
-            })),
-          ),
+          resolveFraudGroups({
+            where: {
+              programEnrollment: {
+                id: {
+                  in: programEnrollments.map(({ id }) => id),
+                },
+              },
+            },
+            userId: user.id,
+            resolutionReason:
+              "Resolved automatically because the partner application was rejected.",
+          }),
         ]);
+
+        const program = await prisma.program.findUniqueOrThrow({
+          where: {
+            id: programId,
+          },
+          select: {
+            name: true,
+            slug: true,
+            supportEmail: true,
+          },
+        });
+
+        const partnersWithEmail = programEnrollments
+          .filter(({ partner }) => partner.email)
+          .map(({ partner }) => partner);
+
+        if (partnersWithEmail.length > 0) {
+          await sendBatchEmail(
+            partnersWithEmail.map((partner) => ({
+              to: partner.email!,
+              subject: `Your application to ${program.name} was not approved`,
+              variant: "notifications",
+              replyTo: program.supportEmail || "noreply",
+              react: PartnerApplicationRejected({
+                partner: {
+                  name: partner.name ?? "there",
+                  email: partner.email!,
+                },
+                program: {
+                  name: program.name,
+                  slug: program.slug,
+                  supportEmail: program.supportEmail ?? undefined,
+                },
+                rejectionReason: undefined,
+                additionalNotes: undefined,
+                canReapplyImmediately: false,
+              }),
+            })),
+          );
+        }
       })(),
     );
   });

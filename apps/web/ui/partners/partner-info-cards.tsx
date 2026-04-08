@@ -21,9 +21,9 @@ import {
   TimestampTooltip,
   Trophy,
 } from "@dub/ui";
+import { VerifiedBadge } from "@dub/ui/icons";
 import {
   COUNTRIES,
-  OG_AVATAR_URL,
   capitalize,
   fetcher,
   formatDate,
@@ -31,7 +31,7 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
 import { ConversionScoreIcon } from "./conversion-score-icon";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
@@ -40,6 +40,7 @@ import {
   PartnerFraudBanner,
 } from "./fraud-risks/partner-fraud-banner";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
+import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
 import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
@@ -71,7 +72,10 @@ type BasicField = {
   id: string;
   icon: React.ReactElement;
   text: string | null | undefined;
-  wrapper?: React.ComponentType<{ children: React.ReactNode }> | string;
+  /** When set, the row is wrapped in TimestampTooltip (local / UTC / unix). */
+  timestamp?: Date | string | number;
+  /** Optional outer wrapper (e.g. ConversionScoreTooltip) around the row content. */
+  wrapper?: React.ComponentType<{ children: React.ReactNode }>;
 };
 
 export function PartnerInfoCards({
@@ -147,6 +151,7 @@ export function PartnerInfoCards({
               text: partner.lastLeadAt
                 ? `Last lead event ${timeAgo(new Date(partner.lastLeadAt), { withAgo: true })}`
                 : null,
+              timestamp: partner.lastLeadAt ?? undefined,
             },
             {
               id: "lastConversionAt",
@@ -154,6 +159,7 @@ export function PartnerInfoCards({
               text: partner.lastConversionAt
                 ? `Last conversion event ${timeAgo(new Date(partner.lastConversionAt), { withAgo: true })}`
                 : null,
+              timestamp: partner.lastConversionAt ?? undefined,
             },
           ]
         : []),
@@ -168,35 +174,30 @@ export function PartnerInfoCards({
         text: partner
           ? `${partner.status === "approved" ? "Partner since" : "Applied"} ${formatDate(partner.createdAt)}`
           : undefined,
+        timestamp: partner?.createdAt,
       },
       ...(showPayoutMethodField && partner
-        ? (() => {
-            const { Icon: PayoutMethodIcon } = getPayoutMethodIconConfig(
-              partner.defaultPayoutMethod!,
-            );
-            const payoutTimestamp = partner.payoutsEnabledAt!;
-            const PayoutTimestampWrapper = ({
-              children,
-            }: {
-              children: React.ReactNode;
-            }) => (
-              <TimestampTooltip
-                timestamp={payoutTimestamp}
-                rows={["local", "utc", "unix"]}
-                side="left"
-              >
-                {children}
-              </TimestampTooltip>
-            );
-            return [
-              {
-                id: "payoutMethod" as const,
-                icon: <PayoutMethodIcon className="size-3.5 shrink-0" />,
-                text: `${getPayoutMethodLabel(partner.defaultPayoutMethod!)} connected ${formatDateTimeSmart(partner.payoutsEnabledAt!)}`,
-                wrapper: PayoutTimestampWrapper,
-              },
-            ];
-          })()
+        ? [
+            {
+              id: "payoutMethod" as const,
+              icon: createElement(
+                getPayoutMethodIconConfig(partner.defaultPayoutMethod!).Icon,
+                { className: "size-3.5 shrink-0" },
+              ),
+              text: `${getPayoutMethodLabel(partner.defaultPayoutMethod!)} connected ${formatDateTimeSmart(partner.payoutsEnabledAt!)}`,
+              timestamp: partner.payoutsEnabledAt!,
+            },
+          ]
+        : []),
+      ...(partner?.identityVerifiedAt
+        ? [
+            {
+              id: "identityVerifiedAt",
+              icon: <VerifiedBadge className="size-3.5 shrink-0" />,
+              text: `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`,
+              timestamp: partner.identityVerifiedAt,
+            },
+          ]
         : []),
     ]);
   }
@@ -226,6 +227,7 @@ export function PartnerInfoCards({
             ? `Last conversion ${timeAgo(partner.lastConversionAt, { withAgo: true })}`
             : "No conversions yet"
           : undefined,
+        timestamp: partner?.lastConversionAt ?? undefined,
       },
       {
         id: "companyName",
@@ -236,7 +238,19 @@ export function PartnerInfoCards({
         id: "joinedAt",
         icon: <CalendarIcon className="size-3.5" />,
         text: partner ? `Joined ${formatDate(partner.createdAt!)}` : undefined,
+        timestamp: partner?.createdAt,
       },
+      ...(partner?.identityVerificationStatus === "approved" &&
+      partner?.identityVerifiedAt
+        ? [
+            {
+              id: "identityVerifiedAt",
+              icon: <VerifiedBadge className="size-3.5 shrink-0" />,
+              text: `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`,
+              timestamp: partner.identityVerifiedAt,
+            },
+          ]
+        : []),
     ]);
   }
 
@@ -256,10 +270,9 @@ export function PartnerInfoCards({
             <div className="flex items-start justify-between gap-2">
               <div className="relative w-fit shrink-0">
                 {partner ? (
-                  <img
-                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                    alt={partner.id}
-                    className="size-20 rounded-full border border-neutral-100"
+                  <PartnerAvatar
+                    partner={partner}
+                    className="size-20 border border-neutral-100"
                   />
                 ) : (
                   <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
@@ -321,8 +334,8 @@ export function PartnerInfoCards({
           <div className="flex flex-col gap-2 p-4">
             {basicFields
               .filter(({ text }) => text !== null)
-              .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
-                <Wrapper key={id}>
+              .map(({ id, icon, text, timestamp, wrapper: RowWrapper }) => {
+                const rowInner = (
                   <div className="text-content-subtle flex items-center gap-1">
                     {text !== undefined ? (
                       <>
@@ -333,8 +346,30 @@ export function PartnerInfoCards({
                       <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
                     )}
                   </div>
-                </Wrapper>
-              ))}
+                );
+                const withTimestamp =
+                  timestamp != null ? (
+                    <TimestampTooltip
+                      timestamp={timestamp}
+                      rows={["local", "utc", "unix"]}
+                      side="left"
+                      delayDuration={250}
+                    >
+                      {rowInner}
+                    </TimestampTooltip>
+                  ) : (
+                    rowInner
+                  );
+                return (
+                  <Fragment key={id}>
+                    {RowWrapper ? (
+                      <RowWrapper>{withTimestamp}</RowWrapper>
+                    ) : (
+                      withTimestamp
+                    )}
+                  </Fragment>
+                );
+              })}
           </div>
 
           {partner && isEnrolled && showApplicationRiskAnalysis && (

@@ -2,7 +2,7 @@ import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { DeviceTabs } from "@/lib/analytics/types";
 import { useRouterStuff } from "@dub/ui";
 import { Cube, CursorRays, MobilePhone, Window } from "@dub/ui/icons";
-import { useContext, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { AnalyticsCard } from "./analytics-card";
 import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
@@ -19,7 +19,48 @@ export function DeviceSection() {
 
   const [tab, setTab] = useState<DeviceTabs>("devices");
   const { data } = useAnalyticsFilterOption(tab);
+  const { data: allData } = useAnalyticsFilterOption(tab, {
+    omitGroupByFilterKey: true,
+  });
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
+
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  useEffect(() => {
+    setSelectedItems([]);
+  }, [tab]);
+
+  const onToggleFilter = useCallback((val: string) => {
+    setSelectedItems((prev) =>
+      prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val],
+    );
+  }, []);
+
+  const onApplyFilterValues = useCallback(
+    (values: string[]) => {
+      if (values.length === 0) {
+        queryParams({ del: singularTabName, scroll: false });
+      } else {
+        queryParams({
+          set: { [singularTabName]: values.join(",") },
+          scroll: false,
+        });
+      }
+      setSelectedItems([]);
+    },
+    [singularTabName, queryParams],
+  );
+
+  const isFilterActive = searchParams.has(singularTabName);
+  const activeFilterValues = useMemo(
+    () => searchParams.get(singularTabName)?.split(",") ?? [],
+    [singularTabName, searchParams],
+  );
+
+  const onClearFilter = useCallback(() => {
+    setSelectedItems([]);
+    if (isFilterActive) queryParams({ del: singularTabName });
+  }, [singularTabName, queryParams, isFilterActive]);
 
   return (
     <AnalyticsCard
@@ -33,6 +74,8 @@ export function DeviceSection() {
       onSelectTab={setTab}
       expandLimit={8}
       dataLength={data?.length}
+      isFilterActive={isFilterActive}
+      onClearFilter={onClearFilter}
     >
       {({ limit, setShowModal }) =>
         data ? (
@@ -53,25 +96,43 @@ export function DeviceSection() {
                       tab === "triggers"
                         ? TRIGGER_DISPLAY[d.trigger].title
                         : d[singularTabName],
-                    href: queryParams({
-                      ...(searchParams.has(singularTabName)
-                        ? { del: singularTabName }
-                        : {
-                            set: {
-                              [singularTabName]: d[singularTabName],
-                            },
-                          }),
-                      getNewPath: true,
-                    }) as string,
+                    filterValue: d[singularTabName],
                     value: d[dataKey] || 0,
                   }))
                   ?.sort((a, b) => b.value - a.value) || []
               }
+              allData={allData
+                ?.map((d) => ({
+                  icon: (
+                    <DeviceIcon
+                      display={d[singularTabName]}
+                      tab={tab}
+                      className="h-4 w-4"
+                    />
+                  ),
+                  title:
+                    tab === "triggers"
+                      ? TRIGGER_DISPLAY[d.trigger].title
+                      : d[singularTabName],
+                  filterValue: d[singularTabName],
+                  value: d[dataKey] || 0,
+                }))
+                ?.sort((a, b) => b.value - a.value)}
               unit={selectedTab}
-              maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
+              maxValue={Math.max(...data.map((d) => d[dataKey] ?? 0)) ?? 0}
               barBackground="bg-green-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-green-50 hover:to-transparent hover:border-green-500"
+              filterSelectedBackground="bg-green-600"
+              filterSelectedHoverBackground="hover:bg-green-700"
+              filterHoverClass="bg-white border border-green-200"
               setShowModal={setShowModal}
+              selectedFilterValues={selectedItems}
+              activeFilterValues={activeFilterValues}
+              onToggleFilter={onToggleFilter}
+              onClearFilter={onClearFilter}
+              onClearSelection={() => setSelectedItems([])}
+              onApplyFilterValues={onApplyFilterValues}
+              onRowFilterItem={(val) => onApplyFilterValues([val])}
               {...(limit && { limit })}
             />
           ) : (

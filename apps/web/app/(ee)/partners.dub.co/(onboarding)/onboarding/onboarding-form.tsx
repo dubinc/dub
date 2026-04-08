@@ -94,9 +94,11 @@ export function OnboardingForm({
         redirectPath: searchParams.get("next"),
         currentUrl: window.location.href,
       });
-      router.push(
-        `/onboarding/platforms${next ? `?next=${encodeURIComponent(next)}` : ""}`,
-      );
+      if (next) {
+        router.push(next);
+      } else {
+        router.push("/onboarding/platforms");
+      }
     },
     onError: ({ error, input }) => {
       toast.error(parseActionError(error, "An unknown error occurred."));

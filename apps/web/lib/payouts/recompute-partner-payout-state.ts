@@ -2,6 +2,7 @@ import { stripe } from "@/lib/stripe";
 import { getStripeRecipientAccount } from "@/lib/stripe/get-stripe-recipient-account";
 import { Partner, PartnerPayoutMethod } from "@dub/prisma/client";
 import { prettyPrint } from "@dub/utils";
+import { getStripeRecipientPayoutMethod } from "../stripe/get-stripe-recipient-payout-method";
 
 const PAYOUT_METHOD_PRIORITY: PartnerPayoutMethod[] = [
   PartnerPayoutMethod.stablecoin,
@@ -34,14 +35,28 @@ export async function recomputePartnerPayoutState(
       : Promise.resolve(null),
   ]);
 
+  const hasCryptoWalletCapabilities = Boolean(
+    stablecoinAccount?.configuration?.recipient?.capabilities?.crypto_wallets
+      ?.status === "active",
+  );
+
+  const stablecoinPayoutMethod =
+    partner.stripeRecipientId && hasCryptoWalletCapabilities
+      ? await getStripeRecipientPayoutMethod(partner.stripeRecipientId)
+      : null;
+
+  const cryptoWalletAddress =
+    stablecoinPayoutMethod?.crypto_wallet?.address ?? null;
+  const cryptoWalletNetwork =
+    stablecoinPayoutMethod?.crypto_wallet?.network ?? null;
+
   const connectActive = Boolean(
     connectAccount?.payouts_enabled === true &&
       connectAccount?.capabilities?.transfers === "active",
   );
 
   const stablecoinActive = Boolean(
-    stablecoinAccount?.configuration?.recipient?.capabilities?.crypto_wallets
-      ?.status === "active",
+    hasCryptoWalletCapabilities && cryptoWalletAddress && cryptoWalletNetwork,
   );
 
   const paypalActive = Boolean(partner.paypalEmail);
@@ -79,8 +94,17 @@ export async function recomputePartnerPayoutState(
     }),
   );
 
+  const maskedCryptoWalletAddress = cryptoWalletAddress
+    ? cryptoWalletAddress.length > 10
+      ? `${cryptoWalletAddress.slice(0, 6)}••••${cryptoWalletAddress.slice(-4)}`
+      : cryptoWalletAddress
+    : null;
+
   return {
     payoutsEnabledAt,
     defaultPayoutMethod,
+    cryptoWalletAddress,
+    cryptoWalletNetwork,
+    maskedCryptoWalletAddress,
   };
 }

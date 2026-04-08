@@ -9,6 +9,7 @@ import { buildPaginationQuery } from "../pagination";
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
   isHoldStatus?: boolean;
+  fraudEventGroupId?: string;
 };
 
 export async function getCommissions(filters: CommissionsFilters) {
@@ -21,6 +22,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     customerId,
     payoutId,
     groupId,
+    fraudEventGroupId,
     start,
     end,
     interval,
@@ -54,6 +56,25 @@ export async function getCommissions(filters: CommissionsFilters) {
     }
   }
 
+  // Resolve fraudEventGroupId to eventIds
+  let eventIds: string[] | undefined;
+
+  if (fraudEventGroupId) {
+    const fraudEvents = await prisma.fraudEvent.findMany({
+      where: {
+        fraudEventGroupId,
+        eventId: {
+          not: null,
+        },
+      },
+      select: {
+        eventId: true,
+      },
+    });
+
+    eventIds = fraudEvents.map((e) => e.eventId!);
+  }
+
   const { startDate, endDate } = getStartEndDates({
     interval,
     start,
@@ -63,13 +84,17 @@ export async function getCommissions(filters: CommissionsFilters) {
 
   const statusFilter = isHoldStatus
     ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status ?? {
-        notIn: [
-          CommissionStatus.duplicate,
-          CommissionStatus.fraud,
-          CommissionStatus.canceled,
-        ],
-      };
+    : status
+      ? status
+      : customerId || partnerId || type
+        ? undefined
+        : {
+            notIn: [
+              CommissionStatus.duplicate,
+              CommissionStatus.fraud,
+              CommissionStatus.canceled,
+            ],
+          };
 
   const programEnrollmentFilter = {
     ...(groupId && { groupId }),
@@ -98,6 +123,11 @@ export async function getCommissions(filters: CommissionsFilters) {
           type,
           customerId,
           payoutId,
+          ...(eventIds && {
+            eventId: {
+              in: eventIds,
+            },
+          }),
           createdAt: {
             gte: startDate,
             lte: endDate,

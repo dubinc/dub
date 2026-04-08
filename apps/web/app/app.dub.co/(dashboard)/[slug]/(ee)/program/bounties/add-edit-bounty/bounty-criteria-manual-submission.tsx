@@ -322,8 +322,8 @@ export function BountyCriteriaManualSubmission() {
                 )}
 
                 <p className="text-xs text-neutral-500">
-                  Restrict URLs to specific domains. Partners can submit URLs
-                  from these domains or their subdomains.
+                  Restrict URLs to specific domains. Partners can only submit
+                  URLs from these domains or their subdomains.
                 </p>
               </div>
             </div>

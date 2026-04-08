@@ -25,6 +25,7 @@ export * from "./photo";
 export * from "./sort-order";
 export * from "./success";
 export * from "./tick";
+export * from "./verified-badge";
 export * from "./user-clock";
 
 // loaders
@@ -47,6 +48,7 @@ export * from "./slack";
 export * from "./tiktok";
 export * from "./twitter";
 export * from "./unsplash";
+export * from "./veriff";
 export * from "./youtube";
 
 // Payment platforms

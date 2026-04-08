@@ -1,18 +1,21 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
-const commissionIdList: string[] = [];
-
 async function main() {
   const commissions = await prisma.commission.findMany({
     where: {
-      id: {
-        in: commissionIdList,
+      programId: "prog_xxx",
+      status: {
+        in: ["pending", "processed"],
       },
-      status: "processed",
-      payout: {
-        status: "pending",
-      },
+      OR: [
+        { payoutId: null },
+        {
+          payout: {
+            status: "pending",
+          },
+        },
+      ],
     },
   });
 
@@ -83,6 +86,18 @@ async function main() {
 
   console.log(
     `Updated ${updatedCommissions.count} commissions to have status "paid"`,
+  );
+
+  const deletedActivityLogs = await prisma.activityLog.deleteMany({
+    where: {
+      resourceType: "commission",
+      resourceId: {
+        in: commissions.map((commission) => commission.id),
+      },
+    },
+  });
+  console.log(
+    `Deleted ${deletedActivityLogs.count} activity logs for commissions`,
   );
 }
 

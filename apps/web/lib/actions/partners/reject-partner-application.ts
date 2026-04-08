@@ -1,15 +1,14 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import {
-  INACTIVE_ENROLLMENT_STATUSES,
-  rejectPartnerSchema,
-} from "@/lib/zod/schemas/partners";
+import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
+import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
+import { sendEmail } from "@dub/email";
+import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -19,7 +18,8 @@ export const rejectPartnerApplicationAction = authActionClient
   .inputSchema(rejectPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, reportFraud } = parsedInput;
+    const { partnerId, rejectionReason, rejectionNote, allowImmediateReapply } =
+      parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -37,6 +37,13 @@ export const rejectPartnerApplicationAction = authActionClient
       },
       include: {
         partner: true,
+        program: {
+          select: {
+            name: true,
+            slug: true,
+            supportEmail: true,
+          },
+        },
       },
     });
 
@@ -45,46 +52,57 @@ export const rejectPartnerApplicationAction = authActionClient
       return;
     }
 
-    await prisma.programEnrollment.update({
-      where: {
-        id: programEnrollment.id,
-        status: "pending",
-      },
-      data: {
-        status: ProgramEnrollmentStatus.rejected,
-        clickRewardId: null,
-        leadRewardId: null,
-        saleRewardId: null,
-        discountId: null,
-      },
+    await prisma.$transaction(async (tx) => {
+      if (programEnrollment.applicationId) {
+        await tx.programApplication.update({
+          where: {
+            id: programEnrollment.applicationId,
+          },
+          data: {
+            reviewedAt: new Date(),
+            rejectionReason,
+            rejectionNote,
+            userId: user.id,
+          },
+        });
+      }
+
+      // If the partner can immediately re-apply, delete the application
+      if (allowImmediateReapply) {
+        await tx.programEnrollment.deleteMany({
+          where: {
+            id: programEnrollment.id,
+            status: "pending",
+          },
+        });
+
+        return;
+      }
+
+      // If the partner cannot immediately re-apply, reject the application
+      await tx.programEnrollment.update({
+        where: {
+          id: programEnrollment.id,
+          status: "pending",
+        },
+        data: {
+          status: ProgramEnrollmentStatus.rejected,
+          clickRewardId: null,
+          leadRewardId: null,
+          saleRewardId: null,
+          discountId: null,
+        },
+      });
     });
 
     waitUntil(
       (async () => {
-        const affectedProgramEnrollments = reportFraud
-          ? await prisma.programEnrollment.findMany({
-              where: {
-                partnerId,
-                programId: {
-                  not: programId,
-                },
-                status: {
-                  notIn: INACTIVE_ENROLLMENT_STATUSES,
-                },
-              },
-              select: {
-                programId: true,
-                partnerId: true,
-              },
-            })
-          : [];
-
         await Promise.allSettled([
           recordAuditLog({
             workspaceId: workspace.id,
             programId,
             action: "partner_application.rejected",
-            description: `Partner application rejected for ${partnerId}`,
+            description: `Partner application rejected (${partnerId})`,
             actor: user,
             targets: [
               {
@@ -105,18 +123,44 @@ export const rejectPartnerApplicationAction = authActionClient
             resolutionReason:
               "Resolved automatically because the partner application was rejected.",
           }),
-
-          // Create fraud report events in other programs where this partner is enrolled
-          // to help keep the network safe by alerting other programs about suspected fraud
-          createFraudEvents(
-            affectedProgramEnrollments.map((affectedEnrollment) => ({
-              programId: affectedEnrollment.programId,
-              partnerId: affectedEnrollment.partnerId,
-              type: FraudRuleType.partnerFraudReport,
-              sourceProgramId: programId, // The program that reported the fraud,
-            })),
-          ),
         ]);
+
+        const { partner, program } = programEnrollment;
+
+        if (partner.email) {
+          try {
+            await sendEmail({
+              to: partner.email,
+              subject: `Your application to ${program.name} was not approved`,
+              variant: "notifications",
+              replyTo: program.supportEmail || "noreply",
+              react: PartnerApplicationRejected({
+                partner: {
+                  name: partner.name ?? "there",
+                  email: partner.email,
+                },
+                program: {
+                  name: program.name,
+                  slug: program.slug,
+                  supportEmail: program.supportEmail ?? undefined,
+                },
+                rejectionReason:
+                  getProgramApplicationRejectionReasonLabel(rejectionReason),
+                additionalNotes: rejectionNote ?? undefined,
+                canReapplyImmediately: allowImmediateReapply,
+              }),
+            });
+          } catch (error) {
+            console.error(
+              "Failed to send partner application rejection email",
+              {
+                error,
+                partnerId,
+                programId,
+              },
+            );
+          }
+        }
       })(),
     );
   });

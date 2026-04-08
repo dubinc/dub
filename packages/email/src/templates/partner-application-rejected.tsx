@@ -1,4 +1,4 @@
-import { DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, PARTNERS_DOMAIN } from "@dub/utils";
 import {
   Body,
   Container,
@@ -24,6 +24,9 @@ export default function PartnerApplicationRejected({
     slug: "acme",
     supportEmail: "support@acme.com",
   },
+  rejectionReason,
+  additionalNotes,
+  canReapplyImmediately = false,
 }: {
   partner: {
     name: string;
@@ -34,13 +37,20 @@ export default function PartnerApplicationRejected({
     slug: string;
     supportEmail?: string | null;
   };
+  rejectionReason?: string | null;
+  additionalNotes?: string | null;
+  canReapplyImmediately?: boolean;
 }) {
+  const reason = rejectionReason?.trim();
+  const notes = additionalNotes?.trim();
+
   return (
     <Html>
       <Head />
       <Preview>
-        {program.name} has rejected your application to join their partner
-        program
+        {canReapplyImmediately
+          ? `Program status update — you can submit a new application to ${program.name}`
+          : `Program status update — your application to join ${program.name} was not approved`}
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -49,39 +59,79 @@ export default function PartnerApplicationRejected({
               <Img src={DUB_WORDMARK} width="61" height="32" alt="dub" />
             </Section>
 
-            <Heading className="mx-0 p-0 text-lg font-medium text-neutral-600">
-              Hello {partner.name},
+            <Heading className="mx-0 p-0 text-xl font-semibold text-neutral-900">
+              Program status update
             </Heading>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              Your application to join <strong>{program.name}'s</strong> partner
-              program has been rejected. You did not meet the program's
-              eligibility requirements.
+            <Text className="mt-6 text-sm leading-6 text-neutral-600">
+              Thank you for your interest in joining the{" "}
+              <strong>{program.name}</strong> partner program. We appreciate the
+              time it took to apply.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You will be able to re-apply in 30 days.
-            </Text>
-
-            <Text className="text-sm leading-6 text-neutral-600">
-              {program.supportEmail ? (
+              After reviewing your application, we&apos;ve decided not to
+              approve you at this time.
+              {canReapplyImmediately ? (
                 <>
-                  If you have any questions, please{" "}
-                  <Link
-                    href={`mailto:${program.supportEmail}`}
-                    className="font-semibold text-neutral-700 underline underline-offset-2"
-                  >
-                    reach out to the {program.name} team ↗
-                  </Link>
-                  .
+                  {" "}
+                  You&apos;re welcome to submit a new application whenever
+                  you&apos;re ready.
                 </>
               ) : (
-                <>
-                  If you have any questions, please contact the {program.name}{" "}
-                  team directly.
-                </>
+                <> You will be able to re-apply in 30 days.</>
               )}
             </Text>
+
+            {canReapplyImmediately ? (
+              <Section className="my-8 mt-8">
+                <Link
+                  href={`${PARTNERS_DOMAIN}/apply/${program.slug}`}
+                  className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
+                >
+                  Submit a new application
+                </Link>
+              </Section>
+            ) : null}
+
+            {reason ? (
+              <Text className="text-sm leading-6 text-neutral-600">
+                <strong>Reason for rejection:</strong>
+                <br />
+                {reason}
+              </Text>
+            ) : null}
+
+            {notes ? (
+              <Text className="whitespace-pre-line text-sm leading-6 text-neutral-600">
+                <strong>Additional notes:</strong>
+                <br />
+                {notes}
+              </Text>
+            ) : null}
+
+            {canReapplyImmediately ? null : (
+              <Text className="text-sm leading-6 text-neutral-600">
+                {program.supportEmail ? (
+                  <>
+                    If you think you were rejected in error, please contact the{" "}
+                    <strong>{program.name}</strong> team at{" "}
+                    <Link
+                      href={`mailto:${program.supportEmail}`}
+                      className="font-semibold text-neutral-700 underline underline-offset-2"
+                    >
+                      {program.supportEmail}
+                    </Link>
+                    .
+                  </>
+                ) : (
+                  <>
+                    If you think you were rejected in error, please contact the{" "}
+                    <strong>{program.name}</strong> team directly.
+                  </>
+                )}
+              </Text>
+            )}
 
             <Footer email={partner.email} />
           </Container>

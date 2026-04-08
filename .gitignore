@@ -37,7 +37,7 @@ dist/
 next-env.d.ts
 
 # miscellaneous
-/pages/api/scripts*
+apps/web/scripts/fix.ts
 packages/stripe-app/.build/*
 .react-email
 .contentlayer
@@ -45,3 +45,9 @@ packages/stripe-app/.build/*
 *.csv
 *.ndjson
 .vitest
+
+# playwright
+playwright-report/
+**/playwright/.auth/
+test-results/
+blob-report/

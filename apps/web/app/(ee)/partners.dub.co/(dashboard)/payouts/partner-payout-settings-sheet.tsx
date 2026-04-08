@@ -246,7 +246,6 @@ function PayoutMethodsSection() {
                   (m) => m.type === "stablecoin",
                 )}
                 variant="compact"
-                allowConnectWhenPayoutsEnabled
               />
             )}
         </div>

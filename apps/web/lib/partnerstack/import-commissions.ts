@@ -23,7 +23,7 @@ const toDubStatus: Record<
 > = {
   hold: "fraud",
   pending: "pending",
-  approved: "processed",
+  approved: "pending",
   declined: "canceled",
   paid: "paid",
   scheduled: "pending",
@@ -103,7 +103,7 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
 
     await Promise.allSettled(
       commissions.map((commission) =>
-        createCommission({
+        createCommissionFromPS({
           program,
           commission,
           fxRates,
@@ -114,86 +114,20 @@ export async function importCommissions(payload: PartnerStackImportPayload) {
       ),
     );
 
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     currentStartingAfter = commissions[commissions.length - 1].key;
     processedBatches++;
   }
 
-  // Import scheduled commissions
-  if (!hasMore) {
-    const commissions = await partnerStackApi.listCommissions({
-      status: "scheduled",
-    });
-
-    if (commissions.length > 0) {
-      const customersData = await prisma.customer.findMany({
-        where: {
-          projectId: program.workspaceId,
-          OR: [
-            {
-              email: {
-                in: commissions
-                  .map((commission) => commission.customer?.email)
-                  .filter(
-                    (email): email is string =>
-                      email !== null && email !== undefined,
-                  ),
-              },
-            },
-            {
-              externalId: {
-                in: commissions
-                  .map((commission) => commission.customer?.external_key)
-                  .filter(
-                    (externalKey): externalKey is string =>
-                      externalKey !== null && externalKey !== undefined,
-                  ),
-              },
-            },
-          ],
-        },
-        include: {
-          link: true,
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      });
-
-      const customerLeadEvents = await getLeadEvents({
-        customerIds: customersData.map((customer) => customer.id),
-      }).then((res) => res.data);
-
-      await Promise.allSettled(
-        commissions.map((commission) =>
-          createCommission({
-            program,
-            commission,
-            fxRates,
-            importId,
-            customersData,
-            customerLeadEvents,
-          }),
-        ),
-      );
-
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
-  }
-
-  if (!hasMore) {
-    await partnerStackImporter.deleteCredentials(program.workspaceId);
-  }
+  await new Promise((resolve) => setTimeout(resolve, 1000));
 
   await partnerStackImporter.queue({
     ...payload,
     startingAfter: hasMore ? currentStartingAfter : undefined,
-    action: hasMore ? "import-commissions" : "update-stripe-customers",
+    action: hasMore ? "import-commissions" : "import-scheduled-commissions",
   });
 }
 
-async function createCommission({
+export async function createCommissionFromPS({
   program,
   commission,
   fxRates,

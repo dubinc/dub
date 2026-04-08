@@ -9,7 +9,8 @@ export const socialProfileSchema = z.preprocess(
         typeof data.message === "string" &&
         (data.message.toLowerCase().includes("doesn't exist") ||
           data.message.toLowerCase().includes("does not exist") ||
-          data.message.toLowerCase().includes("not found"))
+          data.message.toLowerCase().includes("not found") ||
+          data.message.toLowerCase().includes("restricted"))
       ) {
         return {
           ...data,
@@ -190,6 +191,14 @@ export const socialContentSchema = z.preprocess(
           platform: "tiktok",
         };
       }
+
+      // LinkedIn detection
+      if ("author" in data && "likeCount" in data && "commentCount" in data) {
+        return {
+          ...data,
+          platform: "linkedin",
+        };
+      }
     }
 
     return data;
@@ -310,6 +319,25 @@ export const socialContentSchema = z.preprocess(
             .optional(),
         })
         .optional(),
+    }),
+
+    z.object({
+      platform: z.literal("linkedin"),
+      name: z.string().nullish(),
+      description: z.string().nullish(),
+      headline: z.string().nullish(),
+      datePublished: z.string().nullish(),
+      likeCount: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
+      author: z.object({
+        url: z.string(),
+        followers: z
+          .number()
+          .nullish()
+          .transform((val) => val ?? 0),
+      }),
     }),
   ]),
 );

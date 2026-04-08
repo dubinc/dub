@@ -1,19 +1,22 @@
 "use client";
 
 import { LinkProps } from "@/lib/types";
-import { Tooltip, useMediaQuery } from "@dub/ui";
+import { Button, Tooltip, useKeyboardShortcut, useMediaQuery } from "@dub/ui";
+import { FilterBars } from "@dub/ui/icons";
 import { cn, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { Search } from "lucide-react";
-import { motion } from "motion/react";
-import Link from "next/link";
+import { AnimatePresence, motion } from "motion/react";
+import { useRouter } from "next/navigation";
 import {
   ComponentProps,
   Dispatch,
   memo,
   ReactNode,
   SetStateAction,
+  useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -26,33 +29,94 @@ export function BarList({
   tab,
   unit,
   data,
+  allData,
   barBackground,
   hoverBackground,
+  filterSelectedBackground = "bg-neutral-900",
+  filterSelectedHoverBackground,
+  filterHoverClass,
   maxValue,
   setShowModal,
   limit,
+  selectedFilterValues,
+  activeFilterValues,
+  onToggleFilter,
+  onClearFilter,
+  onClearSelection,
+  onApplyFilterValues,
+  onRowFilterItem,
 }: {
   tab: string;
   unit: string;
   data: {
     icon: ReactNode;
     title: string;
-    href?: string;
+    filterValue?: string;
     value: number;
     linkId?: string;
+    /** When set without filter UI (e.g. billing usage modal), row navigates here */
+    href?: string;
+  }[];
+  allData?: {
+    icon: ReactNode;
+    title: string;
+    filterValue?: string;
+    value: number;
+    linkId?: string;
+    href?: string;
   }[];
   maxValue: number;
   barBackground: string;
   hoverBackground: string;
+  filterSelectedBackground?: string;
+  filterSelectedHoverBackground?: string;
+  filterHoverClass?: string;
   setShowModal: Dispatch<SetStateAction<boolean>>;
   limit?: number;
+  selectedFilterValues?: string[];
+  activeFilterValues?: string[];
+  onToggleFilter?: (val: string) => void;
+  onClearFilter?: () => void;
+  onClearSelection?: () => void;
+  onApplyFilterValues?: (values: string[]) => void;
+  onRowFilterItem?: (value: string) => void;
 }) {
   const [search, setSearch] = useState("");
+  const [modalSelectedValues, setModalSelectedValues] = useState<string[]>(
+    activeFilterValues ?? [],
+  );
+
+  useEffect(() => {
+    if (!limit) {
+      setModalSelectedValues(activeFilterValues ?? []);
+    }
+  }, [activeFilterValues, limit]);
+
+  const handleModalToggle = useCallback((val: string) => {
+    setModalSelectedValues((prev) =>
+      prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val],
+    );
+  }, []);
+
+  const hasSelection = (selectedFilterValues?.length ?? 0) > 0;
+  const hasModalSelection = modalSelectedValues.length > 0;
+
+  useKeyboardShortcut("Escape", () => onClearSelection?.(), {
+    priority: 2,
+    enabled: hasSelection && !!onClearSelection,
+  });
+
+  // Collapsed card: selection UI is staging-only (new picks before Apply).
+  const effectiveSelectedValues = !limit
+    ? modalSelectedValues
+    : selectedFilterValues;
+
+  const sourceData = !limit && allData ? allData : data;
 
   // Calculate total sum for percentage calculations
   const totalSum = useMemo(
-    () => data.reduce((sum, item) => sum + item.value, 0),
-    [data],
+    () => sourceData.reduce((sum, item) => sum + item.value, 0),
+    [sourceData],
   );
 
   // TODO: mock pagination for better perf in React
@@ -61,12 +125,12 @@ export function BarList({
       return data.slice(0, limit);
     } else {
       return search
-        ? data.filter((d) =>
+        ? sourceData.filter((d) =>
             d.title.toLowerCase().includes(search.toLowerCase()),
           )
-        : data;
+        : sourceData;
     }
-  }, [data, limit, search]);
+  }, [data, sourceData, limit, search]);
 
   const { isMobile } = useMediaQuery();
 
@@ -81,8 +145,62 @@ export function BarList({
     setShowModal,
     barBackground,
     hoverBackground,
+    filterSelectedBackground,
+    filterSelectedHoverBackground,
+    filterHoverClass,
     limit,
+    isSelected: data.filterValue
+      ? (effectiveSelectedValues ?? []).includes(data.filterValue)
+      : false,
+    isActivelyFiltered:
+      !!limit &&
+      !!data.filterValue &&
+      (activeFilterValues ?? []).includes(data.filterValue),
+    onFilterClick: data.filterValue
+      ? !limit
+        ? () => handleModalToggle(data.filterValue!)
+        : onToggleFilter
+          ? () => onToggleFilter(data.filterValue!)
+          : undefined
+      : undefined,
+    onRowClick:
+      data.filterValue && onRowFilterItem
+        ? !limit
+          ? () => {
+              onRowFilterItem(data.filterValue!);
+              setShowModal(false);
+            }
+          : () => onRowFilterItem(data.filterValue!)
+        : undefined,
   }));
+
+  const filterButtons = hasSelection &&
+    onApplyFilterValues &&
+    onClearFilter && (
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 8 }}
+        transition={{ ease: "easeOut", duration: 0.15 }}
+        className="absolute bottom-0 left-0 z-20 flex w-full items-end"
+      >
+        <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />
+        <div className="relative flex w-full items-center justify-center gap-2 py-4">
+          <Button
+            text="Filter"
+            variant="primary"
+            className="h-8 w-fit rounded-lg px-3 py-2"
+            onClick={() => onApplyFilterValues(selectedFilterValues ?? [])}
+          />
+          <Button
+            text="Clear"
+            variant="secondary"
+            className="h-8 w-fit rounded-lg px-3 py-2"
+            onClick={onClearFilter}
+          />
+        </div>
+      </motion.div>
+    );
 
   const bars = (
     <NumberFlowGroup>
@@ -111,7 +229,12 @@ export function BarList({
   );
 
   if (limit) {
-    return bars;
+    return (
+      <>
+        {bars}
+        <AnimatePresence>{filterButtons}</AnimatePresence>
+      </>
+    );
   } else {
     return (
       <>
@@ -127,7 +250,35 @@ export function BarList({
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="h-[50vh] overflow-auto pb-4 md:h-[40vh]">{bars}</div>
+        <div className="relative">
+          <div className="h-[50vh] overflow-auto pb-4 md:h-[40vh]">{bars}</div>
+          {hasModalSelection && onApplyFilterValues && (
+            <div className="pointer-events-none absolute bottom-0 left-0 right-0 flex h-[130px] items-end justify-center bg-gradient-to-t from-white from-40% to-white/0 pb-4">
+              <div className="pointer-events-auto flex items-center gap-2">
+                <Button
+                  text="Filter"
+                  variant="primary"
+                  className="h-8 w-fit rounded-lg px-3 py-2"
+                  onClick={() => {
+                    onApplyFilterValues(modalSelectedValues);
+                    setShowModal(false);
+                  }}
+                />
+
+                <Button
+                  text="Clear"
+                  variant="secondary"
+                  className="h-8 w-fit rounded-lg px-3 py-2"
+                  onClick={() => {
+                    setModalSelectedValues([]);
+                    onClearFilter?.();
+                    setShowModal(false);
+                  }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
       </>
     );
   }
@@ -136,7 +287,6 @@ export function BarList({
 export function LineItem({
   icon,
   title,
-  href,
   value,
   totalSum,
   tab,
@@ -144,12 +294,19 @@ export function LineItem({
   setShowModal,
   barBackground,
   hoverBackground,
+  filterSelectedBackground = "bg-neutral-900",
+  filterSelectedHoverBackground,
+  filterHoverClass,
   linkData,
   limit,
+  isSelected,
+  isActivelyFiltered,
+  onFilterClick,
+  onRowClick,
+  href,
 }: {
   icon: ReactNode;
   title: string;
-  href?: string;
   value: number;
   totalSum: number;
   tab: string;
@@ -157,42 +314,140 @@ export function LineItem({
   setShowModal: Dispatch<SetStateAction<boolean>>;
   barBackground: string;
   hoverBackground: string;
+  filterSelectedBackground?: string;
+  filterSelectedHoverBackground?: string;
+  filterHoverClass?: string;
   linkData?: LinkProps;
   limit?: number;
+  isSelected?: boolean;
+  isActivelyFiltered?: boolean;
+  onFilterClick?: () => void;
+  onRowClick?: () => void;
+  href?: string;
 }) {
-  const lineItem = useMemo(() => {
-    return (
-      <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
-        {icon}
+  const [isHovered, setIsHovered] = useState(false);
+  const [filterButtonHovered, setFilterButtonHovered] = useState(false);
+  const [tooltipResetKey, setTooltipResetKey] = useState(0);
+  const { saleUnit } = useContext(AnalyticsContext);
+  const router = useRouter();
+
+  const percentage = Math.round((value / totalSum) * 1000) / 10;
+  const isModalView = !limit;
+
+  const lineItem = (
+    <div className="z-10 flex items-center space-x-4 overflow-hidden px-3">
+      {onFilterClick ? (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (!isActivelyFiltered) onFilterClick();
+          }}
+          onMouseEnter={() => {
+            setFilterButtonHovered(true);
+            setTooltipResetKey((k) => k + 1);
+          }}
+          onMouseLeave={() => setFilterButtonHovered(false)}
+          aria-label={`${isSelected ? "Remove" : "Add"} filter: ${title}`}
+          aria-pressed={isSelected}
+          className="relative size-6 shrink-0 cursor-pointer"
+        >
+          <div
+            className={cn(
+              "flex size-full items-center justify-center transition-all duration-200",
+              isSelected || isHovered ? "translate-x-3 opacity-0" : "",
+            )}
+          >
+            {icon}
+          </div>
+          <div
+            className={cn(
+              "absolute inset-0 flex items-center justify-center rounded-lg transition-all duration-200",
+              isSelected
+                ? cn(
+                    "translate-x-0 opacity-100",
+                    filterSelectedBackground,
+                    filterSelectedHoverBackground,
+                  )
+                : isHovered
+                  ? cn(
+                      "translate-x-0 opacity-100",
+                      isActivelyFiltered
+                        ? cn(
+                            filterSelectedBackground,
+                            filterSelectedHoverBackground,
+                          )
+                        : filterHoverClass,
+                    )
+                  : "-translate-x-3 opacity-0",
+            )}
+          >
+            <FilterBars
+              className={cn(
+                "size-3",
+                isSelected || isActivelyFiltered
+                  ? "text-white"
+                  : "text-neutral-500",
+              )}
+            />
+          </div>
+        </button>
+      ) : (
+        <div className="flex size-6 shrink-0 items-center justify-center">
+          {icon}
+        </div>
+      )}
+      {tab === "links" && linkData ? (
+        <Tooltip
+          key={tooltipResetKey}
+          content={<LinkPreviewTooltip data={linkData} />}
+          disabled={filterButtonHovered}
+        >
+          <div className="truncate text-sm text-neutral-800">
+            {getPrettyUrl(title)}
+          </div>
+        </Tooltip>
+      ) : tab === "urls" ? (
+        <Tooltip
+          key={tooltipResetKey}
+          content={`[${title}](${title})`}
+          contentClassName="max-w-lg"
+          disabled={filterButtonHovered}
+        >
+          <div className="truncate text-sm text-neutral-800">
+            {getPrettyUrl(title)}
+          </div>
+        </Tooltip>
+      ) : (
         <div className="truncate text-sm text-neutral-800">
           {getPrettyUrl(title)}
         </div>
-      </div>
-    );
-  }, [icon, tab, title]);
+      )}
+    </div>
+  );
 
-  const { saleUnit } = useContext(AnalyticsContext);
-
-  const As = href ? Link : "div";
-
-  // Calculate percentage against total sum and round to 1 decimal
-  const percentage = Math.round((value / totalSum) * 1000) / 10;
-
-  // Check if we're in modal view - if limit is undefined, we're in the modal view
-  const isModalView = !limit;
+  const rowClickable =
+    (!isActivelyFiltered && (!!onRowClick || !!onFilterClick)) ||
+    (!!href && !onFilterClick && !onRowClick);
 
   return (
-    // @ts-ignore - we know if it's a Link it'll get its href
-    <As
-      {...(href && {
-        href,
-        scroll: false,
-        onClick: () => setShowModal(false),
-      })}
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onClick={() => {
+        if (onRowClick && !isActivelyFiltered) {
+          onRowClick();
+        } else if (onFilterClick && !isActivelyFiltered) {
+          onFilterClick();
+        } else if (href && !onFilterClick && !onRowClick) {
+          router.push(href);
+          setShowModal(false);
+        }
+      }}
       className={cn(
-        `block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all`,
-        href && hoverBackground,
-        isModalView ? "group" : "",
+        "group block min-w-0 border-l-2 border-transparent px-4 py-1 transition-all",
+        rowClickable && "cursor-pointer",
+        hoverBackground,
       )}
     >
       <div
@@ -213,20 +468,7 @@ export function LineItem({
           animate={{ transform: "scaleX(1)" }}
         />
         <div className="relative z-10 flex h-8 w-full min-w-0 max-w-[calc(100%-2rem)] items-center transition-[max-width] duration-300 ease-in-out group-hover:max-w-[calc(100%-5rem)]">
-          {tab === "links" && linkData ? (
-            <Tooltip content={<LinkPreviewTooltip data={linkData} />}>
-              {lineItem}
-            </Tooltip>
-          ) : tab === "urls" ? (
-            <Tooltip
-              content={`[${title}](${title})`}
-              contentClassName="max-w-lg"
-            >
-              {lineItem}
-            </Tooltip>
-          ) : (
-            lineItem
-          )}
+          {lineItem}
         </div>
         <div className="z-10 flex items-center">
           <NumberFlow
@@ -270,7 +512,7 @@ export function LineItem({
           </div>
         </div>
       </div>
-    </As>
+    </div>
   );
 }
 

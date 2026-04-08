@@ -1,3 +1,4 @@
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
 import { currencyFormatter, formatDateTimeSmart, nFormatter } from "@dub/utils";
@@ -7,19 +8,22 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { CommissionStatusBadges } from "../partners/commission-status-badges";
 
 export function CustomerPartnerEarningsTable({
   commissions,
   totalCommissions,
   isLoading,
-  viewAllHref,
 }: {
   commissions?: CommissionResponse[];
   totalCommissions?: number;
   isLoading?: boolean;
-  viewAllHref?: string;
 }) {
+  const router = useRouter();
+  const { customerId } = useParams();
+  const { slug } = useWorkspace();
+
   const table = useReactTable({
     data: commissions || [],
     columns: [
@@ -56,7 +60,6 @@ export function CustomerPartnerEarningsTable({
     getCoreRowModel: getCoreRowModel(),
   });
 
-  const As = viewAllHref ? Link : "div";
   return (
     <div className="overflow-x-auto">
       {isLoading ? (
@@ -90,24 +93,48 @@ export function CustomerPartnerEarningsTable({
               ))}
             </thead>
             <tbody className="text-neutral-600">
-              {table.getRowModel().rows.map((row) => (
-                <tr key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="truncate px-4 py-3">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
-                  ))}
-                </tr>
-              ))}
+              {table.getRowModel().rows.map((row) => {
+                const href = `/${slug}/program/commissions/${row.original.id}`;
+
+                return (
+                  <tr
+                    key={row.id}
+                    className={
+                      href
+                        ? "cursor-pointer transition-colors hover:bg-neutral-50/80"
+                        : undefined
+                    }
+                    onClick={(e) => {
+                      if (!href) return;
+                      if (e.metaKey || e.ctrlKey) window.open(href, "_blank");
+                      else router.push(href);
+                    }}
+                    onAuxClick={(e) => {
+                      if (!href || e.button !== 1) return;
+                      e.preventDefault();
+                      window.open(href, "_blank");
+                    }}
+                    onPointerEnter={() => {
+                      if (href) router.prefetch(href);
+                    }}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="truncate px-4 py-3">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
           <div className="flex items-center gap-1 px-4 py-3 text-sm text-neutral-600">
             {commissions.length} of
-            <As
-              href={viewAllHref ?? "#"}
+            <Link
+              href={`/${slug}/program/commissions?customerId=${customerId}`}
               className="flex items-center gap-1.5 font-medium text-neutral-700 hover:text-neutral-900"
             >
               {totalCommissions ? (
@@ -116,7 +143,7 @@ export function CustomerPartnerEarningsTable({
                 <div className="size-3 animate-pulse rounded-md bg-neutral-100" />
               )}{" "}
               results
-            </As>
+            </Link>
           </div>
         </>
       )}

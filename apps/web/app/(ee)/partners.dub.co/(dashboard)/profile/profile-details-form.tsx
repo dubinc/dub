@@ -1,3 +1,4 @@
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { mutatePrefix } from "@/lib/swr/mutate";
@@ -31,6 +32,7 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { toast } from "sonner";
+import { IdentityVerificationSection } from "./identity-verification-section";
 import { SettingsRow } from "./settings-row";
 
 type BasicInfoFormData = {
@@ -100,6 +102,16 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
           />
         </FormProvider>
       </SettingsRow>
+
+      {partner?.email?.endsWith("@dub.co") && (
+        <SettingsRow
+          id="identity-verification"
+          heading="Identity verification"
+          description="Verify your identity to build trust with programs and get approved for programs faster."
+        >
+          <IdentityVerificationSection partner={partner} />
+        </SettingsRow>
+      )}
 
       <SettingsRow
         id="platforms"
@@ -187,6 +199,11 @@ function BasicInfoForm({
       mutatePrefix("/api/partner-profile");
     },
     onError({ error }) {
+      if (error.validationErrors) {
+        toast.error(parseActionError(error, "Could not update your profile."));
+        return;
+      }
+
       setError("root.serverError", {
         message: error.serverError,
       });

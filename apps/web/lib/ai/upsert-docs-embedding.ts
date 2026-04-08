@@ -20,9 +20,18 @@ async function cleanMdx(
   content = content.replace(/^import\s+.*from\s+['"][^'"]*['"]\s*;?\s*$/gm, "");
   content = content.replace(/!\[.*?\]\(.*?\)/g, "");
 
+  const PAYOUT_METHODS_MAP = {
+    stablecoin: "Stablecoin",
+    connect: "Bank Account",
+    paypal: "PayPal",
+  };
+
   content = content.replace(
     /<PayoutSupportedCountries\s*\/>/g,
-    PAYOUT_SUPPORTED_COUNTRIES.map((c) => `- ${c.name} (${c.code})`).join("\n"),
+    PAYOUT_SUPPORTED_COUNTRIES.map(
+      (c) =>
+        `- ${c.name} [${c.code}] (${c.methods.map((m) => PAYOUT_METHODS_MAP[m]).join(", ")})`,
+    ).join("\n"),
   );
 
   content = content.replace(/<[A-Z][A-Za-z]*\s*\/>/g, "");

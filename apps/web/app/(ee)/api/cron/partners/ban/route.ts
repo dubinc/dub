@@ -1,19 +1,14 @@
 import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
-import { createFraudEvents } from "@/lib/api/fraud/create-fraud-events";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withCron } from "@/lib/cron/with-cron";
 import { recordLink } from "@/lib/tinybird";
-import {
-  BAN_PARTNER_REASONS,
-  INACTIVE_ENROLLMENT_STATUSES,
-} from "@/lib/zod/schemas/partners";
+import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
-import { FraudRuleType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 import { cancelCommissions } from "./cancel-commissions";
@@ -29,7 +24,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   console.info(`Banning partner ${partnerId} from program ${programId}...`);
 
-  const { partner, links, ...programEnrollment } =
+  const { partner, links, program, ...programEnrollment } =
     await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
@@ -39,6 +34,11 @@ export const POST = withCron(async ({ rawBody }) => {
           include: {
             ...includeTags,
             discountCode: true,
+          },
+        },
+        program: {
+          select: {
+            workspaceId: true,
           },
         },
       },
@@ -113,6 +113,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Mark the commissions as canceled
   await cancelCommissions({
+    workspaceId: program.workspaceId,
     programId,
     partnerId,
   });
@@ -133,37 +134,6 @@ export const POST = withCron(async ({ rawBody }) => {
     // Queue discount code deletions
     deleteDiscountCodes(links.map((link) => link.discountCode)),
   ]);
-
-  const affectedProgramEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      partnerId,
-      programId: {
-        not: programId,
-      },
-      status: {
-        notIn: INACTIVE_ENROLLMENT_STATUSES,
-      },
-    },
-    select: {
-      programId: true,
-      partnerId: true,
-    },
-  });
-
-  // Create partnerCrossProgramBan fraud events for all active enrollments
-  // to flag potential cross-program fraud risk
-  await createFraudEvents(
-    affectedProgramEnrollments.map((affectedEnrollment) => ({
-      programId: affectedEnrollment.programId,
-      partnerId: affectedEnrollment.partnerId,
-      type: FraudRuleType.partnerCrossProgramBan,
-      sourceProgramId: programEnrollment.programId, // The program that issued the ban
-      metadata: {
-        bannedReason: programEnrollment.bannedReason,
-        bannedAt: programEnrollment.bannedAt,
-      },
-    })),
-  );
 
   // Send email
   if (partner.email) {

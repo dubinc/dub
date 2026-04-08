@@ -1,5 +1,6 @@
 import {
   PartnerBountySchema,
+  partnerBountySubmissionSchema,
   PartnerEarningsSchema,
   partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
+  Commission,
   CommissionStatus,
   FolderUserRole,
   FraudEvent,
@@ -71,7 +73,10 @@ import {
   clickEventResponseSchema,
   clickEventSchemaTB,
 } from "./zod/schemas/clicks";
-import { CommissionEnrichedSchema } from "./zod/schemas/commissions";
+import {
+  CommissionDetailSchema,
+  CommissionEnrichedSchema,
+} from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
   CustomerEnrichedSchema,
@@ -878,3 +883,18 @@ export type PostbackProps = z.infer<typeof postbackSchema>;
 export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
 
 export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];
+
+export type CommissionDetail = z.infer<typeof CommissionDetailSchema>;
+
+export type NullableOptional<T> = {
+  [K in keyof T]?: T[K] | null;
+};
+
+export type PartnerBountySubmission = z.infer<
+  typeof partnerBountySubmissionSchema
+>;
+
+export type CommissionActivitySnapshot = Pick<
+  Commission,
+  "amount" | "earnings" | "status"
+>;

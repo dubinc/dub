@@ -71,21 +71,20 @@ export async function recordClick({
     return null;
   }
 
-  // don't track HEAD requests to avoid non-user traffic from inflating click count
-  if (req.method === "HEAD") {
-    return null;
-  }
-
   const ua = userAgent(req);
-  const isBot = detectBot(req);
 
-  // don't record clicks from bots
-  if (isBot) {
-    console.log(`Click not recorded ❌ – Bot detected.`, {
-      ua,
-      isBot,
-    });
-    return null;
+  // only do bot checks for non deep link requests (link clicks/qr code scans)
+  if (trigger !== "deeplink") {
+    const isBot = detectBot(req);
+
+    // don't record clicks from bots
+    if (isBot) {
+      console.log(`Click not recorded ❌ – Bot detected.`, {
+        ua,
+        isBot,
+      });
+      return null;
+    }
   }
 
   const identityHash = await getIdentityHash(req);
