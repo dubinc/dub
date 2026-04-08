@@ -191,6 +191,10 @@ export const getPartnersQuerySchema = z
   .extend(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
 export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
+  status: z
+    .enum(ProgramEnrollmentStatus)
+    .or(z.enum(["active"]))
+    .optional(),
   partnerIds: z
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))

@@ -153,7 +153,12 @@ export function buildProgramEnrollmentWhereForList(
         in: partnerIds,
       },
     }),
-    status,
+    status:
+      status === "active"
+        ? {
+            in: ["approved", "invited"],
+          }
+        : status,
     groupId,
     ...(country || search || email
       ? {
