@@ -13,10 +13,10 @@ import {
 } from "@dub/ui";
 import { CircleDotted, GridIcon } from "@dub/ui/icons";
 import { fetcher, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
-import { Suspense, useCallback, useMemo } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
-import { ReviewFraudAlertMenu } from "./review-fraud-alert-menu";
+import { ReviewFraudAlertSheet } from "./review-fraud-alert-sheet";
 
 type FraudAlert = z.infer<typeof fraudAlertSchema>;
 
@@ -40,6 +40,8 @@ export default function FraudAlertsPage() {
 function FraudAlertsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
   const { status, programId } = searchParamsObj;
+
+  const [selectedAlert, setSelectedAlert] = useState<FraudAlert | null>(null);
 
   const {
     data: { fraudAlerts, total } = {},
@@ -203,24 +205,6 @@ function FraudAlertsPageClient() {
         header: "Flagged",
         cell: ({ row }) => formatDateTime(row.original.createdAt),
       },
-      {
-        id: "menu",
-        enableHiding: false,
-        minSize: 30,
-        size: 30,
-        maxSize: 30,
-        cell: ({ row }) => {
-          if (row.original.status !== "pending") return null;
-          return (
-            <ReviewFraudAlertMenu
-              alertId={row.original.id}
-              onReviewed={async () => {
-                await mutate();
-              }}
-            />
-          );
-        },
-      },
     ],
     pagination,
     onPaginationChange: setPagination,
@@ -256,8 +240,25 @@ function FraudAlertsPageClient() {
       )}
 
       <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-        <Table {...tableProps} table={table} />
+        <Table
+          {...tableProps}
+          table={table}
+          onRowClick={(row) => {
+            setSelectedAlert(row.original);
+          }}
+        />
       </div>
+
+      <ReviewFraudAlertSheet
+        alert={selectedAlert}
+        isOpen={selectedAlert !== null}
+        setIsOpen={(open) => {
+          if (!open) setSelectedAlert(null);
+        }}
+        onReviewed={async () => {
+          await mutate();
+        }}
+      />
     </div>
   );
 }

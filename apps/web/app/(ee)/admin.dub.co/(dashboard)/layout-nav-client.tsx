@@ -38,7 +38,7 @@ const tabs = [
   },
   {
     href: "/fraud-alerts",
-    label: "Fraud",
+    label: "Fraud Alerts",
   },
 ];
 
