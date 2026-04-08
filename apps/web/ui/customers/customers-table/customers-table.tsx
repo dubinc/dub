@@ -404,6 +404,7 @@ export function CustomersTable({
         sortBy={sortBy}
         sortOrder={sortOrder}
         enabled={canManageCustomers}
+        isProgramPage={isProgramPage}
       />
       {!canManageCustomers || customers?.length !== 0 ? (
         <Table
@@ -491,10 +492,12 @@ function CustomersFilters({
   sortBy,
   sortOrder,
   enabled,
+  isProgramPage,
 }: {
   sortBy: string;
   sortOrder: "asc" | "desc";
   enabled: boolean;
+  isProgramPage: boolean;
 }) {
   const {
     filters,
@@ -504,7 +507,7 @@ function CustomersFilters({
     onRemoveAll,
     setSearch,
     setSelectedFilter,
-  } = useCustomerFilters({ sortBy, sortOrder }, { enabled });
+  } = useCustomerFilters({ sortBy, sortOrder }, { enabled, isProgramPage });
 
   return (
     <div>
