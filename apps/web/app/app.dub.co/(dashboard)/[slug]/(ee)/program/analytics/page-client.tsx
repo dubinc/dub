@@ -89,34 +89,46 @@ export function ProgramAnalyticsPageClient() {
     programPage: true,
   });
 
+  const filterSelect = (
+    <Filter.Select
+      className="w-full md:w-fit"
+      filters={filters}
+      activeFilters={activeFilters}
+      onSelect={onSelect}
+      onRemove={onRemove}
+      onOpenFilter={onOpenFilter}
+      isAdvancedFilter
+      askAI
+    />
+  );
+
+  const dateRangePicker = (
+    <SimpleDateRangePicker align="start" className="w-full md:w-fit" />
+  );
+
   return (
     <div className="flex flex-col gap-3 pb-12">
       <div>
-        <div className="flex items-center gap-2">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onOpenFilter={onOpenFilter}
-            isAdvancedFilter
-            askAI
-          />
-          <SimpleDateRangePicker align="start" className="w-fit" />
-          <div className="flex grow justify-end gap-2">
-            <Link
-              href={`/${slug}/events${getQueryString({ folderId: program?.defaultFolderId, event: selectedTab, interval })}`}
-            >
-              <Button
-                variant="secondary"
-                className="w-fit"
-                icon={
-                  <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
-                }
-                text={isMobile ? undefined : "View Events"}
-              />
-            </Link>
+        <div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
+          <div className="flex w-full flex-col items-center gap-2 min-[550px]:flex-row">
+            {filterSelect}
+            <div className="flex w-full grow items-center gap-2 md:w-auto">
+              {dateRangePicker}
+              <div className="flex grow justify-end gap-2">
+                <Link
+                  href={`/${slug}/events${getQueryString({ folderId: program?.defaultFolderId, event: selectedTab, interval })}`}
+                >
+                  <Button
+                    variant="secondary"
+                    className="w-fit"
+                    icon={
+                      <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
+                    }
+                    text={isMobile ? undefined : "View Events"}
+                  />
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
         <div>
