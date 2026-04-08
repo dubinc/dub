@@ -25,6 +25,7 @@ import {
   CircleDotted,
   Dots,
   EnvelopeArrowRight,
+  GridIcon,
   Icon,
   User,
   UserCrown,
@@ -204,7 +205,14 @@ export function ProfileMembersPageClient() {
         enableHiding: false,
         header: () => null,
         cell: ({ row }) => (
-          <RowMenuButton row={row} isCurrentUserOwner={isCurrentUserOwner} />
+          <RowMenuButton
+            row={row}
+            isCurrentUserOwner={isCurrentUserOwner}
+            onEditPrograms={(user) => {
+              setSelectedUserForPrograms(user);
+              setShowProgramsSheet(true);
+            }}
+          />
         ),
       },
     ],
@@ -388,9 +396,11 @@ function RoleCell({
 function RowMenuButton({
   row,
   isCurrentUserOwner,
+  onEditPrograms,
 }: {
   row: Row<PartnerUserProps>;
   isCurrentUserOwner: boolean;
+  onEditPrograms: (user: PartnerUserProps) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
@@ -411,6 +421,8 @@ function RowMenuButton({
     return null;
   }
 
+  const isTargetOwner = user.role === "owner";
+
   return (
     <>
       <RemovePartnerUserModal />
@@ -422,6 +434,16 @@ function RowMenuButton({
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               <Command.Group className="grid gap-px p-1.5">
+                {isCurrentUserOwner && !isTargetOwner && !isInvite && (
+                  <MenuItem
+                    icon={GridIcon}
+                    label="Edit programs"
+                    onSelect={() => {
+                      onEditPrograms(user);
+                      setIsOpen(false);
+                    }}
+                  />
+                )}
                 <MenuItem
                   icon={UserMinus}
                   label={
@@ -472,7 +494,7 @@ function MenuItem({
         "flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm",
         variant === "danger"
           ? "text-red-600 hover:bg-red-50"
-          : "text-neutral-700 hover:bg-neutral-100",
+          : "text-neutral-600 hover:bg-neutral-100",
       )}
     >
       <IconComp className="size-4 shrink-0" />

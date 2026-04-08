@@ -5,6 +5,7 @@ import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PartnerUserProps, ProgramProps } from "@/lib/types";
 import { ProgramAccessScope } from "@dub/prisma/client";
 import { BlurImage, Button, Sheet } from "@dub/ui";
+import { CircleCheckFill } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { X } from "lucide-react";
 import Link from "next/link";
@@ -182,16 +183,58 @@ function PartnerMemberProgramsSheetContent({
             <label className="text-sm font-medium text-neutral-700">
               Program access
             </label>
-            <select
-              className="mt-1.5 w-full cursor-pointer appearance-none rounded-lg border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-300 focus:ring-neutral-300"
-              value={programAccess}
-              onChange={(e) =>
-                setProgramAccess(e.target.value as ProgramAccessScope)
-              }
-            >
-              <option value="all">All programs</option>
-              <option value="restricted">Restricted</option>
-            </select>
+            <div className="mt-1.5 grid grid-cols-2 gap-3">
+              {(
+                [
+                  {
+                    id: "all",
+                    label: "All",
+                    description: "User has access to all programs",
+                  },
+                  {
+                    id: "restricted",
+                    label: "Restricted",
+                    description: "Select program access individually",
+                  },
+                ] as const
+              ).map(({ id, label, description }) => {
+                const isSelected = programAccess === id;
+
+                return (
+                  <label
+                    key={id}
+                    className={cn(
+                      "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                      "transition-all duration-150",
+                      isSelected &&
+                        "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                    )}
+                  >
+                    <input
+                      type="radio"
+                      value={id}
+                      className="hidden"
+                      checked={isSelected}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setProgramAccess(id);
+                        }
+                      }}
+                    />
+                    <div className="flex grow flex-col text-neutral-900">
+                      <span className="text-sm font-medium">{label}</span>
+                      <span className="text-xs font-normal">{description}</span>
+                    </div>
+                    <CircleCheckFill
+                      className={cn(
+                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                        isSelected && "scale-100 opacity-100",
+                      )}
+                    />
+                  </label>
+                );
+              })}
+            </div>
           </div>
         )}
 
