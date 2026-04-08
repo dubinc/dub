@@ -30,7 +30,7 @@ export const banPartnerAction = authActionClient
   .inputSchema(banPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, reason, flagForFraud, fraudReason } = parsedInput;
+    const { partnerId, reason, flagForFraud, flagForFraudReason } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -43,7 +43,7 @@ export const banPartnerAction = authActionClient
       reason,
       user,
       flagForFraud,
-      fraudReason,
+      flagForFraudReason,
     });
   });
 
@@ -53,7 +53,7 @@ export const banPartner = async ({
   reason,
   user,
   flagForFraud,
-  fraudReason,
+  flagForFraudReason,
 }: BanPartnerInput) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -65,7 +65,7 @@ export const banPartner = async ({
     },
   });
 
-  if (flagForFraud && (!fraudReason || !fraudReason.trim())) {
+  if (flagForFraud && (!flagForFraudReason || !flagForFraudReason.trim())) {
     throw new DubApiError({
       code: "bad_request",
       message: "Fraud reason is required when flagging for fraud.",
@@ -140,12 +140,12 @@ export const banPartner = async ({
         },
       }),
 
-      flagForFraud && fraudReason
+      flagForFraud && flagForFraudReason
         ? prisma.fraudAlert.create({
             data: {
               partnerId,
               programId,
-              reason: fraudReason,
+              reason: flagForFraudReason,
             },
           })
         : undefined,

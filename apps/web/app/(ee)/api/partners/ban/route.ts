@@ -11,8 +11,9 @@ import { NextResponse } from "next/server";
 // POST /api/partners/ban – Ban a partner via API
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
-    let { partnerId, tenantId, reason, flagForFraud, fraudReason } =
-      banPartnerApiSchema.parse(await parseRequestBody(req));
+    let { partnerId, tenantId, reason } = banPartnerApiSchema.parse(
+      await parseRequestBody(req),
+    );
 
     throwIfNoPartnerIdOrTenantId({ partnerId, tenantId });
 
@@ -46,8 +47,6 @@ export const POST = withWorkspace(
       partnerId: partnerId!, // coerce here because we're already throwing if no partnerId or tenantId
       reason,
       user: session.user,
-      flagForFraud,
-      fraudReason,
     });
 
     return NextResponse.json({

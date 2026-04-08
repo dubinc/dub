@@ -51,7 +51,7 @@ function BanPartnerModal({
     defaultValues: {
       reason: "tos_violation",
       flagForFraud: false,
-      fraudReason: "",
+      flagForFraudReason: "",
       confirm: "",
     },
   });
@@ -173,12 +173,12 @@ function BanPartnerModal({
                 <textarea
                   className={cn(
                     "mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    errors.fraudReason && "border-red-600",
+                    errors.flagForFraudReason && "border-red-600",
                   )}
                   placeholder="Describe the suspected fraudulent activity..."
                   rows={3}
                   maxLength={MAX_FRAUD_REASON_LENGTH}
-                  {...register("fraudReason", {
+                  {...register("flagForFraudReason", {
                     required: flagForFraud && "Reason is required",
                     maxLength: {
                       value: MAX_FRAUD_REASON_LENGTH,
@@ -186,13 +186,13 @@ function BanPartnerModal({
                     },
                   })}
                 />
-                {errors.fraudReason && (
+                {errors.flagForFraudReason && (
                   <p className="mt-1 text-xs text-red-600">
-                    {errors.fraudReason.message}
+                    {errors.flagForFraudReason.message}
                   </p>
                 )}
                 <MaxCharactersCounter
-                  name="fraudReason"
+                  name="flagForFraudReason"
                   maxLength={MAX_FRAUD_REASON_LENGTH}
                   control={control}
                   className="mt-1 block text-right"
