@@ -184,7 +184,8 @@ export function RejectPartnerApplicationModal({
                 Additional notes (optional)
               </label>
               <span className="text-xs text-neutral-400">
-                {rejectionNote.length}/
+                {rejectionNote.length}
+                {"/"}
                 {PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH}
               </span>
             </div>
