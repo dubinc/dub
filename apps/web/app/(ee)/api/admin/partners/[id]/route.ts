@@ -10,7 +10,14 @@ export const GET = withAdmin(async ({ params }) => {
     where: {
       id,
     },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      image: true,
+      country: true,
+      companyName: true,
+      createdAt: true,
       platforms: true,
     },
   });

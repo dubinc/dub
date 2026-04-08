@@ -37,22 +37,17 @@ export const PATCH = withAdmin(async ({ req, params, session }) => {
     return new Response("Fraud alert not found.", { status: 404 });
   }
 
-  if (fraudAlert.status !== "pending") {
-    return new Response("Fraud alert has already been reviewed.", {
-      status: 400,
-    });
-  }
-
-  const reviewData: Prisma.FraudAlertUpdateArgs["data"] = {
+  const reviewData: Prisma.FraudAlertUpdateManyArgs["data"] = {
     reviewedAt: new Date(),
     reviewNote: reviewNote || null,
     reviewedById: session.user.id,
   };
 
   if (newStatus === "dismissed") {
-    await prisma.fraudAlert.update({
+    const { count } = await prisma.fraudAlert.updateMany({
       where: {
         id,
+        status: "pending",
       },
       data: {
         status: "dismissed",
@@ -60,10 +55,16 @@ export const PATCH = withAdmin(async ({ req, params, session }) => {
       },
     });
 
+    if (count === 0) {
+      return new Response("Fraud alert has already been reviewed.", {
+        status: 409,
+      });
+    }
+
     return NextResponse.json({ success: true });
   }
 
-  // Pending fraud alerts for this partner
+  // Fetch all pending fraud alerts for this partner (for cross-program ban reporting)
   const pendingFraudAlerts = await prisma.fraudAlert.findMany({
     where: {
       partnerId: fraudAlert.partnerId,
@@ -82,11 +83,18 @@ export const PATCH = withAdmin(async ({ req, params, session }) => {
     },
   });
 
+  if (pendingFraudAlerts.length === 0) {
+    return new Response("Fraud alert has already been reviewed.", {
+      status: 409,
+    });
+  }
+
   await prisma.fraudAlert.updateMany({
     where: {
       id: {
         in: pendingFraudAlerts.map((fa) => fa.id),
       },
+      status: "pending",
     },
     data: {
       status: "confirmed",
