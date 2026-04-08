@@ -9,11 +9,7 @@ import * as z from "zod/v4";
 
 const reviewSchema = z.object({
   status: z.enum(["confirmed", "dismissed"]),
-  reviewNote: z
-    .string()
-    .trim()
-    .max(MAX_FRAUD_REASON_LENGTH)
-    .optional(),
+  reviewNote: z.string().trim().max(MAX_FRAUD_REASON_LENGTH).optional(),
 });
 
 // PATCH /api/admin/fraud-alerts/[id]
@@ -67,41 +63,48 @@ export const PATCH = withAdmin(async ({ req, params, session }) => {
     return NextResponse.json({ success: true });
   }
 
-  await prisma.$transaction([
-    // Update the current fraud alert to confirmed
-    prisma.fraudAlert.update({
-      where: {
-        id,
-      },
-      data: {
-        status: "confirmed",
-        ...reviewData,
-      },
-    }),
-
-    // Update any other pending fraud alerts for this partner to confirmed
-    prisma.fraudAlert.updateMany({
-      where: {
-        id: {
-          not: id,
+  // Pending fraud alerts for this partner
+  const pendingFraudAlerts = await prisma.fraudAlert.findMany({
+    where: {
+      partnerId: fraudAlert.partnerId,
+      status: "pending",
+    },
+    select: {
+      id: true,
+      programEnrollment: {
+        select: {
+          programId: true,
+          partnerId: true,
+          bannedReason: true,
+          bannedAt: true,
         },
-        partnerId: fraudAlert.partnerId,
-        status: "pending",
       },
-      data: {
-        status: "confirmed",
-        ...reviewData,
+    },
+  });
+
+  await prisma.fraudAlert.updateMany({
+    where: {
+      id: {
+        in: pendingFraudAlerts.map((fa) => fa.id),
       },
-    }),
-  ]);
+    },
+    data: {
+      status: "confirmed",
+      ...reviewData,
+    },
+  });
 
   waitUntil(
-    reportCrossProgramBanToNetwork({
-      partnerId: fraudAlert.partnerId,
-      programId: fraudAlert.programId,
-      bannedReason: fraudAlert.programEnrollment.bannedReason,
-      bannedAt: fraudAlert.programEnrollment.bannedAt,
-    }),
+    Promise.allSettled(
+      pendingFraudAlerts.map(({ programEnrollment }) =>
+        reportCrossProgramBanToNetwork({
+          partnerId: programEnrollment.partnerId,
+          programId: programEnrollment.programId,
+          bannedReason: programEnrollment.bannedReason,
+          bannedAt: programEnrollment.bannedAt,
+        }),
+      ),
+    ),
   );
 
   return NextResponse.json({ success: true });
