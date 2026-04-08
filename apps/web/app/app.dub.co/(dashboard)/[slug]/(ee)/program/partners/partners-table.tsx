@@ -8,6 +8,7 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkArchivePartnersModal } from "@/ui/modals/bulk-archive-partners-modal";
@@ -27,6 +28,7 @@ import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
+  DynamicTooltipWrapper,
   EditColumnsButton,
   Filter,
   Icon,
@@ -529,7 +531,7 @@ export function PartnersTable() {
           }}
         />
 
-        {(status === "approved" ||
+        {(!searchParams.get("status") ||
           searchParams.get("status") === "approved") && (
           <BulkActionsMenu
             table={table}
@@ -651,6 +653,12 @@ function BulkActionsMenu({
 
   const partnerWord = selectedPartners.length === 1 ? "partner" : "partners";
 
+  const disabledTooltip = selectedPartners.some(
+    (partner) => !ACTIVE_ENROLLMENT_STATUSES.includes(partner.status),
+  )
+    ? `You cannot perform this action because one or more partners are not in ${ACTIVE_ENROLLMENT_STATUSES.join(", ")} statuses.`
+    : undefined;
+
   return (
     <Popover
       openPopover={isOpen}
@@ -666,6 +674,7 @@ function BulkActionsMenu({
                   onArchivePartners(selectedPartners);
                   setIsOpen(false);
                 }}
+                disabledTooltip={disabledTooltip}
               />
               <MenuItem
                 icon={CircleXmark}
@@ -674,6 +683,7 @@ function BulkActionsMenu({
                   onDeactivatePartners(selectedPartners);
                   setIsOpen(false);
                 }}
+                disabledTooltip={disabledTooltip}
               />
               <MenuItem
                 icon={UserDelete}
@@ -683,6 +693,7 @@ function BulkActionsMenu({
                   onBanPartners(selectedPartners);
                   setIsOpen(false);
                 }}
+                disabledTooltip={disabledTooltip}
               />
             </Command.Group>
           </Command.List>
@@ -939,11 +950,13 @@ function MenuItem({
   label,
   onSelect,
   variant = "default",
+  disabledTooltip,
 }: {
   icon: Icon;
   label: string;
   onSelect: () => void;
   variant?: "default" | "danger";
+  disabledTooltip?: string | boolean;
 }) {
   const variantStyles = {
     default: {
@@ -959,16 +972,22 @@ function MenuItem({
   const { text, icon } = variantStyles[variant];
 
   return (
-    <Command.Item
-      className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-        "data-[selected=true]:bg-neutral-100",
-        text,
-      )}
-      onSelect={onSelect}
+    <DynamicTooltipWrapper
+      tooltipProps={disabledTooltip ? { content: disabledTooltip } : undefined}
     >
-      <IconComp className={cn("size-4 shrink-0", icon)} />
-      {label}
-    </Command.Item>
+      <Command.Item
+        className={cn(
+          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
+          disabledTooltip
+            ? "cursor-not-allowed opacity-75"
+            : "data-[selected=true]:bg-neutral-100",
+          text,
+        )}
+        onSelect={disabledTooltip ? undefined : onSelect}
+      >
+        <IconComp className={cn("size-4 shrink-0", icon)} />
+        {label}
+      </Command.Item>
+    </DynamicTooltipWrapper>
   );
 }
