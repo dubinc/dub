@@ -249,8 +249,7 @@ function PartnerMemberProgramsSheetContent({
             programEnrollments.map((enrollment) => {
               const isAllAccess = programAccess === "all";
               const hasAccess =
-                isAllAccess ||
-                (accessState[enrollment.programId] ?? false);
+                isAllAccess || (accessState[enrollment.programId] ?? false);
               const showLinkPicker = canEdit && hasAccess;
 
               return (
@@ -321,18 +320,18 @@ function ProgramRow({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-neutral-200",
+        "rounded-xl border border-neutral-200",
         showLinkPicker ? "bg-neutral-50" : "bg-white",
       )}
     >
       <div
         className={cn(
           "p-3",
-          showLinkPicker && "border-b border-neutral-200 bg-white",
+          showLinkPicker && "rounded-xl border-b border-neutral-200 bg-white",
         )}
       >
         <div className="flex items-center gap-3">
-          <div className="size-8 shrink-0 overflow-hidden rounded-full border border-black/[0.08]">
+          <div className="size-8 shrink-0 overflow-hidden rounded-full border">
             <BlurImage
               src={program.logo || `${OG_AVATAR_URL}${program.name}`}
               alt={program.name}
@@ -341,7 +340,7 @@ function ProgramRow({
               height={32}
             />
           </div>
-          <span className="min-w-0 flex-1 truncate text-sm font-semibold tracking-[-0.28px] text-neutral-800">
+          <span className="min-w-0 flex-1 truncate text-sm font-semibold text-neutral-800">
             {program.name}
           </span>
 
@@ -353,11 +352,11 @@ function ProgramRow({
                   "text-sm font-medium leading-5",
                   "outline-none focus:border-neutral-300 focus:ring-1 focus:ring-neutral-300",
                 )}
-                value={hasAccess ? "access" : "no_access"}
+                value={hasAccess ? "access" : "noAccess"}
                 onChange={(e) => onAccessChange(e.target.value === "access")}
               >
                 <option value="access">Access</option>
-                <option value="no_access">No access</option>
+                <option value="noAccess">No access</option>
               </select>
               <ChevronDown
                 className="pointer-events-none absolute right-3 top-1/2 size-3 -translate-y-1/2 text-neutral-400"
@@ -396,9 +395,7 @@ function ProgramRow({
       {showLinkPicker && (
         <div className="flex flex-col gap-2 p-4">
           <div className="flex h-[18px] items-center">
-            <span className="text-sm font-medium tracking-[-0.28px] text-neutral-900">
-              Links
-            </span>
+            <span className="text-sm font-medium text-neutral-900">Links</span>
           </div>
           {disabledLinkPicker ? (
             <div className="flex h-[38px] w-full cursor-not-allowed items-center rounded-lg border border-neutral-200 bg-neutral-100 px-3 text-sm text-neutral-400">
