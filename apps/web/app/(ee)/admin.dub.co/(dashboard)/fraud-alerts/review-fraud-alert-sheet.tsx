@@ -28,8 +28,10 @@ import {
 } from "@dub/ui";
 import { BadgeCheck2Fill, Xmark } from "@dub/ui/icons";
 import {
+  COUNTRIES,
   currencyFormatter,
   formatDateTime,
+  formatDateTimeSmart,
   OG_AVATAR_URL,
 } from "@dub/utils";
 import Link from "next/link";
@@ -201,10 +203,20 @@ function SheetContent({
             ) : partner ? (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-3">
-                  <PartnerAvatar
-                    partner={fraudAlert.partner}
-                    className="size-10 bg-white"
-                  />
+                  <div className="relative w-fit">
+                    <PartnerAvatar partner={partner} className="size-10" />
+                    {partner.country && (
+                      <Tooltip content={COUNTRIES[partner.country]}>
+                        <div className="absolute -right-1 top-0 overflow-hidden rounded-full bg-neutral-50 p-0.5 transition-transform duration-100 hover:scale-[1.15]">
+                          <img
+                            alt=""
+                            src={`https://flag.vercel.app/m/${partner.country}.svg`}
+                            className="size-3 rounded-full"
+                          />
+                        </div>
+                      </Tooltip>
+                    )}
+                  </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-medium text-neutral-900">
                       {fraudAlert.partner.name}
@@ -215,25 +227,20 @@ function SheetContent({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                  {partner.country && (
-                    <DetailRow label="Country" value={partner.country} />
-                  )}
-                  {partner.companyName && (
-                    <DetailRow label="Company" value={partner.companyName} />
-                  )}
-                  <DetailRow
-                    label="Joined"
-                    value={formatDateTime(partner.createdAt)}
-                  />
+                <div className="flex gap-x-4 text-xs">
+                  <span className="text-neutral-400">Joined</span>
+                  <span className="text-neutral-700">
+                    {formatDateTimeSmart(partner.createdAt)}
+                  </span>
                 </div>
 
                 {partner.platforms.length > 0 && (
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     {PARTNER_PLATFORM_FIELDS.map(
                       ({ label, icon: Icon, data: getPlatformData }) => {
-                        const { value, href, verified } =
-                          getPlatformData(partner.platforms);
+                        const { value, href, verified } = getPlatformData(
+                          partner.platforms,
+                        );
                         if (!value) return null;
                         return (
                           <Tooltip
@@ -622,15 +629,6 @@ function Section({
       <h3 className="mb-3 text-sm font-semibold text-neutral-900">{title}</h3>
       {children}
     </div>
-  );
-}
-
-function DetailRow({ label, value }: { label: string; value: string }) {
-  return (
-    <>
-      <span className="text-neutral-400">{label}</span>
-      <span className="text-neutral-700">{value}</span>
-    </>
   );
 }
 

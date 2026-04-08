@@ -12,12 +12,6 @@ enum FraudRuleType {
   partnerDuplicatePayoutMethod // Duplicate payout method with other partners
 }
 
-enum FraudAlertStatus {
-  pending
-  confirmed
-  dismissed
-}
-
 model FraudRule {
   id         String        @id @default(cuid())
   programId  String
@@ -86,6 +80,11 @@ model FraudEvent {
   @@index(sourceProgramId)
 }
 
+enum FraudAlertStatus {
+  pending
+  confirmed
+  dismissed
+}
 model FraudAlert {
   id           String           @id @default(cuid())
   partnerId    String

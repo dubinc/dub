@@ -266,15 +266,13 @@ function FraudAlertsPageClient() {
         </div>
       )}
 
-      <div className="overflow-hidden rounded-xl border border-neutral-200 bg-white">
-        <Table
-          {...tableProps}
-          table={table}
-          onRowClick={(row) => {
-            setSelectedAlert(row.original);
-          }}
-        />
-      </div>
+      <Table
+        {...tableProps}
+        table={table}
+        onRowClick={(row) => {
+          setSelectedAlert(row.original);
+        }}
+      />
 
       <ReviewFraudAlertSheet
         alert={selectedAlert}

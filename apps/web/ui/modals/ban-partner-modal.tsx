@@ -8,7 +8,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { Button, Modal, Switch } from "@dub/ui";
+import { Button, InfoTooltip, Modal, Switch } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
@@ -148,9 +148,12 @@ function BanPartnerModal({
 
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-neutral-900">
-                Flag partner for potential fraud
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-neutral-900">
+                  Flag partner for potential fraud
+                </span>
+                <InfoTooltip content="This will report the partner to our fraud team, and if deemed fraudulent, they will be banned from the network." />
+              </div>
               <Switch
                 checked={flagForFraud}
                 fn={(checked: boolean) => setValue("flagForFraud", checked)}
@@ -166,10 +169,7 @@ function BanPartnerModal({
               className="overflow-hidden"
               inert={!flagForFraud}
             >
-              <div className="mt-3">
-                <label className="block text-sm font-medium text-neutral-900">
-                  Fraud reason
-                </label>
+              <div className="mt-1 p-px">
                 <textarea
                   className={cn(
                     "mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
