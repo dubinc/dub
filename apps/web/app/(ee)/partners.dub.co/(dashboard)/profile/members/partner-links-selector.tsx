@@ -63,13 +63,13 @@ export function PartnerLinksSelector({
   const options = [
     {
       value: ALL_LINKS_VALUE,
-      label: "All program links",
+      label: "All links",
     },
     ...linkOptions,
   ];
 
   const selected = isAllLinksResolved
-    ? [{ value: ALL_LINKS_VALUE, label: "All program links" }]
+    ? [{ value: ALL_LINKS_VALUE, label: "All links" }]
     : linkOptions.filter((opt) => validSelectedLinkIds?.includes(opt.value));
 
   const handleSelect = ({ value }: { value: string }) => {
@@ -109,7 +109,7 @@ export function PartnerLinksSelector({
       onSelect={handleSelect}
       buttonProps={{
         className:
-          "h-auto min-h-10 w-full max-w-full rounded-lg border-neutral-200 bg-white px-3 py-1 text-sm font-normal tracking-[-0.28px] text-neutral-700 shadow-none hover:bg-white items-start",
+          "h-auto w-full max-w-full rounded-lg border-neutral-200 bg-white px-3 py-2 text-sm font-normal tracking-[-0.28px] text-neutral-700 shadow-none hover:bg-white items-start",
       }}
     >
       {loading ? (

@@ -238,7 +238,7 @@ function PartnerMemberProgramsSheetContent({
           </div>
         )}
 
-        <div className="flex flex-col gap-3 px-4 py-6">
+        <div className="flex h-full flex-col gap-3 overflow-y-auto bg-neutral-100 px-4 py-6">
           {isLoading ? (
             [...Array(3)].map((_, i) => <ProgramRowPlaceholder key={i} />)
           ) : !programEnrollments || programEnrollments.length === 0 ? (
@@ -256,7 +256,6 @@ function PartnerMemberProgramsSheetContent({
               return (
                 <ProgramRow
                   key={enrollment.programId}
-                  programId={enrollment.programId}
                   program={enrollment.program}
                   hasAccess={hasAccess}
                   canEdit={canEdit && programAccess === "restricted"}
@@ -300,7 +299,6 @@ function PartnerMemberProgramsSheetContent({
 }
 
 function ProgramRow({
-  programId,
   program,
   hasAccess,
   canEdit,
@@ -309,8 +307,7 @@ function ProgramRow({
   onAccessChange,
   onLinkChange,
 }: {
-  programId: string;
-  program: Pick<ProgramProps, "name" | "slug" | "logo">;
+  program: Pick<ProgramProps, "id" | "name" | "slug" | "logo">;
   hasAccess: boolean;
   canEdit: boolean;
   showLinkPicker: boolean;
@@ -349,8 +346,8 @@ function ProgramRow({
             <div className="relative shrink-0">
               <select
                 className={cn(
-                  "h-8 w-max min-w-[6.75rem] cursor-pointer appearance-none rounded-lg border border-neutral-200 bg-neutral-100 py-1.5 pl-3 pr-9",
-                  "text-sm font-medium leading-5 tracking-[-0.28px] text-neutral-400",
+                  "w-fit cursor-pointer appearance-none rounded-lg border border-neutral-200 py-1.5 pl-3",
+                  "text-sm font-medium leading-5",
                   "outline-none focus:border-neutral-300 focus:ring-1 focus:ring-neutral-300",
                 )}
                 value={hasAccess ? "access" : "no_access"}
@@ -369,7 +366,7 @@ function ProgramRow({
               <Button
                 variant="secondary"
                 text="View"
-                className="h-8 w-fit rounded-lg border border-neutral-200 bg-neutral-100 px-3 text-sm font-medium tracking-[-0.28px] text-neutral-400 shadow-none hover:bg-neutral-100 hover:text-neutral-500"
+                className="h-8 w-fit rounded-lg"
               />
             </Link>
           )}
@@ -384,7 +381,7 @@ function ProgramRow({
             </span>
           </div>
           <PartnerLinksSelector
-            programId={programId}
+            programId={program.id}
             selectedLinkIds={selectedLinkIds}
             setSelectedLinkIds={onLinkChange}
           />
