@@ -130,6 +130,13 @@ function SheetContent({
   );
 
   const handleReview = async (action: "confirmed" | "dismissed") => {
+    if (
+      !window.confirm(
+        `Are you sure you want to ${action.replace("ed", "")} this fraud alert?`,
+      )
+    ) {
+      return;
+    }
     setIsSubmitting(true);
     try {
       const response = await fetch(`/api/admin/fraud-alerts/${fraudAlert.id}`, {
