@@ -2,7 +2,7 @@ import { WorkspaceWithUsers } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
 import { TokenCacheItem } from "../auth/token-cache";
 import { Session } from "../auth/utils";
-import { recordApiLog } from "./api-logs/record-api-log";
+import { recordApiLog } from "./record-api-log";
 
 const LOGGED_PATH_PREFIXES = [
   "/api/track/lead",
@@ -33,7 +33,7 @@ export function captureRequestLog({
   clonedReq: Request;
   response: Response;
   workspace: WorkspaceWithUsers;
-  session: Session;
+  session: Session | undefined;
   token: TokenCacheItem | null;
   url: URL;
   requestHeaders: Headers;

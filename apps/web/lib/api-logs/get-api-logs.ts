@@ -2,7 +2,7 @@ import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-da
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { tb } from "@/lib/tinybird";
 import * as z from "zod/v4";
-import { prefixWorkspaceId } from "../workspaces/workspace-id";
+import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import {
   API_LOGS_MAX_PAGE_SIZE,
   apiLogByIdFilterSchemaTB,

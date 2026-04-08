@@ -1,6 +1,6 @@
 import { tb } from "@/lib/tinybird";
-import { createId } from "../create-id";
-import { prefixWorkspaceId } from "../workspaces/workspace-id";
+import { createId } from "../api/create-id";
+import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import { apiLogSchemaTB } from "./schemas";
 
 const recordApiLogTB = tb.buildIngestEndpoint({

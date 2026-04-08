@@ -6,7 +6,7 @@ import { WorkspaceRole } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
-import { captureRequestLog } from "../api/api-logging";
+import { captureRequestLog } from "../api-logs/capture-request-log";
 import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
 import {
   PermissionAction,
