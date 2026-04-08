@@ -37,19 +37,26 @@ export const GET = withAdmin(async ({ searchParams }) => {
     where: {
       ...(status && { status }),
       ...(programId && { programId }),
-      partner: {
-        defaultPayoutMethod: "stablecoin",
-        stripeRecipientId: {
-          not: null,
+      OR: [
+        {
+          method: "stablecoin",
         },
-        cryptoWalletAddress: {
-          not: null,
+        {
+          status: "pending",
+          partner: {
+            stripeRecipientId: {
+              not: null,
+            },
+            cryptoWalletAddress: {
+              not: null,
+            },
+            payoutsEnabledAt: {
+              not: null,
+            },
+            ...(country && { country }),
+          },
         },
-        payoutsEnabledAt: {
-          not: null,
-        },
-        ...(country && { country }),
-      },
+      ],
     },
     orderBy: {
       amount: "desc",
@@ -66,17 +73,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
       .parse(
         payouts.filter(
           (payout) =>
-            (
-              payout as typeof payout & {
-                program?: { minPayoutAmount: number };
-              }
-            ).program &&
-            payout.amount >=
-              (
-                payout as typeof payout & {
-                  program: { minPayoutAmount: number };
-                }
-              ).program.minPayoutAmount,
+            payout.program && payout.amount >= payout.program.minPayoutAmount,
         ),
       ),
   );
