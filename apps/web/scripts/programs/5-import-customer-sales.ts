@@ -232,7 +232,9 @@ async function main() {
                 saleAmount: {
                   increment: stats.saleAmount,
                 },
-                conversions: stats.customerIds.size,
+                conversions: {
+                  increment: stats.customerIds.size,
+                },
               },
             });
             console.log(
