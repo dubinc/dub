@@ -89,6 +89,7 @@ export async function createPartnerDefaultLinks({
   )
     .filter(isFulfilled)
     .map(({ value }) => value);
+
   return await bulkCreateLinks({
     links: processedLinks,
     skipRedisCache: true,

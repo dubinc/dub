@@ -44,6 +44,19 @@ export default function PartnerIdentityVerified({
               partner profile on Dub!
             </Text>
 
+            <Section className="mb-8 text-center">
+              <Img
+                src="https://assets.dub.co/email-assets/partner-verify-identity-hero.jpg"
+                width="196"
+                height="153"
+                alt="Identity verification"
+                style={{
+                  display: "block",
+                  margin: "0 auto",
+                }}
+              />
+            </Section>
+
             <Text className="text-sm leading-6 text-neutral-600">
               Thank you for helping create a more trustworthy partner network.
               You can now get approved for programs faster.

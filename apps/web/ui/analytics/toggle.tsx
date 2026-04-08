@@ -225,17 +225,17 @@ export function AnalyticsToggle({
               ))}
             <div
               className={cn(
-                "flex w-full flex-col-reverse items-center gap-2 min-[550px]:flex-row",
+                "flex w-full flex-col items-center gap-2 min-[550px]:flex-row",
                 dashboardProps && "md:w-auto",
               )}
             >
-              {isMobile ? dateRangePicker : filterSelect}
+              {filterSelect}
               <div
                 className={cn("flex w-full grow items-center gap-2 md:w-auto", {
                   "grow-0": dashboardProps,
                 })}
               >
-                {isMobile ? filterSelect : dateRangePicker}
+                {dateRangePicker}
                 {!dashboardProps && (
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (

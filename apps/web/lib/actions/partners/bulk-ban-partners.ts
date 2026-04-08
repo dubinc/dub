@@ -4,7 +4,10 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
-import { bulkBanPartnersSchema } from "@/lib/zod/schemas/partners";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  bulkBanPartnersSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -32,7 +35,7 @@ export const bulkBanPartnersAction = authActionClient
         },
         programId,
         status: {
-          not: "banned",
+          in: ACTIVE_ENROLLMENT_STATUSES,
         },
       },
       select: {
