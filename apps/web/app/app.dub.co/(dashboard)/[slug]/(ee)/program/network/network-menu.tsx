@@ -40,6 +40,7 @@ export function NetworkMenu() {
     >
       <Button
         type="button"
+        aria-label="Open partner network menu"
         className="w-fit whitespace-nowrap px-2"
         variant="secondary"
         disabled={!program}

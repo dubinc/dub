@@ -333,7 +333,11 @@ export function ProgramPartnerNetworkPageClient({
       ) : (
         <NetworkEmptyState
           isFiltered={activeFilters.length > 0}
-          isStarred={searchParams.get("starred") == "true"}
+          isStarred={
+            variant === "ignored"
+              ? false
+              : searchParams.get("starred") == "true"
+          }
           onClearAllFilters={onRemoveAll}
           variant={variant === "ignored" ? "ignored" : "default"}
         />
