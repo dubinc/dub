@@ -204,7 +204,7 @@ export function PayoutTable() {
   });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <PayoutFilters />
       {payouts?.length !== 0 ? (
         <Table {...table} />
