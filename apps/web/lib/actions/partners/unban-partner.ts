@@ -191,6 +191,15 @@ export const unbanPartnerAction = authActionClient
               },
             },
           }),
+
+          // Delete any pending fraud alerts for this partner in this program
+          prisma.fraudAlert.deleteMany({
+            where: {
+              partnerId,
+              programId,
+              status: "pending",
+            },
+          }),
         ]);
 
         // TODO

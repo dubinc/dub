@@ -36,6 +36,10 @@ const tabs = [
     href: "/revenue",
     label: "Revenue",
   },
+  {
+    href: "/fraud-alerts",
+    label: "Fraud Alerts",
+  },
 ];
 
 export function AdminNav() {
