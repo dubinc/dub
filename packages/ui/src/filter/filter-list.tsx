@@ -248,7 +248,7 @@ export function FilterList({
           <button
             type="button"
             className={cn(
-              "group mt-px h-[38px] flex items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-neutral-500 ring-inset ring-neutral-500",
+              "group mt-px flex h-[38px] items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-neutral-500 ring-inset ring-neutral-500",
               "transition-[color,border-color,background-color,transform] duration-150 ease-out motion-reduce:transition-none",
               "hover:border-neutral-200 hover:bg-white hover:text-black [@media(hover:none)]:hover:border-transparent [@media(hover:none)]:hover:bg-transparent",
               "active:scale-[0.98] motion-reduce:active:scale-100",
