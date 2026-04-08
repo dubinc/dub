@@ -247,19 +247,20 @@ function PartnerMemberProgramsSheetContent({
             </div>
           ) : (
             programEnrollments.map((enrollment) => {
+              const isAllAccess = programAccess === "all";
               const hasAccess =
-                programAccess === "all" ||
+                isAllAccess ||
                 (accessState[enrollment.programId] ?? false);
-              const showLinkPicker =
-                canEdit && programAccess === "restricted" && hasAccess;
+              const showLinkPicker = canEdit && hasAccess;
 
               return (
                 <ProgramRow
                   key={enrollment.programId}
                   program={enrollment.program}
                   hasAccess={hasAccess}
-                  canEdit={canEdit && programAccess === "restricted"}
+                  canEdit={canEdit && !isAllAccess}
                   showLinkPicker={showLinkPicker}
+                  disabledLinkPicker={isAllAccess}
                   selectedLinkIds={linkState[enrollment.programId]}
                   onAccessChange={(newAccess) =>
                     setAccessState((prev) => ({
@@ -303,6 +304,7 @@ function ProgramRow({
   hasAccess,
   canEdit,
   showLinkPicker,
+  disabledLinkPicker,
   selectedLinkIds,
   onAccessChange,
   onLinkChange,
@@ -311,6 +313,7 @@ function ProgramRow({
   hasAccess: boolean;
   canEdit: boolean;
   showLinkPicker: boolean;
+  disabledLinkPicker?: boolean;
   selectedLinkIds: string[] | undefined;
   onAccessChange: (hasAccess: boolean) => void;
   onLinkChange: (ids: string[] | undefined) => void;
@@ -361,6 +364,23 @@ function ProgramRow({
                 aria-hidden
               />
             </div>
+          ) : showLinkPicker ? (
+            <div className="relative shrink-0">
+              <select
+                disabled
+                className={cn(
+                  "w-fit appearance-none rounded-lg border border-neutral-200 bg-neutral-100 py-1.5 pl-3",
+                  "cursor-not-allowed text-sm font-medium leading-5 text-neutral-400",
+                )}
+                value="access"
+              >
+                <option value="access">Access</option>
+              </select>
+              <ChevronDown
+                className="pointer-events-none absolute right-3 top-1/2 size-3 -translate-y-1/2 text-neutral-300"
+                aria-hidden
+              />
+            </div>
           ) : (
             <Link href={`/programs/${program.slug}`} className="shrink-0">
               <Button
@@ -380,11 +400,17 @@ function ProgramRow({
               Links
             </span>
           </div>
-          <PartnerLinksSelector
-            programId={program.id}
-            selectedLinkIds={selectedLinkIds}
-            setSelectedLinkIds={onLinkChange}
-          />
+          {disabledLinkPicker ? (
+            <div className="flex h-[38px] w-full cursor-not-allowed items-center rounded-lg border border-neutral-200 bg-neutral-100 px-3 text-sm text-neutral-400">
+              All links
+            </div>
+          ) : (
+            <PartnerLinksSelector
+              programId={program.id}
+              selectedLinkIds={selectedLinkIds}
+              setSelectedLinkIds={onLinkChange}
+            />
+          )}
         </div>
       )}
     </div>
