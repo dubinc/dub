@@ -88,10 +88,7 @@ export function useRouterStuff() {
       if (getNewPath) return newPath;
 
       // Nested overflow container scroll is not preserved by Next's `scroll: false` (window-only).
-      if (
-        scroll === false &&
-        typeof document !== "undefined"
-      ) {
+      if (scroll === false && typeof document !== "undefined") {
         const el = document.getElementById(DUB_DASHBOARD_MAIN_SCROLL_ID);
         if (el) pendingDashboardScrollTop = el.scrollTop;
       }

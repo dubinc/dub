@@ -3,6 +3,7 @@
 import usePartnerLinks from "@/lib/swr/use-partner-links";
 import { Combobox, LinkLogo } from "@dub/ui";
 import { getApexDomain, linkConstructor, truncate } from "@dub/utils";
+import { useEffect, useMemo } from "react";
 
 const ALL_LINKS_VALUE = "__all__";
 const MAX_DISPLAYED_LINKS = 5;
@@ -36,6 +37,28 @@ export function PartnerLinksSelector({
     meta: { url: link.url },
   }));
 
+  const validLinkIds = useMemo(
+    () => new Set(linkOptions.map((o) => o.value)),
+    [linkOptions],
+  );
+
+  // Reconcile stale selectedLinkIds against loaded linkOptions
+  useEffect(() => {
+    if (loading || isAllLinks || !selectedLinkIds) return;
+
+    const filtered = selectedLinkIds.filter((id) => validLinkIds.has(id));
+
+    if (filtered.length !== selectedLinkIds.length) {
+      setSelectedLinkIds(filtered.length > 0 ? filtered : undefined);
+    }
+  }, [loading, validLinkIds]);
+
+  const validSelectedLinkIds = isAllLinks
+    ? undefined
+    : selectedLinkIds?.filter((id) => validLinkIds.has(id));
+
+  const isAllLinksResolved = isAllLinks || validSelectedLinkIds?.length === 0;
+
   const options = [
     {
       value: ALL_LINKS_VALUE,
@@ -44,9 +67,9 @@ export function PartnerLinksSelector({
     ...linkOptions,
   ];
 
-  const selected = isAllLinks
+  const selected = isAllLinksResolved
     ? [{ value: ALL_LINKS_VALUE, label: "All links" }]
-    : linkOptions.filter((opt) => selectedLinkIds.includes(opt.value));
+    : linkOptions.filter((opt) => validSelectedLinkIds?.includes(opt.value));
 
   const handleSelect = ({ value }: { value: string }) => {
     if (value === ALL_LINKS_VALUE) {
@@ -54,22 +77,20 @@ export function PartnerLinksSelector({
       return;
     }
 
-    if (isAllLinks) {
-      // Switching from "All links" to a specific link
+    if (isAllLinksResolved) {
       setSelectedLinkIds([value]);
       return;
     }
 
-    if (selectedLinkIds.includes(value)) {
-      const remaining = selectedLinkIds.filter((id) => id !== value);
-      // If nothing is selected, revert to all links
+    if (validSelectedLinkIds?.includes(value)) {
+      const remaining = validSelectedLinkIds.filter((id) => id !== value);
       if (remaining.length === 0) {
         setSelectedLinkIds(undefined);
       } else {
         setSelectedLinkIds(remaining);
       }
     } else {
-      setSelectedLinkIds([...selectedLinkIds, value]);
+      setSelectedLinkIds([...(validSelectedLinkIds ?? []), value]);
     }
   };
 

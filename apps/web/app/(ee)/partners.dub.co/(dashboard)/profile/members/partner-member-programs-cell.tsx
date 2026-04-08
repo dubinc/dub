@@ -92,7 +92,11 @@ export function PartnerMemberProgramsCell({
             />
           ) : (
             <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200">
-              <Plus className="size-3.5 text-neutral-500" aria-hidden strokeWidth={2.5} />
+              <Plus
+                className="size-3.5 text-neutral-500"
+                aria-hidden
+                strokeWidth={2.5}
+              />
             </div>
           )}
         </ProgramsHover>
@@ -123,7 +127,11 @@ export function PartnerMemberProgramsCell({
         aria-label="Open programs to assign or view access"
       >
         <div className="flex size-6 shrink-0 items-center justify-center rounded-full border-2 border-white bg-neutral-200">
-          <Plus className="size-3.5 text-neutral-500" aria-hidden strokeWidth={2.5} />
+          <Plus
+            className="size-3.5 text-neutral-500"
+            aria-hidden
+            strokeWidth={2.5}
+          />
         </div>
       </ProgramsHover>
     );
