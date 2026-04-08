@@ -1,4 +1,4 @@
-import { getApiLogById } from "@/lib/api/api-logs/get-api-logs";
+import { getApiLogById } from "@/lib/api-logs/get-api-logs";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth/workspace";
 import { NextResponse } from "next/server";
