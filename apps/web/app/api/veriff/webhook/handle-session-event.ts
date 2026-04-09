@@ -40,6 +40,7 @@ export const handleSessionEvent = async ({
     },
     data: {
       identityVerificationStatus: action,
+      veriffIdentityHash: null,
       veriffMetadata,
     },
   });

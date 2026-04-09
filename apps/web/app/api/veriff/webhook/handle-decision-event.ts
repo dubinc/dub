@@ -9,6 +9,7 @@ import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verif
 import { prisma } from "@dub/prisma";
 import { IdentityVerificationStatus, Partner } from "@dub/prisma/client";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
+import { createHash } from "crypto";
 import * as z from "zod/v4";
 
 type VeriffDecisionEvent = z.infer<typeof veriffDecisionEventSchema>;
@@ -65,12 +66,22 @@ export const handleDecisionEvent = async ({
 
   // If the verification was approved, check for country mismatch
   if (effectiveStatus === "approved") {
+    const identityHash = computeIdentityHash(verification);
+    const isDuplicate = await checkDuplicateIdentity({
+      partner,
+      identityHash,
+    });
+
     const isCountryMismatch = checkCountryMismatch({
       partner,
       verification,
     });
 
-    if (isCountryMismatch) {
+    if (isDuplicate) {
+      effectiveStatus = "declined";
+      declineReason =
+        "This identity has already been verified on another account.";
+    } else if (isCountryMismatch) {
       effectiveStatus = "declined";
       declineReason = `Your document country (${verification.document?.country}) does not match your account country (${partner.country})`;
     } else {
@@ -135,6 +146,63 @@ function checkCountryMismatch({
   }
 
   return partner.country.toUpperCase() !== veriffCountry;
+}
+
+async function checkDuplicateIdentity({
+  partner,
+  identityHash,
+}: {
+  partner: Pick<Partner, "id">;
+  identityHash: string | null;
+}): Promise<boolean> {
+  if (!identityHash) {
+    return false;
+  }
+
+  const duplicatePartner = await prisma.partner.findFirst({
+    where: {
+      veriffIdentityHash: identityHash,
+      id: {
+        not: partner.id,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return !!duplicatePartner;
+}
+
+function computeIdentityHash(
+  verification: VeriffDecisionEvent["verification"],
+) {
+  const { person, document } = verification;
+
+  // Prefer document number (passport/ID number) — strongest unique signal
+  if (document?.number) {
+    const input = [
+      "doc",
+      document.number.toLowerCase().trim(),
+      ...(document.country ? [document.country.toUpperCase().trim()] : []),
+    ].join("|");
+
+    return createHash("sha256").update(input).digest("hex");
+  }
+
+  // Fall back to name + date of birth
+  if ((person?.firstName || person?.lastName) && person?.dateOfBirth) {
+    const input = [
+      "person",
+      ...(person.firstName ? [person.firstName.toLowerCase().trim()] : []),
+      ...(person.lastName ? [person.lastName.toLowerCase().trim()] : []),
+      person.dateOfBirth.trim(),
+    ].join("|");
+
+    return createHash("sha256").update(input).digest("hex");
+  }
+
+  return null;
 }
 
 async function sendEmailNotification({
