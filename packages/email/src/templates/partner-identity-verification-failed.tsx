@@ -98,7 +98,7 @@ export default function PartnerIdentityVerificationFailed({
                     <>
                       Please{" "}
                       <Link
-                        href="https://partners.dub.co/profile/merge-accounts"
+                        href="https://dub.co/help/article/merging-partner-accounts"
                         className="font-semibold text-neutral-700 underline underline-offset-2"
                       >
                         merge your accounts
