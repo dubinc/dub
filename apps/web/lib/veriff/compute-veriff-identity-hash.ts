@@ -5,27 +5,30 @@ export function computeVeriffIdentityHash(
   verification: VeriffDecisionEvent["verification"],
 ) {
   const { person, document } = verification;
+  const documentNumber = document?.number?.trim();
+  const documentCountry = document?.country?.trim();
+  const firstName = person?.firstName?.trim();
+  const lastName = person?.lastName?.trim();
+  const dateOfBirth = person?.dateOfBirth?.trim();
 
   // Prefer document number (passport/ID number) — strongest unique signal
-  if (document?.number) {
+  if (documentNumber) {
     const input = [
       "doc",
-      document.number.toLowerCase().trim(),
-      ...(document.country ? [document.country.toUpperCase().trim()] : []),
+      documentNumber.toLowerCase(),
+      ...(documentCountry ? [documentCountry.toUpperCase()] : []),
     ].join("|");
-
     return createHash("sha256").update(input).digest("hex");
   }
 
   // Fall back to name + date of birth
-  if ((person?.firstName || person?.lastName) && person?.dateOfBirth) {
+  if ((firstName || lastName) && dateOfBirth) {
     const input = [
       "person",
-      ...(person.firstName ? [person.firstName.toLowerCase().trim()] : []),
-      ...(person.lastName ? [person.lastName.toLowerCase().trim()] : []),
-      person.dateOfBirth.trim(),
+      ...(firstName ? [firstName.toLowerCase()] : []),
+      ...(lastName ? [lastName.toLowerCase()] : []),
+      dateOfBirth,
     ].join("|");
-
     return createHash("sha256").update(input).digest("hex");
   }
 

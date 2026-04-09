@@ -109,7 +109,8 @@ export const handleDecisionEvent = async ({
     data: {
       identityVerificationStatus: veriffStatusMap[effectiveStatus],
       identityVerifiedAt,
-      veriffIdentityHash,
+      veriffIdentityHash:
+        effectiveStatus === "approved" ? veriffIdentityHash : null,
       veriffMetadata,
     },
     select: {

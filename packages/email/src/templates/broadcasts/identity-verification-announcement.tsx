@@ -16,10 +16,8 @@ import { Footer } from "src/components/footer";
 
 export default function IdentityVerificationAnnouncement({
   email = "panic@thedis.co",
-  unsubscribeUrl = "https://partners.dub.co/account/settings",
 }: {
   email: string;
-  unsubscribeUrl: string;
 }) {
   return (
     <Html>
