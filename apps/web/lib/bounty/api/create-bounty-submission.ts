@@ -241,13 +241,10 @@ export class BountySubmissionHandler {
         });
       }
 
-      if (
-        existingSubmission.status !== "draft" &&
-        !bountyInfo?.hasSocialMetrics
-      ) {
+      if (existingSubmission.status !== "draft" || bountyInfo?.hasSocialMetrics) {
         throw new DubApiError({
           code: "conflict",
-          message: `You already have a ${existingSubmission.status} submission for this period.`,
+          message: "You already have a submission for this period.",
         });
       }
     }
