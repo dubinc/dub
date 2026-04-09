@@ -4,6 +4,7 @@ import {
   useLinkBuilderContext,
 } from "@/ui/links/link-builder/link-builder-provider";
 import { Link } from "@/ui/shared/icons";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { ProBadgeTooltip } from "@/ui/shared/pro-badge-tooltip";
 import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { useCompletion } from "@ai-sdk/react";
@@ -65,6 +66,7 @@ function OGModalInner({
     setValue,
     reset,
     handleSubmit,
+    control,
     formState: { isDirty },
   } = useForm<Pick<LinkFormData, "image" | "title" | "description" | "proxy">>({
     defaultValues: {
@@ -326,9 +328,11 @@ function OGModalInner({
                   Title
                 </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm text-neutral-500">
-                    {title?.length || 0}/120
-                  </p>
+                  <MaxCharactersCounter
+                    name="title"
+                    maxLength={120}
+                    control={control}
+                  />
                   <ButtonTooltip
                     tooltipProps={{
                       content: exceededAI
@@ -380,9 +384,11 @@ function OGModalInner({
                   Description
                 </p>
                 <div className="flex items-center gap-2">
-                  <p className="text-sm text-neutral-500">
-                    {description?.length || 0}/240
-                  </p>
+                  <MaxCharactersCounter
+                    name="description"
+                    maxLength={240}
+                    control={control}
+                  />
                   <ButtonTooltip
                     tooltipProps={{
                       content: exceededAI

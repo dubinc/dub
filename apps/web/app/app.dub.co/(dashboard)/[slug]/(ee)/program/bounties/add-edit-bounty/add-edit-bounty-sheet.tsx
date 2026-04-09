@@ -187,9 +187,11 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               })}
                             />
                             <div className="mt-1 text-left">
-                              <span className="text-xs text-neutral-400">
-                                {name?.length || 0}/100
-                              </span>
+                              <MaxCharactersCounter
+                                name="name"
+                                maxLength={100}
+                                control={control}
+                              />
                             </div>
                           </div>
                         </div>
