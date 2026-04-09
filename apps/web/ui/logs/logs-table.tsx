@@ -57,27 +57,14 @@ export function LogsTable() {
   const columns = useMemo(
     () => [
       {
-        id: "timestamp",
-        header: "Time",
+        id: "path",
+        header: "Endpoint",
         cell: ({ row }: { row: Row<ApiLog> }) => (
-          <TimestampTooltip
-            timestamp={row.original.timestamp}
-            rows={["local"]}
-            side="left"
-            delayDuration={150}
-          >
-            <span className="text-sm text-neutral-500">
-              {new Date(row.original.timestamp).toLocaleString("en-us", {
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                second: "2-digit",
-              })}
-            </span>
-          </TimestampTooltip>
+          <span className="truncate font-mono text-xs">
+            {row.original.path}
+          </span>
         ),
-        size: 180,
+        size: 300,
       },
       {
         id: "method",
@@ -88,16 +75,6 @@ export function LogsTable() {
           </StatusBadge>
         ),
         size: 100,
-      },
-      {
-        id: "path",
-        header: "Endpoint",
-        cell: ({ row }: { row: Row<ApiLog> }) => (
-          <span className="truncate font-mono text-xs">
-            {row.original.path}
-          </span>
-        ),
-        size: 300,
       },
       {
         id: "status_code",
@@ -131,6 +108,29 @@ export function LogsTable() {
           </span>
         ),
         size: 100,
+      },
+      {
+        id: "timestamp",
+        header: "Time",
+        cell: ({ row }: { row: Row<ApiLog> }) => (
+          <TimestampTooltip
+            timestamp={row.original.timestamp}
+            rows={["local"]}
+            side="left"
+            delayDuration={150}
+          >
+            <span className="text-sm text-neutral-500">
+              {new Date(row.original.timestamp).toLocaleString("en-us", {
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
+                second: "2-digit",
+              })}
+            </span>
+          </TimestampTooltip>
+        ),
+        size: 180,
       },
     ],
     [],

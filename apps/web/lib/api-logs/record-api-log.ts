@@ -55,8 +55,7 @@ export const recordApiLog = async ({
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      await recordApiLogTB(apiLog);
-      return;
+      return await recordApiLogTB(apiLog);
     } catch (error) {
       if (attempt < maxRetries) {
         await new Promise((resolve) =>
