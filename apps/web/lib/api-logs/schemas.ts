@@ -2,8 +2,7 @@ import { getPaginationQuerySchema } from "@/lib/zod/schemas/misc";
 import { tokenSchema } from "@/lib/zod/schemas/token";
 import { UserSchema } from "@/lib/zod/schemas/users";
 import * as z from "zod/v4";
-
-export const API_LOGS_MAX_PAGE_SIZE = 100;
+import { API_LOGS_MAX_PAGE_SIZE } from "./constants";
 
 // Schema for ingestion into Tinybird
 export const apiLogSchemaTB = z.object({

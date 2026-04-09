@@ -24,3 +24,5 @@ export const HTTP_STATUS_CODES = [
 ] as const;
 
 export const HTTP_METHODS = ["POST", "PATCH", "PUT", "DELETE"] as const;
+
+export const API_LOGS_MAX_PAGE_SIZE = 10;

@@ -1,8 +1,8 @@
 import { tb } from "@/lib/tinybird";
 import * as z from "zod/v4";
 import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
+import { API_LOGS_MAX_PAGE_SIZE } from "./constants";
 import {
-  API_LOGS_MAX_PAGE_SIZE,
   apiLogByIdFilterSchemaTB,
   apiLogCountFilterSchemaTB,
   apiLogCountResponseSchemaTB,

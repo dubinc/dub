@@ -10,7 +10,6 @@ import {
   Table,
   TimestampTooltip,
   usePagination,
-  useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { StackY3 } from "@dub/ui/icons";
@@ -25,7 +24,6 @@ import { useLogFilters } from "./use-log-filters";
 export function LogsTable() {
   const { id: workspaceId, slug } = useWorkspace();
   const router = useRouter();
-  const { getQueryString } = useRouterStuff();
 
   const {
     filters,
@@ -61,9 +59,7 @@ export function LogsTable() {
         id: "path",
         header: "Endpoint",
         cell: ({ row }: { row: Row<ApiLog> }) => (
-          <span className="truncate font-mono text-xs">
-            {row.original.path}
-          </span>
+          <span className="truncate">{row.original.path}</span>
         ),
         size: 300,
       },
