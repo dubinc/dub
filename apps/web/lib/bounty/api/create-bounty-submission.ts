@@ -231,27 +231,12 @@ export class BountySubmissionHandler {
 
     if (existingSubmission) {
       if (
-        existingSubmission.reviewedAt ||
-        existingSubmission.status === "approved" ||
-        existingSubmission.status === "rejected"
+        existingSubmission.status !== "draft" ||
+        bountyInfo?.hasSocialMetrics
       ) {
         throw new DubApiError({
           code: "conflict",
           message: `You already have a ${existingSubmission.status} submission for this period.`,
-        });
-      }
-
-      if (existingSubmission.status !== "draft") {
-        throw new DubApiError({
-          code: "conflict",
-          message: `You already have a ${existingSubmission.status} submission for this period.`,
-        });
-      }
-
-      if (bountyInfo?.hasSocialMetrics) {
-        throw new DubApiError({
-          code: "conflict",
-          message: "You already have a submission for this period.",
         });
       }
     }
