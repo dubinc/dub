@@ -1,6 +1,10 @@
 "use client";
 
-import { LOGGED_PATH_PREFIXES } from "@/lib/api-logs/constants";
+import {
+  HTTP_METHODS,
+  HTTP_STATUS_CODES,
+  LOGGED_PATH_PREFIXES,
+} from "@/lib/api-logs/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
@@ -8,30 +12,13 @@ import { Code, Globe, Key, Receipt2 } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
-import { useDebounce } from "use-debounce";
-
-const METHODS = ["POST", "PATCH", "PUT", "DELETE"] as const;
-
-const STATUS_CODES = [
-  { value: "200", label: "200 OK" },
-  { value: "201", label: "201 Created" },
-  { value: "400", label: "400 Bad Request" },
-  { value: "401", label: "401 Unauthorized" },
-  { value: "403", label: "403 Forbidden" },
-  { value: "404", label: "404 Not Found" },
-  { value: "409", label: "409 Conflict" },
-  { value: "422", label: "422 Unprocessable" },
-  { value: "429", label: "429 Rate Limited" },
-  { value: "500", label: "500 Server Error" },
-];
 
 export function useLogFilters() {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
 
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [debouncedSearch] = useDebounce(search, 500);
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
   const { data: tokens } = useSWR<TokenProps[]>(
     selectedFilter === "tokenId"
@@ -46,7 +33,7 @@ export function useLogFilters() {
         key: "method",
         icon: Code,
         label: "Method",
-        options: METHODS.map((m) => ({
+        options: HTTP_METHODS.map((m) => ({
           value: m,
           label: m,
         })),
@@ -55,7 +42,7 @@ export function useLogFilters() {
         key: "statusCode",
         icon: Receipt2,
         label: "Status",
-        options: STATUS_CODES.map(({ value, label }) => ({
+        options: HTTP_STATUS_CODES.map(({ value, label }) => ({
           value,
           label,
         })),
