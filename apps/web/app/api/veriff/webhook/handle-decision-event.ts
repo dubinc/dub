@@ -57,6 +57,7 @@ export const handleDecisionEvent = async ({
 
   // since we're skipping verified partners, by default identityVerifiedAt is null
   let identityVerifiedAt: Date | null = null;
+  let veriffIdentityHash: string | null | undefined = undefined;
 
   let { sessionUrl, attemptCount, declineReason, sessionExpiresAt } =
     parseVeriffMetadata(partner.veriffMetadata);
@@ -66,10 +67,10 @@ export const handleDecisionEvent = async ({
 
   // If the verification was approved, check for country mismatch
   if (effectiveStatus === "approved") {
-    const identityHash = computeIdentityHash(verification);
+    veriffIdentityHash = computeIdentityHash(verification);
     const isDuplicate = await checkDuplicateIdentity({
       partner,
-      identityHash,
+      veriffIdentityHash,
     });
 
     const isCountryMismatch = checkCountryMismatch({
@@ -111,6 +112,7 @@ export const handleDecisionEvent = async ({
     data: {
       identityVerificationStatus: veriffStatusMap[effectiveStatus],
       identityVerifiedAt,
+      veriffIdentityHash,
       veriffMetadata,
     },
     select: {
@@ -150,18 +152,18 @@ function checkCountryMismatch({
 
 async function checkDuplicateIdentity({
   partner,
-  identityHash,
+  veriffIdentityHash,
 }: {
   partner: Pick<Partner, "id">;
-  identityHash: string | null;
+  veriffIdentityHash: string | null;
 }): Promise<boolean> {
-  if (!identityHash) {
+  if (!veriffIdentityHash) {
     return false;
   }
 
   const duplicatePartner = await prisma.partner.findFirst({
     where: {
-      veriffIdentityHash: identityHash,
+      veriffIdentityHash,
       id: {
         not: partner.id,
       },
