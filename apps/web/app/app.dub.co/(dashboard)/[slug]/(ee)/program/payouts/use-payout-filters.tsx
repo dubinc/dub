@@ -1,6 +1,6 @@
 import usePartners from "@/lib/swr/use-partners";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
-import { EnrolledPartnerProps, PayoutsCount } from "@/lib/types";
+import { EnrolledPartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
@@ -12,7 +12,7 @@ import { useDebounce } from "use-debounce";
 export function usePayoutFilters() {
   const { searchParamsObj, queryParams } = useRouterStuff();
 
-  const { payoutsCount } = usePayoutsCount<PayoutsCount[]>({
+  const { payoutsCount } = usePayoutsCount({
     groupBy: "status",
   });
 

@@ -76,12 +76,22 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     return NextResponse.json(counts);
   }
 
-  const count = await prisma.payout.count({
+  const count = await prisma.payout.aggregate({
     where: {
       ...where,
       status,
     },
+    _count: true,
+    _sum: {
+      amount: true,
+    },
   });
 
-  return NextResponse.json(count);
+  return NextResponse.json([
+    {
+      count: count._count ?? 0,
+      amount: count._sum?.amount ?? 0,
+      status: status ?? "all",
+    },
+  ]);
 });

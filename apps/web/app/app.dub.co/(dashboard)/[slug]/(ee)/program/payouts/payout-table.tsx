@@ -48,7 +48,7 @@ export function PayoutTable() {
   const sortBy = searchParams.get("sortBy") || "amount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const { payoutsCount, error: countError } = usePayoutsCount<number>();
+  const { payoutsCount, error: countError } = usePayoutsCount();
 
   const {
     data: payouts,
@@ -200,7 +200,7 @@ export function PayoutTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: payoutsCount || 0,
+    rowCount: payoutsCount?.[0]?.count ?? 0,
   });
 
   return (

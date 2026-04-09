@@ -1,5 +1,6 @@
 "use client";
 
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { IdentityVerificationCard } from "@/ui/partners/identity-verification/identity-verification-card";
 import { StablecoinPayoutCard } from "@/ui/partners/payouts/stablecoin-payout-card";
@@ -12,12 +13,13 @@ import { ProgramMarketplaceCard } from "@/ui/partners/program-marketplace/progra
  */
 export function ProgramsPromoCard() {
   const { partner, availablePayoutMethods } = usePartnerProfile();
+  const { payoutsCount } = usePartnerPayoutsCount();
 
-  if (!partner) {
+  if (!partner || !payoutsCount) {
     return null;
   }
 
-  if (!partner.identityVerifiedAt && partner.email?.endsWith("@dub.co")) {
+  if (!partner.identityVerifiedAt && (payoutsCount[0]?.amount ?? 0) > 10000) {
     return <IdentityVerificationCard />;
   }
 

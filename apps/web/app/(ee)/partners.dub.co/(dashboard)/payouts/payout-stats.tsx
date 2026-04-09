@@ -115,7 +115,7 @@ function PayoutStatsCard({
 export function PayoutStats() {
   const { partner } = usePartnerProfile();
 
-  const { payoutsCount, error } = usePartnerPayoutsCount<PayoutsCount[]>({
+  const { payoutsCount, error } = usePartnerPayoutsCount({
     groupBy: "status",
   });
 
