@@ -1,12 +1,15 @@
 import { WorkspaceWithUsers } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
+import { minimatch } from "minimatch";
 import { TokenCacheItem } from "../auth/token-cache";
 import { Session } from "../auth/utils";
-import { LOGGED_PATH_PREFIXES } from "./constants";
+import { LOGGED_API_PATH_PATTERNS } from "./constants";
 import { recordApiLog } from "./record-api-log";
 
 export function shouldLogRoute(pathname: string) {
-  return LOGGED_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+  return LOGGED_API_PATH_PATTERNS.some((pattern) =>
+    minimatch(pathname, pattern),
+  );
 }
 
 export function captureRequestLog({

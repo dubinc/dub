@@ -3,7 +3,7 @@
 import {
   HTTP_METHODS,
   HTTP_STATUS_CODES,
-  LOGGED_PATH_PREFIXES,
+  LOGGED_API_PATH_PATTERNS,
 } from "@/lib/api-logs/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
@@ -14,8 +14,8 @@ import {
   Globe,
   Key,
 } from "@dub/ui/icons";
-import { fetcher } from "@dub/utils";
-import { useCallback, useMemo, useState } from "react";
+import { cn, fetcher } from "@dub/utils";
+import { createElement, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
 export function useLogFilters() {
@@ -35,10 +35,29 @@ export function useLogFilters() {
   const filters = useMemo(
     () => [
       {
+        key: "statusCode",
+        icon: CircleCheck,
+        label: "Status",
+        options: HTTP_STATUS_CODES.map(({ value, label }) => {
+          const icon = createElement(CircleCheck, {
+            className: cn(
+              "h-4 w-4",
+              value >= 200 && value < 300 ? "text-green-600" : "text-red-600",
+            ),
+          });
+
+          return {
+            value,
+            label,
+            icon,
+          };
+        }),
+      },
+      {
         key: "path",
         icon: Globe,
         label: "Endpoint",
-        options: LOGGED_PATH_PREFIXES.map((p) => ({
+        options: LOGGED_API_PATH_PATTERNS.map((p) => ({
           value: p,
           label: p,
         })),
@@ -53,15 +72,6 @@ export function useLogFilters() {
         })),
       },
       {
-        key: "statusCode",
-        icon: CircleCheck,
-        label: "Status",
-        options: HTTP_STATUS_CODES.map(({ value, label }) => ({
-          value,
-          label,
-        })),
-      },
-      {
         key: "tokenId",
         icon: Key,
         label: "API Key",
@@ -69,7 +79,7 @@ export function useLogFilters() {
         options:
           tokens?.map((t) => ({
             value: t.id,
-            label: `${t.name} (${t.partialKey})`,
+            label: t.partialKey,
           })) ?? null,
       },
     ],
