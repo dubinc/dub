@@ -14,25 +14,10 @@ export function NetworkEmptyState({
   onClearAllFilters: () => void;
   variant?: "default" | "ignored";
 }) {
-  const emptyDescription =
-    variant === "ignored" && !isFiltered && !isStarred ? (
-      `You have not marked any partners as "not a fit" yet.`
-    ) : isFiltered || isStarred ? (
-      <>
-        Press{" "}
-        <span className="text-content-default bg-bg-emphasis rounded-md px-1 py-0.5 text-xs font-semibold">
-          Esc
-        </span>{" "}
-        to clear all filters.
-      </>
-    ) : (
-      "There are no partners for you to discover yet."
-    );
-
   return (
     <AnimatedEmptyState
       title="No partners found"
-      description={emptyDescription}
+      description="Adjust your filters to refine your search results."
       className="border-none md:min-h-[400px]"
       cardClassName="py-3"
       cardCount={2}

@@ -36,9 +36,6 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * Displayed Metrics:
  * - clickToConversionRate: Average click-to-conversion rate across ALL programs the partner is enrolled in
  * - lastConversionAt: Most recent conversion date across ALL programs the partner is enrolled in
- *
- * Note: Ranking is primarily used for the "discover" tab. For "invited" and "recruited"
- * tabs, partners are sorted by date (most recent first).
  */
 export async function calculatePartnerRanking({
   programId,
@@ -55,13 +52,9 @@ export async function calculatePartnerRanking({
   const conditions: Prisma.Sql[] = [
     Prisma.sql`p.discoverableAt IS NOT NULL`,
     Prisma.sql`COALESCE(pe.clickToConversionRate, 0) < 1`,
+    Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
+    Prisma.sql`enrolled.id IS NULL`,
   ];
-
-  if (status === "ignored") {
-    conditions.push(Prisma.sql`dp.ignoredAt IS NOT NULL`);
-  } else {
-    conditions.push(Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`);
-  }
 
   if (partnerIds && partnerIds.length > 0) {
     conditions.push(Prisma.sql`p.id IN (${Prisma.join(partnerIds)})`);
@@ -113,26 +106,10 @@ export async function calculatePartnerRanking({
     );
   }
 
-  if (status === "discover") {
-    conditions.push(Prisma.sql`enrolled.id IS NULL`);
-  } else if (status === "invited") {
-    conditions.push(
-      Prisma.sql`enrolled.status = 'invited' AND dp.invitedAt IS NOT NULL`,
-    );
-  } else if (status === "recruited") {
-    conditions.push(
-      Prisma.sql`enrolled.status = 'approved' AND dp.invitedAt IS NOT NULL`,
-    );
-  } else if (status === "ignored") {
-    conditions.push(Prisma.sql`enrolled.id IS NULL`);
-  }
-
-  if (status !== "ignored") {
-    if (starred === true) {
-      conditions.push(Prisma.sql`dp.starredAt IS NOT NULL`);
-    } else if (starred === false) {
-      conditions.push(Prisma.sql`(dp.starredAt IS NULL OR dp.id IS NULL)`);
-    }
+  if (starred === true) {
+    conditions.push(Prisma.sql`dp.starredAt IS NOT NULL`);
+  } else if (starred === false) {
+    conditions.push(Prisma.sql`(dp.starredAt IS NULL OR dp.id IS NULL)`);
   }
 
   const whereClause = Prisma.join(conditions, " AND ");
@@ -145,15 +122,9 @@ export async function calculatePartnerRanking({
   )`;
 
   const orderByClause =
-    status === "discover"
-      ? starred === true
-        ? Prisma.sql`dp.starredAt ASC`
-        : Prisma.sql`finalScore DESC, p.id ASC`
-      : status === "invited"
-        ? Prisma.sql`dp.invitedAt ASC`
-        : status === "ignored"
-          ? Prisma.sql`dp.ignoredAt DESC, p.id ASC`
-          : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
+    starred === true
+      ? Prisma.sql`dp.starredAt ASC`
+      : Prisma.sql`finalScore DESC, p.id ASC`;
 
   const offset = (page - 1) * pageSize;
 
