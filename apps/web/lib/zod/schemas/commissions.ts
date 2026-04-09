@@ -202,6 +202,13 @@ export const commissionPatchStatusSchema = z.enum([
 ]);
 
 export const updateCommissionSchema = z.object({
+  earnings: z
+    .number()
+    .min(0)
+    .optional()
+    .describe(
+      "The new earnings amount for the commission. Paid commissions cannot be updated. If provided, will override the earnings calculated based on the sale amount and currency.",
+    ),
   saleAmount: z
     .number()
     .min(0)
@@ -214,13 +221,6 @@ export const updateCommissionSchema = z.object({
     .optional()
     .describe(
       "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `saleAmount`. Paid commissions cannot be updated.",
-    ),
-  earnings: z
-    .number()
-    .min(0)
-    .optional()
-    .describe(
-      "The new absolute earnings for the custom commission. Paid commissions cannot be updated.",
     ),
   currency: z
     .string()

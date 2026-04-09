@@ -24,7 +24,6 @@ import {
 import { VerifiedBadge } from "@dub/ui/icons";
 import {
   COUNTRIES,
-  capitalize,
   fetcher,
   formatDate,
   formatDateTimeSmart,
@@ -33,7 +32,6 @@ import {
 import Link from "next/link";
 import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
-import { ConversionScoreIcon } from "./conversion-score-icon";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import {
   PartnerApplicationFraudBanner,
@@ -42,7 +40,6 @@ import {
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
 import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
-import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
 import {
@@ -139,6 +136,11 @@ export function PartnerInfoCards({
       ),
       text: partner?.country ? COUNTRIES[partner.country] : "Planet Earth",
     },
+    {
+      id: "companyName",
+      icon: <OfficeBuilding className="size-3.5" />,
+      text: partner ? partner.companyName || null : undefined,
+    },
   ];
 
   if (isEnrolled) {
@@ -163,11 +165,6 @@ export function PartnerInfoCards({
             },
           ]
         : []),
-      {
-        id: "companyName",
-        icon: <OfficeBuilding className="size-3.5" />,
-        text: partner ? partner.companyName || null : undefined,
-      },
       {
         id: "createdAt",
         icon: <CalendarIcon className="size-3.5" />,
@@ -205,52 +202,11 @@ export function PartnerInfoCards({
   if (isNetwork) {
     basicFields = basicFields.concat([
       {
-        id: "conversion",
-        icon: (
-          <ConversionScoreIcon
-            score={partner?.conversionScore || null}
-            className="size-3.5 shrink-0"
-          />
-        ),
-        text: partner
-          ? partner.conversionScore
-            ? `${capitalize(partner.conversionScore)} conversion`
-            : "Unknown conversion"
-          : undefined,
-        wrapper: ConversionScoreTooltip,
-      },
-      {
-        id: "lastConversionAt",
-        icon: <ChartActivity2 className="size-3.5" />,
-        text: partner
-          ? partner.lastConversionAt
-            ? `Last conversion ${timeAgo(partner.lastConversionAt, { withAgo: true })}`
-            : "No conversions yet"
-          : undefined,
-        timestamp: partner?.lastConversionAt ?? undefined,
-      },
-      {
-        id: "companyName",
-        icon: <OfficeBuilding className="size-3.5" />,
-        text: partner ? partner.companyName || null : undefined,
-      },
-      {
         id: "joinedAt",
         icon: <CalendarIcon className="size-3.5" />,
         text: partner ? `Joined ${formatDate(partner.createdAt!)}` : undefined,
         timestamp: partner?.createdAt,
       },
-      ...(partner?.identityVerificationStatus === "approved" &&
-      partner?.identityVerifiedAt
-        ? [
-            {
-              id: "identityVerifiedAt",
-              icon: <VerifiedBadge className="size-3.5 shrink-0" />,
-              text: `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`,
-              timestamp: partner.identityVerifiedAt,
-            },
-          ]
-        : []),
     ]);
   }
 
