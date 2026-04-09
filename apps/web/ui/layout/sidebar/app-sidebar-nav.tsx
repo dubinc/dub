@@ -77,14 +77,9 @@ type SidebarNavData = {
   pendingReferralsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
-  plan?: string;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
-  slug,
-  pathname,
-  defaultProgramId,
-}) => [
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ slug, pathname }) => [
   {
     name: "Short Links",
     description:
@@ -364,7 +359,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   }),
 
   // Workspace settings
-  workspaceSettings: ({ slug, plan }) => ({
+  workspaceSettings: ({ slug }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -633,7 +628,6 @@ export function AppSidebarNav({
           canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
-        plan: plan || undefined,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}
