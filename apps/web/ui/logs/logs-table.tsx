@@ -2,6 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   AnimatedSizeContainer,
   Filter,
@@ -90,13 +91,32 @@ export function LogsTable() {
         size: 100,
       },
       {
-        id: "token_id",
-        header: "API Key",
-        cell: ({ row }: { row: Row<ApiLog> }) => (
-          <span className="truncate text-sm text-neutral-500">
-            {row.original.token_id || "Session"}
-          </span>
-        ),
+        id: "actor",
+        header: "Actor",
+        cell: ({ row }: { row: Row<ApiLog> }) => {
+          const { token, user } = row.original;
+
+          if (token) {
+            return (
+              <span className="truncate font-mono text-xs text-neutral-500">
+                {token.partialKey}
+              </span>
+            );
+          }
+
+          if (user) {
+            return (
+              <div className="flex items-center gap-2">
+                <UserAvatar user={user} className="size-4" />
+                <span className="truncate text-sm text-neutral-500">
+                  {user.name || user.email}
+                </span>
+              </div>
+            );
+          }
+
+          return <span className="text-sm text-neutral-400">—</span>;
+        },
         size: 200,
       },
       {

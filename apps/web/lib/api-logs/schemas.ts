@@ -1,4 +1,6 @@
 import { getPaginationQuerySchema } from "@/lib/zod/schemas/misc";
+import { tokenSchema } from "@/lib/zod/schemas/token";
+import { UserSchema } from "@/lib/zod/schemas/users";
 import * as z from "zod/v4";
 
 export const API_LOGS_MAX_PAGE_SIZE = 100;
@@ -43,6 +45,18 @@ export const apiLogResponseSchemaTB = z.object({
   response_body: z.string(),
   token_id: z.string(),
   user_id: z.string(),
+});
+
+// Schema for enriched API log (with resolved token and user)
+export const apiLogEnrichedSchema = apiLogResponseSchemaTB.extend({
+  token: tokenSchema
+    .pick({
+      id: true,
+      name: true,
+      partialKey: true,
+    })
+    .nullable(),
+  user: UserSchema.nullable(),
 });
 
 // Schema for count query filter params

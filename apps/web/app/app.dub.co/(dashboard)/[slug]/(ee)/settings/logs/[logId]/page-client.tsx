@@ -4,6 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ApiLog, getStatusCodeBadgeVariant } from "@/ui/logs/log-utils";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import { CopyButton, StatusBadge, TimestampTooltip } from "@dub/ui";
 import { ChevronRight, StackY3 } from "@dub/ui/icons";
 import { fetcher, formatDateTime } from "@dub/utils";
@@ -104,7 +105,6 @@ function LogDetailContent({ log }: { log: ApiLog }) {
   }, [highlighter, log]);
 
   const detailRows: Record<string, React.ReactNode> = {
-    Endpoint: <span className="font-mono">{log.path}</span>,
     Date: (
       <TimestampTooltip
         timestamp={log.timestamp}
@@ -132,9 +132,29 @@ function LogDetailContent({ log }: { log: ApiLog }) {
     ...(log.user_agent && {
       "User-agent": log.user_agent,
     }),
-    ...(log.token_id && {
-      "API Key": <span className="font-mono">{log.token_id}</span>,
-    }),
+    ...(log.token
+      ? {
+          "API Key": (
+            <span className="font-mono">
+              {log.token.partialKey}
+              {log.token.name && (
+                <span className="ml-1 font-sans text-neutral-400">
+                  ({log.token.name})
+                </span>
+              )}
+            </span>
+          ),
+        }
+      : log.user
+        ? {
+            User: (
+              <div className="flex items-center gap-1.5">
+                <UserAvatar user={log.user} className="size-4" />
+                <span>{log.user.name || log.user.email}</span>
+              </div>
+            ),
+          }
+        : {}),
     ID: (
       <div className="flex items-center gap-1.5">
         <span className="font-mono">{log.id}</span>
@@ -154,7 +174,7 @@ function LogDetailContent({ log }: { log: ApiLog }) {
             </h3>
             {highlightedRequest ? (
               <div
-                className="shiki-wrapper max-h-[500px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm "
+                className="shiki-wrapper max-h-[500px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
                 dangerouslySetInnerHTML={{ __html: highlightedRequest }}
               />
             ) : (
@@ -169,7 +189,7 @@ function LogDetailContent({ log }: { log: ApiLog }) {
             </h3>
             {highlightedResponse ? (
               <div
-                className="shiki-wrapper max-h-[500px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm "
+                className="shiki-wrapper max-h-[500px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
                 dangerouslySetInnerHTML={{ __html: highlightedResponse }}
               />
             ) : (

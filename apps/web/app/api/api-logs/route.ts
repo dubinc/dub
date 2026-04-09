@@ -1,3 +1,4 @@
+import { enrichApiLogs } from "@/lib/api-logs/enrich-api-logs";
 import { getApiLogs } from "@/lib/api-logs/get-api-logs";
 import { getApiLogsQuerySchema } from "@/lib/api-logs/schemas";
 import { withWorkspace } from "@/lib/auth/workspace";
@@ -13,7 +14,7 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
     });
 
-    return NextResponse.json(logs);
+    return NextResponse.json(await enrichApiLogs(logs));
   },
   {
     requiredPermissions: ["workspaces.read"],

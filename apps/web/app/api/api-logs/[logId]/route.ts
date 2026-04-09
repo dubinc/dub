@@ -1,3 +1,4 @@
+import { enrichApiLogs } from "@/lib/api-logs/enrich-api-logs";
 import { getApiLogById } from "@/lib/api-logs/get-api-logs";
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth/workspace";
@@ -18,7 +19,7 @@ export const GET = withWorkspace(
       });
     }
 
-    return NextResponse.json(log);
+    return NextResponse.json(await enrichApiLogs(log));
   },
   {
     requiredPermissions: ["workspaces.read"],
