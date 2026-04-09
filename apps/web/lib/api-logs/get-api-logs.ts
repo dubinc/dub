@@ -1,5 +1,3 @@
-import { formatUTCDateTimeClickhouse } from "@/lib/analytics/utils/format-utc-datetime-clickhouse";
-import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { tb } from "@/lib/tinybird";
 import * as z from "zod/v4";
 import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
@@ -21,8 +19,6 @@ export const getApiLogs = async ({
   method,
   statusCode,
   tokenId,
-  start,
-  end,
   limit = API_LOGS_MAX_PAGE_SIZE,
   offset = 0,
 }: GetApiLogsParams) => {
@@ -32,15 +28,8 @@ export const getApiLogs = async ({
     data: apiLogResponseSchemaTB,
   });
 
-  const { startDate, endDate } = getStartEndDates({
-    start,
-    end,
-  });
-
   const events = await pipe({
     workspaceId: prefixWorkspaceId(workspaceId),
-    start: formatUTCDateTimeClickhouse(startDate),
-    end: formatUTCDateTimeClickhouse(endDate),
     limit,
     offset,
     ...(path && { path }),
@@ -58,8 +47,6 @@ export const getApiLogsCount = async ({
   method,
   statusCode,
   tokenId,
-  start,
-  end,
 }: Omit<GetApiLogsParams, "limit" | "offset">) => {
   const pipe = tb.buildPipe({
     pipe: "count_api_logs",
@@ -67,15 +54,8 @@ export const getApiLogsCount = async ({
     data: apiLogCountResponseSchemaTB,
   });
 
-  const { startDate, endDate } = getStartEndDates({
-    start,
-    end,
-  });
-
   const result = await pipe({
     workspaceId: prefixWorkspaceId(workspaceId),
-    start: formatUTCDateTimeClickhouse(startDate),
-    end: formatUTCDateTimeClickhouse(endDate),
     ...(path && { path }),
     ...(method && { method }),
     ...(statusCode && { statusCode }),

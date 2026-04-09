@@ -11,8 +11,6 @@ export const GET = withWorkspace(
     const count = await getApiLogsCount({
       ...filters,
       workspaceId: workspace.id,
-      start: new Date().toUTCString(),
-      end: new Date().toISOString(),
     });
 
     return NextResponse.json(count);

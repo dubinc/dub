@@ -22,8 +22,6 @@ export const apiLogSchemaTB = z.object({
 // Schema for query filter params
 export const apiLogFilterSchemaTB = z.object({
   workspaceId: z.string(),
-  start: z.string(),
-  end: z.string(),
   path: z.string().optional(),
   method: z.string().optional(),
   statusCode: z.number().optional(),
@@ -70,7 +68,5 @@ export const getApiLogsQuerySchema = z
     method: z.enum(["POST", "PATCH", "PUT", "DELETE"]).optional(),
     statusCode: z.coerce.number().int().optional(),
     tokenId: z.string().optional(),
-    start: z.string().optional(),
-    end: z.string().optional(),
   })
   .extend(getPaginationQuerySchema({ pageSize: API_LOGS_MAX_PAGE_SIZE }));
