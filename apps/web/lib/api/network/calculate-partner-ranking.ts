@@ -12,7 +12,7 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
 }
 
 /**
- * Partner Ranking Algorithm for Discovery
+ * Partner Ranking Algorithm (only used for the "discover" tab)
  * Ranks partners based on performance in similar programs only.
  *
  * Scoring Breakdown (0-65+ points):
@@ -46,7 +46,6 @@ export async function calculatePartnerRanking({
   subscribers,
   page = 1,
   pageSize,
-  status = "discover",
   similarPrograms = [],
 }: PartnerRankingParams) {
   const conditions: Prisma.Sql[] = [
