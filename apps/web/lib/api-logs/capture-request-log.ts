@@ -31,6 +31,11 @@ export function captureRequestLog({
   requestHeaders: Headers;
   startTime: number;
 }) {
+  // Limit this to enterprise plan for now
+  if (workspace.plan !== "enterprise") {
+    return;
+  }
+
   const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
   if (!isMutation || !shouldLogRoute(url.pathname)) {
     return;
