@@ -1,4 +1,5 @@
-import { veriffDecisionEventSchema } from "@/lib/veriff/schema";
+import { computeVeriffIdentityHash } from "@/lib/veriff/compute-veriff-identity-hash";
+import { VeriffDecisionEvent } from "@/lib/veriff/schema";
 import {
   mergeVeriffMetadata,
   parseVeriffMetadata,
@@ -9,10 +10,6 @@ import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verif
 import { prisma } from "@dub/prisma";
 import { IdentityVerificationStatus, Partner } from "@dub/prisma/client";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
-import { createHash } from "crypto";
-import * as z from "zod/v4";
-
-type VeriffDecisionEvent = z.infer<typeof veriffDecisionEventSchema>;
 
 const veriffStatusMap: Record<
   VeriffDecisionEvent["verification"]["status"],
@@ -67,7 +64,7 @@ export const handleDecisionEvent = async ({
 
   // If the verification was approved, check for country mismatch
   if (effectiveStatus === "approved") {
-    veriffIdentityHash = computeIdentityHash(verification);
+    veriffIdentityHash = computeVeriffIdentityHash(verification);
     const isDuplicate = await checkDuplicateIdentity({
       partner,
       veriffIdentityHash,
@@ -174,37 +171,6 @@ async function checkDuplicateIdentity({
   });
 
   return !!duplicatePartner;
-}
-
-function computeIdentityHash(
-  verification: VeriffDecisionEvent["verification"],
-) {
-  const { person, document } = verification;
-
-  // Prefer document number (passport/ID number) — strongest unique signal
-  if (document?.number) {
-    const input = [
-      "doc",
-      document.number.toLowerCase().trim(),
-      ...(document.country ? [document.country.toUpperCase().trim()] : []),
-    ].join("|");
-
-    return createHash("sha256").update(input).digest("hex");
-  }
-
-  // Fall back to name + date of birth
-  if ((person?.firstName || person?.lastName) && person?.dateOfBirth) {
-    const input = [
-      "person",
-      ...(person.firstName ? [person.firstName.toLowerCase().trim()] : []),
-      ...(person.lastName ? [person.lastName.toLowerCase().trim()] : []),
-      person.dateOfBirth.trim(),
-    ].join("|");
-
-    return createHash("sha256").update(input).digest("hex");
-  }
-
-  return null;
 }
 
 async function sendEmailNotification({
