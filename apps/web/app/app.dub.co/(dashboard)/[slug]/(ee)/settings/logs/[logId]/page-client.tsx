@@ -174,7 +174,7 @@ function LogDetailContent({ log }: { log: ApiLog }) {
             </h3>
             {highlightedRequest ? (
               <div
-                className="shiki-wrapper max-h-[500px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
+                className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
                 dangerouslySetInnerHTML={{ __html: highlightedRequest }}
               />
             ) : (
@@ -189,7 +189,7 @@ function LogDetailContent({ log }: { log: ApiLog }) {
             </h3>
             {highlightedResponse ? (
               <div
-                className="shiki-wrapper max-h-[500px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
+                className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
                 dangerouslySetInnerHTML={{ __html: highlightedResponse }}
               />
             ) : (

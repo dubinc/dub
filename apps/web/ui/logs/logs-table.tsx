@@ -1,7 +1,10 @@
 "use client";
 
+import { API_LOGS_MAX_PAGE_SIZE } from "@/lib/api-logs/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   AnimatedSizeContainer,
@@ -10,11 +13,12 @@ import {
   Table,
   TimestampTooltip,
   usePagination,
+  useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { StackY3 } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
-import { Row } from "@tanstack/react-table";
+import { Cell, Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -22,8 +26,9 @@ import { ApiLog, getStatusCodeBadgeVariant } from "./log-utils";
 import { useLogFilters } from "./use-log-filters";
 
 export function LogsTable() {
-  const { id: workspaceId, slug } = useWorkspace();
   const router = useRouter();
+  const { id: workspaceId, slug } = useWorkspace();
+  const { searchParamsObj } = useRouterStuff();
 
   const {
     filters,
@@ -36,11 +41,17 @@ export function LogsTable() {
     setSelectedFilter,
   } = useLogFilters();
 
+  const { pagination, setPagination } = usePagination(API_LOGS_MAX_PAGE_SIZE);
+
+  const logsQuery = searchParamsObj.page
+    ? `${searchQuery}&page=${searchParamsObj.page}`
+    : searchQuery;
+
   const {
     data: logs,
     error,
     isLoading,
-  } = useSWR<ApiLog[]>(workspaceId && `/api/api-logs?${searchQuery}`, fetcher, {
+  } = useSWR<ApiLog[]>(workspaceId && `/api/api-logs?${logsQuery}`, fetcher, {
     keepPreviousData: true,
   });
 
@@ -48,8 +59,6 @@ export function LogsTable() {
     workspaceId && `/api/api-logs/count?${searchQuery}`,
     fetcher,
   );
-
-  const { pagination, setPagination } = usePagination();
 
   const isFiltered = activeFilters.length > 0;
 
@@ -61,6 +70,11 @@ export function LogsTable() {
         cell: ({ row }: { row: Row<ApiLog> }) => (
           <span className="truncate">{row.original.path}</span>
         ),
+        meta: {
+          filterParams: ({ row }: { row: Row<ApiLog> }) => ({
+            path: row.original.path,
+          }),
+        },
         size: 300,
       },
       {
@@ -71,6 +85,11 @@ export function LogsTable() {
             {row.original.method}
           </StatusBadge>
         ),
+        meta: {
+          filterParams: ({ row }: { row: Row<ApiLog> }) => ({
+            method: row.original.method,
+          }),
+        },
         size: 100,
       },
       {
@@ -84,6 +103,11 @@ export function LogsTable() {
             {row.original.status_code}
           </StatusBadge>
         ),
+        meta: {
+          filterParams: ({ row }: { row: Row<ApiLog> }) => ({
+            statusCode: row.original.status_code,
+          }),
+        },
         size: 100,
       },
       {
@@ -169,6 +193,19 @@ export function LogsTable() {
       }
     },
     onRowAuxClick: (row) => window.open(getLogUrl(row), "_blank"),
+    cellRight: (cell: Cell<ApiLog, unknown>) => {
+      const meta = cell.column.columnDef.meta as
+        | {
+            filterParams?: (cell: Cell<ApiLog, unknown>) => Record<string, any>;
+          }
+        | undefined;
+
+      return (
+        meta?.filterParams && (
+          <FilterButtonTableRow set={meta.filterParams(cell)} />
+        )
+      );
+    },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `log${p ? "s" : ""}`,
@@ -229,15 +266,22 @@ function LogsFilters({
 }) {
   return (
     <div>
-      <Filter.Select
-        className="w-full md:w-fit"
-        filters={filters}
-        activeFilters={activeFilters}
-        onSelect={onSelect}
-        onRemove={onRemove}
-        onSearchChange={setSearch}
-        onSelectedFilterChange={setSelectedFilter}
-      />
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+          onSearchChange={setSearch}
+          onSelectedFilterChange={setSelectedFilter}
+        />
+        <SearchBoxPersisted
+          urlParam="requestId"
+          placeholder="Search by request ID"
+          inputClassName="md:w-80"
+        />
+      </div>
       <AnimatedSizeContainer height>
         <div>
           {activeFilters.length > 0 && (

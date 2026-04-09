@@ -1,7 +1,7 @@
 import { tb } from "@/lib/tinybird";
 import * as z from "zod/v4";
 import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
-import { API_LOGS_MAX_PAGE_SIZE } from "./constants";
+import { API_LOGS_MAX_PAGE_SIZE, LOGGED_API_PATH_FILTERS } from "./constants";
 import {
   apiLogByIdFilterSchemaTB,
   apiLogCountFilterSchemaTB,
@@ -11,7 +11,24 @@ import {
 } from "./schemas";
 
 type GetApiLogsParams = z.infer<typeof apiLogFilterSchemaTB>;
+type GetApiLogsCountParams = z.infer<typeof apiLogCountFilterSchemaTB>;
 type GetApiLogByIdParams = z.infer<typeof apiLogByIdFilterSchemaTB>;
+
+// If path is a predefined filter pattern ending with %, treat it as a prefix match.
+// Otherwise treat it as an exact match. This avoids LIKE injection entirely.
+function getPathFilter(
+  path: string,
+): { path: string } | { pathPrefix: string } {
+  if (LOGGED_API_PATH_FILTERS.includes(path as any) && path.endsWith("%")) {
+    return {
+      pathPrefix: path.slice(0, -1),
+    };
+  }
+
+  return {
+    path,
+  };
+}
 
 export const getApiLogs = async ({
   workspaceId,
@@ -19,6 +36,7 @@ export const getApiLogs = async ({
   method,
   statusCode,
   tokenId,
+  requestId,
   limit = API_LOGS_MAX_PAGE_SIZE,
   offset = 0,
 }: GetApiLogsParams) => {
@@ -32,10 +50,11 @@ export const getApiLogs = async ({
     workspaceId: prefixWorkspaceId(workspaceId),
     limit,
     offset,
-    ...(path && { path }),
+    ...(path && getPathFilter(path)),
     ...(method && { method }),
     ...(statusCode && { statusCode }),
     ...(tokenId && { tokenId }),
+    ...(requestId && { requestId }),
   });
 
   return events.data;
@@ -47,7 +66,8 @@ export const getApiLogsCount = async ({
   method,
   statusCode,
   tokenId,
-}: Omit<GetApiLogsParams, "limit" | "offset">) => {
+  requestId,
+}: GetApiLogsCountParams) => {
   const pipe = tb.buildPipe({
     pipe: "count_api_logs",
     parameters: apiLogCountFilterSchemaTB,
@@ -56,10 +76,11 @@ export const getApiLogsCount = async ({
 
   const result = await pipe({
     workspaceId: prefixWorkspaceId(workspaceId),
-    ...(path && { path }),
+    ...(path && getPathFilter(path)),
     ...(method && { method }),
     ...(statusCode && { statusCode }),
     ...(tokenId && { tokenId }),
+    ...(requestId && { requestId }),
   });
 
   return result.data[0]?.count ?? 0;

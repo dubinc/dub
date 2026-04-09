@@ -22,9 +22,11 @@ SQL >
             AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
         {% end %}
         {% if defined(path) %} AND path = {{ String(path) }} {% end %}
+        {% if defined(pathPrefix) %} AND startsWith(path, {{ String(pathPrefix) }}) {% end %}
         {% if defined(method) %} AND method = {{ String(method) }} {% end %}
         {% if defined(statusCode) %} AND status_code = {{ UInt16(statusCode) }} {% end %}
         {% if defined(tokenId) %} AND token_id = {{ String(tokenId) }} {% end %}
+        {% if defined(requestId) %} AND id = {{ String(requestId) }} {% end %}
     ORDER BY timestamp DESC
     LIMIT {{ Int32(limit, 100) }}
     OFFSET {{ Int32(offset, 0) }}

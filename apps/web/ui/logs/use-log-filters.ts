@@ -3,7 +3,7 @@
 import {
   HTTP_METHODS,
   HTTP_STATUS_CODES,
-  LOGGED_API_PATH_PATTERNS,
+  LOGGED_API_PATH_FILTERS,
 } from "@/lib/api-logs/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
@@ -57,7 +57,7 @@ export function useLogFilters() {
         key: "path",
         icon: Globe,
         label: "Endpoint",
-        options: LOGGED_API_PATH_PATTERNS.map((p) => ({
+        options: LOGGED_API_PATH_FILTERS.map((p) => ({
           value: p,
           label: p,
         })),
@@ -122,16 +122,20 @@ export function useLogFilters() {
     [queryParams],
   );
 
-  const searchQuery = useMemo(
-    () =>
-      new URLSearchParams({
-        ...Object.fromEntries(
-          activeFilters.map(({ key, value }) => [key, value]),
-        ),
-        workspaceId: workspaceId || "",
-      }).toString(),
-    [activeFilters, workspaceId],
-  );
+  const searchQuery = useMemo(() => {
+    const params: Record<string, string> = {
+      workspaceId: workspaceId || "",
+      ...Object.fromEntries(
+        activeFilters.map(({ key, value }) => [key, value]),
+      ),
+    };
+
+    if (searchParamsObj.requestId) {
+      params.requestId = searchParamsObj.requestId;
+    }
+
+    return new URLSearchParams(params).toString();
+  }, [activeFilters, workspaceId, searchParamsObj.requestId]);
 
   return {
     filters,

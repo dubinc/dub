@@ -10,6 +10,19 @@ export const LOGGED_API_PATH_PATTERNS = [
   "/api/bounties/**",
 ] as const;
 
+// SQL LIKE patterns for the endpoint filter dropdown
+export const LOGGED_API_PATH_FILTERS = [
+  "/api/track/lead",
+  "/api/track/sale",
+  "/api/track/open",
+  "/api/partners/%",
+  "/api/tokens/embed/referrals",
+  "/api/customers/%",
+  "/api/links/%",
+  "/api/commissions/%",
+  "/api/bounties/%",
+] as const;
+
 export const HTTP_STATUS_CODES = [
   { value: 200, label: "200 OK" },
   { value: 201, label: "201 Created" },
@@ -25,4 +38,4 @@ export const HTTP_STATUS_CODES = [
 
 export const HTTP_METHODS = ["POST", "PATCH", "PUT", "DELETE"] as const;
 
-export const API_LOGS_MAX_PAGE_SIZE = 10;
+export const API_LOGS_MAX_PAGE_SIZE = 50;

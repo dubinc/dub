@@ -24,9 +24,11 @@ export const apiLogSchemaTB = z.object({
 export const apiLogFilterSchemaTB = z.object({
   workspaceId: z.string(),
   path: z.string().optional(),
+  pathPrefix: z.string().optional(),
   method: z.string().optional(),
   statusCode: z.number().optional(),
   tokenId: z.string().optional(),
+  requestId: z.string().optional(),
   limit: z.number().optional(),
   offset: z.number().optional(),
 });
@@ -81,5 +83,10 @@ export const getApiLogsQuerySchema = z
     method: z.enum(["POST", "PATCH", "PUT", "DELETE"]).optional(),
     statusCode: z.coerce.number().int().optional(),
     tokenId: z.string().optional(),
+    requestId: z.string().optional(),
   })
-  .extend(getPaginationQuerySchema({ pageSize: API_LOGS_MAX_PAGE_SIZE }));
+  .extend(
+    getPaginationQuerySchema({
+      pageSize: API_LOGS_MAX_PAGE_SIZE,
+    }),
+  );
