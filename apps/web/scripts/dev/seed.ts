@@ -128,10 +128,48 @@ type SeedData = {
   >[];
 };
 
-const parseJSON = (): SeedData => {
-  const jsonPath = path.join(__dirname, "data.json");
-  const jsonData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
-  return jsonData;
+function parseCliArgs(argv: string[]) {
+  const args = argv.slice(2);
+  let shouldTruncate = false;
+  let workspaceSlug: string | undefined;
+
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a === "--truncate") {
+      shouldTruncate = true;
+      continue;
+    }
+
+    if (a === "--workspace" || a === "-w") {
+      const next = args[i + 1];
+      if (!next || next.startsWith("-")) {
+        throw new Error(
+          `Missing value for ${a}. Usage: -w <slug> or --workspace <slug> (loads {slug}-workspace.json; default slug is acme).`,
+        );
+      }
+      workspaceSlug = next;
+      i++;
+      continue;
+    }
+  }
+
+  return {
+    shouldTruncate,
+    workspaceSlug: workspaceSlug ?? "acme",
+  };
+}
+
+const parseJSON = (workspaceSlug: string): SeedData => {
+  const filename = `${workspaceSlug}-workspace.json`;
+  const jsonPath = path.join(__dirname, filename);
+
+  if (!fs.existsSync(jsonPath)) {
+    throw new Error(
+      `Workspace seed file not found: ${filename} (expected path: ${jsonPath})`,
+    );
+  }
+
+  return JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
 };
 
 // Create workspace
@@ -164,6 +202,7 @@ const createUsers = async (data: SeedData) => {
       emailVerified: new Date(user.emailVerified),
       passwordHash,
     })),
+    skipDuplicates: true,
   });
 
   console.log(`Created ${count} users`);
@@ -560,9 +599,8 @@ const askConfirmation = (question: string): Promise<boolean> => {
 };
 
 async function main() {
-  // Check for --truncate flag
   // process.argv[0] = node, process.argv[1] = script path, process.argv[2+] = arguments
-  const shouldTruncate = process.argv.slice(2).includes("--truncate");
+  const { shouldTruncate, workspaceSlug } = parseCliArgs(process.argv);
 
   if (shouldTruncate) {
     console.log(
@@ -583,7 +621,7 @@ async function main() {
     console.log("\n");
   }
 
-  const data = parseJSON();
+  const data = parseJSON(workspaceSlug);
 
   await createWorkspace(data);
   await createUsers(data);
