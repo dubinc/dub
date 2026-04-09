@@ -9,7 +9,7 @@ import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Popover, Users2 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { AboutYouForm } from "./about-you-form";
 import { HowYouWorkForm } from "./how-you-work-form";
 import { ProfileDetailsForm } from "./profile-details-form";
@@ -25,6 +25,9 @@ export function ProfileSettingsPageClient() {
     [tasks],
   );
 
+  const { MergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
+    useMergePartnerAccountsModal();
+
   return (
     <PageContent
       title="Profile"
@@ -33,11 +36,19 @@ export function ProfileSettingsPageClient() {
           "Build a stronger partner profile and increase trust by adding and verifying your website and social accounts.",
         href: "https://dub.co/help/article/partner-profile",
       }}
-      controls={<Controls />}
+      controls={
+        <Controls
+          setShowMergePartnerAccountsModal={setShowMergePartnerAccountsModal}
+        />
+      }
     >
+      <MergePartnerAccountsModal />
       <PageWidthWrapper className="mb-20 flex flex-col gap-6">
         {partner && !allTasksCompleted && <ProfileDiscoveryGuide />}
-        <ProfileDetailsForm partner={partner} />
+        <ProfileDetailsForm
+          partner={partner}
+          setShowMergePartnerAccountsModal={setShowMergePartnerAccountsModal}
+        />
         <AboutYouForm partner={partner} />
         <HowYouWorkForm partner={partner} />
       </PageWidthWrapper>
@@ -45,7 +56,11 @@ export function ProfileSettingsPageClient() {
   );
 }
 
-function Controls() {
+function Controls({
+  setShowMergePartnerAccountsModal,
+}: {
+  setShowMergePartnerAccountsModal: Dispatch<SetStateAction<boolean>>;
+}) {
   const { partner } = usePartnerProfile();
   const disabled = partner
     ? !hasPermission(partner.role, "partner_profile.update")
@@ -53,50 +68,43 @@ function Controls() {
 
   const [isOpen, setIsOpen] = useState(false);
 
-  const { MergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
-    useMergePartnerAccountsModal();
-
   return (
-    <>
-      <MergePartnerAccountsModal />
-
-      <Popover
-        openPopover={isOpen}
-        setOpenPopover={setIsOpen}
-        content={
-          <div className="w-full p-2 md:w-56">
-            <button
-              onClick={() => {
-                if (!disabled) {
-                  setShowMergePartnerAccountsModal(true);
-                  setIsOpen(false);
-                }
-              }}
-              disabled={disabled}
-              className={cn(
-                "w-full rounded-md p-2",
-                disabled
-                  ? "cursor-not-allowed bg-neutral-50 text-neutral-400"
-                  : "hover:bg-neutral-100 active:bg-neutral-200",
-              )}
-            >
-              <div className="flex items-center gap-2 text-left">
-                <Users2 className="size-4 shrink-0" />
-                <span className="text-sm font-medium">Merge accounts</span>
-              </div>
-            </button>
-          </div>
-        }
-        align="end"
-      >
-        <Button
-          type="button"
-          className="h-9 whitespace-nowrap px-2"
-          variant="secondary"
-          icon={<ThreeDots className="size-4 shrink-0" />}
-          onClick={() => setIsOpen(!isOpen)}
-        />
-      </Popover>
-    </>
+    <Popover
+      openPopover={isOpen}
+      setOpenPopover={setIsOpen}
+      content={
+        <div className="w-full p-2 md:w-56">
+          <button
+            onClick={() => {
+              if (!disabled) {
+                setShowMergePartnerAccountsModal(true);
+                setIsOpen(false);
+              }
+            }}
+            disabled={disabled}
+            className={cn(
+              "w-full rounded-md p-2",
+              disabled
+                ? "cursor-not-allowed bg-neutral-50 text-neutral-400"
+                : "hover:bg-neutral-100 active:bg-neutral-200",
+            )}
+          >
+            <div className="flex items-center gap-2 text-left">
+              <Users2 className="size-4 shrink-0" />
+              <span className="text-sm font-medium">Merge accounts</span>
+            </div>
+          </button>
+        </div>
+      }
+      align="end"
+    >
+      <Button
+        type="button"
+        className="h-9 whitespace-nowrap px-2"
+        variant="secondary"
+        icon={<ThreeDots className="size-4 shrink-0" />}
+        onClick={() => setIsOpen(!isOpen)}
+      />
+    </Popover>
   );
 }

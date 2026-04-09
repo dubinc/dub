@@ -552,9 +552,7 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount<
-    number | undefined
-  >({
+  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount({
     eligibility: "eligible",
     status: "pending",
     ignoreParams: true,
@@ -616,7 +614,7 @@ export function AppSidebarNav({
         session: session || undefined,
         showNews: true,
         defaultProgramId: defaultProgramId || undefined,
-        pendingPayoutsCount,
+        pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
