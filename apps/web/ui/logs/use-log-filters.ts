@@ -79,7 +79,7 @@ export function useLogFilters() {
         options:
           tokens?.map((t) => ({
             value: t.id,
-            label: t.partialKey,
+            label: `${t.name} (${t.partialKey})`,
           })) ?? null,
       },
     ],
