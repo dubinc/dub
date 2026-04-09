@@ -1,3 +1,4 @@
+import { formatMoneyCentsForExport } from "@/lib/api/utils/format-money-cents-for-export";
 import { exportLinksColumns } from "@/lib/zod/schemas/links";
 import { linkConstructor } from "@dub/utils";
 import { transformLink } from "./utils";
@@ -19,7 +20,7 @@ export function formatLinksForExport(
     exportLinksColumns.some((c) => c.id === column),
   );
 
-  const sortedColumns = columns.sort(
+  const sortedColumns = [...columns].sort(
     (a, b) => (columnMap[a]?.order || 999) - (columnMap[b]?.order || 999),
   );
 
@@ -41,7 +42,13 @@ export function formatLinksForExport(
 
       const { label, transform } = columnMap[column];
 
-      if (transform) {
+      if (column === "saleAmount") {
+        result[label] = formatMoneyCentsForExport(
+          Number(value ?? 0),
+          "USD",
+          `link ${link.id}`,
+        );
+      } else if (transform) {
         result[label] = transform(value);
       } else {
         result[label] = value;

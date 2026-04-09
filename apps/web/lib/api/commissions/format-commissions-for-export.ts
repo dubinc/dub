@@ -1,5 +1,5 @@
+import { formatMoneyCentsForExport } from "@/lib/api/utils/format-money-cents-for-export";
 import { COMMISSION_EXPORT_COLUMNS } from "@/lib/zod/schemas/commissions";
-import { currencyFormatter } from "@dub/utils";
 import * as z from "zod/v4";
 import { getCommissions } from "./get-commissions";
 
@@ -37,30 +37,6 @@ const COLUMN_TYPE_SCHEMAS = {
     .transform((value) => value || ""),
 };
 
-/** Intl.NumberFormat throws RangeError for invalid ISO currency codes; DB allows free-form strings. */
-function formatMoneyCentsForExport(
-  cents: number,
-  currency: string | null | undefined,
-  commissionId: string,
-): string {
-  const code = (currency ?? "").trim() || "USD";
-  try {
-    return currencyFormatter(cents, { currency: code });
-  } catch (error) {
-    const isRangeError = error instanceof RangeError;
-    console.warn(
-      `[formatCommissionsForExport] currency format failed for commission ${commissionId} (currency=${JSON.stringify(currency)}, isRangeError=${isRangeError}); falling back.`,
-      error,
-    );
-    try {
-      return currencyFormatter(cents, { currency: "USD" });
-    } catch {
-      const safe = Number.isFinite(cents) ? cents : 0;
-      return (safe / 100).toFixed(2);
-    }
-  }
-}
-
 // Formats commissions for CSV export with proper column ordering and type coercion
 export function formatCommissionsForExport(
   commissions: Awaited<ReturnType<typeof getCommissions>>,
@@ -94,7 +70,7 @@ export function formatCommissionsForExport(
         row[col] = formatMoneyCentsForExport(
           cents,
           commission.currency,
-          commission.id,
+          `commission ${commission.id}`,
         );
       }
     }
