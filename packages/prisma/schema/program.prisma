@@ -153,6 +153,7 @@ model ProgramEnrollment {
   fraudEventGroups  FraudEventGroup[]
   referrals         PartnerReferral[]
   fraudAlerts       FraudAlert[]
+  discoveredPartner DiscoveredPartner?
 
   // unique constraints
   @@unique([partnerId, programId])

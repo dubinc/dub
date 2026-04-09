@@ -84,6 +84,7 @@ export const invitePartnerFromNetworkAction = authActionClient
       },
       update: {
         invitedAt: new Date(),
+        ignoredAt: null,
       },
     });
 

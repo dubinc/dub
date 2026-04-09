@@ -18,6 +18,7 @@ import {
 } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import { PartnerAbout } from "../partner-about";
@@ -198,6 +199,7 @@ function PartnerControls({
 }) {
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
+  const pathname = usePathname();
 
   const { executeAsync, isPending } = useAction(
     invitePartnerFromNetworkAction,
@@ -247,9 +249,11 @@ function PartnerControls({
         <div className="mr-2">
           <InvitesUsage />
         </div>
-        <div className="flex-shrink-0">
-          <PartnerIgnoreButton partner={partner} setIsOpen={setIsOpen} />
-        </div>
+        {!pathname.endsWith("/ignored") && (
+          <div className="flex-shrink-0">
+            <PartnerIgnoreButton partner={partner} setIsOpen={setIsOpen} />
+          </div>
+        )}
         <Button
           type="button"
           variant="primary"
