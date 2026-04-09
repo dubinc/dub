@@ -152,7 +152,7 @@ export function BountySubmissionsTable({
 
           if (status === "draft" && !bountyInfo?.hasSocialMetrics) {
             buttonText = "Continue";
-          } else if (["submitted", "approved", "rejected"].includes(status)) {
+          } else if (status !== "notSubmitted") {
             buttonText = "View";
           }
 
