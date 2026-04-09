@@ -8,7 +8,12 @@ import {
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
-import { Code, Globe, Key, Receipt2 } from "@dub/ui/icons";
+import {
+  ArrowsOppositeDirectionX,
+  CircleCheck,
+  Globe,
+  Key,
+} from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
@@ -30,8 +35,17 @@ export function useLogFilters() {
   const filters = useMemo(
     () => [
       {
+        key: "path",
+        icon: Globe,
+        label: "Endpoint",
+        options: LOGGED_PATH_PREFIXES.map((p) => ({
+          value: p,
+          label: p,
+        })),
+      },
+      {
         key: "method",
-        icon: Code,
+        icon: ArrowsOppositeDirectionX,
         label: "Method",
         options: HTTP_METHODS.map((m) => ({
           value: m,
@@ -40,20 +54,11 @@ export function useLogFilters() {
       },
       {
         key: "statusCode",
-        icon: Receipt2,
+        icon: CircleCheck,
         label: "Status",
         options: HTTP_STATUS_CODES.map(({ value, label }) => ({
           value,
           label,
-        })),
-      },
-      {
-        key: "path",
-        icon: Globe,
-        label: "Endpoint",
-        options: LOGGED_PATH_PREFIXES.map((p) => ({
-          value: p,
-          label: p,
         })),
       },
       {
