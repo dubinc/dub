@@ -51,15 +51,27 @@ export const recordApiLog = async ({
     user_id: userId ?? "",
   };
 
-  try {
-    await recordApiLogTB(apiLog);
-  } catch (error) {
-    console.error("Failed to record API log", error, JSON.stringify(apiLog));
+  const maxRetries = 3;
 
-    await log({
-      message: "Failed to record API log. See logs for more details.",
-      type: "errors",
-      mention: true,
-    });
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      await recordApiLogTB(apiLog);
+      return;
+    } catch (error) {
+      if (attempt < maxRetries) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 100 * Math.pow(2, attempt)),
+        );
+        continue;
+      }
+
+      console.error("Failed to record API log", error, JSON.stringify(apiLog));
+
+      await log({
+        message: "Failed to record API log. See logs for more details.",
+        type: "errors",
+        mention: true,
+      });
+    }
   }
 };

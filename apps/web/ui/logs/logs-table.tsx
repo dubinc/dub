@@ -12,7 +12,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Note } from "@dub/ui/icons";
+import { StackY3 } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
@@ -180,11 +180,11 @@ export function LogsTable() {
           description={
             isFiltered
               ? "No logs found for the selected filters. Adjust your filters to refine your search results."
-              : "No API logs have been recorded for your workspace yet. Logs are created when mutation requests (POST, PUT, PATCH, DELETE) are made to tracked endpoints."
+              : "No API logs have been recorded for your workspace yet."
           }
           cardContent={() => (
             <>
-              <Note className="size-4 text-neutral-700" />
+              <StackY3 className="text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
             </>
           )}

@@ -417,6 +417,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/tracking`,
           },
           {
+            name: "Logs",
+            icon: StackY3,
+            href: `/${slug}/settings/logs`,
+          },
+          {
             name: "Webhooks",
             icon: Webhook,
             href: `/${slug}/settings/webhooks`,
@@ -425,11 +430,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "OAuth Apps",
             icon: CubeSettings,
             href: `/${slug}/settings/oauth-apps`,
-          },
-          {
-            name: "Logs",
-            icon: StackY3,
-            href: `/${slug}/settings/logs`,
           },
         ],
       },
