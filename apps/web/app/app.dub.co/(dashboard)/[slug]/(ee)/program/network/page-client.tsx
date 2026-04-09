@@ -128,7 +128,6 @@ export function ProgramPartnerNetworkPageClient({
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
-          hideNotAFit={variant === "ignored"}
           onPrevious={
             previousPartnerId
               ? () =>
