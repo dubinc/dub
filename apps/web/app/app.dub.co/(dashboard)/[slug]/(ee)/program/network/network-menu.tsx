@@ -22,16 +22,14 @@ export function NetworkMenu() {
           <button
             type="button"
             onClick={() => {
-              router.push(`/${workspaceSlug}/program/network/dismissed`);
+              router.push(`/${workspaceSlug}/program/network/ignored`);
               setIsOpen(false);
             }}
             className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
           >
             <div className="flex items-center gap-2 text-left">
               <UserXmark className="size-4 shrink-0" />
-              <span className="text-sm font-medium">
-                View dismissed partners
-              </span>
+              <span className="text-sm font-medium">View ignored partners</span>
             </div>
           </button>
         </div>

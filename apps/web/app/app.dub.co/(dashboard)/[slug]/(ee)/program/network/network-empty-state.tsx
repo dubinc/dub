@@ -16,7 +16,7 @@ export function NetworkEmptyState({
 }) {
   const emptyDescription =
     variant === "ignored" && !isFiltered && !isStarred ? (
-      "No partners have been marked as not a fit yet."
+      `You have not marked any partners as "not a fit" yet.`
     ) : isFiltered || isStarred ? (
       <>
         Press{" "}
