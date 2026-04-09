@@ -88,6 +88,7 @@ model Program {
   fraudRules               FraudRule[]
   fraudEventGroups         FraudEventGroup[]
   sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
+  fraudAlerts              FraudAlert[]
   referrals                PartnerReferral[]
   partnerUserPrograms      PartnerUserProgram[]
   partnerUserLinks         PartnerUserLink[]
@@ -153,6 +154,8 @@ model ProgramEnrollment {
   messages          Message[]
   fraudEventGroups  FraudEventGroup[]
   referrals         PartnerReferral[]
+  fraudAlerts       FraudAlert[]
+  discoveredPartner DiscoveredPartner?
 
   // unique constraints
   @@unique([partnerId, programId])
