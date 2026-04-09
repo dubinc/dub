@@ -12,7 +12,7 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
 }
 
 /**
- * Partner Ranking Algorithm for Discovery
+ * Partner Ranking Algorithm (only used for the "discover" tab)
  * Ranks partners based on performance in similar programs only.
  *
  * Scoring Breakdown (0-65+ points):
@@ -36,9 +36,6 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  * Displayed Metrics:
  * - clickToConversionRate: Average click-to-conversion rate across ALL programs the partner is enrolled in
  * - lastConversionAt: Most recent conversion date across ALL programs the partner is enrolled in
- *
- * Note: Ranking is primarily used for the "discover" tab. For "invited" and "recruited"
- * tabs, partners are sorted by date (most recent first).
  */
 export async function calculatePartnerRanking({
   programId,
@@ -49,13 +46,13 @@ export async function calculatePartnerRanking({
   subscribers,
   page = 1,
   pageSize,
-  status = "discover",
   similarPrograms = [],
 }: PartnerRankingParams) {
   const conditions: Prisma.Sql[] = [
     Prisma.sql`p.discoverableAt IS NOT NULL`,
-    Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
     Prisma.sql`COALESCE(pe.clickToConversionRate, 0) < 1`,
+    Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
+    Prisma.sql`enrolled.id IS NULL`,
   ];
 
   if (partnerIds && partnerIds.length > 0) {
@@ -108,18 +105,6 @@ export async function calculatePartnerRanking({
     );
   }
 
-  if (status === "discover") {
-    conditions.push(Prisma.sql`enrolled.id IS NULL`);
-  } else if (status === "invited") {
-    conditions.push(
-      Prisma.sql`enrolled.status = 'invited' AND dp.invitedAt IS NOT NULL`,
-    );
-  } else if (status === "recruited") {
-    conditions.push(
-      Prisma.sql`enrolled.status = 'approved' AND dp.invitedAt IS NOT NULL`,
-    );
-  }
-
   if (starred === true) {
     conditions.push(Prisma.sql`dp.starredAt IS NOT NULL`);
   } else if (starred === false) {
@@ -136,13 +121,9 @@ export async function calculatePartnerRanking({
   )`;
 
   const orderByClause =
-    status === "discover"
-      ? starred === true
-        ? Prisma.sql`dp.starredAt ASC`
-        : Prisma.sql`finalScore DESC, p.id ASC`
-      : status === "invited"
-        ? Prisma.sql`dp.invitedAt ASC`
-        : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
+    starred === true
+      ? Prisma.sql`dp.starredAt ASC`
+      : Prisma.sql`finalScore DESC, p.id ASC`;
 
   const offset = (page - 1) * pageSize;
 
