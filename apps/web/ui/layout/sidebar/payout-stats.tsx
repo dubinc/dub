@@ -2,7 +2,6 @@
 
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PayoutsCount } from "@/lib/types";
 import { ConnectPayoutButton } from "@/ui/partners/payouts/connect-payout-button";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
@@ -19,7 +18,7 @@ import { memo } from "react";
 export const PayoutStats = memo(() => {
   const { partner } = usePartnerProfile();
 
-  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+  const { payoutsCount } = usePartnerPayoutsCount({
     groupBy: "status",
   });
 

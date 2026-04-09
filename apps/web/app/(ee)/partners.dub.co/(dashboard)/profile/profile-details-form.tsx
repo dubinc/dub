@@ -2,6 +2,7 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
@@ -77,6 +78,10 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
     },
   });
 
+  const { payoutsCount } = usePartnerPayoutsCount({
+    status: "completed",
+  });
+
   return (
     <div className="border-border-subtle divide-border-subtle flex flex-col divide-y rounded-lg border">
       {stripeConfirmModal}
@@ -103,7 +108,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
         </FormProvider>
       </SettingsRow>
 
-      {partner?.email?.endsWith("@dub.co") && (
+      {(payoutsCount?.[0]?.amount ?? 0) > 10000 && (
         <SettingsRow
           id="identity-verification"
           heading="Identity verification"
