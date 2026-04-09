@@ -25,7 +25,14 @@ import {
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
-import { RefObject, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Controller,
   FormProvider,
@@ -45,7 +52,13 @@ type BasicInfoFormData = {
   companyName: string | null;
 };
 
-export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
+export function ProfileDetailsForm({
+  partner,
+  setShowMergePartnerAccountsModal,
+}: {
+  partner?: PartnerProps;
+  setShowMergePartnerAccountsModal: Dispatch<SetStateAction<boolean>>;
+}) {
   const disabled = partner
     ? !hasPermission(partner.role, "partner_profile.update")
     : true;
@@ -114,7 +127,10 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
           heading="Identity verification"
           description="Verify your identity to build trust with programs and get approved for programs faster."
         >
-          <IdentityVerificationSection partner={partner} />
+          <IdentityVerificationSection
+            partner={partner}
+            setShowMergePartnerAccountsModal={setShowMergePartnerAccountsModal}
+          />
         </SettingsRow>
       )}
 

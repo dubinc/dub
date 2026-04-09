@@ -13,14 +13,17 @@ import {
   Veriff,
   VerifiedBadge,
 } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, DUPLICATE_IDENTITY_DECLINE_REASON } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import { Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 
 export function IdentityVerificationSection({
   partner,
+  setShowMergePartnerAccountsModal,
 }: {
   partner?: PartnerProps;
+  setShowMergePartnerAccountsModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { mutate } = usePartnerProfile();
 
@@ -111,6 +114,10 @@ export function IdentityVerificationSection({
     }
   }
 
+  const IS_DUPLICATE_IDENTITY_DECLINE =
+    identityVerificationStatus === "declined" &&
+    failedReason === DUPLICATE_IDENTITY_DECLINE_REASON;
+
   switch (identityVerificationStatus) {
     case "started":
       buttonText = "Complete verification";
@@ -134,6 +141,27 @@ export function IdentityVerificationSection({
           <p className="leading-0 text-sm font-medium text-amber-900">
             <span className="font-semibold">Verification failed:</span>{" "}
             {failedReason}
+            {IS_DUPLICATE_IDENTITY_DECLINE && (
+              <span>
+                {" "}
+                Please{" "}
+                <button
+                  onClick={() => setShowMergePartnerAccountsModal(true)}
+                  className="font-semibold underline underline-offset-2"
+                >
+                  merge your accounts
+                </button>{" "}
+                or{" "}
+                <a
+                  href="https://dub.co/support"
+                  className="font-semibold underline underline-offset-2"
+                  target="_blank"
+                >
+                  contact support
+                </a>{" "}
+                if you believe this is a mistake.
+              </span>
+            )}
           </p>
         </div>
       )}
@@ -146,9 +174,9 @@ export function IdentityVerificationSection({
         <div className="relative flex flex-col items-center gap-3 px-6 py-3">
           {identityVerificationStatus === "approved" ? (
             <VerifiedBadge className="size-6" />
-          ) : (
+          ) : !IS_DUPLICATE_IDENTITY_DECLINE ? (
             <ShieldCheck className="size-6 text-neutral-400" />
-          )}
+          ) : null}
 
           {identityVerificationStatus === "approved" && (
             <StatusBadge
@@ -174,7 +202,9 @@ export function IdentityVerificationSection({
             !isPendingReview &&
             buttonText && (
               <Button
-                text={buttonText}
+                text={
+                  IS_DUPLICATE_IDENTITY_DECLINE ? "Merge accounts" : buttonText
+                }
                 variant="secondary"
                 disabled={isMaxAttemptsReached || cannotUpdateProfile}
                 disabledTooltip={
@@ -184,16 +214,24 @@ export function IdentityVerificationSection({
                       ? "You have reached the maximum number of verification attempts. Please contact support if you need help."
                       : undefined
                 }
-                onClick={() => executeAsync()}
+                onClick={() => {
+                  if (IS_DUPLICATE_IDENTITY_DECLINE) {
+                    setShowMergePartnerAccountsModal(true);
+                  } else {
+                    executeAsync();
+                  }
+                }}
                 loading={isPending}
                 className="h-10 w-fit rounded-lg px-4 py-1.5"
               />
             )}
 
-          <div className="flex items-center gap-1 text-xs font-medium text-neutral-400">
-            <span>Powered by</span>
-            <Veriff className="w-auto" />
-          </div>
+          {!IS_DUPLICATE_IDENTITY_DECLINE && (
+            <div className="flex items-center gap-1 text-xs font-medium text-neutral-400">
+              <span>Powered by</span>
+              <Veriff className="w-auto" />
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-iden
 import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
 import { prisma } from "@dub/prisma";
 import { IdentityVerificationStatus, Partner } from "@dub/prisma/client";
+import { DUPLICATE_IDENTITY_DECLINE_REASON } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 
 const veriffStatusMap: Record<
@@ -77,8 +78,7 @@ export const handleDecisionEvent = async ({
 
     if (isDuplicate) {
       effectiveStatus = "declined";
-      declineReason =
-        "This identity has already been verified on another account.";
+      declineReason = DUPLICATE_IDENTITY_DECLINE_REASON;
     } else if (isCountryMismatch) {
       effectiveStatus = "declined";
       declineReason = `Your document country (${verification.document?.country}) does not match your account country (${partner.country})`;
