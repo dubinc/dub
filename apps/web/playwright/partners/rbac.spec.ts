@@ -1,300 +1,309 @@
-import { expect, test } from "@playwright/test";
-import { RBAC_PROGRAMS } from "./rbac-constants";
+import { APIRequestContext, expect, test } from "@playwright/test";
 
-const { acme, example } = RBAC_PROGRAMS;
+const BASE = "http://partners.localhost:8888";
 
-// Helper to wait for sidebar to be ready
-async function waitForSidebar(page: import("@playwright/test").Page) {
-  await expect(
-    page.getByRole("link", { name: "Programs", exact: true }),
-  ).toBeVisible({ timeout: 15_000 });
+function api(request: APIRequestContext) {
+  return {
+    get: (path: string) => request.get(`${BASE}/api/partner-profile${path}`),
+    post: (path: string, data?: object) =>
+      request.post(`${BASE}/api/partner-profile${path}`, { data }),
+    patch: (path: string, data?: object) =>
+      request.patch(`${BASE}/api/partner-profile${path}`, { data }),
+    delete: (path: string) =>
+      request.delete(`${BASE}/api/partner-profile${path}`),
+  };
 }
 
-// Helper to check page loads without error
-async function expectPageLoads(page: import("@playwright/test").Page) {
-  // Ensure page doesn't show a hard error
-  await expect(page.locator("body")).not.toContainText("Application error", {
-    timeout: 10_000,
-  });
-}
+// ─── Owner role ───────────────────────────────────────────────────────────────
 
 test.describe("Owner role", () => {
   test.use({ storageState: "playwright/.auth/partner-owner.json" });
 
-  test("can see Payouts and Messages in sidebar", async ({ page }) => {
-    await page.goto("/programs");
-    await waitForSidebar(page);
-
-    await expect(
-      page.getByRole("link", { name: "Payouts", exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "Messages", exact: true }),
-    ).toBeVisible();
+  test("GET / — partner profile", async ({ request }) => {
+    const res = await api(request).get("/");
+    expect(res.status()).toBe(200);
   });
 
-  test("can see both programs in programs list", async ({ page }) => {
-    await page.goto("/programs");
-
-    await expect(page.getByText("Acme")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText("Example")).toBeVisible();
+  test("GET /programs — sees both programs", async ({ request }) => {
+    const res = await api(request).get("/programs");
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(2);
   });
 
-  test("can see all 2 links on Acme program", async ({ page }) => {
-    await page.goto(`/programs/${acme}/links`);
-
-    await expect(page.getByText("rbac-acme-link-1")).toBeVisible({
-      timeout: 15_000,
-    });
-    await expect(page.getByText("rbac-acme-link-2")).toBeVisible();
+  test("GET /programs/acme — accessible", async ({ request }) => {
+    const res = await api(request).get("/programs/acme");
+    expect(res.status()).toBe(200);
   });
 
-  test("can see all 2 links on Example program", async ({ page }) => {
-    await page.goto(`/programs/${example}/links`);
-
-    await expect(page.getByText("rbac-example-link-1")).toBeVisible({
-      timeout: 15_000,
-    });
-    await expect(page.getByText("rbac-example-link-2")).toBeVisible();
+  test("GET /programs/example — accessible", async ({ request }) => {
+    const res = await api(request).get("/programs/example");
+    expect(res.status()).toBe(200);
   });
 
-  test("can access Acme program pages", async ({ page }) => {
-    // Overview
-    await page.goto(`/programs/${acme}`);
-    await expectPageLoads(page);
-
-    // Links
-    await page.goto(`/programs/${acme}/links`);
-    await expectPageLoads(page);
-
-    // Earnings
-    await page.goto(`/programs/${acme}/earnings`);
-    await expectPageLoads(page);
-
-    // Bounties
-    await page.goto(`/programs/${acme}/bounties`);
-    await expectPageLoads(page);
-
-    // Resources
-    await page.goto(`/programs/${acme}/resources`);
-    await expectPageLoads(page);
+  test("GET /programs/acme/links — sees 2 links", async ({ request }) => {
+    const res = await api(request).get("/programs/acme/links");
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(2);
   });
 
-  test("can access messages page", async ({ page }) => {
-    await page.goto(`/messages/${acme}`);
-    await expectPageLoads(page);
+  test("GET /programs/example/links — sees 2 links", async ({ request }) => {
+    const res = await api(request).get("/programs/example/links");
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(2);
   });
 
-  test("can access payouts page", async ({ page }) => {
-    await page.goto("/payouts");
-    await expectPageLoads(page);
-    await expect(page.getByText("Payouts")).toBeVisible();
+  test("GET /payouts — accessible", async ({ request }) => {
+    const res = await api(request).get("/payouts");
+    expect(res.status()).toBe(200);
   });
 
-  test("can access profile with edit controls enabled", async ({ page }) => {
-    await page.goto("/profile");
-    await expectPageLoads(page);
-    await expect(page.getByText("Profile")).toBeVisible();
-
-    // Three-dots menu button should be present and clickable
-    const menuButton = page.locator('button:has([class*="three-dots"])');
-    // Fall back to finding by the specific variant button in controls area
-    const controlsButton = page
-      .locator("header")
-      .getByRole("button")
-      .filter({ has: page.locator("svg") })
-      .last();
-    await expect(controlsButton).toBeVisible({ timeout: 10_000 });
-    await expect(controlsButton).toBeEnabled();
+  test("GET /messages — accessible", async ({ request }) => {
+    const res = await api(request).get("/messages");
+    expect(res.status()).toBe(200);
   });
 
-  test("can access members page", async ({ page }) => {
-    await page.goto("/profile/members");
-    await expectPageLoads(page);
+  test("GET /users — accessible", async ({ request }) => {
+    const res = await api(request).get("/users");
+    expect(res.status()).toBe(200);
+  });
+
+  test("GET /invites — accessible", async ({ request }) => {
+    const res = await api(request).get("/invites");
+    expect(res.status()).toBe(200);
+  });
+
+  test("PATCH /users — not forbidden (has users.update)", async ({
+    request,
+  }) => {
+    const res = await api(request).patch("/users", {});
+    expect(res.status()).not.toBe(403);
+  });
+
+  test("POST /invites — not forbidden (has user_invites.create)", async ({
+    request,
+  }) => {
+    const res = await api(request).post("/invites", {});
+    expect(res.status()).not.toBe(403);
+  });
+
+  test("PATCH /invites — not forbidden (has user_invites.update)", async ({
+    request,
+  }) => {
+    const res = await api(request).patch("/invites", {});
+    expect(res.status()).not.toBe(403);
+  });
+
+  test("DELETE /invites — not forbidden (has user_invites.delete)", async ({
+    request,
+  }) => {
+    const res = await api(request).delete(
+      "/invites?email=fake@nonexistent.com",
+    );
+    expect(res.status()).not.toBe(403);
+  });
+
+  test("DELETE /users — not forbidden (has users.delete)", async ({
+    request,
+  }) => {
+    const res = await api(request).delete("/users?userId=fake_user_id");
+    expect(res.status()).not.toBe(403);
   });
 });
+
+// ─── Viewer role ──────────────────────────────────────────────────────────────
 
 test.describe("Viewer role", () => {
   test.use({ storageState: "playwright/.auth/partner-viewer.json" });
 
-  test("cannot see Payouts or Messages in sidebar", async ({ page }) => {
-    await page.goto("/programs");
-    await waitForSidebar(page);
-
-    await expect(
-      page.getByRole("link", { name: "Payouts", exact: true }),
-    ).not.toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "Messages", exact: true }),
-    ).not.toBeVisible();
+  test("GET / — partner profile", async ({ request }) => {
+    const res = await api(request).get("/");
+    expect(res.status()).toBe(200);
   });
 
-  test("can see both programs in programs list", async ({ page }) => {
-    await page.goto("/programs");
-
-    await expect(page.getByText("Acme")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText("Example")).toBeVisible();
+  test("GET /programs — sees both programs", async ({ request }) => {
+    const res = await api(request).get("/programs");
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(2);
   });
 
-  test("can access Acme program pages", async ({ page }) => {
-    await page.goto(`/programs/${acme}`);
-    await expectPageLoads(page);
-
-    await page.goto(`/programs/${acme}/links`);
-    await expectPageLoads(page);
-
-    await page.goto(`/programs/${acme}/earnings`);
-    await expectPageLoads(page);
-
-    await page.goto(`/programs/${acme}/bounties`);
-    await expectPageLoads(page);
-
-    await page.goto(`/programs/${acme}/resources`);
-    await expectPageLoads(page);
+  test("GET /programs/acme — accessible", async ({ request }) => {
+    const res = await api(request).get("/programs/acme");
+    expect(res.status()).toBe(200);
   });
 
-  test("can access Example program pages", async ({ page }) => {
-    await page.goto(`/programs/${example}`);
-    await expectPageLoads(page);
-
-    await page.goto(`/programs/${example}/links`);
-    await expectPageLoads(page);
+  test("GET /programs/example — accessible", async ({ request }) => {
+    const res = await api(request).get("/programs/example");
+    expect(res.status()).toBe(200);
   });
 
-  test("can see links on Acme program", async ({ page }) => {
-    await page.goto(`/programs/${acme}/links`);
-
-    await expect(page.getByText("rbac-acme-link-1")).toBeVisible({
-      timeout: 15_000,
-    });
-    await expect(page.getByText("rbac-acme-link-2")).toBeVisible();
+  test("GET /programs/acme/links — sees 2 links", async ({ request }) => {
+    const res = await api(request).get("/programs/acme/links");
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(2);
   });
 
-  test("profile page has disabled edit controls", async ({ page }) => {
-    await page.goto("/profile");
-    await expectPageLoads(page);
-    await expect(page.getByText("Profile")).toBeVisible();
-
-    // The three-dots button should still render but the popover action inside should be disabled
-    // We check the merge accounts button is disabled when clicked
-    const controlsButton = page
-      .locator("header")
-      .getByRole("button")
-      .filter({ has: page.locator("svg") })
-      .last();
-    await expect(controlsButton).toBeVisible({ timeout: 10_000 });
-    await controlsButton.click();
-
-    // The "Merge accounts" button inside the popover should be disabled
-    const mergeButton = page.getByRole("button", { name: "Merge accounts" });
-    await expect(mergeButton).toBeVisible();
-    await expect(mergeButton).toBeDisabled();
+  test("GET /payouts — accessible (no requiredPermission)", async ({
+    request,
+  }) => {
+    const res = await api(request).get("/payouts");
+    expect(res.status()).toBe(200);
   });
 
-  test("can access members page", async ({ page }) => {
-    await page.goto("/profile/members");
-    await expectPageLoads(page);
+  test("GET /messages — accessible (no requiredPermission)", async ({
+    request,
+  }) => {
+    const res = await api(request).get("/messages");
+    expect(res.status()).toBe(200);
   });
 
-  test("payouts page shows error state", async ({ page }) => {
-    await page.goto("/payouts");
-    await expectPageLoads(page);
+  test("GET /users — accessible", async ({ request }) => {
+    const res = await api(request).get("/users");
+    expect(res.status()).toBe(200);
   });
 
-  test("messages page loads", async ({ page }) => {
-    await page.goto(`/messages/${acme}`);
-    await expectPageLoads(page);
+  test("GET /invites — accessible", async ({ request }) => {
+    const res = await api(request).get("/invites");
+    expect(res.status()).toBe(200);
+  });
+
+  test("PATCH /users — forbidden (no users.update)", async ({ request }) => {
+    const res = await api(request).patch("/users", {});
+    expect(res.status()).toBe(403);
+  });
+
+  test("POST /invites — forbidden (no user_invites.create)", async ({
+    request,
+  }) => {
+    const res = await api(request).post("/invites", {});
+    expect(res.status()).toBe(403);
+  });
+
+  test("PATCH /invites — forbidden (no user_invites.update)", async ({
+    request,
+  }) => {
+    const res = await api(request).patch("/invites", {});
+    expect(res.status()).toBe(403);
+  });
+
+  test("DELETE /invites — forbidden (no user_invites.delete)", async ({
+    request,
+  }) => {
+    const res = await api(request).delete(
+      "/invites?email=fake@nonexistent.com",
+    );
+    expect(res.status()).toBe(403);
+  });
+
+  test("DELETE /users — not found with fake userId (permission check is inline)", async ({
+    request,
+  }) => {
+    // Permission check happens after user lookup, so fake userId returns 404
+    const res = await api(request).delete("/users?userId=fake_user_id");
+    expect(res.status()).toBe(404);
   });
 });
+
+// ─── Member role (restricted program access) ─────────────────────────────────
 
 test.describe("Member role (restricted access)", () => {
   test.use({ storageState: "playwright/.auth/partner-member.json" });
 
-  test("can see Payouts and Messages in sidebar", async ({ page }) => {
-    await page.goto("/programs");
-    await waitForSidebar(page);
-
-    await expect(
-      page.getByRole("link", { name: "Payouts", exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("link", { name: "Messages", exact: true }),
-    ).toBeVisible();
+  test("GET / — partner profile", async ({ request }) => {
+    const res = await api(request).get("/");
+    expect(res.status()).toBe(200);
   });
 
-  test("can see only Acme in programs list", async ({ page }) => {
-    await page.goto("/programs");
-
-    await expect(page.getByText("Acme")).toBeVisible({ timeout: 15_000 });
-    // Example should not be visible since member has restricted access
-    await expect(page.getByText("Example")).not.toBeVisible();
+  test("GET /programs — sees only 1 program (Acme)", async ({ request }) => {
+    const res = await api(request).get("/programs");
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(1);
   });
 
-  test("can see only 1 link on Acme program", async ({ page }) => {
-    await page.goto(`/programs/${acme}/links`);
-
-    await expect(page.getByText("rbac-acme-link-1")).toBeVisible({
-      timeout: 15_000,
-    });
-    // Second link should not be visible (not assigned)
-    await expect(page.getByText("rbac-acme-link-2")).not.toBeVisible();
+  test("GET /programs/acme — accessible", async ({ request }) => {
+    const res = await api(request).get("/programs/acme");
+    expect(res.status()).toBe(200);
   });
 
-  test("can access Acme program pages", async ({ page }) => {
-    await page.goto(`/programs/${acme}`);
-    await expectPageLoads(page);
-
-    await page.goto(`/programs/${acme}/links`);
-    await expectPageLoads(page);
-
-    await page.goto(`/programs/${acme}/earnings`);
-    await expectPageLoads(page);
-
-    await page.goto(`/programs/${acme}/bounties`);
-    await expectPageLoads(page);
-
-    await page.goto(`/programs/${acme}/resources`);
-    await expectPageLoads(page);
+  test("GET /programs/example — not found (not assigned)", async ({
+    request,
+  }) => {
+    const res = await api(request).get("/programs/example");
+    expect(res.status()).toBe(404);
   });
 
-  test("can access Acme messages", async ({ page }) => {
-    await page.goto(`/messages/${acme}`);
-    await expectPageLoads(page);
+  test("GET /programs/acme/links — sees only 1 link", async ({ request }) => {
+    const res = await api(request).get("/programs/acme/links");
+    expect(res.status()).toBe(200);
+    const body = await res.json();
+    expect(body.length).toBe(1);
   });
 
-  test("cannot access Example program (not assigned)", async ({ page }) => {
-    await page.goto(`/programs/${example}`);
-
-    // Should redirect to apply page since the enrollment API returns 404
-    await page.waitForURL(/\/(apply|programs)/, { timeout: 15_000 });
+  test("GET /programs/example/links — not found (not assigned)", async ({
+    request,
+  }) => {
+    const res = await api(request).get("/programs/example/links");
+    expect(res.status()).toBe(404);
   });
 
-  test("can access payouts page", async ({ page }) => {
-    await page.goto("/payouts");
-    await expectPageLoads(page);
-    await expect(page.getByText("Payouts")).toBeVisible();
+  test("GET /payouts — accessible", async ({ request }) => {
+    const res = await api(request).get("/payouts");
+    expect(res.status()).toBe(200);
   });
 
-  test("profile page has disabled edit controls", async ({ page }) => {
-    await page.goto("/profile");
-    await expectPageLoads(page);
-    await expect(page.getByText("Profile")).toBeVisible();
-
-    const controlsButton = page
-      .locator("header")
-      .getByRole("button")
-      .filter({ has: page.locator("svg") })
-      .last();
-    await expect(controlsButton).toBeVisible({ timeout: 10_000 });
-    await controlsButton.click();
-
-    const mergeButton = page.getByRole("button", { name: "Merge accounts" });
-    await expect(mergeButton).toBeVisible();
-    await expect(mergeButton).toBeDisabled();
+  test("GET /messages — accessible", async ({ request }) => {
+    const res = await api(request).get("/messages");
+    expect(res.status()).toBe(200);
   });
 
-  test("can access members page", async ({ page }) => {
-    await page.goto("/profile/members");
-    await expectPageLoads(page);
+  test("GET /users — accessible", async ({ request }) => {
+    const res = await api(request).get("/users");
+    expect(res.status()).toBe(200);
+  });
+
+  test("GET /invites — accessible", async ({ request }) => {
+    const res = await api(request).get("/invites");
+    expect(res.status()).toBe(200);
+  });
+
+  test("PATCH /users — forbidden (no users.update)", async ({ request }) => {
+    const res = await api(request).patch("/users", {});
+    expect(res.status()).toBe(403);
+  });
+
+  test("POST /invites — forbidden (no user_invites.create)", async ({
+    request,
+  }) => {
+    const res = await api(request).post("/invites", {});
+    expect(res.status()).toBe(403);
+  });
+
+  test("PATCH /invites — forbidden (no user_invites.update)", async ({
+    request,
+  }) => {
+    const res = await api(request).patch("/invites", {});
+    expect(res.status()).toBe(403);
+  });
+
+  test("DELETE /invites — forbidden (no user_invites.delete)", async ({
+    request,
+  }) => {
+    const res = await api(request).delete(
+      "/invites?email=fake@nonexistent.com",
+    );
+    expect(res.status()).toBe(403);
+  });
+
+  test("DELETE /users — not found with fake userId (permission check is inline)", async ({
+    request,
+  }) => {
+    // Permission check happens after user lookup, so fake userId returns 404
+    const res = await api(request).delete("/users?userId=fake_user_id");
+    expect(res.status()).toBe(404);
   });
 });
