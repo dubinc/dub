@@ -27,9 +27,9 @@ import { Customer, Project } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid, pick } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { getCheckoutSessionProductId } from "./utils/get-checkout-session-product-id";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 import { getPromotionCode } from "./utils/get-promotion-code";
-import { getCheckoutSessionProductId } from "./utils/get-checkout-session-product-id";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
 // Handle event "checkout.session.completed"
