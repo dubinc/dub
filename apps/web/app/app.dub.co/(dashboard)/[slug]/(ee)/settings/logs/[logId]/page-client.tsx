@@ -1,9 +1,10 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { EnrichedApiLog } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ApiLog, getStatusCodeBadgeVariant } from "@/ui/logs/log-utils";
+import { getStatusCodeBadgeVariant } from "@/ui/logs/log-utils";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import { CopyButton, StatusBadge, TimestampTooltip } from "@dub/ui";
 import { ChevronRight, StackY3 } from "@dub/ui/icons";
@@ -20,7 +21,7 @@ export function LogDetailPageClient({ logId }: { logId: string }) {
     data: log,
     isLoading,
     error,
-  } = useSWR<ApiLog>(
+  } = useSWR<EnrichedApiLog>(
     workspaceId && `/api/api-logs/${logId}?workspaceId=${workspaceId}`,
     fetcher,
   );
@@ -68,7 +69,7 @@ export function LogDetailPageClient({ logId }: { logId: string }) {
   );
 }
 
-function LogDetailContent({ log }: { log: ApiLog }) {
+function LogDetailContent({ log }: { log: EnrichedApiLog }) {
   const [highlighter, setHighlighter] = useState<HighlighterCore | null>(null);
   const [highlightedRequest, setHighlightedRequest] = useState("");
   const [highlightedResponse, setHighlightedResponse] = useState("");

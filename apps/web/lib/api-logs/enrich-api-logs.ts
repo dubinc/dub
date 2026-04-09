@@ -1,9 +1,9 @@
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
-import { apiLogEnrichedSchema, apiLogResponseSchemaTB } from "./schemas";
+import { EnrichedApiLog } from "../types";
+import { apiLogResponseSchemaTB } from "./schemas";
 
 type ApiLogTB = z.infer<typeof apiLogResponseSchemaTB>;
-type EnrichedApiLog = z.infer<typeof apiLogEnrichedSchema>;
 
 export async function enrichApiLogs(
   logs: ApiLogTB[],

@@ -3,7 +3,7 @@ import { waitUntil } from "@vercel/functions";
 import { minimatch } from "minimatch";
 import { TokenCacheItem } from "../auth/token-cache";
 import { Session } from "../auth/utils";
-import { LOGGED_API_PATH_PATTERNS } from "./constants";
+import { HTTP_METHODS, LOGGED_API_PATH_PATTERNS } from "./constants";
 import { recordApiLog } from "./record-api-log";
 
 export function shouldLogRoute(pathname: string) {
@@ -36,7 +36,9 @@ export function captureRequestLog({
     return;
   }
 
-  const isMutation = ["POST", "PUT", "PATCH", "DELETE"].includes(req.method);
+  const isMutation = HTTP_METHODS.includes(
+    req.method as (typeof HTTP_METHODS)[number],
+  );
   if (!isMutation || !shouldLogRoute(url.pathname)) {
     return;
   }

@@ -77,6 +77,7 @@ type SidebarNavData = {
   pendingReferralsCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
+  plan?: string;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
@@ -363,7 +364,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   }),
 
   // Workspace settings
-  workspaceSettings: ({ slug }) => ({
+  workspaceSettings: ({ slug, plan }) => ({
     title: "Settings",
     backHref: `/${slug}`,
     content: [
@@ -416,11 +417,15 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: MarketingTarget,
             href: `/${slug}/settings/tracking`,
           },
-          {
-            name: "Logs",
-            icon: StackY3,
-            href: `/${slug}/settings/logs`,
-          },
+          ...(plan === "enterprise"
+            ? [
+                {
+                  name: "Logs",
+                  icon: StackY3,
+                  href: `/${slug}/settings/logs`,
+                },
+              ]
+            : []),
           {
             name: "Webhooks",
             icon: Webhook,
@@ -632,6 +637,7 @@ export function AppSidebarNav({
           canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
+        plan: plan || undefined,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}

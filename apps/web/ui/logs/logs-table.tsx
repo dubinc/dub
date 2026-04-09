@@ -2,6 +2,7 @@
 
 import { API_LOGS_MAX_PAGE_SIZE } from "@/lib/api-logs/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { EnrichedApiLog } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -22,7 +23,7 @@ import { Cell, Row } from "@tanstack/react-table";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
-import { ApiLog, getStatusCodeBadgeVariant } from "./log-utils";
+import { getStatusCodeBadgeVariant } from "./log-utils";
 import { useLogFilters } from "./use-log-filters";
 
 export function LogsTable() {
@@ -51,9 +52,13 @@ export function LogsTable() {
     data: logs,
     error,
     isLoading,
-  } = useSWR<ApiLog[]>(workspaceId && `/api/api-logs?${logsQuery}`, fetcher, {
-    keepPreviousData: true,
-  });
+  } = useSWR<EnrichedApiLog[]>(
+    workspaceId && `/api/api-logs?${logsQuery}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
   const { data: logsCount } = useSWR<number>(
     workspaceId && `/api/api-logs/count?${searchQuery}`,
@@ -67,11 +72,11 @@ export function LogsTable() {
       {
         id: "path",
         header: "Endpoint",
-        cell: ({ row }: { row: Row<ApiLog> }) => (
+        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
           <span className="truncate">{row.original.path}</span>
         ),
         meta: {
-          filterParams: ({ row }: { row: Row<ApiLog> }) => ({
+          filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
             path: row.original.path,
           }),
         },
@@ -80,13 +85,13 @@ export function LogsTable() {
       {
         id: "method",
         header: "Method",
-        cell: ({ row }: { row: Row<ApiLog> }) => (
+        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
           <StatusBadge variant="new" icon={null}>
             {row.original.method}
           </StatusBadge>
         ),
         meta: {
-          filterParams: ({ row }: { row: Row<ApiLog> }) => ({
+          filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
             method: row.original.method,
           }),
         },
@@ -95,7 +100,7 @@ export function LogsTable() {
       {
         id: "status_code",
         header: "Status",
-        cell: ({ row }: { row: Row<ApiLog> }) => (
+        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
           <StatusBadge
             variant={getStatusCodeBadgeVariant(row.original.status_code)}
             icon={null}
@@ -104,7 +109,7 @@ export function LogsTable() {
           </StatusBadge>
         ),
         meta: {
-          filterParams: ({ row }: { row: Row<ApiLog> }) => ({
+          filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
             statusCode: row.original.status_code,
           }),
         },
@@ -113,7 +118,7 @@ export function LogsTable() {
       {
         id: "actor",
         header: "Actor",
-        cell: ({ row }: { row: Row<ApiLog> }) => {
+        cell: ({ row }: { row: Row<EnrichedApiLog> }) => {
           const { token, user } = row.original;
 
           if (token) {
@@ -142,7 +147,7 @@ export function LogsTable() {
       {
         id: "duration",
         header: "Duration",
-        cell: ({ row }: { row: Row<ApiLog> }) => (
+        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
           <span className="text-sm text-neutral-500">
             {row.original.duration}ms
           </span>
@@ -152,7 +157,7 @@ export function LogsTable() {
       {
         id: "timestamp",
         header: "Time",
-        cell: ({ row }: { row: Row<ApiLog> }) => (
+        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
           <TimestampTooltip
             timestamp={row.original.timestamp}
             rows={["local"]}
@@ -176,7 +181,7 @@ export function LogsTable() {
     [],
   );
 
-  const getLogUrl = (row: Row<ApiLog>) =>
+  const getLogUrl = (row: Row<EnrichedApiLog>) =>
     `/${slug}/settings/logs/${row.original.id}`;
 
   const { table, ...tableProps } = useTable({
@@ -193,10 +198,12 @@ export function LogsTable() {
       }
     },
     onRowAuxClick: (row) => window.open(getLogUrl(row), "_blank"),
-    cellRight: (cell: Cell<ApiLog, unknown>) => {
+    cellRight: (cell: Cell<EnrichedApiLog, unknown>) => {
       const meta = cell.column.columnDef.meta as
         | {
-            filterParams?: (cell: Cell<ApiLog, unknown>) => Record<string, any>;
+            filterParams?: (
+              cell: Cell<EnrichedApiLog, unknown>,
+            ) => Record<string, any>;
           }
         | undefined;
 
