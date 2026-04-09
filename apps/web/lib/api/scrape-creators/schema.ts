@@ -230,7 +230,7 @@ export const socialContentSchema = z.preprocess(
       owner: z.object({
         username: z.string(),
       }),
-      video_view_count: z
+      video_play_count: z
         .number()
         .nullish()
         .transform((val) => val ?? 0),
