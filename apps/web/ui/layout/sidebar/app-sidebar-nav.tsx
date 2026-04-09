@@ -417,15 +417,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: MarketingTarget,
             href: `/${slug}/settings/tracking`,
           },
-          ...(plan === "enterprise"
-            ? [
-                {
-                  name: "Logs",
-                  icon: StackY3,
-                  href: `/${slug}/settings/logs`,
-                },
-              ]
-            : []),
+          {
+            name: "Logs",
+            icon: StackY3,
+            href: `/${slug}/settings/logs`,
+          },
           {
             name: "Webhooks",
             icon: Webhook,
