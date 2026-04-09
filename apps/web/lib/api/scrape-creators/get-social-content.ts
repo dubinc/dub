@@ -60,7 +60,7 @@ export async function getSocialContent({
   }
 
   const contentType = PLATFORM_CONTENT_TYPE[platform];
-  const version = platform === "tiktok" ? "v2" : "v1";
+  const version = ["tiktok", "instagram"].includes(platform) ? "v2" : "v1";
 
   const { data, error } = await scrapeCreatorsFetch(
     "/:version/:platform/:contentType",
