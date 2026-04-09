@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
+import { getTagsWithLinksCount } from "@/lib/api/tags/get-tags-with-links-count";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
@@ -24,38 +25,41 @@ export const GET = withWorkspace(
       includeLinksCount,
     } = getTagsQuerySchemaExtended.parse(searchParams);
 
-    const tags = await prisma.tag.findMany({
-      where: {
-        projectId: workspace.id,
-        ...(search && {
-          name: {
-            contains: search,
+    const tags = includeLinksCount
+      ? await getTagsWithLinksCount({
+          workspaceId: workspace.id,
+          ...(search && { search }),
+          ...(ids && { ids }),
+          sortBy,
+          sortOrder,
+          page,
+          pageSize,
+        })
+      : await prisma.tag.findMany({
+          where: {
+            projectId: workspace.id,
+            ...(search && {
+              name: {
+                contains: search,
+              },
+            }),
+            ...(ids && {
+              id: {
+                in: ids,
+              },
+            }),
           },
-        }),
-        ...(ids && {
-          id: {
-            in: ids,
+          select: {
+            id: true,
+            name: true,
+            color: true,
           },
-        }),
-      },
-      select: {
-        id: true,
-        name: true,
-        color: true,
-        ...(includeLinksCount && {
-          _count: {
-            select: {
-              links: true,
-            },
+          orderBy: {
+            [sortBy]: sortOrder,
           },
-        }),
-      },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
-      take: pageSize,
-      skip: (page - 1) * pageSize,
-    });
+          take: pageSize,
+          skip: (page - 1) * pageSize,
+        });
 
     return NextResponse.json(tags, { headers });
   },
