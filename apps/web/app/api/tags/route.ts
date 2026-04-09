@@ -1,6 +1,5 @@
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
-import { getTagsWithLinksCount } from "@/lib/api/tags/get-tags-with-links-count";
 import { withWorkspace } from "@/lib/auth";
 import { exceededLimitError } from "@/lib/exceeded-limit-error";
 import {
@@ -25,41 +24,67 @@ export const GET = withWorkspace(
       includeLinksCount,
     } = getTagsQuerySchemaExtended.parse(searchParams);
 
-    const tags = includeLinksCount
-      ? await getTagsWithLinksCount({
-          workspaceId: workspace.id,
-          ...(search && { search }),
-          ...(ids && { ids }),
-          sortBy,
-          sortOrder,
-          page,
-          pageSize,
-        })
-      : await prisma.tag.findMany({
+    const tagWhere = {
+      projectId: workspace.id,
+      ...(search && {
+        name: {
+          contains: search,
+        },
+      }),
+      ...(ids && {
+        id: {
+          in: ids,
+        },
+      }),
+    };
+
+    const listArgs = {
+      where: tagWhere,
+      select: {
+        id: true,
+        name: true,
+        color: true,
+      },
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+    };
+
+    let tags;
+
+    if (includeLinksCount) {
+      const rows = await prisma.tag.findMany(listArgs);
+      const tagIds = rows.map((t) => t.id);
+
+      if (tagIds.length === 0) {
+        tags = [];
+      } else {
+        const countsByTag = await prisma.linkTag.groupBy({
+          by: ["tagId"],
           where: {
-            projectId: workspace.id,
-            ...(search && {
-              name: {
-                contains: search,
-              },
-            }),
-            ...(ids && {
-              id: {
-                in: ids,
-              },
-            }),
+            tagId: { in: tagIds },
           },
-          select: {
-            id: true,
-            name: true,
-            color: true,
+          _count: {
+            _all: true,
           },
-          orderBy: {
-            [sortBy]: sortOrder,
-          },
-          take: pageSize,
-          skip: (page - 1) * pageSize,
         });
+
+        const countMap = new Map(
+          countsByTag.map((c) => [c.tagId, c._count._all]),
+        );
+
+        tags = rows.map((row) => ({
+          ...row,
+          _count: {
+            links: countMap.get(row.id) ?? 0,
+          },
+        }));
+      }
+    } else {
+      tags = await prisma.tag.findMany(listArgs);
+    }
 
     return NextResponse.json(tags, { headers });
   },
