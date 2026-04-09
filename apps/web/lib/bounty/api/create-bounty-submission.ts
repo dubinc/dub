@@ -519,10 +519,9 @@ export class BountySubmissionHandler {
       });
     }
 
-    // Note: We don't allow draft submission for social metrics bounties.
     this.submissionData = {
       ...this.submissionData,
-      status: "submitted",
+      status: "draft",
       completedAt: null,
     };
 
