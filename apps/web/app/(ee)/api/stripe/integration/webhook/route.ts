@@ -1,6 +1,9 @@
+import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { withAxiom } from "@/lib/axiom/server";
 import { stripe } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
+import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
@@ -29,6 +32,7 @@ const relevantEvents = new Set([
 
 // POST /api/stripe/integration/webhook – listen to Stripe webhooks (for Stripe Integration)
 export const POST = withAxiom(async (req: Request) => {
+  const startTime = Date.now();
   const pathname = new URL(req.url).pathname;
   const buf = await req.text();
   const sig = req.headers.get("Stripe-Signature");
@@ -116,5 +120,38 @@ export const POST = withAxiom(async (req: Request) => {
       break;
   }
 
-  return logAndRespond(`[${event.type}]: ${response}`);
+  const res = logAndRespond(`[${event.type}]: ${response}`);
+
+  // Log webhook to API logs if workspace can be resolved
+  if (event.account) {
+    const duration = Date.now() - startTime;
+
+    waitUntil(
+      (async () => {
+        const workspace = await prisma.project.findUnique({
+          where: {
+            stripeConnectId: event.account,
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (workspace) {
+          await captureWebhookLog({
+            workspaceId: workspace.id,
+            method: req.method,
+            path: "/api/stripe/integration/webhook",
+            statusCode: res.status,
+            duration,
+            requestBody: event,
+            responseBody: response,
+            userAgent: req.headers.get("user-agent"),
+          });
+        }
+      })(),
+    );
+  }
+
+  return res;
 });
