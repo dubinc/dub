@@ -152,10 +152,6 @@ jobs:
         working-directory: apps/web
         run: pnpm prisma:push
 
-      - name: Seed test data
-        working-directory: apps/web
-        run: pnpm tsx playwright/seed.ts
-
       - name: Build application
         run: pnpm turbo build --filter=web
 
