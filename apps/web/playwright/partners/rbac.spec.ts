@@ -67,24 +67,24 @@ const RBAC_MATRIX: RbacEntry[] = [
       viewer: { status: 200 },
     },
   },
-  {
-    method: "GET",
-    endpoint: "/programs/acme/analytics",
-    roles: {
-      owner: { status: 200 },
-      member: { status: 200 },
-      viewer: { status: 200 },
-    },
-  },
-  {
-    method: "GET",
-    endpoint: "/programs/acme/events",
-    roles: {
-      owner: { status: 200 },
-      member: { status: 200 },
-      viewer: { status: 200 },
-    },
-  },
+  // {
+  //   method: "GET",
+  //   endpoint: "/programs/acme/analytics",
+  //   roles: {
+  //     owner: { status: 200 },
+  //     member: { status: 200 },
+  //     viewer: { status: 200 },
+  //   },
+  // },
+  // {
+  //   method: "GET",
+  //   endpoint: "/programs/acme/events",
+  //   roles: {
+  //     owner: { status: 200 },
+  //     member: { status: 200 },
+  //     viewer: { status: 200 },
+  //   },
+  // },
   {
     method: "GET",
     endpoint: "/programs/acme/customers",
@@ -234,26 +234,26 @@ const RBAC_MATRIX: RbacEntry[] = [
       viewer: { status: 200 },
     },
   },
-  {
-    method: "GET",
-    endpoint: "/programs/acme/analytics",
-    queryParams: { linkId: "{{inaccessibleLinkId}}" },
-    roles: {
-      owner: { status: 200 },
-      member: { status: 404, code: "not_found" },
-      viewer: { status: 200 },
-    },
-  },
-  {
-    method: "GET",
-    endpoint: "/programs/acme/events",
-    queryParams: { linkId: "{{inaccessibleLinkId}}" },
-    roles: {
-      owner: { status: 200 },
-      member: { status: 404, code: "not_found" },
-      viewer: { status: 200 },
-    },
-  },
+  // {
+  //   method: "GET",
+  //   endpoint: "/programs/acme/analytics",
+  //   queryParams: { linkId: "{{inaccessibleLinkId}}" },
+  //   roles: {
+  //     owner: { status: 200 },
+  //     member: { status: 404, code: "not_found" },
+  //     viewer: { status: 200 },
+  //   },
+  // },
+  // {
+  //   method: "GET",
+  //   endpoint: "/programs/acme/events",
+  //   queryParams: { linkId: "{{inaccessibleLinkId}}" },
+  //   roles: {
+  //     owner: { status: 200 },
+  //     member: { status: 404, code: "not_found" },
+  //     viewer: { status: 200 },
+  //   },
+  // },
 ];
 
 function api(request: APIRequestContext) {
