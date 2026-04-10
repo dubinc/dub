@@ -173,7 +173,6 @@ export function LinkHoverTooltip({
       });
     };
 
-    updateRect();
     window.addEventListener("resize", updateRect);
     window.addEventListener("scroll", updateRect, true);
 
@@ -181,7 +180,7 @@ export function LinkHoverTooltip({
       window.removeEventListener("resize", updateRect);
       window.removeEventListener("scroll", updateRect, true);
     };
-  }, [href, tooltipState]);
+  }, [href, !!tooltipState]);
 
   return (
     <>
