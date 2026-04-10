@@ -3,6 +3,7 @@
 import {
   API_LOGS_MAX_PAGE_SIZE,
   METHOD_BADGE_VARIANTS,
+  WEBHOOK_DISPLAY_NAMES,
 } from "@/lib/api-logs/constants";
 import { useApiLogsCount } from "@/lib/swr/use-api-logs-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -73,14 +74,18 @@ export function LogsTable() {
       {
         id: "path",
         header: "Endpoint",
-        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
-          <span
-            className="truncate"
-            title={row.original.route_pattern || undefined}
-          >
-            {row.original.path}
-          </span>
-        ),
+        cell: ({ row }: { row: Row<EnrichedApiLog> }) => {
+          const displayName = WEBHOOK_DISPLAY_NAMES[row.original.path];
+
+          return (
+            <span
+              className="truncate"
+              title={row.original.route_pattern || undefined}
+            >
+              {displayName || row.original.path}
+            </span>
+          );
+        },
         meta: {
           filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
             routePattern: row.original.route_pattern,

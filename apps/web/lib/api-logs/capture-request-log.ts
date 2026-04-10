@@ -2,7 +2,7 @@ import { WorkspaceWithUsers } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
 import { TokenCacheItem } from "../auth/token-cache";
 import { Session } from "../auth/utils";
-import { HTTP_METHODS, ROUTE_PATTERNS } from "./constants";
+import { HTTP_MUTATION_METHODS, ROUTE_PATTERNS } from "./constants";
 import { recordApiLog } from "./record-api-log";
 
 // Precompile route patterns into regexes at module load
@@ -54,8 +54,8 @@ export function captureRequestLog({
   requestHeaders: Headers;
   startTime: number;
 }) {
-  const isMutation = HTTP_METHODS.includes(
-    req.method as (typeof HTTP_METHODS)[number],
+  const isMutation = HTTP_MUTATION_METHODS.includes(
+    req.method as (typeof HTTP_MUTATION_METHODS)[number],
   );
 
   const routePattern = getRoutePattern(url.pathname);

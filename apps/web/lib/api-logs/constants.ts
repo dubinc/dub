@@ -51,7 +51,14 @@ export const HTTP_STATUS_CODES = [
   { value: 500, label: "500 Server Error" },
 ] as const;
 
-export const HTTP_METHODS = ["POST", "PATCH", "PUT", "DELETE"] as const;
+export const HTTP_MUTATION_METHODS = [
+  "POST",
+  "PATCH",
+  "PUT",
+  "DELETE",
+] as const;
+
+export const HTTP_METHODS = ["POST", "PATCH", "PUT", "DELETE", "GET"] as const;
 
 export const API_LOGS_MAX_PAGE_SIZE = 50;
 
@@ -63,12 +70,16 @@ export const API_LOG_RETENTION_DAYS: Record<string, number> = {
 
 export const DEFAULT_RETENTION_DAYS = 60; // business, advanced
 
-export const METHOD_BADGE_VARIANTS: Record<
-  (typeof HTTP_METHODS)[number],
-  string
-> = {
+export const METHOD_BADGE_VARIANTS: Record<string, string> = {
   POST: "new",
   PATCH: "warning",
-  PUT: "neutral",
+  PUT: "pending",
   DELETE: "error",
+  GET: "success",
 } as const;
+
+export const WEBHOOK_DISPLAY_NAMES: Record<string, string> = {
+  "/api/appsflyer/webhook": "AppsFlyer",
+  "/api/stripe/integration/webhook": "Stripe",
+  "/api/shopify/integration/webhook": "Shopify",
+};

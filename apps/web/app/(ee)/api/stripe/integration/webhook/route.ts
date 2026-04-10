@@ -122,10 +122,7 @@ export const POST = withAxiom(async (req: Request) => {
 
   const res = logAndRespond(`[${event.type}]: ${response}`);
 
-  // Log webhook to API logs if workspace can be resolved
   if (event.account) {
-    const duration = Date.now() - startTime;
-
     waitUntil(
       (async () => {
         const workspace = await prisma.project.findUnique({
@@ -143,9 +140,9 @@ export const POST = withAxiom(async (req: Request) => {
             method: req.method,
             path: "/api/stripe/integration/webhook",
             statusCode: res.status,
-            duration,
+            duration: Date.now() - startTime,
             requestBody: event,
-            responseBody: response,
+            responseBody: res,
             userAgent: req.headers.get("user-agent"),
           });
         }

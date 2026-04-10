@@ -143,7 +143,7 @@ export const GET = withAxiom(async (req) => {
       captureWebhookLog({
         workspaceId: workspace.id,
         method: req.method,
-        path: "/api/stripe/integration/webhook",
+        path: "/api/appsflyer/webhook",
         statusCode: response.status,
         duration: Date.now() - startTime,
         requestBody: queryParams,
@@ -161,7 +161,7 @@ export const GET = withAxiom(async (req) => {
         captureWebhookLog({
           workspaceId: workspace.id,
           method: req.method,
-          path: "/api/stripe/integration/webhook",
+          path: "/api/appsflyer/webhook",
           statusCode: errorResponse.status,
           duration: Date.now() - startTime,
           requestBody: queryParams,
@@ -178,6 +178,3 @@ export const GET = withAxiom(async (req) => {
 export const HEAD = () => {
   return new Response("OK");
 };
-function handleApiError(err: any): { error: any; status: any } {
-  throw new Error("Function not implemented.");
-}
