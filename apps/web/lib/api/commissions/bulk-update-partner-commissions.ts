@@ -55,7 +55,7 @@ export async function bulkUpdatePartnerCommissions({
     throw new DubApiError({
       code: "not_found",
       message:
-        "One or more commissions were not found in this program or the IDs are invalid.",
+        "Cannot update commissions: One or more commissions were not found in this program or the IDs are invalid.",
     });
   }
 
@@ -120,10 +120,10 @@ export async function bulkUpdatePartnerCommissions({
     },
   });
 
-  // Reconcile the payout amounts
-  const payoutIds = commissions
-    .filter((c) => c.payoutId)
-    .map((c) => c.payoutId!);
+  // Reconcile the payout amounts (for unique payout IDs)
+  const payoutIds = Array.from(
+    new Set(commissions.filter((c) => c.payoutId).map((c) => c.payoutId!)),
+  );
 
   await reconcilePayoutAmounts(payoutIds);
 
