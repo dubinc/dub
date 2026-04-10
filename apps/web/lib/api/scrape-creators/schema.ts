@@ -178,18 +178,41 @@ export const socialContentSchema = z.preprocess(
         typeof data.user === "object" &&
         typeof data.user.username === "string"
       ) {
-        const takenAtSec =
-          typeof data.created_at === "number"
-            ? data.created_at
-            : typeof data.created_at_utc === "string"
-              ? Math.floor(new Date(data.created_at_utc).getTime() / 1000)
-              : 0;
+        const takenAtSec = (() => {
+          if (
+            typeof data.created_at === "number" &&
+            Number.isFinite(data.created_at)
+          ) {
+            return data.created_at;
+          }
+          if (typeof data.created_at_utc === "string") {
+            const ms = new Date(data.created_at_utc).getTime();
+            if (Number.isFinite(ms)) {
+              return Math.floor(ms / 1000);
+            }
+          }
+          return 0;
+        })();
 
         return {
           platform: "instagram" as const,
           taken_at_timestamp: takenAtSec,
           owner: { username: data.user.username },
-          video_play_count: 0,
+          video_play_count: (() => {
+            if (
+              typeof data.video_play_count === "number" &&
+              Number.isFinite(data.video_play_count)
+            ) {
+              return data.video_play_count;
+            }
+            if (
+              typeof data.play_count === "number" &&
+              Number.isFinite(data.play_count)
+            ) {
+              return data.play_count;
+            }
+            return 0;
+          })(),
           edge_media_preview_like: { count: data.like_count },
           edge_media_to_caption: data.caption
             ? {
