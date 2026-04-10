@@ -211,8 +211,8 @@ const RBAC_MATRIX: RbacEntry[] = [
     endpoint: "/programs/acme/links",
     body: { url: "https://example.com" },
     roles: {
-      owner: { status: 200 },
-      member: { status: 200 },
+      owner: { status: 201 },
+      member: { status: 201 },
       viewer: { status: 403, code: "forbidden" },
     },
   },
