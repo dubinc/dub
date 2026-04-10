@@ -1,7 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
+import type { BulkApprovePartnersPayload } from "@/ui/modals/bulk-approve-partners-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { X } from "@/ui/shared/icons";
 import {
@@ -14,7 +14,13 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import {
+  Dispatch,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { PartnerAbout } from "./partner-about";
 import { PartnerApplicationDetails } from "./partner-application-details";
 import { PartnerComments } from "./partner-comments";
@@ -26,6 +32,7 @@ type PartnerApplicationSheetProps = {
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  onOpenBulkApprove: (payload: BulkApprovePartnersPayload) => void;
 };
 
 function PartnerApplicationSheetContent({
@@ -33,6 +40,7 @@ function PartnerApplicationSheetContent({
   onPrevious,
   onNext,
   setIsOpen,
+  onOpenBulkApprove,
 }: PartnerApplicationSheetProps) {
   const { slug: workspaceSlug } = useWorkspace();
   const [currentTabId, setCurrentTabId] = useState<string>("about");
@@ -155,6 +163,7 @@ function PartnerApplicationSheetContent({
             }
             setIsOpen={setIsOpen}
             onNext={onNext}
+            onOpenBulkApprove={onOpenBulkApprove}
           />
         </div>
       )}
@@ -218,52 +227,49 @@ function PartnerApproval({
   groupId,
   setIsOpen,
   onNext,
+  onOpenBulkApprove,
 }: {
   partner: EnrolledPartnerProps;
   groupId?: string | null;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
+  onOpenBulkApprove: (payload: BulkApprovePartnersPayload) => void;
 }) {
-  const {
-    ApprovePartnerApplicationModal,
-    setShowApprovePartnerApplicationModal,
-  } = useApprovePartnerApplicationModal({
-    partner,
-    groupId,
-    onConfirm: async () => {
-      onNext ? onNext() : setIsOpen(false);
-      await mutatePrefix("/api/partners");
-    },
-    confirmShortcutOptions: { sheet: true, modal: true },
-  });
+  const openApproveModal = useCallback(() => {
+    onOpenBulkApprove({
+      partners: [partner],
+      initialGroupId: groupId,
+      onApproveSuccess: async () => {
+        onNext ? onNext() : setIsOpen(false);
+      },
+      keyboardShortcutOptions: { modal: true, sheet: true },
+    });
+  }, [partner, groupId, onNext, setIsOpen, onOpenBulkApprove]);
 
-  useKeyboardShortcut("a", () => setShowApprovePartnerApplicationModal(true), {
+  useKeyboardShortcut("a", openApproveModal, {
     sheet: true,
   });
 
   return (
-    <>
-      {ApprovePartnerApplicationModal}
-      <div className="flex justify-end gap-2">
-        {partner.status !== "rejected" && (
-          <div className="flex-shrink-0">
-            <PartnerRejectButton
-              partner={partner}
-              setIsOpen={setIsOpen}
-              onNext={onNext}
-            />
-          </div>
-        )}
-        <Button
-          type="button"
-          variant="primary"
-          text="Approve"
-          shortcut="A"
-          onClick={() => setShowApprovePartnerApplicationModal(true)}
-          className="w-fit shrink-0"
-        />
-      </div>
-    </>
+    <div className="flex justify-end gap-2">
+      {partner.status !== "rejected" && (
+        <div className="flex-shrink-0">
+          <PartnerRejectButton
+            partner={partner}
+            setIsOpen={setIsOpen}
+            onNext={onNext}
+          />
+        </div>
+      )}
+      <Button
+        type="button"
+        variant="primary"
+        text="Approve"
+        shortcut="A"
+        onClick={openApproveModal}
+        className="w-fit shrink-0"
+      />
+    </div>
   );
 }
 

@@ -7,8 +7,10 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, PartnerPlatformProps } from "@/lib/types";
-import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
-import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
+import {
+  type BulkApprovePartnersPayload,
+  useBulkApprovePartnersModal,
+} from "@/ui/modals/bulk-approve-partners-modal";
 import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
@@ -139,18 +141,12 @@ export function ProgramPartnersApplicationsPageClient() {
     });
 
   // State for pending bulk actions
-  const [pendingApprovePartners, setPendingApprovePartners] = useState<
-    EnrolledPartnerProps[]
-  >([]);
-
   const [pendingRejectPartners, setPendingRejectPartners] = useState<
     EnrolledPartnerProps[]
   >([]);
 
-  const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
-    useBulkApprovePartnersModal({
-      partners: pendingApprovePartners,
-    });
+  const { openBulkApprove, BulkApprovePartnersModal } =
+    useBulkApprovePartnersModal();
 
   const { setShowBulkRejectPartnersModal, BulkRejectPartnersModal } =
     useBulkRejectPartnersModal({
@@ -334,11 +330,11 @@ export function ProgramPartnersApplicationsPageClient() {
         enableHiding: false,
         header: ({ table }) => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
+          <RowMenuButton row={row} openBulkApprove={openBulkApprove} />
         ),
       },
     ],
-    [workspaceId, groups, platformsMapByPartnerId],
+    [openBulkApprove, groups, platformsMapByPartnerId],
   );
 
   const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
@@ -382,8 +378,7 @@ export function ProgramPartnersApplicationsPageClient() {
               .getSelectedRowModel()
               .rows.map((row) => row.original);
 
-            setPendingApprovePartners(partners);
-            setShowBulkApprovePartnersModal(true);
+            openBulkApprove({ partners });
           }}
         />
         <Button
@@ -433,6 +428,7 @@ export function ProgramPartnersApplicationsPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          onOpenBulkApprove={openBulkApprove}
           onPrevious={
             previousPartnerId
               ? () =>
@@ -506,23 +502,12 @@ export function ProgramPartnersApplicationsPageClient() {
 
 function RowMenuButton({
   row,
-  workspaceId,
+  openBulkApprove,
 }: {
   row: Row<EnrolledPartnerProps>;
-  workspaceId: string;
+  openBulkApprove: (payload: BulkApprovePartnersPayload) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
-
-  const {
-    ApprovePartnerApplicationModal,
-    setShowApprovePartnerApplicationModal,
-  } = useApprovePartnerApplicationModal({
-    partner: row.original,
-    groupId: row.original.groupId,
-    onConfirm: async () => {
-      await mutatePrefix(["/api/partners", "/api/partners/count"]);
-    },
-  });
 
   const {
     RejectPartnerApplicationModal,
@@ -536,7 +521,6 @@ function RowMenuButton({
 
   return (
     <>
-      {ApprovePartnerApplicationModal}
       {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
@@ -549,7 +533,7 @@ function RowMenuButton({
                 icon={UserCheck}
                 onSelect={() => {
                   setIsOpen(false);
-                  setShowApprovePartnerApplicationModal(true);
+                  openBulkApprove({ partners: [row.original] });
                 }}
               >
                 Approve application
