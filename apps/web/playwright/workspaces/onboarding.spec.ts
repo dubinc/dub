@@ -54,7 +54,9 @@ test("complete workspace onboarding", async ({ page }) => {
   // Success page
   await page.waitForURL(/\/onboarding\/success/);
   await expect(
-    page.getByText(`The ${workspaceName} workspace has been created`),
+    page.getByRole("heading", {
+      name: `The ${workspaceName} workspace has been created`,
+    }),
   ).toBeVisible();
   await expect(page.getByText("Complete setup")).toBeVisible();
 
