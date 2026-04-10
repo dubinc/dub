@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { RBAC_PASSWORD, RBAC_USERS } from "./rbac-constants";
+import { PARTNER_USERS, PASSWORD } from "./constants";
 
 const AUTH_FILES = {
   owner: "playwright/.auth/partner-owner.json",
@@ -7,7 +7,7 @@ const AUTH_FILES = {
   viewer: "playwright/.auth/partner-viewer.json",
 } as const;
 
-for (const [role, { email }] of Object.entries(RBAC_USERS)) {
+for (const [role, { email }] of Object.entries(PARTNER_USERS)) {
   test(`log in as ${role} partner user`, async ({ page }) => {
     const authFile = AUTH_FILES[role as keyof typeof AUTH_FILES];
 
@@ -20,7 +20,7 @@ for (const [role, { email }] of Object.entries(RBAC_USERS)) {
     // Enter password
     const passwordInput = page.locator('input[type="password"]');
     await expect(passwordInput).toBeVisible();
-    await passwordInput.fill(RBAC_PASSWORD);
+    await passwordInput.fill(PASSWORD);
     await page.getByRole("button", { name: "Log in with password" }).click();
 
     // Wait for redirect to authenticated area

@@ -20,12 +20,6 @@ async function globalSetup(_config: FullConfig) {
     stdio: "inherit",
     cwd: __dirname,
   });
-
-  // Seed RBAC test data (partner + users + enrollments + links)
-  execSync("npx tsx playwright/seed-rbac.ts", {
-    stdio: "inherit",
-    cwd: __dirname,
-  });
 }
 
 export default globalSetup;
