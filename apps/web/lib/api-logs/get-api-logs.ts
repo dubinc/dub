@@ -31,8 +31,8 @@ export const getApiLogs = async ({
     ...(statusCode && { statusCode }),
     ...(tokenId && { tokenId }),
     ...(requestId && { requestId }),
-    start,
-    end,
+    ...(start && { start }),
+    ...(end && { end }),
     limit,
     offset,
   });

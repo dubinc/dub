@@ -17,6 +17,7 @@ export async function getApiLogsCount(params: GetApiLogsCountParams) {
     tokenId,
     requestId,
     start,
+    end,
     groupBy,
   } = params;
 
@@ -29,7 +30,7 @@ export async function getApiLogsCount(params: GetApiLogsCountParams) {
     ...(tokenId && { tokenId }),
     ...(requestId && { requestId }),
     ...(start && { start }),
-    end: new Date().toISOString().replace("T", " ").slice(0, 19),
+    ...(end && { end }),
   };
 
   const pipe = tb.buildPipe({

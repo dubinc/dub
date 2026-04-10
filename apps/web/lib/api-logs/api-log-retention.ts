@@ -11,11 +11,13 @@ export function getApiLogsRetentionDays(
   return API_LOG_RETENTION_DAYS[plan] ?? DEFAULT_RETENTION_DAYS;
 }
 
-export function getApiLogsStartDate(
-  plan: PlanProps | string | undefined,
-): string {
+export function getApiLogsDateRange(plan: PlanProps | string | undefined) {
   const days = getApiLogsRetentionDays(plan);
   const start = new Date();
   start.setDate(start.getDate() - days);
-  return start.toISOString().replace("T", " ").slice(0, 19);
+
+  return {
+    start: start.toISOString().replace("T", " ").replace("Z", ""),
+    end: new Date().toISOString().replace("T", " ").replace("Z", ""),
+  };
 }

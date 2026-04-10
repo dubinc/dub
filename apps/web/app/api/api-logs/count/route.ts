@@ -1,4 +1,4 @@
-import { getApiLogsStartDate } from "@/lib/api-logs/api-log-retention";
+import { getApiLogsDateRange } from "@/lib/api-logs/api-log-retention";
 import { getApiLogsCount } from "@/lib/api-logs/get-api-logs-count";
 import { getApiLogsCountQuerySchema } from "@/lib/api-logs/schemas";
 import { withWorkspace } from "@/lib/auth/workspace";
@@ -11,8 +11,8 @@ export const GET = withWorkspace(
 
     const count = await getApiLogsCount({
       ...filters,
+      ...getApiLogsDateRange(workspace.plan),
       workspaceId: workspace.id,
-      start: getApiLogsStartDate(workspace.plan),
     });
 
     return NextResponse.json(count);
