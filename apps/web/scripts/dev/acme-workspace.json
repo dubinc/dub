@@ -95,7 +95,7 @@
       "color": null,
       "leadRewardId": "rw_1K2J9DRWPPJ2F1RX53N92TSGD",
       "saleRewardId": "rw_1K2J9DRWPPJ2F1RX53N92TSGE",
-      "maxPartnerLinks": 10,
+      "maxPartnerLinks": 50,
       "additionalLinks": [
         {
           "domain": "acme.com",

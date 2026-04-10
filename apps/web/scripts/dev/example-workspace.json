@@ -95,7 +95,7 @@
       "color": null,
       "leadRewardId": "rw_2LFUA020G94ZKH7B91JXIGY8J",
       "saleRewardId": "rw_2LFUA020G94ZKH7B91JXIGY8K",
-      "maxPartnerLinks": 10,
+      "maxPartnerLinks": 50,
       "additionalLinks": [
         {
           "domain": "example.com",
