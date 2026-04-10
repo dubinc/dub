@@ -1,12 +1,9 @@
 "use client";
 
-import {
-  HTTP_METHODS,
-  HTTP_STATUS_CODES,
-  LOGGED_API_PATH_FILTERS,
-} from "@/lib/api-logs/constants";
+import { HTTP_METHODS, HTTP_STATUS_CODES } from "@/lib/api-logs/constants";
+import { useApiLogsCount } from "@/lib/swr/use-api-logs-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { TokenProps } from "@/lib/types";
+import { ApiLogsCountByRoutePattern, TokenProps } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import {
   ArrowsOppositeDirectionX,
@@ -32,6 +29,24 @@ export function useLogFilters() {
     fetcher,
   );
 
+  const activeFilters = useMemo(() => {
+    const { method, statusCode, routePattern, tokenId } = searchParamsObj;
+
+    return [
+      ...(method ? [{ key: "method", value: method }] : []),
+      ...(statusCode ? [{ key: "statusCode", value: statusCode }] : []),
+      ...(routePattern ? [{ key: "routePattern", value: routePattern }] : []),
+      ...(tokenId ? [{ key: "tokenId", value: tokenId }] : []),
+    ];
+  }, [searchParamsObj]);
+
+  const { data: routePatterns } = useApiLogsCount<ApiLogsCountByRoutePattern[]>(
+    {
+      groupBy: "routePattern",
+      enabled: selectedFilter === "routePattern",
+    },
+  );
+
   const filters = useMemo(
     () => [
       {
@@ -54,13 +69,15 @@ export function useLogFilters() {
         }),
       },
       {
-        key: "path",
+        key: "routePattern",
         icon: Globe,
         label: "Endpoint",
-        options: LOGGED_API_PATH_FILTERS.map((p) => ({
-          value: p,
-          label: p,
-        })),
+        shouldFilter: false,
+        options:
+          routePatterns?.map((r) => ({
+            value: r.routePattern,
+            label: r.routePattern,
+          })) ?? null,
       },
       {
         key: "method",
@@ -83,19 +100,8 @@ export function useLogFilters() {
           })) ?? null,
       },
     ],
-    [tokens],
+    [tokens, routePatterns],
   );
-
-  const activeFilters = useMemo(() => {
-    const { method, statusCode, path, tokenId } = searchParamsObj;
-
-    return [
-      ...(method ? [{ key: "method", value: method }] : []),
-      ...(statusCode ? [{ key: "statusCode", value: statusCode }] : []),
-      ...(path ? [{ key: "path", value: path }] : []),
-      ...(tokenId ? [{ key: "tokenId", value: tokenId }] : []),
-    ];
-  }, [searchParamsObj]);
 
   const onSelect = useCallback(
     (key: string, value: any) =>
@@ -117,7 +123,7 @@ export function useLogFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["method", "statusCode", "path", "tokenId"],
+        del: ["method", "statusCode", "routePattern", "tokenId"],
       }),
     [queryParams],
   );

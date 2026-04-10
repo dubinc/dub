@@ -1,5 +1,6 @@
 "use client";
 
+import { METHOD_BADGE_VARIANTS } from "@/lib/api-logs/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrichedApiLog } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
@@ -44,7 +45,7 @@ export function LogDetailPageClient({ logId }: { logId: string }) {
             <div className="flex items-center gap-1.5">
               <ChevronRight className="text-content-subtle size-2.5 shrink-0 [&_*]:stroke-2" />
               <span className="text-content-emphasis text-lg font-semibold leading-7">
-                {log?.method} {log?.path}
+                {log?.method} {log?.route_pattern || log?.path}
               </span>
             </div>
           </div>
@@ -106,6 +107,11 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
   }, [highlighter, log]);
 
   const detailRows: Record<string, React.ReactNode> = {
+    Path: (
+      <span className="truncate font-mono" title={log.path}>
+        {log.path}
+      </span>
+    ),
     Date: (
       <TimestampTooltip
         timestamp={log.timestamp}
@@ -125,7 +131,10 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
       </StatusBadge>
     ),
     Method: (
-      <StatusBadge variant="new" icon={null}>
+      <StatusBadge
+        variant={METHOD_BADGE_VARIANTS[log.method] ?? "neutral"}
+        icon={null}
+      >
         {log.method}
       </StatusBadge>
     ),

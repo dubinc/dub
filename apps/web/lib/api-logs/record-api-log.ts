@@ -17,6 +17,7 @@ export const recordApiLog = async ({
   workspaceId,
   method,
   path,
+  routePattern,
   statusCode,
   duration,
   userAgent,
@@ -28,6 +29,7 @@ export const recordApiLog = async ({
   workspaceId: string;
   method: string;
   path: string;
+  routePattern: string;
   statusCode: number;
   duration: number;
   userAgent: string | null;
@@ -42,6 +44,7 @@ export const recordApiLog = async ({
     workspace_id: prefixWorkspaceId(workspaceId),
     method,
     path,
+    route_pattern: routePattern,
     status_code: statusCode,
     duration,
     user_agent: userAgent ?? "",

@@ -33,7 +33,10 @@ import {
 } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
-import { apiLogEnrichedSchema } from "./api-logs/schemas";
+import {
+  apiLogCountResponseSchemaTB,
+  apiLogEnrichedSchema,
+} from "./api-logs/schemas";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./bounty/social-content";
@@ -901,3 +904,7 @@ export type CommissionActivitySnapshot = Pick<
 >;
 
 export type EnrichedApiLog = z.infer<typeof apiLogEnrichedSchema>;
+
+export type ApiLogsCountByRoutePattern = z.infer<
+  typeof apiLogCountResponseSchemaTB.routePattern
+>;

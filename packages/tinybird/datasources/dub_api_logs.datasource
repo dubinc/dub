@@ -6,6 +6,7 @@ SCHEMA >
     `workspace_id` String `json:$.workspace_id`,
     `method` LowCardinality(String) `json:$.method`,
     `path` String `json:$.path`,
+    `route_pattern` LowCardinality(String) `json:$.route_pattern`,
     `status_code` UInt16 `json:$.status_code`,
     `duration` UInt32 `json:$.duration`,
     `user_agent` String `json:$.user_agent`,

@@ -1,6 +1,10 @@
 "use client";
 
-import { API_LOGS_MAX_PAGE_SIZE } from "@/lib/api-logs/constants";
+import {
+  API_LOGS_MAX_PAGE_SIZE,
+  METHOD_BADGE_VARIANTS,
+} from "@/lib/api-logs/constants";
+import { useApiLogsCount } from "@/lib/swr/use-api-logs-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrichedApiLog } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -60,10 +64,7 @@ export function LogsTable() {
     },
   );
 
-  const { data: logsCount } = useSWR<number>(
-    workspaceId && `/api/api-logs/count?${searchQuery}`,
-    fetcher,
-  );
+  const { data: logsCount } = useApiLogsCount<number>();
 
   const isFiltered = activeFilters.length > 0;
 
@@ -73,11 +74,16 @@ export function LogsTable() {
         id: "path",
         header: "Endpoint",
         cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
-          <span className="truncate">{row.original.path}</span>
+          <span
+            className="truncate"
+            title={row.original.route_pattern || undefined}
+          >
+            {row.original.path}
+          </span>
         ),
         meta: {
           filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
-            path: row.original.path,
+            routePattern: row.original.route_pattern,
           }),
         },
         size: 300,
@@ -86,7 +92,10 @@ export function LogsTable() {
         id: "method",
         header: "Method",
         cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
-          <StatusBadge variant="new" icon={null}>
+          <StatusBadge
+            variant={METHOD_BADGE_VARIANTS[row.original.method] ?? "neutral"}
+            icon={null}
+          >
             {row.original.method}
           </StatusBadge>
         ),

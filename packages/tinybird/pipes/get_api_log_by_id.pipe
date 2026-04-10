@@ -6,6 +6,7 @@ SQL >
         timestamp,
         method,
         path,
+        route_pattern,
         status_code,
         duration,
         user_agent,

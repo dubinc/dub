@@ -11,6 +11,7 @@ export const apiLogSchemaTB = z.object({
   workspace_id: z.string(),
   method: z.string(),
   path: z.string(),
+  route_pattern: z.string(),
   status_code: z.number(),
   duration: z.number(),
   user_agent: z.string(),
@@ -23,12 +24,13 @@ export const apiLogSchemaTB = z.object({
 // Schema for query filter params
 export const apiLogFilterSchemaTB = z.object({
   workspaceId: z.string(),
-  path: z.string().optional(),
-  pathPrefix: z.string().optional(),
+  routePattern: z.string().optional(),
   method: z.string().optional(),
   statusCode: z.number().optional(),
   tokenId: z.string().optional(),
   requestId: z.string().optional(),
+  start: z.string().optional(),
+  end: z.string().optional(),
   limit: z.number().optional(),
   offset: z.number().optional(),
 });
@@ -39,6 +41,7 @@ export const apiLogResponseSchemaTB = z.object({
   timestamp: z.string(),
   method: z.string(),
   path: z.string(),
+  route_pattern: z.string(),
   status_code: z.number(),
   duration: z.number(),
   user_agent: z.string(),
@@ -46,6 +49,31 @@ export const apiLogResponseSchemaTB = z.object({
   response_body: z.string(),
   token_id: z.string(),
   user_id: z.string(),
+});
+
+export const apiLogCountFilterSchemaTB = apiLogFilterSchemaTB
+  .omit({
+    limit: true,
+    offset: true,
+  })
+  .extend({
+    groupBy: z.string().optional(),
+  });
+
+export const apiLogCountResponseSchemaTB = {
+  count: z.object({
+    count: z.number(),
+  }),
+
+  routePattern: z.object({
+    routePattern: z.string(),
+    count: z.number(),
+  }),
+};
+
+export const apiLogByIdFilterSchemaTB = z.object({
+  workspaceId: z.string(),
+  id: z.string(),
 });
 
 // Schema for enriched API log (with resolved token and user)
@@ -60,26 +88,9 @@ export const apiLogEnrichedSchema = apiLogResponseSchemaTB.extend({
   user: UserSchema.nullable(),
 });
 
-// Schema for count query filter params
-export const apiLogCountFilterSchemaTB = apiLogFilterSchemaTB.omit({
-  limit: true,
-  offset: true,
-});
-
-// Schema for count response
-export const apiLogCountResponseSchemaTB = z.object({
-  count: z.number(),
-});
-
-// Schema for single log lookup
-export const apiLogByIdFilterSchemaTB = z.object({
-  workspaceId: z.string(),
-  id: z.string(),
-});
-
 export const getApiLogsQuerySchema = z
   .object({
-    path: z.string().optional(),
+    routePattern: z.string().optional(),
     method: z.enum(["POST", "PATCH", "PUT", "DELETE"]).optional(),
     statusCode: z.coerce.number().int().optional(),
     tokenId: z.string().optional(),
@@ -90,3 +101,9 @@ export const getApiLogsQuerySchema = z
       pageSize: API_LOGS_MAX_PAGE_SIZE,
     }),
   );
+
+export const getApiLogsCountQuerySchema = getApiLogsQuerySchema
+  .omit({ page: true, pageSize: true })
+  .extend({
+    groupBy: z.enum(["routePattern"]).optional(),
+  });
