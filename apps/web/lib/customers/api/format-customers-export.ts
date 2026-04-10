@@ -1,3 +1,4 @@
+import { formatMoneyCentsForExport } from "@/lib/api/utils/format-money-cents-for-export";
 import {
   CUSTOMER_EXPORT_COLUMNS,
   CUSTOMER_EXPORT_DEFAULT_COLUMNS,
@@ -46,7 +47,11 @@ export function formatCustomersForExport(
       stripeCustomerId: c.stripeCustomerId ?? "",
       country: c.country ?? "",
       sales: c.sales ?? 0,
-      saleAmount: toCentsNumber(c.saleAmount ?? 0),
+      saleAmount: formatMoneyCentsForExport(
+        toCentsNumber(c.saleAmount ?? 0),
+        "USD",
+        `customer ${c.id}`,
+      ),
       createdAt: dateToIso(c.createdAt),
       firstSaleAt: dateToIso(c.firstSaleAt),
       subscriptionCanceledAt: dateToIso(c.subscriptionCanceledAt),
