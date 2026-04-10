@@ -14,6 +14,16 @@ import {
 } from "../icons";
 import { useRichTextContext } from "./rich-text-provider";
 
+function normalizeLinkUrl(url: string) {
+  const trimmedUrl = url.trim();
+
+  if (!trimmedUrl) return trimmedUrl;
+  if (trimmedUrl.startsWith("//")) return `https:${trimmedUrl}`;
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmedUrl)) return trimmedUrl;
+
+  return `https://${trimmedUrl}`;
+}
+
 export function RichTextToolbar({
   toolsStart,
   toolsEnd,
@@ -155,15 +165,16 @@ function LinkButton() {
 
     const previousUrl = editor.getAttributes("link").href;
     const url = window.prompt("Link URL", previousUrl);
+    const normalizedUrl = url ? normalizeLinkUrl(url) : url;
 
-    if (!url?.trim()) {
+    if (!normalizedUrl?.trim()) {
       editor.chain().focus().extendMarkRange("link").unsetLink().run();
     } else {
       editor
         .chain()
         .focus()
         .extendMarkRange("link")
-        .setLink({ href: url })
+        .setLink({ href: normalizedUrl })
         .run();
     }
 
