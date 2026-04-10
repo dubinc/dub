@@ -12,6 +12,7 @@ import {
   createContext,
   forwardRef,
   useContext,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useState,
@@ -58,6 +59,8 @@ export const RichTextContext = createContext<
     > & {
       editor: Editor | null;
       isUploading: boolean;
+      linkEditorOpen: boolean;
+      setLinkEditorOpen: (open: boolean) => void;
       handleImageUpload:
         | ((file: File, currentEditor: Editor, pos: number) => Promise<void>)
         | null;
@@ -92,6 +95,7 @@ export const RichTextProvider = forwardRef<
     ref,
   ) => {
     const [isUploading, setIsUploading] = useState(false);
+    const [linkEditorOpen, setLinkEditorOpen] = useState(false);
 
     const handleImageUpload = useMemo(
       () =>
@@ -143,6 +147,8 @@ export const RichTextProvider = forwardRef<
           ? [
               Link.extend({
                 inclusive: false,
+              }).configure({
+                openOnClick: false,
               }),
             ]
           : []),
@@ -252,6 +258,33 @@ export const RichTextProvider = forwardRef<
       immediatelyRender: false,
     });
 
+    useEffect(() => {
+      if (!editor || editable === false || !features.includes("links")) return;
+
+      const root = editor.view.dom as HTMLElement;
+
+      const onClick = (event: MouseEvent) => {
+        if (!(event.target instanceof Element)) return;
+
+        const link = event.target.closest("a[href]");
+        if (!link || !root.contains(link)) return;
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        requestAnimationFrame(() => {
+          editor.commands.focus();
+          setLinkEditorOpen(true);
+        });
+      };
+
+      root.addEventListener("click", onClick, true);
+
+      return () => {
+        root.removeEventListener("click", onClick, true);
+      };
+    }, [editor, editable, features]);
+
     useImperativeHandle(ref, () => ({
       setContent: (content: any) => {
         editor?.commands.setContent(content);
@@ -267,6 +300,8 @@ export const RichTextProvider = forwardRef<
           variables,
           editor,
           isUploading,
+          linkEditorOpen,
+          setLinkEditorOpen,
           handleImageUpload,
         }}
       >

@@ -1,3 +1,4 @@
+import { LinkHoverTooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import ReactMarkdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
@@ -79,9 +80,19 @@ export function MessageMarkdown({
         "hr",
       ]}
       components={{
-        a: ({ node, ...props }) => (
-          <a {...props} target="_blank" rel="noopener noreferrer" />
-        ),
+        a: ({ node, href, ...props }) =>
+          href ? (
+            <LinkHoverTooltip href={href}>
+              <a
+                {...props}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+              />
+            </LinkHoverTooltip>
+          ) : (
+            <a {...props} target="_blank" rel="noopener noreferrer" />
+          ),
         img: ({ node, ...props }) => <ZoomImage {...props} />,
         p: ({ node, children, ...props }) => {
           // Check if paragraph only contains images (which render as divs via ZoomImage)

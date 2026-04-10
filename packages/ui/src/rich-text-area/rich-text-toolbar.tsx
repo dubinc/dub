@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 import { useEditorState } from "@tiptap/react";
-import { ReactNode, forwardRef, useRef } from "react";
+import { ReactNode, forwardRef, useEffect, useRef } from "react";
 import {
   AtSign,
   Heading1,
@@ -32,6 +32,7 @@ export function RichTextToolbar({
       isBold: Boolean(editor?.isActive("bold")),
       isItalic: Boolean(editor?.isActive("italic")),
       isStrike: Boolean(editor?.isActive("strike")),
+      isLink: Boolean(editor?.isActive("link")),
       isHeading1: Boolean(editor?.isActive("heading", { level: 1 })),
       isHeading2: Boolean(editor?.isActive("heading", { level: 2 })),
       isSelection: editor?.state.selection.from !== editor?.state.selection.to,
@@ -139,38 +140,43 @@ export function RichTextToolbar({
 }
 
 function LinkButton() {
-  const { editor } = useRichTextContext();
+  const { editor, linkEditorOpen, setLinkEditorOpen } = useRichTextContext();
 
   const editorState = useEditorState({
     editor,
     selector: ({ editor }) => ({
+      isLink: Boolean(editor?.isActive("link")),
       isSelection: editor?.state.selection.from !== editor?.state.selection.to,
     }),
   });
+
+  useEffect(() => {
+    if (!editor || !linkEditorOpen) return;
+
+    const previousUrl = editor.getAttributes("link").href;
+    const url = window.prompt("Link URL", previousUrl);
+
+    if (!url?.trim()) {
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
+    } else {
+      editor
+        .chain()
+        .focus()
+        .extendMarkRange("link")
+        .setLink({ href: url })
+        .run();
+    }
+
+    setLinkEditorOpen(false);
+  }, [editor, linkEditorOpen, setLinkEditorOpen]);
 
   return (
     <RichTextToolbarButton
       icon={Hyperlink}
       label="Link"
-      onClick={() => {
-        if (!editor) return;
-        const previousUrl = editor.getAttributes("link").href;
-
-        const url = window.prompt("Link URL", previousUrl);
-
-        if (!url?.trim()) {
-          editor.chain().focus().extendMarkRange("link").unsetLink().run();
-          return;
-        }
-
-        editor
-          .chain()
-          .focus()
-          .extendMarkRange("link")
-          .setLink({ href: url })
-          .run();
-      }}
-      disabled={!editorState?.isSelection}
+      isActive={editorState?.isLink}
+      onClick={() => setLinkEditorOpen(true)}
+      disabled={!editorState?.isSelection && !editorState?.isLink}
     />
   );
 }
