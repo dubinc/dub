@@ -13,7 +13,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { CircleDotted, GridIcon } from "@dub/ui/icons";
-import { fetcher, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
+import { fetcher, formatDate, formatDateTime, OG_AVATAR_URL } from "@dub/utils";
 import { Suspense, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 import * as z from "zod/v4";
@@ -209,17 +209,18 @@ function FraudAlertsPageClient() {
         id: "reviewNote",
         header: "Review Note",
         cell: ({ row }) => {
-          const { reviewNote, reviewedBy } = row.original;
+          const { reviewNote, reviewedBy, reviewedAt } = row.original;
           if (!reviewNote) return "-";
 
           return (
             <Tooltip
               content={
-                <div className="max-w-xs">
+                <div className="max-w-xs p-2">
                   <p className="text-sm">{reviewNote}</p>
                   {reviewedBy && (
                     <p className="mt-1 text-xs text-neutral-400">
                       Reviewed by {reviewedBy.name}
+                      {reviewedAt ? ` on ${formatDate(reviewedAt)}` : ""}
                     </p>
                   )}
                 </div>
