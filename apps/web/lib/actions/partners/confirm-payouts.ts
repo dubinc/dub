@@ -3,6 +3,7 @@
 import { createId } from "@/lib/api/create-id";
 import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
+import { payoutIdSelectionWhere } from "@/lib/api/payouts/payout-id-selection-where";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import {
@@ -24,17 +25,27 @@ import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
-const confirmPayoutsSchema = z.object({
-  workspaceId: z.string(),
-  paymentMethodId: z.string(),
-  cutoffPeriod: CUTOFF_PERIOD_ENUM,
-  selectedPayoutId: z.string().optional(),
-  excludedPayoutIds: z.array(z.string()).optional(),
-  fastSettlement: z.boolean().optional().default(false),
-  amount: z.number(),
-  fee: z.number(),
-  total: z.number(),
-});
+const confirmPayoutsSchema = z
+  .object({
+    workspaceId: z.string(),
+    paymentMethodId: z.string(),
+    cutoffPeriod: CUTOFF_PERIOD_ENUM,
+    selectedPayoutIds: z.array(z.string()).optional(),
+    excludedPayoutIds: z.array(z.string()).optional(),
+    fastSettlement: z.boolean().optional().default(false),
+    amount: z.number(),
+    fee: z.number(),
+    total: z.number(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.selectedPayoutIds?.length && data.excludedPayoutIds?.length) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "Cannot combine selectedPayoutIds with excludedPayoutIds in the same request.",
+      });
+    }
+  });
 
 // Confirm payouts
 export const confirmPayoutsAction = authActionClient
@@ -44,7 +55,7 @@ export const confirmPayoutsAction = authActionClient
     const {
       paymentMethodId,
       cutoffPeriod,
-      selectedPayoutId,
+      selectedPayoutIds,
       excludedPayoutIds,
       fastSettlement,
       amount,
@@ -96,11 +107,7 @@ export const confirmPayoutsAction = authActionClient
     if (cutoffPeriod) {
       const totalEligiblePayouts = await prisma.payout.aggregate({
         where: {
-          ...(selectedPayoutId
-            ? { id: selectedPayoutId }
-            : excludedPayoutIds && excludedPayoutIds.length > 0
-              ? { id: { notIn: excludedPayoutIds } }
-              : {}),
+          ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
           ...getPayoutEligibilityFilter({ program, workspace }),
         },
         _count: true,
@@ -119,7 +126,7 @@ export const confirmPayoutsAction = authActionClient
           program,
           workspace,
           cutoffPeriod,
-          selectedPayoutId,
+          selectedPayoutIds,
           excludedPayoutIds,
           page: 1,
           pageSize: Infinity,
@@ -218,7 +225,7 @@ export const confirmPayoutsAction = authActionClient
         invoiceId: invoice.id,
         paymentMethodId,
         cutoffPeriod,
-        selectedPayoutId,
+        selectedPayoutIds,
         excludedPayoutIds,
       },
       deduplicationId: `process-payouts-${invoice.id}`,

@@ -101,18 +101,39 @@ function ConfirmPayoutsSheetContent() {
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const selectedPayoutId = searchParamsObj.selectedPayoutId || undefined;
+  const resolvedSelectedPayoutIds = useMemo(() => {
+    const fromMulti =
+      searchParamsObj.selectedPayoutIds?.split(",").filter(Boolean) ?? [];
+    const fromLegacy = searchParamsObj.selectedPayoutId
+      ? [searchParamsObj.selectedPayoutId]
+      : [];
+    return [...new Set([...fromMulti, ...fromLegacy])];
+  }, [searchParamsObj.selectedPayoutIds, searchParamsObj.selectedPayoutId]);
+
+  const isExplicitSelectionMode = resolvedSelectedPayoutIds.length > 0;
+
   const excludedPayoutIds =
     searchParamsObj.excludedPayoutIds?.split(",").filter(Boolean) || [];
 
-  const commonQuery = {
-    workspaceId,
-    cutoffPeriod,
-    ...(selectedPayoutId && { selectedPayoutId }),
-    ...(excludedPayoutIds.length > 0 && {
-      excludedPayoutIds: excludedPayoutIds.join(","),
-    }),
-  } as Record<string, any>;
+  const commonQuery = useMemo(
+    () =>
+      ({
+        workspaceId,
+        cutoffPeriod,
+        ...(isExplicitSelectionMode
+          ? { selectedPayoutIds: resolvedSelectedPayoutIds.join(",") }
+          : excludedPayoutIds.length > 0
+            ? { excludedPayoutIds: excludedPayoutIds.join(",") }
+            : {}),
+      }) as Record<string, string>,
+    [
+      workspaceId,
+      cutoffPeriod,
+      isExplicitSelectionMode,
+      resolvedSelectedPayoutIds.join(","),
+      excludedPayoutIds.join(","),
+    ],
+  );
 
   const { data: eligiblePayoutsCount } = useSWR<{
     count: number;
@@ -180,14 +201,19 @@ function ConfirmPayoutsSheetContent() {
   );
 
   const finalEligiblePayouts = useMemo(() => {
-    // if there's a selected payout id, return the payout directly
-    if (selectedPayoutId) return eligiblePayouts;
+    if (isExplicitSelectionMode) {
+      return eligiblePayouts;
+    }
 
-    // else, we need to filter out the excluded payout ids (if specified)
     return eligiblePayouts?.filter(
       (payout) => !excludedPayoutIds.includes(payout.id),
     );
-  }, [eligiblePayouts, selectedPayoutId, excludedPayoutIds]);
+  }, [eligiblePayouts, isExplicitSelectionMode, excludedPayoutIds]);
+
+  const showPerRowIncludeExclude = useMemo(
+    () => !isExplicitSelectionMode || resolvedSelectedPayoutIds.length > 1,
+    [isExplicitSelectionMode, resolvedSelectedPayoutIds.length],
+  );
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
     onError: ({ error }) => {
@@ -598,7 +624,7 @@ function ConfirmPayoutsSheetContent() {
   );
 
   const table = useTable({
-    data: eligiblePayouts || [],
+    data: finalEligiblePayouts || [],
     columns: [
       partnerColumn,
       {
@@ -609,14 +635,16 @@ function ConfirmPayoutsSheetContent() {
             <div className="relative flex items-center justify-end gap-1.5">
               <span
                 className={cn(
-                  !selectedPayoutId && "group-hover/row:opacity-0",
-                  excludedPayoutIds.includes(row.original.id) && "line-through",
+                  showPerRowIncludeExclude && "group-hover/row:opacity-0",
+                  !isExplicitSelectionMode &&
+                    excludedPayoutIds.includes(row.original.id) &&
+                    "line-through",
                 )}
               >
                 {currencyFormatter(row.original.amount)}
               </span>
 
-              {!selectedPayoutId && (
+              {showPerRowIncludeExclude && (
                 <div
                   className={cn(
                     "pointer-events-none absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100",
@@ -627,12 +655,39 @@ function ConfirmPayoutsSheetContent() {
                   <Button
                     variant="secondary"
                     text={
-                      excludedPayoutIds.includes(row.original.id)
-                        ? "Include"
-                        : "Exclude"
+                      isExplicitSelectionMode
+                        ? "Remove"
+                        : excludedPayoutIds.includes(row.original.id)
+                          ? "Include"
+                          : "Exclude"
                     }
                     className="h-6 w-fit px-2"
                     onClick={() => {
+                      if (isExplicitSelectionMode) {
+                        const next = resolvedSelectedPayoutIds.filter(
+                          (id) => id !== row.original.id,
+                        );
+
+                        queryParams({
+                          ...(next.length > 0
+                            ? {
+                                set: {
+                                  selectedPayoutIds: next.join(","),
+                                },
+                                del: ["selectedPayoutId", "excludedPayoutIds"],
+                              }
+                            : {
+                                del: [
+                                  "selectedPayoutIds",
+                                  "selectedPayoutId",
+                                  "excludedPayoutIds",
+                                ],
+                              }),
+                          replace: true,
+                        });
+                        return;
+                      }
+
                       const newExcludedPayoutIds = excludedPayoutIds.includes(
                         row.original.id,
                       )
@@ -648,9 +703,14 @@ function ConfirmPayoutsSheetContent() {
                                 excludedPayoutIds:
                                   newExcludedPayoutIds.join(","),
                               },
+                              del: ["selectedPayoutIds", "selectedPayoutId"],
                             }
                           : {
-                              del: "excludedPayoutIds",
+                              del: [
+                                "excludedPayoutIds",
+                                "selectedPayoutIds",
+                                "selectedPayoutId",
+                              ],
                             }),
                         replace: true,
                       });
@@ -672,10 +732,11 @@ function ConfirmPayoutsSheetContent() {
     tdClassName: (id, row) =>
       cn(
         "transition-opacity",
-        excludedPayoutIds.includes(row.original.id) && [
-          "[&>div]:opacity-50",
-          id === "total" && "group-hover/row:[&>div]:opacity-100",
-        ], // Excluded payout
+        !isExplicitSelectionMode &&
+          excludedPayoutIds.includes(row.original.id) && [
+            "[&>div]:opacity-50",
+            id === "total" && "group-hover/row:[&>div]:opacity-100",
+          ],
         id === "total" && "text-right",
         "border-l-0",
       ),
@@ -772,8 +833,11 @@ function ConfirmPayoutsSheetContent() {
               paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
               fastSettlement: selectedPaymentMethod.fastSettlement,
               cutoffPeriod,
-              selectedPayoutId,
-              excludedPayoutIds,
+              ...(isExplicitSelectionMode
+                ? { selectedPayoutIds: resolvedSelectedPayoutIds }
+                : excludedPayoutIds.length > 0
+                  ? { excludedPayoutIds }
+                  : {}),
               amount: amount ?? 0,
               fee: fee ?? 0,
               total: total ?? 0,
@@ -821,7 +885,7 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
-        {holdPayoutsCount > 0 && (
+        {excludedPayoutIds.length > 0 && holdPayoutsCount > 0 && (
           <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
             <span>
               Excluding{" "}
@@ -872,7 +936,12 @@ export function ConfirmPayoutsSheet() {
       onOpenChange={setIsOpen}
       onClose={() => {
         queryParams({
-          del: ["confirmPayouts", "selectedPayoutId", "excludedPayoutIds"],
+          del: [
+            "confirmPayouts",
+            "selectedPayoutId",
+            "selectedPayoutIds",
+            "excludedPayoutIds",
+          ],
         });
       }}
     >
