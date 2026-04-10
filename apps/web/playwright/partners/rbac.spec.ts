@@ -209,7 +209,7 @@ const RBAC_MATRIX: RbacEntry[] = [
   {
     method: "POST",
     endpoint: "/programs/acme/links",
-    body: { url: "https://example.com" },
+    body: { url: "https://acme.com" },
     roles: {
       owner: { status: 201 },
       member: { status: 201 },
