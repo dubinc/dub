@@ -233,6 +233,7 @@ function normalizeUrl(raw: string) {
     "si",
     "feature",
     "igshid",
+    "igsh",
     "t",
   ].forEach((p) => url.searchParams.delete(p));
 

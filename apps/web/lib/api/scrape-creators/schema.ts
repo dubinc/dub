@@ -168,7 +168,40 @@ export const socialContentSchema = z.preprocess(
         };
       }
 
-      // Instagram detection
+      // Instagram v2 (flat post/reel — current ScrapeCreators API): map into the same
+      // shape as xdt_shortcode_media so Zod + getSocialContent stay unchanged.
+      if (
+        data.success === true &&
+        typeof data.shortcode === "string" &&
+        typeof data.like_count === "number" &&
+        data.user &&
+        typeof data.user === "object" &&
+        typeof data.user.username === "string"
+      ) {
+        const takenAtSec =
+          typeof data.created_at === "number"
+            ? data.created_at
+            : typeof data.created_at_utc === "string"
+              ? Math.floor(new Date(data.created_at_utc).getTime() / 1000)
+              : 0;
+
+        return {
+          platform: "instagram" as const,
+          taken_at_timestamp: takenAtSec,
+          owner: { username: data.user.username },
+          video_play_count: 0,
+          edge_media_preview_like: { count: data.like_count },
+          edge_media_to_caption: data.caption
+            ? {
+                edges: [{ node: { text: String(data.caption) } }],
+              }
+            : undefined,
+          display_url: data.image_url ?? undefined,
+          thumbnail_src: data.image_url ?? undefined,
+        };
+      }
+
+      // Instagram (legacy GraphQL xdt_shortcode_media shape)
       if ("data" in data && "xdt_shortcode_media" in data.data) {
         return {
           ...data.data.xdt_shortcode_media,
