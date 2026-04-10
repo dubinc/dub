@@ -190,6 +190,15 @@ const RBAC_MATRIX: RbacEntry[] = [
   },
   {
     method: "GET",
+    endpoint: "/payouts/settings",
+    roles: {
+      owner: { status: 200 },
+      member: { status: 200 },
+      viewer: { status: 403, code: "forbidden" },
+    },
+  },
+  {
+    method: "GET",
     endpoint: "/programs/example",
     roles: {
       owner: { status: 200 },
