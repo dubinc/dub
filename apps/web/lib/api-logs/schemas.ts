@@ -57,7 +57,7 @@ export const apiLogCountFilterSchemaTB = apiLogFilterSchemaTB
     offset: true,
   })
   .extend({
-    groupBy: z.string().optional(),
+    groupBy: z.enum(["routePattern"]).optional(),
   });
 
 export const apiLogCountResponseSchemaTB = {

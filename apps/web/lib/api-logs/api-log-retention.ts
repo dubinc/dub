@@ -17,5 +17,5 @@ export function getApiLogsStartDate(
   const days = getApiLogsRetentionDays(plan);
   const start = new Date();
   start.setDate(start.getDate() - days);
-  return start.toISOString();
+  return start.toISOString().replace("T", " ").slice(0, 19);
 }

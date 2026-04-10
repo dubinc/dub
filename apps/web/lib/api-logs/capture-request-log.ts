@@ -1,20 +1,9 @@
 import { WorkspaceWithUsers } from "@/lib/types";
 import { waitUntil } from "@vercel/functions";
-import { minimatch } from "minimatch";
 import { TokenCacheItem } from "../auth/token-cache";
 import { Session } from "../auth/utils";
-import {
-  HTTP_METHODS,
-  LOGGED_API_PATH_PATTERNS,
-  ROUTE_PATTERNS,
-} from "./constants";
+import { HTTP_METHODS, ROUTE_PATTERNS } from "./constants";
 import { recordApiLog } from "./record-api-log";
-
-export function shouldLogRoute(pathname: string) {
-  return LOGGED_API_PATH_PATTERNS.some((pattern) =>
-    minimatch(pathname, pattern),
-  );
-}
 
 // Precompile route patterns into regexes at module load
 const compiledRoutePatterns = ROUTE_PATTERNS.map((pattern) => {
@@ -68,13 +57,15 @@ export function captureRequestLog({
   const isMutation = HTTP_METHODS.includes(
     req.method as (typeof HTTP_METHODS)[number],
   );
-  if (!isMutation || !shouldLogRoute(url.pathname)) {
+
+  const routePattern = getRoutePattern(url.pathname);
+
+  if (!isMutation || routePattern === "unknown") {
     return;
   }
 
   const duration = Date.now() - startTime;
   const responseClone = response.clone();
-  const routePattern = getRoutePattern(url.pathname);
 
   waitUntil(
     (async () => {

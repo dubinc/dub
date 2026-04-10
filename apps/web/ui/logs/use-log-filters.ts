@@ -72,12 +72,10 @@ export function useLogFilters() {
         key: "routePattern",
         icon: Globe,
         label: "Endpoint",
-        shouldFilter: false,
-        options:
-          routePatterns?.map((r) => ({
-            value: r.routePattern,
-            label: r.routePattern,
-          })) ?? null,
+        options: (routePatterns || []).map(({ routePattern }) => ({
+          value: routePattern,
+          label: routePattern,
+        })),
       },
       {
         key: "method",
@@ -92,12 +90,10 @@ export function useLogFilters() {
         key: "tokenId",
         icon: Key,
         label: "API Key",
-        shouldFilter: false,
-        options:
-          tokens?.map((t) => ({
-            value: t.id,
-            label: `${t.name} (${t.partialKey})`,
-          })) ?? null,
+        options: (tokens || []).map(({ id, name, partialKey }) => ({
+          value: id,
+          label: `${name} (${partialKey})`,
+        })),
       },
     ],
     [tokens, routePatterns],
