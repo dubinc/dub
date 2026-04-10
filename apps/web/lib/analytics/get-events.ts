@@ -227,6 +227,7 @@ export const getEvents = async (params: EventsFilters) => {
                       amount: evt.saleAmount,
                       invoiceId: evt.invoice_id,
                       paymentProcessor: evt.payment_processor,
+                      currency: evt.currency,
                     },
                   }
                 : {}),

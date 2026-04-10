@@ -324,8 +324,8 @@ export const createClawbackSchema = z.object({
 export const COMMISSION_EXPORT_COLUMNS = [
   { id: "id", label: "ID", type: "string", default: true },
   { id: "type", label: "Type", type: "string", default: true },
-  { id: "amount", label: "Amount", type: "number", default: true },
-  { id: "earnings", label: "Earnings", type: "number", default: true },
+  { id: "amount", label: "Amount", type: "money", default: true },
+  { id: "earnings", label: "Earnings", type: "money", default: true },
   { id: "currency", label: "Currency", type: "string", default: true },
   { id: "status", label: "Status", type: "string", default: true },
   { id: "invoiceId", label: "Invoice ID", type: "string", default: true },

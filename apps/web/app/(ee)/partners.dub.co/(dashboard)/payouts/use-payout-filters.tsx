@@ -1,6 +1,5 @@
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
-import { PayoutsCount } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, GridIcon } from "@dub/ui/icons";
@@ -10,7 +9,7 @@ import { useCallback, useMemo } from "react";
 export function usePayoutFilters() {
   const { searchParamsObj, queryParams } = useRouterStuff();
 
-  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
+  const { payoutsCount } = usePartnerPayoutsCount({
     groupBy: "status",
   });
 

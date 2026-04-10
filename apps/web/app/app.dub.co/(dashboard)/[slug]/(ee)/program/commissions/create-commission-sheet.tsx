@@ -15,6 +15,7 @@ import {
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { CommissionType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
@@ -493,9 +494,11 @@ function CreateCommissionSheetContent({
                             (optional)
                           </span>
                         </label>
-                        <span className="text-xs text-neutral-400">
-                          {description?.length || 0}/190
-                        </span>
+                        <MaxCharactersCounter
+                          name="description"
+                          maxLength={190}
+                          control={control}
+                        />
                       </div>
                       <div className="mt-2">
                         <textarea
