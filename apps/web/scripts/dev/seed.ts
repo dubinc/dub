@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { hashPassword } from "@/lib/auth/password";
+import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import {
   Domain,
@@ -72,6 +73,7 @@ type GroupSeed = Pick<
   | "saleRewardId"
   | "additionalLinks"
 > & {
+  maxPartnerLinks?: PartnerGroup["maxPartnerLinks"];
   defaultLinks: Pick<PartnerGroupDefaultLink, "url">[];
 };
 
@@ -342,6 +344,8 @@ const createGroups = async (data: SeedData) => {
       leadRewardId: group.leadRewardId ?? null,
       saleRewardId: group.saleRewardId ?? null,
       additionalLinks: group.additionalLinks as Prisma.JsonArray,
+      maxPartnerLinks:
+        group.maxPartnerLinks ?? DEFAULT_ADDITIONAL_PARTNER_LINKS,
     })),
   });
 
