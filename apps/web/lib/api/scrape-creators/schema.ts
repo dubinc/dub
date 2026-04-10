@@ -219,8 +219,10 @@ export const socialContentSchema = z.preprocess(
                 edges: [{ node: { text: String(data.caption) } }],
               }
             : undefined,
-          display_url: data.image_url ?? undefined,
-          thumbnail_src: data.image_url ?? undefined,
+          display_url:
+            typeof data.image_url === "string" ? data.image_url : undefined,
+          thumbnail_src:
+            typeof data.image_url === "string" ? data.image_url : undefined,
         };
       }
 
