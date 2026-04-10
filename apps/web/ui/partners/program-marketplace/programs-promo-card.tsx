@@ -19,7 +19,11 @@ export function ProgramsPromoCard() {
     return null;
   }
 
-  if (!partner.identityVerifiedAt && (payoutsCount[0]?.amount ?? 0) > 10000) {
+  if (
+    !partner.identityVerifiedAt &&
+    partner.country !== "IN" &&
+    (payoutsCount[0]?.amount ?? 0) > 10000
+  ) {
     return <IdentityVerificationCard />;
   }
 
