@@ -1,5 +1,4 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
 import { throwIfNoProgramAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import {
   ProgramMessagesSchema,
@@ -82,7 +81,13 @@ export const GET = withPartnerProfile(
                   },
                 },
               ],
-              ...programScopeFilter(partnerUser.assignedProgramIds),
+              ...(partnerUser.assignedProgramIds
+                ? {
+                    id: {
+                      in: partnerUser.assignedProgramIds,
+                    },
+                  }
+                : {}),
             }),
       },
       include: {
