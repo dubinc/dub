@@ -16,7 +16,7 @@ export function PayoutsCard({ programId }: { programId?: string }) {
     ...(programId && { programId }),
     pageSize: "4",
   });
-  const { payoutsCount } = usePartnerPayoutsCount<number>({
+  const { payoutsCount } = usePartnerPayoutsCount({
     ...(programId && { programId }),
   });
 
@@ -41,12 +41,12 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           <span className="block text-base font-semibold leading-none text-neutral-800">
             Payouts
           </span>
-          {payouts?.length ? (
+          {payouts?.length && payoutsCount?.length ? (
             <Link
               href={`/payouts?programId=${programId}`}
               className="text-sm font-medium leading-none text-neutral-500 hover:text-neutral-600"
             >
-              {payouts.length} of {payoutsCount} results
+              {payouts.length} of {payoutsCount[0].count} results
             </Link>
           ) : null}
         </div>

@@ -5,6 +5,7 @@ import {
   getSubmissionPeriods,
 } from "@/lib/bounty/periods";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "@/lib/bounty/submission-status";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { PartnerBountyProps, PartnerBountySubmission } from "@/lib/types";
 import { useBountySubmissionDetailsSheet } from "@/ui/partners/bounties/bounty-submission-details-sheet";
 import { useClaimBountySheet } from "@/ui/partners/bounties/claim-bounty-sheet";
@@ -140,15 +141,18 @@ export function BountySubmissionsTable({
         size: 98,
         cell: ({ row: { original } }) => {
           const { status } = original;
+          const bountyInfo = resolveBountyDetails(bounty);
           const isExpired =
             bounty.endsAt !== null && new Date(bounty.endsAt) < new Date();
-          const isActionable = status === "notSubmitted" || status === "draft";
+          const isActionable = bountyInfo?.hasSocialMetrics
+            ? status === "notSubmitted"
+            : status === "notSubmitted" || status === "draft";
 
           let buttonText = "Submit";
 
-          if (status === "draft") {
+          if (status === "draft" && !bountyInfo?.hasSocialMetrics) {
             buttonText = "Continue";
-          } else if (["submitted", "approved", "rejected"].includes(status)) {
+          } else if (status !== "notSubmitted") {
             buttonText = "View";
           }
 

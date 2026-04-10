@@ -67,6 +67,8 @@ export const veriffDecisionEventSchema = z.object({
   }),
 });
 
+export type VeriffDecisionEvent = z.infer<typeof veriffDecisionEventSchema>;
+
 export const veriffEventSchema = z.union([
   veriffSessionEventSchema,
   veriffDecisionEventSchema,

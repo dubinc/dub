@@ -231,6 +231,9 @@ export const withPartnerProfile = (
                 salesChannels: true,
                 platforms: true,
               },
+              omit: {
+                veriffIdentityHash: true,
+              },
             },
             assignedPrograms: {
               select: {

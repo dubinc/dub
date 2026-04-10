@@ -6,7 +6,7 @@ import { PayoutsCount } from "../types";
 import { payoutsCountQuerySchema } from "../zod/schemas/payouts";
 import useWorkspace from "./use-workspace";
 
-export function usePayoutsCount<T>({
+export function usePayoutsCount({
   ignoreParams,
   enabled = true,
   ...query
@@ -34,7 +34,7 @@ export function usePayoutsCount<T>({
   );
 
   return {
-    payoutsCount: payoutsCount as T,
+    payoutsCount,
     error,
     loading: payoutsCount === undefined && !error,
   };

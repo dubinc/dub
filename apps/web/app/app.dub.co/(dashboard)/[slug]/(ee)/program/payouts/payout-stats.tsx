@@ -3,7 +3,6 @@
 import { clientAccessCheck } from "@/lib/client-access-check";
 import { usePayoutsCount } from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PayoutsCount } from "@/lib/types";
 import { ConfirmPayoutsSheet } from "@/ui/partners/confirm-payouts-sheet";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
@@ -25,14 +24,14 @@ export function PayoutStats() {
   }).error;
   const { queryParams } = useRouterStuff();
 
-  const { payoutsCount, loading } = usePayoutsCount<PayoutsCount[]>({
+  const { payoutsCount, loading } = usePayoutsCount({
     groupBy: "status",
   });
 
   const {
     payoutsCount: eligiblePayoutsCount,
     loading: eligiblePayoutsLoading,
-  } = usePayoutsCount<PayoutsCount[]>({
+  } = usePayoutsCount({
     groupBy: "status",
     eligibility: "eligible",
   });

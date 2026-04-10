@@ -1,4 +1,4 @@
-import { DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, DUPLICATE_IDENTITY_DECLINE_REASON } from "@dub/utils";
 import {
   Body,
   Container,
@@ -19,7 +19,7 @@ export default function PartnerIdentityVerificationFailed({
     name: "John",
     email: "panic@thedis.co",
   },
-  failureType = "countryChange",
+  failureType = "declined",
   failureReasonText = "Document Obscured: ID document is partially obscured (e.g. by fingers)",
 }: {
   partner: {
@@ -85,25 +85,50 @@ export default function PartnerIdentityVerificationFailed({
             ) : (
               <>
                 <Text className="text-sm leading-6 text-neutral-600">
-                  Hi {partner.name}, your identity verification couldn't be
-                  completed because {failureReasonText}.
+                  Hi {partner.name}, your identity verification was declined
+                  with the following reason:
+                </Text>
+
+                <Text className="rounded-lg border border-solid border-neutral-200 bg-neutral-50 p-4 text-sm leading-6 text-neutral-600">
+                  {failureReasonText}
                 </Text>
 
                 <Text className="text-sm leading-6 text-neutral-600">
-                  Please log back in to your dashboard and resubmit your
-                  details.
+                  {failureReasonText === DUPLICATE_IDENTITY_DECLINE_REASON ? (
+                    <>
+                      Please{" "}
+                      <Link
+                        href="https://dub.co/help/article/merging-partner-accounts"
+                        className="font-semibold text-neutral-700 underline underline-offset-2"
+                      >
+                        merge your accounts
+                      </Link>{" "}
+                      or{" "}
+                      <Link
+                        href="https://dub.co/support"
+                        className="font-semibold text-neutral-700 underline underline-offset-2"
+                      >
+                        contact support
+                      </Link>{" "}
+                      if you believe this is a mistake.
+                    </>
+                  ) : (
+                    "Please log in to your dashboard and resubmit your documents."
+                  )}
                 </Text>
               </>
             )}
 
-            <Section className="mb-10 mt-6">
-              <Link
-                className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
-                href="https://partners.dub.co/profile"
-              >
-                Go to your dashboard
-              </Link>
-            </Section>
+            {failureReasonText !== DUPLICATE_IDENTITY_DECLINE_REASON && (
+              <Section className="mb-10 mt-6">
+                <Link
+                  className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
+                  href="https://partners.dub.co/profile"
+                >
+                  Go to your dashboard
+                </Link>
+              </Section>
+            )}
 
             <Footer email={partner.email} />
           </Container>
