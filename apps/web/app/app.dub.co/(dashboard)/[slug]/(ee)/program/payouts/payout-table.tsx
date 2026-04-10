@@ -10,7 +10,7 @@ import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicat
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus, ProgramPayoutMode } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -41,10 +41,12 @@ function isPayoutEligibleForBatchConfirm(
   payout: PayoutResponse,
   {
     minPayoutAmount,
+    programPayoutMode,
     canManageFraudEvents,
     partnersWithPendingFraud,
   }: {
     minPayoutAmount: number;
+    programPayoutMode: ProgramPayoutMode;
     canManageFraudEvents: boolean;
     partnersWithPendingFraud: Set<string>;
   },
@@ -57,15 +59,17 @@ function isPayoutEligibleForBatchConfirm(
     return false;
   }
 
-  if (payout.mode === "external" && !payout.partner?.tenantId) {
+  // Derive effective mode the same way server does
+  const effectiveMode = payout.partner.payoutsEnabledAt
+    ? "internal"
+    : programPayoutMode === "hybrid" || programPayoutMode === "external"
+      ? "external"
+      : programPayoutMode;
+
+  if (effectiveMode === "external" && !payout.partner?.tenantId) {
     return false;
   }
-
-  if (payout.mode === "internal" && !payout.partner?.payoutsEnabledAt) {
-    return false;
-  }
-
-  if (payout.mode == null) {
+  if (effectiveMode === "internal" && !payout.partner?.payoutsEnabledAt) {
     return false;
   }
 
@@ -257,6 +261,7 @@ export function PayoutTable() {
 
       const eligibilityCtx = {
         minPayoutAmount,
+        programPayoutMode: program?.payoutMode ?? "internal",
         canManageFraudEvents,
         partnersWithPendingFraud: fraudGroupCountMap,
       };
