@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
 import { hashSync } from "bcryptjs";
@@ -18,6 +19,7 @@ async function main() {
     },
     update: {},
     create: {
+      id: createId({ prefix: "pn_" }),
       name: PARTNER.name,
       email: PARTNER.email,
       country: PARTNER.country,
@@ -39,6 +41,7 @@ async function main() {
       },
       update: {},
       create: {
+        id: createId({ prefix: "user_" }),
         email,
         name,
         emailVerified: new Date(),
@@ -94,6 +97,7 @@ async function main() {
       },
       update: {},
       create: {
+        id: createId({ prefix: "pge_" }),
         partnerId: partner.id,
         programId: program.id,
         status: "approved",
@@ -126,6 +130,7 @@ async function main() {
         },
         update: {},
         create: {
+          id: createId({ prefix: "link_" }),
           domain: program.domain!,
           key: partnerLink.key,
           url: partnerLink.url,

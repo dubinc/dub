@@ -250,6 +250,7 @@ export const authOptions: NextAuthOptions = {
             image: true,
             invalidLoginAttempts: true,
             emailVerified: true,
+            defaultPartnerId: true,
           },
         });
 
@@ -295,6 +296,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
+          defaultPartnerId: user.defaultPartnerId,
         };
       },
     }),

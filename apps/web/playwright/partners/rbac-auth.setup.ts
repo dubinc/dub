@@ -26,7 +26,7 @@ for (const [role, { email }] of Object.entries(PARTNER_USERS)) {
     // Wait for redirect to authenticated area
     await page.waitForURL(
       (url) => /^\/(programs|onboarding)/.test(new URL(url).pathname),
-      { timeout: 30_000 },
+      { timeout: process.env.CI ? 30_000 : 15_000 },
     );
     await expect(page).not.toHaveURL(/\/login/);
 
