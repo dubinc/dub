@@ -148,7 +148,6 @@ const RBAC_MATRIX: RbacEntry[] = [
       owner: {
         status: 200,
         verify: (body) => {
-          expect(body.length).toBe(2);
           const keys = body.map((l: any) => l.key).sort();
           expect(keys).toEqual(PARTNER_LINKS.acme.map((l) => l.key).sort());
         },
@@ -163,7 +162,6 @@ const RBAC_MATRIX: RbacEntry[] = [
       viewer: {
         status: 200,
         verify: (body) => {
-          expect(body.length).toBe(2);
           const keys = body.map((l: any) => l.key).sort();
           expect(keys).toEqual(PARTNER_LINKS.acme.map((l) => l.key).sort());
         },
@@ -272,6 +270,8 @@ function api(request: APIRequestContext) {
 let inaccessibleLinkId: string;
 
 function runRbacSuite(role: PartnerRole) {
+  test.describe.configure({ mode: "parallel" });
+
   test.beforeAll(async () => {
     if (!inaccessibleLinkId) {
       const link = await prisma.link.findFirstOrThrow({
