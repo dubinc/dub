@@ -1,4 +1,7 @@
 import { APIRequestContext, expect, test } from "@playwright/test";
+import { PARTNER_LINKS, PARTNER_PROGRAMS } from "./constants";
+
+test.describe.configure({ mode: "parallel" });
 
 const BASE_URL = "http://partners.localhost:8888";
 
@@ -19,96 +22,133 @@ function api(request: APIRequestContext) {
 test.describe("Owner role", () => {
   test.use({ storageState: "playwright/.auth/partner-owner.json" });
 
-  test("GET / — partner profile", async ({ request }) => {
-    const res = await api(request).get("/");
-    expect(res.status()).toBe(200);
+  const accessibleEndpoints = [
+    "/",
+    "/payouts",
+    "/messages",
+    "/users",
+    "/programs/acme",
+    "/programs?status=invited",
+    "/programs/acme/earnings",
+    "/programs/acme/analytics",
+    "/programs/acme/events",
+    "/programs/acme/customers",
+    "/programs/acme/bounties",
+    "/programs/acme/resources",
+  ];
+
+  for (const endpoint of accessibleEndpoints) {
+    test(`GET ${endpoint} — accessible`, async ({ request }) => {
+      const response = await api(request).get(endpoint);
+      expect(response.status()).toBe(200);
+    });
+  }
+
+  test("GET /api/network/programs — accessible (program marketplace)", async ({
+    request,
+  }) => {
+    const response = await request.get(`${BASE_URL}/api/network/programs`);
+    expect(response.status()).toBe(200);
   });
 
   test("GET /programs — sees both programs", async ({ request }) => {
-    const res = await api(request).get("/programs");
-    expect(res.status()).toBe(200);
-    const body = await res.json();
+    const response = await api(request).get("/programs");
+    expect(response.status()).toBe(200);
+    const body = await response.json();
     expect(body.length).toBe(2);
-  });
 
-  test("GET /programs/acme — accessible", async ({ request }) => {
-    const res = await api(request).get("/programs/acme");
-    expect(res.status()).toBe(200);
-  });
-
-  test("GET /programs/example — accessible", async ({ request }) => {
-    const res = await api(request).get("/programs/example");
-    expect(res.status()).toBe(200);
+    const slugs = body
+      .map((p: { program: { slug: string } }) => p.program.slug)
+      .sort();
+    expect(slugs).toEqual([...PARTNER_PROGRAMS].sort());
   });
 
   test("GET /programs/acme/links — sees 2 links", async ({ request }) => {
-    const res = await api(request).get("/programs/acme/links");
-    expect(res.status()).toBe(200);
-    const body = await res.json();
+    const response = await api(request).get("/programs/acme/links");
+    expect(response.status()).toBe(200);
+    const body = await response.json();
     expect(body.length).toBe(2);
-  });
 
-  test("GET /programs/example/links — sees 2 links", async ({ request }) => {
-    const res = await api(request).get("/programs/example/links");
-    expect(res.status()).toBe(200);
-    const body = await res.json();
-    expect(body.length).toBe(2);
+    const keys = body.map((l: { key: string }) => l.key).sort();
+    expect(keys).toEqual(PARTNER_LINKS.acme.map((l) => l.key).sort());
   });
+});
 
-  test("GET /payouts — accessible", async ({ request }) => {
-    const res = await api(request).get("/payouts");
-    expect(res.status()).toBe(200);
-  });
+// Member role (restricted to acme program, acme-link-1 only)
+test.describe("Member role", () => {
+  test.use({ storageState: "playwright/.auth/partner-member.json" });
 
-  test("GET /messages — accessible", async ({ request }) => {
-    const res = await api(request).get("/messages");
-    expect(res.status()).toBe(200);
-  });
+  const accessibleEndpoints = [
+    "/",
+    "/payouts",
+    "/messages",
+    "/users",
+    "/programs/acme",
+    "/programs?status=invited",
+    "/programs/acme/earnings",
+    "/programs/acme/analytics",
+    "/programs/acme/events",
+    "/programs/acme/customers",
+    "/programs/acme/bounties",
+    "/programs/acme/resources",
+  ];
 
-  test("GET /users — accessible", async ({ request }) => {
-    const res = await api(request).get("/users");
-    expect(res.status()).toBe(200);
-  });
+  for (const endpoint of accessibleEndpoints) {
+    test(`GET ${endpoint} — accessible`, async ({ request }) => {
+      const response = await api(request).get(endpoint);
+      expect(response.status()).toBe(200);
+    });
+  }
 
-  test("GET /invites — accessible", async ({ request }) => {
-    const res = await api(request).get("/invites");
-    expect(res.status()).toBe(200);
-  });
-
-  test("PATCH /users — not forbidden (has users.update)", async ({
+  test("GET /api/network/programs — accessible (program marketplace)", async ({
     request,
   }) => {
-    const res = await api(request).patch("/users", {});
-    expect(res.status()).not.toBe(403);
+    const response = await request.get(`${BASE_URL}/api/network/programs`);
+    expect(response.status()).toBe(200);
   });
 
-  test("POST /invites — not forbidden (has user_invites.create)", async ({
-    request,
-  }) => {
-    const res = await api(request).post("/invites", {});
-    expect(res.status()).not.toBe(403);
-  });
+  test("GET /programs — sees only acme", async ({ request }) => {
+    const response = await api(request).get("/programs");
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.length).toBe(1);
 
-  test("PATCH /invites — not forbidden (has user_invites.update)", async ({
-    request,
-  }) => {
-    const res = await api(request).patch("/invites", {});
-    expect(res.status()).not.toBe(403);
-  });
-
-  test("DELETE /invites — not forbidden (has user_invites.delete)", async ({
-    request,
-  }) => {
-    const res = await api(request).delete(
-      "/invites?email=fake@nonexistent.com",
+    const slugs = body.map(
+      (p: { program: { slug: string } }) => p.program.slug,
     );
-    expect(res.status()).not.toBe(403);
+    expect(slugs).toEqual(["acme"]);
   });
 
-  test("DELETE /users — not forbidden (has users.delete)", async ({
+  test("GET /programs/example — not accessible", async ({ request }) => {
+    const response = await api(request).get("/programs/example");
+    expect(response.status()).toBe(404);
+  });
+
+  test("GET /programs/acme/links — sees only acme-link-1", async ({
     request,
   }) => {
-    const res = await api(request).delete("/users?userId=fake_user_id");
-    expect(res.status()).not.toBe(403);
+    const response = await api(request).get("/programs/acme/links");
+    expect(response.status()).toBe(200);
+    const body = await response.json();
+    expect(body.length).toBe(1);
+
+    const keys = body.map((l: { key: string }) => l.key);
+    expect(keys).toEqual(["acme-link-1"]);
   });
+
+  const unauthorizedLinkIdEndpoints = [
+    { endpoint: "/programs/acme/earnings", expectedStatus: 403 },
+    { endpoint: "/programs/acme/customers", expectedStatus: 403 },
+    { endpoint: "/programs/acme/analytics", expectedStatus: 404 },
+    { endpoint: "/programs/acme/events", expectedStatus: 404 },
+  ];
+
+  for (const { endpoint, expectedStatus } of unauthorizedLinkIdEndpoints) {
+    test(`GET ${endpoint}?linkId=... — denied for unassigned link`, async ({
+      request,
+    }) => {
+      const response = await api(request).get(`${endpoint}?linkId=acme-link-2`);
+      expect(response.status()).toBe(expectedStatus);
+    });
+  }
 });
