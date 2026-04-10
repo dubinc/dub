@@ -83,7 +83,7 @@ export function PayoutStats() {
               <div className="text-sm text-neutral-500">Pending payouts</div>
             </div>
             <Button
-              text="Confirm payouts"
+              text="Confirm all payouts"
               shortcut="C"
               shortcutClassName="px-1 py-px"
               className="h-7 w-fit px-2"
