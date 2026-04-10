@@ -1,5 +1,5 @@
 import BountyApproved from "@dub/email/templates/bounty-approved";
-import DubProductUpdateMar26 from "@dub/email/templates/broadcasts/dub-product-update-mar26";
+import IdentityVerificationAnnouncement from "@dub/email/templates/broadcasts/identity-verification-announcement";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
 import PartnerBanned from "@dub/email/templates/partner-banned";
@@ -22,9 +22,10 @@ export const EMAIL_TEMPLATES_MAP = {
   UnresolvedFraudEventsSummary,
   PartnerGroupChanged,
 
-  // special promo emails
+  // special broadcast emails
   // DubPartnerRewind,
-  DubProductUpdateMar26,
+  // DubProductUpdateMar26,
+  IdentityVerificationAnnouncement,
   // PayoutAutoWithdrawals,
   // ProgramMarketplaceAnnouncement,
   // StablecoinPayoutsAnnouncement,
