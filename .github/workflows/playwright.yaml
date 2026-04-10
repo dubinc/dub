@@ -140,11 +140,12 @@ jobs:
       - name: Setup Tinybird Local
         working-directory: packages/tinybird
         run: |
+          pip install tinybird-cli
           TINYBIRD_TOKEN=$(curl -s http://localhost:7181/tokens | jq -r ".workspace_admin_token")
           echo "TINYBIRD_API_KEY=${TINYBIRD_TOKEN}" >> $GITHUB_ENV
           echo "TINYBIRD_API_URL=http://localhost:7181" >> $GITHUB_ENV
-          npx @tinybirdco/tinybird-cli auth --host http://localhost:7181 --token $TINYBIRD_TOKEN
-          npx @tinybirdco/tinybird-cli push
+          tb auth --host http://localhost:7181 --token $TINYBIRD_TOKEN
+          tb push
 
       - name: Cache Playwright browsers
         id: playwright-cache
