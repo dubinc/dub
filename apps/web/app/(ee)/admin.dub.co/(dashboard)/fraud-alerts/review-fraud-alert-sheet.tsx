@@ -2,7 +2,6 @@
 
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import { PartnerPlatformProps } from "@/lib/types";
-import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { fraudAlertSchema } from "@/lib/zod/schemas/fraud";
 import {
   MAX_FRAUD_REASON_LENGTH,
@@ -13,7 +12,6 @@ import {
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "@/lib/zod/schemas/programs";
-import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { FraudAlertStatus } from "@dub/prisma/client";
@@ -54,12 +52,6 @@ type PartnerDetail = z.infer<typeof PartnerSchema> & {
   })[];
   fraudAlerts: FraudAlert[];
   payouts: (z.infer<typeof PayoutSchema> & {
-    program: ProgramInfo;
-  })[];
-  commissions: (Pick<
-    z.infer<typeof CommissionSchema>,
-    "id" | "earnings" | "currency" | "status" | "createdAt"
-  > & {
     program: ProgramInfo;
   })[];
 };
@@ -289,24 +281,6 @@ function SheetContent({
             ) : null}
           </Section>
 
-          {/* Payouts table */}
-          <Section title="Payouts">
-            {isLoading ? (
-              <LoadingState />
-            ) : partner ? (
-              <PayoutsTable payouts={partner.payouts} />
-            ) : null}
-          </Section>
-
-          {/* Commissions table */}
-          <Section title="Commissions">
-            {isLoading ? (
-              <LoadingState />
-            ) : partner ? (
-              <CommissionsTable commissions={partner.commissions} />
-            ) : null}
-          </Section>
-
           {/* Ban history table */}
           <Section title="Ban History">
             {isLoading ? (
@@ -325,6 +299,15 @@ function SheetContent({
                 fraudAlerts={partner.fraudAlerts}
                 currentAlertId={fraudAlert.id}
               />
+            ) : null}
+          </Section>
+
+          {/* Payouts table */}
+          <Section title="Payouts">
+            {isLoading ? (
+              <LoadingState />
+            ) : partner ? (
+              <PayoutsTable payouts={partner.payouts} />
             ) : null}
           </Section>
         </div>
@@ -370,122 +353,6 @@ function SheetContent({
       )}
     </div>
   );
-}
-
-function PayoutsTable({ payouts }: { payouts: PartnerDetail["payouts"] }) {
-  const table = useTable({
-    data: payouts,
-    columns: [
-      {
-        id: "program",
-        header: "Program",
-        cell: ({ row }) => <ProgramCell program={row.original.program} />,
-      },
-      {
-        id: "amount",
-        header: "Amount",
-        cell: ({ row }) => currencyFormatter(row.original.amount),
-      },
-      {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const badge =
-            PayoutStatusBadges[
-              row.original.status as keyof typeof PayoutStatusBadges
-            ];
-          return (
-            <StatusBadge
-              variant={
-                (badge?.variant as
-                  | "pending"
-                  | "success"
-                  | "error"
-                  | "neutral") ?? "neutral"
-              }
-            >
-              {badge?.label ?? row.original.status}
-            </StatusBadge>
-          );
-        },
-      },
-      {
-        id: "createdAt",
-        header: "Date",
-        cell: ({ row }) => formatDateTime(row.original.createdAt),
-      },
-    ],
-    thClassName: "border-l-0",
-    tdClassName: "border-l-0",
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-0",
-  });
-
-  if (!payouts.length) {
-    return <EmptyState message="No payouts" />;
-  }
-
-  return <Table {...table} />;
-}
-
-function CommissionsTable({
-  commissions,
-}: {
-  commissions: PartnerDetail["commissions"];
-}) {
-  const table = useTable({
-    data: commissions,
-    columns: [
-      {
-        id: "program",
-        header: "Program",
-        cell: ({ row }) => <ProgramCell program={row.original.program} />,
-      },
-      {
-        id: "earnings",
-        header: "Earning",
-        cell: ({ row }) => currencyFormatter(row.original.earnings),
-      },
-      {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const badge =
-            CommissionStatusBadges[
-              row.original.status as keyof typeof CommissionStatusBadges
-            ];
-          return (
-            <StatusBadge
-              variant={
-                (badge?.variant as
-                  | "pending"
-                  | "success"
-                  | "error"
-                  | "neutral") ?? "neutral"
-              }
-            >
-              {badge?.label ?? row.original.status}
-            </StatusBadge>
-          );
-        },
-      },
-      {
-        id: "createdAt",
-        header: "Date",
-        cell: ({ row }) => formatDateTime(row.original.createdAt),
-      },
-    ],
-    thClassName: "border-l-0",
-    tdClassName: "border-l-0",
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-0",
-  });
-
-  if (!commissions.length) {
-    return <EmptyState message="No commissions" />;
-  }
-
-  return <Table {...table} />;
 }
 
 function BanHistoryTable({
@@ -606,6 +473,62 @@ function FraudAlertsTable({
 
   if (!filtered.length) {
     return <EmptyState message="No previous fraud alerts" />;
+  }
+
+  return <Table {...table} />;
+}
+
+function PayoutsTable({ payouts }: { payouts: PartnerDetail["payouts"] }) {
+  const table = useTable({
+    data: payouts,
+    columns: [
+      {
+        id: "program",
+        header: "Program",
+        cell: ({ row }) => <ProgramCell program={row.original.program} />,
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        cell: ({ row }) => currencyFormatter(row.original.amount),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const badge =
+            PayoutStatusBadges[
+              row.original.status as keyof typeof PayoutStatusBadges
+            ];
+          return (
+            <StatusBadge
+              variant={
+                (badge?.variant as
+                  | "pending"
+                  | "success"
+                  | "error"
+                  | "neutral") ?? "neutral"
+              }
+            >
+              {badge?.label ?? row.original.status}
+            </StatusBadge>
+          );
+        },
+      },
+      {
+        id: "createdAt",
+        header: "Date",
+        cell: ({ row }) => formatDateTime(row.original.createdAt),
+      },
+    ],
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-0",
+  });
+
+  if (!payouts.length) {
+    return <EmptyState message="No payouts" />;
   }
 
   return <Table {...table} />;
