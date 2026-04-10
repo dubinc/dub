@@ -26,6 +26,7 @@ import {
 } from "@dub/ui";
 import { BadgeCheck2Fill, Xmark } from "@dub/ui/icons";
 import {
+  cn,
   COUNTRIES,
   currencyFormatter,
   formatDateTime,
@@ -113,7 +114,7 @@ function SheetContent({
   setIsOpen: (open: boolean) => void;
   onReviewed: () => Promise<void>;
 }) {
-  const [reviewNote, setReviewNote] = useState("");
+  const [reviewNote, setReviewNote] = useState(fraudAlert.reviewNote ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: partner, isLoading } = useSWR<PartnerDetail>(
@@ -314,25 +315,31 @@ function SheetContent({
       </div>
 
       {/* Sticky footer with review actions */}
-      {fraudAlert.status === "pending" && (
-        <div className="shrink-0 border-t border-neutral-200 p-6">
-          <div>
-            <label className="block text-sm font-medium text-neutral-900">
-              Review note{" "}
-              <span className="font-normal text-neutral-400">(optional)</span>
-            </label>
-            <textarea
-              className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-              placeholder="Add a note about this review..."
-              rows={3}
-              maxLength={MAX_FRAUD_REASON_LENGTH}
-              value={reviewNote}
-              onChange={(e) => setReviewNote(e.target.value)}
-            />
-            <p className="mt-1 text-right text-xs text-neutral-400">
-              {reviewNote.length}/{MAX_FRAUD_REASON_LENGTH}
-            </p>
-          </div>
+      <div className="shrink-0 border-t border-neutral-200 p-6">
+        <div>
+          <label className="block text-sm font-medium text-neutral-900">
+            Review note{" "}
+            <span className="font-normal text-neutral-400">(optional)</span>
+          </label>
+          <textarea
+            className={cn(
+              "mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 sm:text-sm",
+              fraudAlert.status !== "pending"
+                ? "pointer-events-none cursor-not-allowed bg-neutral-50 text-neutral-600"
+                : "focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+            )}
+            placeholder="Add a note about this review..."
+            rows={3}
+            maxLength={MAX_FRAUD_REASON_LENGTH}
+            value={reviewNote}
+            onChange={(e) => setReviewNote(e.target.value)}
+            readOnly={fraudAlert.status !== "pending"}
+          />
+          <p className="mt-1 text-right text-xs text-neutral-400">
+            {reviewNote.length}/{MAX_FRAUD_REASON_LENGTH}
+          </p>
+        </div>
+        {fraudAlert.status === "pending" && (
           <div className="mt-3 flex items-center justify-end gap-2">
             <Button
               variant="secondary"
@@ -349,8 +356,8 @@ function SheetContent({
               onClick={() => handleReview("confirmed")}
             />
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
