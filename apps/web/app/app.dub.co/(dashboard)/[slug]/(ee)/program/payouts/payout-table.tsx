@@ -76,6 +76,8 @@ function isPayoutEligibleForBatchConfirm(
   return true;
 }
 
+const PAYOUTS_MAX_PAGE_SIZE = 50;
+
 export function PayoutTable() {
   const router = useRouter();
   const { queryParams, searchParams, searchParamsObj, getQueryString } =
@@ -103,7 +105,7 @@ export function PayoutTable() {
   } = useSWR<PayoutResponse[]>(
     defaultProgramId
       ? `/api/payouts${getQueryString(
-          { workspaceId },
+          { workspaceId, pageSize: PAYOUTS_MAX_PAGE_SIZE },
           {
             exclude: [
               "payoutId",
@@ -120,7 +122,7 @@ export function PayoutTable() {
     },
   );
 
-  const { pagination, setPagination } = usePagination();
+  const { pagination, setPagination } = usePagination(PAYOUTS_MAX_PAGE_SIZE);
 
   const { canManageFraudEvents } = getPlanCapabilities(plan);
 

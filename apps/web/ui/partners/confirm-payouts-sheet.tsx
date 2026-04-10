@@ -115,7 +115,8 @@ function ConfirmPayoutsSheetContent() {
   const excludedPayoutIds =
     searchParamsObj.excludedPayoutIds?.split(",").filter(Boolean) || [];
 
-  const commonQuery = useMemo(
+  /** Matches the invoice (respects excludedPayoutIds in bulk mode, selectedPayoutIds when explicit). */
+  const summaryQuery = useMemo(
     () =>
       ({
         workspaceId,
@@ -135,16 +136,57 @@ function ConfirmPayoutsSheetContent() {
     ],
   );
 
-  const { data: eligiblePayoutsCount } = useSWR<{
+  /** Full eligible list for the table — never applies excludedPayoutIds so excluded rows stay visible. */
+  const tableQuery = useMemo(
+    () =>
+      ({
+        workspaceId,
+        cutoffPeriod,
+        ...(isExplicitSelectionMode
+          ? { selectedPayoutIds: resolvedSelectedPayoutIds.join(",") }
+          : {}),
+      }) as Record<string, string>,
+    [
+      workspaceId,
+      cutoffPeriod,
+      isExplicitSelectionMode,
+      resolvedSelectedPayoutIds.join(","),
+    ],
+  );
+
+  const {
+    data: eligiblePayoutsSummaryCount,
+    isLoading: eligiblePayoutsSummaryLoading,
+  } = useSWR<{
     count: number;
     amount: number;
   }>(
-    `/api/programs/${defaultProgramId}/payouts/eligible/count?${new URLSearchParams(commonQuery).toString()}`,
+    defaultProgramId
+      ? `/api/programs/${defaultProgramId}/payouts/eligible/count?${new URLSearchParams(summaryQuery).toString()}`
+      : null,
     fetcher,
     {
       keepPreviousData: true,
     },
   );
+
+  /** Total eligible rows for table pagination (no excludedPayoutIds). Same URL as summary when bulk + no exclusions → SWR dedupes. */
+  const { data: eligiblePayoutsTableTotalCount } = useSWR<{
+    count: number;
+    amount: number;
+  }>(
+    defaultProgramId && !isExplicitSelectionMode
+      ? `/api/programs/${defaultProgramId}/payouts/eligible/count?${new URLSearchParams(tableQuery).toString()}`
+      : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  const eligiblePayoutsTableRowCount = isExplicitSelectionMode
+    ? (eligiblePayoutsSummaryCount?.count ?? 0)
+    : (eligiblePayoutsTableTotalCount?.count ?? 0);
 
   const { data: payoutsCount } = useSWR<
     {
@@ -190,22 +232,33 @@ function ConfirmPayoutsSheetContent() {
     error: eligiblePayoutsError,
     isLoading: eligiblePayoutsLoading,
   } = useSWR<PayoutResponse[]>(
-    `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
-      ...commonQuery,
-      page: pagination.pageIndex.toString(),
-    }).toString()}`,
+    defaultProgramId
+      ? `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
+          ...tableQuery,
+          page: pagination.pageIndex.toString(),
+        }).toString()}`
+      : null,
     fetcher,
     {
       keepPreviousData: true,
     },
   );
 
-  const finalEligiblePayouts = useMemo(() => {
+  /** All rows returned for the table (including bulk-mode exclusions, for strikethrough + Include). */
+  const finalEligiblePayouts = useMemo(
+    () => eligiblePayouts ?? [],
+    [eligiblePayouts],
+  );
+
+  /** Subset actually on the invoice (for fees / external amount / external row in summary). */
+  const payoutsIncludedInInvoice = useMemo(() => {
+    if (!eligiblePayouts) {
+      return [];
+    }
     if (isExplicitSelectionMode) {
       return eligiblePayouts;
     }
-
-    return eligiblePayouts?.filter(
+    return eligiblePayouts.filter(
       (payout) => !excludedPayoutIds.includes(payout.id),
     );
   }, [eligiblePayouts, isExplicitSelectionMode, excludedPayoutIds]);
@@ -369,7 +422,7 @@ function ConfirmPayoutsSheetContent() {
   };
 
   const { amount, fee, total, fastAchFee, externalAmount } = useMemo(() => {
-    const amount = eligiblePayoutsCount?.amount;
+    const amount = eligiblePayoutsSummaryCount?.amount;
 
     if (
       amount === undefined ||
@@ -385,8 +438,7 @@ function ConfirmPayoutsSheetContent() {
       };
     }
 
-    // Calculate the total external amount
-    const externalAmount = finalEligiblePayouts?.reduce(
+    const externalAmount = payoutsIncludedInInvoice.reduce(
       (acc, payout) =>
         isExternalPayout(payout) ? acc + payout.amount : acc + 0,
       0,
@@ -414,8 +466,8 @@ function ConfirmPayoutsSheetContent() {
       fastAchFee,
     };
   }, [
-    eligiblePayoutsCount,
-    finalEligiblePayouts,
+    eligiblePayoutsSummaryCount,
+    payoutsIncludedInInvoice,
     selectedPaymentMethod,
     program?.payoutMode,
     payoutFeeWaiverLimit,
@@ -490,8 +542,8 @@ function ConfirmPayoutsSheetContent() {
         ),
       },
       // only show cutoff period if there are less than 1,000 payouts
-      ...(eligiblePayoutsCount &&
-      eligiblePayoutsCount.count <= CUTOFF_PERIOD_MAX_PAYOUTS
+      ...(eligiblePayoutsSummaryCount &&
+      eligiblePayoutsSummaryCount.count <= CUTOFF_PERIOD_MAX_PAYOUTS
         ? [
             {
               key: "Cutoff Period",
@@ -526,8 +578,8 @@ function ConfirmPayoutsSheetContent() {
       {
         key: "Partners",
         value:
-          eligiblePayoutsCount !== undefined ? (
-            nFormatter(eligiblePayoutsCount.count, { full: true })
+          eligiblePayoutsSummaryCount !== undefined ? (
+            nFormatter(eligiblePayoutsSummaryCount.count, { full: true })
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
@@ -541,7 +593,8 @@ function ConfirmPayoutsSheetContent() {
             currencyFormatter(amount)
           ),
       },
-      ...(finalEligiblePayouts && finalEligiblePayouts.some(isExternalPayout)
+      ...(payoutsIncludedInInvoice.length > 0 &&
+        payoutsIncludedInInvoice.some(isExternalPayout)
         ? [
             {
               key: "External Amount",
@@ -596,8 +649,16 @@ function ConfirmPayoutsSheetContent() {
   }, [
     amount,
     externalAmount,
+    eligiblePayoutsSummaryCount,
+    payoutsIncludedInInvoice,
     paymentMethods,
+    paymentMethodsLoading,
+    paymentMethodOptions,
     selectedPaymentMethod,
+    selectedPaymentMethodOption,
+    finalPaymentMethods,
+    slug,
+    program?.payoutMode,
     cutoffPeriod,
     cutoffPeriodOptions,
     selectedCutoffPeriodOption,
@@ -745,7 +806,7 @@ function ConfirmPayoutsSheetContent() {
     resourceName: (p) => `payout${p ? "s" : ""}`,
     pagination,
     onPaginationChange: setPagination,
-    rowCount: eligiblePayoutsCount?.count ?? 0,
+    rowCount: eligiblePayoutsTableRowCount,
     loading: eligiblePayoutsLoading,
     error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."
@@ -862,7 +923,10 @@ function ConfirmPayoutsSheetContent() {
               : `${isTouchDevice ? "Press" : "Click"} and hold to confirm payout`
           }
           disabled={
-            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
+            eligiblePayoutsLoading ||
+            eligiblePayoutsSummaryLoading ||
+            !selectedPaymentMethod ||
+            amount === 0
           }
           disabledTooltip={
             payoutsUsage &&
