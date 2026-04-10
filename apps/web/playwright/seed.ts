@@ -1,8 +1,9 @@
+import "dotenv-flow/config";
+
 import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
 import { hashSync } from "bcryptjs";
-import "dotenv-flow/config";
 import {
   PARTNER,
   PARTNER_LINKS,
