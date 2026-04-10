@@ -74,7 +74,7 @@ function PartnerApplicationSheetContent({
   // Reset selection when navigating between partners
   useEffect(() => {
     setSelectedGroupId(partner.groupId ?? null);
-  }, [partner.groupId]);
+  }, [partner.id, partner.groupId]);
 
   return (
     <div className="flex size-full flex-col">
