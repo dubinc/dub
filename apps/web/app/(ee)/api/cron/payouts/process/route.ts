@@ -11,34 +11,15 @@ import { splitPayouts } from "./split-payouts";
 export const dynamic = "force-dynamic";
 export const maxDuration = 600; // This function can run for a maximum of 10 minutes
 
-const processPayoutsCronSchema = z.preprocess(
-  (raw: unknown) => {
-    if (!raw || typeof raw !== "object" || raw === null) {
-      return raw;
-    }
-    const d = raw as Record<string, unknown>;
-    if (
-      typeof d.selectedPayoutId === "string" &&
-      d.selectedPayoutId &&
-      (!Array.isArray(d.selectedPayoutIds) || d.selectedPayoutIds.length === 0)
-    ) {
-      return {
-        ...d,
-        selectedPayoutIds: [d.selectedPayoutId],
-      };
-    }
-    return raw;
-  },
-  z.object({
-    workspaceId: z.string(),
-    userId: z.string(),
-    invoiceId: z.string(),
-    paymentMethodId: z.string(),
-    cutoffPeriod: CUTOFF_PERIOD_ENUM,
-    selectedPayoutIds: z.array(z.string()).optional(),
-    excludedPayoutIds: z.array(z.string()).optional(),
-  }),
-);
+const processPayoutsCronSchema = z.object({
+  workspaceId: z.string(),
+  userId: z.string(),
+  invoiceId: z.string(),
+  paymentMethodId: z.string(),
+  cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutIds: z.array(z.string()).optional(),
+  excludedPayoutIds: z.array(z.string()).optional(),
+});
 
 // POST /api/cron/payouts/process
 // This route is used to process payouts for a given invoice
