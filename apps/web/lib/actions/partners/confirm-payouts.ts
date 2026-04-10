@@ -47,7 +47,6 @@ const confirmPayoutsSchema = z
     }
   });
 
-// Confirm payouts
 export const confirmPayoutsAction = authActionClient
   .inputSchema(confirmPayoutsSchema)
   .action(async ({ parsedInput, ctx }) => {

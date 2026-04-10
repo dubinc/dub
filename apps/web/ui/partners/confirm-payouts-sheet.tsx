@@ -885,7 +885,7 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
-        {excludedPayoutIds.length > 0 && holdPayoutsCount > 0 && (
+        {!isExplicitSelectionMode && holdPayoutsCount > 0 && (
           <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
             <span>
               Excluding{" "}
