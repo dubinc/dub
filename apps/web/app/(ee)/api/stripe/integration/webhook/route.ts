@@ -120,7 +120,7 @@ export const POST = withAxiom(async (req: Request) => {
       break;
   }
 
-  const res = logAndRespond(`[${event.type}]: ${response}`);
+  const finalResponse = `[${event.type}]: ${response}`;
 
   if (event.account) {
     waitUntil(
@@ -139,10 +139,10 @@ export const POST = withAxiom(async (req: Request) => {
             workspaceId: workspace.id,
             method: req.method,
             path: "/api/stripe/integration/webhook",
-            statusCode: res.status,
+            statusCode: 200,
             duration: Date.now() - startTime,
             requestBody: event,
-            responseBody: res,
+            responseBody: finalResponse,
             userAgent: req.headers.get("user-agent"),
           });
         }
@@ -150,5 +150,5 @@ export const POST = withAxiom(async (req: Request) => {
     );
   }
 
-  return res;
+  return logAndRespond(finalResponse);
 });

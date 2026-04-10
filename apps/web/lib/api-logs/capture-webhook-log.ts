@@ -28,7 +28,7 @@ export async function captureWebhookLog({
   statusCode: number;
   duration: number;
   requestBody: unknown;
-  responseBody: Response;
+  responseBody: unknown;
   userAgent: string | null;
 }) {
   return await recordApiLog({
