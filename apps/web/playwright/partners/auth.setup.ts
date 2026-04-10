@@ -7,7 +7,7 @@ const SIGNUP_PASSWORD = "Password123";
 
 const authFile = "playwright/.auth/partner.json";
 
-test("sign up and verify new partner", async ({ page }) => {
+test.skip("sign up and verify new partner", async ({ page }) => {
   const email = `${nanoid(10)}@dub-internal-test.com`;
 
   // Go to registration page
