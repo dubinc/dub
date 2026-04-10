@@ -10,7 +10,7 @@ export const getApiLogById = async ({
   id,
 }: GetApiLogByIdParams) => {
   const pipe = tb.buildPipe({
-    pipe: "get_api_log_by_id_v4",
+    pipe: "get_api_log_by_id",
     parameters: apiLogByIdFilterSchemaTB,
     data: apiLogResponseSchemaTB,
   });
