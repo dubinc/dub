@@ -31,11 +31,6 @@ export function captureRequestLog({
   requestHeaders: Headers;
   startTime: number;
 }) {
-  // Limit this to enterprise plan for now
-  if (workspace.plan !== "enterprise") {
-    return;
-  }
-
   const isMutation = HTTP_METHODS.includes(
     req.method as (typeof HTTP_METHODS)[number],
   );
