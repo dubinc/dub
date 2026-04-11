@@ -1,10 +1,17 @@
 import { tb } from "@/lib/tinybird";
 import * as z from "zod/v4";
 import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
-import { API_LOGS_MAX_PAGE_SIZE } from "./constants";
-import { apiLogFilterSchemaTB, apiLogSchemaTB } from "./schemas";
+import {
+  apiLogFilterSchemaTB,
+  apiLogSchemaTB,
+  getApiLogsQuerySchema,
+} from "./schemas";
 
-type GetApiLogsParams = z.infer<typeof apiLogFilterSchemaTB>;
+type GetApiLogsParams = z.infer<typeof getApiLogsQuerySchema> & {
+  workspaceId: string;
+  start: string;
+  end: string;
+};
 
 export const getApiLogs = async ({
   workspaceId,
@@ -16,8 +23,8 @@ export const getApiLogs = async ({
   requestType,
   start,
   end,
-  limit = API_LOGS_MAX_PAGE_SIZE,
-  offset = 0,
+  page,
+  pageSize,
 }: GetApiLogsParams) => {
   const pipe = tb.buildPipe({
     pipe: "get_api_logs",
@@ -35,8 +42,8 @@ export const getApiLogs = async ({
     ...(requestType && { requestType }),
     ...(start && { start }),
     ...(end && { end }),
-    limit,
-    offset,
+    ...(page && { offset: (page - 1) * pageSize }),
+    ...(pageSize && { limit: pageSize }),
   });
 
   return logs.data;
