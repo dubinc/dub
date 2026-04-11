@@ -7,13 +7,13 @@ async function main() {
     partnerEventId: "lead",
     clickId: "OcDa0EUdcs2XcRU6",
     eventName: "Signup",
-    customerExternalId: "af+customer+10",
+    customerExternalId: "af+customer+2",
   });
 
   const trackSaleSearchParams = new URLSearchParams({
     appId: "id123",
     partnerEventId: "sale",
-    customerExternalId: "af+customer+10",
+    customerExternalId: "af+customer+2",
     amount: "2900",
     currency: "usd",
     eventName: "Purchase",
