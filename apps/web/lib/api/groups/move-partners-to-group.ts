@@ -56,6 +56,7 @@ export async function movePartnersToGroup({
     select: {
       id: true,
       partnerId: true,
+      status: true,
       partnerGroup: {
         select: {
           id: true,
@@ -170,7 +171,9 @@ export async function movePartnersToGroup({
           body: {
             programId,
             groupId: group.id,
-            partnerIds,
+            partnerIds: programEnrollments
+              .filter(({ status }) => status !== "pending")
+              .map(({ partnerId }) => partnerId),
             userId: workspaceUserId,
             isGroupDeleted,
           },
