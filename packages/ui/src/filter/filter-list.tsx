@@ -248,7 +248,7 @@ export function FilterList({
           <button
             type="button"
             className={cn(
-              "group mt-px flex items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-neutral-500 ring-inset ring-neutral-500",
+              "group mt-px flex h-[38px] items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-neutral-500 ring-inset ring-neutral-500",
               "transition-[color,border-color,background-color,transform] duration-150 ease-out motion-reduce:transition-none",
               "hover:border-neutral-200 hover:bg-white hover:text-black [@media(hover:none)]:hover:border-transparent [@media(hover:none)]:hover:bg-transparent",
               "active:scale-[0.98] motion-reduce:active:scale-100",
@@ -443,7 +443,7 @@ function OperatorFilterPill({
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center divide-x rounded-md border border-neutral-200 bg-white text-sm text-black"
+      className="flex items-center divide-x rounded-lg border border-neutral-200 bg-white text-sm text-black"
     >
       <div className="flex items-center gap-2.5 px-3 py-2">
         <span className="shrink-0 text-neutral-600">
@@ -686,7 +686,7 @@ function OperatorFilterPill({
       <button
         type="button"
         className={cn(
-          "h-full rounded-r-md p-2 text-neutral-500 ring-inset ring-neutral-500",
+          "h-full rounded-r-lg p-2 text-neutral-500 ring-inset ring-neutral-500",
           "transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transition-none",
           "hover:bg-neutral-100 hover:text-neutral-800 [@media(hover:none)]:hover:bg-transparent",
           "active:scale-[0.97] motion-reduce:active:scale-100",
