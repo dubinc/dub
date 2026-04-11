@@ -138,22 +138,20 @@ export const GET = withAxiom(async (req) => {
       response = "Sale event tracked successfully.";
     }
 
-    const jsonResponse = NextResponse.json(response);
-
     waitUntil(
       captureWebhookLog({
         workspaceId: workspace.id,
         method: req.method,
         path: "/api/appsflyer/webhook",
-        statusCode: jsonResponse.status,
+        statusCode: 200,
         duration: Date.now() - startTime,
         requestBody: queryParams,
-        responseBody: jsonResponse,
+        responseBody: response,
         userAgent: req.headers.get("user-agent"),
       }),
     );
 
-    return jsonResponse;
+    return NextResponse.json(response);
   } catch (error) {
     const errorResponse = handleAndReturnErrorResponse(error);
 
