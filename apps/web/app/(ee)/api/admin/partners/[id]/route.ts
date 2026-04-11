@@ -26,81 +26,63 @@ export const GET = withAdmin(async ({ params }) => {
     return new Response("Partner not found.", { status: 404 });
   }
 
-  const [programEnrollments, fraudAlerts, payouts, commissions] =
-    await Promise.all([
-      prisma.programEnrollment.findMany({
-        where: {
-          partnerId: id,
-          status: "banned",
-        },
-        include: {
-          program: {
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
+  const [programEnrollments, fraudAlerts, payouts] = await Promise.all([
+    prisma.programEnrollment.findMany({
+      where: {
+        partnerId: id,
+        status: "banned",
+      },
+      include: {
+        program: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
           },
         },
-        orderBy: {
-          bannedAt: "desc",
-        },
-      }),
+      },
+      orderBy: {
+        bannedAt: "desc",
+      },
+    }),
 
-      prisma.fraudAlert.findMany({
-        where: {
-          partnerId: id,
-        },
-        include: {
-          program: {
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
+    prisma.fraudAlert.findMany({
+      where: {
+        partnerId: id,
+      },
+      include: {
+        program: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
-      }),
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
 
-      prisma.payout.findMany({
-        where: {
-          partnerId: id,
-        },
-        include: {
-          program: {
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
+    prisma.payout.findMany({
+      where: {
+        partnerId: id,
+      },
+      include: {
+        program: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
           },
         },
-        orderBy: {
-          createdAt: "desc",
-        },
-      }),
-
-      prisma.commission.findMany({
-        where: {
-          partnerId: id,
-        },
-        include: {
-          program: {
-            select: {
-              id: true,
-              name: true,
-              logo: true,
-            },
-          },
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      }),
-    ]);
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 10,
+    }),
+  ]);
 
   return NextResponse.json({
     ...partner,
@@ -111,6 +93,5 @@ export const GET = withAdmin(async ({ params }) => {
     programEnrollments,
     fraudAlerts,
     payouts,
-    commissions,
   });
 });

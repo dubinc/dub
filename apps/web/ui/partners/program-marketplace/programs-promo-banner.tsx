@@ -19,7 +19,11 @@ export function ProgramsPromoBanner() {
     return null;
   }
 
-  if (!partner.identityVerifiedAt && (payoutsCount[0]?.amount ?? 0) > 10000) {
+  if (
+    !partner.identityVerifiedAt &&
+    !["IN", "GE"].includes(partner.country ?? "") &&
+    (payoutsCount[0]?.amount ?? 0) > 10000
+  ) {
     return <IdentityVerificationBanner />;
   }
 

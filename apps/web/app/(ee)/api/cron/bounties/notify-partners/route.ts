@@ -154,6 +154,7 @@ export async function POST(req: Request) {
             name: bounty.name,
             type: bounty.type,
             endsAt: bounty.endsAt,
+            rewardAmount: bounty.rewardAmount,
             description: bounty.description,
           },
           program: {

@@ -234,6 +234,10 @@ export const socialContentSchema = z.preprocess(
         .number()
         .nullish()
         .transform((val) => val ?? 0),
+      video_view_count: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
       edge_media_preview_like: z.object({
         count: z
           .number()
