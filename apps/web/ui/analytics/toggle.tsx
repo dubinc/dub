@@ -75,6 +75,8 @@ export function AnalyticsToggle({
     activeFiltersWithStreaming,
   } = useAnalyticsFilters({ partnerPage, dashboardProps });
 
+  const hasActiveFilters = activeFiltersWithStreaming.length > 0;
+
   const filterSelect = (
     <Filter.Select
       className="w-full md:w-fit"
@@ -173,6 +175,7 @@ export function AnalyticsToggle({
           "sticky top-14 z-10 bg-neutral-50": dashboardProps,
           "sticky top-16 z-10 bg-neutral-50": adminPage,
           "shadow-md": scrolled && dashboardProps,
+          "pb-4 md:pb-4": !hasActiveFilters,
         })}
       >
         <div
@@ -280,29 +283,26 @@ export function AnalyticsToggle({
         </div>
       </div>
 
-      <div
-        className={cn(
-          "mx-auto w-full max-w-screen-xl px-3 lg:px-10",
-          isAppPage && "lg:px-6",
-        )}
-      >
-        <Filter.List
-          filters={filters}
-          activeFilters={activeFiltersWithStreaming}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          onRemoveFilter={onRemoveFilter}
-          onRemoveAll={onRemoveAll}
-          onToggleOperator={onToggleOperator}
-          isAdvancedFilter
-        />
+      {hasActiveFilters && (
         <div
           className={cn(
-            "transition-[height] duration-[300ms]",
-            streaming || activeFilters.length ? "h-3" : "h-0",
+            "mx-auto w-full max-w-screen-xl px-3 lg:px-10",
+            isAppPage && "lg:px-6",
           )}
-        />
-      </div>
+        >
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFiltersWithStreaming}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onRemoveFilter={onRemoveFilter}
+            onRemoveAll={onRemoveAll}
+            onToggleOperator={onToggleOperator}
+            isAdvancedFilter
+          />
+          <div className="h-4 transition-[height] duration-[300ms]" />
+        </div>
+      )}
     </>
   );
 }
