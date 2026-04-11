@@ -26,7 +26,6 @@ const querySchema = z.object({
 // GET /api/appsflyer/webhook – listen to Postback events from AppsFlyer
 export const GET = withAxiom(async (req) => {
   const startTime = Date.now();
-
   let response = "OK";
   let queryParams: Record<string, string> | null = null;
   let workspace: Pick<
