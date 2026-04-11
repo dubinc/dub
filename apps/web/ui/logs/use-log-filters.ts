@@ -1,6 +1,10 @@
 "use client";
 
-import { HTTP_METHODS, HTTP_STATUS_CODES } from "@/lib/api-logs/constants";
+import {
+  HTTP_METHODS,
+  HTTP_STATUS_CODES,
+  WEBHOOK_DISPLAY_NAMES,
+} from "@/lib/api-logs/constants";
 import { useApiLogsCount } from "@/lib/swr/use-api-logs-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ApiLogsCountByRoutePattern, TokenProps } from "@/lib/types";
@@ -74,7 +78,7 @@ export function useLogFilters() {
         label: "Endpoint",
         options: (routePatterns || []).map(({ routePattern }) => ({
           value: routePattern,
-          label: routePattern,
+          label: WEBHOOK_DISPLAY_NAMES[routePattern] ?? routePattern,
         })),
       },
       {
