@@ -1,7 +1,7 @@
 import { tb } from "@/lib/tinybird";
 import * as z from "zod/v4";
 import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
-import { apiLogByIdFilterSchemaTB, apiLogSchemaTB } from "./schemas";
+import { apiLogByIdFilterSchemaTB, apiLogResponseSchemaTB } from "./schemas";
 
 type GetApiLogByIdParams = z.infer<typeof apiLogByIdFilterSchemaTB>;
 
@@ -12,7 +12,7 @@ export const getApiLogById = async ({
   const pipe = tb.buildPipe({
     pipe: "get_api_log_by_id",
     parameters: apiLogByIdFilterSchemaTB,
-    data: apiLogSchemaTB,
+    data: apiLogResponseSchemaTB,
   });
 
   const logs = await pipe({

@@ -23,6 +23,10 @@ export const apiLogSchemaTB = z.object({
   request_type: requestTypeSchema,
 });
 
+export const apiLogResponseSchemaTB = apiLogSchemaTB.omit({
+  workspace_id: true,
+});
+
 // Schema for query filter params
 export const apiLogFilterSchemaTB = z.object({
   workspaceId: z.string(),
