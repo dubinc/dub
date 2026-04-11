@@ -1,4 +1,3 @@
-import { getConversionScore } from "@/lib/actions/partners/get-conversion-score";
 import { DubApiError } from "@/lib/api/errors";
 import { calculatePartnerRanking } from "@/lib/api/network/calculate-partner-ranking";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -55,6 +54,51 @@ export const GET = withWorkspace(
       subscribers,
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
+    if (status !== "discover") {
+      const partners = await prisma.discoveredPartner.findMany({
+        where: {
+          programId,
+          ...(status === "ignored" && { ignoredAt: { not: null } }),
+          ...(status === "invited" && { invitedAt: { not: null } }),
+          ...(status === "recruited" && {
+            invitedAt: { not: null },
+            programEnrollment: { status: "approved" },
+          }),
+        },
+        orderBy: {
+          ...(status === "ignored" && { ignoredAt: "desc" }),
+          ...(status === "invited" && { invitedAt: "desc" }),
+          ...(status === "recruited" && {
+            programEnrollment: { createdAt: "desc" },
+          }),
+        },
+        include: {
+          partner: {
+            include: {
+              platforms: true,
+            },
+          },
+          programEnrollment: true,
+        },
+        take: pageSize,
+        skip: (page ?? 1 - 1) * pageSize,
+      });
+
+      return NextResponse.json(
+        partners.map(({ partner, ...rest }) =>
+          NetworkPartnerSchema.parse({
+            ...rest,
+            ...partner,
+            categories: [],
+            recruitedAt:
+              rest.programEnrollment?.status === "approved"
+                ? new Date(rest.programEnrollment.createdAt)
+                : null,
+          }),
+        ),
+      );
+    }
+
     const similarPrograms = program.similarPrograms.map((sp) => ({
       programId: sp.similarProgramId,
       similarityScore: sp.similarityScore,
@@ -79,7 +123,6 @@ export const GET = withWorkspace(
       z.array(NetworkPartnerSchema).parse(
         partners.map((partner) => ({
           ...partner,
-          conversionScore: getConversionScore(partner.conversionRate || 0),
           starredAt: partner.starredAt ? new Date(partner.starredAt) : null,
           ignoredAt: partner.ignoredAt ? new Date(partner.ignoredAt) : null,
           invitedAt: partner.invitedAt ? new Date(partner.invitedAt) : null,

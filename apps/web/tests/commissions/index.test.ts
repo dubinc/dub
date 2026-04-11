@@ -64,9 +64,9 @@ describe.sequential("/commissions/**", async () => {
     testPaidCommissionId = paidCommissions[0].id;
   });
 
-  test("PATCH /commissions/{id} - update amount", async () => {
+  test("PATCH /commissions/{id} - update earnings", async () => {
     const toUpdate = {
-      amount: 5000, // $50.00 in cents
+      earnings: 3000, // $30.00 in cents
     };
 
     const { status, data: commission } = await http.patch<CommissionResponse>({
@@ -77,11 +77,28 @@ describe.sequential("/commissions/**", async () => {
     expect(status).toEqual(200);
     expect(commission).toMatchObject({
       ...expectedCommission,
-      amount: toUpdate.amount,
+      earnings: toUpdate.earnings,
     });
   });
 
-  test("PATCH /commissions/{id} - modify saleAmount", async () => {
+  test("PATCH /commissions/{id} - update saleAmount", async () => {
+    const toUpdate = {
+      saleAmount: 5000, // $50.00 in cents
+    };
+
+    const { status, data: commission } = await http.patch<CommissionResponse>({
+      path: `/commissions/${testCommissionId}`,
+      body: toUpdate,
+    });
+
+    expect(status).toEqual(200);
+    expect(commission).toMatchObject({
+      ...expectedCommission,
+      amount: toUpdate.saleAmount,
+    });
+  });
+
+  test("PATCH /commissions/{id} - modifySaleAmount", async () => {
     const toUpdate = {
       modifySaleAmount: 1000, // Add $10.00 to existing amount
       currency: "usd",
@@ -94,6 +111,23 @@ describe.sequential("/commissions/**", async () => {
 
     expect(status).toEqual(200);
     expect(commission.amount).toEqual(6000);
+  });
+
+  test("PATCH /commissions/{id} - update amount (backward compatibility)", async () => {
+    const toUpdate = {
+      amount: 4000, // $40.00 in cents
+    };
+
+    const { status, data: commission } = await http.patch<CommissionResponse>({
+      path: `/commissions/${testCommissionId}`,
+      body: toUpdate,
+    });
+
+    expect(status).toEqual(200);
+    expect(commission).toMatchObject({
+      ...expectedCommission,
+      amount: toUpdate.amount,
+    });
   });
 
   test("PATCH /commissions/{id} - foreign currency conversion", async () => {

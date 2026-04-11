@@ -44,7 +44,7 @@ export function PayoutTable() {
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { payouts, error, loading } = usePartnerPayouts();
-  const { payoutsCount } = usePartnerPayoutsCount<number>();
+  const { payoutsCount } = usePartnerPayoutsCount();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; payout: PartnerPayoutResponse | null }
@@ -216,7 +216,7 @@ export function PayoutTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: payoutsCount || 0,
+    rowCount: payoutsCount?.[0]?.count ?? 0,
   });
 
   return (

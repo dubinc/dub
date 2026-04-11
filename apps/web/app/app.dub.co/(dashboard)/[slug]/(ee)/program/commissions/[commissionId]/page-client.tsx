@@ -249,7 +249,7 @@ function CommissionDetailsContent({
       Quantity: `${nFormatter(commission.quantity)} ${pluralize("click", commission.quantity)}`,
     }),
 
-    Commission: (
+    Earnings: (
       <span
         className={cn("font-medium", commission.earnings < 0 && "text-red-600")}
       >
@@ -285,15 +285,18 @@ function CommissionDetailsContent({
             <h3 className="text-content-emphasis text-base font-semibold">
               Commission details
             </h3>
-            {commission.status !== "paid" && (
-              <Button
-                variant="secondary"
-                icon={<Pen2 className="size-3.5" />}
-                text="Edit"
-                className="h-7 w-fit rounded-lg px-2"
-                onClick={() => openEditCommissionModal(commission)}
-              />
-            )}
+            <Button
+              variant="secondary"
+              icon={<Pen2 className="size-3.5" />}
+              text="Edit"
+              className="h-7 w-fit rounded-lg px-2"
+              onClick={() => openEditCommissionModal(commission)}
+              disabledTooltip={
+                commission.status === "paid"
+                  ? "This commission has already been paid and cannot be edited."
+                  : undefined
+              }
+            />
           </div>
           <div className="flex flex-col gap-1">
             {Object.entries(detailRows).map(([key, value]) => (

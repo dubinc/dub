@@ -48,6 +48,7 @@ model Partner {
   identityVerificationStatus IdentityVerificationStatus?
   identityVerifiedAt         DateTime?
   veriffSessionId            String?                     @unique
+  veriffIdentityHash         String?                     @unique
   veriffMetadata             Json? // see veriffMetadataSchema
 
   // payout fields
@@ -91,6 +92,7 @@ model Partner {
   discoveredByPrograms       DiscoveredPartner[]
   fraudEventGroups           FraudEventGroup[]
   fraudEvents                FraudEvent[]
+  fraudAlerts                FraudAlert[]
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
   referrals                  PartnerReferral[]

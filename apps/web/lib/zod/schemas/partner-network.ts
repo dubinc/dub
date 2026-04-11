@@ -32,6 +32,7 @@ export const NetworkPartnersStatusSchema = z.enum([
   "discover",
   "invited",
   "recruited",
+  "ignored",
 ]);
 
 export const getNetworkPartnersQuerySchema = z
@@ -81,8 +82,6 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
   identityVerificationStatus: true,
   identityVerifiedAt: true,
 }).extend({
-  lastConversionAt: z.date().nullable(),
-  conversionScore: PartnerConversionScoreSchema,
   starredAt: z.date().nullable(),
   invitedAt: z.date().nullable(),
   ignoredAt: z.date().nullable(),

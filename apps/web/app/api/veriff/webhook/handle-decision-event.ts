@@ -1,4 +1,5 @@
-import { veriffDecisionEventSchema } from "@/lib/veriff/schema";
+import { computeVeriffIdentityHash } from "@/lib/veriff/compute-veriff-identity-hash";
+import { VeriffDecisionEvent } from "@/lib/veriff/schema";
 import {
   mergeVeriffMetadata,
   parseVeriffMetadata,
@@ -8,10 +9,8 @@ import PartnerIdentityVerificationFailed from "@dub/email/templates/partner-iden
 import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verified";
 import { prisma } from "@dub/prisma";
 import { IdentityVerificationStatus, Partner } from "@dub/prisma/client";
+import { DUPLICATE_IDENTITY_DECLINE_REASON } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
-import * as z from "zod/v4";
-
-type VeriffDecisionEvent = z.infer<typeof veriffDecisionEventSchema>;
 
 const veriffStatusMap: Record<
   VeriffDecisionEvent["verification"]["status"],
@@ -56,6 +55,7 @@ export const handleDecisionEvent = async ({
 
   // since we're skipping verified partners, by default identityVerifiedAt is null
   let identityVerifiedAt: Date | null = null;
+  let veriffIdentityHash: string | null | undefined = undefined;
 
   let { sessionUrl, attemptCount, declineReason, sessionExpiresAt } =
     parseVeriffMetadata(partner.veriffMetadata);
@@ -65,12 +65,21 @@ export const handleDecisionEvent = async ({
 
   // If the verification was approved, check for country mismatch
   if (effectiveStatus === "approved") {
+    veriffIdentityHash = computeVeriffIdentityHash(verification);
+    const isDuplicate = await checkDuplicateIdentity({
+      partner,
+      veriffIdentityHash,
+    });
+
     const isCountryMismatch = checkCountryMismatch({
       partner,
       verification,
     });
 
-    if (isCountryMismatch) {
+    if (isDuplicate) {
+      effectiveStatus = "declined";
+      declineReason = DUPLICATE_IDENTITY_DECLINE_REASON;
+    } else if (isCountryMismatch) {
       effectiveStatus = "declined";
       declineReason = `Your document country (${verification.document?.country}) does not match your account country (${partner.country})`;
     } else {
@@ -100,6 +109,8 @@ export const handleDecisionEvent = async ({
     data: {
       identityVerificationStatus: veriffStatusMap[effectiveStatus],
       identityVerifiedAt,
+      veriffIdentityHash:
+        effectiveStatus === "approved" ? veriffIdentityHash : null,
       veriffMetadata,
     },
     select: {
@@ -135,6 +146,32 @@ function checkCountryMismatch({
   }
 
   return partner.country.toUpperCase() !== veriffCountry;
+}
+
+async function checkDuplicateIdentity({
+  partner,
+  veriffIdentityHash,
+}: {
+  partner: Pick<Partner, "id">;
+  veriffIdentityHash: string | null;
+}): Promise<boolean> {
+  if (!veriffIdentityHash) {
+    return false;
+  }
+
+  const duplicatePartner = await prisma.partner.findFirst({
+    where: {
+      veriffIdentityHash,
+      id: {
+        not: partner.id,
+      },
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  return !!duplicatePartner;
 }
 
 async function sendEmailNotification({

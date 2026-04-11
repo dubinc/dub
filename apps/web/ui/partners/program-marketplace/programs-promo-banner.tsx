@@ -1,5 +1,6 @@
 "use client";
 
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { IdentityVerificationBanner } from "@/ui/partners/identity-verification/identity-verification-banner";
 import { StablecoinPayoutBanner } from "@/ui/partners/payouts/stablecoin-payout-banner";
@@ -12,12 +13,17 @@ import { ProgramMarketplaceBanner } from "@/ui/partners/program-marketplace/prog
  */
 export function ProgramsPromoBanner() {
   const { partner, availablePayoutMethods } = usePartnerProfile();
+  const { payoutsCount } = usePartnerPayoutsCount();
 
-  if (!partner) {
+  if (!partner || !payoutsCount) {
     return null;
   }
 
-  if (!partner.identityVerifiedAt && partner.email?.endsWith("@dub.co")) {
+  if (
+    !partner.identityVerifiedAt &&
+    !["IN", "GE"].includes(partner.country ?? "") &&
+    (payoutsCount[0]?.amount ?? 0) > 10000
+  ) {
     return <IdentityVerificationBanner />;
   }
 

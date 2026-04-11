@@ -136,23 +136,72 @@ export const payoutWebhookEventSchema = PayoutSchema.omit({
   }),
 });
 
-export const eligiblePayoutsQuerySchema = z
+const commaSeparatedIdsSchema = z
+  .union([z.string(), z.array(z.string())])
+  .transform((v) => (Array.isArray(v) ? v : v.split(",").filter(Boolean)));
+
+const eligiblePayoutsInputSchema = z
   .object({
     cutoffPeriod: CUTOFF_PERIOD_ENUM,
+    /** @deprecated Use `selectedPayoutIds`; kept for URL backwards compatibility. */
     selectedPayoutId: z.string().optional(),
+    selectedPayoutIds: commaSeparatedIdsSchema.optional(),
+    excludedPayoutIds: commaSeparatedIdsSchema.optional(),
   })
   .extend(
     getPaginationQuerySchema({ pageSize: ELIGIBLE_PAYOUTS_MAX_PAGE_SIZE }),
   );
 
-export const eligiblePayoutsCountQuerySchema = eligiblePayoutsQuerySchema
-  .extend({
-    excludedPayoutIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional(),
-  })
-  .omit({
-    page: true,
-    pageSize: true,
+function transformEligiblePayoutsSelection<
+  T extends {
+    selectedPayoutId?: string | undefined;
+    selectedPayoutIds?: string[] | undefined;
+    excludedPayoutIds?: string[] | undefined;
+  },
+>(data: T) {
+  const {
+    selectedPayoutId,
+    selectedPayoutIds: rawSelected,
+    excludedPayoutIds: rawExcluded,
+    ...rest
+  } = data;
+
+  const merged = [
+    ...new Set([
+      ...(rawSelected ?? []),
+      ...(selectedPayoutId ? [selectedPayoutId] : []),
+    ]),
+  ];
+
+  return {
+    ...rest,
+    selectedPayoutIds: merged.length > 0 ? merged : undefined,
+    excludedPayoutIds:
+      rawExcluded && rawExcluded.length > 0 ? rawExcluded : undefined,
+  };
+}
+
+export const eligiblePayoutsQuerySchema = eligiblePayoutsInputSchema
+  .transform(transformEligiblePayoutsSelection)
+  .superRefine((data, ctx) => {
+    if (data.selectedPayoutIds?.length && data.excludedPayoutIds?.length) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "Cannot combine selectedPayoutIds with excludedPayoutIds in the same request.",
+      });
+    }
+  });
+
+export const eligiblePayoutsCountQuerySchema = eligiblePayoutsInputSchema
+  .omit({ page: true, pageSize: true })
+  .transform(transformEligiblePayoutsSelection)
+  .superRefine((data, ctx) => {
+    if (data.selectedPayoutIds?.length && data.excludedPayoutIds?.length) {
+      ctx.addIssue({
+        code: "custom",
+        message:
+          "Cannot combine selectedPayoutIds with excludedPayoutIds in the same request.",
+      });
+    }
   });

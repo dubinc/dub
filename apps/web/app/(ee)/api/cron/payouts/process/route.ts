@@ -17,7 +17,7 @@ const processPayoutsCronSchema = z.object({
   invoiceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
-  selectedPayoutId: z.string().optional(),
+  selectedPayoutIds: z.array(z.string()).optional(),
   excludedPayoutIds: z.array(z.string()).optional(),
 });
 
@@ -36,7 +36,7 @@ export async function POST(req: Request) {
       invoiceId,
       paymentMethodId,
       cutoffPeriod,
-      selectedPayoutId,
+      selectedPayoutIds,
       excludedPayoutIds,
     } = processPayoutsCronSchema.parse(JSON.parse(rawBody));
 
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
         program,
         workspace,
         cutoffPeriod,
-        selectedPayoutId,
+        selectedPayoutIds,
         excludedPayoutIds,
       });
     }
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
       userId,
       paymentMethodId,
       cutoffPeriod,
-      selectedPayoutId,
+      selectedPayoutIds,
       excludedPayoutIds,
     });
 

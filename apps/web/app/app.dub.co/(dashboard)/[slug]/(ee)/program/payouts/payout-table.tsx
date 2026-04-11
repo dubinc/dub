@@ -10,9 +10,10 @@ import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicat
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutStatus, ProgramPayoutMode } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
+  Button,
   DynamicTooltipWrapper,
   Filter,
   StatusBadge,
@@ -28,10 +29,58 @@ import { cn, currencyFormatter } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { usePayoutFilters } from "./use-payout-filters";
+
+/** Matches server `getPayoutEligibilityFilter` and in-table warnings in `AmountRowItem`. */
+function isPayoutEligibleForBatchConfirm(
+  payout: PayoutResponse,
+  {
+    minPayoutAmount,
+    programPayoutMode,
+    canManageFraudEvents,
+    partnersWithPendingFraud,
+  }: {
+    minPayoutAmount: number;
+    programPayoutMode: ProgramPayoutMode;
+    canManageFraudEvents: boolean;
+    partnersWithPendingFraud: Set<string>;
+  },
+) {
+  if (payout.status !== PayoutStatus.pending) {
+    return false;
+  }
+
+  if (payout.amount < minPayoutAmount) {
+    return false;
+  }
+
+  // Derive effective mode the same way server does
+  const effectiveMode = payout.partner.payoutsEnabledAt
+    ? "internal"
+    : programPayoutMode === "hybrid" || programPayoutMode === "external"
+      ? "external"
+      : programPayoutMode;
+
+  if (effectiveMode === "external" && !payout.partner?.tenantId) {
+    return false;
+  }
+  if (effectiveMode === "internal" && !payout.partner?.payoutsEnabledAt) {
+    return false;
+  }
+
+  if (canManageFraudEvents && partnersWithPendingFraud.has(payout.partner.id)) {
+    return false;
+  }
+
+  return true;
+}
+
+const PAYOUTS_MAX_PAGE_SIZE = 50;
 
 export function PayoutTable() {
   const router = useRouter();
@@ -45,10 +94,13 @@ export function PayoutTable() {
     defaultProgramId,
   } = useWorkspace();
 
+  const { program } = useProgram();
+  const minPayoutAmount = program?.minPayoutAmount ?? 0;
+
   const sortBy = searchParams.get("sortBy") || "amount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const { payoutsCount, error: countError } = usePayoutsCount<number>();
+  const { payoutsCount, error: countError } = usePayoutsCount();
 
   const {
     data: payouts,
@@ -57,9 +109,14 @@ export function PayoutTable() {
   } = useSWR<PayoutResponse[]>(
     defaultProgramId
       ? `/api/payouts${getQueryString(
-          { workspaceId },
+          { workspaceId, pageSize: PAYOUTS_MAX_PAGE_SIZE },
           {
-            exclude: ["payoutId", "selectedPayoutId", "excludedPayoutIds"],
+            exclude: [
+              "payoutId",
+              "selectedPayoutId",
+              "selectedPayoutIds",
+              "excludedPayoutIds",
+            ],
           },
         )}`
       : undefined,
@@ -69,7 +126,7 @@ export function PayoutTable() {
     },
   );
 
-  const { pagination, setPagination } = usePagination();
+  const { pagination, setPagination } = usePagination(PAYOUTS_MAX_PAGE_SIZE);
 
   const { canManageFraudEvents } = getPlanCapabilities(plan);
 
@@ -94,7 +151,7 @@ export function PayoutTable() {
     (key) => !["sortBy", "sortOrder", "page"].includes(key),
   );
 
-  const table = useTable({
+  const { table, ...tableProps } = useTable({
     data: payouts || [],
     loading: isLoading,
     error: error || countError ? "Failed to load payouts" : undefined,
@@ -196,18 +253,100 @@ export function PayoutTable() {
       onPointerEnter: () =>
         router.prefetch(`/${workspaceSlug}/program/payouts/${row.original.id}`),
     }),
-    columnPinning: { right: ["menu"] },
+    getRowId: (row) => row.id,
+    selectionControls: (table) => {
+      const selectedPayouts = table
+        .getSelectedRowModel()
+        .rows.map((r) => r.original);
+
+      const eligibilityCtx = {
+        minPayoutAmount,
+        programPayoutMode: program?.payoutMode ?? "internal",
+        canManageFraudEvents,
+        partnersWithPendingFraud: fraudGroupCountMap,
+      };
+
+      const hasIneligibleAmongSelection =
+        selectedPayouts.length > 0 &&
+        selectedPayouts.some(
+          (payout) => !isPayoutEligibleForBatchConfirm(payout, eligibilityCtx),
+        );
+
+      return (
+        <Button
+          variant="primary"
+          text="Confirm selected"
+          className="h-7 w-fit rounded-lg px-2.5"
+          disabled={hasIneligibleAmongSelection}
+          disabledTooltip={
+            hasIneligibleAmongSelection ? (
+              <div className="max-w-xs space-y-2 px-4 py-3 text-left text-sm">
+                <p>
+                  Your selection includes payouts that are ineligible for
+                  payment:
+                </p>
+                <ul className="list-disc space-y-1 pl-4 marker:text-neutral-500">
+                  <li>
+                    Below the{" "}
+                    <a
+                      href="https://dub.co/help/article/partner-payouts#minimum-payout-amount"
+                      target="_blank"
+                      className="cursor-help underline decoration-dotted underline-offset-2"
+                    >
+                      minimum payout amount
+                    </a>
+                  </li>
+                  <li>Partner has not connected payouts</li>
+                  <li>
+                    On hold due to{" "}
+                    <Link
+                      href={`/${workspaceSlug}/program/payouts?status=hold`}
+                      className="cursor-alias underline decoration-dotted underline-offset-2"
+                    >
+                      unresolved fraud events
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+            ) : undefined
+          }
+          onClick={() => {
+            const current = table
+              .getSelectedRowModel()
+              .rows.map((r) => r.original);
+            const pendingEligible = current.filter((p) =>
+              isPayoutEligibleForBatchConfirm(p, eligibilityCtx),
+            );
+
+            if (pendingEligible.length === 0) {
+              toast.error("Select at least one eligible pending payout.");
+              return;
+            }
+
+            queryParams({
+              set: {
+                confirmPayouts: "true",
+                selectedPayoutIds: pendingEligible.map((p) => p.id).join(","),
+              },
+              del: ["selectedPayoutId", "excludedPayoutIds"],
+              scroll: false,
+            });
+          }}
+        />
+      );
+    },
+    columnPinning: { left: ["select"], right: ["menu"] },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `payout${p ? "s" : ""}`,
-    rowCount: payoutsCount || 0,
+    rowCount: payoutsCount?.[0]?.count ?? 0,
   });
 
   return (
     <div className="flex flex-col gap-4">
       <PayoutFilters />
       {payouts?.length !== 0 ? (
-        <Table {...table} />
+        <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
           title="No payouts found"
