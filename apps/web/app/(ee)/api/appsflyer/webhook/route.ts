@@ -27,7 +27,7 @@ const querySchema = z.object({
 export const GET = withAxiom(async (req) => {
   const startTime = Date.now();
 
-  let response: Response = NextResponse.json("OK");
+  let response = "OK";
   let queryParams: Record<string, string> | null = null;
   let workspace: Pick<
     Project,
@@ -111,7 +111,7 @@ export const GET = withAxiom(async (req) => {
         rawBody: queryParams,
       });
 
-      response = NextResponse.json("Lead event tracked successfully.");
+      response = "Lead event tracked successfully.";
     }
 
     // Track sale event
@@ -136,23 +136,25 @@ export const GET = withAxiom(async (req) => {
         rawBody: queryParams,
       });
 
-      response = NextResponse.json("Sale event tracked successfully.");
+      response = "Sale event tracked successfully.";
     }
+
+    const jsonResponse = NextResponse.json(response);
 
     waitUntil(
       captureWebhookLog({
         workspaceId: workspace.id,
         method: req.method,
         path: "/api/appsflyer/webhook",
-        statusCode: response.status,
+        statusCode: jsonResponse.status,
         duration: Date.now() - startTime,
         requestBody: queryParams,
-        responseBody: response,
+        responseBody: jsonResponse,
         userAgent: req.headers.get("user-agent"),
       }),
     );
 
-    return response;
+    return jsonResponse;
   } catch (error) {
     const errorResponse = handleAndReturnErrorResponse(error);
 
