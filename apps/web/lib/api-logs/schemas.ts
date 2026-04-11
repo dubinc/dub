@@ -4,6 +4,8 @@ import { UserSchema } from "@/lib/zod/schemas/users";
 import * as z from "zod/v4";
 import { API_LOGS_MAX_PAGE_SIZE } from "./constants";
 
+export const requestTypeSchema = z.enum(["api", "webhook"]);
+
 // Schema for ingestion into Tinybird
 export const apiLogSchemaTB = z.object({
   id: z.string(),
@@ -19,6 +21,7 @@ export const apiLogSchemaTB = z.object({
   response_body: z.string(),
   token_id: z.string(),
   user_id: z.string(),
+  request_type: requestTypeSchema,
 });
 
 // Schema for query filter params
@@ -29,6 +32,7 @@ export const apiLogFilterSchemaTB = z.object({
   statusCode: z.number().optional(),
   tokenId: z.string().optional(),
   requestId: z.string().optional(),
+  requestType: requestTypeSchema.optional(),
   start: z.string().optional(),
   end: z.string().optional(),
   limit: z.number().optional(),
@@ -49,6 +53,7 @@ export const apiLogResponseSchemaTB = z.object({
   response_body: z.string(),
   token_id: z.string(),
   user_id: z.string(),
+  request_type: requestTypeSchema,
 });
 
 export const apiLogCountFilterSchemaTB = apiLogFilterSchemaTB
@@ -95,6 +100,7 @@ export const getApiLogsQuerySchema = z
     statusCode: z.coerce.number().int().optional(),
     tokenId: z.string().optional(),
     requestId: z.string().optional(),
+    requestType: requestTypeSchema.optional(),
   })
   .extend(
     getPaginationQuerySchema({

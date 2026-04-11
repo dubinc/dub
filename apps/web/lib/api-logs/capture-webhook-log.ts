@@ -43,5 +43,6 @@ export async function captureWebhookLog({
     responseBody: await parseResponseBody(responseBody),
     tokenId: null,
     userId: null,
+    requestType: "webhook",
   });
 }

@@ -16,6 +16,7 @@ export async function getApiLogsCount(params: GetApiLogsCountParams) {
     statusCode,
     tokenId,
     requestId,
+    requestType,
     start,
     end,
     groupBy,
@@ -29,6 +30,7 @@ export async function getApiLogsCount(params: GetApiLogsCountParams) {
     ...(statusCode && { statusCode }),
     ...(tokenId && { tokenId }),
     ...(requestId && { requestId }),
+    ...(requestType && { requestType }),
     ...(start && { start }),
     ...(end && { end }),
   };

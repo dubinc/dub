@@ -36,6 +36,7 @@ import { RESOURCE_COLORS } from "../ui/colors";
 import {
   apiLogCountResponseSchemaTB,
   apiLogEnrichedSchema,
+  requestTypeSchema,
 } from "./api-logs/schemas";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
@@ -908,3 +909,5 @@ export type EnrichedApiLog = z.infer<typeof apiLogEnrichedSchema>;
 export type ApiLogsCountByRoutePattern = z.infer<
   typeof apiLogCountResponseSchemaTB.routePattern
 >;
+
+export type RequestType = z.infer<typeof requestTypeSchema>;

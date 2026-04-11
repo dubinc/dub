@@ -19,7 +19,14 @@ export function useApiLogsCount<T>({
       ...(groupBy && { groupBy }),
     },
     {
-      include: ["method", "statusCode", "routePattern", "tokenId", "requestId"],
+      include: [
+        "method",
+        "statusCode",
+        "routePattern",
+        "tokenId",
+        "requestId",
+        "requestType",
+      ],
     },
   );
 

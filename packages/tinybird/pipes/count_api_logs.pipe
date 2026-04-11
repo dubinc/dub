@@ -15,6 +15,7 @@ SQL >
         {% if defined(statusCode) %} AND status_code = {{ UInt16(statusCode) }} {% end %}
         {% if defined(tokenId) %} AND token_id = {{ String(tokenId) }} {% end %}
         {% if defined(requestId) %} AND id = {{ String(requestId) }} {% end %}
+        {% if defined(requestType) %} AND request_type = {{ String(requestType) }} {% end %}
 
 NODE count_by_route_pattern
 SQL >
@@ -33,6 +34,7 @@ SQL >
         {% if defined(method) %} AND method = {{ String(method) }} {% end %}
         {% if defined(statusCode) %} AND status_code = {{ UInt16(statusCode) }} {% end %}
         {% if defined(tokenId) %} AND token_id = {{ String(tokenId) }} {% end %}
+        {% if defined(requestType) %} AND request_type = {{ String(requestType) }} {% end %}
         AND route_pattern != ''
     GROUP BY route_pattern
     ORDER BY count DESC

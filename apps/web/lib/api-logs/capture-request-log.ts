@@ -92,6 +92,7 @@ export function captureRequestLog({
         responseBody,
         tokenId: token?.id ?? null,
         userId: session?.user?.id ?? null,
+        requestType: "api",
       });
     })(),
   );

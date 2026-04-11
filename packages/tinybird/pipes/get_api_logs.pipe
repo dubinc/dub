@@ -13,7 +13,8 @@ SQL >
         request_body,
         response_body,
         token_id,
-        user_id
+        user_id,
+        request_type
     FROM dub_api_logs
     WHERE
         workspace_id = {{ String(workspaceId) }}
@@ -26,6 +27,7 @@ SQL >
         {% if defined(statusCode) %} AND status_code = {{ UInt16(statusCode) }} {% end %}
         {% if defined(tokenId) %} AND token_id = {{ String(tokenId) }} {% end %}
         {% if defined(requestId) %} AND id = {{ String(requestId) }} {% end %}
+        {% if defined(requestType) %} AND request_type = {{ String(requestType) }} {% end %}
     ORDER BY timestamp DESC
     LIMIT {{ Int32(limit, 100) }}
     OFFSET {{ Int32(offset, 0) }}

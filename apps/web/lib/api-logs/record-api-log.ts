@@ -3,6 +3,7 @@ import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { createId } from "../api/create-id";
 import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
+import { RequestType } from "../types";
 import { apiLogSchemaTB } from "./schemas";
 
 type ApiLogInput = z.infer<typeof apiLogSchemaTB>;
@@ -25,6 +26,7 @@ export const recordApiLog = async ({
   responseBody,
   tokenId,
   userId,
+  requestType,
 }: {
   workspaceId: string;
   method: string;
@@ -37,6 +39,7 @@ export const recordApiLog = async ({
   responseBody: unknown;
   tokenId: string | null;
   userId: string | null;
+  requestType: RequestType;
 }) => {
   const apiLog: ApiLogInput = {
     id: createId({ prefix: "req_" }),
@@ -52,6 +55,7 @@ export const recordApiLog = async ({
     response_body: JSON.stringify(responseBody),
     token_id: tokenId ?? "",
     user_id: userId ?? "",
+    request_type: requestType,
   };
 
   const maxRetries = 3;

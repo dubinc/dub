@@ -13,7 +13,8 @@ SQL >
         request_body,
         response_body,
         token_id,
-        user_id
+        user_id,
+        request_type
     FROM dub_api_logs
     WHERE
         workspace_id = {{ String(workspaceId) }}

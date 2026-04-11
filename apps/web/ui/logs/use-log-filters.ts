@@ -3,6 +3,7 @@
 import {
   HTTP_METHODS,
   HTTP_STATUS_CODES,
+  REQUEST_TYPES,
   WEBHOOK_DISPLAY_NAMES,
 } from "@/lib/api-logs/constants";
 import { useApiLogsCount } from "@/lib/swr/use-api-logs-count";
@@ -14,6 +15,7 @@ import {
   CircleCheck,
   Globe,
   Key,
+  Webhook,
 } from "@dub/ui/icons";
 import { cn, fetcher } from "@dub/utils";
 import { createElement, useCallback, useMemo, useState } from "react";
@@ -34,13 +36,15 @@ export function useLogFilters() {
   );
 
   const activeFilters = useMemo(() => {
-    const { method, statusCode, routePattern, tokenId } = searchParamsObj;
+    const { method, statusCode, routePattern, tokenId, requestType } =
+      searchParamsObj;
 
     return [
       ...(method ? [{ key: "method", value: method }] : []),
       ...(statusCode ? [{ key: "statusCode", value: statusCode }] : []),
       ...(routePattern ? [{ key: "routePattern", value: routePattern }] : []),
       ...(tokenId ? [{ key: "tokenId", value: tokenId }] : []),
+      ...(requestType ? [{ key: "requestType", value: requestType }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -99,6 +103,15 @@ export function useLogFilters() {
           label: `${name} (${partialKey})`,
         })),
       },
+      {
+        key: "requestType",
+        icon: Webhook,
+        label: "Request Type",
+        options: REQUEST_TYPES.map(({ value, label }) => ({
+          value,
+          label,
+        })),
+      },
     ],
     [tokens, routePatterns],
   );
@@ -123,7 +136,7 @@ export function useLogFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["method", "statusCode", "routePattern", "tokenId"],
+        del: ["method", "statusCode", "routePattern", "tokenId", "requestType"],
       }),
     [queryParams],
   );

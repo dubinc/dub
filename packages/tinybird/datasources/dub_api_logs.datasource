@@ -13,7 +13,8 @@ SCHEMA >
     `request_body` String `json:$.request_body`,
     `response_body` String `json:$.response_body`,
     `token_id` String `json:$.token_id`,
-    `user_id` String `json:$.user_id`
+    `user_id` String `json:$.user_id`,
+    `request_type` LowCardinality(String) `json:$.request_type`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

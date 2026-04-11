@@ -40,6 +40,11 @@ export const ROUTE_PATTERNS = [
   "api/tokens/embed/referrals",
 ] as const;
 
+export const REQUEST_TYPES = [
+  { value: "api", label: "API" },
+  { value: "webhook", label: "Webhook" },
+] as const;
+
 export const HTTP_STATUS_CODES = [
   { value: 200, label: "200 OK" },
   { value: 201, label: "201 Created" },
