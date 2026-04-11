@@ -147,7 +147,7 @@ export function PartnerStats({
                   side="top"
                   delayDuration={250}
                 >
-                  <span className="text-content-muted absolute bottom-3 right-3 max-w-[calc(100%-1.5rem)] cursor-default cursor-help text-right text-[0.6875rem] leading-tight underline decoration-neutral-300/70 decoration-dotted underline-offset-2 hover:decoration-neutral-400">
+                  <span className="text-content-muted absolute bottom-3 right-3 max-w-[calc(100%-1.5rem)] cursor-help text-right text-[0.6875rem] leading-tight underline decoration-neutral-300/70 decoration-dotted underline-offset-2 hover:decoration-neutral-400">
                     Last {timeAgo(lastAt, { withAgo: true })}
                   </span>
                 </TimestampTooltip>
