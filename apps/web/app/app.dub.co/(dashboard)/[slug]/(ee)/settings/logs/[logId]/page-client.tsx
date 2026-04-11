@@ -138,7 +138,6 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
         {log.method}
       </StatusBadge>
     ),
-    Type: log.request_type === "webhook" ? "Webhook" : "API",
     Duration: `${log.duration}ms`,
     ...(log.user_agent && {
       "User-agent": log.user_agent,
