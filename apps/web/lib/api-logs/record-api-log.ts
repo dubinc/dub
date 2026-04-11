@@ -8,6 +8,21 @@ import { apiLogSchemaTB } from "./schemas";
 
 type ApiLogInput = z.infer<typeof apiLogSchemaTB>;
 
+type RecordApiLogParams = {
+  workspaceId: string;
+  method: string;
+  path: string;
+  routePattern: string;
+  statusCode: number;
+  duration: number;
+  userAgent: string | null;
+  requestBody: unknown;
+  responseBody: unknown;
+  tokenId: string | null;
+  userId: string | null;
+  requestType: RequestType;
+};
+
 const recordApiLogTB = tb.buildIngestEndpoint({
   datasource: "dub_api_logs",
   event: apiLogSchemaTB,
@@ -27,20 +42,7 @@ export const recordApiLog = async ({
   tokenId,
   userId,
   requestType,
-}: {
-  workspaceId: string;
-  method: string;
-  path: string;
-  routePattern: string;
-  statusCode: number;
-  duration: number;
-  userAgent: string | null;
-  requestBody: unknown;
-  responseBody: unknown;
-  tokenId: string | null;
-  userId: string | null;
-  requestType: RequestType;
-}) => {
+}: RecordApiLogParams) => {
   const apiLog: ApiLogInput = {
     id: createId({ prefix: "req_" }),
     timestamp: new Date().toISOString(),

@@ -6,7 +6,6 @@ import { API_LOGS_MAX_PAGE_SIZE } from "./constants";
 
 export const requestTypeSchema = z.enum(["api", "webhook"]);
 
-// Schema for ingestion into Tinybird
 export const apiLogSchemaTB = z.object({
   id: z.string(),
   timestamp: z.string(),
@@ -39,23 +38,6 @@ export const apiLogFilterSchemaTB = z.object({
   offset: z.number().optional(),
 });
 
-// Schema for query response
-export const apiLogResponseSchemaTB = z.object({
-  id: z.string(),
-  timestamp: z.string(),
-  method: z.string(),
-  path: z.string(),
-  route_pattern: z.string(),
-  status_code: z.number(),
-  duration: z.number(),
-  user_agent: z.string(),
-  request_body: z.string(),
-  response_body: z.string(),
-  token_id: z.string(),
-  user_id: z.string(),
-  request_type: requestTypeSchema,
-});
-
 export const apiLogCountFilterSchemaTB = apiLogFilterSchemaTB
   .omit({
     limit: true,
@@ -82,7 +64,7 @@ export const apiLogByIdFilterSchemaTB = z.object({
 });
 
 // Schema for enriched API log (with resolved token and user)
-export const apiLogEnrichedSchema = apiLogResponseSchemaTB.extend({
+export const apiLogEnrichedSchema = apiLogSchemaTB.extend({
   token: tokenSchema
     .pick({
       id: true,
