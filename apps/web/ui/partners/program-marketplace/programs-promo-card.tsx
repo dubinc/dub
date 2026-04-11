@@ -21,7 +21,7 @@ export function ProgramsPromoCard() {
 
   if (
     !partner.identityVerifiedAt &&
-    partner.country !== "IN" &&
+    !["IN", "GE"].includes(partner.country ?? "") &&
     (payoutsCount[0]?.amount ?? 0) > 10000
   ) {
     return <IdentityVerificationCard />;
