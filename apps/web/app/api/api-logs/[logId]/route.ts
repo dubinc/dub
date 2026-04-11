@@ -1,3 +1,4 @@
+import { getApiLogsDateRange } from "@/lib/api-logs/api-log-retention";
 import { enrichApiLogs } from "@/lib/api-logs/enrich-api-logs";
 import { getApiLogById } from "@/lib/api-logs/get-api-log";
 import { DubApiError } from "@/lib/api/errors";
@@ -13,6 +14,15 @@ export const GET = withWorkspace(
     });
 
     if (!log) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "API log not found.",
+      });
+    }
+
+    const { start } = getApiLogsDateRange(workspace.plan);
+
+    if (new Date(log.timestamp) < new Date(start)) {
       throw new DubApiError({
         code: "not_found",
         message: "API log not found.",

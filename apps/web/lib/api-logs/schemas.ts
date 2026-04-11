@@ -9,7 +9,6 @@ export const requestTypeSchema = z.enum(["api", "webhook"]);
 export const apiLogSchemaTB = z.object({
   id: z.string(),
   timestamp: z.string(),
-  workspace_id: z.string(),
   method: z.string(),
   path: z.string(),
   route_pattern: z.string(),
@@ -21,10 +20,6 @@ export const apiLogSchemaTB = z.object({
   token_id: z.string(),
   user_id: z.string(),
   request_type: requestTypeSchema,
-});
-
-export const apiLogResponseSchemaTB = apiLogSchemaTB.omit({
-  workspace_id: true,
 });
 
 // Schema for query filter params

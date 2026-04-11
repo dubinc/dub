@@ -6,7 +6,11 @@ import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import { RequestType } from "../types";
 import { apiLogSchemaTB } from "./schemas";
 
-type ApiLogInput = z.infer<typeof apiLogSchemaTB>;
+const ingestionApiLogSchemaTB = apiLogSchemaTB.extend({
+  workspace_id: z.string(),
+});
+
+type ApiLogInput = z.infer<typeof ingestionApiLogSchemaTB>;
 
 type RecordApiLogParams = {
   workspaceId: string;
@@ -25,7 +29,7 @@ type RecordApiLogParams = {
 
 const recordApiLogTB = tb.buildIngestEndpoint({
   datasource: "dub_api_logs",
-  event: apiLogSchemaTB,
+  event: ingestionApiLogSchemaTB,
   wait: true,
 });
 

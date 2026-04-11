@@ -2,10 +2,6 @@ import { prisma } from "@dub/prisma";
 import { ApiLogTB, EnrichedApiLog } from "../types";
 
 export async function enrichApiLogs(
-  logs: ApiLogTB[],
-): Promise<EnrichedApiLog[]>;
-export async function enrichApiLogs(logs: ApiLogTB): Promise<EnrichedApiLog>;
-export async function enrichApiLogs(
   logs: ApiLogTB | ApiLogTB[],
 ): Promise<EnrichedApiLog | EnrichedApiLog[]> {
   const isSingle = !Array.isArray(logs);
