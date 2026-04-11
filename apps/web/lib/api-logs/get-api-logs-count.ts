@@ -4,9 +4,14 @@ import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import {
   apiLogCountFilterSchemaTB,
   apiLogCountResponseSchemaTB,
+  getApiLogsCountQuerySchema,
 } from "./schemas";
 
-type GetApiLogsCountParams = z.infer<typeof apiLogCountFilterSchemaTB>;
+type GetApiLogsCountParams = z.infer<typeof getApiLogsCountQuerySchema> & {
+  workspaceId: string;
+  start: string;
+  end: string;
+};
 
 export async function getApiLogsCount(params: GetApiLogsCountParams) {
   const {
