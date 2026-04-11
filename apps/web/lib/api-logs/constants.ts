@@ -1,3 +1,5 @@
+import type { PlanProps } from "@/lib/types";
+
 // Route patterns for parameterized path matching.
 // Used both for logging eligibility and route pattern extraction.
 // Order matters: more specific patterns must come before less specific ones.
@@ -62,13 +64,19 @@ export const HTTP_METHODS = ["POST", "PATCH", "PUT", "DELETE", "GET"] as const;
 
 export const API_LOGS_MAX_PAGE_SIZE = 50;
 
-export const API_LOG_RETENTION_DAYS: Record<string, number> = {
+export const API_LOG_RETENTION_DAYS: Record<PlanProps, number> = {
   free: 30,
   pro: 30,
+  business: 60,
+  "business plus": 60,
+  "business extra": 60,
+  "business max": 60,
+  advanced: 60,
   enterprise: 90,
 };
 
-export const DEFAULT_RETENTION_DAYS = 60; // business, advanced
+// Default when plan is missing from workspace data (should not happen for known plans).
+export const DEFAULT_RETENTION_DAYS = 30;
 
 export const METHOD_BADGE_VARIANTS: Record<string, string> = {
   POST: "new",
