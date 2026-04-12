@@ -4,7 +4,6 @@ import { stripeAppClient } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
-import { stripeWebhookResult } from "./stripe-webhook-handler-result";
 
 // Handle event "charge.refunded"
 export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
@@ -138,8 +137,8 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
     newStatus: "refunded",
   });
 
-  return stripeWebhookResult(
-    `Commission ${commission.id} updated to status "refunded"`,
+  return {
+    response: `Commission ${commission.id} updated to status "refunded"`,
     workspaceId,
-  );
+  };
 }
