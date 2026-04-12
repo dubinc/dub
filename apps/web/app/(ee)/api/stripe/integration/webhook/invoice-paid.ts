@@ -18,8 +18,11 @@ import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
-export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
-  const invoice = event.data.object as Stripe.Invoice;
+export async function invoicePaid(
+  event: Stripe.InvoicePaidEvent,
+  mode: StripeMode,
+) {
+  const invoice = event.data.object;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string;
   const invoiceId = invoice.id;

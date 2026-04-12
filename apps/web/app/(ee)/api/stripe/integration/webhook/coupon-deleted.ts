@@ -9,8 +9,8 @@ import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "coupon.deleted"
-export async function couponDeleted(event: Stripe.Event) {
-  const coupon = event.data.object as Stripe.Coupon;
+export async function couponDeleted(event: Stripe.CouponDeletedEvent) {
+  const coupon = event.data.object;
   const stripeAccountId = event.account as string;
 
   const workspace = await prisma.project.findUnique({

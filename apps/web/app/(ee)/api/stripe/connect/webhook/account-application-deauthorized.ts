@@ -2,7 +2,9 @@ import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-pay
 import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
-export async function accountApplicationDeauthorized(event: Stripe.Event) {
+export async function accountApplicationDeauthorized(
+  event: Stripe.AccountApplicationDeauthorizedEvent,
+) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {

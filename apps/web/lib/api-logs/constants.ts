@@ -90,9 +90,3 @@ export const METHOD_BADGE_VARIANTS: Record<string, string> = {
   DELETE: "error",
   GET: "success",
 } as const;
-
-export const WEBHOOK_DISPLAY_NAMES: Record<string, string> = {
-  "/appsflyer/webhook": "AppsFlyer",
-  "/stripe/integration/webhook": "Stripe",
-  "/shopify/integration/webhook": "Shopify",
-};

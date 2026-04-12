@@ -6,14 +6,14 @@ const queue = qstash.queue({
   queueName: "handle-payout-failed",
 });
 
-export async function payoutFailed(event: Stripe.Event) {
+export async function payoutFailed(event: Stripe.PayoutFailedEvent) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {
     return "No stripeConnectId found in event. Skipping...";
   }
 
-  const stripePayout = event.data.object as Stripe.Payout;
+  const stripePayout = event.data.object;
 
   const response = await queue.enqueueJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/payout-failed`,

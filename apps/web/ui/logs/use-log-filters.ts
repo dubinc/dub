@@ -4,7 +4,6 @@ import {
   HTTP_METHODS,
   HTTP_STATUS_CODES,
   REQUEST_TYPES,
-  WEBHOOK_DISPLAY_NAMES,
 } from "@/lib/api-logs/constants";
 import { useApiLogsCount } from "@/lib/swr/use-api-logs-count";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -24,8 +23,6 @@ import useSWR from "swr";
 export function useLogFilters() {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
-
-  const [search, setSearch] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
 
   const { data: tokens } = useSWR<TokenProps[]>(
@@ -83,7 +80,7 @@ export function useLogFilters() {
         label: "Endpoint",
         options: routePatterns?.map(({ routePattern, count }) => ({
           value: routePattern,
-          label: WEBHOOK_DISPLAY_NAMES[routePattern] ?? routePattern,
+          label: routePattern,
           right: nFormatter(count, { full: true }),
         })),
       },
@@ -165,7 +162,6 @@ export function useLogFilters() {
     onRemove,
     onRemoveAll,
     searchQuery,
-    setSearch,
     setSelectedFilter,
   };
 }

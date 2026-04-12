@@ -34,10 +34,10 @@ import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with
 
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted(
-  event: Stripe.Event,
+  event: Stripe.CheckoutSessionCompletedEvent,
   mode: StripeMode,
 ) {
-  let charge = event.data.object as Stripe.Checkout.Session;
+  let charge = event.data.object;
   let dubCustomerExternalId =
     charge.metadata?.dubCustomerExternalId || charge.metadata?.dubCustomerId;
   const clientReferenceId = charge.client_reference_id;
