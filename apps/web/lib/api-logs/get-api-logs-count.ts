@@ -30,7 +30,8 @@ export async function getApiLogsCount(params: GetApiLogsCountParams) {
   const baseParams = {
     workspaceId,
     ...(groupBy && { groupBy }),
-    ...(routePattern && { routePattern }),
+    // if we're grouping by routePattern, omit routePattern filter (so all routes are returned)
+    ...(routePattern && groupBy !== "routePattern" && { routePattern }),
     ...(method && { method }),
     ...(statusCode && { statusCode }),
     ...(tokenId && { tokenId }),

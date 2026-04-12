@@ -50,7 +50,10 @@ export function useLogFilters() {
 
   const { data: routePatterns } = useApiLogsCount({
     groupBy: "routePattern",
-    enabled: selectedFilter === "routePattern",
+    enabled:
+      selectedFilter === "routePattern" || searchParamsObj.routePattern
+        ? true
+        : false,
   });
 
   const filters = useMemo(
