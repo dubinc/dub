@@ -25,8 +25,8 @@ export * from "./photo";
 export * from "./sort-order";
 export * from "./success";
 export * from "./tick";
-export * from "./verified-badge";
 export * from "./user-clock";
+export * from "./verified-badge";
 
 // loaders
 export * from "./loading-circle";

@@ -31,7 +31,9 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
     invoicePayments.data.length > 0 ? invoicePayments.data[0] : null;
 
   if (!invoicePayment || !invoicePayment.invoice) {
-    return `Charge ${charge.id} has no invoice, skipping...`;
+    return {
+      response: `Charge ${charge.id} has no invoice, skipping...`,
+    };
   }
 
   const workspace = await prisma.project.findUnique({
@@ -45,11 +47,18 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
   });
 
   if (!workspace) {
-    return `Workspace not found for stripe account ${stripeAccountId}`;
+    return {
+      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+    };
   }
 
+  const workspaceId = workspace.id;
+
   if (!workspace.programs.length) {
-    return `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs, skipping...`;
+    return {
+      response: `Workspace ${workspaceId} for stripe account ${stripeAccountId} has no programs, skipping...`,
+      workspaceId,
+    };
   }
 
   const commission = await prisma.commission.findUnique({
@@ -71,11 +80,17 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
   });
 
   if (!commission) {
-    return `Commission not found for invoice ${invoicePayment.invoice}`;
+    return {
+      response: `Commission not found for invoice ${invoicePayment.invoice}`,
+      workspaceId,
+    };
   }
 
   if (commission.status === "paid") {
-    return `Commission ${commission.id} is already paid, skipping...`;
+    return {
+      response: `Commission ${commission.id} is already paid, skipping...`,
+      workspaceId,
+    };
   }
 
   // if the commission is processed and has a payout, we need to update the payout total
@@ -122,5 +137,8 @@ export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
     newStatus: "refunded",
   });
 
-  return `Commission ${commission.id} updated to status "refunded"`;
+  return {
+    response: `Commission ${commission.id} updated to status "refunded"`,
+    workspaceId,
+  };
 }

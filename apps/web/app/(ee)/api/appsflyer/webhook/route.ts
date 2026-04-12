@@ -1,3 +1,4 @@
+import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { isLocalDev } from "@/lib/api/environment";
@@ -10,7 +11,9 @@ import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
 import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { trackSaleRequestSchema } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
+import { Project } from "@dub/prisma/client";
 import { APPSFLYER_INTEGRATION_ID, getSearchParams } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -22,6 +25,14 @@ const querySchema = z.object({
 
 // GET /api/appsflyer/webhook – listen to Postback events from AppsFlyer
 export const GET = withAxiom(async (req) => {
+  const startTime = Date.now();
+  let response = "OK";
+  let queryParams: Record<string, string> | null = null;
+  let workspace: Pick<
+    Project,
+    "id" | "stripeConnectId" | "webhookEnabled"
+  > | null = null;
+
   try {
     if (!isLocalDev) {
       const ip = await getIP();
@@ -37,7 +48,7 @@ export const GET = withAxiom(async (req) => {
       }
     }
 
-    const queryParams = getSearchParams(req.url);
+    queryParams = getSearchParams(req.url);
 
     const { appId, partnerEventId } = querySchema.parse(queryParams);
 
@@ -72,6 +83,8 @@ export const GET = withAxiom(async (req) => {
       });
     }
 
+    workspace = installation.project;
+
     // Track lead event
     if (partnerEventId === "lead") {
       const {
@@ -93,15 +106,15 @@ export const GET = withAxiom(async (req) => {
         eventQuantity: undefined,
         mode: undefined,
         metadata: null,
-        workspace: installation.project,
+        workspace,
         rawBody: queryParams,
       });
 
-      return NextResponse.json("Lead event tracked successfully.");
+      response = "Lead event tracked successfully.";
     }
 
     // Track sale event
-    if (partnerEventId === "sale") {
+    else if (partnerEventId === "sale") {
       const amountInCents = appsflyerAmountToDubCents(queryParams.amount);
       const { eventName, customerExternalId, amount, currency, invoiceId } =
         trackSaleRequestSchema.parse({
@@ -118,16 +131,46 @@ export const GET = withAxiom(async (req) => {
         invoiceId,
         leadEventName: undefined,
         metadata: null,
-        workspace: installation.project,
+        workspace,
         rawBody: queryParams,
       });
 
-      return NextResponse.json("Sale event tracked successfully.");
+      response = "Sale event tracked successfully.";
     }
 
-    return NextResponse.json("OK");
+    waitUntil(
+      captureWebhookLog({
+        workspaceId: workspace.id,
+        method: req.method,
+        path: "/api/appsflyer/webhook",
+        statusCode: 200,
+        duration: Date.now() - startTime,
+        requestBody: queryParams,
+        responseBody: response,
+        userAgent: req.headers.get("user-agent"),
+      }),
+    );
+
+    return NextResponse.json(response);
   } catch (error) {
-    return handleAndReturnErrorResponse(error);
+    const errorResponse = handleAndReturnErrorResponse(error);
+
+    if (workspace) {
+      waitUntil(
+        captureWebhookLog({
+          workspaceId: workspace.id,
+          method: req.method,
+          path: "/api/appsflyer/webhook",
+          statusCode: errorResponse.status,
+          duration: Date.now() - startTime,
+          requestBody: queryParams,
+          responseBody: errorResponse,
+          userAgent: req.headers.get("user-agent"),
+        }),
+      );
+    }
+
+    return errorResponse;
   }
 });
 

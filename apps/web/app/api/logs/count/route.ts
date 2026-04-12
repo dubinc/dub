@@ -1,0 +1,23 @@
+import { getApiLogsDateRange } from "@/lib/api-logs/api-log-retention";
+import { getApiLogsCount } from "@/lib/api-logs/get-api-logs-count";
+import { getApiLogsCountQuerySchema } from "@/lib/api-logs/schemas";
+import { withWorkspace } from "@/lib/auth/workspace";
+import { NextResponse } from "next/server";
+
+// GET /api/logs/count
+export const GET = withWorkspace(
+  async ({ workspace, searchParams }) => {
+    const filters = getApiLogsCountQuerySchema.parse(searchParams);
+
+    const rows = await getApiLogsCount({
+      ...filters,
+      ...getApiLogsDateRange(workspace.plan),
+      workspaceId: workspace.id,
+    });
+
+    return NextResponse.json(rows);
+  },
+  {
+    requiredPermissions: ["workspaces.read"],
+  },
+);

@@ -6,6 +6,7 @@ import { WorkspaceRole } from "@dub/prisma/client";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
+import { captureRequestLog } from "../api-logs/capture-request-log";
 import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
 import {
   PermissionAction,
@@ -86,6 +87,7 @@ export const withWorkspace = (
       // Clone the request early so handlers can read the body without cloning
       // Keep the original for withAxiomBodyLog to read in onSuccess
       const clonedReq = req.clone();
+      const reqForLog = clonedReq.clone();
 
       const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
@@ -94,6 +96,11 @@ export const withWorkspace = (
       let requestHeaders = await headers();
       let responseHeaders = new Headers();
       let workspace: WorkspaceWithUsers | undefined;
+      let session: Session | undefined;
+      let token: TokenCacheItem | null = null;
+
+      const startTime = Date.now();
+      const url = new URL(req.url || "", API_DOMAIN);
 
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
@@ -108,13 +115,9 @@ export const withWorkspace = (
           apiKey = authorizationHeader.replace("Bearer ", "");
         }
 
-        const url = new URL(req.url || "", API_DOMAIN);
-
-        let session: Session | undefined;
         let workspaceId: string | undefined;
         let workspaceSlug: string | undefined;
         let permissions: PermissionAction[] = [];
-        let token: TokenCacheItem | null = null;
         const isRestrictedToken = apiKey?.startsWith("dub_");
 
         const idOrSlug =
@@ -183,6 +186,7 @@ export const withWorkspace = (
                 hashedKey,
               },
               select: {
+                id: true,
                 expires: true,
                 ...(isRestrictedToken && {
                   scopes: true,
@@ -463,7 +467,7 @@ export const withWorkspace = (
           });
         }
 
-        return await handler({
+        const response = await handler({
           req: clonedReq,
           params,
           searchParams,
@@ -473,6 +477,21 @@ export const withWorkspace = (
           permissions,
           token,
         });
+
+        if (workspace) {
+          captureRequestLog({
+            req: reqForLog,
+            response,
+            workspace,
+            session,
+            token,
+            url,
+            requestHeaders,
+            startTime,
+          });
+        }
+
+        return response;
       } catch (error) {
         // Log the conversion events for debugging purposes
         waitUntil(
@@ -489,7 +508,25 @@ export const withWorkspace = (
           })(),
         );
 
-        return handleAndReturnErrorResponse(error, responseHeaders);
+        const errorResponse = handleAndReturnErrorResponse(
+          error,
+          responseHeaders,
+        );
+
+        if (workspace) {
+          captureRequestLog({
+            req: reqForLog,
+            response: errorResponse,
+            workspace,
+            session,
+            token,
+            url,
+            requestHeaders,
+            startTime,
+          });
+        }
+
+        return errorResponse;
       }
     },
   );
