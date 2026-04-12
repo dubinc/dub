@@ -408,14 +408,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/tokens`,
           },
           {
-            name: "Tracking",
-            icon: MarketingTarget,
-            href: `/${slug}/settings/tracking`,
-          },
-          {
             name: "Logs",
             icon: StackY3,
             href: `/${slug}/settings/logs`,
+          },
+          {
+            name: "Tracking",
+            icon: MarketingTarget,
+            href: `/${slug}/settings/tracking`,
           },
           {
             name: "Webhooks",

@@ -24,7 +24,9 @@ const compiledRoutePatterns = ROUTE_PATTERNS.map((pattern) => {
 });
 
 export function getRoutePattern(path: string): string {
-  const normalized = path.startsWith("/") ? path.slice(1) : path;
+  const normalized = path.startsWith("/api/")
+    ? path.replace("/api/", "/")
+    : path;
 
   for (const { pattern, regex } of compiledRoutePatterns) {
     if (regex.test(normalized)) {

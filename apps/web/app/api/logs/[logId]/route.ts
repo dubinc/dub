@@ -25,7 +25,8 @@ export const GET = withWorkspace(
     if (new Date(log.timestamp) < new Date(start)) {
       throw new DubApiError({
         code: "not_found",
-        message: "API log not found.",
+        message:
+          "API log is past your current plan's retention period. Upgrade your plan to view more logs.",
       });
     }
 

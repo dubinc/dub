@@ -51,7 +51,7 @@ export const recordApiLog = async ({
     timestamp: new Date().toISOString(),
     workspace_id: workspaceId,
     method,
-    path,
+    path: path.replace("/api/", "/"), // remove the /api/ prefix from the path
     route_pattern: routePattern,
     status_code: statusCode,
     duration,

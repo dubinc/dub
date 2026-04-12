@@ -5,39 +5,39 @@ import type { PlanProps } from "@/lib/types";
 // Order matters: more specific patterns must come before less specific ones.
 export const ROUTE_PATTERNS = [
   // Track
-  "api/track/lead",
-  "api/track/sale",
-  "api/track/open",
+  "/track/lead",
+  "/track/sale",
+  "/track/open",
 
   // Partners
-  "api/partners/links/upsert",
-  "api/partners/links",
-  "api/partners/ban",
-  "api/partners/deactivate",
-  "api/partners/:partnerId",
-  "api/partners",
+  "/partners/links/upsert",
+  "/partners/links",
+  "/partners/ban",
+  "/partners/deactivate",
+  "/partners/:partnerId",
+  "/partners",
 
   // Links
-  "api/links/bulk",
-  "api/links/upsert",
-  "api/links/:linkId",
-  "api/links",
+  "/links/bulk",
+  "/links/upsert",
+  "/links/:linkId",
+  "/links",
 
   // Customers
-  "api/customers/:id",
-  "api/customers",
+  "/customers/:id",
+  "/customers",
 
   // Commissions
-  "api/commissions/bulk",
-  "api/commissions/:commissionId",
-  "api/commissions",
+  "/commissions/bulk",
+  "/commissions/:commissionId",
+  "/commissions",
 
   // Bounties
-  "api/bounties/:bountyId/submissions/:submissionId/approve",
-  "api/bounties/:bountyId/submissions/:submissionId/reject",
+  "/bounties/:bountyId/submissions/:submissionId/approve",
+  "/bounties/:bountyId/submissions/:submissionId/reject",
 
   // Tokens
-  "api/tokens/embed/referrals",
+  "/tokens/embed/referrals",
 ] as const;
 
 export const REQUEST_TYPES = [
@@ -92,7 +92,7 @@ export const METHOD_BADGE_VARIANTS: Record<string, string> = {
 } as const;
 
 export const WEBHOOK_DISPLAY_NAMES: Record<string, string> = {
-  "/api/appsflyer/webhook": "AppsFlyer",
-  "/api/stripe/integration/webhook": "Stripe",
-  "/api/shopify/integration/webhook": "Shopify",
+  "/appsflyer/webhook": "AppsFlyer",
+  "/stripe/integration/webhook": "Stripe",
+  "/shopify/integration/webhook": "Shopify",
 };
