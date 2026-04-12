@@ -31,7 +31,7 @@ export function useApiLogsCount<T>({
   );
 
   const { data, error } = useSWR<T>(
-    workspaceId && enabled ? `/api/api-logs/count${queryString}` : null,
+    workspaceId && enabled ? `/api/logs/count${queryString}` : null,
     fetcher,
     {
       keepPreviousData: true,

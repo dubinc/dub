@@ -58,7 +58,7 @@ export function LogsTable() {
     error,
     isLoading,
   } = useSWR<EnrichedApiLog[]>(
-    workspaceId && `/api/api-logs?${logsQuery}`,
+    workspaceId && `/api/logs?${logsQuery}`,
     fetcher,
     {
       keepPreviousData: true,

@@ -23,7 +23,7 @@ export function LogDetailPageClient({ logId }: { logId: string }) {
     isLoading,
     error,
   } = useSWR<EnrichedApiLog>(
-    workspaceId && `/api/api-logs/${logId}?workspaceId=${workspaceId}`,
+    workspaceId && `/api/logs/${logId}?workspaceId=${workspaceId}`,
     fetcher,
   );
 

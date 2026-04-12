@@ -4,7 +4,7 @@ import { getApiLogsCountQuerySchema } from "@/lib/api-logs/schemas";
 import { withWorkspace } from "@/lib/auth/workspace";
 import { NextResponse } from "next/server";
 
-// GET /api/api-logs/count
+// GET /api/logs/count
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const filters = getApiLogsCountQuerySchema.parse(searchParams);
