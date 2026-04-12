@@ -25,7 +25,7 @@ export async function captureWebhookLog({
 }: {
   workspaceId: string;
   method: string;
-  path: string;
+  path: keyof typeof WEBHOOK_REQUEST_ACTORS_BY_PATH;
   statusCode: number;
   duration: number;
   requestBody: unknown;
@@ -44,7 +44,7 @@ export async function captureWebhookLog({
     requestBody,
     responseBody: await parseResponseBody(responseBody),
     tokenId: null,
-    userId: actor.id ?? null,
+    userId: actor.id,
     requestType: "webhook",
   });
 }

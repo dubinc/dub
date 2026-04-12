@@ -51,7 +51,7 @@ export async function enrichApiLogs(
   const userMap = new Map(users.map((u) => [u.id, u] as const));
   const webhookRequestActorsMap = new Map(
     Object.values(WEBHOOK_REQUEST_ACTORS_BY_PATH).map((actor) => [
-      actor.id,
+      actor.id as string, // coerce back to string from const type
       { ...actor, email: null },
     ]),
   );

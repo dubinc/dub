@@ -156,7 +156,7 @@ export const POST = withAxiom(async (req: Request) => {
         await captureWebhookLog({
           workspaceId: result.workspaceId,
           method: req.method,
-          path: "/api/stripe/integration/webhook",
+          path: "/stripe/integration/webhook",
           statusCode: 200,
           duration: Date.now() - startTime,
           requestBody: event,
