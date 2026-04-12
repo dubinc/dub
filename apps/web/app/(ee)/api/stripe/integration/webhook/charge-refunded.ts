@@ -6,8 +6,11 @@ import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
 // Handle event "charge.refunded"
-export async function chargeRefunded(event: Stripe.Event, mode: StripeMode) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeRefunded(
+  event: Stripe.ChargeRefundedEvent,
+  mode: StripeMode,
+) {
+  const charge = event.data.object;
   const stripeAccountId = event.account as string;
 
   const stripe = stripeAppClient({
