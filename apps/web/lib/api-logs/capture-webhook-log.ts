@@ -1,3 +1,4 @@
+import { WEBHOOK_REQUEST_ACTORS_BY_PATH } from "./constants";
 import { recordApiLog } from "./record-api-log";
 
 async function parseResponseBody(responseBody: unknown): Promise<unknown> {
@@ -31,6 +32,7 @@ export async function captureWebhookLog({
   responseBody: unknown;
   userAgent: string | null;
 }) {
+  const actor = WEBHOOK_REQUEST_ACTORS_BY_PATH[path];
   return await recordApiLog({
     workspaceId,
     method,
@@ -42,7 +44,7 @@ export async function captureWebhookLog({
     requestBody,
     responseBody: await parseResponseBody(responseBody),
     tokenId: null,
-    userId: null,
+    userId: actor.id ?? null,
     requestType: "webhook",
   });
 }
