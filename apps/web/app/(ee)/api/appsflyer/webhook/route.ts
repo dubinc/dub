@@ -142,7 +142,7 @@ export const GET = withAxiom(async (req) => {
       captureWebhookLog({
         workspaceId: workspace.id,
         method: req.method,
-        path: "/api/appsflyer/webhook",
+        path: "/appsflyer/webhook",
         statusCode: 200,
         duration: Date.now() - startTime,
         requestBody: queryParams,
@@ -160,7 +160,7 @@ export const GET = withAxiom(async (req) => {
         captureWebhookLog({
           workspaceId: workspace.id,
           method: req.method,
-          path: "/api/appsflyer/webhook",
+          path: "/appsflyer/webhook",
           statusCode: errorResponse.status,
           duration: Date.now() - startTime,
           requestBody: queryParams,

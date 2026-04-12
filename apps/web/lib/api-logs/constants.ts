@@ -1,4 +1,9 @@
 import type { PlanProps } from "@/lib/types";
+import {
+  APPSFLYER_INTEGRATION_ID,
+  SHOPIFY_INTEGRATION_ID,
+  STRIPE_INTEGRATION_ID,
+} from "@dub/utils";
 
 // Route patterns for parameterized path matching.
 // Used both for logging eligibility and route pattern extraction.
@@ -89,4 +94,25 @@ export const METHOD_BADGE_VARIANTS: Record<string, string> = {
   PUT: "pending",
   DELETE: "error",
   GET: "success",
+} as const;
+
+export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
+  "/appsflyer/webhook": {
+    id: APPSFLYER_INTEGRATION_ID,
+    name: "AppsFlyer",
+    image:
+      "https://dubassets.com/integrations/int_1KN8JP7ET3VQQRF7ZQEVNFPJ5_2Geprc8",
+  },
+  "/stripe/integration/webhook": {
+    id: STRIPE_INTEGRATION_ID,
+    name: "Stripe",
+    image:
+      "https://dubassets.com/integrations/clzra1ya60001wnj4a89zcg9h_jtyaGa7",
+  },
+  "/shopify/integration/webhook": {
+    id: SHOPIFY_INTEGRATION_ID,
+    name: "Shopify",
+    image:
+      "https://dubassets.com/integrations/int_iWOtrZgmcyU6XDwKr4AYYqLN_jUmF77W",
+  },
 } as const;

@@ -171,7 +171,7 @@ export function LogsTable() {
         cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
           <TimestampTooltip
             timestamp={row.original.timestamp}
-            rows={["local"]}
+            rows={["local", "utc", "unix"]}
             side="left"
             delayDuration={150}
           >

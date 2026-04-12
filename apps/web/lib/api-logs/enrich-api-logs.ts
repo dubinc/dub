@@ -1,29 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { ApiLogTB, EnrichedApiLog } from "../types";
-
-const WEBHOOK_REQUEST_ACTORS: Record<
-  string,
-  { id: string; name: string; image: string }
-> = {
-  "/appsflyer/webhook": {
-    id: "appsflyer",
-    name: "AppsFlyer",
-    image:
-      "https://dubassets.com/integrations/int_1KN8JP7ET3VQQRF7ZQEVNFPJ5_2Geprc8",
-  },
-  "/stripe/integration/webhook": {
-    id: "stripe",
-    name: "Stripe",
-    image:
-      "https://dubassets.com/integrations/clzra1ya60001wnj4a89zcg9h_jtyaGa7",
-  },
-  "/shopify/integration/webhook": {
-    id: "shopify",
-    name: "Shopify",
-    image:
-      "https://dubassets.com/integrations/int_iWOtrZgmcyU6XDwKr4AYYqLN_jUmF77W",
-  },
-};
+import { WEBHOOK_REQUEST_ACTORS_BY_PATH } from "./constants";
 
 export async function enrichApiLogs(
   logs: ApiLogTB | ApiLogTB[],
@@ -72,18 +49,21 @@ export async function enrichApiLogs(
 
   const tokenMap = new Map(tokens.map((t) => [t.id, t] as const));
   const userMap = new Map(users.map((u) => [u.id, u] as const));
+  const webhookRequestActorsMap = new Map(
+    Object.values(WEBHOOK_REQUEST_ACTORS_BY_PATH).map((actor) => [
+      actor.id as string, // coerce back to string from const type
+      { ...actor, email: null },
+    ]),
+  );
 
   const enriched = logsArray.map((log) => ({
     ...log,
     token: log.token_id ? tokenMap.get(log.token_id) ?? null : null,
-    user: WEBHOOK_REQUEST_ACTORS[log.path]
-      ? {
-          ...WEBHOOK_REQUEST_ACTORS[log.path],
-          email: null,
-        }
-      : log.user_id
-        ? userMap.get(log.user_id) ?? null
-        : null,
+    user: log.user_id
+      ? webhookRequestActorsMap.get(log.user_id) ??
+        userMap.get(log.user_id) ??
+        null
+      : null,
   }));
 
   return isSingle ? enriched[0] : enriched;
