@@ -1,6 +1,5 @@
 import { tb } from "@/lib/tinybird";
 import * as z from "zod/v4";
-import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import {
   apiLogCountFilterSchemaTB,
   apiLogCountResponseSchemaTB,
@@ -28,7 +27,7 @@ export async function getApiLogsCount(params: GetApiLogsCountParams) {
   } = params;
 
   const baseParams = {
-    workspaceId: prefixWorkspaceId(workspaceId),
+    workspaceId,
     ...(groupBy && { groupBy }),
     ...(routePattern && { routePattern }),
     ...(method && { method }),

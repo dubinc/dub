@@ -1,6 +1,5 @@
 import { tb } from "@/lib/tinybird";
 import * as z from "zod/v4";
-import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import {
   apiLogFilterSchemaTB,
   apiLogSchemaTB,
@@ -33,7 +32,7 @@ export const getApiLogs = async ({
   });
 
   const logs = await pipe({
-    workspaceId: prefixWorkspaceId(workspaceId),
+    workspaceId,
     ...(routePattern && { routePattern }),
     ...(method && { method }),
     ...(statusCode && { statusCode }),
