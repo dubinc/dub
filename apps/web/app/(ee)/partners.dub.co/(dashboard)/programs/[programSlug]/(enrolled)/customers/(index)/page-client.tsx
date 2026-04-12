@@ -269,7 +269,7 @@ export function ProgramCustomersPageClient() {
   });
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select

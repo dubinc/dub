@@ -81,7 +81,7 @@ export const SearchBox = forwardRef(
           ref={inputRef}
           type="text"
           className={cn(
-            "peer w-full rounded-md border border-neutral-200 px-10 text-black outline-none placeholder:text-neutral-400 sm:text-sm",
+            "peer w-full rounded-lg border border-neutral-200 px-10 text-black outline-none placeholder:text-neutral-400 sm:text-sm",
             "transition-all focus:border-neutral-500 focus:ring-4 focus:ring-neutral-200",
             inputClassName,
           )}

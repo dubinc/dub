@@ -42,7 +42,7 @@ export function BountiesPageClient() {
 
   return (
     <PageWidthWrapper className="pb-10">
-      <div className="mb-6 grid grid-cols-2 gap-2">
+      <div className="mb-4 grid grid-cols-2 gap-2">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
 
@@ -74,7 +74,7 @@ export function BountiesPageClient() {
       </div>
 
       {filteredBounties?.length !== 0 || isLoading ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {filteredBounties?.length
             ? filteredBounties?.map((bounty) => (
                 <PartnerBountyCard

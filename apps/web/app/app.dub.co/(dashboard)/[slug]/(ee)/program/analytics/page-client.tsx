@@ -107,7 +107,7 @@ export function ProgramAnalyticsPageClient() {
   );
 
   return (
-    <div className="flex flex-col gap-3 pb-12">
+    <div className="flex flex-col gap-4 pb-12">
       <div>
         <div className="flex w-full flex-col items-center justify-between gap-2 md:flex-row">
           <div className="flex w-full flex-col items-center gap-2 min-[550px]:flex-row">

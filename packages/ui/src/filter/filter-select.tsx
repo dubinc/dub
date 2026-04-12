@@ -395,7 +395,7 @@ export function FilterSelect({
       <button
         type="button"
         className={cn(
-          "group flex h-10 cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 text-sm outline-none",
+          "group flex h-10 cursor-pointer appearance-none items-center gap-x-2 truncate rounded-lg border px-3 text-sm outline-none",
           "transition-[color,border-color,box-shadow] duration-150 ease-out motion-reduce:transition-none",
           "border-neutral-200 bg-white text-neutral-900 placeholder-neutral-400",
           "focus-visible:border-neutral-500 data-[state=open]:border-neutral-500 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200",
