@@ -17,7 +17,6 @@ import { throwIfNoAccess } from "../api/tokens/throw-if-no-access";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { withAxiomBodyLog } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
-import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
 import { rateLimitRequest } from "./rate-limit-request";
 import { TokenCacheItem, tokenCache } from "./token-cache";
@@ -493,21 +492,6 @@ export const withWorkspace = (
 
         return response;
       } catch (error) {
-        // Log the conversion events for debugging purposes
-        waitUntil(
-          (async () => {
-            const paths = ["/track/lead", "/track/sale"];
-
-            if (workspace && paths.includes(req.nextUrl.pathname)) {
-              logConversionEvent({
-                workspace_id: workspace.id,
-                path: req.nextUrl.pathname,
-                error: error.message,
-              });
-            }
-          })(),
-        );
-
         const errorResponse = handleAndReturnErrorResponse(
           error,
           responseHeaders,
