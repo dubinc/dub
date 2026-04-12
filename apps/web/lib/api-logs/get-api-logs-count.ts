@@ -1,8 +1,9 @@
 import { tb } from "@/lib/tinybird";
 import * as z from "zod/v4";
 import {
+  apiLogCountAggregateRowSchemaTB,
   apiLogCountFilterSchemaTB,
-  apiLogCountResponseSchemaTB,
+  apiLogsCountResponseSchema,
   getApiLogsCountQuerySchema,
 } from "./schemas";
 
@@ -48,8 +49,11 @@ export async function getApiLogsCount(params: GetApiLogsCountParams) {
   const result = await pipe(baseParams);
 
   if (groupBy === "routePattern") {
-    return z.array(apiLogCountResponseSchemaTB.routePattern).parse(result.data);
+    return apiLogsCountResponseSchema.parse(result.data);
   }
 
-  return result.data[0]?.count ?? 0;
+  const aggregate = apiLogCountAggregateRowSchemaTB.safeParse(result.data[0]);
+  const count = aggregate.success ? aggregate.data.count : 0;
+
+  return apiLogsCountResponseSchema.parse([{ routePattern: "all", count }]);
 }

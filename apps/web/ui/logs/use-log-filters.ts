@@ -8,7 +8,7 @@ import {
 } from "@/lib/api-logs/constants";
 import { useApiLogsCount } from "@/lib/swr/use-api-logs-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ApiLogsCountByRoutePattern, TokenProps } from "@/lib/types";
+import { TokenProps } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import {
   ArrowsOppositeDirectionX,
@@ -17,7 +17,7 @@ import {
   Key,
   Webhook,
 } from "@dub/ui/icons";
-import { cn, fetcher } from "@dub/utils";
+import { cn, fetcher, nFormatter } from "@dub/utils";
 import { createElement, useCallback, useMemo, useState } from "react";
 import useSWR from "swr";
 
@@ -48,12 +48,10 @@ export function useLogFilters() {
     ];
   }, [searchParamsObj]);
 
-  const { data: routePatterns } = useApiLogsCount<ApiLogsCountByRoutePattern[]>(
-    {
-      groupBy: "routePattern",
-      enabled: selectedFilter === "routePattern",
-    },
-  );
+  const { data: routePatterns } = useApiLogsCount({
+    groupBy: "routePattern",
+    enabled: selectedFilter === "routePattern",
+  });
 
   const filters = useMemo(
     () => [
@@ -80,9 +78,10 @@ export function useLogFilters() {
         key: "routePattern",
         icon: Globe,
         label: "Endpoint",
-        options: (routePatterns || []).map(({ routePattern }) => ({
+        options: routePatterns?.map(({ routePattern, count }) => ({
           value: routePattern,
           label: WEBHOOK_DISPLAY_NAMES[routePattern] ?? routePattern,
+          right: nFormatter(count, { full: true }),
         })),
       },
       {

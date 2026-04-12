@@ -9,13 +9,13 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const filters = getApiLogsCountQuerySchema.parse(searchParams);
 
-    const count = await getApiLogsCount({
+    const rows = await getApiLogsCount({
       ...filters,
       ...getApiLogsDateRange(workspace.plan),
       workspaceId: workspace.id,
     });
 
-    return NextResponse.json(count);
+    return NextResponse.json(rows);
   },
   {
     requiredPermissions: ["workspaces.read"],

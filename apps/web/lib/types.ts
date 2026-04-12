@@ -34,7 +34,7 @@ import {
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
-  apiLogCountResponseSchemaTB,
+  apiLogCountRowSchema,
   apiLogEnrichedSchema,
   apiLogSchemaTB,
   requestTypeSchema,
@@ -907,9 +907,9 @@ export type CommissionActivitySnapshot = Pick<
 
 export type EnrichedApiLog = z.infer<typeof apiLogEnrichedSchema>;
 
-export type ApiLogsCountByRoutePattern = z.infer<
-  typeof apiLogCountResponseSchemaTB.routePattern
->;
+export type ApiLogsCountRow = z.infer<typeof apiLogCountRowSchema>;
+
+export type ApiLogsCountByRoutePattern = ApiLogsCountRow;
 
 export type RequestType = z.infer<typeof requestTypeSchema>;
 

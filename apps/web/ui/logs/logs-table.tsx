@@ -65,7 +65,10 @@ export function LogsTable() {
     },
   );
 
-  const { data: logsCount } = useApiLogsCount<number>();
+  const { data: logsCountRows } = useApiLogsCount();
+
+  const logsCount =
+    logsCountRows?.find((row) => row.routePattern === "all")?.count ?? 0;
 
   const isFiltered = activeFilters.length > 0;
 

@@ -1,9 +1,10 @@
+import type { ApiLogsCountRow } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import useWorkspace from "./use-workspace";
 
-export function useApiLogsCount<T>({
+export function useApiLogsCount({
   groupBy,
   enabled = true,
 }: {
@@ -30,7 +31,7 @@ export function useApiLogsCount<T>({
     },
   );
 
-  const { data, error } = useSWR<T>(
+  const { data, error } = useSWR<ApiLogsCountRow[]>(
     workspaceId && enabled ? `/api/logs/count${queryString}` : null,
     fetcher,
     {
