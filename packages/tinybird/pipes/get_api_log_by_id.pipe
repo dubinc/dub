@@ -15,8 +15,8 @@ SQL >
         token_id,
         user_id,
         request_type
-    FROM dub_api_logs
+    FROM dub_api_logs_id
     WHERE
-        workspace_id = {{ String(workspaceId) }}
-        AND id = {{ String(id) }}
+        id = {{ String(id) }}
+        AND workspace_id = {{ String(workspaceId) }}
     LIMIT 1

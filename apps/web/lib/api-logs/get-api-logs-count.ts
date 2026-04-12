@@ -40,7 +40,7 @@ export async function getApiLogsCount(params: GetApiLogsCountParams) {
   };
 
   const pipe = tb.buildPipe({
-    pipe: "count_api_logs",
+    pipe: "get_api_logs_count",
     parameters: apiLogCountFilterSchemaTB,
     data: z.any(),
   });

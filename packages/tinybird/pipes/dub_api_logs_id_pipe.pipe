@@ -1,0 +1,11 @@
+TAGS "Dub MV Pipes"
+
+NODE mv
+SQL >
+
+    SELECT * FROM dub_api_logs
+
+TYPE materialized
+DATASOURCE dub_api_logs_id
+
+
