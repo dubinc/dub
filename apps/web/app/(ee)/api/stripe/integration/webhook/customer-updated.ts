@@ -3,8 +3,8 @@ import type Stripe from "stripe";
 import { createNewCustomer } from "./utils/create-new-customer";
 
 // Handle event "customer.updated"
-export async function customerUpdated(event: Stripe.Event) {
-  const stripeCustomer = event.data.object as Stripe.Customer;
+export async function customerUpdated(event: Stripe.CustomerUpdatedEvent) {
+  const stripeCustomer = event.data.object;
   const stripeAccountId = event.account as string;
   const dubCustomerExternalId =
     stripeCustomer.metadata?.dubCustomerExternalId ||

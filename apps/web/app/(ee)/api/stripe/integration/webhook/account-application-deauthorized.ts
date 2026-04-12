@@ -5,7 +5,7 @@ import type Stripe from "stripe";
 
 // Handle event "account.application.deauthorized"
 export async function accountApplicationDeauthorized(
-  event: Stripe.Event,
+  event: Stripe.AccountApplicationDeauthorizedEvent,
   mode: StripeMode,
 ) {
   const stripeAccountId = event.account;

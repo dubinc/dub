@@ -2,8 +2,10 @@ import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
 // Handle event "customer.subscription.deleted"
-export async function customerSubscriptionDeleted(event: Stripe.Event) {
-  const deletedSubscription = event.data.object as Stripe.Subscription;
+export async function customerSubscriptionDeleted(
+  event: Stripe.CustomerSubscriptionDeletedEvent,
+) {
+  const deletedSubscription = event.data.object;
 
   const customer = await prisma.customer.findUnique({
     where: {

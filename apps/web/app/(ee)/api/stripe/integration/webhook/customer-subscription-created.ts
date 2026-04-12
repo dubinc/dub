@@ -11,10 +11,10 @@ import { getConnectedCustomer } from "./utils/get-connected-customer";
 // Handle event "customer.subscription.created"
 // only used for recording free trial creations
 export async function customerSubscriptionCreated(
-  event: Stripe.Event,
+  event: Stripe.CustomerSubscriptionCreatedEvent,
   mode: StripeMode,
 ) {
-  const createdSubscription = event.data.object as Stripe.Subscription;
+  const createdSubscription = event.data.object;
 
   if (createdSubscription.status !== "trialing") {
     return {

@@ -6,7 +6,7 @@ const queue = qstash.queue({
   queueName: "handle-balance-available",
 });
 
-export async function balanceAvailable(event: Stripe.Event) {
+export async function balanceAvailable(event: Stripe.BalanceAvailableEvent) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {

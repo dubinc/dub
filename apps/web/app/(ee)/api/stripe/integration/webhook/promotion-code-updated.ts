@@ -2,8 +2,10 @@ import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
 // Handle event "promotion_code.updated"
-export async function promotionCodeUpdated(event: Stripe.Event) {
-  const promotionCode = event.data.object as Stripe.PromotionCode;
+export async function promotionCodeUpdated(
+  event: Stripe.PromotionCodeUpdatedEvent,
+) {
+  const promotionCode = event.data.object;
   const stripeAccountId = event.account as string;
 
   const workspace = await prisma.project.findUnique({
