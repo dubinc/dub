@@ -12,6 +12,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
+import { stripeWebhookResult } from "../stripe-webhook-handler-result";
 
 export async function createNewCustomer(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
@@ -23,13 +24,17 @@ export async function createNewCustomer(event: Stripe.Event) {
 
   // The client app should always send dubClickId (dub_id) via metadata
   if (!clickId) {
-    return "Click ID not found in Stripe customer metadata, skipping...";
+    return stripeWebhookResult(
+      "Click ID not found in Stripe customer metadata, skipping...",
+    );
   }
 
   // Find click
   const clickData = await getClickEvent({ clickId });
   if (!clickData) {
-    return `Click event with ID ${clickId} not found, skipping...`;
+    return stripeWebhookResult(
+      `Click event with ID ${clickId} not found, skipping...`,
+    );
   }
 
   // Find link
@@ -41,7 +46,9 @@ export async function createNewCustomer(event: Stripe.Event) {
   });
 
   if (!link || !link.projectId) {
-    return `Link with ID ${linkId} not found or does not have a project, skipping...`;
+    return stripeWebhookResult(
+      `Link with ID ${linkId} not found or does not have a project, skipping...`,
+    );
   }
 
   // Create a customer
@@ -168,5 +175,8 @@ export async function createNewCustomer(event: Stripe.Event) {
     ]),
   );
 
-  return `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`;
+  return stripeWebhookResult(
+    `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`,
+    workspace.id,
+  );
 }

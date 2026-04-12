@@ -59,14 +59,18 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
         });
       } catch (error) {
         console.log(error);
-        return `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`;
+        return {
+          response: `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`,
+        };
       }
     }
   }
 
   // if customer is still not found, we skip the event
   if (!customer) {
-    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`;
+    return {
+      response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`,
+    };
   }
 
   // Sale amount excluding tax: use total_excluding_tax only when invoice was paid in full
@@ -101,12 +105,18 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       "[Stripe Webhook] Skipping already processed invoice.",
       invoiceId,
     );
-    return `Invoice with ID ${invoiceId} already processed, skipping...`;
+    return {
+      response: `Invoice with ID ${invoiceId} already processed, skipping...`,
+      workspaceId: customer.projectId,
+    };
   }
 
   // Stripe can sometimes return a negative amount for some reason, so we skip if it's below 0
   if (invoiceSaleAmount <= 0) {
-    return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
+    return {
+      response: `Invoice with ID ${invoiceId} has an amount of 0, skipping...`,
+      workspaceId: customer.projectId,
+    };
   }
 
   // if currency is not USD, convert it to USD  based on the current FX rate
@@ -125,7 +135,10 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
   // Find lead
   const leadEvent = await getLeadEvent({ customerId: customer.id });
   if (!leadEvent) {
-    return `Lead event with customer ID ${customer.id} not found, skipping...`;
+    return {
+      response: `Lead event with customer ID ${customer.id} not found, skipping...`,
+      workspaceId: customer.projectId,
+    };
   }
 
   const eventId = nanoid(16);
@@ -157,7 +170,10 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
   });
 
   if (!link) {
-    return `Link with ID ${linkId} not found, skipping...`;
+    return {
+      response: `Link with ID ${linkId} not found, skipping...`,
+      workspaceId: customer.projectId,
+    };
   }
 
   const firstConversionFlag = isFirstConversion({
@@ -323,5 +339,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     ]),
   );
 
-  return `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`;
+  return {
+    response: `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`,
+    workspaceId: customer.projectId,
+  };
 }

@@ -85,46 +85,58 @@ export const POST = withAxiom(async (req: Request) => {
     );
   }
 
-  let response = "OK";
+  let result: {
+    response: string;
+    workspaceId?: string;
+  } = {
+    response: "OK",
+  };
 
   switch (event.type) {
     case "account.application.deauthorized":
-      response = await accountApplicationDeauthorized(event, mode);
+      result = await accountApplicationDeauthorized(event, mode);
       break;
     case "charge.refunded":
-      response = await chargeRefunded(event, mode);
+      result = await chargeRefunded(event, mode);
       break;
     case "checkout.session.completed":
-      response = await checkoutSessionCompleted(event, mode);
+      result = await checkoutSessionCompleted(event, mode);
       break;
     case "coupon.deleted":
-      response = await couponDeleted(event);
+      result = await couponDeleted(event);
       break;
     case "customer.created":
-      response = await customerCreated(event);
+      result = await customerCreated(event);
       break;
     case "customer.updated":
-      response = await customerUpdated(event);
+      result = await customerUpdated(event);
       break;
     case "customer.subscription.created":
-      response = await customerSubscriptionCreated(event, mode);
+      result = await customerSubscriptionCreated(event, mode);
       break;
     case "customer.subscription.deleted":
-      response = await customerSubscriptionDeleted(event);
+      result = await customerSubscriptionDeleted(event);
       break;
     case "invoice.paid":
-      response = await invoicePaid(event, mode);
+      result = await invoicePaid(event, mode);
       break;
     case "promotion_code.updated":
-      response = await promotionCodeUpdated(event);
+      result = await promotionCodeUpdated(event);
       break;
   }
 
-  const finalResponse = `[${event.type}]: ${response}`;
+  const finalResponse = `[${event.type}]: ${result.response}`;
 
-  if (event.account) {
-    waitUntil(
-      (async () => {
+  waitUntil(
+    (async () => {
+      // if workspaceId is returned as undefined
+      // AND the response does not contain "Workspace not found" (indicating the workspace doesn't exist)
+      // we try to find the workspace ID from the Stripe account ID
+      if (
+        !result.workspaceId &&
+        !result.response.startsWith("Workspace not found") &&
+        event.account
+      ) {
         const workspace = await prisma.project.findUnique({
           where: {
             stripeConnectId: event.account,
@@ -133,22 +145,27 @@ export const POST = withAxiom(async (req: Request) => {
             id: true,
           },
         });
-
         if (workspace) {
-          await captureWebhookLog({
-            workspaceId: workspace.id,
-            method: req.method,
-            path: "/api/stripe/integration/webhook",
-            statusCode: 200,
-            duration: Date.now() - startTime,
-            requestBody: event,
-            responseBody: finalResponse,
-            userAgent: req.headers.get("user-agent"),
-          });
+          // if workspace exists, we set the workspace ID
+          result.workspaceId = workspace.id;
         }
-      })(),
-    );
-  }
+      }
+
+      // if workspace ID exists, we capture the webhook log
+      if (result.workspaceId) {
+        await captureWebhookLog({
+          workspaceId: result.workspaceId,
+          method: req.method,
+          path: "/api/stripe/integration/webhook",
+          statusCode: 200,
+          duration: Date.now() - startTime,
+          requestBody: event,
+          responseBody: finalResponse,
+          userAgent: req.headers.get("user-agent"),
+        });
+      }
+    })(),
+  );
 
   return logAndRespond(finalResponse);
 });

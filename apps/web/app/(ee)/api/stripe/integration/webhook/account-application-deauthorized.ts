@@ -11,7 +11,9 @@ export async function accountApplicationDeauthorized(
   const stripeAccountId = event.account;
 
   if (mode === "test") {
-    return `Stripe Connect account ${stripeAccountId} deauthorized in test mode. Skipping...`;
+    return {
+      response: `Stripe Connect account ${stripeAccountId} deauthorized in test mode. Skipping...`,
+    };
   }
 
   const workspace = await prisma.project.findUnique({
@@ -24,7 +26,9 @@ export async function accountApplicationDeauthorized(
   });
 
   if (!workspace) {
-    return `Stripe Connect account ${stripeAccountId} deauthorized.`;
+    return {
+      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+    };
   }
 
   await prisma.project.update({
@@ -46,5 +50,8 @@ export async function accountApplicationDeauthorized(
     },
   });
 
-  return `Stripe Connect account ${stripeAccountId} deauthorized for workspace ${workspace.id}`;
+  return {
+    response: `Stripe Connect account ${stripeAccountId} deauthorized for workspace ${workspace.id}`,
+    workspaceId: workspace.id,
+  };
 }
