@@ -7,7 +7,12 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { getStatusCodeBadgeVariant } from "@/ui/logs/log-utils";
 import { UserAvatar } from "@/ui/users/user-avatar";
-import { CopyButton, StatusBadge, TimestampTooltip } from "@dub/ui";
+import {
+  CopyButton,
+  LoadingSpinner,
+  StatusBadge,
+  TimestampTooltip,
+} from "@dub/ui";
 import { ChevronRight, StackY3 } from "@dub/ui/icons";
 import { fetcher, formatDateTime } from "@dub/utils";
 import Link from "next/link";
@@ -25,12 +30,22 @@ export function LogDetailPageClient({ logId }: { logId: string }) {
   } = useSWR<EnrichedApiLog>(
     workspaceId && `/api/logs/${logId}?workspaceId=${workspaceId}`,
     fetcher,
+    {
+      onErrorRetry: (error, _key, _config, revalidate, { retryCount }) => {
+        if (error.status === 404 && retryCount < 8) {
+          setTimeout(() => revalidate({ retryCount }), 2000);
+          return;
+        }
+      },
+    },
   );
+
+  const isRetrying = error?.status === 404 && !log;
 
   return (
     <PageContent
       title={
-        isLoading ? (
+        isLoading || isRetrying ? (
           <div className="h-7 w-48 animate-pulse rounded-md bg-neutral-200" />
         ) : (
           <div className="flex items-center gap-1">
@@ -55,8 +70,16 @@ export function LogDetailPageClient({ logId }: { logId: string }) {
       <PageWidthWrapper className="pb-10">
         {log ? (
           <LogDetailContent log={log} />
-        ) : isLoading ? (
-          <LogDetailSkeleton />
+        ) : isLoading || isRetrying ? (
+          <div className="flex flex-col gap-4">
+            {isRetrying && (
+              <div className="flex items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
+                <LoadingSpinner className="size-4" />
+                Retrieving log... this may take a few seconds
+              </div>
+            )}
+            <LogDetailSkeleton />
+          </div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
             <p className="text-sm font-medium text-neutral-700">

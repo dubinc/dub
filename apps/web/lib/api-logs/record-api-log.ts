@@ -12,6 +12,7 @@ const ingestionApiLogSchemaTB = apiLogSchemaTB.extend({
 type ApiLogInput = z.infer<typeof ingestionApiLogSchemaTB>;
 
 type RecordApiLogParams = {
+  requestId?: string;
   workspaceId: string;
   method: string;
   path: string;
@@ -33,6 +34,7 @@ const recordApiLogTB = tb.buildIngestEndpoint({
 });
 
 export const recordApiLog = async ({
+  requestId,
   workspaceId,
   method,
   path,
@@ -46,8 +48,10 @@ export const recordApiLog = async ({
   userId,
   requestType,
 }: RecordApiLogParams) => {
+  requestId = requestId ?? createId({ prefix: "req_" });
+
   const apiLog: ApiLogInput = {
-    id: createId({ prefix: "req_" }),
+    id: requestId,
     timestamp: new Date().toISOString(),
     workspace_id: workspaceId,
     method,
