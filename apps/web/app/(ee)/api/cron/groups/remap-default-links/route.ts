@@ -60,7 +60,8 @@ export async function POST(req: Request) {
           workspace: true,
         },
       }),
-      prisma.partnerGroup.findUniqueOrThrow({
+
+      prisma.partnerGroup.findUnique({
         where: {
           id: groupId,
         },
@@ -69,6 +70,7 @@ export async function POST(req: Request) {
           partnerGroupDefaultLinks: true,
         },
       }),
+
       prisma.programEnrollment.findMany({
         where: {
           partnerId: {
@@ -99,6 +101,10 @@ export async function POST(req: Request) {
         },
       }),
     ]);
+
+    if (!partnerGroup) {
+      return logAndRespond(`Partner group ${groupId} not found. Skipping...`);
+    }
 
     console.log(
       `Updating ${programEnrollments.length} partners to be moved to group ${partnerGroup.name} (${partnerGroup.id}) for program ${program.name} (${program.id}).`,
