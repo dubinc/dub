@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { enqueueBatchJobs } from "@/lib/cron/enqueue-batch-jobs";
@@ -42,6 +42,7 @@ export const bulkBanPartnersAction = authActionClient
         id: true,
         programId: true,
         partnerId: true,
+        status: true,
         partner: {
           select: {
             id: true,
@@ -89,20 +90,20 @@ export const bulkBanPartnersAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        recordAuditLog(
-          programEnrollments.map(({ partner }) => ({
+        trackActivityLog(
+          programEnrollments.map(({ partnerId, status }) => ({
             workspaceId: workspace.id,
             programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
             action: "partner.banned",
-            description: `Partner ${partner.id} banned`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partner.id,
-                metadata: partner,
+            changeSet: {
+              status: {
+                old: status,
+                new: "banned",
               },
-            ],
+            },
           })),
         ),
 

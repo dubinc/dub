@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
@@ -87,20 +87,20 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
     waitUntil(
       (async () => {
         await Promise.allSettled([
-          recordAuditLog(
+          trackActivityLog(
             programEnrollments.map(({ partner }) => ({
               workspaceId: workspace.id,
               programId,
+              resourceType: "partner",
+              resourceId: partner.id,
+              userId: user.id,
               action: "partner_application.rejected",
-              description: `Partner application rejected for ${partner.id}`,
-              actor: user,
-              targets: [
-                {
-                  type: "partner",
-                  id: partner.id,
-                  metadata: partner,
+              changeSet: {
+                status: {
+                  old: "pending",
+                  new: "rejected",
                 },
-              ],
+              },
             })),
           ),
 
