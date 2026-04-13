@@ -307,7 +307,7 @@ export function LogsTable() {
         onRemove={onRemove}
         onRemoveAll={onRemoveAll}
         setSelectedFilter={setSelectedFilter}
-        plan={plan}
+        plan={plan || "free"}
       />
       {logs?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -346,9 +346,9 @@ function LogsFilters({
   onRemove: (key: string) => void;
   onRemoveAll: () => void;
   setSelectedFilter: (f: string | null) => void;
-  plan?: PlanProps;
+  plan: PlanProps;
 }) {
-  const retentionDays = plan ? API_LOG_RETENTION_DAYS[plan] ?? 30 : 30;
+  const retentionDays = API_LOG_RETENTION_DAYS[plan];
 
   const presets =
     API_LOGS_PRESETS_BY_RETENTION[retentionDays] ??
