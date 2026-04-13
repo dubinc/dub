@@ -29,10 +29,17 @@ export function getApiLogsDateRange({
     // Clamp start to retention boundary
     const clampedStart =
       startDate < retentionBoundary ? retentionBoundary : startDate;
+    const clampedEnd =
+      endDate < retentionBoundary ? retentionBoundary : endDate;
+
+    const normalizedStart =
+      clampedStart <= clampedEnd ? clampedStart : clampedEnd;
+    const normalizedEnd =
+      clampedStart <= clampedEnd ? clampedEnd : clampedStart;
 
     return {
-      startDate: formatUTCDateTimeClickhouse(clampedStart),
-      endDate: formatUTCDateTimeClickhouse(endDate),
+      startDate: formatUTCDateTimeClickhouse(normalizedStart),
+      endDate: formatUTCDateTimeClickhouse(normalizedEnd),
     };
   }
 
