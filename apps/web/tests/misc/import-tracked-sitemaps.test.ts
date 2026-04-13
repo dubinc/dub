@@ -1,8 +1,8 @@
 import {
   crawlSitemapUrls,
   MAX_URLS_PER_SITEMAP,
-  parseTrackedSitemaps,
 } from "@/lib/sitemaps/import-tracked-sitemaps";
+import { parseTrackedSitemaps } from "@/lib/sitemaps/site-visit-tracking";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { gzipSync } from "zlib";
 
@@ -111,10 +111,7 @@ describe("parseTrackedSitemaps", () => {
   it("returns no sitemaps when the array contains a non-object entry (array-level guard)", () => {
     expect(
       parseTrackedSitemaps({
-        trackedSitemaps: [
-          null,
-          { url: "https://a.com/sitemap.xml" },
-        ],
+        trackedSitemaps: [null, { url: "https://a.com/sitemap.xml" }],
       }),
     ).toEqual([]);
   });
@@ -329,9 +326,7 @@ describe("crawlSitemapUrls", () => {
   describe("URL volume limits", () => {
     it(`collects at most ${MAX_URLS_PER_SITEMAP} page URLs from one sitemap`, async () => {
       const many = Array.from({ length: MAX_URLS_PER_SITEMAP + 50 }, (_, i) =>
-        i === 0
-          ? "https://example.com/first"
-          : `https://example.com/p/${i}`,
+        i === 0 ? "https://example.com/first" : `https://example.com/p/${i}`,
       );
       mockFetch.mockResolvedValue(
         makeFetchResponse(Buffer.from(urlsetXml(many))),

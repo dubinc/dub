@@ -1,12 +1,10 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import {
-  importTrackedSitemaps,
-  parseTrackedSitemaps,
-} from "@/lib/sitemaps/import-tracked-sitemaps";
+import { importTrackedSitemaps } from "@/lib/sitemaps/import-tracked-sitemaps";
 import {
   getOrCreateSiteLinksFolder,
   getSiteLinksDomain,
+  parseTrackedSitemaps,
   replaceTrackedSitemapsInColumn,
 } from "@/lib/sitemaps/site-visit-tracking";
 import { ratelimit } from "@/lib/upstash";

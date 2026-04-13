@@ -1,11 +1,9 @@
 import { withCron } from "@/lib/cron/with-cron";
-import {
-  importTrackedSitemaps,
-  parseTrackedSitemaps,
-} from "@/lib/sitemaps/import-tracked-sitemaps";
+import { importTrackedSitemaps } from "@/lib/sitemaps/import-tracked-sitemaps";
 import {
   getOrCreateSiteLinksFolder,
   getSiteLinksDomain,
+  parseTrackedSitemaps,
   replaceTrackedSitemapsInColumn,
 } from "@/lib/sitemaps/site-visit-tracking";
 import { prisma } from "@dub/prisma";

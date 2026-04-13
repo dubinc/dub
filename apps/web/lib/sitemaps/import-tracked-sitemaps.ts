@@ -1,12 +1,9 @@
 import { bulkCreateLinks } from "@/lib/api/links/bulk-create-links";
-import { isIpInRange } from "@/lib/middleware/utils/is-ip-in-range";
 import type { TrackedSitemap } from "@/lib/sitemaps/site-visit-tracking";
 import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { fetchWithTimeout } from "@dub/utils/src";
 import { XMLParser } from "fast-xml-parser";
-
-export { parseTrackedSitemaps } from "@/lib/sitemaps/site-visit-tracking";
-export type { TrackedSitemap } from "@/lib/sitemaps/site-visit-tracking";
 
 type SitemapXmlUrlEntry = {
   loc?: string;
@@ -30,78 +27,11 @@ function toArray<T>(value: T | T[] | undefined): T[] {
   return Array.isArray(value) ? value : [value];
 }
 
-const PRIVATE_IPV4_CIDRS = [
-  "127.0.0.0/8", // Loopback
-  "10.0.0.0/8", // Private
-  "172.16.0.0/12", // Private
-  "192.168.0.0/16", // Private
-  "169.254.0.0/16", // Link-local
-];
-
-const PRIVATE_IPV6_PATTERNS = [/^::1$/, /^fc[0-9a-f]{2}:/i, /^fd[0-9a-f]{2}:/i];
-
-const BLOCKED_HOSTNAMES = new Set(["localhost", "broadcasthost"]);
-
-function isPrivateHost(hostname: string): boolean {
-  const lower = hostname.toLowerCase();
-
-  if (BLOCKED_HOSTNAMES.has(lower) || lower.endsWith(".local")) {
-    return true;
-  }
-
-  if (PRIVATE_IPV4_CIDRS.some((cidr) => isIpInRange(lower, cidr))) {
-    return true;
-  }
-
-  return PRIVATE_IPV6_PATTERNS.some((pattern) => pattern.test(lower));
-}
-
-function normalizeSitemapUrl(url: string) {
-  const trimmed = url.trim();
-
-  if (!trimmed) {
-    throw new Error("Sitemap URL is empty.");
-  }
-
-  const withProtocol =
-    trimmed.startsWith("http://") || trimmed.startsWith("https://")
-      ? trimmed
-      : `https://${trimmed}`;
-
-  let parsed: URL;
-  try {
-    parsed = new URL(withProtocol);
-  } catch {
-    throw new Error(`Invalid sitemap URL: ${trimmed}`);
-  }
-
-  if (isPrivateHost(parsed.hostname)) {
-    throw new Error(
-      `Sitemap URL points to a private or reserved address: ${parsed.hostname}`,
-    );
-  }
-
-  return parsed.toString();
-}
-
 function extractKeyFromUrl(url: string) {
   const urlObj = new URL(url);
   const key = urlObj.pathname.slice(1);
   return key === "" ? "_root" : key;
 }
-
-/** Nested sitemap documents linked from a urlset; users add these as separate tracked sources. */
-function isNestedXmlSitemapUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    return parsed.pathname.toLowerCase().endsWith(".xml");
-  } catch {
-    return false;
-  }
-}
-
-const FETCH_TIMEOUT_MS = 10_000;
-const MAX_REDIRECTS = 10;
 
 /** Max page URLs collected from a single registered sitemap file (no nested fetches). */
 export const MAX_URLS_PER_SITEMAP = 2000;
@@ -139,71 +69,25 @@ async function decompressIfGzip(buffer: ArrayBuffer): Promise<string> {
   return new TextDecoder().decode(bytes);
 }
 
-async function fetchSitemapWithSsrfSafeRedirects(
-  initialUrl: string,
-): Promise<Response> {
-  let currentUrl = normalizeSitemapUrl(initialUrl);
-
-  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
-    let response: Response;
-    try {
-      response = await fetch(currentUrl, {
-        signal: controller.signal,
-        redirect: "manual",
-      });
-    } finally {
-      clearTimeout(timer);
-    }
-
-    if (response.status >= 300 && response.status < 400) {
-      const location = response.headers.get("Location");
-      if (!location) {
-        throw new Error(
-          `Sitemap redirect (${response.status}) missing Location header: ${currentUrl}`,
-        );
-      }
-      if (hop === MAX_REDIRECTS) {
-        throw new Error(
-          `Too many redirects while fetching sitemap (max ${MAX_REDIRECTS}).`,
-        );
-      }
-      const resolved = new URL(location, currentUrl).href;
-      currentUrl = normalizeSitemapUrl(resolved);
-      continue;
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch sitemap (${response.status}): ${currentUrl}`,
-      );
-    }
-
-    return response;
+async function fetchAndParseSitemap(
+  sitemapUrl: string,
+): Promise<SitemapXmlResult> {
+  const response = await fetchWithTimeout(sitemapUrl, { redirect: "error" }); // don't follow redirects
+  const MAX_SITEMAP_BYTES = 10 * 1024 * 1024; // 10 MB
+  const contentLength = response.headers.get("content-length");
+  if (contentLength && parseInt(contentLength, 10) > MAX_SITEMAP_BYTES) {
+    throw new Error(`Sitemap too large (Content-Length: ${contentLength})`);
   }
-
-  throw new Error(`Too many redirects while fetching sitemap.`);
-}
-
-async function fetchAndParseSitemap(url: string): Promise<SitemapXmlResult> {
-  const response = await fetchSitemapWithSsrfSafeRedirects(url);
   const buffer = await response.arrayBuffer();
+  if (buffer.byteLength > MAX_SITEMAP_BYTES) {
+    throw new Error(`Sitemap response too large: ${buffer.byteLength} bytes`);
+  }
   const xml = await decompressIfGzip(buffer);
   return parser.parse(xml) as SitemapXmlResult;
 }
 
-/**
- * Fetches a single sitemap URL (with SSRF-safe redirect handling). Does not follow
- * nested sitemap index entries or .xml urls inside a urlset — those must be added
- * as separate tracked sitemaps.
- */
-export async function crawlSitemapUrls(rootSitemapUrl: string) {
-  const discoveredUrls = new Set<string>();
+export async function crawlSitemapUrls(sitemapUrl: string) {
   let hadErrors = false;
-
-  const sitemapUrl = normalizeSitemapUrl(rootSitemapUrl);
 
   let parsed: SitemapXmlResult;
   try {
@@ -217,18 +101,17 @@ export async function crawlSitemapUrls(rootSitemapUrl: string) {
     .map((entry) => entry?.loc?.trim())
     .filter((url): url is string => Boolean(url));
 
-  const pageUrls = urlsetLocs.filter((url) => !isNestedXmlSitemapUrl(url));
+  const urls = Array.from(
+    new Set(urlsetLocs.filter((url) => !url.endsWith(".xml"))),
+  );
 
-  for (const pageUrl of pageUrls) {
-    if (discoveredUrls.size >= MAX_URLS_PER_SITEMAP) {
-      break;
-    }
-    discoveredUrls.add(pageUrl);
+  if (urls.length > MAX_URLS_PER_SITEMAP) {
+    throw new Error(
+      `Sitemap contains too many unique URLs: ${urls.length} (max ${MAX_URLS_PER_SITEMAP})`,
+    );
   }
 
-  // sitemapindex children are intentionally not fetched; users register each file separately.
-
-  return { urls: Array.from(discoveredUrls), hadErrors };
+  return { urls, hadErrors };
 }
 
 export async function importTrackedSitemaps({
@@ -255,11 +138,7 @@ export async function importTrackedSitemaps({
           sitemap.url,
         );
 
-        const nonSitemapUrls = crawledUrls.filter(
-          (url) => !url.endsWith(".xml"),
-        );
-
-        for (const url of nonSitemapUrls) {
+        for (const url of crawledUrls) {
           let key: string;
           try {
             key = extractKeyFromUrl(url);
@@ -288,7 +167,7 @@ export async function importTrackedSitemaps({
           sitemap: {
             ...sitemap,
             lastCrawledAt: nowIso,
-            lastUrlCount: nonSitemapUrls.length,
+            lastUrlCount: crawledUrls.length,
           },
           sitemapLinks,
         };
