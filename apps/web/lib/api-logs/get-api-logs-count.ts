@@ -7,7 +7,10 @@ import {
   getApiLogsCountQuerySchema,
 } from "./schemas";
 
-type GetApiLogsCountParams = z.infer<typeof getApiLogsCountQuerySchema> & {
+type GetApiLogsCountParams = Omit<
+  z.infer<typeof getApiLogsCountQuerySchema>,
+  "start" | "end"
+> & {
   workspaceId: string;
   start: string;
   end: string;

@@ -20,9 +20,11 @@ export const GET = withWorkspace(
       });
     }
 
-    const { start } = getApiLogsDateRange(workspace.plan);
+    const { startDate } = getApiLogsDateRange({
+      plan: workspace.plan,
+    });
 
-    if (new Date(log.timestamp) < new Date(start)) {
+    if (new Date(log.timestamp) < new Date(startDate)) {
       throw new DubApiError({
         code: "not_found",
         message:

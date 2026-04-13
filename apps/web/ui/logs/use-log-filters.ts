@@ -135,7 +135,16 @@ export function useLogFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["method", "statusCode", "routePattern", "tokenId", "requestType"],
+        del: [
+          "method",
+          "statusCode",
+          "routePattern",
+          "tokenId",
+          "requestType",
+          "start",
+          "end",
+          "interval",
+        ],
       }),
     [queryParams],
   );
@@ -152,8 +161,27 @@ export function useLogFilters() {
       params.requestId = searchParamsObj.requestId;
     }
 
+    if (searchParamsObj.start) {
+      params.start = searchParamsObj.start;
+    }
+
+    if (searchParamsObj.end) {
+      params.end = searchParamsObj.end;
+    }
+
+    if (searchParamsObj.interval) {
+      params.interval = searchParamsObj.interval;
+    }
+
     return new URLSearchParams(params).toString();
-  }, [activeFilters, workspaceId, searchParamsObj.requestId]);
+  }, [
+    activeFilters,
+    workspaceId,
+    searchParamsObj.requestId,
+    searchParamsObj.start,
+    searchParamsObj.end,
+    searchParamsObj.interval,
+  ]);
 
   return {
     filters,

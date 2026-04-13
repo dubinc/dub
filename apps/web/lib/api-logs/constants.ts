@@ -63,14 +63,11 @@ export const HTTP_STATUS_CODES = [
   { value: 500, label: "500 Server Error" },
 ] as const;
 
-export const HTTP_MUTATION_METHODS = [
-  "POST",
-  "PATCH",
-  "PUT",
-  "DELETE",
-] as const;
-
 export const HTTP_METHODS = ["POST", "PATCH", "PUT", "DELETE", "GET"] as const;
+
+export const HTTP_MUTATION_METHODS = HTTP_METHODS.filter(
+  (method) => method !== "GET",
+);
 
 export const API_LOGS_MAX_PAGE_SIZE = 50;
 
@@ -83,6 +80,12 @@ export const API_LOG_RETENTION_DAYS: Record<PlanProps, number> = {
   "business max": 60,
   advanced: 60,
   enterprise: 90,
+};
+
+export const API_LOGS_PRESETS_BY_RETENTION: Record<number, string[]> = {
+  30: ["24h", "7d", "30d"],
+  60: ["24h", "7d", "30d", "60d"],
+  90: ["24h", "7d", "30d", "60d", "90d"],
 };
 
 // Default when plan is missing from workspace data (should not happen for known plans).
