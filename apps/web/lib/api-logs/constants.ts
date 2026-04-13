@@ -6,10 +6,9 @@ import {
   STRIPE_INTEGRATION_ID,
 } from "@dub/utils";
 
-export const CLIENT_SIDE_REQUEST_PATHS = [
+export const PUBLISHABLE_KEY_REQUEST_PATHS = [
   "/track/lead/client",
   "/track/sale/client",
-  "/track/open",
 ] as const;
 
 // Route patterns for parameterized path matching.
@@ -17,9 +16,10 @@ export const CLIENT_SIDE_REQUEST_PATHS = [
 // Order matters: more specific patterns must come before less specific ones.
 export const ROUTE_PATTERNS = [
   // Track
-  ...CLIENT_SIDE_REQUEST_PATHS,
   "/track/lead",
   "/track/sale",
+  "/track/open",
+  ...PUBLISHABLE_KEY_REQUEST_PATHS,
 
   // Partners
   "/partners/links/upsert",

@@ -1,14 +1,18 @@
 import { prisma } from "@dub/prisma";
-import { ApiLogTB, EnrichedApiLog } from "../types";
+import { ApiLogTB, EnrichedApiLog, WorkspaceWithUsers } from "../types";
 import {
-  CLIENT_SIDE_REQUEST_PATHS,
   PUBLISHABLE_KEY_ACTOR,
+  PUBLISHABLE_KEY_REQUEST_PATHS,
   WEBHOOK_REQUEST_ACTORS_BY_PATH,
 } from "./constants";
 
-export async function enrichApiLogs(
-  logs: ApiLogTB | ApiLogTB[],
-): Promise<EnrichedApiLog | EnrichedApiLog[]> {
+export async function enrichApiLogs({
+  logs,
+  workspace,
+}: {
+  logs: ApiLogTB | ApiLogTB[];
+  workspace: WorkspaceWithUsers;
+}): Promise<EnrichedApiLog | EnrichedApiLog[]> {
   const isSingle = !Array.isArray(logs);
   const logsArray: ApiLogTB[] = isSingle ? [logs] : logs;
 
@@ -60,21 +64,41 @@ export async function enrichApiLogs(
     ]),
   );
 
-  const clientSideRequestPaths = new Set<string>(CLIENT_SIDE_REQUEST_PATHS);
+  const publishableKeyRequestPaths = new Set<string>(
+    PUBLISHABLE_KEY_REQUEST_PATHS,
+  );
 
-  const enriched = logsArray.map((log) => ({
-    ...log,
-    // timestamp is always in UTC
-    timestamp: new Date(log.timestamp + "Z").toISOString(),
-    token: log.token_id ? tokenMap.get(log.token_id) ?? null : null,
-    user: clientSideRequestPaths.has(log.route_pattern)
-      ? PUBLISHABLE_KEY_ACTOR
-      : log.user_id
-        ? webhookRequestActorsMap.get(log.user_id) ??
-          userMap.get(log.user_id) ??
-          null
-        : null,
-  }));
+  const publishableKeyToken = workspace.publishableKey
+    ? {
+        id: PUBLISHABLE_KEY_ACTOR.id,
+        name: "",
+        partialKey: `${workspace.publishableKey.slice(0, 3)}...${workspace.publishableKey.slice(-4)}`,
+      }
+    : null;
+
+  const enriched = logsArray.map((log) => {
+    const isPublishableKeyRequest = publishableKeyRequestPaths.has(
+      log.route_pattern,
+    );
+
+    return {
+      ...log,
+      // timestamp is always in UTC
+      timestamp: new Date(log.timestamp + "Z").toISOString(),
+      token: isPublishableKeyRequest
+        ? publishableKeyToken
+        : log.token_id
+          ? tokenMap.get(log.token_id) ?? null
+          : null,
+      user: isPublishableKeyRequest
+        ? PUBLISHABLE_KEY_ACTOR
+        : log.user_id
+          ? webhookRequestActorsMap.get(log.user_id) ??
+            userMap.get(log.user_id) ??
+            null
+          : null,
+    };
+  });
 
   return isSingle ? enriched[0] : enriched;
 }
