@@ -64,6 +64,7 @@
     "@vercel/edge-config": "^0.4.1",
     "@vercel/functions": "^3.4.3",
     "@vercel/og": "^0.6.5",
+    "@veriff/incontext-sdk": "^2.5.0",
     "@visx/curve": "^3.3.0",
     "@visx/geo": "^2.10.0",
     "@visx/gradient": "^3.3.0",
@@ -141,6 +142,7 @@
     "zod-openapi": "5.4.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
     "@types/he": "^1.2.3",
     "@types/html-escaper": "^3.0.0",
     "@types/luxon": "^3.7.1",
@@ -162,7 +164,6 @@
     "typescript": "^5.4.4",
     "vite": "7.2.2",
     "vite-tsconfig-paths": "5.1.4",
-    "@playwright/test": "^1.52.0",
     "vitest": "4.0.8"
   },
   "browser": {

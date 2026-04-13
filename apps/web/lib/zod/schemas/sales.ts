@@ -162,6 +162,10 @@ export const saleEventSchemaTBEndpoint = z.object({
   qr: z.number().nullable(),
   ip: z.string().nullable(),
   metadata: z.string().nullish(),
+  currency: z
+    .string()
+    .default("usd")
+    .transform((val) => val.toLowerCase()),
 });
 
 // response from dub api
@@ -176,6 +180,7 @@ export const saleEventResponseSchema = z
       amount: true,
       invoiceId: true,
       paymentProcessor: true,
+      currency: true,
     }),
     metadata: z.any().nullish(),
     // nested objects

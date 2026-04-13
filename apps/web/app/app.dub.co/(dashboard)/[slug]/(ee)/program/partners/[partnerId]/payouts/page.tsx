@@ -16,7 +16,7 @@ import {
 import { cn, currencyFormatter, formatPeriod } from "@dub/utils";
 import { PayoutPaidCell } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-paid-cell";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export default function ProgramPartnerPayoutsPage() {
   const { partnerId } = useParams() as { partnerId: string };
@@ -38,6 +38,7 @@ export default function ProgramPartnerPayoutsPage() {
 }
 
 function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
+  const router = useRouter();
   const { slug } = useWorkspace();
 
   const {
@@ -101,12 +102,17 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
         },
       },
     ],
-    onRowClick: (row) => {
-      window.open(
-        `/${slug}/program/payouts?partnerId=${partner.id}&payoutId=${row.original.id}&sortBy=initiatedAt`,
-        "_blank",
-      );
+    onRowClick: (row, e) => {
+      const url = `/${slug}/program/payouts/${row.original.id}`;
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
     },
+    onRowAuxClick: (row) =>
+      window.open(`/${slug}/program/payouts/${row.original.id}`, "_blank"),
+    rowProps: (row) => ({
+      onPointerEnter: () =>
+        router.prefetch(`/${slug}/program/payouts/${row.original.id}`),
+    }),
     resourceName: (p) => `payout${p ? "s" : ""}`,
     thClassName: () => "border-l-0",
     tdClassName: () => "border-l-0",

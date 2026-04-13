@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
+import { payoutIdSelectionWhere } from "@/lib/api/payouts/payout-id-selection-where";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -12,22 +13,18 @@ export async function splitPayouts({
   program,
   workspace,
   cutoffPeriod,
-  selectedPayoutId,
+  selectedPayoutIds,
   excludedPayoutIds,
 }: {
   program: Pick<Program, "id" | "name" | "minPayoutAmount" | "payoutMode">;
   workspace: Pick<Project, "plan">;
   cutoffPeriod: CUTOFF_PERIOD_TYPES;
-  selectedPayoutId?: string;
+  selectedPayoutIds?: string[];
   excludedPayoutIds?: string[];
 }) {
   const payouts = await prisma.payout.findMany({
     where: {
-      ...(selectedPayoutId
-        ? { id: selectedPayoutId }
-        : excludedPayoutIds && excludedPayoutIds.length > 0
-          ? { id: { notIn: excludedPayoutIds } }
-          : {}),
+      ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
       ...getPayoutEligibilityFilter({ program, workspace }),
     },
     include: {

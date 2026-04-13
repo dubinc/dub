@@ -41,6 +41,10 @@
       "schedule": "0 0,12 * * *"
     },
     {
+      "path": "/api/cron/trigger-backup",
+      "schedule": "40 0,8,12,20 * * *"
+    },
+    {
       "path": "/api/cron/payouts/force-withdrawals",
       "schedule": "0 12 * * *"
     },

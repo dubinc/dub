@@ -1,0 +1,22 @@
+NODE endpoint
+SQL >
+    %
+    SELECT
+        id,
+        timestamp,
+        method,
+        path,
+        route_pattern,
+        status_code,
+        duration,
+        user_agent,
+        request_body,
+        response_body,
+        token_id,
+        user_id,
+        request_type
+    FROM dub_api_logs_id
+    WHERE
+        id = {{ String(id) }}
+        AND workspace_id = {{ String(workspaceId) }}
+    LIMIT 1

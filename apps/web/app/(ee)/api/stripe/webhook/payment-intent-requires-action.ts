@@ -3,9 +3,10 @@ import Stripe from "stripe";
 import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
 import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";
 
-export async function paymentIntentRequiresAction(event: Stripe.Event) {
-  const { transfer_group: invoiceId, latest_charge: charge } = event.data
-    .object as Stripe.PaymentIntent;
+export async function paymentIntentRequiresAction(
+  event: Stripe.PaymentIntentRequiresActionEvent,
+) {
+  const { transfer_group: invoiceId } = event.data.object;
 
   if (!invoiceId) {
     return "No transfer group found, skipping...";

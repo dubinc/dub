@@ -2,10 +2,12 @@ import { detectDuplicatePayoutMethodFraud } from "@/lib/api/fraud/detect-duplica
 import { qstash } from "@/lib/cron";
 import { getPartnerBankAccount } from "@/lib/partners/get-partner-bank-account";
 import { recomputePartnerPayoutState } from "@/lib/payouts/recompute-partner-payout-state";
+import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import { sendEmail } from "@dub/email";
 import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
 import { prisma } from "@dub/prisma";
+import { PartnerProfileType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
 
@@ -17,9 +19,9 @@ const balanceAvailableQueue = qstash.queue({
   queueName: "handle-balance-available",
 });
 
-export async function accountUpdated(event: Stripe.Event) {
-  const account = event.data.object as Stripe.Account;
-  const { country } = account;
+export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
+  const account = event.data.object;
+  const { country, business_type } = account;
 
   const partner = await prisma.partner.findUnique({
     where: {
@@ -28,6 +30,9 @@ export async function accountUpdated(event: Stripe.Event) {
     select: {
       id: true,
       email: true,
+      country: true,
+      profileType: true,
+      changeHistoryLog: true,
       stripeConnectId: true,
       stripeRecipientId: true,
       paypalEmail: true,
@@ -48,19 +53,66 @@ export async function accountUpdated(event: Stripe.Event) {
     partner.payoutsEnabledAt !== payoutsEnabledAt ||
     partner.defaultPayoutMethod !== defaultPayoutMethod;
 
-  if (!payoutStateChanged) {
-    return `No change in payout state for partner ${partner.email} (${partner.stripeConnectId}), skipping...`;
+  const nextProfileType: PartnerProfileType | undefined =
+    business_type === "individual"
+      ? "individual"
+      : business_type
+        ? "company"
+        : undefined;
+
+  const countryChanged =
+    Boolean(country) &&
+    partner.country?.toLowerCase() !== country!.toLowerCase();
+
+  const profileTypeChanged =
+    nextProfileType !== undefined &&
+    partner.profileType.toLowerCase() !== nextProfileType.toLowerCase();
+
+  const partnerChangeHistoryLog = partner.changeHistoryLog
+    ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
+    : [];
+
+  if (countryChanged) {
+    partnerChangeHistoryLog.push({
+      field: "country",
+      from: partner.country ?? null,
+      to: country!,
+      changedAt: new Date(),
+    });
   }
 
+  if (profileTypeChanged) {
+    partnerChangeHistoryLog.push({
+      field: "profileType",
+      from: partner.profileType,
+      to: nextProfileType!,
+      changedAt: new Date(),
+    });
+  }
+
+  // Always sync country and profileType; sync payout state only if changed
   await prisma.partner.update({
     where: {
       id: partner.id,
     },
     data: {
-      payoutsEnabledAt,
-      defaultPayoutMethod,
+      ...(country && { country }),
+      ...(business_type && {
+        profileType: business_type === "individual" ? "individual" : "company",
+      }),
+      ...(partnerChangeHistoryLog.length > 0 && {
+        changeHistoryLog: partnerChangeHistoryLog,
+      }),
+      ...(payoutStateChanged && {
+        payoutsEnabledAt,
+        defaultPayoutMethod,
+      }),
     },
   });
+
+  if (!payoutStateChanged) {
+    return `No change in payout state for partner ${partner.email} (${partner.stripeConnectId}), skipping...`;
+  }
 
   if (partner.payoutsEnabledAt && !payoutsEnabledAt) {
     return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt null`;
@@ -78,7 +130,6 @@ export async function accountUpdated(event: Stripe.Event) {
       stripeConnectId: account.id,
     },
     data: {
-      country,
       payoutsEnabledAt: partner.payoutsEnabledAt
         ? undefined // Don't update if already set
         : new Date(),

@@ -4,6 +4,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { CommissionResponse } from "@/lib/types";
 import { commissionPatchStatusSchema } from "@/lib/zod/schemas/commissions";
 import { Button, Combobox, Modal, StatusBadge, Switch } from "@dub/ui";
+import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -12,10 +13,27 @@ import { PartnerAvatar } from "./partner-avatar";
 import { useCommissionStatusCombobox } from "./use-commission-status-combobox";
 
 type FormData = {
-  earnings: number | null;
+  /** Dollar amount as typed (string) so decimals / trailing zeros are preserved while editing */
+  earnings: string;
   status: z.infer<typeof commissionPatchStatusSchema>;
   updateHistoricalCommissions: boolean;
 };
+
+function centsToDollarsInputValue(cents: number): string {
+  return (cents / 100).toFixed(2);
+}
+
+function formatEarningsInputOnBlur(raw: string): string {
+  const trimmed = raw.trim();
+  if (trimmed === "") {
+    return trimmed;
+  }
+  const n = parseFloat(trimmed);
+  if (Number.isNaN(n) || n < 0) {
+    return raw;
+  }
+  return n.toFixed(2);
+}
 
 interface EditCommissionModalProps {
   showModal: boolean;
@@ -28,9 +46,8 @@ function EditCommissionModal({
   setShowModal,
   commission,
 }: EditCommissionModalProps) {
+  const { commissionId, payoutId } = useParams();
   const { makeRequest, isSubmitting } = useApiMutation();
-
-  const isCustom = commission.type === "custom";
 
   const {
     control,
@@ -40,7 +57,7 @@ function EditCommissionModal({
     formState: { isDirty },
   } = useForm<FormData>({
     defaultValues: {
-      earnings: isCustom ? commission.earnings / 100 : null,
+      earnings: centsToDollarsInputValue(commission.earnings),
       status: commission.status as FormData["status"],
       updateHistoricalCommissions: false,
     },
@@ -55,12 +72,12 @@ function EditCommissionModal({
   useEffect(() => {
     if (showModal) {
       reset({
-        earnings: isCustom ? commission.earnings / 100 : null,
+        earnings: centsToDollarsInputValue(commission.earnings),
         status: commission.status as FormData["status"],
         updateHistoricalCommissions: false,
       });
     }
-  }, [showModal, commission, reset, isCustom]);
+  }, [showModal, commission, reset]);
 
   const onSubmit = async (data: FormData) => {
     const body: Record<string, any> = {};
@@ -76,8 +93,9 @@ function EditCommissionModal({
       body.updateHistoricalCommissions = true;
     }
 
-    if (isCustom && data.earnings !== null) {
-      const earningsInCents = Math.round(data.earnings * 100);
+    const earningsNum = parseFloat(data.earnings);
+    if (!Number.isNaN(earningsNum)) {
+      const earningsInCents = Math.round(earningsNum * 100);
       if (earningsInCents !== commission.earnings) {
         body.earnings = earningsInCents;
       }
@@ -93,7 +111,11 @@ function EditCommissionModal({
       body,
       onSuccess: async () => {
         setShowModal(false);
-        await mutatePrefix(["/api/commissions", "/api/payouts"]);
+        await mutatePrefix([
+          "/api/commissions",
+          ...(commissionId ? ["/api/activity-logs"] : []),
+          ...(payoutId ? [`/api/payouts/${payoutId}`] : []),
+        ]);
         toast.success("Commission updated successfully!");
       },
     });
@@ -128,38 +150,59 @@ function EditCommissionModal({
               </div>
             </div>
 
-            {isCustom && (
-              <div>
-                <label className="text-content-emphasis text-sm font-normal">
-                  Earnings
-                </label>
-                <div className="relative mt-2 rounded-md shadow-sm">
-                  <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
-                    $
-                  </span>
-                  <Controller
-                    name="earnings"
-                    control={control}
-                    rules={{ required: true, min: 0 }}
-                    render={({ field }) => (
-                      <input
-                        type="text"
-                        inputMode="decimal"
-                        className="block w-full rounded-md border-neutral-300 pl-6 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                        value={field.value ?? ""}
-                        onChange={(e) => {
-                          handleMoneyInputChange(e);
-                          const val = e.target.value;
-                          field.onChange(val === "" ? null : parseFloat(val));
-                        }}
-                        onKeyDown={handleMoneyKeyDown}
-                        placeholder="0.00"
-                      />
-                    )}
-                  />
-                </div>
+            <div>
+              <label className="text-content-emphasis text-sm font-normal">
+                Earnings
+              </label>
+              <div className="relative mt-2 rounded-md shadow-sm">
+                <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
+                  $
+                </span>
+                <Controller
+                  name="earnings"
+                  control={control}
+                  rules={{
+                    required: true,
+                    validate: (v) => {
+                      if (v === "") {
+                        return "Required";
+                      }
+                      const n = parseFloat(v);
+                      if (Number.isNaN(n)) {
+                        return "Enter a valid amount";
+                      }
+                      if (n < 0) {
+                        return "Must be at least 0";
+                      }
+                      return true;
+                    },
+                  }}
+                  render={({ field }) => (
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      className="block w-full rounded-md border-neutral-300 pl-6 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                      value={field.value}
+                      onChange={(e) => {
+                        handleMoneyInputChange(e);
+                        field.onChange(e.target.value);
+                      }}
+                      onBlur={(e) => {
+                        field.onBlur();
+                        const formatted = formatEarningsInputOnBlur(
+                          e.target.value,
+                        );
+                        if (formatted !== e.target.value) {
+                          field.onChange(formatted);
+                        }
+                      }}
+                      onKeyDown={handleMoneyKeyDown}
+                      placeholder="0.00"
+                    />
+                  )}
+                />
               </div>
-            )}
+            </div>
 
             <div>
               <label className="text-content-emphasis text-sm font-normal">
@@ -179,6 +222,7 @@ function EditCommissionModal({
                       }}
                       placeholder="Select status"
                       searchPlaceholder="Search status..."
+                      caret
                       matchTriggerWidth
                       buttonProps={{
                         className:

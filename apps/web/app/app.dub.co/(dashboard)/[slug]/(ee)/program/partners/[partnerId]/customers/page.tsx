@@ -14,7 +14,7 @@ import {
 } from "@dub/ui";
 import { COUNTRIES, cn, currencyFormatter, formatDate } from "@dub/utils";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 
 export default function ProgramPartnerCustomersPage() {
   const { partnerId } = useParams() as { partnerId: string };
@@ -36,6 +36,7 @@ export default function ProgramPartnerCustomersPage() {
 }
 
 function PartnerCustomers({ partner }: { partner: EnrolledPartnerProps }) {
+  const router = useRouter();
   const { slug } = useWorkspace();
 
   const {
@@ -111,8 +112,17 @@ function PartnerCustomers({ partner }: { partner: EnrolledPartnerProps }) {
         ),
       },
     ],
-    onRowClick: (row) =>
+    onRowClick: (row, e) => {
+      const url = `/${slug}/program/customers/${row.original.id}`;
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
+    },
+    onRowAuxClick: (row) =>
       window.open(`/${slug}/program/customers/${row.original.id}`, "_blank"),
+    rowProps: (row) => ({
+      onPointerEnter: () =>
+        router.prefetch(`/${slug}/program/customers/${row.original.id}`),
+    }),
     resourceName: (p) => `customer${p ? "s" : ""}`,
     sortBy: "createdAt",
     sortOrder: "desc",

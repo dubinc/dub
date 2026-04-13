@@ -2,8 +2,8 @@ import { prisma } from "@dub/prisma";
 import { pluralize } from "@dub/utils";
 import Stripe from "stripe";
 
-export async function transferReversed(event: Stripe.Event) {
-  const stripeTransfer = event.data.object as Stripe.Transfer;
+export async function transferReversed(event: Stripe.TransferReversedEvent) {
+  const stripeTransfer = event.data.object;
 
   // when transfer is reversed on Stripe, we update any sent payouts with matching stripeTransferId to:
   // - set the status to processed (so it can be resent to the partner later)

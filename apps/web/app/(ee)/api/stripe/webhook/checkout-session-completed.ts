@@ -12,8 +12,10 @@ import { Program, User } from "@dub/prisma/client";
 import { getPlanAndTierFromPriceId, log, prettyPrint } from "@dub/utils";
 import Stripe from "stripe";
 
-export async function checkoutSessionCompleted(event: Stripe.Event) {
-  const checkoutSession = event.data.object as Stripe.Checkout.Session;
+export async function checkoutSessionCompleted(
+  event: Stripe.CheckoutSessionCompletedEvent,
+) {
+  const checkoutSession = event.data.object;
 
   if (
     checkoutSession.mode === "setup" ||

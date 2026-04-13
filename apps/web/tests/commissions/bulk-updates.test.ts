@@ -7,7 +7,9 @@ describe.sequential("/commissions/bulk - bulk updates", async () => {
   const { http } = await h.init();
 
   const getCommissionsByStatus = async (status: string) => {
-    const { status: responseStatus, data } = await http.get<CommissionResponse[]>({
+    const { status: responseStatus, data } = await http.get<
+      CommissionResponse[]
+    >({
       path: "/commissions",
       query: {
         status,
@@ -49,7 +51,9 @@ describe.sequential("/commissions/bulk - bulk updates", async () => {
     });
 
     expect(status).toEqual(404);
-    expect(data.error.message).toContain("One or more commissions were not found");
+    expect(data.error.message).toContain(
+      "One or more commissions were not found",
+    );
   });
 
   test("PATCH /commissions/bulk - returns bad_request for paid commissions", async () => {
@@ -90,7 +94,9 @@ describe.sequential("/commissions/bulk - bulk updates", async () => {
 
     const commissionIds = pendingCommissions.slice(0, 2).map((c) => c.id);
 
-    const { status, data } = await http.patch<Array<{ id: string; status: string }>>({
+    const { status, data } = await http.patch<
+      Array<{ id: string; status: string }>
+    >({
       path: "/commissions/bulk",
       body: {
         commissionIds,

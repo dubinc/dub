@@ -52,8 +52,9 @@ model User {
   sentMessages            Message[]
   partnerComments         PartnerComment[]
   fraudEventGroups        FraudEventGroup[]
+  fraudAlertsReviewed     FraudAlert[]                 @relation("FraudAlertReviewer")
   activityLogs            ActivityLog[]
-  createdCommissions     Commission[]
+  createdCommissions      Commission[]
 
   @@index(sentMail)
   @@index(source)

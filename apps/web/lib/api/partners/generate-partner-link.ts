@@ -1,4 +1,7 @@
 import { ErrorCodes } from "@/lib/api/errors";
+import { applyAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
+import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import {
   CreatePartnerProps,
   ProcessedLinkProps,
@@ -81,6 +84,7 @@ interface GeneratePartnerLinkInput {
     partnerGroupDefaultLinkId?: string | null;
   };
   userId?: string;
+  appsFlyerParameters?: AppsFlyerSettings["parameters"];
 }
 
 // Generates and processes a partner link without creating it
@@ -90,6 +94,7 @@ export const generatePartnerLink = async ({
   partner,
   link,
   userId,
+  appsFlyerParameters,
 }: GeneratePartnerLinkInput) => {
   const { name, email, username } = partner;
 
@@ -138,6 +143,23 @@ export const generatePartnerLink = async ({
     processedLink = result.link as ProcessedLinkProps;
     error = result.error;
     code = result.code as ErrorCodes;
+
+    // Apply AppsFlyer parameters if any
+    if (
+      processedLink &&
+      appsFlyerParameters?.length &&
+      isAppsFlyerTrackingUrl(processedLink.url)
+    ) {
+      processedLink.url = applyAppsFlyerParameters({
+        url: processedLink.url,
+        parameters: appsFlyerParameters,
+        context: {
+          partnerName: partner.name || currentKey,
+          partnerLinkKey: currentKey,
+        },
+      });
+    }
+
     break;
   }
 

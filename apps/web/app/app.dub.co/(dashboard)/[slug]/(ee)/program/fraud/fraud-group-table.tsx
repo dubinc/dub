@@ -156,7 +156,6 @@ export function FraudGroupTable() {
                 name: partner.name || "Unknown",
                 image: partner.image,
               }}
-              showPermalink={false}
               showFraudIndicator={false}
             />
           );
@@ -313,7 +312,7 @@ export function FraudGroupTable() {
   }, [fraudGroups, detailsSheetState.groupId]);
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <BulkBanPartnersModal />
       <BulkResolveFraudGroupsModal />
       {detailsSheetState.groupId && currentFraudGroup && (

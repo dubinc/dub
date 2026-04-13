@@ -4,12 +4,8 @@ import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { DomainSchema } from "./domains";
-import {
-  googleUserContentUrlSchema,
-  planSchema,
-  roleSchema,
-  uploadedImageSchema,
-} from "./misc";
+import { googleUserContentUrlSchema, uploadedImageSchema } from "./images";
+import { planSchema, roleSchema } from "./misc";
 export {
   siteVisitTrackingSettingsPatchSchema,
   trackedSitemapSchema,
