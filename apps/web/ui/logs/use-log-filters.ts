@@ -135,7 +135,16 @@ export function useLogFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["method", "statusCode", "routePattern", "tokenId", "requestType"],
+        del: [
+          "method",
+          "statusCode",
+          "routePattern",
+          "tokenId",
+          "requestType",
+          "start",
+          "end",
+          "interval",
+        ],
       }),
     [queryParams],
   );

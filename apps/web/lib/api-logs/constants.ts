@@ -84,8 +84,8 @@ export const API_LOG_RETENTION_DAYS: Record<PlanProps, number> = {
 
 export const API_LOGS_PRESETS_BY_RETENTION: Record<number, string[]> = {
   30: ["24h", "7d", "30d"],
-  60: ["24h", "7d", "30d"],
-  90: ["24h", "7d", "30d", "90d"],
+  60: ["24h", "7d", "30d", "60d"],
+  90: ["24h", "7d", "30d", "60d", "90d"],
 };
 
 // Default when plan is missing from workspace data (should not happen for known plans).

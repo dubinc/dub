@@ -4,6 +4,7 @@ import {
   API_LOGS_MAX_PAGE_SIZE,
   API_LOGS_PRESETS_BY_RETENTION,
   API_LOG_RETENTION_DAYS,
+  DEFAULT_RETENTION_DAYS,
   METHOD_BADGE_VARIANTS,
 } from "@/lib/api-logs/constants";
 import { useApiLogsCount } from "@/lib/swr/use-api-logs-count";
@@ -352,7 +353,7 @@ function LogsFilters({
 
   const presets =
     API_LOGS_PRESETS_BY_RETENTION[retentionDays] ??
-    API_LOGS_PRESETS_BY_RETENTION[30];
+    API_LOGS_PRESETS_BY_RETENTION[DEFAULT_RETENTION_DAYS];
 
   return (
     <div>

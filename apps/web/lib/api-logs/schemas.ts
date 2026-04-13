@@ -3,7 +3,10 @@ import { tokenSchema } from "@/lib/zod/schemas/token";
 import { UserSchema } from "@/lib/zod/schemas/users";
 import * as z from "zod/v4";
 import { parseDateSchema } from "../zod/schemas/utils";
-import { API_LOGS_MAX_PAGE_SIZE } from "./constants";
+import {
+  API_LOGS_MAX_PAGE_SIZE,
+  API_LOGS_PRESETS_BY_RETENTION,
+} from "./constants";
 
 export const requestTypeSchema = z.enum(["api", "webhook"]);
 
@@ -88,7 +91,7 @@ export const getApiLogsQuerySchema = z
     requestType: requestTypeSchema.optional(),
     start: parseDateSchema.optional(),
     end: parseDateSchema.optional(),
-    interval: z.enum(["24h", "7d", "30d", "90d"]).optional(),
+    interval: z.enum(API_LOGS_PRESETS_BY_RETENTION[90]).optional(),
   })
   .extend(
     getPaginationQuerySchema({
