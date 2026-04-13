@@ -1,7 +1,9 @@
 import * as z from "zod/v4";
 
 export const trackedSitemapSchema = z.object({
-  url: z.string().url(),
+  url: z.url().refine((v) => v.startsWith("https://"), {
+    message: "Only HTTPS sitemap URLs are allowed.",
+  }),
   lastCrawledAt: z.string().optional(),
   lastUrlCount: z.number().int().nonnegative().optional(),
 });
@@ -10,7 +12,10 @@ export const trackedSitemapSchema = z.object({
 export const MAX_TRACKED_SITEMAPS_PER_WORKSPACE = 10;
 
 export const siteVisitTrackingSettingsValueSchema = z.object({
-  trackedSitemaps: z.array(trackedSitemapSchema).default([]),
+  trackedSitemaps: z
+    .array(trackedSitemapSchema)
+    .max(MAX_TRACKED_SITEMAPS_PER_WORKSPACE)
+    .default([]),
   siteDomainSlug: z.string().optional(),
   siteLinksFolderId: z.string().optional(),
 });

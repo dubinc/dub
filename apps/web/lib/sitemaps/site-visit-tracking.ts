@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import {
+  MAX_TRACKED_SITEMAPS_PER_WORKSPACE,
   siteVisitTrackingSettingsValueSchema,
   trackedSitemapSchema,
 } from "@/lib/zod/schemas/site-visit-tracking";
@@ -18,20 +19,32 @@ export type SiteVisitTrackingSettingsValue = z.infer<
   typeof siteVisitTrackingSettingsValueSchema
 >;
 
-/** Per-item parse so one bad row does not drop the whole list. */
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Parses `trackedSitemaps` JSON with array-level rules: must be an array, each
+ * entry must be a plain object, at most MAX_TRACKED_SITEMAPS_PER_WORKSPACE
+ * entries are considered (excess is truncated). Returns [] if array-level
+ * checks fail. Invalid URLs or shape per row are skipped without failing the list.
+ */
 function parseTrackedSitemapsArrayLoose(arr: unknown): TrackedSitemap[] {
   if (!Array.isArray(arr)) {
     return [];
   }
 
+  const capped = arr.slice(0, MAX_TRACKED_SITEMAPS_PER_WORKSPACE);
+
+  for (const item of capped) {
+    if (!isPlainRecord(item)) {
+      return [];
+    }
+  }
+
   const result: TrackedSitemap[] = [];
 
-  for (const item of arr) {
-    if (!item || typeof item !== "object") {
-      continue;
-    }
-
-    const raw = item as Record<string, unknown>;
+  for (const raw of capped) {
     const url = typeof raw.url === "string" ? raw.url.trim() : "";
     if (!url) {
       continue;
@@ -83,7 +96,19 @@ export function parseSiteVisitTrackingSettings(
   };
 
   const parsed = siteVisitTrackingSettingsValueSchema.safeParse(merged);
-  return parsed.success ? parsed.data : { trackedSitemaps };
+  if (parsed.success) {
+    return parsed.data;
+  }
+
+  return {
+    trackedSitemaps: [],
+    ...(typeof o.siteDomainSlug === "string"
+      ? { siteDomainSlug: o.siteDomainSlug }
+      : {}),
+    ...(typeof o.siteLinksFolderId === "string"
+      ? { siteLinksFolderId: o.siteLinksFolderId }
+      : {}),
+  };
 }
 
 export function parseTrackedSitemaps(value: unknown): TrackedSitemap[] {

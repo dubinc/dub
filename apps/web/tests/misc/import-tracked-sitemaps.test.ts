@@ -108,14 +108,28 @@ describe("parseTrackedSitemaps", () => {
     ).toEqual([{ url: "https://example.com/sitemap.xml" }]);
   });
 
-  it("handles mixed valid/invalid items in the same array", () => {
-    const trackedSitemaps = [
-      null,
-      { url: "https://a.com/sitemap.xml" },
-      { url: "" },
-      { url: "https://b.com/sitemap.xml", lastUrlCount: 10 },
-    ];
-    expect(parseTrackedSitemaps({ trackedSitemaps })).toEqual([
+  it("returns no sitemaps when the array contains a non-object entry (array-level guard)", () => {
+    expect(
+      parseTrackedSitemaps({
+        trackedSitemaps: [
+          null,
+          { url: "https://a.com/sitemap.xml" },
+        ],
+      }),
+    ).toEqual([]);
+  });
+
+  it("skips invalid URL rows when every entry is a plain object", () => {
+    expect(
+      parseTrackedSitemaps({
+        trackedSitemaps: [
+          { url: "" },
+          { url: "https://a.com/sitemap.xml" },
+          { url: "not-a-url" },
+          { url: "https://b.com/sitemap.xml", lastUrlCount: 10 },
+        ],
+      }),
+    ).toEqual([
       { url: "https://a.com/sitemap.xml" },
       { url: "https://b.com/sitemap.xml", lastUrlCount: 10 },
     ]);
