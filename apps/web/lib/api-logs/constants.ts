@@ -1,6 +1,7 @@
 import type { PlanProps } from "@/lib/types";
 import {
   APPSFLYER_INTEGRATION_ID,
+  HUBSPOT_INTEGRATION_ID,
   SHOPIFY_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
 } from "@dub/utils";
@@ -10,6 +11,8 @@ import {
 // Order matters: more specific patterns must come before less specific ones.
 export const ROUTE_PATTERNS = [
   // Track
+  "/track/lead/client",
+  "/track/sale/client",
   "/track/lead",
   "/track/sale",
   "/track/open",
@@ -117,5 +120,11 @@ export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
     name: "Shopify",
     image:
       "https://dubassets.com/integrations/int_iWOtrZgmcyU6XDwKr4AYYqLN_jUmF77W",
+  },
+  "/hubspot/webhook": {
+    id: HUBSPOT_INTEGRATION_ID,
+    name: "HubSpot",
+    image:
+      "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
   },
 } as const;
