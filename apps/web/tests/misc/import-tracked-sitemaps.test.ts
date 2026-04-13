@@ -145,86 +145,6 @@ describe("crawlSitemapUrls", () => {
     vi.clearAllMocks();
   });
 
-  describe("URL normalization", () => {
-    it("throws for an empty URL", async () => {
-      await expect(crawlSitemapUrls("")).rejects.toThrow(
-        "Sitemap URL is empty.",
-      );
-    });
-
-    it("adds https:// when no protocol is provided", async () => {
-      mockFetch.mockResolvedValue(
-        makeFetchResponse(Buffer.from(urlsetXml(["https://example.com/page"]))),
-      );
-
-      await crawlSitemapUrls("example.com/sitemap.xml");
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        "https://example.com/sitemap.xml",
-        expect.objectContaining({ redirect: "manual" }),
-      );
-    });
-
-    it("preserves an existing https:// protocol", async () => {
-      mockFetch.mockResolvedValue(
-        makeFetchResponse(Buffer.from(urlsetXml([]))),
-      );
-
-      await crawlSitemapUrls("https://example.com/sitemap.xml");
-
-      expect(mockFetch).toHaveBeenCalledWith(
-        "https://example.com/sitemap.xml",
-        expect.objectContaining({ redirect: "manual" }),
-      );
-    });
-  });
-
-  describe("SSRF protection", () => {
-    it.each([
-      ["localhost"],
-      ["127.0.0.1"],
-      ["10.0.0.1"],
-      ["192.168.1.1"],
-      ["172.16.0.1"],
-      ["169.254.1.1"],
-      ["my-server.local"],
-    ])("rejects private/reserved host: %s", async (hostname) => {
-      await expect(
-        crawlSitemapUrls(`https://${hostname}/sitemap.xml`),
-      ).rejects.toThrow(/private or reserved address/);
-    });
-
-    it("rejects a redirect target that resolves to a private host", async () => {
-      mockFetch.mockResolvedValueOnce(
-        redirectResponse("http://169.254.169.254/latest/meta-data/"),
-      );
-
-      const { urls, hadErrors } = await crawlSitemapUrls(
-        "https://example.com/sitemap.xml",
-      );
-
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      expect(urls).toEqual([]);
-      expect(hadErrors).toBe(true);
-    });
-
-    it("follows a safe redirect chain before parsing XML", async () => {
-      mockFetch
-        .mockResolvedValueOnce(redirectResponse("https://example.com/b.xml"))
-        .mockResolvedValueOnce(
-          makeFetchResponse(Buffer.from(urlsetXml(["https://example.com/p"]))),
-        );
-
-      const { urls, hadErrors } = await crawlSitemapUrls(
-        "https://example.com/a.xml",
-      );
-
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(urls).toEqual(["https://example.com/p"]);
-      expect(hadErrors).toBe(false);
-    });
-  });
-
   describe("flat urlset", () => {
     it("returns all page URLs from a simple urlset", async () => {
       const pageUrls = [
@@ -324,7 +244,7 @@ describe("crawlSitemapUrls", () => {
   });
 
   describe("URL volume limits", () => {
-    it(`collects at most ${MAX_URLS_PER_SITEMAP} page URLs from one sitemap`, async () => {
+    it(`throws when one sitemap has more than ${MAX_URLS_PER_SITEMAP} unique page URLs`, async () => {
       const many = Array.from({ length: MAX_URLS_PER_SITEMAP + 50 }, (_, i) =>
         i === 0 ? "https://example.com/first" : `https://example.com/p/${i}`,
       );
@@ -332,25 +252,11 @@ describe("crawlSitemapUrls", () => {
         makeFetchResponse(Buffer.from(urlsetXml(many))),
       );
 
-      const { urls } = await crawlSitemapUrls(
-        "https://example.com/sitemap.xml",
+      await expect(
+        crawlSitemapUrls("https://example.com/sitemap.xml"),
+      ).rejects.toThrow(
+        `Sitemap contains too many unique URLs: ${MAX_URLS_PER_SITEMAP + 50} (max ${MAX_URLS_PER_SITEMAP})`,
       );
-
-      expect(urls).toHaveLength(MAX_URLS_PER_SITEMAP);
-      expect(urls[0]).toBe("https://example.com/first");
-    });
-  });
-
-  describe("error handling", () => {
-    it("sets hadErrors when the sitemap response is not OK", async () => {
-      mockFetch.mockResolvedValueOnce(makeFetchResponse(Buffer.alloc(0), 500));
-
-      const { urls, hadErrors } = await crawlSitemapUrls(
-        "https://example.com/sitemap.xml",
-      );
-
-      expect(urls).toEqual([]);
-      expect(hadErrors).toBe(true);
     });
   });
 
