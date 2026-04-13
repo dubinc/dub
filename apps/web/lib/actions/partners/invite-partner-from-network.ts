@@ -92,10 +92,11 @@ export const invitePartnerFromNetworkAction = authActionClient
       Promise.allSettled([
         (async () => {
           if (!partner.email) return;
-          const rewardsAndBounties = await getGroupRewardsAndBounties({
+          const { group, rewards, bounties } = await getGroupRewardsAndBounties({
             programId,
             groupId: enrolledPartner.groupId || program.defaultGroupId,
           });
+          const programWebsite = group.partnerGroupDefaultLinks[0]?.url;
           await sendEmail({
             subject: `${program.name} invited you to join on Dub Partners`,
             variant: "notifications",
@@ -107,8 +108,10 @@ export const invitePartnerFromNetworkAction = authActionClient
                 name: program.name,
                 slug: program.slug,
                 logo: program.logo,
+                website: programWebsite,
               },
-              ...rewardsAndBounties,
+              rewards,
+              bounties,
             }),
           });
         })(),

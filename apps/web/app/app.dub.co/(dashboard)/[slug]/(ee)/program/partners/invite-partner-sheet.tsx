@@ -15,8 +15,8 @@ import { GroupSelector } from "@/ui/partners/groups/group-selector";
 import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
-  BlurImage,
   Button,
+  Gift,
   InfoTooltip,
   MultiValueInput,
   type MultiValueInputRef,
@@ -24,12 +24,15 @@ import {
   RichTextProvider,
   RichTextToolbar,
   Sheet,
+  Trophy,
   useMediaQuery,
 } from "@dub/ui";
+import { Lock } from "@dub/ui/icons";
 import { cn, pluralize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
+  ReactNode,
   SetStateAction,
   useEffect,
   useMemo,
@@ -458,7 +461,6 @@ function EmailPreview({
   onCancel: () => void;
   isSavingEmailData: boolean;
 }) {
-  const { program } = useProgram();
   const { verifiedEmailDomain } = useEmailDomains();
 
   const { isMobile } = useMediaQuery();
@@ -631,14 +633,7 @@ function EmailPreview({
                 {displayContent.subject}
               </p>
             </div>
-            <div className="grid grid-cols-1 gap-3 p-4 pb-8">
-              <BlurImage
-                src={program?.logo || "https://assets.dub.co/wordmark.png"}
-                alt={program?.name || "Dub"}
-                className="my-1 size-8 rounded-full object-contain"
-                width={48}
-                height={48}
-              />
+            <div className="grid grid-cols-1 gap-3 p-4 pb-6">
               <h3 className="font-medium text-neutral-900">
                 {displayContent.title}
               </h3>
@@ -655,15 +650,48 @@ function EmailPreview({
                   <RichTextArea />
                 </RichTextProvider>
               </div>
-              <Button
-                type="button"
-                text="Accept invite"
-                className="mt-4 w-fit"
-              />
+              <InvitePreviewProgramDetails />
             </div>
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function InvitePreviewProgramDetails() {
+  return (
+    <div className="mt-4 rounded-[10px] border border-blue-200 bg-blue-50 p-4 pt-3">
+      <div className="flex items-center justify-center gap-2 text-sm font-semibold text-blue-900">
+        <Lock className="size-4 text-blue-500" />
+        <span>Program details</span>
+      </div>
+
+      <div className="mt-3 grid grid-cols-2 gap-3">
+        <PreviewInfoCard icon={<Gift className="size-5" />} label="Eligible Rewards" />
+        <PreviewInfoCard icon={<Trophy className="size-5" />} label="Eligible Bounties" />
+      </div>
+
+      <Button
+        type="button"
+        text="View invite"
+        className="mt-3 h-9 w-full rounded-lg bg-neutral-900 font-semibold text-white hover:bg-neutral-900"
+      />
+    </div>
+  );
+}
+
+function PreviewInfoCard({
+  icon,
+  label,
+}: {
+  icon: ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-lg border border-blue-100 bg-blue-100 px-4 pb-3 pt-4 text-center text-blue-900">
+      <div className="mb-1.5">{icon}</div>
+      <div className="text-sm font-medium">{label}</div>
     </div>
   );
 }

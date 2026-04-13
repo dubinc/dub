@@ -83,10 +83,11 @@ export const invitePartnerAction = authActionClient
 
     const sendPartnerInvitePromise = (async () => {
       try {
-        const rewardsAndBounties = await getGroupRewardsAndBounties({
+        const { group, rewards, bounties } = await getGroupRewardsAndBounties({
           programId,
           groupId: enrolledPartner.groupId || program.defaultGroupId,
         });
+        const programWebsite = group.partnerGroupDefaultLinks[0]?.url;
 
         await sendEmail({
           subject:
@@ -107,13 +108,15 @@ export const invitePartnerAction = authActionClient
               name: program.name,
               slug: program.slug,
               logo: program.logo,
+              website: programWebsite,
             },
             ...(inviteEmailData?.subject && {
               subject: inviteEmailData.subject,
             }),
             ...(inviteEmailData?.title && { title: inviteEmailData.title }),
             ...(inviteEmailData?.body && { body: inviteEmailData.body }),
-            ...rewardsAndBounties,
+            rewards,
+            bounties,
           }),
         });
       } catch (error) {
