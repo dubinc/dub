@@ -1,5 +1,3 @@
-"use server";
-
 import { createId } from "@/lib/api/create-id";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { isStored, storage } from "@/lib/storage";
@@ -160,29 +158,110 @@ export const createAndEnrollPartner = async ({
     },
   };
 
-  const upsertedPartner = await prisma.partner.upsert({
-    where: {
-      email: partner.email,
-    },
-    update: payload,
-    create: {
-      ...payload,
-      id: createId({ prefix: "pn_" }),
-      name: partner.name || partner.email,
-      email: partner.email,
-      image: partner.image && !isStored(partner.image) ? null : partner.image,
-      country: partner.country,
-      description: partner.description,
-    },
+  let upsertedPartner: Prisma.PartnerGetPayload<{
     include: {
-      platforms: true,
-      programs: {
-        where: {
-          programId: program.id,
+      platforms: true;
+      programs: true;
+    };
+  }>;
+
+  try {
+    upsertedPartner = await prisma.partner.upsert({
+      where: {
+        email: partner.email,
+      },
+      update: payload,
+      create: {
+        ...payload,
+        id: createId({ prefix: "pn_" }),
+        name: partner.name || partner.email,
+        email: partner.email,
+        image: partner.image && !isStored(partner.image) ? null : partner.image,
+        country: partner.country,
+        description: partner.description,
+      },
+      include: {
+        platforms: true,
+        programs: {
+          where: {
+            programId: program.id,
+          },
         },
       },
-    },
-  });
+    });
+  } catch (error: any) {
+    // Handle race condition: another request created the enrollment between
+    // our check and the upsert, violating the unique constraint
+    if (error.code === "P2002") {
+      const existingEnrollment = await prisma.programEnrollment.findFirst({
+        where: {
+          programId: program.id,
+          partner: {
+            email: partner.email,
+          },
+        },
+        include: {
+          partner: {
+            include: {
+              platforms: true,
+            },
+          },
+          links: true,
+        },
+      });
+
+      if (existingEnrollment) {
+        if (
+          partner.tenantId &&
+          partner.tenantId !== existingEnrollment.tenantId
+        ) {
+          await throwIfExistingTenantEnrollmentExists({
+            tenantId: partner.tenantId,
+            programId: program.id,
+          });
+
+          const updatedEnrollment = await prisma.programEnrollment.update({
+            where: {
+              id: existingEnrollment.id,
+            },
+            data: {
+              tenantId: partner.tenantId,
+            },
+            include: {
+              partner: {
+                include: {
+                  platforms: true,
+                },
+              },
+              links: true,
+            },
+          });
+
+          return EnrolledPartnerSchema.parse({
+            ...updatedEnrollment.partner,
+            ...updatedEnrollment,
+            id: updatedEnrollment.partner.id,
+            links: updatedEnrollment.links,
+            ...polyfillSocialMediaFields(
+              updatedEnrollment.partner.platforms,
+            ),
+          });
+        }
+
+        return EnrolledPartnerSchema.parse({
+          ...existingEnrollment.partner,
+          ...existingEnrollment,
+          id: existingEnrollment.partner.id,
+          links: existingEnrollment.links,
+          ...polyfillSocialMediaFields(existingEnrollment.partner.platforms),
+        });
+      }
+
+      throw error;
+    }
+
+    throw error;
+  }
 
   // Create the partner links based on group defaults
   const links = await createPartnerDefaultLinks({
