@@ -1,20 +1,15 @@
 import { ActivityLog, ActivityLogAction } from "@/lib/types";
 import {
-  BoxArchive,
-  CircleCheck,
   CircleInfo,
-  CircleXmark,
   FileSend,
   MoneyBill2,
   Pen2,
   UserArrowRight,
   UserClock,
-  UserDelete,
 } from "@dub/ui";
 import { CircleMinus, CirclePlusIcon } from "lucide-react";
 import { ComponentType, ReactNode } from "react";
 import { PartnerGroupChangedRenderer } from "./action-renderers/partner-group-changed-renderer";
-import { PartnerStatusChangedRenderer } from "./action-renderers/partner-status-changed-renderer";
 import { ReferralCreatedRenderer } from "./action-renderers/referral-created-renderer";
 import { ReferralStatusChangedRenderer } from "./action-renderers/referral-status-changed-renderer";
 import { RewardActivityRenderer } from "./action-renderers/reward-activity-renderer";
@@ -31,13 +26,6 @@ const ACTIVITY_LOG_ICONS: Partial<
   Record<ActivityLogAction, ComponentType<{ className?: string }>>
 > = {
   "partner.groupChanged": UserArrowRight,
-  "partner.approved": CircleCheck,
-  "partner_application.rejected": CircleXmark,
-  "partner.banned": UserDelete,
-  "partner.unbanned": CircleCheck,
-  "partner.deactivated": CircleXmark,
-  "partner.reactivated": CircleCheck,
-  "partner.archived": BoxArchive,
 
   "referral.created": FileSend,
   "referral.qualified": UserClock,
@@ -63,20 +51,6 @@ const ACTIVITY_LOG_REGISTRY: Array<{
     action: "partner.groupChanged",
     renderer: PartnerGroupChangedRenderer,
   },
-  ...(
-    [
-      "partner.approved",
-      "partner_application.rejected",
-      "partner.banned",
-      "partner.unbanned",
-      "partner.deactivated",
-      "partner.reactivated",
-      "partner.archived",
-    ] as const
-  ).map((action) => ({
-    action,
-    renderer: PartnerStatusChangedRenderer,
-  })),
   {
     action: "referral.created",
     renderer: ReferralCreatedRenderer,

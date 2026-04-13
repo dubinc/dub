@@ -1,8 +1,7 @@
 import { ActivityLog, GroupProps, ProgramProps } from "@/lib/types";
 import { getResourceColorData, RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
-import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ReferralStatusBadges } from "@/ui/referrals/referral-status-badges";
-import { ProgramEnrollmentStatus, ReferralStatus } from "@dub/prisma/client";
+import { ReferralStatus } from "@dub/prisma/client";
 import { Bolt, Tooltip } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { ReactNode } from "react";
@@ -121,18 +120,6 @@ export function ActorChip({ log }: ActorChipProps) {
   }
 
   return <SystemChip />;
-}
-
-export function PartnerStatusPill({
-  status,
-}: {
-  status: ProgramEnrollmentStatus;
-}) {
-  const badge = PartnerStatusBadges[status];
-
-  if (!badge) return null;
-
-  return <ActivityChip className={badge.className}>{badge.label}</ActivityChip>;
 }
 
 export function ReferralStatusPill({ status }: { status: ReferralStatus }) {
