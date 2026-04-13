@@ -1,3 +1,4 @@
+import type { SiteVisitTrackingSettingsValue } from "@/lib/sitemaps/site-visit-tracking";
 import {
   PartnerBountySchema,
   partnerBountySubmissionSchema,
@@ -263,9 +264,11 @@ export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
 
 export type PartnerBetaFeatures = "postbacks";
 
-export interface WorkspaceProps extends Project {
+export interface WorkspaceProps
+  extends Omit<Project, "siteVisitTrackingSettings"> {
   logo: string | null;
   plan: PlanProps;
+  siteVisitTrackingSettings: SiteVisitTrackingSettingsValue | null;
   domains: {
     slug: string;
     primary: boolean;
