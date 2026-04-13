@@ -13,10 +13,12 @@ import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   AnimatedSizeContainer,
+  EditColumnsButton,
   Filter,
   StatusBadge,
   Table,
   TimestampTooltip,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -29,6 +31,26 @@ import { useMemo } from "react";
 import useSWR from "swr";
 import { getStatusCodeBadgeVariant } from "./log-utils";
 import { useLogFilters } from "./use-log-filters";
+
+const LOGS_TABLE_COLUMNS = {
+  all: [
+    "path",
+    "method",
+    "status_code",
+    "actor",
+    "duration",
+    "timestamp",
+    "api_key",
+  ],
+  defaultVisible: [
+    "path",
+    "method",
+    "status_code",
+    "actor",
+    "duration",
+    "timestamp",
+  ],
+};
 
 export function LogsTable() {
   const router = useRouter();
@@ -70,125 +92,162 @@ export function LogsTable() {
 
   const isFiltered = activeFilters.length > 0;
 
-  const columns = useMemo(
-    () => [
-      {
-        id: "path",
-        header: "Endpoint",
-        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
-          <span
-            className="truncate"
-            title={row.original.route_pattern || undefined}
-          >
-            {row.original.path}
-          </span>
-        ),
-        meta: {
-          filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
-            routePattern: row.original.route_pattern,
-          }),
-        },
-        size: 300,
-      },
-      {
-        id: "method",
-        header: "Method",
-        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
-          <StatusBadge
-            variant={METHOD_BADGE_VARIANTS[row.original.method] ?? "neutral"}
-            icon={null}
-          >
-            {row.original.method}
-          </StatusBadge>
-        ),
-        meta: {
-          filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
-            method: row.original.method,
-          }),
-        },
-        size: 100,
-      },
-      {
-        id: "status_code",
-        header: "Status",
-        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
-          <StatusBadge
-            variant={getStatusCodeBadgeVariant(row.original.status_code)}
-            icon={null}
-          >
-            {row.original.status_code}
-          </StatusBadge>
-        ),
-        meta: {
-          filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
-            statusCode: row.original.status_code,
-          }),
-        },
-        size: 100,
-      },
-      {
-        id: "actor",
-        header: "Actor",
-        cell: ({ row }: { row: Row<EnrichedApiLog> }) => {
-          const { token, user } = row.original;
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "api-logs-table-columns",
+    LOGS_TABLE_COLUMNS,
+  );
 
-          if (token) {
+  const columns = useMemo(
+    () =>
+      [
+        {
+          id: "path",
+          header: "Endpoint",
+          cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
+            <span
+              className="truncate"
+              title={row.original.route_pattern || undefined}
+            >
+              {row.original.path}
+            </span>
+          ),
+          meta: {
+            filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
+              routePattern: row.original.route_pattern,
+            }),
+          },
+          size: 300,
+        },
+        {
+          id: "method",
+          header: "Method",
+          cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
+            <StatusBadge
+              variant={METHOD_BADGE_VARIANTS[row.original.method] ?? "neutral"}
+              icon={null}
+            >
+              {row.original.method}
+            </StatusBadge>
+          ),
+          meta: {
+            filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
+              method: row.original.method,
+            }),
+          },
+          size: 100,
+        },
+        {
+          id: "status_code",
+          header: "Status",
+          cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
+            <StatusBadge
+              variant={getStatusCodeBadgeVariant(row.original.status_code)}
+              icon={null}
+            >
+              {row.original.status_code}
+            </StatusBadge>
+          ),
+          meta: {
+            filterParams: ({ row }: { row: Row<EnrichedApiLog> }) => ({
+              statusCode: row.original.status_code,
+            }),
+          },
+          size: 100,
+        },
+        {
+          id: "actor",
+          header: "Actor",
+          cell: ({ row }: { row: Row<EnrichedApiLog> }) => {
+            const { user } = row.original;
+            if (user) {
+              return (
+                <div className="flex items-center gap-2">
+                  <UserAvatar user={user} className="size-4" />
+                  <span className="truncate text-sm text-neutral-500">
+                    {user.name || user.email}
+                  </span>
+                </div>
+              );
+            }
+
+            return <span className="text-sm text-neutral-400">—</span>;
+          },
+          size: 200,
+        },
+        {
+          id: "api_key",
+          header: "API Key",
+          cell: ({ row }: { row: Row<EnrichedApiLog> }) => {
+            const token = row.original.token;
+            if (!token) {
+              return <span className="text-sm text-neutral-400">—</span>;
+            }
             return (
-              <span className="truncate font-mono text-xs text-neutral-500">
+              <span
+                className="truncate font-mono text-sm text-neutral-500"
+                title={
+                  token.name
+                    ? `${token.partialKey} (${token.name})`
+                    : token.partialKey
+                }
+              >
                 {token.partialKey}
+                {token.name && (
+                  <span className="ml-1 font-sans text-neutral-400">
+                    ({token.name})
+                  </span>
+                )}
               </span>
             );
-          }
-
-          if (user) {
-            return (
-              <div className="flex items-center gap-2">
-                <UserAvatar user={user} className="size-4" />
-                <span className="truncate text-sm text-neutral-500">
-                  {user.name || user.email}
-                </span>
-              </div>
-            );
-          }
-
-          return <span className="text-sm text-neutral-400">—</span>;
+          },
+          meta: {
+            filterParams: ({ row }: { row: Row<EnrichedApiLog> }) =>
+              row.original.token?.id
+                ? { tokenId: row.original.token.id }
+                : undefined,
+          },
+          size: 200,
         },
-        size: 200,
-      },
-      {
-        id: "duration",
-        header: "Duration",
-        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
-          <span className="text-sm text-neutral-500">
-            {row.original.duration}ms
-          </span>
-        ),
-        size: 100,
-      },
-      {
-        id: "timestamp",
-        header: "Time",
-        cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
-          <TimestampTooltip
-            timestamp={row.original.timestamp}
-            rows={["local", "utc", "unix"]}
-            side="left"
-            delayDuration={150}
-          >
+        {
+          id: "duration",
+          header: "Duration",
+          cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
             <span className="text-sm text-neutral-500">
-              {new Date(row.original.timestamp).toLocaleString("en-us", {
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-                second: "2-digit",
-              })}
+              {row.original.duration}ms
             </span>
-          </TimestampTooltip>
-        ),
-        size: 180,
-      },
-    ],
+          ),
+          size: 100,
+        },
+        {
+          id: "timestamp",
+          header: "Time",
+          cell: ({ row }: { row: Row<EnrichedApiLog> }) => (
+            <TimestampTooltip
+              timestamp={row.original.timestamp}
+              rows={["local", "utc", "unix"]}
+              side="left"
+              delayDuration={150}
+            >
+              <span className="text-sm text-neutral-500">
+                {new Date(row.original.timestamp).toLocaleString("en-us", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  second: "2-digit",
+                })}
+              </span>
+            </TimestampTooltip>
+          ),
+          size: 180,
+        },
+        {
+          id: "menu",
+          enableHiding: false,
+          header: ({ table }) => <EditColumnsButton table={table} />,
+          cell: () => null,
+        },
+      ].filter((c) => c.id === "menu" || LOGS_TABLE_COLUMNS.all.includes(c.id)),
     [],
   );
 
@@ -198,6 +257,9 @@ export function LogsTable() {
   const { table, ...tableProps } = useTable({
     data: logs || [],
     columns,
+    columnPinning: { right: ["menu"] },
+    columnVisibility,
+    onColumnVisibilityChange: setColumnVisibility,
     pagination,
     onPaginationChange: setPagination,
     onRowClick: (row, e) => {
@@ -214,15 +276,14 @@ export function LogsTable() {
         | {
             filterParams?: (
               cell: Cell<EnrichedApiLog, unknown>,
-            ) => Record<string, any>;
+            ) => Record<string, any> | undefined;
           }
         | undefined;
 
-      return (
-        meta?.filterParams && (
-          <FilterButtonTableRow set={meta.filterParams(cell)} />
-        )
-      );
+      if (!meta?.filterParams) return null;
+      const params = meta.filterParams(cell);
+      if (!params || Object.keys(params).length === 0) return null;
+      return <FilterButtonTableRow set={params} />;
     },
     thClassName: "border-l-0",
     tdClassName: "border-l-0",

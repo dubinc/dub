@@ -58,6 +58,8 @@ export async function enrichApiLogs(
 
   const enriched = logsArray.map((log) => ({
     ...log,
+    // timestamp is always in UTC
+    timestamp: new Date(log.timestamp + "Z").toISOString(),
     token: log.token_id ? tokenMap.get(log.token_id) ?? null : null,
     user: log.user_id
       ? webhookRequestActorsMap.get(log.user_id) ??
