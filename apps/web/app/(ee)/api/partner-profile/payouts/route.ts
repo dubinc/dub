@@ -28,9 +28,10 @@ export const GET = withPartnerProfile(
     const payouts = await prisma.payout.findMany({
       where: {
         partnerId: partner.id,
-        ...(programId && { programId }),
+        ...(programId
+          ? { programId }
+          : programScopeFilter(partnerUser.assignedPrograms)),
         ...(status && { status }),
-        ...programScopeFilter(partnerUser.assignedPrograms),
       },
       include: {
         program: true,
