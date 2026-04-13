@@ -10,7 +10,6 @@ async function main() {
     trackedSitemaps: [{ url: sitemapUrl }],
     domain,
     projectId,
-    skipRedisCache: true,
   });
 
   console.table(linksToCreate);

@@ -256,7 +256,7 @@ export async function importTrackedSitemaps({
         );
 
         const nonSitemapUrls = crawledUrls.filter(
-          (url) => !url.endsWith("sitemap.xml"),
+          (url) => !url.endsWith(".xml"),
         );
 
         for (const url of nonSitemapUrls) {
