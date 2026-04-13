@@ -85,6 +85,9 @@ export const getApiLogsQuerySchema = z
     tokenId: z.string().optional(),
     requestId: z.string().optional(),
     requestType: requestTypeSchema.optional(),
+    start: z.string().optional(),
+    end: z.string().optional(),
+    interval: z.string().optional(),
   })
   .extend(
     getPaginationQuerySchema({
