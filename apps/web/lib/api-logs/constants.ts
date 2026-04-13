@@ -1,9 +1,15 @@
 import type { PlanProps } from "@/lib/types";
 import {
   APPSFLYER_INTEGRATION_ID,
+  HUBSPOT_INTEGRATION_ID,
   SHOPIFY_INTEGRATION_ID,
   STRIPE_INTEGRATION_ID,
 } from "@dub/utils";
+
+export const PUBLISHABLE_KEY_REQUEST_PATHS = [
+  "/track/lead/client",
+  "/track/sale/client",
+] as const;
 
 // Route patterns for parameterized path matching.
 // Used both for logging eligibility and route pattern extraction.
@@ -13,6 +19,7 @@ export const ROUTE_PATTERNS = [
   "/track/lead",
   "/track/sale",
   "/track/open",
+  ...PUBLISHABLE_KEY_REQUEST_PATHS,
 
   // Partners
   "/partners/links/upsert",
@@ -118,4 +125,17 @@ export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
     image:
       "https://dubassets.com/integrations/int_iWOtrZgmcyU6XDwKr4AYYqLN_jUmF77W",
   },
+  "/hubspot/webhook": {
+    id: HUBSPOT_INTEGRATION_ID,
+    name: "HubSpot",
+    image:
+      "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
+  },
 } as const;
+
+export const PUBLISHABLE_KEY_ACTOR = {
+  id: "publishable_key",
+  name: "Publishable Key",
+  email: null,
+  image: null,
+};

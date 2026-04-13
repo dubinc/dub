@@ -1,3 +1,4 @@
+import { captureRequestLog } from "@/lib/api-logs/capture-request-log";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { ratelimit } from "@/lib/upstash";
@@ -41,9 +42,14 @@ export const withPublishableKey = (
       req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      const startTime = Date.now();
       const params = (await initialParams) || {};
+      const url = new URL(req.url);
+      const reqForLog = req.clone();
+
       let requestHeaders = await headers();
       let responseHeaders = COMMON_CORS_HEADERS;
+      let workspace: Project | null = null;
 
       try {
         const authorizationHeader = requestHeaders.get("Authorization");
@@ -80,7 +86,7 @@ export const withPublishableKey = (
             });
           }
 
-          const workspace = await prisma.project.findUnique({
+          workspace = await prisma.project.findUnique({
             where: {
               publishableKey,
             },
@@ -101,7 +107,25 @@ export const withPublishableKey = (
           }
 
           const searchParams = getSearchParams(req.url);
-          return await handler({ req, params, searchParams, workspace });
+          const response = await handler({
+            req,
+            params,
+            searchParams,
+            workspace,
+          });
+
+          captureRequestLog({
+            req: reqForLog,
+            response,
+            workspace,
+            session: undefined,
+            token: null,
+            url,
+            requestHeaders,
+            startTime,
+          });
+
+          return response;
         } else {
           throw new DubApiError({
             code: "unauthorized",
@@ -109,7 +133,25 @@ export const withPublishableKey = (
           });
         }
       } catch (error) {
-        return handleAndReturnErrorResponse(error, responseHeaders);
+        const errorResponse = handleAndReturnErrorResponse(
+          error,
+          responseHeaders,
+        );
+
+        if (workspace) {
+          captureRequestLog({
+            req: reqForLog,
+            response: errorResponse,
+            workspace,
+            session: undefined,
+            token: null,
+            url,
+            requestHeaders,
+            startTime,
+          });
+        }
+
+        return errorResponse;
       }
     },
   );

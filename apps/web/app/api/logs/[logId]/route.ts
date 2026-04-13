@@ -32,7 +32,12 @@ export const GET = withWorkspace(
       });
     }
 
-    return NextResponse.json(await enrichApiLogs(log));
+    const enrichedLog = await enrichApiLogs({
+      logs: log,
+      workspace,
+    });
+
+    return NextResponse.json(enrichedLog);
   },
   {
     requiredPermissions: ["workspaces.read"],

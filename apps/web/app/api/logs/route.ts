@@ -25,7 +25,12 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
     });
 
-    return NextResponse.json(await enrichApiLogs(logs));
+    const enrichedLogs = await enrichApiLogs({
+      logs,
+      workspace,
+    });
+
+    return NextResponse.json(enrichedLogs);
   },
   {
     requiredPermissions: ["workspaces.read"],
