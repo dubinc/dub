@@ -8,9 +8,11 @@ import { Markdown } from "@tiptap/markdown";
 import { Editor, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
-  PropsWithChildren,
   createContext,
+  Dispatch,
   forwardRef,
+  PropsWithChildren,
+  SetStateAction,
   useContext,
   useEffect,
   useImperativeHandle,
@@ -60,7 +62,7 @@ export const RichTextContext = createContext<
       editor: Editor | null;
       isUploading: boolean;
       linkEditorOpen: boolean;
-      setLinkEditorOpen: (open: boolean) => void;
+      setLinkEditorOpen: Dispatch<SetStateAction<boolean>>;
       handleImageUpload:
         | ((file: File, currentEditor: Editor, pos: number) => Promise<void>)
         | null;

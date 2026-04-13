@@ -1,6 +1,14 @@
 import { cn } from "@dub/utils";
 import { useEditorState } from "@tiptap/react";
-import { ReactNode, forwardRef, useEffect, useRef } from "react";
+import {
+  ReactNode,
+  forwardRef,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { Button } from "../button";
 import {
   AtSign,
   Heading1,
@@ -12,6 +20,8 @@ import {
   TextItalic,
   TextStrike,
 } from "../icons";
+import { Input } from "../input";
+import { Modal } from "../modal";
 import { useRichTextContext } from "./rich-text-provider";
 
 function normalizeLinkUrl(url: string) {
@@ -22,6 +32,52 @@ function normalizeLinkUrl(url: string) {
   if (/^[a-z][a-z0-9+.-]*:/i.test(trimmedUrl)) return trimmedUrl;
 
   return `https://${trimmedUrl}`;
+}
+
+type LinkSelectionState = {
+  from: number;
+  to: number;
+  text: string;
+  href: string;
+  isLink: boolean;
+};
+
+function getLinkRange(
+  editor: NonNullable<ReturnType<typeof useRichTextContext>["editor"]>,
+) {
+  const { state } = editor;
+  const linkMark = state.schema.marks.link;
+
+  if (!linkMark || !editor.isActive("link")) {
+    return null;
+  }
+
+  let from = state.selection.from;
+  let to = state.selection.to;
+
+  if (from === to) {
+    if (from > 0 && state.doc.rangeHasMark(from - 1, from, linkMark)) {
+      from -= 1;
+    } else if (
+      to < state.doc.content.size &&
+      state.doc.rangeHasMark(to, to + 1, linkMark)
+    ) {
+      to += 1;
+    }
+  }
+
+  while (from > 0 && state.doc.rangeHasMark(from - 1, from, linkMark)) {
+    from -= 1;
+  }
+
+  while (
+    to < state.doc.content.size &&
+    state.doc.rangeHasMark(to, to + 1, linkMark)
+  ) {
+    to += 1;
+  }
+
+  return { from, to };
 }
 
 export function RichTextToolbar({
@@ -151,6 +207,16 @@ export function RichTextToolbar({
 
 function LinkButton() {
   const { editor, linkEditorOpen, setLinkEditorOpen } = useRichTextContext();
+  const linkInputRef = useRef<HTMLInputElement>(null);
+  const [selectionState, setSelectionState] = useState<LinkSelectionState>({
+    from: 0,
+    to: 0,
+    text: "",
+    href: "",
+    isLink: false,
+  });
+  const [textValue, setTextValue] = useState("");
+  const [urlValue, setUrlValue] = useState("");
 
   const editorState = useEditorState({
     editor,
@@ -160,35 +226,204 @@ function LinkButton() {
     }),
   });
 
+  const canOpenLinkEditor = useMemo(
+    () => Boolean(editorState?.isSelection || editorState?.isLink),
+    [editorState?.isLink, editorState?.isSelection],
+  );
+
   useEffect(() => {
     if (!editor || !linkEditorOpen) return;
 
-    const previousUrl = editor.getAttributes("link").href;
-    const url = window.prompt("Link URL", previousUrl);
-    const normalizedUrl = url ? normalizeLinkUrl(url) : url;
+    const { selection, doc } = editor.state;
+    const linkRange = getLinkRange(editor);
+    const from = linkRange?.from ?? selection.from;
+    const to = linkRange?.to ?? selection.to;
+    const text = doc.textBetween(from, to, "\n");
+    const href = editor.getAttributes("link").href ?? "";
 
-    if (!normalizedUrl?.trim()) {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-    } else {
-      editor
-        .chain()
-        .focus()
-        .extendMarkRange("link")
-        .setLink({ href: normalizedUrl })
-        .run();
-    }
+    setSelectionState({
+      from,
+      to,
+      text,
+      href,
+      isLink: Boolean(linkRange),
+    });
+    setTextValue(text);
+    setUrlValue(href);
+  }, [editor, linkEditorOpen]);
 
+  useEffect(() => {
+    if (!linkEditorOpen) return;
+
+    requestAnimationFrame(() => {
+      linkInputRef.current?.focus();
+      linkInputRef.current?.select();
+    });
+  }, [linkEditorOpen]);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const root = editor.view.dom as HTMLElement;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (
+        !(event.metaKey || event.ctrlKey) ||
+        event.key.toLowerCase() !== "k"
+      ) {
+        return;
+      }
+
+      if (!canOpenLinkEditor) return;
+
+      event.preventDefault();
+      event.stopPropagation();
+      setLinkEditorOpen(true);
+    };
+
+    root.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      root.removeEventListener("keydown", onKeyDown);
+    };
+  }, [canOpenLinkEditor, editor, setLinkEditorOpen]);
+
+  const closeModal = () => {
     setLinkEditorOpen(false);
-  }, [editor, linkEditorOpen, setLinkEditorOpen]);
+  };
+
+  const deleteLink = () => {
+    if (!editor) return;
+
+    editor
+      .chain()
+      .focus()
+      .setTextSelection({
+        from: selectionState.from,
+        to: selectionState.to,
+      })
+      .unsetLink()
+      .run();
+
+    closeModal();
+  };
+
+  const saveLink = () => {
+    if (!editor) return;
+
+    const normalizedUrl = normalizeLinkUrl(urlValue);
+    const nextText = textValue;
+
+    if (!normalizedUrl || !nextText.trim()) return;
+
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(
+        {
+          from: selectionState.from,
+          to: selectionState.to,
+        },
+        nextText,
+      )
+      .setTextSelection({
+        from: selectionState.from,
+        to: selectionState.from + nextText.length,
+      })
+      .setLink({ href: normalizedUrl })
+      .run();
+
+    closeModal();
+  };
 
   return (
-    <RichTextToolbarButton
-      icon={Hyperlink}
-      label="Link"
-      isActive={editorState?.isLink}
-      onClick={() => setLinkEditorOpen(true)}
-      disabled={!editorState?.isSelection && !editorState?.isLink}
-    />
+    <>
+      <RichTextToolbarButton
+        icon={Hyperlink}
+        label="Link"
+        isActive={editorState?.isLink}
+        onClick={() => setLinkEditorOpen(true)}
+        disabled={!canOpenLinkEditor}
+      />
+
+      <Modal showModal={linkEditorOpen} setShowModal={setLinkEditorOpen}>
+        <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+          <h3 className="text-lg font-medium leading-none">
+            {selectionState.isLink ? "Edit link" : "Add link"}
+          </h3>
+        </div>
+
+        <div className="bg-neutral-50 p-4 sm:p-6">
+          <div className="space-y-4">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-neutral-700">
+                Text
+              </label>
+              <Input
+                value={textValue}
+                onChange={(event) => setTextValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return;
+
+                  event.preventDefault();
+                  saveLink();
+                }}
+                className="max-w-none"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-neutral-700">
+                Link
+              </label>
+              <Input
+                ref={linkInputRef}
+                value={urlValue}
+                onChange={(event) => setUrlValue(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key !== "Enter") return;
+
+                  event.preventDefault();
+                  saveLink();
+                }}
+                placeholder="https://example.com"
+                className="max-w-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+          <div>
+            {selectionState.isLink && (
+              <button
+                type="button"
+                onClick={deleteLink}
+                className="rounded-md px-3 py-2 text-sm text-neutral-700 transition-colors hover:bg-neutral-100"
+              >
+                Delete link
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              onClick={closeModal}
+              variant="secondary"
+              text="Cancel"
+              className="h-8 w-fit px-3"
+            />
+            <Button
+              type="button"
+              onClick={saveLink}
+              text="Save"
+              disabled={!textValue.trim() || !urlValue.trim()}
+              className="h-8 w-fit px-3"
+            />
+          </div>
+        </div>
+      </Modal>
+    </>
   );
 }
 
