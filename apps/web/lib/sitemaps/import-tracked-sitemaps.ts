@@ -328,6 +328,10 @@ export async function importTrackedSitemaps({
     (link) => !existingKeys.has(link.key),
   );
 
+  console.log(
+    `[importTrackedSitemaps] Found ${linksToCreate.length} links to create, running bulkCreateLinks...`,
+  );
+
   const createdLinks = await bulkCreateLinks({
     links: linksToCreate,
     skipRedisCache,
