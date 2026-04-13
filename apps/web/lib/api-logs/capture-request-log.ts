@@ -38,6 +38,7 @@ export function getRoutePattern(path: string): string {
 }
 
 export function captureRequestLog({
+  requestId,
   req,
   response,
   workspace,
@@ -47,6 +48,7 @@ export function captureRequestLog({
   requestHeaders,
   startTime,
 }: {
+  requestId?: string;
   req: Request;
   response: Response;
   workspace: WorkspaceWithUsers;
@@ -83,6 +85,7 @@ export function captureRequestLog({
       } catch {}
 
       await recordApiLog({
+        requestId,
         workspaceId: workspace.id,
         method: req.method,
         path: url.pathname,

@@ -34,6 +34,11 @@ const ErrorSchema = z.object({
       description: "A URL to more information about the error code reported.",
       example: "https://dub.co/docs/api-reference",
     }),
+    request_log_url: z.string().optional().meta({
+      description: "A URL to the request log for this error.",
+      example:
+        "https://app.dub.co/acme/settings/logs/req_1KP2VXTJ5ZHJAMZYTYX1YS1RN",
+    }),
   }),
 });
 
@@ -43,19 +48,23 @@ export type ErrorCodes = z.infer<typeof ErrorCode>;
 export class DubApiError extends Error {
   public readonly code: z.infer<typeof ErrorCode>;
   public readonly docUrl?: string;
+  public readonly requestLogUrl?: string;
 
   constructor({
     code,
     message,
     docUrl,
+    requestLogUrl,
   }: {
     code: z.infer<typeof ErrorCode>;
     message: string;
     docUrl?: string;
+    requestLogUrl?: string;
   }) {
     super(message);
     this.code = code;
     this.docUrl = docUrl ?? `${docErrorUrl}#${code.replace("_", "-")}`;
+    this.requestLogUrl = requestLogUrl;
   }
 }
 

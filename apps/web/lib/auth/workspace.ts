@@ -7,6 +7,7 @@ import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
 import { captureRequestLog } from "../api-logs/capture-request-log";
+import { createId } from "../api/create-id";
 import { getRatelimitForPlan } from "../api/get-ratelimit-for-plan";
 import {
   PermissionAction,
@@ -91,6 +92,7 @@ export const withWorkspace = (
       const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
 
+      const requestId = createId({ prefix: "req_" });
       let apiKey: string | undefined = undefined;
       let requestHeaders = await headers();
       let responseHeaders = new Headers();
@@ -479,6 +481,7 @@ export const withWorkspace = (
 
         if (workspace) {
           captureRequestLog({
+            requestId,
             req: reqForLog,
             response,
             workspace,
@@ -499,6 +502,7 @@ export const withWorkspace = (
 
         if (workspace) {
           captureRequestLog({
+            requestId,
             req: reqForLog,
             response: errorResponse,
             workspace,
