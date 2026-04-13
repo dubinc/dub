@@ -26,10 +26,15 @@ import { useRichTextContext } from "./rich-text-provider";
 
 function normalizeLinkUrl(url: string) {
   const trimmedUrl = url.trim();
+  const allowedSchemes = new Set(["http", "https", "mailto"]);
 
   if (!trimmedUrl) return trimmedUrl;
   if (trimmedUrl.startsWith("//")) return `https:${trimmedUrl}`;
-  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmedUrl)) return trimmedUrl;
+
+  const schemeMatch = trimmedUrl.match(/^([a-z][a-z0-9+.-]*):/i);
+  if (schemeMatch) {
+    return allowedSchemes.has(schemeMatch[1].toLowerCase()) ? trimmedUrl : "";
+  }
 
   return `https://${trimmedUrl}`;
 }
@@ -52,6 +57,18 @@ function getLinkRange(
     return null;
   }
 
+  const currentHref = editor.getAttributes("link").href;
+
+  const getAdjacentLinkHref = (side: "left" | "right", pos: number) => {
+    const $pos = state.doc.resolve(pos);
+    const mark =
+      side === "left"
+        ? $pos.nodeBefore?.marks.find((mark) => mark.type === linkMark)
+        : $pos.nodeAfter?.marks.find((mark) => mark.type === linkMark);
+
+    return mark?.attrs.href;
+  };
+
   let from = state.selection.from;
   let to = state.selection.to;
 
@@ -66,13 +83,18 @@ function getLinkRange(
     }
   }
 
-  while (from > 0 && state.doc.rangeHasMark(from - 1, from, linkMark)) {
+  while (
+    from > 0 &&
+    state.doc.rangeHasMark(from - 1, from, linkMark) &&
+    getAdjacentLinkHref("left", from) === currentHref
+  ) {
     from -= 1;
   }
 
   while (
     to < state.doc.content.size &&
-    state.doc.rangeHasMark(to, to + 1, linkMark)
+    state.doc.rangeHasMark(to, to + 1, linkMark) &&
+    getAdjacentLinkHref("right", to) === currentHref
   ) {
     to += 1;
   }
@@ -217,6 +239,8 @@ function LinkButton() {
   });
   const [textValue, setTextValue] = useState("");
   const [urlValue, setUrlValue] = useState("");
+  const textInputId = "rich-text-link-text-input";
+  const linkInputId = "rich-text-link-url-input";
 
   const editorState = useEditorState({
     editor,
@@ -316,16 +340,19 @@ function LinkButton() {
 
     if (!normalizedUrl || !nextText.trim()) return;
 
-    editor
-      .chain()
-      .focus()
-      .insertContentAt(
+    const chain = editor.chain().focus();
+
+    if (selectionState.text !== nextText) {
+      chain.insertContentAt(
         {
           from: selectionState.from,
           to: selectionState.to,
         },
         nextText,
-      )
+      );
+    }
+
+    chain
       .setTextSelection({
         from: selectionState.from,
         to: selectionState.from + nextText.length,
@@ -356,10 +383,14 @@ function LinkButton() {
         <div className="bg-neutral-50 p-4 sm:p-6">
           <div className="space-y-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-neutral-700">
+              <label
+                htmlFor={textInputId}
+                className="mb-1 block text-sm font-medium text-neutral-700"
+              >
                 Text
               </label>
               <Input
+                id={textInputId}
                 value={textValue}
                 onChange={(event) => setTextValue(event.target.value)}
                 onKeyDown={(event) => {
@@ -373,10 +404,14 @@ function LinkButton() {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-neutral-700">
+              <label
+                htmlFor={linkInputId}
+                className="mb-1 block text-sm font-medium text-neutral-700"
+              >
                 Link
               </label>
               <Input
+                id={linkInputId}
                 ref={linkInputRef}
                 value={urlValue}
                 onChange={(event) => setUrlValue(event.target.value)}
