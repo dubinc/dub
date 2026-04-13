@@ -16,7 +16,7 @@ import FireCrawlApp, {
   ErrorResponse,
   ScrapeResponse,
 } from "@mendable/firecrawl-js";
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
@@ -95,9 +95,11 @@ export const generateLanderAction = authActionClient
       ? cleanMarkdown(pricingScrapeResult.markdown || "")
       : null;
 
-    const { object } = await generateObject({
-      model: anthropic("claude-sonnet-4-20250514"),
-      schema: landerData ? programLanderSchema : programLanderSimpleSchema,
+    const { output } = await generateText({
+      model: anthropic("claude-sonnet-4-6"),
+      output: Output.object({
+        schema: landerData ? programLanderSchema : programLanderSimpleSchema,
+      }),
       prompt:
         // Instructions
         `Generate a basic landing page for an affiliate program powered by Dub Partners based on a company website. ` +
@@ -137,7 +139,7 @@ export const generateLanderAction = authActionClient
       temperature: 0.4,
     });
 
-    return programLanderSchema.parse(object);
+    return programLanderSchema.parse(output);
   });
 
 function cleanMarkdown(markdown: string) {

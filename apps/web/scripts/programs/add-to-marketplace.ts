@@ -2,7 +2,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { prisma } from "@dub/prisma";
 import { Category } from "@dub/prisma/client";
 import FireCrawlApp from "@mendable/firecrawl-js";
-import { generateObject } from "ai";
+import { generateText, Output } from "ai";
 import "dotenv-flow/config";
 import * as z from "zod/v4";
 
@@ -94,13 +94,16 @@ Page Title: ${title}
 Meta Description: ${description}
 Website Content Preview: ${content.slice(0, 300)}...`;
 
-    const { object } = await generateObject({
-      model: anthropic("claude-sonnet-4-20250514"),
-      schema: categorizationSchema,
+    const { output } = await generateText({
+      model: anthropic("claude-sonnet-4-6"),
+      output: Output.object({
+        schema: categorizationSchema,
+      }),
       prompt,
+      temperature: 0.4,
     });
 
-    return object.categories;
+    return categorizationSchema.parse(output).categories;
   } catch (error) {
     // console.error(`Error categorizing ${programName}:`, error);
 
