@@ -25,8 +25,6 @@ async function runSitemapQueueBatch(startingAfter?: string) {
       FROM Project p
       INNER JOIN Domain d ON d.projectId = p.id
         AND d.slug = JSON_UNQUOTE(JSON_EXTRACT(p.siteVisitTrackingSettings, '$.siteDomainSlug'))
-        AND d.archived = false
-        AND d.verified = true
       WHERE p.siteVisitTrackingSettings IS NOT NULL
         AND JSON_LENGTH(JSON_EXTRACT(p.siteVisitTrackingSettings, '$.trackedSitemaps')) > 0
         AND CHAR_LENGTH(TRIM(IFNULL(JSON_UNQUOTE(JSON_EXTRACT(p.siteVisitTrackingSettings, '$.siteDomainSlug')), ''))) > 0
