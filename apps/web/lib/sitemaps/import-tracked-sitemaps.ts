@@ -90,17 +90,21 @@ function extractKeyFromUrl(url: string) {
   return key === "" ? "_root" : key;
 }
 
-function isSitemapLikeUrl(url: string) {
+/** Nested sitemap documents linked from a urlset; users add these as separate tracked sources. */
+function isNestedXmlSitemapUrl(url: string) {
   try {
     const parsed = new URL(url);
-    const pathname = parsed.pathname.toLowerCase();
-    return pathname.endsWith(".xml") && pathname.includes("sitemap");
+    return parsed.pathname.toLowerCase().endsWith(".xml");
   } catch {
     return false;
   }
 }
 
 const FETCH_TIMEOUT_MS = 10_000;
+const MAX_REDIRECTS = 10;
+
+/** Max page URLs collected from a single registered sitemap file (no nested fetches). */
+export const MAX_URLS_PER_SITEMAP = 2000;
 
 async function decompressIfGzip(buffer: ArrayBuffer): Promise<string> {
   const bytes = new Uint8Array(buffer);
@@ -135,92 +139,94 @@ async function decompressIfGzip(buffer: ArrayBuffer): Promise<string> {
   return new TextDecoder().decode(bytes);
 }
 
+async function fetchSitemapWithSsrfSafeRedirects(
+  initialUrl: string,
+): Promise<Response> {
+  let currentUrl = normalizeSitemapUrl(initialUrl);
+
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+    let response: Response;
+    try {
+      response = await fetch(currentUrl, {
+        signal: controller.signal,
+        redirect: "manual",
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get("Location");
+      if (!location) {
+        throw new Error(
+          `Sitemap redirect (${response.status}) missing Location header: ${currentUrl}`,
+        );
+      }
+      if (hop === MAX_REDIRECTS) {
+        throw new Error(
+          `Too many redirects while fetching sitemap (max ${MAX_REDIRECTS}).`,
+        );
+      }
+      const resolved = new URL(location, currentUrl).href;
+      currentUrl = normalizeSitemapUrl(resolved);
+      continue;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch sitemap (${response.status}): ${currentUrl}`,
+      );
+    }
+
+    return response;
+  }
+
+  throw new Error(`Too many redirects while fetching sitemap.`);
+}
+
 async function fetchAndParseSitemap(url: string): Promise<SitemapXmlResult> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
-  let response: Response;
-  try {
-    response = await fetch(url, {
-      signal: controller.signal,
-      redirect: "follow",
-    });
-  } finally {
-    clearTimeout(timer);
-  }
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch sitemap (${response.status}): ${url}`);
-  }
-
+  const response = await fetchSitemapWithSsrfSafeRedirects(url);
   const buffer = await response.arrayBuffer();
   const xml = await decompressIfGzip(buffer);
   return parser.parse(xml) as SitemapXmlResult;
 }
 
+/**
+ * Fetches a single sitemap URL (with SSRF-safe redirect handling). Does not follow
+ * nested sitemap index entries or .xml urls inside a urlset — those must be added
+ * as separate tracked sitemaps.
+ */
 export async function crawlSitemapUrls(rootSitemapUrl: string) {
-  const visitedSitemaps = new Set<string>();
   const discoveredUrls = new Set<string>();
-  const queue = [normalizeSitemapUrl(rootSitemapUrl)];
   let hadErrors = false;
 
-  while (queue.length > 0) {
-    const sitemapUrl = queue.shift();
-    if (!sitemapUrl || visitedSitemaps.has(sitemapUrl)) {
-      continue;
-    }
+  const sitemapUrl = normalizeSitemapUrl(rootSitemapUrl);
 
-    visitedSitemaps.add(sitemapUrl);
-
-    let parsed: SitemapXmlResult;
-    try {
-      parsed = await fetchAndParseSitemap(sitemapUrl);
-    } catch (error) {
-      console.error(`Failed to fetch nested sitemap ${sitemapUrl}:`, error);
-      hadErrors = true;
-      continue;
-    }
-
-    const urlsetLocs = toArray(parsed.urlset?.url)
-      .map((entry) => entry?.loc?.trim())
-      .filter((url): url is string => Boolean(url));
-
-    const nestedSitemapsFromUrlset = urlsetLocs
-      .filter((url) => isSitemapLikeUrl(url))
-      .flatMap((url) => {
-        try {
-          return [normalizeSitemapUrl(url)];
-        } catch {
-          return [];
-        }
-      });
-
-    const pageUrls = urlsetLocs.filter((url) => !isSitemapLikeUrl(url));
-
-    for (const pageUrl of pageUrls) {
-      discoveredUrls.add(pageUrl);
-    }
-
-    const nestedSitemaps = toArray(parsed.sitemapindex?.sitemap)
-      .map((entry) => entry?.loc?.trim())
-      .filter((url): url is string => Boolean(url))
-      .flatMap((url) => {
-        try {
-          return [normalizeSitemapUrl(url)];
-        } catch {
-          return [];
-        }
-      });
-
-    for (const nestedSitemap of [
-      ...nestedSitemaps,
-      ...nestedSitemapsFromUrlset,
-    ]) {
-      if (!visitedSitemaps.has(nestedSitemap)) {
-        queue.push(nestedSitemap);
-      }
-    }
+  let parsed: SitemapXmlResult;
+  try {
+    parsed = await fetchAndParseSitemap(sitemapUrl);
+  } catch (error) {
+    console.error(`Failed to fetch sitemap ${sitemapUrl}:`, error);
+    return { urls: [] as string[], hadErrors: true };
   }
+
+  const urlsetLocs = toArray(parsed.urlset?.url)
+    .map((entry) => entry?.loc?.trim())
+    .filter((url): url is string => Boolean(url));
+
+  const pageUrls = urlsetLocs.filter((url) => !isNestedXmlSitemapUrl(url));
+
+  for (const pageUrl of pageUrls) {
+    if (discoveredUrls.size >= MAX_URLS_PER_SITEMAP) {
+      break;
+    }
+    discoveredUrls.add(pageUrl);
+  }
+
+  // sitemapindex children are intentionally not fetched; users register each file separately.
 
   return { urls: Array.from(discoveredUrls), hadErrors };
 }
@@ -231,14 +237,12 @@ export async function importTrackedSitemaps({
   projectId,
   userId,
   folderId,
-  skipRedisCache = true,
 }: {
   trackedSitemaps: TrackedSitemap[];
   domain: string;
   projectId: string;
   userId?: string;
   folderId?: string;
-  skipRedisCache?: boolean;
 }) {
   const nowIso = new Date().toISOString();
 
@@ -334,7 +338,13 @@ export async function importTrackedSitemaps({
 
   const createdLinks = await bulkCreateLinks({
     links: linksToCreate,
-    skipRedisCache,
+    skipRedisCache: true,
+  });
+
+  console.log({
+    linksToCreate,
+    createdLinks,
+    updatedTrackedSitemaps,
   });
 
   return {

@@ -5,10 +5,11 @@ import {
   parseTrackedSitemaps,
 } from "@/lib/sitemaps/import-tracked-sitemaps";
 import {
-  findVerifiedSiteLinksDomain,
   getOrCreateSiteLinksFolder,
+  getSiteLinksDomain,
   replaceTrackedSitemapsInColumn,
 } from "@/lib/sitemaps/site-visit-tracking";
+import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
@@ -44,7 +45,17 @@ export const POST = withWorkspace(
       });
     }
 
-    const selectedDomain = await findVerifiedSiteLinksDomain(
+    const rateLimitKey = `sitemap-import:${workspace.id}:${sitemapUrl ?? "all"}`;
+    const { success } = await ratelimit(5, "1 m").limit(rateLimitKey);
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message:
+          "Sitemap import was requested too recently. Please wait a minute and try again.",
+      });
+    }
+
+    const selectedDomain = await getSiteLinksDomain(
       workspace.id,
       workspace.siteVisitTrackingSettings,
     );
@@ -69,7 +80,6 @@ export const POST = withWorkspace(
         projectId: workspace.id,
         userId: session.user.id,
         folderId: siteLinksFolderId,
-        skipRedisCache: true,
       });
 
     const updatedByUrl = new Map(

@@ -4,8 +4,8 @@ import {
   parseTrackedSitemaps,
 } from "@/lib/sitemaps/import-tracked-sitemaps";
 import {
-  findVerifiedSiteLinksDomain,
   getOrCreateSiteLinksFolder,
+  getSiteLinksDomain,
   replaceTrackedSitemapsInColumn,
 } from "@/lib/sitemaps/site-visit-tracking";
 import { prisma } from "@dub/prisma";
@@ -47,7 +47,7 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  const selectedDomain = await findVerifiedSiteLinksDomain(
+  const selectedDomain = await getSiteLinksDomain(
     workspace.id,
     workspace.siteVisitTrackingSettings,
   );
@@ -91,7 +91,6 @@ export const POST = withCron(async ({ rawBody }) => {
       projectId: workspace.id,
       userId: owner.userId,
       folderId: siteLinksFolderId,
-      skipRedisCache: true,
     });
 
   await prisma.project.update({

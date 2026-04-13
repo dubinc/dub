@@ -7,6 +7,7 @@ import { DomainSchema } from "./domains";
 import { googleUserContentUrlSchema, uploadedImageSchema } from "./images";
 import { planSchema, roleSchema } from "./misc";
 export {
+  MAX_TRACKED_SITEMAPS_PER_WORKSPACE,
   siteVisitTrackingSettingsPatchSchema,
   trackedSitemapSchema,
 } from "./site-visit-tracking";

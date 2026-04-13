@@ -150,7 +150,7 @@ export const workspaceSiteVisitTrackingSettingsFieldSchema = zod.preprocess(
 // Verified domain for sitemap-import short links
 // -----------------------------------------------------------------------------
 
-export async function findVerifiedSiteLinksDomain(
+export async function getSiteLinksDomain(
   projectId: string,
   siteVisitTrackingSettings: unknown,
 ) {
@@ -166,8 +166,6 @@ export async function findVerifiedSiteLinksDomain(
     where: {
       projectId,
       slug: siteDomainSlug,
-      archived: false,
-      verified: true,
     },
     select: {
       slug: true,

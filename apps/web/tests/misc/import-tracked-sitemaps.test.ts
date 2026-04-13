@@ -1,5 +1,6 @@
 import {
   crawlSitemapUrls,
+  MAX_URLS_PER_SITEMAP,
   parseTrackedSitemaps,
 } from "@/lib/sitemaps/import-tracked-sitemaps";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -11,12 +12,21 @@ function toArrayBuffer(buf: Buffer): ArrayBuffer {
   return ab;
 }
 
-function makeFetchResponse(body: Buffer, status = 200): Response {
+function makeFetchResponse(
+  body: Buffer,
+  status = 200,
+  headers?: Record<string, string>,
+): Response {
   return {
     ok: status >= 200 && status < 300,
     status,
+    headers: new Headers(headers),
     arrayBuffer: () => Promise.resolve(toArrayBuffer(body)),
   } as unknown as Response;
+}
+
+function redirectResponse(location: string, status = 302): Response {
+  return makeFetchResponse(Buffer.alloc(0), status, { Location: location });
 }
 
 const urlsetXml = (urls: string[]) =>
@@ -140,7 +150,7 @@ describe("crawlSitemapUrls", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://example.com/sitemap.xml",
-        expect.anything(),
+        expect.objectContaining({ redirect: "manual" }),
       );
     });
 
@@ -153,7 +163,7 @@ describe("crawlSitemapUrls", () => {
 
       expect(mockFetch).toHaveBeenCalledWith(
         "https://example.com/sitemap.xml",
-        expect.anything(),
+        expect.objectContaining({ redirect: "manual" }),
       );
     });
   });
@@ -173,30 +183,34 @@ describe("crawlSitemapUrls", () => {
       ).rejects.toThrow(/private or reserved address/);
     });
 
-    it("silently skips private-host URLs discovered inside nested sitemaps", async () => {
-      mockFetch
-        .mockResolvedValueOnce(
-          makeFetchResponse(
-            Buffer.from(
-              sitemapindexXml([
-                "https://192.168.1.1/internal.xml",
-                "https://example.com/safe.xml",
-              ]),
-            ),
-          ),
-        )
-        .mockResolvedValueOnce(
-          makeFetchResponse(
-            Buffer.from(urlsetXml(["https://example.com/page-1"])),
-          ),
-        );
+    it("rejects a redirect target that resolves to a private host", async () => {
+      mockFetch.mockResolvedValueOnce(
+        redirectResponse("http://169.254.169.254/latest/meta-data/"),
+      );
 
-      const { urls } = await crawlSitemapUrls(
+      const { urls, hadErrors } = await crawlSitemapUrls(
         "https://example.com/sitemap.xml",
       );
 
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(urls).toEqual([]);
+      expect(hadErrors).toBe(true);
+    });
+
+    it("follows a safe redirect chain before parsing XML", async () => {
+      mockFetch
+        .mockResolvedValueOnce(redirectResponse("https://example.com/b.xml"))
+        .mockResolvedValueOnce(
+          makeFetchResponse(Buffer.from(urlsetXml(["https://example.com/p"]))),
+        );
+
+      const { urls, hadErrors } = await crawlSitemapUrls(
+        "https://example.com/a.xml",
+      );
+
       expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(urls).toContain("https://example.com/page-1");
+      expect(urls).toEqual(["https://example.com/p"]);
+      expect(hadErrors).toBe(false);
     });
   });
 
@@ -240,43 +254,28 @@ describe("crawlSitemapUrls", () => {
   });
 
   describe("sitemapindex", () => {
-    it("recursively crawls all nested sitemaps", async () => {
-      mockFetch
-        .mockResolvedValueOnce(
-          makeFetchResponse(
-            Buffer.from(
-              sitemapindexXml([
-                "https://example.com/sitemap-posts.xml",
-                "https://example.com/sitemap-pages.xml",
-              ]),
-            ),
+    it("does not fetch nested sitemaps from a sitemap index", async () => {
+      mockFetch.mockResolvedValueOnce(
+        makeFetchResponse(
+          Buffer.from(
+            sitemapindexXml([
+              "https://example.com/sitemap-posts.xml",
+              "https://example.com/sitemap-pages.xml",
+            ]),
           ),
-        )
-        .mockResolvedValueOnce(
-          makeFetchResponse(
-            Buffer.from(urlsetXml(["https://example.com/post-1"])),
-          ),
-        )
-        .mockResolvedValueOnce(
-          makeFetchResponse(
-            Buffer.from(urlsetXml(["https://example.com/page-1"])),
-          ),
-        );
+        ),
+      );
 
       const { urls, hadErrors } = await crawlSitemapUrls(
         "https://example.com/sitemap.xml",
       );
 
-      expect(urls).toEqual(
-        expect.arrayContaining([
-          "https://example.com/post-1",
-          "https://example.com/page-1",
-        ]),
-      );
+      expect(urls).toEqual([]);
       expect(hadErrors).toBe(false);
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
-    it("does not visit the same sitemap URL twice (cycle protection)", async () => {
+    it("returns no page URLs when the index only references itself", async () => {
       mockFetch.mockResolvedValue(
         makeFetchResponse(
           Buffer.from(sitemapindexXml(["https://example.com/sitemap.xml"])),
@@ -292,31 +291,56 @@ describe("crawlSitemapUrls", () => {
     });
   });
 
+  describe("nested xml in urlset", () => {
+    it("skips .xml loc entries instead of treating them as pages", async () => {
+      mockFetch.mockResolvedValue(
+        makeFetchResponse(
+          Buffer.from(
+            urlsetXml([
+              "https://example.com/page-1",
+              "https://example.com/nested.xml",
+            ]),
+          ),
+        ),
+      );
+
+      const { urls } = await crawlSitemapUrls(
+        "https://example.com/sitemap.xml",
+      );
+
+      expect(urls).toEqual(["https://example.com/page-1"]);
+    });
+  });
+
+  describe("URL volume limits", () => {
+    it(`collects at most ${MAX_URLS_PER_SITEMAP} page URLs from one sitemap`, async () => {
+      const many = Array.from({ length: MAX_URLS_PER_SITEMAP + 50 }, (_, i) =>
+        i === 0
+          ? "https://example.com/first"
+          : `https://example.com/p/${i}`,
+      );
+      mockFetch.mockResolvedValue(
+        makeFetchResponse(Buffer.from(urlsetXml(many))),
+      );
+
+      const { urls } = await crawlSitemapUrls(
+        "https://example.com/sitemap.xml",
+      );
+
+      expect(urls).toHaveLength(MAX_URLS_PER_SITEMAP);
+      expect(urls[0]).toBe("https://example.com/first");
+    });
+  });
+
   describe("error handling", () => {
-    it("skips a failed nested sitemap, continues crawling, and sets hadErrors", async () => {
-      mockFetch
-        .mockResolvedValueOnce(
-          makeFetchResponse(
-            Buffer.from(
-              sitemapindexXml([
-                "https://example.com/broken.xml",
-                "https://example.com/good.xml",
-              ]),
-            ),
-          ),
-        )
-        .mockResolvedValueOnce(makeFetchResponse(Buffer.from("not xml"), 500))
-        .mockResolvedValueOnce(
-          makeFetchResponse(
-            Buffer.from(urlsetXml(["https://example.com/page-1"])),
-          ),
-        );
+    it("sets hadErrors when the sitemap response is not OK", async () => {
+      mockFetch.mockResolvedValueOnce(makeFetchResponse(Buffer.alloc(0), 500));
 
       const { urls, hadErrors } = await crawlSitemapUrls(
         "https://example.com/sitemap.xml",
       );
 
-      expect(urls).toContain("https://example.com/page-1");
+      expect(urls).toEqual([]);
       expect(hadErrors).toBe(true);
     });
   });

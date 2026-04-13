@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
+import { MAX_TRACKED_SITEMAPS_PER_WORKSPACE } from "@/lib/zod/schemas/site-visit-tracking";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { DomainSelector } from "@/ui/domains/domain-selector";
@@ -203,6 +204,13 @@ export function SiteVisitTrackingSection() {
 
     if (sitemapAlreadyExists) {
       toast.error("Sitemap already exists.");
+      return;
+    }
+
+    if (sitemaps.length >= MAX_TRACKED_SITEMAPS_PER_WORKSPACE) {
+      toast.error(
+        `You can track up to ${MAX_TRACKED_SITEMAPS_PER_WORKSPACE} sitemaps per workspace.`,
+      );
       return;
     }
 
@@ -422,12 +430,19 @@ export function SiteVisitTrackingSection() {
                   loading={addingSitemap}
                   disabled={
                     Boolean(permissionsError) ||
-                    (siteVisitTrackingEnabled && !siteDomainSlug)
+                    (siteVisitTrackingEnabled && !siteDomainSlug) ||
+                    (siteVisitTrackingEnabled &&
+                      trackedSitemapRows.length >=
+                        MAX_TRACKED_SITEMAPS_PER_WORKSPACE)
                   }
                   disabledTooltip={
                     permissionsError ||
                     (siteVisitTrackingEnabled && !siteDomainSlug
                       ? "Choose a domain for imports first"
+                      : undefined) ||
+                    (siteVisitTrackingEnabled &&
+                    trackedSitemapRows.length >= MAX_TRACKED_SITEMAPS_PER_WORKSPACE
+                      ? `Maximum ${MAX_TRACKED_SITEMAPS_PER_WORKSPACE} sitemaps per workspace`
                       : undefined)
                   }
                 />
