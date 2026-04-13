@@ -6,16 +6,20 @@ import {
   STRIPE_INTEGRATION_ID,
 } from "@dub/utils";
 
+export const CLIENT_SIDE_REQUEST_PATHS = [
+  "/track/lead/client",
+  "/track/sale/client",
+  "/track/open",
+] as const;
+
 // Route patterns for parameterized path matching.
 // Used both for logging eligibility and route pattern extraction.
 // Order matters: more specific patterns must come before less specific ones.
 export const ROUTE_PATTERNS = [
   // Track
-  "/track/lead/client",
-  "/track/sale/client",
+  ...CLIENT_SIDE_REQUEST_PATHS,
   "/track/lead",
   "/track/sale",
-  "/track/open",
 
   // Partners
   "/partners/links/upsert",
@@ -128,3 +132,10 @@ export const WEBHOOK_REQUEST_ACTORS_BY_PATH = {
       "https://dubassets.com/integrations/int_ffw3qgrFAahY6qs1hXaH3wHS_JPoCPOh",
   },
 } as const;
+
+export const PUBLISHABLE_KEY_ACTOR = {
+  id: "publishable_key",
+  name: "Publishable Key",
+  email: null,
+  image: null,
+};

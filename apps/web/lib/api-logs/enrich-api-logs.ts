@@ -1,6 +1,10 @@
 import { prisma } from "@dub/prisma";
 import { ApiLogTB, EnrichedApiLog } from "../types";
-import { WEBHOOK_REQUEST_ACTORS_BY_PATH } from "./constants";
+import {
+  CLIENT_SIDE_REQUEST_PATHS,
+  PUBLISHABLE_KEY_ACTOR,
+  WEBHOOK_REQUEST_ACTORS_BY_PATH,
+} from "./constants";
 
 export async function enrichApiLogs(
   logs: ApiLogTB | ApiLogTB[],
@@ -56,16 +60,20 @@ export async function enrichApiLogs(
     ]),
   );
 
+  const clientSideRequestPaths = new Set<string>(CLIENT_SIDE_REQUEST_PATHS);
+
   const enriched = logsArray.map((log) => ({
     ...log,
     // timestamp is always in UTC
     timestamp: new Date(log.timestamp + "Z").toISOString(),
     token: log.token_id ? tokenMap.get(log.token_id) ?? null : null,
-    user: log.user_id
-      ? webhookRequestActorsMap.get(log.user_id) ??
-        userMap.get(log.user_id) ??
-        null
-      : null,
+    user: clientSideRequestPaths.has(log.route_pattern)
+      ? PUBLISHABLE_KEY_ACTOR
+      : log.user_id
+        ? webhookRequestActorsMap.get(log.user_id) ??
+          userMap.get(log.user_id) ??
+          null
+        : null,
   }));
 
   return isSingle ? enriched[0] : enriched;
