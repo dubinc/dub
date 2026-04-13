@@ -63,6 +63,14 @@ export const POST = async (req: Request) => {
     );
   }
 
+  const requestLog = {
+    workspaceId: workspace.id,
+    method: req.method,
+    path: "/shopify/integration/webhook" as const,
+    requestBody: event,
+    userAgent: req.headers.get("user-agent"),
+  };
+
   let response = "OK";
 
   try {
@@ -109,14 +117,10 @@ export const POST = async (req: Request) => {
 
     waitUntil(
       captureWebhookLog({
-        workspaceId: workspace.id,
-        method: req.method,
-        path: "/shopify/integration/webhook",
+        ...requestLog,
         statusCode: 500,
         duration: Date.now() - startTime,
-        requestBody: event,
         responseBody: response,
-        userAgent: req.headers.get("user-agent"),
       }),
     );
 
@@ -125,14 +129,10 @@ export const POST = async (req: Request) => {
 
   waitUntil(
     captureWebhookLog({
-      workspaceId: workspace.id,
-      method: req.method,
-      path: "/shopify/integration/webhook",
+      ...requestLog,
       statusCode: 200,
       duration: Date.now() - startTime,
-      requestBody: event,
       responseBody: response,
-      userAgent: req.headers.get("user-agent"),
     }),
   );
 
