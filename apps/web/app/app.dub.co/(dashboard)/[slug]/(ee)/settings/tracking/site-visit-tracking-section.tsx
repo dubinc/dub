@@ -1,9 +1,9 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/client-access-check";
-import { MAX_TRACKED_SITEMAPS_PER_WORKSPACE } from "@/lib/zod/schemas/site-visit-tracking";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { MAX_TRACKED_SITEMAPS_PER_WORKSPACE } from "@/lib/zod/schemas/site-visit-tracking";
 import { DomainSelector } from "@/ui/domains/domain-selector";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -415,7 +415,7 @@ export function SiteVisitTrackingSection() {
                     type="text"
                     value={newSitemapUrl}
                     onChange={(e) => setNewSitemapUrl(e.target.value)}
-                    placeholder="e.g. www.acme.com/sitemap.xml"
+                    placeholder="e.g. https://acme.com/sitemap.xml"
                     className="h-7 w-full rounded-lg border border-neutral-300 px-2.5 text-sm focus:border-neutral-500 focus:outline-none focus:ring-0 sm:w-[260px]"
                   />
                 )}
@@ -441,7 +441,8 @@ export function SiteVisitTrackingSection() {
                       ? "Choose a domain for imports first"
                       : undefined) ||
                     (siteVisitTrackingEnabled &&
-                    trackedSitemapRows.length >= MAX_TRACKED_SITEMAPS_PER_WORKSPACE
+                    trackedSitemapRows.length >=
+                      MAX_TRACKED_SITEMAPS_PER_WORKSPACE
                       ? `Maximum ${MAX_TRACKED_SITEMAPS_PER_WORKSPACE} sitemaps per workspace`
                       : undefined)
                   }
