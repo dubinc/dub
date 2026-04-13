@@ -23,7 +23,7 @@ export const dynamic = "force-dynamic";
 const schema = z.object({
   programId: z.string(),
   groupId: z.string(),
-  partnerIds: z.array(z.string()).min(1),
+  partnerIds: z.array(z.string()),
   userId: z.string().nullish(),
   isGroupDeleted: z.boolean().optional(),
 });
@@ -50,6 +50,12 @@ export async function POST(req: Request) {
 
     const { programId, groupId, partnerIds, userId, isGroupDeleted } =
       schema.parse(JSON.parse(rawBody));
+
+    if (partnerIds.length === 0) {
+      return logAndRespond(
+        `No partners to remap default links for. Skipping...`,
+      );
+    }
 
     const [program, partnerGroup, programEnrollments] = await Promise.all([
       prisma.program.findUniqueOrThrow({
@@ -274,7 +280,7 @@ export async function POST(req: Request) {
     return logAndRespond(`Finished creating default links for the partners.`);
   } catch (error) {
     await log({
-      message: `Error creating default links for the partners: ${error.message}.`,
+      message: `Error remapping default links for the partners: ${error.message}.`,
       type: "errors",
     });
 
