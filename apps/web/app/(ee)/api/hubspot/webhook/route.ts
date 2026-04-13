@@ -60,32 +60,40 @@ export const POST = withAxiom(async (req) => {
     const results = await Promise.allSettled(payload.map(processWebhookEvent));
 
     const responseBody = { message: "Webhook received." };
-
-    // Collect unique workspace IDs from fulfilled results
-    const workspaceIds = [
-      ...new Set(
-        results
-          .filter(
-            (r): r is PromiseFulfilledResult<string | undefined> =>
-              r.status === "fulfilled" && !!r.value,
-          )
-          .map((r) => r.value!),
-      ),
-    ];
-
     const duration = Date.now() - startTime;
 
+    // Collect log entries from fulfilled results, including failures
+    const logEntries: Array<{
+      workspaceId: string;
+      statusCode: number;
+      responseBody: unknown;
+    }> = [];
+
+    for (const r of results) {
+      if (r.status !== "fulfilled" || !r.value) {
+        continue;
+      }
+
+      const { workspaceId, errorResponse } = r.value;
+
+      logEntries.push({
+        workspaceId,
+        statusCode: errorResponse ? errorResponse.status : 200,
+        responseBody: errorResponse ?? responseBody,
+      });
+    }
+
     waitUntil(
-      Promise.all(
-        workspaceIds.map((workspaceId) =>
+      Promise.allSettled(
+        logEntries.map((entry) =>
           captureWebhookLog({
-            workspaceId,
+            workspaceId: entry.workspaceId,
             method: req.method,
             path: "/hubspot/webhook",
-            statusCode: 200,
+            statusCode: entry.statusCode,
             duration,
             requestBody: payload,
-            responseBody,
+            responseBody: entry.responseBody,
             userAgent: req.headers.get("user-agent"),
           }),
         ),
@@ -98,8 +106,8 @@ export const POST = withAxiom(async (req) => {
   }
 });
 
-// Process individual event, returns workspaceId if resolved
-async function processWebhookEvent(event: any): Promise<string | undefined> {
+// Process individual event, returns workspaceId and error response if failed
+async function processWebhookEvent(event: any) {
   const { objectTypeId, portalId, subscriptionType } =
     hubSpotWebhookSchema.parse(event);
 
@@ -144,52 +152,61 @@ async function processWebhookEvent(event: any): Promise<string | undefined> {
   console.log("[HubSpot] Event", event);
   console.log("[HubSpot] Integration settings", settings);
 
-  // Contact events
-  if (objectTypeId === "0-1") {
-    const isContactCreated = subscriptionType === "object.creation";
+  try {
+    // Contact events
+    if (objectTypeId === "0-1") {
+      const isContactCreated = subscriptionType === "object.creation";
 
-    const isLifecycleStageChanged =
-      subscriptionType === "object.propertyChange" &&
-      settings.leadTriggerEvent === "lifecycleStageReached";
+      const isLifecycleStageChanged =
+        subscriptionType === "object.propertyChange" &&
+        settings.leadTriggerEvent === "lifecycleStageReached";
 
-    if (isContactCreated || isLifecycleStageChanged) {
-      await trackHubSpotLeadEvent({
-        payload: event,
-        workspace,
-        authToken,
-        settings,
-      });
+      if (isContactCreated || isLifecycleStageChanged) {
+        await trackHubSpotLeadEvent({
+          payload: event,
+          workspace,
+          authToken,
+          settings,
+        });
+      }
     }
+
+    // Deal event
+    if (objectTypeId === "0-3") {
+      const isDealCreated =
+        subscriptionType === "object.creation" &&
+        settings.leadTriggerEvent === "dealCreated";
+
+      const isDealUpdated = subscriptionType === "object.propertyChange";
+
+      // Track the final lead event
+      if (isDealCreated) {
+        await trackHubSpotLeadEvent({
+          payload: event,
+          workspace,
+          authToken,
+          settings,
+        });
+      }
+
+      // Track the sale event when deal is closed won
+      else if (isDealUpdated) {
+        await trackHubSpotSaleEvent({
+          payload: event,
+          workspace,
+          authToken,
+          settings,
+        });
+      }
+    }
+  } catch (error) {
+    return {
+      workspaceId: workspace.id,
+      errorResponse: handleAndReturnErrorResponse(error),
+    };
   }
 
-  // Deal event
-  if (objectTypeId === "0-3") {
-    const isDealCreated =
-      subscriptionType === "object.creation" &&
-      settings.leadTriggerEvent === "dealCreated";
-
-    const isDealUpdated = subscriptionType === "object.propertyChange";
-
-    // Track the final lead event
-    if (isDealCreated) {
-      await trackHubSpotLeadEvent({
-        payload: event,
-        workspace,
-        authToken,
-        settings,
-      });
-    }
-
-    // Track the sale event when deal is closed won
-    else if (isDealUpdated) {
-      await trackHubSpotSaleEvent({
-        payload: event,
-        workspace,
-        authToken,
-        settings,
-      });
-    }
-  }
-
-  return workspace.id;
+  return {
+    workspaceId: workspace.id,
+  };
 }
