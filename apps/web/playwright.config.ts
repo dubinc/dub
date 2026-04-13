@@ -32,7 +32,7 @@ export default defineConfig({
         storageState: "playwright/.auth/partner.json",
       },
       testDir: "./playwright/partners",
-      testIgnore: /(auth\.setup|rbac)\.ts/,
+      testIgnore: /(auth\.setup|rbac)(\.spec)?\.ts$/,
       dependencies: ["partner-setup"],
     },
     // Partner RBAC tests

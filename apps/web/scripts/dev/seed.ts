@@ -153,6 +153,12 @@ function parseCliArgs(argv: string[]) {
       i++;
       continue;
     }
+
+    if (a.startsWith("-")) {
+      throw new Error(
+        `Unknown argument: ${a}. Supported flags: --truncate, --workspace / -w <slug>.`,
+      );
+    }
   }
 
   return {

@@ -51,7 +51,7 @@ export function PartnerLinksSelector({
     if (filtered.length !== selectedLinkIds.length) {
       setSelectedLinkIds(filtered.length > 0 ? filtered : undefined);
     }
-  }, [loading, validLinkIds]);
+  }, [loading, isAllLinks, selectedLinkIds, validLinkIds, setSelectedLinkIds]);
 
   const validSelectedLinkIds = isAllLinks
     ? undefined

@@ -19,8 +19,9 @@ export const GET = withPartnerProfile(
 
     const where: Prisma.PayoutWhereInput = {
       partnerId: partner.id,
-      ...(programId && { programId }),
-      ...programScopeFilter(partnerUser.assignedProgramIds),
+      ...(programId
+        ? { programId }
+        : programScopeFilter(partnerUser.assignedProgramIds)),
     };
 
     if (groupBy === "status") {

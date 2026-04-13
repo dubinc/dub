@@ -51,6 +51,7 @@
     "../../packages/ui/src/hooks/use-pagination.ts"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "playwright"
   ]
 }

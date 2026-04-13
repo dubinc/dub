@@ -64,17 +64,6 @@ export function PartnerMemberProgramsCell({
   const displayPrograms =
     programAccess === "all" ? programEnrollments ?? [] : programs;
 
-  if (enrollmentsLoading && programAccess === "all") {
-    return (
-      <div className="inline-flex rounded-lg bg-neutral-100 px-3 py-2">
-        <div
-          className="size-6 shrink-0 animate-pulse rounded-full bg-neutral-200"
-          aria-hidden
-        />
-      </div>
-    );
-  }
-
   // Owner: always show "All" badge, disabled with tooltip
   if (isOwner) {
     return (
@@ -87,6 +76,17 @@ export function PartnerMemberProgramsCell({
           All
         </div>
       </ProgramsHover>
+    );
+  }
+
+  if (enrollmentsLoading && programAccess === "all") {
+    return (
+      <div className="inline-flex rounded-lg bg-neutral-100 px-3 py-2">
+        <div
+          className="size-6 shrink-0 animate-pulse rounded-full bg-neutral-200"
+          aria-hidden
+        />
+      </div>
     );
   }
 
