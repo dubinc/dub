@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import {
   ACTIVE_ENROLLMENT_STATUSES,
@@ -36,6 +36,8 @@ export const bulkArchivePartnersAction = authActionClient
       },
       select: {
         id: true,
+        partnerId: true,
+        status: true,
         partner: {
           select: {
             id: true,
@@ -63,20 +65,20 @@ export const bulkArchivePartnersAction = authActionClient
     });
 
     waitUntil(
-      recordAuditLog(
-        programEnrollments.map(({ partner }) => ({
+      trackActivityLog(
+        programEnrollments.map(({ partnerId, status }) => ({
           workspaceId: workspace.id,
           programId,
+          resourceType: "partner",
+          resourceId: partnerId,
+          userId: user.id,
           action: "partner.archived",
-          description: `Partner ${partner.id} archived`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partner.id,
-              metadata: partner,
+          changeSet: {
+            status: {
+              old: status,
+              new: "archived",
             },
-          ],
+          },
         })),
       ),
     );

@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
@@ -102,20 +102,20 @@ export const bulkApprovePartnersAction = authActionClient
         });
 
         await Promise.allSettled([
-          recordAuditLog(
-            updatedEnrollments.map(({ partner }) => ({
+          trackActivityLog(
+            updatedEnrollments.map(({ partnerId }) => ({
               workspaceId: workspace.id,
               programId: program.id,
-              action: "partner_application.approved",
-              description: `Partner application approved for ${partner.id}`,
-              actor: user,
-              targets: [
-                {
-                  type: "partner",
-                  id: partner.id,
-                  metadata: partner,
+              resourceType: "partner",
+              resourceId: partnerId,
+              userId: user.id,
+              action: "partner.approved",
+              changeSet: {
+                status: {
+                  old: "pending",
+                  new: "approved",
                 },
-              ],
+              },
             })),
           ),
 

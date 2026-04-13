@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { archivePartnerSchema } from "@/lib/zod/schemas/partners";
@@ -29,7 +29,7 @@ export const archivePartnerAction = authActionClient
       include: {},
     });
 
-    const { status, partner } = await prisma.programEnrollment.update({
+    const { status } = await prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
           partnerId,
@@ -46,19 +46,19 @@ export const archivePartnerAction = authActionClient
     });
 
     waitUntil(
-      recordAuditLog({
+      trackActivityLog({
         workspaceId: workspace.id,
         programId,
+        resourceType: "partner",
+        resourceId: partnerId,
+        userId: user.id,
         action: status === "archived" ? "partner.archived" : "partner.approved",
-        description: `Partner ${partnerId} ${status}`,
-        actor: user,
-        targets: [
-          {
-            type: "partner",
-            id: partnerId,
-            metadata: partner,
+        changeSet: {
+          status: {
+            old: programEnrollment.status,
+            new: status,
           },
-        ],
+        },
       }),
     );
   });

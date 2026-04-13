@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { DubApiError } from "@/lib/api/errors";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -115,19 +115,19 @@ export const banPartner = async ({
 
   waitUntil(
     Promise.allSettled([
-      recordAuditLog({
+      trackActivityLog({
         workspaceId: workspace.id,
         programId,
+        resourceType: "partner",
+        resourceId: partnerId,
+        userId: user.id,
         action: "partner.banned",
-        description: `Partner ${partnerId} banned`,
-        actor: user,
-        targets: [
-          {
-            type: "partner",
-            id: partnerId,
-            metadata: programEnrollment.partner,
+        changeSet: {
+          status: {
+            old: programEnrollment.status,
+            new: "banned",
           },
-        ],
+        },
       }),
 
       queue.enqueueJSON({
