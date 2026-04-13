@@ -1,3 +1,4 @@
+import { captureWebhookLog } from "@/lib/api-logs/capture-webhook-log";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { withAxiom } from "@/lib/axiom/server";
 import { hubSpotOAuthProvider } from "@/lib/integrations/hubspot/oauth";
@@ -8,6 +9,7 @@ import {
 import { trackHubSpotLeadEvent } from "@/lib/integrations/hubspot/track-lead";
 import { trackHubSpotSaleEvent } from "@/lib/integrations/hubspot/track-sale";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import crypto from "crypto";
 import { NextResponse } from "next/server";
 
@@ -15,6 +17,8 @@ const HUBSPOT_CLIENT_SECRET = process.env.HUBSPOT_CLIENT_SECRET || "";
 
 // POST /api/hubspot/webhook – listen to webhook events from Hubspot
 export const POST = withAxiom(async (req) => {
+  const startTime = Date.now();
+
   try {
     const rawPayload = await req.text();
     const signature = req.headers.get("X-HubSpot-Signature");
@@ -53,16 +57,49 @@ export const POST = withAxiom(async (req) => {
 
     // HS send multiple events in the same request
     // so we need to process each event individually
-    await Promise.allSettled(payload.map(processWebhookEvent));
+    const results = await Promise.allSettled(payload.map(processWebhookEvent));
 
-    return NextResponse.json({ message: "Webhook received." });
+    const responseBody = { message: "Webhook received." };
+
+    // Collect unique workspace IDs from fulfilled results
+    const workspaceIds = [
+      ...new Set(
+        results
+          .filter(
+            (r): r is PromiseFulfilledResult<string | undefined> =>
+              r.status === "fulfilled" && !!r.value,
+          )
+          .map((r) => r.value!),
+      ),
+    ];
+
+    const duration = Date.now() - startTime;
+
+    waitUntil(
+      Promise.all(
+        workspaceIds.map((workspaceId) =>
+          captureWebhookLog({
+            workspaceId,
+            method: req.method,
+            path: "/hubspot/webhook",
+            statusCode: 200,
+            duration,
+            requestBody: payload,
+            responseBody,
+            userAgent: req.headers.get("user-agent"),
+          }),
+        ),
+      ),
+    );
+
+    return NextResponse.json(responseBody);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
 });
 
-// Process individual event
-async function processWebhookEvent(event: any) {
+// Process individual event, returns workspaceId if resolved
+async function processWebhookEvent(event: any): Promise<string | undefined> {
   const { objectTypeId, portalId, subscriptionType } =
     hubSpotWebhookSchema.parse(event);
 
@@ -153,4 +190,6 @@ async function processWebhookEvent(event: any) {
       });
     }
   }
+
+  return workspace.id;
 }
