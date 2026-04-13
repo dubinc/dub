@@ -34,10 +34,10 @@ import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with
 
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted(
-  event: Stripe.Event,
+  event: Stripe.CheckoutSessionCompletedEvent,
   mode: StripeMode,
 ) {
-  let charge = event.data.object as Stripe.Checkout.Session;
+  let charge = event.data.object;
   let dubCustomerExternalId =
     charge.metadata?.dubCustomerExternalId || charge.metadata?.dubCustomerId;
   const clientReferenceId = charge.client_reference_id;
@@ -70,7 +70,9 @@ export async function checkoutSessionCompleted(
   });
 
   if (!workspace) {
-    return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
+    return {
+      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+    };
   }
 
   /*
@@ -85,7 +87,10 @@ export async function checkoutSessionCompleted(
     clickEvent = await getClickEvent({ clickId: dubClickId });
 
     if (!clickEvent) {
-      return `Click event with dub_id ${dubClickId} not found, skipping...`;
+      return {
+        response: `Click event with dub_id ${dubClickId} not found, skipping...`,
+        workspaceId: workspace.id,
+      };
     }
 
     existingCustomer = await prisma.customer.findFirst({
@@ -199,10 +204,16 @@ export async function checkoutSessionCompleted(
           if (promoCodeResponse) {
             ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
           } else {
-            return `Failed to attribute via promotion code ${promotionCodeId}, skipping...`;
+            return {
+              response: `Failed to attribute via promotion code ${promotionCodeId}, skipping...`,
+              workspaceId: workspace.id,
+            };
           }
         } else {
-          return `dubCustomerExternalId was provided but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`;
+          return {
+            response: `dubCustomerExternalId was provided but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`,
+            workspaceId: workspace.id,
+          };
         }
       }
     } else {
@@ -247,7 +258,10 @@ export async function checkoutSessionCompleted(
             stripeCustomerId,
           });
           if (!customer) {
-            return `dubCustomerExternalId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`;
+            return {
+              response: `dubCustomerExternalId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`,
+              workspaceId: workspace.id,
+            };
           }
         } else if (promotionCodeId) {
           const promoCodeResponse = await attributeViaPromoCode({
@@ -260,10 +274,16 @@ export async function checkoutSessionCompleted(
           if (promoCodeResponse) {
             ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
           } else {
-            return `Failed to attribute via promotion code ${promotionCodeId}, skipping...`;
+            return {
+              response: `Failed to attribute via promotion code ${promotionCodeId}, skipping...`,
+              workspaceId: workspace.id,
+            };
           }
         } else {
-          return `dubCustomerExternalId not found in Stripe checkout session metadata (nor is it available on the connected customer ${stripeCustomerId}), client_reference_id is not a dub_id, and promotion code is not provided, skipping...`;
+          return {
+            response: `dubCustomerExternalId not found in Stripe checkout session metadata (nor is it available on the connected customer ${stripeCustomerId}), client_reference_id is not a dub_id, and promotion code is not provided, skipping...`,
+            workspaceId: workspace.id,
+          };
         }
       }
     }
@@ -272,7 +292,10 @@ export async function checkoutSessionCompleted(
     if (!leadEvent) {
       const leadEventData = await getLeadEvent({ customerId: customer.id });
       if (!leadEventData) {
-        return `No lead event found for customer ${customer.id}, skipping...`;
+        return {
+          response: `No lead event found for customer ${customer.id}, skipping...`,
+          workspaceId: workspace.id,
+        };
       }
       leadEvent = {
         ...leadEventData,
@@ -281,7 +304,10 @@ export async function checkoutSessionCompleted(
       linkId = leadEvent.link_id;
     }
   } else {
-    return "No stripeCustomerId or dubCustomerExternalId found in Stripe checkout session metadata, skipping...";
+    return {
+      response: `No stripeCustomerId or dubCustomerExternalId found in Stripe checkout session metadata, skipping...`,
+      workspaceId: workspace.id,
+    };
   }
 
   let chargeAmountTotal =
@@ -289,15 +315,24 @@ export async function checkoutSessionCompleted(
 
   // should never be below 0, but just in case
   if (chargeAmountTotal <= 0) {
-    return `Checkout session completed for Stripe customer ${stripeCustomerId} but amount is 0, skipping...`;
+    return {
+      response: `Checkout session completed for Stripe customer ${stripeCustomerId} but amount is 0, skipping...`,
+      workspaceId: workspace.id,
+    };
   }
 
   if (charge.mode === "setup") {
-    return `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is "setup", skipping...`;
+    return {
+      response: `Checkout session completed for Stripe customer ${stripeCustomerId} but mode is "setup", skipping...`,
+      workspaceId: workspace.id,
+    };
   }
 
   if (charge.payment_status !== "paid") {
-    return `Checkout session completed for Stripe customer ${stripeCustomerId} but payment_status is not "paid", skipping...`;
+    return {
+      response: `Checkout session completed for Stripe customer ${stripeCustomerId} but payment_status is not "paid", skipping...`,
+      workspaceId: workspace.id,
+    };
   }
 
   if (invoiceId) {
@@ -326,7 +361,10 @@ export async function checkoutSessionCompleted(
         "[Stripe Webhook] Skipping already processed invoice.",
         invoiceId,
       );
-      return `Invoice with ID ${invoiceId} already processed, skipping...`;
+      return {
+        response: `Invoice with ID ${invoiceId} already processed, skipping...`,
+        workspaceId: workspace.id,
+      };
     }
   }
 
@@ -549,7 +587,10 @@ export async function checkoutSessionCompleted(
     ]),
   );
 
-  return `Checkout session completed for customer with external ID ${dubCustomerExternalId} and invoice ID ${invoiceId}`;
+  return {
+    response: `Checkout session completed for customer with external ID ${dubCustomerExternalId} and invoice ID ${invoiceId}`,
+    workspaceId: workspace.id,
+  };
 }
 
 async function attributeViaPromoCode({

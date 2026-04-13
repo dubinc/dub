@@ -48,7 +48,7 @@ export function ProgramMarketplacePageClient() {
   } = useProgramNetworkFilters();
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <FeaturedPrograms />
       <div>
         <div className="xs:flex-row xs:items-center flex flex-col justify-between gap-4">

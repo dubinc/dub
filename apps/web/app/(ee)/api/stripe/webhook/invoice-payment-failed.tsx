@@ -3,12 +3,14 @@ import FailedPayment from "@dub/email/templates/failed-payment";
 import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 
-export async function invoicePaymentFailed(event: Stripe.Event) {
+export async function invoicePaymentFailed(
+  event: Stripe.InvoicePaymentFailedEvent,
+) {
   const {
     customer: stripeId,
     attempt_count: attemptCount,
     amount_due: amountDue,
-  } = event.data.object as Stripe.Invoice;
+  } = event.data.object;
 
   if (!stripeId) {
     return "No customer found in invoice.payment_failed event.";

@@ -25,7 +25,7 @@ export function ProgramMarketplaceBanner() {
         >
           <div
             className={cn(
-              "border-border-subtle relative mb-4 gap-x-2 overflow-hidden rounded-xl border bg-white sm:h-12 lg:mb-6",
+              "border-border-subtle relative mb-4 gap-x-2 overflow-hidden rounded-xl border bg-white sm:h-12 lg:mb-4",
             )}
           >
             <div className="absolute inset-0">

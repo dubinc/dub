@@ -13,7 +13,6 @@ import { usePartnerGroupHistorySheet } from "@/ui/activity-logs/partner-group-hi
 import {
   Button,
   CalendarIcon,
-  ChartActivity2,
   CopyButton,
   Globe,
   Heart,
@@ -21,14 +20,14 @@ import {
   TimestampTooltip,
   Trophy,
 } from "@dub/ui";
-import { VerifiedBadge } from "@dub/ui/icons";
+import { TriangleWarning, Users, VerifiedBadge } from "@dub/ui/icons";
 import {
   COUNTRIES,
   fetcher,
   formatDate,
   formatDateTimeSmart,
-  timeAgo,
 } from "@dub/utils";
+import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
@@ -93,10 +92,7 @@ export function PartnerInfoCards({
   const isNetwork = type === "network";
 
   const showPayoutMethodField =
-    isEnrolled &&
-    program?.payoutMode !== "external" &&
-    partner?.payoutsEnabledAt != null &&
-    partner?.defaultPayoutMethod != null;
+    isEnrolled && program?.payoutMode !== "external";
 
   const {
     partnerGroupHistorySheet,
@@ -143,56 +139,52 @@ export function PartnerInfoCards({
     },
   ];
 
-  if (isEnrolled) {
+  if (isEnrolled && partner) {
     basicFields = basicFields.concat([
-      ...(partner?.status === "approved"
-        ? [
-            {
-              id: "lastLeadAt",
-              icon: <ChartActivity2 className="size-3.5" />,
-              text: partner.lastLeadAt
-                ? `Last lead event ${timeAgo(new Date(partner.lastLeadAt), { withAgo: true })}`
-                : null,
-              timestamp: partner.lastLeadAt ?? undefined,
-            },
-            {
-              id: "lastConversionAt",
-              icon: <ChartActivity2 className="size-3.5" />,
-              text: partner.lastConversionAt
-                ? `Last conversion event ${timeAgo(new Date(partner.lastConversionAt), { withAgo: true })}`
-                : null,
-              timestamp: partner.lastConversionAt ?? undefined,
-            },
-          ]
-        : []),
       {
         id: "createdAt",
-        icon: <CalendarIcon className="size-3.5" />,
-        text: partner
-          ? `${partner.status === "approved" ? "Partner since" : "Applied"} ${formatDate(partner.createdAt)}`
-          : undefined,
-        timestamp: partner?.createdAt,
+        icon: <Users className="size-3.5" />,
+        text: `${partner.status === "approved" ? "Partner since" : "Applied"} ${formatDate(partner.createdAt)}`,
+        timestamp: partner.createdAt,
       },
-      ...(showPayoutMethodField && partner
+      ...(showPayoutMethodField
         ? [
             {
               id: "payoutMethod" as const,
-              icon: createElement(
-                getPayoutMethodIconConfig(partner.defaultPayoutMethod!).Icon,
-                { className: "size-3.5 shrink-0" },
+              icon: partner.defaultPayoutMethod ? (
+                createElement(
+                  getPayoutMethodIconConfig(partner.defaultPayoutMethod).Icon,
+                  { className: "size-3.5 shrink-0" },
+                )
+              ) : (
+                <CircleMinus className="size-3.5 shrink-0" />
               ),
-              text: `${getPayoutMethodLabel(partner.defaultPayoutMethod!)} connected ${formatDateTimeSmart(partner.payoutsEnabledAt!)}`,
-              timestamp: partner.payoutsEnabledAt!,
+              text:
+                partner.defaultPayoutMethod && partner.payoutsEnabledAt
+                  ? `${getPayoutMethodLabel(partner.defaultPayoutMethod)} connected ${formatDateTimeSmart(partner.payoutsEnabledAt)}`
+                  : "No payout method connected",
+              ...(partner.payoutsEnabledAt
+                ? { timestamp: partner.payoutsEnabledAt }
+                : {}),
             },
           ]
         : []),
-      ...(partner?.identityVerifiedAt
+      // TODO: once more partners verify their identity, we can show this by default
+      ...(partner.identityVerifiedAt
         ? [
             {
               id: "identityVerifiedAt",
-              icon: <VerifiedBadge className="size-3.5 shrink-0" />,
-              text: `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`,
-              timestamp: partner.identityVerifiedAt,
+              icon: partner.identityVerifiedAt ? (
+                <VerifiedBadge className="size-3.5 shrink-0" />
+              ) : (
+                <TriangleWarning className="size-3.5 shrink-0" />
+              ),
+              text: partner.identityVerifiedAt
+                ? `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`
+                : "Identity not verified",
+              ...(partner.identityVerifiedAt
+                ? { timestamp: partner.identityVerifiedAt }
+                : {}),
             },
           ]
         : []),

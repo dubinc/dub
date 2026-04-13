@@ -60,7 +60,7 @@ export async function getSocialContent({
   }
 
   const contentType = PLATFORM_CONTENT_TYPE[platform];
-  const version = ["tiktok", "instagram"].includes(platform) ? "v2" : "v1";
+  const version = platform === "tiktok" ? "v2" : "v1";
 
   const { data, error } = await scrapeCreatorsFetch(
     "/:version/:platform/:contentType",
@@ -90,6 +90,8 @@ export async function getSocialContent({
     // We don't cache other errors because they are likely to be transient.
     return EMPTY_SOCIAL_CONTENT;
   }
+
+  console.log(`Response from ScrapeCreators: ${JSON.stringify(data, null, 2)}`);
 
   let result: SocialContent;
 
@@ -134,7 +136,10 @@ export async function getSocialContent({
         mediaType = "carousel";
       } else if (data.__typename === "GraphImage") {
         mediaType = "image";
-      } else if (thumbnailUrls === undefined && data.video_play_count > 0) {
+      } else if (
+        thumbnailUrls === undefined &&
+        (data.video_play_count || data.video_view_count) > 0
+      ) {
         mediaType = "video";
       }
 
@@ -142,7 +147,7 @@ export async function getSocialContent({
         publishedAt: new Date(data.taken_at_timestamp * 1000),
         handle: data.owner.username,
         platformId: null,
-        views: data.video_play_count,
+        views: data.video_play_count ?? data.video_view_count,
         likes: data.edge_media_preview_like.count,
         title: null,
         description: data.edge_media_to_caption?.edges?.[0]?.node?.text ?? null,

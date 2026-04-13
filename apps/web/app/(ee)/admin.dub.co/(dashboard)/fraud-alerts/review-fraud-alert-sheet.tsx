@@ -2,7 +2,6 @@
 
 import { PARTNER_PLATFORM_FIELDS } from "@/lib/partners/partner-platforms";
 import { PartnerPlatformProps } from "@/lib/types";
-import { CommissionSchema } from "@/lib/zod/schemas/commissions";
 import { fraudAlertSchema } from "@/lib/zod/schemas/fraud";
 import {
   MAX_FRAUD_REASON_LENGTH,
@@ -13,7 +12,6 @@ import {
   ProgramEnrollmentSchema,
   ProgramSchema,
 } from "@/lib/zod/schemas/programs";
-import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { FraudAlertStatus } from "@dub/prisma/client";
@@ -28,6 +26,7 @@ import {
 } from "@dub/ui";
 import { BadgeCheck2Fill, Xmark } from "@dub/ui/icons";
 import {
+  cn,
   COUNTRIES,
   currencyFormatter,
   formatDateTime,
@@ -54,12 +53,6 @@ type PartnerDetail = z.infer<typeof PartnerSchema> & {
   })[];
   fraudAlerts: FraudAlert[];
   payouts: (z.infer<typeof PayoutSchema> & {
-    program: ProgramInfo;
-  })[];
-  commissions: (Pick<
-    z.infer<typeof CommissionSchema>,
-    "id" | "earnings" | "currency" | "status" | "createdAt"
-  > & {
     program: ProgramInfo;
   })[];
 };
@@ -121,7 +114,7 @@ function SheetContent({
   setIsOpen: (open: boolean) => void;
   onReviewed: () => Promise<void>;
 }) {
-  const [reviewNote, setReviewNote] = useState("");
+  const [reviewNote, setReviewNote] = useState(fraudAlert.reviewNote ?? "");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: partner, isLoading } = useSWR<PartnerDetail>(
@@ -289,24 +282,6 @@ function SheetContent({
             ) : null}
           </Section>
 
-          {/* Payouts table */}
-          <Section title="Payouts">
-            {isLoading ? (
-              <LoadingState />
-            ) : partner ? (
-              <PayoutsTable payouts={partner.payouts} />
-            ) : null}
-          </Section>
-
-          {/* Commissions table */}
-          <Section title="Commissions">
-            {isLoading ? (
-              <LoadingState />
-            ) : partner ? (
-              <CommissionsTable commissions={partner.commissions} />
-            ) : null}
-          </Section>
-
           {/* Ban history table */}
           <Section title="Ban History">
             {isLoading ? (
@@ -327,29 +302,44 @@ function SheetContent({
               />
             ) : null}
           </Section>
+
+          {/* Payouts table */}
+          <Section title="Payouts">
+            {isLoading ? (
+              <LoadingState />
+            ) : partner ? (
+              <PayoutsTable payouts={partner.payouts} />
+            ) : null}
+          </Section>
         </div>
       </div>
 
       {/* Sticky footer with review actions */}
-      {fraudAlert.status === "pending" && (
-        <div className="shrink-0 border-t border-neutral-200 p-6">
-          <div>
-            <label className="block text-sm font-medium text-neutral-900">
-              Review note{" "}
-              <span className="font-normal text-neutral-400">(optional)</span>
-            </label>
-            <textarea
-              className="mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-              placeholder="Add a note about this review..."
-              rows={3}
-              maxLength={MAX_FRAUD_REASON_LENGTH}
-              value={reviewNote}
-              onChange={(e) => setReviewNote(e.target.value)}
-            />
-            <p className="mt-1 text-right text-xs text-neutral-400">
-              {reviewNote.length}/{MAX_FRAUD_REASON_LENGTH}
-            </p>
-          </div>
+      <div className="shrink-0 border-t border-neutral-200 p-6">
+        <div>
+          <label className="block text-sm font-medium text-neutral-900">
+            Review note{" "}
+            <span className="font-normal text-neutral-400">(optional)</span>
+          </label>
+          <textarea
+            className={cn(
+              "mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 sm:text-sm",
+              fraudAlert.status !== "pending"
+                ? "pointer-events-none cursor-not-allowed bg-neutral-50 text-neutral-600"
+                : "focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+            )}
+            placeholder="Add a note about this review..."
+            rows={3}
+            maxLength={MAX_FRAUD_REASON_LENGTH}
+            value={reviewNote}
+            onChange={(e) => setReviewNote(e.target.value)}
+            readOnly={fraudAlert.status !== "pending"}
+          />
+          <p className="mt-1 text-right text-xs text-neutral-400">
+            {reviewNote.length}/{MAX_FRAUD_REASON_LENGTH}
+          </p>
+        </div>
+        {fraudAlert.status === "pending" && (
           <div className="mt-3 flex items-center justify-end gap-2">
             <Button
               variant="secondary"
@@ -366,126 +356,10 @@ function SheetContent({
               onClick={() => handleReview("confirmed")}
             />
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
-}
-
-function PayoutsTable({ payouts }: { payouts: PartnerDetail["payouts"] }) {
-  const table = useTable({
-    data: payouts,
-    columns: [
-      {
-        id: "program",
-        header: "Program",
-        cell: ({ row }) => <ProgramCell program={row.original.program} />,
-      },
-      {
-        id: "amount",
-        header: "Amount",
-        cell: ({ row }) => currencyFormatter(row.original.amount),
-      },
-      {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const badge =
-            PayoutStatusBadges[
-              row.original.status as keyof typeof PayoutStatusBadges
-            ];
-          return (
-            <StatusBadge
-              variant={
-                (badge?.variant as
-                  | "pending"
-                  | "success"
-                  | "error"
-                  | "neutral") ?? "neutral"
-              }
-            >
-              {badge?.label ?? row.original.status}
-            </StatusBadge>
-          );
-        },
-      },
-      {
-        id: "createdAt",
-        header: "Date",
-        cell: ({ row }) => formatDateTime(row.original.createdAt),
-      },
-    ],
-    thClassName: "border-l-0",
-    tdClassName: "border-l-0",
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-0",
-  });
-
-  if (!payouts.length) {
-    return <EmptyState message="No payouts" />;
-  }
-
-  return <Table {...table} />;
-}
-
-function CommissionsTable({
-  commissions,
-}: {
-  commissions: PartnerDetail["commissions"];
-}) {
-  const table = useTable({
-    data: commissions,
-    columns: [
-      {
-        id: "program",
-        header: "Program",
-        cell: ({ row }) => <ProgramCell program={row.original.program} />,
-      },
-      {
-        id: "earnings",
-        header: "Earning",
-        cell: ({ row }) => currencyFormatter(row.original.earnings),
-      },
-      {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const badge =
-            CommissionStatusBadges[
-              row.original.status as keyof typeof CommissionStatusBadges
-            ];
-          return (
-            <StatusBadge
-              variant={
-                (badge?.variant as
-                  | "pending"
-                  | "success"
-                  | "error"
-                  | "neutral") ?? "neutral"
-              }
-            >
-              {badge?.label ?? row.original.status}
-            </StatusBadge>
-          );
-        },
-      },
-      {
-        id: "createdAt",
-        header: "Date",
-        cell: ({ row }) => formatDateTime(row.original.createdAt),
-      },
-    ],
-    thClassName: "border-l-0",
-    tdClassName: "border-l-0",
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-0",
-  });
-
-  if (!commissions.length) {
-    return <EmptyState message="No commissions" />;
-  }
-
-  return <Table {...table} />;
 }
 
 function BanHistoryTable({
@@ -606,6 +480,62 @@ function FraudAlertsTable({
 
   if (!filtered.length) {
     return <EmptyState message="No previous fraud alerts" />;
+  }
+
+  return <Table {...table} />;
+}
+
+function PayoutsTable({ payouts }: { payouts: PartnerDetail["payouts"] }) {
+  const table = useTable({
+    data: payouts,
+    columns: [
+      {
+        id: "program",
+        header: "Program",
+        cell: ({ row }) => <ProgramCell program={row.original.program} />,
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        cell: ({ row }) => currencyFormatter(row.original.amount),
+      },
+      {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+          const badge =
+            PayoutStatusBadges[
+              row.original.status as keyof typeof PayoutStatusBadges
+            ];
+          return (
+            <StatusBadge
+              variant={
+                (badge?.variant as
+                  | "pending"
+                  | "success"
+                  | "error"
+                  | "neutral") ?? "neutral"
+              }
+            >
+              {badge?.label ?? row.original.status}
+            </StatusBadge>
+          );
+        },
+      },
+      {
+        id: "createdAt",
+        header: "Date",
+        cell: ({ row }) => formatDateTime(row.original.createdAt),
+      },
+    ],
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-0",
+  });
+
+  if (!payouts.length) {
+    return <EmptyState message="No payouts" />;
   }
 
   return <Table {...table} />;

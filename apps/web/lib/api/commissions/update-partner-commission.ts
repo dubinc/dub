@@ -204,6 +204,8 @@ export async function updatePartnerCommission({
       amount: isRefunded ? undefined : finalSaleAmount,
       earnings: isRefunded ? undefined : finalEarnings,
       status: finalStatus,
+      // if finalStatus is defined, the commission needs to be removed from the payout
+      // because commission can only be updated to pending, canceled, refunded, duplicate, or fraudulent states
       ...(finalStatus ? { payoutId: null } : {}),
     },
     include: {

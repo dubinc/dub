@@ -7,7 +7,6 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
-import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { CustomerSource, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -228,15 +227,6 @@ export const trackLead = async ({
         if (mode !== "deferred") {
           await recordLead(createLeadEventPayload(customer.id));
         }
-
-        // track the conversion event in our logs
-        await logConversionEvent({
-          workspace_id: workspace.id,
-          link_id: link.id,
-          path: "/track/lead",
-          body: JSON.stringify(rawBody),
-        });
-
         if (
           customerAvatar &&
           !isStored(customerAvatar) &&
