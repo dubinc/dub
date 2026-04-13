@@ -175,24 +175,9 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row">
-      {/* Left: Request & Response bodies */}
+      {/* Left: Response & Request bodies */}
       <div className="order-last min-w-0 flex-1 lg:order-first">
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-lg font-semibold">
-              Request body
-            </h3>
-            {highlightedRequest ? (
-              <div
-                className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
-                dangerouslySetInnerHTML={{ __html: highlightedRequest }}
-              />
-            ) : (
-              <div className="rounded-xl border border-neutral-200 bg-white p-4 font-mono text-xs text-neutral-500">
-                No request body
-              </div>
-            )}
-          </div>
           <div className="flex flex-col gap-2">
             <h3 className="text-content-emphasis text-lg font-semibold">
               Response body
@@ -205,6 +190,21 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
             ) : (
               <div className="rounded-xl border border-neutral-200 bg-white p-4 font-mono text-xs text-neutral-500">
                 No response body
+              </div>
+            )}
+          </div>
+          <div className="flex flex-col gap-2">
+            <h3 className="text-content-emphasis text-lg font-semibold">
+              Request body
+            </h3>
+            {highlightedRequest ? (
+              <div
+                className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
+                dangerouslySetInnerHTML={{ __html: highlightedRequest }}
+              />
+            ) : (
+              <div className="rounded-xl border border-neutral-200 bg-white p-4 font-mono text-xs text-neutral-500">
+                No request body
               </div>
             )}
           </div>
