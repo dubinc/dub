@@ -11,8 +11,8 @@ export function getApiLogsDateRange({
   interval,
 }: {
   plan: PlanProps;
-  start?: string;
-  end?: string;
+  start?: string | Date | null;
+  end?: string | Date | null;
   interval?: string;
 }) {
   const retentionDays = API_LOG_RETENTION_DAYS[plan] ?? DEFAULT_RETENTION_DAYS;
