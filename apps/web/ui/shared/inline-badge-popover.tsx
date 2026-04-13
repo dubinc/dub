@@ -62,7 +62,7 @@ export function InlineBadgePopover({
       align="start"
       content={
         <InlineBadgePopoverContext.Provider value={{ isOpen, setIsOpen }}>
-          <ScrollContainer className="w-full min-w-32 max-h-[50dvh] min-h-0 overscroll-contain p-1 text-sm sm:w-auto">
+          <ScrollContainer className="max-h-[50dvh] min-h-0 w-full min-w-32 overscroll-contain p-1 text-sm sm:w-auto">
             {children}
           </ScrollContainer>
         </InlineBadgePopoverContext.Provider>

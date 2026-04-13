@@ -185,8 +185,8 @@ function ConfirmPayoutsSheetContent() {
   );
 
   const eligiblePayoutsTableRowCount = isExplicitSelectionMode
-    ? (eligiblePayoutsSummaryCount?.count ?? 0)
-    : (eligiblePayoutsTableTotalCount?.count ?? 0);
+    ? eligiblePayoutsSummaryCount?.count ?? 0
+    : eligiblePayoutsTableTotalCount?.count ?? 0;
 
   const { data: payoutsCount } = useSWR<
     {
@@ -233,10 +233,12 @@ function ConfirmPayoutsSheetContent() {
     isLoading: eligiblePayoutsLoading,
   } = useSWR<PayoutResponse[]>(
     defaultProgramId
-      ? `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
-          ...tableQuery,
-          page: pagination.pageIndex.toString(),
-        }).toString()}`
+      ? `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams(
+          {
+            ...tableQuery,
+            page: pagination.pageIndex.toString(),
+          },
+        ).toString()}`
       : null,
     fetcher,
     {
@@ -594,7 +596,7 @@ function ConfirmPayoutsSheetContent() {
           ),
       },
       ...(payoutsIncludedInInvoice.length > 0 &&
-        payoutsIncludedInInvoice.some(isExternalPayout)
+      payoutsIncludedInInvoice.some(isExternalPayout)
         ? [
             {
               key: "External Amount",
