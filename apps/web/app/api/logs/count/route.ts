@@ -7,11 +7,20 @@ import { NextResponse } from "next/server";
 // GET /api/logs/count
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const filters = getApiLogsCountQuerySchema.parse(searchParams);
+    const { start, end, interval, ...filters } =
+      getApiLogsCountQuerySchema.parse(searchParams);
+
+    const { startDate, endDate } = getApiLogsDateRange({
+      plan: workspace.plan,
+      start,
+      end,
+      interval,
+    });
 
     const rows = await getApiLogsCount({
       ...filters,
-      ...getApiLogsDateRange(workspace.plan),
+      start: startDate,
+      end: endDate,
       workspaceId: workspace.id,
     });
 

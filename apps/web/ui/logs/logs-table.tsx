@@ -2,14 +2,19 @@
 
 import {
   API_LOGS_MAX_PAGE_SIZE,
+  API_LOGS_PRESETS_BY_RETENTION,
+  API_LOG_RETENTION_DAYS,
+  DEFAULT_RETENTION_DAYS,
   METHOD_BADGE_VARIANTS,
 } from "@/lib/api-logs/constants";
 import { useApiLogsCount } from "@/lib/swr/use-api-logs-count";
 import useWorkspace from "@/lib/swr/use-workspace";
+import type { PlanProps } from "@/lib/types";
 import { EnrichedApiLog } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   AnimatedSizeContainer,
@@ -26,6 +31,7 @@ import {
 import { StackY3 } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import { Cell, Row } from "@tanstack/react-table";
+import { subDays } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -54,7 +60,7 @@ const LOGS_TABLE_COLUMNS = {
 
 export function LogsTable() {
   const router = useRouter();
-  const { id: workspaceId, slug } = useWorkspace();
+  const { id: workspaceId, slug, plan } = useWorkspace();
   const { searchParamsObj } = useRouterStuff();
 
   const {
@@ -302,6 +308,7 @@ export function LogsTable() {
         onRemove={onRemove}
         onRemoveAll={onRemoveAll}
         setSelectedFilter={setSelectedFilter}
+        plan={plan || "free"}
       />
       {logs?.length !== 0 ? (
         <Table {...tableProps} table={table} />
@@ -332,6 +339,7 @@ function LogsFilters({
   onRemove,
   onRemoveAll,
   setSelectedFilter,
+  plan,
 }: {
   filters: any[];
   activeFilters: any[];
@@ -339,18 +347,34 @@ function LogsFilters({
   onRemove: (key: string) => void;
   onRemoveAll: () => void;
   setSelectedFilter: (f: string | null) => void;
+  plan: PlanProps;
 }) {
+  const retentionDays = API_LOG_RETENTION_DAYS[plan];
+
+  const presets =
+    API_LOGS_PRESETS_BY_RETENTION[retentionDays] ??
+    API_LOGS_PRESETS_BY_RETENTION[DEFAULT_RETENTION_DAYS];
+
   return (
     <div>
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <Filter.Select
-          className="w-full md:w-fit"
-          filters={filters}
-          activeFilters={activeFilters}
-          onSelect={onSelect}
-          onRemove={onRemove}
-          onSelectedFilterChange={setSelectedFilter}
-        />
+        <div className="flex flex-col items-start gap-2 md:flex-row md:items-center">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onSelectedFilterChange={setSelectedFilter}
+          />
+          <SimpleDateRangePicker
+            className="w-full md:w-fit"
+            align="start"
+            defaultInterval="30d"
+            presets={presets as any}
+            fromDate={subDays(new Date(), retentionDays)}
+          />
+        </div>
         <SearchBoxPersisted
           urlParam="requestId"
           placeholder="Search by request ID"

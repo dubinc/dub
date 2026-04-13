@@ -1,10 +1,10 @@
 import { Session } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
-import { Partner } from "@dub/prisma/client";
+import { Partner, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { recordAuditLog } from "../audit-logs/record-audit-log";
+import { trackActivityLog } from "../activity-log/track-activity-log";
 
 interface ProcessPartnerDeactivationParams {
   workspaceId: string;
@@ -28,6 +28,24 @@ export async function processPartnerDeactivation({
   }
 
   const partnerIds = partners.map((p) => p.id);
+
+  // Capture old statuses for activity logging
+  const oldEnrollments = await prisma.programEnrollment.findMany({
+    where: {
+      programId,
+      partnerId: {
+        in: partnerIds,
+      },
+    },
+    select: {
+      partnerId: true,
+      status: true,
+    },
+  });
+
+  const oldStatusByPartnerId = new Map<string, ProgramEnrollmentStatus>(
+    oldEnrollments.map((e) => [e.partnerId, e.status]),
+  );
 
   await prisma.$transaction([
     prisma.link.updateMany({
@@ -66,23 +84,20 @@ export async function processPartnerDeactivation({
 
   if (user) {
     waitUntil(
-      recordAuditLog(
+      trackActivityLog(
         partners.map((partner) => ({
           workspaceId,
           programId,
+          resourceType: "partner",
+          resourceId: partner.id,
+          userId: user.id,
           action: "partner.deactivated",
-          description: `Partner ${partner.id} deactivated`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partner.id,
-              metadata: {
-                name: partner.name,
-                email: partner.email,
-              },
+          changeSet: {
+            status: {
+              old: oldStatusByPartnerId.get(partner.id),
+              new: "deactivated",
             },
-          ],
+          },
         })),
       ),
     );

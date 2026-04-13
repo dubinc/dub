@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { recordAuditLog } from "../api/audit-logs/record-audit-log";
+import { trackActivityLog } from "../api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { triggerWorkflows } from "../cron/qstash-workflow";
 
@@ -75,44 +75,30 @@ export async function approvePartnerEnrollment({
   });
 
   waitUntil(
-    (async () => {
-      const user = await prisma.user.findUniqueOrThrow({
-        where: {
-          id: userId,
-        },
-        select: {
-          id: true,
-          name: true,
-        },
-      });
-
-      const { partner } = programEnrollment;
-
-      await Promise.allSettled([
-        recordAuditLog({
-          workspaceId: program.workspace.id,
-          programId,
-          action: "partner_application.approved",
-          description: `Partner application approved for ${partner.id}`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partner.id,
-              metadata: partner,
-            },
-          ],
-        }),
-
-        triggerWorkflows({
-          workflowId: "partner-approved",
-          body: {
-            programId,
-            partnerId,
-            userId,
+    Promise.allSettled([
+      trackActivityLog({
+        workspaceId: program.workspace.id,
+        programId,
+        resourceType: "partner",
+        resourceId: partnerId,
+        userId,
+        action: "partner.approved",
+        changeSet: {
+          status: {
+            old: "pending",
+            new: programEnrollment.status,
           },
-        }),
-      ]);
-    })(),
+        },
+      }),
+
+      triggerWorkflows({
+        workflowId: "partner-approved",
+        body: {
+          programId,
+          partnerId,
+          userId,
+        },
+      }),
+    ]),
   );
 }
