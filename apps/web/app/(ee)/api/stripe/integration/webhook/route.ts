@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { StripeMode } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { logAndRespond } from "app/(ee)/api/cron/utils";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
 import { chargeRefunded } from "./charge-refunded";
@@ -80,9 +80,13 @@ export const POST = withAxiom(async (req: Request) => {
   // and live mode events are sent to the live mode endpoint.
   // See: https://docs.stripe.com/stripe-apps/build-backend#event-behavior-depends-on-install-mode
   if (!event.livemode && mode === "live") {
-    return logAndRespond(
-      `Received a test webhook event (${event.type}) on our live webhook receiver endpoint, skipping...`,
-    );
+    const response =
+      "Received a test webhook event on our live webhook receiver endpoint, skipping...";
+    console.log(`[${event.type}]: ${response}`);
+    return NextResponse.json({
+      eventType: event.type,
+      response,
+    });
   }
 
   let result: {
@@ -125,7 +129,10 @@ export const POST = withAxiom(async (req: Request) => {
       break;
   }
 
-  const finalResponse = `[${event.type}]: ${result.response}`;
+  const responseBody = {
+    eventType: event.type,
+    response: result.response,
+  };
 
   waitUntil(
     (async () => {
@@ -160,12 +167,14 @@ export const POST = withAxiom(async (req: Request) => {
           statusCode: 200,
           duration: Date.now() - startTime,
           requestBody: event,
-          responseBody: finalResponse,
+          responseBody,
           userAgent: req.headers.get("user-agent"),
         });
       }
     })(),
   );
 
-  return logAndRespond(finalResponse);
+  console.log(`[${event.type}]: ${result.response}`);
+
+  return NextResponse.json(responseBody);
 });
