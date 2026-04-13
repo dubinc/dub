@@ -9,11 +9,7 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs - get all program enrollments for a given partnerId
 export const GET = withPartnerProfile(
-  async ({
-    partner,
-    searchParams,
-    partnerUser: { assignedProgramIds, assignedLinkIds },
-  }) => {
+  async ({ partner, searchParams, partnerUser }) => {
     const { includeRewardsDiscounts, status } =
       partnerProfileProgramsQuerySchema.parse(searchParams);
 
@@ -24,15 +20,15 @@ export const GET = withPartnerProfile(
         program: {
           deactivatedAt: null,
         },
-        ...programScopeFilter(assignedProgramIds),
+        ...programScopeFilter(partnerUser.assignedPrograms),
       },
       include: {
         links: {
-          ...(assignedLinkIds
+          ...(partnerUser.assignedLinks
             ? {
                 where: {
                   id: {
-                    in: assignedLinkIds,
+                    in: partnerUser.assignedLinks.map(({ id }) => id),
                   },
                 },
               }

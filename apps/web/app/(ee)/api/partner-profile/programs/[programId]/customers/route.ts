@@ -66,7 +66,7 @@ export const GET = withPartnerProfile(
         programId: program.id,
         projectId: program.workspaceId,
         ...(country && { country }),
-        ...(linkId ? { linkId } : linkScopeFilter(partnerUser.assignedLinkIds)),
+        ...(linkId ? { linkId } : linkScopeFilter(partnerUser.assignedLinks)),
         // Only allow search if customer data sharing is enabled
         ...(search && customerDataSharingEnabledAt
           ? search.includes("@")

@@ -18,12 +18,12 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(
-  async ({ partner, params, partnerUser: { assignedLinkIds } }) => {
+  async ({ partner, params, partnerUser }) => {
     const { links, discountCodes } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
       include: {
-        links: linkIncludeFilter(assignedLinkIds),
+        links: linkIncludeFilter(partnerUser.assignedLinks),
         discountCodes: true,
       },
     });

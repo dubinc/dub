@@ -1,9 +1,9 @@
 import { DubApiError } from "@/lib/api/errors";
+import { Link, Program } from "@dub/prisma/client";
 
 interface PartnerUserAccess {
-  assignedProgramIds: string[] | undefined;
-  assignedProgramSlugs: string[] | undefined;
-  assignedLinkIds: string[] | undefined;
+  assignedPrograms: Pick<Program, "id" | "slug">[] | undefined;
+  assignedLinks: Pick<Link, "id">[] | undefined;
 }
 
 export function throwIfNoProgramAccess({
@@ -13,15 +13,12 @@ export function throwIfNoProgramAccess({
 }: {
   programId?: string;
   programSlug?: string;
-  partnerUser: Pick<
-    PartnerUserAccess,
-    "assignedProgramIds" | "assignedProgramSlugs"
-  >;
+  partnerUser: Partial<Pick<PartnerUserAccess, "assignedPrograms">>;
 }) {
   if (
     programId &&
-    partnerUser.assignedProgramIds &&
-    !partnerUser.assignedProgramIds.includes(programId)
+    partnerUser.assignedPrograms &&
+    !partnerUser.assignedPrograms.some(({ id }) => id === programId)
   ) {
     throw new DubApiError({
       code: "forbidden",
@@ -31,8 +28,8 @@ export function throwIfNoProgramAccess({
 
   if (
     programSlug &&
-    partnerUser.assignedProgramSlugs &&
-    !partnerUser.assignedProgramSlugs.includes(programSlug)
+    partnerUser.assignedPrograms &&
+    !partnerUser.assignedPrograms.some(({ slug }) => slug === programSlug)
   ) {
     throw new DubApiError({
       code: "forbidden",
@@ -46,12 +43,12 @@ export function throwIfNoLinkAccess({
   partnerUser,
 }: {
   linkId: string | undefined | null;
-  partnerUser: Pick<PartnerUserAccess, "assignedLinkIds">;
+  partnerUser: Partial<Pick<PartnerUserAccess, "assignedLinks">>;
 }) {
   if (
     linkId &&
-    partnerUser.assignedLinkIds &&
-    !partnerUser.assignedLinkIds.includes(linkId)
+    partnerUser.assignedLinks &&
+    !partnerUser.assignedLinks.some(({ id }) => id === linkId)
   ) {
     throw new DubApiError({
       code: "forbidden",

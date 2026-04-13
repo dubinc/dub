@@ -81,10 +81,10 @@ export const GET = withPartnerProfile(
                   },
                 },
               ],
-              ...(partnerUser.assignedProgramIds
+              ...(partnerUser.assignedPrograms
                 ? {
                     id: {
-                      in: partnerUser.assignedProgramIds,
+                      in: partnerUser.assignedPrograms.map(({ id }) => id),
                     },
                   }
                 : {}),

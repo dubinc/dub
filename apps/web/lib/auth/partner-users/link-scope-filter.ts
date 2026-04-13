@@ -1,17 +1,21 @@
+import { Link } from "@dub/prisma/client";
+
 /**
  * Prisma `where` fragment for filtering by linkId.
- * Use in direct queries: where: { ...linkScopeFilter(assignedLinkIds) }
+ * Use in direct queries: where: { ...linkScopeFilter(assignedLinks) }
  */
-export function linkScopeFilter(assignedLinkIds: string[] | undefined): {
+export function linkScopeFilter(
+  assignedLinks: Pick<Link, "id">[] | undefined,
+): {
   linkId?: { in: string[] };
 } {
-  if (assignedLinkIds === undefined) {
+  if (assignedLinks === undefined) {
     return {};
   }
 
   return {
     linkId: {
-      in: assignedLinkIds,
+      in: assignedLinks.map(({ id }) => id),
     },
   };
 }
@@ -21,16 +25,16 @@ export function linkScopeFilter(assignedLinkIds: string[] | undefined): {
  * Returns `true` (all links) or `{ where: { id: { in: ... } } }` (scoped).
  */
 export function linkIncludeFilter(
-  assignedLinkIds: string[] | undefined,
+  assignedLinks: Pick<Link, "id">[] | undefined,
 ): true | { where: { id: { in: string[] } } } {
-  if (assignedLinkIds === undefined) {
+  if (assignedLinks === undefined) {
     return true;
   }
 
   return {
     where: {
       id: {
-        in: assignedLinkIds,
+        in: assignedLinks.map(({ id }) => id),
       },
     },
   };

@@ -3,7 +3,7 @@ import { withAxiom } from "@/lib/axiom/server";
 import { PartnerBetaFeatures, PartnerProps } from "@/lib/types";
 import { flattenVeriffMetadata } from "@/lib/veriff/veriff-metadata";
 import { prisma } from "@dub/prisma";
-import { PartnerUser } from "@dub/prisma/client";
+import { Link, PartnerUser, Program } from "@dub/prisma/client";
 import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
@@ -37,9 +37,8 @@ interface WithPartnerProfileHandler {
       PartnerUser,
       "id" | "userId" | "role" | "programAccess"
     > & {
-      assignedProgramIds: string[] | undefined;
-      assignedProgramSlugs: string[] | undefined;
-      assignedLinkIds: string[] | undefined;
+      assignedPrograms?: Pick<Program, "id" | "slug">[];
+      assignedLinks?: Pick<Link, "id">[];
     };
   }): Promise<Response>;
 }
@@ -280,38 +279,39 @@ export const withPartnerProfile = (
           }
         }
 
-        const assignedProgramIds =
+        const assignedPrograms =
           partnerUser.programAccess === "all"
             ? undefined
-            : partnerUser.assignedPrograms.map(({ program }) => program.id);
-        const assignedProgramSlugs =
+            : partnerUser.assignedPrograms.map(({ program }) => program);
+
+        const assignedLinks =
           partnerUser.programAccess === "all"
             ? undefined
-            : partnerUser.assignedPrograms.map(({ program }) => program.slug);
-        const assignedLinkIds =
-          partnerUser.programAccess === "all"
-            ? undefined
-            : partnerUser.assignedLinks.map(({ linkId }) => linkId);
+            : partnerUser.assignedLinks.map(({ linkId }) => ({ id: linkId }));
 
         // If the user is scoped to specific programs and the route has a programId param,
         // verify they have access to this program (param may be program id or slug)
         if (
           params.programId &&
-          assignedProgramIds !== undefined &&
-          assignedProgramSlugs !== undefined
+          assignedPrograms !== undefined &&
+          assignedPrograms.length > 0
         ) {
           let hasAccess = false;
 
           if (params.programId.startsWith("prog_")) {
-            hasAccess = assignedProgramIds.includes(params.programId);
+            hasAccess = assignedPrograms.some(
+              ({ id }) => id === params.programId,
+            );
           } else {
-            hasAccess = assignedProgramSlugs?.includes(params.programId);
+            hasAccess = assignedPrograms.some(
+              ({ slug }) => slug === params.programId,
+            );
           }
 
           if (!hasAccess) {
             throw new DubApiError({
               code: "not_found",
-              message: "Program not found.",
+              message: `You don't have access to this program.`,
             });
           }
         }
@@ -347,12 +347,8 @@ export const withPartnerProfile = (
             userId: partnerUser.userId,
             role: partnerUser.role,
             programAccess: partnerUser.programAccess,
-            assignedProgramIds,
-            assignedProgramSlugs,
-            assignedLinkIds:
-              assignedLinkIds && assignedLinkIds.length > 0
-                ? assignedLinkIds
-                : undefined,
+            assignedPrograms,
+            assignedLinks,
           },
           headers: responseHeaders,
         });

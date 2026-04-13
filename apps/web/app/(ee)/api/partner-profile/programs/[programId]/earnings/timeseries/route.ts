@@ -18,7 +18,7 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
       programId: params.programId,
       filters,
-      assignedLinkIds: partnerUser.assignedLinkIds,
+      assignedLinks: partnerUser.assignedLinks,
     });
 
     return NextResponse.json(timeseries);

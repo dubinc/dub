@@ -21,7 +21,7 @@ export const GET = withPartnerProfile(
       partnerId: partner.id,
       ...(programId
         ? { programId }
-        : programScopeFilter(partnerUser.assignedProgramIds)),
+        : programScopeFilter(partnerUser.assignedPrograms)),
     };
 
     if (groupBy === "status") {

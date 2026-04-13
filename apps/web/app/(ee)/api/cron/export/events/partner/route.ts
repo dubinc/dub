@@ -78,17 +78,13 @@ export async function POST(req: Request) {
       return logAndRespond(`User ${userId} has no email. Skipping the export.`);
     }
 
-    const assignedLinkIds = partnerUser.assignedLinks.map(
-      ({ linkId }) => linkId,
-    );
-
     const { program, links, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId,
         programId,
         include: {
           program: true,
-          links: linkIncludeFilter(assignedLinkIds),
+          links: linkIncludeFilter(partnerUser.assignedLinks),
         },
       });
 
@@ -134,7 +130,7 @@ export async function POST(req: Request) {
       ...(parsedParams.linkId
         ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING &&
-            assignedLinkIds.length === 0
+            partnerUser.assignedLinks.length === 0
           ? { partnerId }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,

@@ -1,13 +1,17 @@
-export function programScopeFilter(assignedProgramIds: string[] | undefined): {
+import { Program } from "@dub/prisma/client";
+
+export function programScopeFilter(
+  assignedPrograms: Pick<Program, "id" | "slug">[] | undefined,
+): {
   programId?: { in: string[] };
 } {
-  if (assignedProgramIds === undefined) {
+  if (assignedPrograms === undefined) {
     return {};
   }
 
   return {
     programId: {
-      in: assignedProgramIds,
+      in: assignedPrograms.map(({ id }) => id),
     },
   };
 }

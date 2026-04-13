@@ -30,7 +30,7 @@ export const GET = withPartnerProfile(
         partnerId: partner.id,
         ...(programId && { programId }),
         ...(status && { status }),
-        ...programScopeFilter(partnerUser.assignedProgramIds),
+        ...programScopeFilter(partnerUser.assignedPrograms),
       },
       include: {
         program: true,

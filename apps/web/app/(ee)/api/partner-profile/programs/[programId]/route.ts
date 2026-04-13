@@ -7,14 +7,14 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId] – get a partner's enrollment in a program
 export const GET = withPartnerProfile(
-  async ({ partner, params, partnerUser: { assignedLinkIds } }) => {
+  async ({ partner, params, partnerUser }) => {
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
       include: {
         program: true,
         partner: true,
-        links: linkIncludeFilter(assignedLinkIds),
+        links: linkIncludeFilter(partnerUser.assignedLinks),
         clickReward: true,
         leadReward: true,
         saleReward: true,

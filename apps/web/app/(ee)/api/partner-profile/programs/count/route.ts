@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/count - count program enrollments for a given partnerId
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
+  async ({ partner, searchParams, partnerUser }) => {
     const { status } =
       partnerProfileProgramsCountQuerySchema.parse(searchParams);
 
@@ -14,7 +14,7 @@ export const GET = withPartnerProfile(
       where: {
         partnerId: partner.id,
         ...(status && { status }),
-        ...programScopeFilter(assignedProgramIds),
+        ...programScopeFilter(partnerUser.assignedPrograms),
       },
     });
 

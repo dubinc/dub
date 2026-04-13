@@ -57,7 +57,7 @@ export const GET = withPartnerProfile(
         gte: startDate,
         lte: endDate,
       },
-      ...linkScopeFilter(partnerUser.assignedLinkIds),
+      ...linkScopeFilter(partnerUser.assignedLinks),
     };
 
     if (groupBy) {

@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages/count - count messages for a partner
 export const GET = withPartnerProfile(
-  async ({ partner, searchParams, partnerUser: { assignedProgramIds } }) => {
+  async ({ partner, searchParams, partnerUser }) => {
     const { unread } = countMessagesQuerySchema.parse(searchParams);
 
     const count = await prisma.message.count({
@@ -23,7 +23,7 @@ export const GET = withPartnerProfile(
                 not: null,
               },
         }),
-        ...programScopeFilter(assignedProgramIds),
+        ...programScopeFilter(partnerUser.assignedPrograms),
       },
     });
 

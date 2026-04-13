@@ -27,7 +27,7 @@ export const GET = withPartnerProfile(
       programId,
       partnerId,
       customerDataSharingEnabledAt,
-      linkIds: partnerUser.assignedLinkIds,
+      linkIds: partnerUser.assignedLinks?.map(({ id }) => id),
     });
 
     return NextResponse.json(earnings);

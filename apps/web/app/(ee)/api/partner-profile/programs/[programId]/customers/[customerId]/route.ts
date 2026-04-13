@@ -19,7 +19,7 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/:programId/customers/:customerId – Get a customer by ID
 export const GET = withPartnerProfile(
-  async ({ partner, params, partnerUser: { assignedLinkIds } }) => {
+  async ({ partner, params, partnerUser }) => {
     const { customerId, programId } = params;
 
     const { program, links, totalCommissions, customerDataSharingEnabledAt } =
@@ -28,7 +28,7 @@ export const GET = withPartnerProfile(
         programId: programId,
         include: {
           program: true,
-          links: linkIncludeFilter(assignedLinkIds),
+          links: linkIncludeFilter(partnerUser.assignedLinks),
         },
       });
 
@@ -70,9 +70,9 @@ export const GET = withPartnerProfile(
     }
 
     if (
-      assignedLinkIds &&
+      partnerUser.assignedLinks &&
       customer.linkId &&
-      !assignedLinkIds.includes(customer.linkId)
+      !partnerUser.assignedLinks.some(({ id }) => id === customer.linkId)
     ) {
       throw new DubApiError({
         code: "forbidden",
