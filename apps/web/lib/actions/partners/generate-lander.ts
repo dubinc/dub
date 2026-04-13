@@ -108,6 +108,7 @@ export const generateLanderAction = authActionClient
           ? `You ${landerData ? "could" : "may"} include an image block in the landing page, only using the OG image here: ${scrapeResult.metadata?.ogImage}. `
           : "") +
         `Do not add any file blocks. ` +
+        `For image blocks, make sure the image URL is an absolute URL, not a relative URL (append the website URL to the image URL if it's a relative URL). ` +
         `If you have product pricing information, ${landerData ? "you could" : "you should"} include an earnings calculator block, using the highest non-enterprise tier for the product price. ` +
         `Markdown is supported in "text" blocks, but use it sparingly. ` +
         `Avoid using links. Relevant CTA links are already on the landing page. ` +
