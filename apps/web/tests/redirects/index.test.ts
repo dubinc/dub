@@ -29,6 +29,7 @@ async function assertRedirectWithDubIdCookie(
 
   if (options?.via != null) {
     expect(redirectUrl.searchParams.get("via")).toBe(options.via);
+    expect(redirectUrl.searchParams.get("afsrc")).toBe("1");
   }
 
   expect(response.headers.get("x-powered-by")).toBe(poweredBy);

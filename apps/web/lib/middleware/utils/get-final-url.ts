@@ -35,6 +35,7 @@ export const getFinalUrl = (
 
   if (via) {
     urlObj.searchParams.set("via", via);
+    urlObj.searchParams.set("afsrc", "1");
   }
 
   if (clickId) {
