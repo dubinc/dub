@@ -12,6 +12,7 @@ import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
+import { FraudRuleType } from "@dub/prisma/client";
 import { log, prettyPrint, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -374,8 +375,10 @@ export async function POST(req: Request) {
       if (duplicatePartners <= 1) {
         await resolveFraudGroups({
           where: {
-            partnerId: targetPartnerId,
-            type: "partnerDuplicatePayoutMethod",
+            partnerId: {
+              in: [sourcePartnerId, targetPartnerId],
+            },
+            type: FraudRuleType.partnerDuplicatePayoutMethod,
           },
           resolutionReason:
             "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
