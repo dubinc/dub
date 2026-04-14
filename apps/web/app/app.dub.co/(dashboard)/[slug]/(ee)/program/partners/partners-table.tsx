@@ -863,6 +863,15 @@ function RowMenuButton({
                   />
 
                   <MenuItem
+                    icon={Tag}
+                    label="Edit tags"
+                    onSelect={() => {
+                      setShowEditPartnerTagsModal(true);
+                      setIsOpen(false);
+                    }}
+                  />
+
+                  <MenuItem
                     icon={
                       isResendingInvite ? LoadingSpinner : EnvelopeArrowRight
                     }
