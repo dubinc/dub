@@ -343,24 +343,6 @@ export async function POST(req: Request) {
       }
     }
 
-    try {
-      // Finally, delete the partner account
-      await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
-      console.log(
-        `Deleted partner ${sourceAccount.email} (${sourceAccount.id})`,
-      );
-
-      if (sourceAccount.image) {
-        await storage.delete({
-          key: sourceAccount.image.replace(`${R2_URL}/`, ""),
-        });
-      }
-    } catch (error) {
-      console.error(
-        `Error deleting partner ${sourcePartnerId}: ${error.message}`,
-      );
-    }
-
     const fraudEventsToDelete = await prisma.fraudEvent.findMany({
       where: {
         partnerId: sourcePartnerId,
@@ -402,17 +384,41 @@ export async function POST(req: Request) {
           {
             partnerId: sourcePartnerId,
           },
-          {
-            id: {
-              in: fraudEventGroupsToResolve.map((e) => e.fraudEventGroup.id),
-            },
-          },
+          ...(fraudEventGroupsToResolve.length > 0
+            ? [
+                {
+                  id: {
+                    in: fraudEventGroupsToResolve.map(
+                      (e) => e.fraudEventGroup.id,
+                    ),
+                  },
+                },
+              ]
+            : []),
         ],
         type: FraudRuleType.partnerDuplicatePayoutMethod,
       },
       resolutionReason:
         "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
     });
+
+    try {
+      // Finally, delete the partner account
+      await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
+      console.log(
+        `Deleted partner ${sourceAccount.email} (${sourceAccount.id})`,
+      );
+
+      if (sourceAccount.image) {
+        await storage.delete({
+          key: sourceAccount.image.replace(`${R2_URL}/`, ""),
+        });
+      }
+    } catch (error) {
+      console.error(
+        `Error deleting partner ${sourcePartnerId}: ${error.message}`,
+      );
+    }
 
     // Make sure the cache is cleared
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
