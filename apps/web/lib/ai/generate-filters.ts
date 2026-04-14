@@ -42,7 +42,7 @@ export async function generateFilters(prompt: string) {
 
   (async () => {
     const { partialOutputStream } = streamText({
-      model: anthropic("claude-sonnet-4-20250514"),
+      model: anthropic("claude-sonnet-4-6"),
       output: Output.object({ schema: AI_FILTER_SCHEMA }),
       system: SYSTEM_PROMPT,
       prompt,

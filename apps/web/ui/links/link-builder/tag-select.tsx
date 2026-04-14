@@ -125,7 +125,7 @@ export const TagSelect = memo(() => {
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     streamProtocol: "text",
     body: {
-      model: "claude-3-5-haiku-latest",
+      model: "claude-haiku-4-5",
     },
     onFinish: (_, completion) => {
       mutateWorkspace();
