@@ -367,10 +367,6 @@ export async function POST(req: Request) {
         fraudEventGroup: {
           type: FraudRuleType.partnerDuplicatePayoutMethod,
         },
-        metadata: {
-          path: "$.duplicatePartnerId",
-          equals: sourcePartnerId,
-        },
       },
       include: {
         fraudEventGroup: {
@@ -395,7 +391,9 @@ export async function POST(req: Request) {
     }
 
     const fraudEventGroupsToResolve = fraudEventsToDelete.filter(
-      (e) => e.fraudEventGroup._count.fraudEvents === 1,
+      // this is the count pre-deletion the fraud event, so if there are 2 fraud events
+      // that means post-deletion will leave 1 fraud event in the group (no additional duplicates), hence can be resolved
+      (e) => e.fraudEventGroup._count.fraudEvents === 2,
     );
 
     await resolveFraudGroups({
