@@ -180,6 +180,23 @@ export function buildNullableStringListWhere(
   } as Prisma.ProgramEnrollmentWhereInput | Prisma.PartnerWhereInput;
 }
 
+export function mergePartnerCountryAndSearchWhere(
+  countryWhere: Prisma.PartnerWhereInput | undefined,
+  searchWhere: Prisma.PartnerWhereInput,
+): Prisma.PartnerWhereInput {
+  const hasCountry = countryWhere && Object.keys(countryWhere).length > 0;
+  const hasSearch = Object.keys(searchWhere).length > 0;
+
+  if (hasCountry && hasSearch) {
+    return { AND: [countryWhere!, searchWhere] };
+  }
+
+  return {
+    ...(hasCountry ? countryWhere! : {}),
+    ...(hasSearch ? searchWhere : {}),
+  };
+}
+
 /** Matches GET /api/partners enrollment filter shape + metric ranges. */
 export function buildProgramEnrollmentWhereForList(
   filters: PartnerEnrollmentQueryFilters,
@@ -231,8 +248,7 @@ export function buildProgramEnrollmentWhereForList(
             }),
       },
     }),
-    ...(countryWhere ?? {}),
-    ...searchWhere,
+    ...mergePartnerCountryAndSearchWhere(countryWhere, searchWhere),
   };
 
   const hasPartnerWhere = Object.keys(partnerWhere).length > 0;

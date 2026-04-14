@@ -252,4 +252,5 @@ model ProgramPartnerTag {
 
   @@unique([partnerTagId, partnerId])
   @@index(partnerId)
+  @@index([programId, partnerId])
 }
