@@ -2,8 +2,10 @@ import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
 // Handle event "promotion_code.updated"
-export async function promotionCodeUpdated(event: Stripe.Event) {
-  const promotionCode = event.data.object as Stripe.PromotionCode;
+export async function promotionCodeUpdated(
+  event: Stripe.PromotionCodeUpdatedEvent,
+) {
+  const promotionCode = event.data.object;
   const stripeAccountId = event.account as string;
 
   const workspace = await prisma.project.findUnique({
@@ -19,15 +21,25 @@ export async function promotionCodeUpdated(event: Stripe.Event) {
   });
 
   if (!workspace) {
-    return `Workspace not found for Stripe account ${stripeAccountId}.`;
+    return {
+      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+    };
   }
 
+  const workspaceId = workspace.id;
+
   if (!workspace.defaultProgramId) {
-    return `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs.`;
+    return {
+      response: `Workspace ${workspaceId} for stripe account ${stripeAccountId} has no programs.`,
+      workspaceId,
+    };
   }
 
   if (promotionCode.active) {
-    return `Promotion code ${promotionCode.id} is active.`;
+    return {
+      response: `Promotion code ${promotionCode.id} is active.`,
+      workspaceId,
+    };
   }
 
   // If the promotion code is not active, we need to remove them from Dub
@@ -41,7 +53,10 @@ export async function promotionCodeUpdated(event: Stripe.Event) {
   });
 
   if (!discountCode) {
-    return `Discount code not found for Stripe promotion code ${promotionCode.id}.`;
+    return {
+      response: `Discount code not found for Stripe promotion code ${promotionCode.id}.`,
+      workspaceId,
+    };
   }
 
   await prisma.discountCode.delete({
@@ -50,5 +65,8 @@ export async function promotionCodeUpdated(event: Stripe.Event) {
     },
   });
 
-  return `Discount code ${discountCode.id} deleted from the program ${workspace.defaultProgramId}.`;
+  return {
+    response: `Discount code ${discountCode.id} deleted from the program ${workspace.defaultProgramId}.`,
+    workspaceId,
+  };
 }

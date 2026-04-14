@@ -2,9 +2,9 @@
 
 import {
   getSocialMetricsRewardTiers,
-  resolveBountyDetails,
   SocialMetricsRewardTier,
-} from "@/lib/bounty/utils";
+} from "@/lib/bounty/rewards";
+import { resolveBountyDetails } from "@/lib/bounty/utils";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import { StatusBadge, Table, useTable } from "@dub/ui";
 import { capitalize, currencyFormatter } from "@dub/utils";
@@ -24,14 +24,25 @@ const displayStatusMap = {
     label: "In progress",
     variant: "pending",
   },
+  draft: {
+    label: "Draft",
+    variant: "pending",
+  },
+  rejected: {
+    label: "Rejected",
+    variant: "error",
+  },
 };
+
+interface SubmissionForRewards {
+  socialMetricCount: number | null;
+  commission: { earnings: number } | null;
+  status: BountySubmissionProps["status"];
+}
 
 function getDisplayStatus(
   tier: SocialMetricsRewardTier,
-  submission: Pick<
-    BountySubmissionProps,
-    "socialMetricCount" | "commission" | "status"
-  >,
+  submission: SubmissionForRewards,
 ) {
   if (tier.status === "unmet") {
     return "inProgress";
@@ -43,6 +54,14 @@ function getDisplayStatus(
     submission.commission.earnings != null
   ) {
     return "approved";
+  }
+
+  if (submission.status === "draft") {
+    return "draft";
+  }
+
+  if (submission.status === "rejected") {
+    return "rejected";
   }
 
   return "pending";
@@ -57,10 +76,7 @@ export function BountySocialMetricsRewardsTable({
     PartnerBountyProps,
     "id" | "submissionRequirements" | "rewardAmount"
   >;
-  submission: Pick<
-    BountySubmissionProps,
-    "socialMetricCount" | "commission" | "status"
-  >;
+  submission: SubmissionForRewards;
   titleText?: string;
 }) {
   const tiers = getSocialMetricsRewardTiers({
@@ -79,14 +95,14 @@ export function BountySocialMetricsRewardsTable({
         minSize: 100,
         size: 120,
         cell: ({ row: { original } }) => (
-          <span className="font-medium text-neutral-800">
+          <span className="text-content-default font-medium">
             {original.threshold.toLocaleString()}
           </span>
         ),
       },
       {
         id: "reward",
-        header: "Reward",
+        header: "Amount",
         minSize: 100,
         size: 120,
         cell: ({ row: { original } }) =>
@@ -129,7 +145,9 @@ export function BountySocialMetricsRewardsTable({
 
   return (
     <div>
-      <h2 className="text-base font-semibold text-neutral-900">{titleText}</h2>
+      <h2 className="text-content-emphasis text-base font-semibold">
+        {titleText}
+      </h2>
       <div className="mt-3">
         <Table {...table} />
       </div>

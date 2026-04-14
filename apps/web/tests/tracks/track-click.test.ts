@@ -185,7 +185,7 @@ describe("POST /track/click", async () => {
   //     expect(response.data).toStrictEqual({
   //       error: {
   //         code: "forbidden",
-  //         message: `Request origin 'not-allowed.com' is not included in the allowed hostnames for this workspace (${E2E_LINK.domain}). Update your allowed hostnames here: https://app.dub.co/settings/analytics`,
+  //         message: `Request origin 'not-allowed.com' is not included in the allowed hostnames for this workspace (${E2E_LINK.domain}). Update your allowed hostnames here: https://app.dub.co/settings/tracking`,
   //         doc_url: "https://dub.co/docs/api-reference/errors#forbidden",
   //       },
   //     });

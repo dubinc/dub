@@ -11,11 +11,13 @@ import {
   getPartnersQuerySchemaExtended,
   partnerPlatformSchema,
 } from "@/lib/zod/schemas/partners";
-import { parseFilterValue } from "@dub/utils";
+import { parseFilterValue, toCentsNumber } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
-function parsePartnerFilterParams(searchParams: Record<string, string | undefined>) {
+function parsePartnerFilterParams(
+  searchParams: Record<string, string | undefined>,
+) {
   const partnerTagIdParsed = parseFilterValue(searchParams.partnerTagId);
   const groupIdParsed = parseFilterValue(searchParams.groupId);
   const countryParsed = parseFilterValue(searchParams.country);
@@ -115,7 +117,7 @@ export const GET = withWorkspace(
           leads: partner.totalLeads,
           conversions: partner.totalConversions,
           sales: partner.totalSales,
-          saleAmount: partner.totalSaleAmount,
+          saleAmount: toCentsNumber(partner.totalSaleAmount),
           ...polyfillSocialMediaFields(partner.platforms),
         })),
       ),

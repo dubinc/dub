@@ -1,0 +1,52 @@
+import { cn } from "@dub/utils";
+import { ReactNode } from "react";
+
+export function EmphasisNumber({ children }: { children: ReactNode }) {
+  return (
+    <span className="text-content-emphasis text-sm font-semibold">
+      {children}
+    </span>
+  );
+}
+
+export function BountyProgressBarRow({
+  progress,
+  children,
+  labelClassName,
+  wrapperClassName,
+}: {
+  progress: number;
+  children: ReactNode;
+  labelClassName?: string;
+  wrapperClassName?: string;
+}) {
+  const percent = Math.min(Math.max(progress, 0), 100);
+  const isComplete = percent >= 100;
+
+  return (
+    <div
+      className={cn(
+        "flex min-w-0 flex-1 flex-col",
+        wrapperClassName ?? "gap-2",
+      )}
+    >
+      <div className="bg-bg-emphasis h-1 w-full overflow-hidden rounded-full">
+        <div
+          className={cn(
+            "h-full rounded-full",
+            isComplete ? "bg-green-600" : "bg-amber-600",
+          )}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <p
+        className={cn(
+          "text-content-subtle text-xs font-medium",
+          labelClassName,
+        )}
+      >
+        {children}
+      </p>
+    </div>
+  );
+}

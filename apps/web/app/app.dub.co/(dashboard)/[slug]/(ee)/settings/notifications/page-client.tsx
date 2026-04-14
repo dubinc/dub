@@ -4,7 +4,7 @@ import { updateWorkspaceNotificationPreference } from "@/lib/actions/update-work
 import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
-import { Globe, Hyperlink, Msgs, UserPlus } from "@dub/ui/icons";
+import { Globe, Hyperlink, Msgs, ShieldAlert, UserPlus } from "@dub/ui/icons";
 import { isClickOnInteractiveChild } from "@dub/utils";
 import { DollarSign, ListChecks, Trophy } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -68,13 +68,13 @@ export default function NotificationsSettingsPageClient() {
       title: "Pending applications summary",
       description: "Daily summary email of pending partner applications.",
     },
-    // {
-    //   type: "fraudEventsSummary",
-    //   icon: ShieldAlert,
-    //   title: "Daily Fraud events summary",
-    //   description:
-    //     "Daily summary email of unresolved fraud events detected in your partner program.",
-    // },
+    {
+      type: "fraudEventsSummary",
+      icon: ShieldAlert,
+      title: "Daily fraud events summary",
+      description:
+        "Daily summary email of unresolved fraud events detected in your partner program.",
+    },
   ];
 
   const {

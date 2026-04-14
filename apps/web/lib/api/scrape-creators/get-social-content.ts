@@ -1,4 +1,4 @@
-import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/constants";
+import { BOUNTY_SOCIAL_PLATFORM_VALUES } from "@/lib/bounty/social-content";
 import { SocialContent } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { PlatformType } from "@dub/prisma/client";
@@ -15,13 +15,14 @@ interface GetSocialContentStatsParams {
 }
 
 const PLATFORM_CONTENT_TYPE: Record<
-  Exclude<PlatformType, "website" | "linkedin">,
+  Exclude<PlatformType, "website">,
   "post" | "video" | "tweet"
 > = {
   youtube: "video",
   instagram: "post",
   twitter: "tweet",
   tiktok: "video",
+  linkedin: "post",
 };
 
 const EMPTY_SOCIAL_CONTENT: SocialContent = {
@@ -76,8 +77,21 @@ export async function getSocialContent({
   );
 
   if (error) {
+    // Post not found
+    // Cache empty result, so that we don't keep trying to scrape the same post.
+    if (error.status === 404) {
+      waitUntil(
+        redis.set(cacheKey, EMPTY_SOCIAL_CONTENT, {
+          ex: CACHE_TTL * 24 * 30,
+        }),
+      );
+    }
+
+    // We don't cache other errors because they are likely to be transient.
     return EMPTY_SOCIAL_CONTENT;
   }
+
+  console.log(`Response from ScrapeCreators: ${JSON.stringify(data, null, 2)}`);
 
   let result: SocialContent;
 
@@ -122,7 +136,10 @@ export async function getSocialContent({
         mediaType = "carousel";
       } else if (data.__typename === "GraphImage") {
         mediaType = "image";
-      } else if (thumbnailUrls === undefined && data.video_view_count > 0) {
+      } else if (
+        thumbnailUrls === undefined &&
+        (data.video_play_count || data.video_view_count) > 0
+      ) {
         mediaType = "video";
       }
 
@@ -130,7 +147,7 @@ export async function getSocialContent({
         publishedAt: new Date(data.taken_at_timestamp * 1000),
         handle: data.owner.username,
         platformId: null,
-        views: data.video_view_count,
+        views: data.video_play_count ?? data.video_view_count,
         likes: data.edge_media_preview_like.count,
         title: null,
         description: data.edge_media_to_caption?.edges?.[0]?.node?.text ?? null,
@@ -165,6 +182,24 @@ export async function getSocialContent({
         title: null,
         description: data.desc ?? null,
         thumbnailUrl: data.video?.cover?.url_list?.[0] ?? null,
+      };
+      break;
+    }
+
+    case "linkedin": {
+      const handleMatch = data.author?.url?.match(
+        /linkedin\.com\/in\/([^\/\?]+)/i,
+      );
+
+      result = {
+        publishedAt: data.datePublished ? new Date(data.datePublished) : null,
+        handle: handleMatch?.[1] ?? null,
+        platformId: null,
+        views: 0,
+        likes: data.likeCount,
+        title: data.name ?? null,
+        description: data.description ?? data.headline ?? null,
+        thumbnailUrl: null,
       };
       break;
     }

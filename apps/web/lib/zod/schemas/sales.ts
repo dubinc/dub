@@ -3,6 +3,7 @@ import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
 import { linkEventSchema } from "./links";
+import { centsSchema } from "./utils";
 
 export const trackSaleRequestSchema = z.object({
   customerExternalId: z
@@ -18,7 +19,7 @@ export const trackSaleRequestSchema = z.object({
     .int()
     .min(0, "amount cannot be negative")
     .describe(
-      "The amount of the sale in cents (for all two-decimal currencies). If the sale is in a zero-decimal currency, pass the full integer value (e.g. `1437` JPY). Learn more: https://d.to/currency",
+      "The amount of the sale in cents (for all two-decimal currencies). If the sale is in a zero-decimal currency, pass the full integer value (e.g. `1580` JPY). Learn more: https://d.to/currency",
     ),
   currency: z
     .string()
@@ -142,7 +143,7 @@ export const saleEventSchemaTBEndpoint = z.object({
   customer_id: z.string(),
   payment_processor: z.string(),
   invoice_id: z.string(),
-  saleAmount: z.number(),
+  saleAmount: centsSchema,
   click_id: z.string(),
   link_id: z.string(),
   url: z.string(),
@@ -161,6 +162,10 @@ export const saleEventSchemaTBEndpoint = z.object({
   qr: z.number().nullable(),
   ip: z.string().nullable(),
   metadata: z.string().nullish(),
+  currency: z
+    .string()
+    .default("usd")
+    .transform((val) => val.toLowerCase()),
 });
 
 // response from dub api
@@ -175,6 +180,7 @@ export const saleEventResponseSchema = z
       amount: true,
       invoiceId: true,
       paymentProcessor: true,
+      currency: true,
     }),
     metadata: z.any().nullish(),
     // nested objects
@@ -182,8 +188,7 @@ export const saleEventResponseSchema = z
     click: clickEventSchema,
     customer: CustomerSchema,
     // deprecated fields
-    saleAmount: z
-      .number()
+    saleAmount: centsSchema
       .describe("Deprecated: Use `sale.amount` instead.")
       .meta({ deprecated: true }),
     invoice_id: z

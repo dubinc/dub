@@ -10,6 +10,7 @@ import {
   Category,
   EventType,
   PartnerBannedReason,
+  ProgramApplicationRejectionReason,
   ProgramEnrollmentStatus,
   ProgramPayoutMode,
 } from "@dub/prisma/client";
@@ -23,7 +24,36 @@ import { programInviteEmailDataSchema } from "./program-invite-email";
 import { referralFormSchema } from "./referral-form";
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
-import { parseDateSchema } from "./utils";
+import { centsSchemaWithDefault, parseDateSchema } from "./utils";
+
+export const eligibilityConditionSchema = z
+  .object({
+    key: z.enum(["country", "emailDomain"]),
+    operator: z.enum(["is", "is_not"]),
+    value: z.array(z.string()).min(1),
+  })
+  .transform((data) => {
+    if (data.key === "emailDomain") {
+      return {
+        ...data,
+        value: data.value.map((v) => {
+          const t = v.trim().toLowerCase();
+          return t.startsWith("@") ? t : `@${t}`;
+        }),
+      };
+    }
+    return data;
+  })
+  .refine(
+    (data) =>
+      data.key !== "emailDomain" ||
+      data.value.every((v) => v.length > 1 && v !== "@"),
+    { message: "Email domain values must be valid domain patterns" },
+  );
+
+export const applicationRequirementsSchema = z
+  .array(eligibilityConditionSchema)
+  .max(2);
 
 export const ProgramSchema = z.object({
   id: z.string(),
@@ -48,6 +78,7 @@ export const ProgramSchema = z.object({
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
   referralFormData: z.record(z.string(), z.any()).nullish(),
+  applicationRequirements: applicationRequirementsSchema.nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
   startedAt: z.date().nullish(),
@@ -92,6 +123,21 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   saleAmount: true,
 });
 
+export const ProgramEnrollmentApplicationSchema = z.object({
+  rejectionReason: z
+    .nativeEnum(ProgramApplicationRejectionReason)
+    .nullable()
+    .describe("Preset reason when the application was rejected."),
+  rejectionNote: z
+    .string()
+    .nullable()
+    .describe("Free-form note when the application was rejected."),
+  reviewedAt: z.coerce
+    .date()
+    .nullable()
+    .describe("When the application was approved or rejected."),
+});
+
 export const ProgramEnrollmentSchema = z.object({
   programId: z.string().describe("The program's unique ID on Dub."),
   groupId: z.string().nullish().describe("The partner's group ID on Dub."),
@@ -111,7 +157,7 @@ export const ProgramEnrollmentSchema = z.object({
     .array(ProgramPartnerLinkSchema)
     .nullable()
     .describe("The partner's referral links in this program."),
-  totalCommissions: z.number().default(0),
+  totalCommissions: centsSchemaWithDefault,
   rewards: z.array(RewardSchema).nullish(),
   clickRewardId: z.string().nullish(),
   leadRewardId: z.string().nullish(),
@@ -147,7 +193,11 @@ export const ProgramEnrollmentSchema = z.object({
     linkStructure: true,
   }).nullish(),
   customerDataSharingEnabledAt: z.date().nullable(),
+  groupMoveDisabledAt: z.date().nullable(),
   referralFormData: referralFormSchema.nullish(),
+  application: ProgramEnrollmentApplicationSchema.nullish().describe(
+    "Linked program application, including review outcome when applicable.",
+  ),
 });
 
 export const ProgramInviteSchema = z.object({

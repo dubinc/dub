@@ -15,6 +15,7 @@ import {
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
 import { X } from "@/ui/shared/icons";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { CommissionType } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
@@ -493,9 +494,11 @@ function CreateCommissionSheetContent({
                             (optional)
                           </span>
                         </label>
-                        <span className="text-xs text-neutral-400">
-                          {description?.length || 0}/190
-                        </span>
+                        <MaxCharactersCounter
+                          name="description"
+                          maxLength={190}
+                          control={control}
+                        />
                       </div>
                       <div className="mt-2">
                         <textarea
@@ -677,7 +680,11 @@ function CreateCommissionSheetContent({
                                       </a>
                                       <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
                                         {formatDate(inv.createdAt)}
-                                        {inv.dubCommissionId && (
+                                        {inv.refunded ? (
+                                          <span className="rounded-md bg-neutral-200/80 px-1.5 py-0.5 text-xs text-neutral-500">
+                                            Refunded
+                                          </span>
+                                        ) : inv.dubCommissionId ? (
                                           <a
                                             href={`/${slug}/program/commissions?partnerId=${partnerId}&customerId=${customerId}`}
                                             target="_blank"
@@ -685,7 +692,7 @@ function CreateCommissionSheetContent({
                                           >
                                             Already imported
                                           </a>
-                                        )}
+                                        ) : null}
                                       </p>
                                     </div>
                                     <span

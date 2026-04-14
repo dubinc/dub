@@ -13,8 +13,8 @@ import {
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { Button, MoneyBills2, NumberStepper, Switch } from "@dub/ui";
-import { motion } from "motion/react";
 import { cn, currencyFormatter } from "@dub/utils";
+import { motion } from "motion/react";
 import { Controller } from "react-hook-form";
 import { BountyAmountInput } from "./bounty-amount-input";
 import { useBountyFormContext } from "./bounty-form-context";
@@ -185,7 +185,10 @@ export function BountyCriteriaManualSubmission() {
           <motion.div
             className="overflow-hidden"
             initial={false}
-            animate={{ height: requireImage ? "auto" : 0, opacity: requireImage ? 1 : 0 }}
+            animate={{
+              height: requireImage ? "auto" : 0,
+              opacity: requireImage ? 1 : 0,
+            }}
             transition={{
               height: { duration: 0.25, ease: [0.32, 0.72, 0, 1] },
               opacity: { duration: 0.2 },
@@ -204,7 +207,7 @@ export function BountyCriteriaManualSubmission() {
                 min={1}
                 max={BOUNTY_MAX_SUBMISSION_FILES}
                 step={1}
-                className="h-9 w-full [&>div]:h-9"
+                className="w-full"
               />
               <p className="text-xs text-neutral-500">
                 Set a maximum number of images partners can submit
@@ -229,7 +232,10 @@ export function BountyCriteriaManualSubmission() {
           <motion.div
             className="overflow-hidden"
             initial={false}
-            animate={{ height: requireUrl ? "auto" : 0, opacity: requireUrl ? 1 : 0 }}
+            animate={{
+              height: requireUrl ? "auto" : 0,
+              opacity: requireUrl ? 1 : 0,
+            }}
             transition={{
               height: { duration: 0.25, ease: [0.32, 0.72, 0, 1] },
               opacity: { duration: 0.2 },
@@ -249,7 +255,7 @@ export function BountyCriteriaManualSubmission() {
                   min={1}
                   max={BOUNTY_MAX_SUBMISSION_URLS}
                   step={1}
-                  className="h-9 w-full [&>div]:h-9"
+                  className="w-full"
                 />
                 <p className="text-xs text-neutral-500">
                   Set a maximum number of URLs partners can submit
@@ -316,8 +322,8 @@ export function BountyCriteriaManualSubmission() {
                 )}
 
                 <p className="text-xs text-neutral-500">
-                  Restrict URLs to specific domains. Partners can submit URLs
-                  from these domains or their subdomains.
+                  Restrict URLs to specific domains. Partners can only submit
+                  URLs from these domains or their subdomains.
                 </p>
               </div>
             </div>

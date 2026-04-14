@@ -3,10 +3,14 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import {
   BAN_PARTNER_REASONS,
+  MAX_FRAUD_REASON_LENGTH,
   banPartnerSchema,
 } from "@/lib/zod/schemas/partners";
-import { Button, Modal } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
+import { Button, InfoTooltip, Modal, Switch } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -40,15 +44,20 @@ function BanPartnerModal({
     register,
     handleSubmit,
     watch,
+    setValue,
+    control,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<BanPartnerFormData>({
     defaultValues: {
       reason: "tos_violation",
+      flagForFraud: false,
+      flagForFraudReason: "",
       confirm: "",
     },
   });
 
   const confirm = watch("confirm");
+  const flagForFraud = watch("flagForFraud");
 
   const { executeAsync, isPending } = useAction(banPartnerAction, {
     onSuccess: async () => {
@@ -93,11 +102,7 @@ function BanPartnerModal({
         <div className="flex flex-col gap-6 bg-neutral-50 p-4 sm:p-6">
           <div className="rounded-lg border border-neutral-200 bg-neutral-100 p-3">
             <div className="flex items-center gap-4">
-              <img
-                src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                alt={partner.id}
-                className="size-10 rounded-full bg-white"
-              />
+              <PartnerAvatar partner={partner} className="size-10 bg-white" />
               <div className="flex min-w-0 flex-col">
                 <h4 className="truncate text-sm font-medium text-neutral-900">
                   {partner.name}
@@ -139,6 +144,61 @@ function BanPartnerModal({
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-neutral-900">
+                  Flag partner for potential fraud
+                </span>
+                <InfoTooltip content="This will report the partner to our fraud team, and if deemed fraudulent, they will be banned from the network." />
+              </div>
+              <Switch
+                checked={flagForFraud}
+                fn={(checked: boolean) => setValue("flagForFraud", checked)}
+              />
+            </div>
+            <motion.div
+              initial={false}
+              animate={{
+                height: flagForFraud ? "auto" : 0,
+                opacity: flagForFraud ? 1 : 0,
+              }}
+              transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+              className="overflow-hidden"
+              inert={!flagForFraud}
+            >
+              <div className="mt-1 p-px">
+                <textarea
+                  className={cn(
+                    "mt-1.5 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.flagForFraudReason && "border-red-600",
+                  )}
+                  placeholder="Describe the suspected fraudulent activity..."
+                  rows={3}
+                  maxLength={MAX_FRAUD_REASON_LENGTH}
+                  {...register("flagForFraudReason", {
+                    required: flagForFraud && "Reason is required",
+                    maxLength: {
+                      value: MAX_FRAUD_REASON_LENGTH,
+                      message: `Must be ${MAX_FRAUD_REASON_LENGTH} characters or fewer`,
+                    },
+                  })}
+                />
+                {errors.flagForFraudReason && (
+                  <p className="mt-1 text-xs text-red-600">
+                    {errors.flagForFraudReason.message}
+                  </p>
+                )}
+                <MaxCharactersCounter
+                  name="flagForFraudReason"
+                  maxLength={MAX_FRAUD_REASON_LENGTH}
+                  control={control}
+                  className="mt-1 block text-right"
+                />
+              </div>
+            </motion.div>
           </div>
 
           <div>

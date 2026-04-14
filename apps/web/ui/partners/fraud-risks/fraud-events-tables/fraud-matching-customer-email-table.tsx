@@ -1,8 +1,12 @@
 "use client";
 
-import { useFraudEvents } from "@/lib/swr/use-fraud-events";
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
+import { useFraudEventsPaginated } from "@/lib/swr/use-fraud-events-paginated";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
+import {
+  CustomerEmailMatchType,
+  fraudEventSchemas,
+} from "@/lib/zod/schemas/fraud";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import { Button, Table, TimestampTooltip, useTable } from "@dub/ui";
 import { formatDateTimeSmart } from "@dub/utils";
@@ -11,13 +15,33 @@ import * as z from "zod/v4";
 
 type EventDataProps = z.infer<(typeof fraudEventSchemas)["customerEmailMatch"]>;
 
-export function FraudMatchingCustomerEmailTable() {
+const MATCH_TYPE_LABELS: Record<CustomerEmailMatchType, string> = {
+  [CustomerEmailMatchType.EXACT]: "Exact email match",
+  [CustomerEmailMatchType.DOMAIN_MATCH]: "Domain match",
+  [CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH]: "Historical domain match",
+};
+
+export function FraudMatchingCustomerEmailTable({
+  showMatchType,
+}: {
+  showMatchType?: boolean;
+}) {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { fraudEvents, loading, error } = useFraudEvents<EventDataProps>();
+  const {
+    fraudEvents,
+    loading,
+    error,
+    pagination,
+    setPagination,
+    fraudEventsCount,
+  } = useFraudEventsPaginated<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: fraudEventsCount ?? 0,
     columns: [
       {
         id: "date",
@@ -60,6 +84,25 @@ export function FraudMatchingCustomerEmailTable() {
           );
         },
       },
+      ...(showMatchType
+        ? [
+            {
+              id: "matchType",
+              header: "Match type",
+              minSize: 120,
+              size: 180,
+              cell: ({ row }: { row: { original: EventDataProps } }) => {
+                const matchType = row.original.metadata?.matchType;
+
+                return (
+                  <span className="text-sm text-neutral-600">
+                    {matchType ? MATCH_TYPE_LABELS[matchType] : "-"}
+                  </span>
+                );
+              },
+            },
+          ]
+        : []),
       {
         id: "view",
         header: "",
@@ -72,7 +115,13 @@ export function FraudMatchingCustomerEmailTable() {
 
           return (
             <Link
-              href={`/${workspaceSlug}/program/customers/${row.original.customer.id}`}
+              href={
+                row.original.customer.email &&
+                row.original.metadata?.matchType ===
+                  CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH
+                  ? `/${workspaceSlug}/program/customers?partnerId=${row.original.partner.id}&search=${extractEmailDomain(row.original.customer.email)}`
+                  : `/${workspaceSlug}/events?event=leads&interval=all&customerId=${row.original.customer.id}`
+              }
               target="_blank"
             >
               <Button

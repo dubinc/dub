@@ -29,6 +29,7 @@ import {
   Key,
   LifeRing,
   LinesY as LinesYStatic,
+  MarketingTarget,
   MoneyBills2,
   Msgs,
   PaperPlane,
@@ -36,6 +37,7 @@ import {
   ShieldCheck,
   ShieldKeyhole,
   Sliders,
+  StackY3,
   Tag,
   Trophy,
   UserCheck,
@@ -77,11 +79,7 @@ type SidebarNavData = {
   partnerNetworkEnabled?: boolean;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
-  slug,
-  pathname,
-  defaultProgramId,
-}) => [
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ slug, pathname }) => [
   {
     name: "Short Links",
     description:
@@ -198,7 +196,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     pendingFraudEventsCount,
     pendingReferralsCount,
     partnerNetworkEnabled,
-    pathname,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -406,24 +403,29 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         name: "Developer",
         items: [
           {
-            name: "Analytics",
-            icon: LinesY as Icon,
-            href: `/${slug}/settings/analytics`,
-          },
-          {
             name: "API Keys",
             icon: Key,
             href: `/${slug}/settings/tokens`,
           },
           {
-            name: "OAuth Apps",
-            icon: CubeSettings,
-            href: `/${slug}/settings/oauth-apps`,
+            name: "Logs",
+            icon: StackY3,
+            href: `/${slug}/settings/logs`,
+          },
+          {
+            name: "Tracking",
+            icon: MarketingTarget,
+            href: `/${slug}/settings/tracking`,
           },
           {
             name: "Webhooks",
             icon: Webhook,
             href: `/${slug}/settings/webhooks`,
+          },
+          {
+            name: "OAuth Apps",
+            icon: CubeSettings,
+            href: `/${slug}/settings/oauth-apps`,
           },
         ],
       },
@@ -552,9 +554,7 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount<
-    number | undefined
-  >({
+  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount({
     eligibility: "eligible",
     status: "pending",
     ignoreParams: true,
@@ -614,15 +614,16 @@ export function AppSidebarNav({
           include: ["folderId"],
         }),
         session: session || undefined,
-        showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
+        showNews: true,
         defaultProgramId: defaultProgramId || undefined,
-        pendingPayoutsCount,
+        pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
         pendingFraudEventsCount,
         pendingReferralsCount,
-        showConversionGuides: canTrackConversions,
+        showConversionGuides:
+          canTrackConversions && pathname.startsWith(`/${slug}/links`),
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
       }}

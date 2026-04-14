@@ -1,6 +1,7 @@
-import { DUB_WORDMARK, formatDate } from "@dub/utils";
+import { currencyFormatter, DUB_WORDMARK, formatDate } from "@dub/utils";
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
@@ -9,6 +10,7 @@ import {
   Link,
   Markdown,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
@@ -16,11 +18,20 @@ import {
 import { BountyThumbnailImage } from "../components/bounty-thumbnail";
 import { Footer } from "../components/footer";
 
+const ICONS = {
+  calendar: "https://assets.dub.co/cms/icon-calendar-bounty.png",
+  gift: "https://assets.dub.co/cms/icon-gift-bounty.png",
+} as const;
+
+type Icon = keyof typeof ICONS;
+
 export default function NewBountyAvailable({
   bounty = {
+    id: "bty_xxx",
     name: "Promote Acme at your campus and earn $500",
     type: "performance",
     endsAt: new Date(),
+    rewardAmount: 10000,
     description:
       "How **does** it work?\n\nGet a group _together_ of at least 15 other people interested in trying out [Acme](https://dub.co). Then, during the event, take a photo of the group using Acme. When submitting, provide any links to the event or photos. Once confirmed, we'll create a one-time commission for you.",
   },
@@ -31,9 +42,11 @@ export default function NewBountyAvailable({
   email = "panic@thedis.co",
 }: {
   bounty: {
+    id: string;
     name: string;
     type: "performance" | "submission";
     endsAt: Date | null;
+    rewardAmount: number | null;
     description: string | null;
   };
   program: {
@@ -42,6 +55,18 @@ export default function NewBountyAvailable({
   };
   email: string;
 }) {
+  const formattedRewardAmount =
+    bounty.rewardAmount != null
+      ? currencyFormatter(bounty.rewardAmount, {
+          trailingZeroDisplay: "stripIfInteger",
+        })
+      : null;
+
+  const iconSizeClassByIcon: Record<Icon, string> = {
+    calendar: "h-4.5 w-4.5",
+    gift: "h-4.5 w-4.5",
+  };
+
   return (
     <Html>
       <Head />
@@ -66,10 +91,41 @@ export default function NewBountyAvailable({
                 <Text className="m-0 p-0 text-base font-semibold text-neutral-900">
                   {bounty.name}
                 </Text>
-                {bounty.endsAt && (
-                  <Text className="m-0 p-0 text-sm font-medium text-neutral-500">
-                    Ends {formatDate(bounty.endsAt)}
-                  </Text>
+                {(bounty.endsAt || formattedRewardAmount) && (
+                  <Section className="pt-2">
+                    {bounty.endsAt && (
+                      <Row>
+                        <Column className="w-5 align-middle">
+                          <Img
+                            src={ICONS.calendar}
+                            className={iconSizeClassByIcon.calendar}
+                            alt=""
+                          />
+                        </Column>
+                        <Column className="pl-2">
+                          <Text className="m-0 text-base font-normal text-neutral-500">
+                            Ends {formatDate(bounty.endsAt)}
+                          </Text>
+                        </Column>
+                      </Row>
+                    )}
+                    {formattedRewardAmount && (
+                      <Row className={bounty.endsAt ? "mt-1" : ""}>
+                        <Column className="w-5 align-middle">
+                          <Img
+                            src={ICONS.gift}
+                            className={iconSizeClassByIcon.gift}
+                            alt=""
+                          />
+                        </Column>
+                        <Column className="pl-2">
+                          <Text className="m-0 text-base font-normal text-neutral-500">
+                            Earn {formattedRewardAmount}
+                          </Text>
+                        </Column>
+                      </Row>
+                    )}
+                  </Section>
                 )}
               </Section>
 
@@ -90,7 +146,7 @@ export default function NewBountyAvailable({
 
               <Section className="px-6 pb-6 text-center">
                 <Link
-                  href={`https://partners.dub.co/programs/${program.slug}/bounties`}
+                  href={`https://partners.dub.co/programs/${program.slug}/bounties/${bounty.id}`}
                   className="box-border block w-full rounded-md bg-black px-2 py-4 text-center text-sm font-medium leading-none text-white no-underline"
                 >
                   View bounty

@@ -1,9 +1,9 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { UserAvatar } from "@/ui/users/user-avatar";
 import {
   ArrowsOppositeDirectionX,
-  Avatar,
   Gift,
   Icon,
   Popover,
@@ -74,10 +74,11 @@ export function UserDropdown() {
       type: "button",
       label: "Log out",
       icon: LogOut,
-      onClick: () =>
+      onClick: () => {
         signOut({
           callbackUrl: "/login",
-        }),
+        });
+      },
     });
 
     return options;
@@ -124,7 +125,7 @@ export function UserDropdown() {
         )}
       >
         {session?.user ? (
-          <Avatar
+          <UserAvatar
             user={session.user}
             className="size-7 border-none duration-75 sm:size-7"
           />

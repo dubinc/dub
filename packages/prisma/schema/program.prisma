@@ -39,13 +39,14 @@ model Program {
   minPayoutAmount    Int               @default(0) // Default minimum payout amount of $0
   payoutMode         ProgramPayoutMode @default(internal)
 
-  inviteEmailData  Json?   @db.Json
-  embedData        Json?   @db.Json
-  resources        Json?   @db.Json
-  referralFormData Json?   @db.Json
-  termsUrl         String? @db.Text
-  helpUrl          String? @db.Text
-  supportEmail     String?
+  inviteEmailData         Json?   @db.Json
+  embedData               Json?   @db.Json
+  resources               Json?   @db.Json
+  referralFormData        Json?   @db.Json
+  applicationRequirements Json?   @db.Json
+  termsUrl                String? @db.Text
+  helpUrl                 String? @db.Text
+  supportEmail            String?
 
   messagingEnabledAt      DateTime?
   partnerNetworkEnabledAt DateTime?
@@ -87,6 +88,7 @@ model Program {
   fraudRules               FraudRule[]
   fraudEventGroups         FraudEventGroup[]
   sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
+  fraudAlerts              FraudAlert[]
   referrals                PartnerReferral[]
 
   partnerTags        PartnerTag[]
@@ -110,15 +112,15 @@ model ProgramEnrollment {
   status        ProgramEnrollmentStatus @default(pending)
 
   // partner stats
-  totalClicks      Int @default(0) // total clicks
-  totalLeads       Int @default(0) // total leads
-  totalConversions Int @default(0) // total conversions
-  totalSales       Int @default(0) // total sales
-  totalSaleAmount  Int @default(0) // total sale amount (in cents)
-  totalCommissions Int @default(0) // total commissions earned by the partner (in cents)
+  totalClicks      Int    @default(0) // total clicks
+  totalLeads       Int    @default(0) // total leads
+  totalConversions Int    @default(0) // total conversions
+  totalSales       Int    @default(0) // total sales
+  totalSaleAmount  BigInt @default(0) // total sale amount (in cents)
+  totalCommissions BigInt @default(0) // total commissions earned by the partner (in cents)
 
   // calculated stats
-  netRevenue              Int       @default(0) // totalSaleAmount - totalCommissions
+  netRevenue              BigInt    @default(0) // totalSaleAmount - totalCommissions
   earningsPerClick        Float     @default(0) // totalSaleAmount / totalClicks
   averageLifetimeValue    Float? // totalSaleAmount / totalConversions (in cents)
   clickToLeadRate         Float? // totalLeads / totalClicks
@@ -132,6 +134,7 @@ model ProgramEnrollment {
   createdAt                    DateTime             @default(now())
   updatedAt                    DateTime             @updatedAt
   customerDataSharingEnabledAt DateTime?
+  groupMoveDisabledAt          DateTime?
   bannedAt                     DateTime?
   bannedReason                 PartnerBannedReason?
 
@@ -152,6 +155,8 @@ model ProgramEnrollment {
   messages           Message[]
   fraudEventGroups   FraudEventGroup[]
   referrals         PartnerReferral[]
+  fraudAlerts       FraudAlert[]
+  discoveredPartner DiscoveredPartner?
   programPartnerTags ProgramPartnerTag[]
 
   // unique constraints
@@ -179,30 +184,43 @@ model ProgramEnrollment {
   @@index(discountId)
 }
 
+enum ProgramApplicationRejectionReason {
+  needsMoreDetail
+  doesNotMeetRequirements
+  notTheRightFit
+  other
+}
+
 model ProgramApplication {
-  id        String   @id @default(cuid())
-  programId String
-  groupId   String?
-  name      String
-  email     String
-  country   String?
-  website   String?  @db.Text
-  youtube   String?  @db.Text
-  twitter   String?  @db.Text
-  linkedin  String?  @db.Text
-  instagram String?  @db.Text
-  tiktok    String?  @db.Text
-  formData  Json?    @db.Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String                             @id @default(cuid())
+  programId       String
+  groupId         String?
+  name            String
+  email           String
+  country         String?
+  website         String?                            @db.Text
+  youtube         String?                            @db.Text
+  twitter         String?                            @db.Text
+  linkedin        String?                            @db.Text
+  instagram       String?                            @db.Text
+  tiktok          String?                            @db.Text
+  formData        Json?                              @db.Json
+  userId          String? // user who reviewed the application
+  rejectionReason ProgramApplicationRejectionReason?
+  rejectionNote   String?                            @db.Text
+  reviewedAt      DateTime?
+  createdAt       DateTime                           @default(now())
+  updatedAt       DateTime                           @updatedAt
 
   program      Program            @relation(fields: [programId], references: [id])
   partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])
   enrollment   ProgramEnrollment?
+  user         User?              @relation(fields: [userId], references: [id])
 
   @@index(programId)
   @@index(groupId)
   @@index(email)
+  @@index(userId)
 }
 
 model PartnerTag {

@@ -3,14 +3,13 @@ import Stripe from "stripe";
 import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
 import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";
 
-export async function chargeFailed(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeFailed(event: Stripe.ChargeFailedEvent) {
+  const charge = event.data.object;
 
   const { transfer_group: invoiceId, failure_message: failedReason } = charge;
 
   if (!invoiceId) {
-    console.log("No transfer group found, skipping...");
-    return;
+    return "No transfer group found, skipping...";
   }
 
   let invoice = await prisma.invoice.findUnique({
@@ -20,8 +19,7 @@ export async function chargeFailed(event: Stripe.Event) {
   });
 
   if (!invoice) {
-    console.log(`Invoice with transfer group ${invoiceId} not found.`);
-    return;
+    return `Invoice with transfer group ${invoiceId} not found.`;
   }
 
   invoice = await prisma.invoice.update({
@@ -39,7 +37,11 @@ export async function chargeFailed(event: Stripe.Event) {
 
   if (invoice.type === "partnerPayout") {
     await processPayoutInvoiceFailure({ invoice, charge });
+    return `Processed partner payout failure for invoice ${invoice.id}.`;
   } else if (invoice.type === "domainRenewal") {
     await processDomainRenewalFailure({ invoice });
+    return `Processed domain renewal failure for invoice ${invoice.id}.`;
   }
+
+  return `Unsupported invoice type (${invoice.type}), skipping...`;
 }

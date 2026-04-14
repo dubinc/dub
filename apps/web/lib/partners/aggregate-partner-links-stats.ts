@@ -1,13 +1,14 @@
+import { toCentsNumber } from "@dub/utils";
 import { LinkProps } from "../types";
 
-export function aggregatePartnerLinksStats(
-  links?:
-    | Pick<
-        LinkProps,
-        "clicks" | "leads" | "conversions" | "sales" | "saleAmount"
-      >[]
-    | null,
-) {
+export type PartnerLink = Pick<
+  LinkProps,
+  "clicks" | "leads" | "conversions" | "sales"
+> & {
+  saleAmount: number | bigint;
+};
+
+export function aggregatePartnerLinksStats(links?: PartnerLink[] | null) {
   if (!links || links.length === 0) {
     return {
       totalClicks: 0,
@@ -24,7 +25,7 @@ export function aggregatePartnerLinksStats(
       acc.totalLeads += link.leads;
       acc.totalConversions += link.conversions;
       acc.totalSales += link.sales;
-      acc.totalSaleAmount += link.saleAmount;
+      acc.totalSaleAmount += toCentsNumber(link.saleAmount);
       return acc;
     },
     {

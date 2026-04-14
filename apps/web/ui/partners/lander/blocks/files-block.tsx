@@ -20,7 +20,8 @@ export function FilesBlock({
             key={idx}
             className="group flex items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white p-3 transition-colors duration-75 hover:bg-neutral-50 active:bg-neutral-100"
             href={file.url}
-            {...(file.external ? { target: "_blank" } : { download: true })}
+            target="_blank"
+            rel="noopener noreferrer"
           >
             <div className="flex min-w-0 items-center gap-4">
               <div className="shrink-0 rounded-full border border-neutral-200">

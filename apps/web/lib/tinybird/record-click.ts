@@ -71,21 +71,20 @@ export async function recordClick({
     return null;
   }
 
-  // don't track HEAD requests to avoid non-user traffic from inflating click count
-  if (req.method === "HEAD") {
-    return null;
-  }
-
   const ua = userAgent(req);
-  const isBot = detectBot(req);
 
-  // don't record clicks from bots
-  if (isBot) {
-    console.log(`Click not recorded ❌ – Bot detected.`, {
-      ua,
-      isBot,
-    });
-    return null;
+  // only do bot checks for non deep link requests (link clicks/qr code scans)
+  if (trigger !== "deeplink") {
+    const isBot = detectBot(req);
+
+    // don't record clicks from bots
+    if (isBot) {
+      console.log(`Click not recorded ❌ – Bot detected.`, {
+        ua,
+        isBot,
+      });
+      return null;
+    }
   }
 
   const identityHash = await getIdentityHash(req);
@@ -93,13 +92,19 @@ export async function recordClick({
   // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
   // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
   if (!skipRatelimit) {
-    // here, we check if the clickId is cached in Redis within the last hour
-    const cachedClickId = await recordClickCache.get({
-      domain,
-      key,
-      identityHash,
-    });
-    if (cachedClickId) {
+    try {
+      // here, we check if the clickId is cached in Redis within the last hour
+      const cachedClickId = await recordClickCache.get({
+        domain,
+        key,
+        identityHash,
+      });
+      if (cachedClickId) {
+        return null;
+      }
+    } catch (error) {
+      console.error(`[recordClickCache error]: ${error}`);
+      // if redis fails, return null so we don't overwhelm TB/MySQL
       return null;
     }
   }

@@ -1,6 +1,7 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
+import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
@@ -55,6 +56,20 @@ export const unbanPartnerAction = authActionClient
       programId,
       groupId:
         programEnrollment.groupId || programEnrollment.program.defaultGroupId,
+    });
+
+    // Fetch canceled commissions before the transaction for activity logging
+    const canceledCommissions = await prisma.commission.findMany({
+      where: {
+        ...where,
+        status: "canceled",
+      },
+      select: {
+        id: true,
+        amount: true,
+        earnings: true,
+        status: true,
+      },
     });
 
     await prisma.$transaction([
@@ -129,19 +144,27 @@ export const unbanPartnerAction = authActionClient
           // Update Tinybird links metadata
           recordLink(links),
 
-          recordAuditLog({
+          // Track commission activity logs for the unban
+          trackCommissionStatusUpdate({
             workspaceId: workspace.id,
             programId,
+            commissions: canceledCommissions,
+            newStatus: "pending",
+          }),
+
+          trackActivityLog({
+            workspaceId: workspace.id,
+            programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
             action: "partner.unbanned",
-            description: `Partner ${partnerId} unbanned`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partnerId,
-                metadata: programEnrollment.partner,
+            changeSet: {
+              status: {
+                old: "banned",
+                new: "approved",
               },
-            ],
+            },
           }),
         ]);
 
@@ -166,6 +189,15 @@ export const unbanPartnerAction = authActionClient
               fraudEvents: {
                 none: {},
               },
+            },
+          }),
+
+          // Delete any pending fraud alerts for this partner in this program
+          prisma.fraudAlert.deleteMany({
+            where: {
+              partnerId,
+              programId,
+              status: "pending",
             },
           }),
         ]);

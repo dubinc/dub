@@ -21,8 +21,13 @@ import { NextResponse } from "next/server";
 // GET /api/domains – get all domains for a workspace
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { search, archived, page, pageSize, includeLink } =
-      getDomainsQuerySchemaExtended.parse(searchParams);
+    const {
+      search,
+      archived,
+      page = 1,
+      pageSize,
+      includeLink,
+    } = getDomainsQuerySchemaExtended.parse(searchParams);
 
     const domains = await prisma.domain.findMany({
       where: {

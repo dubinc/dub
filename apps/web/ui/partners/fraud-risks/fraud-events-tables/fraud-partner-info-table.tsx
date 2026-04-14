@@ -1,6 +1,6 @@
 "use client";
 
-import { useFraudEvents } from "@/lib/swr/use-fraud-events";
+import { useFraudEventsPaginated } from "@/lib/swr/use-fraud-events-paginated";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { fraudEventSchemas } from "@/lib/zod/schemas/fraud";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -9,17 +9,27 @@ import { formatDateTimeSmart } from "@dub/utils";
 import Link from "next/link";
 import * as z from "zod/v4";
 
-// Both partnerFraudReport and partnerDuplicatePayoutMethod have the same schema
-// We can use either one since they're identical
-type EventDataProps = z.infer<(typeof fraudEventSchemas)["partnerFraudReport"]>;
+type EventDataProps = z.infer<
+  (typeof fraudEventSchemas)["partnerDuplicatePayoutMethod"]
+>;
 
 export function FraudPartnerInfoTable() {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { fraudEvents, loading, error } = useFraudEvents<EventDataProps>();
+  const {
+    fraudEvents,
+    loading,
+    error,
+    pagination,
+    setPagination,
+    fraudEventsCount,
+  } = useFraudEventsPaginated<EventDataProps>();
 
   const table = useTable({
     data: fraudEvents || [],
+    pagination,
+    onPaginationChange: setPagination,
+    rowCount: fraudEventsCount ?? 0,
     columns: [
       {
         id: "date",

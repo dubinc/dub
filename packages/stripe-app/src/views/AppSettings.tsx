@@ -21,7 +21,11 @@ import {
 import { deleteSecret, setSecret } from "../utils/secrets";
 import { stripe } from "../utils/stripe";
 
-const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
+const AppSettings = ({
+  userContext,
+  oauthContext,
+  environment,
+}: ExtensionContextValue) => {
   const credentialsUsed = useRef(false);
   const [oauthState, setOAuthState] = useState("");
   const [challenge, setChallenge] = useState("");
@@ -54,6 +58,9 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
       await updateWorkspace({
         token,
         accountId: null,
+        stripeMode: userContext.account.isSandbox
+          ? "sandbox"
+          : environment.mode,
       });
     }
 
@@ -72,7 +79,11 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
       return;
     }
 
-    const token = await getToken({ code, verifier });
+    const token = await getToken({
+      code,
+      verifier,
+      mode: environment.mode,
+    });
 
     if (!token) {
       return;
@@ -93,6 +104,7 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
     await updateWorkspace({
       token,
       accountId: userContext.account.id,
+      stripeMode: userContext.account.isSandbox ? "sandbox" : environment.mode,
     });
 
     await setSecret({
@@ -163,7 +175,11 @@ const AppSettings = ({ userContext, oauthContext }: ExtensionContextValue) => {
               : "Connect workspace",
             href: connecting
               ? "#"
-              : getOAuthUrl({ state: oauthState, challenge }),
+              : getOAuthUrl({
+                  state: oauthState,
+                  challenge,
+                  mode: environment.mode,
+                }),
           }}
           footerContent={
             <>

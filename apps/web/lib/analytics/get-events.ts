@@ -1,7 +1,6 @@
 import { tb } from "@/lib/tinybird";
 import { LinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { OG_AVATAR_URL } from "@dub/utils";
 import * as z from "zod/v4";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { transformLink } from "../api/links/utils/transform-link";
@@ -49,6 +48,7 @@ export const getEvents = async (params: EventsFilters) => {
     sortOrder,
     dataAvailableFrom,
     query,
+    includeMetadata = true,
   } = params;
 
   const { startDate, endDate } = getStartEndDates({
@@ -216,12 +216,14 @@ export const getEvents = async (params: EventsFilters) => {
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
-              metadata: evt.metadata ? JSON.parse(evt.metadata) : undefined,
+              metadata:
+                !includeMetadata || !evt.metadata
+                  ? undefined
+                  : JSON.parse(evt.metadata),
               customer: customersMap[evt.customer_id] ?? {
                 id: evt.customer_id,
                 name: "Deleted Customer",
                 email: "deleted@customer.com",
-                avatar: `${OG_AVATAR_URL}${evt.customer_id}`,
                 externalId: evt.customer_id,
                 createdAt: new Date("1970-01-01"),
               },
@@ -231,6 +233,7 @@ export const getEvents = async (params: EventsFilters) => {
                       amount: evt.saleAmount,
                       invoiceId: evt.invoice_id,
                       paymentProcessor: evt.payment_processor,
+                      currency: evt.currency,
                     },
                   }
                 : {}),
@@ -291,7 +294,7 @@ const getCustomersMap = async (customerIds: string[]) => {
         externalId: customer.externalId || "",
         name: customer.name || customer.email || generateRandomName(),
         email: customer.email || "",
-        avatar: customer.avatar || `${OG_AVATAR_URL}${customer.id}`,
+        avatar: customer.avatar,
         country: customer.country || "",
         createdAt: customer.createdAt,
       });

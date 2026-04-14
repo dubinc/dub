@@ -13,7 +13,7 @@ interface GetCampaignEventsParams
 export const getCampaignEvents = async ({
   campaignId,
   status,
-  page,
+  page = 1,
   pageSize,
   search,
 }: GetCampaignEventsParams) => {

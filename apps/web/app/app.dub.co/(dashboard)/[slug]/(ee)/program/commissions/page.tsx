@@ -25,7 +25,7 @@ export default function ProgramCommissions() {
     >
       <PageWidthWrapper>
         <CommissionsStats />
-        <div className="mt-6">
+        <div className="mt-4">
           <CommissionsTable />
         </div>
       </PageWidthWrapper>

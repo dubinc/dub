@@ -8,19 +8,26 @@ import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
-import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, FlagWavy, Tag, Users6 } from "@dub/ui/icons";
+import { useRouterStuff, encodeRangeToken, parseRangeToken } from "@dub/ui";
+import { CircleDotted, FlagWavy, Tag, Users6, CursorRays, 
+  InvoiceDollar,
+  MarketingTarget,
+  MoneyBills2,
+  UserPlus, } from "@dub/ui/icons";
 import {
   buildFilterValue,
   cn,
   COUNTRIES,
   nFormatter,
   parseFilterValue,
+  currencyFormatter,
   type FilterOperator,
   type ParsedFilter,
 } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
+
+
 
 const SINGLE_VALUE_FILTER_KEYS = ["status"] as const;
 const MULTI_VALUE_FILTER_KEYS = ["partnerTagId", "groupId", "country"] as const;
@@ -68,13 +75,84 @@ function activeFiltersToSearchParams(
   );
 }
 
+const PARTNER_METRIC_RANGE = [
+  {
+    filterKey: "totalClicks",
+    minParam: "totalClicksMin",
+    maxParam: "totalClicksMax",
+    metric: "totalClicks" as const,
+    label: "Clicks",
+    icon: CursorRays,
+  },
+  {
+    filterKey: "totalLeads",
+    minParam: "totalLeadsMin",
+    maxParam: "totalLeadsMax",
+    metric: "totalLeads" as const,
+    label: "Leads",
+    icon: UserPlus,
+  },
+  {
+    filterKey: "totalConversions",
+    minParam: "totalConversionsMin",
+    maxParam: "totalConversionsMax",
+    metric: "totalConversions" as const,
+    label: "Conversions",
+    icon: MarketingTarget,
+  },
+  {
+    filterKey: "totalSaleAmount",
+    minParam: "totalSaleAmountMin",
+    maxParam: "totalSaleAmountMax",
+    metric: "totalSaleAmount" as const,
+    label: "Revenue",
+    icon: InvoiceDollar,
+    formatRangeBound: (n: number) => currencyFormatter(n),
+    parseRangeInput: (raw: string) => {
+      const n = Number.parseFloat(raw.replace(/[^0-9.-]/g, ""));
+      if (!Number.isFinite(n)) {
+        return Number.NaN;
+      }
+      return Math.round(n * 100);
+    },
+  },
+  {
+    filterKey: "totalCommissions",
+    minParam: "totalCommissionsMin",
+    maxParam: "totalCommissionsMax",
+    metric: "totalCommissions" as const,
+    label: "Commissions",
+    icon: MoneyBills2,
+    formatRangeBound: (n: number) => currencyFormatter(n),
+    parseRangeInput: (raw: string) => {
+      const n = Number.parseFloat(raw.replace(/[^0-9.-]/g, ""));
+      if (!Number.isFinite(n)) {
+        return Number.NaN;
+      }
+      return Math.round(n * 100);
+    },
+  },
+] as const;
+
+export type PartnerFilterKey =
+  | "groupId"
+  | "partnerTagId"
+  | "status"
+  | "country"
+  | (typeof PARTNER_METRIC_RANGE)[number]["filterKey"];
+
 export function usePartnerFilters(
   extraSearchParams: Record<string, string>,
-  enabledFilters: ("groupId" | "partnerTagId" | "status" | "country")[] = [
+  enabledFilters: PartnerFilterKey[] = [
     "groupId",
     "partnerTagId",
     "status",
     "country",
+    "totalClicks",
+    "totalLeads",
+    "totalConversions",
+    "totalSaleAmount",
+    "totalCommissions",
   ],
 ) {
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -94,6 +172,15 @@ export function usePartnerFilters(
 
   const { groups } = useGroups();
 
+  const cohortParams = useMemo(
+    () => ({
+      ...(searchParamsObj.groupId && { groupId: searchParamsObj.groupId }),
+      ...(searchParamsObj.country && { country: searchParamsObj.country }),
+      ...(searchParamsObj.search && { search: searchParamsObj.search }),
+    }),
+    [searchParamsObj.groupId, searchParamsObj.country, searchParamsObj.search],
+  );
+
   const { partnersCount: countriesCount } = usePartnersCount<
     | {
         country: string;
@@ -103,6 +190,7 @@ export function usePartnerFilters(
   >({
     groupBy: "country",
     status,
+    ...cohortParams,
     enabled: enabledFilters.includes("country"),
   });
 
@@ -113,7 +201,9 @@ export function usePartnerFilters(
       }[]
     | undefined
   >({
-    groupBy: "status", // here we include all statuses to get the groupBy count
+    groupBy: "status",
+    status,
+    ...cohortParams,
     enabled: enabledFilters.includes("status"),
   });
 
@@ -126,6 +216,7 @@ export function usePartnerFilters(
   >({
     groupBy: "groupId",
     status,
+    ...cohortParams,
     enabled: enabledFilters.includes("groupId"),
   });
 
@@ -216,14 +307,17 @@ export function usePartnerFilters(
               key: "country",
               icon: FlagWavy,
               label: "Location",
-              getOptionIcon: (value) => (
+              separatorAfter: PARTNER_METRIC_RANGE.some((m) =>
+                enabledFilters.includes(m.filterKey),
+              ),
+              getOptionIcon: (value: string) => (
                 <img
                   alt={value}
                   src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
                   className="size-4 shrink-0"
                 />
               ),
-              getOptionLabel: (value) => COUNTRIES[value],
+              getOptionLabel: (value: string) => COUNTRIES[value],
               options:
                 countriesCount
                   ?.filter(({ country }) => COUNTRIES[country])
@@ -235,6 +329,49 @@ export function usePartnerFilters(
             },
           ]
         : []),
+      ...PARTNER_METRIC_RANGE.filter((m) =>
+        enabledFilters.includes(m.filterKey),
+      ).map((m) => {
+        const formatRangeBound =
+          "formatRangeBound" in m && m.formatRangeBound
+            ? m.formatRangeBound
+            : (n: number) => nFormatter(n, { full: true });
+        const parseRangeInput =
+          "parseRangeInput" in m && m.parseRangeInput
+            ? m.parseRangeInput
+            : (raw: string) => {
+                const n = Number.parseInt(raw.replace(/[^\d-]/g, ""), 10);
+                return Number.isFinite(n) ? n : Number.NaN;
+              };
+        return {
+          key: m.filterKey,
+          icon: m.icon,
+          label: m.label,
+          type: "range" as const,
+          options: null,
+          ...(m.metric === "totalCommissions"
+            ? {
+                rangeDisplayScale: 100,
+                rangeNumberStep: 0.01,
+              }
+            : {}),
+          formatRangeBound,
+          parseRangeInput,
+          formatRangePillLabel: (token: string) => {
+            const { min, max } = parseRangeToken(token);
+            if (min != null && max != null) {
+              return `${formatRangeBound(min)} – ${formatRangeBound(max)}`;
+            }
+            if (min != null) {
+              return `${formatRangeBound(min)} – No max`;
+            }
+            if (max != null) {
+              return `No min – ${formatRangeBound(max)}`;
+            }
+            return token;
+          },
+        };
+      }),
     ],
     [
       enabledFilters,
@@ -283,11 +420,52 @@ export function usePartnerFilters(
       if (!value) return [];
       return [{ key, value }];
     });
-    return [...multiValueFilters, ...singleValueFilters];
+    const metricFilters = PARTNER_METRIC_RANGE.filter((m) =>
+      enabledFilters.includes(m.filterKey),
+    ).flatMap((m) => {
+      const minRaw = searchParamsObj[m.minParam];
+      const maxRaw = searchParamsObj[m.maxParam];
+      const min =
+        minRaw !== undefined && minRaw !== "" ? Number(minRaw) : undefined;
+      const max =
+        maxRaw !== undefined && maxRaw !== "" ? Number(maxRaw) : undefined;
+      const minOk = min !== undefined && Number.isFinite(min);
+      const maxOk = max !== undefined && Number.isFinite(max);
+      if (!minOk && !maxOk) {
+        return [];
+      }
+      return [
+        {
+          key: m.filterKey,
+          value: encodeRangeToken(
+            minOk ? min : undefined,
+            maxOk ? max : undefined,
+          ),
+        },
+      ];
+    });
+    return [...multiValueFilters, ...singleValueFilters, ...metricFilters];
   }, [searchParamsObj, enabledFilters, parsedByKey]);
 
   const onSelect = useCallback(
-    (key: string, value: any) => {
+    (key: string, value: unknown) => {
+      const metric = PARTNER_METRIC_RANGE.find((m) => m.filterKey === key);
+      if (metric) {
+        const { min, max } = parseRangeToken(String(value));
+        queryParams({
+          set: {
+            ...(min != null ? { [metric.minParam]: String(min) } : {}),
+            ...(max != null ? { [metric.maxParam]: String(max) } : {}),
+          },
+          del: [
+            ...(min == null ? [metric.minParam] : []),
+            ...(max == null ? [metric.maxParam] : []),
+            "page",
+          ],
+        });
+        return;
+      }
+
       if (
         MULTI_VALUE_FILTER_KEYS.includes(
           key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
@@ -295,19 +473,28 @@ export function usePartnerFilters(
       ) {
         const parsed = parsedByKey[key as keyof typeof parsedByKey];
         const currentValues = parsed?.values ?? [];
-        const newValues = currentValues.includes(value)
+        const next = String(value);
+        const newValues = currentValues.includes(next)
           ? currentValues
-          : [...currentValues, value];
+          : [...currentValues, next];
         const newParam = buildMultiValueParam(parsed, newValues);
         return queryParams({ set: { [key]: newParam }, del: "page" });
       }
-      return queryParams({ set: { [key]: value }, del: "page" });
+      return queryParams({ set: { [key]: value as string }, del: "page" });
     },
     [queryParams, parsedByKey],
   );
 
   const onRemove = useCallback(
-    (key: string, value?: any) => {
+    (key: string, value?: unknown) => {
+      const metric = PARTNER_METRIC_RANGE.find((m) => m.filterKey === key);
+      if (metric) {
+        queryParams({
+          del: [metric.minParam, metric.maxParam, "page"],
+        });
+        return;
+      }
+
       if (
         MULTI_VALUE_FILTER_KEYS.includes(
           key as (typeof MULTI_VALUE_FILTER_KEYS)[number],
@@ -325,6 +512,13 @@ export function usePartnerFilters(
       return queryParams({ del: [key, "page"] });
     },
     [queryParams, parsedByKey],
+  );
+
+  const onRemoveFilter = useCallback(
+    (key: string) => {
+      onRemove(key);
+    },
+    [onRemove],
   );
 
   const onToggleOperator = useCallback(
@@ -348,35 +542,67 @@ export function usePartnerFilters(
     [queryParams, searchParamsObj],
   );
 
-  const onRemoveAll = () =>
-    queryParams({
-      del: ["status", "country", "groupId", "partnerTagId", "search"],
-    });
-
-  const searchQuery = useMemo(
+  const onRemoveAll = useCallback(
     () =>
-      new URLSearchParams({
-        ...activeFiltersToSearchParams(activeFilters),
-        ...(searchParamsObj.search && { search: searchParamsObj.search }),
-        workspaceId: workspaceId || "",
-        ...extraSearchParams,
-      }).toString(),
-    [activeFilters, searchParamsObj.search, workspaceId, extraSearchParams],
+      queryParams({
+        del: [
+          "status",
+          "country",
+          "groupId",
+          "partnerTagId",
+          "search",
+          "totalClicksMin",
+          "totalClicksMax",
+          "totalLeadsMin",
+          "totalLeadsMax",
+          "totalConversionsMin",
+          "totalConversionsMax",
+          "totalSaleAmountMin",
+          "totalSaleAmountMax",
+          "totalCommissionsMin",
+          "totalCommissionsMax",
+          "page",
+        ],
+      }),
+    [queryParams],
   );
 
-  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+  const searchQuery = useMemo(() => {
+    const acc: Record<string, string> = {
+      workspaceId: workspaceId || "",
+      ...extraSearchParams,
+    };
+    if (searchParamsObj.search) {
+      acc.search = searchParamsObj.search;
+    }
+    for (const f of activeFilters) {
+      const metric = PARTNER_METRIC_RANGE.find((m) => m.filterKey === f.key);
+      if (metric && "value" in f && f.value != null) {
+        const { min, max } = parseRangeToken(String(f.value));
+        if (min != null) {
+          acc[metric.minParam] = String(min);
+        }
+        if (max != null) {
+          acc[metric.maxParam] = String(max);
+        }
+      } else {
+        Object.assign(acc, activeFiltersToSearchParams([f]));
+      }
+    }
+    return new URLSearchParams(acc).toString();
+  }, [activeFilters, searchParamsObj.search, workspaceId, extraSearchParams]);
 
   return {
     filters,
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
     onToggleOperator,
     setSelectedFilter,
     setSearch,
     searchQuery,
-    isFiltered,
   };
 }
 

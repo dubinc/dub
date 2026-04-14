@@ -5,7 +5,7 @@ import { Button, buttonVariants, CopyButton, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { X } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import { Dispatch, ReactNode, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 
 interface SocialVerificationByCodeModalProps {
@@ -20,15 +20,25 @@ interface PlatformInfo {
   name: string;
   title: string;
   instruction: string;
-  getProfileUrl: (handle: string) => string;
+  openLabel: string;
+  verifyTitle: string;
+  verifyDescription: string;
+  getProfileUrl: (handle: string, verificationCode: string) => string;
 }
 
-const PLATFORM_INFO: Record<"youtube" | "instagram", PlatformInfo> = {
+const PLATFORM_INFO: Record<
+  "youtube" | "instagram" | "linkedin",
+  PlatformInfo
+> = {
   youtube: {
     name: "YouTube",
     title: "Edit your YouTube channel",
     instruction:
       "Navigate to your channel settings and add the 6 digit code above to your channel description temporarily.",
+    openLabel: "Open channel",
+    verifyTitle: "Verify account",
+    verifyDescription:
+      "Click verify below once you've added the code to your channel description.",
     getProfileUrl: (handle) => `https://www.youtube.com/@${handle}/about`,
   },
   instagram: {
@@ -36,7 +46,25 @@ const PLATFORM_INFO: Record<"youtube" | "instagram", PlatformInfo> = {
     title: "Edit your Instagram profile",
     instruction:
       "Navigate to your profile settings and add the 6 digit code above to your bio temporarily.",
+    openLabel: "Open profile",
+    verifyTitle: "Verify account",
+    verifyDescription:
+      "Click verify below once you've added the code to your bio.",
     getProfileUrl: (handle) => `https://www.instagram.com/${handle}/`,
+  },
+  linkedin: {
+    name: "LinkedIn",
+    title: "Create a LinkedIn post",
+    instruction:
+      "Click the button below to create a LinkedIn post with the code pre-filled. You can remove the post after verification.",
+    openLabel: "Create post on LinkedIn",
+    verifyTitle: "Paste post URL and verify account",
+    verifyDescription:
+      "After creating the post, paste the post URL below and click verify.",
+    getProfileUrl: (_handle, code) =>
+      `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(
+        `I'm claiming my Dub profile on partners.dub.co 🤘\n\nEarn by partnering with world-class companies like Framer, Polymarket, Perplexity, and more.\n\nVerification: ${code}`,
+      )}`,
   },
 };
 
@@ -60,9 +88,10 @@ function SocialVerificationByCodeModalInner({
   verificationCode,
 }: SocialVerificationByCodeModalProps) {
   const { mutate: mutatePartner } = usePartnerProfile();
+  const [postUrl, setPostUrl] = useState("");
 
   const platformInfo: PlatformInfo = PLATFORM_INFO[platform];
-  const profileUrl = platformInfo.getProfileUrl(handle);
+  const isLinkedIn = platform === "linkedin";
 
   const { executeAsync, isPending } = useAction(
     verifySocialAccountByCodeAction,
@@ -81,11 +110,23 @@ function SocialVerificationByCodeModalInner({
   );
 
   const handleVerify = async () => {
+    if (isLinkedIn && !postUrl) {
+      toast.error("Please enter the LinkedIn post URL.");
+      return;
+    }
+
     await executeAsync({
       platform,
       handle,
+      ...(isLinkedIn && { postUrl }),
     });
   };
+
+  let stepNumber = 1;
+
+  if (!platformInfo) {
+    return null;
+  }
 
   return (
     <>
@@ -104,7 +145,7 @@ function SocialVerificationByCodeModalInner({
 
       <div className="flex flex-col gap-4 bg-neutral-50 p-4 sm:p-6">
         <Step
-          stepNumber={1}
+          stepNumber={stepNumber++}
           title="Copy the code below"
           description="You'll use this to verify ownership of your account."
         >
@@ -117,12 +158,12 @@ function SocialVerificationByCodeModalInner({
         </Step>
 
         <Step
-          stepNumber={2}
+          stepNumber={stepNumber++}
           title={platformInfo.title}
           description={platformInfo.instruction}
         >
           <a
-            href={profileUrl}
+            href={platformInfo.getProfileUrl(handle, verificationCode)}
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
@@ -130,19 +171,29 @@ function SocialVerificationByCodeModalInner({
               "flex h-8 w-full items-center justify-center rounded-md border px-3 text-sm",
             )}
           >
-            Open {platform === "youtube" ? "channel" : "profile"}
+            {platformInfo.openLabel}
           </a>
         </Step>
 
         <Step
-          stepNumber={3}
-          title="Verify account"
-          description={`Click verify below once you've added the code to your ${platform === "youtube" ? "channel description" : "bio"}.`}
+          stepNumber={stepNumber++}
+          title={platformInfo.verifyTitle}
+          description={platformInfo.verifyDescription}
         >
+          {isLinkedIn && (
+            <input
+              type="url"
+              value={postUrl}
+              onChange={(e) => setPostUrl(e.target.value)}
+              placeholder="https://www.linkedin.com/feed/update/urn:li:activity:..."
+              className="block w-full rounded-md border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+            />
+          )}
           <Button
             text="Verify account"
             className="h-8 w-full px-3"
             loading={isPending}
+            disabled={isLinkedIn && !postUrl}
             onClick={handleVerify}
           />
         </Step>

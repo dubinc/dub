@@ -2,8 +2,9 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerGroup } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
+import { E2E_PARTNER } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
-import { randomEmail } from "../utils/helpers";
+import { randomPartnerEmail } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { trackE2ELead } from "./utils/track-e2e-lead";
 import { verifyPartnerGroupMove } from "./utils/verify-partner-group-move";
@@ -199,7 +200,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
         path: "/partners",
         body: {
           name: "E2E Test Partner - Disabled Move",
-          email: randomEmail(),
+          email: randomPartnerEmail(),
           groupId: sourceGroup.id,
         },
       });
@@ -267,7 +268,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
         path: "/partners",
         body: {
           name: "E2E Test Partner - Not Met",
-          email: randomEmail(),
+          email: randomPartnerEmail(),
           groupId: sourceGroup.id,
         },
       });
@@ -338,7 +339,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
           path: "/partners",
           body: {
             name: "E2E Test Partner - Move Execution",
-            email: randomEmail(),
+            email: randomPartnerEmail(),
             groupId: sourceGroup.id,
           },
         });
@@ -409,7 +410,7 @@ describe.sequential("Workflow - MoveGroup", async () => {
           path: "/partners",
           body: {
             name: "E2E Test Partner - No Dup Move",
-            email: randomEmail(),
+            email: randomPartnerEmail(),
             groupId: sourceGroup.id,
           },
         });
@@ -487,5 +488,70 @@ describe.sequential("Workflow - MoveGroup", async () => {
     expect(workflowConditions[0].value).toStrictEqual({ min: 2, max: 3 });
     expect(workflowConditions[1].attribute).toBe("totalConversions");
     expect(workflowConditions[1].value).toStrictEqual({ min: 1, max: 2 });
+  });
+
+  test("Workflow skips partner with groupMoveDisabledAt set", async () => {
+    const slug = "e2e-target-skip-partner-move";
+
+    // Get the current group of E2E_PARTNER
+    const { data: partner, status: partnerStatus } =
+      await http.get<EnrolledPartnerProps>({
+        path: `/partners/${E2E_PARTNER.id}`,
+      });
+
+    expect(partnerStatus).toEqual(200);
+    expect(partner).not.toBeNull();
+    expect(partner.groupMoveDisabledAt).not.toBeNull();
+
+    const partnerLink = partner.links![0];
+
+    // Create a new group
+    const { data: targetGroup } = await http.post<PartnerGroup>({
+      path: "/groups",
+      body: {
+        name: "E2E Target Group - Skip Partner Move",
+        slug,
+        color: randomValue(RESOURCE_COLORS),
+      },
+    });
+
+    expect(targetGroup).not.toBeNull();
+
+    onTestFinished(async () => {
+      await http.delete({
+        path: `/groups/${targetGroup.id}`,
+      });
+    });
+
+    // Update the group with move rule
+    const { status: patchStatus } = await http.patch({
+      path: `/groups/${targetGroup.id}`,
+      body: {
+        moveRules: [
+          {
+            attribute: "totalLeads",
+            operator: "gte",
+            value: 1000,
+          },
+        ],
+      },
+    });
+
+    expect(patchStatus).toEqual(200);
+
+    await trackE2ELead(http, partnerLink);
+
+    await verifyPartnerGroupMove({
+      http,
+      partnerId: partner.id,
+      expectedGroupId: partner.groupId!,
+    });
+
+    const { data: partnerAfter } = await http.get<EnrolledPartnerProps>({
+      path: `/partners/${partner.id}`,
+    });
+
+    expect(partnerAfter.groupId).toBe(partner.groupId);
+    expect(partnerAfter.groupMoveDisabledAt).not.toBeNull();
   });
 });

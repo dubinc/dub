@@ -74,37 +74,49 @@ export function EarningsCompositeChart() {
 
   const [chartData, series] = useMemo(
     () => [
-      data?.map(({ start, earnings, data }) => ({
+      data?.map(({ start, earnings, data: breakdown }) => ({
         date: new Date(start),
-        values: { ...data, total: earnings },
+        values: { ...(breakdown ?? {}), total: earnings },
       })),
       data
-        ? [...new Set<string>(data.flatMap(({ data }) => Object.keys(data)))]
-            // Sort by total earnings for the period
-            .sort((a, b) => {
-              const [earningsA, earningsB] = data.reduce(
-                (acc, { data }) => [acc[0] + data[a], acc[1] + data[b]],
-                [0, 0],
-              );
-              return earningsB - earningsA;
-            })
-            .slice(0, MAX_LINES)
-            .map((item, idx) => ({
+        ? (() => {
+            const keys = new Set<string>(
+              data.flatMap(({ data: breakdown }) =>
+                Object.keys(breakdown ?? {}),
+              ),
+            );
+            const sortedKeys: string[] =
+              keys.size > 0
+                ? [...keys].sort((a: string, b: string) => {
+                    const [earningsA, earningsB] = data.reduce(
+                      (acc, { data: breakdown }) => [
+                        acc[0] + (breakdown?.[a] ?? 0),
+                        acc[1] + (breakdown?.[b] ?? 0),
+                      ],
+                      [0, 0],
+                    );
+                    return earningsB - earningsA;
+                  })
+                : ["total"];
+            return sortedKeys.slice(0, MAX_LINES).map((item, idx) => ({
               id: item,
               isActive: true,
               valueAccessor: (d) => d.values[item] || 0,
               colorClassName:
                 groupBy === "type"
-                  ? EVENT_TYPE_LINE_COLORS[item]
+                  ? EVENT_TYPE_LINE_COLORS[
+                      item as keyof typeof EVENT_TYPE_LINE_COLORS
+                    ] ?? LINE_COLORS[idx % LINE_COLORS.length]
                   : LINE_COLORS[idx % LINE_COLORS.length],
-            }))
+            }));
+          })()
         : [],
     ],
-    [data],
+    [data, groupBy],
   );
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <EarningsTableControls />
       <div className="rounded-lg border border-neutral-200 p-6">
         <div className="flex w-full items-center justify-between">
@@ -365,7 +377,7 @@ function EarningsTableControls() {
 
   return (
     <div>
-      <div className="flex flex-col gap-3 md:flex-row">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center">
         <Filter.Select
           filters={filters}
           activeFilters={activeFilters}
@@ -373,10 +385,7 @@ function EarningsTableControls() {
           onRemove={onRemove}
           onSelectedFilterChange={setSelectedFilter}
         />
-        <SimpleDateRangePicker
-          className="w-full sm:min-w-[200px] md:w-fit"
-          align="start"
-        />
+        <SimpleDateRangePicker className="w-full md:w-fit" align="start" />
       </div>
 
       <div

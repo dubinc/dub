@@ -2,6 +2,7 @@
 
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
+import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
@@ -62,6 +63,19 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
       : undefined;
   }, [partner]);
 
+  const { reason } = evaluateApplicationRequirements({
+    applicationRequirements: program.applicationRequirements,
+    context: {
+      country: partner?.country,
+      email: partner?.email,
+    },
+  });
+
+  const requirementsNotMet =
+    reason === "requirementsNotMet"
+      ? "You do not meet the eligibility requirements for this program"
+      : undefined;
+
   const disabledTooltip: ReactNode =
     programEnrollment?.status === "pending" ? (
       "Your application is under review"
@@ -91,7 +105,9 @@ function ApplyButton({ program }: { program: NetworkProgramProps }) {
           </span>
         </Link>
       </div>
-    ) : undefined;
+    ) : (
+      requirementsNotMet
+    );
 
   useKeyboardShortcut("a", () => setIsApplicationSheetOpen(true), {
     enabled: !disabledTooltip,

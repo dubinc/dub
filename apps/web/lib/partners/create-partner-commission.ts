@@ -7,7 +7,7 @@ import {
   Partner,
   ProgramEnrollment,
 } from "@dub/prisma/client";
-import { currencyFormatter, log, prettyPrint } from "@dub/utils";
+import { currencyFormatter, log, prettyPrint, toCentsNumber } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { differenceInMonths } from "date-fns";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
@@ -47,13 +47,17 @@ export type CreatePartnerCommissionProps = {
 
 const constructWebhookPartner = (
   programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
-  { totalCommissions }: { totalCommissions: number } = { totalCommissions: 0 },
+  {
+    totalCommissions: totalCommissionsParam,
+  }: { totalCommissions?: number } = {},
 ) => {
+  const totalCommissions =
+    totalCommissionsParam ?? toCentsNumber(programEnrollment.totalCommissions);
   return {
     ...programEnrollment.partner,
     groupId: programEnrollment.groupId,
     ...aggregatePartnerLinksStats(programEnrollment.links),
-    totalCommissions: totalCommissions || programEnrollment.totalCommissions,
+    totalCommissions,
   };
 };
 
@@ -117,10 +121,13 @@ export const createPartnerCommission = async ({
         },
       });
 
-      const subscriptionDurationMonths = firstCommission
+      const subscriptionStartDate =
+        event === "sale" ? firstCommission?.createdAt ?? new Date() : undefined;
+
+      const subscriptionDurationMonths = subscriptionStartDate
         ? differenceInMonths(
             createdAt ?? new Date(), // account for custom commission creation date
-            firstCommission.createdAt,
+            subscriptionStartDate,
           )
         : 0;
 
@@ -128,6 +135,7 @@ export const createPartnerCommission = async ({
         ...context,
         customer: {
           ...context?.customer,
+          subscriptionStartDate,
           subscriptionDurationMonths,
         },
       };
@@ -310,7 +318,7 @@ export const createPartnerCommission = async ({
     const webhookPartner = constructWebhookPartner(programEnrollment, {
       // check links metrics
       totalCommissions:
-        programEnrollment.totalCommissions + commission.earnings,
+        toCentsNumber(programEnrollment.totalCommissions) + commission.earnings,
     });
 
     waitUntil(

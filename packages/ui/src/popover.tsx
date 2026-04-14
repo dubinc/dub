@@ -3,6 +3,7 @@
 import { cn } from "@dub/utils";
 import * as PopoverPrimitive from "@radix-ui/react-popover";
 import { PropsWithChildren, ReactNode, WheelEventHandler } from "react";
+import { createPortal } from "react-dom";
 import { Drawer } from "vaul";
 import { useMediaQuery } from "./hooks";
 
@@ -13,13 +14,16 @@ export type PopoverProps = PropsWithChildren<{
   openPopover: boolean;
   setOpenPopover: (open: boolean) => void;
   mobileOnly?: boolean;
+  forceDropdown?: boolean;
   popoverContentClassName?: string;
   onOpenAutoFocus?: PopoverPrimitive.PopoverContentProps["onOpenAutoFocus"];
+  onCloseAutoFocus?: PopoverPrimitive.PopoverContentProps["onCloseAutoFocus"];
   collisionBoundary?: Element | Element[];
   sticky?: "partial" | "always";
   onEscapeKeyDown?: (event: KeyboardEvent) => void;
   onWheel?: WheelEventHandler;
   sideOffset?: number;
+  anchor?: ReactNode;
 }>;
 
 export function Popover({
@@ -30,17 +34,20 @@ export function Popover({
   openPopover,
   setOpenPopover,
   mobileOnly,
+  forceDropdown,
   popoverContentClassName,
   onOpenAutoFocus,
+  onCloseAutoFocus,
   collisionBoundary,
   sticky,
   onEscapeKeyDown,
   onWheel,
   sideOffset = 8,
+  anchor,
 }: PopoverProps) {
   const { isMobile } = useMediaQuery();
 
-  if (mobileOnly || isMobile) {
+  if (!forceDropdown && (mobileOnly || isMobile)) {
     return (
       <Drawer.Root open={openPopover} onOpenChange={setOpenPopover}>
         <Drawer.Trigger className="sm:hidden" asChild>
@@ -76,6 +83,12 @@ export function Popover({
 
   return (
     <PopoverPrimitive.Root open={openPopover} onOpenChange={setOpenPopover}>
+      {anchor &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <PopoverPrimitive.Anchor asChild>{anchor}</PopoverPrimitive.Anchor>,
+          document.body,
+        )}
       <PopoverPrimitive.Trigger className="sm:inline-flex" asChild>
         {children}
       </PopoverPrimitive.Trigger>
@@ -91,6 +104,7 @@ export function Popover({
           sticky={sticky}
           collisionBoundary={collisionBoundary}
           onOpenAutoFocus={onOpenAutoFocus}
+          onCloseAutoFocus={onCloseAutoFocus}
           onEscapeKeyDown={onEscapeKeyDown}
           onWheel={onWheel}
         >

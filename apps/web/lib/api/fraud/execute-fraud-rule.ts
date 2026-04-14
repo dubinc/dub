@@ -23,7 +23,6 @@ const FRAUD_RULES_REGISTRY: Record<
   referralSourceBanned: checkReferralSourceBanned,
   paidTrafficDetected: checkPaidTrafficDetected,
   partnerCrossProgramBan: defineFraudRuleStub("partnerCrossProgramBan"),
-  partnerFraudReport: defineFraudRuleStub("partnerFraudReport"),
   partnerDuplicatePayoutMethod: defineFraudRuleStub(
     "partnerDuplicatePayoutMethod",
   ),

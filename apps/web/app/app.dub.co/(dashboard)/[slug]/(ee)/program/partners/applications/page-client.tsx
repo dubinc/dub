@@ -7,6 +7,7 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, PartnerPlatformProps } from "@/lib/types";
+import { useApprovePartnerApplicationModal } from "@/ui/modals/approve-partner-application-modal";
 import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useBulkRejectPartnersModal } from "@/ui/modals/bulk-reject-partners-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
@@ -30,7 +31,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, Users, UserXmark } from "@dub/ui/icons";
+import { Dots, UserCheck, Users, UserXmark } from "@dub/ui/icons";
 import { COUNTRIES, fetcher, formatDate } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -62,23 +63,21 @@ const applicationsColumns = {
 
 export function ProgramPartnersApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
-  const search = searchParams.get("search");
   const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    isFiltered,
-  } = usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
-    "groupId",
-    "country",
-  ]);
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
+
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePartnerFilters({ sortBy, sortOrder, status: "pending" }, [
+      "groupId",
+      "country",
+    ]);
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
     status: "pending",
@@ -426,7 +425,7 @@ export function ProgramPartnersApplicationsPageClient() {
   }, [partners, detailsSheetState.partnerId]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {detailsSheetState.partnerId && currentPartner && (
         <PartnerApplicationSheet
           isOpen={detailsSheetState.open}
@@ -492,7 +491,7 @@ export function ProgramPartnersApplicationsPageClient() {
       ) : (
         <AnimatedEmptyState
           title="No applications found"
-          description={`No applications found${isFiltered || search ? " for the selected filters" : " for this program"}.`}
+          description={`No applications found${isFiltered ? " for the selected filters" : " for this program"}.`}
           cardContent={() => (
             <>
               <Users className="size-4 text-neutral-700" />
@@ -515,6 +514,17 @@ function RowMenuButton({
   const [isOpen, setIsOpen] = useState(false);
 
   const {
+    ApprovePartnerApplicationModal,
+    setShowApprovePartnerApplicationModal,
+  } = useApprovePartnerApplicationModal({
+    partner: row.original,
+    groupId: row.original.groupId,
+    onConfirm: async () => {
+      await mutatePrefix(["/api/partners", "/api/partners/count"]);
+    },
+  });
+
+  const {
     RejectPartnerApplicationModal,
     setShowRejectPartnerApplicationModal,
   } = useRejectPartnerApplicationModal({
@@ -526,6 +536,7 @@ function RowMenuButton({
 
   return (
     <>
+      {ApprovePartnerApplicationModal}
       {RejectPartnerApplicationModal}
       <Popover
         openPopover={isOpen}
@@ -533,6 +544,16 @@ function RowMenuButton({
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <MenuItem
+                as={Command.Item}
+                icon={UserCheck}
+                onSelect={() => {
+                  setIsOpen(false);
+                  setShowApprovePartnerApplicationModal(true);
+                }}
+              >
+                Approve application
+              </MenuItem>
               <MenuItem
                 as={Command.Item}
                 icon={UserXmark}

@@ -6,7 +6,6 @@ export default defineConfig((options: Options) => ({
     "icons/index": "src/icons/index.tsx",
     "charts/index": "src/charts/index.ts",
   },
-
   format: ["esm"],
   esbuildOptions(options) {
     options.banner = {
@@ -15,6 +14,7 @@ export default defineConfig((options: Options) => ({
   },
   dts: true,
   minify: true,
+  clean: process.env.VERCEL === "1",
   external: ["react"],
   ...options,
 }));

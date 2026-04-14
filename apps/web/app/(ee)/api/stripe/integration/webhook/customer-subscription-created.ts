@@ -11,13 +11,15 @@ import { getConnectedCustomer } from "./utils/get-connected-customer";
 // Handle event "customer.subscription.created"
 // only used for recording free trial creations
 export async function customerSubscriptionCreated(
-  event: Stripe.Event,
+  event: Stripe.CustomerSubscriptionCreatedEvent,
   mode: StripeMode,
 ) {
-  const createdSubscription = event.data.object as Stripe.Subscription;
+  const createdSubscription = event.data.object;
 
   if (createdSubscription.status !== "trialing") {
-    return "Subscription is not in trialing status, skipping...";
+    return {
+      response: "Subscription is not in trialing status, skipping...",
+    };
   }
 
   const stripeAccountId = event.account as string;
@@ -41,19 +43,29 @@ export async function customerSubscriptionCreated(
   });
 
   if (!workspace) {
-    return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
+    return {
+      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+    };
   }
 
+  const workspaceId = workspace.id;
+
   if (!workspace.installedIntegrations.length) {
-    return `Workspace ${workspace.slug} has no Stripe integration installed, skipping...`;
+    return {
+      response: `Workspace ${workspace.slug} has no Stripe integration installed, skipping...`,
+      workspaceId,
+    };
   }
 
   const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-    workspace.installedIntegrations[0].settings ?? {},
+    workspace.installedIntegrations[0].settings || {},
   );
 
   if (!stripeIntegrationSettings?.freeTrials?.enabled) {
-    return `Stripe free trial tracking is not enabled for workspace ${workspace.slug}, skipping...`;
+    return {
+      response: `Stripe free trial tracking is not enabled for workspace ${workspace.slug}, skipping...`,
+      workspaceId,
+    };
   }
 
   let customer: Customer | null = null;
@@ -82,7 +94,10 @@ export async function customerSubscriptionCreated(
 
       if (!customer) {
         // this should never happen, but just in case
-        return `Customer ${stripeCustomer.id} with email ${stripeCustomer.email} has not been tracked yet, skipping...`;
+        return {
+          response: `Customer ${stripeCustomer.id} with email ${stripeCustomer.email} has not been tracked yet, skipping...`,
+          workspaceId,
+        };
       }
       // update the customer with the Stripe customer ID (for future reference by invoice.paid)
       waitUntil(
@@ -97,16 +112,25 @@ export async function customerSubscriptionCreated(
       );
     } else {
       // this should never happen either, but just in case
-      return `Customer with stripeCustomerId ${stripeCustomerId} ${stripeCustomer ? "does not have an email on Stripe" : "does not exist"}, skipping...`;
+      return {
+        response: `Customer with stripeCustomerId ${stripeCustomerId} ${stripeCustomer ? "does not have an email on Stripe" : "does not exist"}, skipping...`,
+        workspaceId,
+      };
     }
   }
 
   if (!customer.clickId) {
-    return `Customer ${customer.id} has no clickId, skipping...`;
+    return {
+      response: `Customer ${customer.id} has no clickId, skipping...`,
+      workspaceId,
+    };
   }
 
   if (!customer.externalId) {
-    return `Customer ${customer.id} has no externalId, skipping...`;
+    return {
+      response: `Customer ${customer.id} has no externalId, skipping...`,
+      workspaceId,
+    };
   }
 
   // if trackQuantity is enabled, use the quantity from the main subscription item
@@ -127,5 +151,8 @@ export async function customerSubscriptionCreated(
     source: "trial",
   });
 
-  return `Customer subscription created for customer ${customer.id} with stripeCustomerId ${stripeCustomerId} and workspace ${workspace.slug}`;
+  return {
+    response: `Customer subscription created for customer ${customer.id} with stripeCustomerId ${stripeCustomerId} and workspace ${workspace.slug}`,
+    workspaceId,
+  };
 }

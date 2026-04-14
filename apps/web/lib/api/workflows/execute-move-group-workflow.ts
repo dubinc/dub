@@ -43,12 +43,21 @@ export const executeMoveGroupWorkflow = async ({
     },
     select: {
       groupId: true,
+      groupMoveDisabledAt: true,
     },
   });
 
   if (programEnrollment.groupId === newGroupId) {
     console.log(
       `Partner ${partnerId} is already in target group ${newGroupId}. Skipping..`,
+    );
+    return;
+  }
+
+  // If the partner has group move rules disabled, skip the workflow
+  if (programEnrollment.groupMoveDisabledAt) {
+    console.log(
+      `Partner ${partnerId} has group move rules disabled. Skipping..`,
     );
     return;
   }

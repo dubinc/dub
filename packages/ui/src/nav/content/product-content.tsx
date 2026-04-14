@@ -8,7 +8,7 @@ import { DubAnalyticsIcon, DubLinksIcon, DubPartnersIcon } from "../../icons";
 import { AnalyticsGraphic } from "./graphics/analytics-graphic";
 import { LinksGraphic } from "./graphics/links-graphic";
 import { PartnersGraphic } from "./graphics/partners-graphic";
-import { getUtmParams } from "./shared";
+import { NAV_UTM_PARAMS } from "./shared";
 
 const products = [
   {
@@ -97,11 +97,11 @@ export function ProductContent({ domain }: { domain: string }) {
           }) => (
             <NavigationMenuLink asChild key={title}>
               <Link
-                href={createHref(
-                  href,
-                  domain,
-                  getUtmParams({ domain, utm_content: title }),
-                )}
+                href={createHref(href, domain, {
+                  ...NAV_UTM_PARAMS,
+                  utm_campaign: domain,
+                  utm_content: title,
+                })}
                 className="group relative flex flex-col overflow-hidden rounded-xl border border-neutral-100 bg-neutral-50 dark:border-white/20 dark:bg-white/10"
               >
                 <Grid
@@ -145,11 +145,11 @@ export function ProductContent({ domain }: { domain: string }) {
         {largeLinks.map(({ title, description, href, graphic }) => (
           <NavigationMenuLink asChild key={title}>
             <Link
-              href={createHref(
-                href,
-                domain,
-                getUtmParams({ domain, utm_content: title }),
-              )}
+              href={createHref(href, domain, {
+                ...NAV_UTM_PARAMS,
+                utm_campaign: domain,
+                utm_content: title,
+              })}
               className="group relative flex flex-col justify-center rounded-xl border border-neutral-100 bg-neutral-50 transition-colors duration-150 hover:bg-neutral-100 active:bg-neutral-200 dark:border-white/20 dark:bg-white/10 dark:hover:bg-white/15 dark:active:bg-white/20"
             >
               <Grid

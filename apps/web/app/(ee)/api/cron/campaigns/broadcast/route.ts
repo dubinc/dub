@@ -123,19 +123,20 @@ export async function POST(req: Request) {
       });
     }
 
-    // Mark the campaign as sending
-    try {
-      await prisma.campaign.update({
-        where: {
-          id: campaignId,
-          status: "scheduled",
-        },
-        data: {
-          status: "sending",
-        },
-      });
-    } catch (error) {
-      //
+    // Mark the campaign as sending (if it's in scheduled status)
+    if (campaign.status === "scheduled") {
+      try {
+        await prisma.campaign.update({
+          where: {
+            id: campaignId,
+          },
+          data: {
+            status: "sending",
+          },
+        });
+      } catch (error) {
+        //
+      }
     }
 
     const campaignGroupIds = campaign.groups.map(({ groupId }) => groupId);
@@ -154,6 +155,12 @@ export async function POST(req: Request) {
       },
       select: {
         id: true,
+        links: {
+          select: {
+            shortLink: true,
+          },
+          orderBy: { id: "asc" },
+        },
         partner: {
           select: {
             id: true,
@@ -250,6 +257,8 @@ export async function POST(req: Request) {
                   variables: {
                     PartnerName: partnerUser.partner.name,
                     PartnerEmail: partnerUser.partner.email,
+                    PartnerLink:
+                      partnerUser.enrollment.links?.[0]?.shortLink ?? null,
                   },
                 }),
               },

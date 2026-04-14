@@ -3,7 +3,7 @@ import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
 import { Globe, Hyperlink } from "@dub/ui/icons";
 import { getApexDomain } from "@dub/utils";
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { FolderIcon } from "../folders/folder-icon";
 import TagBadge from "../links/tag-badge";
 import { AnalyticsCard } from "./analytics-card";
@@ -63,11 +63,65 @@ export function TopLinks() {
   const [tab, setTab] = useState<TabId>("links");
   const [subtab, setSubtab] = useState<Subtab>(TAB_CONFIG[tab].defaultSubtab);
 
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
   // Reset subtab when tab changes to ensure it's valid for the new tab
   const handleTabChange = (newTab: TabId) => {
     setTab(newTab);
     setSubtab(TAB_CONFIG[newTab].defaultSubtab);
   };
+
+  useEffect(() => {
+    setSelectedItems([]);
+  }, [tab, subtab]);
+
+  const filterParamKey = useMemo(() => {
+    if (subtab === "links") return "linkId";
+    if (subtab === "base_urls") return "url";
+    if (subtab === "folders") return "folderId";
+    if (subtab === "tags") return "tagId";
+    return null;
+  }, [subtab]);
+
+  const onToggleFilter = useCallback((val: string) => {
+    setSelectedItems((prev) =>
+      prev.includes(val) ? prev.filter((v) => v !== val) : [...prev, val],
+    );
+  }, []);
+
+  const onApplyFilterValues = useCallback(
+    (values: string[]) => {
+      if (!filterParamKey) return;
+
+      if (values.length === 0) {
+        queryParams({ del: filterParamKey, scroll: false });
+      } else {
+        queryParams({
+          set: { [filterParamKey]: values.join(",") },
+          scroll: false,
+        });
+      }
+
+      setSelectedItems([]);
+    },
+    [filterParamKey, queryParams],
+  );
+
+  const isFilterActive = useMemo(
+    () => (filterParamKey ? searchParams.has(filterParamKey) : false),
+    [filterParamKey, searchParams],
+  );
+
+  const activeFilterValues = useMemo(
+    () =>
+      filterParamKey ? searchParams.get(filterParamKey)?.split(",") ?? [] : [],
+    [filterParamKey, searchParams],
+  );
+
+  const onClearFilter = useCallback(() => {
+    setSelectedItems([]);
+    if (isFilterActive && filterParamKey) queryParams({ del: filterParamKey });
+  }, [filterParamKey, queryParams, isFilterActive]);
 
   const groupByParams = useMemo(
     () => TAB_CONFIG[tab].getGroupBy(subtab),
@@ -75,6 +129,9 @@ export function TopLinks() {
   );
 
   const { data } = useAnalyticsFilterOption(groupByParams);
+  const { data: allData } = useAnalyticsFilterOption(groupByParams, {
+    omitGroupByFilterKey: true,
+  });
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
 
@@ -104,6 +161,49 @@ export function TopLinks() {
     [persisted, tab, subtab],
   );
 
+  const mapItem = useCallback(
+    (d: Record<string, any>) => {
+      const isLinksTab = tab === "links";
+      const isUrlsTab = tab === "urls";
+      const isFoldersSubtab = isLinksTab && subtab === "folders";
+      const isTagsSubtab = isLinksTab && subtab === "tags";
+      const isLinksSubtab = isLinksTab && subtab === "links";
+
+      let icon;
+      if (isFoldersSubtab) {
+        icon = d.folder ? (
+          <FolderIcon folder={d.folder} shape="square" iconClassName="size-3" />
+        ) : null;
+      } else if (isTagsSubtab) {
+        icon = d.tag ? (
+          <TagBadge color={d.tag.color} withIcon className="sm:p-1" />
+        ) : null;
+      } else {
+        icon = (
+          <LinkLogo
+            apexDomain={getApexDomain(d.url || "")}
+            className="size-5 sm:size-5"
+          />
+        );
+      }
+
+      let filterValue: string | undefined;
+      if (isLinksSubtab) filterValue = d.id;
+      else if (isUrlsTab && subtab === "base_urls") filterValue = d.url;
+      else if (isFoldersSubtab) filterValue = d.folderId;
+      else if (isTagsSubtab) filterValue = d.tagId;
+
+      return {
+        icon,
+        title: getItemTitle(d),
+        filterValue,
+        value: d[dataKey] || 0,
+        ...(isLinksSubtab && { linkData: d }),
+      };
+    },
+    [tab, subtab, dataKey, getItemTitle],
+  );
+
   const subTabProps = useMemo(() => {
     if (adminPage || partnerPage || dashboardProps) return {};
     const config = TAB_CONFIG[tab];
@@ -125,6 +225,8 @@ export function TopLinks() {
       ]}
       expandLimit={8}
       dataLength={data?.length}
+      isFilterActive={isFilterActive}
+      onClearFilter={onClearFilter}
       selectedTabId={tab}
       onSelectTab={handleTabChange}
       {...subTabProps}
@@ -134,109 +236,27 @@ export function TopLinks() {
           data.length > 0 ? (
             <BarList
               tab={tab}
-              data={
-                data
-                  ?.map((d) => {
-                    const isLinksTab = tab === "links";
-                    const isUrlsTab = tab === "urls";
-                    const isFoldersSubtab = isLinksTab && subtab === "folders";
-                    const isTagsSubtab = isLinksTab && subtab === "tags";
-                    const isLinksSubtab = isLinksTab && subtab === "links";
-
-                    // Determine icon
-                    let icon;
-                    if (isFoldersSubtab) {
-                      icon = d.folder ? (
-                        <FolderIcon
-                          folder={d.folder}
-                          shape="square"
-                          iconClassName="size-3"
-                        />
-                      ) : null;
-                    } else if (isTagsSubtab) {
-                      icon = d.tag ? (
-                        <TagBadge
-                          color={d.tag.color}
-                          withIcon
-                          className="sm:p-1"
-                        />
-                      ) : null;
-                    } else {
-                      icon = (
-                        <LinkLogo
-                          apexDomain={getApexDomain(d.url || "")}
-                          className="size-5 sm:size-5"
-                        />
-                      );
-                    }
-
-                    // Determine href
-                    let href: string | undefined;
-                    if (isLinksSubtab) {
-                      href = queryParams({
-                        ...(searchParams.has("linkId")
-                          ? { del: ["linkId"] }
-                          : {
-                              set: {
-                                linkId: d.id,
-                              },
-                              del: ["domain", "key"],
-                            }),
-                        getNewPath: true,
-                      }) as string;
-                    } else if (isUrlsTab && subtab === "base_urls") {
-                      const hasUrlFilter = searchParams.has("url");
-                      href = queryParams({
-                        ...(hasUrlFilter
-                          ? { del: "url" }
-                          : {
-                              set: {
-                                url: d.url,
-                              },
-                            }),
-                        getNewPath: true,
-                      }) as string;
-                    } else if (isFoldersSubtab) {
-                      const hasFolderFilter = searchParams.has("folderId");
-                      href = queryParams({
-                        ...(hasFolderFilter
-                          ? { del: "folderId" }
-                          : {
-                              set: {
-                                folderId: d.folderId,
-                              },
-                            }),
-                        getNewPath: true,
-                      }) as string;
-                    } else if (isTagsSubtab) {
-                      const hasTagFilter = searchParams.has("tagId");
-                      href = queryParams({
-                        ...(hasTagFilter
-                          ? { del: "tagId" }
-                          : {
-                              set: {
-                                tagId: d.tagId,
-                              },
-                            }),
-                        getNewPath: true,
-                      }) as string;
-                    }
-
-                    return {
-                      icon,
-                      title: getItemTitle(d),
-                      href,
-                      value: d[dataKey] || 0,
-                      ...(isLinksSubtab && { linkData: d }),
-                    };
-                  })
-                  ?.sort((a, b) => b.value - a.value) || []
-              }
+              data={data?.map(mapItem).sort((a, b) => b.value - a.value) || []}
+              allData={allData?.map(mapItem).sort((a, b) => b.value - a.value)}
               unit={selectedTab}
-              maxValue={Math.max(...data?.map((d) => d[dataKey] ?? 0)) ?? 0}
+              maxValue={Math.max(...data.map((d) => d[dataKey] ?? 0))}
               barBackground="bg-orange-100"
               hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
+              filterSelectedBackground="bg-orange-500"
+              filterSelectedHoverBackground="hover:bg-orange-600"
+              filterHoverClass="bg-white border border-orange-200"
               setShowModal={setShowModal}
+              selectedFilterValues={selectedItems}
+              activeFilterValues={activeFilterValues}
+              onToggleFilter={onToggleFilter}
+              onClearFilter={filterParamKey ? onClearFilter : undefined}
+              onClearSelection={() => setSelectedItems([])}
+              onApplyFilterValues={
+                filterParamKey ? onApplyFilterValues : undefined
+              }
+              onRowFilterItem={
+                filterParamKey ? (val) => onApplyFilterValues([val]) : undefined
+              }
               {...(limit && { limit })}
             />
           ) : (

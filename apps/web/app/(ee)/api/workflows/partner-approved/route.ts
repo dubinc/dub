@@ -1,17 +1,20 @@
 import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
-import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
+import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
+import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
+import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
 
@@ -58,18 +61,25 @@ export const { POST } = serve<Payload>(
       workflowRunId: context.workflowRunId,
     });
 
-    const { program, partner, links, ...programEnrollment } =
-      await getProgramEnrollmentOrThrow({
-        programId,
-        partnerId,
-        include: {
-          program: true,
-          partner: true,
-          links: true,
-        },
-      });
+    const {
+      program,
+      partner,
+      links: existingPartnerLinks,
+      ...programEnrollment
+    } = await getProgramEnrollmentOrThrow({
+      programId,
+      partnerId,
+      include: {
+        program: true,
+        partner: true,
+        links: true,
+      },
+    });
 
     const { groupId } = programEnrollment;
+
+    const allPartnerLinks =
+      ProgramPartnerLinkSchema.array().parse(existingPartnerLinks);
 
     // Step 1: Create partner default links
     await context.run("create-default-links", async () => {
@@ -103,8 +113,8 @@ export const { POST } = serve<Payload>(
         return;
       }
 
-      // Skip existing default links
-      for (const link of links) {
+      // Skip existing default links (should never happen since it's a new partner, but just in case)
+      for (const link of existingPartnerLinks) {
         if (link.partnerGroupDefaultLinkId) {
           partnerGroupDefaultLinks = partnerGroupDefaultLinks.filter(
             (defaultLink) => defaultLink.id !== link.partnerGroupDefaultLinkId,
@@ -154,6 +164,8 @@ export const { POST } = serve<Payload>(
         })),
       });
 
+      allPartnerLinks.push(...partnerLinks);
+
       return;
     });
 
@@ -182,12 +194,27 @@ export const { POST } = serve<Payload>(
         },
         select: {
           stripeConnectId: true,
+          installedIntegrations: {
+            where: {
+              integrationId: STRIPE_INTEGRATION_ID,
+            },
+          },
         },
       });
 
       if (!workspace.stripeConnectId) {
+        console.log("Workspace does not have stripeConnectId");
         return;
       }
+
+      if (!workspace.installedIntegrations.length) {
+        console.log("Workspace does not have the Stripe integration installed");
+        return;
+      }
+
+      const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
+        workspace.installedIntegrations[0].settings || {},
+      );
 
       const partnerLinks = await prisma.link.findMany({
         where: {
@@ -213,6 +240,7 @@ export const { POST } = serve<Payload>(
         try {
           await createDiscountCode({
             stripeConnectId: workspace.stripeConnectId,
+            stripeMode: stripeIntegrationSettings.stripeMode,
             partner,
             link,
             discount: group.discount,
@@ -275,7 +303,7 @@ export const { POST } = serve<Payload>(
         data: partnerUsers,
       });
 
-      const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
+      const rewardsAndBounties = await getGroupRewardsAndBounties({
         programId,
         groupId: programEnrollment.groupId || program.defaultGroupId,
       });
@@ -337,7 +365,7 @@ export const { POST } = serve<Payload>(
         ...polyfillSocialMediaFields(partnerPlatforms),
         id: partner.id,
         status: programEnrollment.status,
-        links,
+        links: allPartnerLinks,
       });
 
       const workspace = await prisma.project.findUniqueOrThrow({

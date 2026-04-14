@@ -1,7 +1,12 @@
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
-import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
+import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
+import {
+  buildMetricRangeWhere,
+  buildPartnerEmailSearchWhere,
+  buildProgramEnrollmentWhereForList,
+} from "./program-enrollment-query";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
   programId: string;
@@ -13,37 +18,30 @@ type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
 export async function getPartnersCount<T>(
   filters: PartnersCountFilters,
 ): Promise<T> {
+  // const {
+
+  const { groupBy, programId, ...enrollmentFilters } = filters;
+  const enrollmentBase = { ...enrollmentFilters, programId };
+
   const {
-    groupBy,
     status,
     country,
     search,
     email,
     partnerIds,
-    partnerTagId,
     groupId,
-    programId,
+    partnerTagId,
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
-  } = filters;
+  } = enrollmentFilters;
 
   const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
   const groupIdNotIn = groupIdOperator === "NOT IN";
   const countryNotIn = countryOperator === "NOT IN";
 
   const commonWhere: Prisma.PartnerWhereInput = {
-    ...(email
-      ? { email }
-      : search
-        ? search.includes("@")
-          ? { email: search }
-          : {
-              email: { search: sanitizeFullTextSearch(search) },
-              name: { search: sanitizeFullTextSearch(search) },
-              companyName: { search: sanitizeFullTextSearch(search) },
-            }
-        : {}),
+    ...buildPartnerEmailSearchWhere({ email, search }),
     ...(partnerIds && {
       id: { in: partnerIds },
     }),
@@ -66,24 +64,28 @@ export async function getPartnersCount<T>(
     }),
   };
 
-  const programsWhere = {
-    some: {
-      programId,
-      ...(groupId && !groupIdNotIn && { groupId }),
-    },
-    every: { status },
-    ...(groupId && groupIdNotIn && { none: { groupId } }),
-  };
+  const enrollmentMetricWhere = buildMetricRangeWhere(enrollmentBase);
 
   // Get partner count by country
   if (groupBy === "country") {
     const partners = await prisma.partner.groupBy({
       by: ["country"],
       where: {
-        programs: programsWhere,
-        ...(country && {
-          country: countryNotIn ? { not: country } : country,
-        }),
+        programs: {
+          some: {
+            programId,
+            ...(groupId && {
+              groupId,
+            }),
+            status:
+              status === "approved_invited"
+                ? {
+                    in: ["approved", "invited"],
+                  }
+                : status,
+            ...enrollmentMetricWhere,
+          },
+        },
         ...commonWhere,
       },
       _count: true,
@@ -111,6 +113,7 @@ export async function getPartnersCount<T>(
           }),
           ...commonWhere,
         },
+        ...enrollmentMetricWhere,
       },
       _count: true,
       orderBy: {
@@ -127,7 +130,7 @@ export async function getPartnersCount<T>(
 
     // Add missing statuses with count 0
     missingStatuses.forEach((status) => {
-      partners.push({ _count: 0, status });
+      partners.push({ _count: 0, status: status });
     });
 
     return partners as T;
@@ -149,7 +152,13 @@ export async function getPartnersCount<T>(
           }),
           ...commonWhere,
         },
-        status,
+        status:
+          status === "approved_invited"
+            ? {
+                in: ["approved", "invited"],
+              }
+            : status,
+        ...enrollmentMetricWhere,
       },
       _count: true,
       orderBy: {
@@ -181,18 +190,7 @@ export async function getPartnersCount<T>(
 
   // Get absolute count of partners
   const count = await prisma.programEnrollment.count({
-    where: {
-      programId,
-      status,
-      ...(groupId &&
-        (groupIdNotIn ? { groupId: { not: groupId } } : { groupId })),
-      partner: {
-        ...(country && {
-          country: countryNotIn ? { not: country } : country,
-        }),
-        ...commonWhere,
-      },
-    },
+    where: buildProgramEnrollmentWhereForList(enrollmentBase),
   });
 
   return count as T;

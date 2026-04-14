@@ -1,5 +1,6 @@
 import { PostbackProps } from "@/lib/types";
-import { Slack, TokenAvatar } from "@dub/ui";
+import { TokenAvatar } from "@/ui/token-avatar";
+import { Slack } from "@dub/ui";
 import Link from "next/link";
 import { PostbackStatus } from "./postback-status";
 

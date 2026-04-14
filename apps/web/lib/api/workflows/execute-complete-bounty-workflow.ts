@@ -5,10 +5,23 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import { prisma } from "@dub/prisma";
-import { Workflow, WorkspaceRole } from "@dub/prisma/client";
+import {
+  BountySubmissionStatus,
+  Workflow,
+  WorkspaceRole,
+} from "@dub/prisma/client";
 import { createId } from "../create-id";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+
+const terminalStatusReason: Record<
+  Exclude<BountySubmissionStatus, "draft">,
+  string
+> = {
+  submitted: "finished",
+  approved: "been awarded",
+  rejected: "been rejected",
+};
 
 export const executeCompleteBountyWorkflow = async ({
   workflow,
@@ -93,12 +106,15 @@ export const executeCompleteBountyWorkflow = async ({
   if (submissions.length > 0) {
     const submission = submissions[0];
 
-    if (submission.status === "submitted" || submission.status === "approved") {
-      console.log(
-        `Partner ${partnerId} has already ${submission.status === "submitted" ? "finished" : "been awarded"} this bounty (bountyId: ${bounty.id}, submissionId: ${submissions[0].id}).`,
-      );
+    if (submission.status !== "draft") {
+      const reason = terminalStatusReason[submission.status];
 
-      return;
+      if (reason) {
+        console.log(
+          `Partner ${partnerId} has already ${reason} this bounty (bountyId: ${bounty.id}, submissionId: ${submission.id}).`,
+        );
+        return;
+      }
     }
   }
 
@@ -116,13 +132,15 @@ export const executeCompleteBountyWorkflow = async ({
   };
 
   const performanceCount = finalContext[condition.attribute] ?? 0;
+  const periodNumber = 1; // Only one submission is allowed for performance based bounties
 
   // Create or update the submission
   const bountySubmission = await prisma.bountySubmission.upsert({
     where: {
-      bountyId_partnerId: {
+      bountyId_partnerId_periodNumber: {
         bountyId,
         partnerId,
+        periodNumber,
       },
     },
     create: {
@@ -130,6 +148,7 @@ export const executeCompleteBountyWorkflow = async ({
       programId: bounty.programId,
       partnerId,
       bountyId: bounty.id,
+      periodNumber,
       status: "draft",
       performanceCount,
     },
@@ -144,7 +163,7 @@ export const executeCompleteBountyWorkflow = async ({
   const shouldExecute = evaluateWorkflowConditions({
     conditions: [condition],
     attributes: {
-      [condition.attribute]: bountySubmission.performanceCount,
+      [condition.attribute]: Number(bountySubmission.performanceCount ?? 0),
     },
   });
 

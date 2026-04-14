@@ -30,6 +30,7 @@ interface MovePartnersToGroupParams {
     | "discountId"
   >;
   isGroupDeleted?: boolean;
+  groupMoveDisabledAt?: Date | null;
 }
 
 export async function movePartnersToGroup({
@@ -39,6 +40,7 @@ export async function movePartnersToGroup({
   userId,
   group,
   isGroupDeleted = false,
+  groupMoveDisabledAt,
 }: MovePartnersToGroupParams): Promise<number> {
   if (partnerIds.length === 0) {
     return 0;
@@ -54,6 +56,7 @@ export async function movePartnersToGroup({
     select: {
       id: true,
       partnerId: true,
+      status: true,
       partnerGroup: {
         select: {
           id: true,
@@ -82,6 +85,7 @@ export async function movePartnersToGroup({
       leadRewardId: group.leadRewardId,
       saleRewardId: group.saleRewardId,
       discountId: group.discountId,
+      ...(groupMoveDisabledAt !== undefined && { groupMoveDisabledAt }),
     },
   });
 
@@ -167,7 +171,10 @@ export async function movePartnersToGroup({
           body: {
             programId,
             groupId: group.id,
-            partnerIds,
+            // skip remap-default-links / remap-discount-codes for pending applications (no links yet)
+            partnerIds: programEnrollments
+              .filter(({ status }) => status !== "pending")
+              .map(({ partnerId }) => partnerId),
             userId: workspaceUserId,
             isGroupDeleted,
           },

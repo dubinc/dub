@@ -190,7 +190,7 @@ const RewardItem = ({
                     <div className="h-3 w-16 animate-pulse rounded bg-neutral-100" />
                   ) : (
                     <TimestampTooltip
-                      timestamp={finalActivityLogDate}
+                      timestamp={finalActivityLogDate ?? reward.updatedAt}
                       side="left"
                       rows={["local", "utc", "unix"]}
                     >

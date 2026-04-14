@@ -1,4 +1,5 @@
 import useGroup from "@/lib/swr/use-group";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyListProps,
@@ -12,25 +13,24 @@ import { usePartnerGroupHistorySheet } from "@/ui/activity-logs/partner-group-hi
 import {
   Button,
   CalendarIcon,
-  ChartActivity2,
   CopyButton,
   Globe,
   Heart,
   OfficeBuilding,
+  TimestampTooltip,
   Trophy,
 } from "@dub/ui";
+import { TriangleWarning, Users, VerifiedBadge } from "@dub/ui/icons";
 import {
   COUNTRIES,
-  OG_AVATAR_URL,
-  capitalize,
   fetcher,
   formatDate,
-  timeAgo,
+  formatDateTimeSmart,
 } from "@dub/utils";
+import { CircleMinus } from "lucide-react";
 import Link from "next/link";
-import { ReactNode } from "react";
+import { Fragment, ReactNode, createElement } from "react";
 import useSWR from "swr";
-import { ConversionScoreIcon } from "./conversion-score-icon";
 import { useEditPartnerTagsModal } from "./edit-partner-tags-modal";
 import { PartnerApplicationRiskSummary } from "./fraud-risks/partner-application-risk-summary";
 import {
@@ -38,11 +38,15 @@ import {
   PartnerFraudBanner,
 } from "./fraud-risks/partner-fraud-banner";
 import { PartnerFraudIndicator } from "./fraud-risks/partner-fraud-indicator";
+import { PartnerAvatar } from "./partner-avatar";
 import { PartnerInfoGroup } from "./partner-info-group";
-import { ConversionScoreTooltip } from "./partner-network/conversion-score-tooltip";
 import { PartnerStarButton } from "./partner-star-button";
 import { PartnerStatusBadgeWithTooltip } from "./partner-status-badge-with-tooltip";
 import { PartnerTagsList } from "./partner-tags-list";
+import {
+  getPayoutMethodIconConfig,
+  getPayoutMethodLabel,
+} from "./payouts/payout-method-config";
 import { ProgramRewardList } from "./program-reward-list";
 import { TrustedPartnerBadge } from "./trusted-partner-badge";
 
@@ -66,7 +70,10 @@ type BasicField = {
   id: string;
   icon: React.ReactElement;
   text: string | null | undefined;
-  wrapper?: React.ComponentType<{ children: React.ReactNode }> | string;
+  /** When set, the row is wrapped in TimestampTooltip (local / UTC / unix). */
+  timestamp?: Date | string | number;
+  /** Optional outer wrapper (e.g. ConversionScoreTooltip) around the row content. */
+  wrapper?: React.ComponentType<{ children: React.ReactNode }>;
 };
 
 export function PartnerInfoCards({
@@ -81,8 +88,13 @@ export function PartnerInfoCards({
 }: PartnerInfoCardsProps) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
+  const { program } = useProgram();
+
   const isEnrolled = type === "enrolled" || type === undefined;
   const isNetwork = type === "network";
+
+  const showPayoutMethodField =
+    isEnrolled && program?.payoutMode !== "external";
 
   const {
     partnerGroupHistorySheet,
@@ -122,78 +134,72 @@ export function PartnerInfoCards({
       ),
       text: partner?.country ? COUNTRIES[partner.country] : "Planet Earth",
     },
+    {
+      id: "companyName",
+      icon: <OfficeBuilding className="size-3.5" />,
+      text: partner ? partner.companyName || null : undefined,
+    },
   ];
 
-  if (isEnrolled) {
+  if (isEnrolled && partner) {
     basicFields = basicFields.concat([
-      ...(partner?.status === "approved"
+      {
+        id: "createdAt",
+        icon: <Users className="size-3.5" />,
+        text: `${partner.status === "approved" ? "Partner since" : "Applied"} ${formatDate(partner.createdAt)}`,
+        timestamp: partner.createdAt,
+      },
+      ...(showPayoutMethodField
         ? [
             {
-              id: "lastLeadAt",
-              icon: <ChartActivity2 className="size-3.5" />,
-              text: partner.lastLeadAt
-                ? `Last lead event ${timeAgo(new Date(partner.lastLeadAt), { withAgo: true })}`
-                : null,
-            },
-            {
-              id: "lastConversionAt",
-              icon: <ChartActivity2 className="size-3.5" />,
-              text: partner.lastConversionAt
-                ? `Last conversion event ${timeAgo(new Date(partner.lastConversionAt), { withAgo: true })}`
-                : null,
+              id: "payoutMethod" as const,
+              icon: partner.defaultPayoutMethod ? (
+                createElement(
+                  getPayoutMethodIconConfig(partner.defaultPayoutMethod).Icon,
+                  { className: "size-3.5 shrink-0" },
+                )
+              ) : (
+                <CircleMinus className="size-3.5 shrink-0" />
+              ),
+              text:
+                partner.defaultPayoutMethod && partner.payoutsEnabledAt
+                  ? `${getPayoutMethodLabel(partner.defaultPayoutMethod)} connected ${formatDateTimeSmart(partner.payoutsEnabledAt)}`
+                  : "No payout method connected",
+              ...(partner.payoutsEnabledAt
+                ? { timestamp: partner.payoutsEnabledAt }
+                : {}),
             },
           ]
         : []),
-      {
-        id: "companyName",
-        icon: <OfficeBuilding className="size-3.5" />,
-        text: partner ? partner.companyName || null : undefined,
-      },
-      {
-        id: "createdAt",
-        icon: <CalendarIcon className="size-3.5" />,
-        text: partner
-          ? `${partner.status === "approved" ? "Partner since" : "Applied"} ${formatDate(partner.createdAt)}`
-          : undefined,
-      },
+      // TODO: once more partners verify their identity, we can show this by default
+      ...(partner.identityVerifiedAt
+        ? [
+            {
+              id: "identityVerifiedAt",
+              icon: partner.identityVerifiedAt ? (
+                <VerifiedBadge className="size-3.5 shrink-0" />
+              ) : (
+                <TriangleWarning className="size-3.5 shrink-0" />
+              ),
+              text: partner.identityVerifiedAt
+                ? `Identity verified ${formatDate(partner.identityVerifiedAt, { month: "short" })}`
+                : "Identity not verified",
+              ...(partner.identityVerifiedAt
+                ? { timestamp: partner.identityVerifiedAt }
+                : {}),
+            },
+          ]
+        : []),
     ]);
   }
 
   if (isNetwork) {
     basicFields = basicFields.concat([
       {
-        id: "conversion",
-        icon: (
-          <ConversionScoreIcon
-            score={partner?.conversionScore || null}
-            className="size-3.5 shrink-0"
-          />
-        ),
-        text: partner
-          ? partner.conversionScore
-            ? `${capitalize(partner.conversionScore)} conversion`
-            : "Unknown conversion"
-          : undefined,
-        wrapper: ConversionScoreTooltip,
-      },
-      {
-        id: "lastConversionAt",
-        icon: <ChartActivity2 className="size-3.5" />,
-        text: partner
-          ? partner.lastConversionAt
-            ? `Last conversion ${timeAgo(partner.lastConversionAt, { withAgo: true })}`
-            : "No conversions yet"
-          : undefined,
-      },
-      {
-        id: "companyName",
-        icon: <OfficeBuilding className="size-3.5" />,
-        text: partner ? partner.companyName || null : undefined,
-      },
-      {
         id: "joinedAt",
         icon: <CalendarIcon className="size-3.5" />,
         text: partner ? `Joined ${formatDate(partner.createdAt!)}` : undefined,
+        timestamp: partner?.createdAt,
       },
     ]);
   }
@@ -214,10 +220,9 @@ export function PartnerInfoCards({
             <div className="flex items-start justify-between gap-2">
               <div className="relative w-fit shrink-0">
                 {partner ? (
-                  <img
-                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                    alt={partner.id}
-                    className="size-20 rounded-full border border-neutral-100"
+                  <PartnerAvatar
+                    partner={partner}
+                    className="size-20 border border-neutral-100"
                   />
                 ) : (
                   <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
@@ -279,8 +284,8 @@ export function PartnerInfoCards({
           <div className="flex flex-col gap-2 p-4">
             {basicFields
               .filter(({ text }) => text !== null)
-              .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
-                <Wrapper key={id}>
+              .map(({ id, icon, text, timestamp, wrapper: RowWrapper }) => {
+                const rowInner = (
                   <div className="text-content-subtle flex items-center gap-1">
                     {text !== undefined ? (
                       <>
@@ -291,8 +296,30 @@ export function PartnerInfoCards({
                       <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
                     )}
                   </div>
-                </Wrapper>
-              ))}
+                );
+                const withTimestamp =
+                  timestamp != null ? (
+                    <TimestampTooltip
+                      timestamp={timestamp}
+                      rows={["local", "utc", "unix"]}
+                      side="left"
+                      delayDuration={250}
+                    >
+                      {rowInner}
+                    </TimestampTooltip>
+                  ) : (
+                    rowInner
+                  );
+                return (
+                  <Fragment key={id}>
+                    {RowWrapper ? (
+                      <RowWrapper>{withTimestamp}</RowWrapper>
+                    ) : (
+                      withTimestamp
+                    )}
+                  </Fragment>
+                );
+              })}
           </div>
           {isEnrolled && partner && <TagsList partner={partner} />}
 

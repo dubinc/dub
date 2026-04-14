@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -85,19 +85,20 @@ export const reactivatePartnerAction = authActionClient
         await Promise.allSettled([
           // TODO send email to partner
           linkCache.expireMany(links),
-          recordAuditLog({
+
+          trackActivityLog({
             workspaceId: workspace.id,
             programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
             action: "partner.reactivated",
-            description: `Partner ${partnerId} reactivated`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partnerId,
-                metadata: programEnrollment.partner,
+            changeSet: {
+              status: {
+                old: "deactivated",
+                new: "approved",
               },
-            ],
+            },
           }),
         ]);
       })(),

@@ -4,7 +4,8 @@ import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import { usePartnerTags } from "@/lib/swr/use-partner-tags";
-import { LinkProps } from "@/lib/types";
+import { CustomerAvatar } from "@/ui/customers/customer-avatar";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { readStreamableValue } from "@ai-sdk/rsc";
 import {
   BlurImage,
@@ -14,7 +15,6 @@ import {
   useRouterStuff,
   UTM_PARAMETERS,
 } from "@dub/ui";
-
 import {
   Calendar6,
   Cube,
@@ -48,7 +48,6 @@ import {
   GOOGLE_FAVICON_URL,
   linkConstructor,
   nFormatter,
-  OG_AVATAR_URL,
   parseFilterValue,
   REGIONS,
   type FilterOperator,
@@ -114,17 +113,13 @@ export function useAnalyticsFilters({
   const { partnerTags: partnerTagsById } = usePartnerTags(
     {
       query: { ids: partnerTagIdParsed?.values },
-      enabled:
-        !!partnerTagIdParsed?.values?.length && !!programPage,
+      enabled: !!partnerTagIdParsed?.values?.length && !!programPage,
     },
     { keepPreviousData: true },
   );
 
   const partnerTagIdToName = useMemo(
-    () =>
-      new Map(
-        (partnerTagsById ?? []).map((t) => [t.id, t.name]),
-      ),
+    () => new Map((partnerTagsById ?? []).map((t) => [t.id, t.name])),
     [partnerTagsById],
   );
 
@@ -450,20 +445,12 @@ export function useAnalyticsFilters({
       return <LinkIcon url={url} />;
     },
     options:
-      links?.map(
-        ({
-          id,
-          domain,
-          key,
-          url,
-          ...rest
-        }: LinkProps & { id?: string; count?: number }) => ({
-          value: id,
-          label: linkConstructor({ domain, key, pretty: true }),
-          right: getFilterOptionTotal(rest),
-          data: { url, domain, key },
-        }),
-      ) ?? null,
+      links?.map(({ id, domain, key, url, ...rest }) => ({
+        value: id,
+        label: linkConstructor({ domain, key, pretty: true }),
+        right: getFilterOptionTotal(rest),
+        data: { url, domain, key },
+      })) ?? null,
   };
 
   const DomainFilterItem = {
@@ -556,11 +543,7 @@ export function useAnalyticsFilters({
                       value: partner.id,
                       label: partner.name,
                       icon: (
-                        <img
-                          src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                          alt={partner.id}
-                          className="size-4 rounded-full"
-                        />
+                        <PartnerAvatar partner={partner} className="size-4" />
                       ),
                       right: getFilterOptionTotal(rest),
                     };
@@ -897,14 +880,7 @@ export function useAnalyticsFilters({
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedCustomer ? (
-            <img
-              src={
-                selectedCustomer["avatar"] ||
-                `${OG_AVATAR_URL}${selectedCustomer.id}`
-              }
-              alt={`${selectedCustomer.email} avatar`}
-              className="size-4 rounded-full"
-            />
+            <CustomerAvatar customer={selectedCustomer} className="size-4" />
           ) : null;
         },
         getOptionPermalink: () => {
@@ -923,13 +899,7 @@ export function useAnalyticsFilters({
         hideInFilterDropdown: true,
         getOptionIcon: () => {
           return selectedPartner ? (
-            <img
-              src={
-                selectedPartner.image || `${OG_AVATAR_URL}${selectedPartner.id}`
-              }
-              alt={`${selectedPartner.email} avatar`}
-              className="size-4 rounded-full"
-            />
+            <PartnerAvatar partner={selectedPartner} className="size-4" />
           ) : null;
         },
         getOptionLabel: () => {

@@ -42,6 +42,8 @@ export default function DomainRenewalFailed({
     expiresAt: Date;
   }[];
 }) {
+  const hasSingleDomain = domains.length === 1;
+
   return (
     <Html>
       <Head />
@@ -59,8 +61,9 @@ export default function DomainRenewalFailed({
 
             <Text className="text-sm leading-6 text-neutral-600">
               We attempted to charge your card to renew the following{" "}
-              {pluralize("domain", domains.length)} but it failed. We will try
-              again in 3 days.
+              {pluralize("domain", domains.length)} but{" "}
+              {hasSingleDomain ? "it" : "they"} failed. We will try again in 3
+              days.
             </Text>
 
             <Section className="my-8">

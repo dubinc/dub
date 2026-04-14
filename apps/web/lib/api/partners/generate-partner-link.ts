@@ -1,4 +1,7 @@
 import { ErrorCodes } from "@/lib/api/errors";
+import { applyAppsFlyerParameters } from "@/lib/integrations/appsflyer/apply-parameters";
+import { AppsFlyerSettings } from "@/lib/integrations/appsflyer/schema";
+import { isAppsFlyerTrackingUrl } from "@/lib/middleware/utils/is-appsflyer-tracking-url";
 import {
   CreatePartnerProps,
   ProcessedLinkProps,
@@ -9,6 +12,66 @@ import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { DubApiError } from "../errors";
 import { processLink } from "../links/process-link";
+
+export function derivePartnerLinkKey({
+  key,
+  username,
+  name,
+  email,
+}: {
+  key?: string;
+  username?: string | null;
+  name?: string | null;
+  email: string;
+}) {
+  if (key) {
+    return key;
+  }
+
+  if (username) {
+    return username;
+  }
+
+  if (name) {
+    return slugify(name);
+  }
+
+  return slugify(email.split("@")[0]);
+}
+
+type PartnerDefaultLinkProps = CreatePartnerProps["linkProps"] & {
+  key?: string;
+};
+
+export function buildPartnerDefaultLinkKey({
+  link,
+  partner,
+  hasMoreThanOneDefaultLink,
+}: {
+  link?: PartnerDefaultLinkProps;
+  partner: Pick<CreatePartnerProps, "name" | "email" | "username" | "tenantId">;
+  hasMoreThanOneDefaultLink: boolean;
+}) {
+  if (link?.key) {
+    return link.key;
+  }
+
+  let slug = derivePartnerLinkKey({
+    username: partner.username,
+    name: partner.name,
+    email: partner.email,
+  });
+
+  if (hasMoreThanOneDefaultLink) {
+    slug = `${slug}-${nanoid(4).toLowerCase()}`;
+  }
+
+  if (link?.prefix) {
+    return `${link.prefix.replace(/^\/|\/$/g, "")}/${slug}`;
+  }
+
+  return slug;
+}
 
 interface GeneratePartnerLinkInput {
   workspace: Pick<WorkspaceProps, "id" | "plan">;
@@ -21,6 +84,7 @@ interface GeneratePartnerLinkInput {
     partnerGroupDefaultLinkId?: string | null;
   };
   userId?: string;
+  appsFlyerParameters?: AppsFlyerSettings["parameters"];
 }
 
 // Generates and processes a partner link without creating it
@@ -30,6 +94,7 @@ export const generatePartnerLink = async ({
   partner,
   link,
   userId,
+  appsFlyerParameters,
 }: GeneratePartnerLinkInput) => {
   const { name, email, username } = partner;
 
@@ -78,6 +143,23 @@ export const generatePartnerLink = async ({
     processedLink = result.link as ProcessedLinkProps;
     error = result.error;
     code = result.code as ErrorCodes;
+
+    // Apply AppsFlyer parameters if any
+    if (
+      processedLink &&
+      appsFlyerParameters?.length &&
+      isAppsFlyerTrackingUrl(processedLink.url)
+    ) {
+      processedLink.url = applyAppsFlyerParameters({
+        url: processedLink.url,
+        parameters: appsFlyerParameters,
+        context: {
+          partnerName: partner.name || currentKey,
+          partnerLinkKey: currentKey,
+        },
+      });
+    }
+
     break;
   }
 
@@ -92,29 +174,3 @@ export const generatePartnerLink = async ({
 
   return processedLink;
 };
-
-export function derivePartnerLinkKey({
-  key,
-  username,
-  name,
-  email,
-}: {
-  key?: string;
-  username?: string | null;
-  name?: string | null;
-  email: string;
-}) {
-  if (key) {
-    return key;
-  }
-
-  if (username) {
-    return username;
-  }
-
-  if (name) {
-    return slugify(name);
-  }
-
-  return slugify(email.split("@")[0]);
-}

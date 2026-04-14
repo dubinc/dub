@@ -21,17 +21,13 @@ export function OnboardingPlatformsPageClient({
   return (
     <>
       <PartnerPlatformsForm
-        onSubmitSuccessful={() =>
-          router.push(
-            `/onboarding/payouts${next ? `?next=${encodeURIComponent(next)}` : ""}`,
-          )
-        }
+        onSubmitSuccessful={() => router.push("/onboarding/payouts")}
         partner={partner}
         variant="onboarding"
       />
       <Link
-        href={`/onboarding/payouts${next ? `?next=${encodeURIComponent(next)}` : ""}`}
-        className="text-sm font-medium text-neutral-800 transition-colors hover:text-neutral-950"
+        href="/onboarding/payouts"
+        className="text-sm font-medium text-neutral-500 transition-colors hover:text-neutral-800"
       >
         I'll complete this later
       </Link>

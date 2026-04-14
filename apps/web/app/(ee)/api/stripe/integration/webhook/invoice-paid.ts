@@ -18,8 +18,11 @@ import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
-export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
-  const invoice = event.data.object as Stripe.Invoice;
+export async function invoicePaid(
+  event: Stripe.InvoicePaidEvent,
+  mode: StripeMode,
+) {
+  const invoice = event.data.object;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string;
   const invoiceId = invoice.id;
@@ -59,17 +62,26 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
         });
       } catch (error) {
         console.log(error);
-        return `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`;
+        return {
+          response: `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`,
+        };
       }
     }
   }
 
   // if customer is still not found, we skip the event
   if (!customer) {
-    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`;
+    return {
+      response: `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`,
+    };
   }
 
-  let invoiceSaleAmount = invoice.total_excluding_tax ?? invoice.amount_paid;
+  // Sale amount excluding tax: use total_excluding_tax only when invoice was paid in full
+  // (amount_paid === total); otherwise use amount_paid (e.g. credits applied, upsells, etc.).
+  let invoiceSaleAmount =
+    invoice.amount_paid === invoice.total && invoice.total_excluding_tax != null
+      ? invoice.total_excluding_tax
+      : invoice.amount_paid;
 
   // Skip if invoice id is already processed
   const ok = await redis.set(
@@ -96,12 +108,18 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       "[Stripe Webhook] Skipping already processed invoice.",
       invoiceId,
     );
-    return `Invoice with ID ${invoiceId} already processed, skipping...`;
+    return {
+      response: `Invoice with ID ${invoiceId} already processed, skipping...`,
+      workspaceId: customer.projectId,
+    };
   }
 
   // Stripe can sometimes return a negative amount for some reason, so we skip if it's below 0
   if (invoiceSaleAmount <= 0) {
-    return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
+    return {
+      response: `Invoice with ID ${invoiceId} has an amount of 0, skipping...`,
+      workspaceId: customer.projectId,
+    };
   }
 
   // if currency is not USD, convert it to USD  based on the current FX rate
@@ -120,7 +138,10 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
   // Find lead
   const leadEvent = await getLeadEvent({ customerId: customer.id });
   if (!leadEvent) {
-    return `Lead event with customer ID ${customer.id} not found, skipping...`;
+    return {
+      response: `Lead event with customer ID ${customer.id} not found, skipping...`,
+      workspaceId: customer.projectId,
+    };
   }
 
   const eventId = nanoid(16);
@@ -152,7 +173,10 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
   });
 
   if (!link) {
-    return `Link with ID ${linkId} not found, skipping...`;
+    return {
+      response: `Link with ID ${linkId} not found, skipping...`,
+      workspaceId: customer.projectId,
+    };
   }
 
   const firstConversionFlag = isFirstConversion({
@@ -184,6 +208,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       },
       include: includeTags,
     }),
+
     // update workspace sales usage
     prisma.project.update({
       where: {
@@ -233,6 +258,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       context: {
         customer: {
           country: customer.country,
+          signupDate: customer.createdAt,
         },
         sale: {
           productId: invoice.lines.data[0]?.pricing?.price_details?.product,
@@ -272,7 +298,10 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
             program: { id: link.programId },
             partner: pick(webhookPartner, ["id", "email", "name"]),
             programEnrollment: pick(programEnrollment, ["status"]),
-            customer: pick(customer, ["id", "email", "name"]),
+            customer: {
+              ...pick(customer, ["id", "email", "name"]),
+              isFirstConversion: firstConversionFlag,
+            },
             link: pick(link, ["id"]),
             click: pick(saleData, ["url", "referer"]),
             event: { id: saleData.event_id },
@@ -313,5 +342,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     ]),
   );
 
-  return `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`;
+  return {
+    response: `Sale recorded for customer ID ${customer.id} and invoice ID ${invoiceId}`,
+    workspaceId: customer.projectId,
+  };
 }

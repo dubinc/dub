@@ -2,10 +2,14 @@
 
 import { FRAUD_RULES_BY_TYPE } from "@/lib/api/fraud/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { FraudGroupProps } from "@/lib/types";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useRejectPartnerApplicationModal } from "@/ui/modals/reject-partner-application-modal";
+import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { X } from "@/ui/shared/icons";
+import { UserAvatar } from "@/ui/users/user-avatar";
+import { FraudRuleType } from "@dub/prisma/client";
 import {
   Button,
   ChevronLeft,
@@ -18,13 +22,14 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { OG_AVATAR_URL, cn, formatDateTime } from "@dub/utils";
+import { cn, fetcher, formatDateTime } from "@dub/utils";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
-import { CommissionsOnHoldTable } from "./commissions-on-hold-table";
+import useSWR from "swr";
+import { AssociatedCommissionsTable } from "./associated-commissions-table";
 import { FraudDisclaimerBanner } from "./fraud-disclaimer-banner";
 import { FraudEventsTableWrapper } from "./fraud-events-tables";
+import { useMarkAllAsFraudModal } from "./mark-all-as-fraud-modal";
 import { PartnerCrossProgramSummary } from "./partner-cross-program-summary";
 import { useResolveFraudGroupModal } from "./resolve-fraud-group-modal";
 import { ResolvedFraudGroupTable } from "./resolved-fraud-group-table";
@@ -36,14 +41,48 @@ interface FraudReviewSheetProps {
   onPrevious?: () => void;
 }
 
+// These fraud types block commissions from being processed
+const COMMISSION_BLOCKING_FRAUD_TYPE: FraudRuleType[] = [
+  FraudRuleType.customerEmailMatch,
+  FraudRuleType.customerEmailSuspiciousDomain,
+  FraudRuleType.referralSourceBanned,
+  FraudRuleType.paidTrafficDetected,
+];
+
 function FraudReviewSheetContent({
   fraudGroup,
   onPrevious,
   onNext,
 }: FraudReviewSheetProps) {
   const { partner, user } = fraudGroup;
+  const { slug, id: workspaceId } = useWorkspace();
 
-  const { slug } = useParams();
+  const showCommissionsOnHold =
+    fraudGroup.status === "pending" &&
+    COMMISSION_BLOCKING_FRAUD_TYPE.includes(fraudGroup.type);
+
+  const commissionsOnHoldCountKey =
+    showCommissionsOnHold && workspaceId
+      ? `/api/commissions/count?${new URLSearchParams({
+          workspaceId,
+          status: "pending",
+          fraudEventGroupId: fraudGroup.id,
+        }).toString()}`
+      : null;
+
+  const {
+    data: commissionsOnHoldCount,
+    isLoading: isCommissionsOnHoldCountLoading,
+  } = useSWR<{ all: { count: number } }>(commissionsOnHoldCountKey, fetcher);
+
+  const { setShowMarkAllAsFraudModal, MarkAllAsFraudModal } =
+    useMarkAllAsFraudModal({
+      fraudGroup,
+      onResolve: async () => {
+        onNext?.();
+        mutatePrefix("/api/fraud/groups");
+      },
+    });
 
   const { setShowResolveFraudGroupModal, ResolveFraudGroupModal } =
     useResolveFraudGroupModal({
@@ -101,6 +140,7 @@ function FraudReviewSheetContent({
       {ResolveFraudGroupModal}
       {RejectPartnerApplicationModal}
       <BanPartnerModal />
+      {MarkAllAsFraudModal}
       <div
         className={cn("flex h-full flex-col transition-opacity duration-200")}
       >
@@ -176,11 +216,7 @@ function FraudReviewSheetContent({
                   Partner details
                 </h2>
                 <div className="flex min-w-0 items-center gap-3">
-                  <img
-                    src={partner.image || `${OG_AVATAR_URL}${partner.id}`}
-                    alt={partner.id}
-                    className="size-10 rounded-full"
-                  />
+                  <PartnerAvatar partner={partner} className="size-10" />
                   <div className="flex min-w-0 flex-col">
                     <span className="text-content-emphasis truncate text-sm font-semibold">
                       {partner.name}
@@ -215,14 +251,28 @@ function FraudReviewSheetContent({
               <FraudEventsTableWrapper fraudGroup={fraudGroup} />
             </div>
 
-            {fraudGroup.status === "pending" && (
-              <div>
-                <h3 className="text-content-emphasis mb-4 font-semibold">
-                  Commissions on hold
-                </h3>
-                <CommissionsOnHoldTable fraudGroup={fraudGroup} />
-              </div>
-            )}
+            {fraudGroup.status === "pending" &&
+              COMMISSION_BLOCKING_FRAUD_TYPE.includes(fraudGroup.type) && (
+                <div className="flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-content-emphasis font-semibold leading-6">
+                      Associated commissions
+                    </h3>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      text="Mark all as fraud"
+                      className="h-7 w-fit shrink-0 rounded-lg px-2.5 py-2"
+                      disabled={
+                        isCommissionsOnHoldCountLoading ||
+                        (commissionsOnHoldCount?.all.count ?? 0) === 0
+                      }
+                      onClick={() => setShowMarkAllAsFraudModal(true)}
+                    />
+                  </div>
+                  <AssociatedCommissionsTable fraudGroup={fraudGroup} />
+                </div>
+              )}
 
             {fraudGroup.status === "pending" && (
               <ResolvedFraudGroupTable partnerId={partner.id} />
@@ -247,10 +297,9 @@ function FraudReviewSheetContent({
                       <div className="flex flex-col gap-1 p-2.5">
                         {user && (
                           <div className="flex flex-col gap-2">
-                            <img
-                              src={user.image || `${OG_AVATAR_URL}${user.id}`}
-                              alt={user.name ?? user.email ?? user.id}
-                              className="size-6 shrink-0 rounded-full"
+                            <UserAvatar
+                              user={user}
+                              className="size-6 shrink-0"
                             />
                             <p className="text-sm font-medium">{user.name}</p>
                           </div>
@@ -268,11 +317,7 @@ function FraudReviewSheetContent({
                     }
                   >
                     {user && (
-                      <img
-                        src={user.image || `${OG_AVATAR_URL}${user.id}`}
-                        alt={user.name ?? user.email ?? user.id}
-                        className="size-5 shrink-0 rounded-full"
-                      />
+                      <UserAvatar user={user} className="size-5 shrink-0" />
                     )}
                   </Tooltip>
 

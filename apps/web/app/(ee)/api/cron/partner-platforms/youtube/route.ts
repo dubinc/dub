@@ -4,30 +4,7 @@ import { PlatformType } from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
-
-const youtubeChannelSchema = z.object({
-  id: z.string(),
-  statistics: z.object({
-    videoCount: z.string().transform((val) => parseInt(val, 10)),
-    subscriberCount: z.string().transform((val) => parseInt(val, 10)),
-    viewCount: z.string().transform((val) => parseInt(val, 10)),
-  }),
-  snippet: z
-    .object({
-      thumbnails: z
-        .object({
-          default: z
-            .object({
-              url: z.string(),
-              width: z.number().optional(),
-              height: z.number().optional(),
-            })
-            .optional(),
-        })
-        .optional(),
-    })
-    .optional(),
-});
+import { youtubeChannelSchema } from "./youtube-channel-schema";
 
 export const dynamic = "force-dynamic";
 
@@ -59,10 +36,10 @@ export const POST = withCron(async () => {
     );
   }
 
-  const chunks = chunk(youtubeChannels, 50);
+  const channelChunks = chunk(youtubeChannels, 50);
 
-  for (const chunk of chunks) {
-    const channelIds = chunk.map((channel) => channel.platformId);
+  for (const channelChunk of channelChunks) {
+    const channelIds = channelChunk.map((channel) => channel.platformId);
 
     if (channelIds.length === 0) {
       continue;
@@ -85,33 +62,44 @@ export const POST = withCron(async () => {
     const data = await response.json().then((r) => r.items);
     const channels = z.array(youtubeChannelSchema).parse(data);
 
-    for (const channel of channels) {
-      const partnerPlatform = chunk.find((p) => p.platformId === channel.id);
+    const updateChunks = chunk(channels, 10);
 
-      if (!partnerPlatform) {
-        continue;
-      }
+    for (const updateChunk of updateChunks) {
+      await Promise.all(
+        updateChunk.map(async (channel) => {
+          const partnerPlatform = channelChunk.find(
+            (p) => p.platformId === channel.id,
+          );
 
-      const newStats = {
-        subscribers: channel.statistics.subscriberCount,
-        posts: channel.statistics.videoCount,
-        views: channel.statistics.viewCount,
-        avatarUrl: channel.snippet?.thumbnails?.default?.url,
-      };
+          if (!partnerPlatform) {
+            return;
+          }
 
-      await prisma.partnerPlatform.update({
-        where: {
-          id: partnerPlatform.id,
-        },
-        data: {
-          ...newStats,
-          lastCheckedAt: new Date(),
-        },
-      });
+          const newStats = {
+            subscribers: channel.statistics.subscriberCount,
+            posts: channel.statistics.videoCount,
+            views: channel.statistics.viewCount,
+            avatarUrl: channel.snippet?.thumbnails?.default?.url,
+            ...(channel.snippet?.customUrl && {
+              identifier: channel.snippet.customUrl.replace("@", ""),
+            }),
+          };
 
-      console.log(
-        `Updated YouTube stats for @${partnerPlatform.identifier}`,
-        newStats,
+          await prisma.partnerPlatform.update({
+            where: {
+              id: partnerPlatform.id,
+            },
+            data: {
+              ...newStats,
+              lastCheckedAt: new Date(),
+            },
+          });
+
+          console.log(
+            `Updated YouTube stats for @${partnerPlatform.identifier}`,
+            newStats,
+          );
+        }),
       );
     }
   }

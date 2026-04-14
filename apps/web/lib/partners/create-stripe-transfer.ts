@@ -1,3 +1,4 @@
+import { trackCommissionStatusUpdatesByProgram } from "@/lib/api/commissions/track-commission-update-activity-log";
 import {
   BELOW_MIN_WITHDRAWAL_FEE_CENTS,
   MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS,
@@ -5,19 +6,14 @@ import {
 } from "@/lib/constants/payouts";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
+import PartnerPayoutForceWithdrawal from "@dub/email/templates/partner-payout-force-withdrawal";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { Payout, Prisma } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { currencyFormatter, pluralize } from "@dub/utils";
-
-export type PayoutWithProgramName = Pick<
-  Payout,
-  "id" | "amount" | "invoiceId"
-> & {
-  program: {
-    name: string;
-  };
-};
+import { waitUntil } from "@vercel/functions";
+import { createPayoutsIdempotencyKey } from "../payouts/create-payouts-idempotency-key";
+import { markPayoutsAsProcessed } from "../payouts/mark-payouts-as-processed";
 
 export const createStripeTransfer = async ({
   partnerId,
@@ -52,8 +48,10 @@ export const createStripeTransfer = async ({
   const commonInclude: Prisma.PayoutInclude = {
     program: {
       select: {
+        id: true,
         name: true,
         logo: true,
+        workspaceId: true,
       },
     },
   };
@@ -65,6 +63,10 @@ export const createStripeTransfer = async ({
           partnerId: partner.id,
           status: "processed",
           stripeTransferId: null,
+          method: "connect",
+        },
+        orderBy: {
+          id: "asc",
         },
         include: commonInclude,
       }),
@@ -73,6 +75,10 @@ export const createStripeTransfer = async ({
           partnerId: partner.id,
           invoiceId,
           status: "processing",
+          method: "connect",
+        },
+        orderBy: {
+          id: "asc",
         },
         include: commonInclude,
       }),
@@ -95,6 +101,12 @@ export const createStripeTransfer = async ({
     0,
   );
 
+  if (totalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
+    throw new Error(
+      `Total transferable amount (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.email} is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)}). Skipping...`,
+    );
+  }
+
   let withdrawalFee = 0;
 
   // If the total transferable amount is less than the minimum withdrawal amount
@@ -104,7 +116,7 @@ export const createStripeTransfer = async ({
       withdrawalFee = BELOW_MIN_WITHDRAWAL_FEE_CENTS;
       // else, we will just update current invoice payouts to "processed" status
     } else {
-      await updateCurrentInvoicePayoutsToProcessed(currentInvoicePayouts);
+      await markPayoutsAsProcessed(currentInvoicePayouts);
 
       console.log(
         `Total processed payouts (${currencyFormatter(totalTransferableAmount)}) for partner ${partner.id} are below ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS)}, skipping...`,
@@ -117,12 +129,6 @@ export const createStripeTransfer = async ({
 
   // Minus the withdrawal fee from the total amount
   const finalTransferableAmount = totalTransferableAmount - withdrawalFee;
-
-  if (finalTransferableAmount < MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS) {
-    throw new Error(
-      `Final transferable amount (${currencyFormatter(finalTransferableAmount)}) is less than the minimum amount required for withdrawal (${currencyFormatter(MIN_FORCE_WITHDRAWAL_AMOUNT_CENTS)})`,
-    );
-  }
 
   const allPayoutsProgramNames = [
     ...new Set(allPayouts.map((p) => p.program.name)), // deduplicate program names
@@ -147,15 +153,21 @@ export const createStripeTransfer = async ({
     });
     console.log(`Updated partner ${partner.email} with payoutsEnabledAt null`);
 
-    await updateCurrentInvoicePayoutsToProcessed(currentInvoicePayouts);
+    await markPayoutsAsProcessed(currentInvoicePayouts);
 
     throw new Error(
       `Partner's Stripe Express account (${partner.stripeConnectId}) is not configured to receive transfers`,
     );
   }
 
-  // will be used for transfer_group and idempotencyKey
+  // will be used for transfer_group
   const finalPayoutInvoiceId = allPayouts[allPayouts.length - 1].invoiceId;
+
+  const idempotencyKey = createPayoutsIdempotencyKey({
+    partnerId: partner.id,
+    invoiceId,
+    payoutIds: allPayouts.map((p) => p.id),
+  });
 
   // Create a transfer for the partner combined payouts and update it as sent
   const transfer = await stripe.transfers.create(
@@ -175,7 +187,7 @@ export const createStripeTransfer = async ({
         }),
     },
     {
-      idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,
+      idempotencyKey,
     },
   );
 
@@ -186,24 +198,42 @@ export const createStripeTransfer = async ({
     )} ${allPayouts.map((p) => p.id).join(", ")}`,
   );
 
+  const payoutIds = allPayouts.map((p) => p.id);
+
+  const commissions = await prisma.commission.findMany({
+    where: {
+      payoutId: {
+        in: payoutIds,
+      },
+    },
+    select: {
+      id: true,
+      amount: true,
+      earnings: true,
+      status: true,
+      programId: true,
+    },
+  });
+
   await Promise.allSettled([
     prisma.payout.updateMany({
       where: {
         id: {
-          in: allPayouts.map((p) => p.id),
+          in: payoutIds,
         },
       },
       data: {
         stripeTransferId: transfer.id,
         status: "sent",
         paidAt: new Date(),
+        method: "connect",
       },
     }),
 
     prisma.commission.updateMany({
       where: {
         payoutId: {
-          in: allPayouts.map((p) => p.id),
+          in: payoutIds,
         },
       },
       data: {
@@ -212,43 +242,39 @@ export const createStripeTransfer = async ({
     }),
   ]);
 
-  if (partner.email && currentInvoicePayouts.length > 0) {
+  waitUntil(
+    trackCommissionStatusUpdatesByProgram({
+      commissions,
+      payouts: allPayouts,
+      newStatus: "paid",
+    }),
+  );
+
+  if (partner.email) {
     const payout = currentInvoicePayouts[0];
     const emailRes = await sendEmail({
       variant: "notifications",
       to: partner.email,
-      subject: `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
-      react: PartnerPayoutProcessed({
-        email: partner.email,
-        program: payout.program,
-        payout,
-        variant: "stripe",
-      }),
+      subject: forceWithdrawal
+        ? `A withdrawal of ${currencyFormatter(totalTransferableAmount)} has been initiated from your Dub account`
+        : `You've received a ${currencyFormatter(payout.amount)} payout from ${payout.program.name}`,
+      react: forceWithdrawal
+        ? PartnerPayoutForceWithdrawal({
+            email: partner.email,
+            payout: {
+              amount: totalTransferableAmount,
+              method: "connect",
+            },
+          })
+        : PartnerPayoutProcessed({
+            email: partner.email,
+            program: payout.program,
+            payout,
+          }),
     });
 
     console.log(`Resend email sent: ${JSON.stringify(emailRes, null, 2)}`);
   }
 
   return transfer;
-};
-
-const updateCurrentInvoicePayoutsToProcessed = async (
-  currentInvoicePayouts: Pick<Payout, "id">[],
-) => {
-  if (currentInvoicePayouts.length > 0) {
-    const res = await prisma.payout.updateMany({
-      where: {
-        id: {
-          in: currentInvoicePayouts.map((p) => p.id),
-        },
-      },
-      data: {
-        status: "processed",
-        paidAt: new Date(),
-      },
-    });
-    console.log(
-      `Updated ${res.count} payouts in current invoice to "processed" status`,
-    );
-  }
 };

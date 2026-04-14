@@ -29,8 +29,16 @@ const tabs = [
     label: "Payouts",
   },
   {
+    href: "/partners",
+    label: "Partners",
+  },
+  {
     href: "/revenue",
     label: "Revenue",
+  },
+  {
+    href: "/fraud-alerts",
+    label: "Fraud Alerts",
   },
 ];
 

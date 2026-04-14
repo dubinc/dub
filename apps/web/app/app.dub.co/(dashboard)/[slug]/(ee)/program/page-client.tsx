@@ -70,7 +70,7 @@ export default function ProgramOverviewPageClient() {
   );
 
   return (
-    <div className="@container flex flex-col gap-6">
+    <div className="@container flex flex-col gap-4">
       <SimpleDateRangePicker align="start" className="w-fit" />
       <AnalyticsContext.Provider
         value={{
@@ -150,7 +150,7 @@ function FinishSetupWrapper({
           attribute sales, and measure partner performance.
         </p>
         <Link
-          href={`/${slug}/settings/analytics`}
+          href={`/${slug}/settings/tracking`}
           className={cn(
             buttonVariants({ variant: "primary" }),
             "mt-6 flex h-9 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",

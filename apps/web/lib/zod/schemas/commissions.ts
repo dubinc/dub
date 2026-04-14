@@ -3,15 +3,21 @@ import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { CustomerSchema } from "./customers";
 import { LinkSchema } from "./links";
-import { getPaginationQuerySchema } from "./misc";
+import {
+  getCursorPaginationQuerySchema,
+  getPaginationQuerySchema,
+} from "./misc";
 import { EnrolledPartnerSchema, WebhookPartnerSchema } from "./partners";
-import { parseDateSchema } from "./utils";
+import { PayoutSchema } from "./payouts";
+import { RewardSchema } from "./rewards";
+import { UserSchema } from "./users";
+import { centsSchema, parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
   id: z.string().describe("The commission's unique ID on Dub.").meta({
     example: "cm_1JVR7XRCSR0EDBAF39FZ4PMYE",
   }),
-  type: z.enum(CommissionType).optional(),
+  type: z.enum(CommissionType).optional(), // Note: Not sure the type will ever be optional
   amount: z.number(),
   earnings: z.number(),
   currency: z.string(),
@@ -39,6 +45,32 @@ export const CommissionEnrichedSchema = CommissionSchema.extend({
     groupId: true,
   }),
   customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
+});
+
+// Schema for the commission detail page (GET /api/commissions/:commissionId)
+// TODO: Simplify this for OpenAPI and limit extra fields to in-app only – similar to getLinkInfoQuerySchemaExtended logic
+export const CommissionDetailSchema = CommissionEnrichedSchema.extend({
+  user: UserSchema.nullish().describe("The user who created the commission."),
+  reward: RewardSchema.pick({
+    event: true,
+    description: true,
+    type: true,
+    amountInCents: true,
+    amountInPercentage: true,
+  }).nullish(),
+  payout: PayoutSchema.pick({
+    id: true,
+    paidAt: true,
+    initiatedAt: true,
+  })
+    .extend({
+      user: UserSchema.nullish().describe("The user who processed the payout."),
+    })
+    .nullish(),
+  holdingPeriodDays: z
+    .number()
+    .nullish()
+    .describe("The holding period days for the partner group."),
 });
 
 // "commission.created" webhook event schema
@@ -118,13 +150,23 @@ export const getCommissionsQuerySchema = z
       .describe("The end date of the date range to filter the commissions by."),
     timezone: z.string().optional(),
   })
-  .extend(getPaginationQuerySchema({ pageSize: COMMISSIONS_MAX_PAGE_SIZE }));
+  .extend({
+    ...getCursorPaginationQuerySchema({
+      example: "cm_1KAP4CGN2Z5TPYYQ1W4JEYD56",
+    }),
+    ...getPaginationQuerySchema({
+      pageSize: COMMISSIONS_MAX_PAGE_SIZE,
+      deprecated: true,
+    }),
+  });
 
 export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
   page: true,
   pageSize: true,
   sortOrder: true,
   sortBy: true,
+  startingAfter: true,
+  endingBefore: true,
 });
 
 export const createCommissionSchema = z.object({
@@ -146,38 +188,81 @@ export const createCommissionSchema = z.object({
 
   // Sale
   saleEventDate: parseDateSchema.nullish(),
-  saleAmount: z.number().min(0).nullish(),
+  saleAmount: centsSchema.pipe(z.number().min(0)).nullish(),
   invoiceId: z.string().nullish(),
   productId: z.string().nullish(),
 });
 
+export const commissionPatchStatusSchema = z.enum([
+  "pending",
+  "refunded",
+  "duplicate",
+  "canceled",
+  "fraud",
+]);
+
 export const updateCommissionSchema = z.object({
-  amount: z
+  earnings: z
     .number()
     .min(0)
+    .optional()
+    .describe(
+      "The new earnings amount for the commission. Paid commissions cannot be updated. If provided, will override the earnings calculated based on the sale amount and currency.",
+    ),
+  saleAmount: z
+    .number()
+    .min(0)
+    .optional()
     .describe(
       "The new absolute amount for the sale. Paid commissions cannot be updated.",
-    )
-    .optional(),
-  modifyAmount: z
+    ),
+  modifySaleAmount: z
     .number()
+    .optional()
     .describe(
-      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `amount`. Paid commissions cannot be updated.",
-    )
-    .optional(),
+      "Modify the current sale amount: use positive values to increase the amount, negative values to decrease it. Takes precedence over `saleAmount`. Paid commissions cannot be updated.",
+    ),
   currency: z
     .string()
+    .optional()
     .default("usd")
     .transform((val) => val.toLowerCase())
     .describe(
       "The currency of the sale amount to update. Accepts ISO 4217 currency codes.",
     ),
-  status: z
-    .enum(["refunded", "duplicate", "canceled", "fraud"])
+  status: commissionPatchStatusSchema
     .optional()
     .describe(
-      "Useful for marking a commission as refunded, duplicate, canceled, or fraudulent. Takes precedence over `amount` and `modifyAmount`. When a commission is marked as refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
+      "Useful for marking a commission as pending, refunded, duplicate, canceled, or fraudulent. Takes precedence over `saleAmount` and `modifySaleAmount`. When a commission is marked as pending, refunded, duplicate, canceled, or fraudulent, it will be omitted from the payout, and the payout amount will be recalculated accordingly. Paid commissions cannot be updated.",
     ),
+  amount: z
+    .number()
+    .min(0)
+    .optional()
+    .describe("Deprecated. Use `saleAmount` instead.")
+    .meta({ deprecated: true }),
+  modifyAmount: z
+    .number()
+    .optional()
+    .describe("Deprecated. Use `modifySaleAmount` instead.")
+    .meta({ deprecated: true }),
+});
+
+export const updateCommissionSchemaExtended = updateCommissionSchema.extend({
+  updateHistoricalCommissions: z.boolean().optional(),
+});
+
+export const bulkUpdateCommissionsSchema = z.object({
+  commissionIds: z
+    .array(z.string())
+    .min(1, "At least one commission ID is required.")
+    .max(100, "You can only update up to 100 commissions at a time.")
+    .refine((ids) => new Set(ids).size === ids.length, {
+      message: "commissionIds must be unique.",
+    }),
+  status: commissionPatchStatusSchema.describe(
+    "The status to apply to every commission in the batch.",
+  ),
 });
 
 export const CLAWBACK_REASONS = [
@@ -239,8 +324,8 @@ export const createClawbackSchema = z.object({
 export const COMMISSION_EXPORT_COLUMNS = [
   { id: "id", label: "ID", type: "string", default: true },
   { id: "type", label: "Type", type: "string", default: true },
-  { id: "amount", label: "Amount", type: "number", default: true },
-  { id: "earnings", label: "Earnings", type: "number", default: true },
+  { id: "amount", label: "Amount", type: "money", default: true },
+  { id: "earnings", label: "Earnings", type: "money", default: true },
   { id: "currency", label: "Currency", type: "string", default: true },
   { id: "status", label: "Status", type: "string", default: true },
   { id: "invoiceId", label: "Invoice ID", type: "string", default: true },
@@ -291,7 +376,12 @@ export const DEFAULT_COMMISSION_EXPORT_COLUMNS =
   );
 
 export const commissionsExportQuerySchema = getCommissionsQuerySchema
-  .omit({ page: true, pageSize: true })
+  .omit({
+    page: true,
+    pageSize: true,
+    startingAfter: true,
+    endingBefore: true,
+  })
   .extend({
     columns: z
       .string()

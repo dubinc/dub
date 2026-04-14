@@ -1,10 +1,19 @@
 "use client";
 
+import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { DiscountProps, ProgramProps, RewardProps } from "@/lib/types";
+import {
+  DiscountProps,
+  GroupBountySummaryProps,
+  ProgramProps,
+  RewardProps,
+} from "@/lib/types";
+import { applicationRequirementsSchema } from "@/lib/zod/schemas/programs";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
-import { ProgramRewardList } from "@/ui/partners/program-reward-list";
+import { ProgramEligibilityCard } from "@/ui/partners/program-eligibility-card";
 import { BlurImage, Button, CircleCheck, Link4, StatusBadge } from "@dub/ui";
 import { capitalize, cn, OG_AVATAR_URL } from "@dub/utils";
 import { redirect } from "next/navigation";
@@ -15,10 +24,16 @@ export function ProgramSidebar({
   applicationRewards,
   applicationDiscount,
 }: {
-  program: Omit<ProgramProps, "referralFormData">;
+  program: ProgramProps & {
+    group?: {
+      id: string;
+      bounties?: GroupBountySummaryProps[];
+    } | null;
+  };
   applicationRewards: RewardProps[];
   applicationDiscount: DiscountProps | null;
 }) {
+  const { partner } = usePartnerProfile();
   const { programEnrollment } = useProgramEnrollment({
     swrOpts: {
       keepPreviousData: true,
@@ -26,6 +41,23 @@ export function ProgramSidebar({
       revalidateOnFocus: false,
     },
   });
+
+  const applicationRequirements = program.applicationRequirements
+    ? applicationRequirementsSchema.parse(program.applicationRequirements)
+    : null;
+
+  const { reason } = evaluateApplicationRequirements({
+    applicationRequirements,
+    context: {
+      country: partner?.country,
+      email: partner?.email,
+    },
+  });
+
+  const requirementsNotMet =
+    reason === "requirementsNotMet"
+      ? "You do not meet the eligibility requirements for this program"
+      : undefined;
 
   const statusBadge = programEnrollment
     ? {
@@ -94,11 +126,7 @@ export function ProgramSidebar({
       </div>
 
       <div className="mt-8">
-        <h2 className="mb-2 text-base font-semibold text-neutral-800">
-          Rewards
-        </h2>
-
-        <ProgramRewardList
+        <LanderRewards
           rewards={
             (programEnrollment?.status === "approved"
               ? programEnrollment.rewards
@@ -108,19 +136,34 @@ export function ProgramSidebar({
             []
           }
           discount={
-            programEnrollment?.discount ?? applicationDiscount !== undefined
-              ? applicationDiscount
-              : program.discounts?.[0] ?? null
+            programEnrollment?.discount ??
+            applicationDiscount ??
+            program.discounts?.[0] ??
+            null
           }
-          className="bg-neutral-100"
+          bounties={
+            programEnrollment?.status === "approved" &&
+            programEnrollment.groupId !== program.group?.id
+              ? undefined
+              : program.group?.bounties
+          }
         />
       </div>
 
+      {applicationRequirements && applicationRequirements.length ? (
+        <ProgramEligibilityCard requirements={applicationRequirements} />
+      ) : null}
+
       <Button
-        className={cn("mt-8", justApplied && "text-green-600")}
+        className={cn("mt-4", justApplied && "text-green-600")}
         text={buttonText}
         icon={justApplied ? <CircleCheck className="size-4" /> : undefined}
-        disabled={programEnrollment || justApplied ? true : undefined}
+        disabled={
+          !!programEnrollment || justApplied || !!requirementsNotMet
+            ? true
+            : undefined
+        }
+        disabledTooltip={requirementsNotMet}
         onClick={() => setIsApplicationSheetOpen(true)}
       />
     </div>

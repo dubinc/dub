@@ -5,6 +5,7 @@ import {
 import { PARTNER_CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/constants/partner-profile";
 import {
   CommissionType,
+  PartnerPayoutMethod,
   PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
@@ -28,6 +29,7 @@ import { LinkSchema } from "./links";
 import { getPaginationQuerySchema } from "./misc";
 import { payoutsQuerySchema } from "./payouts";
 import { referralFormDataSchema } from "./referral-form";
+import { centsSchema } from "./utils";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
@@ -55,6 +57,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
   .extend({
     interval: z
       .enum(DATE_RANGE_INTERVAL_PRESETS)
+      .optional()
       .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
     timezone: z.string().optional(),
     type: z.enum(CommissionType).optional(),
@@ -143,21 +146,25 @@ export const partnerNotificationTypes = z.enum([
   "newMessageFromProgram",
   "marketingCampaign",
   "connectPayoutReminder",
+  "monthlyProgramSummary",
 ]);
+
+export const partnerBountySubmissionSchema = BountySubmissionSchema.extend({
+  commission: PartnerEarningsSchema.pick({
+    id: true,
+    earnings: true,
+    status: true,
+    createdAt: true,
+  })
+    .nullable()
+    .default(null),
+});
 
 export const PartnerBountySchema = BountySchema.omit({
   groups: true,
+  socialMetricsLastSyncedAt: true,
 }).extend({
-  submission: BountySubmissionSchema.extend({
-    commission: PartnerEarningsSchema.pick({
-      id: true,
-      earnings: true,
-      status: true,
-      createdAt: true,
-    })
-      .nullable()
-      .default(null),
-  }).nullable(),
+  submissions: z.array(partnerBountySubmissionSchema),
   performanceCondition: bountyPerformanceConditionSchema
     .nullable()
     .default(null),
@@ -166,8 +173,8 @@ export const PartnerBountySchema = BountySchema.omit({
     totalLeads: z.number(),
     totalConversions: z.number(),
     totalSales: z.number(),
-    totalSaleAmount: z.number(),
-    totalCommissions: z.number(),
+    totalSaleAmount: centsSchema,
+    totalCommissions: centsSchema,
   }),
 });
 
@@ -207,6 +214,14 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
   ]),
 );
 
+export const partnerPayoutMethodSchema = z.object({
+  type: z.enum(PartnerPayoutMethod),
+  label: z.string(),
+  default: z.boolean(),
+  connected: z.boolean(),
+  identifier: z.string().nullable(),
+});
+
 export const partnerProfilePayoutsQuerySchema = payoutsQuerySchema.extend({
   programId: z.string().optional(),
   sortBy: payoutsQuerySchema.shape.sortBy.default("initiatedAt"),
@@ -233,7 +248,7 @@ export const getPartnerCustomersQuerySchema = z
         "A filter on the list based on the customer's `linkId` field (the referral link ID).",
       ),
     sortBy: z
-      .enum(["createdAt", "saleAmount"])
+      .enum(["createdAt", "firstSaleAt", "subscriptionCanceledAt"])
       .optional()
       .default("createdAt")
       .describe(

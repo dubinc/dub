@@ -1,4 +1,8 @@
+import { BountySubmissionFrequency } from "@dub/prisma/client";
+
 export const BOUNTY_DESCRIPTION_MAX_LENGTH = 5000;
+
+export const BOUNTY_MAX_SUBMISSIONS = 50;
 
 export const BOUNTY_MAX_SUBMISSION_FILES = 4;
 
@@ -20,51 +24,8 @@ export const REJECT_BOUNTY_SUBMISSION_REASONS = {
   other: "Other",
 } as const;
 
-export const BOUNTY_SOCIAL_PLATFORMS = [
-  {
-    value: "youtube",
-    label: "YouTube",
-    postType: "video",
-    metrics: ["views", "likes"],
-    placeholder: "https://www.youtube.com/watch?v=",
-  },
-  {
-    value: "tiktok",
-    label: "TikTok",
-    postType: "video",
-    metrics: ["views", "likes"],
-    placeholder: "https://www.tiktok.com/@username/video/",
-  },
-  {
-    value: "instagram",
-    label: "Instagram",
-    postType: "photo",
-    metrics: ["likes", "views"],
-    placeholder: "https://www.instagram.com/username/reel/",
-  },
-  {
-    value: "twitter",
-    label: "X/Twitter",
-    postType: "tweet",
-    metrics: ["likes", "views"],
-    placeholder: "https://x.com/username/status/",
-  },
+export const SUBMISSION_FREQUENCY_OPTIONS = [
+  { label: "Once a day", value: BountySubmissionFrequency.day },
+  { label: "Once a week", value: BountySubmissionFrequency.week },
+  { label: "Once a month", value: BountySubmissionFrequency.month },
 ] as const;
-
-export const BOUNTY_SOCIAL_PLATFORM_VALUES = BOUNTY_SOCIAL_PLATFORMS.map(
-  (p) => p.value,
-);
-
-export const BOUNTY_SOCIAL_PLATFORM_METRICS = BOUNTY_SOCIAL_PLATFORMS.map(
-  (p) => p.metrics,
-).flat();
-
-export const BOUNTY_SOCIAL_PLATFORM_METRICS_MAP = Object.fromEntries(
-  BOUNTY_SOCIAL_PLATFORMS.map((p) => [
-    p.value,
-    p.metrics.map((m) => ({
-      value: m,
-      label: m,
-    })),
-  ]),
-);

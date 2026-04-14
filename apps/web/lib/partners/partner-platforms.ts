@@ -7,7 +7,7 @@ import {
   Twitter,
   YouTube,
 } from "@dub/ui/icons";
-import { getPrettyUrl, nFormatter } from "@dub/utils";
+import { getPrettyUrl, getUrlFromStringIfValid, nFormatter } from "@dub/utils";
 import { PartnerPlatformProps } from "../types";
 
 export const PARTNER_PLATFORM_FIELDS: {
@@ -29,7 +29,9 @@ export const PARTNER_PLATFORM_FIELDS: {
       return {
         value: website ? getPrettyUrl(website.identifier) : null,
         verified: !!website?.verifiedAt,
-        href: website?.identifier,
+        href: website?.identifier
+          ? getUrlFromStringIfValid(website.identifier)
+          : null,
       };
     },
   },
@@ -46,10 +48,10 @@ export const PARTNER_PLATFORM_FIELDS: {
           ? `https://youtube.com/@${youtube.identifier}`
           : null,
         info: [
-          youtube?.subscribers && youtube.subscribers > 0
+          youtube?.subscribers && youtube?.verifiedAt
             ? `${nFormatter(Number(youtube.subscribers))} subscribers`
             : null,
-          youtube?.views && youtube.views > 0
+          youtube?.views && youtube?.verifiedAt
             ? `${nFormatter(Number(youtube.views))} views`
             : null,
         ].filter(Boolean),
@@ -69,10 +71,10 @@ export const PARTNER_PLATFORM_FIELDS: {
           ? `https://x.com/${twitter.identifier}`
           : null,
         info: [
-          twitter?.subscribers && twitter.subscribers > 0
+          twitter?.subscribers && twitter?.verifiedAt
             ? `${nFormatter(Number(twitter.subscribers))} followers`
             : null,
-          twitter?.posts && twitter.posts > 0
+          twitter?.posts && twitter?.verifiedAt
             ? `${nFormatter(Number(twitter.posts))} tweets`
             : null,
         ].filter(Boolean),
@@ -107,10 +109,10 @@ export const PARTNER_PLATFORM_FIELDS: {
           ? `https://instagram.com/${instagram.identifier}`
           : null,
         info: [
-          instagram?.subscribers && instagram.subscribers > 0
+          instagram?.subscribers && instagram?.verifiedAt
             ? `${nFormatter(Number(instagram.subscribers))} followers`
             : null,
-          instagram?.posts && instagram.posts > 0
+          instagram?.posts && instagram?.verifiedAt
             ? `${nFormatter(Number(instagram.posts))} posts`
             : null,
         ].filter(Boolean),
@@ -130,10 +132,10 @@ export const PARTNER_PLATFORM_FIELDS: {
           ? `https://tiktok.com/@${tiktok.identifier}`
           : null,
         info: [
-          tiktok?.subscribers && tiktok.subscribers > 0
+          tiktok?.subscribers && tiktok?.verifiedAt
             ? `${nFormatter(Number(tiktok.subscribers))} followers`
             : null,
-          tiktok?.posts && tiktok.posts > 0
+          tiktok?.posts && tiktok?.verifiedAt
             ? `${nFormatter(Number(tiktok.posts))} posts`
             : null,
         ].filter(Boolean),

@@ -1,20 +1,31 @@
-import ConnectPlatformsReminder from "@dub/email/templates/connect-platforms-reminder";
+import IdentityVerificationAnnouncement from "@dub/email/templates/broadcasts/identity-verification-announcement";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import "dotenv-flow/config";
 import { queueBatchEmail } from "../lib/email/queue-batch-email";
-import { generateUnsubscribeToken } from "../lib/email/unsubscribe-token";
 
 async function main() {
   while (true) {
     const usersToNotify = await prisma.user.findMany({
       where: {
         sentMail: false,
-        notificationPreferences: {
-          partnerAccount: true,
-        },
         partners: {
-          some: {},
+          some: {
+            partner: {
+              identityVerifiedAt: null,
+              payouts: {
+                some: {
+                  status: "completed",
+                  amount: {
+                    gt: 10000,
+                  },
+                },
+              },
+            },
+          },
+        },
+        email: {
+          not: null,
         },
       },
       take: 10000,
@@ -25,15 +36,13 @@ async function main() {
     }
     console.log(`Found ${usersToNotify.length} users to notify`);
 
-    const res = await queueBatchEmail<typeof ConnectPlatformsReminder>(
+    const res = await queueBatchEmail<typeof IdentityVerificationAnnouncement>(
       usersToNotify.map((user) => ({
         to: user.email!,
-        subject: "Verify your social platforms on Dub Partners",
-        variant: "marketing",
-        templateName: "ConnectPlatformsReminder",
+        subject: "Action Required: Verify your identity on Dub",
+        templateName: "IdentityVerificationAnnouncement",
         templateProps: {
           email: user.email!,
-          unsubscribeUrl: `https://partners.dub.co/unsubscribe/${generateUnsubscribeToken(user.email!)}`,
         },
       })),
     );

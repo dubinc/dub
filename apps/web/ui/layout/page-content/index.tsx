@@ -21,14 +21,14 @@ export function PageContent({
   return (
     <div
       className={cn(
-        "flex min-h-full flex-col rounded-t-[inherit] bg-neutral-100 md:bg-white",
+        "flex min-h-full flex-col rounded-t-[inherit] bg-neutral-100 lg:bg-white",
         className,
       )}
     >
       <PageContentHeader {...headerProps} />
       <div
         className={cn(
-          "flex-1 rounded-t-[inherit] bg-white pt-3 lg:pt-6",
+          "flex-1 rounded-t-[inherit] bg-white pt-3 lg:pt-5",
           contentWrapperClassName,
         )}
       >

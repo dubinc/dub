@@ -1,6 +1,9 @@
+import type { SiteVisitTrackingSettingsValue } from "@/lib/sitemaps/site-visit-tracking";
 import {
   PartnerBountySchema,
+  partnerBountySubmissionSchema,
   PartnerEarningsSchema,
+  partnerPayoutMethodSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
   partnerReferralsCountByStatusSchema,
@@ -8,6 +11,7 @@ import {
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
+  Commission,
   CommissionStatus,
   FolderUserRole,
   FraudEvent,
@@ -15,6 +19,7 @@ import {
   FraudRuleType,
   Link,
   PartnerGroup,
+  PartnerPayoutMethod,
   PartnerReferral,
   PartnerRole,
   PayoutStatus,
@@ -29,11 +34,15 @@ import {
 } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
-import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import {
-  BOUNTY_SOCIAL_PLATFORMS,
-  BOUNTY_SUBMISSION_REQUIREMENTS,
-} from "./bounty/constants";
+  apiLogCountRowSchema,
+  apiLogEnrichedSchema,
+  apiLogSchemaTB,
+  requestTypeSchema,
+} from "./api-logs/schemas";
+import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
+import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
+import { BOUNTY_SOCIAL_PLATFORMS } from "./bounty/social-content";
 import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
@@ -71,7 +80,10 @@ import {
   clickEventResponseSchema,
   clickEventSchemaTB,
 } from "./zod/schemas/clicks";
-import { CommissionEnrichedSchema } from "./zod/schemas/commissions";
+import {
+  CommissionDetailSchema,
+  CommissionEnrichedSchema,
+} from "./zod/schemas/commissions";
 import { customerActivityResponseSchema } from "./zod/schemas/customer-activity";
 import {
   CustomerEnrichedSchema,
@@ -86,6 +98,7 @@ import {
   fraudRuleSchema,
   updateFraudRuleSettingsSchema,
 } from "./zod/schemas/fraud";
+import { GroupBountySummarySchema } from "./zod/schemas/group-bounties";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
   additionalPartnerLinkSchemaOptionalPath,
@@ -138,6 +151,8 @@ import {
 } from "./zod/schemas/program-network";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
+  applicationRequirementsSchema,
+  eligibilityConditionSchema,
   PartnerCommentSchema,
   ProgramEnrollmentSchema,
   ProgramSchema,
@@ -176,16 +191,18 @@ import {
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
 import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
-export type LinkProps = Link;
+export type LinkProps = Omit<Link, "saleAmount"> & {
+  saleAmount: number;
+};
 
 // used on client side (e.g. Link builder)
 // TODO: standardize this with ExpandedLink
-export interface ExpandedLinkProps extends LinkProps {
+export type ExpandedLinkProps = LinkProps & {
   tags: TagProps[];
   webhookIds: string[];
   dashboardId: string | null;
   user?: UserProps;
-}
+};
 
 export interface SimpleLinkProps {
   domain: string;
@@ -248,9 +265,11 @@ export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
 
 export type PartnerBetaFeatures = "postbacks";
 
-export interface WorkspaceProps extends Project {
+export interface WorkspaceProps
+  extends Omit<Project, "siteVisitTrackingSettings"> {
   logo: string | null;
   plan: PlanProps;
+  siteVisitTrackingSettings: SiteVisitTrackingSettingsValue | null;
   domains: {
     slug: string;
     primary: boolean;
@@ -492,6 +511,7 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
   platforms: PartnerPlatformProps[];
+  defaultPayoutMethod: PartnerPayoutMethod | null;
 };
 
 export type PartnerRewindProps = z.infer<typeof PartnerRewindSchema>;
@@ -504,6 +524,10 @@ export type PartnerProfileCustomerProps = z.infer<
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type PartnerTagProps = z.infer<typeof PartnerTagSchema>;
+export type PartnerPayoutMethodSetting = z.infer<
+  typeof partnerPayoutMethodSchema
+>;
+
 export type PartnerProfileReferralsCountByStatus = z.infer<
   typeof partnerReferralsCountByStatusSchema
 >;
@@ -536,9 +560,10 @@ export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = Omit<
   z.infer<typeof ProgramSchema>,
-  "referralFormData"
+  "referralFormData" | "applicationRequirements"
 > & {
   referralFormData?: Prisma.JsonValue | null;
+  applicationRequirements?: Prisma.JsonValue | null;
 };
 
 export type ProgramInviteEmailData = z.infer<
@@ -559,6 +584,10 @@ export type ProgramApplicationFormFieldWithValues = z.infer<
   typeof programApplicationFormFieldWithValuesSchema
 >;
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
+export type EligibilityConditionDB = z.infer<typeof eligibilityConditionSchema>;
+export type ApplicationRequirementsDB = z.infer<
+  typeof applicationRequirementsSchema
+>;
 
 export type PayoutsCount = {
   status: PayoutStatus;
@@ -661,6 +690,7 @@ export type PartnerCommentProps = z.infer<typeof PartnerCommentSchema>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
+export type GroupBountySummaryProps = z.infer<typeof GroupBountySummarySchema>;
 
 export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
 
@@ -864,3 +894,28 @@ export type PostbackProps = z.infer<typeof postbackSchema>;
 export type PostbackEventProps = z.infer<typeof postbackEventInputSchemaTB>;
 
 export type PostbackTrigger = (typeof POSTBACK_TRIGGERS)[number];
+
+export type CommissionDetail = z.infer<typeof CommissionDetailSchema>;
+
+export type NullableOptional<T> = {
+  [K in keyof T]?: T[K] | null;
+};
+
+export type PartnerBountySubmission = z.infer<
+  typeof partnerBountySubmissionSchema
+>;
+
+export type CommissionActivitySnapshot = Pick<
+  Commission,
+  "amount" | "earnings" | "status"
+>;
+
+export type EnrichedApiLog = z.infer<typeof apiLogEnrichedSchema>;
+
+export type ApiLogsCountRow = z.infer<typeof apiLogCountRowSchema>;
+
+export type ApiLogsCountByRoutePattern = ApiLogsCountRow;
+
+export type RequestType = z.infer<typeof requestTypeSchema>;
+
+export type ApiLogTB = z.infer<typeof apiLogSchemaTB>;

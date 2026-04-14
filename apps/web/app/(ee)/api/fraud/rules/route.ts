@@ -10,6 +10,24 @@ import { FraudRuleType, Prisma } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
+const defaultFraudRuleOverrides: Partial<
+  Record<FraudRuleType, { enabled: boolean; config: object }>
+> = {
+  paidTrafficDetected: {
+    enabled: true,
+    config: {
+      platforms: ["google"],
+      google: {
+        whitelistedCampaignIds: [],
+      },
+    },
+  },
+  referralSourceBanned: {
+    enabled: false,
+    config: {},
+  },
+};
+
 // GET /api/fraud/rules
 export const GET = withWorkspace(
   async ({ workspace }) => {
@@ -19,27 +37,31 @@ export const GET = withWorkspace(
       where: {
         programId,
       },
+      select: {
+        type: true,
+        config: true,
+        disabledAt: true,
+      },
     });
 
     const mergedFraudRules = CONFIGURABLE_FRAUD_RULES.map(({ type }) => {
       const fraudRule = fraudRules.find((f) => f.type === type);
 
-      // Default paidTrafficDetected to enabled with Google platform
-      if (type === "paidTrafficDetected" && !fraudRule) {
+      // If the rule is not found, default it to the expected value
+      if (!fraudRule) {
+        const defaults = defaultFraudRuleOverrides[type];
+
         return {
           type,
-          enabled: true,
-          config: {
-            platforms: ["google"],
-            google: { whitelistedCampaignIds: [] },
-          },
+          enabled: defaults?.enabled ?? true,
+          config: defaults?.config ?? {},
         };
       }
 
       return {
         type,
-        enabled: fraudRule?.disabledAt === null,
-        config: fraudRule?.config ?? {},
+        enabled: fraudRule.disabledAt === null,
+        config: fraudRule.config ?? {},
       };
     });
 
@@ -55,22 +77,20 @@ export const PATCH = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { referralSourceBanned, paidTrafficDetected } =
-      updateFraudRuleSettingsSchema.parse(await parseRequestBody(req));
+    const parsed = updateFraudRuleSettingsSchema.parse(
+      await parseRequestBody(req),
+    );
 
-    const rulesToUpdate = [
-      {
-        type: "referralSourceBanned" as FraudRuleType,
-        payload: referralSourceBanned,
-      },
-      {
-        type: "paidTrafficDetected" as FraudRuleType,
-        payload: paidTrafficDetected,
-      },
-    ].filter((r) => r.payload);
+    const rulesToUpdate = CONFIGURABLE_FRAUD_RULES.map(({ type }) => ({
+      type: type as FraudRuleType,
+      payload: parsed[type],
+    })).filter((r) => r.payload);
 
     for (const { type, payload } of rulesToUpdate) {
       if (!payload) continue;
+
+      const config =
+        "config" in payload ? payload.config ?? Prisma.DbNull : Prisma.DbNull;
 
       await prisma.fraudRule.upsert({
         where: {
@@ -83,11 +103,11 @@ export const PATCH = withWorkspace(
           id: createId({ prefix: "fr_" }),
           programId,
           type,
-          config: payload.config ?? Prisma.DbNull,
+          config,
           disabledAt: payload.enabled ? null : new Date(),
         },
         update: {
-          config: payload.config ?? Prisma.DbNull,
+          config,
           disabledAt: payload.enabled ? null : new Date(),
         },
       });

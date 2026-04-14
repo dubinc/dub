@@ -14,11 +14,17 @@ export const dashboardSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const createDashboardQuerySchema = domainKeySchema.or(
-  z.object({
-    folderId: z.string(),
-  }),
-);
+export const createDashboardQuerySchema = domainKeySchema
+  .or(
+    z.object({
+      folderId: z.string(),
+    }),
+  )
+  .or(
+    z.object({
+      linkId: z.string(),
+    }),
+  );
 
 export const updateDashboardBodySchema = dashboardSchema.pick({
   showConversions: true,

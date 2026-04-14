@@ -1,0 +1,88 @@
+import { tb } from "@/lib/tinybird";
+import { log } from "@dub/utils";
+import * as z from "zod/v4";
+import { createId } from "../api/create-id";
+import { RequestType } from "../types";
+import { apiLogSchemaTB } from "./schemas";
+
+const ingestionApiLogSchemaTB = apiLogSchemaTB.extend({
+  workspace_id: z.string(),
+});
+
+type ApiLogInput = z.infer<typeof ingestionApiLogSchemaTB>;
+
+type RecordApiLogParams = {
+  workspaceId: string;
+  method: string;
+  path: string;
+  routePattern: string;
+  statusCode: number;
+  duration: number;
+  userAgent: string | null;
+  requestBody: unknown;
+  responseBody: unknown;
+  tokenId: string | null;
+  userId: string | null;
+  requestType: RequestType;
+};
+
+const recordApiLogTB = tb.buildIngestEndpoint({
+  datasource: "dub_api_logs",
+  event: ingestionApiLogSchemaTB,
+  wait: true,
+});
+
+export const recordApiLog = async ({
+  workspaceId,
+  method,
+  path,
+  routePattern,
+  statusCode,
+  duration,
+  userAgent,
+  requestBody,
+  responseBody,
+  tokenId,
+  userId,
+  requestType,
+}: RecordApiLogParams) => {
+  const apiLog: ApiLogInput = {
+    id: createId({ prefix: "req_" }),
+    timestamp: new Date().toISOString(),
+    workspace_id: workspaceId,
+    method,
+    path: path.replace("/api/", "/"), // remove the /api/ prefix from the path
+    route_pattern: routePattern,
+    status_code: statusCode,
+    duration,
+    user_agent: userAgent ?? "",
+    request_body: JSON.stringify(requestBody),
+    response_body: JSON.stringify(responseBody),
+    token_id: tokenId ?? "",
+    user_id: userId ?? "",
+    request_type: requestType,
+  };
+
+  const maxRetries = 3;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await recordApiLogTB(apiLog);
+    } catch (error) {
+      if (attempt < maxRetries) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, 100 * Math.pow(2, attempt)),
+        );
+        continue;
+      }
+
+      console.error("Failed to record API log", error, JSON.stringify(apiLog));
+
+      await log({
+        message: "Failed to record API log. See logs for more details.",
+        type: "errors",
+        mention: true,
+      });
+    }
+  }
+};

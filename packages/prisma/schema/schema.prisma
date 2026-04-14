@@ -48,10 +48,13 @@ model User {
   utmTemplates            UtmTemplate[]
   payouts                 Payout[]
   bountySubmissions       BountySubmission[]
+  programApplications     ProgramApplication[]
   sentMessages            Message[]
   partnerComments         PartnerComment[]
   fraudEventGroups        FraudEventGroup[]
+  fraudAlertsReviewed     FraudAlert[]                 @relation("FraudAlertReviewer")
   activityLogs            ActivityLog[]
+  createdCommissions      Commission[]
 
   @@index(sentMail)
   @@index(source)

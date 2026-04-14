@@ -6,9 +6,9 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "customerEmailMatch",
     name: "Matching customer email",
     description:
-      "Partner's email matches a customer's email and could be a self referral.",
+      "Customer's email matches the partner's email or a previously referred customer by the same partner.",
     scope: "conversionEvent",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "customerEmailSuspiciousDomain",
@@ -16,7 +16,17 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     description:
       "Customer's email uses a disposable or temporary domain which could be a fraud attempt.",
     scope: "conversionEvent",
-    configurable: false,
+    configurable: true,
+  },
+
+  // Referral source rules
+  {
+    type: "paidTrafficDetected",
+    name: "Paid traffic",
+    description:
+      "A conversion, event, or click was made from paid advertising traffic.",
+    scope: "conversionEvent",
+    configurable: true,
   },
   {
     type: "referralSourceBanned",
@@ -26,47 +36,31 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     scope: "conversionEvent",
     configurable: true,
   },
-  {
-    type: "paidTrafficDetected",
-    name: "Paid traffic",
-    description:
-      "A conversion, event, or click was made from paid advertising traffic.",
-    scope: "conversionEvent",
-    configurable: true,
-  },
 
   // Partner rules
-  {
-    type: "partnerFraudReport",
-    name: "Fraud report",
-    description:
-      "This partner was reported for suspected fraud by another program.",
-    scope: "partner",
-    severity: "high",
-    configurable: false,
-  },
   {
     type: "partnerCrossProgramBan",
     name: "Cross-program ban",
     description:
-      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history.",
+      "This partner was banned from another program on Dub. Our team reviewed this decision and confirmed the fraudulent behavior or terms of service violation.",
     scope: "partner",
     severity: "high",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "partnerDuplicatePayoutMethod",
-    name: "Duplicate payout method",
+    name: "Duplicate account detected",
     description:
-      "This partner is using a payout method that is already linked to another partner account, which may indicate account duplication or fraudulent behavior.",
+      "This partner was flagged by our system for having 2 or more Dub accounts. Please review to prevent abuse of program restrictions, caps, or bonuses.",
     scope: "partner",
     severity: "high",
-    configurable: false,
+    configurable: true,
   },
   {
     type: "partnerEmailDomainMismatch",
     name: "Email domain mismatch with website",
-    description: "The custom email domain doesn't match the website provided.",
+    description:
+      "The partner's email domain doesn't match their website domain.",
     scope: "partner",
     severity: "low",
     configurable: false,
@@ -114,6 +108,10 @@ export const FRAUD_RULES_BY_SCOPE = FRAUD_RULES.reduce(
 
 export const CONFIGURABLE_FRAUD_RULES = FRAUD_RULES.filter(
   (rule) => rule.configurable,
+);
+
+export const CONFIGURABLE_RULE_TYPES = CONFIGURABLE_FRAUD_RULES.map(
+  (rule) => rule.type,
 );
 
 export const FRAUD_SEVERITY_CONFIG: Record<

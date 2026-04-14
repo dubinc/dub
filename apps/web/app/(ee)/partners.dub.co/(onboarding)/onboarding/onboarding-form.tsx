@@ -1,11 +1,15 @@
 "use client";
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
-import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { getValidInternalRedirectPath } from "@/lib/middleware/utils/is-valid-internal-redirect";
-import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  MAX_PARTNER_DESCRIPTION_LENGTH,
+  onboardPartnerSchema,
+} from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
+import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Partner } from "@dub/prisma/client";
 import {
   Button,
@@ -13,7 +17,6 @@ import {
   ToggleGroup,
   TooltipContent,
   useEnterSubmit,
-  useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -49,7 +52,9 @@ export function OnboardingForm({
   const searchParams = useSearchParams();
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
+  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
   const { data: session, update: refreshSession } = useSession();
+  const countryChangeWarning = useCountryChangeWarningModal();
 
   const {
     register,
@@ -70,20 +75,14 @@ export function OnboardingForm({
     },
   });
 
-  const { name, image, country, profileType } = watch();
-
-  const [partnerData] = useLocalStorage<PartnerData | null>(
-    `application-form-partner-data`,
-    null,
-  );
+  const { name, image, profileType } = watch();
 
   useEffect(() => {
     if (session?.user) {
-      !name && setValue("name", partnerData?.name ?? session.user.name ?? "");
+      !name && setValue("name", session.user.name ?? "");
       !image && setValue("image", session.user.image ?? "");
-      !country && setValue("country", partnerData?.country ?? "");
     }
-  }, [session?.user, name, image, country, partnerData]);
+  }, [session?.user, name, image, setValue]);
 
   // refresh the session after the Partner account is created
   useEffect(() => {
@@ -99,9 +98,11 @@ export function OnboardingForm({
         redirectPath: searchParams.get("next"),
         currentUrl: window.location.href,
       });
-      router.push(
-        `/onboarding/platforms${next ? `?next=${encodeURIComponent(next)}` : ""}`,
-      );
+      if (next) {
+        router.push(next);
+      } else {
+        router.push("/onboarding/platforms");
+      }
     },
     onError: ({ error, input }) => {
       toast.error(parseActionError(error, "An unknown error occurred."));
@@ -118,6 +119,7 @@ export function OnboardingForm({
       onSubmit={handleSubmit(async (data) => await executeAsync(data))}
       className="flex w-full flex-col gap-6 text-left"
     >
+      {countryChangeWarning.modal}
       <label>
         <span className="text-sm font-medium text-neutral-800">Name</span>
         <input
@@ -180,6 +182,25 @@ export function OnboardingForm({
             <CountryCombobox
               {...field}
               error={errors.country ? true : false}
+              open={isCountryComboboxOpen}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setIsCountryComboboxOpen(false);
+                  return;
+                }
+
+                const shouldShowCountryChangeWarning =
+                  !partner?.payoutsEnabledAt;
+
+                if (shouldShowCountryChangeWarning) {
+                  countryChangeWarning.acknowledgeAndContinue(() => {
+                    setIsCountryComboboxOpen(true);
+                  });
+                  return;
+                }
+
+                setIsCountryComboboxOpen(true);
+              }}
               disabledTooltip={
                 partner?.payoutsEnabledAt ? (
                   <TooltipContent
@@ -193,9 +214,6 @@ export function OnboardingForm({
             />
           )}
         />
-        <p className="mt-1.5 text-xs text-neutral-500">
-          Your country cannot be changed once set.
-        </p>
       </label>
 
       <label>
@@ -203,18 +221,26 @@ export function OnboardingForm({
           Description
           <span className="font-normal text-neutral-500"> (optional)</span>
         </span>
-        <ReactTextareaAutosize
-          className={cn(
-            "mt-1.5 block w-full rounded-md focus:outline-none sm:text-sm",
-            errors.description
-              ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-              : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-          )}
-          placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
-          minRows={3}
-          onKeyDown={handleKeyDown}
-          {...register("description")}
-        />
+        <div>
+          <ReactTextareaAutosize
+            className={cn(
+              "mt-1.5 block w-full rounded-md focus:outline-none sm:text-sm",
+              errors.description
+                ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+            )}
+            placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
+            maxLength={MAX_PARTNER_DESCRIPTION_LENGTH}
+            minRows={3}
+            onKeyDown={handleKeyDown}
+            {...register("description")}
+          />
+          <MaxCharactersCounter
+            name="description"
+            maxLength={MAX_PARTNER_DESCRIPTION_LENGTH}
+            control={control}
+          />
+        </div>
       </label>
 
       <LayoutGroup>

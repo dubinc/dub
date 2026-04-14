@@ -265,6 +265,9 @@ export default function EventsTable({
           minSize: 300,
           size: 300,
           maxSize: 400,
+          meta: {
+            filterParams: ({ getValue }) => ({ customerId: getValue().id }),
+          },
           cell: ({ getValue }) => (
             <CustomerRowItem
               customer={getValue()}
@@ -276,11 +279,6 @@ export default function EventsTable({
               className="px-4 py-2.5"
             />
           ),
-          meta: {
-            filterParams: ({ getValue }) => ({
-              customerId: getValue().id,
-            }),
-          },
         },
         {
           id: "customerName",
@@ -331,9 +329,7 @@ export default function EventsTable({
           size: 250,
           maxSize: 400,
           meta: {
-            filterParams: ({ getValue }) => ({
-              linkId: getValue().id,
-            }),
+            filterParams: ({ getValue }) => ({ linkId: getValue().id }),
           },
           cell: ({ getValue }) => {
             const content = (
@@ -400,7 +396,7 @@ export default function EventsTable({
             filterParams: ({ getValue }) => ({ referer: getValue() }),
           },
           cell: ({ getValue }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
+            <div className="flex items-center gap-3">
               {getValue() === "(direct)" ? (
                 <Link2 className="h-4 w-4" />
               ) : (
@@ -477,49 +473,55 @@ export default function EventsTable({
           id: "city",
           header: "City",
           accessorKey: "click.city",
+          minSize: 160,
           meta: {
             filterParams: ({ getValue }) => ({ city: getValue() }),
           },
-          minSize: 160,
-          cell: ({ getValue, row }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              {!row.original.country || row.original.country === "Unknown" ? (
-                <Globe className="size-4 shrink-0" />
-              ) : (
-                <img
-                  alt={row.original.country}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
-              <span className="truncate">{getValue()}</span>
-            </div>
-          ),
+          cell: ({ getValue, row }) => {
+            const country = row.original.click?.country;
+            return (
+              <div className="flex items-center gap-3" title={getValue()}>
+                {!country || country === "Unknown" ? (
+                  <Globe className="size-4 shrink-0" />
+                ) : (
+                  <img
+                    alt={country}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )}
+                <span className="truncate">{getValue()}</span>
+              </div>
+            );
+          },
         },
         {
           id: "region",
           header: "Region",
           accessorKey: "click.region",
+          minSize: 160,
           meta: {
             filterParams: ({ getValue }) => ({ region: getValue() }),
           },
-          minSize: 160,
-          cell: ({ getValue, row }) => (
-            <div className="flex items-center gap-3" title={getValue()}>
-              {!row.original.country || row.original.country === "Unknown" ? (
-                <Globe className="size-4 shrink-0" />
-              ) : (
-                <img
-                  alt={row.original.country}
-                  src={`https://hatscripts.github.io/circle-flags/flags/${row.original.country.toLowerCase()}.svg`}
-                  className="size-4 shrink-0"
-                />
-              )}
-              <span className="truncate">
-                {REGIONS[getValue()] || getValue().split("-")[1]}
-              </span>
-            </div>
-          ),
+          cell: ({ getValue, row }) => {
+            const country = row.original.click?.country;
+            return (
+              <div className="flex items-center gap-3" title={getValue()}>
+                {!country || country === "Unknown" ? (
+                  <Globe className="size-4 shrink-0" />
+                ) : (
+                  <img
+                    alt={country}
+                    src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                    className="size-4 shrink-0"
+                  />
+                )}
+                <span className="truncate">
+                  {REGIONS[getValue()] || getValue().split("-")[1]}
+                </span>
+              </div>
+            );
+          },
         },
         {
           id: "continent",

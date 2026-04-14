@@ -30,7 +30,7 @@ export const CommissionStatusBadges = {
   pending: {
     label: "Pending",
     variant: "pending",
-    className: "text-orange-600 bg-orange-100",
+    className: "text-content-attention bg-bg-attention",
     icon: CircleHalfDottedClock,
     tooltip: (data: CommissionTooltipDataProps) =>
       data.variant === "partner"
@@ -40,7 +40,7 @@ export const CommissionStatusBadges = {
   processed: {
     label: "Processed",
     variant: "new",
-    className: "text-blue-600 bg-blue-100",
+    className: "text-content-info bg-bg-info",
     icon: CircleHalfDottedClock,
     tooltip: (data: CommissionTooltipDataProps) => {
       const title = `This commission has been processed and ${data.variant === "partner" && data.program?.minPayoutAmount ? `will be paid out once your payout total reaches the program's minimum payout amount of ${currencyFormatter(data.program?.minPayoutAmount)}` : "is now eligible for payout"}.`;
@@ -56,14 +56,14 @@ export const CommissionStatusBadges = {
   paid: {
     label: "Paid",
     variant: "success",
-    className: "text-green-600 bg-green-100",
+    className: "text-content-success bg-bg-success",
     icon: CircleCheck,
     tooltip: (_: CommissionTooltipDataProps) => null,
   },
   fraud: {
     label: "Fraud",
     variant: "error",
-    className: "text-red-600 bg-red-100",
+    className: "text-content-error bg-bg-error",
     icon: ShieldAlert,
     tooltip: (data: CommissionTooltipDataProps) => {
       const title = `This commission was flagged as fraudulent.${data.variant === "partner" ? " If you believe this is incorrect, " : ""}`;
@@ -80,7 +80,7 @@ export const CommissionStatusBadges = {
   duplicate: {
     label: "Duplicate",
     variant: "error",
-    className: "text-red-600 bg-red-100",
+    className: "text-content-error bg-bg-error",
     icon: Duplicate,
     tooltip: (data: CommissionTooltipDataProps) => {
       const title = `This commission was flagged as duplicate.${data.variant === "partner" ? " If you believe this is incorrect, " : ""}`;
@@ -97,7 +97,7 @@ export const CommissionStatusBadges = {
   refunded: {
     label: "Refunded",
     variant: "error",
-    className: "text-red-600 bg-red-100",
+    className: "text-content-error bg-bg-error",
     icon: CircleXmark,
     tooltip: (data: CommissionTooltipDataProps) => {
       const title = `This commission was refunded.${data.variant === "partner" ? " If you believe this is incorrect, " : ""}`;
@@ -114,7 +114,7 @@ export const CommissionStatusBadges = {
   canceled: {
     label: "Canceled",
     variant: "neutral",
-    className: "text-gray-600 bg-gray-100",
+    className: "text-content-muted bg-bg-muted",
     icon: CircleXmark,
     tooltip: (data: CommissionTooltipDataProps) => {
       const title = `This commission was canceled.${data.variant === "partner" ? " If you believe this is incorrect, " : ""}`;
@@ -132,7 +132,7 @@ export const CommissionStatusBadges = {
   hold: {
     label: "On Hold",
     variant: "error",
-    className: "text-red-600 bg-red-100",
+    className: "text-content-error bg-bg-error",
     icon: ShieldAlert,
     tooltip: (data: CommissionTooltipDataProps) => {
       if (data.variant === "partner") {

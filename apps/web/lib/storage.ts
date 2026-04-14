@@ -107,11 +107,13 @@ class StorageClient {
     method,
     expiresIn,
     bucket,
+    headers,
   }: {
     key: string;
     method: "PUT" | "GET";
     bucket: BucketType;
     expiresIn: number;
+    headers?: Record<string, string>;
   }) {
     const url = new URL(
       `${process.env.STORAGE_ENDPOINT}/${this._getBucketName(bucket)}/${key}`,
@@ -122,6 +124,7 @@ class StorageClient {
     try {
       const response = await this.client.sign(url, {
         method,
+        headers,
         aws: {
           signQuery: true,
           allHeaders: true,
@@ -139,12 +142,25 @@ class StorageClient {
     key: string;
     bucket?: BucketType;
     expiresIn?: number;
+    contentLength?: number;
+    contentType?: string;
   }) {
+    const headers: Record<string, string> = {};
+
+    if (opts.contentLength) {
+      headers["Content-Length"] = String(opts.contentLength);
+    }
+
+    if (opts.contentType) {
+      headers["Content-Type"] = opts.contentType;
+    }
+
     return await this.getSignedUrl({
       key: opts.key,
       method: "PUT",
       bucket: opts.bucket || "public",
       expiresIn: opts.expiresIn || 600,
+      headers: Object.keys(headers).length > 0 ? headers : undefined,
     });
   }
 

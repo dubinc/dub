@@ -13,7 +13,6 @@ import {
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
-import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import {
   ClickEventTB,
   CustomerSource,
@@ -96,15 +95,6 @@ export const trackSale = async ({
     if (!leadEvent) {
       const errorMessage = `Lead event not found for externalId: ${customerExternalId} and leadEventName: ${leadEventName}`;
 
-      waitUntil(
-        logConversionEvent({
-          workspace_id: workspace.id,
-          path: "/track/sale",
-          body: JSON.stringify(rawBody),
-          error: errorMessage,
-        }),
-      );
-
       throw new DubApiError({
         code: "not_found",
         message: errorMessage,
@@ -119,15 +109,6 @@ export const trackSale = async ({
 
   // If no existing customer is found and no clickId is provided, return an error
   if (!existingCustomer && !clickId) {
-    waitUntil(
-      logConversionEvent({
-        workspace_id: workspace.id,
-        path: "/track/sale",
-        body: JSON.stringify(rawBody),
-        error: `No existing customer with the provided customerExternalId (${customerExternalId}) was found, and there was no clickId provided for direct sale tracking.`,
-      }),
-    );
-
     return {
       eventName,
       customer: null,
@@ -259,15 +240,6 @@ export const trackSale = async ({
 
   // This should never happen, but just in case
   if (!customer) {
-    waitUntil(
-      logConversionEvent({
-        workspace_id: workspace.id,
-        path: "/track/sale",
-        body: JSON.stringify(rawBody),
-        error: `Customer not found for customerExternalId: ${customerExternalId}`,
-      }),
-    );
-
     return {
       eventName,
       customer: null,
@@ -434,15 +406,6 @@ const _trackSale = async ({
 
   // Skip if amount is 0 or less
   if (amount <= 0) {
-    waitUntil(
-      logConversionEvent({
-        workspace_id: workspace.id,
-        path: "/track/sale",
-        body: JSON.stringify(rawBody),
-        error: `Sale amount is ${amount}, skipping...`,
-      }),
-    );
-
     return {
       eventName,
       customer: null,
@@ -523,14 +486,6 @@ const _trackSale = async ({
             },
           },
         }),
-
-        // Log conversion event
-        logConversionEvent({
-          workspace_id: workspace.id,
-          link_id: saleData.link_id,
-          path: "/track/sale",
-          body: JSON.stringify(rawBody),
-        }),
       ]);
 
       let createdCommission:
@@ -553,6 +508,7 @@ const _trackSale = async ({
           context: {
             customer: {
               country: customer.country,
+              signupDate: customer.createdAt,
               source,
             },
             sale: {
@@ -592,7 +548,10 @@ const _trackSale = async ({
               program: { id: link.programId },
               partner: pick(webhookPartner, ["id", "email", "name"]),
               programEnrollment: pick(programEnrollment, ["status"]),
-              customer: pick(customer, ["id", "email", "name"]),
+              customer: {
+                ...pick(customer, ["id", "email", "name"]),
+                isFirstConversion: firstConversionFlag,
+              },
               link: pick(link, ["id"]),
               click: pick(saleData, ["url", "referer"]),
               event: { id: saleData.event_id },

@@ -28,6 +28,7 @@ export const GET = withWorkspace(
       programId,
       groupId: params.groupIdOrSlug,
       includeExpandedFields: true,
+      includeBounties: true,
     });
 
     return NextResponse.json(GroupWithProgramSchema.parse(group));
@@ -327,17 +328,36 @@ export const DELETE = withWorkspace(
       console.log(`Moved ${count} partners to the default group`);
     }
 
+    let shouldDeleteGroupRewards = false;
+
+    const groupRewardIds = [
+      group.clickRewardId,
+      group.leadRewardId,
+      group.saleRewardId,
+    ].filter(Boolean) as string[];
+
+    if (groupRewardIds.length > 0) {
+      const groupRewardCommissions = await prisma.commission.count({
+        where: {
+          programId,
+          rewardId: {
+            in: groupRewardIds,
+          },
+        },
+        take: 100,
+      });
+      if (groupRewardCommissions === 0) {
+        shouldDeleteGroupRewards = true;
+      }
+    }
+
     const deletedGroup = await prisma.$transaction(async (tx) => {
-      // 1. Delete the group's rewards
-      if (group.clickRewardId || group.leadRewardId || group.saleRewardId) {
+      // 1. Delete the group's rewards (if no commissions are associated with the rewards)
+      if (shouldDeleteGroupRewards) {
         await tx.reward.deleteMany({
           where: {
             id: {
-              in: [
-                group.clickRewardId,
-                group.leadRewardId,
-                group.saleRewardId,
-              ].filter(Boolean) as string[],
+              in: groupRewardIds,
             },
           },
         });

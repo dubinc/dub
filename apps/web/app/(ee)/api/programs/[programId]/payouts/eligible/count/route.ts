@@ -1,5 +1,6 @@
 import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
+import { payoutIdSelectionWhere } from "@/lib/api/payouts/payout-id-selection-where";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -14,7 +15,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const { cutoffPeriod, selectedPayoutId, excludedPayoutIds } =
+  const { cutoffPeriod, selectedPayoutIds, excludedPayoutIds } =
     eligiblePayoutsCountQuerySchema.parse(searchParams);
 
   const program = await getProgramOrThrow({
@@ -32,7 +33,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       program,
       workspace,
       cutoffPeriod,
-      selectedPayoutId,
+      selectedPayoutIds,
       excludedPayoutIds,
       pageSize: Infinity,
       page: 1,
@@ -46,11 +47,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const data = await prisma.payout.aggregate({
     where: {
-      ...(selectedPayoutId
-        ? { id: selectedPayoutId }
-        : excludedPayoutIds && excludedPayoutIds.length > 0
-          ? { id: { notIn: excludedPayoutIds } }
-          : {}),
+      ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
       ...getPayoutEligibilityFilter({ program, workspace }),
     },
     _count: true,

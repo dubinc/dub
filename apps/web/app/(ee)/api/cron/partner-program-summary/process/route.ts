@@ -32,6 +32,17 @@ interface AnalyticsResponse {
   saleAmount: number;
 }
 
+type PartnerProgramSummaryMonthMetrics = {
+  earnings: number;
+  clicks: number;
+  leads: number;
+  sales: number;
+};
+
+function monthHasNoActivity(m: PartnerProgramSummaryMonthMetrics) {
+  return m.earnings === 0 && m.clicks === 0 && m.leads === 0 && m.sales === 0;
+}
+
 // This route processes partner program summary emails for a specific program.
 // Called by the main route after enqueuing jobs for each program.
 // POST /api/cron/partner-program-summary/process
@@ -93,15 +104,15 @@ export const POST = withCron(async ({ rawBody }) => {
     where: {
       programId: program.id,
       status: "approved",
+      totalLeads: {
+        gt: 0,
+      },
       partner: {
         users: {
-          some: {},
-        },
-      },
-      links: {
-        some: {
-          leads: {
-            gt: 0,
+          some: {
+            notificationPreferences: {
+              monthlyProgramSummary: true,
+            },
           },
         },
       },
@@ -250,22 +261,22 @@ export const POST = withCron(async ({ rawBody }) => {
     return {
       partner,
       previousMonth: {
+        earnings: _previousMonthEarnings?._sum.earnings ?? 0,
         clicks: _previousMonthAnalytics?.clicks ?? 0,
         leads: _previousMonthAnalytics?.leads ?? 0,
         sales: _previousMonthAnalytics?.sales ?? 0,
-        earnings: _previousMonthEarnings?._sum.earnings ?? 0,
       },
       currentMonth: {
+        earnings: _currentMonthEarnings?._sum.earnings ?? 0,
         clicks: _currentMonthAnalytics?.clicks ?? 0,
         leads: _currentMonthAnalytics?.leads ?? 0,
         sales: _currentMonthAnalytics?.sales ?? 0,
-        earnings: _currentMonthEarnings?._sum.earnings ?? 0,
       },
       lifetime: {
+        earnings: _lifetimeEarnings?._sum.earnings ?? 0,
         clicks: _lifetimeAnalytics?.clicks ?? 0,
         leads: _lifetimeAnalytics?.leads ?? 0,
         sales: _lifetimeAnalytics?.sales ?? 0,
-        earnings: _lifetimeEarnings?._sum.earnings ?? 0,
       },
     };
   });
@@ -274,22 +285,37 @@ export const POST = withCron(async ({ rawBody }) => {
     summary.map((s) => ({
       partner: s.partner.email,
       program: program.name,
+      currentEarnings: s.currentMonth.earnings,
       currentClicks: s.currentMonth.clicks,
       currentLeads: s.currentMonth.leads,
       currentSales: s.currentMonth.sales,
-      currentEarnings: s.currentMonth.earnings,
+      lifetimeEarnings: s.lifetime.earnings,
       lifetimeClicks: s.lifetime.clicks,
       lifetimeLeads: s.lifetime.leads,
       lifetimeSales: s.lifetime.sales,
-      lifetimeEarnings: s.lifetime.earnings,
     })),
   );
 
   const reportingMonth = format(currentMonth, "MMM yyyy");
   batchNumber = batchNumber || 1;
 
+  const summaryToSend = summary.filter(
+    (s) =>
+      !(
+        monthHasNoActivity(s.previousMonth) &&
+        monthHasNoActivity(s.currentMonth)
+      ),
+  );
+
+  const skippedEmpty = summary.length - summaryToSend.length;
+  if (skippedEmpty > 0) {
+    console.info(
+      `Skipped ${skippedEmpty} partner program summary email(s) with no activity in both reporting months.`,
+    );
+  }
+
   await sendBatchEmail(
-    summary.map(({ partner, ...rest }) => ({
+    summaryToSend.map(({ partner, ...rest }) => ({
       variant: "notifications",
       subject: `Your ${reportingMonth} performance report for ${program.name} program`,
       to: partner.email!,

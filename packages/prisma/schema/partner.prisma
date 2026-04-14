@@ -16,22 +16,50 @@ enum MonthlyTraffic {
   OneHundredThousandPlus
 }
 
+enum PartnerPayoutMethod {
+  connect
+  stablecoin
+  paypal
+}
+
+// https://devdocs.veriff.com/v1/docs/how-to-generate-sessions-manually#verification-session-statuses
+enum IdentityVerificationStatus {
+  started
+  submitted
+  approved
+  declined
+  resubmissionRequested
+  expired
+  abandoned
+  review
+}
+
 model Partner {
   id          String             @id @default(cuid())
   name        String
   companyName String?
   profileType PartnerProfileType @default(individual)
   email       String?            @unique
-  image       String?
+  image       String?            @db.Text
   description String?            @db.Text
   country     String?
 
+  // identity verification fields
+  identityVerificationStatus IdentityVerificationStatus?
+  identityVerifiedAt         DateTime?
+  veriffSessionId            String?                     @unique
+  veriffIdentityHash         String?                     @unique
+  veriffMetadata             Json? // see veriffMetadataSchema
+
   // payout fields
-  paypalEmail                  String?   @unique
-  stripeConnectId              String?   @unique
+  defaultPayoutMethod          PartnerPayoutMethod?
   payoutsEnabledAt             DateTime?
-  payoutMethodHash             String?
   connectPayoutsLastRemindedAt DateTime?
+  paypalEmail                  String?              @unique
+  stripeConnectId              String?              @unique
+  stripeRecipientId            String?              @unique
+  payoutMethodHash             String?
+  cryptoWalletAddress          String?
 
   // timestamp fields
   createdAt      DateTime  @default(now())
@@ -65,6 +93,7 @@ model Partner {
   programPartnerTags         ProgramPartnerTag[]
   fraudEventGroups           FraudEventGroup[]
   fraudEvents                FraudEvent[]
+  fraudAlerts                FraudAlert[]
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
   referrals                  PartnerReferral[]
@@ -73,6 +102,8 @@ model Partner {
   @@index(discoverableAt)
   @@index(trustedAt)
   @@index(payoutMethodHash)
+  @@index(cryptoWalletAddress)
+  @@index(identityVerifiedAt)
   @@fulltext([email, name, companyName]) // For full-text search
 }
 

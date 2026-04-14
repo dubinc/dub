@@ -6,6 +6,7 @@ import { getFirstFilterValue } from "@/lib/analytics/filter-helpers";
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { createDownloadableExport } from "@/lib/api/create-downloadable-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
@@ -112,6 +113,7 @@ export async function POST(req: Request) {
     const eventsFilters = {
       ...parsedParams,
       workspaceId: program.workspaceId,
+      includeMetadata: false,
       ...(parsedParams.linkId
         ? { linkId: parsedParams.linkId }
         : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
@@ -144,7 +146,7 @@ export async function POST(req: Request) {
                 email: customer.email
                   ? customerDataSharingEnabledAt
                     ? customer.email
-                    : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+                    : obfuscateCustomerEmail(customer.email)
                   : customer.name || generateRandomName(),
                 ...(customerDataSharingEnabledAt && {
                   name: customer.name || generateRandomName(),

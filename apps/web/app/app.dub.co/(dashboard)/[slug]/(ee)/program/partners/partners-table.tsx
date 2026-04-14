@@ -8,6 +8,7 @@ import usePartnersCount from "@/lib/swr/use-partners-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { ACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useBulkArchivePartnersModal } from "@/ui/modals/bulk-archive-partners-modal";
@@ -29,6 +30,7 @@ import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
+  DynamicTooltipWrapper,
   EditColumnsButton,
   Filter,
   Icon,
@@ -118,7 +120,8 @@ const getPartnerUrl = ({
 
 export function PartnersTable() {
   const router = useRouter();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
@@ -126,7 +129,7 @@ export function PartnersTable() {
   const status = (
     searchParams.get("status") || searchParams.get("search")
       ? undefined
-      : "approved"
+      : "approved_invited"
   ) as ProgramEnrollmentStatus;
 
   const sortBy =
@@ -134,21 +137,13 @@ export function PartnersTable() {
     (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
-  const {
-    filters,
-    activeFilters,
-    onSelect,
-    onRemove,
-    onRemoveAll,
-    onToggleOperator,
-    isFiltered,
-    setSelectedFilter,
-    setSearch,
-  } = usePartnerFilters({ sortBy, sortOrder, status });
-
   const { partnersCount, error: countError } = usePartnersCount<number>({
     ...(status ? { status } : {}),
   });
+
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const {
     data: partners,
@@ -579,7 +574,7 @@ export function PartnersTable() {
           }}
         />
 
-        {(status === "approved" ||
+        {(!searchParams.get("status") ||
           searchParams.get("status") === "approved") && (
           <BulkActionsMenu
             table={table}
@@ -608,47 +603,13 @@ export function PartnersTable() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <ChangeGroupModal />
       <EditPartnerTagsModal />
       <BulkArchivePartnersModal />
       <BulkDeactivatePartnersModal />
       <BulkBanPartnersModal />
-      <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            isAdvancedFilter
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
-          />
-          <SearchBoxPersisted
-            placeholder="Search by name, email, or company"
-            inputClassName="md:w-80"
-          />
-        </div>
-        <AnimatedSizeContainer height>
-          <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                  onToggleOperator={onToggleOperator}
-                  isAdvancedFilter
-                />
-              </div>
-            )}
-          </div>
-        </AnimatedSizeContainer>
-      </div>
+      <PartnersFilters sortBy={sortBy} sortOrder={sortOrder} status={status} />
       {partners?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
@@ -667,6 +628,52 @@ export function PartnersTable() {
           )}
         />
       )}
+    </div>
+  );
+}
+
+function PartnersFilters({
+  sortBy,
+  sortOrder,
+  status,
+}: {
+  sortBy: string;
+  sortOrder: "asc" | "desc";
+  status: ProgramEnrollmentStatus;
+}) {
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePartnerFilters({ sortBy, sortOrder, status });
+
+  return (
+    <div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <Filter.Select
+          className="w-full md:w-fit"
+          filters={filters}
+          activeFilters={activeFilters}
+          onSelect={onSelect}
+          onRemove={onRemove}
+        />
+        <SearchBoxPersisted
+          placeholder="Search by name, email, or company"
+          inputClassName="md:w-80"
+        />
+      </div>
+      <AnimatedSizeContainer height>
+        <div>
+          {activeFilters.length > 0 && (
+            <div className="pt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
+        </div>
+      </AnimatedSizeContainer>
     </div>
   );
 }
@@ -690,6 +697,12 @@ function BulkActionsMenu({
 
   const partnerWord = selectedPartners.length === 1 ? "partner" : "partners";
 
+  const disabledTooltip = selectedPartners.some(
+    (partner) => !ACTIVE_ENROLLMENT_STATUSES.includes(partner.status),
+  )
+    ? `You cannot perform this action because one or more partners are not in ${ACTIVE_ENROLLMENT_STATUSES.join(", ")} statuses.`
+    : undefined;
+
   return (
     <Popover
       openPopover={isOpen}
@@ -705,6 +718,7 @@ function BulkActionsMenu({
                   onArchivePartners(selectedPartners);
                   setIsOpen(false);
                 }}
+                disabledTooltip={disabledTooltip}
               />
               <MenuItem
                 icon={CircleXmark}
@@ -713,6 +727,7 @@ function BulkActionsMenu({
                   onDeactivatePartners(selectedPartners);
                   setIsOpen(false);
                 }}
+                disabledTooltip={disabledTooltip}
               />
               <MenuItem
                 icon={UserDelete}
@@ -722,6 +737,7 @@ function BulkActionsMenu({
                   onBanPartners(selectedPartners);
                   setIsOpen(false);
                 }}
+                disabledTooltip={disabledTooltip}
               />
             </Command.Group>
           </Command.List>
@@ -993,11 +1009,13 @@ function MenuItem({
   label,
   onSelect,
   variant = "default",
+  disabledTooltip,
 }: {
   icon: Icon;
   label: string;
   onSelect: () => void;
   variant?: "default" | "danger";
+  disabledTooltip?: string | boolean;
 }) {
   const variantStyles = {
     default: {
@@ -1013,16 +1031,22 @@ function MenuItem({
   const { text, icon } = variantStyles[variant];
 
   return (
-    <Command.Item
-      className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-        "data-[selected=true]:bg-neutral-100",
-        text,
-      )}
-      onSelect={onSelect}
+    <DynamicTooltipWrapper
+      tooltipProps={disabledTooltip ? { content: disabledTooltip } : undefined}
     >
-      <IconComp className={cn("size-4 shrink-0", icon)} />
-      {label}
-    </Command.Item>
+      <Command.Item
+        className={cn(
+          "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
+          disabledTooltip
+            ? "cursor-not-allowed opacity-75"
+            : "data-[selected=true]:bg-neutral-100",
+          text,
+        )}
+        onSelect={disabledTooltip ? undefined : onSelect}
+      >
+        <IconComp className={cn("size-4 shrink-0", icon)} />
+        {label}
+      </Command.Item>
+    </DynamicTooltipWrapper>
   );
 }

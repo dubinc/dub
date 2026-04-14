@@ -1,102 +1,28 @@
-import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { getEarningsForPartner } from "@/lib/api/partner-profile/get-earnings-for-partner";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { generateRandomName } from "@/lib/names";
-import {
-  PartnerEarningsSchema,
-  getPartnerEarningsQuerySchema,
-} from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
+import { getPartnerEarningsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/earnings – get earnings for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program, customerDataSharingEnabledAt } =
+    const { programId, partnerId, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
-        include: {
-          program: true,
-        },
+        include: {},
       });
 
-    const {
-      page,
-      pageSize,
-      type,
-      status,
-      sortBy,
-      sortOrder,
-      linkId,
-      customerId,
-      payoutId,
-      interval,
-      start,
-      end,
-      timezone,
-    } = getPartnerEarningsQuerySchema.parse(searchParams);
+    const parsedQuery = getPartnerEarningsQuerySchema.parse(searchParams);
 
-    const { startDate, endDate } = getStartEndDates({
-      interval,
-      start,
-      end,
-      timezone,
+    const earnings = await getEarningsForPartner({
+      ...parsedQuery,
+      programId,
+      partnerId,
+      customerDataSharingEnabledAt,
     });
 
-    const earnings = await prisma.commission.findMany({
-      where: {
-        earnings: {
-          not: 0,
-        },
-        programId: program.id,
-        partnerId: partner.id,
-        status,
-        type,
-        linkId,
-        customerId,
-        payoutId,
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-      },
-      include: {
-        customer: true,
-        link: {
-          select: {
-            id: true,
-            shortLink: true,
-            url: true,
-          },
-        },
-      },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      orderBy: { [sortBy]: sortOrder },
-    });
-
-    const data = z.array(PartnerEarningsSchema).parse(
-      earnings.map((e) => {
-        // fallback to a random name if the customer doesn't have an email
-        const customerEmail =
-          e.customer?.email || e.customer?.name || generateRandomName();
-        return {
-          ...e,
-          customer: e.customer
-            ? {
-                ...e.customer,
-                email: customerDataSharingEnabledAt
-                  ? customerEmail
-                  : customerEmail.replace(/(?<=^.).+(?=.@)/, "****"),
-                country: e.customer?.country,
-              }
-            : null,
-        };
-      }),
-    );
-
-    return NextResponse.json(data);
+    return NextResponse.json(earnings);
   },
 );

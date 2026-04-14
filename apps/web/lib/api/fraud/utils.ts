@@ -17,7 +17,7 @@ type GetIdentityFieldsForFraudEventInput = Pick<
 >;
 
 // Normalize email for comparison
-export function normalizeEmail(email: string): string {
+export function normalizeEmail(email: string) {
   const trimmed = email.toLowerCase().trim();
   const parts = trimmed.split("@");
 
@@ -102,9 +102,6 @@ function getIdentityFieldsForFraudEvent({
       return {
         sourceProgramId,
       };
-
-    case "partnerFraudReport":
-      return {};
   }
 }
 
@@ -120,6 +117,7 @@ export function sanitizeFraudEventMetadata(
 
   delete sanitized.duplicatePartnerId;
   delete sanitized.payoutMethodHash;
+  delete sanitized.cryptoWalletAddress;
 
   return Object.keys(sanitized).length > 0 ? sanitized : undefined;
 }

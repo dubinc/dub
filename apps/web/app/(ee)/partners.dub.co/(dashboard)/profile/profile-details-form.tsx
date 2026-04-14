@@ -1,6 +1,8 @@
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
@@ -8,6 +10,7 @@ import {
   PartnerPlatformsForm,
   usePartnerPlatformsForm,
 } from "@/ui/partners/partner-platforms-form";
+import { useCountryChangeWarningModal } from "@/ui/partners/use-country-change-warning-modal";
 import { CustomToast } from "@/ui/shared/custom-toast";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PartnerProfileType } from "@dub/prisma/client";
@@ -22,7 +25,14 @@ import {
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
-import { RefObject, useEffect, useRef } from "react";
+import {
+  Dispatch,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   Controller,
   FormProvider,
@@ -30,6 +40,7 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { toast } from "sonner";
+import { IdentityVerificationSection } from "./identity-verification-section";
 import { SettingsRow } from "./settings-row";
 
 type BasicInfoFormData = {
@@ -41,7 +52,13 @@ type BasicInfoFormData = {
   companyName: string | null;
 };
 
-export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
+export function ProfileDetailsForm({
+  partner,
+  setShowMergePartnerAccountsModal,
+}: {
+  partner?: PartnerProps;
+  setShowMergePartnerAccountsModal: Dispatch<SetStateAction<boolean>>;
+}) {
   const disabled = partner
     ? !hasPermission(partner.role, "partner_profile.update")
     : true;
@@ -74,6 +91,10 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
     },
   });
 
+  const { payoutsCount } = usePartnerPayoutsCount({
+    status: "completed",
+  });
+
   return (
     <div className="border-border-subtle divide-border-subtle flex flex-col divide-y rounded-lg border">
       {stripeConfirmModal}
@@ -99,6 +120,19 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
           />
         </FormProvider>
       </SettingsRow>
+
+      {(payoutsCount?.[0]?.amount ?? 0) > 10000 && (
+        <SettingsRow
+          id="identity-verification"
+          heading="Identity verification"
+          description="Verify your identity to build trust with programs and get approved for programs faster."
+        >
+          <IdentityVerificationSection
+            partner={partner}
+            setShowMergePartnerAccountsModal={setShowMergePartnerAccountsModal}
+          />
+        </SettingsRow>
+      )}
 
       <SettingsRow
         id="platforms"
@@ -171,6 +205,8 @@ function BasicInfoForm({
   }, [isSubmitSuccessful, reset, getValues]);
 
   const { profileType } = watch();
+  const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
+  const countryChangeWarning = useCountryChangeWarningModal();
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onSuccess: async ({ data }) => {
@@ -184,6 +220,11 @@ function BasicInfoForm({
       mutatePrefix("/api/partner-profile");
     },
     onError({ error }) {
+      if (error.validationErrors) {
+        toast.error(parseActionError(error, "Could not update your profile."));
+        return;
+      }
+
       setError("root.serverError", {
         message: error.serverError,
       });
@@ -201,6 +242,12 @@ function BasicInfoForm({
     },
   });
 
+  const shouldShowCountryChangeWarning =
+    !disabled &&
+    !partner?.payoutsEnabledAt &&
+    !!partner?.country &&
+    !countryChangeWarning.isAcknowledged;
+
   return (
     <form
       ref={formRef}
@@ -213,6 +260,7 @@ function BasicInfoForm({
         });
       })}
     >
+      {countryChangeWarning.modal}
       <div className="flex flex-col gap-6">
         <label>
           <div className="flex items-center gap-5">
@@ -302,6 +350,22 @@ function BasicInfoForm({
                 value={field.value || ""}
                 onChange={field.onChange}
                 error={errors.country ? true : false}
+                open={isCountryComboboxOpen}
+                onOpenChange={(open) => {
+                  if (!open) {
+                    setIsCountryComboboxOpen(false);
+                    return;
+                  }
+
+                  if (shouldShowCountryChangeWarning) {
+                    countryChangeWarning.acknowledgeAndContinue(() => {
+                      setIsCountryComboboxOpen(true);
+                    });
+                    return;
+                  }
+
+                  setIsCountryComboboxOpen(true);
+                }}
                 disabledTooltip={
                   disabled ? (
                     "You don't have permission to update this field"

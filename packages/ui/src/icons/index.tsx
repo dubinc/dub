@@ -26,6 +26,7 @@ export * from "./sort-order";
 export * from "./success";
 export * from "./tick";
 export * from "./user-clock";
+export * from "./verified-badge";
 
 // loaders
 export * from "./loading-circle";
@@ -47,6 +48,7 @@ export * from "./slack";
 export * from "./tiktok";
 export * from "./twitter";
 export * from "./unsplash";
+export * from "./veriff";
 export * from "./youtube";
 
 // Payment platforms
@@ -55,6 +57,7 @@ export * from "./payment-platforms/card-discover";
 export * from "./payment-platforms/card-mastercard";
 export * from "./payment-platforms/card-visa";
 export * from "./payment-platforms/paypal";
+export * from "./payment-platforms/stablecoin";
 export * from "./payment-platforms/stripe-icon";
 export * from "./payment-platforms/stripe-link";
 

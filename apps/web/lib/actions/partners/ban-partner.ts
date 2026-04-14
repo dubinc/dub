@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { DubApiError } from "@/lib/api/errors";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -9,12 +9,10 @@ import { qstash } from "@/lib/cron";
 import { UserProps, WorkspaceProps } from "@/lib/types";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import {
-  PartnerBannedReason,
-  ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
@@ -22,12 +20,17 @@ const queue = qstash.queue({
   queueName: "ban-partner",
 });
 
+type BanPartnerInput = Omit<z.infer<typeof banPartnerSchema>, "workspaceId"> & {
+  user: Pick<UserProps, "id">;
+  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
+};
+
 // Ban a partner
 export const banPartnerAction = authActionClient
   .inputSchema(banPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, reason } = parsedInput;
+    const { partnerId, reason, flagForFraud, flagForFraudReason } = parsedInput;
 
     throwIfNoPermission({
       role: workspace.role,
@@ -39,6 +42,8 @@ export const banPartnerAction = authActionClient
       partnerId,
       reason,
       user,
+      flagForFraud,
+      flagForFraudReason,
     });
   });
 
@@ -47,12 +52,9 @@ export const banPartner = async ({
   partnerId,
   reason,
   user,
-}: {
-  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
-  partnerId: string;
-  reason: PartnerBannedReason;
-  user: Pick<UserProps, "id">;
-}) => {
+  flagForFraud,
+  flagForFraudReason,
+}: BanPartnerInput) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
   const programEnrollment = await getProgramEnrollmentOrThrow({
@@ -62,6 +64,13 @@ export const banPartner = async ({
       partner: true,
     },
   });
+
+  if (flagForFraud && (!flagForFraudReason || !flagForFraudReason.trim())) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Fraud reason is required when flagging for fraud.",
+    });
+  }
 
   if (programEnrollment.status === "pending") {
     throw new DubApiError({
@@ -106,19 +115,19 @@ export const banPartner = async ({
 
   waitUntil(
     Promise.allSettled([
-      recordAuditLog({
+      trackActivityLog({
         workspaceId: workspace.id,
         programId,
+        resourceType: "partner",
+        resourceId: partnerId,
+        userId: user.id,
         action: "partner.banned",
-        description: `Partner ${partnerId} banned`,
-        actor: user,
-        targets: [
-          {
-            type: "partner",
-            id: partnerId,
-            metadata: programEnrollment.partner,
+        changeSet: {
+          status: {
+            old: programEnrollment.status,
+            new: "banned",
           },
-        ],
+        },
       }),
 
       queue.enqueueJSON({
@@ -130,6 +139,16 @@ export const banPartner = async ({
           partnerId,
         },
       }),
+
+      flagForFraud && flagForFraudReason
+        ? prisma.fraudAlert.create({
+            data: {
+              partnerId,
+              programId,
+              reason: flagForFraudReason,
+            },
+          })
+        : undefined,
     ]),
   );
 

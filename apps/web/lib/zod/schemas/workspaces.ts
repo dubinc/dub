@@ -1,14 +1,16 @@
+import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
 import { WorkspaceRole } from "@dub/prisma/client";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { DomainSchema } from "./domains";
-import {
-  googleUserContentUrlSchema,
-  planSchema,
-  roleSchema,
-  uploadedImageSchema,
-} from "./misc";
+import { googleUserContentUrlSchema, uploadedImageSchema } from "./images";
+import { planSchema, roleSchema } from "./misc";
+export {
+  MAX_TRACKED_SITEMAPS_PER_WORKSPACE,
+  siteVisitTrackingSettingsPatchSchema,
+  trackedSitemapSchema,
+} from "./site-visit-tracking";
 
 export const workspaceIdSchema = z.object({
   workspaceId: z
@@ -138,6 +140,12 @@ export const WorkspaceSchema = z
       .record(z.string(), z.any())
       .nullable()
       .describe("The miscellaneous key-value store of the workspace."),
+    siteVisitTrackingSettings: workspaceSiteVisitTrackingSettingsFieldSchema
+      .nullable()
+      .optional()
+      .describe(
+        "Site visit tracking: sitemaps, short-link domain slug, and Site Links folder id.",
+      ),
     allowedHostnames: z
       .array(z.string())
       .nullable()

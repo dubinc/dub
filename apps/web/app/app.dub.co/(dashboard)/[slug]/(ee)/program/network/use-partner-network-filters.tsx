@@ -18,7 +18,7 @@ import { useCallback, useMemo } from "react";
 export function usePartnerNetworkFilters({
   status,
 }: {
-  status: "discover" | "invited" | "recruited";
+  status: "discover" | "invited" | "recruited" | "ignored";
 }) {
   const { searchParamsObj, queryParams } = useRouterStuff();
 
@@ -123,9 +123,7 @@ export function usePartnerNetworkFilters({
         getOptionLabel: (value: PlatformType) => platformLabels[value] || value,
         options:
           platformsCount
-            ?.filter(({ platform }) =>
-              ["youtube", "twitter", "instagram", "tiktok"].includes(platform),
-            )
+            ?.filter(({ platform }) => platform !== "website")
             .map(({ platform, _count }) => ({
               value: platform,
               label: platformLabels[platform] || platform,

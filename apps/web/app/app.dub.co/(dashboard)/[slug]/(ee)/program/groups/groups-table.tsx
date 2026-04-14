@@ -55,7 +55,8 @@ export function GroupsTable() {
   const { id: workspaceId, slug, defaultProgramId } = useWorkspace();
   const { program } = useProgram();
   const { pagination, setPagination } = usePagination();
-  const { queryParams, searchParams, getQueryString } = useRouterStuff();
+  const { queryParams, searchParams, searchParamsObj, getQueryString } =
+    useRouterStuff();
 
   const sortBy =
     searchParams.get("sortBy") ||
@@ -87,7 +88,9 @@ export function GroupsTable() {
     error: countError,
   } = useGroupsCount();
 
-  const isFiltered = !!searchParams.get("search");
+  const isFiltered = Object.keys(searchParamsObj).some(
+    (key) => !["sortBy", "sortOrder", "page"].includes(key),
+  );
 
   const currentDefaultGroup = groups?.find(
     (g) => g.slug === DEFAULT_PARTNER_GROUP.slug,
@@ -161,10 +164,7 @@ export function GroupsTable() {
         enableHiding: false,
         header: () => <EditColumnsButton table={table} />,
         cell: ({ row }) => (
-          <RowMenuButton
-            row={row}
-            currentDefaultGroup={currentDefaultGroup}
-          />
+          <RowMenuButton row={row} currentDefaultGroup={currentDefaultGroup} />
         ),
       },
     ],
@@ -214,7 +214,7 @@ export function GroupsTable() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <SearchBoxPersisted
           placeholder="Search by name"
@@ -343,15 +343,15 @@ function RowMenuButton({
                         }}
                         disabledTooltip={permissionsError || undefined}
                       />
-                    <MenuItem
-                      icon={Trash}
-                      label="Delete group"
-                      variant="danger"
-                      onSelect={() => setShowDeleteGroupModal(true)}
-                      disabledTooltip={permissionsError || undefined}
-                    />
-                  </>
-                )}
+                      <MenuItem
+                        icon={Trash}
+                        label="Delete group"
+                        variant="danger"
+                        onSelect={() => setShowDeleteGroupModal(true)}
+                        disabledTooltip={permissionsError || undefined}
+                      />
+                    </>
+                  )}
               </Command.Group>
             </Command.List>
           </Command>

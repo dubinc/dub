@@ -8,8 +8,8 @@ import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import { addDays } from "date-fns";
 import Stripe from "stripe";
 
-export async function chargeSucceeded(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeSucceeded(event: Stripe.ChargeSucceededEvent) {
+  const charge = event.data.object;
 
   const { transfer_group: invoiceId } = charge;
 
@@ -34,10 +34,7 @@ export async function chargeSucceeded(event: Stripe.Event) {
         });
       }
     }
-    console.log(
-      "No transfer_group (invoiceId) found, skipping invoice update flow...",
-    );
-    return;
+    return "No transfer_group (invoiceId) found, skipping invoice update flow...";
   }
 
   let invoice = await prisma.invoice.findUnique({
@@ -47,13 +44,11 @@ export async function chargeSucceeded(event: Stripe.Event) {
   });
 
   if (!invoice) {
-    console.log(`Invoice with transfer group ${invoiceId} not found.`);
-    return;
+    return `Invoice with transfer group ${invoiceId} not found.`;
   }
 
   if (invoice.status === "completed") {
-    console.log(`Invoice ${invoice.id} already completed, skipping...`);
-    return;
+    return `Invoice ${invoice.id} already completed, skipping...`;
   }
 
   invoice = await prisma.invoice.update({
@@ -69,10 +64,12 @@ export async function chargeSucceeded(event: Stripe.Event) {
   });
 
   if (invoice.type === "partnerPayout") {
-    await processPayoutInvoice({ invoice });
+    return await processPayoutInvoice({ invoice });
   } else if (invoice.type === "domainRenewal") {
-    await processDomainRenewalInvoice({ invoice });
+    return await processDomainRenewalInvoice({ invoice });
   }
+
+  return `Unsupported invoice type (${invoice.type}), skipping...`;
 }
 
 async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
@@ -86,23 +83,24 @@ async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
   });
 
   if (payoutsToProcess === 0) {
-    console.log(
-      `No payouts to process found for invoice ${invoice.id}, skipping...`,
-    );
-    return;
+    return `No payouts to process found for invoice ${invoice.id}, skipping...`;
   }
 
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
+    flowControl: {
+      key: invoice.id,
+      rate: 1,
+    },
     body: {
       invoiceId: invoice.id,
     },
   });
 
   if (qstashResponse.messageId) {
-    console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+    return `Message sent to Qstash with id ${qstashResponse.messageId}`;
   } else {
-    console.error("Error sending message to Qstash", qstashResponse);
+    return `Error sending message to Qstash: ${JSON.stringify(qstashResponse)}`;
   }
 }
 
@@ -119,8 +117,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
   });
 
   if (domains.length === 0) {
-    console.log(`No domains found for invoice ${invoice.id}, skipping...`);
-    return;
+    return `No domains found for invoice ${invoice.id}, skipping...`;
   }
 
   const newExpiresAt = addDays(domains[0].expiresAt, 365);
@@ -165,8 +162,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
   const workspaceOwners = workspace.users.filter(({ user }) => user.email);
 
   if (workspaceOwners.length === 0) {
-    console.log("No users found to send domain renewal success email.");
-    return;
+    return "No users found to send domain renewal success email.";
   }
 
   await sendBatchEmail(
@@ -184,4 +180,6 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
       }),
     })),
   );
+
+  return `Domain renewal success email sent to ${workspaceOwners.length} users.`;
 }

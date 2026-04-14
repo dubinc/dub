@@ -6,11 +6,12 @@ import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
 import { DiscountSchema } from "./discount";
+import { GroupBountySummarySchema } from "./group-bounties";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { programApplicationFormSchema } from "./program-application-form";
 import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
-import { parseUrlSchema } from "./utils";
+import { centsSchemaWithDefault, parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
 import { workflowConditionSchema } from "./workflows";
 
@@ -79,6 +80,7 @@ export const GroupWithFormDataSchema = GroupSchema.extend({
   applicationFormPublishedAt: z.date().nullable(),
   landerData: programLanderSchema.nullable(),
   landerPublishedAt: z.date().nullable(),
+  bounties: z.array(GroupBountySummarySchema).optional(),
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({
@@ -86,10 +88,10 @@ export const GroupSchemaExtended = GroupSchema.extend({
   totalClicks: z.number().default(0),
   totalLeads: z.number().default(0),
   totalSales: z.number().default(0),
-  totalSaleAmount: z.number().default(0),
+  totalSaleAmount: centsSchemaWithDefault,
   totalConversions: z.number().default(0),
-  totalCommissions: z.number().default(0),
-  netRevenue: z.number().default(0),
+  totalCommissions: centsSchemaWithDefault,
+  netRevenue: centsSchemaWithDefault,
 });
 
 export const PartnerProgramGroupSchema = GroupWithFormDataSchema.pick({

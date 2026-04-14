@@ -3,26 +3,40 @@ import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, ProgramEnrollment } from "@dub/prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
+import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
+
+type DetectDuplicatePayoutMethodFraudOptions =
+  | { payoutMethodHash: string; cryptoWalletAddress?: never }
+  | { cryptoWalletAddress: string; payoutMethodHash?: never };
 
 // Check for duplicate payout methods: if multiple partners share the same payout method hash,
 // create fraud events for all their active program enrollments to flag potential fraud
-export async function detectDuplicatePayoutMethodFraud(
-  payoutMethodHash: string,
-): Promise<void> {
-  if (!payoutMethodHash) {
+export async function detectDuplicatePayoutMethodFraud({
+  payoutMethodHash,
+  cryptoWalletAddress,
+}: DetectDuplicatePayoutMethodFraudOptions) {
+  if (!payoutMethodHash && !cryptoWalletAddress) {
     return;
   }
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
+  let programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partner: {
-        payoutMethodHash,
+        OR: [
+          ...(payoutMethodHash ? [{ payoutMethodHash }] : []),
+          ...(cryptoWalletAddress ? [{ cryptoWalletAddress }] : []),
+        ],
       },
     },
     select: {
       programId: true,
       partnerId: true,
       status: true,
+      program: {
+        select: {
+          fraudRules: true,
+        },
+      },
     },
   });
 
@@ -30,12 +44,25 @@ export async function detectDuplicatePayoutMethodFraud(
     return;
   }
 
+  // Filter out program enrollments where the partnerDuplicatePayoutMethod rule is disabled
+  programEnrollments = programEnrollments.filter((enrollment) =>
+    isFraudRuleEnabled({
+      fraudRules: enrollment.program.fraudRules,
+      ruleType: FraudRuleType.partnerDuplicatePayoutMethod,
+    }),
+  );
+
   // Group partners by program enrollment
   let partnersByProgram = programEnrollments.reduce((map, e) => {
     if (!map.has(e.programId)) {
       map.set(e.programId, []);
     }
-    map.get(e.programId)!.push({ partnerId: e.partnerId, status: e.status });
+
+    map.get(e.programId)!.push({
+      partnerId: e.partnerId,
+      status: e.status,
+    });
+
     return map;
   }, new Map<string, Pick<ProgramEnrollment, "partnerId" | "status">[]>());
 
@@ -64,7 +91,8 @@ export async function detectDuplicatePayoutMethodFraud(
           partnerId: sourcePartner.partnerId,
           type: FraudRuleType.partnerDuplicatePayoutMethod,
           metadata: {
-            payoutMethodHash,
+            ...(payoutMethodHash ? { payoutMethodHash } : {}),
+            ...(cryptoWalletAddress ? { cryptoWalletAddress } : {}),
             duplicatePartnerId: enrolledPartner.partnerId,
           },
         });

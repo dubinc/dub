@@ -64,9 +64,58 @@ describe.sequential("/commissions/**", async () => {
     testPaidCommissionId = paidCommissions[0].id;
   });
 
-  test("PATCH /commissions/{id} - update amount", async () => {
+  test("PATCH /commissions/{id} - update earnings", async () => {
     const toUpdate = {
-      amount: 5000, // $50.00 in cents
+      earnings: 3000, // $30.00 in cents
+    };
+
+    const { status, data: commission } = await http.patch<CommissionResponse>({
+      path: `/commissions/${testCommissionId}`,
+      body: toUpdate,
+    });
+
+    expect(status).toEqual(200);
+    expect(commission).toMatchObject({
+      ...expectedCommission,
+      earnings: toUpdate.earnings,
+    });
+  });
+
+  test("PATCH /commissions/{id} - update saleAmount", async () => {
+    const toUpdate = {
+      saleAmount: 5000, // $50.00 in cents
+    };
+
+    const { status, data: commission } = await http.patch<CommissionResponse>({
+      path: `/commissions/${testCommissionId}`,
+      body: toUpdate,
+    });
+
+    expect(status).toEqual(200);
+    expect(commission).toMatchObject({
+      ...expectedCommission,
+      amount: toUpdate.saleAmount,
+    });
+  });
+
+  test("PATCH /commissions/{id} - modifySaleAmount", async () => {
+    const toUpdate = {
+      modifySaleAmount: 1000, // Add $10.00 to existing amount
+      currency: "usd",
+    };
+
+    const { status, data: commission } = await http.patch<CommissionResponse>({
+      path: `/commissions/${testCommissionId}`,
+      body: toUpdate,
+    });
+
+    expect(status).toEqual(200);
+    expect(commission.amount).toEqual(6000);
+  });
+
+  test("PATCH /commissions/{id} - update amount (backward compatibility)", async () => {
+    const toUpdate = {
+      amount: 4000, // $40.00 in cents
     };
 
     const { status, data: commission } = await http.patch<CommissionResponse>({
@@ -81,24 +130,9 @@ describe.sequential("/commissions/**", async () => {
     });
   });
 
-  test("PATCH /commissions/{id} - modify amount", async () => {
-    const toUpdate = {
-      modifyAmount: 1000, // Add $10.00 to existing amount
-      currency: "usd",
-    };
-
-    const { status, data: commission } = await http.patch<CommissionResponse>({
-      path: `/commissions/${testCommissionId}`,
-      body: toUpdate,
-    });
-
-    expect(status).toEqual(200);
-    expect(commission.amount).toEqual(6000);
-  });
-
   test("PATCH /commissions/{id} - foreign currency conversion", async () => {
     const toUpdate = {
-      amount: 1437, // approximately 1000 USD cents
+      saleAmount: 1580, // approximately 1000 USD cents
       currency: "jpy",
     };
 
@@ -115,7 +149,7 @@ describe.sequential("/commissions/**", async () => {
 
   test("PATCH /commissions/{id} - error on lead commission", async () => {
     const toUpdate = {
-      amount: 5000,
+      saleAmount: 5000,
     };
 
     const response = await http.patch<CommissionResponse>({
@@ -129,7 +163,7 @@ describe.sequential("/commissions/**", async () => {
 
   test("PATCH /commissions/{id} - error on paid commission", async () => {
     const toUpdate = {
-      amount: 5000,
+      saleAmount: 5000,
     };
 
     const response = await http.patch<CommissionResponse>({

@@ -1,11 +1,16 @@
+import { extractEmailDomain } from "@/lib/email/extract-email-domain";
+import { isGenericEmail } from "@/lib/is-generic-email";
 import { FraudEventContext } from "@/lib/types";
+import { CustomerEmailMatchType } from "@/lib/zod/schemas/fraud";
+import { prisma } from "@dub/prisma";
 import { defineFraudRule } from "../define-fraud-rule";
 import { normalizeEmail } from "../utils";
 
-// Partner's email matches a customer's email and could be a self referral.
+// Partner's email matches a customer's email, shares the same email domain,
+// or the customer's domain matches a previously referred customer.
 export const checkCustomerEmailMatch = defineFraudRule({
   type: "customerEmailMatch",
-  evaluate: async ({ partner, customer }: FraudEventContext) => {
+  evaluate: async ({ program, partner, customer }: FraudEventContext) => {
     // Return false if either email is missing
     if (!partner.email || !customer.email) {
       return {
@@ -17,11 +22,75 @@ export const checkCustomerEmailMatch = defineFraudRule({
     const normalizedPartnerEmail = normalizeEmail(partner.email);
     const normalizedCustomerEmail = normalizeEmail(customer.email);
 
-    // Check for exact match
+    // 1. Exact email match (strongest signal)
     if (normalizedPartnerEmail === normalizedCustomerEmail) {
       return {
         triggered: true,
+        metadata: {
+          matchType: CustomerEmailMatchType.EXACT,
+        },
       };
+    }
+
+    // Extract domains for domain-level checks
+    const partnerEmailDomain = extractEmailDomain(partner.email);
+    const customerEmailDomain = extractEmailDomain(customer.email);
+
+    if (!partnerEmailDomain || !customerEmailDomain) {
+      return {
+        triggered: false,
+      };
+    }
+
+    // Skip domain matching for free email providers
+    if (isGenericEmail(customer.email)) {
+      return {
+        triggered: false,
+      };
+    }
+
+    // 2. Partner-customer domain match
+    if (partnerEmailDomain === customerEmailDomain) {
+      return {
+        triggered: true,
+        metadata: {
+          matchType: CustomerEmailMatchType.DOMAIN_MATCH,
+        },
+      };
+    }
+
+    // 3. Historical domain match — customer's email domain matches
+    // a previously referred customer from the same partner
+
+    const shouldCheckHistoricalDomainMatch =
+      ("isFirstConversion" in customer && customer.isFirstConversion) ||
+      !("isFirstConversion" in customer);
+
+    if (shouldCheckHistoricalDomainMatch) {
+      const previousCustomer = await prisma.customer.findFirst({
+        where: {
+          programId: program.id,
+          partnerId: partner.id,
+          id: {
+            not: customer.id,
+          },
+          email: {
+            endsWith: `@${customerEmailDomain}`,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (previousCustomer) {
+        return {
+          triggered: true,
+          metadata: {
+            matchType: CustomerEmailMatchType.HISTORICAL_DOMAIN_MATCH,
+          },
+        };
+      }
     }
 
     return {

@@ -8,12 +8,14 @@ import { AnimatedSizeContainer } from "../animated-size-container";
 import { useKeyboardShortcut } from "../hooks";
 import { Check } from "../icons";
 import { Popover } from "../popover";
+import { FilterRangePanel } from "./filter-range-panel";
 import {
   ActiveFilterInput,
   Filter,
   FilterOperator,
   FilterOption,
   normalizeActiveFilter,
+  parseRangeToken,
 } from "./types";
 
 type FilterListProps = {
@@ -64,7 +66,11 @@ export function FilterList({
     <AnimatedSizeContainer
       height
       className="w-full"
-      transition={{ type: "tween", duration: 0.3 }}
+      transition={{
+        type: "tween",
+        duration: 0.2,
+        ease: [0.23, 1, 0.32, 1],
+      }}
     >
       <div
         className={cn(
@@ -241,7 +247,13 @@ export function FilterList({
         {normalizedFilters.length !== 0 && (
           <button
             type="button"
-            className="group mt-px flex items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-neutral-500 ring-inset ring-neutral-500 transition-colors hover:border-neutral-200 hover:bg-white hover:text-black focus:outline-none"
+            className={cn(
+              "group mt-px flex h-[38px] items-center gap-2 whitespace-nowrap rounded-lg border border-transparent px-3 py-2 text-sm text-neutral-500 ring-inset ring-neutral-500",
+              "transition-[color,border-color,background-color,transform] duration-150 ease-out motion-reduce:transition-none",
+              "hover:border-neutral-200 hover:bg-white hover:text-black [@media(hover:none)]:hover:border-transparent [@media(hover:none)]:hover:bg-transparent",
+              "active:scale-[0.98] motion-reduce:active:scale-100",
+              "focus:outline-none",
+            )}
             onClick={onRemoveAll}
           >
             Clear Filters
@@ -287,6 +299,7 @@ function OperatorFilterPill({
   const [initialSelectedValues, setInitialSelectedValues] = useState<
     Set<FilterOption["value"]>
   >(new Set());
+  const [rangeEditOpen, setRangeEditOpen] = useState(false);
 
   const openValueDropdown = useCallback(() => {
     setInitialSelectedValues(new Set(values));
@@ -307,11 +320,130 @@ function OperatorFilterPill({
     [filterKey, values, onSelect, onRemove, isAdvancedFilter, filter.multiple],
   );
 
+  if (filter.type === "range") {
+    const token = String(values[0] ?? "|");
+    const fmt =
+      filter.formatRangeBound ?? ((n: number) => String(Math.trunc(n)));
+    const { min, max } = parseRangeToken(token);
+    const rangeFullyApplied = min != null && max != null;
+    const rangeHasAppliedValue = min != null || max != null;
+    const rangeLabel =
+      filter.formatRangePillLabel?.(token) ??
+      (min != null && max != null
+        ? `${fmt(min)} – ${fmt(max)}`
+        : min != null
+          ? `${fmt(min)} – No max`
+          : max != null
+            ? `No min – ${fmt(max)}`
+            : token);
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 4 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex min-h-9 items-stretch divide-x divide-neutral-200 overflow-hidden rounded-md border border-neutral-200 bg-white text-sm text-black"
+      >
+        <div className="flex items-center gap-2.5 px-3 py-2">
+          <span className="shrink-0 text-neutral-500">
+            {isReactNode(filter.icon) ? (
+              filter.icon
+            ) : (
+              <filter.icon className="size-4" />
+            )}
+          </span>
+
+          <span className="text-sm font-medium text-neutral-900">
+            {filter.label}
+          </span>
+        </div>
+
+        <div className="flex items-center px-3 py-2 text-sm text-neutral-500">
+          is
+        </div>
+
+        <Popover
+          openPopover={rangeEditOpen}
+          setOpenPopover={setRangeEditOpen}
+          align="start"
+          onEscapeKeyDown={(e) => {
+            if (rangeFullyApplied) {
+              e.preventDefault();
+              setRangeEditOpen(false);
+            }
+          }}
+          content={
+            <AnimatedSizeContainer width height className="rounded-[inherit]">
+              <FilterRangePanel
+                key={filterKey}
+                filter={filter}
+                activeToken={token}
+                onBack={() => setRangeEditOpen(false)}
+                onClear={
+                  rangeHasAppliedValue
+                    ? () =>
+                        onRemoveFilter
+                          ? onRemoveFilter(filterKey)
+                          : onRemove(filterKey, token)
+                    : undefined
+                }
+                onCloseOuter={
+                  rangeFullyApplied ? () => setRangeEditOpen(false) : undefined
+                }
+                onApply={(t) => {
+                  if (t === "|") {
+                    if (onRemoveFilter) {
+                      onRemoveFilter(filterKey);
+                    } else {
+                      onRemove(filterKey, token);
+                    }
+                  } else {
+                    onSelect?.(filterKey, t);
+                  }
+                }}
+              />
+            </AnimatedSizeContainer>
+          }
+        >
+          <button
+            type="button"
+            className={cn(
+              "flex min-w-0 flex-1 items-center px-3 py-2 text-left text-sm font-medium tracking-tight text-neutral-900",
+              "transition-[background-color,transform] duration-150 ease-out motion-reduce:transition-none",
+              "hover:bg-neutral-50 active:scale-[0.99] motion-reduce:active:scale-100 [@media(hover:none)]:hover:bg-transparent",
+            )}
+          >
+            <span className="truncate">{rangeLabel}</span>
+          </button>
+        </Popover>
+
+        <button
+          type="button"
+          className={cn(
+            "h-full rounded-r-md p-2 text-neutral-500 ring-inset ring-neutral-500",
+            "transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transition-none",
+            "hover:bg-neutral-100 hover:text-neutral-800 [@media(hover:none)]:hover:bg-transparent",
+            "active:scale-[0.97] motion-reduce:active:scale-100",
+            "focus:outline-none focus-visible:ring-1",
+          )}
+          onClick={() => {
+            if (onRemoveFilter) {
+              onRemoveFilter(filterKey);
+            } else {
+              values.forEach((v) => onRemove(filterKey, v));
+            }
+          }}
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center divide-x rounded-md border border-neutral-200 bg-white text-sm text-black"
+      className="flex items-center divide-x rounded-lg border border-neutral-200 bg-white text-sm text-black"
     >
       <div className="flex items-center gap-2.5 px-3 py-2">
         <span className="shrink-0 text-neutral-600">
@@ -335,7 +467,10 @@ function OperatorFilterPill({
               <button
                 type="button"
                 className={cn(
-                  "flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100",
+                  "flex w-full items-center rounded-md px-3 py-2 text-left text-sm",
+                  "transition-[background-color,transform] duration-100 ease-out motion-reduce:transition-none",
+                  "hover:bg-neutral-100 [@media(hover:none)]:hover:bg-transparent",
+                  "active:scale-[0.99] motion-reduce:active:scale-100",
                   !operator.includes("NOT") && "bg-neutral-50",
                 )}
                 onClick={() => {
@@ -350,7 +485,10 @@ function OperatorFilterPill({
               <button
                 type="button"
                 className={cn(
-                  "flex w-full items-center rounded-md px-3 py-2 text-left text-sm transition-colors hover:bg-neutral-100",
+                  "flex w-full items-center rounded-md px-3 py-2 text-left text-sm",
+                  "transition-[background-color,transform] duration-100 ease-out motion-reduce:transition-none",
+                  "hover:bg-neutral-100 [@media(hover:none)]:hover:bg-transparent",
+                  "active:scale-[0.99] motion-reduce:active:scale-100",
                   operator.includes("NOT") && "bg-neutral-50",
                 )}
                 onClick={() => {
@@ -368,7 +506,12 @@ function OperatorFilterPill({
         >
           <button
             type="button"
-            className="px-3 py-2 text-neutral-500 transition-colors hover:bg-neutral-50 hover:text-neutral-700"
+            className={cn(
+              "px-3 py-2 text-neutral-500",
+              "transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transition-none",
+              "hover:bg-neutral-50 hover:text-neutral-700 [@media(hover:none)]:hover:bg-transparent",
+              "active:scale-[0.98] motion-reduce:active:scale-100",
+            )}
           >
             {getOperatorLabel(operator)}
           </button>
@@ -446,6 +589,8 @@ function OperatorFilterPill({
                             key={option.value}
                             className={cn(
                               "flex cursor-pointer items-center gap-3 whitespace-nowrap rounded-md px-3 py-2 text-left text-sm",
+                              "transition-[background-color] duration-100 ease-out motion-reduce:transition-none",
+                              "active:scale-[0.99] motion-reduce:active:scale-100",
                               "data-[selected=true]:bg-neutral-100",
                             )}
                             onSelect={() => {
@@ -524,7 +669,8 @@ function OperatorFilterPill({
           disabled={filter.options?.length === 0}
           className={cn(
             "flex items-center",
-            filter.options?.length && "transition-colors hover:bg-neutral-50",
+            filter.options?.length &&
+              "transition-[background-color,transform] duration-150 ease-out hover:bg-neutral-50 active:scale-[0.99] motion-reduce:transition-none motion-reduce:active:scale-100 [@media(hover:none)]:hover:bg-transparent",
           )}
         >
           {!filter.options ? (
@@ -539,7 +685,13 @@ function OperatorFilterPill({
 
       <button
         type="button"
-        className="h-full rounded-r-md p-2 text-neutral-500 ring-inset ring-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-1"
+        className={cn(
+          "h-full rounded-r-lg p-2 text-neutral-500 ring-inset ring-neutral-500",
+          "transition-[color,background-color,transform] duration-150 ease-out motion-reduce:transition-none",
+          "hover:bg-neutral-100 hover:text-neutral-800 [@media(hover:none)]:hover:bg-transparent",
+          "active:scale-[0.97] motion-reduce:active:scale-100",
+          "focus:outline-none focus-visible:ring-1",
+        )}
         onClick={() => {
           if (onRemoveFilter) {
             onRemoveFilter(filterKey);

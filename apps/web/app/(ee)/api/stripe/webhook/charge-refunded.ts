@@ -3,14 +3,13 @@ import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
 import Stripe from "stripe";
 
-export async function chargeRefunded(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeRefunded(event: Stripe.ChargeRefundedEvent) {
+  const charge = event.data.object;
 
   const { transfer_group: invoiceId } = charge;
 
   if (!invoiceId) {
-    console.log("No transfer group found, skipping...");
-    return;
+    return "No transfer group found, skipping...";
   }
 
   const invoice = await prisma.invoice.findUnique({
@@ -20,16 +19,15 @@ export async function chargeRefunded(event: Stripe.Event) {
   });
 
   if (!invoice) {
-    console.log(`Invoice with transfer group ${invoiceId} not found.`);
-    return;
+    return `Invoice with transfer group ${invoiceId} not found.`;
   }
 
   if (invoice.type !== "domainRenewal") {
-    console.log(`Invoice ${invoice.id} is not a 'domainRenewal' type.`);
-    return;
+    return `Invoice ${invoice.id} is not a 'domainRenewal' type, skipping...`;
   }
 
   await processDomainRenewalInvoice({ invoice });
+  return `Disabled auto-renew for domains on invoice ${invoice.id}.`;
 }
 
 async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {

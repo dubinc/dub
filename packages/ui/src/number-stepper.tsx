@@ -175,7 +175,7 @@ export function NumberStepper({
       role="group"
       aria-disabled={disabled}
       className={cn(
-        "flex h-10 w-full select-none items-stretch overflow-hidden rounded-lg border border-neutral-200 bg-white",
+        "flex h-10 w-full select-none items-stretch overflow-hidden rounded-lg border border-neutral-200 bg-white p-1",
         disabled && "opacity-60",
         className,
       )}
@@ -187,8 +187,9 @@ export function NumberStepper({
         onClick={handleDecrement}
         disabled={disabled || !canDecrement}
         className={cn(
-          "flex h-full w-24 items-center justify-center border-r border-neutral-200 text-neutral-700 transition-colors",
-          !(disabled || !canDecrement) && "hover:bg-neutral-50",
+          "flex h-full w-16 items-center justify-center rounded-lg text-neutral-700 transition-colors",
+          !(disabled || !canDecrement) &&
+            "hover:bg-neutral-100 active:bg-neutral-200",
         )}
       >
         <Minus className="block size-4" />
@@ -258,8 +259,9 @@ export function NumberStepper({
         onClick={handleIncrement}
         disabled={disabled || !canIncrement}
         className={cn(
-          "flex h-full w-24 items-center justify-center border-l border-neutral-200 text-neutral-700 transition-colors",
-          !(disabled || !canIncrement) && "hover:bg-neutral-50",
+          "flex h-full w-16 items-center justify-center rounded-lg text-neutral-700 transition-colors",
+          !(disabled || !canIncrement) &&
+            "hover:bg-neutral-100 active:bg-neutral-200",
         )}
       >
         <Plus className="block size-4" />

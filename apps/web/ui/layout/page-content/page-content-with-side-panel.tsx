@@ -55,7 +55,7 @@ export function PageContentWithSidePanel({
     >
       <div
         className={cn(
-          "@container/page-content relative grid min-h-[var(--page-height)] grid-cols-[minmax(340px,1fr)_minmax(0,min-content)] rounded-t-[inherit] bg-neutral-100 [--page-height:calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] md:bg-white",
+          "@container/page-content relative grid min-h-[var(--page-height)] grid-cols-[minmax(340px,1fr)_minmax(0,min-content)] rounded-t-[inherit] bg-neutral-100 [--page-height:calc(100dvh-var(--page-top-margin)-var(--page-bottom-margin)-1px)] lg:bg-white",
           individualScrolling && "h-[var(--page-height)]",
           className,
         )}
@@ -77,7 +77,7 @@ export function PageContentWithSidePanel({
           />
           <div
             className={cn(
-              "grow rounded-t-[inherit] bg-white pt-3 lg:pt-6",
+              "grow rounded-t-[inherit] bg-white pt-3 lg:pt-5",
               individualScrolling && "scrollbar-hide min-h-0 overflow-y-auto",
               contentWrapperClassName,
             )}

@@ -3,10 +3,13 @@ import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
+import { DubApiError } from "../errors";
+import { buildPaginationQuery } from "../pagination";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
   isHoldStatus?: boolean;
+  fraudEventGroupId?: string;
 };
 
 export async function getCommissions(filters: CommissionsFilters) {
@@ -19,16 +22,58 @@ export async function getCommissions(filters: CommissionsFilters) {
     customerId,
     payoutId,
     groupId,
+    fraudEventGroupId,
     start,
     end,
     interval,
     timezone,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
     isHoldStatus,
+    startingAfter,
+    endingBefore,
   } = filters;
+
+  const paginationQuery = buildPaginationQuery(filters);
+
+  // Validate the provided cursor ID
+  const cursorId = startingAfter || endingBefore;
+
+  if (cursorId) {
+    const commission = await prisma.commission.findUnique({
+      where: {
+        id: cursorId,
+      },
+      select: {
+        id: true,
+        programId: true,
+      },
+    });
+
+    if (!commission || commission.programId !== programId) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: "Invalid cursor: the provided ID does not exist.",
+      });
+    }
+  }
+
+  // Resolve fraudEventGroupId to eventIds
+  let eventIds: string[] | undefined;
+
+  if (fraudEventGroupId) {
+    const fraudEvents = await prisma.fraudEvent.findMany({
+      where: {
+        fraudEventGroupId,
+        eventId: {
+          not: null,
+        },
+      },
+      select: {
+        eventId: true,
+      },
+    });
+
+    eventIds = fraudEvents.map((e) => e.eventId!);
+  }
 
   const { startDate, endDate } = getStartEndDates({
     interval,
@@ -39,13 +84,17 @@ export async function getCommissions(filters: CommissionsFilters) {
 
   const statusFilter = isHoldStatus
     ? { in: [CommissionStatus.pending, CommissionStatus.processed] }
-    : status ?? {
-        notIn: [
-          CommissionStatus.duplicate,
-          CommissionStatus.fraud,
-          CommissionStatus.canceled,
-        ],
-      };
+    : status
+      ? status
+      : customerId || partnerId || type
+        ? undefined
+        : {
+            notIn: [
+              CommissionStatus.duplicate,
+              CommissionStatus.fraud,
+              CommissionStatus.canceled,
+            ],
+          };
 
   const programEnrollmentFilter = {
     ...(groupId && { groupId }),
@@ -74,6 +123,11 @@ export async function getCommissions(filters: CommissionsFilters) {
           type,
           customerId,
           payoutId,
+          ...(eventIds && {
+            eventId: {
+              in: eventIds,
+            },
+          }),
           createdAt: {
             gte: startDate,
             lte: endDate,
@@ -87,8 +141,6 @@ export async function getCommissions(filters: CommissionsFilters) {
       partner: true,
       programEnrollment: true,
     },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    orderBy: { [sortBy]: sortOrder },
+    ...paginationQuery,
   });
 }

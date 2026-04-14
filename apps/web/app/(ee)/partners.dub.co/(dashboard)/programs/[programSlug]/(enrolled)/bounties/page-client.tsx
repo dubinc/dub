@@ -1,15 +1,13 @@
 "use client";
 
-import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
+import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { Heart, Trophy } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
-import {
-  PartnerBountyCard,
-  PartnerBountyCardSkeleton,
-} from "./partner-bounty-card";
+import { PartnerBountyCard, PartnerBountyCardSkeleton } from "./bounty-card";
 
 const tabs = [
   {
@@ -23,9 +21,9 @@ const tabs = [
 ] as const;
 
 export function BountiesPageClient() {
+  const { programSlug } = useParams();
   const [activeTab, setActiveTab] = useState<"active" | "expired">("active");
   const { bounties, bountiesCount, isLoading } = usePartnerProgramBounties();
-
   // Filter bounties based on active tab
   const filteredBounties = useMemo(() => {
     if (!bounties) return [];
@@ -44,7 +42,7 @@ export function BountiesPageClient() {
 
   return (
     <PageWidthWrapper className="pb-10">
-      <div className="mb-6 grid grid-cols-2 gap-2">
+      <div className="mb-4 grid grid-cols-2 gap-2">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
 
@@ -76,10 +74,14 @@ export function BountiesPageClient() {
       </div>
 
       {filteredBounties?.length !== 0 || isLoading ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
           {filteredBounties?.length
             ? filteredBounties?.map((bounty) => (
-                <PartnerBountyCard key={bounty.id} bounty={bounty} />
+                <PartnerBountyCard
+                  key={bounty.id}
+                  bounty={bounty}
+                  href={`/programs/${programSlug}/bounties/${bounty.id}`}
+                />
               ))
             : Array.from({ length: 3 }, (_, index) => (
                 <PartnerBountyCardSkeleton key={index} />

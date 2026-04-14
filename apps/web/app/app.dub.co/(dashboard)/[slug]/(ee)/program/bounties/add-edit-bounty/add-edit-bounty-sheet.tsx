@@ -1,4 +1,7 @@
-import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/bounty/constants";
+import {
+  BOUNTY_DESCRIPTION_MAX_LENGTH,
+  SUBMISSION_FREQUENCY_OPTIONS,
+} from "@/lib/bounty/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -10,13 +13,23 @@ import {
   ProgramSheetAccordionItem,
   ProgramSheetAccordionTrigger,
 } from "@/ui/partners/program-sheet-accordion";
+import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
+import {
+  InlineBadgePopover,
+  InlineBadgePopoverInput,
+} from "@/ui/shared/inline-badge-popover";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
+import { BountySubmissionFrequency } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
+  CalendarIcon,
   CardSelector,
   CardSelectorOption,
+  Combobox,
+  ComboboxOption,
+  Label,
   NumberStepper,
   RichTextArea,
   RichTextProvider,
@@ -24,6 +37,7 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
+  Tooltip,
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
@@ -64,9 +78,15 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     hasEndDate,
     handleEndDateToggle,
     handleEndDateChange,
+    allowedSubmissions,
+    handleAllowedSubmissionsChange,
+    maxAllowedSubmissions,
     submissionWindow,
     handleSubmissionWindowToggle,
     handleSubmissionWindowChange,
+    submissionFrequency,
+    handleSubmissionFrequencyToggle,
+    handleSubmissionFrequencyChange,
     type,
     name,
     control,
@@ -146,189 +166,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                 </ProgramSheetAccordionTrigger>
                 <ProgramSheetAccordionContent>
                   <div className="space-y-6">
-                    <p className="text-content-default text-sm">
-                      Set the schedule, reward and additional details.
-                    </p>
-
-                    <AnimatedSizeContainer
-                      height
-                      transition={{ ease: "easeInOut", duration: 0.2 }}
-                      style={{
-                        height: hasStartDate ? "auto" : "0px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div className="flex items-center gap-4">
-                        <Switch
-                          fn={handleStartDateToggle}
-                          checked={hasStartDate}
-                          trackDimensions="w-8 h-4"
-                          thumbDimensions="w-3 h-3"
-                          thumbTranslate="translate-x-4"
-                          disabled={Boolean(bounty?.startsAt)}
-                        />
-                        <div className="flex flex-col gap-1">
-                          <h3 className="text-sm font-medium text-neutral-700">
-                            Start date
-                          </h3>
-                        </div>
-                      </div>
-
-                      {hasStartDate && (
-                        <div className="mt-3 p-px">
-                          <Controller
-                            control={control}
-                            name="startsAt"
-                            render={({ field }) => (
-                              <SmartDateTimePicker
-                                value={field.value}
-                                onChange={(date) =>
-                                  field.onChange(date ?? undefined)
-                                }
-                                placeholder='E.g. "2026-02-28", "Last Thursday", "2 hours ago"'
-                              />
-                            )}
-                          />
-                        </div>
-                      )}
-                    </AnimatedSizeContainer>
-
-                    {type === "performance" && (
-                      <AnimatedSizeContainer
-                        height
-                        transition={{ ease: "easeInOut", duration: 0.2 }}
-                        style={{
-                          height: hasEndDate ? "auto" : "0px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={handleEndDateToggle}
-                            checked={hasEndDate}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                            disabled={Boolean(bounty?.endsAt)}
-                          />
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-sm font-medium text-neutral-700">
-                              End date
-                            </h3>
-                          </div>
-                        </div>
-
-                        {hasEndDate && (
-                          <div className="mt-3 p-px">
-                            <Controller
-                              control={control}
-                              name="endsAt"
-                              render={({ field }) => (
-                                <SmartDateTimePicker
-                                  value={field.value}
-                                  onChange={(date) =>
-                                    handleEndDateChange(date ?? null)
-                                  }
-                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
-                                />
-                              )}
-                            />
-                          </div>
-                        )}
-                      </AnimatedSizeContainer>
-                    )}
-
-                    {type === "submission" && (
-                      <AnimatedSizeContainer
-                        height
-                        transition={{ ease: "easeInOut", duration: 0.2 }}
-                        style={{
-                          height: hasEndDate ? "auto" : "0px",
-                          overflow: "hidden",
-                        }}
-                      >
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={handleEndDateToggle}
-                            checked={hasEndDate}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                            disabled={Boolean(bounty?.endsAt)}
-                          />
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-sm font-medium text-neutral-700">
-                              End date
-                            </h3>
-                          </div>
-                        </div>
-
-                        {hasEndDate && (
-                          <div className="mt-3 p-px">
-                            <Controller
-                              control={control}
-                              name="endsAt"
-                              render={({ field }) => (
-                                <SmartDateTimePicker
-                                  value={field.value}
-                                  onChange={(date) =>
-                                    handleEndDateChange(date ?? null)
-                                  }
-                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
-                                />
-                              )}
-                            />
-                          </div>
-                        )}
-                      </AnimatedSizeContainer>
-                    )}
-
-                    {type === "submission" && (
-                      <>
-                        <div className="flex items-center gap-4">
-                          <Switch
-                            fn={handleSubmissionWindowToggle}
-                            checked={submissionWindow != null}
-                            trackDimensions="w-8 h-4"
-                            thumbDimensions="w-3 h-3"
-                            thumbTranslate="translate-x-4"
-                            disabled={!hasEndDate}
-                          />
-                          <div className="flex flex-col gap-1">
-                            <h3 className="text-sm font-medium text-neutral-700">
-                              Submission window
-                            </h3>
-                          </div>
-                        </div>
-
-                        {submissionWindow != null && (
-                          <div className="mt-3 space-y-2">
-                            <NumberStepper
-                              value={submissionWindow}
-                              onChange={handleSubmissionWindowChange}
-                              min={2}
-                              max={14}
-                              step={1}
-                              className="w-full"
-                            />
-                            <p className="text-sm text-neutral-500">
-                              Submissions open {submissionWindow} days before
-                              the end date. Drafts can be saved until then.
-                            </p>
-                          </div>
-                        )}
-                      </>
-                    )}
-
                     {type === "submission" && (
                       <>
                         <div>
-                          <label
-                            htmlFor="name"
-                            className="text-sm font-medium text-neutral-800"
-                          >
-                            Name
-                          </label>
+                          <Label htmlFor="name">Name</Label>
                           <div className="mt-2">
                             <input
                               id="name"
@@ -346,9 +187,11 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               })}
                             />
                             <div className="mt-1 text-left">
-                              <span className="text-xs text-neutral-400">
-                                {name?.length || 0}/100
-                              </span>
+                              <MaxCharactersCounter
+                                name="name"
+                                maxLength={100}
+                                control={control}
+                              />
                             </div>
                           </div>
                         </div>
@@ -356,12 +199,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     )}
 
                     <div>
-                      <label className="text-sm font-medium text-neutral-800">
+                      <Label>
                         Description
                         <span className="ml-1 font-normal text-neutral-500">
                           (optional)
                         </span>
-                      </label>
+                      </Label>
                       <div className="mt-2">
                         <Controller
                           control={control}
@@ -404,6 +247,258 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         </div>
                       </div>
                     </div>
+
+                    <AnimatedSizeContainer
+                      height
+                      transition={{ ease: "easeInOut", duration: 0.2 }}
+                      style={{
+                        height: hasStartDate ? "auto" : "0px",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <Switch
+                          fn={handleStartDateToggle}
+                          checked={hasStartDate}
+                          trackDimensions="w-8 h-4"
+                          thumbDimensions="w-3 h-3"
+                          thumbTranslate="translate-x-4"
+                          disabled={Boolean(bounty?.startsAt)}
+                        />
+                        <Label>Start date</Label>
+                      </div>
+
+                      {hasStartDate && (
+                        <div className="mt-3 p-px">
+                          <Controller
+                            control={control}
+                            name="startsAt"
+                            render={({ field }) => (
+                              <SmartDateTimePicker
+                                value={field.value}
+                                onChange={(date) =>
+                                  field.onChange(date ?? undefined)
+                                }
+                                placeholder='E.g. "2026-02-28", "Last Thursday", "2 hours ago"'
+                              />
+                            )}
+                          />
+                        </div>
+                      )}
+                    </AnimatedSizeContainer>
+
+                    {type === "performance" && (
+                      <AnimatedSizeContainer
+                        height
+                        transition={{ ease: "easeInOut", duration: 0.2 }}
+                        style={{
+                          height: hasEndDate ? "auto" : "0px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <Switch
+                            fn={handleEndDateToggle}
+                            checked={hasEndDate}
+                            trackDimensions="w-8 h-4"
+                            thumbDimensions="w-3 h-3"
+                            thumbTranslate="translate-x-4"
+                            disabled={Boolean(bounty?.endsAt)}
+                          />
+                          <Label>End date</Label>
+                        </div>
+
+                        {hasEndDate && (
+                          <div className="mt-3 p-px">
+                            <Controller
+                              control={control}
+                              name="endsAt"
+                              render={({ field }) => (
+                                <SmartDateTimePicker
+                                  value={field.value}
+                                  onChange={(date) =>
+                                    handleEndDateChange(date ?? null)
+                                  }
+                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
+                                />
+                              )}
+                            />
+                          </div>
+                        )}
+                      </AnimatedSizeContainer>
+                    )}
+
+                    {type === "submission" && (
+                      <AnimatedSizeContainer
+                        height
+                        transition={{ ease: "easeInOut", duration: 0.2 }}
+                        style={{
+                          height: hasEndDate ? "auto" : "0px",
+                          overflow: "hidden",
+                        }}
+                      >
+                        <div className="flex items-center gap-4">
+                          <Switch
+                            fn={handleEndDateToggle}
+                            checked={hasEndDate}
+                            trackDimensions="w-8 h-4"
+                            thumbDimensions="w-3 h-3"
+                            thumbTranslate="translate-x-4"
+                            disabled={Boolean(bounty?.endsAt)}
+                          />
+                          <Label>End date</Label>
+                        </div>
+
+                        {hasEndDate && (
+                          <div className="mt-3 p-px">
+                            <Controller
+                              control={control}
+                              name="endsAt"
+                              render={({ field }) => (
+                                <SmartDateTimePicker
+                                  value={field.value}
+                                  onChange={(date) =>
+                                    handleEndDateChange(date ?? null)
+                                  }
+                                  placeholder='E.g. "2026-12-01", "Next Thursday", "After 10 days"'
+                                />
+                              )}
+                            />
+                          </div>
+                        )}
+                      </AnimatedSizeContainer>
+                    )}
+
+                    {type === "submission" && (
+                      <>
+                        <div>
+                          <Label>Allowed submissions</Label>
+                          <div className="mt-2">
+                            <NumberStepper
+                              value={allowedSubmissions}
+                              onChange={handleAllowedSubmissionsChange}
+                              min={1}
+                              max={maxAllowedSubmissions}
+                              step={1}
+                              className="w-full"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <Tooltip
+                            content={
+                              !hasEndDate
+                                ? "Set an end date to use submission window."
+                                : allowedSubmissions > 1
+                                  ? "Decrease allowed submissions to 1 to use submission window."
+                                  : undefined
+                            }
+                          >
+                            <div
+                              className={cn(
+                                "flex items-center gap-4 transition-opacity",
+                                (!hasEndDate || allowedSubmissions > 1) &&
+                                  "opacity-30",
+                              )}
+                            >
+                              <Switch
+                                fn={handleSubmissionWindowToggle}
+                                checked={submissionWindow != null}
+                                trackDimensions="w-8 h-4"
+                                thumbDimensions="w-3 h-3"
+                                thumbTranslate="translate-x-4"
+                                disabled={!hasEndDate || allowedSubmissions > 1}
+                              />
+                              <Label>Submission window</Label>
+                            </div>
+                          </Tooltip>
+
+                          {submissionWindow != null && (
+                            <div className="mt-3 space-y-2">
+                              <div className="rounded-lg border border-neutral-200 bg-neutral-50/50 p-2.5 shadow-sm">
+                                <div className="flex items-center gap-2.5">
+                                  <RewardIconSquare icon={CalendarIcon} />
+                                  <span className="text-content-default text-sm leading-relaxed">
+                                    Partners can only submit{" "}
+                                    <SubmissionWindowBadge
+                                      value={submissionWindow}
+                                      onChange={handleSubmissionWindowChange}
+                                    />{" "}
+                                    days before the end date
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        <div>
+                          <Tooltip
+                            content={
+                              allowedSubmissions === 1
+                                ? "Increase allowed submissions to 2 or more to use submission frequency."
+                                : maxAllowedSubmissions < 2
+                                  ? "The selected date range is too short for submission frequency."
+                                  : undefined
+                            }
+                          >
+                            <div
+                              className={cn(
+                                "flex items-center gap-4 transition-opacity",
+                                (allowedSubmissions === 1 ||
+                                  maxAllowedSubmissions < 2) &&
+                                  "opacity-30",
+                              )}
+                            >
+                              <Switch
+                                fn={handleSubmissionFrequencyToggle}
+                                checked={submissionFrequency != null}
+                                trackDimensions="w-8 h-4"
+                                thumbDimensions="w-3 h-3"
+                                thumbTranslate="translate-x-4"
+                                disabled={
+                                  allowedSubmissions === 1 ||
+                                  maxAllowedSubmissions < 2
+                                }
+                              />
+                              <Label>Submission frequency</Label>
+                            </div>
+                          </Tooltip>
+
+                          {submissionFrequency != null && (
+                            <div className="mt-3 space-y-2">
+                              <Combobox
+                                selected={
+                                  SUBMISSION_FREQUENCY_OPTIONS.find(
+                                    (option) =>
+                                      option.value === submissionFrequency,
+                                  ) ?? null
+                                }
+                                setSelected={(option) =>
+                                  handleSubmissionFrequencyChange(
+                                    option?.value as BountySubmissionFrequency,
+                                  )
+                                }
+                                options={
+                                  SUBMISSION_FREQUENCY_OPTIONS as unknown as ComboboxOption<BountySubmissionFrequency>[]
+                                }
+                                caret
+                                matchTriggerWidth
+                                hideSearch
+                                buttonProps={{
+                                  className: cn(
+                                    "w-full justify-start border-neutral-300 px-3",
+                                    "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                                    "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 focus:border-[var(--brand)] focus:ring-[var(--brand)] transition-none",
+                                  ),
+                                }}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
                   </div>
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>
@@ -468,6 +563,42 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       </FormProvider>
       {!bounty && confirmCreateBountyModal}
     </form>
+  );
+}
+
+function SubmissionWindowBadge({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (value: number | undefined) => void;
+}) {
+  return (
+    <InlineBadgePopover
+      text={
+        value != null && !isNaN(value) ? String(value) : "Submission window"
+      }
+      invalid={value == null || isNaN(value)}
+    >
+      <InlineBadgePopoverInput
+        type="number"
+        min={1}
+        value={value == null || value === 0 ? "" : String(value)}
+        onChange={(e) => {
+          const raw = (e.target as HTMLInputElement).value;
+
+          if (raw === "") {
+            onChange(undefined);
+            return;
+          }
+
+          const num = parseInt(raw, 10);
+
+          onChange(Number.isNaN(num) ? undefined : Math.max(1, num));
+        }}
+        placeholder="days"
+      />
+    </InlineBadgePopover>
   );
 }
 
