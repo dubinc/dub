@@ -1,11 +1,10 @@
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
+import { generateDiscountCodeForPartner } from "@/lib/api/discounts/generate-discount-code-for-partner";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -14,7 +13,6 @@ import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { serve } from "@upstash/workflow/nextjs";
 import * as z from "zod/v4";
 
@@ -171,87 +169,19 @@ export const { POST } = serve<Payload>(
 
     // Step 2: Auto-provision discount code if enabled
     await context.run("create-discount-codes", async () => {
-      if (!groupId) {
-        return;
-      }
-
-      const group = await prisma.partnerGroup.findUnique({
-        where: {
-          id: groupId,
-        },
-        include: {
-          discount: true,
-        },
+      logger.info({
+        message: "Started executing workflow step 'create-discount-codes'.",
+        data: input,
       });
 
-      if (!group?.discount?.autoProvisionEnabledAt) {
-        return;
-      }
-
-      const workspace = await prisma.project.findUniqueOrThrow({
-        where: {
-          id: program.workspaceId,
-        },
-        select: {
-          stripeConnectId: true,
-          installedIntegrations: {
-            where: {
-              integrationId: STRIPE_INTEGRATION_ID,
-            },
-          },
+      await generateDiscountCodeForPartner({
+        workspaceId: program.workspaceId,
+        partner: {
+          id: partner.id,
+          name: partner.name,
+          groupId,
         },
       });
-
-      if (!workspace.stripeConnectId) {
-        console.log("Workspace does not have stripeConnectId");
-        return;
-      }
-
-      if (!workspace.installedIntegrations.length) {
-        console.log("Workspace does not have the Stripe integration installed");
-        return;
-      }
-
-      const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-        workspace.installedIntegrations[0].settings || {},
-      );
-
-      const partnerLinks = await prisma.link.findMany({
-        where: {
-          programId,
-          partnerId,
-          partnerGroupDefaultLinkId: {
-            not: null,
-          },
-          discountCode: {
-            is: null,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (partnerLinks.length === 0) {
-        return;
-      }
-
-      for (const link of partnerLinks) {
-        try {
-          await createDiscountCode({
-            stripeConnectId: workspace.stripeConnectId,
-            stripeMode: stripeIntegrationSettings.stripeMode,
-            partner,
-            link,
-            discount: group.discount,
-          });
-        } catch (error) {
-          console.error(
-            `Failed to create discount code for link ${link.id}:`,
-            error,
-          );
-        }
-      }
     });
 
     // Step 3: Send email to partner application approved
@@ -364,7 +294,6 @@ export const { POST } = serve<Payload>(
         ...partner,
         ...polyfillSocialMediaFields(partnerPlatforms),
         id: partner.id,
-        status: programEnrollment.status,
         links: allPartnerLinks,
       });
 
@@ -400,10 +329,6 @@ export const { POST } = serve<Payload>(
       await triggerDraftBountySubmissionCreation({
         programId,
         partnerIds: [partnerId],
-      });
-
-      logger.info({
-        message: `Triggered draft bounty submission creation for partner ${partnerId} in program ${programId}.`,
       });
     });
 

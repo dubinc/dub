@@ -27,6 +27,9 @@ export function useApiLogsCount({
         "tokenId",
         "requestId",
         "requestType",
+        "start",
+        "end",
+        "interval",
       ],
     },
   );

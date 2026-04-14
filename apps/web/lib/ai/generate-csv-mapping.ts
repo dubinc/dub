@@ -2,7 +2,7 @@
 
 import { anthropic } from "@ai-sdk/anthropic";
 import { createStreamableValue } from "@ai-sdk/rsc";
-import { streamObject } from "ai";
+import { Output, streamText } from "ai";
 import * as z from "zod/v4";
 
 export async function generateCsvMapping(
@@ -12,29 +12,33 @@ export async function generateCsvMapping(
   const stream = createStreamableValue();
 
   (async () => {
-    const { partialObjectStream } = streamObject({
-      model: anthropic("claude-sonnet-4-20250514"),
-      schema: z.object({
-        link: z
-          .string()
-          .optional()
-          .describe("The shortlink (link), including the domain and path."),
-        url: z.string().optional().describe("The full URL of the shortlink"),
-        title: z.string().optional().describe("The title of the shortlink"),
-        description: z
-          .string()
-          .optional()
-          .describe("The description of the shortlink"),
-        tags: z
-          .string()
-          .optional()
-          .describe(
-            "A comma-separated list of tags for shortlink organization (NOT to be mapped to a description).",
-          ),
-        createdAt: z
-          .string()
-          .optional()
-          .describe("The date and time the shortlink was created (createdAt)"),
+    const { partialOutputStream } = streamText({
+      model: anthropic("claude-sonnet-4-6"),
+      output: Output.object({
+        schema: z.object({
+          link: z
+            .string()
+            .optional()
+            .describe("The shortlink (link), including the domain and path."),
+          url: z.string().optional().describe("The full URL of the shortlink"),
+          title: z.string().optional().describe("The title of the shortlink"),
+          description: z
+            .string()
+            .optional()
+            .describe("The description of the shortlink"),
+          tags: z
+            .string()
+            .optional()
+            .describe(
+              "A comma-separated list of tags for shortlink organization (NOT to be mapped to a description).",
+            ),
+          createdAt: z
+            .string()
+            .optional()
+            .describe(
+              "The date and time the shortlink was created (createdAt)",
+            ),
+        }),
       }),
       prompt:
         `The following columns are the headings from a CSV import file for importing a company's short links. ` +
@@ -47,7 +51,7 @@ export async function generateCsvMapping(
       temperature: 0.2,
     });
 
-    for await (const partialObject of partialObjectStream) {
+    for await (const partialObject of partialOutputStream) {
       stream.update(partialObject);
     }
 

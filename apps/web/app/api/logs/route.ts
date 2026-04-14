@@ -8,15 +8,29 @@ import { NextResponse } from "next/server";
 // GET /api/logs
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const filters = getApiLogsQuerySchema.parse(searchParams);
+    const { start, end, interval, ...filters } =
+      getApiLogsQuerySchema.parse(searchParams);
+
+    const { startDate, endDate } = getApiLogsDateRange({
+      plan: workspace.plan,
+      start,
+      end,
+      interval,
+    });
 
     const logs = await getApiLogs({
       ...filters,
-      ...getApiLogsDateRange(workspace.plan),
+      start: startDate,
+      end: endDate,
       workspaceId: workspace.id,
     });
 
-    return NextResponse.json(await enrichApiLogs(logs));
+    const enrichedLogs = await enrichApiLogs({
+      logs,
+      workspace,
+    });
+
+    return NextResponse.json(enrichedLogs);
   },
   {
     requiredPermissions: ["workspaces.read"],

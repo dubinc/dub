@@ -193,21 +193,23 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
               </div>
             )}
           </div>
-          <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-lg font-semibold">
-              Request body
-            </h3>
-            {highlightedRequest ? (
-              <div
-                className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
-                dangerouslySetInnerHTML={{ __html: highlightedRequest }}
-              />
-            ) : (
-              <div className="rounded-xl border border-neutral-200 bg-white p-4 font-mono text-xs text-neutral-500">
-                No request body
-              </div>
-            )}
-          </div>
+          {log.method !== "DELETE" && (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-content-emphasis text-lg font-semibold">
+                Request body
+              </h3>
+              {highlightedRequest ? (
+                <div
+                  className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
+                  dangerouslySetInnerHTML={{ __html: highlightedRequest }}
+                />
+              ) : (
+                <div className="rounded-xl border border-neutral-200 bg-white p-4 font-mono text-xs text-neutral-500">
+                  No request body
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 

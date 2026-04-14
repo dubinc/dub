@@ -49,9 +49,9 @@ export function captureRequestLog({
 }: {
   req: Request;
   response: Response;
-  workspace: WorkspaceWithUsers;
-  session: Session | undefined;
-  token: TokenCacheItem | null;
+  workspace: Pick<WorkspaceWithUsers, "id">;
+  session: Pick<Session, "user"> | undefined;
+  token: Pick<TokenCacheItem, "id"> | null;
   url: URL;
   requestHeaders: Headers;
   startTime: number;
