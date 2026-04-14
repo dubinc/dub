@@ -63,8 +63,6 @@ export async function POST(req: Request) {
         id: true,
         email: true,
         image: true,
-        payoutMethodHash: true,
-        cryptoWalletAddress: true,
         programs: {
           select: {
             programId: true,
