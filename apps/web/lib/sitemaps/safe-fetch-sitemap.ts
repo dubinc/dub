@@ -3,7 +3,7 @@ import dns from "dns/promises";
 import net from "net";
 
 /** Max HTTP redirects when fetching a sitemap (e.g. CDN → object storage). */
-export const MAX_SITEMAP_REDIRECTS = 2;
+export const MAX_SITEMAP_REDIRECTS = 3;
 
 const FETCH_TIMEOUT_MS = 15_000;
 
@@ -134,7 +134,7 @@ export async function fetchSitemapResponse(
   let currentUrl = new URL(startUrl).href;
   let redirectCount = 0;
 
-  while (redirectCount <= MAX_SITEMAP_REDIRECTS) {
+  while (redirectCount < MAX_SITEMAP_REDIRECTS) {
     await assertSitemapFetchUrlSafe(currentUrl);
 
     const response = await fetchWithTimeout(
