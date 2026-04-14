@@ -25,9 +25,9 @@ function parsePartnerFilterParams(
   return {
     partnerTagId: partnerTagIdParsed?.values,
     partnerTagIdOperator: partnerTagIdParsed?.sqlOperator,
-    groupId: groupIdParsed?.values?.[0],
+    groupId: groupIdParsed?.values,
     groupIdOperator: groupIdParsed?.sqlOperator,
-    country: countryParsed?.values?.[0],
+    country: countryParsed?.values,
     countryOperator: countryParsed?.sqlOperator,
   };
 }

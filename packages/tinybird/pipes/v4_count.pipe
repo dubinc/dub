@@ -102,13 +102,11 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(partnerTagId) or defined(groupId) or defined(
-            tenantId
-        ) or defined(folderId) or defined(domain) or defined(
-            tagId
-        ) or defined(
-            root
-        ) %} AND link_id in (SELECT link_id from workspace_links)
+        {% end %}
+        {% if defined(programId) or defined(partnerId) or defined(partnerTagId) or defined(groupId) or defined(tenantId) or defined(
+            folderId
+        ) or defined(domain) or defined(tagId) or defined(root) %}
+            AND link_id IN (SELECT link_id FROM workspace_links)
         {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -248,13 +246,11 @@ SQL >
             {% else %}
                 AND link_id IN {{ Array(linkId, 'String') }}
             {% end %}
-        {% elif defined(programId) or defined(partnerId) or defined(partnerTagId) or defined(groupId) or defined(
-            tenantId
-        ) or defined(folderId) or defined(domain) or defined(
-            tagId
-        ) or defined(
-            root
-        ) %} AND link_id in (SELECT link_id from workspace_links)
+        {% end %}
+        {% if defined(programId) or defined(partnerId) or defined(partnerTagId) or defined(groupId) or defined(tenantId) or defined(
+            folderId
+        ) or defined(domain) or defined(tagId) or defined(root) %}
+            AND link_id IN (SELECT link_id FROM workspace_links)
         {% end %}
         {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -451,13 +447,11 @@ SQL >
                     {% else %}
                         AND se.link_id IN {{ Array(linkId, 'String') }}
                     {% end %}
-                {% elif defined(programId) or defined(partnerId) or defined(partnerTagId) or defined(groupId) or defined(
-                    tenantId
-                ) or defined(folderId) or defined(domain) or defined(
-                    tagId
-                ) or defined(
-                    root
-                ) %} AND se.link_id in (SELECT link_id from workspace_links)
+                {% end %}
+                {% if defined(programId) or defined(partnerId) or defined(partnerTagId) or defined(groupId) or defined(tenantId) or defined(
+                    folderId
+                ) or defined(domain) or defined(tagId) or defined(root) %}
+                    AND se.link_id IN (SELECT link_id FROM workspace_links)
                 {% end %}
                 {% if defined(customerId) %} AND se.customer_id = {{ String(customerId) }} {% end %}
                 {% if defined(continent) %} AND se.continent = {{ continent }} {% end %}

@@ -149,7 +149,6 @@ export const VALID_ANALYTICS_FILTERS = [
   "groupId",
   "partnerTagId",
   "tagId",
-  "tagIds",
   "customerId",
   "qr", // deprecated, but keeping for now for backwards compatibility
   "root",
@@ -162,7 +161,6 @@ export const VALID_ANALYTICS_FILTERS = [
   "root",
   "saleType",
   // deprecated filters, but keeping for now for backwards compatibility
-  "tagIds",
   "qr",
 ];
 

@@ -20,10 +20,13 @@ export function usePartnerTagsCount(
 
   const { data, isLoading, error } = useSWR<number>(
     enabled && workspaceId
-      ? `/api/partners/tags/count?${new URLSearchParams({
-          workspaceId: workspaceId,
-          ...query,
-        } as Record<string, any>).toString()}`
+      ? `/api/partners/tags/count?${new URLSearchParams(
+          Object.fromEntries(
+            Object.entries({ workspaceId, ...query } as Record<string, unknown>)
+              .filter(([, v]) => v != null)
+              .map(([k, v]) => [k, String(v)]),
+          ),
+        ).toString()}`
       : undefined,
     fetcher,
     {

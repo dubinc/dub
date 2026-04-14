@@ -7,10 +7,30 @@ SQL >
         -- here we split tag_ids/partner_tag_ids out of the multiIf because arrayJoin explodes rows
         if(
             {{ String(groupBy) }} = 'top_link_tags',
-            arrayJoin(tag_ids),
+            arrayJoin(
+                {% if defined(tagId) %}
+                    {% if defined(tagIdOperator) and String(tagIdOperator) == 'NOT IN' %}
+                        tag_ids
+                    {% else %}
+                        arrayIntersect(tag_ids, {{ Array(tagId, 'String') }})
+                    {% end %}
+                {% else %}
+                    tag_ids
+                {% end %}
+            ),
             if(
                 {{ String(groupBy) }} = 'top_partner_tags',
-                arrayJoin(partner_tag_ids),
+                arrayJoin(
+                    {% if defined(partnerTagId) %}
+                        {% if defined(partnerTagIdOperator) and String(partnerTagIdOperator) == 'NOT IN' %}
+                            partner_tag_ids
+                        {% else %}
+                            arrayIntersect(partner_tag_ids, {{ Array(partnerTagId, 'String') }})
+                        {% end %}
+                    {% else %}
+                        partner_tag_ids
+                    {% end %}
+                ),
                 multiIf(
                     {{ String(groupBy) }} = 'top_folders',
                     folder_id,

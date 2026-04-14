@@ -133,6 +133,25 @@ export function buildMetricRangeWhere(
   return and.length ? { AND: and } : {};
 }
 
+/**
+ * Builds a Prisma string filter for a query param that may be one ID or many
+ * (e.g. `parseFilterValue()` selections). `exclude` maps to NOT IN / not.
+ */
+export function buildStringOrListFieldFilter(
+  value: string | string[] | undefined,
+  exclude: boolean,
+): Prisma.StringFilter | string | undefined {
+  if (value === undefined) return undefined;
+  const list = (Array.isArray(value) ? value : [value]).filter(
+    (v) => typeof v === "string" && v.length > 0,
+  );
+  if (list.length === 0) return undefined;
+  if (exclude) {
+    return list.length === 1 ? { not: list[0]! } : { notIn: list };
+  }
+  return list.length === 1 ? list[0]! : { in: list };
+}
+
 /** Matches GET /api/partners enrollment filter shape + metric ranges. */
 export function buildProgramEnrollmentWhereForList(
   filters: PartnerEnrollmentQueryFilters,
@@ -160,6 +179,8 @@ export function buildProgramEnrollmentWhereForList(
 
   const searchWhere = buildPartnerEmailSearchWhere({ email, search });
 
+  const countryFilter = buildStringOrListFieldFilter(country, countryNotIn);
+
   const partnerWhere: Prisma.PartnerWhereInput = {
     ...(partnerTagId && {
       programPartnerTags: {
@@ -178,13 +199,13 @@ export function buildProgramEnrollmentWhereForList(
             }),
       },
     }),
-    ...(country && {
-      country: countryNotIn ? { not: country } : country,
-    }),
+    ...(countryFilter !== undefined && { country: countryFilter }),
     ...searchWhere,
   };
 
   const hasPartnerWhere = Object.keys(partnerWhere).length > 0;
+
+  const groupIdFilter = buildStringOrListFieldFilter(groupId, groupIdNotIn);
 
   return {
     tenantId,
@@ -200,8 +221,8 @@ export function buildProgramEnrollmentWhereForList(
             in: ["approved", "invited"],
           }
         : status,
-    ...(groupId && {
-      groupId: groupIdNotIn ? { not: groupId } : groupId,
+    ...(groupIdFilter !== undefined && {
+      groupId: groupIdFilter,
     }),
     ...(hasPartnerWhere ? { partner: partnerWhere } : {}),
     ...metricWhere,

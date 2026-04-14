@@ -47,9 +47,10 @@ export function PartnerTagsList({
     <button
       type="button"
       onClick={() => onAddTag()}
+      aria-label="Add tag"
       className={cn(
         tagPillClassName,
-        "group/add-tag active:bg-bg-inverted/15 w-fit px-1.5 font-medium",
+        "group/add-tag active:bg-bg-inverted/15 w-fit px-1.5 font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400/50",
       )}
     >
       <Tag className="size-3.5" />
@@ -57,14 +58,14 @@ export function PartnerTagsList({
         className={cn(
           "overflow-hidden",
           compact &&
-            "grid grid-cols-[0fr] transition-[grid-template-columns] group-hover/add-tag:grid-cols-[1fr]",
+            "grid grid-cols-[0fr] transition-[grid-template-columns] group-hover/add-tag:grid-cols-[1fr] group-focus-visible/add-tag:grid-cols-[1fr]",
         )}
       >
         <div
           className={cn(
             "min-w-0",
             compact &&
-              "opacity-0 transition-opacity group-hover/add-tag:opacity-100",
+              "opacity-0 transition-opacity group-hover/add-tag:opacity-100 group-focus-visible/add-tag:opacity-100",
           )}
         >
           <span className="pl-1 pr-0.5">Add tag</span>

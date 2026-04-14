@@ -1,7 +1,6 @@
-// allow letters, numbers, '-', '_', '/', '.', and emojis (via \u0080-\uFFFF which includes surrogate pairs)
-export const validKeyRegex = new RegExp(
-  "^[0-9A-Za-z_\\u0080-\\uFFFF/\\-.]+$",
-);
+// allow letters, numbers, '-', '_', '/', '.', and broad Unicode (accents, emoji, international scripts)
+// Dub domains strip accents/diacriticals for security; custom domains preserve Unicode
+export const validKeyRegex = /^[0-9A-Za-z_\u0080-\uFFFF/.\-]+$/u;
 
 export const isUnsupportedKey = (key: string) => {
   // special case for root domain links

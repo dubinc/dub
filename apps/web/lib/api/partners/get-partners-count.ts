@@ -6,6 +6,7 @@ import {
   buildMetricRangeWhere,
   buildPartnerEmailSearchWhere,
   buildProgramEnrollmentWhereForList,
+  buildStringOrListFieldFilter,
 } from "./program-enrollment-query";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
@@ -39,6 +40,9 @@ export async function getPartnersCount<T>(
   const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
   const groupIdNotIn = groupIdOperator === "NOT IN";
   const countryNotIn = countryOperator === "NOT IN";
+
+  const groupIdFilter = buildStringOrListFieldFilter(groupId, groupIdNotIn);
+  const countryFilter = buildStringOrListFieldFilter(country, countryNotIn);
 
   const commonWhere: Prisma.PartnerWhereInput = {
     ...buildPartnerEmailSearchWhere({ email, search }),
@@ -74,8 +78,8 @@ export async function getPartnersCount<T>(
         programs: {
           some: {
             programId,
-            ...(groupId && {
-              groupId,
+            ...(groupIdFilter !== undefined && {
+              groupId: groupIdFilter,
             }),
             status:
               status === "approved_invited"
@@ -105,12 +109,9 @@ export async function getPartnersCount<T>(
       by: ["status"],
       where: {
         programId,
-        ...(groupId &&
-          (groupIdNotIn ? { groupId: { not: groupId } } : { groupId })),
+        ...(groupIdFilter !== undefined && { groupId: groupIdFilter }),
         partner: {
-          ...(country && {
-            country: countryNotIn ? { not: country } : country,
-          }),
+          ...(countryFilter !== undefined && { country: countryFilter }),
           ...commonWhere,
         },
         ...enrollmentMetricWhere,
@@ -142,14 +143,9 @@ export async function getPartnersCount<T>(
       by: ["groupId"],
       where: {
         programId,
-        ...(groupId &&
-          groupIdNotIn && {
-            groupId: { not: groupId },
-          }),
+        ...(groupIdFilter !== undefined && { groupId: groupIdFilter }),
         partner: {
-          ...(country && {
-            country: countryNotIn ? { not: country } : country,
-          }),
+          ...(countryFilter !== undefined && { country: countryFilter }),
           ...commonWhere,
         },
         status:
@@ -172,10 +168,13 @@ export async function getPartnersCount<T>(
   }
 
   if (groupBy === "partnerTagId") {
+    const enrollmentWhere = buildProgramEnrollmentWhereForList(enrollmentBase);
+
     const partners = await prisma.programPartnerTag.groupBy({
       by: ["partnerTagId"],
       where: {
         programId,
+        programEnrollment: enrollmentWhere,
       },
       _count: true,
       orderBy: {

@@ -5,7 +5,9 @@ import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
 import { parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-function parsePartnerFilterParams(searchParams: Record<string, string | undefined>) {
+function parsePartnerFilterParams(
+  searchParams: Record<string, string | undefined>,
+) {
   const partnerTagIdParsed = parseFilterValue(searchParams.partnerTagId);
   const groupIdParsed = parseFilterValue(searchParams.groupId);
   const countryParsed = parseFilterValue(searchParams.country);
@@ -13,9 +15,9 @@ function parsePartnerFilterParams(searchParams: Record<string, string | undefine
   return {
     partnerTagId: partnerTagIdParsed?.values,
     partnerTagIdOperator: partnerTagIdParsed?.sqlOperator,
-    groupId: groupIdParsed?.values?.[0],
+    groupId: groupIdParsed?.values,
     groupIdOperator: groupIdParsed?.sqlOperator,
-    country: countryParsed?.values?.[0],
+    country: countryParsed?.values,
     countryOperator: countryParsed?.sqlOperator,
   };
 }

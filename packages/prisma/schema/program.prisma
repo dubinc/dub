@@ -244,7 +244,7 @@ model ProgramPartnerTag {
   partnerTagId String
 
   program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
-  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade, onUpdate: Cascade)
   partnerTag        PartnerTag        @relation(fields: [partnerTagId], references: [id], onDelete: Cascade)
   partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 

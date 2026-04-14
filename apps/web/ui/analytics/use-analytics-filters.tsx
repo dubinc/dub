@@ -100,9 +100,14 @@ export function useAnalyticsFilters({
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
+  const tagIdParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.tagId),
+    [searchParamsObj.tagId],
+  );
+
   const selectedTagIds = useMemo(
-    () => searchParamsObj.tagIds?.split(",")?.filter(Boolean) ?? [],
-    [searchParamsObj.tagIds],
+    () => tagIdParsed?.values ?? [],
+    [tagIdParsed],
   );
 
   const partnerTagIdParsed = useMemo(
@@ -149,7 +154,7 @@ export function useAnalyticsFilters({
   );
 
   const activeFilters = useMemo(() => {
-    const { domain, key, root, folderId, ...params } = searchParamsObj;
+    const { domain, key, root, ...params } = searchParamsObj;
 
     // Handle special cases first
     const filters: Array<{
@@ -167,13 +172,12 @@ export function useAnalyticsFilters({
             },
           ]
         : []),
-      // Handle tagIds special case
-      ...(selectedTagIds.length > 0
+      ...(tagIdParsed?.values?.length
         ? [
             {
-              key: "tagIds",
-              operator: "IS_ONE_OF" as FilterOperator,
-              values: selectedTagIds,
+              key: "tagId",
+              operator: tagIdParsed.operator as FilterOperator,
+              values: tagIdParsed.values,
             },
           ]
         : []),
@@ -197,16 +201,6 @@ export function useAnalyticsFilters({
             },
           ]
         : []),
-      // Handle folderId special case
-      ...(folderId
-        ? [
-            {
-              key: "folderId",
-              operator: "IS" as FilterOperator,
-              values: [folderId],
-            },
-          ]
-        : []),
       // Handle customerId special case
       ...(selectedCustomer
         ? [
@@ -223,7 +217,7 @@ export function useAnalyticsFilters({
         : []),
     ];
 
-    // Handle all filters dynamically (including domain, tagId, folderId, root)
+    // Handle remaining filters via parseFilterValue (multi-value / negation). folderId included; tagId handled above.
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
       if (
@@ -231,7 +225,6 @@ export function useAnalyticsFilters({
           "domain",
           "key",
           "tagId",
-          "tagIds",
           "partnerTagId",
           "root",
           "customerId",
@@ -262,7 +255,7 @@ export function useAnalyticsFilters({
     return filters;
   }, [
     searchParamsObj,
-    selectedTagIds,
+    tagIdParsed,
     partnerTagIdParsed,
     partnerPage,
     selectedCustomerId,

@@ -28,7 +28,7 @@ export const verifyBountySubmission = async ({
   while (Date.now() - startTime < TIMEOUT_MS) {
     const { data: submissions } = await http.get<any[]>({
       path: `/bounties/${bountyId}/submissions`,
-      query: { partnerId, ...extraQuery },
+      query: { ...extraQuery, partnerId },
     });
 
     const submission = submissions?.[0];
