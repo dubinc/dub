@@ -1,8 +1,8 @@
 import { bulkCreateLinks } from "@/lib/api/links/bulk-create-links";
+import { fetchSitemapResponse } from "@/lib/sitemaps/safe-fetch-sitemap";
 import type { TrackedSitemap } from "@/lib/sitemaps/site-visit-tracking";
 import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { fetchWithTimeout } from "@dub/utils/src";
 import { XMLParser } from "fast-xml-parser";
 
 type SitemapXmlUrlEntry = {
@@ -33,8 +33,25 @@ function extractKeyFromUrl(url: string) {
   return key === "" ? "_root" : key;
 }
 
-/** Max page URLs collected from a single registered sitemap file (no nested fetches). */
-export const MAX_URLS_PER_SITEMAP = 2000;
+/** Max unique page URLs per import (single urlset or combined nested sitemaps). Exceeding fails the import. */
+export const MAX_URLS_PER_SITEMAP = 10_000;
+
+/** Max nesting level for sitemap indexes (root is depth 0; reject when depth exceeds this). */
+const MAX_SITEMAP_INDEX_DEPTH = 5;
+
+/** Max HTTP fetches per import to cap cost on pathological indexes. */
+const MAX_SITEMAP_FETCHES_PER_IMPORT = 100;
+
+/** Max links per `bulkCreateLinks` call during import. */
+const SITEMAP_IMPORT_BULK_CREATE_BATCH_SIZE = 250;
+
+function normalizeSitemapUrl(url: string): string {
+  try {
+    return new URL(url.trim()).href;
+  } catch {
+    return url.trim();
+  }
+}
 
 async function decompressIfGzip(buffer: ArrayBuffer): Promise<string> {
   const bytes = new Uint8Array(buffer);
@@ -72,7 +89,7 @@ async function decompressIfGzip(buffer: ArrayBuffer): Promise<string> {
 async function fetchAndParseSitemap(
   sitemapUrl: string,
 ): Promise<SitemapXmlResult> {
-  const response = await fetchWithTimeout(sitemapUrl, { redirect: "error" }); // don't follow redirects
+  const response = await fetchSitemapResponse(sitemapUrl);
   const MAX_SITEMAP_BYTES = 10 * 1024 * 1024; // 10 MB
   const contentLength = response.headers.get("content-length");
   if (contentLength && parseInt(contentLength, 10) > MAX_SITEMAP_BYTES) {
@@ -87,29 +104,76 @@ async function fetchAndParseSitemap(
 }
 
 export async function crawlSitemapUrls(sitemapUrl: string) {
+  const collected = new Set<string>();
   let hadErrors = false;
+  const visited = new Set<string>();
+  let fetchCount = 0;
 
-  let parsed: SitemapXmlResult;
-  try {
-    parsed = await fetchAndParseSitemap(sitemapUrl);
-  } catch (error) {
-    console.error(`Failed to fetch sitemap ${sitemapUrl}:`, error);
-    return { urls: [] as string[], hadErrors: true };
+  async function crawlRecursive(url: string, depth: number): Promise<void> {
+    if (depth > MAX_SITEMAP_INDEX_DEPTH) {
+      hadErrors = true;
+      return;
+    }
+
+    const normalized = normalizeSitemapUrl(url);
+    if (visited.has(normalized)) {
+      return;
+    }
+
+    if (fetchCount >= MAX_SITEMAP_FETCHES_PER_IMPORT) {
+      hadErrors = true;
+      return;
+    }
+
+    visited.add(normalized);
+    fetchCount += 1;
+
+    let parsed: SitemapXmlResult;
+    try {
+      parsed = await fetchAndParseSitemap(url);
+    } catch (error) {
+      console.error(`Failed to fetch sitemap ${url}:`, error);
+      hadErrors = true;
+      return;
+    }
+
+    const urlsetLocs = toArray(parsed.urlset?.url)
+      .map((entry) => entry?.loc?.trim())
+      .filter((loc): loc is string => Boolean(loc));
+
+    const pageUrlsThisFile = urlsetLocs.filter((loc) => !loc.endsWith(".xml"));
+    const uniqueInThisFile = new Set(pageUrlsThisFile);
+    if (uniqueInThisFile.size > MAX_URLS_PER_SITEMAP) {
+      throw new Error(
+        `Sitemap contains too many unique URLs: ${uniqueInThisFile.size} (max ${MAX_URLS_PER_SITEMAP})`,
+      );
+    }
+
+    for (const pageUrl of pageUrlsThisFile) {
+      if (!collected.has(pageUrl) && collected.size >= MAX_URLS_PER_SITEMAP) {
+        throw new Error(
+          `Sitemap contains too many unique URLs (max ${MAX_URLS_PER_SITEMAP})`,
+        );
+      }
+      collected.add(pageUrl);
+    }
+
+    const indexChildren = toArray(parsed.sitemapindex?.sitemap)
+      .map((entry) => entry?.loc?.trim())
+      .filter((loc): loc is string => Boolean(loc));
+
+    for (const childUrl of indexChildren) {
+      if (fetchCount >= MAX_SITEMAP_FETCHES_PER_IMPORT) {
+        hadErrors = true;
+        break;
+      }
+      await crawlRecursive(childUrl, depth + 1);
+    }
   }
 
-  const urlsetLocs = toArray(parsed.urlset?.url)
-    .map((entry) => entry?.loc?.trim())
-    .filter((url): url is string => Boolean(url));
+  await crawlRecursive(sitemapUrl, 0);
 
-  const urls = Array.from(
-    new Set(urlsetLocs.filter((url) => !url.endsWith(".xml"))),
-  );
-
-  if (urls.length > MAX_URLS_PER_SITEMAP) {
-    throw new Error(
-      `Sitemap contains too many unique URLs: ${urls.length} (max ${MAX_URLS_PER_SITEMAP})`,
-    );
-  }
+  const urls = Array.from(collected);
 
   return { urls, hadErrors };
 }
@@ -212,13 +276,25 @@ export async function importTrackedSitemaps({
   );
 
   console.log(
-    `[importTrackedSitemaps] Found ${linksToCreate.length} links to create, running bulkCreateLinks...`,
+    `[importTrackedSitemaps] Found ${linksToCreate.length} links to create, running bulkCreateLinks in batches of ${SITEMAP_IMPORT_BULK_CREATE_BATCH_SIZE}...`,
   );
 
-  const createdLinks = await bulkCreateLinks({
-    links: linksToCreate,
-    skipRedisCache: true,
-  });
+  const createdLinks: Awaited<ReturnType<typeof bulkCreateLinks>> = [];
+  for (
+    let i = 0;
+    i < linksToCreate.length;
+    i += SITEMAP_IMPORT_BULK_CREATE_BATCH_SIZE
+  ) {
+    const batch = linksToCreate.slice(
+      i,
+      i + SITEMAP_IMPORT_BULK_CREATE_BATCH_SIZE,
+    );
+    const batchCreated = await bulkCreateLinks({
+      links: batch,
+      skipRedisCache: true,
+    });
+    createdLinks.push(...batchCreated);
+  }
 
   console.log({
     linksToCreate,
