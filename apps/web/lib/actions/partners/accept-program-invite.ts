@@ -3,6 +3,7 @@
 import { generateDiscountCodeForPartner } from "@/lib/api/discounts/generate-discount-code-for-partner";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
+import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -34,6 +35,11 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
       include: {
         links: true,
+        partner: {
+          include: {
+            platforms: true,
+          },
+        },
       },
     });
 
@@ -43,6 +49,10 @@ export const acceptProgramInviteAction = authPartnerActionClient
         const workspace = await prisma.project.findUnique({
           where: {
             defaultProgramId: programId,
+          },
+          select: {
+            id: true,
+            webhookEnabled: true,
           },
         });
 
@@ -55,6 +65,7 @@ export const acceptProgramInviteAction = authPartnerActionClient
           ...partner,
           ...enrollment,
           id: partner.id,
+          ...polyfillSocialMediaFields(enrollment.partner.platforms),
         });
 
         await Promise.allSettled([

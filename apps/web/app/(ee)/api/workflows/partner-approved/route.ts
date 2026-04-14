@@ -294,7 +294,6 @@ export const { POST } = serve<Payload>(
         ...partner,
         ...polyfillSocialMediaFields(partnerPlatforms),
         id: partner.id,
-        status: programEnrollment.status,
         links: allPartnerLinks,
       });
 
