@@ -41,6 +41,7 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Linkify from "linkify-react";
+import Link from "next/link";
 import {
   Dispatch,
   SetStateAction,
@@ -529,14 +530,13 @@ function BountySubmissionDetailsSheetContent({
 
         <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
           <div className="flex items-center justify-between gap-2 p-5">
-            {submission.status === "approved" ? (
-              <a
-                href={`/${workspaceSlug}/program/commissions?partnerId=${submission.partner.id}&type=custom`}
-                target="_blank"
+            {submission.status === "approved" && submission.commission?.id ? (
+              <Link
+                href={`/${workspaceSlug}/program/commissions/${submission.commission.id}`}
                 className="w-full"
               >
-                <Button variant="secondary" text="View commissions" />
-              </a>
+                <Button variant="secondary" text="View commission" />
+              </Link>
             ) : (
               <div className="flex w-full flex-col gap-4">
                 {!bounty?.rewardAmount && (

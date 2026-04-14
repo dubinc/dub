@@ -67,9 +67,11 @@ export const POST = withAxiom(async (req) => {
       workspaceId: string;
       statusCode: number;
       responseBody: unknown;
+      requestBody: unknown;
     }> = [];
 
-    for (const r of results) {
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i];
       if (r.status !== "fulfilled" || !r.value) {
         continue;
       }
@@ -80,6 +82,7 @@ export const POST = withAxiom(async (req) => {
         workspaceId,
         statusCode: errorResponse ? errorResponse.status : 200,
         responseBody: errorResponse ?? responseBody,
+        requestBody: payload[i],
       });
     }
 
@@ -92,7 +95,7 @@ export const POST = withAxiom(async (req) => {
             path: "/hubspot/webhook",
             statusCode: entry.statusCode,
             duration,
-            requestBody: payload,
+            requestBody: entry.requestBody,
             responseBody: entry.responseBody,
             userAgent: req.headers.get("user-agent"),
           }),
