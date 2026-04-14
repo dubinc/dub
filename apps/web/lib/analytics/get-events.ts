@@ -1,6 +1,6 @@
 import { tb } from "@/lib/tinybird";
-import { LinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { Link } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { transformLink } from "../api/links/utils/transform-link";
@@ -270,7 +270,7 @@ const getLinksMap = async (linkIds: string[]) => {
       acc[link.id] = link;
       return acc;
     },
-    {} as Record<string, LinkProps>,
+    {} as Record<string, Link>,
   );
 };
 
