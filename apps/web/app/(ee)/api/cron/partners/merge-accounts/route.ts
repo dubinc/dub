@@ -64,6 +64,7 @@ export async function POST(req: Request) {
         email: true,
         image: true,
         payoutMethodHash: true,
+        cryptoWalletAddress: true,
         programs: {
           select: {
             programId: true,
@@ -362,29 +363,60 @@ export async function POST(req: Request) {
       );
     }
 
-    // After merging, check if the fraud condition has been resolved.
-    // If no other partners share the same payout method hash, we can
-    // automatically resolve any pending fraud groups for this partner.
-    if (targetAccount.payoutMethodHash) {
-      const duplicatePartners = await prisma.partner.count({
+    const fraudEventsToDelete = await prisma.fraudEvent.findMany({
+      where: {
+        partnerId: sourcePartnerId,
+        fraudEventGroup: {
+          type: FraudRuleType.partnerDuplicatePayoutMethod,
+        },
+        metadata: {
+          path: "$.duplicatePartnerId",
+          equals: sourcePartnerId,
+        },
+      },
+      include: {
+        fraudEventGroup: {
+          select: {
+            id: true,
+            _count: {
+              select: {
+                fraudEvents: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (fraudEventsToDelete.length > 0) {
+      await prisma.fraudEvent.deleteMany({
         where: {
-          payoutMethodHash: targetAccount.payoutMethodHash,
+          id: { in: fraudEventsToDelete.map((e) => e.id) },
         },
       });
-
-      if (duplicatePartners <= 1) {
-        await resolveFraudGroups({
-          where: {
-            partnerId: {
-              in: [sourcePartnerId, targetPartnerId],
-            },
-            type: FraudRuleType.partnerDuplicatePayoutMethod,
-          },
-          resolutionReason:
-            "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
-        });
-      }
     }
+
+    const fraudEventGroupsToResolve = fraudEventsToDelete.filter(
+      (e) => e.fraudEventGroup._count.fraudEvents === 1,
+    );
+
+    await resolveFraudGroups({
+      where: {
+        OR: [
+          {
+            partnerId: sourcePartnerId,
+          },
+          {
+            id: {
+              in: fraudEventGroupsToResolve.map((e) => e.fraudEventGroup.id),
+            },
+          },
+        ],
+        type: FraudRuleType.partnerDuplicatePayoutMethod,
+      },
+      resolutionReason:
+        "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
+    });
 
     // Make sure the cache is cleared
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
