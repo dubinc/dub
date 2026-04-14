@@ -170,7 +170,9 @@ const RewardItem = ({
                 <span className="min-w-0">
                   {idx === 0 ? "If" : capitalize(operator)}{" "}
                   {capitalize(condition.entity)} {capitalize(attribute?.label)}{" "}
-                  {CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
+                  {condition.label
+                    ? "is" // if custom label is set, use "is" instead of the actual operator to sound more natural
+                    : CONDITION_OPERATOR_LABELS[condition.operator]}{" "}
                   {condition.value &&
                     (condition.attribute === "country"
                       ? // Country names
