@@ -150,7 +150,6 @@ export default function ProgramInvite({
   const emailTitle = title || "You've been invited";
   const emailSubject =
     subject || `${program.name} invited you to join Dub Partners`;
-  const programWebsite = program.website ?? null;
 
   return (
     <Html>
@@ -196,7 +195,8 @@ export default function ProgramInvite({
 
             <>
               <Text className="text-sm leading-6 text-neutral-600">
-                Here’s more details about the program and what you’ll be eligible to earn:
+                Here’s more details about the program and what you’ll be
+                eligible to earn:
               </Text>
               <Section className="overflow-hidden rounded-xl border border-solid border-neutral-200 bg-white">
                 <Section className="px-5 py-4">
@@ -204,7 +204,8 @@ export default function ProgramInvite({
                     <Column className="w-[48px] align-top">
                       <Img
                         src={
-                          program.logo || "https://assets.dub.co/misc/acme-logo.png"
+                          program.logo ||
+                          "https://assets.dub.co/misc/acme-logo.png"
                         }
                         width="40"
                         height="40"
@@ -216,12 +217,12 @@ export default function ProgramInvite({
                       <Text className="my-0 text-base font-semibold leading-5 text-black">
                         {program.name}
                       </Text>
-                      {programWebsite && (
+                      {program.website && (
                         <Link
-                          href={programWebsite}
+                          href={program.website}
                           className="mt-0 block text-xs font-medium leading-4 text-neutral-500 underline"
                         >
-                          {getPrettyUrl(programWebsite)}
+                          {getPrettyUrl(program.website)}
                         </Link>
                       )}
                     </Column>
