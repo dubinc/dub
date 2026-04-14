@@ -12,6 +12,7 @@ import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
+import { FraudRuleType } from "@dub/prisma/client";
 import { log, prettyPrint, R2_URL } from "@dub/utils";
 import * as z from "zod/v4";
 
@@ -343,6 +344,67 @@ export async function POST(req: Request) {
       }
     }
 
+    // Remove duplicate-payout fraud for the merged-away partner
+    if (sourcePartnerId !== targetPartnerId) {
+      await prisma.$transaction(async (tx) => {
+        await tx.fraudEvent.deleteMany({
+          where: {
+            partnerId: sourcePartnerId,
+            fraudEventGroup: {
+              type: FraudRuleType.partnerDuplicatePayoutMethod,
+            },
+          },
+        });
+
+        const eventsWithDuplicateMeta = await tx.fraudEvent.findMany({
+          where: {
+            fraudEventGroup: {
+              type: FraudRuleType.partnerDuplicatePayoutMethod,
+              partnerId: { in: [sourcePartnerId, targetPartnerId] },
+            },
+          },
+          select: { id: true, metadata: true },
+        });
+
+        const idsFromMetadata = eventsWithDuplicateMeta
+          .filter((e) => {
+            const meta = e.metadata as Record<string, unknown> | null;
+            return meta?.duplicatePartnerId === sourcePartnerId;
+          })
+          .map((e) => e.id);
+
+        if (idsFromMetadata.length > 0) {
+          await tx.fraudEvent.deleteMany({
+            where: { id: { in: idsFromMetadata } },
+          });
+        }
+
+        await tx.fraudEventGroup.deleteMany({
+          where: {
+            partnerId: sourcePartnerId,
+            type: FraudRuleType.partnerDuplicatePayoutMethod,
+          },
+        });
+
+        const emptyTargetGroups = await tx.fraudEventGroup.findMany({
+          where: {
+            partnerId: targetPartnerId,
+            type: FraudRuleType.partnerDuplicatePayoutMethod,
+            fraudEvents: { none: {} },
+          },
+          select: { id: true },
+        });
+
+        if (emptyTargetGroups.length > 0) {
+          await tx.fraudEventGroup.deleteMany({
+            where: {
+              id: { in: emptyTargetGroups.map((g) => g.id) },
+            },
+          });
+        }
+      });
+    }
+
     try {
       // Finally, delete the partner account
       await conn.execute(`DELETE FROM Partner WHERE id = ?`, [sourcePartnerId]);
@@ -375,7 +437,7 @@ export async function POST(req: Request) {
         await resolveFraudGroups({
           where: {
             partnerId: targetPartnerId,
-            type: "partnerDuplicatePayoutMethod",
+            type: FraudRuleType.partnerDuplicatePayoutMethod,
           },
           resolutionReason:
             "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",
