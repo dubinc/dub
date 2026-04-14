@@ -4,9 +4,9 @@ import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import {
   buildMetricRangeWhere,
+  buildNullableStringListWhere,
   buildPartnerEmailSearchWhere,
   buildProgramEnrollmentWhereForList,
-  buildStringOrListFieldFilter,
 } from "./program-enrollment-query";
 
 type PartnersCountFilters = z.infer<typeof partnersCountQuerySchema> & {
@@ -41,8 +41,8 @@ export async function getPartnersCount<T>(
   const groupIdNotIn = groupIdOperator === "NOT IN";
   const countryNotIn = countryOperator === "NOT IN";
 
-  const groupIdFilter = buildStringOrListFieldFilter(groupId, groupIdNotIn);
-  const countryFilter = buildStringOrListFieldFilter(country, countryNotIn);
+  const groupIdWhere = buildNullableStringListWhere("groupId", groupId, groupIdNotIn);
+  const countryWhere = buildNullableStringListWhere("country", country, countryNotIn);
 
   const commonWhere: Prisma.PartnerWhereInput = {
     ...buildPartnerEmailSearchWhere({ email, search }),
@@ -78,9 +78,7 @@ export async function getPartnersCount<T>(
         programs: {
           some: {
             programId,
-            ...(groupIdFilter !== undefined && {
-              groupId: groupIdFilter,
-            }),
+            ...(groupIdWhere ?? {}),
             status:
               status === "approved_invited"
                 ? {
@@ -109,9 +107,9 @@ export async function getPartnersCount<T>(
       by: ["status"],
       where: {
         programId,
-        ...(groupIdFilter !== undefined && { groupId: groupIdFilter }),
+        ...(groupIdWhere ?? {}),
         partner: {
-          ...(countryFilter !== undefined && { country: countryFilter }),
+          ...(countryWhere ?? {}),
           ...commonWhere,
         },
         ...enrollmentMetricWhere,
@@ -143,9 +141,9 @@ export async function getPartnersCount<T>(
       by: ["groupId"],
       where: {
         programId,
-        ...(groupIdFilter !== undefined && { groupId: groupIdFilter }),
+        ...(groupIdWhere ?? {}),
         partner: {
-          ...(countryFilter !== undefined && { country: countryFilter }),
+          ...(countryWhere ?? {}),
           ...commonWhere,
         },
         status:

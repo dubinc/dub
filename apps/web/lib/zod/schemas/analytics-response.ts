@@ -496,7 +496,7 @@ export const analyticsResponse = {
     leads: z.number().describe("The total number of leads").default(0),
     sales: z.number().describe("The total number of sales").default(0),
     saleAmount: centsSchemaWithDefault.describe(
-      "The total amount of sales with this UTM source, in cents",
+      "The total amount of sales from this partner tag, in cents",
     ),
   }),
 } as const;

@@ -40,13 +40,13 @@ export const GET = withWorkspace(
     const paramsToParse = {
       ...searchParams,
       ...(filterOverrides.partnerTagId && {
-        partnerTagId: filterOverrides.partnerTagId.join(","),
+        partnerTagId: filterOverrides.partnerTagId,
       }),
       ...(filterOverrides.groupId !== undefined && {
-        groupId: filterOverrides.groupId ?? undefined,
+        groupId: filterOverrides.groupId,
       }),
       ...(filterOverrides.country !== undefined && {
-        country: filterOverrides.country ?? undefined,
+        country: filterOverrides.country,
       }),
     };
     const {
@@ -145,14 +145,12 @@ export const POST = withWorkspace(
     );
 
     const program = await getProgramOrThrow({
-      workspaceId: (workspace as unknown as { id: string }).id,
+      workspaceId: workspace.id,
       programId,
     });
 
     const enrolledPartner = await createAndEnrollPartner({
-      workspace: workspace as unknown as Parameters<
-        typeof createAndEnrollPartner
-      >[0]["workspace"],
+      workspace,
       program,
       partner,
       link,

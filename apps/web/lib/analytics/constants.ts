@@ -144,12 +144,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
-  "partnerId",
-  "folderId",
-  "groupId",
   "partnerTagId",
-  "tagId",
-  "customerId",
   "qr", // deprecated, but keeping for now for backwards compatibility
   "root",
   "saleType",
@@ -158,10 +153,6 @@ export const VALID_ANALYTICS_FILTERS = [
   "utm_campaign",
   "utm_term",
   "utm_content",
-  "root",
-  "saleType",
-  // deprecated filters, but keeping for now for backwards compatibility
-  "qr",
 ];
 
 // possible analytics filters for a given linkId

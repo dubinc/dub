@@ -234,6 +234,8 @@ model PartnerTag {
   programPartnerTags ProgramPartnerTag[]
 
   @@unique([programId, name])
+  // Composite key for ProgramPartnerTag.(partnerTagId, programId) -> (id, programId) integrity
+  @@unique([id, programId])
   @@index(programId)
 }
 
@@ -245,7 +247,7 @@ model ProgramPartnerTag {
 
   program           Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
   programEnrollment ProgramEnrollment @relation(fields: [programId, partnerId], references: [programId, partnerId], onDelete: Cascade, onUpdate: Cascade)
-  partnerTag        PartnerTag        @relation(fields: [partnerTagId], references: [id], onDelete: Cascade)
+  partnerTag        PartnerTag        @relation(fields: [partnerTagId, programId], references: [id, programId], onDelete: Cascade)
   partner           Partner           @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerTagId, partnerId])

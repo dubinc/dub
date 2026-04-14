@@ -133,23 +133,51 @@ export function buildMetricRangeWhere(
   return and.length ? { AND: and } : {};
 }
 
-/**
- * Builds a Prisma string filter for a query param that may be one ID or many
- * (e.g. `parseFilterValue()` selections). `exclude` maps to NOT IN / not.
- */
-export function buildStringOrListFieldFilter(
+function normalizeStringList(
   value: string | string[] | undefined,
-  exclude: boolean,
-): Prisma.StringFilter | string | undefined {
+): string[] | undefined {
   if (value === undefined) return undefined;
   const list = (Array.isArray(value) ? value : [value]).filter(
     (v) => typeof v === "string" && v.length > 0,
   );
-  if (list.length === 0) return undefined;
-  if (exclude) {
-    return list.length === 1 ? { not: list[0]! } : { notIn: list };
+  return list.length === 0 ? undefined : list;
+}
+
+/**
+ * Nullable string column on `ProgramEnrollment` or `Partner` (`groupId` /
+ * `country`). For NOT IN / not, SQL excludes NULL; OR with `null` keeps rows
+ * with no value / unknown.
+ */
+export function buildNullableStringListWhere(
+  field: "groupId",
+  value: string | string[] | undefined,
+  exclude: boolean,
+): Prisma.ProgramEnrollmentWhereInput | undefined;
+export function buildNullableStringListWhere(
+  field: "country",
+  value: string | string[] | undefined,
+  exclude: boolean,
+): Prisma.PartnerWhereInput | undefined;
+export function buildNullableStringListWhere(
+  field: "groupId" | "country",
+  value: string | string[] | undefined,
+  exclude: boolean,
+): Prisma.ProgramEnrollmentWhereInput | Prisma.PartnerWhereInput | undefined {
+  const list = normalizeStringList(value);
+  if (list === undefined) return undefined;
+
+  const inOrEquals = list.length === 1 ? list[0]! : { in: list };
+  const negation = list.length === 1 ? { not: list[0]! } : { notIn: list };
+
+  if (!exclude) {
+    return { [field]: inOrEquals } as
+      | Prisma.ProgramEnrollmentWhereInput
+      | Prisma.PartnerWhereInput;
   }
-  return list.length === 1 ? list[0]! : { in: list };
+
+  return {
+    OR: [{ [field]: null }, { [field]: negation }],
+  } as Prisma.ProgramEnrollmentWhereInput | Prisma.PartnerWhereInput;
 }
 
 /** Matches GET /api/partners enrollment filter shape + metric ranges. */
@@ -179,7 +207,11 @@ export function buildProgramEnrollmentWhereForList(
 
   const searchWhere = buildPartnerEmailSearchWhere({ email, search });
 
-  const countryFilter = buildStringOrListFieldFilter(country, countryNotIn);
+  const countryWhere = buildNullableStringListWhere(
+    "country",
+    country,
+    countryNotIn,
+  );
 
   const partnerWhere: Prisma.PartnerWhereInput = {
     ...(partnerTagId && {
@@ -199,13 +231,17 @@ export function buildProgramEnrollmentWhereForList(
             }),
       },
     }),
-    ...(countryFilter !== undefined && { country: countryFilter }),
+    ...(countryWhere ?? {}),
     ...searchWhere,
   };
 
   const hasPartnerWhere = Object.keys(partnerWhere).length > 0;
 
-  const groupIdFilter = buildStringOrListFieldFilter(groupId, groupIdNotIn);
+  const groupIdWhere = buildNullableStringListWhere(
+    "groupId",
+    groupId,
+    groupIdNotIn,
+  );
 
   return {
     tenantId,
@@ -221,9 +257,7 @@ export function buildProgramEnrollmentWhereForList(
             in: ["approved", "invited"],
           }
         : status,
-    ...(groupIdFilter !== undefined && {
-      groupId: groupIdFilter,
-    }),
+    ...(groupIdWhere ?? {}),
     ...(hasPartnerWhere ? { partner: partnerWhere } : {}),
     ...metricWhere,
   };

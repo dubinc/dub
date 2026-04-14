@@ -482,7 +482,12 @@ export function PartnersTable() {
           ),
         },
       ].filter((c) => c.id === "menu" || partnersColumns.all.includes(c.id)),
-    [workspaceId, groups],
+    [
+      workspaceId,
+      groups,
+      setPendingEditTagsPartners,
+      setShowEditPartnerTagsModal,
+    ],
   );
 
   const { table, ...tableProps } = useTable({
