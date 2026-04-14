@@ -641,8 +641,15 @@ function PartnersFilters({
   sortOrder: "asc" | "desc";
   status: ProgramEnrollmentStatus;
 }) {
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    usePartnerFilters({ sortBy, sortOrder, status });
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveFilter,
+    onRemoveAll,
+    onToggleOperator,
+  } = usePartnerFilters({ sortBy, sortOrder, status });
 
   return (
     <div>
@@ -653,6 +660,7 @@ function PartnersFilters({
           activeFilters={activeFilters}
           onSelect={onSelect}
           onRemove={onRemove}
+          onRemoveFilter={onRemoveFilter}
         />
         <SearchBoxPersisted
           placeholder="Search by name, email, or company"
@@ -668,7 +676,9 @@ function PartnersFilters({
                 activeFilters={activeFilters}
                 onSelect={onSelect}
                 onRemove={onRemove}
+                onRemoveFilter={onRemoveFilter}
                 onRemoveAll={onRemoveAll}
+                onToggleOperator={onToggleOperator}
               />
             </div>
           )}

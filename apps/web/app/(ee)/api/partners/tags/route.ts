@@ -38,7 +38,7 @@ export const GET = withWorkspace(
         [sortBy]: sortOrder,
       },
       take: pageSize,
-      skip: (page - 1) * pageSize,
+      skip: ((page ?? 1) - 1) * pageSize,
     });
 
     return NextResponse.json(z.array(PartnerTagSchema).parse(partnerTags), {
