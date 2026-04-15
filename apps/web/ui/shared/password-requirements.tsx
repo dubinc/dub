@@ -5,6 +5,7 @@ import { useFormContext, useWatch } from "react-hook-form";
 
 const REQUIREMENTS: {
   name: string;
+  mobileName?: string;
   check: (password: string) => boolean;
 }[] = [
   {
@@ -13,10 +14,12 @@ const REQUIREMENTS: {
   },
   {
     name: "Uppercase letter",
+    mobileName: "Uppercase",
     check: (p) => /[A-Z]/.test(p),
   },
   {
     name: "Lowercase letter",
+    mobileName: "Lowercase",
     check: (p) => /[a-z]/.test(p),
   },
   {
@@ -44,7 +47,7 @@ export const PasswordRequirements = memo(function PasswordRequirements({
 
   return (
     <ul className={cn("mt-2 flex flex-wrap items-center gap-3", className)}>
-      {REQUIREMENTS.map(({ name, check }) => {
+      {REQUIREMENTS.map(({ name, mobileName, check }) => {
         const checked = password?.length && check(password);
 
         return (
@@ -65,7 +68,14 @@ export const PasswordRequirements = memo(function PasswordRequirements({
                     : "text-neutral-200",
               )}
             />
-            <span>{name}</span>
+            {mobileName ? (
+              <>
+                <span className="max-[420px]:hidden">{name}</span>
+                <span className="hidden max-[420px]:inline">{mobileName}</span>
+              </>
+            ) : (
+              <span>{name}</span>
+            )}
           </li>
         );
       })}

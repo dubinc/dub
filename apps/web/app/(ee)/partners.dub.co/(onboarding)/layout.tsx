@@ -1,5 +1,4 @@
-import Toolbar from "@/ui/layout/toolbar/toolbar";
-import { Grid, Wordmark } from "@dub/ui";
+import { CircleQuestion, Grid, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { SignedInHint } from "app/app.dub.co/(onboarding)/signed-in-hint";
 import Link from "next/link";
@@ -48,10 +47,14 @@ export default function PartnerOnboardingLayout({
         ))}
       </div>
 
-      <div className="relative flex min-h-[100dvh] min-h-screen w-full flex-col items-center justify-between">
-        <div className="grow basis-0">
-          <div className="pt-4">
-            <Link href="https://dub.co/home" target="_blank" className="block">
+      <div className="relative flex min-h-[100dvh] min-h-screen w-full flex-col items-center overflow-hidden md:justify-between">
+        <div className="w-full px-4 md:grow md:basis-0 md:px-0">
+          <div className="flex justify-center pt-4">
+            <Link
+              href="https://dub.co/home"
+              target="_blank"
+              className="block w-fit"
+            >
               <Wordmark className="h-8" />
               <div className="text-center text-sm font-semibold text-black/80">
                 Partners
@@ -60,14 +63,30 @@ export default function PartnerOnboardingLayout({
           </div>
         </div>
 
-        <div className="w-full py-16">{children}</div>
+        <div className="w-full flex-1 overflow-y-auto md:flex-none md:overflow-visible">
+          <div className="w-full pt-8 pb-8 sm:pb-4 md:py-16 px-5 md:px-0">{children}</div>
+        </div>
+
+        <div className="w-full md:hidden">
+          <SignedInHint />
+        </div>
 
         {/* Empty div to center main content */}
-        <div className="grow basis-0" />
+        <div className="hidden md:block md:grow md:basis-0" />
       </div>
 
-      <Toolbar show={["help"]} />
-      <SignedInHint />
+      <div className="hidden md:block">
+        <SignedInHint />
+      </div>
+
+      <a
+        href="https://dub.co/contact/support"
+        target="_blank"
+        className="fixed bottom-0 right-0 z-40 m-5 hidden h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-neutral-200 bg-white text-neutral-700 shadow-sm transition-colors hover:bg-neutral-100 md:flex"
+        aria-label="Help"
+      >
+        <CircleQuestion className="size-5" strokeWidth={2} />
+      </a>
     </>
   );
 }
