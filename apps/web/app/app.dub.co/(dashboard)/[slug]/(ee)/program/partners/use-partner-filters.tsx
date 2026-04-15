@@ -8,26 +8,30 @@ import { PARTNER_TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-tags";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
-import { useRouterStuff, encodeRangeToken, parseRangeToken } from "@dub/ui";
-import { CircleDotted, FlagWavy, Tag, Users6, CursorRays, 
+import { encodeRangeToken, parseRangeToken, useRouterStuff } from "@dub/ui";
+import {
+  CircleDotted,
+  CursorRays,
+  FlagWavy,
   InvoiceDollar,
   MarketingTarget,
   MoneyBills2,
-  UserPlus, } from "@dub/ui/icons";
+  Tag,
+  UserPlus,
+  Users6,
+} from "@dub/ui/icons";
 import {
   buildFilterValue,
   cn,
   COUNTRIES,
+  currencyFormatter,
   nFormatter,
   parseFilterValue,
-  currencyFormatter,
   type FilterOperator,
   type ParsedFilter,
 } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
-
-
 
 const SINGLE_VALUE_FILTER_KEYS = ["status"] as const;
 const MULTI_VALUE_FILTER_KEYS = ["partnerTagId", "groupId", "country"] as const;
@@ -161,17 +165,6 @@ export function usePartnerFilters(
     extraSearchParams.status ||
     "approved") as ProgramEnrollmentStatus;
 
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch] = useDebounce(search, 500);
-
-  const { partnerTags, partnerTagsAsync } = usePartnerTagFilterOptions({
-    search: selectedFilter === "partnerTagId" ? debouncedSearch : "",
-    enabled: enabledFilters.includes("partnerTagId"),
-  });
-
-  const { groups } = useGroups();
-
   const cohortParams = useMemo(
     () => ({
       ...(searchParamsObj.groupId && { groupId: searchParamsObj.groupId }),
@@ -180,6 +173,19 @@ export function usePartnerFilters(
     }),
     [searchParamsObj.groupId, searchParamsObj.country, searchParamsObj.search],
   );
+
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const { partnerTags, partnerTagsAsync } = usePartnerTagFilterOptions({
+    search: selectedFilter === "partnerTagId" ? debouncedSearch : "",
+    enabled: enabledFilters.includes("partnerTagId"),
+    status,
+    cohortParams,
+  });
+
+  const { groups } = useGroups();
 
   const { partnersCount: countriesCount } = usePartnersCount<
     | {
@@ -609,9 +615,17 @@ export function usePartnerFilters(
 function usePartnerTagFilterOptions({
   search,
   enabled = true,
+  status,
+  cohortParams,
 }: {
   search: string;
   enabled?: boolean;
+  status: ProgramEnrollmentStatus;
+  cohortParams: {
+    groupId?: string;
+    country?: string;
+    search?: string;
+  };
 }) {
   const { searchParamsObj } = useRouterStuff();
 
@@ -623,8 +637,8 @@ function usePartnerTagFilterOptions({
   const { partnerTagsCount } = usePartnerTagsCount({ enabled });
   const useAsync = Boolean(
     enabled &&
-    partnerTagsCount &&
-    partnerTagsCount > PARTNER_TAGS_MAX_PAGE_SIZE,
+      partnerTagsCount &&
+      partnerTagsCount > PARTNER_TAGS_MAX_PAGE_SIZE,
   );
   const { partnerTags, isLoading: isLoadingPartnerTags } = usePartnerTags({
     query: { search: useAsync ? search : "" },
@@ -641,7 +655,12 @@ function usePartnerTagFilterOptions({
       partnerTagId: string;
       _count: number;
     }[]
-  >({ groupBy: "partnerTagId", enabled });
+  >({
+    groupBy: "partnerTagId",
+    status,
+    ...cohortParams,
+    enabled,
+  });
 
   const tagsResult = useMemo(() => {
     return isLoadingPartnerTags ||
@@ -654,7 +673,7 @@ function usePartnerTagFilterOptions({
             ),
         ))
       ? null
-      : ((
+      : (
           [
             ...(partnerTags ?? []),
             // Add selected tag to list if not already in tags
@@ -669,7 +688,7 @@ function usePartnerTagFilterOptions({
               partnersCount?.find(({ partnerTagId }) => partnerTagId === tag.id)
                 ?._count || 0,
           }))
-          .sort((a, b) => b.count - a.count) ?? null);
+          .sort((a, b) => b.count - a.count) ?? null;
   }, [
     isLoadingPartnerTags,
     partnerTags,
