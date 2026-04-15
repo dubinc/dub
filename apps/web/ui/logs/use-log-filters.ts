@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  HTTP_METHODS,
+  HTTP_MUTATION_METHODS,
   HTTP_STATUS_CODES,
   REQUEST_TYPES,
 } from "@/lib/api-logs/constants";
@@ -88,7 +88,7 @@ export function useLogFilters() {
         key: "method",
         icon: ArrowsOppositeDirectionX,
         label: "Method",
-        options: HTTP_METHODS.map((m) => ({
+        options: HTTP_MUTATION_METHODS.map((m) => ({
           value: m,
           label: m,
         })),

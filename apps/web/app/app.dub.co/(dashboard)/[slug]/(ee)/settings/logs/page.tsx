@@ -1,6 +1,6 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { LogsPageClient } from "./page-client";
+import { LogsTable } from "@/ui/logs/logs-table";
 
 export default function LogsPage() {
   return (
@@ -12,7 +12,7 @@ export default function LogsPage() {
       }}
     >
       <PageWidthWrapper>
-        <LogsPageClient />
+        <LogsTable />
       </PageWidthWrapper>
     </PageContent>
   );

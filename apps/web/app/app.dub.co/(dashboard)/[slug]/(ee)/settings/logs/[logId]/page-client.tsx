@@ -11,11 +11,13 @@ import { CopyButton, StatusBadge, TimestampTooltip } from "@dub/ui";
 import { ChevronRight, StackY3 } from "@dub/ui/icons";
 import { fetcher, formatDateTime } from "@dub/utils";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { HighlighterCore } from "shiki";
 import useSWR from "swr";
 
-export function LogDetailPageClient({ logId }: { logId: string }) {
+export function LogDetailPageClient() {
+  const { logId } = useParams();
   const { id: workspaceId, slug } = useWorkspace();
 
   const {
