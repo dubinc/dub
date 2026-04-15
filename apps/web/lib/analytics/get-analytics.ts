@@ -161,29 +161,6 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     folderId: folderIdFilter,
   });
 
-  if (partnerTagIdParam?.length && params.programId && workspaceId) {
-    const isNotIn = partnerTagIdOperator === "NOT IN";
-    const links = await prisma.link.findMany({
-      where: {
-        projectId: workspaceId,
-        programId: params.programId,
-        partnerId: { not: null },
-        programEnrollment: {
-          programPartnerTags: isNotIn
-            ? { none: { partnerTagId: { in: partnerTagIdParam } } }
-            : { some: { partnerTagId: { in: partnerTagIdParam } } },
-        },
-      },
-      select: { id: true },
-    });
-    const resolvedLinkIds = links.map((l) => l.id);
-    const mergedLinkIds = linkIdParam?.length
-      ? resolvedLinkIds.filter((id) => linkIdParam!.includes(id))
-      : resolvedLinkIds;
-    linkIdParam = mergedLinkIds.length > 0 ? mergedLinkIds : ["__no_match__"];
-    linkIdOperator = "IN";
-  }
-
   const tinybirdParams: any = {
     workspaceId,
     customerId: params.customerId,

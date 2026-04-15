@@ -43,20 +43,26 @@ export const getPartnerEnrollmentInfo = async ({
       Discount.couponTestId,
       ProgramEnrollment.groupId,
       ProgramEnrollment.tenantId,
-      (
-        SELECT GROUP_CONCAT(DISTINCT partnerTagId)
-        FROM ProgramPartnerTag
-        WHERE ProgramPartnerTag.programId = ProgramEnrollment.programId
-        AND ProgramPartnerTag.partnerId = ProgramEnrollment.partnerId
-      ) as partnerTagIds
+      tagAgg.partnerTagIds
     FROM
       ProgramEnrollment
       LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
       LEFT JOIN Discount ON Discount.id = ProgramEnrollment.discountId
+      LEFT JOIN (
+        SELECT
+          programId,
+          partnerId,
+          GROUP_CONCAT(DISTINCT partnerTagId) AS partnerTagIds
+        FROM ProgramPartnerTag
+        WHERE programId = ? AND partnerId = ?
+        GROUP BY programId, partnerId
+      ) AS tagAgg
+        ON tagAgg.programId = ProgramEnrollment.programId
+        AND tagAgg.partnerId = ProgramEnrollment.partnerId
     WHERE
       ProgramEnrollment.partnerId = ?
       AND ProgramEnrollment.programId = ?`,
-    [partnerId, programId],
+    [programId, partnerId, partnerId, programId],
   );
 
   const result =

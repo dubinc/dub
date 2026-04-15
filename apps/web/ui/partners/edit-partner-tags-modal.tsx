@@ -114,8 +114,18 @@ function EditPartnerTagsModalContent({
       (p) => p.tags?.map(({ id }) => id) ?? [],
     );
 
+    const tagIndexMap = new Map<string, number>();
+    for (let i = 0; i < partnerTagIds.length; i++) {
+      const id = partnerTagIds[i]!;
+      if (!tagIndexMap.has(id)) {
+        tagIndexMap.set(id, i);
+      }
+    }
+
     return tags
-      .sort((a, b) => partnerTagIds.indexOf(b.id) - partnerTagIds.indexOf(a.id))
+      .sort(
+        (a, b) => (tagIndexMap.get(b.id) ?? -1) - (tagIndexMap.get(a.id) ?? -1),
+      )
       .map((tag) => {
         const existing = Boolean(partnerTagIds.includes(tag.id));
         const allExisting = partners.every((p) =>
@@ -143,6 +153,7 @@ function EditPartnerTagsModalContent({
         toast.success("Partner tags updated successfully!");
         setShowEditPartnerTagsModal(false);
         mutatePrefix("/api/partners");
+        mutatePrefix("/api/partners/tags");
       },
       onError: ({ error }) => {
         toast.error(parseActionError(error, "Failed to update partner tags"));
@@ -385,6 +396,7 @@ function TagOption({
       onSuccess: () => {
         toast.success("Partner tag deleted successfully!");
         mutatePrefix("/api/partners");
+        mutatePrefix("/api/partners/tags");
       },
       onError: ({ error }) => {
         toast.error(parseActionError(error, "Failed to delete partner tag"));
@@ -403,6 +415,7 @@ function TagOption({
       onSuccess: () => {
         toast.success("Partner tag updated successfully!");
         mutatePrefix("/api/partners");
+        mutatePrefix("/api/partners/tags");
       },
       onError: ({ error }) => {
         toast.error(parseActionError(error, "Failed to update partner tag"));

@@ -8,6 +8,8 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../../safe-action";
 
+const PARTNER_LINKS_TINYBIRD_BATCH_SIZE = 500;
+
 // Update a partner's tags
 export const updatePartnerTagsAction = authActionClient
   .schema(updatePartnerTagsSchema)
@@ -85,34 +87,47 @@ export const updatePartnerTagsAction = authActionClient
       ]);
     });
 
-    // Sync updated partner tags to Tinybird for analytics (top_partner_tags)
-    waitUntil(
-      (async () => {
-        const links = await prisma.link.findMany({
-          where: {
-            programId,
-            partnerId: { in: partnerIds },
-          },
-          include: {
-            ...includeTags,
-            programEnrollment: {
-              select: {
-                groupId: true,
-                programPartnerTags: {
-                  select: {
-                    partnerTag: {
-                      select: {
-                        id: true,
-                      },
-                    },
-                  },
+    const partnerLinksTinybirdInclude = {
+      ...includeTags,
+      programEnrollment: {
+        select: {
+          groupId: true,
+          programPartnerTags: {
+            select: {
+              partnerTag: {
+                select: {
+                  id: true,
                 },
               },
             },
           },
-        });
-        if (links.length > 0) {
+        },
+      },
+    } as const;
+
+    // Sync updated partner tags to Tinybird for analytics (top_partner_tags)
+    waitUntil(
+      (async () => {
+        let cursor: string | undefined;
+
+        while (true) {
+          const links = await prisma.link.findMany({
+            where: {
+              programId,
+              partnerId: { in: partnerIds },
+            },
+            include: partnerLinksTinybirdInclude,
+            orderBy: { id: "asc" },
+            take: PARTNER_LINKS_TINYBIRD_BATCH_SIZE,
+            ...(cursor ? { cursor: { id: cursor }, skip: 1 } : {}),
+          });
+
+          if (links.length === 0) {
+            break;
+          }
+
           await recordLink(links);
+          cursor = links[links.length - 1]!.id;
         }
       })(),
     );
