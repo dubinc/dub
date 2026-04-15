@@ -2,8 +2,8 @@
 
 import { includeTags } from "@/lib/api/links/include-tags";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { updatePartnerTagsSchema } from "@/lib/zod/schemas/partner-tags";
 import { recordLink } from "@/lib/tinybird";
+import { updatePartnerTagsSchema } from "@/lib/zod/schemas/partner-tags";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../../safe-action";
@@ -20,13 +20,17 @@ export const updatePartnerTagsAction = authActionClient
     } = parsedInput;
 
     const partnerIds = [...new Set(partnerIdsInput)];
-    const addTagIds = [...new Set(addTagIdsInput)];
-    const removeTagIds = [...new Set(removeTagIdsInput)];
+    const addTagIds = [...new Set(addTagIdsInput ?? [])];
+    const removeTagIds = [...new Set(removeTagIdsInput ?? [])];
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     if (partnerIds.length === 0)
       throw new Error("At least one partner ID is required.");
+
+    if (addTagIds.length === 0 && removeTagIds.length === 0) {
+      throw new Error("At least one tag to add or remove is required.");
+    }
 
     const [partnerCount, addTagCount] = await Promise.all([
       prisma.programEnrollment.count({

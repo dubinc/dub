@@ -46,7 +46,7 @@ export const updatePartnerTagsSchema = z.object({
 
 export const createPartnerTagSchema = z.object({
   workspaceId: z.string(),
-  name: z.string(),
+  name: z.string().trim().min(1).max(100),
 });
 
 export const updatePartnerTagSchema = createPartnerTagSchema.extend({
