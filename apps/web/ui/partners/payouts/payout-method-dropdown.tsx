@@ -107,6 +107,7 @@ function PayoutMethodItem({
   onAction: (type: PartnerPayoutMethod, isManage: boolean) => void;
   isActionPending: boolean;
 }) {
+  const { partner } = usePartnerProfile();
   const { Icon, wrapperClass } = getPayoutMethodIconConfig(method.type);
 
   return (
@@ -126,11 +127,15 @@ function PayoutMethodItem({
               {method.label}
             </span>
 
-            {method.default && (
-              <span className="rounded-md bg-green-100 px-1.5 py-0.5 text-xs font-semibold text-green-700">
+            {!partner?.payoutsEnabledAt ? (
+              <span className="rounded bg-red-100 px-1.5 py-0.5 text-[0.7rem] font-medium leading-none text-red-700">
+                Restricted
+              </span>
+            ) : method.default ? (
+              <span className="rounded-md bg-green-100 px-1.5 py-0.5 text-[0.7rem] font-semibold leading-none text-green-700">
                 Default
               </span>
-            )}
+            ) : null}
           </div>
           <span className="mt-0.5 block truncate text-xs text-neutral-500">
             {method.identifier ?? "Not connected"}
@@ -153,6 +158,7 @@ function SelectedMethodDisplay({
 }: {
   method: PartnerPayoutMethodSetting;
 }) {
+  const { partner } = usePartnerProfile();
   const { Icon, wrapperClass } = getPayoutMethodIconConfig(method.type);
   return (
     <>
@@ -170,11 +176,15 @@ function SelectedMethodDisplay({
             <span className="block text-xs font-medium text-neutral-900">
               {method.label}
             </span>
-            {method.default && (
-              <span className="rounded bg-green-100 px-1.5 py-0.5 text-xs font-medium text-green-700">
+            {!partner?.payoutsEnabledAt ? (
+              <span className="rounded bg-red-100 px-1.5 py-0.5 text-[0.7rem] font-medium leading-none text-red-700">
+                Restricted
+              </span>
+            ) : method.default ? (
+              <span className="rounded bg-green-100 px-1.5 py-0.5 text-[0.7rem] font-medium leading-none text-green-700">
                 Default
               </span>
-            )}
+            ) : null}
           </div>
           <span className="block truncate text-xs text-neutral-500">
             {method.identifier ?? "Not connected"}
