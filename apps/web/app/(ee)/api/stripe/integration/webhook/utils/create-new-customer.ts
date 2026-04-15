@@ -158,10 +158,11 @@ export async function createNewCustomer(event: Stripe.Event) {
         }),
       }),
 
-      ...(link.partnerId
+      ...(link.partnerId && linkUpdated.programId
         ? [
             sendPartnerPostback({
               partnerId: link.partnerId,
+              programId: linkUpdated.programId,
               event: "lead.created",
               data: {
                 ...clickData,
