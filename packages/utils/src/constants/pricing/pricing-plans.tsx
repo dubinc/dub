@@ -166,7 +166,7 @@ export const PLANS: PlanDetails[] = [
       payouts: 0,
       domains: 10,
       tags: 25,
-      partnerTags: 10,
+      partnerTags: 0,
       folders: 3,
       groups: 0,
       networkInvites: 0,
