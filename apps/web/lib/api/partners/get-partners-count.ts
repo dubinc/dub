@@ -110,7 +110,7 @@ export async function getPartnersCount<T>(
             ...enrollmentMetricWhere,
           },
         },
-        ...commonWhere,
+        ...partnerWhereWithCountry,
       },
       _count: true,
       orderBy: {
