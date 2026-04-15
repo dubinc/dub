@@ -6,7 +6,7 @@ import { prisma } from "@dub/prisma";
 import { prettyPrint } from "@dub/utils";
 import { NextResponse } from "next/server";
 
-// POST /api/admin/delete-partner-account
+// POST /api/admin/partners/delete-account
 export const POST = withAdmin(
   async ({ req }) => {
     const { email, deletePartnerAccount } = await req.json();

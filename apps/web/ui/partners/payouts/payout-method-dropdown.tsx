@@ -107,6 +107,7 @@ function PayoutMethodItem({
   onAction: (type: PartnerPayoutMethod, isManage: boolean) => void;
   isActionPending: boolean;
 }) {
+  const { partner } = usePartnerProfile();
   const { Icon, wrapperClass } = getPayoutMethodIconConfig(method.type);
 
   return (
@@ -133,7 +134,9 @@ function PayoutMethodItem({
             )}
           </div>
           <span className="mt-0.5 block truncate text-xs text-neutral-500">
-            {method.identifier ?? "Not connected"}
+            {method.identifier && partner?.payoutsEnabledAt
+              ? method.identifier
+              : "Not connected"}
           </span>
         </div>
       </div>
@@ -153,6 +156,7 @@ function SelectedMethodDisplay({
 }: {
   method: PartnerPayoutMethodSetting;
 }) {
+  const { partner } = usePartnerProfile();
   const { Icon, wrapperClass } = getPayoutMethodIconConfig(method.type);
   return (
     <>
@@ -177,7 +181,9 @@ function SelectedMethodDisplay({
             )}
           </div>
           <span className="block truncate text-xs text-neutral-500">
-            {method.identifier ?? "Not connected"}
+            {method.identifier && partner?.payoutsEnabledAt
+              ? method.identifier
+              : "Not connected"}
           </span>
         </div>
       </div>
