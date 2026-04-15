@@ -90,6 +90,8 @@ model Program {
   sourceFraudEvents        FraudEvent[]              @relation("SourceFraudEvents")
   fraudAlerts              FraudAlert[]
   referrals                PartnerReferral[]
+  partnerUserPrograms      PartnerUserProgram[]
+  partnerUserLinks         PartnerUserLink[]
 
   @@index(workspaceId)
   @@index(addedToMarketplaceAt)

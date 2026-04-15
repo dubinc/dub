@@ -36,6 +36,8 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       ...invite,
       id: null,
       name: invite.email,
+      programAccess: "all",
+      programs: [],
     }),
   );
 

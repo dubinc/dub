@@ -1,6 +1,12 @@
 enum PartnerRole {
   owner
   member
+  viewer
+}
+
+enum ProgramAccessScope {
+  all
+  restricted
 }
 
 enum PartnerProfileType {
@@ -120,17 +126,20 @@ model PartnerInvite {
 }
 
 model PartnerUser {
-  id        String      @id @default(cuid())
-  role      PartnerRole @default(member)
-  userId    String
-  partnerId String
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id            String             @id @default(cuid())
+  role          PartnerRole        @default(member)
+  programAccess ProgramAccessScope @default(all)
+  userId        String
+  partnerId     String
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
 
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   notificationPreferences PartnerNotificationPreferences?
+  assignedPrograms        PartnerUserProgram[]
+  assignedLinks           PartnerUserLink[]
 
   @@unique([userId, partnerId])
   @@index(partnerId)
@@ -179,4 +188,33 @@ model PartnerSalesChannel {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, salesChannel])
+}
+
+model PartnerUserProgram {
+  id            String   @id @default(cuid())
+  partnerUserId String
+  programId     String
+  createdAt     DateTime @default(now())
+
+  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+  program     Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerUserId, programId])
+  @@index(programId)
+}
+
+model PartnerUserLink {
+  id            String   @id @default(cuid())
+  partnerUserId String
+  linkId        String
+  programId     String
+  createdAt     DateTime @default(now())
+
+  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+  link        Link        @relation(fields: [linkId], references: [id], onDelete: Cascade)
+  program     Program     @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerUserId, linkId])
+  @@index(linkId)
+  @@index(programId)
 }

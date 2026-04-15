@@ -1,28 +1,35 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { programScopeFilter } from "@/lib/auth/partner-users/program-scope-filter";
 import { countMessagesQuerySchema } from "@/lib/zod/schemas/messages";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/messages/count - count messages for a partner
-export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { unread } = countMessagesQuerySchema.parse(searchParams);
+export const GET = withPartnerProfile(
+  async ({ partner, searchParams, partnerUser }) => {
+    const { unread } = countMessagesQuerySchema.parse(searchParams);
 
-  const count = await prisma.message.count({
-    where: {
-      partnerId: partner.id,
-      ...(unread !== undefined && {
-        // Only count messages from the program
-        senderPartnerId: null,
-        readInApp: unread
-          ? // Only count unread messages
-            null
-          : {
-              // Only count read messages
-              not: null,
-            },
-      }),
-    },
-  });
+    const count = await prisma.message.count({
+      where: {
+        partnerId: partner.id,
+        ...(unread !== undefined && {
+          // Only count messages from the program
+          senderPartnerId: null,
+          readInApp: unread
+            ? // Only count unread messages
+              null
+            : {
+                // Only count read messages
+                not: null,
+              },
+        }),
+        ...programScopeFilter(partnerUser.assignedPrograms),
+      },
+    });
 
-  return NextResponse.json(count);
-});
+    return NextResponse.json(count);
+  },
+  {
+    requiredPermission: "messages.read",
+  },
+);

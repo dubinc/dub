@@ -3,6 +3,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { linkScopeFilter } from "@/lib/auth/partner-users/link-scope-filter";
+import { throwIfNoLinkAccess } from "@/lib/auth/partner-users/throw-if-no-access";
 import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
@@ -20,7 +22,7 @@ import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/:programId/customers – Get all customers for a partner program
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({ partner, params, searchParams, partnerUser }) => {
     const { programId } = params;
     const {
       search,
@@ -31,6 +33,11 @@ export const GET = withPartnerProfile(
       page = 1,
       pageSize,
     } = getPartnerCustomersQuerySchema.parse(searchParams);
+
+    throwIfNoLinkAccess({
+      linkId,
+      partnerUser,
+    });
 
     const { program, totalCommissions, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
@@ -59,7 +66,7 @@ export const GET = withPartnerProfile(
         programId: program.id,
         projectId: program.workspaceId,
         ...(country && { country }),
-        ...(linkId && { linkId }),
+        ...(linkId ? { linkId } : linkScopeFilter(partnerUser.assignedLinks)),
         // Only allow search if customer data sharing is enabled
         ...(search && customerDataSharingEnabledAt
           ? search.includes("@")

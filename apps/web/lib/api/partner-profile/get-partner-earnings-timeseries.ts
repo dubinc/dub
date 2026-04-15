@@ -1,21 +1,26 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { linkIncludeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import { sqlGranularityMap } from "@/lib/planetscale/granularity";
 import { getPartnerEarningsTimeseriesSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
-import { Prisma } from "@dub/prisma/client";
+import { Link, Prisma } from "@dub/prisma/client";
 import { format } from "date-fns";
 import * as z from "zod/v4";
+
+interface GetPartnerEarningsTimeseriesParams {
+  partnerId: string;
+  programId: string;
+  filters: z.infer<typeof getPartnerEarningsTimeseriesSchema>;
+  assignedLinks?: Pick<Link, "id">[];
+}
 
 export async function getPartnerEarningsTimeseries({
   partnerId,
   programId,
   filters,
-}: {
-  partnerId: string;
-  programId: string;
-  filters: z.infer<typeof getPartnerEarningsTimeseriesSchema>;
-}) {
+  assignedLinks,
+}: GetPartnerEarningsTimeseriesParams) {
   const {
     groupBy,
     type,
@@ -34,7 +39,7 @@ export async function getPartnerEarningsTimeseries({
     programId: programId,
     include: {
       program: true,
-      links: true,
+      links: linkIncludeFilter(assignedLinks),
     },
   });
 
@@ -64,6 +69,7 @@ export async function getPartnerEarningsTimeseries({
           ${type ? Prisma.sql`AND type = ${type}` : Prisma.sql``}
           ${payoutId ? Prisma.sql`AND payoutId = ${payoutId}` : Prisma.sql``}
           ${linkId ? Prisma.sql`AND linkId = ${linkId}` : Prisma.sql``}
+          ${assignedLinks && assignedLinks.length > 0 ? Prisma.sql`AND linkId IN (${Prisma.join(assignedLinks.map(({ id }) => id))})` : Prisma.sql``}
           ${customerId ? Prisma.sql`AND customerId = ${customerId}` : Prisma.sql``}
           ${status ? Prisma.sql`AND status = ${status}` : Prisma.sql``}
           GROUP BY start${groupBy ? (groupBy === "type" ? Prisma.sql`, type` : Prisma.sql`, linkId`) : Prisma.sql``}

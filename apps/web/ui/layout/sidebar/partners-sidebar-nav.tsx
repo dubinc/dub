@@ -1,11 +1,13 @@
 "use client";
 
+import { hasPermission } from "@/lib/auth/partner-users/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { usePartnerProgramBounties } from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { ProgramsPromoCard } from "@/ui/partners/program-marketplace/programs-promo-card";
+import type { PartnerRole } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -45,11 +47,13 @@ type SidebarNavData = {
   programBountiesCount?: number;
   showDetailedAnalytics?: boolean;
   postbacksEnabled?: boolean;
+  partnerRole?: PartnerRole;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   pathname,
   unreadMessagesCount,
+  partnerRole,
 }) => [
   {
     name: "Programs",
@@ -59,14 +63,18 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: "/programs",
     active: pathname.startsWith("/programs"),
   },
-  {
-    name: "Payouts",
-    description:
-      "View all your upcoming and previous payouts for all your programs.",
-    icon: MoneyBills2,
-    href: "/payouts",
-    active: pathname.startsWith("/payouts"),
-  },
+  ...(partnerRole && hasPermission(partnerRole, "payouts.read")
+    ? [
+        {
+          name: "Payouts",
+          description:
+            "View all your upcoming and previous payouts for all your programs.",
+          icon: MoneyBills2,
+          href: "/payouts" as `/${string}`,
+          active: pathname.startsWith("/payouts"),
+        },
+      ]
+    : []),
   {
     name: "Partner profile",
     description:
@@ -75,14 +83,20 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: "/profile",
     active: pathname.startsWith("/profile"),
   },
-  {
-    name: "Messages",
-    description: "Chat with programs you're enrolled in",
-    icon: Msgs,
-    href: "/messages",
-    active: pathname.startsWith("/messages"),
-    badge: unreadMessagesCount ? Math.min(9, unreadMessagesCount) : undefined,
-  },
+  ...(partnerRole && hasPermission(partnerRole, "messages.read")
+    ? [
+        {
+          name: "Messages",
+          description: "Chat with programs you're enrolled in",
+          icon: Msgs,
+          href: "/messages" as `/${string}`,
+          active: pathname.startsWith("/messages"),
+          badge: unreadMessagesCount
+            ? Math.min(9, unreadMessagesCount)
+            : undefined,
+        },
+      ]
+    : []),
 ];
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
@@ -125,7 +139,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
-  profile: ({ postbacksEnabled }) => ({
+  profile: ({ postbacksEnabled, partnerRole }) => ({
     title: "Partner profile",
     direction: "left",
     content: [
@@ -144,7 +158,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
         ],
       },
-      ...(postbacksEnabled
+      ...(postbacksEnabled &&
+      partnerRole &&
+      hasPermission(partnerRole, "postbacks.read")
         ? [
             {
               name: "Developer",
@@ -177,6 +193,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     queryString,
     programBountiesCount,
     showDetailedAnalytics,
+    partnerRole,
   }) => ({
     title: (
       <div className="mb-3">
@@ -198,13 +215,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/programs/${programSlug}/links`,
             locked: isUnapproved,
           },
-          {
-            name: "Messages",
-            icon: Msgs,
-            href: `/messages/${programSlug}` as `/${string}`,
-            locked: isUnapproved,
-            arrow: true,
-          },
+          ...(partnerRole && hasPermission(partnerRole, "messages.read")
+            ? [
+                {
+                  name: "Messages",
+                  icon: Msgs,
+                  href: `/messages/${programSlug}` as `/${string}`,
+                  locked: isUnapproved,
+                  arrow: true,
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -366,6 +387,7 @@ export function PartnersSidebarNav({
         programBountiesCount: bountiesCount.active,
         showDetailedAnalytics,
         postbacksEnabled: partner?.featureFlags?.postbacks,
+        partnerRole: partner?.role,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
@@ -375,7 +397,9 @@ export function PartnersSidebarNav({
         ) : (
           <>
             <ProgramsPromoCard />
-            <PayoutStats />
+            {partner?.role && hasPermission(partner.role, "payouts.read") && (
+              <PayoutStats />
+            )}
           </>
         )
       }

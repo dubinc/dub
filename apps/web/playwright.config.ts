@@ -32,8 +32,26 @@ export default defineConfig({
         storageState: "playwright/.auth/partner.json",
       },
       testDir: "./playwright/partners",
-      testIgnore: /auth\.setup\.ts/,
+      testIgnore: /(auth\.setup|rbac)(\.spec)?\.ts$/,
       dependencies: ["partner-setup"],
+    },
+    // Partner RBAC tests
+    {
+      name: "rbac-setup",
+      testMatch: /partners\/rbac-auth\.setup\.ts/,
+      use: {
+        baseURL: "http://partners.localhost:8888",
+      },
+    },
+    {
+      name: "partner-rbac",
+      use: {
+        ...devices["Desktop Chrome"],
+        baseURL: "http://partners.localhost:8888",
+      },
+      testDir: "./playwright/partners",
+      testMatch: /rbac\.spec\.ts/,
+      dependencies: ["rbac-setup"],
     },
     // Workspace tests
     {

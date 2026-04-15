@@ -5,6 +5,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { linkIncludeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   createPartnerLinkSchema,
@@ -16,32 +17,34 @@ import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
-export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links, discountCodes } = await getProgramEnrollmentOrThrow({
-    partnerId: partner.id,
-    programId: params.programId,
-    include: {
-      links: true,
-      discountCodes: true,
-    },
-  });
+export const GET = withPartnerProfile(
+  async ({ partner, params, partnerUser }) => {
+    const { links, discountCodes } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+      include: {
+        links: linkIncludeFilter(partnerUser.assignedLinks),
+        discountCodes: true,
+      },
+    });
 
-  // Add discount code to the links
-  const linksByDiscountCode = new Map(
-    discountCodes?.map((discountCode) => [discountCode.linkId, discountCode]),
-  );
+    // Add discount code to the links
+    const linksByDiscountCode = new Map(
+      discountCodes?.map((discountCode) => [discountCode.linkId, discountCode]),
+    );
 
-  const result = links.map((link) => {
-    const discountCode = linksByDiscountCode.get(link.id);
+    const result = links.map((link) => {
+      const discountCode = linksByDiscountCode.get(link.id);
 
-    return {
-      ...link,
-      discountCode: discountCode?.code,
-    };
-  });
+      return {
+        ...link,
+        discountCode: discountCode?.code,
+      };
+    });
 
-  return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
-});
+    return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
+  },
+);
 
 // POST /api/partner-profile/[programId]/links - create a link for a partner
 export const POST = withPartnerProfile(
@@ -150,5 +153,8 @@ export const POST = withPartnerProfile(
     return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink), {
       status: 201,
     });
+  },
+  {
+    requiredPermission: "links.write",
   },
 );

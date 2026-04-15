@@ -1,6 +1,7 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { throwIfNoPermission } from "@/lib/auth/partner-users/throw-if-no-permission";
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -15,8 +16,13 @@ import { authPartnerActionClient } from "../safe-action";
 export const messageProgramAction = authPartnerActionClient
   .inputSchema(messageProgramSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { partner, user } = ctx;
+    const { partner, user, partnerUser } = ctx;
     const { programSlug, text } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "messages.write",
+    });
 
     const program = await prisma.program.findFirstOrThrow({
       select: {

@@ -5,6 +5,10 @@ import {
   sendTestPostbackInputSchema,
   updatePostbackInputSchema,
 } from "@/lib/postback/schemas";
+import {
+  assignProgramInputSchema,
+  assignedProgramOutputSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { createFetch, createSchema } from "@better-fetch/fetch";
 import * as z from "zod/v4";
 
@@ -64,6 +68,15 @@ export const partnerProfileFetch = createFetch({
         }),
         body: sendTestPostbackInputSchema,
         output: z.object({}),
+      },
+
+      // Set assigned programs for a user
+      "@put/api/partner-profile/users/:userId/programs": {
+        params: z.object({
+          userId: z.string(),
+        }),
+        body: assignProgramInputSchema,
+        output: z.array(assignedProgramOutputSchema),
       },
     },
     {

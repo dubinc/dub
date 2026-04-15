@@ -1,9 +1,7 @@
 import { nanoid } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 import { extractOtp, waitForEmail } from "../mailhog";
-
-// Must satisfy: 8+ chars, uppercase, lowercase, digit
-const SIGNUP_PASSWORD = "Password123";
+import { PASSWORD } from "./constants";
 
 const authFile = "playwright/.auth/partner.json";
 
@@ -20,7 +18,7 @@ test("sign up and verify new partner", async ({ page }) => {
   // Step 2: Enter password and submit
   const passwordInput = page.locator('input[name="password"]');
   await expect(passwordInput).toBeVisible();
-  await passwordInput.fill(SIGNUP_PASSWORD);
+  await passwordInput.fill(PASSWORD);
   await page.getByRole("button", { name: "Sign Up" }).click();
 
   // Step 3: Verify email via OTP from MailHog

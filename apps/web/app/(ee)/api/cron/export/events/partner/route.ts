@@ -10,6 +10,7 @@ import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-cust
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { linkIncludeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import { MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING } from "@/lib/constants/partner-profile";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateRandomName } from "@/lib/names";
@@ -48,18 +49,30 @@ export async function POST(req: Request) {
     const { columns, partnerId, programId, userId, ...parsedParams } =
       payloadSchema.parse(JSON.parse(rawBody));
 
-    const user = await prisma.user.findUnique({
+    const partnerUser = await prisma.partnerUser.findUnique({
       where: {
-        id: userId,
+        userId_partnerId: {
+          userId,
+          partnerId,
+        },
       },
       select: {
-        email: true,
+        assignedLinks: true,
+        user: {
+          select: {
+            email: true,
+          },
+        },
       },
     });
 
-    if (!user) {
-      return logAndRespond(`User ${userId} not found. Skipping the export.`);
+    if (!partnerUser) {
+      return logAndRespond(
+        `Partner user ${userId} not found. Skipping the export.`,
+      );
     }
+
+    const { user } = partnerUser;
 
     if (!user.email) {
       return logAndRespond(`User ${userId} has no email. Skipping the export.`);
@@ -71,7 +84,7 @@ export async function POST(req: Request) {
         programId,
         include: {
           program: true,
-          links: true,
+          links: linkIncludeFilter(partnerUser.assignedLinks),
         },
       });
 
@@ -116,7 +129,8 @@ export async function POST(req: Request) {
       includeMetadata: false,
       ...(parsedParams.linkId
         ? { linkId: parsedParams.linkId }
-        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+        : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING &&
+            partnerUser.assignedLinks.length === 0
           ? { partnerId }
           : { linkId: parseFilterValue(links.map((link) => link.id)) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,

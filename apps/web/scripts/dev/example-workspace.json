@@ -1,0 +1,130 @@
+{
+  "workspace": {
+    "id": "ws_2LFUA020G94ZKH7B91JXIGY8F",
+    "name": "Example, Inc.",
+    "slug": "example",
+    "logo": "https://assets.dub.co/logo.png",
+    "plan": "enterprise",
+    "billingCycleStart": 1,
+    "usageLimit": 100000,
+    "linksLimit": 100000,
+    "payoutsLimit": 100000,
+    "domainsLimit": 100,
+    "tagsLimit": 100,
+    "foldersLimit": 100,
+    "usersLimit": 100,
+    "aiLimit": 100,
+    "groupsLimit": 100,
+    "defaultProgramId": "prog_2LFUA020G94ZKH7B91JXIGY8G",
+    "invoicePrefix": "EXMPL",
+    "conversionEnabled": true,
+    "webhookEnabled": true,
+    "dotLinkClaimed": true,
+    "fastDirectDebitPayouts": true
+  },
+  "users": [
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0p",
+      "name": "Owner",
+      "email": "owner@dub-internal-test.com",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "owner"
+    },
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0q",
+      "name": "Member",
+      "email": "member@dub-internal-test.com",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "member"
+    },
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0r",
+      "name": "Viewer",
+      "email": "viewer@dub-internal-test.com",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "viewer"
+    },
+    {
+      "id": "user_cludszk1h0000wmd2e0ea2b0s",
+      "name": "Billing",
+      "email": "billing@dub-internal-test.com",
+      "emailVerified": "2026-01-21T00:00:00.000Z",
+      "role": "billing"
+    }
+  ],
+  "domains": [
+    {
+      "id": "dom_2LFUA020G94ZKH7B91JXIGY8H",
+      "slug": "example.local",
+      "verified": true
+    }
+  ],
+  "folders": [
+    {
+      "id": "fold_2LFUA020G94ZKH7B91JXIGY8I",
+      "name": "Partner Links",
+      "description": "Default folder for partner links",
+      "accessLevel": "write"
+    }
+  ],
+  "rewards": [
+    {
+      "id": "rw_2LFUA020G94ZKH7B91JXIGY8J",
+      "event": "lead",
+      "type": "flat",
+      "amountInCents": 1000,
+      "maxDuration": null,
+      "description": null,
+      "tooltipDescription": null
+    },
+    {
+      "id": "rw_2LFUA020G94ZKH7B91JXIGY8K",
+      "event": "sale",
+      "type": "flat",
+      "amountInCents": 3000,
+      "maxDuration": 12,
+      "description": null,
+      "tooltipDescription": null
+    }
+  ],
+  "groups": [
+    {
+      "id": "grp_2LFUA020G94ZKH7B91JXIGY8L",
+      "name": "Default Group",
+      "slug": "default",
+      "color": null,
+      "leadRewardId": "rw_2LFUA020G94ZKH7B91JXIGY8J",
+      "saleRewardId": "rw_2LFUA020G94ZKH7B91JXIGY8K",
+      "maxPartnerLinks": 50,
+      "additionalLinks": [
+        {
+          "domain": "example.com",
+          "validationMode": "domain"
+        }
+      ],
+      "defaultLinks": [
+        {
+          "url": "https://example.com"
+        },
+        {
+          "url": "https://example.com/docs"
+        }
+      ]
+    }
+  ],
+  "program": {
+    "id": "prog_2LFUA020G94ZKH7B91JXIGY8G",
+    "name": "Example",
+    "slug": "example",
+    "defaultFolderId": "fold_2LFUA020G94ZKH7B91JXIGY8I",
+    "defaultGroupId": "grp_2LFUA020G94ZKH7B91JXIGY8L",
+    "domain": "example.local",
+    "url": "https://example.com",
+    "termsUrl": "https://example.com/terms",
+    "helpUrl": "https://example.com/help",
+    "supportEmail": "support@example.com",
+    "logo": "https://assets.dub.co/logo.png"
+  },
+  "partners": [],
+  "integrations": []
+}

@@ -5,6 +5,7 @@ import { convertToCSV } from "@/lib/analytics/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { linkIncludeFilter } from "@/lib/auth/partner-users/link-scope-filter";
 import {
   LARGE_PROGRAM_IDS,
   LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS,
@@ -16,14 +17,14 @@ import JSZip from "jszip";
 
 // GET /api/partner-profile/programs/[programId]/analytics/export – get export data for partner profile analytics
 export const GET = withPartnerProfile(
-  async ({ partner, params, searchParams }) => {
+  async ({ partner, params, searchParams, partnerUser }) => {
     const { program, links, totalCommissions } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
         include: {
           program: true,
-          links: true,
+          links: linkIncludeFilter(partnerUser.assignedLinks),
         },
       });
 
@@ -115,7 +116,8 @@ export const GET = withPartnerProfile(
           workspaceId: program.workspaceId,
           ...(parsedParams.linkId
             ? { linkId: parsedParams.linkId }
-            : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING
+            : links.length > MAX_PARTNER_LINKS_FOR_LOCAL_FILTERING &&
+                partnerUser.assignedLinks === undefined
               ? { partnerId: partner.id }
               : { linkId: parseFilterValue(links.map((link) => link.id)) }),
           dataAvailableFrom: program.startedAt ?? program.createdAt,

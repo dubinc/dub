@@ -35,12 +35,6 @@ jobs:
       E2E_PARTNER_EMAIL: "partner1@dub-internal-test.com"
       E2E_PARTNER_PASSWORD: "password"
 
-      TINYBIRD_API_KEY: "xx"
-      TINYBIRD_API_URL: "xx"
-
-      AXIOM_TOKEN: "xx"
-      AXIOM_DATASET: "xx"
-
       # serverless-redis-http (SRH) — must match jobs.e2e.services.srh env
       SRH_TOKEN: "e2e_srh_token"
       UPSTASH_REDIS_REST_URL: "http://127.0.0.1:8079"
@@ -109,6 +103,13 @@ jobs:
         ports:
           - 8079:80
 
+      tinybird:
+        image: tinybirdco/tinybird-local:latest
+        env:
+          COMPATIBILITY_MODE: "1"
+        ports:
+          - 7181:7181
+
     steps:
       - name: Check out code
         uses: actions/checkout@v4
@@ -136,6 +137,16 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Setup Tinybird Local
+        working-directory: packages/tinybird
+        run: |
+          pip install tinybird-cli
+          TINYBIRD_TOKEN=$(curl -s http://localhost:7181/tokens | jq -r ".workspace_admin_token")
+          echo "TINYBIRD_API_KEY=${TINYBIRD_TOKEN}" >> $GITHUB_ENV
+          echo "TINYBIRD_API_URL=http://localhost:7181" >> $GITHUB_ENV
+          tb auth --host http://localhost:7181 --token $TINYBIRD_TOKEN
+          tb push
+
       - name: Cache Playwright browsers
         id: playwright-cache
         uses: actions/cache@v4
@@ -154,10 +165,6 @@ jobs:
       - name: Push database schema
         working-directory: apps/web
         run: pnpm prisma:push
-
-      - name: Seed test data
-        working-directory: apps/web
-        run: pnpm tsx playwright/seed.ts
 
       - name: Build application
         run: pnpm turbo build --filter=web
