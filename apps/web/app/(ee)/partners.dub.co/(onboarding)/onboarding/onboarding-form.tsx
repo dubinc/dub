@@ -53,6 +53,7 @@ export function OnboardingForm({
   const { isMobile } = useMediaQuery();
   const [accountCreated, setAccountCreated] = useState(false);
   const [isCountryComboboxOpen, setIsCountryComboboxOpen] = useState(false);
+  const isTabbingRef = useRef(false);
   const { data: session, update: refreshSession } = useSession();
   const countryChangeWarning = useCountryChangeWarningModal();
 
@@ -117,6 +118,12 @@ export function OnboardingForm({
     <form
       ref={formRef}
       onSubmit={handleSubmit(async (data) => await executeAsync(data))}
+      onKeyDownCapture={(e) => {
+        isTabbingRef.current = e.key === "Tab";
+      }}
+      onPointerDownCapture={() => {
+        isTabbingRef.current = false;
+      }}
       className="flex w-full flex-col gap-6 text-left"
     >
       {countryChangeWarning.modal}
@@ -148,7 +155,7 @@ export function OnboardingForm({
             render={({ field }) => (
               <FileUpload
                 accept="images"
-                className="mt-1.5 size-20 rounded-full border border-neutral-300"
+                className="mt-1.5 size-20 rounded-full border border-neutral-300 transition-none focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500"
                 iconClassName="size-5"
                 previewClassName="size-20 rounded-full"
                 variant="plain"
@@ -158,6 +165,7 @@ export function OnboardingForm({
                 content={null}
                 maxFileSizeMB={2}
                 targetResolution={{ width: 160, height: 160 }}
+                accessibilityLabel="Upload profile image"
               />
             )}
           />
@@ -200,6 +208,28 @@ export function OnboardingForm({
                 }
 
                 setIsCountryComboboxOpen(true);
+              }}
+              buttonProps={{
+                onFocus: () => {
+                  const shouldShowCountryChangeWarning =
+                    !partner?.payoutsEnabledAt &&
+                    !countryChangeWarning.isAcknowledged &&
+                    !countryChangeWarning.isOpen;
+
+                  if (
+                    !shouldShowCountryChangeWarning ||
+                    !isTabbingRef.current
+                  ) {
+                    return;
+                  }
+
+                  countryChangeWarning.acknowledgeAndContinue(
+                    () => {
+                      setIsCountryComboboxOpen(true);
+                    },
+                    { focusAcknowledgeButton: true },
+                  );
+                },
               }}
               disabledTooltip={
                 partner?.payoutsEnabledAt ? (
@@ -271,7 +301,7 @@ export function OnboardingForm({
                 partner?.payoutsEnabledAt && "cursor-not-allowed opacity-70",
               )}
               optionClassName={cn(
-                "h-9 flex items-center justify-center rounded-lg flex-1",
+                "h-9 flex items-center justify-center rounded-lg flex-1 outline-none transition-none focus-visible:z-20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-neutral-500",
                 partner?.payoutsEnabledAt && "pointer-events-none",
               )}
               indicatorClassName="bg-white"

@@ -26,6 +26,31 @@ test.describe("Partner onboarding", () => {
     await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
   });
 
+  test("tabbing to country opens the acknowledgement modal and focuses the confirm button", async ({
+    page,
+  }) => {
+    await page.goto("/onboarding");
+
+    const nameInput = page.locator('input[name="name"]').first();
+    const acknowledgeButton = page.getByRole("button", {
+      name: "I acknowledge",
+    });
+    const searchCountriesInput = page.getByPlaceholder("Search countries...");
+
+    await expect(nameInput).toBeFocused();
+
+    await page.keyboard.press("Tab");
+    await page.keyboard.press("Tab");
+
+    await expect(acknowledgeButton).toBeVisible();
+    await expect(acknowledgeButton).toBeFocused();
+
+    await page.keyboard.press("Enter");
+
+    await expect(searchCountriesInput).toBeVisible();
+    await expect(searchCountriesInput).toBeFocused();
+  });
+
   test("profile submit redirects to platforms", async ({ page }) => {
     await page.goto("/onboarding");
 

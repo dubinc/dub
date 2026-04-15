@@ -1,20 +1,36 @@
 "use client";
 
 import { Button, Modal } from "@dub/ui";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useCountryChangeWarningModal() {
   const [showModalState, setShowModalState] = useState(false);
   const [isAcknowledged, setIsAcknowledged] = useState(false);
+  const [focusAcknowledgeButton, setFocusAcknowledgeButton] = useState(false);
   const onAcknowledgeRef = useRef<(() => void) | null>(null);
+  const acknowledgeButtonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showModalState || !focusAcknowledgeButton) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      acknowledgeButtonRef.current?.focus();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [focusAcknowledgeButton, showModalState]);
 
   const handleCancel = useCallback(() => {
     onAcknowledgeRef.current = null;
+    setFocusAcknowledgeButton(false);
     setShowModalState(false);
   }, []);
 
   const handleAcknowledge = useCallback(() => {
     setIsAcknowledged(true);
+    setFocusAcknowledgeButton(false);
     setShowModalState(false);
     onAcknowledgeRef.current?.();
     onAcknowledgeRef.current = null;
@@ -47,13 +63,14 @@ export function useCountryChangeWarningModal() {
       <div className="border-border-subtle flex items-center justify-end gap-2 border-t bg-neutral-50 px-5 py-4">
         <Button
           variant="secondary"
-          className="h-8 w-fit px-3"
+          className="h-8 w-fit px-3 focus-visible:border-neutral-500 focus-visible:ring-1 focus-visible:ring-neutral-500"
           text="Cancel"
           onClick={handleCancel}
         />
         <Button
+          ref={acknowledgeButtonRef}
           variant="primary"
-          className="h-8 w-fit px-3"
+          className="h-8 w-fit px-3 focus-visible:border-neutral-500 focus-visible:ring-1 focus-visible:ring-neutral-500"
           text="I acknowledge"
           onClick={handleAcknowledge}
         />
@@ -66,14 +83,19 @@ export function useCountryChangeWarningModal() {
     setShowModalState(true);
   }, []);
 
-  const acknowledgeAndContinue = useCallback((callback?: () => void) => {
-    onAcknowledgeRef.current = callback ?? null;
-    setShowModalState(true);
-  }, []);
+  const acknowledgeAndContinue = useCallback(
+    (callback?: () => void, options?: { focusAcknowledgeButton?: boolean }) => {
+      onAcknowledgeRef.current = callback ?? null;
+      setFocusAcknowledgeButton(Boolean(options?.focusAcknowledgeButton));
+      setShowModalState(true);
+    },
+    [],
+  );
 
   return {
     modal,
     showModal,
+    isOpen: showModalState,
     isAcknowledged,
     acknowledgeAndContinue,
   };

@@ -1,4 +1,4 @@
-import { Combobox } from "@dub/ui";
+import { type ButtonProps, Combobox } from "@dub/ui";
 import { cn, COUNTRIES } from "@dub/utils";
 import { ReactNode, useMemo } from "react";
 
@@ -10,6 +10,7 @@ export function CountryCombobox({
   className,
   open,
   onOpenChange,
+  buttonProps,
 }: {
   value: string;
   onChange: (value: string) => void;
@@ -18,6 +19,7 @@ export function CountryCombobox({
   className?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  buttonProps?: Partial<ButtonProps>;
 }) {
   const options = useMemo(
     () =>
@@ -60,6 +62,7 @@ export function CountryCombobox({
       searchPlaceholder="Search countries..."
       matchTriggerWidth
       buttonProps={{
+        ...buttonProps,
         className: cn(
           "mt-1.5 w-full justify-start border-neutral-300 px-3",
           "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
@@ -67,6 +70,7 @@ export function CountryCombobox({
           !value && "text-neutral-400",
           disabledTooltip && "cursor-not-allowed",
           error && "border-red-500 ring-red-500 ring-1",
+          buttonProps?.className,
           className,
         ),
         disabledTooltip,
