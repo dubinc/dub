@@ -33,10 +33,16 @@ export async function getPartnersCount<T>(
     partnerIds,
     groupId,
     partnerTagId,
+    tenantId,
     partnerTagIdOperator = "IN",
     groupIdOperator = "IN",
     countryOperator = "IN",
   } = enrollmentFilters;
+
+  const enrollmentScope: Prisma.ProgramEnrollmentWhereInput = {
+    programId,
+    ...(tenantId ? { tenantId } : {}),
+  };
 
   const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
   const groupIdNotIn = groupIdOperator === "NOT IN";
@@ -92,14 +98,13 @@ export async function getPartnersCount<T>(
 
   const enrollmentMetricWhere = buildMetricRangeWhere(enrollmentBase);
 
-  // Get partner count by country
   if (groupBy === "country") {
     const partners = await prisma.partner.groupBy({
       by: ["country"],
       where: {
         programs: {
           some: {
-            programId,
+            ...enrollmentScope,
             ...(groupIdWhere ?? {}),
             status:
               status === "approved_invited"
@@ -110,7 +115,7 @@ export async function getPartnersCount<T>(
             ...enrollmentMetricWhere,
           },
         },
-        ...partnerWhereWithCountry,
+        ...commonWhere,
       },
       _count: true,
       orderBy: {
@@ -123,12 +128,11 @@ export async function getPartnersCount<T>(
     return partners as T;
   }
 
-  // Get partner count by status
   if (groupBy === "status") {
     const partners = await prisma.programEnrollment.groupBy({
       by: ["status"],
       where: {
-        programId,
+        ...enrollmentScope,
         ...(groupIdWhere ?? {}),
         partner: partnerWhereWithCountry,
         ...enrollmentMetricWhere,
@@ -154,13 +158,11 @@ export async function getPartnersCount<T>(
     return partners as T;
   }
 
-  // Get partner count by group
   if (groupBy === "groupId") {
     const partners = await prisma.programEnrollment.groupBy({
       by: ["groupId"],
       where: {
-        programId,
-        ...(groupIdWhere ?? {}),
+        ...enrollmentScope,
         partner: partnerWhereWithCountry,
         status:
           status === "approved_invited"
@@ -182,7 +184,10 @@ export async function getPartnersCount<T>(
   }
 
   if (groupBy === "partnerTagId") {
-    const enrollmentWhere = buildProgramEnrollmentWhereForList(enrollmentBase);
+    const enrollmentWhere = buildProgramEnrollmentWhereForList({
+      ...enrollmentBase,
+      partnerTagId: undefined,
+    });
 
     const partners = await prisma.programPartnerTag.groupBy({
       by: ["partnerTagId"],
