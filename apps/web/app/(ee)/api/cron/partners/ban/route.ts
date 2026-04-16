@@ -162,6 +162,7 @@ export const POST = withCron(async ({ rawBody }) => {
           program: {
             name: program.name,
             slug: program.slug,
+            supportEmail: program.supportEmail,
           },
           // A reason is always present because we validate the schema
           bannedReason: programEnrollment.bannedReason

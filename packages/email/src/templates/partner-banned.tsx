@@ -22,6 +22,7 @@ export default function PartnerBanned({
   program = {
     name: "Acme",
     slug: "acme",
+    supportEmail: "support@acme.com",
   },
   bannedReason = "Terms of Service Violation",
 }: {
@@ -32,6 +33,7 @@ export default function PartnerBanned({
   program: {
     name: string;
     slug: string;
+    supportEmail?: string | null;
   };
   bannedReason: string;
 }) {
@@ -67,7 +69,7 @@ export default function PartnerBanned({
             <Text className="text-sm leading-6 text-neutral-600">
               If you have any questions, please{" "}
               <Link
-                href={`https://partners.dub.co/messages/${program.slug}`}
+                href={`mailto:${program.supportEmail}`}
                 className="font-semibold text-neutral-700 underline underline-offset-2"
               >
                 reach out to the {program.name} team ↗
