@@ -1,0 +1,64 @@
+enum ProgramApplicationRejectionReason {
+  needsMoreDetail
+  doesNotMeetRequirements
+  notTheRightFit
+  other
+}
+
+model ProgramApplication {
+  id              String                             @id @default(cuid())
+  programId       String
+  groupId         String?
+  name            String
+  email           String
+  country         String?
+  website         String?                            @db.Text
+  youtube         String?                            @db.Text
+  twitter         String?                            @db.Text
+  linkedin        String?                            @db.Text
+  instagram       String?                            @db.Text
+  tiktok          String?                            @db.Text
+  formData        Json?                              @db.Json
+  userId          String? // user who reviewed the application
+  rejectionReason ProgramApplicationRejectionReason?
+  rejectionNote   String?                            @db.Text
+  reviewedAt      DateTime?
+  createdAt       DateTime                           @default(now())
+  updatedAt       DateTime                           @updatedAt
+
+  program      Program            @relation(fields: [programId], references: [id])
+  partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])
+  enrollment   ProgramEnrollment?
+  user         User?              @relation(fields: [userId], references: [id])
+
+  @@index(programId)
+  @@index(groupId)
+  @@index(email)
+  @@index(userId)
+}
+
+model ProgramApplicationEvent {
+    id String @id @default(cuid()) // pga_evt_ULID
+    programId String
+    
+    visitedAt DateTime @default(now())
+    startedAt DateTime?
+    submittedAt DateTime?
+    
+    referrer String // e.g. company.com, linkedin.com, marketplace.dub.co, pn_xxx, (direct)
+    metadata Json? @db.Json // full URL, ip address, user agent, geo/device data etc.
+
+    programApplicationId String? 
+    partnerId String?
+
+    program Program @relation(fields: [programId], references: [id])
+    application ProgramApplication? @relation(fields: [programApplicationId], references: [id])
+    partner Partner? @relation(fields: [partnerId], references: [id])
+    programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
+    
+    @@index([programId, visitedAt])
+    @@index([programId, startedAt])
+    @@index([programId, submittedAt])
+    @@index([programId, referrer])
+    @@index([programId, partnerId])
+}
