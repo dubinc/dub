@@ -11,6 +11,8 @@ export const RESERVED_SLUGS = [
   "share",
   "deeplink",
   "robots.txt",
+  "undefined",
+  "null",
   "proxy",
   "account",
   "api",

@@ -2,7 +2,6 @@ import { tb } from "@/lib/tinybird";
 import { log } from "@dub/utils";
 import * as z from "zod/v4";
 import { createId } from "../api/create-id";
-import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import { RequestType } from "../types";
 import { apiLogSchemaTB } from "./schemas";
 
@@ -50,7 +49,7 @@ export const recordApiLog = async ({
   const apiLog: ApiLogInput = {
     id: createId({ prefix: "req_" }),
     timestamp: new Date().toISOString(),
-    workspace_id: prefixWorkspaceId(workspaceId),
+    workspace_id: workspaceId,
     method,
     path: path.replace("/api/", "/"), // remove the /api/ prefix from the path
     route_pattern: routePattern,
