@@ -478,16 +478,18 @@ export const withWorkspace = (
         });
 
         if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response,
-            workspace,
-            session,
-            token,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response,
+              workspace,
+              session,
+              token,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
         return response;
@@ -498,16 +500,18 @@ export const withWorkspace = (
         );
 
         if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response: errorResponse,
-            workspace,
-            session,
-            token,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response: errorResponse,
+              workspace,
+              session,
+              token,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
         return errorResponse;
