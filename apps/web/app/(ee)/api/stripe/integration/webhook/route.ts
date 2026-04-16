@@ -144,7 +144,7 @@ export const POST = withAxiom(async (req: Request) => {
         !result.response.startsWith("Workspace not found") &&
         event.account
       ) {
-        const workspace = await prisma.project.findUnique({
+        const stripeWebhookWorkspace = await prisma.project.findUnique({
           where: {
             stripeConnectId: event.account,
           },
@@ -152,9 +152,9 @@ export const POST = withAxiom(async (req: Request) => {
             id: true,
           },
         });
-        if (workspace) {
+        if (stripeWebhookWorkspace) {
           // if workspace exists, we set the workspace ID
-          result.workspaceId = workspace.id;
+          result.workspaceId = stripeWebhookWorkspace.id;
         }
       }
 
