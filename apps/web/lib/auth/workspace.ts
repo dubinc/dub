@@ -357,6 +357,9 @@ export const withWorkspace = (
 
         // workspace doesn't exist
         if (!workspace || !workspace.users) {
+          // Clear so the catch path won't record this error against a partial/wrong workspace.
+          workspace = undefined;
+
           throw new DubApiError({
             code: "not_found",
             message: "Workspace not found.",
