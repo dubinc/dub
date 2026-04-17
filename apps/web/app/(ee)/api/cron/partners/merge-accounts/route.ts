@@ -244,7 +244,6 @@ export async function POST(req: Request) {
           syncTotalCommissions({
             partnerId: targetPartnerId,
             programId,
-            mode: "direct",
           }),
         ),
       ]);
