@@ -1,5 +1,9 @@
 import { CreateFraudEventInput } from "@/lib/types";
-import { VeriffDecisionEvent } from "@/lib/veriff/schema";
+import {
+  VeriffDecisionEvent,
+  VeriffRiskLabel,
+  veriffRiskLabels,
+} from "@/lib/veriff/schema";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, ProgramEnrollment } from "@dub/prisma/client";
@@ -21,7 +25,10 @@ export async function detectDuplicateIdentityFraud({
     return;
   }
 
-  let veriffSessionIds = riskLabels.map(({ sessionIds }) => sessionIds).flat();
+  let veriffSessionIds = riskLabels
+    .filter(({ label }) => veriffRiskLabels.includes(label as VeriffRiskLabel))
+    .map(({ sessionIds }) => sessionIds)
+    .flat();
 
   // Add the current veriff session id to the list
   veriffSessionIds.push(veriffSessionId);
