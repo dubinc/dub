@@ -1,6 +1,7 @@
 import "dotenv-flow/config";
 
 import { prisma } from "@dub/prisma";
+import type { Prisma } from "@dub/prisma/client";
 import {
   getWorkspaceLimitsForStripeSubscriptionStatus,
   PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
@@ -9,6 +10,72 @@ import {
 import type { Page } from "@playwright/test";
 
 const MOCK_CHECKOUT_SESSION_ID = "cs_test_e2e_mock_session";
+
+/** Columns overwritten by {@link applyMockTrialToWorkspace} — snapshot/restore must stay in sync. */
+const mockTrialWorkspaceColumns = {
+  plan: true,
+  subscriptionCanceledAt: true,
+  billingCycleEndsAt: true,
+  planTier: true,
+  planPeriod: true,
+  trialEndsAt: true,
+  billingCycleStart: true,
+  stripeId: true,
+  usageLimit: true,
+  linksLimit: true,
+  payoutsLimit: true,
+  domainsLimit: true,
+  aiLimit: true,
+  tagsLimit: true,
+  foldersLimit: true,
+  groupsLimit: true,
+  networkInvitesLimit: true,
+  usersLimit: true,
+  paymentFailedAt: true,
+} as const;
+
+export type BillingMockTrialWorkspaceSnapshot = Prisma.ProjectGetPayload<{
+  select: typeof mockTrialWorkspaceColumns;
+}>;
+
+export async function captureWorkspaceBillingTrialSnapshot(
+  slug: string,
+): Promise<BillingMockTrialWorkspaceSnapshot> {
+  return prisma.project.findUniqueOrThrow({
+    where: { slug },
+    select: mockTrialWorkspaceColumns,
+  });
+}
+
+export async function restoreWorkspaceBillingTrialSnapshot(
+  slug: string,
+  snapshot: BillingMockTrialWorkspaceSnapshot,
+): Promise<void> {
+  await prisma.project.update({
+    where: { slug },
+    data: {
+      plan: snapshot.plan,
+      subscriptionCanceledAt: snapshot.subscriptionCanceledAt,
+      billingCycleEndsAt: snapshot.billingCycleEndsAt,
+      planTier: snapshot.planTier,
+      planPeriod: snapshot.planPeriod,
+      trialEndsAt: snapshot.trialEndsAt,
+      billingCycleStart: snapshot.billingCycleStart,
+      stripeId: snapshot.stripeId,
+      usageLimit: snapshot.usageLimit,
+      linksLimit: snapshot.linksLimit,
+      payoutsLimit: snapshot.payoutsLimit,
+      domainsLimit: snapshot.domainsLimit,
+      aiLimit: snapshot.aiLimit,
+      tagsLimit: snapshot.tagsLimit,
+      foldersLimit: snapshot.foldersLimit,
+      groupsLimit: snapshot.groupsLimit,
+      networkInvitesLimit: snapshot.networkInvitesLimit,
+      usersLimit: snapshot.usersLimit,
+      paymentFailedAt: snapshot.paymentFailedAt,
+    },
+  });
+}
 
 /**
  * Writes trialing Pro state directly to the DB (mock path — no Stripe API or webhooks).

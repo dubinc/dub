@@ -106,7 +106,7 @@ export async function updateWorkspacePlan({
           networkInvitesLimit: limits.networkInvites,
           usersLimit: limits.users,
           ...(!subscription ||
-          !["past_due", "unpaid"].includes(subscription.status)
+          ["active", "trialing"].includes(subscription.status)
             ? { paymentFailedAt: null }
             : {}),
           ...(trialEndsAt !== undefined && { trialEndsAt }),

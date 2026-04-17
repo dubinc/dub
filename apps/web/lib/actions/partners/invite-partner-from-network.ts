@@ -15,6 +15,9 @@ import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { authActionClient } from "../safe-action";
 import { throwIfNoPermission } from "../throw-if-no-permission";
 
+export const NETWORK_PARTNER_INVITE_LIMIT_REACHED_MESSAGE =
+  "You have reached your partner network invitations limit.";
+
 export const invitePartnerFromNetworkAction = authActionClient
   .inputSchema(invitePartnerFromNetworkSchema)
   .action(async ({ parsedInput, ctx }) => {
@@ -27,10 +30,9 @@ export const invitePartnerFromNetworkAction = authActionClient
 
     const networkInvitesUsage = await getNetworkInvitesUsage(workspace);
 
-    if (networkInvitesUsage >= workspace.networkInvitesLimit)
-      throw new Error(
-        "You have reached your partner network invitations limit.",
-      );
+    if (networkInvitesUsage >= workspace.networkInvitesLimit) {
+      throw new Error(NETWORK_PARTNER_INVITE_LIMIT_REACHED_MESSAGE);
+    }
 
     const { partnerId, groupId } = parsedInput;
 

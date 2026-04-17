@@ -1,7 +1,10 @@
 import { expect, test } from "@playwright/test";
 import {
   applyMockTrialToWorkspace,
+  captureWorkspaceBillingTrialSnapshot,
   installBillingCheckoutMocks,
+  restoreWorkspaceBillingTrialSnapshot,
+  type BillingMockTrialWorkspaceSnapshot,
 } from "./billing-mocks";
 
 function matchesDashboardOrigin(url: URL, baseURL: string) {
@@ -82,6 +85,7 @@ test.describe("Billing trial checkout", () => {
 test.describe("Free trial user navigation", () => {
   let slug: string;
   let workspaceId: string;
+  let preMockTrialWorkspace: BillingMockTrialWorkspaceSnapshot | undefined;
 
   test.beforeAll(async ({ request }) => {
     const res = await request.get("/api/workspaces");
@@ -90,7 +94,14 @@ test.describe("Free trial user navigation", () => {
     slug = workspace.slug;
     workspaceId = workspace.id;
 
+    preMockTrialWorkspace = await captureWorkspaceBillingTrialSnapshot(slug);
     await applyMockTrialToWorkspace(slug);
+  });
+
+  test.afterAll(async () => {
+    if (slug && preMockTrialWorkspace) {
+      await restoreWorkspaceBillingTrialSnapshot(slug, preMockTrialWorkspace);
+    }
   });
 
   test("billing settings page shows trial banner and CTAs", async ({

@@ -54,24 +54,31 @@ export async function pauseOrCancelCampaignsForProgramOnPlanDowngrade({
   });
 
   for (const campaign of transactionalCampaigns) {
-    const updatedCampaign = await prisma.$transaction(async (tx) => {
-      if (campaign.workflowId) {
-        await tx.workflow.update({
-          where: { id: campaign.workflowId },
-          data: { disabledAt: new Date() },
+    try {
+      const updatedCampaign = await prisma.$transaction(async (tx) => {
+        if (campaign.workflowId) {
+          await tx.workflow.update({
+            where: { id: campaign.workflowId },
+            data: { disabledAt: new Date() },
+          });
+        }
+
+        return tx.campaign.update({
+          where: { id: campaign.id },
+          data: { status: CampaignStatus.paused },
+          include: { workflow: true },
         });
-      }
-
-      return tx.campaign.update({
-        where: { id: campaign.id },
-        data: { status: CampaignStatus.paused },
-        include: { workflow: true },
       });
-    });
 
-    await scheduleTransactionalCampaign({
-      campaign,
-      updatedCampaign,
-    });
+      await scheduleTransactionalCampaign({
+        campaign,
+        updatedCampaign,
+      });
+    } catch (error) {
+      console.warn(
+        `Failed to pause transactional campaign ${campaign.id} on plan downgrade:`,
+        error,
+      );
+    }
   }
 }

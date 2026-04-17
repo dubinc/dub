@@ -44,7 +44,7 @@ export default function Layout({ children }: PropsWithChildren) {
         ))}
       </div>
 
-      <div className="relative flex min-h-[100dvh] min-h-screen w-full flex-col items-center overflow-hidden md:justify-between">
+      <div className="relative flex min-h-[100dvh] w-full flex-col items-center overflow-hidden md:justify-between">
         <div className="w-full px-4 pt-4 md:grow md:basis-0 md:px-0">
           <div className="flex justify-center pt-4">
             <Link href="https://dub.co/home" target="_blank" className="block">
@@ -54,7 +54,7 @@ export default function Layout({ children }: PropsWithChildren) {
         </div>
 
         <div className="w-full flex-1 overflow-y-auto md:flex-none md:overflow-visible">
-          <div className="w-full px-5 pb-8 pt-8 sm:pb-4 lg:px-0 md:py-16">
+          <div className="w-full px-5 pb-8 pt-8 sm:pb-4 md:py-16 lg:px-0">
             {children}
           </div>
         </div>

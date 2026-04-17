@@ -39,16 +39,18 @@ export const POST = withWorkspace(
     }
 
     const existingSubscription = workspace.stripeId
-      ? await stripe.subscriptions
-          .list({
+      ? await Promise.all([
+          stripe.subscriptions.list({
             customer: workspace.stripeId,
-            limit: 20,
-          })
-          .then((res) =>
-            res.data.find(
-              (s) => s.status === "active" || s.status === "trialing",
-            ),
-          )
+            status: "active",
+            limit: 1,
+          }),
+          stripe.subscriptions.list({
+            customer: workspace.stripeId,
+            status: "trialing",
+            limit: 1,
+          }),
+        ]).then(([active, trialing]) => active.data[0] ?? trialing.data[0])
       : null;
 
     if (process.env.VERCEL === "1" && process.env.VERCEL_ENV === "preview") {
@@ -84,7 +86,11 @@ export const POST = withWorkspace(
     } else {
       const customer = await getDubCustomer(session.user.id);
 
-      // For both new users and users with canceled subscriptions
+      const shouldApplyPartnerCheckoutTrial =
+        workspace.stripeId == null && workspace.trialEndsAt == null;
+
+      // New Stripe customer + no prior trial on workspace: partner checkout trial.
+      // Returning Stripe customers (e.g. canceled sub) must not get another trial here.
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
           ? {
@@ -124,9 +130,13 @@ export const POST = withWorkspace(
           enabled: true,
         },
         mode: "subscription",
-        subscription_data: {
-          trial_period_days: PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
-        },
+        ...(shouldApplyPartnerCheckoutTrial
+          ? {
+              subscription_data: {
+                trial_period_days: PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
+              },
+            }
+          : {}),
         client_reference_id: workspace.id,
         metadata: {
           dubCustomerId: session.user.id,

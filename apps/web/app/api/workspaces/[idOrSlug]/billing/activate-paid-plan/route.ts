@@ -10,48 +10,33 @@ export const POST = withWorkspace(
       return new Response("No Stripe customer ID", { status: 400 });
     }
 
-    try {
-      const { data: subscriptions } = await stripe.subscriptions.list({
-        customer: workspace.stripeId,
-        status: "all",
-        limit: 20,
+    const { data: trialingSubs } = await stripe.subscriptions.list({
+      customer: workspace.stripeId,
+      status: "trialing",
+      limit: 1,
+    });
+    const trialingSubscription = trialingSubs[0];
+
+    if (trialingSubscription) {
+      await stripe.subscriptions.update(trialingSubscription.id, {
+        trial_end: "now",
       });
-
-      const trialingSubscription = subscriptions.find(
-        (s) => s.status === "trialing",
-      );
-
-      if (trialingSubscription) {
-        await stripe.subscriptions.update(trialingSubscription.id, {
-          trial_end: "now",
-        });
-        return NextResponse.json({ ok: true });
-      }
-
-      const activeSubscription = subscriptions.find(
-        (s) => s.status === "active",
-      );
-      if (activeSubscription) {
-        return NextResponse.json({ ok: true });
-      }
-
-      throw new DubApiError({
-        code: "bad_request",
-        message: "No trialing or active subscription found for this workspace.",
-      });
-    } catch (error) {
-      if (error instanceof DubApiError) {
-        throw error;
-      }
-      const stripeErr = error as { raw?: { message?: string } };
-      const message =
-        stripeErr.raw?.message ??
-        (error instanceof Error ? error.message : "Unknown error");
-      throw new DubApiError({
-        code: "bad_request",
-        message,
-      });
+      return NextResponse.json({ ok: true });
     }
+
+    const { data: activeSubs } = await stripe.subscriptions.list({
+      customer: workspace.stripeId,
+      status: "active",
+      limit: 1,
+    });
+    if (activeSubs.length > 0) {
+      return NextResponse.json({ ok: true });
+    }
+
+    throw new DubApiError({
+      code: "bad_request",
+      message: "No trialing or active subscription found for this workspace.",
+    });
   },
   {
     requiredPermissions: ["billing.write"],

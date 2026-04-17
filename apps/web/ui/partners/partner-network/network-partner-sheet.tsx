@@ -1,4 +1,7 @@
-import { invitePartnerFromNetworkAction } from "@/lib/actions/partners/invite-partner-from-network";
+import {
+  invitePartnerFromNetworkAction,
+  NETWORK_PARTNER_INVITE_LIMIT_REACHED_MESSAGE,
+} from "@/lib/actions/partners/invite-partner-from-network";
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerNetworkInvitesUsage from "@/lib/swr/use-partner-network-invites-usage";
@@ -217,7 +220,10 @@ function PartnerControls({
       onError({ error }) {
         const msg = String(error.serverError ?? "");
         toast.error(msg || "Failed to send invite.");
-        if (trialActive && msg.toLowerCase().includes("invitations limit")) {
+        if (
+          trialActive &&
+          msg === NETWORK_PARTNER_INVITE_LIMIT_REACHED_MESSAGE
+        ) {
           openTrialLimitModal("networkInvites");
         }
       },
