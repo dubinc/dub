@@ -8,6 +8,7 @@ import useBounty from "@/lib/swr/use-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { rejectBountySubmissionBodySchema } from "@/lib/zod/schemas/bounties";
+import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
 import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -36,6 +37,7 @@ const RejectBountySubmissionModal = ({
     register,
     watch,
     getValues,
+    control,
     formState: { errors },
   } = useForm<z.infer<typeof rejectBountySubmissionBodySchema>>({
     defaultValues: {
@@ -133,10 +135,11 @@ const RejectBountySubmissionModal = ({
                   (optional)
                 </span>
               </label>
-              <span className="text-xs text-neutral-400">
-                {watch("rejectionNote")?.length || 0}/
-                {BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH}
-              </span>
+              <MaxCharactersCounter
+                name="rejectionNote"
+                maxLength={BOUNTY_MAX_SUBMISSION_REJECTION_NOTE_LENGTH}
+                control={control}
+              />
             </div>
             <div className="mt-2">
               <textarea

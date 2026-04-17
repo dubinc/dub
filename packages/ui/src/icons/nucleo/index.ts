@@ -221,6 +221,7 @@ export * from "./square-layout-grid5";
 export * from "./square-layout-grid6";
 export * from "./square-user-sparkle2";
 export * from "./square-xmark";
+export * from "./stack-y-3";
 export * from "./star";
 export * from "./star-fill";
 export * from "./stars2";

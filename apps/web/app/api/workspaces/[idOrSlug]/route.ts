@@ -7,14 +7,17 @@ import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
+import { mergeSiteVisitTrackingSettings } from "@/lib/sitemaps/site-visit-tracking";
 import { storage } from "@/lib/storage";
 import { redis } from "@/lib/upstash";
 import {
   createWorkspaceSchema,
+  siteVisitTrackingSettingsPatchSchema,
   WorkspaceSchema,
   WorkspaceSchemaExtended,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -35,6 +38,9 @@ const updateWorkspaceSchema = createWorkspaceSchema
       ])
       .optional(),
     enforceSAML: z.boolean().nullish(),
+    siteVisitTrackingSettings: siteVisitTrackingSettingsPatchSchema
+      .nullable()
+      .optional(),
   })
   .partial();
 
@@ -87,6 +93,7 @@ export const PATCH = withWorkspace(
       allowedHostnames,
       publishableKey,
       enforceSAML,
+      siteVisitTrackingSettings,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
@@ -130,6 +137,48 @@ export const PATCH = withWorkspace(
       }
     }
 
+    const flags = await getFeatureFlags({
+      workspaceId: workspace.id,
+    });
+
+    const mergedSiteVisitTrackingSettings =
+      siteVisitTrackingSettings !== undefined
+        ? mergeSiteVisitTrackingSettings(
+            workspace.siteVisitTrackingSettings,
+            siteVisitTrackingSettings,
+          )
+        : undefined;
+
+    if (
+      mergedSiteVisitTrackingSettings !== undefined &&
+      mergedSiteVisitTrackingSettings !== null &&
+      mergedSiteVisitTrackingSettings.siteDomainSlug
+    ) {
+      if (!flags.analyticsSettingsSiteVisitTracking) {
+        throw new DubApiError({
+          code: "forbidden",
+          message:
+            "Site visit tracking is not enabled for this workspace. Please contact support to enable it.",
+        });
+      }
+
+      const domain = await prisma.domain.findFirst({
+        where: {
+          projectId: workspace.id,
+          slug: mergedSiteVisitTrackingSettings.siteDomainSlug,
+          archived: false,
+        },
+      });
+
+      if (!domain) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "The selected site links domain was not found for this workspace.",
+        });
+      }
+    }
+
     try {
       const updatedWorkspace = await prisma.project.update({
         where: {
@@ -146,6 +195,12 @@ export const PATCH = withWorkspace(
           ...(publishableKey !== undefined && { publishableKey }),
           ...(enforceSAML !== undefined && {
             ssoEnforcedAt: enforceSAML ? new Date() : null,
+          }),
+          ...(mergedSiteVisitTrackingSettings !== undefined && {
+            siteVisitTrackingSettings:
+              mergedSiteVisitTrackingSettings === null
+                ? Prisma.JsonNull
+                : (mergedSiteVisitTrackingSettings as Prisma.InputJsonValue),
           }),
         },
         include: {
@@ -214,9 +269,6 @@ export const PATCH = withWorkspace(
         WorkspaceSchema.parse({
           ...updatedWorkspace,
           id: prefixWorkspaceId(updatedWorkspace.id),
-          flags: await getFeatureFlags({
-            workspaceId: updatedWorkspace.id,
-          }),
         }),
       );
     } catch (error) {

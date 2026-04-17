@@ -37,6 +37,7 @@ import {
   ShieldCheck,
   ShieldKeyhole,
   Sliders,
+  StackY3,
   Tag,
   Trophy,
   UserCheck,
@@ -79,11 +80,7 @@ type SidebarNavData = {
   partnerNetworkEnabled?: boolean;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
-  slug,
-  pathname,
-  defaultProgramId,
-}) => [
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ slug, pathname }) => [
   {
     name: "Short Links",
     description:
@@ -412,6 +409,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/tokens`,
           },
           {
+            name: "Logs",
+            icon: StackY3,
+            href: `/${slug}/settings/logs`,
+          },
+          {
             name: "Tracking",
             icon: MarketingTarget,
             href: `/${slug}/settings/tracking`,
@@ -553,9 +555,7 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount<
-    number | undefined
-  >({
+  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount({
     eligibility: "eligible",
     status: "pending",
     ignoreParams: true,
@@ -617,7 +617,7 @@ export function AppSidebarNav({
         session: session || undefined,
         showNews: true,
         defaultProgramId: defaultProgramId || undefined,
-        pendingPayoutsCount,
+        pendingPayoutsCount: pendingPayoutsCount?.[0]?.count ?? 0,
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,

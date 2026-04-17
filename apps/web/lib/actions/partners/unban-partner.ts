@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { trackCommissionStatusUpdate } from "@/lib/api/commissions/track-commission-update-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
@@ -152,19 +152,19 @@ export const unbanPartnerAction = authActionClient
             newStatus: "pending",
           }),
 
-          recordAuditLog({
+          trackActivityLog({
             workspaceId: workspace.id,
             programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
             action: "partner.unbanned",
-            description: `Partner ${partnerId} unbanned`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partnerId,
-                metadata: programEnrollment.partner,
+            changeSet: {
+              status: {
+                old: "banned",
+                new: "approved",
               },
-            ],
+            },
           }),
         ]);
 
@@ -189,6 +189,15 @@ export const unbanPartnerAction = authActionClient
               fraudEvents: {
                 none: {},
               },
+            },
+          }),
+
+          // Delete any pending fraud alerts for this partner in this program
+          prisma.fraudAlert.deleteMany({
+            where: {
+              partnerId,
+              programId,
+              status: "pending",
             },
           }),
         ]);

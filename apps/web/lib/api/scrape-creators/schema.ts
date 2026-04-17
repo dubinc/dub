@@ -9,7 +9,8 @@ export const socialProfileSchema = z.preprocess(
         typeof data.message === "string" &&
         (data.message.toLowerCase().includes("doesn't exist") ||
           data.message.toLowerCase().includes("does not exist") ||
-          data.message.toLowerCase().includes("not found"))
+          data.message.toLowerCase().includes("not found") ||
+          data.message.toLowerCase().includes("restricted"))
       ) {
         return {
           ...data,
@@ -229,6 +230,10 @@ export const socialContentSchema = z.preprocess(
       owner: z.object({
         username: z.string(),
       }),
+      video_play_count: z
+        .number()
+        .nullish()
+        .transform((val) => val ?? 0),
       video_view_count: z
         .number()
         .nullish()

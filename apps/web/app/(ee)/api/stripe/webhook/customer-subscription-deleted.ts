@@ -21,8 +21,10 @@ import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
 import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
-export async function customerSubscriptionDeleted(event: Stripe.Event) {
-  const subscriptionDeleted = event.data.object as Stripe.Subscription;
+export async function customerSubscriptionDeleted(
+  event: Stripe.CustomerSubscriptionDeletedEvent,
+) {
+  const subscriptionDeleted = event.data.object;
 
   const stripeId = subscriptionDeleted.customer.toString();
 

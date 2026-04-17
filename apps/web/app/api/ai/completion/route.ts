@@ -11,9 +11,9 @@ import * as z from "zod/v4";
 const completionSchema = z.object({
   prompt: z.string(),
   model: z
-    .enum(["claude-3-5-haiku-latest", "claude-sonnet-4-20250514"])
+    .enum(["claude-haiku-4-5", "claude-sonnet-4-6"])
     .optional()
-    .default("claude-sonnet-4-20250514"),
+    .default("claude-sonnet-4-6"),
 });
 
 // POST /api/ai/completion – Generate AI completion
@@ -39,7 +39,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
     });
 
     // only count usage for the sonnet model
-    if (model === "claude-sonnet-4-20250514") {
+    if (model === "claude-sonnet-4-6") {
       waitUntil(
         prisma.project.update({
           where: { id: normalizeWorkspaceId(workspace.id) },

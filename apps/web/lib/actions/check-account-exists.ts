@@ -4,7 +4,7 @@ import { getIP } from "@/lib/api/utils/get-ip";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
-import { skipAuthThrottling } from "../api/environment";
+import { shouldApplyRateLimit } from "../api/environment";
 import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { emailSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -21,7 +21,7 @@ export const checkAccountExistsAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email } = parsedInput;
 
-    if (!skipAuthThrottling) {
+    if (shouldApplyRateLimit) {
       const { success } = await ratelimit(8, "1 m").limit(
         `account-exists:${await getIP()}`,
       );

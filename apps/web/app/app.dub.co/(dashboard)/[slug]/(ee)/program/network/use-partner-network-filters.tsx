@@ -18,7 +18,7 @@ import { useCallback, useMemo } from "react";
 export function usePartnerNetworkFilters({
   status,
 }: {
-  status: "discover" | "invited" | "recruited";
+  status: "discover" | "invited" | "recruited" | "ignored";
 }) {
   const { searchParamsObj, queryParams } = useRouterStuff();
 

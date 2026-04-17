@@ -19,14 +19,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
   const programs = await prisma.program.findMany({
     where: {
-      // Partner is not banned from the program
-      partners: {
-        none: {
-          partnerId: partner.id,
-          status: "banned",
-        },
-      },
-
       ...(programSlug
         ? {
             slug: programSlug,

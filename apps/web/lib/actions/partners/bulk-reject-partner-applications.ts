@@ -1,9 +1,11 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
+import { sendBatchEmail } from "@dub/email";
+import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -83,36 +85,78 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
     });
 
     waitUntil(
-      Promise.allSettled([
-        recordAuditLog(
-          programEnrollments.map(({ partner }) => ({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner_application.rejected",
-            description: `Partner application rejected for ${partner.id}`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partner.id,
-                metadata: partner,
+      (async () => {
+        await Promise.allSettled([
+          trackActivityLog(
+            programEnrollments.map(({ partner }) => ({
+              workspaceId: workspace.id,
+              programId,
+              resourceType: "partner",
+              resourceId: partner.id,
+              userId: user.id,
+              action: "partner_application.rejected",
+              changeSet: {
+                status: {
+                  old: "pending",
+                  new: "rejected",
+                },
               },
-            ],
-          })),
-        ),
+            })),
+          ),
 
-        resolveFraudGroups({
-          where: {
-            programEnrollment: {
-              id: {
-                in: programEnrollments.map(({ id }) => id),
+          resolveFraudGroups({
+            where: {
+              programEnrollment: {
+                id: {
+                  in: programEnrollments.map(({ id }) => id),
+                },
               },
             },
+            userId: user.id,
+            resolutionReason:
+              "Resolved automatically because the partner application was rejected.",
+          }),
+        ]);
+
+        const program = await prisma.program.findUniqueOrThrow({
+          where: {
+            id: programId,
           },
-          userId: user.id,
-          resolutionReason:
-            "Resolved automatically because the partner application was rejected.",
-        }),
-      ]),
+          select: {
+            name: true,
+            slug: true,
+            supportEmail: true,
+          },
+        });
+
+        const partnersWithEmail = programEnrollments
+          .filter(({ partner }) => partner.email)
+          .map(({ partner }) => partner);
+
+        if (partnersWithEmail.length > 0) {
+          await sendBatchEmail(
+            partnersWithEmail.map((partner) => ({
+              to: partner.email!,
+              subject: `Your application to ${program.name} was not approved`,
+              variant: "notifications",
+              replyTo: program.supportEmail || "noreply",
+              react: PartnerApplicationRejected({
+                partner: {
+                  name: partner.name ?? "there",
+                  email: partner.email!,
+                },
+                program: {
+                  name: program.name,
+                  slug: program.slug,
+                  supportEmail: program.supportEmail ?? undefined,
+                },
+                rejectionReason: undefined,
+                additionalNotes: undefined,
+                canReapplyImmediately: false,
+              }),
+            })),
+          );
+        }
+      })(),
     );
   });

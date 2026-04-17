@@ -1,3 +1,4 @@
+import { formatMoneyCentsForExport } from "@/lib/api/utils/format-money-cents-for-export";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { COUNTRIES } from "@dub/utils";
 
@@ -28,6 +29,12 @@ export const eventsExportColumnAccessors = {
     r.customer.name + (r.customer.email ? ` <${r.customer.email}>` : ""),
   invoiceId: (r: Row) => ("sale" in r ? r.sale.invoiceId : ""),
   saleAmount: (r: Row) =>
-    "sale" in r ? "$" + (r.sale.amount / 100).toFixed(2) : "",
+    "sale" in r
+      ? formatMoneyCentsForExport(
+          r.sale.amount,
+          r.sale.currency,
+          `event ${r.eventId}`,
+        )
+      : "",
   clickId: (r: ClickEvent) => r.click.id,
 };

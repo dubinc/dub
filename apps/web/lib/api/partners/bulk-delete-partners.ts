@@ -113,6 +113,19 @@ export async function bulkDeletePartners({
         },
       });
       console.log(`Deleted ${deletedCommissions.count} commissions`);
+
+      const deletedActivityLogsForCommissions =
+        await prisma.activityLog.deleteMany({
+          where: {
+            resourceType: "commission",
+            resourceId: {
+              in: commissionsToDelete.map((commission) => commission.id),
+            },
+          },
+        });
+      console.log(
+        `Deleted ${deletedActivityLogsForCommissions.count} activity logs for commissions`,
+      );
     }
 
     const deletedPayouts = await prisma.payout.deleteMany({

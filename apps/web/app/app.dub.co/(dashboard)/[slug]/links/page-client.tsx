@@ -156,7 +156,7 @@ function WorkspaceLinks() {
       <LinkBuilder />
       <AddEditTagModal />
       <div className="flex w-full items-center">
-        <PageWidthWrapper className="flex flex-col gap-y-3">
+        <PageWidthWrapper className="flex flex-col">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex w-full grow gap-2 md:w-auto">
               {!workspace.isMegaWorkspace && (
@@ -250,18 +250,22 @@ function WorkspaceLinks() {
               )}
             </div>
           </div>
-          <Filter.List
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onRemoveFilter={onRemoveFilter}
-            onRemoveAll={onRemoveAll}
-          />
+          {activeFilters.length > 0 && (
+            <div className="mt-3">
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveFilter={onRemoveFilter}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
+          )}
         </PageWidthWrapper>
       </div>
 
-      <div className="mt-3">
+      <div className="mt-4">
         <LinksContainer
           CreateLinkButton={canCreateLinks ? CreateLinkButton : () => <></>}
         />
@@ -403,7 +407,7 @@ const MoreLinkOptions = () => {
         <Button
           onClick={() => setOpenPopover(!openPopover)}
           variant="secondary"
-          className="w-auto px-1.5"
+          className="w-auto px-2"
           icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
         />
       </Popover>

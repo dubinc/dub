@@ -8,8 +8,7 @@ import {
   getUrlFromStringIfValid,
   linkConstructorSimple,
 } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
-import { NextRequest, NextResponse } from "next/server";
+import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { parse } from "./parse";
 
 const BUFFER_WORKSPACE_ID = "cm05wnnpo000711ztj05wwdbu";
@@ -17,7 +16,7 @@ const BUFFER_USER_ID = "cm05wnd49000411ztg2xbup0i";
 const BUFFER_FOLDER_ID = "fold_1JNQBVZV8P0NA0YGB11W2HHSQ";
 const BUFFER_BITLY_API_KEY = process.env.BUFFER_BITLY_API_KEY;
 
-export const crawlBitly = async (req: NextRequest) => {
+export const crawlBitly = async (req: NextRequest, ev: NextFetchEvent) => {
   const { domain, fullKey: key } = parse(req);
 
   // bitly doesn't support the following characters: ` ~ , . < > ; ‘ : " / \ [ ] ^ { } ( ) = + ! * @ & $ £ ? % # |
@@ -33,7 +32,7 @@ export const crawlBitly = async (req: NextRequest) => {
           `[Bitly] Creating link on-demand: ${domain}/${key} (createdAt: ${link.created_at})`,
         );
         const encodedKey = encodeKeyIfCaseSensitive({ domain, key });
-        waitUntil(
+        ev.waitUntil(
           prisma.link
             .create({
               data: {
@@ -50,7 +49,6 @@ export const crawlBitly = async (req: NextRequest) => {
             })
             .then((data) =>
               Promise.allSettled([
-                // console log outputs
                 recordLink(data),
                 prisma.project.update({
                   where: {

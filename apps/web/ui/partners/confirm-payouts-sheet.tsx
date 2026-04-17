@@ -101,29 +101,92 @@ function ConfirmPayoutsSheetContent() {
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const selectedPayoutId = searchParamsObj.selectedPayoutId || undefined;
+  const resolvedSelectedPayoutIds = useMemo(() => {
+    const fromMulti =
+      searchParamsObj.selectedPayoutIds?.split(",").filter(Boolean) ?? [];
+    const fromLegacy = searchParamsObj.selectedPayoutId
+      ? [searchParamsObj.selectedPayoutId]
+      : [];
+    return [...new Set([...fromMulti, ...fromLegacy])];
+  }, [searchParamsObj.selectedPayoutIds, searchParamsObj.selectedPayoutId]);
+
+  const isExplicitSelectionMode = resolvedSelectedPayoutIds.length > 0;
+
   const excludedPayoutIds =
     searchParamsObj.excludedPayoutIds?.split(",").filter(Boolean) || [];
 
-  const commonQuery = {
-    workspaceId,
-    cutoffPeriod,
-    ...(selectedPayoutId && { selectedPayoutId }),
-    ...(excludedPayoutIds.length > 0 && {
-      excludedPayoutIds: excludedPayoutIds.join(","),
-    }),
-  } as Record<string, any>;
+  /** Matches the invoice (respects excludedPayoutIds in bulk mode, selectedPayoutIds when explicit). */
+  const summaryQuery = useMemo(
+    () =>
+      ({
+        workspaceId,
+        cutoffPeriod,
+        ...(isExplicitSelectionMode
+          ? { selectedPayoutIds: resolvedSelectedPayoutIds.join(",") }
+          : excludedPayoutIds.length > 0
+            ? { excludedPayoutIds: excludedPayoutIds.join(",") }
+            : {}),
+      }) as Record<string, string>,
+    [
+      workspaceId,
+      cutoffPeriod,
+      isExplicitSelectionMode,
+      resolvedSelectedPayoutIds.join(","),
+      excludedPayoutIds.join(","),
+    ],
+  );
 
-  const { data: eligiblePayoutsCount } = useSWR<{
+  /** Full eligible list for the table — never applies excludedPayoutIds so excluded rows stay visible. */
+  const tableQuery = useMemo(
+    () =>
+      ({
+        workspaceId,
+        cutoffPeriod,
+        ...(isExplicitSelectionMode
+          ? { selectedPayoutIds: resolvedSelectedPayoutIds.join(",") }
+          : {}),
+      }) as Record<string, string>,
+    [
+      workspaceId,
+      cutoffPeriod,
+      isExplicitSelectionMode,
+      resolvedSelectedPayoutIds.join(","),
+    ],
+  );
+
+  const {
+    data: eligiblePayoutsSummaryCount,
+    isLoading: eligiblePayoutsSummaryLoading,
+  } = useSWR<{
     count: number;
     amount: number;
   }>(
-    `/api/programs/${defaultProgramId}/payouts/eligible/count?${new URLSearchParams(commonQuery).toString()}`,
+    defaultProgramId
+      ? `/api/programs/${defaultProgramId}/payouts/eligible/count?${new URLSearchParams(summaryQuery).toString()}`
+      : null,
     fetcher,
     {
       keepPreviousData: true,
     },
   );
+
+  /** Total eligible rows for table pagination (no excludedPayoutIds). Same URL as summary when bulk + no exclusions → SWR dedupes. */
+  const { data: eligiblePayoutsTableTotalCount } = useSWR<{
+    count: number;
+    amount: number;
+  }>(
+    defaultProgramId && !isExplicitSelectionMode
+      ? `/api/programs/${defaultProgramId}/payouts/eligible/count?${new URLSearchParams(tableQuery).toString()}`
+      : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
+  const eligiblePayoutsTableRowCount = isExplicitSelectionMode
+    ? eligiblePayoutsSummaryCount?.count ?? 0
+    : eligiblePayoutsTableTotalCount?.count ?? 0;
 
   const { data: payoutsCount } = useSWR<
     {
@@ -169,25 +232,43 @@ function ConfirmPayoutsSheetContent() {
     error: eligiblePayoutsError,
     isLoading: eligiblePayoutsLoading,
   } = useSWR<PayoutResponse[]>(
-    `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
-      ...commonQuery,
-      page: pagination.pageIndex.toString(),
-    }).toString()}`,
+    defaultProgramId
+      ? `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams(
+          {
+            ...tableQuery,
+            page: pagination.pageIndex.toString(),
+          },
+        ).toString()}`
+      : null,
     fetcher,
     {
       keepPreviousData: true,
     },
   );
 
-  const finalEligiblePayouts = useMemo(() => {
-    // if there's a selected payout id, return the payout directly
-    if (selectedPayoutId) return eligiblePayouts;
+  /** All rows returned for the table (including bulk-mode exclusions, for strikethrough + Include). */
+  const finalEligiblePayouts = useMemo(
+    () => eligiblePayouts ?? [],
+    [eligiblePayouts],
+  );
 
-    // else, we need to filter out the excluded payout ids (if specified)
-    return eligiblePayouts?.filter(
+  /** Subset actually on the invoice (for fees / external amount / external row in summary). */
+  const payoutsIncludedInInvoice = useMemo(() => {
+    if (!eligiblePayouts) {
+      return [];
+    }
+    if (isExplicitSelectionMode) {
+      return eligiblePayouts;
+    }
+    return eligiblePayouts.filter(
       (payout) => !excludedPayoutIds.includes(payout.id),
     );
-  }, [eligiblePayouts, selectedPayoutId, excludedPayoutIds]);
+  }, [eligiblePayouts, isExplicitSelectionMode, excludedPayoutIds]);
+
+  const showPerRowIncludeExclude = useMemo(
+    () => !isExplicitSelectionMode || resolvedSelectedPayoutIds.length > 1,
+    [isExplicitSelectionMode, resolvedSelectedPayoutIds.length],
+  );
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
     onError: ({ error }) => {
@@ -343,7 +424,7 @@ function ConfirmPayoutsSheetContent() {
   };
 
   const { amount, fee, total, fastAchFee, externalAmount } = useMemo(() => {
-    const amount = eligiblePayoutsCount?.amount;
+    const amount = eligiblePayoutsSummaryCount?.amount;
 
     if (
       amount === undefined ||
@@ -359,8 +440,7 @@ function ConfirmPayoutsSheetContent() {
       };
     }
 
-    // Calculate the total external amount
-    const externalAmount = finalEligiblePayouts?.reduce(
+    const externalAmount = payoutsIncludedInInvoice.reduce(
       (acc, payout) =>
         isExternalPayout(payout) ? acc + payout.amount : acc + 0,
       0,
@@ -388,8 +468,8 @@ function ConfirmPayoutsSheetContent() {
       fastAchFee,
     };
   }, [
-    eligiblePayoutsCount,
-    finalEligiblePayouts,
+    eligiblePayoutsSummaryCount,
+    payoutsIncludedInInvoice,
     selectedPaymentMethod,
     program?.payoutMode,
     payoutFeeWaiverLimit,
@@ -464,8 +544,8 @@ function ConfirmPayoutsSheetContent() {
         ),
       },
       // only show cutoff period if there are less than 1,000 payouts
-      ...(eligiblePayoutsCount &&
-      eligiblePayoutsCount.count <= CUTOFF_PERIOD_MAX_PAYOUTS
+      ...(eligiblePayoutsSummaryCount &&
+      eligiblePayoutsSummaryCount.count <= CUTOFF_PERIOD_MAX_PAYOUTS
         ? [
             {
               key: "Cutoff Period",
@@ -500,8 +580,8 @@ function ConfirmPayoutsSheetContent() {
       {
         key: "Partners",
         value:
-          eligiblePayoutsCount !== undefined ? (
-            nFormatter(eligiblePayoutsCount.count, { full: true })
+          eligiblePayoutsSummaryCount !== undefined ? (
+            nFormatter(eligiblePayoutsSummaryCount.count, { full: true })
           ) : (
             <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
           ),
@@ -515,7 +595,8 @@ function ConfirmPayoutsSheetContent() {
             currencyFormatter(amount)
           ),
       },
-      ...(finalEligiblePayouts && finalEligiblePayouts.some(isExternalPayout)
+      ...(payoutsIncludedInInvoice.length > 0 &&
+      payoutsIncludedInInvoice.some(isExternalPayout)
         ? [
             {
               key: "External Amount",
@@ -570,8 +651,16 @@ function ConfirmPayoutsSheetContent() {
   }, [
     amount,
     externalAmount,
+    eligiblePayoutsSummaryCount,
+    payoutsIncludedInInvoice,
     paymentMethods,
+    paymentMethodsLoading,
+    paymentMethodOptions,
     selectedPaymentMethod,
+    selectedPaymentMethodOption,
+    finalPaymentMethods,
+    slug,
+    program?.payoutMode,
     cutoffPeriod,
     cutoffPeriodOptions,
     selectedCutoffPeriodOption,
@@ -598,7 +687,7 @@ function ConfirmPayoutsSheetContent() {
   );
 
   const table = useTable({
-    data: eligiblePayouts || [],
+    data: finalEligiblePayouts || [],
     columns: [
       partnerColumn,
       {
@@ -609,14 +698,16 @@ function ConfirmPayoutsSheetContent() {
             <div className="relative flex items-center justify-end gap-1.5">
               <span
                 className={cn(
-                  !selectedPayoutId && "group-hover/row:opacity-0",
-                  excludedPayoutIds.includes(row.original.id) && "line-through",
+                  showPerRowIncludeExclude && "group-hover/row:opacity-0",
+                  !isExplicitSelectionMode &&
+                    excludedPayoutIds.includes(row.original.id) &&
+                    "line-through",
                 )}
               >
                 {currencyFormatter(row.original.amount)}
               </span>
 
-              {!selectedPayoutId && (
+              {showPerRowIncludeExclude && (
                 <div
                   className={cn(
                     "pointer-events-none absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100",
@@ -627,12 +718,39 @@ function ConfirmPayoutsSheetContent() {
                   <Button
                     variant="secondary"
                     text={
-                      excludedPayoutIds.includes(row.original.id)
-                        ? "Include"
-                        : "Exclude"
+                      isExplicitSelectionMode
+                        ? "Remove"
+                        : excludedPayoutIds.includes(row.original.id)
+                          ? "Include"
+                          : "Exclude"
                     }
                     className="h-6 w-fit px-2"
                     onClick={() => {
+                      if (isExplicitSelectionMode) {
+                        const next = resolvedSelectedPayoutIds.filter(
+                          (id) => id !== row.original.id,
+                        );
+
+                        queryParams({
+                          ...(next.length > 0
+                            ? {
+                                set: {
+                                  selectedPayoutIds: next.join(","),
+                                },
+                                del: ["selectedPayoutId", "excludedPayoutIds"],
+                              }
+                            : {
+                                del: [
+                                  "selectedPayoutIds",
+                                  "selectedPayoutId",
+                                  "excludedPayoutIds",
+                                ],
+                              }),
+                          replace: true,
+                        });
+                        return;
+                      }
+
                       const newExcludedPayoutIds = excludedPayoutIds.includes(
                         row.original.id,
                       )
@@ -648,9 +766,14 @@ function ConfirmPayoutsSheetContent() {
                                 excludedPayoutIds:
                                   newExcludedPayoutIds.join(","),
                               },
+                              del: ["selectedPayoutIds", "selectedPayoutId"],
                             }
                           : {
-                              del: "excludedPayoutIds",
+                              del: [
+                                "excludedPayoutIds",
+                                "selectedPayoutIds",
+                                "selectedPayoutId",
+                              ],
                             }),
                         replace: true,
                       });
@@ -672,10 +795,11 @@ function ConfirmPayoutsSheetContent() {
     tdClassName: (id, row) =>
       cn(
         "transition-opacity",
-        excludedPayoutIds.includes(row.original.id) && [
-          "[&>div]:opacity-50",
-          id === "total" && "group-hover/row:[&>div]:opacity-100",
-        ], // Excluded payout
+        !isExplicitSelectionMode &&
+          excludedPayoutIds.includes(row.original.id) && [
+            "[&>div]:opacity-50",
+            id === "total" && "group-hover/row:[&>div]:opacity-100",
+          ],
         id === "total" && "text-right",
         "border-l-0",
       ),
@@ -684,11 +808,13 @@ function ConfirmPayoutsSheetContent() {
     resourceName: (p) => `payout${p ? "s" : ""}`,
     pagination,
     onPaginationChange: setPagination,
-    rowCount: eligiblePayoutsCount?.count ?? 0,
+    rowCount: eligiblePayoutsTableRowCount,
     loading: eligiblePayoutsLoading,
     error: eligiblePayoutsError
       ? "Failed to load payouts for this invoice."
       : undefined,
+    onRowClick: (row) =>
+      window.open(`/${slug}/program/payouts/${row.original.id}`, "_blank"),
   });
 
   const { error: permissionsError } = clientAccessCheck({
@@ -770,8 +896,11 @@ function ConfirmPayoutsSheetContent() {
               paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
               fastSettlement: selectedPaymentMethod.fastSettlement,
               cutoffPeriod,
-              selectedPayoutId,
-              excludedPayoutIds,
+              ...(isExplicitSelectionMode
+                ? { selectedPayoutIds: resolvedSelectedPayoutIds }
+                : excludedPayoutIds.length > 0
+                  ? { excludedPayoutIds }
+                  : {}),
               amount: amount ?? 0,
               fee: fee ?? 0,
               total: total ?? 0,
@@ -796,7 +925,10 @@ function ConfirmPayoutsSheetContent() {
               : `${isTouchDevice ? "Press" : "Click"} and hold to confirm payout`
           }
           disabled={
-            eligiblePayoutsLoading || !selectedPaymentMethod || amount === 0
+            eligiblePayoutsLoading ||
+            eligiblePayoutsSummaryLoading ||
+            !selectedPaymentMethod ||
+            amount === 0
           }
           disabledTooltip={
             payoutsUsage &&
@@ -819,7 +951,7 @@ function ConfirmPayoutsSheetContent() {
             )
           }
         />
-        {holdPayoutsCount > 0 && (
+        {!isExplicitSelectionMode && holdPayoutsCount > 0 && (
           <div className="flex items-center justify-center gap-2 text-sm text-neutral-600">
             <span>
               Excluding{" "}
@@ -835,25 +967,13 @@ function ConfirmPayoutsSheetContent() {
                 )
               </span>
             </span>
-            <Button
-              variant="secondary"
-              text="Review"
-              className="h-7 w-fit rounded-md border border-neutral-200 px-2 text-sm"
-              onClick={() =>
-                queryParams({
-                  set: {
-                    status: "hold",
-                  },
-                  del: [
-                    "confirmPayouts",
-                    "selectedPayoutId",
-                    "excludedPayoutIds",
-                    "payoutId",
-                    "page",
-                  ],
-                })
-              }
-            />
+            <a href={`/${slug}/program/payouts?status=hold`} target="_blank">
+              <Button
+                variant="secondary"
+                text="Review"
+                className="h-7 w-fit cursor-alias rounded-md border border-neutral-200 px-2 text-sm"
+              />
+            </a>
           </div>
         )}
       </div>
@@ -882,7 +1002,12 @@ export function ConfirmPayoutsSheet() {
       onOpenChange={setIsOpen}
       onClose={() => {
         queryParams({
-          del: ["confirmPayouts", "selectedPayoutId", "excludedPayoutIds"],
+          del: [
+            "confirmPayouts",
+            "selectedPayoutId",
+            "selectedPayoutIds",
+            "excludedPayoutIds",
+          ],
         });
       }}
     >

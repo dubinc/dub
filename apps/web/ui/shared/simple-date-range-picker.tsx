@@ -18,6 +18,7 @@ export default function SimpleDateRangePicker({
   values,
   disabled,
   presets,
+  fromDate,
 }: {
   className?: string;
   align?: "start" | "center" | "end";
@@ -25,6 +26,7 @@ export default function SimpleDateRangePicker({
   values?: Values;
   disabled?: boolean;
   presets?: (typeof DATE_RANGE_INTERVAL_PRESETS)[number][];
+  fromDate?: Date;
 }) {
   const { queryParams, searchParamsObj } = useRouterStuff();
   const { start, end, interval } = values ?? (searchParamsObj as Values);
@@ -88,6 +90,7 @@ export default function SimpleDateRangePicker({
         };
       })}
       disabled={disabled}
+      fromDate={fromDate}
     />
   );
 }

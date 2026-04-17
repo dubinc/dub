@@ -84,6 +84,7 @@ export const invitePartnerFromNetworkAction = authActionClient
       },
       update: {
         invitedAt: new Date(),
+        ignoredAt: null,
       },
     });
 
@@ -91,7 +92,7 @@ export const invitePartnerFromNetworkAction = authActionClient
       Promise.allSettled([
         (async () => {
           if (!partner.email) return;
-          const rewardsAndBounties = await getGroupRewardsAndBounties({
+          const { rewards, bounties } = await getGroupRewardsAndBounties({
             programId,
             groupId: enrolledPartner.groupId || program.defaultGroupId,
           });
@@ -106,8 +107,10 @@ export const invitePartnerFromNetworkAction = authActionClient
                 name: program.name,
                 slug: program.slug,
                 logo: program.logo,
+                website: program.url,
               },
-              ...rewardsAndBounties,
+              rewards,
+              bounties,
             }),
           });
         })(),

@@ -32,6 +32,7 @@ import {
   Table,
   TimestampTooltip,
   Tooltip,
+  useKeyboardShortcut,
   usePagination,
   useTable,
 } from "@dub/ui";
@@ -167,12 +168,13 @@ function PayoutDetailsContent({
       Partner: (
         <ConditionalLink
           href={`/${slug}/program/partners/${payout.partner.id}`}
+          className="flex min-w-0 items-center gap-1.5 text-neutral-500"
         >
           <PartnerAvatar
             partner={payout.partner}
-            className="mr-1.5 inline-flex size-5 shrink-0"
+            className="mt-px size-5 shrink-0"
           />
-          {payout.partner.name}
+          <span className="truncate leading-5">{payout.partner.name}</span>
         </ConditionalLink>
       ),
 
@@ -508,6 +510,21 @@ function PayoutConfirmButton() {
   const permissionsError =
     typeof _permissionsError === "string" ? _permissionsError : null;
 
+  useKeyboardShortcut(
+    "c",
+    () =>
+      router.push(
+        `/${slug}/program/payouts?confirmPayouts=true&selectedPayoutId=${payout?.id}`,
+      ),
+    {
+      enabled:
+        !hasHold &&
+        !!payout?.id &&
+        !!payout.partner.payoutsEnabledAt &&
+        !permissionsError,
+    },
+  );
+
   if (payout?.status !== "pending") {
     return null;
   }
@@ -516,6 +533,8 @@ function PayoutConfirmButton() {
     <div className="flex items-center gap-2">
       <Button
         text="Confirm payout"
+        className="h-8 px-3 sm:h-9"
+        shortcut="C"
         disabledTooltip={
           hasHold
             ? `This partner's payouts are on hold due to [unresolved fraud events](${APP_DOMAIN}/${slug}/program/fraud?partnerId=${payout.partner.id}). They cannot be paid out until resolved.`

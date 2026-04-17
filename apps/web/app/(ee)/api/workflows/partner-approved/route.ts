@@ -1,4 +1,4 @@
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
+import { generateDiscountCodeForPartner } from "@/lib/api/discounts/generate-discount-code-for-partner";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getGroupRewardsAndBounties } from "@/lib/api/partners/get-group-rewards-and-bounties";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -9,6 +9,7 @@ import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
@@ -58,18 +59,25 @@ export const { POST } = serve<Payload>(
       workflowRunId: context.workflowRunId,
     });
 
-    const { program, partner, links, ...programEnrollment } =
-      await getProgramEnrollmentOrThrow({
-        programId,
-        partnerId,
-        include: {
-          program: true,
-          partner: true,
-          links: true,
-        },
-      });
+    const {
+      program,
+      partner,
+      links: existingPartnerLinks,
+      ...programEnrollment
+    } = await getProgramEnrollmentOrThrow({
+      programId,
+      partnerId,
+      include: {
+        program: true,
+        partner: true,
+        links: true,
+      },
+    });
 
     const { groupId } = programEnrollment;
+
+    const allPartnerLinks =
+      ProgramPartnerLinkSchema.array().parse(existingPartnerLinks);
 
     // Step 1: Create partner default links
     await context.run("create-default-links", async () => {
@@ -103,8 +111,8 @@ export const { POST } = serve<Payload>(
         return;
       }
 
-      // Skip existing default links
-      for (const link of links) {
+      // Skip existing default links (should never happen since it's a new partner, but just in case)
+      for (const link of existingPartnerLinks) {
         if (link.partnerGroupDefaultLinkId) {
           partnerGroupDefaultLinks = partnerGroupDefaultLinks.filter(
             (defaultLink) => defaultLink.id !== link.partnerGroupDefaultLinkId,
@@ -154,76 +162,26 @@ export const { POST } = serve<Payload>(
         })),
       });
 
+      allPartnerLinks.push(...partnerLinks);
+
       return;
     });
 
     // Step 2: Auto-provision discount code if enabled
     await context.run("create-discount-codes", async () => {
-      if (!groupId) {
-        return;
-      }
-
-      const group = await prisma.partnerGroup.findUnique({
-        where: {
-          id: groupId,
-        },
-        include: {
-          discount: true,
-        },
+      logger.info({
+        message: "Started executing workflow step 'create-discount-codes'.",
+        data: input,
       });
 
-      if (!group?.discount?.autoProvisionEnabledAt) {
-        return;
-      }
-
-      const workspace = await prisma.project.findUniqueOrThrow({
-        where: {
-          id: program.workspaceId,
-        },
-        select: {
-          stripeConnectId: true,
+      await generateDiscountCodeForPartner({
+        workspaceId: program.workspaceId,
+        partner: {
+          id: partner.id,
+          name: partner.name,
+          groupId,
         },
       });
-
-      if (!workspace.stripeConnectId) {
-        return;
-      }
-
-      const partnerLinks = await prisma.link.findMany({
-        where: {
-          programId,
-          partnerId,
-          partnerGroupDefaultLinkId: {
-            not: null,
-          },
-          discountCode: {
-            is: null,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (partnerLinks.length === 0) {
-        return;
-      }
-
-      for (const link of partnerLinks) {
-        try {
-          await createDiscountCode({
-            stripeConnectId: workspace.stripeConnectId,
-            partner,
-            link,
-            discount: group.discount,
-          });
-        } catch (error) {
-          console.error(
-            `Failed to create discount code for link ${link.id}:`,
-            error,
-          );
-        }
-      }
     });
 
     // Step 3: Send email to partner application approved
@@ -336,8 +294,7 @@ export const { POST } = serve<Payload>(
         ...partner,
         ...polyfillSocialMediaFields(partnerPlatforms),
         id: partner.id,
-        status: programEnrollment.status,
-        links,
+        links: allPartnerLinks,
       });
 
       const workspace = await prisma.project.findUniqueOrThrow({
@@ -372,10 +329,6 @@ export const { POST } = serve<Payload>(
       await triggerDraftBountySubmissionCreation({
         programId,
         partnerIds: [partnerId],
-      });
-
-      logger.info({
-        message: `Triggered draft bounty submission creation for partner ${partnerId} in program ${programId}.`,
       });
     });
 

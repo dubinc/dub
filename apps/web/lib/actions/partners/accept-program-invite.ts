@@ -1,6 +1,10 @@
 "use server";
 
+import { generateDiscountCodeForPartner } from "@/lib/api/discounts/generate-discount-code-for-partner";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
 import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
+import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -50,6 +54,11 @@ export const acceptProgramInviteAction = authPartnerActionClient
         },
         include: {
           links: true,
+          partner: {
+            include: {
+              platforms: true,
+            },
+          },
         },
       });
     });
@@ -59,6 +68,10 @@ export const acceptProgramInviteAction = authPartnerActionClient
         const workspace = await prisma.project.findUnique({
           where: {
             defaultProgramId: programId,
+          },
+          select: {
+            id: true,
+            webhookEnabled: true,
           },
         });
 
@@ -71,13 +84,36 @@ export const acceptProgramInviteAction = authPartnerActionClient
           ...partner,
           ...enrollment,
           id: partner.id,
+          ...polyfillSocialMediaFields(enrollment.partner.platforms),
         });
 
-        await sendWorkspaceWebhook({
-          workspace,
-          trigger: "partner.enrolled",
-          data: enrolledPartner,
-        });
+        await Promise.allSettled([
+          // 1. Generate discount code for partner (if enabled)
+          generateDiscountCodeForPartner({
+            workspaceId: workspace.id,
+            partner: enrolledPartner,
+          }),
+          // 2. Send "partner.enrolled" webhook to workspace
+          sendWorkspaceWebhook({
+            workspace,
+            trigger: "partner.enrolled",
+            data: enrolledPartner,
+          }),
+          // 3. Trigger draft bounty submission creation
+          triggerDraftBountySubmissionCreation({
+            programId,
+            partnerIds: [enrolledPartner.id],
+          }),
+          // 4. Execute Dub workflows using the “partnerEnrolled” trigger.
+          executeWorkflows({
+            trigger: "partnerEnrolled",
+            identity: {
+              workspaceId: workspace.id,
+              programId,
+              partnerId: enrolledPartner.id,
+            },
+          }),
+        ]);
       })(),
     );
   });

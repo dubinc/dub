@@ -4,8 +4,10 @@ import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
 import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
-export async function customerSubscriptionUpdated(event: Stripe.Event) {
-  const subscriptionUpdated = event.data.object as Stripe.Subscription;
+export async function customerSubscriptionUpdated(
+  event: Stripe.CustomerSubscriptionUpdatedEvent,
+) {
+  const subscriptionUpdated = event.data.object;
   const priceId = subscriptionUpdated.items.data[0].price.id;
 
   const { plan } = getPlanAndTierFromPriceId({ priceId });

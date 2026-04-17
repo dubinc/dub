@@ -3,8 +3,8 @@ import Stripe from "stripe";
 import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
 import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";
 
-export async function chargeFailed(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeFailed(event: Stripe.ChargeFailedEvent) {
+  const charge = event.data.object;
 
   const { transfer_group: invoiceId, failure_message: failedReason } = charge;
 

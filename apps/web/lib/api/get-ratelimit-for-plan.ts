@@ -5,23 +5,15 @@ import {
   isWorkspaceBillingTrialActive,
 } from "@dub/utils";
 
-export const getRatelimitForPlan = (plan: string) => {
+export const getRatelimitForPlan = (
+  plan: string,
+  options?: { trialEndsAt?: Date | null },
+) => {
   const currentPlanName = plan.toLowerCase().split(" ")[0]; // to account for old Business plans (e.g. "Business Plus")
-  return (
-    PLANS.find((p) => p.name.toLowerCase() === currentPlanName) || FREE_PLAN
-  );
-};
+  const base =
+    PLANS.find((p) => p.name.toLowerCase() === currentPlanName) || FREE_PLAN;
 
-export const getRatelimitForWorkspace = ({
-  plan,
-  trialEndsAt,
-}: {
-  plan: string;
-  trialEndsAt?: Date | null;
-}) => {
-  const base = getRatelimitForPlan(plan);
-
-  if (isWorkspaceBillingTrialActive(trialEndsAt)) {
+  if (isWorkspaceBillingTrialActive(options?.trialEndsAt)) {
     return {
       ...base,
       limits: {

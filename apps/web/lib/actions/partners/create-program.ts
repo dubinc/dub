@@ -306,6 +306,11 @@ async function invitePartner({
 
   waitUntil(
     (async () => {
+      const { rewards, bounties } = await getGroupRewardsAndBounties({
+        programId: program.id,
+        groupId: program.defaultGroupId,
+      });
+
       await sendEmail({
         subject: `${program.name} invited you to join Dub Partners`,
         variant: "notifications",
@@ -318,11 +323,10 @@ async function invitePartner({
             name: program.name,
             slug: program.slug,
             logo: program.logo,
+            website: program.url,
           },
-          ...(await getGroupRewardsAndBounties({
-            programId: program.id,
-            groupId: program.defaultGroupId,
-          })),
+          rewards,
+          bounties,
         }),
       });
     })(),

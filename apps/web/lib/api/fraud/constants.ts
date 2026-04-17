@@ -42,16 +42,16 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     type: "partnerCrossProgramBan",
     name: "Cross-program ban",
     description:
-      "This partner has been banned from one or more other Dub programs, indicating a potential high-risk history.",
+      "This partner was banned from another program on Dub. Our team reviewed this decision and confirmed the fraudulent behavior or terms of service violation.",
     scope: "partner",
     severity: "high",
     configurable: true,
   },
   {
     type: "partnerDuplicatePayoutMethod",
-    name: "Duplicate payout method",
+    name: "Duplicate account detected",
     description:
-      "This partner is using a payout method that is already linked to another partner account, which may indicate account duplication or fraudulent behavior.",
+      "This partner was flagged by our system for having 2 or more Dub accounts. Please review to prevent abuse of program restrictions, caps, or bonuses.",
     scope: "partner",
     severity: "high",
     configurable: true,

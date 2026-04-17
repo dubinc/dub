@@ -338,7 +338,7 @@ function PartnerApplicationDetailsSkeleton() {
       {[...Array(3)].map((_, idx) => (
         <div key={idx}>
           <div
-            className="h-5 w-40 max-w-[min(100%,11rem)] min-w-0 animate-pulse rounded-md bg-neutral-200"
+            className="h-5 w-40 min-w-0 max-w-[min(100%,11rem)] animate-pulse rounded-md bg-neutral-200"
             aria-hidden
           />
 

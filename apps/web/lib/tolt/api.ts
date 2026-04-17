@@ -13,7 +13,7 @@ import {
   ToltListResponse,
 } from "./types";
 
-const PAGE_LIMIT = 100;
+const TOLT_PAGE_LIMIT = 100;
 
 export class ToltApi {
   private readonly baseUrl = "https://api.tolt.com/v1";
@@ -80,7 +80,7 @@ export class ToltApi {
     const searchParams = new URLSearchParams();
     searchParams.append("program_id", programId);
     searchParams.append("expand[]", "program");
-    searchParams.append("limit", PAGE_LIMIT.toString());
+    searchParams.append("limit", TOLT_PAGE_LIMIT.toString());
 
     if (startingAfter) {
       searchParams.append("starting_after", startingAfter);
@@ -103,7 +103,7 @@ export class ToltApi {
     const searchParams = new URLSearchParams();
     searchParams.append("program_id", programId);
     searchParams.append("expand[]", "partner");
-    searchParams.append("limit", PAGE_LIMIT.toString());
+    searchParams.append("limit", TOLT_PAGE_LIMIT.toString());
 
     if (startingAfter) {
       searchParams.append("starting_after", startingAfter);
@@ -126,7 +126,7 @@ export class ToltApi {
     const searchParams = new URLSearchParams();
     searchParams.append("program_id", programId);
     searchParams.append("expand[]", "partner");
-    searchParams.append("limit", PAGE_LIMIT.toString());
+    searchParams.append("limit", TOLT_PAGE_LIMIT.toString());
 
     if (startingAfter) {
       searchParams.append("starting_after", startingAfter);
@@ -152,7 +152,7 @@ export class ToltApi {
     searchParams.append("expand[]", "partner");
     searchParams.append("expand[]", "customer");
     searchParams.append("expand[]", "transaction");
-    searchParams.append("limit", PAGE_LIMIT.toString());
+    searchParams.append("limit", TOLT_PAGE_LIMIT.toString());
 
     if (startingAfter) {
       searchParams.append("starting_after", startingAfter);

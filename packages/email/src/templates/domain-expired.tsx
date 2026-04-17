@@ -43,6 +43,8 @@ export default function DomainExpired({
     expiresAt: Date;
   }[];
 }) {
+  const hasSingleDomain = domains.length === 1;
+
   return (
     <Html>
       <Head />
@@ -59,8 +61,10 @@ export default function DomainExpired({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              The following {pluralize("domain", domains.length)} have expired
-              and are no longer available to use with your workspace{" "}
+              The following {pluralize("domain", domains.length)}{" "}
+              {hasSingleDomain ? "has" : "have"} expired and{" "}
+              {hasSingleDomain ? "is" : "are"} no longer available to use with
+              your workspace{" "}
               <span className="font-semibold text-black">{workspace.name}</span>
               .
             </Text>
@@ -103,9 +107,12 @@ export default function DomainExpired({
             </Section>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              If you own any of these {pluralize("domain", domains.length)}{" "}
-              again in the future, you can add them to your workspace anytime in
-              the{" "}
+              If you own{" "}
+              {hasSingleDomain
+                ? "this domain"
+                : `any of these ${pluralize("domain", domains.length)}`}{" "}
+              again in the future, you can add {hasSingleDomain ? "it" : "them"}{" "}
+              to your workspace anytime in the{" "}
               <Link
                 href={`https://app.dub.co/${workspace.slug}/links/domains`}
                 className="font-semibold text-black underline"

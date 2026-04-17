@@ -10,6 +10,7 @@ import {
   RichTextArea,
   RichTextProvider,
   RichTextToolbar,
+  ScrollContainer,
   useScrollProgress,
 } from "@dub/ui";
 import { cn, nFormatter } from "@dub/utils";
@@ -61,9 +62,9 @@ export function InlineBadgePopover({
       align="start"
       content={
         <InlineBadgePopoverContext.Provider value={{ isOpen, setIsOpen }}>
-          <div className="w-full min-w-32 p-1 text-sm sm:w-auto">
+          <ScrollContainer className="max-h-[50dvh] min-h-0 w-full min-w-32 overscroll-contain p-1 text-sm sm:w-auto">
             {children}
-          </div>
+          </ScrollContainer>
         </InlineBadgePopoverContext.Provider>
       }
       onWheel={(e) => {

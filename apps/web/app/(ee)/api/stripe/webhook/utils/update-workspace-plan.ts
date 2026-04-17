@@ -2,8 +2,8 @@ import { pauseOrCancelCampaignsForProgramOnPlanDowngrade } from "@/lib/api/campa
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
+import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { qstash } from "@/lib/cron";
 import { sendAdvancedDowngradeNoticeEmailIfNeeded } from "@/lib/email/send-advanced-downgrade-notice-email";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
@@ -23,7 +23,6 @@ import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
 import {
-  APP_DOMAIN_WITH_NGROK,
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,
 } from "@dub/utils";
@@ -237,17 +236,7 @@ export async function updateWorkspacePlan({
       }) &&
       workspace.defaultProgramId
     ) {
-      const response = await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
-        body: {
-          programId: workspace.defaultProgramId,
-        },
-        deduplicationId: `reactivate-program-${workspace.defaultProgramId}`,
-      });
-
-      console.log("Reactivation job enqueued.", {
-        response,
-      });
+      await reactivateProgram(workspace.defaultProgramId);
     }
 
     if (

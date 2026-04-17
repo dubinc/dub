@@ -15,7 +15,7 @@ import {
   Tooltip,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -61,6 +61,16 @@ export const TagSelect = memo(() => {
   });
   const [debouncedUrl] = useDebounce(url, 500);
 
+  const tagResolutionCacheRef = useRef<Map<string, TagProps>>(new Map());
+  const prevLinkIdRef = useRef<string | undefined>(undefined);
+  if (linkId !== prevLinkIdRef.current) {
+    tagResolutionCacheRef.current = new Map();
+    prevLinkIdRef.current = linkId;
+  }
+  for (const t of [...(tags ?? []), ...(availableTags ?? [])]) {
+    if (t?.id) tagResolutionCacheRef.current.set(t.id, t);
+  }
+
   const [isOpen, setIsOpen] = useState(false);
 
   const createTag = async (tag: string) => {
@@ -87,15 +97,23 @@ export const TagSelect = memo(() => {
     return false;
   };
 
-  const options = useMemo(
-    () => availableTags?.map((tag) => getTagOption(tag)),
-    [availableTags],
-  );
+  const options = useMemo(() => {
+    if (loadingTags || availableTags === undefined) return undefined;
+    const apiIds = new Set(availableTags.map((t) => t.id));
+    const notOnCurrentPage = [...tagResolutionCacheRef.current.values()].filter(
+      (t) => t?.id && !apiIds.has(t.id),
+    );
+    return [...availableTags, ...notOnCurrentPage].map((tag) =>
+      getTagOption(tag),
+    );
+  }, [availableTags, loadingTags, tags]);
 
-  const selectedTags = useMemo(
-    () => tags.map((tag) => getTagOption(tag)),
-    [tags],
-  );
+  const selectedTags = useMemo(() => {
+    const resolved = (tags ?? []).filter(
+      (tag): tag is TagProps => tag != null && tag.id != null,
+    );
+    return resolved.map((tag) => getTagOption(tag));
+  }, [tags]);
 
   useLinkBuilderKeyboardShortcut("t", () => setIsOpen(true), {
     priority: 2,
@@ -107,7 +125,7 @@ export const TagSelect = memo(() => {
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     streamProtocol: "text",
     body: {
-      model: "claude-3-5-haiku-latest",
+      model: "claude-haiku-4-5",
     },
     onFinish: (_, completion) => {
       mutateWorkspace();
@@ -172,15 +190,17 @@ export const TagSelect = memo(() => {
         selected={selectedTags}
         setSelected={(newTags) => {
           const selectedIds = newTags.map(({ value }) => value);
-          setValue(
-            "tags",
-            selectedIds.map((id) =>
-              [...(availableTags || []), ...(tags || [])]?.find(
-                (t) => t.id === id,
-              ),
-            ),
-            { shouldDirty: true },
-          );
+          const lookup = new Map<string, TagProps>();
+          for (const t of [...(availableTags ?? []), ...(tags ?? [])]) {
+            if (t?.id) lookup.set(t.id, t);
+          }
+          for (const t of tagResolutionCacheRef.current.values()) {
+            if (t?.id && !lookup.has(t.id)) lookup.set(t.id, t);
+          }
+          const nextTags = selectedIds
+            .map((id) => lookup.get(id))
+            .filter((t): t is TagProps => t != null);
+          setValue("tags", nextTags, { shouldDirty: true });
           setSuggestedTags((tags) =>
             tags.filter(({ id }) => !selectedIds.includes(id)),
           );

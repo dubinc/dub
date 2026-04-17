@@ -18,7 +18,7 @@ export function OverviewTasks() {
   const {
     payoutsCount: eligiblePayoutsCount,
     loading: eligiblePayoutsLoading,
-  } = usePayoutsCount<number | undefined>({
+  } = usePayoutsCount({
     eligibility: "eligible",
     status: "pending",
     ignoreParams: true,
@@ -36,7 +36,7 @@ export function OverviewTasks() {
       {
         icon: MoneyBills2,
         label: "Confirm pending payouts",
-        count: eligiblePayoutsCount,
+        count: eligiblePayoutsCount?.[0]?.count ?? 0,
         href: `/${slug}/program/payouts?status=pending`,
         loading: eligiblePayoutsLoading,
       },

@@ -51,7 +51,7 @@ export const POST = withSession(async ({ req, session }) => {
   }
 
   const result = streamText({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: anthropic("claude-sonnet-4-6"),
     system: buildSystemPrompt(globalContext),
     messages: await convertToModelMessages(messages),
     stopWhen: stepCountIs(5),

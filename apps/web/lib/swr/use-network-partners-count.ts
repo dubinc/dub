@@ -6,7 +6,12 @@ import { getNetworkPartnersCountQuerySchema } from "../zod/schemas/partner-netwo
 import useWorkspace from "./use-workspace";
 
 export default function useNetworkPartnersCount<
-  T = { discover: number; invited: number; recruited: number },
+  T = {
+    discover: number;
+    invited: number;
+    recruited: number;
+    ignored: number;
+  },
 >({
   query,
   enabled,

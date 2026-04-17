@@ -1,4 +1,5 @@
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
+import { payoutIdSelectionWhere } from "@/lib/api/payouts/payout-id-selection-where";
 import { FAST_ACH_FEE_CENTS, FOREX_MARKUP_RATE } from "@/lib/constants/payouts";
 import { qstash } from "@/lib/cron";
 import { calculatePayoutFeeWithWaiver } from "@/lib/partners/calculate-payout-fee-with-waiver";
@@ -56,7 +57,7 @@ interface ProcessPayoutsProps {
   userId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
-  selectedPayoutId?: string;
+  selectedPayoutIds?: string[];
   excludedPayoutIds?: string[];
 }
 
@@ -67,7 +68,7 @@ export async function processPayouts({
   userId,
   paymentMethodId,
   cutoffPeriod,
-  selectedPayoutId,
+  selectedPayoutIds,
   excludedPayoutIds,
 }: ProcessPayoutsProps) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
@@ -76,11 +77,7 @@ export async function processPayouts({
 
   const res = await prisma.payout.updateMany({
     where: {
-      ...(selectedPayoutId
-        ? { id: selectedPayoutId }
-        : excludedPayoutIds && excludedPayoutIds.length > 0
-          ? { id: { notIn: excludedPayoutIds } }
-          : {}),
+      ...payoutIdSelectionWhere({ selectedPayoutIds, excludedPayoutIds }),
       ...getPayoutEligibilityFilter({ program, workspace }),
       ...(cutoffPeriodValue && {
         periodEnd: {

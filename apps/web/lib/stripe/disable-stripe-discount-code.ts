@@ -1,21 +1,18 @@
 import { stripeAppClient } from ".";
-
-const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { mode: "live" }),
-});
+import { StripeMode } from "../types";
 
 export async function disableStripeDiscountCode({
   stripeConnectId,
+  stripeMode,
   code,
 }: {
-  stripeConnectId: string | null;
+  stripeConnectId: string;
+  stripeMode: StripeMode;
   code: string;
 }) {
-  if (!stripeConnectId) {
-    throw new Error(
-      `stripeConnectId is required to disable a Stripe discount code.`,
-    );
-  }
+  const stripe = stripeAppClient({
+    mode: stripeMode,
+  });
 
   const promotionCodes = await stripe.promotionCodes.list(
     {

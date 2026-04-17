@@ -168,7 +168,7 @@ export const bulkInvitePartnersAction = authActionClient
           );
         }
 
-        const rewardsAndBounties = await getGroupRewardsAndBounties({
+        const { rewards, bounties } = await getGroupRewardsAndBounties({
           programId,
           groupId: groupId || program.defaultGroupId,
         });
@@ -195,13 +195,15 @@ export const bulkInvitePartnersAction = authActionClient
                 name: program.name,
                 slug: program.slug,
                 logo: program.logo,
+                website: program.url,
               },
               ...(inviteEmailData?.subject && {
                 subject: inviteEmailData.subject,
               }),
               ...(inviteEmailData?.title && { title: inviteEmailData.title }),
               ...(inviteEmailData?.body && { body: inviteEmailData.body }),
-              ...rewardsAndBounties,
+              rewards,
+              bounties,
             }),
           })),
         );

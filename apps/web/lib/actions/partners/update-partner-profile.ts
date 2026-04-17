@@ -21,7 +21,7 @@ import {
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { uploadedImageSchema } from "../../zod/schemas/misc";
+import { uploadedImageSchema } from "../../zod/schemas/images";
 import { authPartnerActionClient } from "../safe-action";
 
 const updatePartnerProfileSchema = z
@@ -236,6 +236,18 @@ const updatedComplianceFieldsChecks = async ({
       to: input.country as string,
       changedAt: new Date(),
     });
+
+    // if there was an existing veriff session, trigger a country change verification
+    if (partner.veriffSessionId) {
+      waitUntil(
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/verify-country-change`,
+          body: {
+            partnerId: partner.id,
+          },
+        }),
+      );
+    }
   }
 
   if (profileTypeChanged) {

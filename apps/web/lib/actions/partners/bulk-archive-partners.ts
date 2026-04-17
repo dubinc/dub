@@ -1,8 +1,11 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { bulkArchivePartnersSchema } from "@/lib/zod/schemas/partners";
+import {
+  ACTIVE_ENROLLMENT_STATUSES,
+  bulkArchivePartnersSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
@@ -28,11 +31,13 @@ export const bulkArchivePartnersAction = authActionClient
         },
         programId,
         status: {
-          not: "archived",
+          in: ACTIVE_ENROLLMENT_STATUSES,
         },
       },
       select: {
         id: true,
+        partnerId: true,
+        status: true,
         partner: {
           select: {
             id: true,
@@ -60,20 +65,20 @@ export const bulkArchivePartnersAction = authActionClient
     });
 
     waitUntil(
-      recordAuditLog(
-        programEnrollments.map(({ partner }) => ({
+      trackActivityLog(
+        programEnrollments.map(({ partnerId, status }) => ({
           workspaceId: workspace.id,
           programId,
+          resourceType: "partner",
+          resourceId: partnerId,
+          userId: user.id,
           action: "partner.archived",
-          description: `Partner ${partner.id} archived`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partner.id,
-              metadata: partner,
+          changeSet: {
+            status: {
+              old: status,
+              new: "archived",
             },
-          ],
+          },
         })),
       ),
     );

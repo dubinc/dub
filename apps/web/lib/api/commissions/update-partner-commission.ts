@@ -32,14 +32,15 @@ export async function updatePartnerCommission({
   workspaceId,
   programId,
   commissionId,
+  // Common commission fields
   status,
   userId,
+  earnings,
   // Sale commission fields
   saleAmount,
   modifySaleAmount,
   currency,
   // Custom commission fields
-  earnings,
   updateHistoricalCommissions = false,
 }: UpdatePartnerCommissionProps) {
   const commission = await prisma.commission.findUnique({
@@ -168,15 +169,9 @@ export async function updatePartnerCommission({
     });
   }
 
-  // Commission for custom events
+  // for sale commissions, if earnings is provided,
+  // it will override the earnings calculated based on the sale amount and currency
   if (earnings !== undefined) {
-    if (commission.type !== "custom") {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Cannot update earnings: Commission ${commissionId} is not a custom commission.`,
-      });
-    }
-
     finalEarnings = earnings;
   }
 
@@ -209,6 +204,8 @@ export async function updatePartnerCommission({
       amount: isRefunded ? undefined : finalSaleAmount,
       earnings: isRefunded ? undefined : finalEarnings,
       status: finalStatus,
+      // if finalStatus is defined, the commission needs to be removed from the payout
+      // because commission can only be updated to pending, canceled, refunded, duplicate, or fraudulent states
       ...(finalStatus ? { payoutId: null } : {}),
     },
     include: {

@@ -8,8 +8,8 @@ import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import { addDays } from "date-fns";
 import Stripe from "stripe";
 
-export async function chargeSucceeded(event: Stripe.Event) {
-  const charge = event.data.object as Stripe.Charge;
+export async function chargeSucceeded(event: Stripe.ChargeSucceededEvent) {
+  const charge = event.data.object;
 
   const { transfer_group: invoiceId } = charge;
 

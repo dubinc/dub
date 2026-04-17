@@ -1,12 +1,15 @@
 import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
   Html,
   Img,
+  Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
@@ -46,19 +49,26 @@ export default function VerifyEmailForAccountMerge({
               Use the code below to verify and continue merging your accounts
             </Text>
 
-            <Section className="mb-8">
-              <div className="mx-auto flex flex-col rounded-lg border border-solid border-neutral-200 bg-neutral-100 p-1 text-center">
-                <div className="rounded-lg border border-solid border-neutral-200 bg-white px-6 py-6 text-center">
-                  <span className="font-mono text-3xl font-semibold tracking-[0.25em]">
-                    {code}
-                  </span>
-                </div>
-                <div className="items-center py-1.5">
-                  <span className="text-base text-sm text-neutral-500">
+            <Section className="mb-8 rounded-lg border border-solid border-neutral-200 bg-neutral-100 p-1 text-center">
+              <Row>
+                <Column align="center" className="w-full">
+                  <div className="rounded-lg border border-solid border-neutral-200 bg-white px-6 py-6 text-center">
+                    <span className="font-mono text-3xl font-semibold tracking-[0.25em]">
+                      {code}
+                    </span>
+                  </div>
+                </Column>
+              </Row>
+              <Row>
+                <Column align="center" className="w-full py-1.5">
+                  <Link
+                    href={`mailto:${email}`}
+                    className="text-sm text-neutral-500 no-underline"
+                  >
                     {email}
-                  </span>
-                </div>
-              </div>
+                  </Link>
+                </Column>
+              </Row>
             </Section>
 
             <Text className="mb-2 text-sm text-neutral-600">

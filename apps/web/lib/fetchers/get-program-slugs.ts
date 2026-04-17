@@ -6,5 +6,11 @@ export const getProgramSlugs = cache(async () =>
     select: {
       slug: true,
     },
+    orderBy: {
+      applications: {
+        _count: "desc",
+      },
+    },
+    take: 250,
   }),
 );

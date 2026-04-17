@@ -9,6 +9,7 @@ import { buildPaginationQuery } from "../pagination";
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
   isHoldStatus?: boolean;
+  fraudEventGroupId?: string;
 };
 
 export async function getCommissions(filters: CommissionsFilters) {
@@ -21,6 +22,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     customerId,
     payoutId,
     groupId,
+    fraudEventGroupId,
     start,
     end,
     interval,
@@ -52,6 +54,25 @@ export async function getCommissions(filters: CommissionsFilters) {
         message: "Invalid cursor: the provided ID does not exist.",
       });
     }
+  }
+
+  // Resolve fraudEventGroupId to eventIds
+  let eventIds: string[] | undefined;
+
+  if (fraudEventGroupId) {
+    const fraudEvents = await prisma.fraudEvent.findMany({
+      where: {
+        fraudEventGroupId,
+        eventId: {
+          not: null,
+        },
+      },
+      select: {
+        eventId: true,
+      },
+    });
+
+    eventIds = fraudEvents.map((e) => e.eventId!);
   }
 
   const { startDate, endDate } = getStartEndDates({
@@ -102,6 +123,11 @@ export async function getCommissions(filters: CommissionsFilters) {
           type,
           customerId,
           payoutId,
+          ...(eventIds && {
+            eventId: {
+              in: eventIds,
+            },
+          }),
           createdAt: {
             gte: startDate,
             lte: endDate,
