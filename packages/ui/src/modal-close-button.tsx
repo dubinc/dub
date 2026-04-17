@@ -4,14 +4,17 @@ import { X } from "lucide-react";
 export function ModalCloseButton({
   onClick,
   className,
+  ariaLabel = "Close",
 }: {
   onClick: () => void;
   className?: string;
+  ariaLabel?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-label={ariaLabel}
       className={cn(
         "group rounded-full p-2 text-neutral-500",
         "transition-all duration-75",
@@ -19,7 +22,7 @@ export function ModalCloseButton({
         className,
       )}
     >
-      <X className="size-5" />
+      <X className="size-5" aria-hidden="true" />
     </button>
   );
 }
