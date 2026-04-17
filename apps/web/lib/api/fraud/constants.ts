@@ -56,6 +56,16 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     severity: "high",
     configurable: true,
   },
+  // Not visible in the UI
+  {
+    type: "partnerDuplicateAccount",
+    name: "Duplicate account detected",
+    description:
+      "This partner was flagged by our system for having 2 or more Dub accounts. Please review to prevent abuse of program restrictions, caps, or bonuses.",
+    scope: "partner",
+    severity: "low",
+    configurable: false,
+  },
   {
     type: "partnerEmailDomainMismatch",
     name: "Email domain mismatch with website",
@@ -88,15 +98,6 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     name: "No verified website or social links",
     description:
       "Partner hasn't verified their website or any social presence, making verification harder.",
-    scope: "partner",
-    severity: "low",
-    configurable: false,
-  },
-  {
-    type: "partnerDuplicateAccount",
-    name: "Duplicate identity detected",
-    description:
-      "This partner shares a verified identity with one or more other partners in the program. Please review to prevent abuse of program restrictions, caps, or bonuses.",
     scope: "partner",
     severity: "low",
     configurable: false,
