@@ -9,14 +9,6 @@ import { ReactNode } from "react";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 const products = {
-  links: {
-    image: "https://assets.dub.co/icons/link.webp",
-    title: "Dub Links",
-    href: "https://dub.co/links",
-    description:
-      "[Short links](https://dub.co/help/category/link-management), [QR codes](https://dub.co/help/article/custom-qr-codes), [real-time analytics](https://dub.co/help/article/dub-analytics), and [conversion tracking](https://dub.co/docs/conversions/quickstart).",
-    paidPlanRequired: false,
-  },
   partners: {
     image: "https://assets.dub.co/icons/trophy.webp",
     title: "Dub Partners",
@@ -24,6 +16,14 @@ const products = {
     description:
       "Modern [affiliate programs](https://dub.co/partners) with [global payouts](https://dub.co/help/article/partner-payouts) and [accurate attribution](https://dub.co/help/article/program-analytics).",
     paidPlanRequired: true,
+  },
+  links: {
+    image: "https://assets.dub.co/icons/link.webp",
+    title: "Dub Links",
+    href: "https://dub.co/links",
+    description:
+      "[Short links](https://dub.co/help/category/link-management), [QR codes](https://dub.co/help/article/custom-qr-codes), [real-time analytics](https://dub.co/help/article/dub-analytics), and [conversion tracking](https://dub.co/docs/conversions/quickstart).",
+    paidPlanRequired: false,
   },
 };
 
@@ -37,7 +37,7 @@ export function ProductSelector() {
   const workspaceReady = !workspaceLoading && Boolean(workspaceId);
 
   return (
-    <div className="animate-fade-in mx-auto grid w-full max-w-[312px] gap-4 sm:max-w-[600px] sm:grid-cols-2">
+    <div className="animate-fade-in mx-auto grid w-full gap-4 sm:max-w-[600px] sm:grid-cols-2">
       {Object.entries(products).map(([key, product]) => (
         <ProductOption
           key={key}
