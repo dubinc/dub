@@ -262,8 +262,7 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures =
   | "noDubLink"
-  | "analyticsSettingsSiteVisitTracking"
-  | "freeTrialCheckout";
+  | "analyticsSettingsSiteVisitTracking";
 
 export type PartnerBetaFeatures = "postbacks";
 
