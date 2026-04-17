@@ -111,6 +111,7 @@ export async function checkoutSessionCompleted(
 
   await Promise.allSettled([
     completeOnboarding({ users, workspaceId }),
+    // if workspace has a default program, reactivate it
     workspace.defaultProgramId && reactivateProgram(workspace.defaultProgramId),
     sendBatchEmail(
       users.map((user) => ({
