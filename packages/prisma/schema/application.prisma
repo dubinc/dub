@@ -45,6 +45,8 @@ model ProgramApplicationEvent {
   visitedAt   DateTime  @default(now())
   startedAt   DateTime?
   submittedAt DateTime?
+  approvedAt  DateTime?
+  rejectedAt  DateTime?
 
   country             String?
   referralSource      String // e.g. company.com, linkedin.com, marketplace, direct
@@ -62,8 +64,10 @@ model ProgramApplicationEvent {
   @@index([programId, visitedAt])
   @@index([programId, startedAt])
   @@index([programId, submittedAt])
+  @@index([programId, approvedAt])
   @@index([programId, country])
   @@index([programId, referralSource])
-  @@index([referredByPartnerId, programId])
+  @@index([programId, referredByPartnerId])
+  @@index(referredByPartnerId)
   @@index(programApplicationId)
 }
