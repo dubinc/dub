@@ -115,7 +115,7 @@ export function Form() {
           Reward type
         </h2>
 
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {DEFAULT_REWARD_TYPES.map(
             ({ key, label, description, mostCommon }) => {
               const isSelected = key === defaultRewardType;
@@ -199,7 +199,7 @@ export function Form() {
                   Commission structure
                 </h2>
 
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {COMMISSION_TYPES.map(
                     ({ value, label, shortDescription }) => {
                       const isSelected = value === commissionStructure;
@@ -307,7 +307,7 @@ export function Form() {
                 <h2 className="text-content-emphasis text-sm font-semibold">
                   Payout model
                 </h2>
-                <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   {PAYOUT_MODELS.map(
                     ({ key, label, description, mostCommon }) => {
                       const isSelected = key === type;

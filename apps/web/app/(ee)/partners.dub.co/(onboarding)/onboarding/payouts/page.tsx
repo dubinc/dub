@@ -9,10 +9,10 @@ import { Suspense } from "react";
 export default function OnboardingVerificationPage() {
   return (
     <div className="relative mx-auto flex w-full max-w-[600px] flex-col items-center text-center md:mt-6">
-      <h1 className="animate-slide-up-fade text-content-emphasis text-lg font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+      <h1 className="animate-slide-up-fade text-content-emphasis text-xl text-center font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
         Connect payouts
       </h1>
-      <p className="animate-slide-up-fade mt-1 text-sm font-medium text-neutral-500 [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+      <p className="animate-slide-up-fade mt-1 text-center text-base text-neutral-500 [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
         Connect your preferred payout method to receive payments.
       </p>
       <div className="animate-slide-up-fade relative mt-10 w-full [--offset:10px] [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">

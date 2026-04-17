@@ -33,40 +33,48 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
       : [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
-  const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
+  const [mobilePlanIndex, setMobilePlanIndex] = useState(() => {
+    const defaultPlanName = product === "partners" ? "Advanced" : "Business";
+    return Math.max(
+      0,
+      plans.findIndex((plan) => plan.name === defaultPlanName),
+    );
+  });
 
   return (
-    <div className="overflow-hidden [container-type:inline-size]">
-      <div
-        className={cn(
-          "mx-auto grid max-w-[calc(var(--cols)*342px)] grid-cols-[repeat(var(--cols),1fr)]",
+    <div className="[container-type:inline-size]">
+      <div className="overflow-hidden max-md:rounded-lg">
+        <div
+          className={cn(
+            "mx-auto grid max-w-[calc(var(--cols)*342px)] grid-cols-[repeat(var(--cols),1fr)]",
 
-          // Mobile
-          "max-lg:w-[calc(var(--cols)*100cqw+(var(--cols)-1)*32px)] max-lg:max-w-none max-lg:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-lg:gap-x-8 max-lg:transition-transform",
-        )}
-        style={
-          {
-            "--cols": plans.length,
-            "--index": mobilePlanIndex,
-          } as CSSProperties
-        }
-      >
-        {plans.map((plan) => {
-          const features = PRICING_PLAN_MAIN_FEATURES[product][plan.name] || [];
+            // Mobile
+            "max-md:w-[calc(var(--cols)*100cqw+(var(--cols)-1)*32px)] max-md:max-w-none max-md:translate-x-[calc(-1*var(--index)*(100cqw+32px))] max-md:gap-x-8 max-md:transition-transform",
+          )}
+          style={
+            {
+              "--cols": plans.length,
+              "--index": mobilePlanIndex,
+            } as CSSProperties
+          }
+        >
+          {plans.map((plan) => {
+            const features = PRICING_PLAN_MAIN_FEATURES[product][plan.name] || [];
 
-          return (
-            <div
-              key={plan.name}
-              className={cn(
-                "flex flex-col border-y border-l border-neutral-200 bg-white first:rounded-l-lg last:rounded-r-lg last:border-r",
-                product === "links" &&
-                  plan.name === "Business" &&
-                  "bg-gradient-to-b from-orange-50 to-40%",
-                product === "partners" &&
-                  plan.name === "Advanced" &&
-                  "bg-gradient-to-b from-violet-50 to-40%",
-              )}
-            >
+            return (
+              <div
+                key={plan.name}
+                className={cn(
+                  "flex flex-col border-y border-l border-neutral-200 bg-white first:rounded-l-lg last:rounded-r-lg last:border-r",
+                  "max-md:overflow-hidden max-md:rounded-lg max-md:border-0 max-md:ring-1 max-md:ring-inset max-md:ring-neutral-200",
+                  product === "links" &&
+                    plan.name === "Business" &&
+                    "bg-gradient-to-b from-orange-50 to-40%",
+                  product === "partners" &&
+                    plan.name === "Advanced" &&
+                    "bg-gradient-to-b from-violet-50 to-40%",
+                )}
+              >
               <div className="flex grow flex-col gap-6 p-5 pb-3">
                 <div>
                   <div className="flex items-center gap-2">
@@ -151,7 +159,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                 <div className="flex gap-2">
                   <button
                     type="button"
-                    className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 enabled:active:bg-neutral-200 disabled:opacity-30 lg:hidden"
+                    className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 enabled:active:bg-neutral-200 disabled:opacity-30 md:hidden"
                     disabled={mobilePlanIndex === 0}
                     onClick={() => setMobilePlanIndex(mobilePlanIndex - 1)}
                   >
@@ -178,7 +186,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                   )}
                   <button
                     type="button"
-                    className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 active:bg-neutral-200 disabled:opacity-30 lg:hidden"
+                    className="h-full w-fit rounded-lg bg-neutral-100 px-2.5 transition-colors duration-75 hover:bg-neutral-200/80 active:bg-neutral-200 disabled:opacity-30 md:hidden"
                     disabled={mobilePlanIndex >= plans.length - 1}
                     onClick={() => setMobilePlanIndex(mobilePlanIndex + 1)}
                   >
@@ -286,9 +294,10 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                   </div>
                 </div>
               )}
-            </div>
-          );
-        })}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

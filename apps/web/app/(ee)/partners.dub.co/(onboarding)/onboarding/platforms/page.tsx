@@ -12,11 +12,11 @@ import { OnboardingPlatformsPageClient } from "./page-client";
 export default function OnboardingPlatformsPage() {
   return (
     <div className="mx-auto flex w-full max-w-[430px] flex-col text-center md:mt-4">
-      <h1 className="animate-slide-up-fade text-lg font-medium [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
+      <h1 className="animate-slide-up-fade text-center text-xl font-semibold [--offset:8px] [animation-delay:250ms] [animation-duration:1s] [animation-fill-mode:both]">
         Your social and web platforms
       </h1>
 
-      <p className="animate-slide-up-fade text-content-subtle mt-1 text-sm [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
+      <p className="animate-slide-up-fade text-content-subtle mt-1 text-base [animation-delay:500ms] [animation-duration:1s] [animation-fill-mode:both]">
         Verifying your social and web platforms will improve your reputation
         score and rank you higher in our partner network.
       </p>
