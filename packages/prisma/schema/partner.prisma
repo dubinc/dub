@@ -98,6 +98,7 @@ model Partner {
   partnerRewinds             PartnerRewind[]
   platforms                  PartnerPlatform[]
   referrals                  PartnerReferral[]
+  referredApplications       ProgramApplicationEvent[]
 
   @@index(country)
   @@index(discoverableAt)

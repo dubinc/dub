@@ -141,6 +141,7 @@ model ProgramEnrollment {
   customers         Customer[]
   partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
   application       ProgramApplication? @relation(fields: [applicationId], references: [id])
+  applicationEvent  ProgramApplicationEvent?
   clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
   leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
   saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
