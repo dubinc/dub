@@ -11,7 +11,7 @@ const inputSchema = z.object({
   programId: z.string(),
 });
 
-// POST /api/cron/partners/reactivate - reactivate partners in a program
+// POST /api/cron/programs/reactivate - reactivate all partners in a program
 export const POST = withCron(async ({ rawBody }) => {
   const { programId } = inputSchema.parse(JSON.parse(rawBody));
 
@@ -69,7 +69,7 @@ export const POST = withCron(async ({ rawBody }) => {
     // Self-queue the next batch if there are more partners to process
     if (programEnrollments.length === CRON_BATCH_SIZE) {
       const response = await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/programs/reactivate`,
         body: {
           programId,
         },

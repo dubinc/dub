@@ -357,6 +357,9 @@ export const withWorkspace = (
 
         // workspace doesn't exist
         if (!workspace || !workspace.users) {
+          // Clear so the catch path won't record this error against a partial/wrong workspace.
+          workspace = undefined;
+
           throw new DubApiError({
             code: "not_found",
             message: "Workspace not found.",
@@ -478,16 +481,18 @@ export const withWorkspace = (
         });
 
         if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response,
-            workspace,
-            session,
-            token,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response,
+              workspace,
+              session,
+              token,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
         return response;
@@ -498,16 +503,18 @@ export const withWorkspace = (
         );
 
         if (workspace) {
-          captureRequestLog({
-            req: reqForLog,
-            response: errorResponse,
-            workspace,
-            session,
-            token,
-            url,
-            requestHeaders,
-            startTime,
-          });
+          waitUntil(
+            captureRequestLog({
+              req: reqForLog,
+              response: errorResponse,
+              workspace,
+              session,
+              token,
+              url,
+              requestHeaders,
+              startTime,
+            }),
+          );
         }
 
         return errorResponse;

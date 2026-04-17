@@ -1,5 +1,4 @@
 import { WorkspaceWithUsers } from "@/lib/types";
-import { waitUntil } from "@vercel/functions";
 import { TokenCacheItem } from "../auth/token-cache";
 import { Session } from "../auth/utils";
 import { HTTP_MUTATION_METHODS, ROUTE_PATTERNS } from "./constants";
@@ -37,7 +36,7 @@ export function getRoutePattern(path: string): string {
   return "unknown";
 }
 
-export function captureRequestLog({
+export async function captureRequestLog({
   req,
   response,
   workspace,
@@ -69,33 +68,29 @@ export function captureRequestLog({
   const duration = Date.now() - startTime;
   const responseClone = response.clone();
 
-  waitUntil(
-    (async () => {
-      let requestBody = null;
-      let responseBody = null;
+  let requestBody = null;
+  let responseBody = null;
 
-      try {
-        requestBody = await req.json();
-      } catch {}
+  try {
+    requestBody = await req.json();
+  } catch {}
 
-      try {
-        responseBody = await responseClone.json();
-      } catch {}
+  try {
+    responseBody = await responseClone.json();
+  } catch {}
 
-      await recordApiLog({
-        workspaceId: workspace.id,
-        method: req.method,
-        path: url.pathname,
-        routePattern,
-        statusCode: response.status,
-        duration,
-        userAgent: requestHeaders.get("user-agent"),
-        requestBody,
-        responseBody,
-        tokenId: token?.id ?? null,
-        userId: session?.user?.id ?? null,
-        requestType: "api",
-      });
-    })(),
-  );
+  return await recordApiLog({
+    workspaceId: workspace.id,
+    method: req.method,
+    path: url.pathname,
+    routePattern,
+    statusCode: response.status,
+    duration,
+    userAgent: requestHeaders.get("user-agent"),
+    requestBody,
+    responseBody,
+    tokenId: token?.id ?? null,
+    userId: session?.user?.id ?? null,
+    requestType: "api",
+  });
 }

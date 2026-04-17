@@ -1,7 +1,7 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
+import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { qstash } from "@/lib/cron";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -11,7 +11,7 @@ import {
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, getPlanAndTierFromPriceId } from "@dub/utils";
+import { getPlanAndTierFromPriceId } from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
 
@@ -188,17 +188,7 @@ export async function updateWorkspacePlan({
       }) &&
       workspace.defaultProgramId
     ) {
-      const response = await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/reactivate`,
-        body: {
-          programId: workspace.defaultProgramId,
-        },
-        deduplicationId: `reactivate-program-${workspace.defaultProgramId}`,
-      });
-
-      console.log("Reactivation job enqueued.", {
-        response,
-      });
+      await reactivateProgram(workspace.defaultProgramId);
     }
 
     if (

@@ -85,6 +85,7 @@ enum FraudAlertStatus {
   confirmed
   dismissed
 }
+
 model FraudAlert {
   id           String           @id @default(cuid())
   partnerId    String
