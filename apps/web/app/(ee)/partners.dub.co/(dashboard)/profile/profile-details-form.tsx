@@ -23,6 +23,7 @@ import {
   buttonVariants,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {
@@ -46,6 +47,7 @@ import { SettingsRow } from "./settings-row";
 type BasicInfoFormData = {
   name: string;
   email: string;
+  username: string | null;
   image: string | null;
   country: string;
   profileType: PartnerProfileType;
@@ -69,6 +71,7 @@ export function ProfileDetailsForm({
     defaultValues: {
       name: partner?.name,
       email: partner?.email ?? "",
+      username: partner?.username ?? null,
       image: partner?.image,
       country: partner?.country ?? "",
       profileType: partner?.profileType ?? "individual",
@@ -338,6 +341,40 @@ function BasicInfoForm({
               required: true,
             })}
           />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium text-neutral-800">Username</span>
+          <input
+            type="text"
+            disabled={disabled}
+            className={cn(
+              "block w-full rounded-md focus:outline-none sm:text-sm",
+              disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
+              errors.username
+                ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+            )}
+            placeholder={partner?.name ? slugify(partner.name) : "username"}
+            {...register("username", {
+              setValueAs: (v) => (v === "" ? null : v) || null,
+              minLength: {
+                value: 3,
+                message: "Username must be at least 3 characters",
+              },
+              maxLength: {
+                value: 30,
+                message: "Username must be at most 30 characters",
+              },
+              pattern: {
+                value: /^[a-zA-Z0-9_]*$/,
+                message:
+                  "Username can only contain letters, numbers, and underscores",
+              },
+            })}
+          />
+          {errors.username && (
+            <p className="text-sm text-red-600">{errors.username.message}</p>
+          )}
         </label>
         <label className="flex flex-col">
           <span className="text-sm font-medium text-neutral-800">Country</span>

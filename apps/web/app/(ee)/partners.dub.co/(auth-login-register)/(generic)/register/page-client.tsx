@@ -14,7 +14,7 @@ import { truncate } from "@dub/utils";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 
-type PartialProgram = Pick<Program, "name" | "logo" | "slug">;
+type PartialProgram = Pick<Program, "name" | "logo" | "slug" | "id">;
 
 export default function RegisterPageClient({
   program,
