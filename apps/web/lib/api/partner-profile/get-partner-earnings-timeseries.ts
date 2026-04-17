@@ -56,7 +56,7 @@ export async function getPartnerEarningsTimeseries({
           SUM(earnings) AS earnings
         FROM Commission
         WHERE 
-          earnings > 0
+          earnings != 0
           AND programId = ${program.id}
           AND partnerId = ${partnerId}
           AND createdAt >= ${startDate}
