@@ -64,6 +64,16 @@ export const veriffDecisionEventSchema = z.object({
         country: z.string().nullable(),
       })
       .optional(),
+    riskLabels: z
+      .array(
+        z.object({
+          label: z.string(),
+          category: z.string(),
+          sessionIds: z.array(z.string()),
+        }),
+      )
+      .nullish()
+      .describe("Only sent on production environment."),
   }),
 });
 
@@ -73,3 +83,12 @@ export const veriffEventSchema = z.union([
   veriffSessionEventSchema,
   veriffDecisionEventSchema,
 ]);
+
+// https://help.veriff.com/en/articles/3410712-risk-insights-and-crosslinks
+// This schema only includes the categories we care about; others may exist but are ignored.
+export const veriffRiskLabels = [
+  "person_previously_approved",
+  "document_previously_approved",
+] as const;
+
+export type VeriffRiskLabel = (typeof veriffRiskLabels)[number];
