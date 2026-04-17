@@ -1,5 +1,10 @@
+import { detectDuplicateIdentityFraud } from "@/lib/api/fraud/detect-duplicate-identity-fraud";
 import { computeVeriffIdentityHash } from "@/lib/veriff/compute-veriff-identity-hash";
-import { VeriffDecisionEvent } from "@/lib/veriff/schema";
+import {
+  VeriffDecisionEvent,
+  VeriffRiskLabel,
+  veriffRiskLabels,
+} from "@/lib/veriff/schema";
 import {
   mergeVeriffMetadata,
   parseVeriffMetadata,
@@ -10,6 +15,7 @@ import PartnerIdentityVerified from "@dub/email/templates/partner-identity-verif
 import { prisma } from "@dub/prisma";
 import { IdentityVerificationStatus, Partner } from "@dub/prisma/client";
 import { DUPLICATE_IDENTITY_DECLINE_REASON } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
 
 const veriffStatusMap: Record<
@@ -27,7 +33,8 @@ const veriffStatusMap: Record<
 export const handleDecisionEvent = async ({
   verification,
 }: VeriffDecisionEvent) => {
-  const { id, status, decisionTime, reason, attemptId } = verification;
+  const { id, status, decisionTime, reason, attemptId, riskLabels } =
+    verification;
 
   let effectiveStatus = status;
 
@@ -69,6 +76,7 @@ export const handleDecisionEvent = async ({
     const isDuplicate = await checkDuplicateIdentity({
       partner,
       veriffIdentityHash,
+      riskLabels,
     });
 
     const isCountryMismatch = checkCountryMismatch({
@@ -79,6 +87,13 @@ export const handleDecisionEvent = async ({
     if (isDuplicate) {
       effectiveStatus = "declined";
       declineReason = DUPLICATE_IDENTITY_DECLINE_REASON;
+
+      waitUntil(
+        detectDuplicateIdentityFraud({
+          veriffSessionId: id,
+          riskLabels,
+        }),
+      );
     } else if (isCountryMismatch) {
       effectiveStatus = "declined";
       declineReason = `Your document country (${verification.document?.country}) does not match your account country (${partner.country})`;
@@ -151,27 +166,41 @@ function checkCountryMismatch({
 async function checkDuplicateIdentity({
   partner,
   veriffIdentityHash,
+  riskLabels,
 }: {
   partner: Pick<Partner, "id">;
   veriffIdentityHash: string | null;
+  riskLabels: VeriffDecisionEvent["verification"]["riskLabels"];
 }): Promise<boolean> {
-  if (!veriffIdentityHash) {
+  if (!veriffIdentityHash && (!riskLabels || riskLabels.length === 0)) {
     return false;
   }
 
-  const duplicatePartner = await prisma.partner.findFirst({
-    where: {
-      veriffIdentityHash,
-      id: {
-        not: partner.id,
-      },
-    },
-    select: {
-      id: true,
-    },
-  });
+  const hasDuplicateRiskLabel =
+    riskLabels &&
+    riskLabels?.length > 0 &&
+    riskLabels.some(({ label }) =>
+      veriffRiskLabels.includes(label as VeriffRiskLabel),
+    );
 
-  return !!duplicatePartner;
+  if (hasDuplicateRiskLabel) {
+    return true;
+  }
+
+  if (veriffIdentityHash) {
+    const duplicatePartner = await prisma.partner.count({
+      where: {
+        veriffIdentityHash,
+        id: {
+          not: partner.id,
+        },
+      },
+    });
+
+    return Boolean(duplicatePartner);
+  }
+
+  return false;
 }
 
 async function sendEmailNotification({

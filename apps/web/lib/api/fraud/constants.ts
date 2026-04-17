@@ -92,6 +92,15 @@ export const FRAUD_RULES: FraudRuleInfo[] = [
     severity: "low",
     configurable: false,
   },
+  {
+    type: "partnerDuplicateAccount",
+    name: "Duplicate identity detected",
+    description:
+      "This partner shares a verified identity with one or more other partners in the program. Please review to prevent abuse of program restrictions, caps, or bonuses.",
+    scope: "partner",
+    severity: "low",
+    configurable: false,
+  },
 ] as const;
 
 export const FRAUD_RULES_BY_TYPE = Object.fromEntries(
