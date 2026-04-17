@@ -28,6 +28,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR, { mutate } from "swr";
 import * as z from "zod/v4";
+import { useTrackApplyStart } from "../application-tracker/application-analytics";
 import { ProgramApplicationFormField } from "./groups/design/application-form/fields";
 import { formDataForApplicationFormData } from "./groups/design/application-form/form-data-for-application-form-data";
 import { PartnerAvatar } from "./partner-avatar";
@@ -103,6 +104,9 @@ function ProgramApplicationSheetForm({
   group: z.infer<typeof PartnerProgramGroupSchema>;
 }) {
   const { partner } = usePartnerProfile();
+  const trackApplyStart = useTrackApplyStart({
+    programSlug: program.slug,
+  });
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -153,6 +157,7 @@ function ProgramApplicationSheetForm({
   return (
     <FormProvider {...form}>
       <form
+        onInputCapture={trackApplyStart}
         onSubmit={handleSubmit(onSubmit)}
         className={cn(
           "flex h-full flex-col transition-opacity duration-200",

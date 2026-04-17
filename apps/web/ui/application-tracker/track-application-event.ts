@@ -5,17 +5,15 @@ import { prettyPrint } from "@dub/utils";
 
 export async function trackApplicationEvent({
   eventName,
+  programSlug,
   referrerUsername,
-}: {
-  eventName: ApplicationEventInput["eventName"];
-  referrerUsername?: string | null;
-}) {
+}: ApplicationEventInput) {
   const response = await fetch("/api/track/application", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       eventName,
-      pathname: window.location.pathname,
+      programSlug,
       referrerUsername,
     }),
   });

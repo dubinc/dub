@@ -34,18 +34,12 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const { eventName, referrerUsername, pathname } =
+    const { eventName, referrerUsername, programSlug } =
       applicationEventInputSchema.parse(await parseRequestBody(req));
-
-    const programSlug =
-      pathname.split("/").filter(Boolean)[0]?.toLowerCase() ?? null;
-
-    // TODO:
-    // Handle case when programSlug is not found or not provided
 
     const program = await prisma.program.findUniqueOrThrow({
       where: {
-        slug: programSlug,
+        slug: programSlug.toLowerCase(),
       },
       select: {
         id: true,
