@@ -1,5 +1,4 @@
 import { detectDuplicateIdentityFraud } from "@/lib/api/fraud/detect-duplicate-identity-fraud";
-import { computeVeriffIdentityHash } from "@/lib/veriff/compute-veriff-identity-hash";
 import {
   VeriffDecisionEvent,
   VeriffRiskLabel,
@@ -62,7 +61,6 @@ export const handleDecisionEvent = async ({
 
   // since we're skipping verified partners, by default identityVerifiedAt is null
   let identityVerifiedAt: Date | null = null;
-  let veriffIdentityHash: string | null | undefined = undefined;
 
   let { sessionUrl, attemptCount, declineReason, sessionExpiresAt } =
     parseVeriffMetadata(partner.veriffMetadata);
@@ -72,19 +70,19 @@ export const handleDecisionEvent = async ({
 
   // If the verification was approved, check for country mismatch
   if (effectiveStatus === "approved") {
-    veriffIdentityHash = computeVeriffIdentityHash(verification);
-    const isDuplicate = await checkDuplicateIdentity({
-      partner,
-      veriffIdentityHash,
-      riskLabels,
-    });
+    const hasDuplicateRiskLabel =
+      riskLabels &&
+      riskLabels?.length > 0 &&
+      riskLabels.some(({ label }) =>
+        veriffRiskLabels.includes(label as VeriffRiskLabel),
+      );
 
     const isCountryMismatch = checkCountryMismatch({
       partner,
       verification,
     });
 
-    if (isDuplicate) {
+    if (hasDuplicateRiskLabel) {
       effectiveStatus = "declined";
       declineReason = DUPLICATE_IDENTITY_DECLINE_REASON;
 
@@ -124,8 +122,6 @@ export const handleDecisionEvent = async ({
     data: {
       identityVerificationStatus: veriffStatusMap[effectiveStatus],
       identityVerifiedAt,
-      veriffIdentityHash:
-        effectiveStatus === "approved" ? veriffIdentityHash : null,
       veriffMetadata,
     },
     select: {
@@ -161,46 +157,6 @@ function checkCountryMismatch({
   }
 
   return partner.country.toUpperCase() !== veriffCountry;
-}
-
-async function checkDuplicateIdentity({
-  partner,
-  veriffIdentityHash,
-  riskLabels,
-}: {
-  partner: Pick<Partner, "id">;
-  veriffIdentityHash: string | null;
-  riskLabels: VeriffDecisionEvent["verification"]["riskLabels"];
-}): Promise<boolean> {
-  if (!veriffIdentityHash && (!riskLabels || riskLabels.length === 0)) {
-    return false;
-  }
-
-  const hasDuplicateRiskLabel =
-    riskLabels &&
-    riskLabels?.length > 0 &&
-    riskLabels.some(({ label }) =>
-      veriffRiskLabels.includes(label as VeriffRiskLabel),
-    );
-
-  if (hasDuplicateRiskLabel) {
-    return true;
-  }
-
-  if (veriffIdentityHash) {
-    const duplicatePartner = await prisma.partner.count({
-      where: {
-        veriffIdentityHash,
-        id: {
-          not: partner.id,
-        },
-      },
-    });
-
-    return Boolean(duplicatePartner);
-  }
-
-  return false;
 }
 
 async function sendEmailNotification({
