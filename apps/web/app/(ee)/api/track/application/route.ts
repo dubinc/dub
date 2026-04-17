@@ -4,19 +4,13 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getApplicationIdCookieName } from "@/lib/application-events/constants";
+import { applicationEventInputSchema } from "@/lib/application-events/schema";
 import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import * as z from "zod/v4";
-
-const trackApplicationEventSchema = z.object({
-  pathname: z.string(),
-  eventName: z.enum(["visit", "start"]),
-  referrerUsername: z.string().nullish(),
-});
 
 // POST /api/track/application – Track an application event
 export const POST = withAxiom(async (req) => {
@@ -41,7 +35,7 @@ export const POST = withAxiom(async (req) => {
     }
 
     const { eventName, referrerUsername, pathname } =
-      trackApplicationEventSchema.parse(await parseRequestBody(req));
+      applicationEventInputSchema.parse(await parseRequestBody(req));
 
     const programSlug =
       pathname.split("/").filter(Boolean)[0]?.toLowerCase() ?? null;
@@ -76,6 +70,11 @@ export const POST = withAxiom(async (req) => {
 
     // TODO:
     // Track the application event
+
+    return NextResponse.json(
+      { eventId },
+      { status: 202, headers: COMMON_CORS_HEADERS },
+    );
   } catch (error) {
     return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
   }
