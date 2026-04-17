@@ -21,11 +21,19 @@ const products = {
     description:
       "[Short links](https://dub.co/help/category/link-management), [QR codes](https://dub.co/help/article/custom-qr-codes), [real-time analytics](https://dub.co/help/article/dub-analytics), and [conversion tracking](https://dub.co/docs/conversions/quickstart).",
   },
+  links: {
+    image: "https://assets.dub.co/icons/link.webp",
+    title: "Dub Links",
+    href: "https://dub.co/links",
+    description:
+      "[Short links](https://dub.co/help/category/link-management), [QR codes](https://dub.co/help/article/custom-qr-codes), [real-time analytics](https://dub.co/help/article/dub-analytics), and [conversion tracking](https://dub.co/docs/conversions/quickstart).",
+    paidPlanRequired: false,
+  },
 };
 
 export function ProductSelector() {
   return (
-    <div className="animate-fade-in mx-auto grid w-full max-w-[312px] gap-4 sm:max-w-[600px] sm:grid-cols-2">
+    <div className="animate-fade-in mx-auto grid w-full gap-4 sm:max-w-[600px] sm:grid-cols-2">
       {Object.entries(products).map(([key, product]) => (
         <ProductOption
           key={key}

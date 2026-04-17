@@ -54,7 +54,7 @@ export default function Layout({ children }: PropsWithChildren) {
         </div>
 
         <div className="w-full flex-1 overflow-y-auto md:flex-none md:overflow-visible">
-          <div className="w-full px-5 pb-8 pt-8 sm:pb-4 md:py-16 lg:px-0">
+          <div className="w-full px-5 pb-8 pt-8 md:py-16 lg:px-0">
             {children}
           </div>
         </div>
