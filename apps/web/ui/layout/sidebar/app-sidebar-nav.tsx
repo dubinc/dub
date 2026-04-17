@@ -37,6 +37,7 @@ import {
   ShieldCheck,
   ShieldKeyhole,
   Sliders,
+  StackY3,
   Tag,
   Trophy,
   UserCheck,
@@ -405,6 +406,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "API Keys",
             icon: Key,
             href: `/${slug}/settings/tokens`,
+          },
+          {
+            name: "Logs",
+            icon: StackY3,
+            href: `/${slug}/settings/logs`,
           },
           {
             name: "Tracking",

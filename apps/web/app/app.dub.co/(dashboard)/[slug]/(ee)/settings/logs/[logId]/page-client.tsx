@@ -11,7 +11,7 @@ import { CopyButton, StatusBadge, TimestampTooltip } from "@dub/ui";
 import { ChevronRight, StackY3 } from "@dub/ui/icons";
 import { fetcher, formatDateTime } from "@dub/utils";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { HighlighterCore } from "shiki";
 import useSWR from "swr";
@@ -28,6 +28,10 @@ export function LogDetailPageClient() {
     workspaceId && `/api/logs/${logId}?workspaceId=${workspaceId}`,
     fetcher,
   );
+
+  if (error?.status === 404) {
+    redirect(`/${slug}/settings/logs`);
+  }
 
   return (
     <PageContent
@@ -72,10 +76,28 @@ export function LogDetailPageClient() {
   );
 }
 
+function LogDetailSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 lg:flex-row">
+      <div className="order-last min-w-0 flex-1 lg:order-first">
+        <div className="flex flex-col gap-6">
+          <div className="h-48 animate-pulse rounded-xl bg-neutral-200" />
+          <div className="h-48 animate-pulse rounded-xl bg-neutral-200" />
+        </div>
+      </div>
+      <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
+        <div className="h-64 animate-pulse rounded-xl bg-neutral-200" />
+      </div>
+    </div>
+  );
+}
+
 function LogDetailContent({ log }: { log: EnrichedApiLog }) {
   const [highlighter, setHighlighter] = useState<HighlighterCore | null>(null);
-  const [highlightedRequest, setHighlightedRequest] = useState("");
-  const [highlightedResponse, setHighlightedResponse] = useState("");
+  const [highlightedBodies, setHighlightedBodies] = useState<{
+    request: string;
+    response: string;
+  } | null>(null);
 
   useEffect(() => {
     import("shiki").then(({ createHighlighter }) => {
@@ -87,26 +109,36 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
   }, []);
 
   useEffect(() => {
-    if (!highlighter) return;
+    if (!highlighter) {
+      setHighlightedBodies(null);
+      return;
+    }
 
-    const toHighlightedJson = (raw: string) => {
+    const toJsonString = (raw: string) => {
       let value: unknown;
       try {
         value = JSON.parse(raw);
       } catch {
         value = raw;
       }
-
-      const jsonStr = JSON.stringify(value, null, 2) ?? String(value);
-      return highlighter.codeToHtml(jsonStr, {
-        theme: "min-light",
-        lang: "json",
-      });
+      return JSON.stringify(value, null, 2) ?? String(value);
     };
 
-    setHighlightedRequest(toHighlightedJson(log.request_body));
-    setHighlightedResponse(toHighlightedJson(log.response_body));
+    setHighlightedBodies({
+      request: highlighter.codeToHtml(toJsonString(log.request_body), {
+        theme: "min-light",
+        lang: "json",
+      }),
+      response: highlighter.codeToHtml(toJsonString(log.response_body), {
+        theme: "min-light",
+        lang: "json",
+      }),
+    });
   }, [highlighter, log]);
+
+  if (!highlightedBodies) {
+    return <LogDetailSkeleton />;
+  }
 
   const detailRows: Record<string, React.ReactNode> = {
     Path: (
@@ -184,10 +216,10 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
             <h3 className="text-content-emphasis text-lg font-semibold">
               Response body
             </h3>
-            {highlightedResponse ? (
+            {highlightedBodies.response ? (
               <div
                 className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
-                dangerouslySetInnerHTML={{ __html: highlightedResponse }}
+                dangerouslySetInnerHTML={{ __html: highlightedBodies.response }}
               />
             ) : (
               <div className="rounded-xl border border-neutral-200 bg-white p-4 font-mono text-xs text-neutral-500">
@@ -200,10 +232,12 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
               <h3 className="text-content-emphasis text-lg font-semibold">
                 Request body
               </h3>
-              {highlightedRequest ? (
+              {highlightedBodies.request ? (
                 <div
                   className="shiki-wrapper max-h-[800px] overflow-auto rounded-xl border border-neutral-200 bg-white p-4 text-sm"
-                  dangerouslySetInnerHTML={{ __html: highlightedRequest }}
+                  dangerouslySetInnerHTML={{
+                    __html: highlightedBodies.request,
+                  }}
                 />
               ) : (
                 <div className="rounded-xl border border-neutral-200 bg-white p-4 font-mono text-xs text-neutral-500">
@@ -237,22 +271,6 @@ function LogDetailContent({ log }: { log: EnrichedApiLog }) {
             ))}
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function LogDetailSkeleton() {
-  return (
-    <div className="flex flex-col gap-6 lg:flex-row">
-      <div className="order-last min-w-0 flex-1 lg:order-first">
-        <div className="flex flex-col gap-6">
-          <div className="h-48 animate-pulse rounded-xl bg-neutral-200" />
-          <div className="h-48 animate-pulse rounded-xl bg-neutral-200" />
-        </div>
-      </div>
-      <div className="order-first w-full shrink-0 lg:order-last lg:w-[360px]">
-        <div className="h-64 animate-pulse rounded-xl bg-neutral-200" />
       </div>
     </div>
   );
