@@ -31,12 +31,12 @@ const CARD_VARIANTS = {
     action: "mt-3",
   },
   spotlight: {
-    card: "p-8",
-    content: "gap-4",
-    title: "text-xl font-semibold text-neutral-900",
-    list: "space-y-3.5 text-sm",
+    card: "p-5",
+    content: "gap-3",
+    title: "text-base font-semibold text-neutral-900",
+    list: "space-y-3 text-sm",
     featureIcon: "[&>svg]:size-5",
-    action: "mt-6",
+    action: "mt-3",
   },
 } as const;
 
@@ -94,7 +94,7 @@ export function PayoutMethodSelector({
                 connected={setting.connected}
                 className={cn(
                   "w-full rounded-lg",
-                  isSingleOption ? "h-10" : "h-9",
+                  "h-9",
                 )}
               />
             }
