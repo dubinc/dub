@@ -125,7 +125,8 @@ test.describe("Free trial user navigation", () => {
   }) => {
     await page.route(
       (url) =>
-        url.pathname === `/api/workspaces/${workspaceId}/billing/end-trial`,
+        url.pathname ===
+        `/api/workspaces/${workspaceId}/billing/activate-paid-plan`,
       async (route) => {
         if (route.request().method() !== "POST") return route.continue();
         await route.fulfill({
@@ -147,7 +148,7 @@ test.describe("Free trial user navigation", () => {
       page.getByText("You'll be charged today and your trial will end."),
     ).toBeVisible();
 
-    // Confirm — triggers the mocked end-trial POST.
+    // Confirm — triggers the mocked activate-paid-plan POST.
     // Two "Start paid plan" buttons exist: the page-level CTA and the modal confirm.
     await page.getByRole("button", { name: "Start paid plan" }).last().click();
 

@@ -105,7 +105,10 @@ export async function updateWorkspacePlan({
           groupsLimit: limits.groups,
           networkInvitesLimit: limits.networkInvites,
           usersLimit: limits.users,
-          paymentFailedAt: null,
+          ...(!subscription ||
+          !["past_due", "unpaid"].includes(subscription.status)
+            ? { paymentFailedAt: null }
+            : {}),
           ...(trialEndsAt !== undefined && { trialEndsAt }),
           ...cancellationFields,
           ...(planPeriod !== undefined && { planPeriod }),
@@ -156,8 +159,12 @@ export async function updateWorkspacePlan({
     ]);
 
     // Checkout skips enabling dub.link during Stripe billing trial; turn it on when the
-    // subscription becomes active (e.g. trialing → active).
-    if (subscription?.status === "active" && newPlanName !== "free") {
+    // subscription becomes active (e.g. trialing → active). Only after the plan write succeeds.
+    if (
+      updatedWorkspace.status === "fulfilled" &&
+      subscription?.status === "active" &&
+      newPlanName !== "free"
+    ) {
       await prisma.defaultDomains.updateMany({
         where: {
           projectId: workspace.id,

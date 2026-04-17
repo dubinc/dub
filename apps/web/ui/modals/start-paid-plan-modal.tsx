@@ -50,7 +50,7 @@ function StartPaidPlanModal({
     setIsSubmitting(true);
     try {
       const res = await fetch(
-        `/api/workspaces/${workspaceId}/billing/end-trial`,
+        `/api/workspaces/${workspaceId}/billing/activate-paid-plan`,
         { method: "POST" },
       );
       if (res.ok) {
