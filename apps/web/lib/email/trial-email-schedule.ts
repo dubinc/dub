@@ -53,6 +53,20 @@ export function getTrialStartDate(trialEndsAt: Date): Date {
   return subDays(trialEndsAt, PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS);
 }
 
+const COUNTDOWN_GRACE_DAYS = 1;
+
+function isStartMilestoneDue(
+  daysSinceStart: number,
+  targetDayFromStart: number,
+  nextTargetDayFromStart: number,
+): boolean {
+  return (
+    daysSinceStart === targetDayFromStart ||
+    (daysSinceStart === targetDayFromStart + 1 &&
+      daysSinceStart < nextTargetDayFromStart)
+  );
+}
+
 export function getDueTrialEmailTypes({
   trialEndsAt,
   sent,
@@ -63,6 +77,11 @@ export function getDueTrialEmailTypes({
   now: Date;
 }): TrialEmailType[] {
   const due: TrialEmailType[] = [];
+
+  if (now.getTime() > trialEndsAt.getTime()) {
+    return due;
+  }
+
   const trialStart = getTrialStartDate(trialEndsAt);
 
   const daysSinceStart = differenceInCalendarDaysUTC(now, trialStart);
@@ -76,35 +95,57 @@ export function getDueTrialEmailTypes({
   };
 
   if (
-    daysSinceStart === TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.STARTED]
+    isStartMilestoneDue(
+      daysSinceStart,
+      TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.STARTED],
+      TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.LINKS_FOCUS],
+    )
   ) {
     tryAdd(TRIAL_EMAIL_TYPE.STARTED);
   }
   if (
-    daysSinceStart === TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.LINKS_FOCUS]
+    isStartMilestoneDue(
+      daysSinceStart,
+      TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.LINKS_FOCUS],
+      TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.PARTNER_FOCUS],
+    )
   ) {
     tryAdd(TRIAL_EMAIL_TYPE.LINKS_FOCUS);
   }
   if (
-    daysSinceStart ===
-    TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.PARTNER_FOCUS]
+    isStartMilestoneDue(
+      daysSinceStart,
+      TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.PARTNER_FOCUS],
+      TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.SOCIAL_PROOF],
+    )
   ) {
     tryAdd(TRIAL_EMAIL_TYPE.PARTNER_FOCUS);
   }
+
+  const socialTarget =
+    TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.SOCIAL_PROOF];
   if (
-    daysSinceStart ===
-    TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.SOCIAL_PROOF]
+    daysSinceStart === socialTarget ||
+    (daysSinceStart === socialTarget + 1 && daysUntilEnd > 7)
   ) {
     tryAdd(TRIAL_EMAIL_TYPE.SOCIAL_PROOF);
   }
 
-  if (daysUntilEnd === 7) {
+  if (
+    daysUntilEnd <= 7 &&
+    daysUntilEnd >= 7 - COUNTDOWN_GRACE_DAYS &&
+    daysUntilEnd >= 0
+  ) {
     tryAdd(TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING);
   }
-  if (daysUntilEnd === 3) {
+  if (
+    daysUntilEnd <= 3 &&
+    daysUntilEnd >= 3 - COUNTDOWN_GRACE_DAYS &&
+    daysUntilEnd >= 0
+  ) {
     tryAdd(TRIAL_EMAIL_TYPE.THREE_DAYS_REMAINING);
   }
-  if (daysUntilEnd === 0) {
+  if (daysUntilEnd === 0 && now.getTime() < trialEndsAt.getTime()) {
     tryAdd(TRIAL_EMAIL_TYPE.ENDS_TODAY);
   }
 
@@ -115,8 +156,7 @@ export function getTrialEmailSubject(type: TrialEmailType): string {
   const subjects: Record<TrialEmailType, string> = {
     [TRIAL_EMAIL_TYPE.STARTED]: "Welcome to your free Dub trial",
     [TRIAL_EMAIL_TYPE.LINKS_FOCUS]: "Get more from your links",
-    [TRIAL_EMAIL_TYPE.PARTNER_FOCUS]:
-      "Turn partners into a growth channel",
+    [TRIAL_EMAIL_TYPE.PARTNER_FOCUS]: "Turn partners into a growth channel",
     [TRIAL_EMAIL_TYPE.SOCIAL_PROOF]: "Meet our customers",
     [TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING]: "7 days left in your Dub trial",
     [TRIAL_EMAIL_TYPE.THREE_DAYS_REMAINING]: "3 days left in your Dub trial",

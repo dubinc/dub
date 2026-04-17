@@ -7,6 +7,7 @@ import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
 import { sendBatchEmail as defaultSendBatchEmail } from "@dub/email";
 import type { PrismaClient } from "@dub/prisma/client";
 import { APP_DOMAIN, chunk, log } from "@dub/utils";
+import { createHash } from "crypto";
 
 const WORKSPACE_PAGE_SIZE = 50;
 const EMAIL_BATCH_SIZE = 100;
@@ -42,7 +43,9 @@ function dedupeRecipients(
     }
   }
 
-  return [...byEmail.values()];
+  return [...byEmail.values()].sort((a, b) =>
+    a.email.toLowerCase().localeCompare(b.email.toLowerCase()),
+  );
 }
 
 export async function runTrialEmailCron({
@@ -148,10 +151,16 @@ export async function runTrialEmailCron({
 
       let groupFailed = false;
       const batches = chunk(payloads, EMAIL_BATCH_SIZE);
-      for (let i = 0; i < batches.length; i++) {
-        const batch = batches[i]!;
-        const pageKey = startingAfter ?? "start";
-        const idempotencyKey = `trial-emails/${workspace.id}/${type}/${pageKey}/c${i}`;
+      for (const batch of batches) {
+        const batchKey = createHash("sha256")
+          .update(
+            batch
+              .map(({ to }) => to.toLowerCase())
+              .sort()
+              .join(","),
+          )
+          .digest("hex");
+        const idempotencyKey = `trial-emails/${workspace.id}/${type}/${batchKey}`;
 
         try {
           const { error } = await sendBatchEmail(batch, { idempotencyKey });

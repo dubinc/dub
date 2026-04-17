@@ -1,5 +1,5 @@
 import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { PlanPeriod, WorkspaceRole } from "@dub/prisma/client";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
@@ -39,10 +39,10 @@ export const WorkspaceSchema = z
       .nullable()
       .describe("The tier of the workspace's plan."),
     planPeriod: z
-      .enum(["monthly", "yearly"])
+      .enum(PlanPeriod)
       .nullish()
       .describe(
-        "Billing cadence for the Stripe subscription (monthly vs yearly), when applicable.",
+        "Billing cadence for the Stripe subscription (monthly, yearly, quarterly, biweekly), when applicable.",
       ),
     stripeId: z.string().nullable().describe("The Stripe ID of the workspace."),
     trialEndsAt: z

@@ -103,6 +103,39 @@ describe("getDueTrialEmailTypes", () => {
     ).toEqual([TRIAL_EMAIL_TYPE.ENDS_TODAY]);
   });
 
+  it("returns nothing after the trial end instant (no late ends-today on same UTC date)", () => {
+    const now = new Date(Date.UTC(2025, 0, 15, 14, 0, 0));
+    expect(
+      getDueTrialEmailTypes({
+        trialEndsAt: TRIAL_ENDS_AT,
+        sent: emptySent,
+        now,
+      }),
+    ).toEqual([]);
+  });
+
+  it("still returns trial-started one calendar day late if cron missed day 0", () => {
+    const now = new Date(Date.UTC(2025, 0, 2, 10, 0, 0));
+    expect(
+      getDueTrialEmailTypes({
+        trialEndsAt: TRIAL_ENDS_AT,
+        sent: emptySent,
+        now,
+      }),
+    ).toEqual([TRIAL_EMAIL_TYPE.STARTED]);
+  });
+
+  it("returns trial-7-days-remaining one calendar day late (catch-up)", () => {
+    const now = new Date(Date.UTC(2025, 0, 9, 10, 0, 0));
+    expect(
+      getDueTrialEmailTypes({
+        trialEndsAt: TRIAL_ENDS_AT,
+        sent: emptySent,
+        now,
+      }),
+    ).toEqual([TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING]);
+  });
+
   it("does not return a type that is already in sent", () => {
     const now = new Date(Date.UTC(2025, 0, 1, 10, 0, 0));
     const sent = new Set<string>([TRIAL_EMAIL_TYPE.STARTED]);
