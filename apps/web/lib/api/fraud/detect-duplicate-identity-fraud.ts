@@ -117,6 +117,7 @@ export async function detectDuplicateIdentityFraud({
           type: FraudRuleType.partnerDuplicateAccount,
           metadata: {
             duplicatePartnerId: enrolledPartner.partnerId,
+            riskLabels,
           },
         });
       }
