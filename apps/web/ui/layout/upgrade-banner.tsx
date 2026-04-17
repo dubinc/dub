@@ -77,7 +77,16 @@ export function UpgradeBanner() {
           trialActive ? (
             <button
               type="button"
-              onClick={() => openTrialLimitModal(overageLimitResource)}
+              onClick={() =>
+                openTrialLimitModal(
+                  overageLimitResource ??
+                    (exceededEvents
+                      ? "clicks"
+                      : exceededLinks
+                        ? "links"
+                        : "payouts"),
+                )
+              }
               className={cn(
                 "bg-bg-default text-content-emphasis border-border-subtle ml-4 flex h-7 items-center justify-center rounded-lg border px-2.5 text-sm font-medium",
                 "hover:bg-bg-subtle transition-colors duration-150",
