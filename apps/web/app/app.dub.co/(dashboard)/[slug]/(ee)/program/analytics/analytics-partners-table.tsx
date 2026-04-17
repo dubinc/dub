@@ -172,7 +172,6 @@ export function AnalyticsPartnersTable() {
     ],
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["clicks", "leads", "saleAmount"],
     sortBy: selectedTab === "sales" ? "saleAmount" : selectedTab,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
