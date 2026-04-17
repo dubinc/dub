@@ -88,7 +88,7 @@ export function InviteTeammatesForm({
             const error = body?.error;
             if (trialActive && error?.code === "exceeded_limit") {
               openTrialLimitModal("users");
-              throw error;
+              return;
             }
             if (error?.message?.includes("upgrade")) {
               if (trialActive) {
@@ -104,9 +104,9 @@ export function InviteTeammatesForm({
                   { duration: 4000 },
                 );
               }
-            } else {
-              toast.error(error?.message ?? "Something went wrong");
+              return;
             }
+            toast.error(error?.message ?? "Something went wrong");
             if (error) throw error;
           }
         })}

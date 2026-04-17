@@ -51,11 +51,11 @@ export function getTrialLimitResourceForOverageBanner({
   exceededEvents: boolean;
   exceededLinks: boolean;
   exceededPayouts: boolean;
-}): TrialLimitResource {
+}): TrialLimitResource | null {
   if (exceededEvents) return "clicks";
   if (exceededLinks) return "links";
   if (exceededPayouts) return "payouts";
-  return "payouts";
+  return null;
 }
 
 export const PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS = 14;

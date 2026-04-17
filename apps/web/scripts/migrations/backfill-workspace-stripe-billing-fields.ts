@@ -23,7 +23,7 @@ import { getPlanPeriodFromStripeSubscription } from "../../app/(ee)/api/stripe/w
 import { stripe } from "../../lib/stripe";
 import { getSubscriptionCancellationFields } from "../../lib/stripe/workspace-subscription-fields";
 
-const SUBSCRIPTION_LIST_LIMIT = 20;
+const SUBSCRIPTION_LIST_LIMIT = 100;
 const PAGE_SIZE = 50;
 const PARALLEL_BATCH = 8;
 const BATCH_DELAY_MS = 150;
@@ -41,23 +41,36 @@ function argValue(argv: string[], flag: string): string | undefined {
   if (i === -1) {
     return undefined;
   }
-  return argv[i + 1];
+  const value = argv[i + 1];
+  if (value == null || value === "" || value.startsWith("--")) {
+    throw new Error(`${flag} requires a value`);
+  }
+  return value;
 }
 
 function parseArgs() {
   const argv = process.argv.slice(2);
+
+  let limit: number | undefined;
+  if (argv.includes("--limit")) {
+    const rawLimit = argValue(argv, "--limit");
+    const n = Number(rawLimit);
+    if (!Number.isInteger(n) || n <= 0) {
+      throw new Error("--limit must be a positive integer");
+    }
+    limit = n;
+  }
+
+  const slug = argv.includes("--slug") ? argValue(argv, "--slug") : undefined;
+  const projectId = argv.includes("--project-id")
+    ? argValue(argv, "--project-id")
+    : undefined;
+
   return {
     dryRun: argv.includes("--dry-run"),
-    limit: (() => {
-      const raw = argValue(argv, "--limit");
-      if (raw == null) {
-        return undefined;
-      }
-      const n = Number(raw);
-      return Number.isFinite(n) && n > 0 ? Math.floor(n) : undefined;
-    })(),
-    slug: argValue(argv, "--slug"),
-    projectId: argValue(argv, "--project-id"),
+    limit,
+    slug,
+    projectId,
   };
 }
 
@@ -84,6 +97,33 @@ function pickSubscription(
     }
   }
   return [...subscriptions].sort((a, b) => b.created - a.created)[0] ?? null;
+}
+
+async function listCustomerSubscriptions(
+  customerId: string,
+): Promise<Stripe.Subscription[]> {
+  const subscriptions: Stripe.Subscription[] = [];
+  let startingAfter: string | undefined;
+
+  while (true) {
+    const page = await stripe.subscriptions.list({
+      customer: customerId,
+      status: "all",
+      limit: SUBSCRIPTION_LIST_LIMIT,
+      ...(startingAfter ? { starting_after: startingAfter } : {}),
+    });
+
+    subscriptions.push(...page.data);
+
+    if (!page.has_more) {
+      return subscriptions;
+    }
+
+    startingAfter = page.data[page.data.length - 1]?.id;
+    if (!startingAfter) {
+      return subscriptions;
+    }
+  }
 }
 
 function sleep(ms: number) {
@@ -129,12 +169,8 @@ async function backfillOneProject(
   }
 
   try {
-    const list = await stripe.subscriptions.list({
-      customer: customerId,
-      status: "all",
-      limit: SUBSCRIPTION_LIST_LIMIT,
-    });
-    const sub = pickSubscription(list.data);
+    const allSubscriptions = await listCustomerSubscriptions(customerId);
+    const sub = pickSubscription(allSubscriptions);
     if (!sub) {
       console.log(
         `[skip] ${project.id} (${project.slug}): no subscription for customer ${customerId}`,
