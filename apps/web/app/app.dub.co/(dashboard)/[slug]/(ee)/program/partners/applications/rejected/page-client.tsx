@@ -8,6 +8,7 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, PartnerPlatformProps } from "@/lib/types";
+import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
@@ -134,6 +135,9 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       partners,
       partnerId: detailsSheetState.partnerId,
     });
+
+  const { openBulkApprove, BulkApprovePartnersModal } =
+    useBulkApprovePartnersModal();
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
     "applications-table-columns",
@@ -378,6 +382,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          onOpenBulkApprove={openBulkApprove}
           onPrevious={
             previousPartnerId
               ? () =>
@@ -398,6 +403,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
           }
         />
       )}
+      <BulkApprovePartnersModal />
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
