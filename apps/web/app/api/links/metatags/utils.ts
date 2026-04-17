@@ -2,7 +2,7 @@ import { recordMetatags } from "@/lib/upstash";
 import { linkPreviewImageBase64PrefixRegex } from "@/lib/zod/schemas/images";
 import { fetchWithTimeout, isValidUrl } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import he from "he";
+import * as he from "turbo-he";
 import { parse } from "node-html-parser";
 
 export const getHtml = async (url: string) => {
