@@ -2,9 +2,8 @@
 
 import { FRAUD_SEVERITY_CONFIG } from "@/lib/api/fraud/constants";
 import { FraudRuleInfo, FraudSeverity } from "@/lib/types";
-import { Modal } from "@dub/ui";
+import { Modal, ModalCloseButton } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { X } from "lucide-react";
 import {
   Dispatch,
   SetStateAction,
@@ -36,13 +35,7 @@ function PartnerApplicationRiskSummaryModal({
       <div className="border-b border-neutral-200 px-4 py-3">
         <div className="flex w-full items-center justify-between">
           <h3 className="text-lg font-medium leading-none">Risk analysis</h3>
-          <button
-            type="button"
-            onClick={() => setShowModal(false)}
-            className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <ModalCloseButton onClick={() => setShowModal(false)} />
         </div>
       </div>
 

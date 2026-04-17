@@ -10,6 +10,7 @@ import {
   Button,
   InfoTooltip,
   Modal,
+  ModalCloseButton,
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
@@ -18,7 +19,6 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
-import { X } from "../shared/icons";
 
 interface AddPartnerLinkModalProps {
   showModal: boolean;
@@ -120,13 +120,7 @@ const AddPartnerLinkModal = ({
         <div className="flex flex-col items-start justify-between gap-4 px-6 py-4">
           <div className="flex w-full items-center justify-between">
             <h3 className="text-lg font-medium">New partner link</h3>
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <ModalCloseButton onClick={() => setShowModal(false)} />
           </div>
 
           <div className="flex w-full flex-col gap-6">

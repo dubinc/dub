@@ -2,8 +2,7 @@
 
 import { clientAccessCheck } from "@/lib/client-access-check";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { X } from "@/ui/shared/icons";
-import { Button, LoadingDots, Modal, useMediaQuery } from "@dub/ui";
+import { Button, LoadingDots, Modal, ModalCloseButton, useMediaQuery } from "@dub/ui";
 import { cn, validDomainRegex } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -132,13 +131,7 @@ const AddHostnameModal = ({
     <Modal showModal={showModal} setShowModal={setShowModal}>
       <div className="flex items-center justify-between border-b border-neutral-200 p-4">
         <h3 className="text-lg font-medium">Add hostname</h3>
-        <button
-          type="button"
-          onClick={close}
-          className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <ModalCloseButton onClick={close} />
       </div>
 
       <div className="bg-neutral-50">

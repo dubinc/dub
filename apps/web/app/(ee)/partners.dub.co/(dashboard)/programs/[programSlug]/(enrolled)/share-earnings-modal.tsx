@@ -1,9 +1,8 @@
 "use client";
 
 import { IntervalOptions } from "@/lib/analytics/types";
-import { Button, LoadingSpinner, Modal } from "@dub/ui";
+import { Button, LoadingSpinner, Modal, ModalCloseButton } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { X } from "lucide-react";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -141,13 +140,7 @@ function ShareEarningsModalInner({
     <div className="flex flex-col gap-2 px-5 py-3">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Share chart</h3>
-        <button
-          type="button"
-          onClick={() => setShowModal(false)}
-          className="group rounded-lg p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-        >
-          <X className="size-5" />
-        </button>
+        <ModalCloseButton onClick={() => setShowModal(false)} className="rounded-lg" />
       </div>
 
       <div className="border-border-subtle scrollbar-hide max-h-[calc(100dvh-280px)] overflow-y-auto rounded-xl border">

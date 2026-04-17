@@ -1,7 +1,6 @@
 import { verifyPartnerWebsiteAction } from "@/lib/actions/partners/verify-partner-website";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { Button, CopyButton, Modal } from "@dub/ui";
-import { X } from "lucide-react";
+import { Button, CopyButton, Modal, ModalCloseButton } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -52,13 +51,7 @@ function DomainVerificationModalInner({
     <>
       <div className="flex items-center justify-between border-b border-neutral-200 p-4 sm:px-6">
         <h3 className="text-lg font-medium leading-none">Verify your domain</h3>
-        <button
-          type="button"
-          onClick={() => setShowDomainVerificationModal(false)}
-          className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <ModalCloseButton onClick={() => setShowDomainVerificationModal(false)} />
       </div>
 
       <div className="bg-neutral-50 p-4 sm:p-6">
