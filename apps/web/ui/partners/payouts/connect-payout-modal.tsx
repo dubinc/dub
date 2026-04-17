@@ -1,8 +1,7 @@
 "use client";
 
 import usePartnerPayoutSettings from "@/lib/swr/use-partner-payout-settings";
-import { Modal, MoneyBills2 } from "@dub/ui";
-import { X } from "lucide-react";
+import { Modal, ModalCloseButton, MoneyBills2 } from "@dub/ui";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { PayoutMethodSelector } from "./payout-method-cards";
 
@@ -46,13 +45,7 @@ function ConnectPayoutModal({
             </p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => setShowModal(false)}
-          className="group shrink-0 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-        >
-          <X className="size-5" />
-        </button>
+        <ModalCloseButton onClick={() => setShowModal(false)} className="shrink-0" />
       </div>
 
       <div className="px-4 py-4 pt-0 sm:px-6">

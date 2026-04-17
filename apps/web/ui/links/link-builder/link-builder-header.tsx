@@ -4,7 +4,7 @@ import useFolder from "@/lib/swr/use-folder";
 import useLinks from "@/lib/swr/use-links";
 import { LinkProps } from "@/lib/types";
 import { FolderIcon } from "@/ui/folders/folder-icon";
-import { Combobox, LinkLogo } from "@dub/ui";
+import { Combobox, LinkLogo, ModalCloseButton } from "@dub/ui";
 import {
   cn,
   getApexDomain,
@@ -13,7 +13,7 @@ import {
   linkConstructor,
   truncate,
 } from "@dub/utils";
-import { ChevronRight, X } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { PropsWithChildren, useMemo, useState } from "react";
 import { useFormState, useWatch } from "react-hook-form";
@@ -133,13 +133,7 @@ export function LinkBuilderHeader({
       <div className="flex items-center gap-4">
         {children}
         {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="group hidden rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:block"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <ModalCloseButton onClick={onClose} className="hidden md:block" />
         )}
       </div>
     </div>

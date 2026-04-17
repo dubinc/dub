@@ -26,6 +26,7 @@ export * from "./label";
 export * from "./menu-item";
 export * from "./mini-area-chart";
 export * from "./modal";
+export * from "./modal-close-button";
 export * from "./multi-value-input";
 export * from "./number-stepper";
 export * from "./pagination-controls";
