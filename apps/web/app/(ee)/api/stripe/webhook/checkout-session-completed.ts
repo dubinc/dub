@@ -1,5 +1,6 @@
 import { createProgram } from "@/lib/actions/partners/create-program";
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
+import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { stripe } from "@/lib/stripe";
@@ -110,6 +111,7 @@ export async function checkoutSessionCompleted(
 
   await Promise.allSettled([
     completeOnboarding({ users, workspaceId }),
+    workspace.defaultProgramId && reactivateProgram(workspace.defaultProgramId),
     sendBatchEmail(
       users.map((user) => ({
         to: user.email as string,
