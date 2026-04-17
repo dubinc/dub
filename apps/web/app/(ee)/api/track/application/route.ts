@@ -1,0 +1,89 @@
+import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
+import { createId } from "@/lib/api/create-id";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { parseRequestBody } from "@/lib/api/utils";
+import { getIP } from "@/lib/api/utils/get-ip";
+import { getApplicationIdCookieName } from "@/lib/application-events/constants";
+import { getSession } from "@/lib/auth";
+import { withAxiom } from "@/lib/axiom/server";
+import { detectBot } from "@/lib/middleware/utils/detect-bot";
+import { ratelimit } from "@/lib/upstash";
+import { prisma } from "@dub/prisma";
+import { NextResponse } from "next/server";
+import * as z from "zod/v4";
+
+const trackApplicationEventSchema = z.object({
+  pathname: z.string(),
+  eventName: z.enum(["visit", "start"]),
+  referrerUsername: z.string().nullish(),
+});
+
+// POST /api/track/application – Track an application event
+export const POST = withAxiom(async (req) => {
+  try {
+    if (detectBot(req)) {
+      return NextResponse.json(
+        { ok: true },
+        { status: 202, headers: COMMON_CORS_HEADERS },
+      );
+    }
+
+    const ip = await getIP();
+    const { success } = await ratelimit(10, "10 s").limit(
+      `track-application:${ip}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "Too many requests. Please try again later.",
+      });
+    }
+
+    const { eventName, referrerUsername, pathname } =
+      trackApplicationEventSchema.parse(await parseRequestBody(req));
+
+    const programSlug =
+      pathname.split("/").filter(Boolean)[0]?.toLowerCase() ?? null;
+
+    // TODO:
+    // Handle case when programSlug is not found or not provided
+
+    const program = await prisma.program.findUniqueOrThrow({
+      where: {
+        slug: programSlug,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const session = await getSession();
+
+    if (eventName === "visit") {
+      const cookieName = getApplicationIdCookieName(program.id);
+      const existingEventId = req.cookies.get(cookieName)?.value;
+
+      if (existingEventId) {
+        return NextResponse.json(
+          { ok: true },
+          { status: 202, headers: COMMON_CORS_HEADERS },
+        );
+      }
+    }
+
+    const eventId = createId({ prefix: "pga_evt_" });
+
+    // TODO:
+    // Track the application event
+  } catch (error) {
+    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
+  }
+});
+
+export const OPTIONS = () => {
+  return new Response(null, {
+    status: 204,
+    headers: COMMON_CORS_HEADERS,
+  });
+};
