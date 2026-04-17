@@ -193,7 +193,7 @@ export function CreateWorkspaceForm({
           </p>
         ) : (
           <p className="text-content-subtle mt-1.5 text-xs">
-            This is used for your workspace and partner program.
+            This is used for both your workspace and your partner program.
           </p>
         )}
       </div>

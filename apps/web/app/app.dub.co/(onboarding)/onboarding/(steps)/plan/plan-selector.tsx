@@ -33,6 +33,8 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
       ? [BUSINESS_PLAN, ADVANCED_PLAN, ENTERPRISE_PLAN]
       : [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
+  const SHOW_TRIAL = true; // TODO: move this to onboarding context
+
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [mobilePlanIndex, setMobilePlanIndex] = useState(() => {
     const defaultPlanName = product === "partners" ? "Advanced" : "Business";
@@ -97,7 +99,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                     <div className="mt-1">
                       {plan.name === "Enterprise" ? (
                         <span className="block text-base text-neutral-700">
-                          Custom
+                          Custom pricing
                         </span>
                       ) : (
                         <>
@@ -118,10 +120,12 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                         </>
                       )}
                     </div>
-                    {product === "partners" && plan.name !== "Enterprise" && (
+                    {SHOW_TRIAL && (
                       <p className="mt-1 text-xs text-neutral-500">
-                        {PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · card
-                        required
+                        {plan.name === "Enterprise"
+                          ? "Trial available on request"
+                          : `${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · Card
+                        required`}
                       </p>
                     )}
 
