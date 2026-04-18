@@ -1,7 +1,9 @@
 import { nanoid } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 
-test("complete workspace onboarding", async ({ page }) => {
+test("complete workspace onboarding with Dub Links product", async ({
+  page,
+}) => {
   const workspaceName = `Test WS ${nanoid(6)}`;
 
   // Welcome page
