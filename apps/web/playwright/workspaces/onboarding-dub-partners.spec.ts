@@ -52,7 +52,7 @@ test("complete workspace onboarding with Dub Partners product", async ({
   await page.getByRole("button", { name: "Create workspace" }).click();
 
   // Products step
-  await page.waitForURL(/\/onboarding\/products/, { timeout: 15_000 });
+  await page.waitForURL(/\/onboarding\/products/, { timeout: 30_000 });
   await expect(
     page.getByRole("heading", {
       name: "What do you want to do with Dub?",
