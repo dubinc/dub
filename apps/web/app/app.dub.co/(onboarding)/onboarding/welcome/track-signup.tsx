@@ -11,9 +11,13 @@ export default function TrackSignup() {
   const { isTrialVariant } = useOnboardingTrialVariant();
 
   useEffect(() => {
-    plausible("Signed Up");
-    plausible(`Started Onboarding (${isTrialVariant ? "Trial" : "No Trial"})`);
-  }, [session?.user, isTrialVariant]);
+    if (session?.user) {
+      plausible("Signed Up");
+      plausible(
+        `Started Onboarding (${isTrialVariant ? "Trial" : "No Trial"})`,
+      );
+    }
+  }, [session?.user]);
 
   return null;
 }

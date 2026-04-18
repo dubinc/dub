@@ -9,20 +9,21 @@ import { Toaster } from "sonner";
 export default function RootProviders({ children }: { children: ReactNode }) {
   return (
     <TooltipProvider>
-      <PlausibleProvider domain="dub.co" revenue />
-      <KeyboardShortcutProvider>
-        <Toaster className="pointer-events-auto" closeButton />
-        {children}
-        <DubAnalytics
-          apiHost="/_proxy/dub"
-          cookieOptions={{
-            domain: process.env.VERCEL === "1" ? ".dub.co" : "localhost",
-          }}
-          domainsConfig={{
-            refer: "refer.dub.co",
-          }}
-        />
-      </KeyboardShortcutProvider>
+      <PlausibleProvider enabled init={{ captureOnLocalhost: true }}>
+        <KeyboardShortcutProvider>
+          <Toaster className="pointer-events-auto" closeButton />
+          {children}
+          <DubAnalytics
+            apiHost="/_proxy/dub"
+            cookieOptions={{
+              domain: process.env.VERCEL === "1" ? ".dub.co" : "localhost",
+            }}
+            domainsConfig={{
+              refer: "refer.dub.co",
+            }}
+          />
+        </KeyboardShortcutProvider>
+      </PlausibleProvider>
     </TooltipProvider>
   );
 }
