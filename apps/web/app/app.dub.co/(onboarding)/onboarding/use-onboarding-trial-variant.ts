@@ -2,14 +2,18 @@ import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
 
 export function useOnboardingTrialVariant() {
   const [trialVariant, setTrialVariant] = useSyncedLocalStorage<
-    "control" | "trial" | undefined
-  >("dub_trial_d1d6f8671832d7a30e805a7fa01f968b", undefined);
+    "control" | "trial_d1d6f8671832d7a30e805a7fa01f968b" | undefined
+  >("dub_onboarding_trial_variant", undefined);
 
   if (trialVariant === undefined) {
-    setTrialVariant(Math.random() > 0.5 ? "trial" : "control");
+    setTrialVariant(
+      Math.random() > 0.5
+        ? "trial_d1d6f8671832d7a30e805a7fa01f968b"
+        : "control",
+    );
   }
 
   return {
-    isTrialVariant: trialVariant === "trial",
+    isTrialVariant: trialVariant === "trial_d1d6f8671832d7a30e805a7fa01f968b",
   };
 }
