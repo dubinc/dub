@@ -16,13 +16,19 @@ import {
 } from "react";
 import { Markdown } from "../shared/markdown";
 
+export type PlanChangeConfirmationMode =
+  | "program-downgrade"
+  | "advanced-downgrade";
+
 function PlanChangeConfirmationModal({
   showPlanChangeConfirmationModal,
   setShowPlanChangeConfirmationModal,
+  confirmationMode,
   onConfirm,
 }: {
   showPlanChangeConfirmationModal: boolean;
   setShowPlanChangeConfirmationModal: Dispatch<SetStateAction<boolean>>;
+  confirmationMode: PlanChangeConfirmationMode;
   onConfirm: () => void | Promise<void>;
 }) {
   const {
@@ -33,13 +39,13 @@ function PlanChangeConfirmationModal({
   } = useWorkspace();
 
   const { program } = useProgram({
-    enabled: showPlanChangeConfirmationModal && Boolean(defaultProgramId),
+    enabled: showPlanChangeConfirmationModal,
   });
 
   const { partnersCount, loading: partnersCountLoading } =
     usePartnersCount<number>({
       ignoreParams: true,
-      enabled: showPlanChangeConfirmationModal && Boolean(defaultProgramId),
+      enabled: showPlanChangeConfirmationModal,
     });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,6 +57,21 @@ function PlanChangeConfirmationModal({
     (displayName
       ? `${OG_AVATAR_URL}${displayName}`
       : `${OG_AVATAR_URL}default`);
+
+  const PROGRAM_DOWNGRADE_MARKDOWN = [
+    "- You will lose access to your partner program.",
+    "- Your partner program will be deactivated and partners will be notified automatically.",
+    "- Partner links will stop tracking new activity.",
+    `- Any [pending payouts](https://app.dub.co/${slug}/program/payouts?status=pending) must be communicated and settled directly with your partners.`,
+  ].join("\n");
+
+  const ADVANCED_DOWNGRADE_MARKDOWN = [
+    "- [Email campaigns](https://dub.co/help/article/email-campaigns) will be paused or canceled.",
+    "- [Messaging center](https://dub.co/help/article/messaging-partners) will be disabled.",
+    "- [Advanced reward conditions](https://dub.co/help/article/partner-rewards) will be removed.",
+    "- [Fraud events](https://dub.co/help/article/fraud-detection) will still be tracked, but you need to upgrade to view them.",
+    "- If you've set up the [Embedded Referral Dashboard](https://dub.co/docs/partners/embedded-referrals), it will no longer work.",
+  ].join("\n");
 
   return (
     <Modal
@@ -67,7 +88,9 @@ function PlanChangeConfirmationModal({
           <div className="flex items-center gap-2 p-2">
             <TriangleWarning className="size-4 shrink-0 text-amber-500" />
             <p className="text-sm text-amber-900">
-              This change will affect your partner program
+              {confirmationMode === "advanced-downgrade"
+                ? "You will lose Advanced plan features"
+                : "This change will affect your partner program"}
             </p>
           </div>
 
@@ -95,12 +118,9 @@ function PlanChangeConfirmationModal({
         </div>
 
         <Markdown className="list-decimal">
-          {[
-            "- You will lose access to your partner program.",
-            "- Your partner program will be deactivated and partners will be notified automatically.",
-            "- Partner links will stop tracking new activity.",
-            `- Any [pending payouts](https://app.dub.co/${slug}/program/payouts?status=pending) must be communicated and settled directly with your partners.`,
-          ].join("\n")}
+          {confirmationMode === "advanced-downgrade"
+            ? ADVANCED_DOWNGRADE_MARKDOWN
+            : PROGRAM_DOWNGRADE_MARKDOWN}
         </Markdown>
       </div>
 
@@ -121,7 +141,6 @@ function PlanChangeConfirmationModal({
             if (isSubmitting) return;
             setIsSubmitting(true);
             await onConfirm();
-            setIsSubmitting(false);
           }}
         />
       </div>
@@ -131,8 +150,10 @@ function PlanChangeConfirmationModal({
 
 export function usePlanChangeConfirmationModal({
   onConfirm,
+  confirmationMode = "program-downgrade",
 }: {
   onConfirm: () => void | Promise<void>;
+  confirmationMode?: PlanChangeConfirmationMode;
 }) {
   const [showPlanChangeConfirmationModal, setShowPlanChangeConfirmationModal] =
     useState(false);
@@ -141,11 +162,15 @@ export function usePlanChangeConfirmationModal({
   const onConfirmRef = useRef(onConfirm);
   onConfirmRef.current = onConfirm;
 
+  const confirmationModeRef = useRef(confirmationMode);
+  confirmationModeRef.current = confirmationMode;
+
   const PlanChangeConfirmationModalCallback = useCallback(() => {
     return (
       <PlanChangeConfirmationModal
         showPlanChangeConfirmationModal={showPlanChangeConfirmationModal}
         setShowPlanChangeConfirmationModal={setShowPlanChangeConfirmationModal}
+        confirmationMode={confirmationModeRef.current}
         onConfirm={() => onConfirmRef.current()}
       />
     );

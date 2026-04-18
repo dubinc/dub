@@ -32,8 +32,6 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
       ? [BUSINESS_PLAN, ADVANCED_PLAN, ENTERPRISE_PLAN]
       : [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
-  const SHOW_TRIAL = true; // TODO: move this to onboarding context
-
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [mobilePlanIndex, setMobilePlanIndex] = useState(() => {
     const defaultPlanName = product === "partners" ? "Advanced" : "Business";

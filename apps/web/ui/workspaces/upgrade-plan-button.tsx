@@ -1,6 +1,7 @@
 "use client";
 
 import { wouldLosePartnerAccess } from "@/lib/plans/has-partner-access";
+import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { getStripe } from "@/lib/stripe/client";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, ButtonProps } from "@dub/ui";
@@ -13,7 +14,7 @@ import {
 } from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
 import { useStartPaidPlanModal } from "../modals/start-paid-plan-modal";
 
@@ -56,14 +57,25 @@ export function UpgradePlanButton({
     currentPlan === selectedPlan.name.toLowerCase() &&
     period === currentPlanPeriod;
 
-  // Check if this plan change would lose partner access
-  const losesPartnerAccess =
-    currentPlan &&
-    defaultProgramId &&
-    wouldLosePartnerAccess({
-      currentPlan,
-      newPlan: selectedPlan.name.toLowerCase(),
-    });
+  // Check if this plan change would lose partner access / advanced features
+  const { losesPartnerAccess, losesAdvancedFeatures } = useMemo(() => {
+    if (currentPlan && defaultProgramId) {
+      return {
+        losesPartnerAccess: wouldLosePartnerAccess({
+          currentPlan,
+          newPlan: selectedPlan.name.toLowerCase(),
+        }),
+        losesAdvancedFeatures: wouldLoseAdvancedFeatures({
+          currentPlan,
+          newPlan: selectedPlan.name.toLowerCase(),
+        }),
+      };
+    }
+    return {
+      losesPartnerAccess: false,
+      losesAdvancedFeatures: false,
+    };
+  }, [currentPlan, defaultProgramId, selectedPlan.name]);
 
   const performUpgrade = () => {
     setClicked(true);
@@ -108,6 +120,10 @@ export function UpgradePlanButton({
   const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
     usePlanChangeConfirmationModal({
       onConfirm: performUpgrade,
+      confirmationMode:
+        losesAdvancedFeatures && !losesPartnerAccess
+          ? "advanced-downgrade"
+          : "program-downgrade",
     });
 
   const { StartPaidPlanModal, setShowStartPaidPlanModal } =
@@ -118,7 +134,7 @@ export function UpgradePlanButton({
       setShowStartPaidPlanModal(true);
       return;
     }
-    if (losesPartnerAccess) {
+    if (losesPartnerAccess || losesAdvancedFeatures) {
       setShowPlanChangeConfirmationModal(true);
     } else {
       performUpgrade();
