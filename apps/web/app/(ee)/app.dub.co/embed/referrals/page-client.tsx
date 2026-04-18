@@ -52,6 +52,7 @@ import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
 import { ThemeOptions } from "./theme-options";
 import { ReferralsReferralsEmbedToken } from "./token";
+import { RewardDisplayConfig } from "./format-reward";
 import { ReferralsEmbedLink } from "./types";
 
 type ReferralsEmbedData = {
@@ -99,6 +100,7 @@ type ReferralsEmbedData = {
     saleAmount: number;
   };
   bounties: PartnerBountyProps[];
+  rewardDisplay: RewardDisplayConfig;
 };
 
 type ReferralsEmbedPageClientProps = ReferralsEmbedData & {
@@ -197,6 +199,9 @@ export function ReferralsEmbedPageClient({
     if (!tabs.includes(selectedTab)) setSelectedTab(tabs[0]);
   }, [tabs, selectedTab]);
 
+  const rewardDisplay: RewardDisplayConfig =
+    programEmbedData?.rewardDisplay ?? null;
+
   const embedData = useMemo(
     () => ({
       program,
@@ -210,6 +215,7 @@ export function ReferralsEmbedPageClient({
       programEnrollment,
       group,
       bounties,
+      rewardDisplay,
     }),
     [
       program,
@@ -223,6 +229,7 @@ export function ReferralsEmbedPageClient({
       programEnrollment,
       group,
       bounties,
+      rewardDisplay,
     ],
   );
 

@@ -11,5 +11,12 @@ export const programEmbedSchema = z
       .nullish(),
     hidePoweredByBadge: z.boolean().default(false),
     hidePayouts: z.boolean().default(false),
+    rewardDisplay: z
+      .object({
+        mode: z.enum(["currency", "custom"]).default("currency"),
+        suffix: z.string().default(""),
+        compact: z.boolean().default(false),
+      })
+      .nullish(),
   })
   .nullish();

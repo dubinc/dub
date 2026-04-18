@@ -10,7 +10,6 @@ import {
   useTable,
 } from "@dub/ui";
 import {
-  currencyFormatter,
   fetcher,
   formatDate,
   formatDateTime,
@@ -18,12 +17,14 @@ import {
 import { motion } from "motion/react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
+import { formatReward } from "./format-reward";
 import { useReferralsEmbedData } from "./page-client";
 
 export function ReferralsEmbedEarnings() {
   const token = useEmbedToken();
   const {
     earnings: { totalCount: earningsCount },
+    rewardDisplay,
   } = useReferralsEmbedData();
 
   const { pagination, setPagination } = usePagination(
@@ -66,7 +67,7 @@ export function ReferralsEmbedEarnings() {
         id: "amount",
         header: "Amount",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.amount);
+          return formatReward(row.original.amount, rewardDisplay);
         },
       },
       {
@@ -74,7 +75,7 @@ export function ReferralsEmbedEarnings() {
         header: "Earnings",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings);
+          return formatReward(row.original.earnings, rewardDisplay);
         },
       },
       {

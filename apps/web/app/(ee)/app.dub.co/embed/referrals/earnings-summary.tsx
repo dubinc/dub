@@ -1,5 +1,5 @@
 import { Button, InfoTooltip } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { formatReward } from "./format-reward";
 import { useReferralsEmbedData } from "./page-client";
 
 export function ReferralsEmbedEarningsSummary({
@@ -7,7 +7,8 @@ export function ReferralsEmbedEarningsSummary({
 }: {
   hidePayouts: boolean;
 }) {
-  const { program, partner, earnings } = useReferralsEmbedData();
+  const { program, partner, earnings, rewardDisplay } =
+    useReferralsEmbedData();
 
   return (
     <div className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4">
@@ -45,7 +46,7 @@ export function ReferralsEmbedEarningsSummary({
           <div key={label} className="flex justify-between text-sm">
             <span className="text-content-subtle font-medium">{label}</span>
             <span className="text-content-default font-semibold">
-              {currencyFormatter(value)}
+              {formatReward(value, rewardDisplay)}
             </span>
           </div>
         ))}
