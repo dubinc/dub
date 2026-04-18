@@ -33,6 +33,7 @@ export function UpgradePlanButton({
   const {
     slug: workspaceSlug,
     plan: currentPlan,
+    planPeriod: currentPlanPeriod,
     stripeId,
     defaultProgramId,
     trialEndsAt,
@@ -51,7 +52,9 @@ export function UpgradePlanButton({
 
   const queryString = searchParams.toString();
 
-  const isCurrentPlan = currentPlan === selectedPlan.name.toLowerCase();
+  const isCurrentPlan =
+    currentPlan === selectedPlan.name.toLowerCase() &&
+    period === currentPlanPeriod;
 
   // Check if this plan change would lose partner access
   const losesPartnerAccess =

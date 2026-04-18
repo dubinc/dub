@@ -55,6 +55,7 @@ export default function WorkspaceBillingUpgradePage() {
     role,
     plan: currentPlan,
     planTier: currentPlanTier = 1,
+    planPeriod: currentPlanPeriod,
     stripeId,
     payoutsLimit,
     trialEndsAt,
@@ -158,10 +159,11 @@ export default function WorkspaceBillingUpgradePage() {
                 // edge case:
                 //    if the user is on the business plan and has a payout limit of 0,
                 //    it means they're on the legacy business plan – prompt them to upgrade to the new business plan
-                const disableCurrentPlan = Boolean(
+                const isCurrentPlan = Boolean(
                   stripeId &&
                     plan.name.toLowerCase() === currentPlan &&
                     planTier === currentPlanTier &&
+                    period === currentPlanPeriod &&
                     !isLegacyBusinessPlan({
                       plan: currentPlan,
                       payoutsLimit,
@@ -198,7 +200,7 @@ export default function WorkspaceBillingUpgradePage() {
                           !isDowngrade &&
                           plan.name === recommendedPlan.plan.name &&
                           planTier === recommendedPlan.planTier &&
-                          !disableCurrentPlan && (
+                          !isCurrentPlan && (
                             <div className="animate-fade-in flex h-6 min-w-0 items-center rounded-lg border border-blue-100 bg-blue-50 px-1.5 text-xs font-medium text-blue-600">
                               <span className="truncate">Recommended</span>
                             </div>
@@ -238,7 +240,7 @@ export default function WorkspaceBillingUpgradePage() {
                       >
                         <ChevronLeft className="size-5 text-neutral-800" />
                       </button>
-                      {plan.name === "Enterprise" && !disableCurrentPlan ? (
+                      {plan.name === "Enterprise" && !isCurrentPlan ? (
                         <Link
                           href="https://dub.co/contact/sales"
                           target="_blank"
@@ -255,7 +257,7 @@ export default function WorkspaceBillingUpgradePage() {
                           tier={planTier > 1 ? planTier : undefined}
                           period={period}
                           disabled={
-                            (disableCurrentPlan &&
+                            (isCurrentPlan &&
                               !isWorkspaceBillingTrialActive(trialEndsAt)) ||
                             currentPlan === "enterprise"
                           }
@@ -263,13 +265,15 @@ export default function WorkspaceBillingUpgradePage() {
                           text={
                             currentPlan === "enterprise"
                               ? "Contact support"
-                              : disableCurrentPlan
+                              : isCurrentPlan
                                 ? isWorkspaceBillingTrialActive(trialEndsAt)
                                   ? "Activate plan"
                                   : "Current plan"
                                 : isDowngrade
                                   ? "Downgrade"
-                                  : "Upgrade"
+                                  : period !== currentPlanPeriod
+                                    ? `Switch to ${period}`
+                                    : "Upgrade"
                           }
                           variant={isDowngrade ? "secondary" : "primary"}
                           className="h-8 shadow-sm"
