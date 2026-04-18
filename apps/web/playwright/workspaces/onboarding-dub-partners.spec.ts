@@ -1,4 +1,4 @@
-import { nanoid, PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS } from "@dub/utils";
+import { DUB_TRIAL_PERIOD_DAYS, nanoid } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 import { installBillingCheckoutMocks } from "./billing-mocks";
 
@@ -23,7 +23,7 @@ test("complete workspace onboarding with Dub Partners product", async ({
 }) => {
   const workspaceName = `Test WS ${nanoid(6)}`;
   const customDomain = randomOnboardingDomain();
-  const baseURL = baseURLParam ?? "http://localhost:8888";
+  const baseURL = baseURLParam ?? "http://app.localhost:8888";
 
   // Welcome page
   await page.goto("/onboarding");
@@ -125,7 +125,7 @@ test("complete workspace onboarding with Dub Partners product", async ({
 
   const trialCta = page.getByRole("button", {
     name: new RegExp(
-      `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · Advanced Monthly`,
+      `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · Advanced Monthly`,
     ),
   });
   await expect(trialCta).toBeVisible({ timeout: 30_000 });

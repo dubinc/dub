@@ -3,7 +3,7 @@ import { getDubAdminRole, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
 import { stripe } from "@/lib/stripe";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
-import { APP_DOMAIN, PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS } from "@dub/utils";
+import { APP_DOMAIN, DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -15,14 +15,14 @@ const upgradePlanSchema = z.object({
     message: "Invalid baseUrl.",
   }),
   onboarding: booleanQuerySchema.nullish(),
+  isTrialVariant: booleanQuerySchema.nullish(),
 });
 
 // POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    let { plan, period, tier, baseUrl, onboarding } = upgradePlanSchema.parse(
-      await req.json(),
-    );
+    let { plan, period, tier, baseUrl, onboarding, isTrialVariant } =
+      upgradePlanSchema.parse(await req.json());
 
     const lookupKey =
       tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
@@ -86,8 +86,10 @@ export const POST = withWorkspace(
     } else {
       const customer = await getDubCustomer(session.user.id);
 
-      const shouldApplyPartnerCheckoutTrial =
-        workspace.stripeId == null && workspace.trialEndsAt == null;
+      const shouldApplyCheckoutTrial =
+        workspace.stripeId == null &&
+        workspace.trialEndsAt == null &&
+        isTrialVariant;
 
       // New Stripe customer + no prior trial on workspace: partner checkout trial.
       // Returning Stripe customers (e.g. canceled sub) must not get another trial here.
@@ -130,10 +132,10 @@ export const POST = withWorkspace(
           enabled: true,
         },
         mode: "subscription",
-        ...(shouldApplyPartnerCheckoutTrial
+        ...(shouldApplyCheckoutTrial
           ? {
               subscription_data: {
-                trial_period_days: PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
+                trial_period_days: DUB_TRIAL_PERIOD_DAYS,
               },
             }
           : {}),

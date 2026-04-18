@@ -58,7 +58,7 @@ export function getTrialLimitResourceForOverageBanner({
   return null;
 }
 
-export const PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS = 14;
+export const DUB_TRIAL_PERIOD_DAYS = 14;
 
 export function isWorkspaceBillingTrialActive(
   trialEndsAt: Date | string | null | undefined,

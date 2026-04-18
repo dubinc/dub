@@ -3,8 +3,8 @@ import "dotenv-flow/config";
 import { prisma } from "@dub/prisma";
 import type { Prisma } from "@dub/prisma/client";
 import {
+  DUB_TRIAL_PERIOD_DAYS,
   getWorkspaceLimitsForStripeSubscriptionStatus,
-  PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
   PRO_PLAN,
 } from "@dub/utils";
 import type { Page } from "@playwright/test";
@@ -87,9 +87,7 @@ export async function applyMockTrialToWorkspace(slug: string) {
   });
 
   const trialEndsAt = new Date();
-  trialEndsAt.setDate(
-    trialEndsAt.getDate() + PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
-  );
+  trialEndsAt.setDate(trialEndsAt.getDate() + DUB_TRIAL_PERIOD_DAYS);
 
   await prisma.project.update({
     where: { slug },

@@ -1,4 +1,4 @@
-import { PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS } from "@dub/utils";
+import { DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { subDays } from "date-fns";
 
 export const TRIAL_EMAIL_TYPE = {
@@ -50,7 +50,7 @@ function differenceInCalendarDaysUTC(left: Date, right: Date): number {
 }
 
 export function getTrialStartDate(trialEndsAt: Date): Date {
-  return subDays(trialEndsAt, PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS);
+  return subDays(trialEndsAt, DUB_TRIAL_PERIOD_DAYS);
 }
 
 const COUNTDOWN_GRACE_DAYS = 1;

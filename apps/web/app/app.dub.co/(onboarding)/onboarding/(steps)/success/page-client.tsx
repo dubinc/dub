@@ -24,8 +24,10 @@ import {
   Plug2,
   Users,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
+import { usePlausible } from "next-plausible";
 import Link from "next/link";
+import { useEffect } from "react";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
 export function SuccessPageClient({
@@ -36,7 +38,7 @@ export function SuccessPageClient({
     "name" | "slug" | "logo" | "defaultProgramId"
   >;
 }) {
-  const { loading: isLoadingWorkspace } = useWorkspace();
+  const { plan, loading: isLoadingWorkspace } = useWorkspace();
 
   const { finish, isLoading, isSuccessful } = useOnboardingProgress();
 
@@ -53,6 +55,13 @@ export function SuccessPageClient({
   const connectedBankAccount = paymentMethods?.some((pm) =>
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
   );
+
+  const plausible = usePlausible();
+  useEffect(() => {
+    if (plan && plan !== "free") {
+      plausible(`Upgraded to ${capitalize(plan)}`);
+    }
+  }, [plan]);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center pb-10">

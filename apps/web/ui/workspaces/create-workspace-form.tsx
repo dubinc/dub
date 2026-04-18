@@ -81,9 +81,8 @@ export function CreateWorkspaceForm({
           });
 
           if (res.ok) {
-            const { id: workspaceId } = await res.json();
-            plausible("Created Workspace");
             // track workspace creation event
+            plausible("Created Workspace");
             await Promise.all([mutate("/api/workspaces"), update()]);
             onSuccess?.(data);
           } else {

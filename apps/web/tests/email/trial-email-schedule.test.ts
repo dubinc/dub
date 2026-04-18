@@ -6,18 +6,18 @@ import {
   TRIAL_EMAIL_TYPE,
   type TrialEmailType,
 } from "@/lib/email/trial-email-schedule";
-import { PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS } from "@dub/utils";
+import { DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { describe, expect, it } from "vitest";
 
 /** Fixed trial window: trial starts 2025-01-01 UTC, ends 2025-01-15 UTC (14 days). */
 const TRIAL_ENDS_AT = new Date(Date.UTC(2025, 0, 15, 12, 0, 0));
 
 describe("getTrialStartDate", () => {
-  it("is trialEndsAt minus PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS", () => {
+  it("is trialEndsAt minus DUB_TRIAL_PERIOD_DAYS", () => {
     const start = getTrialStartDate(TRIAL_ENDS_AT);
     expect(start.toISOString()).toBe(
       new Date(
-        Date.UTC(2025, 0, 15 - PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS, 12, 0, 0),
+        Date.UTC(2025, 0, 15 - DUB_TRIAL_PERIOD_DAYS, 12, 0, 0),
       ).toISOString(),
     );
   });
@@ -187,9 +187,7 @@ describe("getTrialEmailSubject", () => {
   };
 
   it("has a subject for every trial email type", () => {
-    expect(ALL_TRIAL_EMAIL_TYPES).toHaveLength(
-      Object.keys(expected).length,
-    );
+    expect(ALL_TRIAL_EMAIL_TYPES).toHaveLength(Object.keys(expected).length);
     for (const type of ALL_TRIAL_EMAIL_TYPES) {
       expect(getTrialEmailSubject(type)).toBe(expected[type]);
     }

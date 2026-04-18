@@ -1,4 +1,4 @@
-import { PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS } from "@dub/utils";
+import { DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 import {
   applyMockTrialToWorkspace,
@@ -18,10 +18,7 @@ test.skip("Billing trial checkout", () => {
     page,
     baseURL,
   }) => {
-    const dashboardOrigin =
-      baseURL ??
-      process.env.PLAYWRIGHT_DASHBOARD_BASE_URL ??
-      "http://localhost:8888";
+    const dashboardOrigin = baseURL ?? "http://app.localhost:8888";
 
     // Discover the workspace created during onboarding
     const res = await page.request.get("/api/workspaces");
@@ -42,9 +39,7 @@ test.skip("Billing trial checkout", () => {
     // CTA: billing may show "Upgrade" or checkout trial copy from UpgradePlanButton.
     const upgradeButton = page.getByRole("button", { name: "Upgrade" }).or(
       page.getByRole("button", {
-        name: new RegExp(
-          `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial`,
-        ),
+        name: new RegExp(`Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`),
       }),
     );
 

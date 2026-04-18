@@ -1,8 +1,4 @@
-import {
-  capitalize,
-  DUB_WORDMARK,
-  PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
-} from "@dub/utils";
+import { capitalize, DUB_TRIAL_PERIOD_DAYS, DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
   Container,
@@ -25,7 +21,7 @@ export default function TrialStartedEmail({
   workspaceSlug = "acme",
   unsubscribeUrl,
 }: TrialMarketingEmailProps) {
-  const trialDays = PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS;
+  const trialDays = DUB_TRIAL_PERIOD_DAYS;
   const planLabel = capitalize(plan);
   const dashboardUrl = `https://app.dub.co/${workspaceSlug}`;
 

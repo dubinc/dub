@@ -42,14 +42,14 @@ export default defineConfig({
       name: "workspace-setup",
       testMatch: /workspaces\/auth\.setup\.ts/,
       use: {
-        baseURL: "http://localhost:8888",
+        baseURL: "http://app.localhost:8888",
       },
     },
     {
       name: "workspaces",
       use: {
         ...devices["Desktop Chrome"],
-        baseURL: "http://localhost:8888",
+        baseURL: "http://app.localhost:8888",
         storageState: "playwright/.auth/workspace.json",
       },
       testDir: "./playwright/workspaces",
@@ -63,7 +63,7 @@ export default defineConfig({
       use: {
         ...devices["Desktop Chrome"],
         storageState: "playwright/.auth/workspace.json",
-        baseURL: "http://localhost:8888",
+        baseURL: "http://app.localhost:8888",
       },
       dependencies: ["workspaces"],
     },
