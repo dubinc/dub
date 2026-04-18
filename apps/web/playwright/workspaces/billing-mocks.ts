@@ -3,13 +3,39 @@ import "dotenv-flow/config";
 import { prisma } from "@dub/prisma";
 import type { Prisma } from "@dub/prisma/client";
 import {
+  BUSINESS_PLAN,
   DUB_TRIAL_PERIOD_DAYS,
   getWorkspaceLimitsForStripeSubscriptionStatus,
-  PRO_PLAN,
 } from "@dub/utils";
-import type { Page } from "@playwright/test";
+import type { Page, Request } from "@playwright/test";
 
 const MOCK_CHECKOUT_SESSION_ID = "cs_test_e2e_mock_session";
+
+function parseBillingUpgradeCheckoutContext(req: Request): {
+  onboarding: boolean;
+  plan: string;
+  period: string;
+} {
+  try {
+    const raw = req.postData();
+    if (!raw) {
+      return { onboarding: false, plan: "business", period: "monthly" };
+    }
+    const body = JSON.parse(raw) as {
+      onboarding?: string | boolean;
+      plan?: string;
+      period?: string;
+    };
+    const onboarding = body.onboarding === true || body.onboarding === "true";
+    return {
+      onboarding,
+      plan: typeof body.plan === "string" ? body.plan : "business",
+      period: typeof body.period === "string" ? body.period : "monthly",
+    };
+  } catch {
+    return { onboarding: false, plan: "business", period: "monthly" };
+  }
+}
 
 /** Columns overwritten by {@link applyMockTrialToWorkspace} — snapshot/restore must stay in sync. */
 const mockTrialWorkspaceColumns = {
@@ -78,11 +104,11 @@ export async function restoreWorkspaceBillingTrialSnapshot(
 }
 
 /**
- * Writes trialing Pro state directly to the DB (mock path — no Stripe API or webhooks).
+ * Writes trialing Business state directly to the DB (mock path — no Stripe API or webhooks).
  */
 export async function applyMockTrialToWorkspace(slug: string) {
   const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
-    planLimits: PRO_PLAN.limits,
+    planLimits: BUSINESS_PLAN.limits,
     subscriptionStatus: "trialing",
   });
 
@@ -92,7 +118,7 @@ export async function applyMockTrialToWorkspace(slug: string) {
   await prisma.project.update({
     where: { slug },
     data: {
-      plan: "pro",
+      plan: "business",
       subscriptionCanceledAt: null,
       billingCycleEndsAt: null,
       planTier: 1,
@@ -127,7 +153,12 @@ export async function installBillingCheckoutMocks(
 ) {
   const { slug, baseURL } = options;
   const origin = baseURL.replace(/\/$/, "");
-  const successUrl = `${origin}/${slug}?upgraded=true&plan=pro&period=monthly`;
+  /** Mirrors last POST to billing/upgrade — used when Hosted Checkout redirects (no body). */
+  let pendingCheckout = {
+    onboarding: false,
+    plan: "business",
+    period: "monthly",
+  };
 
   await page.route("https://js.stripe.com/**", async (route) => {
     await route.fulfill({
@@ -155,6 +186,7 @@ export async function installBillingCheckoutMocks(
         await route.continue();
         return;
       }
+      pendingCheckout = parseBillingUpgradeCheckoutContext(route.request());
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -170,6 +202,13 @@ export async function installBillingCheckoutMocks(
       return;
     }
     await applyMockTrialToWorkspace(slug);
+    const { onboarding, plan, period } = pendingCheckout;
+    // Same path/query shape as stripe.checkout.sessions.create success_url in
+    // app/api/workspaces/[idOrSlug]/billing/upgrade/route.ts — origin from baseURL
+    // keeps Playwright on the app host (cookies), unlike APP_DOMAIN in local dev.
+    const successUrl = onboarding
+      ? `${origin}/onboarding/success?workspace=${encodeURIComponent(slug)}`
+      : `${origin}/${slug}?upgraded=true&plan=${encodeURIComponent(plan)}&period=${encodeURIComponent(period)}`;
     await route.fulfill({
       status: 302,
       headers: { Location: successUrl },

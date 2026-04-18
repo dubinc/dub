@@ -12,7 +12,7 @@ function randomOnboardingDomain() {
   return `e2e-${id}.invalid`;
 }
 
-function matchesDashboardOrigin(url: URL, baseURL: string) {
+function matchesBaseURL(url: URL, baseURL: string) {
   const base = new URL(baseURL);
   return url.hostname === base.hostname && url.port === base.port;
 }
@@ -135,12 +135,25 @@ test("complete workspace onboarding with Dub Partners product", async ({
     (u) => {
       const url = new URL(u);
       return (
-        matchesDashboardOrigin(url, baseURL) &&
-        url.searchParams.get("upgraded") === "true"
+        matchesBaseURL(url, baseURL) &&
+        url.pathname === "/onboarding/success" &&
+        url.searchParams.get("workspace") === slug
       );
     },
     { timeout: 30_000, waitUntil: "domcontentloaded" },
   );
+
+  await expect(
+    page.getByRole("heading", {
+      name: `The ${workspaceName} workspace has been created`,
+    }),
+  ).toBeVisible({ timeout: 30_000 });
+  await expect(
+    page.getByRole("button", { name: "Go to your dashboard" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("heading", { name: "Complete setup" }),
+  ).toBeVisible();
 
   await expect
     .poll(
@@ -156,18 +169,4 @@ test("complete workspace onboarding with Dub Partners product", async ({
       },
     )
     .not.toBeNull();
-
-  await expect(
-    page.getByRole("heading", {
-      name: /Dub Pro looks good on you/i,
-    }),
-  ).toBeVisible({ timeout: 15_000 });
-
-  await page.getByRole("button", { name: "View dashboard" }).click();
-
-  await expect(page.getByText("Free trial", { exact: true })).toBeVisible({
-    timeout: 15_000,
-  });
-
-  expect(page.url()).toContain(`/${slug}`);
 });

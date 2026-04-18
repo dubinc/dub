@@ -23,8 +23,13 @@ test.skip("Billing trial checkout", () => {
     // Discover the workspace created during onboarding
     const res = await page.request.get("/api/workspaces");
     expect(res.ok()).toBeTruthy();
-    const [workspace] = (await res.json()) as { slug: string }[];
-    const slug = workspace.slug;
+    const workspaces = (await res.json()) as { plan: string; slug: string }[];
+    // find the free workspace (from onboarding-dub-links.spec.ts)
+    const freeWorkspace = workspaces.find((w) => w.plan === "free");
+    if (!freeWorkspace) {
+      throw new Error("No free workspace found");
+    }
+    const slug = freeWorkspace.slug;
 
     await installBillingCheckoutMocks(page, {
       slug,
