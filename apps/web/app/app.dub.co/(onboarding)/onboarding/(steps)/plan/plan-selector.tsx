@@ -17,7 +17,6 @@ import {
   BUSINESS_PLAN,
   cn,
   ENTERPRISE_PLAN,
-  PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS,
   PRICING_PLAN_MAIN_FEATURES,
   PRICING_PLAN_TAGLINES,
   PRO_PLAN,
@@ -99,7 +98,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                     <div className="mt-1">
                       {plan.name === "Enterprise" ? (
                         <span className="block text-base text-neutral-700">
-                          Custom pricing
+                          Custom
                         </span>
                       ) : (
                         <>
@@ -120,15 +119,6 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                         </>
                       )}
                     </div>
-                    {SHOW_TRIAL && (
-                      <p className="mt-1 text-xs text-neutral-500">
-                        {plan.name === "Enterprise"
-                          ? "Trial available on request"
-                          : `${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · Card
-                        required`}
-                      </p>
-                    )}
-
                     {plan.name === "Enterprise" ? (
                       <div className="mt-4 flex items-center gap-1.5 text-neutral-400">
                         <CalendarRefresh className="size-4 shrink-0" />

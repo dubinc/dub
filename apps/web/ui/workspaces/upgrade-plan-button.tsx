@@ -128,15 +128,17 @@ export function UpgradePlanButton({
       <StartPaidPlanModal />
       <Button
         text={
-          isCurrentPlan
-            ? isTrialActive
-              ? "Activate plan"
-              : "Your current plan"
-            : currentPlan === "free"
-              ? `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
-              : `Switch to ${selectedPlan.name} ${capitalize(period)}`
+          !currentPlan
+            ? "Loading..."
+            : isCurrentPlan
+              ? isTrialActive
+                ? "Activate plan"
+                : "Your current plan"
+              : currentPlan === "free"
+                ? `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial · ${selectedPlan.name} ${capitalize(period)}`
+                : `Switch to ${selectedPlan.name} ${capitalize(period)}`
         }
-        loading={clicked}
+        loading={clicked || !currentPlan}
         disabled={!workspaceSlug || (isCurrentPlan && !isTrialActive)}
         onClick={handleClick}
         {...rest}

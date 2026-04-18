@@ -53,7 +53,7 @@ export async function updateWorkspacePlan({
     }[];
   };
   priceId: string;
-  subscription?: Stripe.Subscription;
+  subscription: Stripe.Subscription;
 }) {
   const { plan: newPlan, planTier: newPlanTier } = getPlanAndTierFromPriceId({
     priceId,
@@ -81,7 +81,6 @@ export async function updateWorkspacePlan({
   // or if the payouts limit increases and the updated price ID is a new business price ID
   // update their usage limit in the database
   if (
-    subscription != null ||
     workspace.plan !== newPlanName ||
     workspace.planTier !== newPlanTier ||
     (workspace.payoutsLimit < newPlan.limits.payouts &&
@@ -160,11 +159,7 @@ export async function updateWorkspacePlan({
 
     // Checkout skips enabling dub.link during Stripe billing trial; turn it on when the
     // subscription becomes active (e.g. trialing → active). Only after the plan write succeeds.
-    if (
-      updatedWorkspace.status === "fulfilled" &&
-      subscription?.status === "active" &&
-      newPlanName !== "free"
-    ) {
+    if (subscription?.status === "active" && newPlanName !== "free") {
       await prisma.defaultDomains.updateMany({
         where: {
           projectId: workspace.id,
@@ -178,7 +173,7 @@ export async function updateWorkspacePlan({
 
     // Disable the webhooks if the new plan does not support webhooks
     if (shouldDisableWebhooks) {
-      await Promise.all([
+      await Promise.allSettled([
         prisma.project.update({
           where: {
             id: workspace.id,
@@ -247,14 +242,13 @@ export async function updateWorkspacePlan({
     }
 
     if (
-      updatedWorkspace.status === "fulfilled" &&
       workspace.defaultProgramId &&
       wouldLoseAdvancedRewardLogic({
         currentPlan: workspace.plan,
         newPlan: newPlanName,
       })
     ) {
-      await Promise.all([
+      await Promise.allSettled([
         stripAdvancedRewardModifiersForProgram({
           programId: workspace.defaultProgramId,
         }),
@@ -266,27 +260,23 @@ export async function updateWorkspacePlan({
 
     if (
       updatedWorkspace.status === "fulfilled" &&
-      updatedWorkspace.value.users.length &&
-      leftAdvancedPlan({
-        currentPlan: workspace.plan,
-        newPlan: newPlanName,
-      })
-    ) {
-      const workspaceOwner = updatedWorkspace.value.users[0].user;
-      await sendAdvancedDowngradeNoticeEmailIfNeeded({
-        projectId: workspace.id,
-        dedupeType: `advanced-downgrade-notice:${priceId}`,
-        ownerEmail: workspaceOwner.email,
-        workspaceName: workspace.name,
-        workspaceSlug: workspace.slug,
-      });
-    }
-
-    if (
-      updatedWorkspace.status === "fulfilled" &&
       updatedWorkspace.value.users.length
     ) {
       const workspaceOwner = updatedWorkspace.value.users[0].user;
+      if (
+        leftAdvancedPlan({
+          currentPlan: workspace.plan,
+          newPlan: newPlanName,
+        })
+      ) {
+        await sendAdvancedDowngradeNoticeEmailIfNeeded({
+          projectId: workspace.id,
+          dedupeType: `advanced-downgrade-notice:${priceId}`,
+          ownerEmail: workspaceOwner.email,
+          workspaceName: workspace.name,
+          workspaceSlug: workspace.slug,
+        });
+      }
       waitUntil(syncUserPlanToPlain(workspaceOwner));
     }
   } else if (workspace.paymentFailedAt) {

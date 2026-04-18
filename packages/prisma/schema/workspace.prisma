@@ -128,7 +128,7 @@ model ProjectUsers {
   project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([userId, projectId])
-  @@index([projectId])
+  @@index(projectId)
 }
 
 // TODO: could potentially combine this with NotificationEmail in the future?
@@ -139,5 +139,5 @@ model SentEmail {
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String?
 
-  @@index([projectId])
+  @@index(projectId)
 }
