@@ -2,7 +2,11 @@ import { Button, InfoTooltip } from "@dub/ui";
 import { currencyFormatter } from "@dub/utils";
 import { useReferralsEmbedData } from "./page-client";
 
-export function ReferralsEmbedEarningsSummary() {
+export function ReferralsEmbedEarningsSummary({
+  hidePayouts,
+}: {
+  hidePayouts: boolean;
+}) {
   const { program, partner, earnings } = useReferralsEmbedData();
 
   return (
@@ -12,18 +16,20 @@ export function ReferralsEmbedEarningsSummary() {
           <p className="text-content-subtle text-sm">Earnings</p>
           <InfoTooltip content="Summary of your commission earnings from your referrals." />
         </div>
-        <a
-          href={`https://partners.dub.co/${program.slug}/register${
-            partner.email ? `?email=${partner.email}` : ""
-          }`}
-          target="_blank"
-        >
-          <Button
-            text="Settings"
-            variant="secondary"
-            className="h-7 p-2 text-sm"
-          />
-        </a>
+        {!hidePayouts && (
+          <a
+            href={`https://partners.dub.co/${program.slug}/register${
+              partner.email ? `?email=${partner.email}` : ""
+            }`}
+            target="_blank"
+          >
+            <Button
+              text="Settings"
+              variant="secondary"
+              className="h-7 p-2 text-sm"
+            />
+          </a>
+        )}
       </div>
       <div className="grid gap-1">
         {[
