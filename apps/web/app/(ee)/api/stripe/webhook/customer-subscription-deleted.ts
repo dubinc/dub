@@ -34,17 +34,7 @@ export async function customerSubscriptionDeleted(
     where: {
       stripeId,
     },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      plan: true,
-      planTier: true,
-      foldersUsage: true,
-      subscriptionCanceledAt: true,
-      paymentFailedAt: true,
-      payoutsLimit: true,
-      defaultProgramId: true,
+    include: {
       links: {
         where: {
           key: "_root",

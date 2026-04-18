@@ -80,8 +80,13 @@ type SidebarNavData = {
   partnerNetworkEnabled?: boolean;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ slug, pathname }) => [
-  {
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
+  slug,
+  pathname,
+  defaultProgramId,
+}) => {
+  const programGroup = {
+    id: "program",
     name: "Partner Program",
     description:
       "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
@@ -94,8 +99,9 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ slug, pathname }) => [
       !pathname.startsWith(`/${slug}/links`) &&
       !pathname.startsWith(`/${slug}/settings`),
     popup: DubPartnersPopup,
-  },
-  {
+  };
+  const linksGroup = {
+    id: "links",
     name: "Short Links",
     description:
       "Create, organize, and measure the performance of your short links.",
@@ -103,8 +109,9 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ slug, pathname }) => [
     icon: Compass,
     href: slug ? `/${slug}/links` : "/links",
     active: pathname.startsWith(`/${slug}/links`),
-  },
-];
+  };
+  return defaultProgramId ? [programGroup, linksGroup] : [linksGroup, programGroup];
+};
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // partner program
@@ -486,55 +493,11 @@ export function AppSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { slug: paramsSlug } = useParams() as { slug?: string };
+  const { slug } = useParams() as { slug?: string };
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const { plan, defaultProgramId, trialEndsAt } = useWorkspace();
-  const { workspaces } = useWorkspaces();
-
-  // Store the current workspace slug in sessionStorage so we can remember it on account settings pages
-  useEffect(() => {
-    if (paramsSlug) {
-      sessionStorage.setItem("dub_last_workspace", paramsSlug);
-    }
-  }, [paramsSlug]);
-
-  // Validate and clear sessionStorage if user doesn't have access to the stored workspace
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      // Clear sessionStorage on logout
-      sessionStorage.removeItem("dub_last_workspace");
-      return;
-    }
-
-    if (workspaces && typeof window !== "undefined") {
-      const storedSlug = sessionStorage.getItem("dub_last_workspace");
-      if (storedSlug && !paramsSlug) {
-        // Only validate if we're not currently on a workspace page (to avoid clearing during navigation)
-        const hasAccess = workspaces.some((w) => w.slug === storedSlug);
-        if (!hasAccess) {
-          // User doesn't have access to the stored workspace, clear it
-          sessionStorage.removeItem("dub_last_workspace");
-        }
-      }
-    }
-  }, [workspaces, status, paramsSlug]);
-
-  // Use params slug when available, otherwise try sessionStorage (last visited workspace), then fall back to default workspace
-  const slug =
-    paramsSlug ||
-    (typeof window !== "undefined" && workspaces
-      ? (() => {
-          const storedSlug = sessionStorage.getItem("dub_last_workspace");
-          // Validate that the stored slug is accessible by the current user
-          if (storedSlug && workspaces.some((w) => w.slug === storedSlug)) {
-            return storedSlug;
-          }
-          return null;
-        })()
-      : null) ||
-    session?.user?.["defaultWorkspace"];
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
