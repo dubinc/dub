@@ -82,111 +82,32 @@ type SidebarNavData = {
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ slug, pathname }) => [
   {
-    name: "Short Links",
-    description:
-      "Create, organize, and measure the performance of your short links.",
-    learnMoreHref: "https://dub.co/links",
-    icon: Compass,
-    href: slug ? `/${slug}/links` : "/links",
-    active:
-      !!slug &&
-      pathname.startsWith(`/${slug}`) &&
-      !pathname.startsWith(`/${slug}/program`) &&
-      !pathname.startsWith(`/${slug}/settings`),
-  },
-  {
     name: "Partner Program",
     description:
       "Kickstart viral product-led growth with powerful, branded referral and affiliate programs.",
     learnMoreHref: "https://dub.co/partners",
     icon: ConnectedDots4,
     href: slug ? `/${slug}/program` : "/program",
-    active: pathname.startsWith(`/${slug}/program`),
+    active:
+      !!slug &&
+      pathname.startsWith(`/${slug}`) &&
+      !pathname.startsWith(`/${slug}/links`) &&
+      !pathname.startsWith(`/${slug}/settings`),
     popup: DubPartnersPopup,
+  },
+  {
+    name: "Short Links",
+    description:
+      "Create, organize, and measure the performance of your short links.",
+    learnMoreHref: "https://dub.co/links",
+    icon: Compass,
+    href: slug ? `/${slug}/links` : "/links",
+    active: pathname.startsWith(`/${slug}/links`),
   },
 ];
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
-  // Top-level
-  default: ({ slug, pathname, queryString, showNews }) => ({
-    title: "Short Links",
-    showNews,
-    direction: "left",
-    content: [
-      {
-        items: [
-          {
-            name: "Links",
-            icon: Hyperlink,
-            href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
-            isActive: (pathname: string, href: string) => {
-              const basePath = href.split("?")[0];
-
-              // Exact match for the base links page
-              if (pathname === basePath) return true;
-
-              // Check if it's a link detail page (path segment after base contains a dot for domain)
-              if (pathname.startsWith(basePath + "/")) {
-                const nextSegment = pathname
-                  .slice(basePath.length + 1)
-                  .split("/")[0];
-                return nextSegment.includes(".");
-              }
-
-              return false;
-            },
-          },
-          {
-            name: "Domains",
-            icon: Globe,
-            href: `/${slug}/links/domains`,
-          },
-        ],
-      },
-      {
-        name: "Insights",
-        items: [
-          {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
-          },
-          {
-            name: "Events",
-            icon: CursorRays,
-            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
-          },
-          {
-            name: "Customers",
-            icon: User,
-            href: `/${slug}/customers`,
-          },
-        ],
-      },
-      {
-        name: "Library",
-        items: [
-          {
-            name: "Folders",
-            icon: Folder,
-            href: `/${slug}/links/folders`,
-          },
-          {
-            name: "Tags",
-            icon: Tag,
-            href: `/${slug}/links/tags`,
-          },
-          {
-            name: "UTM Templates",
-            icon: DiamondTurnRight,
-            href: `/${slug}/links/utm`,
-          },
-        ],
-      },
-    ],
-  }),
-
-  // Program
+  // partner program
   program: ({
     slug,
     showNews,
@@ -353,6 +274,84 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             arrow: true,
             href: `/${slug}/program/groups/default/branding`,
             isActive: () => false,
+          },
+        ],
+      },
+    ],
+  }),
+  // short links
+  links: ({ slug, pathname, queryString, showNews }) => ({
+    title: "Short Links",
+    showNews,
+    direction: "left",
+    content: [
+      {
+        items: [
+          {
+            name: "Links",
+            icon: Hyperlink,
+            href: `/${slug}/links${pathname === `/${slug}/links` ? "" : queryString}`,
+            isActive: (pathname: string, href: string) => {
+              const basePath = href.split("?")[0];
+
+              // Exact match for the base links page
+              if (pathname === basePath) return true;
+
+              // Check if it's a link detail page (path segment after base contains a dot for domain)
+              if (pathname.startsWith(basePath + "/")) {
+                const nextSegment = pathname
+                  .slice(basePath.length + 1)
+                  .split("/")[0];
+                return nextSegment.includes(".");
+              }
+
+              return false;
+            },
+          },
+          {
+            name: "Domains",
+            icon: Globe,
+            href: `/${slug}/links/domains`,
+          },
+        ],
+      },
+      {
+        name: "Insights",
+        items: [
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/${slug}/analytics${pathname === `/${slug}/analytics` ? "" : queryString}`,
+          },
+          {
+            name: "Events",
+            icon: CursorRays,
+            href: `/${slug}/events${pathname === `/${slug}/events` ? "" : queryString}`,
+          },
+          {
+            name: "Customers",
+            icon: User,
+            href: `/${slug}/customers`,
+          },
+        ],
+      },
+      {
+        name: "Library",
+        items: [
+          {
+            name: "Folders",
+            icon: Folder,
+            href: `/${slug}/links/folders`,
+          },
+          {
+            name: "Tags",
+            icon: Tag,
+            href: `/${slug}/links/tags`,
+          },
+          {
+            name: "UTM Templates",
+            icon: DiamondTurnRight,
+            href: `/${slug}/links/utm`,
           },
         ],
       },
@@ -546,9 +545,9 @@ export function AppSidebarNav({
             pathname.includes("/program/messages/") ||
             pathname.endsWith("/program/payouts/success")
           ? null
-          : pathname.startsWith(`/${slug}/program`)
-            ? "program"
-            : "default";
+          : pathname.startsWith(`/${slug}/links`)
+            ? "links"
+            : "program";
   }, [slug, pathname]);
 
   const { program } = useProgram({

@@ -39,13 +39,14 @@ export async function updateWorkspacePlan({
   workspace: Pick<
     WorkspaceProps,
     | "id"
+    | "name"
+    | "slug"
+    | "defaultProgramId"
     | "planTier"
+    | "trialEndsAt"
     | "paymentFailedAt"
     | "payoutsLimit"
     | "foldersUsage"
-    | "defaultProgramId"
-    | "name"
-    | "slug"
   > & {
     plan: string;
     restrictedTokens: {
@@ -61,28 +62,27 @@ export async function updateWorkspacePlan({
   if (!newPlan) return;
 
   const newPlanName = newPlan.name.toLowerCase();
-  const shouldDisableWebhooks = newPlanName === "free" || newPlanName === "pro";
 
   const { canManageProgram, canMessagePartners } =
     getPlanCapabilities(newPlanName);
 
   const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
     planLimits: newPlan.limits,
-    subscriptionStatus: subscription?.status ?? "active",
+    subscriptionStatus: subscription.status,
   });
 
   const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
   const cancellationFields = getSubscriptionCancellationFields(subscription);
-  const planPeriod = subscription
-    ? getPlanPeriodFromStripeSubscription(subscription)
-    : undefined;
+  const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
-  // If a workspace upgrades/downgrades their subscription
-  // or if the payouts limit increases and the updated price ID is a new business price ID
-  // update their usage limit in the database
+  // Update workspace plan / limits / subscription details if:
+  // - workspace upgrades/downgrades their subscription
+  // - trialEndsAt changes (i.e. free trial -> paid subscription)
+  // - the payouts limit increases and the updated price ID is a new business price ID
   if (
     workspace.plan !== newPlanName ||
     workspace.planTier !== newPlanTier ||
+    (trialEndsAt !== undefined && trialEndsAt !== workspace.trialEndsAt) ||
     (workspace.payoutsLimit < newPlan.limits.payouts &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
@@ -104,8 +104,7 @@ export async function updateWorkspacePlan({
           groupsLimit: limits.groups,
           networkInvitesLimit: limits.networkInvites,
           usersLimit: limits.users,
-          ...(!subscription ||
-          ["active", "trialing"].includes(subscription.status)
+          ...(["active", "trialing"].includes(subscription.status)
             ? { paymentFailedAt: null }
             : {}),
           ...(trialEndsAt !== undefined && { trialEndsAt }),
@@ -157,22 +156,8 @@ export async function updateWorkspacePlan({
         : []),
     ]);
 
-    // Checkout skips enabling dub.link during Stripe billing trial; turn it on when the
-    // subscription becomes active (e.g. trialing → active). Only after the plan write succeeds.
-    if (subscription?.status === "active" && newPlanName !== "free") {
-      await prisma.defaultDomains.updateMany({
-        where: {
-          projectId: workspace.id,
-          dublink: false,
-        },
-        data: {
-          dublink: true,
-        },
-      });
-    }
-
     // Disable the webhooks if the new plan does not support webhooks
-    if (shouldDisableWebhooks) {
+    if (!getPlanCapabilities(newPlanName).canCreateWebhooks) {
       await Promise.allSettled([
         prisma.project.update({
           where: {
@@ -210,9 +195,9 @@ export async function updateWorkspacePlan({
       await webhookCache.mset(webhooks);
     }
 
-    // Delete the folders if the new plan is free
+    // Delete the folders if the new plan does not support folders
     // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
-    if (newPlanName === "free") {
+    if (!getPlanCapabilities(newPlanName).canAddFolder) {
       await deleteWorkspaceFolders({
         workspaceId: workspace.id,
         defaultProgramId: workspace.defaultProgramId,

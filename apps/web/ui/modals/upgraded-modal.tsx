@@ -169,7 +169,7 @@ function UpgradedModal({
             text={
               showDotLinkClaimUi
                 ? "No thanks, take me to the dashboard"
-                : "Go to Dub"
+                : "View dashboard"
             }
             onClick={() => {
               onClose();

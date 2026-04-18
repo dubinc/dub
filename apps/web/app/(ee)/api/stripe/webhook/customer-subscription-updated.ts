@@ -22,16 +22,7 @@ export async function customerSubscriptionUpdated(
     where: {
       stripeId,
     },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      plan: true,
-      planTier: true,
-      paymentFailedAt: true,
-      payoutsLimit: true,
-      foldersUsage: true,
-      defaultProgramId: true,
+    include: {
       users: {
         select: {
           user: {
