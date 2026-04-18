@@ -100,7 +100,13 @@ export function UpgradePlanButton({
           throw new Error(body?.error?.message ?? "Failed to start checkout.");
         }
 
-        plausible("Opened Checkout");
+        plausible("Opened Checkout", {
+          props: {
+            plan: capitalize(selectedPlan.name),
+            planPeriod: capitalize(period),
+            planTier: tier ?? 1,
+          },
+        });
         if (!stripeId || currentPlan === "free") {
           const data = await res.json();
           const { id: sessionId } = data;

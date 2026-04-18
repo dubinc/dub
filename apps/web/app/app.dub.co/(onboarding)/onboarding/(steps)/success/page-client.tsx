@@ -38,7 +38,12 @@ export function SuccessPageClient({
     "name" | "slug" | "logo" | "defaultProgramId"
   >;
 }) {
-  const { plan, loading: isLoadingWorkspace } = useWorkspace();
+  const {
+    plan,
+    planPeriod,
+    planTier,
+    loading: isLoadingWorkspace,
+  } = useWorkspace();
 
   const { finish, isLoading, isSuccessful } = useOnboardingProgress();
 
@@ -60,6 +65,13 @@ export function SuccessPageClient({
   useEffect(() => {
     if (plan && plan !== "free") {
       plausible(`Upgraded to ${capitalize(plan)}`);
+      plausible("Upgraded Plan", {
+        props: {
+          plan: capitalize(plan),
+          planPeriod: capitalize(planPeriod),
+          planTier,
+        },
+      });
     }
   }, [plan]);
 

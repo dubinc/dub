@@ -2,6 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
 import {
+  capitalize,
   getPlanDetails,
   isWorkspaceBillingTrialActive,
   PLANS,
@@ -79,9 +80,16 @@ function UpgradedModal({
   const handlePlanUpgrade = async () => {
     if (planId) {
       const currentPlan = getPlanDetails({ plan: planId });
-      const period = searchParams.get("period");
-      if (currentPlan && period) {
+      const currentPlanPeriod = searchParams.get("period");
+      if (currentPlan && currentPlanPeriod) {
         plausible(`Upgraded to ${currentPlan.name}`);
+        plausible("Upgraded Plan", {
+          props: {
+            plan: capitalize(currentPlan.name),
+            planPeriod: capitalize(currentPlanPeriod),
+            planTier: 1,
+          },
+        });
       }
     }
   };
