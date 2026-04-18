@@ -19,14 +19,10 @@ function matchesDashboardOrigin(url: URL, baseURL: string) {
 
 test("complete workspace onboarding with Dub Partners product", async ({
   page,
-  baseURL,
+  baseURL = "http://localhost:8888",
 }) => {
   const workspaceName = `Test WS ${nanoid(6)}`;
   const customDomain = randomOnboardingDomain();
-  const dashboardOrigin =
-    baseURL ??
-    process.env.PLAYWRIGHT_DASHBOARD_BASE_URL ??
-    "http://localhost:8888";
 
   // Welcome page
   await page.goto("/onboarding");
@@ -123,7 +119,7 @@ test("complete workspace onboarding with Dub Partners product", async ({
 
   await installBillingCheckoutMocks(page, {
     slug,
-    baseURL: dashboardOrigin,
+    baseURL,
   });
 
   const trialCta = page.getByRole("button", {
@@ -138,7 +134,7 @@ test("complete workspace onboarding with Dub Partners product", async ({
     (u) => {
       const url = new URL(u);
       return (
-        matchesDashboardOrigin(url, dashboardOrigin) &&
+        matchesDashboardOrigin(url, baseURL) &&
         url.searchParams.get("upgraded") === "true"
       );
     },

@@ -11,7 +11,7 @@ test("sign up new user for workspace onboarding", async ({ page }) => {
   const email = `${nanoid(10)}@dub-internal-test.com`;
 
   // Go to registration page on the app subdomain
-  await page.goto(`/register`);
+  await page.goto("http://localhost:8888/register");
 
   // Step 1: Enter email and reveal password field
   await page.locator('input[name="email"]').fill(email);

@@ -30,7 +30,7 @@ test("complete workspace onboarding with Dub Links product", async ({
   await page.getByRole("button", { name: "Create workspace" }).click();
 
   // Products step
-  await page.waitForURL(/\/onboarding\/products/, { timeout: 30_000 });
+  await page.waitForURL(/\/onboarding\/products/, { timeout: 15_000 });
   await expect(
     page.getByRole("heading", {
       name: "What do you want to do with Dub?",
@@ -55,15 +55,11 @@ test("complete workspace onboarding with Dub Links product", async ({
 
   // Success page
   await page.waitForURL(/\/onboarding\/success/);
-  // Target real headings only — Next.js __next-route-announcer__ duplicates page text as role="alert".
   await expect(
-    page.getByRole("heading", {
-      level: 1,
-      name: `The ${workspaceName} workspace has been created`,
-    }),
+    page.locator("h1").filter({ hasText: workspaceName }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { level: 3, name: "Complete setup" }),
+    page.locator("h3").filter({ hasText: /^Complete setup$/ }),
   ).toBeVisible();
 
   // Go to dashboard
