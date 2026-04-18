@@ -8,10 +8,7 @@ import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
 import { sendAdvancedDowngradeNoticeEmailIfNeeded } from "@/lib/email/send-advanced-downgrade-notice-email";
-import {
-  leftAdvancedPlan,
-  wouldLoseAdvancedRewardLogic,
-} from "@/lib/plans/has-advanced-features";
+import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
@@ -248,7 +245,7 @@ export async function customerSubscriptionDeleted(
 
   if (
     workspace.defaultProgramId &&
-    wouldLoseAdvancedRewardLogic({
+    wouldLoseAdvancedFeatures({
       currentPlan: workspace.plan,
       newPlan: "free",
     })
@@ -266,7 +263,7 @@ export async function customerSubscriptionDeleted(
   const owner = workspaceUsers[0];
   if (
     owner &&
-    leftAdvancedPlan({
+    wouldLoseAdvancedFeatures({
       currentPlan: workspace.plan,
       newPlan: "free",
     })

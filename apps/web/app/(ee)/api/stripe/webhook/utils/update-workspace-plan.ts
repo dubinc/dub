@@ -8,13 +8,10 @@ import { sendAdvancedDowngradeNoticeEmailIfNeeded } from "@/lib/email/send-advan
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
-  leftAdvancedPlan,
-  wouldLoseAdvancedRewardLogic,
-} from "@/lib/plans/has-advanced-features";
-import {
   wouldGainPartnerAccess,
   wouldLosePartnerAccess,
 } from "@/lib/plans/has-partner-access";
+import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import {
   getSubscriptionCancellationFields,
   getSubscriptionTrialEndsAt,
@@ -226,9 +223,14 @@ export async function updateWorkspacePlan({
       await reactivateProgram(workspace.defaultProgramId);
     }
 
+    const workspaceOwner =
+      updatedWorkspace.status === "fulfilled"
+        ? updatedWorkspace.value.users[0].user
+        : null;
+
     if (
       workspace.defaultProgramId &&
-      wouldLoseAdvancedRewardLogic({
+      wouldLoseAdvancedFeatures({
         currentPlan: workspace.plan,
         newPlan: newPlanName,
       })
@@ -240,28 +242,18 @@ export async function updateWorkspacePlan({
         pauseOrCancelCampaignsForProgramOnPlanDowngrade({
           programId: workspace.defaultProgramId,
         }),
+        workspaceOwner &&
+          sendAdvancedDowngradeNoticeEmailIfNeeded({
+            projectId: workspace.id,
+            dedupeType: `advanced-downgrade-notice:${priceId}`,
+            ownerEmail: workspaceOwner.email,
+            workspaceName: workspace.name,
+            workspaceSlug: workspace.slug,
+          }),
       ]);
     }
 
-    if (
-      updatedWorkspace.status === "fulfilled" &&
-      updatedWorkspace.value.users.length
-    ) {
-      const workspaceOwner = updatedWorkspace.value.users[0].user;
-      if (
-        leftAdvancedPlan({
-          currentPlan: workspace.plan,
-          newPlan: newPlanName,
-        })
-      ) {
-        await sendAdvancedDowngradeNoticeEmailIfNeeded({
-          projectId: workspace.id,
-          dedupeType: `advanced-downgrade-notice:${priceId}`,
-          ownerEmail: workspaceOwner.email,
-          workspaceName: workspace.name,
-          workspaceSlug: workspace.slug,
-        });
-      }
+    if (workspaceOwner) {
       waitUntil(syncUserPlanToPlain(workspaceOwner));
     }
   } else if (workspace.paymentFailedAt) {
