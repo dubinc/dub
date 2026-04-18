@@ -83,8 +83,8 @@ export const POST = async (req: Request) => {
       message: `Stripe webhook failed (${event.type}). Error: ${error.message}`,
       type: "errors",
     });
-    return new Response(`Webhook error: ${error.message}`, {
-      status: 400,
+    return new Response("Webhook received (processing failed internally)", {
+      status: 200,
     });
   }
 
