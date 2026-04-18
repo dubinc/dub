@@ -10,5 +10,6 @@ export const programEmbedSchema = z
       })
       .nullish(),
     hidePoweredByBadge: z.boolean().default(false),
+    hidePayouts: z.boolean().default(false),
   })
   .nullish();

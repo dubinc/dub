@@ -21,9 +21,11 @@ const BUTTON_CLASSNAME =
 export function ReferralsEmbedQuickstart({
   hasResources,
   setSelectedTab,
+  hidePayouts,
 }: {
   hasResources: boolean;
   setSelectedTab: (tab: "Links" | "Resources") => void;
+  hidePayouts: boolean;
 }) {
   const { program, group, links, earnings } = useReferralsEmbedData();
 
@@ -99,26 +101,32 @@ export function ReferralsEmbedQuickstart({
         />
       ),
     },
-    {
-      title: "Receive earnings",
-      description:
-        "Connect payouts to get rewarded for the activity you drive, with earnings tracked automatically.",
-      illustration: <ConnectPayouts logo={group.logo ?? DUB_LOGO} />,
-      cta: (
-        <Button
-          className={payoutsDisabled ? "h-9 rounded-lg" : BUTTON_CLASSNAME}
-          disabledTooltip={
-            payoutsDisabled
-              ? "You will be able to withdraw your earnings once you have made at least one sale."
-              : undefined
-          }
-          onClick={() =>
-            window.open("https://partners.dub.co/payouts", "_blank")
-          }
-          text="Connect payouts"
-        />
-      ),
-    },
+    ...(!hidePayouts
+      ? [
+          {
+            title: "Receive earnings",
+            description:
+              "Connect payouts to get rewarded for the activity you drive, with earnings tracked automatically.",
+            illustration: <ConnectPayouts logo={group.logo ?? DUB_LOGO} />,
+            cta: (
+              <Button
+                className={
+                  payoutsDisabled ? "h-9 rounded-lg" : BUTTON_CLASSNAME
+                }
+                disabledTooltip={
+                  payoutsDisabled
+                    ? "You will be able to withdraw your earnings once you have made at least one sale."
+                    : undefined
+                }
+                onClick={() =>
+                  window.open("https://partners.dub.co/payouts", "_blank")
+                }
+                text="Connect payouts"
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
