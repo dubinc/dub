@@ -19,10 +19,11 @@ function matchesDashboardOrigin(url: URL, baseURL: string) {
 
 test("complete workspace onboarding with Dub Partners product", async ({
   page,
-  baseURL = "http://localhost:8888",
+  baseURL: baseURLParam,
 }) => {
   const workspaceName = `Test WS ${nanoid(6)}`;
   const customDomain = randomOnboardingDomain();
+  const baseURL = baseURLParam ?? "http://localhost:8888";
 
   // Welcome page
   await page.goto("/onboarding");
