@@ -3,6 +3,7 @@ import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useCustomer from "@/lib/swr/use-customer";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
+import { usePartnerTags } from "@/lib/swr/use-partner-tags";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { readStreamableValue } from "@ai-sdk/rsc";
@@ -99,6 +100,34 @@ export function useAnalyticsFilters({
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
+  const tagIdParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.tagId),
+    [searchParamsObj.tagId],
+  );
+
+  const selectedTagIds = useMemo(
+    () => tagIdParsed?.values ?? [],
+    [tagIdParsed],
+  );
+
+  const partnerTagIdParsed = useMemo(
+    () => parseFilterValue(searchParamsObj.partnerTagId),
+    [searchParamsObj.partnerTagId],
+  );
+
+  const { partnerTags: partnerTagsById } = usePartnerTags(
+    {
+      query: { ids: partnerTagIdParsed?.values },
+      enabled: !!partnerTagIdParsed?.values?.length && !!programPage,
+    },
+    { keepPreviousData: true },
+  );
+
+  const partnerTagIdToName = useMemo(
+    () => new Map((partnerTagsById ?? []).map((t) => [t.id, t.name])),
+    [partnerTagsById],
+  );
+
   const selectedCustomerId = searchParamsObj.customerId;
 
   const { data: selectedCustomerWorkspace } = useCustomer({
@@ -143,6 +172,35 @@ export function useAnalyticsFilters({
             },
           ]
         : []),
+      ...(tagIdParsed?.values?.length
+        ? [
+            {
+              key: "tagId",
+              operator: tagIdParsed.operator as FilterOperator,
+              values: tagIdParsed.values,
+            },
+          ]
+        : []),
+      // Handle partnerTagId special case
+      ...(partnerTagIdParsed?.values?.length
+        ? [
+            {
+              key: "partnerTagId",
+              operator: partnerTagIdParsed.operator as FilterOperator,
+              values: partnerTagIdParsed.values,
+            },
+          ]
+        : []),
+      // Handle root special case
+      ...(root
+        ? [
+            {
+              key: "root",
+              operator: "IS" as FilterOperator,
+              values: [root],
+            },
+          ]
+        : []),
       // Handle customerId special case
       ...(selectedCustomer
         ? [
@@ -159,10 +217,20 @@ export function useAnalyticsFilters({
         : []),
     ];
 
-    // Handle all filters dynamically (including domain, tagId, folderId, root)
+    // Handle remaining filters via parseFilterValue (multi-value / negation). folderId included; tagId handled above.
     VALID_ANALYTICS_FILTERS.forEach((filter) => {
       // Skip special cases we handled above
-      if (["key", "customerId"].includes(filter)) return;
+      if (
+        [
+          "domain",
+          "key",
+          "tagId",
+          "partnerTagId",
+          "root",
+          "customerId",
+        ].includes(filter)
+      )
+        return;
       // Also skip date range filters and qr
       if (["interval", "start", "end", "qr"].includes(filter)) return;
       // Skip domain if we're showing a specific link (domain + key) without linkId
@@ -187,6 +255,8 @@ export function useAnalyticsFilters({
     return filters;
   }, [
     searchParamsObj,
+    tagIdParsed,
+    partnerTagIdParsed,
     partnerPage,
     selectedCustomerId,
     selectedCustomer,
@@ -227,6 +297,11 @@ export function useAnalyticsFilters({
   });
   const { data: groups } = useAnalyticsFilterOption("top_groups", {
     disabled: !isRequested("groupId"),
+    omitGroupByFilterKey: true,
+    context,
+  });
+  const { data: partnerTags } = useAnalyticsFilterOption("top_partner_tags", {
+    disabled: !isRequested("partnerTagId"),
     omitGroupByFilterKey: true,
     context,
   });
@@ -466,6 +541,20 @@ export function useAnalyticsFilters({
                       right: getFilterOptionTotal(rest),
                     };
                   }) ?? null,
+              },
+              {
+                key: "partnerTagId",
+                icon: Tag,
+                label: "Partner tag",
+                multiple: true,
+                getOptionLabel: (value) =>
+                  partnerTagIdToName.get(value) ?? null,
+                options:
+                  partnerTags?.map(({ partnerTag, ...rest }) => ({
+                    value: partnerTag.id,
+                    label: partnerTag.name,
+                    right: getFilterOptionTotal(rest),
+                  })) ?? null,
               },
               SaleTypeFilterItem,
             ]
@@ -820,6 +909,10 @@ export function useAnalyticsFilters({
       linkTags,
       folders,
       groups,
+      partnerTags,
+      partnerTagIdToName,
+      selectedTagIds,
+      partnerTagIdParsed,
       selectedCustomerId,
       countries,
       cities,
@@ -911,6 +1004,17 @@ export function useAnalyticsFilters({
 
   const onRemove = useCallback(
     (key, value) => {
+      // Handle link filter when represented by domain+key (no linkId in URL)
+      if (
+        key === "linkId" &&
+        searchParamsObj.domain &&
+        searchParamsObj.key &&
+        !searchParamsObj.linkId
+      ) {
+        queryParams({ del: ["domain", "key"], scroll: false });
+        return;
+      }
+
       const currentParam = searchParamsObj[key];
 
       if (!currentParam) return;

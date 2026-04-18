@@ -1,7 +1,8 @@
-import { ExtendedWorkspaceProps } from "@/lib/types";
+import { WorkspaceSchemaExtended } from "@/lib/zod/schemas/workspaces";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
+import * as z from "zod/v4";
 import { MEGA_WORKSPACE_LINKS_LIMIT } from "../constants/misc";
 
 export default function useWorkspace({
@@ -19,7 +20,7 @@ export default function useWorkspace({
     data: workspace,
     error,
     mutate,
-  } = useSWR<ExtendedWorkspaceProps>(
+  } = useSWR<z.infer<typeof WorkspaceSchemaExtended>>(
     slug && `/api/workspaces/${slug}`,
     fetcher,
     {
@@ -30,6 +31,8 @@ export default function useWorkspace({
 
   return {
     ...workspace,
+    id: workspace?.id,
+    slug: workspace?.slug ?? slug ?? undefined,
     nextPlan: workspace?.plan ? getNextPlan(workspace.plan) : PRO_PLAN,
     role: (workspace?.users && workspace.users[0].role) || "member",
     isOwner: workspace?.users && workspace.users[0].role === "owner",

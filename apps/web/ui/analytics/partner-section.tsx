@@ -37,7 +37,7 @@ const TAB_CONFIG: Record<
     },
     getGroupBy: (subtab): { groupBy: AnalyticsGroupByOptions } => {
       if (subtab === "groups") return { groupBy: "top_groups" };
-      return { groupBy: "top_link_tags" };
+      return { groupBy: "top_partner_tags" };
     },
   },
   links: {
@@ -77,7 +77,7 @@ export function PartnerSection() {
 
   const isFilterActive = useMemo(() => {
     if (subtab === "groups") return searchParams.has("groupId");
-    if (subtab === "tags") return searchParams.has("tagId");
+    if (subtab === "tags") return searchParams.has("partnerTagId");
     if (subtab === "short_links") return searchParams.has("linkId");
     if (subtab === "destination_urls") return searchParams.has("url");
     return false;
@@ -86,7 +86,8 @@ export function PartnerSection() {
   const activeFilterValues = useMemo(() => {
     if (subtab === "groups")
       return searchParams.get("groupId")?.split(",") ?? [];
-    if (subtab === "tags") return searchParams.get("tagId")?.split(",") ?? [];
+    if (subtab === "tags")
+      return searchParams.get("partnerTagId")?.split(",") ?? [];
     if (subtab === "short_links")
       return searchParams.get("linkId")?.split(",") ?? [];
     if (subtab === "destination_urls")
@@ -96,7 +97,7 @@ export function PartnerSection() {
 
   const filterParamKey = useMemo(() => {
     if (subtab === "groups") return "groupId";
-    if (subtab === "tags") return "tagId";
+    if (subtab === "tags") return "partnerTagId";
     if (subtab === "short_links") return "linkId";
     if (subtab === "destination_urls") return "url";
     return null;
@@ -160,7 +161,7 @@ export function PartnerSection() {
         return d.group?.name || "Unknown";
       }
       if (subtab === "tags") {
-        return d.tag?.name || "Unknown";
+        return d.partnerTag?.name || d.tag?.name || "Unknown";
       }
 
       return "Unknown";
@@ -182,9 +183,14 @@ export function PartnerSection() {
       if (isGroupsSubtab) {
         icon = d.group ? <GroupColorCircle group={d.group} /> : null;
       } else if (isTagsSubtab) {
-        icon = d.tag ? (
-          <TagBadge color={d.tag.color} withIcon className="sm:p-1" />
-        ) : null;
+        icon =
+          d.tag || d.partnerTag ? (
+            <TagBadge
+              color={d.tag?.color ?? "blue"}
+              withIcon
+              className="sm:p-1"
+            />
+          ) : null;
       } else {
         icon = (
           <LinkLogo
@@ -196,7 +202,7 @@ export function PartnerSection() {
 
       let filterValue: string | undefined;
       if (isGroupsSubtab) filterValue = d.groupId;
-      else if (isTagsSubtab) filterValue = d.tagId;
+      else if (isTagsSubtab) filterValue = d.partnerTagId ?? d.tagId;
       else if (isShortLinksSubtab) filterValue = d.id;
       else if (isDestinationUrlsSubtab) filterValue = d.url;
 

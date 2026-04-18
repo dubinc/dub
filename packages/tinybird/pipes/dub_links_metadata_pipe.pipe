@@ -21,6 +21,7 @@ SQL >
        partner_group_id,
        folder_id,
        tag_ids,
+       coalesce(partner_tag_ids, []) AS partner_tag_ids,
        tenant_id,
        created_at,
        deleted

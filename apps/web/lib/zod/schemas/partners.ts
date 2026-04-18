@@ -25,6 +25,7 @@ import {
 } from "./images";
 import { createLinkBodySchema } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { PartnerTagSchema } from "./partner-tags";
 import { ProgramEnrollmentSchema } from "./programs";
 import { centsSchema, centsSchemaWithDefault, parseUrlSchema } from "./utils";
 
@@ -199,6 +200,12 @@ export const getPartnersQuerySchemaExtended = getPartnersQuerySchema.extend({
     .union([z.string(), z.array(z.string())])
     .transform((v) => (Array.isArray(v) ? v : v.split(",")))
     .optional(),
+  partnerTagId: z
+    .union([z.string(), z.array(z.string())])
+    .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    .optional(),
+  groupId: z.union([z.string(), z.array(z.string())]).optional(),
+  country: z.union([z.string(), z.array(z.string())]).optional(),
   includePartnerPlatforms: booleanQuerySchema.optional(),
   // metric range query fields (TODO: Add to public API once we finalize the syntax)
   totalClicksMin: z.coerce
@@ -280,7 +287,9 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["status", "country", "groupId"]).optional(),
+    groupBy: z
+      .enum(["status", "country", "groupId", "partnerTagId"])
+      .optional(),
   });
 
 export const partnerPlatformSchema = z.object({
@@ -494,6 +503,10 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     }).shape,
   )
   .extend({
+    tags: z
+      .array(PartnerTagSchema)
+      .optional()
+      .describe("The tags associated with the partner."),
     totalClicks: z
       .number()
       .default(0)

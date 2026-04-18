@@ -35,7 +35,12 @@ export function buildPartnerEmailSearchWhere({
 export type PartnerEnrollmentQueryFilters = Omit<
   z.infer<typeof getPartnersQuerySchemaExtended>,
   "sortBy" | "sortOrder" | "page" | "pageSize" | "includePartnerPlatforms"
-> & { programId: string };
+> & {
+  programId: string;
+  partnerTagIdOperator?: "IN" | "NOT IN";
+  groupIdOperator?: "IN" | "NOT IN";
+  countryOperator?: "IN" | "NOT IN";
+};
 
 function normalizeBounds(
   min?: number | null,
@@ -128,6 +133,70 @@ export function buildMetricRangeWhere(
   return and.length ? { AND: and } : {};
 }
 
+function normalizeStringList(
+  value: string | string[] | undefined,
+): string[] | undefined {
+  if (value === undefined) return undefined;
+  const list = (Array.isArray(value) ? value : [value]).filter(
+    (v) => typeof v === "string" && v.length > 0,
+  );
+  return list.length === 0 ? undefined : list;
+}
+
+/**
+ * Nullable string column on `ProgramEnrollment` or `Partner` (`groupId` /
+ * `country`). For NOT IN / not, SQL excludes NULL; OR with `null` keeps rows
+ * with no value / unknown.
+ */
+export function buildNullableStringListWhere(
+  field: "groupId",
+  value: string | string[] | undefined,
+  exclude: boolean,
+): Prisma.ProgramEnrollmentWhereInput | undefined;
+export function buildNullableStringListWhere(
+  field: "country",
+  value: string | string[] | undefined,
+  exclude: boolean,
+): Prisma.PartnerWhereInput | undefined;
+export function buildNullableStringListWhere(
+  field: "groupId" | "country",
+  value: string | string[] | undefined,
+  exclude: boolean,
+): Prisma.ProgramEnrollmentWhereInput | Prisma.PartnerWhereInput | undefined {
+  const list = normalizeStringList(value);
+  if (list === undefined) return undefined;
+
+  const inOrEquals = list.length === 1 ? list[0]! : { in: list };
+  const negation = list.length === 1 ? { not: list[0]! } : { notIn: list };
+
+  if (!exclude) {
+    return { [field]: inOrEquals } as
+      | Prisma.ProgramEnrollmentWhereInput
+      | Prisma.PartnerWhereInput;
+  }
+
+  return {
+    OR: [{ [field]: null }, { [field]: negation }],
+  } as Prisma.ProgramEnrollmentWhereInput | Prisma.PartnerWhereInput;
+}
+
+export function mergePartnerCountryAndSearchWhere(
+  countryWhere: Prisma.PartnerWhereInput | undefined,
+  searchWhere: Prisma.PartnerWhereInput,
+): Prisma.PartnerWhereInput {
+  const hasCountry = countryWhere && Object.keys(countryWhere).length > 0;
+  const hasSearch = Object.keys(searchWhere).length > 0;
+
+  if (hasCountry && hasSearch) {
+    return { AND: [countryWhere!, searchWhere] };
+  }
+
+  return {
+    ...(hasCountry ? countryWhere! : {}),
+    ...(hasSearch ? searchWhere : {}),
+  };
+}
+
 /** Matches GET /api/partners enrollment filter shape + metric ranges. */
 export function buildProgramEnrollmentWhereForList(
   filters: PartnerEnrollmentQueryFilters,
@@ -141,9 +210,54 @@ export function buildProgramEnrollmentWhereForList(
     partnerIds,
     search,
     email,
+    partnerTagId,
+    partnerTagIdOperator = "IN",
+    groupIdOperator = "IN",
+    countryOperator = "IN",
   } = filters;
 
   const metricWhere = buildMetricRangeWhere(filters);
+
+  const partnerTagIdNotIn = partnerTagIdOperator === "NOT IN";
+  const groupIdNotIn = groupIdOperator === "NOT IN";
+  const countryNotIn = countryOperator === "NOT IN";
+
+  const searchWhere = buildPartnerEmailSearchWhere({ email, search });
+
+  const countryWhere = buildNullableStringListWhere(
+    "country",
+    country,
+    countryNotIn,
+  );
+
+  const partnerWhere: Prisma.PartnerWhereInput = {
+    ...(partnerTagId && {
+      programPartnerTags: {
+        ...(partnerTagIdNotIn
+          ? {
+              none: {
+                programId,
+                partnerTagId: { in: partnerTagId },
+              },
+            }
+          : {
+              some: {
+                programId,
+                partnerTagId: { in: partnerTagId },
+              },
+            }),
+      },
+    }),
+    ...mergePartnerCountryAndSearchWhere(countryWhere, searchWhere),
+  };
+
+  const hasPartnerWhere = Object.keys(partnerWhere).length > 0;
+
+  const groupIdWhere = buildNullableStringListWhere(
+    "groupId",
+    groupId,
+    groupIdNotIn,
+  );
 
   return {
     tenantId,
@@ -159,15 +273,8 @@ export function buildProgramEnrollmentWhereForList(
             in: ["approved", "invited"],
           }
         : status,
-    groupId,
-    ...(country || search || email
-      ? {
-          partner: {
-            country,
-            ...buildPartnerEmailSearchWhere({ email, search }),
-          },
-        }
-      : {}),
+    ...(groupIdWhere ?? {}),
+    ...(hasPartnerWhere ? { partner: partnerWhere } : {}),
     ...metricWhere,
   };
 }
