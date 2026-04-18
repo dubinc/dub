@@ -21,14 +21,6 @@ const products = {
     description:
       "[Short links](https://dub.co/help/category/link-management), [QR codes](https://dub.co/help/article/custom-qr-codes), [real-time analytics](https://dub.co/help/article/dub-analytics), and [conversion tracking](https://dub.co/docs/conversions/quickstart).",
   },
-  links: {
-    image: "https://assets.dub.co/icons/link.webp",
-    title: "Dub Links",
-    href: "https://dub.co/links",
-    description:
-      "[Short links](https://dub.co/help/category/link-management), [QR codes](https://dub.co/help/article/custom-qr-codes), [real-time analytics](https://dub.co/help/article/dub-analytics), and [conversion tracking](https://dub.co/docs/conversions/quickstart).",
-    paidPlanRequired: false,
-  },
 };
 
 export function ProductSelector() {
