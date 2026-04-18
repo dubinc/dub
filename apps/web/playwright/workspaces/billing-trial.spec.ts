@@ -1,3 +1,4 @@
+import { PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 import {
   applyMockTrialToWorkspace,
@@ -38,9 +39,17 @@ test.describe("Billing trial checkout", () => {
       page.getByRole("heading", { name: "Plans", exact: true }),
     ).toBeVisible({ timeout: 30_000 });
 
-    const upgradeButtons = page.getByRole("button", { name: "Upgrade" });
-    await expect(upgradeButtons.first()).toBeVisible();
-    await upgradeButtons.first().click();
+    // CTA: billing may show "Upgrade" or checkout trial copy from UpgradePlanButton.
+    const upgradeButton = page.getByRole("button", { name: "Upgrade" }).or(
+      page.getByRole("button", {
+        name: new RegExp(
+          `Start ${PARTNER_CHECKOUT_TRIAL_PERIOD_DAYS}-day trial`,
+        ),
+      }),
+    );
+
+    await expect(upgradeButton.first()).toBeVisible();
+    await upgradeButton.first().click();
 
     await page.waitForURL(
       (u) => {

@@ -67,7 +67,9 @@ export default function WorkspaceBillingUpgradePage() {
   });
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
-  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
+  const [period, setPeriod] = useState<"monthly" | "yearly">(
+    currentPlanPeriod === "yearly" ? "yearly" : "monthly",
+  );
 
   const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
     usePartnersUpgradeModal();
@@ -163,12 +165,13 @@ export default function WorkspaceBillingUpgradePage() {
                   stripeId &&
                     plan.name.toLowerCase() === currentPlan &&
                     planTier === currentPlanTier &&
-                    period === currentPlanPeriod &&
                     !isLegacyBusinessPlan({
                       plan: currentPlan,
                       payoutsLimit,
                     }),
                 );
+                const isCurrentPlanAndPeriod =
+                  isCurrentPlan && period === currentPlanPeriod;
 
                 // show downgrade button if user has a stripe id and is on the current plan
                 const isDowngrade = Boolean(
@@ -257,7 +260,7 @@ export default function WorkspaceBillingUpgradePage() {
                           tier={planTier > 1 ? planTier : undefined}
                           period={period}
                           disabled={
-                            (isCurrentPlan &&
+                            (isCurrentPlanAndPeriod &&
                               !isWorkspaceBillingTrialActive(trialEndsAt)) ||
                             currentPlan === "enterprise"
                           }
@@ -265,14 +268,14 @@ export default function WorkspaceBillingUpgradePage() {
                           text={
                             currentPlan === "enterprise"
                               ? "Contact support"
-                              : isCurrentPlan
+                              : isCurrentPlanAndPeriod
                                 ? isWorkspaceBillingTrialActive(trialEndsAt)
                                   ? "Activate plan"
                                   : "Current plan"
-                                : isDowngrade
-                                  ? "Downgrade"
-                                  : period !== currentPlanPeriod
-                                    ? `Switch to ${period}`
+                                : isCurrentPlan
+                                  ? `Switch to ${period}`
+                                  : isDowngrade
+                                    ? "Downgrade"
                                     : "Upgrade"
                           }
                           variant={isDowngrade ? "secondary" : "primary"}

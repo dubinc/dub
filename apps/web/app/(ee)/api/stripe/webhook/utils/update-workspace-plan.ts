@@ -39,6 +39,7 @@ export async function updateWorkspacePlan({
     | "name"
     | "slug"
     | "defaultProgramId"
+    | "planPeriod"
     | "planTier"
     | "trialEndsAt"
     | "paymentFailedAt"
@@ -74,10 +75,12 @@ export async function updateWorkspacePlan({
 
   // Update workspace plan / limits / subscription details if:
   // - workspace upgrades/downgrades their subscription
+  // - workspace changes their plan period / tier
   // - trialEndsAt changes (i.e. free trial -> paid subscription)
   // - the payouts limit increases and the updated price ID is a new business price ID
   if (
     workspace.plan !== newPlanName ||
+    workspace.planPeriod !== planPeriod ||
     workspace.planTier !== newPlanTier ||
     (trialEndsAt !== undefined && trialEndsAt !== workspace.trialEndsAt) ||
     (workspace.payoutsLimit < newPlan.limits.payouts &&
