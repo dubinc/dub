@@ -160,6 +160,21 @@ export async function installBillingCheckoutMocks(
     period: "monthly",
   };
 
+  // @stripe/stripe-js resolves immediately when `window.Stripe` already exists (see loadScript in
+  // stripe-js pure bundle), so we never depend on intercepting basil/v3 script URLs correctly.
+  await page.evaluate(() => {
+    // Stub before @stripe/stripe-js runs so loadScript() resolves without fetching basil/stripe.js.
+    const w = window as Window & { Stripe?: unknown };
+    w.Stripe = function Stripe() {
+      return {
+        redirectToCheckout(opts: { sessionId?: string }) {
+          const id = opts?.sessionId ? String(opts.sessionId) : "";
+          window.location.href = `https://checkout.stripe.com/c/pay/cs_test_e2e_redirect#${encodeURIComponent(id)}`;
+        },
+      };
+    };
+  });
+
   await page.route("https://js.stripe.com/**", async (route) => {
     await route.fulfill({
       status: 200,

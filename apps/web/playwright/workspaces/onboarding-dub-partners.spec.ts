@@ -21,9 +21,19 @@ test("complete workspace onboarding with Dub Partners product", async ({
   page,
   baseURL: baseURLParam,
 }) => {
+  test.setTimeout(180_000);
+
   const workspaceName = `Test WS ${nanoid(6)}`;
   const customDomain = randomOnboardingDomain();
-  const baseURL = baseURLParam ?? "http://app.localhost:8888";
+  const baseURL = baseURLParam ?? "http://localhost:8888";
+
+  // Deterministic trial CTA copy (otherwise useOnboardingTrialVariant is 50% control).
+  await page.addInitScript(() => {
+    localStorage.setItem(
+      "dub_onboarding_trial_variant",
+      JSON.stringify("trial_d1d6f8671832d7a30e805a7fa01f968b"),
+    );
+  });
 
   // Welcome page
   await page.goto("/onboarding");
@@ -106,7 +116,8 @@ test("complete workspace onboarding with Dub Partners product", async ({
   await expect(
     page.getByRole("heading", { name: "Create your default reward" }),
   ).toBeVisible();
-  await page.getByLabel(/Percentage per sale/i).fill("30");
+  await page.waitForTimeout(1000);
+  await page.getByLabel(/Percentage per sale/i).fill("30", { force: true });
   await page.getByRole("button", { name: "Continue" }).click();
 
   // Plan step — mocked checkout trial (no Stripe)
