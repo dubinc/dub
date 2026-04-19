@@ -1,6 +1,6 @@
 import { CursorRays } from "@/ui/layout/sidebar/icons/cursor-rays";
 import { InfoTooltip, MiniAreaChart } from "@dub/ui";
-import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
+import { cn, fetcher, nFormatter, rewardFormatter } from "@dub/utils";
 import { AnalyticsTimeseries } from "dub/models/components";
 import { SVGProps, useId } from "react";
 import useSWR from "swr";
@@ -11,6 +11,7 @@ export function ReferralsEmbedActivity() {
   const {
     group: { brandColor: color },
     stats: { clicks, leads, sales, saleAmount },
+    programEmbedData,
   } = useReferralsEmbedData();
 
   const token = useEmbedToken();
@@ -37,6 +38,8 @@ export function ReferralsEmbedActivity() {
       dedupingInterval: 60000,
     },
   );
+
+  const rewardDisplayOptions = programEmbedData?.rewardDisplay ?? undefined;
 
   return (
     <div className="border-border-subtle bg-bg-default rounded-lg border sm:col-span-2">
@@ -77,7 +80,7 @@ export function ReferralsEmbedActivity() {
                   {nFormatter(value, { full: true })}{" "}
                   {subValue || subValue === 0 ? (
                     <span className="text-content-subtle text-xs">
-                      ({currencyFormatter(subValue)})
+                      ({rewardFormatter(subValue, rewardDisplayOptions)})
                     </span>
                   ) : null}
                 </span>
