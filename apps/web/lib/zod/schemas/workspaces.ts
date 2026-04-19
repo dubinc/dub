@@ -1,5 +1,5 @@
 import { workspaceSiteVisitTrackingSettingsFieldSchema } from "@/lib/sitemaps/site-visit-tracking";
-import { WorkspaceRole } from "@dub/prisma/client";
+import { PlanPeriod, WorkspaceRole } from "@dub/prisma/client";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import * as z from "zod/v4";
@@ -38,7 +38,31 @@ export const WorkspaceSchema = z
       .number()
       .nullable()
       .describe("The tier of the workspace's plan."),
+    planPeriod: z
+      .enum(PlanPeriod)
+      .nullish()
+      .describe(
+        "Billing cadence for the Stripe subscription (monthly, yearly, quarterly, biweekly), when applicable.",
+      ),
     stripeId: z.string().nullable().describe("The Stripe ID of the workspace."),
+    trialEndsAt: z
+      .date()
+      .nullish()
+      .describe(
+        "When the current Stripe subscription billing trial ends, if applicable.",
+      ),
+    subscriptionCanceledAt: z
+      .date()
+      .nullish()
+      .describe(
+        "When the workspace's subscription was canceled (or set to cancel).",
+      ),
+    billingCycleEndsAt: z
+      .date()
+      .nullish()
+      .describe(
+        "When the current Stripe subscription period ends (derived from Stripe current_period_end).",
+      ),
     billingCycleStart: z
       .number()
       .describe(

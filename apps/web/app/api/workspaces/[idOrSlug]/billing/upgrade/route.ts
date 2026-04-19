@@ -3,7 +3,7 @@ import { getDubAdminRole, withWorkspace } from "@/lib/auth";
 import { getDubCustomer } from "@/lib/dub";
 import { stripe } from "@/lib/stripe";
 import { booleanQuerySchema } from "@/lib/zod/schemas/misc";
-import { APP_DOMAIN } from "@dub/utils";
+import { APP_DOMAIN, DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
@@ -15,17 +15,18 @@ const upgradePlanSchema = z.object({
     message: "Invalid baseUrl.",
   }),
   onboarding: booleanQuerySchema.nullish(),
+  isTrialVariant: booleanQuerySchema.nullish(),
 });
 
 // POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
-    let { plan, period, tier, baseUrl, onboarding } = upgradePlanSchema.parse(
-      await req.json(),
-    );
+    let { plan, period, tier, baseUrl, onboarding, isTrialVariant } =
+      upgradePlanSchema.parse(await req.json());
 
     const lookupKey =
       tier > 1 ? `${plan}${tier}_${period}` : `${plan}_${period}`;
+
     const prices = await stripe.prices.list({
       lookup_keys: [lookupKey],
     });
@@ -37,13 +38,19 @@ export const POST = withWorkspace(
       });
     }
 
-    const activeSubscription = workspace.stripeId
-      ? await stripe.subscriptions
-          .list({
+    const existingSubscription = workspace.stripeId
+      ? await Promise.all([
+          stripe.subscriptions.list({
             customer: workspace.stripeId,
             status: "active",
-          })
-          .then((res) => res.data[0])
+            limit: 1,
+          }),
+          stripe.subscriptions.list({
+            customer: workspace.stripeId,
+            status: "trialing",
+            limit: 1,
+          }),
+        ]).then(([active, trialing]) => active.data[0] ?? trialing.data[0])
       : null;
 
     if (process.env.VERCEL === "1" && process.env.VERCEL_ENV === "preview") {
@@ -56,18 +63,18 @@ export const POST = withWorkspace(
       }
     }
 
-    // if the user has an active subscription, create billing portal to upgrade
-    if (workspace.stripeId && activeSubscription) {
+    // if the user has an active or trialing subscription, create billing portal to upgrade
+    if (workspace.stripeId && existingSubscription) {
       const { url } = await stripe.billingPortal.sessions.create({
         customer: workspace.stripeId,
         return_url: baseUrl,
         flow_data: {
           type: "subscription_update_confirm",
           subscription_update_confirm: {
-            subscription: activeSubscription.id,
+            subscription: existingSubscription.id,
             items: [
               {
-                id: activeSubscription.items.data[0].id,
+                id: existingSubscription.items.data[0].id,
                 quantity: 1,
                 price: prices.data[0].id,
               },
@@ -79,7 +86,13 @@ export const POST = withWorkspace(
     } else {
       const customer = await getDubCustomer(session.user.id);
 
-      // For both new users and users with canceled subscriptions
+      const shouldApplyCheckoutTrial =
+        workspace.stripeId == null &&
+        workspace.trialEndsAt == null &&
+        isTrialVariant;
+
+      // New Stripe customer + no prior trial on workspace: partner checkout trial.
+      // Returning Stripe customers (e.g. canceled sub) must not get another trial here.
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
           ? {
@@ -119,6 +132,13 @@ export const POST = withWorkspace(
           enabled: true,
         },
         mode: "subscription",
+        ...(shouldApplyCheckoutTrial
+          ? {
+              subscription_data: {
+                trial_period_days: DUB_TRIAL_PERIOD_DAYS,
+              },
+            }
+          : {}),
         client_reference_id: workspace.id,
         metadata: {
           dubCustomerId: session.user.id,

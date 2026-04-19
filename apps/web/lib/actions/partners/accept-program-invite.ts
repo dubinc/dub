@@ -3,6 +3,7 @@
 import { generateDiscountCodeForPartner } from "@/lib/api/discounts/generate-discount-code-for-partner";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
+import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -21,29 +22,47 @@ export const acceptProgramInviteAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId } = parsedInput;
 
-    const enrollment = await prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId: partner.id,
-          programId,
-        },
-        status: "invited",
-      },
-      data: {
-        status: "approved",
-        createdAt: new Date(),
-      },
-      include: {
-        links: true,
-        partner: {
-          include: {
-            platforms: true,
-          },
+    const program = await prisma.program.findUniqueOrThrow({
+      where: { id: programId },
+      select: {
+        workspaceId: true,
+        workspace: {
+          select: { trialEndsAt: true },
         },
       },
     });
 
-    // TODO: Move these into a workflow similar to `/api/workflows/partner-approved/route.ts`
+    const enrollment = await prisma.$transaction(async (tx) => {
+      await throwIfTrialProgramEnrollmentLimitExceeded({
+        programId,
+        additionalApproved: 1,
+        trialEndsAt: program.workspace.trialEndsAt,
+        tx,
+      });
+
+      return tx.programEnrollment.update({
+        where: {
+          partnerId_programId: {
+            partnerId: partner.id,
+            programId,
+          },
+          status: "invited",
+        },
+        data: {
+          status: "approved",
+          createdAt: new Date(),
+        },
+        include: {
+          links: true,
+          partner: {
+            include: {
+              platforms: true,
+            },
+          },
+        },
+      });
+    });
+
     waitUntil(
       (async () => {
         const workspace = await prisma.project.findUnique({

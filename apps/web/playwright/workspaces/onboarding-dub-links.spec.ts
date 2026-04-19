@@ -1,7 +1,9 @@
 import { nanoid } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 
-test("complete workspace onboarding", async ({ page }) => {
+test("complete workspace onboarding with Dub Links product", async ({
+  page,
+}) => {
   const workspaceName = `Test WS ${nanoid(6)}`;
 
   // Welcome page
@@ -54,9 +56,11 @@ test("complete workspace onboarding", async ({ page }) => {
   // Success page
   await page.waitForURL(/\/onboarding\/success/);
   await expect(
-    page.getByText(`The ${workspaceName} workspace has been created`),
+    page.locator("h1").filter({ hasText: workspaceName }),
   ).toBeVisible();
-  await expect(page.getByText("Complete setup")).toBeVisible();
+  await expect(
+    page.locator("h3").filter({ hasText: /^Complete setup$/ }),
+  ).toBeVisible();
 
   // Go to dashboard
   await page.getByRole("button", { name: "Go to your dashboard" }).click();

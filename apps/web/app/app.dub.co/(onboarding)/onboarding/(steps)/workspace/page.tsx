@@ -7,7 +7,8 @@ export default function Workspace() {
       title="Create your workspace"
       description={
         <>
-          Your shared space for links, partners, and your team.{" "}
+          Where you'll work with your team to recruit, manage, and payout your
+          partners.{" "}
           <a
             href="https://dub.co/help/article/what-is-a-workspace"
             target="_blank"

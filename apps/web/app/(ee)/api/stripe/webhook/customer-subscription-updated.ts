@@ -7,8 +7,8 @@ import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 export async function customerSubscriptionUpdated(
   event: Stripe.CustomerSubscriptionUpdatedEvent,
 ) {
-  const subscriptionUpdated = event.data.object;
-  const priceId = subscriptionUpdated.items.data[0].price.id;
+  const updatedSubscription = event.data.object;
+  const priceId = updatedSubscription.items.data[0].price.id;
 
   const { plan } = getPlanAndTierFromPriceId({ priceId });
 
@@ -16,20 +16,13 @@ export async function customerSubscriptionUpdated(
     return `Invalid price ID in customer.subscription.updated event: ${priceId}`;
   }
 
-  const stripeId = subscriptionUpdated.customer.toString();
+  const stripeId = updatedSubscription.customer.toString();
 
   const workspace = await prisma.project.findUnique({
     where: {
       stripeId,
     },
-    select: {
-      id: true,
-      plan: true,
-      planTier: true,
-      paymentFailedAt: true,
-      payoutsLimit: true,
-      foldersUsage: true,
-      defaultProgramId: true,
+    include: {
       users: {
         select: {
           user: {
@@ -61,15 +54,16 @@ export async function customerSubscriptionUpdated(
   await updateWorkspacePlan({
     workspace,
     priceId,
+    subscription: updatedSubscription,
   });
 
   const subscriptionCanceled =
-    subscriptionUpdated.status === "active" &&
-    subscriptionUpdated.cancel_at_period_end;
+    updatedSubscription.status === "active" &&
+    updatedSubscription.cancel_at_period_end;
 
   if (subscriptionCanceled) {
     const owners = workspace.users.map(({ user }) => user);
-    const cancelReason = subscriptionUpdated.cancellation_details?.feedback;
+    const cancelReason = updatedSubscription.cancellation_details?.feedback;
 
     await sendCancellationFeedback({
       owners,

@@ -1,32 +1,50 @@
+import { pauseOrCancelCampaignsForProgramOnPlanDowngrade } from "@/lib/api/campaigns/pause-campaigns-on-plan-downgrade";
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { sendAdvancedDowngradeNoticeEmailIfNeeded } from "@/lib/email/send-advanced-downgrade-notice-email";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   wouldGainPartnerAccess,
   wouldLosePartnerAccess,
 } from "@/lib/plans/has-partner-access";
+import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
+import {
+  getSubscriptionCancellationFields,
+  getSubscriptionTrialEndsAt,
+} from "@/lib/stripe/workspace-subscription-fields";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { getPlanAndTierFromPriceId } from "@dub/utils";
+import {
+  getPlanAndTierFromPriceId,
+  getWorkspaceLimitsForStripeSubscriptionStatus,
+} from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
 import { waitUntil } from "@vercel/functions";
+import type Stripe from "stripe";
+import { getPlanPeriodFromStripeSubscription } from "./stripe-plan-period";
 
 export async function updateWorkspacePlan({
   workspace,
   priceId,
+  subscription,
 }: {
   workspace: Pick<
     WorkspaceProps,
     | "id"
+    | "name"
+    | "slug"
+    | "defaultProgramId"
+    | "planPeriod"
     | "planTier"
+    | "trialEndsAt"
     | "paymentFailedAt"
     | "payoutsLimit"
     | "foldersUsage"
-    | "defaultProgramId"
   > & {
     plan: string;
     restrictedTokens: {
@@ -34,6 +52,7 @@ export async function updateWorkspacePlan({
     }[];
   };
   priceId: string;
+  subscription: Stripe.Subscription;
 }) {
   const { plan: newPlan, planTier: newPlanTier } = getPlanAndTierFromPriceId({
     priceId,
@@ -41,17 +60,29 @@ export async function updateWorkspacePlan({
   if (!newPlan) return;
 
   const newPlanName = newPlan.name.toLowerCase();
-  const shouldDisableWebhooks = newPlanName === "free" || newPlanName === "pro";
 
   const { canManageProgram, canMessagePartners } =
     getPlanCapabilities(newPlanName);
 
-  // If a workspace upgrades/downgrades their subscription
-  // or if the payouts limit increases and the updated price ID is a new business price ID
-  // update their usage limit in the database
+  const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
+    planLimits: newPlan.limits,
+    subscriptionStatus: subscription.status,
+  });
+
+  const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
+  const cancellationFields = getSubscriptionCancellationFields(subscription);
+  const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
+
+  // Update workspace plan / limits / subscription details if:
+  // - workspace upgrades/downgrades their subscription
+  // - workspace changes their plan period / tier
+  // - trialEndsAt changes (i.e. free trial -> paid subscription)
+  // - the payouts limit increases and the updated price ID is a new business price ID
   if (
     workspace.plan !== newPlanName ||
+    workspace.planPeriod !== planPeriod ||
     workspace.planTier !== newPlanTier ||
+    (trialEndsAt !== undefined && trialEndsAt !== workspace.trialEndsAt) ||
     (workspace.payoutsLimit < newPlan.limits.payouts &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
@@ -63,17 +94,22 @@ export async function updateWorkspacePlan({
         data: {
           plan: newPlanName,
           planTier: newPlanTier,
-          usageLimit: newPlan.limits.clicks,
-          linksLimit: newPlan.limits.links,
-          payoutsLimit: newPlan.limits.payouts,
-          domainsLimit: newPlan.limits.domains,
-          aiLimit: newPlan.limits.ai,
-          tagsLimit: newPlan.limits.tags,
-          foldersLimit: newPlan.limits.folders,
-          groupsLimit: newPlan.limits.groups,
-          networkInvitesLimit: newPlan.limits.networkInvites,
-          usersLimit: newPlan.limits.users,
-          paymentFailedAt: null,
+          usageLimit: limits.clicks,
+          linksLimit: limits.links,
+          payoutsLimit: limits.payouts,
+          domainsLimit: limits.domains,
+          aiLimit: limits.ai,
+          tagsLimit: limits.tags,
+          foldersLimit: limits.folders,
+          groupsLimit: limits.groups,
+          networkInvitesLimit: limits.networkInvites,
+          usersLimit: limits.users,
+          ...(["active", "trialing"].includes(subscription.status)
+            ? { paymentFailedAt: null }
+            : {}),
+          ...(trialEndsAt !== undefined && { trialEndsAt }),
+          ...cancellationFields,
+          ...(planPeriod !== undefined && { planPeriod }),
         },
         include: {
           users: {
@@ -121,8 +157,8 @@ export async function updateWorkspacePlan({
     ]);
 
     // Disable the webhooks if the new plan does not support webhooks
-    if (shouldDisableWebhooks) {
-      await Promise.all([
+    if (!getPlanCapabilities(newPlanName).canCreateWebhooks) {
+      await Promise.allSettled([
         prisma.project.update({
           where: {
             id: workspace.id,
@@ -159,9 +195,9 @@ export async function updateWorkspacePlan({
       await webhookCache.mset(webhooks);
     }
 
-    // Delete the folders if the new plan is free
+    // Delete the folders if the new plan does not support folders
     // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
-    if (newPlanName === "free") {
+    if (!getPlanCapabilities(newPlanName).canAddFolder) {
       await deleteWorkspaceFolders({
         workspaceId: workspace.id,
         defaultProgramId: workspace.defaultProgramId,
@@ -190,11 +226,37 @@ export async function updateWorkspacePlan({
       await reactivateProgram(workspace.defaultProgramId);
     }
 
+    const workspaceOwner =
+      updatedWorkspace.status === "fulfilled"
+        ? updatedWorkspace.value.users[0].user
+        : null;
+
     if (
-      updatedWorkspace.status === "fulfilled" &&
-      updatedWorkspace.value.users.length
+      workspace.defaultProgramId &&
+      wouldLoseAdvancedFeatures({
+        currentPlan: workspace.plan,
+        newPlan: newPlanName,
+      })
     ) {
-      const workspaceOwner = updatedWorkspace.value.users[0].user;
+      await Promise.allSettled([
+        stripAdvancedRewardModifiersForProgram({
+          programId: workspace.defaultProgramId,
+        }),
+        pauseOrCancelCampaignsForProgramOnPlanDowngrade({
+          programId: workspace.defaultProgramId,
+        }),
+        workspaceOwner &&
+          sendAdvancedDowngradeNoticeEmailIfNeeded({
+            projectId: workspace.id,
+            dedupeType: `advanced-downgrade-notice:${priceId}`,
+            ownerEmail: workspaceOwner.email,
+            workspaceName: workspace.name,
+            workspaceSlug: workspace.slug,
+          }),
+      ]);
+    }
+
+    if (workspaceOwner) {
       waitUntil(syncUserPlanToPlain(workspaceOwner));
     }
   } else if (workspace.paymentFailedAt) {
