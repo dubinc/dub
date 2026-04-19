@@ -22,17 +22,18 @@ import {
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
 import {
   cn,
-  currencyFormatter,
   fetcher,
   formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
   nFormatter,
+  rewardFormatter,
 } from "@dub/utils";
 import { ColumnDef } from "@tanstack/react-table";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../use-embed-token";
+import { useReferralsEmbedData } from "../page-client";
 
 type PerformanceAttribute = keyof typeof PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES;
 
@@ -125,11 +126,14 @@ function EmbedBountyPerformanceChart({
   programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
   const token = useEmbedToken();
+  const { programEmbedData } = useReferralsEmbedData();
   const attribute = bounty.performanceCondition?.attribute as
     | PerformanceAttribute
     | undefined;
   const isCurrency = attribute ? isCurrencyAttribute(attribute) : false;
   const isCommissions = attribute === "totalCommissions";
+
+  const rewardDisplayOptions = programEmbedData?.rewardDisplay ?? undefined;
 
   const startDate = useMemo(
     () =>
@@ -246,7 +250,7 @@ function EmbedBountyPerformanceChart({
               </span>
               <p className="text-content-subtle text-right">
                 {isCurrency
-                  ? currencyFormatter(d.values.main)
+                  ? rewardFormatter(d.values.main, rewardDisplayOptions)
                   : nFormatter(d.values.main)}
               </p>
             </div>
@@ -472,7 +476,7 @@ function EmbedBountyEventsTable({
         id: "amount",
         header: "Amount",
         accessorKey: "amount",
-        cell: ({ row }) => currencyFormatter(row.original.amount ?? 0),
+        cell: ({ row }) => rewardFormatter(row.original.amount ?? 0, rewardDisplayOptions),
       });
     }
 
@@ -522,7 +526,10 @@ function EmbedBountyCommissionsTable({
   programEnrollment: Pick<ProgramEnrollmentProps, "createdAt">;
 }) {
   const token = useEmbedToken();
+  const { programEmbedData } = useReferralsEmbedData();
   const [page, setPage] = useState(1);
+
+  const rewardDisplayOptions = programEmbedData?.rewardDisplay ?? undefined;
 
   const { pagination, setPagination } = useTablePagination({
     pageSize: PAGE_SIZE,
@@ -646,7 +653,7 @@ function EmbedBountyCommissionsTable({
         id: "earnings",
         header: "Earnings",
         accessorKey: "amount",
-        cell: ({ row }) => currencyFormatter(row.original.amount ?? 0),
+        cell: ({ row }) => rewardFormatter(row.original.amount ?? 0, rewardDisplayOptions),
       },
     ],
     [],
