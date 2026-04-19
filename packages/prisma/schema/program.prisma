@@ -141,6 +141,7 @@ model ProgramEnrollment {
   customers         Customer[]
   partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
   application       ProgramApplication? @relation(fields: [applicationId], references: [id])
+  applicationEvent  ProgramApplicationEvent?
   clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
   leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
   saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
@@ -178,43 +179,4 @@ model ProgramEnrollment {
   @@index(leadRewardId)
   @@index(saleRewardId)
   @@index(discountId)
-}
-
-enum ProgramApplicationRejectionReason {
-  needsMoreDetail
-  doesNotMeetRequirements
-  notTheRightFit
-  other
-}
-
-model ProgramApplication {
-  id              String                             @id @default(cuid())
-  programId       String
-  groupId         String?
-  name            String
-  email           String
-  country         String?
-  website         String?                            @db.Text
-  youtube         String?                            @db.Text
-  twitter         String?                            @db.Text
-  linkedin        String?                            @db.Text
-  instagram       String?                            @db.Text
-  tiktok          String?                            @db.Text
-  formData        Json?                              @db.Json
-  userId          String? // user who reviewed the application
-  rejectionReason ProgramApplicationRejectionReason?
-  rejectionNote   String?                            @db.Text
-  reviewedAt      DateTime?
-  createdAt       DateTime                           @default(now())
-  updatedAt       DateTime                           @updatedAt
-
-  program      Program            @relation(fields: [programId], references: [id])
-  partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])
-  enrollment   ProgramEnrollment?
-  user         User?              @relation(fields: [userId], references: [id])
-
-  @@index(programId)
-  @@index(groupId)
-  @@index(email)
-  @@index(userId)
 }

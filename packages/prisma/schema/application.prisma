@@ -1,0 +1,73 @@
+enum ProgramApplicationRejectionReason {
+  needsMoreDetail
+  doesNotMeetRequirements
+  notTheRightFit
+  other
+}
+
+model ProgramApplication {
+  id              String                             @id @default(cuid())
+  programId       String
+  groupId         String?
+  name            String
+  email           String
+  country         String?
+  website         String?                            @db.Text
+  youtube         String?                            @db.Text
+  twitter         String?                            @db.Text
+  linkedin        String?                            @db.Text
+  instagram       String?                            @db.Text
+  tiktok          String?                            @db.Text
+  formData        Json?                              @db.Json
+  userId          String? // user who reviewed the application
+  rejectionReason ProgramApplicationRejectionReason?
+  rejectionNote   String?                            @db.Text
+  reviewedAt      DateTime?
+  createdAt       DateTime                           @default(now())
+  updatedAt       DateTime                           @updatedAt
+
+  program                  Program                   @relation(fields: [programId], references: [id])
+  partnerGroup             PartnerGroup?             @relation(fields: [groupId], references: [id])
+  enrollment               ProgramEnrollment?
+  user                     User?                     @relation(fields: [userId], references: [id])
+  programApplicationEvents ProgramApplicationEvent[]
+
+  @@index(programId)
+  @@index(groupId)
+  @@index(email)
+  @@index(userId)
+}
+
+model ProgramApplicationEvent {
+  id        String @id @default(cuid()) // pga_evt_ULID
+  programId String
+
+  visitedAt   DateTime  @default(now())
+  startedAt   DateTime?
+  submittedAt DateTime?
+  approvedAt  DateTime?
+  rejectedAt  DateTime?
+
+  country             String?
+  referralSource      String // e.g. company.com, linkedin.com, marketplace, direct
+  referredByPartnerId String? // pn_xxx – partner ID who referred the application
+  metadata            Json?   @db.Json // full URL, ip address, user agent, geo/device data etc.
+
+  programApplicationId String?
+  partnerId            String?
+
+  referredByPartner Partner?            @relation(fields: [referredByPartnerId], references: [id])
+  application       ProgramApplication? @relation(fields: [programApplicationId], references: [id])
+  programEnrollment ProgramEnrollment?  @relation(fields: [programId, partnerId], references: [programId, partnerId])
+
+  @@unique([programId, partnerId])
+  @@index([programId, visitedAt])
+  @@index([programId, startedAt])
+  @@index([programId, submittedAt])
+  @@index([programId, approvedAt])
+  @@index([programId, country])
+  @@index([programId, referralSource])
+  @@index([programId, referredByPartnerId])
+  @@index(referredByPartnerId)
+  @@index(programApplicationId)
+}

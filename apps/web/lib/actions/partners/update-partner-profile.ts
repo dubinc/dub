@@ -18,11 +18,40 @@ import {
   deepEqual,
   nanoid,
   PARTNERS_DOMAIN,
+  RESERVED_SLUGS,
 } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/images";
 import { authPartnerActionClient } from "../safe-action";
+
+const USERNAME_REGEX = /^(?![_-])(?!.*[_-]{2})[a-z0-9_-]{3,30}(?<![_-])$/;
+
+// TODO: Add more reserved usernames
+const RESERVED_USERNAMES = [...RESERVED_SLUGS, "dub"];
+
+const usernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .transform((v) => slugify(v))
+  .pipe(
+    z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(30, "Username must be at most 30 characters")
+      .regex(USERNAME_REGEX, "Invalid username format"),
+  )
+  .pipe(
+    z
+      .string()
+      .refine(
+        (v) => !RESERVED_USERNAMES.some((prefix) => v.startsWith(prefix)),
+        "Username cannot start with a reserved username",
+      ),
+  )
+  .nullish();
 
 const updatePartnerProfileSchema = z
   .object({
@@ -33,6 +62,7 @@ const updatePartnerProfileSchema = z
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
     profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
+    username: usernameSchema,
   })
   .extend(PartnerProfileSchema.partial().shape)
   .transform((data) => ({
@@ -63,6 +93,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
       industryInterests,
       preferredEarningStructures,
       salesChannels,
+      username,
     } = parsedInput;
 
     if (
@@ -98,6 +129,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
           name,
           description,
           ...(imageUrl && { image: imageUrl }),
+          ...(username && { username }),
           country,
           profileType,
           companyName,
