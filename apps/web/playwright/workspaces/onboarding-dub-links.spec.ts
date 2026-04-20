@@ -1,9 +1,14 @@
 import { nanoid } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 
+/** Client navigations can finish before a sequential waitForURL runs; pair clicks with URL assertions. */
+const STEP_NAV_TIMEOUT = 60_000;
+
 test("complete workspace onboarding with Dub Links product", async ({
   page,
 }) => {
+  test.setTimeout(120_000);
+
   const workspaceName = `Test WS ${nanoid(6)}`;
 
   // Welcome page
@@ -11,13 +16,17 @@ test("complete workspace onboarding with Dub Links product", async ({
   await expect(
     page.getByRole("heading", { name: "Welcome to Dub" }),
   ).toBeVisible();
-  await page.getByRole("button", { name: "Get started" }).click();
+  await Promise.all([
+    expect(page).toHaveURL(/\/onboarding\/workspace/, {
+      timeout: STEP_NAV_TIMEOUT,
+    }),
+    page.getByRole("button", { name: "Get started" }).click(),
+  ]);
 
   // Workspace creation step
-  await page.waitForURL(/\/onboarding\/workspace/);
   await expect(
     page.getByRole("heading", { name: "Create your workspace" }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
   // Fill workspace name (slug auto-generates)
   await page.locator('input[id="name"]').fill(workspaceName);
@@ -26,49 +35,74 @@ test("complete workspace onboarding with Dub Links product", async ({
   const slug = await page.locator('input[id="slug"]').inputValue();
   expect(slug).toBeTruthy();
 
-  // Submit workspace creation
-  await page.getByRole("button", { name: "Create workspace" }).click();
+  const productsHeading = page.getByRole("heading", {
+    name: "What do you want to do with Dub?",
+  });
 
-  // Products step
-  await page.waitForURL(/\/onboarding\/products/, { timeout: 15_000 });
-  await expect(
-    page.getByRole("heading", {
-      name: "What do you want to do with Dub?",
+  await Promise.all([
+    expect(page).toHaveURL(/\/onboarding\/products/, {
+      timeout: STEP_NAV_TIMEOUT,
     }),
-  ).toBeVisible();
+    page.getByRole("button", { name: "Create workspace" }).click(),
+  ]);
+  await expect(productsHeading).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
-  // Select "Dub Links" product
-  await page.getByRole("button", { name: "Continue with Dub Links" }).click();
+  await Promise.all([
+    expect(page).toHaveURL(/\/onboarding\/domain/, {
+      timeout: STEP_NAV_TIMEOUT,
+    }),
+    page.getByRole("button", { name: "Continue with Dub Links" }).click(),
+  ]);
 
   // Domain step — skip it
-  await page.waitForURL(/\/onboarding\/domain/);
   await expect(
     page.getByRole("heading", { name: "Add a custom domain" }),
-  ).toBeVisible();
-  await page.getByRole("button", { name: "I'll do this later" }).click();
+  ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+  const skipDomainCta = page.getByRole("button", {
+    name: "I'll do this later",
+  });
+  await expect(skipDomainCta).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+  await Promise.all([
+    expect(page).toHaveURL(/\/onboarding\/plan/, {
+      timeout: STEP_NAV_TIMEOUT,
+    }),
+    skipDomainCta.click(),
+  ]);
 
   // Plan step — use free plan
-  await page.waitForURL(/\/onboarding\/plan/);
-  await page
-    .getByRole("button", { name: "Start for free, pick a plan later" })
-    .click();
+  const freePlanCta = page.getByRole("button", {
+    name: "Start for free, pick a plan later",
+  });
+  await expect(freePlanCta).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+  await Promise.all([
+    expect(page).toHaveURL(/\/onboarding\/success/, {
+      timeout: STEP_NAV_TIMEOUT,
+    }),
+    freePlanCta.click(),
+  ]);
 
   // Success page
-  await page.waitForURL(/\/onboarding\/success/);
   await expect(
     page.locator("h1").filter({ hasText: workspaceName }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
   await expect(
     page.locator("h3").filter({ hasText: /^Complete setup$/ }),
-  ).toBeVisible();
+  ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
   // Go to dashboard
-  await page.getByRole("button", { name: "Go to your dashboard" }).click();
-
-  // Verify redirect to workspace dashboard
-  await page.waitForURL(new RegExp(`/${slug}`), {
-    timeout: 15_000,
-    waitUntil: "domcontentloaded",
+  const dashboardCta = page.getByRole("button", {
+    name: "Go to your dashboard",
   });
+  await expect(dashboardCta).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+  const slugPathPattern = new RegExp(
+    `/${slug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(?:/|$)`,
+  );
+  await Promise.all([
+    expect(page).toHaveURL(slugPathPattern, {
+      timeout: STEP_NAV_TIMEOUT,
+    }),
+    dashboardCta.click(),
+  ]);
+
   expect(page.url()).toContain(`/${slug}`);
 });
