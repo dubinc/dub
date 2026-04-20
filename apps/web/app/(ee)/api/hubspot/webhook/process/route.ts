@@ -8,7 +8,7 @@ import {
 import { trackHubSpotLeadEvent } from "@/lib/integrations/hubspot/track-lead";
 import { trackHubSpotSaleEvent } from "@/lib/integrations/hubspot/track-sale";
 import { prisma } from "@dub/prisma";
-import { logAndRespond } from "app/(ee)/api/cron/utils";
+import { logAndRespond } from "../../../cron/utils";
 
 // POST /api/hubspot/webhook/process – process individual webhook event
 export const POST = withCron(async ({ rawBody }) => {
