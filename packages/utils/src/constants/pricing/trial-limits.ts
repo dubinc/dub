@@ -5,14 +5,14 @@ export const TRIAL_PROGRAM_ENROLLMENT_LIMIT = 100;
 export const TRIAL_LIMITS = {
   links: 100,
   clicks: 5_000,
-  payouts: 0,
+  payouts: 100_00,
   domains: 5,
-  tags: 10,
+  tags: 5,
   folders: 5,
   groups: 5,
   networkInvites: 0,
-  users: 3,
-  ai: 1_000,
+  users: 5,
+  ai: 100,
   api: 120,
   analyticsApi: 2,
 } as const;
