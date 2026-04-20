@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { DubApiError } from "../errors";
+import { DubApiError } from "../../api/errors";
 
 interface GetPostbackOrThrowParams {
   postbackId: string;

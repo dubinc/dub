@@ -1,6 +1,6 @@
 import { createToken } from "@/lib/api/oauth/utils";
-import { getPostbackOrThrow } from "@/lib/api/postbacks/get-postback-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { getPostbackOrThrow } from "@/lib/postback/api/get-postback-or-throw";
 import {
   POSTBACK_SECRET_LENGTH,
   POSTBACK_SECRET_PREFIX,

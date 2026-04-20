@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getPostbackOrThrow } from "@/lib/api/postbacks/get-postback-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { getPostbackOrThrow } from "@/lib/postback/api/get-postback-or-throw";
 import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
 import commissionCreated from "@/lib/postback/sample-events/commission-created.json";
 import leadCreated from "@/lib/postback/sample-events/lead-created.json";
