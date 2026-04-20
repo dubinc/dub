@@ -1,10 +1,10 @@
 import { createToken } from "@/lib/api/oauth/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { getPostbackOrThrow } from "@/lib/postback/api/get-postback-or-throw";
 import {
   POSTBACK_SECRET_LENGTH,
   POSTBACK_SECRET_PREFIX,
 } from "@/lib/postback/constants";
+import { getPostbackOrThrow } from "@/lib/postback/get-postback-or-throw";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 

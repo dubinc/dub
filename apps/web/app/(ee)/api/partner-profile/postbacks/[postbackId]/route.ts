@@ -1,6 +1,6 @@
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { getPostbackOrThrow } from "@/lib/postback/api/get-postback-or-throw";
+import { getPostbackOrThrow } from "@/lib/postback/get-postback-or-throw";
 import {
   postbackSchema,
   updatePostbackInputSchema,
