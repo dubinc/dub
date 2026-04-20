@@ -25,7 +25,7 @@ test("complete workspace onboarding with Dub Partners product", async ({
 
   const workspaceName = `Test WS ${nanoid(6)}`;
   const customDomain = randomOnboardingDomain();
-  const baseURL = baseURLParam ?? "http://localhost:8888";
+  const baseURL = baseURLParam ?? "http://app.localhost:8888";
 
   // Deterministic trial CTA copy (otherwise useOnboardingTrialVariant is 50% control).
   await page.addInitScript(() => {
@@ -116,7 +116,7 @@ test("complete workspace onboarding with Dub Partners product", async ({
   await expect(
     page.getByRole("heading", { name: "Create your default reward" }),
   ).toBeVisible();
-  await page.waitForTimeout(1000);
+  await page.waitForTimeout(1500);
   await page.getByLabel(/Percentage per sale/i).fill("30", { force: true });
   await page.getByRole("button", { name: "Continue" }).click();
 
