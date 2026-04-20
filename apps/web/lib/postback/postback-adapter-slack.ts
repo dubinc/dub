@@ -1,12 +1,12 @@
 import { PostbackTrigger } from "@/lib/types";
 import { Postback } from "@dub/prisma/client";
 import type { z } from "zod/v4";
+import { PostbackAdapter } from "./postback-adapters";
 import {
   commissionEventPostbackSchema,
   leadEventPostbackSchema,
   saleEventPostbackSchema,
-} from "../schemas";
-import { PostbackAdapter } from "./postback-adapters";
+} from "./schemas";
 
 type LeadEventPostback = z.infer<typeof leadEventPostbackSchema>;
 type SaleEventPostback = z.infer<typeof saleEventPostbackSchema>;

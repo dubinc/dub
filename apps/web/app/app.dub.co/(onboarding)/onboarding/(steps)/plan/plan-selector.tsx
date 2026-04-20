@@ -181,6 +181,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                       <UpgradePlanButton
                         plan={plan.name.toLowerCase()}
                         period={period}
+                        text="Get started"
                         className="h-10 rounded-lg shadow-sm"
                       />
                     )}
