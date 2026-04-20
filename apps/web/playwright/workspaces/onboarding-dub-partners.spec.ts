@@ -170,7 +170,7 @@ test.describe("Dub Partners onboarding", () => {
       baseURL,
     });
 
-    // CTA accessible name is "Get started" (plan-selector overrides UpgradePlanButton text).
+    // use testId instead (since plan-selector overrides UpgradePlanButton text)
     const advancedPaidCta = page.getByTestId("onboarding-plan-cta-advanced");
     await expect(advancedPaidCta).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
     await expect(advancedPaidCta).toBeEnabled({ timeout: STEP_NAV_TIMEOUT });
