@@ -194,6 +194,8 @@ export const trackHubSpotLeadEvent = async ({
 
     return `Lead tracked for contact ${objectId}.`;
   }
+
+  return `Unknown event: objectTypeId "${objectTypeId}" and subscriptionType "${subscriptionType}".`;
 };
 
 // Update the HubSpot contact with `dub_link` and `dub_partner_email`
@@ -207,7 +209,10 @@ export const updateHubSpotContact = async ({
   trackLeadResult: TrackLeadResponse;
 }) => {
   if (contact.properties.dub_link && contact.properties.dub_partner_email) {
-    return `Contact ${contact.id} already has dub_link and dub_partner_email. Skipping update.`;
+    console.log(
+      `[HubSpot] Contact ${contact.id} already has dub_link and dub_partner_email. Skipping update.`,
+    );
+    return;
   }
 
   const properties: Record<string, string> = {};
@@ -232,7 +237,10 @@ export const updateHubSpotContact = async ({
   }
 
   if (Object.keys(properties).length === 0) {
-    return `No properties to update for contact ${contact.id}.`;
+    console.log(
+      `[HubSpot] No properties to update for contact ${contact.id}. Skipping update.`,
+    );
+    return;
   }
 
   await hubSpotApi.updateContact({

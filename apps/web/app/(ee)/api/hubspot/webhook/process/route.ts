@@ -58,7 +58,7 @@ export const POST = withCron(async ({ rawBody }) => {
 
   console.log("[HubSpot] Integration settings", settings);
 
-  let response: any = "";
+  let response = "";
 
   // Contact events
   if (objectTypeId === "0-1") {
