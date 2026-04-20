@@ -137,7 +137,7 @@ export const POST = withAxiom(async (req) => {
 
     await captureWebhookLog({
       workspaceId: workspace.id,
-      method: "GET",
+      method: "POST",
       path: "/hubspot/webhook",
       statusCode: 200,
       duration: Date.now() - startTime,
@@ -153,7 +153,7 @@ export const POST = withAxiom(async (req) => {
     if (workspace) {
       await captureWebhookLog({
         workspaceId: workspace.id,
-        method: "GET",
+        method: "POST",
         path: "/hubspot/webhook",
         statusCode: response.status,
         duration: Date.now() - startTime,
