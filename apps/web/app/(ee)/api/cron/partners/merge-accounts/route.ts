@@ -346,7 +346,7 @@ export async function POST(req: Request) {
       where: {
         partnerId: sourcePartnerId,
         fraudEventGroup: {
-          type: FraudRuleType.partnerDuplicatePayoutMethod,
+          type: FraudRuleType.partnerDuplicateAccount,
         },
       },
       include: {
@@ -395,7 +395,7 @@ export async function POST(req: Request) {
               ]
             : []),
         ],
-        type: FraudRuleType.partnerDuplicatePayoutMethod,
+        type: FraudRuleType.partnerDuplicateAccount,
       },
       resolutionReason:
         "Automatically resolved because partners with duplicate payout methods were merged. No other partners share this payout method.",

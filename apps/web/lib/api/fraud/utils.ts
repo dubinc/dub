@@ -89,11 +89,14 @@ function getIdentityFieldsForFraudEvent({
         customerId,
       };
 
-    case "partnerDuplicatePayoutMethod":
     case "partnerDuplicateAccount":
       return {
         duplicatePartnerId: eventMetadata?.duplicatePartnerId,
       };
+
+    // Note: This will be removed in the next PR
+    case "partnerDuplicatePayoutMethod":
+      throw new Error("Fraud rule is no longer supported.");
 
     case "partnerCrossProgramBan":
       if (!sourceProgramId) {
@@ -136,10 +139,7 @@ export function getPartnerIdForFraudEvent(
 ) {
   const metadata = event.metadata as Record<string, string> | undefined;
 
-  if (
-    event.type === "partnerDuplicatePayoutMethod" ||
-    event.type === "partnerDuplicateAccount"
-  ) {
+  if (event.type === "partnerDuplicateAccount") {
     return metadata?.duplicatePartnerId ?? event.partnerId;
   }
 
