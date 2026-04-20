@@ -18,8 +18,6 @@ export const POST = withCron(async ({ rawBody }) => {
   const { objectTypeId, portalId, subscriptionType } =
     hubSpotWebhookSchema.parse(event);
 
-  console.log("[HubSpot] Event", event);
-
   // Find the installation
   const installation = await prisma.installedIntegration.findFirst({
     where: {
