@@ -1,4 +1,4 @@
-import { DUB_TRIAL_PERIOD_DAYS, nanoid } from "@dub/utils";
+import { nanoid } from "@dub/utils";
 import { expect, test } from "@playwright/test";
 import {
   finishOnboardingCheckoutWithoutStripeRedirect,
@@ -28,14 +28,6 @@ test("complete workspace onboarding with Dub Partners product", async ({
   const customDomain = randomOnboardingDomain();
   const baseURL = baseURLParam ?? "http://app.localhost:8888";
 
-  // Deterministic trial CTA copy (otherwise useOnboardingTrialVariant is 50% control).
-  await page.addInitScript(() => {
-    localStorage.setItem(
-      "dub_onboarding_trial_variant",
-      JSON.stringify("trial_d1d6f8671832d7a30e805a7fa01f968b"),
-    );
-  });
-
   // Welcome page
   await page.goto("/onboarding");
   await expect(
@@ -64,12 +56,23 @@ test("complete workspace onboarding with Dub Partners product", async ({
     name: "What do you want to do with Dub?",
   });
 
-  await Promise.all([
-    expect(page).toHaveURL(/\/onboarding\/products/, {
-      timeout: STEP_NAV_TIMEOUT,
-    }),
-    page.getByRole("button", { name: "Create workspace" }).click(),
-  ]);
+  // Navigation runs in onSuccess after POST + SWR mutate + session.update(); wait for API first (CI).
+  const createWorkspacePost = page.waitForResponse(
+    (r) =>
+      r.request().method() === "POST" &&
+      new URL(r.url()).pathname === "/api/workspaces",
+    { timeout: STEP_NAV_TIMEOUT },
+  );
+  await page.getByRole("button", { name: "Create workspace" }).click();
+  const createWsRes = await createWorkspacePost;
+  if (!createWsRes.ok()) {
+    throw new Error(
+      `Create workspace failed: HTTP ${createWsRes.status()} ${await createWsRes.text()}`,
+    );
+  }
+  await expect(page).toHaveURL(/\/onboarding\/products/, {
+    timeout: STEP_NAV_TIMEOUT,
+  });
   await expect(productsHeading).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
   // Select "Dub Partners" product
@@ -160,13 +163,12 @@ test("complete workspace onboarding with Dub Partners product", async ({
     baseURL,
   });
 
-  const trialCta = page.getByRole("button", {
-    name: new RegExp(
-      `Start ${DUB_TRIAL_PERIOD_DAYS}-day trial · Advanced Monthly`,
-    ),
+  // Onboarding A/B: trial copy vs "Upgrade to …" — do not depend on localStorage in CI.
+  const advancedPaidCta = page.getByRole("button", {
+    name: /^(Start \d+-day trial ·|Upgrade to) Advanced Monthly$/,
   });
-  await expect(trialCta).toBeVisible({ timeout: 30_000 });
-  await expect(trialCta).toBeEnabled({ timeout: STEP_NAV_TIMEOUT });
+  await expect(advancedPaidCta).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+  await expect(advancedPaidCta).toBeEnabled({ timeout: STEP_NAV_TIMEOUT });
 
   const billingUpgradePost = page.waitForResponse(
     (r) =>
@@ -175,7 +177,7 @@ test("complete workspace onboarding with Dub Partners product", async ({
     { timeout: STEP_NAV_TIMEOUT },
   );
 
-  await trialCta.click();
+  await advancedPaidCta.click();
 
   const upgradeRes = await billingUpgradePost;
   expect(upgradeRes.ok()).toBeTruthy();
