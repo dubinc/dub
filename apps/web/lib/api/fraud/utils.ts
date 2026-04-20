@@ -94,10 +94,6 @@ function getIdentityFieldsForFraudEvent({
         duplicatePartnerId: eventMetadata?.duplicatePartnerId,
       };
 
-    // Note: This will be removed in the next PR
-    case "partnerDuplicatePayoutMethod":
-      throw new Error("Fraud rule is no longer supported.");
-
     case "partnerCrossProgramBan":
       if (!sourceProgramId) {
         throw new Error(`sourceProgramId is required for ${type} fraud rule.`);

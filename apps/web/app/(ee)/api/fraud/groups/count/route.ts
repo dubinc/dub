@@ -41,13 +41,11 @@ export const GET = withWorkspace(
         },
       });
 
-      Object.values(FraudRuleType)
-        .filter((type) => type !== "partnerDuplicatePayoutMethod")
-        .forEach((type) => {
-          if (!fraudGroups.some((e) => e.type === type)) {
-            fraudGroups.push({ _count: 0, type });
-          }
-        });
+      Object.values(FraudRuleType).forEach((type) => {
+        if (!fraudGroups.some((e) => e.type === type)) {
+          fraudGroups.push({ _count: 0, type });
+        }
+      });
 
       return NextResponse.json(
         z.array(fraudGroupCountSchema).parse(fraudGroups),
