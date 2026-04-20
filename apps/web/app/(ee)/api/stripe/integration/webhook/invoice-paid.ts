@@ -325,10 +325,11 @@ export async function invoicePaid(
         }),
       }),
 
-      ...(link?.partnerId
+      ...(link?.partnerId && linkUpdated?.programId
         ? [
             sendPartnerPostback({
               partnerId: link.partnerId,
+              programId: linkUpdated.programId,
               event: "sale.created",
               data: {
                 ...saleData,

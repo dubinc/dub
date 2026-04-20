@@ -362,10 +362,11 @@ const _trackLead = async ({
           workspace,
         }),
 
-        ...(link.partnerId
+        ...(link.partnerId && link.programId
           ? [
               sendPartnerPostback({
                 partnerId: link.partnerId,
+                programId: link.programId,
                 event: "lead.created",
                 data: {
                   ...leadEventData,
@@ -573,10 +574,11 @@ const _trackSale = async ({
           workspace,
         }),
 
-        ...(link.partnerId
+        ...(link.partnerId && link.programId
           ? [
               sendPartnerPostback({
                 partnerId: link.partnerId,
+                programId: link.programId,
                 event: "sale.created",
                 data: {
                   ...saleData,

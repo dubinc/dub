@@ -16,6 +16,7 @@
   },
   "customer": {
     "id": "cus_1K09DJDEACR47NPYC93RM43WF",
+    "email": "customer@example.com",
     "country": "US",
     "createdAt": "2025-07-16T10:48:01.739Z",
     "firstSaleAt": "2025-07-18T10:48:01.739Z",
