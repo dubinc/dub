@@ -10,10 +10,10 @@ import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { Partner } from "@dub/prisma/client";
+import { Partner, Program } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { cookies } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 // POST /api/track/application – Track an application event
 export const POST = withAxiom(async (req) => {
@@ -67,95 +67,21 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const session = await getSession();
     const eventId = createId({ prefix: "pga_evt_" });
-    const cookieName = getApplicationIdCookieName(program.id);
 
-    // Track the "visit" event
     if (eventName === "visit") {
-      const existingEventId = req.cookies.get(cookieName)?.value;
-
-      if (existingEventId) {
-        console.log(
-          `"visit" event already tracked for program ${program.id}. Skipping tracking...`,
-        );
-
-        return NextResponse.json(
-          { ok: true },
-          { status: 202, headers: COMMON_CORS_HEADERS },
-        );
-      }
-
-      // Find the partner who referred the application
-      const searchParams = getSearchParams(url);
-      let referredByPartner: Pick<Partner, "id"> | null = null;
-
-      if (searchParams.via) {
-        const partner = await prisma.partner.findUnique({
-          where: {
-            username: searchParams.via.toLowerCase(),
-          },
-          select: {
-            id: true,
-          },
-        });
-
-        if (partner) {
-          referredByPartner = partner;
-        } else {
-          console.log(
-            `Partner not found for username ${searchParams.via}. Not setting referredByPartnerId.`,
-          );
-        }
-      }
-
-      await prisma.programApplicationEvent.create({
-        data: {
-          id: eventId,
-          programId: program.id,
-          referralSource: referrer || "direct",
-          referredByPartnerId: referredByPartner?.id,
-          partnerId: session.user.defaultPartnerId,
-          visitedAt: new Date(),
-          metadata: {
-            ip,
-            userAgent: req.headers.get("user-agent"),
-          },
-        },
+      await trackVisitEvent({
+        req,
+        program,
+        url,
+        referrer,
+        eventId,
       });
-
-      console.log(
-        `Created "visit" event for program ${program.id} with eventId: ${eventId}`,
-      );
-
-      const cookieStore = await cookies();
-      cookieStore.set(cookieName, eventId);
-    }
-
-    // Track the "start" event
-    if (eventName === "start") {
-      const existingEventId = req.cookies.get(cookieName)?.value;
-
-      if (!existingEventId) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: `"start" event not tracked for program ${program.id} because cookie was not found. Skipping tracking...`,
-        });
-      }
-
-      try {
-        await prisma.programApplicationEvent.update({
-          where: {
-            id: existingEventId,
-            startedAt: null,
-          },
-          data: {
-            startedAt: new Date(),
-          },
-        });
-      } catch (error) {
-        // Ignore the error
-      }
+    } else if (eventName === "start") {
+      await trackStartEvent({
+        req,
+        program,
+      });
     }
 
     return NextResponse.json(
@@ -173,6 +99,110 @@ export const OPTIONS = () => {
     headers: COMMON_CORS_HEADERS,
   });
 };
+
+// Track the "visit" event
+async function trackVisitEvent({
+  req,
+  program,
+  url,
+  referrer,
+  eventId,
+}: {
+  req: NextRequest;
+  program: Pick<Program, "id">;
+  url: string;
+  referrer: string | null | undefined;
+  eventId: string;
+}) {
+  const cookieName = getApplicationIdCookieName(program.id);
+  const existingEventId = req.cookies.get(cookieName)?.value;
+
+  if (existingEventId) {
+    console.log(
+      `"visit" event already tracked for program ${program.id}. Skipping tracking...`,
+    );
+    return;
+  }
+
+  // Find the partner who referred the application
+  const searchParams = getSearchParams(url);
+  let referredByPartner: Pick<Partner, "id"> | null = null;
+
+  if (searchParams.via) {
+    const partner = await prisma.partner.findUnique({
+      where: {
+        username: searchParams.via.toLowerCase(),
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (partner) {
+      referredByPartner = partner;
+    } else {
+      console.log(
+        `Partner not found for username ${searchParams.via}. Not setting referredByPartnerId.`,
+      );
+    }
+  }
+
+  const session = await getSession();
+
+  await prisma.programApplicationEvent.create({
+    data: {
+      id: eventId,
+      programId: program.id,
+      referralSource: referrer || "direct",
+      referredByPartnerId: referredByPartner?.id,
+      partnerId: session.user.defaultPartnerId,
+      visitedAt: new Date(),
+      metadata: {
+        userAgent: req.headers.get("user-agent"),
+      },
+    },
+  });
+
+  console.log(
+    `Created "visit" event for program ${program.id} with eventId: ${eventId}`,
+  );
+
+  const cookieStore = await cookies();
+  cookieStore.set(cookieName, eventId);
+}
+
+// Track the "start" event
+async function trackStartEvent({
+  req,
+  program,
+}: {
+  req: NextRequest;
+  program: Pick<Program, "id">;
+}) {
+  const cookieName = getApplicationIdCookieName(program.id);
+  const existingEventId = req.cookies.get(cookieName)?.value;
+
+  if (!existingEventId) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `"start" event not tracked for program ${program.id} because cookie was not found. Skipping tracking...`,
+    });
+  }
+
+  try {
+    await prisma.programApplicationEvent.update({
+      where: {
+        id: existingEventId,
+        startedAt: null,
+      },
+      data: {
+        startedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    // Ignore the error
+  }
+}
 
 // Identify the program slug from the URL
 const identityProgramSlug = (url: string) => {
