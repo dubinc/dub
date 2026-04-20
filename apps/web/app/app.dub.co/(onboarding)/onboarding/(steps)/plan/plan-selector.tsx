@@ -182,6 +182,7 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                         plan={plan.name.toLowerCase()}
                         period={period}
                         text="Get started"
+                        data-testid={`onboarding-plan-cta-${plan.name.toLowerCase()}`}
                         className="h-10 rounded-lg shadow-sm"
                       />
                     )}
