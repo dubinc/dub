@@ -160,19 +160,6 @@ export async function checkoutSessionCompleted(
         variant: "marketing",
       })),
     ),
-    // enable dub.link premium default domain for the workspace (not during billing trial)
-    ...(subscription.status !== "trialing"
-      ? [
-          prisma.defaultDomains.update({
-            where: {
-              projectId: workspaceId,
-            },
-            data: {
-              dublink: true,
-            },
-          }),
-        ]
-      : []),
     // expire tokens cache
     tokenCache.expireMany({
       hashedKeys: updatedWorkspace.restrictedTokens.map(
