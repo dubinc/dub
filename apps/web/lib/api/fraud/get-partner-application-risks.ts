@@ -21,7 +21,7 @@ export async function getPartnerApplicationRisks({
       partnerId: partner.id,
       status: "pending",
       type: {
-        in: ["partnerCrossProgramBan", "partnerDuplicatePayoutMethod"],
+        in: ["partnerCrossProgramBan", "partnerDuplicateAccount"],
       },
     },
   });
@@ -30,13 +30,13 @@ export async function getPartnerApplicationRisks({
     (group) => group.type === "partnerCrossProgramBan",
   );
 
-  const hasDuplicatePayoutMethod = fraudGroups.some(
-    (group) => group.type === "partnerDuplicatePayoutMethod",
+  const hasDuplicateAccounts = fraudGroups.some(
+    (group) => group.type === "partnerDuplicateAccount",
   );
 
   const risksDetected: Partial<Record<ExtendedFraudRuleType, boolean>> = {
     partnerCrossProgramBan: hasCrossProgramBan,
-    partnerDuplicatePayoutMethod: hasDuplicatePayoutMethod,
+    partnerDuplicateAccount: hasDuplicateAccounts,
     partnerEmailDomainMismatch: checkPartnerEmailDomainMismatch(partner),
     partnerEmailMasked: checkPartnerEmailMasked(partner),
     partnerNoSocialLinks: checkPartnerNoSocialLinks(partner),
