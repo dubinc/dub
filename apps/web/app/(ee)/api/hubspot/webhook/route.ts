@@ -1,6 +1,6 @@
-import { DubApiError } from "@/lib/api/errors";
+import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { qstash } from "@/lib/cron";
-import { withCron } from "@/lib/cron/with-cron";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import crypto from "crypto";
 import { logAndRespond } from "../../cron/utils";
@@ -8,56 +8,61 @@ import { logAndRespond } from "../../cron/utils";
 const HUBSPOT_CLIENT_SECRET = process.env.HUBSPOT_CLIENT_SECRET || "";
 
 // POST /api/hubspot/webhook – listen to webhook events from Hubspot
-export const POST = withCron(async ({ rawBody, req }) => {
-  const signature = req.headers.get("X-HubSpot-Signature");
+export const POST = withAxiom(async (req) => {
+  try {
+    const rawBody = await req.text();
+    const signature = req.headers.get("X-HubSpot-Signature");
 
-  // Verify webhook signature
-  if (!signature) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "Missing X-HubSpot-Signature header.",
-    });
+    // Verify webhook signature
+    if (!signature) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Missing X-HubSpot-Signature header.",
+      });
+    }
+
+    if (!HUBSPOT_CLIENT_SECRET) {
+      throw new DubApiError({
+        code: "internal_server_error",
+        message: "Missing HUBSPOT_CLIENT_SECRET environment variable.",
+      });
+    }
+
+    // Create expected hash: client_secret + request_body
+    const sourceString = HUBSPOT_CLIENT_SECRET + rawBody;
+    const expectedHash = crypto
+      .createHash("sha256")
+      .update(sourceString)
+      .digest("hex");
+
+    // Compare with provided signature
+    if (signature !== expectedHash) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Invalid webhook signature.",
+      });
+    }
+
+    const events = JSON.parse(rawBody) as any[];
+
+    // HubSpot can send multiple events in a single request, so we fan them out
+    // to QStash and process each event independently in /api/hubspot/webhook/process.
+    // This keeps the webhook handler fast and ensures a slow/failing event doesn't
+    // block or fail the rest of the batch.
+    const qstashResponse = await qstash.batchJSON(
+      events.map((event) => ({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/hubspot/webhook/process`,
+        body: event,
+      })),
+    );
+
+    console.log(
+      `[hubspot/webhook] Enqueued ${events.length} webhook events to be processed.`,
+      qstashResponse,
+    );
+
+    return logAndRespond("Webhook received.");
+  } catch (error) {
+    return handleAndReturnErrorResponse(error);
   }
-
-  if (!HUBSPOT_CLIENT_SECRET) {
-    throw new DubApiError({
-      code: "internal_server_error",
-      message: "Missing HUBSPOT_CLIENT_SECRET environment variable.",
-    });
-  }
-
-  // Create expected hash: client_secret + request_body
-  const sourceString = HUBSPOT_CLIENT_SECRET + rawBody;
-  const expectedHash = crypto
-    .createHash("sha256")
-    .update(sourceString)
-    .digest("hex");
-
-  // Compare with provided signature
-  if (signature !== expectedHash) {
-    throw new DubApiError({
-      code: "unauthorized",
-      message: "Invalid webhook signature.",
-    });
-  }
-
-  const events = JSON.parse(rawBody) as any[];
-
-  // HubSpot can send multiple events in a single request, so we fan them out
-  // to QStash and process each event independently in /api/hubspot/webhook/process.
-  // This keeps the webhook handler fast and ensures a slow/failing event doesn't
-  // block or fail the rest of the batch.
-  const qstashResponse = await qstash.batchJSON(
-    events.map((event) => ({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/hubspot/webhook/process`,
-      body: event,
-    })),
-  );
-
-  console.log(
-    `[hubspot/webhook] Enqueued ${events.length} webhook events to be processed.`,
-    qstashResponse,
-  );
-
-  return logAndRespond("Webhook received.");
 });
