@@ -11,6 +11,27 @@ import type { Page, Request } from "@playwright/test";
 
 const MOCK_CHECKOUT_SESSION_ID = "cs_test_e2e_mock_session";
 
+/** Synthetic path used in the browser before Hosted Checkout is mocked (see redirectToCheckout stub). */
+const MOCK_CHECKOUT_PATH_TOKEN = "cs_test_e2e_redirect";
+
+/**
+ * Ensures `window.Stripe` short-circuits @stripe/stripe-js and redirects to our mock checkout URL.
+ * Call again immediately before clicking "Start trial" if anything may have replaced `window.Stripe`.
+ */
+export async function patchStripeRedirectStubForE2E(page: Page) {
+  await page.evaluate((pathToken) => {
+    const w = window as Window & { Stripe?: unknown };
+    w.Stripe = function Stripe() {
+      return {
+        redirectToCheckout(opts: { sessionId?: string }) {
+          const id = opts?.sessionId ? String(opts.sessionId) : "";
+          window.location.href = `https://checkout.stripe.com/c/pay/${pathToken}#${encodeURIComponent(id)}`;
+        },
+      };
+    };
+  }, MOCK_CHECKOUT_PATH_TOKEN);
+}
+
 function parseBillingUpgradeCheckoutContext(req: Request): {
   onboarding: boolean;
   plan: string;
@@ -142,6 +163,24 @@ export async function applyMockTrialToWorkspace(slug: string) {
 }
 
 /**
+ * Use after a mocked `POST .../billing/upgrade` during onboarding when the app would call
+ * `redirectToCheckout`. Real Stripe.js over HTTP logs warnings and can block redirects when
+ * live publishable keys are loaded; this matches the checkout mock: trial in DB + success URL.
+ */
+export async function finishOnboardingCheckoutWithoutStripeRedirect(
+  page: Page,
+  options: { slug: string; baseURL: string },
+) {
+  const { slug, baseURL } = options;
+  const origin = baseURL.replace(/\/$/, "");
+  await applyMockTrialToWorkspace(slug);
+  await page.goto(
+    `${origin}/onboarding/success?workspace=${encodeURIComponent(slug)}`,
+    { waitUntil: "load" },
+  );
+}
+
+/**
  * Intercepts the upgrade API so the dev server never calls Stripe, and
  * intercepts Hosted Checkout navigation so Stripe never loads a fake session id
  * (which throws CheckoutInitError). Trial state is applied with Prisma — no
@@ -160,20 +199,7 @@ export async function installBillingCheckoutMocks(
     period: "monthly",
   };
 
-  // @stripe/stripe-js resolves immediately when `window.Stripe` already exists (see loadScript in
-  // stripe-js pure bundle), so we never depend on intercepting basil/v3 script URLs correctly.
-  await page.evaluate(() => {
-    // Stub before @stripe/stripe-js runs so loadScript() resolves without fetching basil/stripe.js.
-    const w = window as Window & { Stripe?: unknown };
-    w.Stripe = function Stripe() {
-      return {
-        redirectToCheckout(opts: { sessionId?: string }) {
-          const id = opts?.sessionId ? String(opts.sessionId) : "";
-          window.location.href = `https://checkout.stripe.com/c/pay/cs_test_e2e_redirect#${encodeURIComponent(id)}`;
-        },
-      };
-    };
-  });
+  await patchStripeRedirectStubForE2E(page);
 
   await page.route("https://js.stripe.com/**", async (route) => {
     await route.fulfill({
@@ -212,7 +238,9 @@ export async function installBillingCheckoutMocks(
 
   await page.route("https://checkout.stripe.com/**", async (route) => {
     const req = route.request();
-    if (!req.isNavigationRequest() && req.resourceType() !== "document") {
+    const url = req.url();
+    // Do not rely on isNavigationRequest() — client-side location.assign to checkout can be flaky.
+    if (!url.includes(MOCK_CHECKOUT_PATH_TOKEN)) {
       await route.continue();
       return;
     }
@@ -229,4 +257,6 @@ export async function installBillingCheckoutMocks(
       headers: { Location: successUrl },
     });
   });
+
+  await patchStripeRedirectStubForE2E(page);
 }
