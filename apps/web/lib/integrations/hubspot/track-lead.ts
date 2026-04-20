@@ -1,7 +1,6 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { TrackLeadResponse, WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { HubSpotAuthToken, HubSpotContact } from "../types";
 import { HubSpotApi } from "./api";
@@ -30,14 +29,13 @@ export const trackHubSpotLeadEvent = async ({
     const contactInfo = await hubSpotApi.getContact(objectId);
 
     if (!contactInfo) {
-      return;
+      return `No contact info found for contact ${objectId}.`;
     }
 
     const { properties } = contactInfo;
 
     if (!properties.dub_id) {
-      console.error(`[HubSpot] No dub_id found for contact ${objectId}.`);
-      return;
+      return `No dub_id found for contact ${objectId}.`;
     }
 
     const customerName =
@@ -56,16 +54,14 @@ export const trackHubSpotLeadEvent = async ({
     });
 
     if (trackLeadResult) {
-      waitUntil(
-        _updateHubSpotContact({
-          contact: contactInfo,
-          trackLeadResult,
-          hubSpotApi,
-        }),
-      );
+      updateHubSpotContact({
+        contact: contactInfo,
+        trackLeadResult,
+        hubSpotApi,
+      });
     }
 
-    return trackLeadResult;
+    return `Deferred lead tracked for contact ${objectId}.`;
   }
 
   // Track the final lead event
@@ -78,7 +74,7 @@ export const trackHubSpotLeadEvent = async ({
     const deal = await hubSpotApi.getDeal(objectId);
 
     if (!deal) {
-      return;
+      return `No deal found for deal ${objectId}.`;
     }
 
     const { properties, associations } = deal;
@@ -87,7 +83,7 @@ export const trackHubSpotLeadEvent = async ({
     const contact = associations?.contacts?.results?.[0];
 
     if (!contact) {
-      return;
+      return `No contact found for deal ${objectId}.`;
     }
 
     // HubSpot doesn't return the contact properties in the deal associations,
@@ -95,7 +91,7 @@ export const trackHubSpotLeadEvent = async ({
     const contactInfo = await hubSpotApi.getContact(contact.id);
 
     if (!contactInfo) {
-      return;
+      return `No contact info found for contact ${contact.id}.`;
     }
 
     const customer = await prisma.customer.findFirst({
@@ -109,10 +105,7 @@ export const trackHubSpotLeadEvent = async ({
     });
 
     if (!customer) {
-      console.error(
-        `[HubSpot] No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`,
-      );
-      return;
+      return `No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`;
     }
 
     const trackLeadResult = await trackLead({
@@ -127,16 +120,14 @@ export const trackHubSpotLeadEvent = async ({
     });
 
     if (trackLeadResult) {
-      waitUntil(
-        _updateHubSpotContact({
-          contact: contactInfo,
-          trackLeadResult,
-          hubSpotApi,
-        }),
-      );
+      updateHubSpotContact({
+        contact: contactInfo,
+        trackLeadResult,
+        hubSpotApi,
+      });
     }
 
-    return trackLeadResult;
+    return `Lead tracked for deal ${objectId}.`;
   }
 
   // Track the final lead event
@@ -147,30 +138,25 @@ export const trackHubSpotLeadEvent = async ({
     settings.leadTriggerEvent === "lifecycleStageReached"
   ) {
     if (!settings.leadLifecycleStageId) {
-      console.error(`[HubSpot] leadLifecycleStageId is not set.`);
-      return;
+      return `leadLifecycleStageId is not set.`;
     }
 
     const contactInfo = await hubSpotApi.getContact(objectId);
 
     if (!contactInfo) {
-      return;
+      return `No contact info found for contact ${objectId}.`;
     }
 
     if (
       contactInfo.properties.lifecyclestage !== settings.leadLifecycleStageId
     ) {
-      console.error(
-        `[HubSpot] Unknown contact lifecyclestage ${contactInfo.properties.lifecyclestage}. Expected ${settings.leadLifecycleStageId}.`,
-      );
-      return;
+      return `Unknown contact lifecyclestage ${contactInfo.properties.lifecyclestage}. Expected ${settings.leadLifecycleStageId}.`;
     }
 
     const { properties } = contactInfo;
 
     if (!properties.dub_id) {
-      console.error(`[HubSpot] No dub_id found for contact ${objectId}.`);
-      return;
+      return `No dub_id found for contact ${objectId}.`;
     }
 
     const customer = await prisma.customer.findFirst({
@@ -184,10 +170,7 @@ export const trackHubSpotLeadEvent = async ({
     });
 
     if (!customer) {
-      console.error(
-        `[HubSpot] No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`,
-      );
-      return;
+      return `No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`;
     }
 
     const trackLeadResult = await trackLead({
@@ -202,21 +185,19 @@ export const trackHubSpotLeadEvent = async ({
     });
 
     if (trackLeadResult) {
-      waitUntil(
-        _updateHubSpotContact({
-          contact: contactInfo,
-          trackLeadResult,
-          hubSpotApi,
-        }),
-      );
+      updateHubSpotContact({
+        contact: contactInfo,
+        trackLeadResult,
+        hubSpotApi,
+      });
     }
 
-    return trackLeadResult;
+    return `Lead tracked for contact ${objectId}.`;
   }
 };
 
 // Update the HubSpot contact with `dub_link` and `dub_partner_email`
-export const _updateHubSpotContact = async ({
+export const updateHubSpotContact = async ({
   hubSpotApi,
   contact,
   trackLeadResult,
@@ -226,10 +207,7 @@ export const _updateHubSpotContact = async ({
   trackLeadResult: TrackLeadResponse;
 }) => {
   if (contact.properties.dub_link && contact.properties.dub_partner_email) {
-    console.log(
-      `[HubSpot] Contact ${contact.id} already has dub_link and dub_partner_email. Skipping update.`,
-    );
-    return;
+    return `Contact ${contact.id} already has dub_link and dub_partner_email. Skipping update.`;
   }
 
   const properties: Record<string, string> = {};
@@ -254,7 +232,7 @@ export const _updateHubSpotContact = async ({
   }
 
   if (Object.keys(properties).length === 0) {
-    return;
+    return `No properties to update for contact ${contact.id}.`;
   }
 
   await hubSpotApi.updateContact({
