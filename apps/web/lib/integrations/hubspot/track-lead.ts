@@ -54,7 +54,7 @@ export const trackHubSpotLeadEvent = async ({
     });
 
     if (trackLeadResult) {
-      updateHubSpotContact({
+      await updateHubSpotContact({
         contact: contactInfo,
         trackLeadResult,
         hubSpotApi,
@@ -120,7 +120,7 @@ export const trackHubSpotLeadEvent = async ({
     });
 
     if (trackLeadResult) {
-      updateHubSpotContact({
+      await updateHubSpotContact({
         contact: contactInfo,
         trackLeadResult,
         hubSpotApi,
@@ -185,7 +185,7 @@ export const trackHubSpotLeadEvent = async ({
     });
 
     if (trackLeadResult) {
-      updateHubSpotContact({
+      await updateHubSpotContact({
         contact: contactInfo,
         trackLeadResult,
         hubSpotApi,
