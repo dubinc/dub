@@ -44,20 +44,21 @@ export const POST = withAxiom(async (req) => {
     }
 
     const events = JSON.parse(rawBody) as any[];
+    const finalEvents = Array.isArray(events) ? events : [events];
 
     // HubSpot can send multiple events in a single request, so we fan them out
     // to QStash and process each event independently in /api/hubspot/webhook/process.
     // This keeps the webhook handler fast and ensures a slow/failing event doesn't
     // block or fail the rest of the batch.
     const qstashResponse = await qstash.batchJSON(
-      events.map((event) => ({
+      finalEvents.map((event) => ({
         url: `${APP_DOMAIN_WITH_NGROK}/api/hubspot/webhook/process`,
         body: event,
       })),
     );
 
     console.log(
-      `[hubspot/webhook] Enqueued ${events.length} webhook events to be processed.`,
+      `[hubspot/webhook] Enqueued ${finalEvents.length} webhook events to be processed.`,
       qstashResponse,
     );
 
