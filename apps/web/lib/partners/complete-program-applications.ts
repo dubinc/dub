@@ -4,6 +4,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
+import { updateProgramApplicationEvent } from "../application-events/update-event";
 import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
@@ -106,6 +107,17 @@ export async function completeProgramApplications(userEmail: string) {
       data: programEnrollments,
       skipDuplicates: true,
     });
+
+    await Promise.all(
+      programEnrollments.map((programEnrollment) =>
+        updateProgramApplicationEvent({
+          event: "submitted",
+          programId: programEnrollment.programId,
+          partnerId: programEnrollment.partnerId,
+          applicationId: programEnrollment.applicationId,
+        }),
+      ),
+    );
 
     // Fetch the programs' workspaces
     const workspaces = await prisma.project.findMany({

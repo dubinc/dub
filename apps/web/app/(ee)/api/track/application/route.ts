@@ -189,6 +189,8 @@ async function trackStartEvent({
     });
   }
 
+  const session = await getSession();
+
   try {
     await prisma.programApplicationEvent.update({
       where: {
@@ -197,6 +199,7 @@ async function trackStartEvent({
       },
       data: {
         startedAt: new Date(),
+        partnerId: session.user.defaultPartnerId,
       },
     });
   } catch (error) {
