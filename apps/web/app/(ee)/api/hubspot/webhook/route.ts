@@ -43,6 +43,10 @@ export const POST = withCron(async ({ rawBody, req }) => {
 
   const events = JSON.parse(rawBody) as any[];
 
+  // HubSpot can send multiple events in a single request, so we fan them out
+  // to QStash and process each event independently in /api/hubspot/webhook/process.
+  // This keeps the webhook handler fast and ensures a slow/failing event doesn't
+  // block or fail the rest of the batch.
   const qstashResponse = await qstash.batchJSON(
     events.map((event) => ({
       url: `${APP_DOMAIN_WITH_NGROK}/api/hubspot/webhook/process`,
