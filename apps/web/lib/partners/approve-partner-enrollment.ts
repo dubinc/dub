@@ -1,20 +1,22 @@
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
+import * as z from "zod/v4";
 import { trackActivityLog } from "../api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { triggerWorkflows } from "../cron/qstash-workflow";
+import { approvePartnerSchema } from "../zod/schemas/partners";
+
+type ApprovePartnerInput = z.infer<typeof approvePartnerSchema> & {
+  programId: string;
+  userId: string;
+};
 
 export async function approvePartnerEnrollment({
   programId,
   partnerId,
   userId,
   groupId,
-}: {
-  programId: string;
-  partnerId: string;
-  userId: string;
-  groupId?: string | null;
-}) {
+}: ApprovePartnerInput) {
   const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,

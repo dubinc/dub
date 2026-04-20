@@ -860,9 +860,15 @@ export const bulkInvitePartnersSchema = z.object({
 });
 
 export const approvePartnerSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-  groupId: z.string().nullish(),
+  partnerId: z.string().describe("The ID of the partner to approve."),
+  groupId: z
+    .string()
+    .nullish()
+
+    // TODO: This need fix, use the current group enrolled > groupId > default group
+    .describe(
+      "The ID of the group to add the partner to. If not provided, the partner will be added to the default group.",
+    ),
 });
 
 export const bulkApprovePartnersSchema = z.object({
@@ -882,9 +888,13 @@ export const PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH = 500;
 export const MAX_FRAUD_REASON_LENGTH = 2000;
 
 export const rejectPartnerSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-  rejectionReason: z.enum(ProgramApplicationRejectionReason).optional(),
+  partnerId: z.string().describe("The ID of the partner to reject."),
+  rejectionReason: z
+    .enum(ProgramApplicationRejectionReason)
+    .optional()
+    .describe(
+      "The reason for rejecting the partner application. This will be shared with the partner via email.",
+    ),
   rejectionNote: z
     .string()
     .max(PROGRAM_APPLICATION_REJECTION_NOTE_MAX_LENGTH)
@@ -892,13 +902,16 @@ export const rejectPartnerSchema = z.object({
     .transform((s) => {
       const t = s?.trim();
       return t === "" ? undefined : t;
-    }),
+    })
+    .describe(
+      "Additional details about the rejection. This will be shared with the partner via email.",
+    ),
   allowImmediateReapply: z
     .boolean()
     .optional()
     .default(false)
     .describe(
-      "When true, pending enrollment is removed so the partner can submit a new application immediately",
+      "When true, pending enrollment is removed so the partner can submit a new application immediately.",
     ),
 });
 
