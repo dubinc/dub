@@ -49,7 +49,6 @@ model Partner {
   identityVerificationStatus IdentityVerificationStatus?
   identityVerifiedAt         DateTime?
   veriffSessionId            String?                     @unique
-  veriffIdentityHash         String?                     @unique
   veriffMetadata             Json? // see veriffMetadataSchema
 
   // payout fields

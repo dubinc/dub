@@ -26,6 +26,7 @@ const FRAUD_RULES_REGISTRY: Record<
   partnerDuplicatePayoutMethod: defineFraudRuleStub(
     "partnerDuplicatePayoutMethod",
   ),
+  partnerDuplicateAccount: defineFraudRuleStub("partnerDuplicateAccount"),
 };
 
 // Execute a fraud rule with the given context and configuration

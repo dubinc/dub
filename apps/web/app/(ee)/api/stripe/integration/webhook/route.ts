@@ -134,45 +134,43 @@ export const POST = withAxiom(async (req: Request) => {
     response: result.response,
   };
 
-  waitUntil(
-    (async () => {
-      // if workspaceId is returned as undefined
-      // AND the response does not contain "Workspace not found" (indicating the workspace doesn't exist)
-      // we try to find the workspace ID from the Stripe account ID
-      if (
-        !result.workspaceId &&
-        !result.response.startsWith("Workspace not found") &&
-        event.account
-      ) {
-        const stripeWebhookWorkspace = await prisma.project.findUnique({
-          where: {
-            stripeConnectId: event.account,
-          },
-          select: {
-            id: true,
-          },
-        });
-        if (stripeWebhookWorkspace) {
-          // if workspace exists, we set the workspace ID
-          result.workspaceId = stripeWebhookWorkspace.id;
-        }
-      }
+  // if workspaceId is returned as undefined
+  // AND the response does not contain "Workspace not found" (indicating the workspace doesn't exist)
+  // we try to find the workspace ID from the Stripe account ID
+  if (
+    !result.workspaceId &&
+    !result.response.startsWith("Workspace not found") &&
+    event.account
+  ) {
+    const stripeWebhookWorkspace = await prisma.project.findUnique({
+      where: {
+        stripeConnectId: event.account,
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (stripeWebhookWorkspace) {
+      // if workspace exists, we set the workspace ID
+      result.workspaceId = stripeWebhookWorkspace.id;
+    }
+  }
 
-      // if workspace ID exists, we capture the webhook log
-      if (result.workspaceId) {
-        await captureWebhookLog({
-          workspaceId: result.workspaceId,
-          method: req.method,
-          path: "/stripe/integration/webhook",
-          statusCode: 200,
-          duration: Date.now() - startTime,
-          requestBody: event,
-          responseBody,
-          userAgent: req.headers.get("user-agent"),
-        });
-      }
-    })(),
-  );
+  // if workspace ID exists, we capture the webhook log
+  if (result.workspaceId) {
+    waitUntil(
+      captureWebhookLog({
+        workspaceId: result.workspaceId,
+        method: req.method,
+        path: "/stripe/integration/webhook",
+        statusCode: 200,
+        duration: Date.now() - startTime,
+        requestBody: event,
+        responseBody,
+        userAgent: req.headers.get("user-agent"),
+      }),
+    );
+  }
 
   console.log(`[${event.type}]: ${result.response}`);
 

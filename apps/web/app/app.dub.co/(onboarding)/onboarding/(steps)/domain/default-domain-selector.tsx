@@ -16,7 +16,7 @@ export function DefaultDomainSelector() {
 
   return (
     <>
-      <div className="animate-fade-in mx-auto grid w-full max-w-[312px] gap-4 sm:max-w-[600px] sm:grid-cols-2">
+      <div className="animate-fade-in mx-auto grid w-full gap-4 sm:max-w-[600px] sm:grid-cols-2">
         <DomainOption
           step="domain/custom"
           icon="https://assets.dub.co/icons/domain-sign.webp"
