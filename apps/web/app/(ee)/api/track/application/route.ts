@@ -205,7 +205,7 @@ async function trackStartEvent({
 }
 
 // Identify the program slug from the URL
-const identityProgramSlug = (url: string) => {
+function identityProgramSlug(url: string) {
   try {
     const urlObj = new URL(url);
     const parts = urlObj.pathname.split("/");
@@ -222,9 +222,9 @@ const identityProgramSlug = (url: string) => {
   } catch (error) {
     return null;
   }
-};
+}
 
 // Get the cookie name for the application ID
-const getApplicationIdCookieName = (programId: string) => {
+function getApplicationIdCookieName(programId: string) {
   return `${APPLICATION_ID_COOKIE_PREFIX}${programId}`;
-};
+}
