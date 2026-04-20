@@ -3,13 +3,16 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
-import { getApplicationIdCookieName } from "@/lib/application-events/constants";
-import { applicationEventInputSchema } from "@/lib/application-events/schema";
+import { APPLICATION_ID_COOKIE_PREFIX } from "@/lib/application-events/constants";
+import { trackApplicationEventBodySchema } from "@/lib/application-events/schema";
 import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { Partner } from "@dub/prisma/client";
+import { getSearchParams } from "@dub/utils";
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 // POST /api/track/application – Track an application event
@@ -34,10 +37,21 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const { eventName, referrerUsername, programSlug } =
-      applicationEventInputSchema.parse(await parseRequestBody(req));
+    const { eventName, url, referrer } = trackApplicationEventBodySchema.parse(
+      await parseRequestBody(req),
+    );
 
-    const program = await prisma.program.findUniqueOrThrow({
+    const programSlug = identityProgramSlug(url);
+
+    if (!programSlug) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Couldn't identify the program slug from the URL. Skipping tracking...",
+      });
+    }
+
+    const program = await prisma.program.findUnique({
       where: {
         slug: programSlug.toLowerCase(),
       },
@@ -46,24 +60,103 @@ export const POST = withAxiom(async (req) => {
       },
     });
 
-    const session = await getSession();
+    if (!program) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `Program not found for slug ${programSlug}. Skipping tracking...`,
+      });
+    }
 
+    const session = await getSession();
+    const eventId = createId({ prefix: "pga_evt_" });
+    const cookieName = getApplicationIdCookieName(program.id);
+
+    // Track the "visit" event
     if (eventName === "visit") {
-      const cookieName = getApplicationIdCookieName(program.id);
       const existingEventId = req.cookies.get(cookieName)?.value;
 
       if (existingEventId) {
+        console.log(
+          `"visit" event already tracked for program ${program.id}. Skipping tracking...`,
+        );
+
         return NextResponse.json(
           { ok: true },
           { status: 202, headers: COMMON_CORS_HEADERS },
         );
       }
+
+      // Find the partner who referred the application
+      const searchParams = getSearchParams(url);
+      let referredByPartner: Pick<Partner, "id"> | null = null;
+
+      if (searchParams.via) {
+        const partner = await prisma.partner.findUnique({
+          where: {
+            username: searchParams.via.toLowerCase(),
+          },
+          select: {
+            id: true,
+          },
+        });
+
+        if (partner) {
+          referredByPartner = partner;
+        } else {
+          console.log(
+            `Partner not found for username ${searchParams.via}. Not setting referredByPartnerId.`,
+          );
+        }
+      }
+
+      await prisma.programApplicationEvent.create({
+        data: {
+          id: eventId,
+          programId: program.id,
+          referralSource: referrer || "direct",
+          referredByPartnerId: referredByPartner?.id,
+          partnerId: session.user.defaultPartnerId,
+          visitedAt: new Date(),
+          metadata: {
+            ip,
+            userAgent: req.headers.get("user-agent"),
+          },
+        },
+      });
+
+      console.log(
+        `Created "visit" event for program ${program.id} with eventId: ${eventId}`,
+      );
+
+      const cookieStore = await cookies();
+      cookieStore.set(cookieName, eventId);
     }
 
-    const eventId = createId({ prefix: "pga_evt_" });
+    // Track the "start" event
+    if (eventName === "start") {
+      const existingEventId = req.cookies.get(cookieName)?.value;
 
-    // TODO:
-    // Track the application event
+      if (!existingEventId) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `"start" event not tracked for program ${program.id} because cookie was not found. Skipping tracking...`,
+        });
+      }
+
+      try {
+        await prisma.programApplicationEvent.update({
+          where: {
+            id: existingEventId,
+            startedAt: null,
+          },
+          data: {
+            startedAt: new Date(),
+          },
+        });
+      } catch (error) {
+        // Ignore the error
+      }
+    }
 
     return NextResponse.json(
       { eventId },
@@ -79,4 +172,29 @@ export const OPTIONS = () => {
     status: 204,
     headers: COMMON_CORS_HEADERS,
   });
+};
+
+// Identify the program slug from the URL
+const identityProgramSlug = (url: string) => {
+  try {
+    const urlObj = new URL(url);
+    const parts = urlObj.pathname.split("/");
+
+    if (parts.length < 2) {
+      return null;
+    }
+
+    const programSlug = parts[1];
+
+    console.log({ programSlug });
+
+    return programSlug.toLowerCase();
+  } catch (error) {
+    return null;
+  }
+};
+
+// Get the cookie name for the application ID
+const getApplicationIdCookieName = (programId: string) => {
+  return `${APPLICATION_ID_COOKIE_PREFIX}${programId}`;
 };

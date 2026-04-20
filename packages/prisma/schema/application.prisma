@@ -39,7 +39,7 @@ model ProgramApplication {
 }
 
 model ProgramApplicationEvent {
-  id        String @id @default(cuid()) // pga_evt_ULID
+  id        String @id @default(cuid())
   programId String
 
   visitedAt   DateTime  @default(now())

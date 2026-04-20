@@ -1,9 +1,11 @@
 import * as z from "zod/v4";
 
-export const applicationEventInputSchema = z.object({
-  programSlug: z.string(),
+export const trackApplicationEventBodySchema = z.object({
   eventName: z.enum(["visit", "start"]),
-  referrerUsername: z.string().nullish(),
+  url: z.url(),
+  referrer: z.string().nullish(),
 });
 
-export type ApplicationEventInput = z.infer<typeof applicationEventInputSchema>;
+export type TrackApplicationEventBody = z.infer<
+  typeof trackApplicationEventBodySchema
+>;

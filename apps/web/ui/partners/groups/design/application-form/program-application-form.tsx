@@ -43,9 +43,7 @@ export function ProgramApplicationForm({
   const { isMobile } = useMediaQuery();
   const router = useRouter();
   const { data: session } = useSession();
-
   const trackApplyStart = useTrackApplyStart({
-    programSlug: program.slug,
     preview,
   });
 

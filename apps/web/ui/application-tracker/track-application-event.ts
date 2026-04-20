@@ -1,20 +1,20 @@
 "use client";
 
-import { ApplicationEventInput } from "@/lib/application-events/schema";
+import { TrackApplicationEventBody } from "@/lib/application-events/schema";
 import { prettyPrint } from "@dub/utils";
 
 export async function trackApplicationEvent({
   eventName,
-  programSlug,
-  referrerUsername,
-}: ApplicationEventInput) {
+  url,
+  referrer,
+}: TrackApplicationEventBody) {
   const response = await fetch("/api/track/application", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       eventName,
-      programSlug,
-      referrerUsername,
+      url,
+      referrer,
     }),
   });
 
@@ -24,8 +24,6 @@ export async function trackApplicationEvent({
     console.error(`[trackApplicationEvent] ${prettyPrint(result)}`);
     return;
   }
-
-  console.debug(`[trackApplicationEvent] ${prettyPrint(result)}`);
 
   return result;
 }

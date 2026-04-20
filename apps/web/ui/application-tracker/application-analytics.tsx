@@ -1,38 +1,27 @@
 "use client";
 
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { trackApplicationEvent } from "./track-application-event";
 
-export function ApplicationAnalytics({ programSlug }: { programSlug: string }) {
+// Track application visit event
+export function ApplicationAnalytics() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const via = searchParams.get("via");
 
   useEffect(() => {
-    if (!programSlug) {
-      return;
-    }
-
     trackApplicationEvent({
       eventName: "visit",
-      programSlug,
-      referrerUsername: via,
+      url: window.location.href,
+      referrer: window.document.referrer,
     });
-  }, [pathname, programSlug, via]);
+  }, [pathname]);
 
   return <></>;
 }
 
 export function useTrackApplyStart({
-  programSlug,
   preview = false,
-}: {
-  programSlug: string;
-  preview?: boolean;
-}) {
-  const searchParams = useSearchParams();
-  const via = searchParams.get("via");
+}: { preview?: boolean } = {}) {
   const hasTrackedApplicationStart = useRef(false);
 
   return useCallback(() => {
@@ -44,8 +33,8 @@ export function useTrackApplyStart({
 
     void trackApplicationEvent({
       eventName: "start",
-      programSlug,
-      referrerUsername: via,
+      url: window.location.href,
+      referrer: window.document.referrer,
     });
-  }, [preview, programSlug, via]);
+  }, [preview]);
 }

@@ -104,9 +104,7 @@ function ProgramApplicationSheetForm({
   group: z.infer<typeof PartnerProgramGroupSchema>;
 }) {
   const { partner } = usePartnerProfile();
-  const trackApplyStart = useTrackApplyStart({
-    programSlug: program.slug,
-  });
+  const trackApplyStart = useTrackApplyStart();
 
   const form = useForm<FormData>({
     defaultValues: {
