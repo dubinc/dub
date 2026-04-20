@@ -5,7 +5,7 @@ export const TRIAL_PROGRAM_ENROLLMENT_LIMIT = 100;
 export const TRIAL_LIMITS = {
   links: 100,
   clicks: 5_000,
-  payouts: 100_00,
+  payouts: 10_00,
   domains: 5,
   tags: 5,
   folders: 5,
