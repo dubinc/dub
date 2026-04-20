@@ -69,7 +69,6 @@ export function SuccessPageClient({
         props: {
           plan: capitalize(plan),
           planPeriod: capitalize(planPeriod),
-          planTier,
         },
       });
     }

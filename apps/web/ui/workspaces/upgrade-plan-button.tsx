@@ -104,7 +104,6 @@ export function UpgradePlanButton({
           props: {
             plan: capitalize(selectedPlan.name),
             planPeriod: capitalize(period),
-            planTier: tier ?? 1,
           },
         });
         if (!stripeId || currentPlan === "free") {

@@ -87,7 +87,6 @@ function UpgradedModal({
           props: {
             plan: capitalize(currentPlan.name),
             planPeriod: capitalize(currentPlanPeriod),
-            planTier: 1,
           },
         });
       }
