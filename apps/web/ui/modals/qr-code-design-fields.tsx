@@ -175,12 +175,14 @@ export function QRCodeDesignFields({
             <SegmentTab
               active={!data.dotStyle || data.dotStyle === "square"}
               onClick={() => setData((d) => ({ ...d, dotStyle: "square" }))}
+              ariaLabel="Square dots"
             >
               <SquareDotIcon />
             </SegmentTab>
             <SegmentTab
               active={data.dotStyle === "rounded"}
               onClick={() => setData((d) => ({ ...d, dotStyle: "rounded" }))}
+              ariaLabel="Rounded dots"
             >
               <RoundedDotIcon />
             </SegmentTab>
@@ -189,6 +191,7 @@ export function QRCodeDesignFields({
               onClick={() =>
                 setData((d) => ({ ...d, dotStyle: "extra-rounded" }))
               }
+              ariaLabel="Extra-rounded dots"
             >
               <ExtraRoundedDotIcon />
             </SegmentTab>
@@ -215,6 +218,7 @@ export function QRCodeDesignFields({
               onClick={() =>
                 setData((d) => ({ ...d, markerCenterStyle: "square" }))
               }
+              ariaLabel="Square marker center"
             >
               <MarkerCenterSquareIcon />
             </SegmentTab>
@@ -223,6 +227,7 @@ export function QRCodeDesignFields({
               onClick={() =>
                 setData((d) => ({ ...d, markerCenterStyle: "circle" }))
               }
+              ariaLabel="Circle marker center"
             >
               <MarkerCenterCircleIcon />
             </SegmentTab>
@@ -252,6 +257,7 @@ export function QRCodeDesignFields({
               onClick={() =>
                 setData((d) => ({ ...d, markerBorderStyle: "square" }))
               }
+              ariaLabel="Square marker border"
             >
               <MarkerBorderSquareIcon />
             </SegmentTab>
@@ -263,6 +269,7 @@ export function QRCodeDesignFields({
                   markerBorderStyle: "rounded-square",
                 }))
               }
+              ariaLabel="Rounded marker border"
             >
               <MarkerBorderRoundedIcon />
             </SegmentTab>
@@ -271,6 +278,7 @@ export function QRCodeDesignFields({
               onClick={() =>
                 setData((d) => ({ ...d, markerBorderStyle: "circle" }))
               }
+              ariaLabel="Circle marker border"
             >
               <MarkerBorderCircleIcon />
             </SegmentTab>
@@ -366,11 +374,13 @@ export function SegmentTab({
   active,
   onClick,
   disabled,
+  ariaLabel,
   children,
 }: {
   active: boolean;
   onClick: () => void;
   disabled?: boolean;
+  ariaLabel?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -378,6 +388,8 @@ export function SegmentTab({
       type="button"
       onClick={onClick}
       disabled={disabled}
+      aria-label={ariaLabel}
+      aria-pressed={active}
       className={cn(
         "relative flex flex-1 items-center justify-center rounded-lg text-neutral-700",
         disabled && "cursor-not-allowed",

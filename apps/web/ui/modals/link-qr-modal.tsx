@@ -210,7 +210,7 @@ export function useLinkQRModal(props: LinkQRModalProps) {
         {...props}
       />
     ),
-    [showLinkQRModal, setShowLinkQRModal],
+    [showLinkQRModal, setShowLinkQRModal, props],
   );
 
   return useMemo(
