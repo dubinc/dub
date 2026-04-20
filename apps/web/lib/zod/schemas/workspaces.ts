@@ -102,9 +102,7 @@ export const WorkspaceSchema = z
       ),
     dotLinkClaimed: z
       .boolean()
-      .describe(
-        "Whether the workspace has claimed a free .link domain. (dub.link/free)",
-      ),
+      .describe("Whether the workspace has claimed a free .link domain."),
     createdAt: z
       .date()
       .describe("The date and time when the workspace was created."),
