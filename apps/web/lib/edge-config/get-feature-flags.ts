@@ -16,7 +16,6 @@ export const getFeatureFlags = async ({
   }
 
   const workspaceFeatures: Record<BetaFeatures, boolean> = {
-    noDubLink: false,
     analyticsSettingsSiteVisitTracking: false,
   };
 
