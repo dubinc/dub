@@ -35,18 +35,17 @@ async function main() {
 
   for (const [batchIndex, batch] of batches.entries()) {
     await Promise.all(
-      batch.map(async (partner) => {
-        const { id: partnerId, veriffSessionId } = partner;
-
+      batch.map(async ({ id: partnerId, veriffSessionId }) => {
         if (!veriffSessionId) {
           return;
         }
 
         try {
-          const decision = await fetchVeriffSessionDecision(veriffSessionId);
-          scanned += 1;
+          const {
+            verification: { riskLabels },
+          } = await fetchVeriffSessionDecision(veriffSessionId);
 
-          const { riskLabels } = decision.verification;
+          scanned += 1;
 
           const hasDuplicateRiskLabel =
             riskLabels &&
