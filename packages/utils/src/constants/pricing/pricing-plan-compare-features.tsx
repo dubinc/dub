@@ -422,18 +422,6 @@ export const PRICING_PLAN_COMPARE_FEATURES: {
         },
         text: () => (
           <>
-            Premium <strong>dub.link</strong> domain
-          </>
-        ),
-        href: "https://dub.co/help/article/default-dub-domains#premium-dublink-domain",
-      },
-      {
-        check: {
-          default: true,
-          free: false,
-        },
-        text: () => (
-          <>
             Free <strong>.link</strong> domain
           </>
         ),

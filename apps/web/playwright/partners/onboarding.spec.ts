@@ -19,9 +19,7 @@ test.describe("Partner onboarding", () => {
     await expect(page.locator('input[name="name"]').first()).toBeVisible();
     await expect(page.getByText("Profile image")).toBeVisible();
     await expect(page.getByLabel("Country")).toBeVisible();
-    await expect(
-      page.getByLabel(/Description/, { exact: false }),
-    ).toBeVisible();
+    await expect(page.getByText("About you")).toBeVisible();
     await expect(page.getByText("Profile Type")).toBeVisible();
     await expect(page.getByRole("button", { name: "Continue" })).toBeVisible();
   });
