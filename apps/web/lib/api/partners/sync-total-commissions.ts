@@ -37,15 +37,10 @@ async function aggregateAndUpdateTotalCommissions({
 export const syncTotalCommissions = async ({
   partnerId,
   programId,
-  mode = "queue",
 }: {
   partnerId: string;
   programId: string;
-  mode?: "queue" | "direct";
 }) => {
-  if (mode === "direct") {
-    return await aggregateAndUpdateTotalCommissions({ partnerId, programId });
-  }
   try {
     return await publishPartnerActivityEvent({
       programId,

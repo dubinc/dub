@@ -6,8 +6,10 @@ export default function Layout({ children }: PropsWithChildren) {
   return (
     <>
       {children}
-      <Toolbar show={["help"]} />
-      <SignedInHint />
+      <SignedInHint className="hidden md:block" />
+      <div className="hidden md:block">
+        <Toolbar show={["help"]} />
+      </div>
     </>
   );
 }

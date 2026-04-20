@@ -90,6 +90,7 @@ function getIdentityFieldsForFraudEvent({
       };
 
     case "partnerDuplicatePayoutMethod":
+    case "partnerDuplicateAccount":
       return {
         duplicatePartnerId: eventMetadata?.duplicatePartnerId,
       };
@@ -130,13 +131,15 @@ export function createGroupCompositeKey(
 }
 
 // Determine the correct partnerId for a fraud event.
-// For duplicate payout method events, uses the duplicatePartnerId from metadata.
 export function getPartnerIdForFraudEvent(
   event: Pick<CreateFraudEventInput, "partnerId" | "type" | "metadata">,
 ) {
   const metadata = event.metadata as Record<string, string> | undefined;
 
-  if (event.type === "partnerDuplicatePayoutMethod") {
+  if (
+    event.type === "partnerDuplicatePayoutMethod" ||
+    event.type === "partnerDuplicateAccount"
+  ) {
     return metadata?.duplicatePartnerId ?? event.partnerId;
   }
 
