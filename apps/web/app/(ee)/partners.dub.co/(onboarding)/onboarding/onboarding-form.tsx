@@ -148,7 +148,7 @@ export function OnboardingForm({
             render={({ field }) => (
               <FileUpload
                 accept="images"
-                className="mt-1.5 size-20 rounded-full border border-neutral-300"
+                className="mt-1.5 size-20 shrink-0 rounded-full border border-neutral-300 transition-[border-color,box-shadow] focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500"
                 iconClassName="size-5"
                 previewClassName="size-20 rounded-full"
                 variant="plain"
@@ -162,11 +162,11 @@ export function OnboardingForm({
             )}
           />
           <div>
-            <p className="text-xs text-neutral-500">
-              Square image recommended, up to 2 MB.
+            <p className="text-xs font-medium text-neutral-600">
+              Visible to programs and helps with approvals
             </p>
-            <p className="mt-0.5 text-xs font-medium text-neutral-500">
-              Adding an image can improve your approval rates.
+            <p className="mt-0.5 text-xs text-neutral-500">
+              Max 2 MB
             </p>
           </div>
         </div>
@@ -218,7 +218,7 @@ export function OnboardingForm({
 
       <label>
         <span className="text-sm font-medium text-neutral-800">
-          Description
+          About you
           <span className="font-normal text-neutral-500"> (optional)</span>
         </span>
         <div>
@@ -229,7 +229,7 @@ export function OnboardingForm({
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
             )}
-            placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
+            placeholder="Share who you are, what you do, and who your audience is."
             maxLength={MAX_PARTNER_DESCRIPTION_LENGTH}
             minRows={3}
             onKeyDown={handleKeyDown}
