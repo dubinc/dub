@@ -668,8 +668,14 @@ function InvitePreviewProgramDetails() {
       </div>
 
       <div className="mt-3 grid grid-cols-2 gap-3">
-        <PreviewInfoCard icon={<Gift className="size-5" />} label="Eligible Rewards" />
-        <PreviewInfoCard icon={<Trophy className="size-5" />} label="Eligible Bounties" />
+        <PreviewInfoCard
+          icon={<Gift className="size-5" />}
+          label="Eligible Rewards"
+        />
+        <PreviewInfoCard
+          icon={<Trophy className="size-5" />}
+          label="Eligible Bounties"
+        />
       </div>
 
       <Button
@@ -681,13 +687,7 @@ function InvitePreviewProgramDetails() {
   );
 }
 
-function PreviewInfoCard({
-  icon,
-  label,
-}: {
-  icon: ReactNode;
-  label: string;
-}) {
+function PreviewInfoCard({ icon, label }: { icon: ReactNode; label: string }) {
   return (
     <div className="flex flex-col items-center justify-center rounded-lg border border-blue-100 bg-blue-100 px-4 pb-3 pt-4 text-center text-blue-900">
       <div className="mb-1.5">{icon}</div>

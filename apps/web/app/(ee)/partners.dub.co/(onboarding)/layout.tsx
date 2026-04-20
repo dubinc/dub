@@ -65,7 +65,9 @@ export default function PartnerOnboardingLayout({
         </div>
 
         <div className="w-full flex-1 overflow-y-auto md:flex-none md:overflow-visible">
-          <div className="w-full pt-8 pb-8 sm:pb-4 md:py-16 px-5 md:px-0">{children}</div>
+          <div className="w-full px-5 pb-8 pt-8 sm:pb-4 md:px-0 md:py-16">
+            {children}
+          </div>
         </div>
 
         <div className="w-full md:hidden">

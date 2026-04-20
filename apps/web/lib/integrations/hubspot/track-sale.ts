@@ -21,22 +21,15 @@ export const trackHubSpotSaleEvent = async ({
     hubSpotSaleEventSchema.parse(payload);
 
   if (subscriptionType !== "object.propertyChange") {
-    console.log(`[HubSpot] Unknown subscriptionType ${subscriptionType}`);
-    return;
+    return `Unknown subscriptionType ${subscriptionType}.`;
   }
 
   if (propertyName !== "dealstage") {
-    console.log(
-      `[HubSpot] Unknown propertyName ${propertyName}. Expected dealstage.`,
-    );
-    return;
+    return `Unknown propertyName ${propertyName}. Expected dealstage.`;
   }
 
   if (propertyValue !== settings.closedWonDealStageId) {
-    console.error(
-      `[HubSpot] Unknown propertyValue ${propertyValue}. Expected ${settings.closedWonDealStageId}.`,
-    );
-    return;
+    return `Unknown propertyValue ${propertyValue}. Expected ${settings.closedWonDealStageId}.`;
   }
 
   const hubSpotApi = new HubSpotApi({
@@ -46,22 +39,20 @@ export const trackHubSpotSaleEvent = async ({
   const deal = await hubSpotApi.getDeal(objectId);
 
   if (!deal) {
-    return;
+    return `No deal found for deal ${objectId}`;
   }
 
   const { id: dealId, properties, associations } = deal;
 
   if (!properties.amount) {
-    console.error(`[HubSpot] Amount is not set for deal ${dealId}`);
-    return;
+    return `Amount is not set for deal ${dealId}`;
   }
 
   // Find the contact associated with the deal
   const contact = associations?.contacts?.results?.[0];
 
   if (!contact) {
-    console.error(`[HubSpot] No contact associated with deal ${dealId}`);
-    return;
+    return `No contact associated with deal ${dealId}`;
   }
 
   // HubSpot doesn't return the contact properties in the deal associations,
@@ -69,7 +60,7 @@ export const trackHubSpotSaleEvent = async ({
   const contactInfo = await hubSpotApi.getContact(contact.id);
 
   if (!contactInfo) {
-    return;
+    return `No contact info found for contact ${contact.id}`;
   }
 
   const customer = await prisma.customer.findFirst({
@@ -83,13 +74,10 @@ export const trackHubSpotSaleEvent = async ({
   });
 
   if (!customer) {
-    console.error(
-      `[HubSpot] No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`,
-    );
-    return;
+    return `No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`;
   }
 
-  return await trackSale({
+  await trackSale({
     customerExternalId: customer.externalId!,
     amount: Number(properties.amount) * 100,
     eventName: `${properties.dealname} ${properties.dealstage}`,
@@ -97,5 +85,8 @@ export const trackHubSpotSaleEvent = async ({
     invoiceId: dealId,
     workspace,
     rawBody: deal,
+    metadata: {},
   });
+
+  return `Sale tracked for deal ${dealId}.`;
 };
