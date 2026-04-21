@@ -10,7 +10,7 @@ const TRIAL_ENDS_AT = new Date(Date.UTC(2025, 0, 15, 12, 0, 0));
 describe("getDueTrialEmailTypes", () => {
   const emptySent = new Set<string>();
 
-  it("returns trial-7-days-remaining when 7 calendar days remain until end", () => {
+  it("returns trial7DaysRemaining when 7 calendar days remain until end", () => {
     const now = new Date(Date.UTC(2025, 0, 8, 10, 0, 0));
     expect(
       getDueTrialEmailTypes({
@@ -21,7 +21,7 @@ describe("getDueTrialEmailTypes", () => {
     ).toEqual([TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING]);
   });
 
-  it("returns trial-3-days-remaining when 3 calendar days remain until end", () => {
+  it("returns trial3DaysRemaining when 3 calendar days remain until end", () => {
     const now = new Date(Date.UTC(2025, 0, 12, 10, 0, 0));
     expect(
       getDueTrialEmailTypes({

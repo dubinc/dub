@@ -7,11 +7,12 @@ import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
-import { sendAdvancedDowngradeNoticeEmailIfNeeded } from "@/lib/email/send-advanced-downgrade-notice-email";
 import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
+import { sendEmail } from "@dub/email";
+import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import { prisma } from "@dub/prisma";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import Stripe from "stripe";
@@ -252,18 +253,26 @@ export async function customerSubscriptionDeleted(
 
   const owner = workspaceUsers[0];
   if (
-    owner &&
+    owner.email &&
     wouldLoseAdvancedFeatures({
       currentPlan: workspace.plan,
       newPlan: "free",
     })
   ) {
-    await sendAdvancedDowngradeNoticeEmailIfNeeded({
-      projectId: workspace.id,
-      dedupeType: `advanced-downgrade-notice:subscription-deleted:${subscriptionDeleted.id}`,
-      ownerEmail: owner.email,
-      workspaceName: workspace.name,
-      workspaceSlug: workspace.slug,
+    await sendEmail({
+      to: owner.email,
+      subject: "Your Advanced plan features have been removed",
+      react: AdvancedPlanDowngradeNotice({
+        email: owner.email,
+        workspace: {
+          name: workspace.name,
+          slug: workspace.slug,
+        },
+      }),
+      variant: "notifications",
+      headers: {
+        "Idempotency-Key": `advanced-downgrade-notice:${workspace.id}:${owner.email}`,
+      },
     });
   }
 

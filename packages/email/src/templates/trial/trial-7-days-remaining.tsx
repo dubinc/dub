@@ -18,7 +18,7 @@ import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email
 export default function Trial7DaysRemainingEmail({
   email = "panic@thedis.co",
   plan,
-  workspaceSlug,
+  workspaceSlug = "acme",
 }: TrialMarketingEmailProps) {
   const dashboardUrl = `https://app.dub.co/${workspaceSlug}`;
   const upgradeUrl = `${dashboardUrl}/settings/billing/upgrade`;

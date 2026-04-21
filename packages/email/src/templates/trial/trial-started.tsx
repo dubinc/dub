@@ -41,9 +41,8 @@ export default function TrialStartedEmail({
               Welcome to your free {String(trialDays)}-day trial of Dub!
             </Heading>
             <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              You&apos;re now on a {String(trialDays)}-day trial of {planLabel}.
-              Explore how Dub connects links, partners, and revenue in one
-              system.
+              You&apos;re now on a {String(trialDays)}-day {planLabel} trial of
+              Dub.
             </Text>
 
             <Heading className="mx-0 mb-3 mt-2 p-0 text-base font-semibold text-black">

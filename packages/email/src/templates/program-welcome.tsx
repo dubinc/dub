@@ -54,10 +54,7 @@ export default function ProgramWelcome({
             <Section className="mt-8">
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
-            <Heading
-              className="mt-8 text-lg font-semibold leading-7 text-neutral-900"
-              as="h2"
-            >
+            <Heading className="mt-8 text-lg font-semibold leading-7 text-neutral-900">
               Congratulations on creating a program!
             </Heading>
             <Text className="mb-6 mt-5 text-sm leading-5 text-neutral-600">
@@ -93,10 +90,7 @@ export default function ProgramWelcome({
                 </Column>
               </Row>
             </Section>
-            <Heading
-              className="mb-6 text-base font-semibold leading-6 text-neutral-900"
-              as="h3"
-            >
+            <Heading className="mb-6 text-base font-semibold leading-6 text-neutral-900">
               Getting started
             </Heading>
             <Text className="mb-4 text-sm leading-5 text-neutral-800">

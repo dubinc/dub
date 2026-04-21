@@ -165,6 +165,13 @@ export async function checkoutSessionCompleted(
             }),
             variant: "marketing",
           })),
+        ).then(() =>
+          prisma.sentEmail.create({
+            data: {
+              projectId: workspaceId,
+              type: "trialStarted",
+            },
+          }),
         )
       : sendBatchEmail(
           users.map((user) => ({

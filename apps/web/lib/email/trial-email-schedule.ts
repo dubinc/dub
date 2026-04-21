@@ -1,6 +1,6 @@
 export const TRIAL_EMAIL_TYPE = {
-  SEVEN_DAYS_REMAINING: "trial-7-days-remaining",
-  THREE_DAYS_REMAINING: "trial-3-days-remaining",
+  SEVEN_DAYS_REMAINING: "trial7DaysRemaining",
+  THREE_DAYS_REMAINING: "trial3DaysRemaining",
 } as const;
 
 export type TrialEmailType =

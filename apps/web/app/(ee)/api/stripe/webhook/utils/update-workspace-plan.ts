@@ -4,7 +4,6 @@ import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { sendAdvancedDowngradeNoticeEmailIfNeeded } from "@/lib/email/send-advanced-downgrade-notice-email";
 import { syncUserPlanToPlain } from "@/lib/plain/sync-user-plan";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -19,6 +18,7 @@ import {
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { sendBatchEmail } from "@dub/email";
+import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import {
@@ -246,13 +246,23 @@ export async function updateWorkspacePlan({
           programId: workspace.defaultProgramId,
         }),
         workspaceOwners.length > 0 &&
-          sendAdvancedDowngradeNoticeEmailIfNeeded({
-            projectId: workspace.id,
-            dedupeType: `advanced-downgrade-notice:${priceId}`,
-            ownerEmail: workspaceOwners[0].email,
-            workspaceName: workspace.name,
-            workspaceSlug: workspace.slug,
-          }),
+          sendBatchEmail(
+            workspaceOwners.map((owner) => ({
+              to: owner.email!,
+              subject: "Your Advanced plan features have been removed",
+              react: AdvancedPlanDowngradeNotice({
+                email: owner.email!,
+                workspace: {
+                  name: workspace.name,
+                  slug: workspace.slug,
+                },
+              }),
+              variant: "notifications",
+              headers: {
+                "Idempotency-Key": `advanced-downgrade-notice:${workspace.id}:${owner.email}`,
+              },
+            })),
+          ),
       ]);
     }
 
