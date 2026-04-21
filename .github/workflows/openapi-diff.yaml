@@ -1,0 +1,166 @@
+name: OpenAPI Diff
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "apps/web/lib/openapi/**"
+      - "apps/web/lib/zod/schemas/**"
+      - "apps/web/lib/webhook/schemas/**"
+      - "apps/web/scripts/generate-openapi.ts"
+      - "apps/web/package.json"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/openapi-diff.yaml"
+
+permissions: {}
+
+concurrency:
+  group: openapi-diff-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  diff:
+    name: Diff OpenAPI spec
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+
+    env:
+      OASDIFF_VERSION: "1.14.0"
+      OASDIFF_SHA256: "43bd57731f815d04b4e89ed187b23d99a95eef7eb79ef324d8069446e4cdd331"
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: head
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Checkout base
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+          persist-credentials: false
+          fetch-depth: 1
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install oasdiff (pinned + checksum-verified)
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          curl -fsSL -o oasdiff.tar.gz \
+            "https://github.com/oasdiff/oasdiff/releases/download/v${OASDIFF_VERSION}/oasdiff_${OASDIFF_VERSION}_linux_amd64.tar.gz"
+          echo "${OASDIFF_SHA256}  oasdiff.tar.gz" | sha256sum -c -
+          tar -xzf oasdiff.tar.gz
+          chmod +x oasdiff
+          ./oasdiff --version
+
+      - name: Generate base spec
+        working-directory: base
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --filter web generate-openapi
+          cp apps/web/openapi.json "$RUNNER_TEMP/openapi.base.json"
+
+      - name: Generate head spec
+        working-directory: head
+        run: |
+          set -euo pipefail
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm --filter web generate-openapi
+          cp apps/web/openapi.json "$RUNNER_TEMP/openapi.head.json"
+
+      - name: Short-circuit if specs are byte-identical
+        id: identical
+        run: |
+          set -euo pipefail
+          if cmp -s "$RUNNER_TEMP/openapi.base.json" "$RUNNER_TEMP/openapi.head.json"; then
+            echo "identical=true" >> "$GITHUB_OUTPUT"
+            {
+              echo "## OpenAPI Diff"
+              echo
+              echo "No OpenAPI changes detected."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "identical=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run oasdiff (changelog + breaking)
+        if: steps.identical.outputs.identical != 'true'
+        run: |
+          set -euo pipefail
+
+          # oasdiff exit codes:
+          #   0 = no changes / no breaking changes
+          #   1 = changes / breaking changes detected (expected, not a failure)
+          #   >1 = real tool failure (bad spec, crash, etc.) — must fail the job
+          run_oasdiff() {
+            local subcmd="$1"
+            local out="$2"
+            local status=0
+            "$RUNNER_TEMP/oasdiff" "$subcmd" \
+              "$RUNNER_TEMP/openapi.base.json" \
+              "$RUNNER_TEMP/openapi.head.json" \
+              -f markdown > "$out" || status=$?
+            if [ "$status" -gt 1 ]; then
+              echo "oasdiff $subcmd failed with exit code $status" >&2
+              return "$status"
+            fi
+          }
+
+          run_oasdiff changelog "$RUNNER_TEMP/changelog.md"
+          run_oasdiff breaking "$RUNNER_TEMP/breaking.md"
+
+      - name: Write diff to step summary
+        if: steps.identical.outputs.identical != 'true'
+        run: |
+          set -euo pipefail
+          {
+            echo "## OpenAPI Diff"
+            echo
+            echo "Base: \`${BASE_SHA}\`  Head: \`${HEAD_SHA}\`"
+            echo
+            echo "### Breaking changes"
+            echo
+            if [ -s "$RUNNER_TEMP/breaking.md" ]; then
+              cat "$RUNNER_TEMP/breaking.md"
+            else
+              echo "_None detected._"
+            fi
+            echo
+            echo "### Changelog"
+            echo
+            if [ -s "$RUNNER_TEMP/changelog.md" ]; then
+              cat "$RUNNER_TEMP/changelog.md"
+            else
+              echo "_No user-facing changes detected by oasdiff._"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # - name: Upload artifacts
+      #   if: always()
+      #   uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+      #   with:
+      #     name: openapi-diff-${{ github.event.pull_request.number }}
+      #     path: |
+      #       ${{ runner.temp }}/openapi.base.json
+      #       ${{ runner.temp }}/openapi.head.json
+      #       ${{ runner.temp }}/changelog.md
+      #       ${{ runner.temp }}/breaking.md
+      #     if-no-files-found: ignore
+      #     retention-days: 14
