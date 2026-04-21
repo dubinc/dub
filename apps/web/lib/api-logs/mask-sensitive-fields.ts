@@ -1,29 +1,39 @@
 const FULL_MASK = "***";
 const MIDDLE_MASK = "*****";
 const MIN_HIDDEN_CHARS = 4;
+const LAST_VISIBLE_CHARS = 6;
 
 // Map of route pattern -> response body fields that should be masked before logging.
 export const SENSITIVE_RESPONSE_FIELDS_BY_ROUTE = {
   "/tokens/embed/referrals": ["publicToken"],
 } as const;
 
-// Partially masks a sensitive value: shows ~50% of the string at the start and
-// ~25% at the end, replacing the middle with a fixed `*****`.
-// Short strings and non-strings are fully masked to avoid revealing most of the value.
+// Stripe-style partial mask: visible prefix through the last `_` (e.g. `sk_live_`),
+// a fixed middle mask, and the last 6 characters (e.g. `sk_live_*****xyz123`).
+// Values without enough characters between prefix and suffix fully mask.
 export function maskSensitiveValue(value: unknown): string {
-  if (typeof value !== "string") {
+  if (typeof value !== "string" || value.length === 0) {
     return FULL_MASK;
   }
 
-  const visibleStart = Math.floor(value.length / 2);
-  const visibleEnd = Math.floor(value.length / 4);
-  const hidden = value.length - visibleStart - visibleEnd;
+  const suffixLen = Math.min(LAST_VISIBLE_CHARS, value.length);
+  const suffixStart = value.length - suffixLen;
 
-  if (hidden < MIN_HIDDEN_CHARS) {
+  const lastUnderscore = value.lastIndexOf("_");
+  const prefixEnd = lastUnderscore >= 0 ? lastUnderscore + 1 : 0;
+
+  if (prefixEnd > suffixStart) {
     return FULL_MASK;
   }
 
-  return `${value.slice(0, visibleStart)}${MIDDLE_MASK}${value.slice(-visibleEnd)}`;
+  if (suffixStart - prefixEnd < MIN_HIDDEN_CHARS) {
+    return FULL_MASK;
+  }
+
+  const prefix = value.slice(0, prefixEnd);
+  const suffix = value.slice(suffixStart);
+
+  return `${prefix}${MIDDLE_MASK}${suffix}`;
 }
 
 // Recursively mask the given keys in an object/array. Returns a new value and
