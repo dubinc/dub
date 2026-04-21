@@ -5,7 +5,7 @@ import {
 } from "@/lib/email/trial-email-schedule";
 import { describe, expect, it, vi } from "vitest";
 
-const TRIAL_ENDS_AT = new Date(Date.UTC(2025, 0, 15, 23, 59, 59));
+const TRIAL_ENDS_AT = new Date(Date.UTC(2025, 0, 8, 23, 59, 59));
 
 describe("runTrialEmailCron", () => {
   const workspaceId = "ws_trial_test";
@@ -13,6 +13,7 @@ describe("runTrialEmailCron", () => {
 
   const baseWorkspace = {
     id: workspaceId,
+    name: "Acme",
     slug,
     plan: "business",
     trialEndsAt: TRIAL_ENDS_AT,
@@ -70,14 +71,17 @@ describe("runTrialEmailCron", () => {
     expect(firstBatch).toHaveLength(1);
     expect(firstBatch?.[0]).toMatchObject({
       to: "owner@test.com",
-      subject: getTrialEmailSubject(TRIAL_EMAIL_TYPE.STARTED),
+      subject: getTrialEmailSubject({
+        type: TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING,
+        companyName: "Acme",
+      }),
       replyTo: "steven.tey@dub.co",
       variant: "marketing",
     });
     expect(create).toHaveBeenCalledWith({
       data: {
         projectId: workspaceId,
-        type: TRIAL_EMAIL_TYPE.STARTED,
+        type: TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING,
       },
     });
   });
@@ -117,7 +121,7 @@ describe("runTrialEmailCron", () => {
     const findMany = vi.fn().mockResolvedValue([
       {
         ...baseWorkspace,
-        sentEmails: [{ type: TRIAL_EMAIL_TYPE.STARTED }],
+        sentEmails: [{ type: TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING }],
       },
     ]);
     const create = vi.fn();
