@@ -89,7 +89,6 @@ function getIdentityFieldsForFraudEvent({
         customerId,
       };
 
-    case "partnerDuplicatePayoutMethod":
     case "partnerDuplicateAccount":
       return {
         duplicatePartnerId: eventMetadata?.duplicatePartnerId,
@@ -103,6 +102,9 @@ function getIdentityFieldsForFraudEvent({
       return {
         sourceProgramId,
       };
+
+    default:
+      return {};
   }
 }
 
@@ -136,10 +138,7 @@ export function getPartnerIdForFraudEvent(
 ) {
   const metadata = event.metadata as Record<string, string> | undefined;
 
-  if (
-    event.type === "partnerDuplicatePayoutMethod" ||
-    event.type === "partnerDuplicateAccount"
-  ) {
+  if (event.type === "partnerDuplicateAccount") {
     return metadata?.duplicatePartnerId ?? event.partnerId;
   }
 

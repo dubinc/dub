@@ -44,11 +44,11 @@ export async function detectDuplicatePayoutMethodFraud({
     return;
   }
 
-  // Filter out program enrollments where the partnerDuplicatePayoutMethod rule is disabled
+  // Filter out program enrollments where the partnerDuplicateAccount rule is disabled
   programEnrollments = programEnrollments.filter((enrollment) =>
     isFraudRuleEnabled({
       fraudRules: enrollment.program.fraudRules,
-      ruleType: FraudRuleType.partnerDuplicatePayoutMethod,
+      ruleType: FraudRuleType.partnerDuplicateAccount,
     }),
   );
 
@@ -89,7 +89,7 @@ export async function detectDuplicatePayoutMethodFraud({
         fraudEvents.push({
           programId,
           partnerId: sourcePartner.partnerId,
-          type: FraudRuleType.partnerDuplicatePayoutMethod,
+          type: FraudRuleType.partnerDuplicateAccount,
           metadata: {
             ...(payoutMethodHash ? { payoutMethodHash } : {}),
             ...(cryptoWalletAddress ? { cryptoWalletAddress } : {}),

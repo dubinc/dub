@@ -165,9 +165,7 @@ export function OnboardingForm({
             <p className="text-xs font-medium text-neutral-600">
               Visible to programs and helps with approvals
             </p>
-            <p className="mt-0.5 text-xs text-neutral-500">
-              Max 2 MB
-            </p>
+            <p className="mt-0.5 text-xs text-neutral-500">Max 2 MB</p>
           </div>
         </div>
       </label>

@@ -5,7 +5,7 @@ import {
   commissionEventPostbackSchema,
   leadEventPostbackSchema,
   saleEventPostbackSchema,
-} from "../schemas";
+} from "./schemas";
 
 interface PostbackEventEnricher {
   enrich(data: Record<string, unknown>): Record<string, unknown>;
