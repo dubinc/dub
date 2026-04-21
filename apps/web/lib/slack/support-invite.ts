@@ -174,35 +174,23 @@ function mapSlackChannelEnsureError(
   });
 }
 
-async function ensureSharedCustomerChannelId(
+async function createSharedCustomerChannel(
   workspaceSlug: string,
-): Promise<string> {
+): Promise<{ channelId: string } | { nameTaken: true }> {
   const name = sharedSupportChannelName(workspaceSlug);
 
   const created = await slackWebApi<SlackConversationsCreateResponse>(
     "conversations.create",
-    {
-      name,
-      is_private: false,
-    },
+    { name, is_private: false },
   );
 
   if (created.ok && created.channel?.id) {
-    return created.channel.id;
+    return { channelId: created.channel.id };
   }
 
   if (created.error === "name_taken") {
-    console.warn(
-      "[slack] conversations.create name_taken; not resolving channel",
-      {
-        name,
-      },
-    );
-    throw new DubApiError({
-      code: "conflict",
-      message:
-        "Slack support could not be requested automatically for this workspace. Please contact Dub support for help connecting Slack.",
-    });
+    console.warn("[slack] conversations.create name_taken", { name });
+    return { nameTaken: true };
   }
 
   console.error("[slack] conversations.create failed", {
@@ -213,32 +201,15 @@ async function ensureSharedCustomerChannelId(
   throw mapSlackChannelEnsureError(created.error);
 }
 
-export async function requestSlackConnectSupportInvite({
-  email,
-  workspaceSlug,
-}: {
-  email: string;
-  workspaceSlug: string;
-}): Promise<{
-  inviteId: string;
-}> {
-  if (!process.env.SLACK_SUPPORT_BOT_TOKEN) {
-    throw new DubApiError({
-      code: "internal_server_error",
-      message: "Priority Slack support is not available right now.",
-    });
-  }
-
-  const channel = await ensureSharedCustomerChannelId(workspaceSlug);
-
-  await inviteInternalSupportMembersToChannel(channel);
+async function sendSlackConnectInvite(
+  channelId: string,
+  email: string,
+): Promise<string> {
+  await inviteInternalSupportMembersToChannel(channelId);
 
   const data = await slackWebApi<SlackInviteSharedResponse>(
     "conversations.inviteShared",
-    {
-      channel,
-      emails: [email],
-    },
+    { channel: channelId, emails: [email] },
   );
 
   if (!data.ok || !data.invite_id) {
@@ -250,5 +221,64 @@ export async function requestSlackConnectSupportInvite({
     throw mapSlackInviteError(data.error);
   }
 
-  return { inviteId: data.invite_id };
+  return data.invite_id;
+}
+
+export async function requestSlackConnectSupportInvite({
+  email,
+  workspaceSlug,
+}: {
+  email: string;
+  workspaceSlug: string;
+}): Promise<{ inviteId: string }> {
+  if (!process.env.SLACK_SUPPORT_BOT_TOKEN) {
+    throw new DubApiError({
+      code: "internal_server_error",
+      message: "Priority Slack support is not available right now.",
+    });
+  }
+
+  const result = await createSharedCustomerChannel(workspaceSlug);
+
+  if ("nameTaken" in result) {
+    throw new DubApiError({
+      code: "conflict",
+      message:
+        "Slack support could not be requested automatically for this workspace. Please contact Dub support for help connecting Slack.",
+    });
+  }
+
+  return { inviteId: await sendSlackConnectInvite(result.channelId, email) };
+}
+
+export async function inviteToSlackSupportChannel({
+  email,
+  workspaceSlug,
+  channelId,
+}: {
+  email: string;
+  workspaceSlug: string;
+  channelId?: string;
+}): Promise<
+  | { inviteId: string; nameTaken?: never }
+  | { nameTaken: true; inviteId?: never }
+> {
+  if (!process.env.SLACK_SUPPORT_BOT_TOKEN) {
+    throw new DubApiError({
+      code: "internal_server_error",
+      message: "Priority Slack support is not available right now.",
+    });
+  }
+
+  let resolvedChannelId = channelId;
+
+  if (!resolvedChannelId) {
+    const result = await createSharedCustomerChannel(workspaceSlug);
+    if ("nameTaken" in result) {
+      return { nameTaken: true };
+    }
+    resolvedChannelId = result.channelId;
+  }
+
+  return { inviteId: await sendSlackConnectInvite(resolvedChannelId, email) };
 }
