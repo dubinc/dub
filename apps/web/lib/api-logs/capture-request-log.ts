@@ -2,6 +2,10 @@ import { WorkspaceWithUsers } from "@/lib/types";
 import { TokenCacheItem } from "../auth/token-cache";
 import { Session } from "../auth/utils";
 import { HTTP_MUTATION_METHODS, ROUTE_PATTERNS } from "./constants";
+import {
+  maskSensitiveFields,
+  SENSITIVE_RESPONSE_FIELDS_BY_ROUTE,
+} from "./mask-sensitive-fields";
 import { recordApiLog } from "./record-api-log";
 
 // Precompile route patterns into regexes at module load
@@ -78,6 +82,19 @@ export async function captureRequestLog({
   try {
     responseBody = await responseClone.json();
   } catch {}
+
+  // Mask sensitive fields in the response body
+  if (responseBody) {
+    const sensitiveResponseFields =
+      SENSITIVE_RESPONSE_FIELDS_BY_ROUTE[routePattern];
+
+    if (sensitiveResponseFields) {
+      responseBody = maskSensitiveFields({
+        body: responseBody,
+        keys: sensitiveResponseFields,
+      });
+    }
+  }
 
   return await recordApiLog({
     workspaceId: workspace.id,
