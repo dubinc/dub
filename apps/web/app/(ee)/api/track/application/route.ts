@@ -24,7 +24,6 @@ import {
   LOCALHOST_IP,
 } from "@dub/utils";
 import { geolocation, ipAddress } from "@vercel/functions";
-import { addDays } from "date-fns";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 
@@ -187,7 +186,7 @@ async function trackVisitEvent({
 
     cookieStore.set(cookieName, eventId, {
       httpOnly: true,
-      expires: addDays(new Date(), APPLICATION_ID_COOKIE_MAX_AGE),
+      maxAge: APPLICATION_ID_COOKIE_MAX_AGE,
       secure: process.env.NODE_ENV === "production",
     });
   } catch {}
