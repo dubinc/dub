@@ -148,7 +148,8 @@ export const trackHubSpotLeadEvent = async ({
     }
 
     if (
-      contactInfo.properties.lifecyclestage !== settings.leadLifecycleStageId
+      contactInfo.properties.lifecyclestage?.toLowerCase() !==
+      settings.leadLifecycleStageId?.toLowerCase()
     ) {
       return `Unknown contact lifecyclestage ${contactInfo.properties.lifecyclestage}. Expected ${settings.leadLifecycleStageId}.`;
     }
