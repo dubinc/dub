@@ -50,17 +50,6 @@ export default function TrialStartedEmail({
             </Heading>
 
             <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              1. Set up your domain —{" "}
-              <Link
-                href="https://dub.co/help/article/how-to-add-custom-domain"
-                className="text-neutral-600 underline underline-offset-2"
-              >
-                Add a custom domain
-              </Link>{" "}
-              and start creating your branded short links.
-            </Text>
-
-            <Text className="mb-4 text-sm leading-6 text-neutral-600">
               2. Track conversions:{" "}
               <Link
                 href={`${dashboardUrl}/settings/tracking`}

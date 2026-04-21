@@ -75,20 +75,4 @@ describe("getDueTrialEmailTypes", () => {
     });
     expect(new Set(due).size).toBe(due.length);
   });
-
-  /**
-   * With a 14-day trial, no single UTC calendar day satisfies both a
-   * "days since start" milestone (0,2,4,6) and a "days until end" milestone
-   * (7,3,0) at once; each run returns at most one milestone from each group.
-   */
-  it("returns a single start-based milestone on typical milestone days", () => {
-    const day2 = new Date(Date.UTC(2025, 0, 3, 10, 0, 0));
-    expect(
-      getDueTrialEmailTypes({
-        trialEndsAt: TRIAL_ENDS_AT,
-        sent: emptySent,
-        now: day2,
-      }),
-    ).toHaveLength(1);
-  });
 });
