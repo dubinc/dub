@@ -16,7 +16,7 @@ import {
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import * as z from "zod/v4";
-import { DiscountSchema } from "./discount";
+import { DiscountCodeSchema, DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
@@ -121,6 +121,11 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   conversions: true,
   sales: true,
   saleAmount: true,
+}).extend({
+  discountCode: DiscountCodeSchema.pick({
+    id: true,
+    code: true,
+  }).nullish(),
 });
 
 export const ProgramEnrollmentApplicationSchema = z.object({

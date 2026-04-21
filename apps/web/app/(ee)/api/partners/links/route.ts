@@ -45,7 +45,11 @@ export const GET = withWorkspace(
             },
           },
       select: {
-        links: true,
+        links: {
+          include: {
+            discountCode: true,
+          },
+        },
       },
     });
 
@@ -56,9 +60,11 @@ export const GET = withWorkspace(
       });
     }
 
-    const { links } = programEnrollment;
+    const response = z
+      .array(ProgramPartnerLinkSchema)
+      .parse(programEnrollment.links);
 
-    return NextResponse.json(z.array(ProgramPartnerLinkSchema).parse(links));
+    return NextResponse.json(response);
   },
   {
     requiredPlan: ["advanced", "enterprise"],

@@ -30,7 +30,11 @@ export async function getPartners(filters: PartnerFilters) {
           platforms: true,
         },
       },
-      links: true,
+      links: {
+        include: {
+          discountCode: true,
+        },
+      },
     },
     take: pageSize,
     skip: (page - 1) * pageSize,

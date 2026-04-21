@@ -76,8 +76,9 @@ export const { POST } = serve<Payload>(
 
     const { groupId } = programEnrollment;
 
-    const allPartnerLinks =
-      ProgramPartnerLinkSchema.array().parse(existingPartnerLinks);
+    const allPartnerLinks = z
+      .array(ProgramPartnerLinkSchema.omit({ discountCode: true }))
+      .parse(existingPartnerLinks);
 
     // Step 1: Create partner default links
     await context.run("create-default-links", async () => {
