@@ -25,11 +25,23 @@ export const POST = withWorkspace(
       });
     }
 
-    const { success } = await ratelimit(10, "1 h").limit(
+    const { success: workspaceSuccess } = await ratelimit(5, "1 d").limit(
+      `slack-support-invite:workspace:${workspace.id}`,
+    );
+
+    if (!workspaceSuccess) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message:
+          "This workspace has reached the daily limit for Slack invite requests. Please try again tomorrow.",
+      });
+    }
+
+    const { success: userSuccess } = await ratelimit(10, "1 h").limit(
       `slack-support-invite:${workspace.id}:${session.user.id}`,
     );
 
-    if (!success) {
+    if (!userSuccess) {
       throw new DubApiError({
         code: "rate_limit_exceeded",
         message:

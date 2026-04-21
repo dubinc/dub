@@ -24,7 +24,7 @@ export default function UpgradeEmail({
   email = "panic@thedis.co",
   plan = "Business",
   planTier = 1,
-  workspaceSlug = "acme",
+  workspaceSlug = null,
 }: {
   name: string | null;
   email: string;
@@ -35,7 +35,8 @@ export default function UpgradeEmail({
   const planDetails = getPlanDetails({ plan, planTier });
   const settingsUrl = workspaceSlug
     ? `${APP_DOMAIN}/${workspaceSlug}/settings`
-    : "https://app.dub.co/settings";
+    : `${APP_DOMAIN}/settings`;
+
   return (
     <Html>
       <Head />

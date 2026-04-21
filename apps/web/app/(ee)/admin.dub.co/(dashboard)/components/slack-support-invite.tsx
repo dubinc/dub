@@ -13,29 +13,35 @@ export function SlackSupportInvite() {
     <div className="flex flex-col space-y-5">
       <form
         action={async (data) => {
-          const res = await fetch("/api/admin/slack-support-invite", {
-            method: "POST",
-            body: JSON.stringify({
-              email: data.get("email"),
-              workspaceSlug: data.get("workspaceSlug"),
-              channelId: data.get("channelId") || undefined,
-            }),
-          });
-          const json = await res.json();
+          try {
+            const res = await fetch("/api/admin/slack-support-invite", {
+              method: "POST",
+              body: JSON.stringify({
+                email: data.get("email"),
+                workspaceSlug: data.get("workspaceSlug"),
+                channelId: data.get("channelId") || undefined,
+              }),
+            });
 
-          if (json.nameTaken) {
-            setNeedsChannelId(true);
-            toast.error(json.error);
-            return;
+            const json = await res.json().catch(() => ({}));
+
+            if (!res.ok) {
+              if (json.nameTaken) {
+                setNeedsChannelId(true);
+              }
+              toast.error(
+                json.error ?? "Something went wrong. Please try again.",
+              );
+              return;
+            }
+
+            setNeedsChannelId(false);
+            toast.success(`Slack invite sent (ID: ${json.inviteId})`);
+          } catch {
+            toast.error(
+              "Network error. Please check your connection and try again.",
+            );
           }
-
-          if (json.error) {
-            toast.error(json.error);
-            return;
-          }
-
-          setNeedsChannelId(false);
-          toast.success(`Slack invite sent (ID: ${json.inviteId})`);
         }}
       >
         <Form needsChannelId={needsChannelId} />

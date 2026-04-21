@@ -87,16 +87,59 @@ async function slackWebApi<T extends SlackOkResponse>(
     });
   }
 
-  const response = await fetch(`${SLACK_API}/${method}`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json; charset=utf-8",
-    },
-    body: JSON.stringify(body),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10_000);
 
-  return (await response.json()) as T;
+  let response: Response;
+  try {
+    response = await fetch(`${SLACK_API}/${method}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    const isTimeout = err instanceof Error && err.name === "AbortError";
+    throw new DubApiError({
+      code: "internal_server_error",
+      message: isTimeout
+        ? "Slack API request timed out. Please try again."
+        : "Could not reach the Slack API. Please try again.",
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+
+  if (response.status === 429) {
+    throw new DubApiError({
+      code: "rate_limit_exceeded",
+      message: "Too many Slack requests. Please try again shortly.",
+    });
+  }
+
+  if (!response.ok) {
+    console.error("[slack] unexpected HTTP error", {
+      method,
+      status: response.status,
+      statusText: response.statusText,
+    });
+    throw new DubApiError({
+      code: "internal_server_error",
+      message: "Slack API returned an unexpected error. Please try again.",
+    });
+  }
+
+  try {
+    return (await response.json()) as T;
+  } catch {
+    throw new DubApiError({
+      code: "internal_server_error",
+      message: "Could not parse Slack API response. Please try again.",
+    });
+  }
 }
 
 function mapSlackInviteError(slackError: string | undefined): DubApiError {
@@ -244,7 +287,7 @@ export async function requestSlackConnectSupportInvite({
     throw new DubApiError({
       code: "conflict",
       message:
-        "Slack support could not be requested automatically for this workspace. Please contact Dub support for help connecting Slack.",
+        "Your workspace already has a Dub support channel. Ask your Slack admin to add you to it.",
     });
   }
 
