@@ -1,21 +1,63 @@
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
+import { cookies } from "next/headers";
+import { getApplicationEventCookieName } from "./utils";
 
-interface UpdatelicationEventInput {
-  event: "approved" | "rejected";
+interface MarkApplicationEventInput {
   programId: string;
   partnerId: string;
+  event: "approved" | "rejected";
 }
 
-const eventToColumnMap = {
-  approved: "approvedAt",
-  rejected: "rejectedAt",
-} as const;
-
-export async function updateApplicationEvent({
-  event,
+// Application events visited as a guest have partnerId: null — look up the
+// event via the browser cookie and backfill partnerId + submittedAt. Fall
+// back to the (programId, partnerId) lookup if no cookie is present (e.g. the
+// partner visited while already logged in on a different browser).
+export async function markApplicationEventSubmitted({
   programId,
   partnerId,
-}: UpdatelicationEventInput) {
+  applicationId,
+}: Pick<
+  Prisma.ProgramEnrollmentCreateManyInput,
+  "programId" | "partnerId" | "applicationId"
+>) {
+  const cookieStore = await cookies();
+  const cookieName = getApplicationEventCookieName(programId);
+  const eventId = cookieStore.get(cookieName)?.value;
+
+  try {
+    await prisma.programApplicationEvent.updateMany({
+      where: {
+        OR: [
+          {
+            programId,
+            partnerId,
+          },
+          {
+            id: eventId,
+          },
+        ],
+      },
+      data: {
+        partnerId,
+        submittedAt: new Date(),
+        programApplicationId: applicationId,
+      },
+    });
+  } catch {}
+}
+
+export async function markApplicationEvent({
+  programId,
+  partnerId,
+  event,
+}: MarkApplicationEventInput) {
+  const eventToColumnMap = {
+    submitted: "submittedAt",
+    approved: "approvedAt",
+    rejected: "rejectedAt",
+  };
+
   const column = eventToColumnMap[event];
 
   if (!column) {

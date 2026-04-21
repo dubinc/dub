@@ -159,26 +159,29 @@ async function trackVisitEvent({
   const session = await getSession();
   const requestContext = await getRequestContext(req);
 
-  await prisma.programApplicationEvent.create({
-    data: {
-      id: eventId,
-      programId: program.id,
-      referralSource: referrer
-        ? getDomainWithoutWWW(referrer) || "(direct)"
-        : "(direct)",
-      referredByPartnerId: referredByPartner?.id,
-      partnerId: session?.user?.defaultPartnerId,
-      visitedAt: new Date(),
-      metadata: requestContext,
-    },
-  });
+  try {
+    await prisma.programApplicationEvent.create({
+      data: {
+        id: eventId,
+        programId: program.id,
+        referralSource: referrer
+          ? getDomainWithoutWWW(referrer) || "(direct)"
+          : "(direct)",
+        referredByPartnerId: referredByPartner?.id,
+        partnerId: session?.user?.defaultPartnerId,
+        visitedAt: new Date(),
+        country: requestContext.country,
+        metadata: requestContext,
+      },
+    });
 
-  console.log(
-    `Created "visit" event for program ${program.id} with eventId: ${eventId}`,
-  );
+    console.log(
+      `Created "visit" event for program ${program.id} with eventId: ${eventId}`,
+    );
 
-  const cookieStore = await cookies();
-  cookieStore.set(cookieName, eventId);
+    const cookieStore = await cookies();
+    cookieStore.set(cookieName, eventId);
+  } catch {}
 }
 
 // Track the "start" event
@@ -200,6 +203,7 @@ async function trackStartEvent({
   }
 
   const session = await getSession();
+  const partnerId = session?.user?.defaultPartnerId;
 
   try {
     await prisma.programApplicationEvent.update({
@@ -209,7 +213,7 @@ async function trackStartEvent({
       },
       data: {
         startedAt: new Date(),
-        partnerId: session?.user?.defaultPartnerId,
+        ...(partnerId ? { partnerId } : {}),
       },
     });
 
@@ -267,18 +271,24 @@ async function getRequestContext(req: NextRequest) {
 }
 
 // Identify the program slug from the URL
+// Supports:
+//   - https://partners.dub.co/{programSlug}
+//   - https://partners.dub.co/programs/marketplace/{programSlug}
 function identityProgramSlug(url: string) {
   try {
     const urlObj = new URL(url);
-    const parts = urlObj.pathname.split("/");
+    const parts = urlObj.pathname.split("/").filter(Boolean);
 
-    if (parts.length < 2) {
+    if (parts.length === 0) {
       return null;
     }
 
-    const programSlug = parts[1];
+    const programSlug =
+      parts[0] === "programs" && parts[1] === "marketplace"
+        ? parts[2]
+        : parts[0];
 
-    return programSlug.toLowerCase();
+    return programSlug?.toLowerCase() ?? null;
   } catch (error) {
     return null;
   }
