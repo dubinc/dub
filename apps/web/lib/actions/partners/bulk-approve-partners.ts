@@ -52,7 +52,7 @@ export const bulkApprovePartnersAction = authActionClient
     await prisma.$transaction(async (tx) => {
       await throwIfTrialProgramEnrollmentLimitExceeded({
         programId: program.id,
-        additionalApproved: programEnrollments.length,
+        additionalEnrollments: programEnrollments.length,
         trialEndsAt: workspace.trialEndsAt,
         tx,
       });

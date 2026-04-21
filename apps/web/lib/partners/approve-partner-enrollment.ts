@@ -39,7 +39,6 @@ export async function approvePartnerEnrollment({
   const programEnrollment = await prisma.$transaction(async (tx) => {
     await throwIfTrialProgramEnrollmentLimitExceeded({
       programId,
-      additionalApproved: 1,
       trialEndsAt: program.workspace.trialEndsAt,
       tx,
     });

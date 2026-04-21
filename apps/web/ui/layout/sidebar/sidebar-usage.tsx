@@ -12,7 +12,7 @@ import {
   DynamicTooltipWrapper,
   Icon,
 } from "@dub/ui";
-import { CursorRays, Hyperlink, Users } from "@dub/ui/icons";
+import { CursorRays, Hyperlink, MoneyBills2, Users } from "@dub/ui/icons";
 import {
   cn,
   getFirstAndLastDay,
@@ -56,7 +56,6 @@ function UsageInner() {
   const isTrial = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const { partnersCount } = usePartnersCount<number>({
-    status: "approved",
     ignoreParams: true,
     enabled: Boolean(isTrial && defaultProgramId),
   });
@@ -102,14 +101,15 @@ function UsageInner() {
     () =>
       [
         [usage, usageLimit],
-        [linksUsage, linksLimit],
+        [payoutsUsage, payoutsLimit],
+        [partnersCount, TRIAL_PROGRAM_ENROLLMENT_LIMIT],
       ].map(
         ([usage, limit]) =>
           usage !== undefined &&
           limit !== undefined &&
           usage / Math.max(0, usage, limit) >= 0.9,
       ),
-    [usage, usageLimit, linksUsage, linksLimit],
+    [usage, usageLimit, payoutsUsage, payoutsLimit, partnersCount],
   );
 
   const warning = warnings.some((w) => w);
@@ -158,17 +158,16 @@ function UsageInner() {
                   showNextPlan={false}
                   nextPlanLimit={undefined}
                   warning={warnings[0]}
-                  hideProgressBar
                 />
                 <UsageRow
-                  icon={Hyperlink}
-                  label="Links"
-                  usage={linksUsage}
-                  limit={linksLimit}
+                  icon={MoneyBills2}
+                  label="Payouts"
+                  usage={payoutsUsage}
+                  limit={payoutsLimit}
                   showNextPlan={false}
                   nextPlanLimit={undefined}
                   warning={warnings[1]}
-                  hideProgressBar
+                  valueInCents
                 />
                 <UsageRow
                   icon={Users}
@@ -177,8 +176,7 @@ function UsageInner() {
                   limit={TRIAL_PROGRAM_ENROLLMENT_LIMIT}
                   showNextPlan={false}
                   nextPlanLimit={undefined}
-                  warning={false}
-                  hideProgressBar
+                  warning={warnings[2]}
                 />
               </>
             ) : (

@@ -3,7 +3,6 @@
 import { generateDiscountCodeForPartner } from "@/lib/api/discounts/generate-discount-code-for-partner";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { triggerDraftBountySubmissionCreation } from "@/lib/bounty/api/trigger-draft-bounty-submissions";
-import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -32,35 +31,26 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
     });
 
-    const enrollment = await prisma.$transaction(async (tx) => {
-      await throwIfTrialProgramEnrollmentLimitExceeded({
-        programId,
-        additionalApproved: 1,
-        trialEndsAt: program.workspace.trialEndsAt,
-        tx,
-      });
-
-      return tx.programEnrollment.update({
-        where: {
-          partnerId_programId: {
-            partnerId: partner.id,
-            programId,
-          },
-          status: "invited",
+    const enrollment = await prisma.programEnrollment.update({
+      where: {
+        partnerId_programId: {
+          partnerId: partner.id,
+          programId,
         },
-        data: {
-          status: "approved",
-          createdAt: new Date(),
-        },
-        include: {
-          links: true,
-          partner: {
-            include: {
-              platforms: true,
-            },
+        status: "invited",
+      },
+      data: {
+        status: "approved",
+        createdAt: new Date(),
+      },
+      include: {
+        links: true,
+        partner: {
+          include: {
+            platforms: true,
           },
         },
-      });
+      },
     });
 
     waitUntil(
