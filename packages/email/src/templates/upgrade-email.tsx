@@ -1,4 +1,9 @@
-import { DUB_WORDMARK, getPlanDetails } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  DUB_WORDMARK,
+  getPlanDetails,
+  type PlanFeature,
+} from "@dub/utils";
 import {
   Body,
   Container,
@@ -19,13 +24,18 @@ export default function UpgradeEmail({
   email = "panic@thedis.co",
   plan = "Business",
   planTier = 1,
+  workspaceSlug = "acme",
 }: {
   name: string | null;
   email: string;
   plan: string;
   planTier: number;
+  workspaceSlug?: string | null;
 }) {
   const planDetails = getPlanDetails({ plan, planTier });
+  const settingsUrl = workspaceSlug
+    ? `${APP_DOMAIN}/${workspaceSlug}/settings`
+    : "https://app.dub.co/settings";
   return (
     <Html>
       <Head />
@@ -60,10 +70,17 @@ export default function UpgradeEmail({
             <Text className="text-sm leading-6 text-black">
               On the {plan} plan, you now have access to:
             </Text>
-            {planDetails.features?.map((feature) => (
-              <Text className="ml-1 text-sm leading-4 text-black">
-                ✦{" "}
-                {feature.tooltip?.href ? (
+            {planDetails.features?.map((feature: PlanFeature, i) => (
+              <Text key={i} className="ml-1 text-sm leading-4 text-black">
+                ◇{" "}
+                {feature.ctaLink ? (
+                  <>
+                    {feature.text} -{" "}
+                    <Link href={settingsUrl} className="text-[#2B7FFF]">
+                      {feature.ctaLink.label}
+                    </Link>
+                  </>
+                ) : feature.tooltip?.href ? (
                   <Link href={feature.tooltip.href}>{feature.text}</Link>
                 ) : (
                   feature.text

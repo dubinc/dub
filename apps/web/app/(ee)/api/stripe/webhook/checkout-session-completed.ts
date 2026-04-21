@@ -79,6 +79,7 @@ export async function checkoutSessionCompleted(
     },
     select: {
       plan: true,
+      slug: true,
       defaultProgramId: true,
       users: {
         select: {
@@ -129,6 +130,7 @@ export async function checkoutSessionCompleted(
           email: user.email as string,
           plan: plan.name,
           planTier: planTier,
+          workspaceSlug: updatedWorkspace.slug,
         }),
         variant: "marketing",
       })),
