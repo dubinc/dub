@@ -10,6 +10,7 @@ export const rejectPartner: ZodOpenApiOperationObject = {
   description:
     "Reject a pending partner application to your program. The partner will be notified via email that their application was not approved.",
   requestBody: {
+    required: true,
     content: {
       "application/json": {
         schema: rejectPartnerSchema,

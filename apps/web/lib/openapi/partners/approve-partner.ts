@@ -10,6 +10,7 @@ export const approvePartner: ZodOpenApiOperationObject = {
   description:
     "Approve a pending partner application to your program. The partner will be enrolled in the specified group and notified of the approval.",
   requestBody: {
+    required: true,
     content: {
       "application/json": {
         schema: approvePartnerSchema,

@@ -49,7 +49,8 @@ export async function rejectPartner({
   if (programEnrollment.status !== "pending") {
     throw new DubApiError({
       code: "bad_request",
-      message: "This application is not pending.",
+      message:
+        "This enrollment cannot be rejected because it is no longer pending.",
     });
   }
 
@@ -70,12 +71,20 @@ export async function rejectPartner({
 
     // If the partner can immediately re-apply, delete the application
     if (allowImmediateReapply) {
-      await tx.programEnrollment.deleteMany({
+      const { count } = await tx.programEnrollment.deleteMany({
         where: {
           id: programEnrollment.id,
           status: "pending",
         },
       });
+
+      if (count !== 1) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "This enrollment cannot be deleted because it is no longer pending.",
+        });
+      }
 
       return;
     }
