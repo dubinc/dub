@@ -45,8 +45,8 @@ const usernameSchema = z
     z
       .string()
       .refine(
-        (v) => !RESERVED_USERNAMES.some((prefix) => v.startsWith(prefix)),
-        "Username cannot start with a reserved username",
+        (v) => !RESERVED_USERNAMES.includes(v),
+        "This username is reserved",
       ),
   )
   .nullish();
