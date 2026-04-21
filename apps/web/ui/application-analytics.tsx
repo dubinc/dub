@@ -1,8 +1,34 @@
 "use client";
 
+import { TrackApplicationEventBody } from "@/lib/application-events/schema";
+import { prettyPrint } from "@dub/utils";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
-import { trackApplicationEvent } from "./track-application-event";
+
+async function trackApplicationEvent({
+  eventName,
+  url,
+  referrer,
+}: TrackApplicationEventBody) {
+  const response = await fetch("/api/track/application", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      eventName,
+      url,
+      referrer,
+    }),
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    console.error(`[trackApplicationEvent] ${prettyPrint(result)}`);
+    return;
+  }
+
+  return result;
+}
 
 // Track application visit event
 export function ApplicationAnalytics() {

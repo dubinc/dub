@@ -1,7 +1,7 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
-import { ApplicationAnalytics } from "@/ui/application-tracker/application-analytics";
+import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { ApplicationFormHero } from "@/ui/partners/groups/design/application-form/application-hero-preview";
 import { ProgramApplicationForm } from "@/ui/partners/groups/design/application-form/program-application-form";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";

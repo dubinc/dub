@@ -9,7 +9,7 @@ import {
   ProgramApplicationFormDataWithValues,
   ProgramProps,
 } from "@/lib/types";
-import { useTrackApplyStart } from "@/ui/application-tracker/application-analytics";
+import { useTrackApplyStart } from "@/ui/application-analytics";
 import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";

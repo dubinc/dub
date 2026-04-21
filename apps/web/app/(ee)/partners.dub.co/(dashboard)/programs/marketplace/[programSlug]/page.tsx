@@ -1,5 +1,5 @@
 import { getNetworkProgram } from "@/lib/fetchers/get-network-program";
-import { ApplicationAnalytics } from "@/ui/application-tracker/application-analytics";
+import { ApplicationAnalytics } from "@/ui/application-analytics";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
