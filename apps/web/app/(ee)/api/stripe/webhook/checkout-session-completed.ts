@@ -8,12 +8,14 @@ import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
+import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { Program, User } from "@dub/prisma/client";
 import {
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,
+  isWorkspaceBillingTrialActive,
   log,
   prettyPrint,
 } from "@dub/utils";
@@ -105,9 +107,16 @@ export async function checkoutSessionCompleted(
       ...(planPeriod !== undefined && { planPeriod }),
     },
     select: {
+      slug: true,
       plan: true,
       defaultProgramId: true,
       users: {
+        where: {
+          role: "owner",
+          user: {
+            isMachine: false,
+          },
+        },
         select: {
           user: {
             select: {
@@ -115,11 +124,6 @@ export async function checkoutSessionCompleted(
               name: true,
               email: true,
             },
-          },
-        },
-        where: {
-          user: {
-            isMachine: false,
           },
         },
       },
@@ -146,20 +150,36 @@ export async function checkoutSessionCompleted(
         newPlan: updatedWorkspace.plan,
       }) &&
       reactivateProgram(updatedWorkspace.defaultProgramId),
-    sendBatchEmail(
-      users.map((user) => ({
-        to: user.email as string,
-        replyTo: "steven.tey@dub.co",
-        subject: `Thank you for upgrading to Dub ${plan.name}!`,
-        react: UpgradeEmail({
-          name: user.name,
-          email: user.email as string,
-          plan: plan.name,
-          planTier: planTier,
-        }),
-        variant: "marketing",
-      })),
-    ),
+    // only send Upgrade thank you email if workspace is not in a trial
+    // TODO: Only do TrialStartedEmail once we remove the trial feature flag
+    isWorkspaceBillingTrialActive(trialEndsAt)
+      ? sendBatchEmail(
+          users.map((user) => ({
+            to: user.email as string,
+            replyTo: "steven.tey@dub.co",
+            subject: "Welcome to your 14-day Dub trial",
+            react: TrialStartedEmail({
+              email: user.email as string,
+              plan: plan.name,
+              workspaceSlug: updatedWorkspace.slug,
+            }),
+            variant: "marketing",
+          })),
+        )
+      : sendBatchEmail(
+          users.map((user) => ({
+            to: user.email as string,
+            replyTo: "steven.tey@dub.co",
+            subject: `Thank you for upgrading to Dub ${plan.name}!`,
+            react: UpgradeEmail({
+              name: user.name,
+              email: user.email as string,
+              plan: plan.name,
+              planTier: planTier,
+            }),
+            variant: "marketing",
+          })),
+        ),
     // expire tokens cache
     tokenCache.expireMany({
       hashedKeys: updatedWorkspace.restrictedTokens.map(

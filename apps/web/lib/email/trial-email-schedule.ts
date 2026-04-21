@@ -2,7 +2,6 @@ import { DUB_TRIAL_PERIOD_DAYS } from "@dub/utils";
 import { subDays } from "date-fns";
 
 export const TRIAL_EMAIL_TYPE = {
-  STARTED: "trial-started",
   LINKS_FOCUS: "trial-links-focus",
   PARTNER_FOCUS: "trial-partner-focus",
   SOCIAL_PROOF: "trial-social-proof",
@@ -15,7 +14,6 @@ export type TrialEmailType =
   (typeof TRIAL_EMAIL_TYPE)[keyof typeof TRIAL_EMAIL_TYPE];
 
 export const ALL_TRIAL_EMAIL_TYPES: TrialEmailType[] = [
-  TRIAL_EMAIL_TYPE.STARTED,
   TRIAL_EMAIL_TYPE.LINKS_FOCUS,
   TRIAL_EMAIL_TYPE.PARTNER_FOCUS,
   TRIAL_EMAIL_TYPE.SOCIAL_PROOF,
@@ -31,7 +29,6 @@ export const TRIAL_EMAIL_DAYS_FROM_START: Record<
   >,
   number
 > = {
-  [TRIAL_EMAIL_TYPE.STARTED]: 0,
   [TRIAL_EMAIL_TYPE.LINKS_FOCUS]: 2,
   [TRIAL_EMAIL_TYPE.PARTNER_FOCUS]: 4,
   [TRIAL_EMAIL_TYPE.SOCIAL_PROOF]: 6,
@@ -97,15 +94,6 @@ export function getDueTrialEmailTypes({
   if (
     isStartMilestoneDue(
       daysSinceStart,
-      TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.STARTED],
-      TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.LINKS_FOCUS],
-    )
-  ) {
-    tryAdd(TRIAL_EMAIL_TYPE.STARTED);
-  }
-  if (
-    isStartMilestoneDue(
-      daysSinceStart,
       TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.LINKS_FOCUS],
       TRIAL_EMAIL_DAYS_FROM_START[TRIAL_EMAIL_TYPE.PARTNER_FOCUS],
     )
@@ -154,7 +142,6 @@ export function getDueTrialEmailTypes({
 
 export function getTrialEmailSubject(type: TrialEmailType): string {
   const subjects: Record<TrialEmailType, string> = {
-    [TRIAL_EMAIL_TYPE.STARTED]: "Welcome to your free Dub trial",
     [TRIAL_EMAIL_TYPE.LINKS_FOCUS]: "Get more from your links",
     [TRIAL_EMAIL_TYPE.PARTNER_FOCUS]: "Turn partners into a growth channel",
     [TRIAL_EMAIL_TYPE.SOCIAL_PROOF]: "Meet our customers",

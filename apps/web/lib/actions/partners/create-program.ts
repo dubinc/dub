@@ -28,7 +28,6 @@ export const createProgram = async ({
   workspace,
   user,
   redirectTo,
-  sendProgramWelcomeEmail = false,
 }: {
   workspace: Pick<
     Project,
@@ -42,7 +41,6 @@ export const createProgram = async ({
   >;
   user: Pick<User, "id" | "email">;
   redirectTo?: string;
-  sendProgramWelcomeEmail?: boolean;
 }) => {
   const { canManageProgram, canMessagePartners } = getPlanCapabilities(
     workspace.plan,
@@ -239,16 +237,15 @@ export const createProgram = async ({
         : []),
 
       // send email about the new program
-      sendProgramWelcomeEmail &&
-        sendEmail({
-          subject: `Your program ${program.name} is created and ready to share with your partners.`,
-          to: user.email!,
-          react: ProgramWelcome({
-            email: user.email!,
-            workspace,
-            program,
-          }),
+      sendEmail({
+        subject: `Your program ${program.name} is created and ready to share with your partners.`,
+        to: user.email!,
+        react: ProgramWelcome({
+          email: user.email!,
+          workspace,
+          program,
         }),
+      }),
 
       // delete the workspace product cache
       redis.del(`workspace:product:${workspace.slug}`),

@@ -18,13 +18,14 @@ import {
 } from "@/lib/stripe/workspace-subscription-fields";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
+import { sendBatchEmail } from "@dub/email";
+import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import {
   getPlanAndTierFromPriceId,
   getWorkspaceLimitsForStripeSubscriptionStatus,
 } from "@dub/utils";
 import { NEW_BUSINESS_PRICE_IDS } from "@dub/utils/src";
-import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getPlanPeriodFromStripeSubscription } from "./stripe-plan-period";
 
@@ -61,7 +62,7 @@ export async function updateWorkspacePlan({
 
   const newPlanName = newPlan.name.toLowerCase();
 
-  const { canManageProgram, canMessagePartners } =
+  const { canMessagePartners, canCreateWebhooks, canAddFolder } =
     getPlanCapabilities(newPlanName);
 
   const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
@@ -82,7 +83,7 @@ export async function updateWorkspacePlan({
     workspace.plan !== newPlanName ||
     workspace.planPeriod !== planPeriod ||
     workspace.planTier !== newPlanTier ||
-    (trialEndsAt !== undefined && trialEndsAt !== workspace.trialEndsAt) ||
+    workspace.trialEndsAt !== trialEndsAt ||
     (workspace.payoutsLimit < newPlan.limits.payouts &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
@@ -115,6 +116,9 @@ export async function updateWorkspacePlan({
           users: {
             where: {
               role: "owner",
+              user: {
+                isMachine: false,
+              },
             },
             select: {
               user: {
@@ -128,7 +132,6 @@ export async function updateWorkspacePlan({
             orderBy: {
               createdAt: "asc",
             },
-            take: 1,
           },
         },
       }),
@@ -139,8 +142,6 @@ export async function updateWorkspacePlan({
           ({ hashedKey }) => hashedKey,
         ),
       }),
-
-      // if workspace has a program, need to update deactivatedAt and messagingEnabledAt columns based on the plan capabilities
       ...(workspace.defaultProgramId
         ? [
             prisma.program.update({
@@ -148,7 +149,6 @@ export async function updateWorkspacePlan({
                 id: workspace.defaultProgramId,
               },
               data: {
-                deactivatedAt: canManageProgram ? null : undefined,
                 messagingEnabledAt: canMessagePartners ? new Date() : null,
               },
             }),
@@ -157,7 +157,7 @@ export async function updateWorkspacePlan({
     ]);
 
     // Disable the webhooks if the new plan does not support webhooks
-    if (!getPlanCapabilities(newPlanName).canCreateWebhooks) {
+    if (!canCreateWebhooks) {
       await Promise.allSettled([
         prisma.project.update({
           where: {
@@ -197,7 +197,7 @@ export async function updateWorkspacePlan({
 
     // Delete the folders if the new plan does not support folders
     // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
-    if (!getPlanCapabilities(newPlanName).canAddFolder) {
+    if (!canAddFolder) {
       await deleteWorkspaceFolders({
         workspaceId: workspace.id,
         defaultProgramId: workspace.defaultProgramId,
@@ -226,10 +226,10 @@ export async function updateWorkspacePlan({
       await reactivateProgram(workspace.defaultProgramId);
     }
 
-    const workspaceOwner =
+    const workspaceOwners =
       updatedWorkspace.status === "fulfilled"
-        ? updatedWorkspace.value.users[0].user
-        : null;
+        ? updatedWorkspace.value.users.map((user) => user.user)
+        : [];
 
     if (
       workspace.defaultProgramId &&
@@ -245,28 +245,43 @@ export async function updateWorkspacePlan({
         pauseOrCancelCampaignsForProgramOnPlanDowngrade({
           programId: workspace.defaultProgramId,
         }),
-        workspaceOwner &&
+        workspaceOwners.length > 0 &&
           sendAdvancedDowngradeNoticeEmailIfNeeded({
             projectId: workspace.id,
             dedupeType: `advanced-downgrade-notice:${priceId}`,
-            ownerEmail: workspaceOwner.email,
+            ownerEmail: workspaceOwners[0].email,
             workspaceName: workspace.name,
             workspaceSlug: workspace.slug,
           }),
       ]);
     }
 
-    if (workspaceOwner) {
-      waitUntil(syncUserPlanToPlain(workspaceOwner));
+    if (workspaceOwners.length > 0) {
+      const isPaidPlanActivated =
+        workspace.trialEndsAt !== null && trialEndsAt === null;
+
+      await Promise.allSettled([
+        ...(isPaidPlanActivated
+          ? [
+              // send thank you email to workspace owners
+              sendBatchEmail(
+                workspaceOwners.map((user) => ({
+                  to: user.email as string,
+                  replyTo: "steven.tey@dub.co",
+                  subject: `Thank you for upgrading to Dub ${newPlan.name}!`,
+                  react: UpgradeEmail({
+                    name: user.name,
+                    email: user.email as string,
+                    plan: newPlan.name,
+                    planTier: newPlanTier,
+                  }),
+                  variant: "marketing",
+                })),
+              ),
+            ]
+          : []),
+        ...workspaceOwners.map((owner) => syncUserPlanToPlain(owner)),
+      ]);
     }
-  } else if (workspace.paymentFailedAt) {
-    await prisma.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        paymentFailedAt: null,
-      },
-    });
   }
 }

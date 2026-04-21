@@ -8,7 +8,6 @@ import TrialEndsTodayEmail from "@dub/email/templates/trial/trial-ends-today";
 import TrialLinksFocusEmail from "@dub/email/templates/trial/trial-links-focus";
 import TrialPartnerFocusEmail from "@dub/email/templates/trial/trial-partner-focus";
 import TrialSocialProofEmail from "@dub/email/templates/trial/trial-social-proof";
-import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
 
 export function renderTrialEmail(
   type: TrialEmailType,
@@ -17,12 +16,9 @@ export function renderTrialEmail(
     name: string | null;
     plan: string;
     workspaceSlug: string;
-    unsubscribeUrl: string;
   },
 ) {
   switch (type) {
-    case TRIAL_EMAIL_TYPE.STARTED:
-      return TrialStartedEmail(props);
     case TRIAL_EMAIL_TYPE.LINKS_FOCUS:
       return TrialLinksFocusEmail(props);
     case TRIAL_EMAIL_TYPE.PARTNER_FOCUS:

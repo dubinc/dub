@@ -19,7 +19,6 @@ export default function TrialStartedEmail({
   email = "panic@thedis.co",
   plan = "Advanced",
   workspaceSlug = "acme",
-  unsubscribeUrl,
 }: TrialMarketingEmailProps) {
   const trialDays = DUB_TRIAL_PERIOD_DAYS;
   const planLabel = capitalize(plan);
@@ -111,7 +110,7 @@ export default function TrialStartedEmail({
               </Link>
             </Section>
 
-            <Footer email={email} marketing unsubscribeUrl={unsubscribeUrl} />
+            <Footer email={email} marketing />
           </Container>
         </Body>
       </Tailwind>

@@ -22,7 +22,6 @@ const RAYCAST_CASE_IMAGE =
 
 export default function TrialSocialProofEmail({
   email = "panic@thedis.co",
-  unsubscribeUrl,
   plan: _plan,
   workspaceSlug,
 }: TrialMarketingEmailProps) {
@@ -121,7 +120,7 @@ export default function TrialSocialProofEmail({
               </Link>
             </Section>
 
-            <Footer email={email} marketing unsubscribeUrl={unsubscribeUrl} />
+            <Footer email={email} marketing />
           </Container>
         </Body>
       </Tailwind>

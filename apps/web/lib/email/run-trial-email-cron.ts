@@ -3,10 +3,9 @@ import {
   getDueTrialEmailTypes,
   getTrialEmailSubject,
 } from "@/lib/email/trial-email-schedule";
-import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
 import { sendBatchEmail as defaultSendBatchEmail } from "@dub/email";
 import type { PrismaClient } from "@dub/prisma/client";
-import { APP_DOMAIN, chunk, log } from "@dub/utils";
+import { chunk, log } from "@dub/utils";
 import { createHash } from "crypto";
 
 const WORKSPACE_PAGE_SIZE = 50;
@@ -142,7 +141,6 @@ export async function runTrialEmailCron({
         react: renderTrialEmail(type, {
           email: recipient.email,
           name: recipient.name,
-          unsubscribeUrl: `${APP_DOMAIN}/unsubscribe/${generateUnsubscribeToken(recipient.email)}`,
           plan: workspace.plan,
           workspaceSlug: workspace.slug,
         }),

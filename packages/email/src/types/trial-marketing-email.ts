@@ -3,5 +3,4 @@ export type TrialMarketingEmailProps = {
   name?: string | null;
   plan: string;
   workspaceSlug: string;
-  unsubscribeUrl: string;
 };

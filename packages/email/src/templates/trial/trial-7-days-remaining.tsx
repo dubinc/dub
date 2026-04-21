@@ -17,8 +17,6 @@ import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email
 
 export default function Trial7DaysRemainingEmail({
   email = "panic@thedis.co",
-  name,
-  unsubscribeUrl,
   plan,
   workspaceSlug,
 }: TrialMarketingEmailProps) {
@@ -132,7 +130,7 @@ export default function Trial7DaysRemainingEmail({
               </Link>
             </Section>
 
-            <Footer email={email} marketing unsubscribeUrl={unsubscribeUrl} />
+            <Footer email={email} marketing />
           </Container>
         </Body>
       </Tailwind>
