@@ -158,28 +158,30 @@ async function trackVisitEvent({
   const requestContext = await getRequestContext(req);
 
   try {
-    await prisma.programApplicationEvent.create({
-      data: {
-        id: createId({ prefix: "pga_evt_" }),
-        programId: program.id,
-        referralSource: referrer
-          ? getDomainWithoutWWW(referrer) || "(direct)"
-          : "(direct)",
-        referredByPartnerId: referredByPartner?.id,
-        partnerId: session?.user?.defaultPartnerId,
-        visitedAt: new Date(),
-        country: requestContext.country,
-        metadata: requestContext,
+    const programApplicationEvent = await prisma.programApplicationEvent.create(
+      {
+        data: {
+          id: createId({ prefix: "pga_evt_" }),
+          programId: program.id,
+          referralSource: referrer
+            ? getDomainWithoutWWW(referrer) || "(direct)"
+            : "(direct)",
+          referredByPartnerId: referredByPartner?.id,
+          partnerId: session?.user?.defaultPartnerId,
+          visitedAt: new Date(),
+          country: requestContext.country,
+          metadata: requestContext,
+        },
       },
-    });
+    );
 
     console.log(
-      `Created "visit" event for program ${program.id} with eventId: ${eventId}`,
+      `Created "visit" event for program ${program.id} with eventId: ${programApplicationEvent.id}`,
     );
 
     const cookieStore = await cookies();
 
-    cookieStore.set(cookieName, eventId, {
+    cookieStore.set(cookieName, programApplicationEvent.id, {
       httpOnly: true,
       maxAge: APPLICATION_ID_COOKIE_MAX_AGE,
       secure: process.env.NODE_ENV === "production",
