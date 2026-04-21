@@ -124,7 +124,7 @@ export function AddEditDomainForm({
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting, isDirty },
+    formState: { isSubmitting, isSubmitSuccessful, isDirty },
   } = useForm<FormData>({
     defaultValues: {
       slug: props?.slug,
@@ -611,7 +611,7 @@ export function AddEditDomainForm({
         <Button
           text={props ? "Save changes" : "Add domain"}
           disabled={saveDisabled}
-          loading={isSubmitting}
+          loading={isSubmitting || isSubmitSuccessful}
         />
       </div>
     </form>

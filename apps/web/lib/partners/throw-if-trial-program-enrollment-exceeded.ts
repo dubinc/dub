@@ -23,9 +23,6 @@ export async function throwIfTrialProgramEnrollmentLimitExceeded({
   tx?: Prisma.TransactionClient;
 }) {
   if (!isWorkspaceBillingTrialActive(trialEndsAt)) {
-    console.log(
-      "Workspace is not on a billing trial, skipping enrollment limit check...",
-    );
     return;
   }
 
