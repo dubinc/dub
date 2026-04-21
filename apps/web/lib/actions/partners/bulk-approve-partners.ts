@@ -3,6 +3,7 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { markApplicationEvents } from "@/lib/application-events/update-application-event";
 import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
@@ -129,6 +130,12 @@ export const bulkApprovePartnersAction = authActionClient
               },
             })),
           ),
+
+          markApplicationEvents({
+            event: "approved",
+            programId: program.id,
+            partnerIds: updatedEnrollments.map(({ partnerId }) => partnerId),
+          }),
         ]);
       })(),
     );

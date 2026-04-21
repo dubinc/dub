@@ -3,12 +3,6 @@ import { Prisma } from "@dub/prisma/client";
 import { cookies } from "next/headers";
 import { getApplicationEventCookieName } from "./utils";
 
-interface MarkApplicationEventInput {
-  programId: string;
-  partnerId: string;
-  event: "approved" | "rejected";
-}
-
 // Application events visited as a guest have partnerId: null — look up the
 // event via the browser cookie and backfill partnerId + submittedAt. Fall
 // back to the (programId, partnerId) lookup if no cookie is present (e.g. the
@@ -47,16 +41,23 @@ export async function markApplicationEventSubmitted({
   } catch {}
 }
 
-export async function markApplicationEvent({
+export async function markApplicationEvents({
   programId,
-  partnerId,
+  partnerIds,
   event,
-}: MarkApplicationEventInput) {
+}: {
+  programId: string;
+  partnerIds: string[];
+  event: "approved" | "rejected";
+}) {
+  if (partnerIds.length === 0) {
+    return;
+  }
+
   const eventToColumnMap = {
-    submitted: "submittedAt",
     approved: "approvedAt",
     rejected: "rejectedAt",
-  };
+  } as const;
 
   const column = eventToColumnMap[event];
 
@@ -65,11 +66,11 @@ export async function markApplicationEvent({
   }
 
   try {
-    await prisma.programApplicationEvent.update({
+    await prisma.programApplicationEvent.updateMany({
       where: {
-        programId_partnerId: {
-          programId,
-          partnerId,
+        programId,
+        partnerId: {
+          in: partnerIds,
         },
         [column]: null,
       },
