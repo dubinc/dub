@@ -1,6 +1,6 @@
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
 import { withCron } from "@/lib/cron/with-cron";
-import { approvePartnerEnrollment } from "@/lib/partners/approve-partner-enrollment";
+import { approvePartner } from "@/lib/partners/approve-partner";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
@@ -119,7 +119,7 @@ export const POST = withCron(async ({ rawBody }) => {
     }
   }
 
-  await approvePartnerEnrollment({
+  await approvePartner({
     programId,
     partnerId,
     userId: program.workspace.users[0].userId,

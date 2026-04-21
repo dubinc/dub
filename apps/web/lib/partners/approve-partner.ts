@@ -11,11 +11,11 @@ type ApprovePartnerInput = z.infer<typeof approvePartnerSchema> & {
   userId: string;
 };
 
-export async function approvePartnerEnrollment({
+export async function approvePartner({
   programId,
   partnerId,
-  userId,
   groupId,
+  userId,
 }: ApprovePartnerInput) {
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -103,4 +103,6 @@ export async function approvePartnerEnrollment({
       }),
     ]),
   );
+
+  return programEnrollment;
 }

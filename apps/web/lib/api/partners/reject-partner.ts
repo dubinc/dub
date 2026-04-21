@@ -115,7 +115,6 @@ export async function rejectPartner({
         },
       }),
 
-      // Automatically resolve all pending fraud events for this partner in the current program
       resolveFraudGroups({
         where: {
           programId,
