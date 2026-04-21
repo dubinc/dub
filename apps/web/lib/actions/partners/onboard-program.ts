@@ -30,7 +30,7 @@ export const onboardProgramAction = authActionClient
       await createProgram({
         workspace,
         user,
-        redirectTo: `/${workspace.slug}/program?onboarded-program=true`,
+        isProgramOnboarding: true,
       });
       return;
     }

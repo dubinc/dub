@@ -1,6 +1,13 @@
-import { capitalize, DUB_TRIAL_PERIOD_DAYS, DUB_WORDMARK } from "@dub/utils";
+import {
+  capitalize,
+  DUB_LOGO,
+  DUB_TRIAL_PERIOD_DAYS,
+  DUB_WORDMARK,
+  getPrettyUrl,
+} from "@dub/utils";
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
@@ -8,6 +15,7 @@ import {
   Img,
   Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
@@ -19,8 +27,14 @@ export default function TrialStartedEmail({
   email = "panic@thedis.co",
   plan = "Advanced",
   workspaceSlug = "acme",
-}: TrialMarketingEmailProps) {
-  const trialDays = DUB_TRIAL_PERIOD_DAYS;
+  program,
+}: TrialMarketingEmailProps & {
+  program?: {
+    slug: string;
+    name: string;
+    logo: string | null;
+  };
+}) {
   const planLabel = capitalize(plan);
   const dashboardUrl = `https://app.dub.co/${workspaceSlug}`;
 
@@ -28,8 +42,8 @@ export default function TrialStartedEmail({
     <Html>
       <Head />
       <Preview>
-        {String(trialDays)} days of Dub — domains, tracking, partners, and API.
-        Here are your first steps.
+        {String(DUB_TRIAL_PERIOD_DAYS)} days of Dub — domains, tracking,
+        partners, and API. Here are your first steps.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -38,55 +52,144 @@ export default function TrialStartedEmail({
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-semibold text-black">
-              Welcome to your free {String(trialDays)}-day trial of Dub!
-            </Heading>
-            <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              You&apos;re now on a {String(trialDays)}-day {planLabel} trial of
-              Dub.
-            </Text>
-
-            <Heading className="mx-0 mb-3 mt-2 p-0 text-base font-semibold text-black">
-              Here&apos;s where to start:
+              Welcome to your free {String(DUB_TRIAL_PERIOD_DAYS)}-day trial of
+              Dub!
             </Heading>
 
-            <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              2. Track conversions:{" "}
-              <Link
-                href={`${dashboardUrl}/settings/tracking`}
-                className="text-neutral-600 underline underline-offset-2"
-              >
-                Install the Dub tracking script
-              </Link>{" "}
-              to track your short link and partner conversions.
-            </Text>
+            {program && (
+              <>
+                <Text className="mb-6 mt-5 text-sm leading-5 text-neutral-600">
+                  Your program{" "}
+                  <span className="font-semibold text-neutral-800">
+                    {program.name}
+                  </span>{" "}
+                  is created and ready to share with your partners.
+                </Text>
+                <Section className="mb-6 rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-6 py-4">
+                  <Row>
+                    <Column width={10}>
+                      <Img
+                        src={program.logo || DUB_LOGO}
+                        alt={program.name}
+                        height="32"
+                        width="32"
+                        className="mr-4 rounded-md"
+                      />
+                    </Column>
 
-            <Text className="mb-4 text-sm leading-6 text-neutral-600">
-              3. Create a program:{" "}
-              <Link
-                href="https://dub.co/docs/partners/quickstart"
-                className="text-neutral-600 underline underline-offset-2"
-              >
-                Set up your Dub partner program
-              </Link>{" "}
-              to grow your revenue on autopilot with advanced reward structures,
-              dual-sided incentives, and real-time attribution.
-            </Text>
+                    <Column>
+                      <Text className="text-md m-0 text-base font-semibold leading-none text-neutral-800">
+                        {program.name}
+                      </Text>
 
-            <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              4. Explore the API -{" "}
-              <Link
-                href="https://dub.co/docs"
-                className="text-neutral-600 underline underline-offset-2"
-              >
-                Check out our docs
-              </Link>{" "}
-              to automate link creation and integrate with your stack.
-            </Text>
+                      <Link
+                        href={`${dashboardUrl}/program`}
+                        className="m-0 text-xs font-medium text-neutral-800 underline"
+                      >
+                        {getPrettyUrl(`${dashboardUrl}/program`)}
+                      </Link>
+                    </Column>
+                  </Row>
+                </Section>
+              </>
+            )}
 
-            <Text className="mb-8 text-sm leading-6 text-neutral-600">
-              You&apos;ll have access to all features during your trial, with
-              usage limits in place. When the trial ends, your workspace will
-              move to a paid plan unless changed.
+            <Heading className="mx-0 mb-6 p-0 text-base font-semibold text-black">
+              Here&apos;s what you can do next:
+            </Heading>
+
+            {program ? (
+              <>
+                <Text className="mb-4 text-sm leading-5 text-neutral-800">
+                  1.{" "}
+                  <span className="font-semibold text-black">
+                    Connect your bank account
+                  </span>
+                  :{" "}
+                  <Link
+                    href="https://dub.co/help/article/how-to-set-up-bank-account"
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    Set up a bank account
+                  </Link>{" "}
+                  to start paying out commissions to your partners.
+                </Text>
+
+                <Text className="mb-4 text-sm leading-5 text-neutral-800">
+                  2.{" "}
+                  <span className="font-semibold text-black">
+                    Create your program application form
+                  </span>
+                  : Use our{" "}
+                  <Link
+                    href={`${dashboardUrl}/program/groups/default/branding`}
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    interactive builder
+                  </Link>{" "}
+                  to create a beautiful, branded program application form.
+                </Text>
+                <Text className="mb-4 text-sm leading-5 text-neutral-800">
+                  3.{" "}
+                  <span className="font-semibold text-black">
+                    Set up conversion tracking
+                  </span>
+                  :{" "}
+                  <Link
+                    href={`${dashboardUrl}/settings/tracking`}
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    Follow our quickstart guide
+                  </Link>{" "}
+                  to set up conversion tracking for your program.
+                </Text>
+                <Text className="mb-4 text-sm leading-5 text-neutral-800">
+                  4.{" "}
+                  <span className="font-semibold text-black">
+                    Invite your partners
+                  </span>
+                  : Easily{" "}
+                  <Link
+                    href={`${dashboardUrl}/program/partners`}
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    invite influencers, affiliates, and users
+                  </Link>{" "}
+                  to your program, or{" "}
+                  <Link
+                    href="https://dub.co/docs/partners/embedded-referrals"
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    enroll them automatically.
+                  </Link>
+                </Text>
+                <Text className="mb-0 text-sm leading-5 text-neutral-800">
+                  5.{" "}
+                  <span className="font-semibold text-black">
+                    Create more rewards
+                  </span>{" "}
+                  - Set up{" "}
+                  <Link
+                    href={`${dashboardUrl}/program/rewards`}
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    click, lead, and sale-based rewards
+                  </Link>{" "}
+                  to incentivize your partners to drive more traffic and
+                  conversions.
+                </Text>
+              </>
+            ) : (
+              <></>
+            )}
+
+            <Text className="mb-8 text-sm leading-5 text-neutral-800">
+              You&apos;ll have access to all {planLabel} features during your
+              trial, with trial usage limits in place.
+              <br />
+              <br />
+              To remove these limits, you can activate your paid plan at any
+              time.
             </Text>
 
             <Section className="my-8">

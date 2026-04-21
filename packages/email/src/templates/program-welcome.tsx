@@ -21,6 +21,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
+// only sent for existing workspaces that create a program outside of workspace onboarding
 export default function ProgramWelcome({
   email = "panic@thedis.co",
   workspace = {
@@ -94,7 +95,18 @@ export default function ProgramWelcome({
               Getting started
             </Heading>
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
-              1.{" "}
+              1. <span className="font-medium">Connect your bank account</span>:{" "}
+              <Link
+                href="https://dub.co/help/article/how-to-set-up-bank-account"
+                className="font-semibold text-neutral-800 underline underline-offset-2"
+              >
+                Set up a bank account
+              </Link>{" "}
+              to start paying out commissions to your partners.
+            </Text>
+
+            <Text className="mb-4 text-sm leading-5 text-neutral-800">
+              2.{" "}
               <span className="font-medium">
                 Create your program application form
               </span>
@@ -105,18 +117,7 @@ export default function ProgramWelcome({
               >
                 interactive builder
               </Link>{" "}
-              to create a beautiful, branded program application form to get
-              more partners applying to join your program.
-            </Text>
-            <Text className="mb-4 text-sm leading-5 text-neutral-800">
-              2. <span className="font-medium">Connect your bank account</span>:{" "}
-              <Link
-                href="https://dub.co/help/article/how-to-set-up-bank-account"
-                className="font-semibold text-neutral-800 underline underline-offset-2"
-              >
-                Set up a bank account
-              </Link>{" "}
-              to start paying out commissions to your partners.
+              to create a beautiful, branded program application form.
             </Text>
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
               3. <span className="font-medium">Set up conversion tracking</span>

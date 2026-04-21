@@ -23,11 +23,10 @@ import { getDomainWithoutWWW, isLegacyBusinessPlan, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
-// Create a program from the onboarding data
 export const createProgram = async ({
   workspace,
   user,
-  redirectTo,
+  isProgramOnboarding = false,
 }: {
   workspace: Pick<
     Project,
@@ -35,12 +34,13 @@ export const createProgram = async ({
     | "slug"
     | "plan"
     | "payoutsLimit"
+    | "trialEndsAt"
     | "store"
     | "webhookEnabled"
     | "invoicePrefix"
   >;
   user: Pick<User, "id" | "email">;
-  redirectTo?: string;
+  isProgramOnboarding?: boolean;
 }) => {
   const { canManageProgram, canMessagePartners } = getPlanCapabilities(
     workspace.plan,
@@ -236,16 +236,20 @@ export const createProgram = async ({
           )
         : []),
 
-      // send email about the new program
-      sendEmail({
-        subject: `Your program ${program.name} is created and ready to share with your partners.`,
-        to: user.email!,
-        react: ProgramWelcome({
-          email: user.email!,
-          workspace,
-          program,
-        }),
-      }),
+      // send email about the new program (only for trial onboarding flow, not separate program onboarding / paid workspace)
+      ...(isProgramOnboarding || workspace.trialEndsAt == null
+        ? []
+        : [
+            sendEmail({
+              subject: `Your program ${program.name} is created and ready to share with your partners.`,
+              to: user.email!,
+              react: ProgramWelcome({
+                email: user.email!,
+                workspace,
+                program,
+              }),
+            }),
+          ]),
 
       // delete the workspace product cache
       redis.del(`workspace:product:${workspace.slug}`),
@@ -268,7 +272,8 @@ export const createProgram = async ({
     ]),
   );
 
-  if (redirectTo) redirect(redirectTo);
+  if (isProgramOnboarding)
+    redirect(`/${workspace.slug}/program?onboarded-program=true`);
 };
 
 // Invite a partner to the program

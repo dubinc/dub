@@ -1,7 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { generateUnsubscribeToken } from "@/lib/email/unsubscribe-token";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { sendEmail } from "@dub/email";
 import WelcomeEmail from "@dub/email/templates/welcome-email";
 import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
@@ -32,7 +31,6 @@ export async function POST(req: Request) {
         name: true,
         email: true,
         partners: true,
-
         projects: {
           select: {
             project: {
@@ -87,13 +85,10 @@ export async function POST(req: Request) {
               name: user.name,
               unsubscribeUrl,
             })
-          : WelcomeEmail({
+          : // TODO: shouldn't send this if already sent TrialStarted email
+            WelcomeEmail({
               email: user.email,
               workspace: user.projects?.[0]?.project,
-              hasDubPartners: getPlanCapabilities(
-                user.projects?.[0]?.project?.plan || "free",
-              ).canManageProgram,
-              program: user.projects?.[0]?.project?.programs?.[0],
               unsubscribeUrl,
             }),
         variant: "marketing",
