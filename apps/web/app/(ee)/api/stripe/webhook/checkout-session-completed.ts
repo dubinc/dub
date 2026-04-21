@@ -1,7 +1,9 @@
 import { createProgram } from "@/lib/actions/partners/create-program";
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
+import { reactivateProgram } from "@/lib/api/programs/reactivate-program";
 import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { wouldGainPartnerAccess } from "@/lib/plans/has-partner-access";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -12,8 +14,10 @@ import { Program, User } from "@dub/prisma/client";
 import { getPlanAndTierFromPriceId, log, prettyPrint } from "@dub/utils";
 import Stripe from "stripe";
 
-export async function checkoutSessionCompleted(event: Stripe.Event) {
-  const checkoutSession = event.data.object as Stripe.Checkout.Session;
+export async function checkoutSessionCompleted(
+  event: Stripe.CheckoutSessionCompletedEvent,
+) {
+  const checkoutSession = event.data.object;
 
   if (
     checkoutSession.mode === "setup" ||
@@ -52,7 +56,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   // in the database for easy identification in future webhook events
   // also update the billingCycleStart to today's date
 
-  const workspace = await prisma.project.update({
+  const updatedWorkspace = await prisma.project.update({
     where: {
       id: workspaceId,
     },
@@ -100,7 +104,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
-  const users = workspace.users.map(({ user }) => ({
+  const users = updatedWorkspace.users.map(({ user }) => ({
     id: user.id,
     name: user.name,
     email: user.email,
@@ -108,6 +112,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   await Promise.allSettled([
     completeOnboarding({ users, workspaceId }),
+    // if workspace had a program from before and is upgrading to an eligible plan, reactivate it
+    updatedWorkspace.defaultProgramId &&
+      wouldGainPartnerAccess({
+        currentPlan: "free",
+        newPlan: updatedWorkspace.plan,
+      }) &&
+      reactivateProgram(updatedWorkspace.defaultProgramId),
     sendBatchEmail(
       users.map((user) => ({
         to: user.email as string,
@@ -122,18 +133,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         variant: "marketing",
       })),
     ),
-    // enable dub.link premium default domain for the workspace
-    prisma.defaultDomains.update({
-      where: {
-        projectId: workspaceId,
-      },
-      data: {
-        dublink: true,
-      },
-    }),
     // expire tokens cache
     tokenCache.expireMany({
-      hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
+      hashedKeys: updatedWorkspace.restrictedTokens.map(
+        ({ hashedKey }) => hashedKey,
+      ),
     }),
   ]);
 

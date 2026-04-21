@@ -10,7 +10,7 @@ import Link from "next/link";
 import * as z from "zod/v4";
 
 type EventDataProps = z.infer<
-  (typeof fraudEventSchemas)["partnerDuplicatePayoutMethod"]
+  (typeof fraudEventSchemas)["partnerDuplicateAccount"]
 >;
 
 export function FraudPartnerInfoTable() {

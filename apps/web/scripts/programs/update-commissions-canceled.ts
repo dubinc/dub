@@ -91,7 +91,6 @@ async function main() {
     await syncTotalCommissions({
       partnerId,
       programId,
-      mode: "direct",
     });
   }
 }

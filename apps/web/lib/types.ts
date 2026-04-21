@@ -1,3 +1,4 @@
+import type { SiteVisitTrackingSettingsValue } from "@/lib/sitemaps/site-visit-tracking";
 import {
   PartnerBountySchema,
   partnerBountySubmissionSchema,
@@ -33,6 +34,12 @@ import {
 } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { RESOURCE_COLORS } from "../ui/colors";
+import {
+  apiLogCountRowSchema,
+  apiLogEnrichedSchema,
+  apiLogSchemaTB,
+  requestTypeSchema,
+} from "./api-logs/schemas";
 import { PAID_TRAFFIC_PLATFORMS } from "./api/fraud/constants";
 import { BOUNTY_SUBMISSION_REQUIREMENTS } from "./bounty/constants";
 import { BOUNTY_SOCIAL_PLATFORMS } from "./bounty/social-content";
@@ -253,13 +260,15 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 
 export type PlanProps = (typeof plans)[number];
 
-export type BetaFeatures = "noDubLink" | "analyticsSettingsSiteVisitTracking";
+export type BetaFeatures = "analyticsSettingsSiteVisitTracking";
 
 export type PartnerBetaFeatures = "postbacks";
 
-export interface WorkspaceProps extends Project {
+export interface WorkspaceProps
+  extends Omit<Project, "siteVisitTrackingSettings"> {
   logo: string | null;
   plan: PlanProps;
+  siteVisitTrackingSettings: SiteVisitTrackingSettingsValue | null;
   domains: {
     slug: string;
     primary: boolean;
@@ -898,3 +907,13 @@ export type CommissionActivitySnapshot = Pick<
   Commission,
   "amount" | "earnings" | "status"
 >;
+
+export type EnrichedApiLog = z.infer<typeof apiLogEnrichedSchema>;
+
+export type ApiLogsCountRow = z.infer<typeof apiLogCountRowSchema>;
+
+export type ApiLogsCountByRoutePattern = ApiLogsCountRow;
+
+export type RequestType = z.infer<typeof requestTypeSchema>;
+
+export type ApiLogTB = z.infer<typeof apiLogSchemaTB>;

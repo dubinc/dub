@@ -9,8 +9,8 @@ import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
 // Handle event "coupon.deleted"
-export async function couponDeleted(event: Stripe.Event) {
-  const coupon = event.data.object as Stripe.Coupon;
+export async function couponDeleted(event: Stripe.CouponDeletedEvent) {
+  const coupon = event.data.object;
   const stripeAccountId = event.account as string;
 
   const workspace = await prisma.project.findUnique({
@@ -26,11 +26,16 @@ export async function couponDeleted(event: Stripe.Event) {
   });
 
   if (!workspace) {
-    return `Workspace not found for Stripe account ${stripeAccountId}.`;
+    return {
+      response: `Workspace not found for Stripe account ${stripeAccountId}, skipping...`,
+    };
   }
 
   if (!workspace.defaultProgramId) {
-    return `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs.`;
+    return {
+      response: `Workspace ${workspace.id} for stripe account ${stripeAccountId} has no programs.`,
+      workspaceId: workspace.id,
+    };
   }
 
   const discounts = await prisma.discount.findMany({
@@ -44,7 +49,10 @@ export async function couponDeleted(event: Stripe.Event) {
   });
 
   if (!discounts.length) {
-    return `Discount not found for Stripe coupon ${coupon.id}.`;
+    return {
+      response: `Discount not found for Stripe coupon ${coupon.id}.`,
+      workspaceId: workspace.id,
+    };
   }
 
   const discountIds = discounts.map((d) => d.id);
@@ -129,5 +137,8 @@ export async function couponDeleted(event: Stripe.Event) {
     })(),
   );
 
-  return `Stripe coupon ${coupon.id} deleted.`;
+  return {
+    response: `Stripe coupon ${coupon.id} deleted.`,
+    workspaceId: workspace.id,
+  };
 }

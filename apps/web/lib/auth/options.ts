@@ -350,8 +350,6 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     signIn: async ({ user, account, profile }) => {
-      console.log({ user, account, profile });
-
       if (!user.email || (await isBlacklistedEmail(user.email))) {
         return false;
       }
@@ -560,7 +558,6 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
-      console.log("signIn", message);
       const email = message.user.email as string;
       const user = await prisma.user.findUnique({
         where: { email },

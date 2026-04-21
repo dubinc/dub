@@ -20,7 +20,7 @@ function BankAccountRequirementsModal({
 
   const BANK_ACCOUNT_REQUIREMENTS = useMemo(() => {
     return [
-      `1. Bank account must be in your local currency.${partner?.country ? ` Since you're based in [${COUNTRIES[partner.country]}](/profile), you need to connect a **${COUNTRY_CURRENCY_CODES[partner.country]} bank account** to receive payouts.` : ""}`,
+      `1. Bank account must be in your local currency.${partner?.country ? ` Since you're based in [${COUNTRIES[partner.country]}](https://partners.dub.co/profile), you need to connect a **${COUNTRY_CURRENCY_CODES[partner.country]} bank account** to receive payouts.` : ""}`,
       "2. Bank account must be a **checking account** (not a savings account or debit card).",
       "3. Bank account holder name must match your partner account name.",
       "4. Bank account details are 100% accurate (no typos or missing numbers).",

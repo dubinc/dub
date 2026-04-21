@@ -1,3 +1,4 @@
+import { captureRequestLog } from "@/lib/api-logs/capture-request-log";
 import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
@@ -20,6 +21,12 @@ import { NextResponse } from "next/server";
 
 // POST /api/track/open – Track an open event for deep link
 export const POST = withAxiom(async (req) => {
+  const startTime = Date.now();
+  const url = new URL(req.url);
+  const requestHeaders = req.headers;
+  const reqForLog = req.clone();
+  let workspaceId: string | null = null;
+
   try {
     const { deepLink: deepLinkUrl, dubDomain } = trackOpenRequestSchema.parse(
       await parseRequestBody(req),
@@ -108,6 +115,8 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
+    workspaceId = cachedLink.projectId;
+
     const linkData = {
       id: cachedLink.id,
       domain,
@@ -149,9 +158,46 @@ export const POST = withAxiom(async (req) => {
       link: linkData,
     });
 
-    return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });
+    const jsonResponse = NextResponse.json(response, {
+      headers: COMMON_CORS_HEADERS,
+    });
+
+    waitUntil(
+      captureRequestLog({
+        req: reqForLog,
+        response: jsonResponse,
+        workspace: { id: workspaceId },
+        session: undefined,
+        token: null,
+        url,
+        requestHeaders,
+        startTime,
+      }),
+    );
+
+    return jsonResponse;
   } catch (error) {
-    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
+    const errorResponse = handleAndReturnErrorResponse(
+      error,
+      COMMON_CORS_HEADERS,
+    );
+
+    if (workspaceId) {
+      waitUntil(
+        captureRequestLog({
+          req: reqForLog,
+          response: errorResponse,
+          workspace: { id: workspaceId },
+          session: undefined,
+          token: null,
+          url,
+          requestHeaders,
+          startTime,
+        }),
+      );
+    }
+
+    return errorResponse;
   }
 });
 

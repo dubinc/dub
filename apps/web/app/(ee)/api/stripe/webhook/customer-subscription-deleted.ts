@@ -14,8 +14,10 @@ import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
 import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
-export async function customerSubscriptionDeleted(event: Stripe.Event) {
-  const subscriptionDeleted = event.data.object as Stripe.Subscription;
+export async function customerSubscriptionDeleted(
+  event: Stripe.CustomerSubscriptionDeletedEvent,
+) {
+  const subscriptionDeleted = event.data.object;
 
   const stripeId = subscriptionDeleted.customer.toString();
 
@@ -116,17 +118,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         paymentFailedAt: null,
       },
     }),
-
-    // disable dub.link premium default domain for the workspace
-    prisma.defaultDomains.update({
-      where: {
-        projectId: workspace.id,
-      },
-      data: {
-        dublink: false,
-      },
-    }),
-
     // remove logo from all domains for the workspace
     prisma.domain.updateMany({
       where: {

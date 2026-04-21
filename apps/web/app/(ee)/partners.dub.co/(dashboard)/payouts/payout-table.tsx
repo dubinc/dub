@@ -230,7 +230,7 @@ export function PayoutTable() {
           payout={detailsSheetState.payout}
         />
       )}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         <PartnerPayoutFilters />
         {payouts?.length !== 0 ? (
           <Table {...table} />
@@ -256,7 +256,7 @@ function PartnerPayoutFilters() {
     usePayoutFilters();
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col">
       <Filter.Select
         className="w-full md:w-fit"
         filters={filters}
@@ -266,13 +266,15 @@ function PartnerPayoutFilters() {
       />
       <AnimatedSizeContainer height>
         {activeFilters.length > 0 && (
-          <Filter.List
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-            onRemoveAll={onRemoveAll}
-          />
+          <div className="pt-3">
+            <Filter.List
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+              onRemoveAll={onRemoveAll}
+            />
+          </div>
         )}
       </AnimatedSizeContainer>
     </div>

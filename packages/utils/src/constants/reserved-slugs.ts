@@ -1,6 +1,6 @@
 /**
  * Check if a key is reserved:
- * - cannot be registered for a short link (only for dub.sh / dub.link domains)
+ * - cannot be registered for a short link (only for dub.sh domain)
  * - cannot be used as a workspace slug
  */
 
@@ -11,6 +11,8 @@ export const RESERVED_SLUGS = [
   "share",
   "deeplink",
   "robots.txt",
+  "undefined",
+  "null",
   "proxy",
   "account",
   "api",

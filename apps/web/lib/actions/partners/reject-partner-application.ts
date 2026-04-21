@@ -1,6 +1,6 @@
 "use server";
 
-import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
@@ -98,19 +98,19 @@ export const rejectPartnerApplicationAction = authActionClient
     waitUntil(
       (async () => {
         await Promise.allSettled([
-          recordAuditLog({
+          trackActivityLog({
             workspaceId: workspace.id,
             programId,
+            resourceType: "partner",
+            resourceId: partnerId,
+            userId: user.id,
             action: "partner_application.rejected",
-            description: `Partner application rejected (${partnerId})`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partnerId,
-                metadata: programEnrollment.partner,
+            changeSet: {
+              status: {
+                old: "pending",
+                new: "rejected",
               },
-            ],
+            },
           }),
 
           // Automatically resolve all pending fraud events for this partner in the current program

@@ -3,7 +3,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -23,13 +23,17 @@ export async function createNewCustomer(event: Stripe.Event) {
 
   // The client app should always send dubClickId (dub_id) via metadata
   if (!clickId) {
-    return "Click ID not found in Stripe customer metadata, skipping...";
+    return {
+      response: "Click ID not found in Stripe customer metadata, skipping...",
+    };
   }
 
   // Find click
   const clickData = await getClickEvent({ clickId });
   if (!clickData) {
-    return `Click event with ID ${clickId} not found, skipping...`;
+    return {
+      response: `Click event with ID ${clickId} not found, skipping...`,
+    };
   }
 
   // Find link
@@ -41,7 +45,10 @@ export async function createNewCustomer(event: Stripe.Event) {
   });
 
   if (!link || !link.projectId) {
-    return `Link with ID ${linkId} not found or does not have a project, skipping...`;
+    return {
+      response: `Link with ID ${linkId} not found or does not have a project, skipping...`,
+      workspaceId: link?.projectId ? link.projectId : undefined,
+    };
   }
 
   // Create a customer
@@ -168,5 +175,8 @@ export async function createNewCustomer(event: Stripe.Event) {
     ]),
   );
 
-  return `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`;
+  return {
+    response: `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`,
+    workspaceId: workspace.id,
+  };
 }

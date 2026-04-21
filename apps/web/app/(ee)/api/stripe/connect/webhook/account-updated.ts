@@ -19,8 +19,8 @@ const balanceAvailableQueue = qstash.queue({
   queueName: "handle-balance-available",
 });
 
-export async function accountUpdated(event: Stripe.Event) {
-  const account = event.data.object as Stripe.Account;
+export async function accountUpdated(event: Stripe.AccountUpdatedEvent) {
+  const account = event.data.object;
   const { country, business_type } = account;
 
   const partner = await prisma.partner.findUnique({

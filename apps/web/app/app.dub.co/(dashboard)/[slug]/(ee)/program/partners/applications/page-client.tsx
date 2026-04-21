@@ -420,7 +420,7 @@ export function ProgramPartnersApplicationsPageClient() {
   }, [partners, detailsSheetState.partnerId]);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       {detailsSheetState.partnerId && currentPartner && (
         <PartnerApplicationSheet
           isOpen={detailsSheetState.open}

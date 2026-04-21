@@ -12,6 +12,7 @@ async function main() {
         partners: {
           some: {
             partner: {
+              identityVerifiedAt: null,
               payouts: {
                 some: {
                   status: "completed",

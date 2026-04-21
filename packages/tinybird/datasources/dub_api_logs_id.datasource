@@ -1,0 +1,23 @@
+# Data Source created from Pipe 'dub_api_logs_id_pipe'
+
+SCHEMA >
+    `id` String,
+    `timestamp` DateTime64(3),
+    `workspace_id` String,
+    `method` LowCardinality(String),
+    `path` String,
+    `route_pattern` LowCardinality(String),
+    `status_code` UInt16,
+    `duration` UInt32,
+    `user_agent` String,
+    `request_body` String,
+    `response_body` String,
+    `token_id` String,
+    `user_id` String,
+    `request_type` LowCardinality(String)
+
+ENGINE "MergeTree"
+ENGINE_PARTITION_KEY "tuple()"
+ENGINE_SORTING_KEY "id"
+ENGINE_SETTINGS "index_granularity = 256"
+ENGINE_TTL "toDateTime(timestamp) + toIntervalDay(90)"

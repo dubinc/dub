@@ -36,14 +36,23 @@ const TooltipMarkdown = ({
         className,
       )}
       components={{
-        a: ({ node, ...props }) => (
-          <a
-            {...props}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-          />
-        ),
+        a: ({ node, ...props }) => {
+          if (props.href?.startsWith("/")) {
+            return (
+              <Link href={props.href} onClick={(e) => e.stopPropagation()}>
+                {props.children}
+              </Link>
+            );
+          }
+          return (
+            <a
+              {...props}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+            />
+          );
+        },
         code: ({ node, ...props }) => (
           <code {...props} className="rounded-md bg-neutral-100 px-1 py-0.5" />
         ),
