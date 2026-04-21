@@ -4,7 +4,7 @@ import { detectAndRecordFraudEvent } from "@/lib/api/fraud/detect-record-fraud-e
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { sendPartnerPostback } from "@/lib/postback/api/send-partner-postback";
+import { sendPartnerPostback } from "@/lib/postback/send-partner-postback";
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { CustomerSource, WorkspaceProps } from "@/lib/types";

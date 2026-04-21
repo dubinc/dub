@@ -117,21 +117,19 @@ export const outboundPaymentSchema = z.object({
         .object({
           reason: z.string().default("unknown_failure"),
         })
-        .optional(),
+        .nullish(),
       returned: z
         .object({
           reason: z.string().default("unknown_failure"),
         })
-        .optional(),
+        .nullish(),
     })
-    .nullable()
-    .optional(),
+    .nullish(),
   trace_id: z
     .object({
       value: z.string(),
     })
-    .nullable()
-    .optional(),
+    .nullish(),
 });
 
 export const listPayoutMethodsQuerySchema = z.object({

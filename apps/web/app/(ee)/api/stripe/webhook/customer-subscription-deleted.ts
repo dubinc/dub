@@ -119,17 +119,6 @@ export async function customerSubscriptionDeleted(
         paymentFailedAt: null,
       },
     }),
-
-    // disable dub.link premium default domain for the workspace
-    prisma.defaultDomains.update({
-      where: {
-        projectId: workspace.id,
-      },
-      data: {
-        dublink: false,
-      },
-    }),
-
     // remove logo from all domains for the workspace
     prisma.domain.updateMany({
       where: {

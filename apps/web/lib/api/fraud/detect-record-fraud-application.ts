@@ -33,7 +33,7 @@ export async function detectAndRecordFraudApplication({
   if (
     isFraudRuleEnabled({
       fraudRules,
-      ruleType: FraudRuleType.partnerDuplicatePayoutMethod,
+      ruleType: FraudRuleType.partnerDuplicateAccount,
     })
   ) {
     const { payoutMethodHash, cryptoWalletAddress } = partner;
@@ -81,7 +81,7 @@ export async function detectAndRecordFraudApplication({
             fraudEvents.push({
               programId: program.id,
               partnerId: sourcePartner.id,
-              type: FraudRuleType.partnerDuplicatePayoutMethod,
+              type: FraudRuleType.partnerDuplicateAccount,
               metadata: {
                 ...(payoutMethodHash ? { payoutMethodHash } : {}),
                 ...(cryptoWalletAddress ? { cryptoWalletAddress } : {}),

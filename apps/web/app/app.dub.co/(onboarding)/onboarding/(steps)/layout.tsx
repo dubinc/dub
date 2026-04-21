@@ -1,5 +1,6 @@
 import { Grid, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { SignedInHint } from "app/app.dub.co/(onboarding)/signed-in-hint";
 import Link from "next/link";
 import { PropsWithChildren } from "react";
 
@@ -43,19 +44,27 @@ export default function Layout({ children }: PropsWithChildren) {
         ))}
       </div>
 
-      <div className="relative flex min-h-[100dvh] min-h-screen w-full flex-col items-center justify-between">
-        <div className="grow basis-0">
-          <div className="pt-4">
+      <div className="relative flex min-h-[100dvh] min-h-screen w-full flex-col items-center overflow-hidden md:justify-between">
+        <div className="w-full px-4 pt-4 md:grow md:basis-0 md:px-0">
+          <div className="flex justify-center pt-4">
             <Link href="https://dub.co/home" target="_blank" className="block">
               <Wordmark className="h-8" />
             </Link>
           </div>
         </div>
 
-        <div className="w-full py-16">{children}</div>
+        <div className="w-full flex-1 overflow-y-auto md:flex-none md:overflow-visible">
+          <div className="w-full px-5 pb-8 pt-8 md:py-16 lg:px-0">
+            {children}
+          </div>
+        </div>
 
-        {/* Empty div to center main content */}
-        <div className="grow basis-0" />
+        <div className="w-full md:hidden">
+          <SignedInHint />
+        </div>
+
+        {/* Empty div to center main content on desktop */}
+        <div className="hidden md:block md:grow md:basis-0" />
       </div>
     </>
   );

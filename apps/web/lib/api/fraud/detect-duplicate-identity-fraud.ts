@@ -1,31 +1,54 @@
 import { CreateFraudEventInput } from "@/lib/types";
+import {
+  VeriffDecisionEvent,
+  VeriffRiskLabel,
+  veriffRiskLabels,
+} from "@/lib/veriff/schema";
 import { INACTIVE_ENROLLMENT_STATUSES } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { FraudRuleType, ProgramEnrollment } from "@dub/prisma/client";
 import { createFraudEvents } from "./create-fraud-events";
 import { isFraudRuleEnabled } from "./get-merged-fraud-rules";
 
-type DetectDuplicatePayoutMethodFraudOptions =
-  | { payoutMethodHash: string; cryptoWalletAddress?: never }
-  | { cryptoWalletAddress: string; payoutMethodHash?: never };
-
-// Check for duplicate payout methods: if multiple partners share the same payout method hash,
+// Check for duplicate identities: if multiple partners share the same identity,
 // create fraud events for all their active program enrollments to flag potential fraud
-export async function detectDuplicatePayoutMethodFraud({
-  payoutMethodHash,
-  cryptoWalletAddress,
-}: DetectDuplicatePayoutMethodFraudOptions) {
-  if (!payoutMethodHash && !cryptoWalletAddress) {
+export async function detectDuplicateIdentityFraud({
+  veriffSessionId,
+  riskLabels,
+}: {
+  veriffSessionId: string;
+  riskLabels: VeriffDecisionEvent["verification"]["riskLabels"];
+}) {
+  if (!riskLabels || riskLabels.length === 0) {
+    console.log("[detectDuplicateIdentityFraud] No risk labels provided.");
+
+    return;
+  }
+
+  let veriffSessionIds = riskLabels
+    .filter(({ label }) => veriffRiskLabels.includes(label as VeriffRiskLabel))
+    .map(({ sessionIds }) => sessionIds)
+    .flat();
+
+  // Add the current veriff session id to the list
+  veriffSessionIds.push(veriffSessionId);
+
+  // Remove duplicates
+  veriffSessionIds = [...new Set(veriffSessionIds)];
+
+  if (veriffSessionIds.length === 0) {
+    console.log(
+      "[detectDuplicateIdentityFraud] No veriff session ids provided.",
+    );
     return;
   }
 
   let programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partner: {
-        OR: [
-          ...(payoutMethodHash ? [{ payoutMethodHash }] : []),
-          ...(cryptoWalletAddress ? [{ cryptoWalletAddress }] : []),
-        ],
+        veriffSessionId: {
+          in: veriffSessionIds,
+        },
       },
     },
     select: {
@@ -41,6 +64,7 @@ export async function detectDuplicatePayoutMethodFraud({
   });
 
   if (programEnrollments.length === 0) {
+    console.log("[detectDuplicateIdentityFraud] No program enrollments found.");
     return;
   }
 
@@ -74,6 +98,7 @@ export async function detectDuplicatePayoutMethodFraud({
   );
 
   if (partnersByProgram.size === 0) {
+    console.log("[detectDuplicateIdentityFraud] No multiple partners found.");
     return;
   }
 
@@ -91,9 +116,8 @@ export async function detectDuplicatePayoutMethodFraud({
           partnerId: sourcePartner.partnerId,
           type: FraudRuleType.partnerDuplicateAccount,
           metadata: {
-            ...(payoutMethodHash ? { payoutMethodHash } : {}),
-            ...(cryptoWalletAddress ? { cryptoWalletAddress } : {}),
             duplicatePartnerId: enrolledPartner.partnerId,
+            riskLabels,
           },
         });
       }
