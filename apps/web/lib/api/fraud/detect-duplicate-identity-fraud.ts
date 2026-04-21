@@ -72,7 +72,7 @@ export async function detectDuplicateIdentityFraud({
   programEnrollments = programEnrollments.filter((enrollment) =>
     isFraudRuleEnabled({
       fraudRules: enrollment.program.fraudRules,
-      ruleType: FraudRuleType.partnerDuplicatePayoutMethod, // TODO: Change to partnerDuplicateAccount
+      ruleType: FraudRuleType.partnerDuplicateAccount,
     }),
   );
 

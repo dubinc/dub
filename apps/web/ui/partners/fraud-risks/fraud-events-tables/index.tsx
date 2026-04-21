@@ -14,7 +14,6 @@ const FRAUD_EVENTS_TABLES: Partial<Record<FraudRuleType, React.ComponentType>> =
     referralSourceBanned: FraudReferralSourceBannedTable,
     paidTrafficDetected: FraudPaidTrafficDetectedTable,
     partnerCrossProgramBan: FraudCrossProgramBanTable,
-    partnerDuplicatePayoutMethod: FraudPartnerInfoTable,
     partnerDuplicateAccount: FraudPartnerInfoTable,
   };
 
