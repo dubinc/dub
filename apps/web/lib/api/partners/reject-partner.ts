@@ -27,7 +27,7 @@ export async function rejectPartner({
 }: RejectPartnerInput) {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+  const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
         partnerId,
@@ -45,6 +45,13 @@ export async function rejectPartner({
       },
     },
   });
+
+  if (!programEnrollment) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Program enrollment not found.",
+    });
+  }
 
   if (programEnrollment.status !== "pending") {
     throw new DubApiError({
