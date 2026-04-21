@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { trackActivityLog } from "../api/activity-log/track-activity-log";
+import { DubApiError } from "../api/errors";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { triggerWorkflows } from "../cron/qstash-workflow";
 import { approvePartnerSchema } from "../zod/schemas/partners";
@@ -17,28 +18,64 @@ export async function approvePartner({
   groupId,
   userId,
 }: ApprovePartnerInput) {
-  const program = await prisma.program.findUniqueOrThrow({
+  const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
-      id: programId,
+      partnerId_programId: {
+        partnerId,
+        programId,
+      },
     },
-    include: {
-      rewards: true,
-      discounts: true,
-      workspace: true,
+    select: {
+      groupId: true,
+      status: true,
+      program: {
+        select: {
+          defaultGroupId: true,
+          workspace: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
     },
   });
 
-  if (!groupId && !program.defaultGroupId) {
-    throw new Error("No group ID provided and no default group ID found.");
+  if (!programEnrollment) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Program enrollment not found.",
+    });
+  }
+
+  if (programEnrollment.status !== "pending") {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "This enrollment cannot be approved because it is no longer pending.",
+    });
+  }
+
+  const { program } = programEnrollment;
+
+  const finalGroupId =
+    groupId || programEnrollment.groupId || program.defaultGroupId;
+
+  if (!finalGroupId) {
+    throw new DubApiError({
+      code: "not_found",
+      message:
+        "No group ID provided and no default group ID found in the program.",
+    });
   }
 
   const group = await getGroupOrThrow({
     programId,
-    groupId: groupId || program.defaultGroupId,
+    groupId: finalGroupId,
   });
 
-  const programEnrollment = await prisma.$transaction(async (tx) => {
-    const enrollment = await tx.programEnrollment.update({
+  await prisma.$transaction(async (tx) => {
+    const programEnrollment = await tx.programEnrollment.update({
       where: {
         partnerId_programId: {
           partnerId,
@@ -54,15 +91,12 @@ export async function approvePartner({
         saleRewardId: group.saleRewardId,
         discountId: group.discountId,
       },
-      include: {
-        partner: true,
-      },
     });
 
-    if (enrollment.applicationId) {
+    if (programEnrollment.applicationId) {
       await tx.programApplication.update({
         where: {
-          id: enrollment.applicationId,
+          id: programEnrollment.applicationId,
         },
         data: {
           reviewedAt: new Date(),
@@ -72,8 +106,6 @@ export async function approvePartner({
         },
       });
     }
-
-    return enrollment;
   });
 
   waitUntil(
@@ -103,6 +135,4 @@ export async function approvePartner({
       }),
     ]),
   );
-
-  return programEnrollment;
 }

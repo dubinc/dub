@@ -864,10 +864,8 @@ export const approvePartnerSchema = z.object({
   groupId: z
     .string()
     .nullish()
-
-    // TODO: This need fix, use the current group enrolled > groupId > default group
     .describe(
-      "The ID of the group to add the partner to. If not provided, the partner will be added to the default group.",
+      "The ID of the group to assign the partner to. If not provided, the partner will be assigned to the group they applied to, or the program's default group if no application group is set.",
     ),
 });
 

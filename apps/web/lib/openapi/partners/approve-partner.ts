@@ -8,7 +8,7 @@ export const approvePartner: ZodOpenApiOperationObject = {
   "x-speakeasy-name-override": "approve",
   summary: "Approve a partner",
   description:
-    "Approve a pending partner application to your program. The partner will be enrolled in the specified group (or the program's default group) and notified of the approval.",
+    "Approve a pending partner application to your program. The partner will be enrolled in the specified group and notified of the approval.",
   requestBody: {
     content: {
       "application/json": {
