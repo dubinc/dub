@@ -46,6 +46,7 @@ import { SettingsRow } from "./settings-row";
 type BasicInfoFormData = {
   name: string;
   email: string;
+  username: string;
   image: string | null;
   country: string;
   profileType: PartnerProfileType;
@@ -69,6 +70,7 @@ export function ProfileDetailsForm({
     defaultValues: {
       name: partner?.name,
       email: partner?.email ?? "",
+      username: partner?.username ?? "",
       image: partner?.image,
       country: partner?.country ?? "",
       profileType: partner?.profileType ?? "individual",
@@ -256,6 +258,7 @@ function BasicInfoForm({
 
         await executeAsync({
           ...data,
+          username: data.username?.trim() ? data.username : null,
           image: imageChanged ? data.image : null,
         });
       })}
@@ -338,6 +341,29 @@ function BasicInfoForm({
               required: true,
             })}
           />
+        </label>
+        <label className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium text-neutral-800">Username</span>
+          <input
+            type="text"
+            disabled={disabled}
+            className={cn(
+              "block w-full rounded-md focus:outline-none sm:text-sm",
+              disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
+              errors.username
+                ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+            )}
+            placeholder={partner?.email?.split("@")[0] ?? ""}
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck={false}
+            {...register("username")}
+          />
+          <p className="text-xs text-neutral-500">
+            3–30 characters. Lowercase letters, numbers, hyphens, and
+            underscores only.
+          </p>
         </label>
         <label className="flex flex-col">
           <span className="text-sm font-medium text-neutral-800">Country</span>

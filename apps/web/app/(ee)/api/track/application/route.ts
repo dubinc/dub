@@ -3,17 +3,26 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
-import { APPLICATION_ID_COOKIE_PREFIX } from "@/lib/application-events/constants";
 import { trackApplicationEventBodySchema } from "@/lib/application-events/schema";
+import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
 import { detectBot } from "@/lib/middleware/utils/detect-bot";
+import { getIdentityHash } from "@/lib/middleware/utils/get-identity-hash";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { Partner, Program } from "@dub/prisma/client";
-import { getSearchParams } from "@dub/utils";
+import {
+  capitalize,
+  EU_COUNTRY_CODES,
+  getDomainWithoutWWW,
+  getSearchParams,
+  LOCALHOST_GEO_DATA,
+  LOCALHOST_IP,
+} from "@dub/utils";
+import { geolocation, ipAddress } from "@vercel/functions";
 import { cookies } from "next/headers";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, userAgent } from "next/server";
 
 // POST /api/track/application – Track an application event
 export const POST = withAxiom(async (req) => {
@@ -114,7 +123,7 @@ async function trackVisitEvent({
   referrer: string | null | undefined;
   eventId: string;
 }) {
-  const cookieName = getApplicationIdCookieName(program.id);
+  const cookieName = getApplicationEventCookieName(program.id);
   const existingEventId = req.cookies.get(cookieName)?.value;
 
   if (existingEventId) {
@@ -148,18 +157,19 @@ async function trackVisitEvent({
   }
 
   const session = await getSession();
+  const requestContext = await getRequestContext(req);
 
   await prisma.programApplicationEvent.create({
     data: {
       id: eventId,
       programId: program.id,
-      referralSource: referrer || "direct",
+      referralSource: referrer
+        ? getDomainWithoutWWW(referrer) || "(direct)"
+        : "(direct)",
       referredByPartnerId: referredByPartner?.id,
-      partnerId: session.user.defaultPartnerId,
+      partnerId: session?.user?.defaultPartnerId,
       visitedAt: new Date(),
-      metadata: {
-        userAgent: req.headers.get("user-agent"),
-      },
+      metadata: requestContext,
     },
   });
 
@@ -179,10 +189,10 @@ async function trackStartEvent({
   req: NextRequest;
   program: Pick<Program, "id">;
 }) {
-  const cookieName = getApplicationIdCookieName(program.id);
-  const existingEventId = req.cookies.get(cookieName)?.value;
+  const cookieName = getApplicationEventCookieName(program.id);
+  const eventId = req.cookies.get(cookieName)?.value;
 
-  if (!existingEventId) {
+  if (!eventId) {
     throw new DubApiError({
       code: "bad_request",
       message: `"start" event not tracked for program ${program.id} because cookie was not found. Skipping tracking...`,
@@ -194,17 +204,66 @@ async function trackStartEvent({
   try {
     await prisma.programApplicationEvent.update({
       where: {
-        id: existingEventId,
+        id: eventId,
         startedAt: null,
       },
       data: {
         startedAt: new Date(),
-        partnerId: session.user.defaultPartnerId,
+        partnerId: session?.user?.defaultPartnerId,
       },
     });
-  } catch (error) {
-    // Ignore the error
-  }
+
+    console.log(
+      `Tracked "start" event for program ${program.id} with eventId: ${eventId}`,
+    );
+  } catch {}
+}
+
+// Get the request context
+async function getRequestContext(req: NextRequest) {
+  const isVercel = process.env.VERCEL === "1";
+
+  const identityHash = await getIdentityHash(req);
+  const ua = userAgent(req);
+
+  const ip = isVercel ? ipAddress(req) : LOCALHOST_IP;
+  const geo = isVercel ? geolocation(req) : LOCALHOST_GEO_DATA;
+
+  const continent = isVercel
+    ? req.headers.get("x-vercel-ip-continent")
+    : LOCALHOST_GEO_DATA.continent;
+
+  const region = isVercel
+    ? req.headers.get("x-vercel-ip-country-region")
+    : LOCALHOST_GEO_DATA.region;
+
+  const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
+
+  return {
+    identityHash,
+    continent,
+    country: geo.country,
+    region,
+    city: geo.city,
+    latitude: geo.latitude,
+    longitude: geo.longitude,
+    vercel_region: geo.region,
+    device: capitalize(ua.device.type),
+    device_vendor: ua.device.vendor,
+    device_model: ua.device.model,
+    browser: ua.browser.name,
+    browser_version: ua.browser.version,
+    engine: ua.engine.name,
+    engine_version: ua.engine.version,
+    os: ua.os.name,
+    os_version: ua.os.version,
+    cpu_architecture: ua.cpu?.architecture,
+    ua: ua.ua,
+    ip:
+      typeof ip === "string" && ip.trim().length > 0 && !isEuCountry
+        ? ip
+        : undefined,
+  };
 }
 
 // Identify the program slug from the URL
@@ -219,15 +278,8 @@ function identityProgramSlug(url: string) {
 
     const programSlug = parts[1];
 
-    console.log({ programSlug });
-
     return programSlug.toLowerCase();
   } catch (error) {
     return null;
   }
-}
-
-// Get the cookie name for the application ID
-function getApplicationIdCookieName(programId: string) {
-  return `${APPLICATION_ID_COOKIE_PREFIX}${programId}`;
 }

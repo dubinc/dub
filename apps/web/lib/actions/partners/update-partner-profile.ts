@@ -20,7 +20,6 @@ import {
   PARTNERS_DOMAIN,
   RESERVED_SLUGS,
 } from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/images";
@@ -35,7 +34,6 @@ const usernameSchema = z
   .string()
   .trim()
   .toLowerCase()
-  .transform((v) => slugify(v))
   .pipe(
     z
       .string()
@@ -120,6 +118,21 @@ export const updatePartnerProfileAction = authPartnerActionClient
       imageUrl = uploaded.url;
     }
 
+    if (username && username !== partner.username) {
+      const existingPartner = await prisma.partner.findUnique({
+        where: {
+          username,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (existingPartner && existingPartner.id !== partner.id) {
+        throw new Error(`Username "${username}" is already taken.`);
+      }
+    }
+
     try {
       const updatedPartner = await prisma.partner.update({
         where: {
@@ -129,7 +142,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
           name,
           description,
           ...(imageUrl && { image: imageUrl }),
-          ...(username && { username }),
+          username,
           country,
           profileType,
           companyName,

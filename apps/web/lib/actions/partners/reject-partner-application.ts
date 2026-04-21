@@ -3,7 +3,7 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { updateProgramApplicationEvent } from "@/lib/application-events/update-event";
+import { updateApplicationEvent } from "@/lib/application-events/update-application-event";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
@@ -125,11 +125,10 @@ export const rejectPartnerApplicationAction = authActionClient
               "Resolved automatically because the partner application was rejected.",
           }),
 
-          updateProgramApplicationEvent({
+          updateApplicationEvent({
             event: "rejected",
             programId,
             partnerId,
-            applicationId: programEnrollment.applicationId,
           }),
         ]);
 

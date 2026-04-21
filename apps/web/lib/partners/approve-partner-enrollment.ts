@@ -2,7 +2,7 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { trackActivityLog } from "../api/activity-log/track-activity-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
-import { updateProgramApplicationEvent } from "../application-events/update-event";
+import { updateApplicationEvent } from "../application-events/update-application-event";
 import { triggerWorkflows } from "../cron/qstash-workflow";
 
 export async function approvePartnerEnrollment({
@@ -101,11 +101,10 @@ export async function approvePartnerEnrollment({
         },
       }),
 
-      updateProgramApplicationEvent({
+      updateApplicationEvent({
         event: "approved",
         programId,
         partnerId,
-        applicationId: programEnrollment.applicationId,
       }),
     ]),
   );

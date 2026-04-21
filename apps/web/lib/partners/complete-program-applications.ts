@@ -1,10 +1,11 @@
 import { prisma } from "@dub/prisma";
 import { PlatformType, Prisma } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { cookies } from "next/headers";
 import { createId } from "../api/create-id";
 import { detectAndRecordFraudApplication } from "../api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
-import { updateProgramApplicationEvent } from "../application-events/update-event";
+import { getApplicationEventCookieName } from "../application-events/utils";
 import { qstash } from "../cron";
 import { buildSocialPlatformLookup } from "../social-utils";
 import { sendWorkspaceWebhook } from "../webhook/publish";
@@ -107,17 +108,6 @@ export async function completeProgramApplications(userEmail: string) {
       data: programEnrollments,
       skipDuplicates: true,
     });
-
-    await Promise.all(
-      programEnrollments.map((programEnrollment) =>
-        updateProgramApplicationEvent({
-          event: "submitted",
-          programId: programEnrollment.programId,
-          partnerId: programEnrollment.partnerId,
-          applicationId: programEnrollment.applicationId,
-        }),
-      ),
-    );
 
     // Fetch the programs' workspaces
     const workspaces = await prisma.project.findMany({
@@ -267,9 +257,50 @@ export async function completeProgramApplications(userEmail: string) {
             partner,
           },
         }),
+
+        ...programEnrollments.map((programEnrollment) =>
+          trackSubmittedApplicationEvent(programEnrollment),
+        ),
       ]);
     }
   } catch (error) {
     console.error("Failed to complete program applications", error);
   }
+}
+
+// Application events visited as a guest have partnerId: null — look up the
+// event via the browser cookie and backfill partnerId + submittedAt. Fall
+// back to the (programId, partnerId) lookup if no cookie is present (e.g. the
+// partner visited while already logged in on a different browser).
+async function trackSubmittedApplicationEvent({
+  programId,
+  partnerId,
+  applicationId,
+}: Prisma.ProgramEnrollmentCreateManyInput) {
+  const cookieStore = await cookies();
+  const cookieName = getApplicationEventCookieName(programId);
+  const eventId = cookieStore.get(cookieName)?.value;
+
+  if (!eventId) {
+    console.log(
+      `No application event cookie found for program ${programId}. Skipping tracking...`,
+    );
+    return;
+  }
+
+  try {
+    await prisma.programApplicationEvent.update({
+      where: {
+        id: eventId,
+        submittedAt: null,
+      },
+      data: {
+        partnerId,
+        submittedAt: new Date(),
+        programApplicationId: applicationId,
+      },
+    });
+  } catch {}
+
+  cookieStore.delete(cookieName);
 }

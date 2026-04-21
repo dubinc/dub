@@ -48,8 +48,8 @@ export default async function ApplyPage(props: {
         } as CSSProperties
       }
     >
-      <ApplicationAnalytics />
       <ApplyHeader group={program.group} />
+      <ApplicationAnalytics />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />
 

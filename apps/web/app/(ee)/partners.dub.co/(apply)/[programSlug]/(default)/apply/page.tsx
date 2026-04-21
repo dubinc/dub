@@ -51,8 +51,8 @@ export default async function ApplicationPage(props: {
         } as CSSProperties
       }
     >
-      <ApplicationAnalytics />
       <ApplyHeader group={program.group} showApply={false} />
+      <ApplicationAnalytics />
       <div className="p-6">
         {/* Hero section */}
         <ApplicationFormHero
