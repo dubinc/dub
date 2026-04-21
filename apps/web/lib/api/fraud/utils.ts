@@ -102,6 +102,9 @@ function getIdentityFieldsForFraudEvent({
       return {
         sourceProgramId,
       };
+
+    default:
+      return {};
   }
 }
 
