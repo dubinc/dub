@@ -3,7 +3,10 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { getIP } from "@/lib/api/utils/get-ip";
-import { trackApplicationEventBodySchema } from "@/lib/application-events/schema";
+import {
+  APPLICATION_ID_COOKIE_MAX_AGE,
+  trackApplicationEventBodySchema,
+} from "@/lib/application-events/schema";
 import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
 import { withAxiom } from "@/lib/axiom/server";
@@ -21,6 +24,7 @@ import {
   LOCALHOST_IP,
 } from "@dub/utils";
 import { geolocation, ipAddress } from "@vercel/functions";
+import { addDays } from "date-fns";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse, userAgent } from "next/server";
 
@@ -180,7 +184,12 @@ async function trackVisitEvent({
     );
 
     const cookieStore = await cookies();
-    cookieStore.set(cookieName, eventId);
+
+    cookieStore.set(cookieName, eventId, {
+      httpOnly: true,
+      expires: addDays(new Date(), APPLICATION_ID_COOKIE_MAX_AGE),
+      secure: process.env.NODE_ENV === "production",
+    });
   } catch {}
 }
 
