@@ -28,7 +28,9 @@ export const trackHubSpotSaleEvent = async ({
     return `Unknown propertyName ${propertyName}. Expected dealstage.`;
   }
 
-  if (propertyValue !== settings.closedWonDealStageId) {
+  if (
+    propertyValue.toLowerCase() !== settings.closedWonDealStageId?.toLowerCase()
+  ) {
     return `Unknown propertyValue ${propertyValue}. Expected ${settings.closedWonDealStageId}.`;
   }
 
