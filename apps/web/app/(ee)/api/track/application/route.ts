@@ -79,15 +79,12 @@ export const POST = withAxiom(async (req) => {
       });
     }
 
-    const eventId = createId({ prefix: "pga_evt_" });
-
     if (eventName === "visit") {
       await trackVisitEvent({
         req,
         program,
         url,
         referrer,
-        eventId,
       });
     } else if (eventName === "start") {
       await trackStartEvent({
@@ -97,7 +94,7 @@ export const POST = withAxiom(async (req) => {
     }
 
     return NextResponse.json(
-      { eventId },
+      { ok: true },
       { status: 202, headers: COMMON_CORS_HEADERS },
     );
   } catch (error) {
@@ -118,13 +115,11 @@ async function trackVisitEvent({
   program,
   url,
   referrer,
-  eventId,
 }: {
   req: NextRequest;
   program: Pick<Program, "id">;
   url: string;
   referrer: string | null | undefined;
-  eventId: string;
 }) {
   const cookieName = getApplicationEventCookieName(program.id);
   const existingEventId = req.cookies.get(cookieName)?.value;
@@ -165,7 +160,7 @@ async function trackVisitEvent({
   try {
     await prisma.programApplicationEvent.create({
       data: {
-        id: eventId,
+        id: createId({ prefix: "pga_evt_" }),
         programId: program.id,
         referralSource: referrer
           ? getDomainWithoutWWW(referrer) || "(direct)"
