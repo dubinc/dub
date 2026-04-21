@@ -256,12 +256,14 @@ export async function completeProgramApplications(userEmail: string) {
             partner,
           },
         }),
-
-        ...programEnrollments.map((programEnrollment) =>
-          markApplicationEventSubmitted(programEnrollment),
-        ),
       ]);
     }
+
+    await Promise.allSettled(
+      programEnrollments.map((programEnrollment) =>
+        markApplicationEventSubmitted(programEnrollment),
+      ),
+    );
   } catch (error) {
     console.error("Failed to complete program applications", error);
   }
