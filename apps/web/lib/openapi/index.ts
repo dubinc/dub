@@ -8,6 +8,7 @@ import { analyticsPath } from "./analytics";
 import { bountiesPaths } from "./bounties";
 import { commissionsPaths } from "./commissions";
 import { customersPaths } from "./customers";
+import { discountCodesPaths } from "./discount-codes";
 import { domainsPaths } from "./domains";
 import { embedTokensPaths } from "./embed-tokens";
 import { eventsPath } from "./events";
@@ -58,6 +59,7 @@ export const document = createDocument({
     ...embedTokensPaths,
     ...qrCodePaths,
     ...bountiesPaths,
+    ...discountCodesPaths,
   },
   components: {
     schemas: {
