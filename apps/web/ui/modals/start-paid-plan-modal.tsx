@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal, useRouterStuff } from "@dub/ui";
-import { capitalize, getPlanDetails, isLegacyBusinessPlan } from "@dub/utils";
+import { getPlanDetails } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import {
   Dispatch,
@@ -23,8 +23,8 @@ function StartPaidPlanModal({
   const {
     id: workspaceId,
     plan,
+    planPeriod,
     planTier = 1,
-    payoutsLimit,
     mutate,
   } = useWorkspace();
   const { queryParams } = useRouterStuff();
@@ -35,15 +35,11 @@ function StartPaidPlanModal({
     return getPlanDetails({ plan, planTier });
   }, [plan, planTier]);
 
-  const planDisplayName = useMemo(() => {
-    if (!plan) return "";
-    if (isLegacyBusinessPlan({ plan, payoutsLimit })) {
-      return "Business (Legacy)";
-    }
-    return capitalize(plan);
-  }, [plan, payoutsLimit]);
-
-  const monthlyPrice = planDetails?.price.monthly;
+  const workspacePlanPeriod = planPeriod ?? "monthly";
+  const workspacePlanPrice = planDetails?.price
+    ? planDetails.price[workspacePlanPeriod] *
+      (workspacePlanPeriod === "monthly" ? 1 : 12)
+    : null;
 
   const handleConfirm = async () => {
     if (isSubmitting || !workspaceId) return;
@@ -96,12 +92,12 @@ function StartPaidPlanModal({
       <div className="flex flex-col gap-4 bg-neutral-50 p-4 sm:p-6">
         <div className="rounded-lg border border-neutral-200 bg-white p-4">
           <p className="text-base font-semibold text-neutral-900">
-            {planDetails?.name ?? planDisplayName}
+            {planDetails?.name}
           </p>
-          {monthlyPrice != null && (
+          {workspacePlanPrice != null && (
             <div className="mt-1 flex flex-wrap items-baseline gap-1">
               <NumberFlow
-                value={monthlyPrice}
+                value={workspacePlanPrice}
                 className="text-sm font-medium tabular-nums text-neutral-900"
                 format={{
                   style: "currency",
@@ -109,7 +105,9 @@ function StartPaidPlanModal({
                   minimumFractionDigits: 0,
                 }}
               />
-              <span className="text-sm text-neutral-500">per month</span>
+              <span className="text-sm text-neutral-500">
+                per {workspacePlanPeriod.replace("ly", "")}
+              </span>
             </div>
           )}
         </div>
