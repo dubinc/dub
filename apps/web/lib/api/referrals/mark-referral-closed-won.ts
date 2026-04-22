@@ -34,7 +34,6 @@ export const markReferralClosedWon = async ({
     paymentProcessor: "custom",
     invoiceId: null,
     metadata: null,
-    rawBody: {},
     workspace,
     source: "submitted",
   });
