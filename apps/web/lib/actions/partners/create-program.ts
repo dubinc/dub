@@ -236,7 +236,7 @@ export const createProgram = async ({
           )
         : []),
 
-      // send email about the new program (only for trial onboarding flow, not separate program onboarding / paid workspace)
+      // skip ProgramWelcome for individual program onboarding flow OR if there is no trial (paid right away)
       ...(isProgramOnboarding || workspace.trialEndsAt == null
         ? []
         : [
