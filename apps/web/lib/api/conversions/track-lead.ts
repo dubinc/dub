@@ -24,7 +24,6 @@ import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
 
 type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
-  rawBody: any;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   source?: CustomerSource; // default is "tracked"
 };
@@ -39,7 +38,6 @@ export const trackLead = async ({
   mode,
   eventQuantity,
   metadata,
-  rawBody,
   workspace,
   source = "tracked",
 }: TrackLeadParams) => {
