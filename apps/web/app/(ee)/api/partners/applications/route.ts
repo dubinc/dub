@@ -43,11 +43,7 @@ export const GET = withWorkspace(
 
     const result = applications.map(
       ({ partner, application, ...programEnrollment }) => {
-        if (!application) {
-          return null;
-        }
-
-        const applicationFormData = formatApplicationFormData(application).map(
+        const applicationFormData = formatApplicationFormData(application!).map(
           ({ title, value }) => ({
             label: title,
             value: value !== "" ? value : null,
@@ -55,8 +51,8 @@ export const GET = withWorkspace(
         );
 
         return {
-          id: application.id,
-          createdAt: programEnrollment.createdAt,
+          id: application!.id,
+          createdAt: application!.createdAt,
           applicationFormData,
           partner: {
             ...partner,
