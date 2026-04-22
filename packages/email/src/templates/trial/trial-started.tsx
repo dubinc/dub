@@ -11,6 +11,7 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Img,
   Link,
@@ -26,9 +27,18 @@ import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email
 export default function TrialStartedEmail({
   email = "panic@thedis.co",
   plan = "Advanced",
-  workspaceSlug = "acme",
+  workspace = {
+    slug: "acme",
+    logo: DUB_LOGO,
+    name: "Acme",
+  },
   program,
-}: TrialMarketingEmailProps & {
+}: Omit<TrialMarketingEmailProps, "workspaceSlug"> & {
+  workspace: {
+    slug: string;
+    logo: string | null;
+    name: string;
+  };
   program?: {
     slug: string;
     name: string;
@@ -36,7 +46,7 @@ export default function TrialStartedEmail({
   };
 }) {
   const planLabel = capitalize(plan);
-  const dashboardUrl = `https://app.dub.co/${workspaceSlug}`;
+  const dashboardUrl = `https://app.dub.co/${workspace.slug}`;
 
   return (
     <Html>
@@ -56,43 +66,39 @@ export default function TrialStartedEmail({
               Dub!
             </Heading>
 
-            {program && (
-              <>
-                <Text className="mb-6 mt-5 text-sm leading-5 text-neutral-600">
-                  Your program{" "}
-                  <span className="font-semibold text-neutral-800">
-                    {program.name}
-                  </span>{" "}
-                  is created and ready to share with your partners.
-                </Text>
-                <Section className="mb-6 rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-6 py-4">
-                  <Row>
-                    <Column width={10}>
-                      <Img
-                        src={program.logo || DUB_LOGO}
-                        alt={program.name}
-                        height="32"
-                        width="32"
-                        className="mr-4 rounded-md"
-                      />
-                    </Column>
+            <Text className="mb-6 mt-5 text-sm leading-5 text-neutral-600">
+              {program
+                ? `Your program ${program.name} is set up and ready for you to share with your partners.`
+                : "Your workspace is set up and ready for you to collaborate with your teammates."}
+            </Text>
+            <Section className="mb-6 rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-6 py-4">
+              <Row>
+                <Column width={10}>
+                  <Img
+                    src={program?.logo || workspace.logo || DUB_LOGO}
+                    alt={program?.name || workspace.name}
+                    height="32"
+                    width="32"
+                    className="mr-4 rounded-md"
+                  />
+                </Column>
 
-                    <Column>
-                      <Text className="text-md m-0 text-base font-semibold leading-none text-neutral-800">
-                        {program.name}
-                      </Text>
+                <Column>
+                  <Text className="text-md m-0 text-base font-semibold leading-none text-neutral-800">
+                    {program?.name || workspace.name}
+                  </Text>
 
-                      <Link
-                        href={`${dashboardUrl}/program`}
-                        className="m-0 text-xs font-medium text-neutral-800 underline"
-                      >
-                        {getPrettyUrl(`${dashboardUrl}/program`)}
-                      </Link>
-                    </Column>
-                  </Row>
-                </Section>
-              </>
-            )}
+                  <Link
+                    href={`${dashboardUrl}/${program ? "program" : "links"}`}
+                    className="m-0 text-xs font-medium text-neutral-800 underline"
+                  >
+                    {getPrettyUrl(
+                      `${dashboardUrl}/${program ? "program" : "links"}`,
+                    )}
+                  </Link>
+                </Column>
+              </Row>
+            </Section>
 
             <Heading className="mx-0 mb-6 p-0 text-base font-semibold text-black">
               Here&apos;s what you can do next:
@@ -180,8 +186,86 @@ export default function TrialStartedEmail({
                 </Text>
               </>
             ) : (
-              <></>
+              <>
+                <Text className="mb-4 text-sm leading-5 text-neutral-800">
+                  1.{" "}
+                  <span className="font-semibold text-black">
+                    Use a custom domain
+                  </span>
+                  :{" "}
+                  <Link
+                    href="https://dub.co/help/article/how-to-add-custom-domain"
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    Add a custom domain
+                  </Link>{" "}
+                  to increase trust and click-through rates on every link.
+                </Text>
+
+                <Text className="mb-4 text-sm leading-5 text-neutral-800">
+                  2.{" "}
+                  <span className="font-semibold text-black">
+                    Customize your link preview
+                  </span>
+                  :{" "}
+                  <Link
+                    href="https://dub.co/help/article/custom-link-previews"
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    Control the title, image, and description
+                  </Link>{" "}
+                  to improve how your links appear and perform.
+                </Text>
+
+                <Text className="mb-4 text-sm leading-5 text-neutral-800">
+                  3.{" "}
+                  <span className="font-semibold text-black">
+                    Explore analytics
+                  </span>
+                  :{" "}
+                  <Link
+                    href="https://dub.co/help/article/dub-analytics"
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    View the performance
+                  </Link>{" "}
+                  of your links with real-time data and advanced filtering
+                  capabilities.
+                </Text>
+
+                <Text className="mb-4 text-sm leading-5 text-neutral-800">
+                  4.{" "}
+                  <span className="font-semibold text-black">
+                    Invite your teammates
+                  </span>
+                  :{" "}
+                  <Link
+                    href="https://dub.co/help/article/how-to-invite-teammates"
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    Learn how to invite teammates
+                  </Link>{" "}
+                  to your workspace and start collaborating.
+                </Text>
+
+                <Text className="mb-0 text-sm leading-5 text-neutral-800">
+                  5.{" "}
+                  <span className="font-semibold text-black">
+                    Explore the API
+                  </span>
+                  :{" "}
+                  <Link
+                    href="https://dub.co/docs/api-reference/links/create"
+                    className="font-medium text-neutral-500 underline underline-offset-2"
+                  >
+                    Check out our docs
+                  </Link>{" "}
+                  to learn how to programmatically manage your Dub links.
+                </Text>
+              </>
             )}
+
+            <Hr />
 
             <Text className="mb-8 text-sm leading-5 text-neutral-800">
               You&apos;ll have access to all {planLabel} features during your

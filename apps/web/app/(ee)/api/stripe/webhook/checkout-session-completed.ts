@@ -106,10 +106,7 @@ export async function checkoutSessionCompleted(
       paymentFailedAt: null,
       ...(planPeriod !== undefined && { planPeriod }),
     },
-    select: {
-      slug: true,
-      plan: true,
-      defaultProgramId: true,
+    include: {
       users: {
         where: {
           role: "owner",
@@ -150,9 +147,11 @@ export async function checkoutSessionCompleted(
         newPlan: updatedWorkspace.plan,
       }) &&
       reactivateProgram(updatedWorkspace.defaultProgramId),
-    // only send Upgrade thank you email if workspace is not in a trial
-    // TODO: Only do TrialStartedEmail once we remove the trial feature flag
-    isWorkspaceBillingTrialActive(trialEndsAt)
+    // If trial + no program (Links trial), send TrialStartedEmail – for progam trial we send it in create-program.ts
+    // else, we send Upgrade thank you email
+    // TODO: Only send TrialStartedEmail once we remove the trial feature flag
+    isWorkspaceBillingTrialActive(trialEndsAt) &&
+    !updatedWorkspace.store?.["programOnboarding"]
       ? sendBatchEmail(
           users.map((user) => ({
             to: user.email as string,
@@ -161,7 +160,11 @@ export async function checkoutSessionCompleted(
             react: TrialStartedEmail({
               email: user.email as string,
               plan: plan.name,
-              workspaceSlug: updatedWorkspace.slug,
+              workspace: {
+                slug: updatedWorkspace.slug,
+                logo: updatedWorkspace.logo,
+                name: updatedWorkspace.name,
+              },
             }),
             variant: "marketing",
           })),

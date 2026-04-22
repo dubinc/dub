@@ -145,7 +145,7 @@ export default function WelcomeEmail({
               >
                 View the performance
               </Link>{" "}
-              of your short links with graphs and detailed analytics.
+              of your links with graphs and detailed analytics.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-neutral-600">

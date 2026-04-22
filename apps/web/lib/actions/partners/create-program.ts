@@ -17,6 +17,7 @@ import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
+import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
 import { prisma } from "@dub/prisma";
 import { Program, Project, User } from "@dub/prisma/client";
 import { getDomainWithoutWWW, isLegacyBusinessPlan, nanoid } from "@dub/utils";
@@ -32,6 +33,8 @@ export const createProgram = async ({
     Project,
     | "id"
     | "slug"
+    | "logo"
+    | "name"
     | "plan"
     | "payoutsLimit"
     | "trialEndsAt"
@@ -236,20 +239,44 @@ export const createProgram = async ({
           )
         : []),
 
-      // skip ProgramWelcome for individual program onboarding flow OR if there is no trial (paid right away)
-      ...(isProgramOnboarding || workspace.trialEndsAt == null
+      // skip email sends for individual program onboarding flow / non-trial flows
+      ...(isProgramOnboarding
         ? []
-        : [
-            sendEmail({
-              subject: `Your program ${program.name} is created and ready to share with your partners.`,
-              to: user.email!,
-              react: ProgramWelcome({
-                email: user.email!,
-                workspace,
-                program,
+        : // for workspace trial, send TrialStartedEmail
+          workspace.trialEndsAt
+          ? [
+              sendEmail({
+                to: user.email!,
+                replyTo: "steven.tey@dub.co",
+                subject: "Welcome to your 14-day Dub trial",
+                react: TrialStartedEmail({
+                  email: user.email!,
+                  plan: workspace.plan,
+                  workspace: {
+                    slug: workspace.slug,
+                    logo: workspace.logo,
+                    name: workspace.name,
+                  },
+                  program: {
+                    slug: program.slug,
+                    name: program.name,
+                    logo: program.logo,
+                  },
+                }),
+                variant: "marketing",
               }),
-            }),
-          ]),
+            ]
+          : [
+              sendEmail({
+                subject: `Your program ${program.name} is created and ready to share with your partners.`,
+                to: user.email!,
+                react: ProgramWelcome({
+                  email: user.email!,
+                  workspace,
+                  program,
+                }),
+              }),
+            ]),
 
       // delete the workspace product cache
       redis.del(`workspace:product:${workspace.slug}`),
