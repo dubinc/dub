@@ -1,11 +1,13 @@
 import * as z from "zod/v4";
+import { getPaginationQuerySchema } from "./misc";
 import {
   EnrolledPartnerSchema,
   PartnerPartnerPlatformsSchema,
+  PARTNERS_MAX_PAGE_SIZE,
 } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 
-export const partnerApplicationWebhookSchema = z.object({
+export const partnerApplicationSchema = z.object({
   id: z.string(),
   createdAt: z.coerce.date(),
   partner: EnrolledPartnerSchema.pick({
@@ -42,3 +44,11 @@ export const partnerApplicationWebhookSchema = z.object({
     )
     .nullable(),
 });
+
+export const partnerApplicationWebhookSchema = partnerApplicationSchema;
+
+export const getPartnerApplicationsQuerySchema = z.object({}).extend(
+  getPaginationQuerySchema({
+    pageSize: PARTNERS_MAX_PAGE_SIZE,
+  }),
+);
