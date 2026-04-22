@@ -25,7 +25,7 @@ export const POST = withAxiomBodyLog(async (req: Request) => {
   const clonedReq = req.clone();
   const buf = await clonedReq.text();
 
-  const signature = req.headers.get("Stripe-Signature");
+  const signature = clonedReq.headers.get("Stripe-Signature");
 
   if (!signature) {
     return logAndRespond("Missing Stripe-Signature header.", {
