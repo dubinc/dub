@@ -147,14 +147,14 @@ export const trackHubSpotLeadEvent = async ({
       return `No contact info found for contact ${objectId}.`;
     }
 
+    const { properties } = contactInfo;
+
     if (
-      contactInfo.properties.lifecyclestage?.toLowerCase() !==
+      properties.lifecyclestage?.toLowerCase() !==
       settings.leadLifecycleStageId?.toLowerCase()
     ) {
-      return `Unknown contact lifecyclestage ${contactInfo.properties.lifecyclestage}. Expected ${settings.leadLifecycleStageId}.`;
+      return `Unknown contact lifecyclestage ${properties.lifecyclestage}. Expected ${settings.leadLifecycleStageId}.`;
     }
-
-    const { properties } = contactInfo;
 
     if (!properties.dub_id) {
       return `No dub_id found for contact ${objectId}.`;
@@ -163,23 +163,16 @@ export const trackHubSpotLeadEvent = async ({
     const customer = await prisma.customer.findFirst({
       where: {
         projectId: workspace.id,
-        OR: [
-          { externalId: contactInfo.id },
-          { externalId: contactInfo.properties.email },
-        ],
+        OR: [{ externalId: contactInfo.id }, { externalId: properties.email }],
       },
     });
 
-    if (!customer) {
-      return `No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`;
-    }
-
     const trackLeadResult = await trackLead({
-      clickId: "",
+      clickId: properties.dub_id,
       eventName: `Contact ${properties.lifecyclestage}`,
-      customerExternalId: customer.externalId!,
-      customerName: `${contactInfo.properties.firstname} ${contactInfo.properties.lastname}`,
-      customerEmail: contactInfo.properties.email,
+      customerExternalId: customer ? customer.externalId! : properties.email,
+      customerName: `${properties.firstname} ${properties.lastname}`,
+      customerEmail: properties.email,
       mode: "async",
       workspace,
       rawBody: payload,
