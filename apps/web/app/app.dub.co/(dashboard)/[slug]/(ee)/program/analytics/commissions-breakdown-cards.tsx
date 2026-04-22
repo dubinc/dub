@@ -3,8 +3,10 @@
 import useCommissionsBreakdown, {
   CommissionsBreakdownItem,
 } from "@/lib/swr/use-commissions-breakdown";
+import useGroups from "@/lib/swr/use-groups";
 import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { BarList } from "@/ui/analytics/bar-list";
+import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { TabSelect, useRouterStuff } from "@dub/ui";
 import {
@@ -48,6 +50,7 @@ const STATUS_ICONS: Record<CommissionStatusFilter, React.ElementType> = {
 function mapBreakdownItem(
   item: CommissionsBreakdownItem,
   groupBy: "type" | "group" | "country" | "customer",
+  groupColorMap: Map<string, string>,
 ): { icon: ReactNode; title: string; filterValue: string; value: number } {
   let icon: ReactNode = null;
 
@@ -57,12 +60,38 @@ function mapBreakdownItem(
         type={item.key as "sale" | "custom" | "lead" | "click"}
       />
     );
+  } else if (groupBy === "group") {
+    const color = groupColorMap.get(item.key);
+    icon = color ? (
+      <span
+        className="size-2 shrink-0 rounded-full"
+        style={{ backgroundColor: color }}
+      />
+    ) : (
+      <span className="size-2 shrink-0 rounded-full bg-neutral-300" />
+    );
   } else if (groupBy === "country") {
+    // Show globe icon for unknown location, flag otherwise
+    icon =
+      item.key === "unknown" ? (
+        <Globe className="size-4 shrink-0 text-neutral-400" />
+      ) : (
+        <img
+          alt={item.key}
+          src={`https://hatscripts.github.io/circle-flags/flags/${item.key.toLowerCase()}.svg`}
+          className="size-4 shrink-0"
+        />
+      );
+  } else if (groupBy === "customer") {
     icon = (
-      <img
-        alt={item.key}
-        src={`https://hatscripts.github.io/circle-flags/flags/${item.key.toLowerCase()}.svg`}
-        className="size-4 shrink-0"
+      <CustomerAvatar
+        customer={{
+          id: item.key,
+          name: item.label,
+          email: item.label.includes("@") ? item.label : null,
+          avatar: null,
+        }}
+        className="size-4"
       />
     );
   }
@@ -171,6 +200,15 @@ export function CommissionsBreakdownCards({
   const [leftSelectedItems, setLeftSelectedItems] = useState<string[]>([]);
   const [rightSelectedItems, setRightSelectedItems] = useState<string[]>([]);
 
+  const { groups } = useGroups();
+  const groupColorMap = useMemo(() => {
+    const map = new Map<string, string>();
+    groups?.forEach((g) => {
+      if (g.color) map.set(g.id, g.color);
+    });
+    return map;
+  }, [groups]);
+
   const handleLeftTabChange = useCallback((id: string) => {
     setLeftTab(id);
     setLeftSelectedItems([]);
@@ -216,17 +254,24 @@ export function CommissionsBreakdownCards({
   );
 
   const { data: rightRawData, isLoading: rightLoading } =
-    useCommissionsBreakdown({ queryString, groupBy: rightGroupBy });
+    useCommissionsBreakdown({
+      queryString,
+      groupBy: rightGroupBy,
+    });
 
   const leftData = useMemo(
     () =>
-      (leftRawData ?? []).map((item) => mapBreakdownItem(item, leftGroupBy)),
-    [leftRawData, leftGroupBy],
+      (leftRawData ?? []).map((item) =>
+        mapBreakdownItem(item, leftGroupBy, groupColorMap),
+      ),
+    [leftRawData, leftGroupBy, groupColorMap],
   );
   const rightData = useMemo(
     () =>
-      (rightRawData ?? []).map((item) => mapBreakdownItem(item, rightGroupBy)),
-    [rightRawData, rightGroupBy],
+      (rightRawData ?? []).map((item) =>
+        mapBreakdownItem(item, rightGroupBy, groupColorMap),
+      ),
+    [rightRawData, rightGroupBy, groupColorMap],
   );
 
   const leftMaxValue = Math.max(0, ...leftData.map((d) => d.value));

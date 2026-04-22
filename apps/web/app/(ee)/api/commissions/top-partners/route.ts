@@ -13,11 +13,10 @@ const querySchema = analyticsQuerySchema
   .pick({ start: true, end: true, interval: true, timezone: true })
   .extend({
     status: z.enum(CommissionStatus).optional(),
+    partnerId: z.string().optional(),
     groupId: z.string().optional(),
     type: z.string().optional(),
     country: z.string().optional(),
-    page: z.coerce.number().int().positive().default(1),
-    pageSize: z.coerce.number().int().positive().max(100).default(10),
   });
 
 // GET /api/commissions/top-partners
@@ -30,11 +29,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     interval,
     timezone,
     status,
+    partnerId,
     groupId,
     type,
     country,
-    page,
-    pageSize,
   } = querySchema.parse(searchParams);
 
   assertValidDateRangeForPlan({
@@ -52,6 +50,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     timezone,
   });
 
+  const partnerFilter = parseFilterValue(partnerId);
   const groupFilter = parseFilterValue(groupId);
   const typeFilter = parseFilterValue(type);
   const countryFilter = parseFilterValue(country);
@@ -70,6 +69,12 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
               CommissionStatus.paid,
             ],
           },
+      ...(partnerFilter && {
+        partnerId:
+          partnerFilter.sqlOperator === "NOT IN"
+            ? { notIn: partnerFilter.values }
+            : { in: partnerFilter.values },
+      }),
       ...(typeFilter && {
         type:
           typeFilter.sqlOperator === "NOT IN"
@@ -96,8 +101,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     _sum: { earnings: true },
     _count: { _all: true },
     orderBy: { _sum: { earnings: "desc" } },
-    take: pageSize,
-    skip: (page - 1) * pageSize,
+    // Return up to 100 — client paginates
+    take: 100,
   });
 
   if (grouped.length === 0) return NextResponse.json([]);

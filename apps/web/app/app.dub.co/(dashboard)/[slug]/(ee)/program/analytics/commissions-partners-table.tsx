@@ -72,19 +72,25 @@ export function CommissionsPartnersTable({
     priority: 2,
   });
 
-  const paginatedQueryString = useMemo(() => {
-    const params = new URLSearchParams(queryString);
-    params.set("page", String(pagination.pageIndex));
-    params.set("pageSize", String(PAGE_SIZE));
-    return params.toString();
-  }, [queryString, pagination.pageIndex]);
-
-  const { partners, isLoading, error } = useCommissionsTopPartners({
-    queryString: paginatedQueryString,
+  const {
+    partners: allPartners,
+    isLoading,
+    error,
+  } = useCommissionsTopPartners({
+    queryString,
   });
 
+  const pageData = useMemo(
+    () =>
+      allPartners?.slice(
+        (pagination.pageIndex - 1) * PAGE_SIZE,
+        pagination.pageIndex * PAGE_SIZE,
+      ),
+    [allPartners, pagination.pageIndex],
+  );
+
   const { table, ...tableProps } = useTable<CommissionsTopPartner>({
-    data: partners ?? [],
+    data: pageData ?? [],
     columns: [
       {
         id: "partner",
@@ -158,7 +164,7 @@ export function CommissionsPartnersTable({
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
-    rowCount: partners?.length ?? 0,
+    rowCount: allPartners?.length ?? 0,
     loading: isLoading,
     error: error ? "Failed to load partners" : undefined,
   });

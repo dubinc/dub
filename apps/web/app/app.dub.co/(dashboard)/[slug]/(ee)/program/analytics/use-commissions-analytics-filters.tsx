@@ -30,7 +30,9 @@ const COMMISSION_FILTER_KEYS = [
   "country",
 ] as const;
 
-export function useCommissionsAnalyticsFilters() {
+export function useCommissionsAnalyticsFilters(
+  commissionsQueryString?: string,
+) {
   const { slug } = useWorkspace();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
@@ -46,20 +48,10 @@ export function useCommissionsAnalyticsFilters() {
   );
   const { groups } = useGroups();
 
-  const { id: workspaceId } = useWorkspace();
-  const countryQueryString = useMemo(
-    () =>
-      new URLSearchParams({
-        workspaceId: workspaceId!,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        interval: "all",
-      }).toString(),
-    [workspaceId],
-  );
   const { data: countryData } = useCommissionsBreakdown({
-    queryString: countryQueryString,
+    queryString: commissionsQueryString ?? "",
     groupBy: "country",
-    enabled: selectedFilter === "country",
+    enabled: selectedFilter === "country" && !!commissionsQueryString,
   });
 
   const filters = useMemo(

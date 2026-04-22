@@ -121,7 +121,7 @@ export function ProgramAnalyticsPageClient() {
     onToggleOperator: commOnToggleOperator,
     onOpenFilter: commOnOpenFilter,
     setSearch: commSetSearch,
-  } = useCommissionsAnalyticsFilters();
+  } = useCommissionsAnalyticsFilters(commissionsQueryString);
 
   const filterSelect =
     pageTab === "performance" ? (
