@@ -4,6 +4,7 @@ import {
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Img,
   Link,
@@ -42,46 +43,65 @@ export default function Trial3DaysRemainingEmail({
               You have 3 days left in your Dub trial
             </Heading>
 
-            <Text className="mb-8 text-sm leading-6 text-neutral-600">
+            <Text className="mb-6 mt-5 text-sm leading-5 text-neutral-600">
               By now, you&apos;ve seen how links, partners, and revenue work
-              together on Dub.{" "}
+              together on Dub.
+            </Text>
+
+            <Heading className="mx-0 mb-6 p-0 text-base font-semibold text-black">
+              What that means for you:
+            </Heading>
+
+            <Text className="mb-4 text-sm leading-5 text-neutral-800">
+              1.{" "}
+              <span className="font-semibold text-black">
+                Every link is branded and trackable
+              </span>
+              : Short links on your domain, with full visibility into performance.
+            </Text>
+
+            <Text className="mb-4 text-sm leading-5 text-neutral-800">
+              2.{" "}
+              <span className="font-semibold text-black">
+                Every click ties back to real outcomes
+              </span>
+              : Tie clicks to conversions so you can see what actually drives
+              revenue.
+            </Text>
+
+            <Text className="mb-0 text-sm leading-5 text-neutral-800">
+              3.{" "}
+              <span className="font-semibold text-black">
+                Every partner becomes a channel for growth
+              </span>
+              : Run programs that reward partners for the traffic and sales they
+              generate.
+            </Text>
+
+            <Hr />
+
+            <Text className="mb-8 text-sm leading-5 text-neutral-800">
+              You can{" "}
               <Link
                 href={upgradeUrl}
-                className="text-neutral-600 underline underline-offset-2"
+                className="font-medium text-neutral-500 underline underline-offset-2"
               >
-                Choose a plan
+                choose a plan
               </Link>{" "}
-              that fits your team and keep everything running as is.
-            </Text>
-
-            <Text className="mb-3 text-sm font-semibold leading-6 text-neutral-800">
-              What that means for you:
-            </Text>
-
-            <Text className="mb-3 text-sm leading-6 text-neutral-600">
-              • Every link is branded and trackable
-            </Text>
-            <Text className="mb-3 text-sm leading-6 text-neutral-600">
-              • Every click ties back to real outcomes
-            </Text>
-            <Text className="mb-8 text-sm leading-6 text-neutral-600">
-              • Every partner becomes a channel for growth
-            </Text>
-
-            <Text className="mb-8 text-sm leading-6 text-neutral-600">
-              When your trial ends, your workspace will{" "}
+              that fits your team and keep everything running as is. When your
+              trial ends, your workspace will{" "}
               <Link
                 href={billingUrl}
-                className="text-neutral-600 underline underline-offset-2"
+                className="font-medium text-neutral-500 underline underline-offset-2"
               >
                 continue on the current plan
               </Link>{" "}
               so everything stays live without interruption.
             </Text>
 
-            <Section className="mb-8">
+            <Section className="my-8">
               <Link
-                className="block w-fit rounded-lg bg-black px-4 py-2.5 text-center text-[14px] font-medium text-white no-underline"
+                className="rounded-lg bg-black px-4 py-2.5 text-center text-[14px] font-medium text-white no-underline"
                 href={dashboardUrl}
               >
                 Go to your dashboard
