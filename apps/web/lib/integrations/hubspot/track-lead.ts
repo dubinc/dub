@@ -50,7 +50,6 @@ export const trackHubSpotLeadEvent = async ({
       customerName,
       mode: "deferred",
       workspace,
-      rawBody: payload,
     });
 
     if (trackLeadResult) {
@@ -116,7 +115,6 @@ export const trackHubSpotLeadEvent = async ({
       customerEmail: contactInfo.properties.email,
       mode: "async",
       workspace,
-      rawBody: payload,
     });
 
     if (trackLeadResult) {
@@ -175,7 +173,6 @@ export const trackHubSpotLeadEvent = async ({
       customerEmail: properties.email,
       mode: "async",
       workspace,
-      rawBody: payload,
     });
 
     if (trackLeadResult) {
