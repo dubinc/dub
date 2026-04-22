@@ -54,7 +54,7 @@ export const POST = withAxiom(async (req) => {
       finalEvents.map((event) => ({
         queueName: "process-hubspot-webhook",
         url: `${APP_DOMAIN_WITH_NGROK}/api/hubspot/webhook/process`,
-        deduplicationId: event.id,
+        deduplicationId: event.eventId,
         method: "POST",
         body: event,
       })),
