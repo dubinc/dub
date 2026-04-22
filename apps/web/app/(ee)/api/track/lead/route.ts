@@ -53,7 +53,6 @@ export const POST = withWorkspace(
       customerAvatar,
       mode,
       metadata,
-      rawBody: body,
       workspace,
     });
 

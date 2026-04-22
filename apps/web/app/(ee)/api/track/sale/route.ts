@@ -58,7 +58,6 @@ export const POST = withWorkspace(
       leadEventName,
       metadata,
       workspace,
-      rawBody: body,
     });
 
     return NextResponse.json(response);
