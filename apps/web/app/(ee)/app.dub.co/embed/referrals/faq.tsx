@@ -62,7 +62,7 @@ export function ReferralsEmbedFAQ() {
               <h3 className="text-left text-sm sm:text-base">{item.title}</h3>
             </AccordionTrigger>
             <AccordionContent>
-              <BlockMarkdown className="text-content-subtle py-2 text-left text-sm sm:text-base">
+              <BlockMarkdown className="text-content-subtle dark:prose-invert dark:prose-a:text-neutral-400 dark:hover:prose-a:text-neutral-300 dark:marker:prose-ul:text-neutral-400 py-2 text-left text-sm sm:text-base">
                 {item.content}
               </BlockMarkdown>
             </AccordionContent>
