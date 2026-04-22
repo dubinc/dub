@@ -1,5 +1,9 @@
 "use client";
 
+import useCommissionsBreakdown, {
+  CommissionsBreakdownItem,
+} from "@/lib/swr/use-commissions-breakdown";
+import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinner";
 import { BarList } from "@/ui/analytics/bar-list";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { TabSelect, useRouterStuff } from "@dub/ui";
@@ -11,20 +15,21 @@ import {
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ReactNode, useCallback, useMemo, useState } from "react";
-import {
-  CommissionStatusFilter,
-  MOCK_COUNTRY_BREAKDOWN,
-  MOCK_CUSTOMER_BREAKDOWN,
-  MOCK_GROUP_BREAKDOWN,
-  MOCK_LOCATION_BREAKDOWN,
-  MOCK_TYPE_BREAKDOWN,
-} from "./commissions-mock-data";
+import { CommissionStatusFilter } from "./commissions-status-selector";
 
 const FILTER_PARAM_KEYS: Record<string, string> = {
   group: "groupId",
   location: "country",
   type: "type",
   customer: "customerId",
+  country: "country",
+};
+
+const GROUPBY_MAP: Record<string, "type" | "group" | "country" | "customer"> = {
+  group: "group",
+  location: "country",
+  type: "type",
+  customer: "customer",
   country: "country",
 };
 
@@ -39,6 +44,36 @@ const STATUS_ICONS: Record<CommissionStatusFilter, React.ElementType> = {
   processed: CircleHalfDottedClock,
   paid: CircleCheck,
 };
+
+function mapBreakdownItem(
+  item: CommissionsBreakdownItem,
+  groupBy: "type" | "group" | "country" | "customer",
+): { icon: ReactNode; title: string; filterValue: string; value: number } {
+  let icon: ReactNode = null;
+
+  if (groupBy === "type") {
+    icon = (
+      <CommissionTypeIcon
+        type={item.key as "sale" | "custom" | "lead" | "click"}
+      />
+    );
+  } else if (groupBy === "country") {
+    icon = (
+      <img
+        alt={item.key}
+        src={`https://hatscripts.github.io/circle-flags/flags/${item.key.toLowerCase()}.svg`}
+        className="size-4 shrink-0"
+      />
+    );
+  }
+
+  return {
+    icon,
+    title: item.label,
+    filterValue: item.key,
+    value: item.earnings,
+  };
+}
 
 function CommissionsCard({
   status,
@@ -124,8 +159,10 @@ function CommissionsCard({
 
 export function CommissionsBreakdownCards({
   status,
+  queryString,
 }: {
   status: CommissionStatusFilter;
+  queryString: string;
 }) {
   const { queryParams, searchParams } = useRouterStuff();
   const [leftTab, setLeftTab] = useState("group");
@@ -154,7 +191,6 @@ export function CommissionsBreakdownCards({
         : [],
     [leftFilterParamKey, searchParams],
   );
-
   const rightActiveFilterValues = useMemo(
     () =>
       rightFilterParamKey
@@ -169,6 +205,33 @@ export function CommissionsBreakdownCards({
   const isRightFilterActive =
     !!rightFilterParamKey && searchParams.has(rightFilterParamKey);
 
+  const leftGroupBy = GROUPBY_MAP[leftTab];
+  const rightGroupBy = GROUPBY_MAP[rightTab];
+
+  const { data: leftRawData, isLoading: leftLoading } = useCommissionsBreakdown(
+    {
+      queryString,
+      groupBy: leftGroupBy,
+    },
+  );
+
+  const { data: rightRawData, isLoading: rightLoading } =
+    useCommissionsBreakdown({ queryString, groupBy: rightGroupBy });
+
+  const leftData = useMemo(
+    () =>
+      (leftRawData ?? []).map((item) => mapBreakdownItem(item, leftGroupBy)),
+    [leftRawData, leftGroupBy],
+  );
+  const rightData = useMemo(
+    () =>
+      (rightRawData ?? []).map((item) => mapBreakdownItem(item, rightGroupBy)),
+    [rightRawData, rightGroupBy],
+  );
+
+  const leftMaxValue = Math.max(0, ...leftData.map((d) => d.value));
+  const rightMaxValue = Math.max(0, ...rightData.map((d) => d.value));
+
   const onLeftToggleFilter = useCallback(
     (val: string) =>
       setLeftSelectedItems((prev) =>
@@ -176,7 +239,6 @@ export function CommissionsBreakdownCards({
       ),
     [],
   );
-
   const onLeftApplyFilterValues = useCallback(
     (values: string[]) => {
       if (!leftFilterParamKey) return;
@@ -192,12 +254,10 @@ export function CommissionsBreakdownCards({
     },
     [leftFilterParamKey, queryParams],
   );
-
   const onLeftClearFilter = useCallback(() => {
     setLeftSelectedItems([]);
-    if (isLeftFilterActive && leftFilterParamKey) {
+    if (isLeftFilterActive && leftFilterParamKey)
       queryParams({ del: leftFilterParamKey, scroll: false });
-    }
   }, [isLeftFilterActive, leftFilterParamKey, queryParams]);
 
   const onRightToggleFilter = useCallback(
@@ -207,7 +267,6 @@ export function CommissionsBreakdownCards({
       ),
     [],
   );
-
   const onRightApplyFilterValues = useCallback(
     (values: string[]) => {
       if (!rightFilterParamKey) return;
@@ -223,80 +282,11 @@ export function CommissionsBreakdownCards({
     },
     [rightFilterParamKey, queryParams],
   );
-
   const onRightClearFilter = useCallback(() => {
     setRightSelectedItems([]);
-    if (isRightFilterActive && rightFilterParamKey) {
+    if (isRightFilterActive && rightFilterParamKey)
       queryParams({ del: rightFilterParamKey, scroll: false });
-    }
   }, [isRightFilterActive, rightFilterParamKey, queryParams]);
-
-  const groupData = MOCK_GROUP_BREAKDOWN.map((item) => ({
-    icon: (
-      <span
-        className="size-2 shrink-0 rounded-full"
-        style={{ backgroundColor: item.color }}
-      />
-    ) as ReactNode,
-    title: item.label,
-    filterValue: item.label,
-    value: item.value,
-  }));
-
-  const locationData = MOCK_LOCATION_BREAKDOWN.map((item) => ({
-    icon: (
-      <img
-        alt={`${item.countryCode} flag`}
-        src={`https://hatscripts.github.io/circle-flags/flags/${item.countryCode}.svg`}
-        className="size-4 shrink-0"
-      />
-    ) as ReactNode,
-    title: item.label,
-    filterValue: item.countryCode,
-    value: item.value,
-  }));
-
-  const typeData = MOCK_TYPE_BREAKDOWN.map((item) => ({
-    icon: (
-      <CommissionTypeIcon
-        type={item.type as "sale" | "custom" | "lead" | "click"}
-      />
-    ) as ReactNode,
-    title: item.label,
-    filterValue: item.type,
-    value: item.value,
-  }));
-
-  const customerData = MOCK_CUSTOMER_BREAKDOWN.map((item) => ({
-    icon: null as ReactNode,
-    title: item.label,
-    filterValue: item.label,
-    value: item.value,
-  }));
-
-  const countryData = MOCK_COUNTRY_BREAKDOWN.map((item) => ({
-    icon: (
-      <img
-        alt={`${item.countryCode} flag`}
-        src={`https://hatscripts.github.io/circle-flags/flags/${item.countryCode}.svg`}
-        className="size-4 shrink-0"
-      />
-    ) as ReactNode,
-    title: item.label,
-    filterValue: item.countryCode,
-    value: item.value,
-  }));
-
-  const leftActiveData = leftTab === "group" ? groupData : locationData;
-  const rightActiveData =
-    rightTab === "type"
-      ? typeData
-      : rightTab === "customer"
-        ? customerData
-        : countryData;
-
-  const leftMaxValue = Math.max(...leftActiveData.map((d) => d.value));
-  const rightMaxValue = Math.max(...rightActiveData.map((d) => d.value));
 
   const EXPAND_LIMIT = 8;
 
@@ -310,39 +300,49 @@ export function CommissionsBreakdownCards({
         ]}
         selectedTabId={leftTab}
         onSelectTab={handleLeftTabChange}
-        dataLength={leftActiveData.length}
+        dataLength={leftData.length}
         expandLimit={EXPAND_LIMIT}
         isFilterActive={isLeftFilterActive}
         onClearFilter={onLeftClearFilter}
       >
-        {({ limit, setShowModal }) => (
-          <BarList
-            tab={leftTab}
-            unit="commission"
-            data={leftActiveData}
-            maxValue={leftMaxValue}
-            barBackground="bg-orange-100"
-            hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
-            filterSelectedBackground="bg-neutral-900"
-            filterSelectedHoverBackground="hover:bg-neutral-700"
-            filterHoverClass="bg-white border border-neutral-200"
-            setShowModal={setShowModal}
-            limit={limit}
-            selectedFilterValues={leftSelectedItems}
-            activeFilterValues={leftActiveFilterValues}
-            onToggleFilter={onLeftToggleFilter}
-            onClearFilter={onLeftClearFilter}
-            onClearSelection={() => setLeftSelectedItems([])}
-            onApplyFilterValues={
-              leftFilterParamKey ? onLeftApplyFilterValues : undefined
-            }
-            onRowFilterItem={
-              leftFilterParamKey
-                ? (val) => onLeftApplyFilterValues([val])
-                : undefined
-            }
-          />
-        )}
+        {({ limit, setShowModal }) =>
+          leftLoading ? (
+            <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
+              <AnalyticsLoadingSpinner />
+            </div>
+          ) : leftData.length === 0 ? (
+            <div className="flex h-[300px] items-center justify-center">
+              <p className="text-sm text-neutral-600">No data available</p>
+            </div>
+          ) : (
+            <BarList
+              tab={leftTab}
+              unit="commission"
+              data={leftData}
+              maxValue={leftMaxValue}
+              barBackground="bg-orange-100"
+              hoverBackground="hover:bg-gradient-to-r hover:from-orange-50 hover:to-transparent hover:border-orange-500"
+              filterSelectedBackground="bg-neutral-900"
+              filterSelectedHoverBackground="hover:bg-neutral-700"
+              filterHoverClass="bg-white border border-neutral-200"
+              setShowModal={setShowModal}
+              limit={limit}
+              selectedFilterValues={leftSelectedItems}
+              activeFilterValues={leftActiveFilterValues}
+              onToggleFilter={onLeftToggleFilter}
+              onClearFilter={onLeftClearFilter}
+              onClearSelection={() => setLeftSelectedItems([])}
+              onApplyFilterValues={
+                leftFilterParamKey ? onLeftApplyFilterValues : undefined
+              }
+              onRowFilterItem={
+                leftFilterParamKey
+                  ? (val) => onLeftApplyFilterValues([val])
+                  : undefined
+              }
+            />
+          )
+        }
       </CommissionsCard>
 
       <CommissionsCard
@@ -354,39 +354,49 @@ export function CommissionsBreakdownCards({
         ]}
         selectedTabId={rightTab}
         onSelectTab={handleRightTabChange}
-        dataLength={rightActiveData.length}
+        dataLength={rightData.length}
         expandLimit={EXPAND_LIMIT}
         isFilterActive={isRightFilterActive}
         onClearFilter={onRightClearFilter}
       >
-        {({ limit, setShowModal }) => (
-          <BarList
-            tab={rightTab}
-            unit="commission"
-            data={rightActiveData}
-            maxValue={rightMaxValue}
-            barBackground="bg-neutral-100"
-            hoverBackground="hover:bg-gradient-to-r hover:from-neutral-50 hover:to-transparent hover:border-neutral-300"
-            filterSelectedBackground="bg-neutral-900"
-            filterSelectedHoverBackground="hover:bg-neutral-700"
-            filterHoverClass="bg-white border border-neutral-200"
-            setShowModal={setShowModal}
-            limit={limit}
-            selectedFilterValues={rightSelectedItems}
-            activeFilterValues={rightActiveFilterValues}
-            onToggleFilter={onRightToggleFilter}
-            onClearFilter={onRightClearFilter}
-            onClearSelection={() => setRightSelectedItems([])}
-            onApplyFilterValues={
-              rightFilterParamKey ? onRightApplyFilterValues : undefined
-            }
-            onRowFilterItem={
-              rightFilterParamKey
-                ? (val) => onRightApplyFilterValues([val])
-                : undefined
-            }
-          />
-        )}
+        {({ limit, setShowModal }) =>
+          rightLoading ? (
+            <div className="absolute inset-0 flex h-[300px] w-full items-center justify-center bg-white/50">
+              <AnalyticsLoadingSpinner />
+            </div>
+          ) : rightData.length === 0 ? (
+            <div className="flex h-[300px] items-center justify-center">
+              <p className="text-sm text-neutral-600">No data available</p>
+            </div>
+          ) : (
+            <BarList
+              tab={rightTab}
+              unit="commission"
+              data={rightData}
+              maxValue={rightMaxValue}
+              barBackground="bg-neutral-100"
+              hoverBackground="hover:bg-gradient-to-r hover:from-neutral-50 hover:to-transparent hover:border-neutral-300"
+              filterSelectedBackground="bg-neutral-900"
+              filterSelectedHoverBackground="hover:bg-neutral-700"
+              filterHoverClass="bg-white border border-neutral-200"
+              setShowModal={setShowModal}
+              limit={limit}
+              selectedFilterValues={rightSelectedItems}
+              activeFilterValues={rightActiveFilterValues}
+              onToggleFilter={onRightToggleFilter}
+              onClearFilter={onRightClearFilter}
+              onClearSelection={() => setRightSelectedItems([])}
+              onApplyFilterValues={
+                rightFilterParamKey ? onRightApplyFilterValues : undefined
+              }
+              onRowFilterItem={
+                rightFilterParamKey
+                  ? (val) => onRightApplyFilterValues([val])
+                  : undefined
+              }
+            />
+          )
+        }
       </CommissionsCard>
     </div>
   );

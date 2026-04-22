@@ -1,5 +1,6 @@
 "use client";
 
+import useCommissionsBreakdown from "@/lib/swr/use-commissions-breakdown";
 import useCustomers from "@/lib/swr/use-customers";
 import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
@@ -12,33 +13,22 @@ import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CommissionType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { FlagWavy, Sliders, User, Users, Users6 } from "@dub/ui/icons";
-import { capitalize, COUNTRIES } from "@dub/utils";
+import {
+  capitalize,
+  COUNTRIES,
+  FilterOperator,
+  parseFilterValue,
+} from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-// Top countries to show as options for the location filter (UI only, no API yet)
-const TOP_COUNTRY_CODES = [
-  "US",
-  "CA",
-  "GB",
-  "DE",
-  "FR",
-  "AU",
-  "BR",
-  "IN",
-  "JP",
-  "MX",
-  "NL",
-  "ES",
-  "IT",
-  "SE",
-  "NO",
-  "DK",
-  "FI",
-  "CH",
-  "AT",
-  "NZ",
-];
+const COMMISSION_FILTER_KEYS = [
+  "partnerId",
+  "groupId",
+  "customerId",
+  "type",
+  "country",
+] as const;
 
 export function useCommissionsAnalyticsFilters() {
   const { slug } = useWorkspace();
@@ -55,6 +45,22 @@ export function useCommissionsAnalyticsFilters() {
     selectedFilter === "customerId" ? debouncedSearch : "",
   );
   const { groups } = useGroups();
+
+  const { id: workspaceId } = useWorkspace();
+  const countryQueryString = useMemo(
+    () =>
+      new URLSearchParams({
+        workspaceId: workspaceId!,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        interval: "all",
+      }).toString(),
+    [workspaceId],
+  );
+  const { data: countryData } = useCommissionsBreakdown({
+    queryString: countryQueryString,
+    groupBy: "country",
+    enabled: selectedFilter === "country",
+  });
 
   const filters = useMemo(
     () => [
@@ -118,24 +124,36 @@ export function useCommissionsAnalyticsFilters() {
             />
           );
         },
-        options: TOP_COUNTRY_CODES.filter((c) => COUNTRIES[c]).map((code) => ({
-          value: code,
-          label: COUNTRIES[code],
-        })),
+        options: countryData
+          ? countryData
+              .filter((d) => d.key !== "unknown")
+              .map((d) => ({
+                value: d.key,
+                label: COUNTRIES[d.key] ?? d.key,
+                right: d.count > 0 ? String(d.count) : undefined,
+              }))
+          : null,
       },
     ],
-    [partners, customers, groups, slug],
+    [partners, customers, groups, slug, countryData],
   );
 
   const activeFilters = useMemo(() => {
-    const { partnerId, groupId, customerId, type, country } = searchParamsObj;
-    return [
-      ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
-      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
-      ...(customerId ? [{ key: "customerId", value: customerId }] : []),
-      ...(type ? [{ key: "type", value: type }] : []),
-      ...(country ? [{ key: "country", value: country }] : []),
-    ];
+    const result: {
+      key: string;
+      operator: FilterOperator;
+      values: string[];
+    }[] = [];
+
+    for (const key of COMMISSION_FILTER_KEYS) {
+      const raw = searchParamsObj[key];
+      if (!raw) continue;
+      const parsed = parseFilterValue(raw);
+      if (parsed)
+        result.push({ key, operator: parsed.operator, values: parsed.values });
+    }
+
+    return result;
   }, [
     searchParamsObj.partnerId,
     searchParamsObj.groupId,
@@ -145,12 +163,51 @@ export function useCommissionsAnalyticsFilters() {
   ]);
 
   const onSelect = useCallback(
-    (key: string, value: string) =>
-      queryParams({ set: { [key]: value }, del: "page", scroll: false }),
-    [queryParams],
+    (key: string, value: string) => {
+      const currentParam = searchParamsObj[key];
+
+      if (!currentParam) {
+        queryParams({ set: { [key]: value }, del: "page", scroll: false });
+        return;
+      }
+
+      const parsed = parseFilterValue(currentParam);
+      if (parsed && !parsed.values.includes(value)) {
+        const newValues = [...parsed.values, value];
+        const newParam = parsed.operator.includes("NOT")
+          ? `-${newValues.join(",")}`
+          : newValues.join(",");
+        queryParams({ set: { [key]: newParam }, del: "page", scroll: false });
+      }
+    },
+    [searchParamsObj, queryParams],
   );
 
   const onRemove = useCallback(
+    (key: string, value: string) => {
+      const currentParam = searchParamsObj[key];
+      if (!currentParam) return;
+
+      const parsed = parseFilterValue(currentParam);
+      if (!parsed) {
+        queryParams({ del: [key, "page"], scroll: false });
+        return;
+      }
+
+      const newValues = parsed.values.filter((v) => v !== value);
+      if (newValues.length === 0) {
+        queryParams({ del: [key, "page"], scroll: false });
+      } else {
+        const newParam = parsed.operator.includes("NOT")
+          ? `-${newValues.join(",")}`
+          : newValues.join(",");
+        queryParams({ set: { [key]: newParam }, scroll: false });
+      }
+    },
+    [searchParamsObj, queryParams],
+  );
+
+  const onRemoveFilter = useCallback(
     (key: string) => queryParams({ del: [key, "page"], scroll: false }),
     [queryParams],
   );
@@ -158,10 +215,29 @@ export function useCommissionsAnalyticsFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["partnerId", "groupId", "customerId", "type", "country", "page"],
+        del: [...COMMISSION_FILTER_KEYS, "page"],
         scroll: false,
       }),
     [queryParams],
+  );
+
+  const onToggleOperator = useCallback(
+    (key: string) => {
+      const currentParam = searchParamsObj[key];
+      if (!currentParam) return;
+      const isNegated = currentParam.startsWith("-");
+      const cleanValue = isNegated ? currentParam.slice(1) : currentParam;
+      queryParams({
+        set: { [key]: isNegated ? cleanValue : `-${cleanValue}` },
+        scroll: false,
+      });
+    },
+    [searchParamsObj, queryParams],
+  );
+
+  const onOpenFilter = useCallback(
+    (key: string | null) => setSelectedFilter(key),
+    [],
   );
 
   return {
@@ -169,9 +245,11 @@ export function useCommissionsAnalyticsFilters() {
     activeFilters,
     onSelect,
     onRemove,
+    onRemoveFilter,
     onRemoveAll,
+    onToggleOperator,
+    onOpenFilter,
     setSearch,
-    setSelectedFilter,
   };
 }
 
@@ -184,7 +262,7 @@ function usePartnerFilterOptions(search: string) {
   const { partners: selectedPartners } = usePartners({
     query: {
       partnerIds: searchParamsObj.partnerId
-        ? [searchParamsObj.partnerId]
+        ? searchParamsObj.partnerId.replace(/^-/, "").split(",").filter(Boolean)
         : undefined,
     },
   });
@@ -210,7 +288,10 @@ function useCustomerFilterOptions(search: string) {
   const { customers: selectedCustomers } = useCustomers({
     query: {
       customerIds: searchParamsObj.customerId
-        ? [searchParamsObj.customerId]
+        ? searchParamsObj.customerId
+            .replace(/^-/, "")
+            .split(",")
+            .filter(Boolean)
         : undefined,
     },
   });

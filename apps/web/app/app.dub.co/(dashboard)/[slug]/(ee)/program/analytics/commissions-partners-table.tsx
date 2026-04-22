@@ -1,5 +1,8 @@
 "use client";
 
+import useCommissionsTopPartners, {
+  CommissionsTopPartner,
+} from "@/lib/swr/use-commissions-top-partners";
 import {
   Button,
   Table,
@@ -8,23 +11,20 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { currencyFormatter } from "@dub/utils";
+import { cn, COUNTRIES, currencyFormatter } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useMemo, useState } from "react";
-import {
-  CommissionStatusFilter,
-  MOCK_COMMISSION_PARTNERS,
-  MockCommissionPartner,
-} from "./commissions-mock-data";
 import { PartnerAnalyticsFilterCell } from "./partner-analytics-filter-cell";
 
+const PAGE_SIZE = 10;
+
 export function CommissionsPartnersTable({
-  status,
+  queryString,
 }: {
-  status: CommissionStatusFilter;
+  queryString: string;
 }) {
   const { queryParams, searchParams } = useRouterStuff();
-  const { pagination, setPagination } = usePagination(10);
+  const { pagination, setPagination } = usePagination(PAGE_SIZE);
 
   const [stagedPartnerIds, setStagedPartnerIds] = useState<string[] | null>(
     null,
@@ -72,17 +72,19 @@ export function CommissionsPartnersTable({
     priority: 2,
   });
 
-  const pageData = useMemo(
-    () =>
-      MOCK_COMMISSION_PARTNERS.slice(
-        (pagination.pageIndex - 1) * pagination.pageSize,
-        pagination.pageIndex * pagination.pageSize,
-      ),
-    [pagination],
-  );
+  const paginatedQueryString = useMemo(() => {
+    const params = new URLSearchParams(queryString);
+    params.set("page", String(pagination.pageIndex));
+    params.set("pageSize", String(PAGE_SIZE));
+    return params.toString();
+  }, [queryString, pagination.pageIndex]);
 
-  const { table, ...tableProps } = useTable<MockCommissionPartner>({
-    data: pageData,
+  const { partners, isLoading, error } = useCommissionsTopPartners({
+    queryString: paginatedQueryString,
+  });
+
+  const { table, ...tableProps } = useTable<CommissionsTopPartner>({
+    data: partners ?? [],
     columns: [
       {
         id: "partner",
@@ -90,17 +92,17 @@ export function CommissionsPartnersTable({
         enableHiding: false,
         minSize: 220,
         cell: ({ row }) => {
-          const { id, name, image } = row.original;
+          const { partnerId, name, image } = row.original;
           return (
             <PartnerAnalyticsFilterCell
-              partner={{ id, name, image }}
-              partnerId={id}
-              isStaged={stagedPartnerIds?.includes(id) ?? false}
-              isApplied={activePartnerIdsFromUrl.includes(id)}
-              onToggle={() => toggleStagePartner(id)}
+              partner={{ id: partnerId, name, image }}
+              partnerId={partnerId}
+              isStaged={stagedPartnerIds?.includes(partnerId) ?? false}
+              isApplied={activePartnerIdsFromUrl.includes(partnerId)}
+              onToggle={() => toggleStagePartner(partnerId)}
               onApplyImmediate={() => {
                 queryParams({
-                  set: { partnerId: id },
+                  set: { partnerId },
                   del: "page",
                   scroll: false,
                 });
@@ -114,34 +116,35 @@ export function CommissionsPartnersTable({
         id: "group",
         header: "Group",
         minSize: 140,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <span
-              className="size-2 shrink-0 rounded-full"
-              style={{ backgroundColor: row.original.groupColor }}
-            />
+        cell: ({ row }) =>
+          row.original.groupName ? (
             <span className="truncate text-sm text-neutral-700">
               {row.original.groupName}
             </span>
-          </div>
-        ),
+          ) : (
+            <span className="text-neutral-400">—</span>
+          ),
       },
       {
         id: "location",
         header: "Location",
         minSize: 140,
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <img
-              alt={`${row.original.countryCode} flag`}
-              src={`https://hatscripts.github.io/circle-flags/flags/${row.original.countryCode}.svg`}
-              className="size-4 shrink-0"
-            />
-            <span className="min-w-0 truncate text-sm text-neutral-700">
-              {row.original.country}
-            </span>
-          </div>
-        ),
+        cell: ({ row }) => {
+          const { country } = row.original;
+          if (!country) return <span className="text-neutral-400">—</span>;
+          return (
+            <div className="flex items-center gap-2">
+              <img
+                alt={`${country} flag`}
+                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                className="size-4 shrink-0"
+              />
+              <span className="min-w-0 truncate text-sm text-neutral-700">
+                {COUNTRIES[country] ?? country}
+              </span>
+            </div>
+          );
+        },
       },
       {
         id: "commission",
@@ -155,13 +158,15 @@ export function CommissionsPartnersTable({
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
-    rowCount: MOCK_COMMISSION_PARTNERS.length,
+    rowCount: partners?.length ?? 0,
+    loading: isLoading,
+    error: error ? "Failed to load partners" : undefined,
   });
 
   const showFloatingBar = stagedPartnerIds !== null || isFilterActive;
 
   return (
-    <div className="relative">
+    <div className={cn("relative", isLoading && "pointer-events-none")}>
       <Table
         {...tableProps}
         table={table}

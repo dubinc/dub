@@ -30,11 +30,9 @@ import { AnalyticsPartnersTable } from "./analytics-partners-table";
 import { CommissionsAnalyticsChart } from "./commissions-analytics-chart";
 import { CommissionsBreakdownCards } from "./commissions-breakdown-cards";
 import { CommissionsPartnersTable } from "./commissions-partners-table";
-import {
-  CommissionStatusFilter,
-  CommissionsStatusSelector,
-} from "./commissions-status-selector";
+import { CommissionsStatusSelector } from "./commissions-status-selector";
 import { useCommissionsAnalyticsFilters } from "./use-commissions-analytics-filters";
+import { useCommissionsAnalyticsQuery } from "./use-commissions-analytics-query";
 
 type PageTab = "performance" | "commissions";
 
@@ -54,11 +52,8 @@ export function ProgramAnalyticsPageClient() {
     return raw === "commissions" ? "commissions" : "performance";
   }, [searchParamsObj]);
 
-  const commissionStatus = useMemo<CommissionStatusFilter>(() => {
-    const raw = searchParamsObj.commissionStatus;
-    if (raw === "processed" || raw === "paid") return raw;
-    return "pending";
-  }, [searchParamsObj]);
+  const { queryString: commissionsQueryString, status: commissionStatus } =
+    useCommissionsAnalyticsQuery();
 
   const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;
@@ -121,9 +116,11 @@ export function ProgramAnalyticsPageClient() {
     activeFilters: commActiveFilters,
     onSelect: commOnSelect,
     onRemove: commOnRemove,
+    onRemoveFilter: commOnRemoveFilter,
     onRemoveAll: commOnRemoveAll,
+    onToggleOperator: commOnToggleOperator,
+    onOpenFilter: commOnOpenFilter,
     setSearch: commSetSearch,
-    setSelectedFilter: commSetSelectedFilter,
   } = useCommissionsAnalyticsFilters();
 
   const filterSelect =
@@ -145,8 +142,9 @@ export function ProgramAnalyticsPageClient() {
         activeFilters={commActiveFilters}
         onSelect={commOnSelect}
         onRemove={commOnRemove}
+        onOpenFilter={commOnOpenFilter}
         onSearchChange={commSetSearch}
-        onSelectedFilterChange={commSetSelectedFilter}
+        isAdvancedFilter
       />
     );
 
@@ -236,7 +234,10 @@ export function ProgramAnalyticsPageClient() {
                 activeFilters={commActiveFilters}
                 onSelect={commOnSelect}
                 onRemove={commOnRemove}
+                onRemoveFilter={commOnRemoveFilter}
                 onRemoveAll={commOnRemoveAll}
+                onToggleOperator={commOnToggleOperator}
+                isAdvancedFilter
               />
             )}
           </div>
@@ -273,10 +274,13 @@ export function ProgramAnalyticsPageClient() {
               <CommissionsStatusSelector status={commissionStatus} />
               <div className="relative h-72 md:h-96">
                 <div className="relative size-full p-6 pt-10">
-                  <CommissionsAnalyticsChart status={commissionStatus} />
+                  <CommissionsAnalyticsChart
+                    status={commissionStatus}
+                    queryString={commissionsQueryString}
+                  />
                 </div>
               </div>
-              <CommissionsPartnersTable status={commissionStatus} />
+              <CommissionsPartnersTable queryString={commissionsQueryString} />
             </>
           )}
         </div>
@@ -289,7 +293,10 @@ export function ProgramAnalyticsPageClient() {
             <DeviceSection />
           </div>
         ) : (
-          <CommissionsBreakdownCards status={commissionStatus} />
+          <CommissionsBreakdownCards
+            status={commissionStatus}
+            queryString={commissionsQueryString}
+          />
         )}
       </div>
     </AnalyticsContext.Provider>
