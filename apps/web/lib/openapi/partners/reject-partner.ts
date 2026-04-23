@@ -30,6 +30,6 @@ export const rejectPartner: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["Partners"],
+  tags: ["Partner Applications"],
   security: [{ token: [] }],
 };
