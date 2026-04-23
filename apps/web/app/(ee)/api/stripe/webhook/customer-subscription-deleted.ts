@@ -115,7 +115,7 @@ export async function customerSubscriptionDeleted(
       planPeriod: null,
       billingCycleEndsAt: null,
       subscriptionCanceledAt: workspace.subscriptionCanceledAt
-        ? undefined
+        ? undefined // skip updating subscriptionCanceledAt if it's already set
         : new Date(),
       usageLimit: FREE_PLAN.limits.clicks!,
       linksLimit: FREE_PLAN.limits.links!,
@@ -234,13 +234,12 @@ export async function customerSubscriptionDeleted(
     await deactivateProgram(workspace.defaultProgramId);
   }
 
-  if (
-    workspace.defaultProgramId &&
-    wouldLoseAdvancedFeatures({
-      currentPlan: workspace.plan,
-      newPlan: "free",
-    })
-  ) {
+  const losesAdvancedFeatures = wouldLoseAdvancedFeatures({
+    currentPlan: workspace.plan,
+    newPlan: "free",
+  });
+
+  if (workspace.defaultProgramId && losesAdvancedFeatures) {
     await Promise.all([
       stripAdvancedRewardModifiersForProgram({
         programId: workspace.defaultProgramId,
@@ -252,13 +251,7 @@ export async function customerSubscriptionDeleted(
   }
 
   const owner = workspaceUsers[0];
-  if (
-    owner.email &&
-    wouldLoseAdvancedFeatures({
-      currentPlan: workspace.plan,
-      newPlan: "free",
-    })
-  ) {
+  if (owner.email && losesAdvancedFeatures) {
     await sendEmail({
       to: owner.email,
       subject: "Your Advanced plan features have been removed",

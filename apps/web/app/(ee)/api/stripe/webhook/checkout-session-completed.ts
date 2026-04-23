@@ -146,7 +146,7 @@ export async function checkoutSessionCompleted(
         newPlan: updatedWorkspace.plan,
       }) &&
       reactivateProgram(updatedWorkspace.defaultProgramId),
-    // If trial + no program (Links trial), send TrialStartedEmail – for progam trial we send it in create-program.ts
+    // If trial + no program (Links trial), send TrialStartedEmail – for program trial we send it in create-program.ts
     // else, we send Upgrade thank you email
     // TODO: Only send TrialStartedEmail once we remove the trial feature flag
     isWorkspaceBillingTrialActive(trialEndsAt) &&

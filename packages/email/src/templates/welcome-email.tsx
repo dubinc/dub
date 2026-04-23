@@ -151,7 +151,7 @@ export default function WelcomeEmail({
             <Text className="mb-4 text-sm leading-6 text-neutral-600">
               5. Explore the API:{" "}
               <Link
-                href="https://dub.co//docs"
+                href="https://dub.co/docs"
                 className="text-neutral-600 underline underline-offset-2"
               >
                 Check out our docs
