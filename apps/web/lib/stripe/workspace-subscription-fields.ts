@@ -19,15 +19,12 @@ export function getSubscriptionTrialEndsAt(
  * Derives `subscriptionCanceledAt` and `billingCycleEndsAt` from Stripe.
  * When cancel-at-period-end is set, `subscriptionCanceledAt` uses Stripe's Unix
  * timestamps (`cancel_at`, then `canceled_at`) so the value is stable across webhooks.
- * `billingCycleEndsAt` uses `billing_cycle_anchor` (also in Unix timestamp).
+ * `billingCycleEndsAt` uses subscription item `current_period_end` (Basil API).
  */
 export function getSubscriptionCancellationFields(
   subscription?: Pick<
     Stripe.Subscription,
-    | "billing_cycle_anchor"
-    | "cancel_at_period_end"
-    | "cancel_at"
-    | "canceled_at"
+    "cancel_at_period_end" | "cancel_at" | "canceled_at" | "items"
   >,
 ): {
   subscriptionCanceledAt: Date | null;
@@ -40,7 +37,7 @@ export function getSubscriptionCancellationFields(
     };
   }
   const cancelAtPeriodEnd = subscription.cancel_at_period_end ?? false;
-  const currentPeriodEnd = subscription.billing_cycle_anchor;
+  const currentPeriodEnd = subscription.items.data[0]?.current_period_end;
   const cancelAtUnix =
     subscription.cancel_at ?? subscription.canceled_at ?? null;
   return {
