@@ -34,5 +34,6 @@ export const footerStyle: CSSProperties = {
 
 export const footerLinkStyle: CSSProperties = {
   ...linkStyle,
+  color: "#999999",
   fontSize: 10,
 };

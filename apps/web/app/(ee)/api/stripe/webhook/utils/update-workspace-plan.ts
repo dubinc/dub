@@ -282,7 +282,6 @@ export async function updateWorkspacePlan({
                     name: user.name,
                     email: user.email as string,
                     plan: newPlan.name,
-                    planTier: newPlanTier,
                   }),
                   variant: "marketing",
                 })),

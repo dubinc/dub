@@ -177,7 +177,6 @@ export async function checkoutSessionCompleted(
               name: user.name,
               email: user.email as string,
               plan: plan.name,
-              planTier: planTier,
             }),
             variant: "marketing",
           })),
