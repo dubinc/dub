@@ -43,7 +43,7 @@ export const messagePartnerAction = authActionClient
     }
 
     // Make sure partner is either discoverable, enrolled in the program, or already has a message with the program
-    const { _count } = await prisma.partner.findFirstOrThrow({
+    const { _count, programs } = await prisma.partner.findFirstOrThrow({
       where: {
         id: partnerId,
         OR: [
@@ -83,8 +83,26 @@ export const messagePartnerAction = authActionClient
             },
           },
         },
+        programs: {
+          where: {
+            programId,
+          },
+          select: {
+            status: true,
+          },
+        },
       },
     });
+
+    // if the partner has been invited but not yet accepted, cap at one message
+    const enrollment = programs[0];
+    if (enrollment?.status === "invited" && _count.messages >= 1) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You can only send one initial message to a partner you've invited.",
+      });
+    }
 
     // if partner is not enrolled in the program and it's the first message
     // it means the program is reaching out via the partner network

@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { toCentsNumber } from "@dub/utils";
+import { obfuscateCustomerEmail } from "./obfuscate-customer-email";
 
 export async function getPartnerForProgram({
   partnerId,
@@ -25,6 +26,11 @@ export async function getPartnerForProgram({
         },
       },
       links: true,
+      discoveredPartner: {
+        select: {
+          invitedAt: true,
+        },
+      },
     },
   });
 
@@ -32,11 +38,16 @@ export async function getPartnerForProgram({
     return null;
   }
 
-  const { partner, links, ...programEnrollment } = data;
+  const { partner, links, discoveredPartner, ...programEnrollment } = data;
 
   return {
     ...partner,
     ...programEnrollment,
+    email:
+      programEnrollment.status === "invited" &&
+      discoveredPartner?.invitedAt != null
+        ? obfuscateCustomerEmail(partner.email ?? "")
+        : partner.email,
     netRevenue:
       toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
       toCentsNumber(programEnrollment.totalCommissions ?? 0),

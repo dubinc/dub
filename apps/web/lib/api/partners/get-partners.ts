@@ -1,3 +1,4 @@
+import { obfuscateCustomerEmail } from "@/lib/api/partner-profile/obfuscate-customer-email";
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { toCentsNumber } from "@dub/utils";
@@ -31,6 +32,11 @@ export async function getPartners(filters: PartnerFilters) {
         },
       },
       links: true,
+      discoveredPartner: {
+        select: {
+          invitedAt: true,
+        },
+      },
     },
     take: pageSize,
     skip: (page - 1) * pageSize,
@@ -39,14 +45,21 @@ export async function getPartners(filters: PartnerFilters) {
     },
   });
 
-  return partners.map(({ partner, links, ...programEnrollment }) => ({
-    ...partner,
-    ...programEnrollment,
-    id: partner.id,
-    createdAt: new Date(programEnrollment.createdAt),
-    links,
-    netRevenue:
-      toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
-      toCentsNumber(programEnrollment.totalCommissions ?? 0),
-  }));
+  return partners.map(
+    ({ partner, links, discoveredPartner, ...programEnrollment }) => ({
+      ...partner,
+      ...programEnrollment,
+      id: partner.id,
+      email:
+        programEnrollment.status === "invited" &&
+        discoveredPartner?.invitedAt != null
+          ? obfuscateCustomerEmail(partner.email ?? "")
+          : partner.email,
+      createdAt: new Date(programEnrollment.createdAt),
+      links,
+      netRevenue:
+        toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
+        toCentsNumber(programEnrollment.totalCommissions ?? 0),
+    }),
+  );
 }
