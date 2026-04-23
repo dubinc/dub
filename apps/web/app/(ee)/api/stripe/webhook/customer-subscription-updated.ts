@@ -69,8 +69,8 @@ export async function customerSubscriptionUpdated(
       owners,
       reason: cancelReason,
     });
-    return `Updated workspace ${workspace.id} plan; cancellation at period end requested.`;
+    return `Sent cancellation feedback to ${owners.length} workspace owners for workspace ${workspace.slug}.`;
   }
 
-  return `Updated workspace ${workspace.id} plan to ${plan.name}.`;
+  return `Processed customer.subscription.updated event for workspace ${workspace.id}.`;
 }

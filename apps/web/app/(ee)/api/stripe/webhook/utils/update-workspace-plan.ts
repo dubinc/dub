@@ -43,9 +43,9 @@ export async function updateWorkspacePlan({
     | "planPeriod"
     | "planTier"
     | "trialEndsAt"
-    | "paymentFailedAt"
+    | "billingCycleEndsAt"
+    | "subscriptionCanceledAt"
     | "payoutsLimit"
-    | "foldersUsage"
   > & {
     plan: string;
     restrictedTokens: {
@@ -80,12 +80,16 @@ export async function updateWorkspacePlan({
   // - workspace upgrades/downgrades their subscription
   // - workspace changes their plan period / tier
   // - trialEndsAt changes (i.e. free trial -> paid subscription)
+  // - cancellationFields changes (billingCycleEndsAt or subscriptionCanceledAt)
   // - the payouts limit increases and the updated price ID is a new business price ID
   if (
     workspace.plan !== newPlanName ||
     workspace.planPeriod !== planPeriod ||
     workspace.planTier !== newPlanTier ||
     isPaidPlanActivated ||
+    workspace.billingCycleEndsAt !== cancellationFields.billingCycleEndsAt ||
+    workspace.subscriptionCanceledAt !==
+      cancellationFields.subscriptionCanceledAt ||
     (workspace.payoutsLimit < newPlan.limits.payouts &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
@@ -157,6 +161,9 @@ export async function updateWorkspacePlan({
           ]
         : []),
     ]);
+    console.log(
+      `Updated workspace ${workspace.id} plan / limits / subscription details.`,
+    );
 
     // Disable the webhooks if the new plan does not support webhooks
     if (!canCreateWebhooks) {
@@ -195,6 +202,7 @@ export async function updateWorkspacePlan({
       });
 
       await webhookCache.mset(webhooks);
+      console.log(`Updated webhooks cache for workspace ${workspace.id}.`);
     }
 
     // Delete the folders if the new plan does not support folders
@@ -204,6 +212,7 @@ export async function updateWorkspacePlan({
         workspaceId: workspace.id,
         defaultProgramId: workspace.defaultProgramId,
       });
+      console.log(`Deleted folders for workspace ${workspace.id}.`);
     }
 
     // Deactivate the program if the workspace loses partner access (Business/Enterprise -> Pro/Free)
@@ -215,6 +224,7 @@ export async function updateWorkspacePlan({
       workspace.defaultProgramId
     ) {
       await deactivateProgram(workspace.defaultProgramId);
+      console.log(`Deactivated program for workspace ${workspace.id}.`);
     }
 
     // Reactivate all partners if the workspace gains partner access (Pro/Free -> Business/Enterprise)
@@ -226,6 +236,7 @@ export async function updateWorkspacePlan({
       workspace.defaultProgramId
     ) {
       await reactivateProgram(workspace.defaultProgramId);
+      console.log(`Reactivated program for workspace ${workspace.id}.`);
     }
 
     const workspaceOwners =
@@ -266,6 +277,9 @@ export async function updateWorkspacePlan({
             })),
           ),
       ]);
+      console.log(
+        `Stripped advanced reward modifiers for program ${workspace.defaultProgramId}.`,
+      );
     }
 
     if (workspaceOwners.length > 0) {
@@ -290,6 +304,9 @@ export async function updateWorkspacePlan({
           : []),
         ...workspaceOwners.map((owner) => syncUserPlanToPlain(owner)),
       ]);
+      console.log(
+        `Sent thank you emails to ${workspaceOwners.length} workspace owners for workspace ${workspace.slug}.`,
+      );
     }
   }
 }
