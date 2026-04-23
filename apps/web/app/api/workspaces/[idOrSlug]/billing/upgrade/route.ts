@@ -86,13 +86,13 @@ export const POST = withWorkspace(
     } else {
       const customer = await getDubCustomer(session.user.id);
 
+      // New Stripe customer + no prior trial on workspace: partner checkout trial.
+      // Returning Stripe customers (e.g. canceled sub) must not get another trial here.
       const shouldApplyCheckoutTrial =
         workspace.stripeId == null &&
         workspace.trialEndsAt == null &&
         isTrialVariant;
 
-      // New Stripe customer + no prior trial on workspace: partner checkout trial.
-      // Returning Stripe customers (e.g. canceled sub) must not get another trial here.
       const stripeSession = await stripe.checkout.sessions.create({
         ...(workspace.stripeId
           ? {
@@ -136,6 +136,11 @@ export const POST = withWorkspace(
           ? {
               subscription_data: {
                 trial_period_days: DUB_TRIAL_PERIOD_DAYS,
+              },
+              payment_method_options: {
+                link: {
+                  setup_future_usage: "none",
+                },
               },
             }
           : {}),

@@ -11,15 +11,18 @@ export const POST = withWorkspace(
       return new Response("No Stripe customer ID", { status: 400 });
 
     try {
-      const activeSubscription = await stripe.subscriptions
-        .list({
-          customer: workspace.stripeId,
-          status: "active",
-        })
-        .then((res) => res.data[0]);
-
-      if (!activeSubscription)
-        return new Response("No active subscription", { status: 400 });
+      const { data } = await stripe.subscriptions.list({
+        customer: workspace.stripeId,
+        limit: 10,
+      });
+      const subscription = data.find(
+        (s) => s.status === "active" || s.status === "trialing",
+      );
+      if (!subscription) {
+        return new Response("No active or trialing subscription", {
+          status: 400,
+        });
+      }
 
       const { url } = await stripe.billingPortal.sessions.create({
         customer: workspace.stripeId,
@@ -27,7 +30,7 @@ export const POST = withWorkspace(
         flow_data: {
           type: "subscription_cancel",
           subscription_cancel: {
-            subscription: activeSubscription.id,
+            subscription: subscription.id,
           },
         },
       });
