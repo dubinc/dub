@@ -12,7 +12,7 @@ import { motion } from "motion/react";
 import { useReferralsEmbedData } from "./page-client";
 
 export function ReferralsEmbedFAQ() {
-  const { program, rewards } = useReferralsEmbedData();
+  const { program, rewards, themeOptions } = useReferralsEmbedData();
   const reward = rewards[0];
 
   const rewardDescription = reward
@@ -49,6 +49,7 @@ export function ReferralsEmbedFAQ() {
   ];
   return (
     <motion.div
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
       className="border-border-muted bg-bg-default rounded-lg border px-4 py-2 sm:px-8 sm:py-4"
       {...TAB_ITEM_ANIMATION_SETTINGS}
     >

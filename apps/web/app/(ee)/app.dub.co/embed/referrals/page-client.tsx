@@ -99,6 +99,7 @@ type ReferralsEmbedData = {
     saleAmount: number;
   };
   bounties: PartnerBountyProps[];
+  themeOptions: ThemeOptions;
 };
 
 type ReferralsEmbedPageClientProps = ReferralsEmbedData & {
@@ -210,6 +211,7 @@ export function ReferralsEmbedPageClient({
       programEnrollment,
       group,
       bounties,
+      themeOptions,
     }),
     [
       program,
@@ -223,6 +225,7 @@ export function ReferralsEmbedPageClient({
       programEnrollment,
       group,
       bounties,
+      themeOptions,
     ],
   );
 
@@ -259,7 +262,11 @@ export function ReferralsEmbedPageClient({
                 )}
               </div>
               <div className="text-content-emphasis relative mt-4 text-lg">
-                <ProgramRewardList rewards={rewards} discount={discount} />
+                <ProgramRewardList
+                  rewards={rewards}
+                  discount={discount}
+                  backgroundColor={themeOptions.backgroundColor}
+                />
                 <ProgramRewardTerms
                   minPayoutAmount={program.minPayoutAmount}
                   holdingPeriodDays={group.holdingPeriodDays ?? 0}

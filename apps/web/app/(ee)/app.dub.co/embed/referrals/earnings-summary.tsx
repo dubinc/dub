@@ -3,10 +3,13 @@ import { currencyFormatter } from "@dub/utils";
 import { useReferralsEmbedData } from "./page-client";
 
 export function ReferralsEmbedEarningsSummary() {
-  const { program, partner, earnings } = useReferralsEmbedData();
+  const { program, partner, earnings, themeOptions } = useReferralsEmbedData();
 
   return (
-    <div className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4">
+    <div
+      style={{ backgroundColor: themeOptions.backgroundColor || "transparent" }}
+      className="border-border-subtle bg-bg-default flex flex-col justify-between gap-4 rounded-lg border p-4"
+    >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-1">
           <p className="text-content-subtle text-sm">Earnings</p>
