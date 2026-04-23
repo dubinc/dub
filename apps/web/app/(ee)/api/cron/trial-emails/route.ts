@@ -8,8 +8,6 @@ import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
-const QSTASH_CONTINUATION_DELAY_SECONDS = 2;
-
 const postBodySchema = z.object({
   startingAfter: z.string(),
 });
@@ -44,7 +42,6 @@ async function executeTrialEmailCronBatch(startingAfter?: string) {
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/trial-emails`,
       method: "POST",
-      delay: QSTASH_CONTINUATION_DELAY_SECONDS,
       body: {
         startingAfter: result.nextStartingAfter,
       },
@@ -59,7 +56,7 @@ async function executeTrialEmailCronBatch(startingAfter?: string) {
 // GET /api/cron/trial-emails
 export const GET = withCron(async () => executeTrialEmailCronBatch(undefined));
 
-// POST /api/cron/trial-emails (QStash continuation)
+// POST /api/cron/trial-emails (recursively called by QStash)
 export const POST = withCron(async ({ rawBody }) => {
   const { startingAfter } = postBodySchema.parse(JSON.parse(rawBody));
   return await executeTrialEmailCronBatch(startingAfter);

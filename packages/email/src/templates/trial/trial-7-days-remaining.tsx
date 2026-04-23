@@ -24,11 +24,12 @@ export default function Trial7DaysRemainingEmail({
 
         <Text style={pStyle}>
           We're officially halfway through your Dub {capitalize(plan)} trial, so
-          I wanted to check in here and see if you need any help.
+          I wanted to check in here and see if you need any help – do you have
+          any questions or blockers?
         </Text>
 
         <Text style={pStyle}>
-          If it helps, feel free to check out our{" "}
+          If you haven't already, please check out our{" "}
           <Link href="https://dub.co/help" style={linkStyle}>
             help center
           </Link>{" "}
@@ -36,13 +37,12 @@ export default function Trial7DaysRemainingEmail({
           <Link href="https://dub.co/docs" style={linkStyle}>
             documentation
           </Link>{" "}
-          to learn how to best leverage Dub for your use case.
+          to learn more about Dub and our various use cases.
         </Text>
 
         <Text style={pStyle}>
-          I'll check in one last time 3 days before your trial ends, but in the
-          meantime, feel free to respond to this email if you have any
-          questions.
+          Excited to see how you plan to use Dub! Thank you for giving us a
+          chance 🙏
         </Text>
 
         <Text style={{ ...pStyle, marginBottom: 0 }}>

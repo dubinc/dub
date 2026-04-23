@@ -25,9 +25,9 @@ export default function Trial3DaysRemainingEmail({
         <Text style={pStyle}>Hi {name ? name.split(" ")[0] : "there"},</Text>
 
         <Text style={pStyle}>
-          You have 3 days left in your Dub {capitalize(plan)} trial, so I wanted
-          to reach out before your trial ends to make sure you have everything
-          you need.
+          How are things going on your end? You have 3 days left in your Dub{" "}
+          {capitalize(plan)} trial, so I wanted to reach out before your trial
+          ends to make sure you have everything you need.
         </Text>
 
         <Text style={pStyle}>
@@ -36,14 +36,20 @@ export default function Trial3DaysRemainingEmail({
         </Text>
 
         <Text style={pStyle}>
-          Also, don't forget to double-check your{" "}
+          If Dub is indeed a perfect fit (and I really hope it is!), please
+          double-check your{" "}
           <Link
             href={`${dashboardUrlPrefix}/settings/billing`}
             style={linkStyle}
           >
             billing details
           </Link>{" "}
-          to ensure you have the right card on file.
+          to ensure you have the right card on file, so your plan can be
+          activated with no issues.
+        </Text>
+
+        <Text style={pStyle}>
+          Always here if you have any questions or feedback!
         </Text>
 
         <Text style={{ ...pStyle, marginBottom: 0 }}>
