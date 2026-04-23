@@ -111,6 +111,7 @@ export async function customerSubscriptionDeleted(
         domainsLimit: FREE_PLAN.limits.domains!,
         aiLimit: FREE_PLAN.limits.ai!,
         tagsLimit: FREE_PLAN.limits.tags!,
+        partnerTagsLimit: FREE_PLAN.limits.partnerTags!,
         foldersLimit: FREE_PLAN.limits.folders!,
         groupsLimit: FREE_PLAN.limits.groups!,
         networkInvitesLimit: FREE_PLAN.limits.networkInvites!,

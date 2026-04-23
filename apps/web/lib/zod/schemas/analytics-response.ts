@@ -1,6 +1,7 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import { CONTINENT_CODES } from "@dub/utils";
 import * as z from "zod/v4";
+import { PartnerTagSchema } from "./partner-tags";
 import { LinkTagSchema } from "./tags";
 import { centsSchemaWithDefault } from "./utils";
 
@@ -485,6 +486,17 @@ export const analyticsResponse = {
     sales: z.number().describe("The total number of sales").default(0),
     saleAmount: centsSchemaWithDefault.describe(
       "The total amount of sales from this group, in cents",
+    ),
+  }),
+
+  top_partner_tags: z.object({
+    partnerTagId: z.string().describe("The ID of the partner tag"),
+    partnerTag: PartnerTagSchema,
+    clicks: z.number().describe("The total number of clicks").default(0),
+    leads: z.number().describe("The total number of leads").default(0),
+    sales: z.number().describe("The total number of sales").default(0),
+    saleAmount: centsSchemaWithDefault.describe(
+      "The total amount of sales from this partner tag, in cents",
     ),
   }),
 } as const;

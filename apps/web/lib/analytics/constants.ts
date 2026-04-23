@@ -83,6 +83,7 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "top_base_urls",
   "top_partners",
   "top_groups",
+  "top_partner_tags",
   "utm_sources",
   "utm_mediums",
   "utm_campaigns",
@@ -116,6 +117,7 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   top_base_urls: "url",
   top_groups: "groupId",
   top_partners: "partnerId",
+  top_partner_tags: "partnerTagId",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
@@ -142,16 +144,15 @@ export const VALID_ANALYTICS_FILTERS = [
   "referer",
   "refererUrl",
   "url",
+  "partnerTagId",
+  "qr", // deprecated, but keeping for now for backwards compatibility
+  "root",
+  "saleType",
   "utm_source",
   "utm_medium",
   "utm_campaign",
   "utm_term",
   "utm_content",
-  "root",
-  "saleType",
-  // deprecated filters, but keeping for now for backwards compatibility
-  "tagIds",
-  "qr",
 ];
 
 // possible analytics filters for a given linkId

@@ -12,6 +12,7 @@ interface QueryResult {
   couponTestId: string | null;
   groupId: string | null;
   tenantId: string | null;
+  partnerTagIds: string | null;
 }
 
 // Get enrollment info for a partner in a program
@@ -30,23 +31,38 @@ export const getPartnerEnrollmentInfo = async ({
   }
 
   const { rows } = await conn.execute<QueryResult>(
-    `SELECT 
+    `SELECT
       Partner.id,
       Partner.name,
       Partner.image,
-      Discount.id as discountId,
+      Discount.id AS discountId,
       Discount.amount,
       Discount.type,
       Discount.maxDuration,
       Discount.couponId,
       Discount.couponTestId,
       ProgramEnrollment.groupId,
-      ProgramEnrollment.tenantId
-    FROM ProgramEnrollment
-    LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
-    LEFT JOIN Discount ON Discount.id = ProgramEnrollment.discountId
-    WHERE ProgramEnrollment.partnerId = ? AND ProgramEnrollment.programId = ? LIMIT 1`,
-    [partnerId, programId],
+      ProgramEnrollment.tenantId,
+      tagAgg.partnerTagIds
+    FROM
+      ProgramEnrollment
+      LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
+      LEFT JOIN Discount ON Discount.id = ProgramEnrollment.discountId
+      LEFT JOIN (
+        SELECT
+          programId,
+          partnerId,
+          GROUP_CONCAT(DISTINCT partnerTagId) AS partnerTagIds
+        FROM ProgramPartnerTag
+        WHERE programId = ? AND partnerId = ?
+        GROUP BY programId, partnerId
+      ) AS tagAgg
+        ON tagAgg.programId = ProgramEnrollment.programId
+        AND tagAgg.partnerId = ProgramEnrollment.partnerId
+    WHERE
+      ProgramEnrollment.partnerId = ?
+      AND ProgramEnrollment.programId = ?`,
+    [programId, partnerId, partnerId, programId],
   );
 
   const result =
@@ -66,6 +82,9 @@ export const getPartnerEnrollmentInfo = async ({
       image: result.image,
       groupId: result.groupId,
       tenantId: result.tenantId,
+      tagIds: result.partnerTagIds
+        ? result.partnerTagIds.split(",").filter(Boolean)
+        : [],
     },
     discount: result.discountId
       ? {

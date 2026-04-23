@@ -1,9 +1,14 @@
 import containerQueries from "@tailwindcss/container-queries";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";
-import scrollbarHide from "tailwind-scrollbar-hide";
 import type { Config } from "tailwindcss";
 import radix from "tailwindcss-radix";
+import * as scrollbarHideImport from "tailwind-scrollbar-hide";
+
+const scrollbarHide =
+  ("default" in scrollbarHideImport
+    ? (scrollbarHideImport as { default: unknown }).default
+    : scrollbarHideImport) as NonNullable<Config["plugins"]>[number];
 
 const config: Config = {
   content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],

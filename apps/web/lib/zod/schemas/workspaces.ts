@@ -86,6 +86,9 @@ export const WorkspaceSchema = z
       ),
     domainsLimit: z.number().describe("The domains limit of the workspace."),
     tagsLimit: z.number().describe("The tags limit of the workspace."),
+    partnerTagsLimit: z
+      .number()
+      .describe("The partner tags limit of the workspace."),
     foldersUsage: z.number().describe("The folders usage of the workspace."),
     foldersLimit: z.number().describe("The folders limit of the workspace."),
     groupsLimit: z.number().describe("The groups limit of the workspace."),

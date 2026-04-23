@@ -119,6 +119,7 @@ export class IntegrationHarness {
 
     await this.http.delete({
       path: `/campaigns/${id}`,
+      query: { workspaceId: E2E_WORKSPACE_ID },
     });
   }
 }
