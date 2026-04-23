@@ -1,6 +1,6 @@
 import { capitalize } from "@dub/utils";
 import { Body, Head, Html, Link, Preview, Text } from "@react-email/components";
-import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email";
+import { type TrialMarketingEmailProps } from "../../types";
 import {
   bodyStyle,
   footerLinkStyle,

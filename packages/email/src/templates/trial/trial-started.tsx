@@ -22,7 +22,7 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../../components/footer";
-import { type TrialMarketingEmailProps } from "../../types/trial-marketing-email";
+import { type TrialMarketingEmailProps } from "../../types";
 
 export default function TrialStartedEmail({
   email = "panic@thedis.co",
