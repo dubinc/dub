@@ -62,10 +62,13 @@ export default function SubscriptionMenu() {
       method: "POST",
     }).then(async (res) => {
       if (res.ok) {
+        // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await mutate();
+        setClicked(false);
         toast.success(
           "Your subscription has been scheduled for cancellation at the end of the current period.",
         );
-        setClicked(false);
       } else {
         const { error } = await res.json();
         toast.error(error.message);
@@ -85,9 +88,6 @@ export default function SubscriptionMenu() {
       onConfirm: async () => {
         await cancelSubscription();
         setShowPlanChangeConfirmationModal(false);
-        // sleep for 3 seconds, and then mutate
-        await new Promise((resolve) => setTimeout(resolve, 3000));
-        await mutate();
       },
     });
 

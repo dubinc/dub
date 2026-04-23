@@ -20,6 +20,7 @@ export const POST = withWorkspace(
     if (trialingSubscription) {
       await stripe.subscriptions.update(trialingSubscription.id, {
         trial_end: "now",
+        cancel_at_period_end: false,
       });
       return NextResponse.json({ ok: true });
     }

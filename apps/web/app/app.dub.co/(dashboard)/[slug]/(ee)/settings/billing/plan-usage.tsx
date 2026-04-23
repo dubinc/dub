@@ -16,6 +16,7 @@ import {
   Button,
   DynamicTooltipWrapper,
   Icon,
+  Modal,
   Tooltip,
   useRouterStuff,
 } from "@dub/ui";
@@ -49,8 +50,8 @@ import { UsageChart } from "./usage-chart";
 
 export default function PlanUsage() {
   const router = useRouter();
-  const [resubscribePortalLoading, setResubscribePortalLoading] =
-    useState(false);
+  const [showResubscribeModal, setShowResubscribeModal] = useState(false);
+  const [resubscribeLoading, setResubscribeLoading] = useState(false);
 
   const {
     id: workspaceId,
@@ -80,6 +81,7 @@ export default function PlanUsage() {
     trialEndsAt,
     subscriptionCanceledAt,
     billingCycleEndsAt,
+    mutate,
   } = useWorkspace();
 
   const permissionsError = clientAccessCheck({
@@ -181,37 +183,87 @@ export default function PlanUsage() {
 
   const showPendingCancellation = pendingCancellationEndDate != null;
 
-  const handleResubscribe = async () => {
-    setResubscribePortalLoading(true);
-
+  const confirmResubscribe = async () => {
+    setResubscribeLoading(true);
     try {
-      const res = await fetch(`/api/workspaces/${workspaceId}/billing/manage`, {
+      const res = await fetch(`/api/workspaces/${workspaceId}/billing/cancel`, {
         method: "POST",
       });
 
       if (res.ok) {
-        const url = await res.json();
-        router.push(url);
+        // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await mutate();
+        setShowResubscribeModal(false);
+        toast.success("Your subscription will continue as normal.");
       } else {
         try {
           const body = await res.json();
-          toast.error(body?.error?.message ?? "Failed to open billing portal.");
+          toast.error(body?.error?.message ?? "Failed to resume subscription.");
         } catch (error) {
           console.error(error);
-          toast.error("Failed to open billing portal.");
+          toast.error("Failed to resume subscription.");
         }
       }
     } catch (error) {
       console.error(error);
-      toast.error("Failed to open billing portal.");
+      toast.error("Failed to resume subscription.");
     } finally {
-      setResubscribePortalLoading(false);
+      setResubscribeLoading(false);
     }
   };
 
   return (
     <>
       <StartPaidPlanModal />
+      <Modal
+        showModal={showResubscribeModal}
+        setShowModal={setShowResubscribeModal}
+        className="max-w-md"
+      >
+        <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
+          <h3 className="text-content-emphasis text-lg font-medium">
+            Resume subscription
+          </h3>
+        </div>
+        <div className="flex flex-col gap-4 px-4 py-6 text-left text-sm text-neutral-600 sm:px-6">
+          <p>
+            Your subscription is scheduled to end on{" "}
+            <span className="font-medium text-neutral-900">
+              {pendingCancellationEndDate
+                ? new Date(pendingCancellationEndDate).toLocaleDateString(
+                    "en-US",
+                    {
+                      month: "long",
+                      day: "numeric",
+                      year: "numeric",
+                    },
+                  )
+                : "—"}
+            </span>
+            . Resuming removes that cancellation and your plan will continue as
+            before.
+          </p>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-4 py-4 sm:px-6">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Not now"
+            className="h-8 w-fit"
+            onClick={() => setShowResubscribeModal(false)}
+            disabled={resubscribeLoading}
+          />
+          <Button
+            type="button"
+            variant="primary"
+            text="Resume subscription"
+            className="h-8 w-fit"
+            loading={resubscribeLoading}
+            onClick={() => void confirmResubscribe()}
+          />
+        </div>
+      </Modal>
       <div className="rounded-xl border border-neutral-200 bg-white">
         {showPendingCancellation ? (
           <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-amber-100/50 px-3 py-2">
@@ -293,12 +345,11 @@ export default function PlanUsage() {
                   }
                 >
                   <Button
-                    text="Resubscribe"
+                    text="Resume subscription"
                     variant="primary"
                     className="h-9"
-                    loading={resubscribePortalLoading}
                     disabled={Boolean(permissionsError)}
-                    onClick={handleResubscribe}
+                    onClick={() => setShowResubscribeModal(true)}
                   />
                 </DynamicTooltipWrapper>
               ) : (

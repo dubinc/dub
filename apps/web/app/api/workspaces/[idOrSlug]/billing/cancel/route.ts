@@ -4,7 +4,7 @@ import { stripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-// POST /api/workspaces/[idOrSlug]/billing/cancel — schedule subscription cancellation at period end (Stripe API)
+// POST /api/workspaces/[idOrSlug]/billing/cancel — toggle cancel-at-period-end on the workspace subscription (Stripe API)
 export const POST = withWorkspace(
   async ({ workspace }) => {
     if (!workspace.stripeId) {
@@ -29,8 +29,10 @@ export const POST = withWorkspace(
         });
       }
 
+      const cancelAtPeriodEnd = subscription.cancel_at_period_end ?? false;
+
       await stripe.subscriptions.update(subscription.id, {
-        cancel_at_period_end: true,
+        cancel_at_period_end: !cancelAtPeriodEnd,
       });
 
       return NextResponse.json({ success: true });
@@ -43,7 +45,7 @@ export const POST = withWorkspace(
         message:
           error instanceof Stripe.errors.StripeError
             ? error.message
-            : "Failed to cancel subscription.",
+            : "Failed to update subscription.",
       });
     }
   },
