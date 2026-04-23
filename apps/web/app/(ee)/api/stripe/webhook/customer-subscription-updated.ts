@@ -58,7 +58,8 @@ export async function customerSubscriptionUpdated(
   });
 
   const subscriptionCanceled =
-    updatedSubscription.status === "active" &&
+    (updatedSubscription.status === "active" ||
+      updatedSubscription.status === "trialing") &&
     updatedSubscription.cancel_at_period_end;
 
   if (subscriptionCanceled) {

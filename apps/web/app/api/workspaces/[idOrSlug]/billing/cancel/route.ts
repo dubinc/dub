@@ -1,14 +1,18 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { stripe } from "@/lib/stripe";
-import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 
-// POST /api/workspaces/[idOrSlug]/billing/cancel - create a Stripe billing portal session in the cancellation flow
+// POST /api/workspaces/[idOrSlug]/billing/cancel — schedule subscription cancellation at period end (Stripe API)
 export const POST = withWorkspace(
   async ({ workspace }) => {
-    if (!workspace.stripeId)
-      return new Response("No Stripe customer ID", { status: 400 });
+    if (!workspace.stripeId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "No Stripe customer ID",
+      });
+    }
 
     try {
       const { data } = await stripe.subscriptions.list({
@@ -19,26 +23,27 @@ export const POST = withWorkspace(
         (s) => s.status === "active" || s.status === "trialing",
       );
       if (!subscription) {
-        return new Response("No active or trialing subscription", {
-          status: 400,
+        throw new DubApiError({
+          code: "not_found",
+          message: "No active or trialing subscription found.",
         });
       }
 
-      const { url } = await stripe.billingPortal.sessions.create({
-        customer: workspace.stripeId,
-        return_url: `${APP_DOMAIN}/${workspace.slug}/settings/billing`,
-        flow_data: {
-          type: "subscription_cancel",
-          subscription_cancel: {
-            subscription: subscription.id,
-          },
-        },
+      await stripe.subscriptions.update(subscription.id, {
+        cancel_at_period_end: true,
       });
-      return NextResponse.json(url);
+
+      return NextResponse.json({ success: true });
     } catch (error) {
+      if (error instanceof DubApiError) {
+        throw error;
+      }
       throw new DubApiError({
         code: "bad_request",
-        message: error.raw.message,
+        message:
+          error instanceof Stripe.errors.StripeError
+            ? error.message
+            : "Failed to cancel subscription.",
       });
     }
   },
