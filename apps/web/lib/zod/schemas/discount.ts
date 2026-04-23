@@ -54,11 +54,21 @@ export const discountPartnersQuerySchema = z
   .extend(getPaginationQuerySchema({ pageSize: 25 }));
 
 export const DiscountCodeSchema = z.object({
-  id: z.string(),
-  code: z.string(),
-  discountId: z.string().nullable(),
-  partnerId: z.string(),
-  linkId: z.string(),
+  id: z.string().meta({
+    description: "The ID of the discount code.",
+  }),
+  code: z.string().meta({
+    description: "The unique human-readable code of the discount code.",
+  }),
+  discountId: z.string().nullable().meta({
+    description: "The ID of the discount that the discount code belongs to.",
+  }),
+  partnerId: z.string().meta({
+    description: "The ID of the partner that the discount code belongs to.",
+  }),
+  linkId: z.string().meta({
+    description: "The ID of the link that the discount code belongs to.",
+  }),
 });
 
 export const createDiscountCodeSchema = z.object({
@@ -71,5 +81,16 @@ export const createDiscountCodeSchema = z.object({
 });
 
 export const getDiscountCodesQuerySchema = z.object({
-  partnerId: z.string(),
+  partnerId: z.string().optional().meta({
+    description: "Partner ID to filter by.",
+  }),
+  tenantId: z.string().optional().meta({
+    description: "Tenant ID to filter by.",
+  }),
+  discountId: z.string().optional().meta({
+    description: "Discount ID to filter by.",
+  }),
+  linkId: z.string().optional().meta({
+    description: "Link ID to filter by.",
+  }),
 });

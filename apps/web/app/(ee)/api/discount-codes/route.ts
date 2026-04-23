@@ -16,24 +16,88 @@ import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// GET /api/discount-codes - get all discount codes for a partner
+// GET /api/discount-codes - get all discount codes for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId } = getDiscountCodesQuerySchema.parse(searchParams);
+    let { partnerId, tenantId, discountId, linkId } =
+      getDiscountCodesQuerySchema.parse(searchParams);
 
-    const programEnrollment = await getProgramEnrollmentOrThrow({
-      partnerId,
-      programId,
-      include: {
-        discountCodes: true,
+    const [programEnrollment, discount, link] = await Promise.all([
+      partnerId || tenantId
+        ? prisma.programEnrollment.findUnique({
+            where: partnerId
+              ? { partnerId_programId: { partnerId, programId } }
+              : { tenantId_programId: { tenantId: tenantId!, programId } },
+            select: {
+              partnerId: true,
+            },
+          })
+        : null,
+
+      discountId
+        ? prisma.discount.findUnique({
+            where: {
+              id: discountId,
+              programId,
+            },
+            select: {
+              programId: true,
+            },
+          })
+        : null,
+
+      linkId
+        ? prisma.link.findUnique({
+            where: {
+              id: linkId,
+            },
+            select: {
+              programId: true,
+            },
+          })
+        : null,
+    ]);
+
+    // Filter by partner or tenant
+    if ((partnerId || tenantId) && !programEnrollment) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `The partner with ${partnerId ? "partnerId" : "tenantId"} ${partnerId ?? tenantId} is not enrolled in your program.`,
+      });
+    }
+
+    if (programEnrollment) {
+      partnerId = programEnrollment.partnerId;
+    }
+
+    // Filter by discount
+    if (discountId && (!discount || discount.programId !== programId)) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Discount not found.",
+      });
+    }
+
+    // Filter by link
+    if (linkId && (!link || link.programId !== programId)) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "Link not found.",
+      });
+    }
+
+    const discountCodes = await prisma.discountCode.findMany({
+      where: {
+        programId,
+        ...(partnerId && { partnerId }),
+        ...(linkId && { linkId }),
+        ...(discountId && { discountId }),
       },
     });
 
-    const response = DiscountCodeSchema.array().parse(
-      programEnrollment.discountCodes,
-    );
+    const response = DiscountCodeSchema.array().parse(discountCodes);
 
     return NextResponse.json(response);
   },
