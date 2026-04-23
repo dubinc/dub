@@ -9,7 +9,7 @@ import { BarList } from "@/ui/analytics/bar-list";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { TabSelect, useRouterStuff } from "@dub/ui";
+import { Modal, TabSelect, useRouterStuff } from "@dub/ui";
 import {
   CircleCheck,
   CircleDotted,
@@ -104,62 +104,79 @@ function CommissionsCard({
   isFilterActive?: boolean;
   onClearFilter?: () => void;
   children: (props: {
-    limit: number;
+    limit?: number;
     setShowModal: (show: boolean) => void;
   }) => ReactNode;
 }) {
   const [showModal, setShowModal] = useState(false);
-  void showModal;
 
   const showViewAll = (dataLength ?? 0) > expandLimit;
   const statusKey = status ?? "all";
   const StatusIcon = STATUS_ICONS[statusKey];
+  const selectedTab = tabs.find((t) => t.id === selectedTabId) ?? tabs[0];
 
   return (
-    <div className="group relative z-0 h-[400px] overflow-hidden rounded-lg border border-neutral-200 bg-white sm:rounded-xl">
-      <div className="flex items-center justify-between border-b border-neutral-200 px-4">
-        <TabSelect
-          options={tabs.map((t) => ({ id: t.id, label: t.label }))}
-          selected={selectedTabId}
-          onSelect={onSelectTab}
-        />
-        <div className="flex items-center gap-1 pr-2 text-neutral-500">
-          <StatusIcon className="hidden h-4 w-4 sm:block" />
-          <p className="text-xs uppercase">{STATUS_LABELS[statusKey]}</p>
-        </div>
-      </div>
-
-      <div className="py-4">
-        {children({ limit: expandLimit, setShowModal })}
-      </div>
-
-      {(showViewAll || isFilterActive) && (
-        <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">
-          <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />
-          <div className="relative flex w-full items-center justify-center gap-2 py-4">
-            <button
-              onClick={() => setShowModal(true)}
-              className={cn(
-                "h-8 w-fit rounded-lg px-3 text-sm transition-colors",
-                isFilterActive
-                  ? "border-black bg-black text-white hover:bg-neutral-800"
-                  : "border border-neutral-200 bg-white text-neutral-950 hover:bg-neutral-100 active:border-neutral-300",
-              )}
-            >
-              View All
-            </button>
-            {isFilterActive && onClearFilter && (
-              <button
-                onClick={onClearFilter}
-                className="h-8 w-fit rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 active:border-neutral-300"
-              >
-                Clear
-              </button>
-            )}
+    <>
+      <Modal
+        showModal={showModal}
+        setShowModal={setShowModal}
+        className="max-w-lg px-0"
+      >
+        <div className="flex items-center justify-between border-b border-neutral-200 px-6 py-4">
+          <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
+          <div className="flex items-center gap-1 text-neutral-500">
+            <StatusIcon className="h-4 w-4" />
+            <p className="text-xs uppercase">{STATUS_LABELS[statusKey]}</p>
           </div>
         </div>
-      )}
-    </div>
+        {children({ setShowModal })}
+      </Modal>
+
+      <div className="group relative z-0 h-[400px] overflow-hidden rounded-lg border border-neutral-200 bg-white sm:rounded-xl">
+        <div className="flex items-center justify-between border-b border-neutral-200 px-4">
+          <TabSelect
+            options={tabs.map((t) => ({ id: t.id, label: t.label }))}
+            selected={selectedTabId}
+            onSelect={onSelectTab}
+          />
+          <div className="flex items-center gap-1 pr-2 text-neutral-500">
+            <StatusIcon className="hidden h-4 w-4 sm:block" />
+            <p className="text-xs uppercase">{STATUS_LABELS[statusKey]}</p>
+          </div>
+        </div>
+
+        <div className="py-4">
+          {children({ limit: expandLimit, setShowModal })}
+        </div>
+
+        {(showViewAll || isFilterActive) && (
+          <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">
+            <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />
+            <div className="relative flex w-full items-center justify-center gap-2 py-4">
+              <button
+                onClick={() => setShowModal(true)}
+                className={cn(
+                  "h-8 w-fit rounded-lg px-3 text-sm transition-colors",
+                  isFilterActive
+                    ? "border-black bg-black text-white hover:bg-neutral-800"
+                    : "border border-neutral-200 bg-white text-neutral-950 hover:bg-neutral-100 active:border-neutral-300",
+                )}
+              >
+                View All
+              </button>
+              {isFilterActive && onClearFilter && (
+                <button
+                  onClick={onClearFilter}
+                  className="h-8 w-fit rounded-lg border border-neutral-200 bg-white px-3 text-sm text-neutral-600 transition-colors hover:bg-neutral-50 active:border-neutral-300"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 }
 

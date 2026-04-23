@@ -68,7 +68,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     Prisma.sql`c.createdAt < ${endDate}`,
     status
       ? Prisma.sql`c.status = ${status}`
-      : Prisma.sql`c.status IN ("pending", "processed", "paid")`,
+      : Prisma.sql`c.status NOT IN (${Prisma.join([
+          CommissionStatus.duplicate,
+          CommissionStatus.fraud,
+          CommissionStatus.canceled,
+        ])})`,
   ];
 
   if (partnerFilter) {

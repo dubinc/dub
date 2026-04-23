@@ -17,6 +17,8 @@ export function useCommissionsAnalyticsQuery() {
   }, [searchParamsObj.commissionStatus]);
 
   const queryString = useMemo(() => {
+    if (!workspaceId) return "";
+
     const {
       commissionStatus: _commissionStatus,
       pageTab: _pageTab,
@@ -32,7 +34,7 @@ export function useCommissionsAnalyticsQuery() {
     } = searchParamsObj;
 
     const params = new URLSearchParams({
-      workspaceId: workspaceId!,
+      workspaceId,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
 

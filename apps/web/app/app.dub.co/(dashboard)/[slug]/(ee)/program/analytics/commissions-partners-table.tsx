@@ -163,7 +163,7 @@ export function CommissionsPartnersTable({
     sortBy: "commission",
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) => `partner${p ? "s" : ""}`,
+    resourceName: (p) => `top partner${p ? "s" : ""}`,
     rowCount: allPartners?.length ?? 0,
     loading: isLoading,
     error: error ? "Failed to load partners" : undefined,

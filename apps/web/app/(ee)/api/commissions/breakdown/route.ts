@@ -120,40 +120,51 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         count: r._count._all,
       }));
   } else if (groupBy === "group") {
-    const commissions = await prisma.commission.findMany({
+    const partnerEarnings = await prisma.commission.groupBy({
+      by: ["partnerId"],
       where: baseWhere,
-      select: {
-        earnings: true,
-        programEnrollment: {
-          select: {
-            groupId: true,
-            partnerGroup: { select: { name: true } },
-          },
-        },
-      },
+      _sum: { earnings: true },
+      _count: { _all: true },
+      orderBy: { _sum: { earnings: "desc" } },
     });
 
-    const map = new Map<
-      string,
-      { label: string; earnings: number; count: number }
-    >();
-    for (const c of commissions) {
-      const key = c.programEnrollment.groupId ?? "ungrouped";
-      const label = c.programEnrollment.partnerGroup?.name ?? "Ungrouped";
-      const entry = map.get(key) ?? { label, earnings: 0, count: 0 };
-      entry.earnings += c.earnings;
-      entry.count++;
-      map.set(key, entry);
-    }
+    if (partnerEarnings.length > 0) {
+      const partnerIds = partnerEarnings.map((p) => p.partnerId);
 
-    result = Array.from(map.entries())
-      .map(([key, { label, earnings, count }]) => ({
-        key,
-        label,
-        earnings,
-        count,
-      }))
-      .sort((a, b) => b.earnings - a.earnings);
+      const enrollments = await prisma.programEnrollment.findMany({
+        where: { programId, partnerId: { in: partnerIds } },
+        select: {
+          partnerId: true,
+          groupId: true,
+          partnerGroup: { select: { name: true } },
+        },
+      });
+
+      const enrollmentMap = new Map(enrollments.map((e) => [e.partnerId, e]));
+
+      const groupMap = new Map<
+        string,
+        { label: string; earnings: number; count: number }
+      >();
+      for (const p of partnerEarnings) {
+        const enrollment = enrollmentMap.get(p.partnerId);
+        const key = enrollment?.groupId ?? "ungrouped";
+        const label = enrollment?.partnerGroup?.name ?? "Ungrouped";
+        const entry = groupMap.get(key) ?? { label, earnings: 0, count: 0 };
+        entry.earnings += p._sum.earnings ?? 0;
+        entry.count += p._count._all;
+        groupMap.set(key, entry);
+      }
+
+      result = Array.from(groupMap.entries())
+        .map(([key, { label, earnings, count }]) => ({
+          key,
+          label,
+          earnings,
+          count,
+        }))
+        .sort((a, b) => b.earnings - a.earnings);
+    }
   } else if (groupBy === "customer") {
     const rows = await prisma.commission.groupBy({
       by: ["customerId"],

@@ -13,8 +13,6 @@ export type CommissionStatusFilter =
   | "paid"
   | undefined;
 
-export type { CommissionStatusFilter as default };
-
 const TABS: { id: CommissionStatusFilter; label: string }[] = [
   { id: undefined, label: "All" },
   { id: "pending", label: "Pending" },
@@ -35,7 +33,10 @@ export function CommissionsStatusSelector({
 
   function getHref(tabId: CommissionStatusFilter): string {
     if (tabId === undefined) {
-      return queryParams({ del: "commissionStatus", getNewPath: true }) as string;
+      return queryParams({
+        del: "commissionStatus",
+        getNewPath: true,
+      }) as string;
     }
     return queryParams({
       set: { commissionStatus: tabId },
