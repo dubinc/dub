@@ -239,9 +239,19 @@ export const createProgram = async ({
           )
         : []),
 
-      // skip email sends for individual program onboarding flow / non-trial flows
+      // for individual program onboarding flow, send ProgramWelcomeEmail
       ...(isProgramOnboarding
-        ? []
+        ? [
+            sendEmail({
+              subject: `Your program ${program.name} is created and ready to share with your partners.`,
+              to: user.email!,
+              react: ProgramWelcome({
+                email: user.email!,
+                workspace,
+                program,
+              }),
+            }),
+          ]
         : // for workspace trial, send TrialStartedEmail
           workspace.trialEndsAt
           ? [
@@ -266,17 +276,7 @@ export const createProgram = async ({
                 variant: "marketing",
               }),
             ]
-          : [
-              sendEmail({
-                subject: `Your program ${program.name} is created and ready to share with your partners.`,
-                to: user.email!,
-                react: ProgramWelcome({
-                  email: user.email!,
-                  workspace,
-                  program,
-                }),
-              }),
-            ]),
+          : []),
 
       // delete the workspace product cache
       redis.del(`workspace:product:${workspace.slug}`),

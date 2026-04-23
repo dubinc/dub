@@ -211,11 +211,14 @@ async function completeOnboarding({
   })) as unknown as (WorkspaceProps & { programs: Program[] }) | null;
 
   if (!workspace) {
-    console.error("Failed to complete onboarding for workspace", workspaceId);
+    console.error(
+      "Failed to find workspace in completeOnboarding",
+      workspaceId,
+    );
     return;
   }
 
-  const results = await Promise.allSettled([
+  await Promise.allSettled([
     onboardingStepCache.mset({
       userIds: users.map(({ id }) => id),
       step: "completed",
@@ -228,6 +231,9 @@ async function completeOnboarding({
       createProgram({
         workspace,
         user: users[0],
+      }).catch((error) => {
+        console.error("Failed to create program in completeOnboarding", error);
+        return;
       }),
 
     // Claim saved domain (only if not on trial)
@@ -244,18 +250,14 @@ async function completeOnboarding({
             domain,
             userId,
             workspace,
+          }).catch((error) => {
+            console.error(
+              "Failed to claim saved domain in completeOnboarding",
+              error,
+            );
+            return;
           });
         }
       })(),
   ]);
-
-  if (results.some((result) => result.status === "rejected")) {
-    results.forEach((result, idx) => {
-      if (result.status === "rejected") {
-        console.error(
-          `Failed to ${["update onboardingStepCache", "create program", "claim saved domain"][idx]} from onboarding: ${JSON.stringify(result.reason, null, 2)}`,
-        );
-      }
-    });
-  }
 }
