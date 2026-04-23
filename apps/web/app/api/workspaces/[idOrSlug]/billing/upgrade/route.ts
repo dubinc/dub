@@ -137,11 +137,6 @@ export const POST = withWorkspace(
               subscription_data: {
                 trial_period_days: DUB_TRIAL_PERIOD_DAYS,
               },
-              payment_method_options: {
-                link: {
-                  setup_future_usage: "none",
-                },
-              },
             }
           : {}),
         client_reference_id: workspace.id,
