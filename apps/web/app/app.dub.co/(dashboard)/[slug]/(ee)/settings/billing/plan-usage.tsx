@@ -213,23 +213,7 @@ export default function PlanUsage() {
     <>
       <StartPaidPlanModal />
       <div className="rounded-xl border border-neutral-200 bg-white">
-        {trialEndsAt != null && isWorkspaceBillingTrialActive(trialEndsAt) && (
-          <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-blue-50/50 px-3 py-2">
-            <p className="text-xs font-medium text-blue-600">
-              Trial ends on{" "}
-              <span className="font-semibold">
-                {new Date(trialEndsAt).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </span>
-              . Your card will be charged when the trial ends unless you cancel.
-            </p>
-          </div>
-        )}
-
-        {showPendingCancellation && (
+        {showPendingCancellation ? (
           <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-amber-100/50 px-3 py-2">
             <p className="text-center text-xs text-amber-900">
               Your subscription will be canceled on{" "}
@@ -246,7 +230,22 @@ export default function PlanUsage() {
               .
             </p>
           </div>
-        )}
+        ) : trialEndsAt != null &&
+          isWorkspaceBillingTrialActive(trialEndsAt) ? (
+          <div className="mx-1 mt-1 flex items-center justify-center rounded-lg bg-blue-50/50 px-3 py-2">
+            <p className="text-xs font-medium text-blue-600">
+              Trial ends on{" "}
+              <span className="font-semibold">
+                {new Date(trialEndsAt).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
+              </span>
+              . Your card will be charged when the trial ends unless you cancel.
+            </p>
+          </div>
+        ) : null}
 
         <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
           <div>
