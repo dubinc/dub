@@ -43,7 +43,6 @@ export const acceptProgramInviteAction = authPartnerActionClient
       },
     });
 
-    // TODO: Move these into a workflow similar to `/api/workflows/partner-approved/route.ts`
     waitUntil(
       (async () => {
         const workspace = await prisma.project.findUnique({

@@ -1,13 +1,18 @@
+import { pauseOrCancelCampaignsForProgramOnPlanDowngrade } from "@/lib/api/campaigns/pause-campaigns-on-plan-downgrade";
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeProgramEnrollment } from "@/lib/api/links/include-program-enrollment";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { stripAdvancedRewardModifiersForProgram } from "@/lib/api/partners/strip-advanced-reward-modifiers";
 import { deactivateProgram } from "@/lib/api/programs/deactivate-program";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
+import { wouldLoseAdvancedFeatures } from "@/lib/plans/would-lose-advanced-features";
 import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
+import { sendEmail } from "@dub/email";
+import AdvancedPlanDowngradeNotice from "@dub/email/templates/advanced-plan-downgrade-notice";
 import { prisma } from "@dub/prisma";
 import { capitalize, FREE_PLAN, log } from "@dub/utils";
 import Stripe from "stripe";
@@ -27,15 +32,7 @@ export async function customerSubscriptionDeleted(
     where: {
       stripeId,
     },
-    select: {
-      id: true,
-      slug: true,
-      plan: true,
-      planTier: true,
-      foldersUsage: true,
-      paymentFailedAt: true,
-      payoutsLimit: true,
-      defaultProgramId: true,
+    include: {
       links: {
         where: {
           key: "_root",
@@ -73,22 +70,32 @@ export async function customerSubscriptionDeleted(
     return `Workspace with Stripe ID ${stripeId} not found in customer.subscription.deleted callback.`;
   }
 
-  // Check if the customer has another active subscription
-  const { data: activeSubscriptions } = await stripe.subscriptions.list({
-    customer: stripeId,
-    status: "active",
-  });
+  // Check if the customer has another subscription still in force (active or trialing)
+  const [{ data: activeSubscriptions }, { data: trialingSubscriptions }] =
+    await Promise.all([
+      stripe.subscriptions.list({
+        customer: stripeId,
+        status: "active",
+      }),
+      stripe.subscriptions.list({
+        customer: stripeId,
+        status: "trialing",
+      }),
+    ]);
 
-  if (activeSubscriptions.length > 0) {
-    const activeSubscription = activeSubscriptions[0];
-    const priceId = activeSubscription.items.data[0].price.id;
+  const fallbackSubscription =
+    activeSubscriptions[0] ?? trialingSubscriptions[0];
+
+  if (fallbackSubscription) {
+    const priceId = fallbackSubscription.items.data[0].price.id;
 
     await updateWorkspacePlan({
       workspace,
       priceId,
+      subscription: fallbackSubscription,
     });
 
-    return `Workspace ${workspace.slug} has another active subscription; updated plan.`;
+    return `Workspace ${workspace.slug} has another subscription; updated plan.`;
   }
 
   const workspaceLinks = workspace.links;
@@ -98,26 +105,33 @@ export async function customerSubscriptionDeleted(
     workspaceUsers.filter(({ email }) => email).map(({ email }) => email!),
   );
 
+  await prisma.project.update({
+    where: {
+      stripeId,
+    },
+    data: {
+      plan: "free",
+      trialEndsAt: null,
+      planPeriod: null,
+      billingCycleEndsAt: null,
+      subscriptionCanceledAt: workspace.subscriptionCanceledAt
+        ? undefined // skip updating subscriptionCanceledAt if it's already set
+        : new Date(),
+      usageLimit: FREE_PLAN.limits.clicks!,
+      linksLimit: FREE_PLAN.limits.links!,
+      payoutsLimit: FREE_PLAN.limits.payouts!,
+      domainsLimit: FREE_PLAN.limits.domains!,
+      aiLimit: FREE_PLAN.limits.ai!,
+      tagsLimit: FREE_PLAN.limits.tags!,
+      foldersLimit: FREE_PLAN.limits.folders!,
+      groupsLimit: FREE_PLAN.limits.groups!,
+      networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
+      usersLimit: FREE_PLAN.limits.users!,
+      paymentFailedAt: null,
+    },
+  });
+
   await Promise.allSettled([
-    prisma.project.update({
-      where: {
-        stripeId,
-      },
-      data: {
-        plan: "free",
-        usageLimit: FREE_PLAN.limits.clicks!,
-        linksLimit: FREE_PLAN.limits.links!,
-        payoutsLimit: FREE_PLAN.limits.payouts!,
-        domainsLimit: FREE_PLAN.limits.domains!,
-        aiLimit: FREE_PLAN.limits.ai!,
-        tagsLimit: FREE_PLAN.limits.tags!,
-        foldersLimit: FREE_PLAN.limits.folders!,
-        groupsLimit: FREE_PLAN.limits.groups!,
-        networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
-        usersLimit: FREE_PLAN.limits.users!,
-        paymentFailedAt: null,
-      },
-    }),
     // remove logo from all domains for the workspace
     prisma.domain.updateMany({
       where: {
@@ -218,6 +232,41 @@ export async function customerSubscriptionDeleted(
   // Deactivate the program if the workspace had partner access
   if (workspace.defaultProgramId) {
     await deactivateProgram(workspace.defaultProgramId);
+  }
+
+  const losesAdvancedFeatures = wouldLoseAdvancedFeatures({
+    currentPlan: workspace.plan,
+    newPlan: "free",
+  });
+
+  if (workspace.defaultProgramId && losesAdvancedFeatures) {
+    await Promise.all([
+      stripAdvancedRewardModifiersForProgram({
+        programId: workspace.defaultProgramId,
+      }),
+      pauseOrCancelCampaignsForProgramOnPlanDowngrade({
+        programId: workspace.defaultProgramId,
+      }),
+    ]);
+  }
+
+  const owner = workspaceUsers[0];
+  if (owner.email && losesAdvancedFeatures) {
+    await sendEmail({
+      to: owner.email,
+      subject: "Your Advanced plan features have been removed",
+      react: AdvancedPlanDowngradeNotice({
+        email: owner.email,
+        workspace: {
+          name: workspace.name,
+          slug: workspace.slug,
+        },
+      }),
+      variant: "notifications",
+      headers: {
+        "Idempotency-Key": `advanced-downgrade-notice:${workspace.id}:${owner.email}`,
+      },
+    });
   }
 
   return `Workspace ${workspace.slug} subscription deleted; downgraded to free.`;

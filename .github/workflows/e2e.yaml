@@ -39,4 +39,5 @@ jobs:
           QSTASH_TOKEN: ${{ secrets.QSTASH_TOKEN }}
           QSTASH_CURRENT_SIGNING_KEY: ${{ secrets.QSTASH_CURRENT_SIGNING_KEY }}
           NEXT_PUBLIC_NGROK_URL: ${{ github.event.deployment_status.environment_url }}
+          UNSUBSCRIBE_TOKEN_SECRET: "dummy-secret"
         run: pnpm test

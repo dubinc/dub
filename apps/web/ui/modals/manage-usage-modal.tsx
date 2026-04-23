@@ -27,7 +27,8 @@ type ManageUsageModalProps = {
 
 function ManageUsageModalContent({ type }: ManageUsageModalProps) {
   const workspace = useWorkspace();
-  const { slug, role, plan, planTier, usageLimit, linksLimit } = workspace;
+  const { slug, role, plan, planPeriod, planTier, usageLimit, linksLimit } =
+    workspace;
 
   const { error: permissionsError } = clientAccessCheck({
     action: "billing.write",
@@ -72,6 +73,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
 
   const isCurrentPlanSuggested =
     plan === suggestedPlan.name.toLowerCase() &&
+    planPeriod === period &&
     suggestedPlanTier === (planTier ?? 1);
 
   const isDowngradeSuggested =
@@ -183,7 +185,9 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
                     ? "Current plan"
                     : isDowngradeSuggested
                       ? "Downgrade"
-                      : "Upgrade"
+                      : planPeriod !== period
+                        ? `Switch to ${period}`
+                        : "Upgrade"
                 }
                 variant={isDowngradeSuggested ? "secondary" : "primary"}
                 className="h-8 rounded-lg shadow-sm"
