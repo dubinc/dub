@@ -20,23 +20,24 @@ export const TRIAL_LIMITS = {
 export type TrialLimitResource =
   | keyof typeof TRIAL_LIMITS
   | "partnerEnrollments"
-  | "dublink";
+  | "freeDotLinkDomain";
 
-export const TRIAL_LIMIT_FEATURE_PHRASES: Record<TrialLimitResource, string> = {
+const TRIAL_LIMIT_FEATURE_PHRASES: Record<TrialLimitResource, string> = {
   links: "create more links",
   clicks: "track more events",
-  payouts: "send a payout",
+  payouts: "send more payouts",
   domains: "add more domains",
   tags: "create more tags",
   folders: "create more folders",
   groups: "create more groups",
-  networkInvites: "invite more partners from the network",
+  networkInvites: "invite partners from the network",
   users: "invite more teammates",
-  ai: "use more AI credits",
-  api: "make more API requests",
-  analyticsApi: "use the Analytics API more",
   partnerEnrollments: "add more partners",
-  dublink: "claim a free .link domain",
+  freeDotLinkDomain: "claim a free .link domain",
+  // unused fields
+  ai: "",
+  api: "",
+  analyticsApi: "",
 };
 
 export function getTrialLimitFeaturePhrase(kind: TrialLimitResource): string {

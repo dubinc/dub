@@ -22,7 +22,7 @@ const postBodySchema = z.object({
  * users who start a trial get welcome (QStash) + these emails when due.
  */
 
-async function executeTrialEmailCronPage(startingAfter?: string) {
+async function executeTrialEmailCronBatch(startingAfter?: string) {
   const now = new Date();
   const result = await runTrialEmailCron({
     now,
@@ -33,7 +33,7 @@ async function executeTrialEmailCronPage(startingAfter?: string) {
   if (result.workspaceCount === 0) {
     if (startingAfter) {
       return logAndRespond(
-        "Trial email cron: no workspaces on continuation page (done).",
+        "Trial email cron: no workspaces on next batch (done).",
       );
     }
 
@@ -52,15 +52,15 @@ async function executeTrialEmailCronPage(startingAfter?: string) {
   }
 
   return logAndRespond(
-    `Trial email cron: sent ${result.sentCount} email(s) for ${result.workspaceCount} workspace(s)${result.hasMore ? "; next page enqueued." : "."}`,
+    `Trial email cron: sent ${result.sentCount} email(s) for ${result.workspaceCount} workspace(s)${result.hasMore ? "; next batch enqueued." : "."}`,
   );
 }
 
 // GET /api/cron/trial-emails
-export const GET = withCron(async () => executeTrialEmailCronPage(undefined));
+export const GET = withCron(async () => executeTrialEmailCronBatch(undefined));
 
 // POST /api/cron/trial-emails (QStash continuation)
 export const POST = withCron(async ({ rawBody }) => {
   const { startingAfter } = postBodySchema.parse(JSON.parse(rawBody));
-  return await executeTrialEmailCronPage(startingAfter);
+  return await executeTrialEmailCronBatch(startingAfter);
 });

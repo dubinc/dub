@@ -8,7 +8,7 @@ import type { PrismaClient } from "@dub/prisma/client";
 import { chunk, log } from "@dub/utils";
 import { createHash } from "crypto";
 
-const WORKSPACE_PAGE_SIZE = 50;
+const CRON_BATCH_SIZE = 50;
 const EMAIL_BATCH_SIZE = 100;
 
 export type RunTrialEmailCronResult = {
@@ -67,7 +67,7 @@ export async function runTrialEmailCron({
         not: "free",
       },
     },
-    take: WORKSPACE_PAGE_SIZE,
+    take: CRON_BATCH_SIZE,
     skip: startingAfter ? 1 : 0,
     ...(startingAfter && {
       cursor: {
@@ -111,7 +111,7 @@ export async function runTrialEmailCron({
     },
   });
 
-  const hasMore = workspaces.length === WORKSPACE_PAGE_SIZE;
+  const hasMore = workspaces.length === CRON_BATCH_SIZE;
   const nextStartingAfter = hasMore
     ? workspaces[workspaces.length - 1]?.id
     : undefined;

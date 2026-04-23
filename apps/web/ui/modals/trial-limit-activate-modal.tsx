@@ -4,7 +4,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal, useRouterStuff } from "@dub/ui";
 import {
   getTrialLimitFeaturePhrase,
-  isWorkspaceBillingTrialActive,
   type TrialLimitResource,
 } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
@@ -20,7 +19,7 @@ import { toast } from "sonner";
  * - users → `invite-teammates-form` (API `exceeded_limit` on invites)
  * - partnerEnrollments → partner approve / bulk approve (trial enrollment cap)
  * - networkInvites → partner network invite sheet (weekly invite limit)
- * - dublink / domains → use where domain actions are trial-gated (add at call site)
+ * - freeDotLinkDomain → use where domain actions are trial-gated (add at call site)
  */
 
 function TrialLimitActivateModalInner({
@@ -32,20 +31,11 @@ function TrialLimitActivateModalInner({
   setShowModal: (open: boolean) => void;
   limitResource: TrialLimitResource;
 }) {
-  const { id: workspaceId, plan, trialEndsAt, mutate } = useWorkspace();
+  const { id: workspaceId, plan, mutate } = useWorkspace();
   const { queryParams } = useRouterStuff();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const featurePhrase = getTrialLimitFeaturePhrase(limitResource);
-
-  const trialEndLabel =
-    trialEndsAt != null && isWorkspaceBillingTrialActive(trialEndsAt)
-      ? new Date(trialEndsAt).toLocaleDateString("en-US", {
-          month: "long",
-          day: "numeric",
-          year: "numeric",
-        })
-      : "";
 
   const handleConfirm = async () => {
     if (isSubmitting || !workspaceId) return;
@@ -101,12 +91,16 @@ function TrialLimitActivateModalInner({
 
       <div className="flex flex-col gap-4 bg-neutral-50 p-4 sm:p-6">
         <p className="text-sm text-neutral-600">
-          You&apos;ve hit a trial limit.
-        </p>
-        <p className="text-sm text-neutral-600">
-          In order to {featurePhrase}, you&apos;ll have to start a paid plan to
-          unlock it, or continue your trial until{" "}
-          {trialEndLabel || "your trial ends"} with limits.
+          You&apos;ve hit a{" "}
+          <a
+            href="https://dub.co/help/article/trial-limits"
+            target="_blank"
+            className="cursor-help font-semibold text-neutral-800 underline decoration-dotted underline-offset-2"
+          >
+            trial limit
+          </a>
+          . In order to {featurePhrase}, you&apos;ll have to start a paid plan
+          to unlock higher limits.
         </p>
       </div>
 

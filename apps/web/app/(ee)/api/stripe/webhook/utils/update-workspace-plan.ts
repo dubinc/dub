@@ -71,6 +71,8 @@ export async function updateWorkspacePlan({
   });
 
   const trialEndsAt = getSubscriptionTrialEndsAt(subscription);
+  const isPaidPlanActivated =
+    workspace.trialEndsAt !== null && trialEndsAt === null;
   const cancellationFields = getSubscriptionCancellationFields(subscription);
   const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
@@ -83,7 +85,7 @@ export async function updateWorkspacePlan({
     workspace.plan !== newPlanName ||
     workspace.planPeriod !== planPeriod ||
     workspace.planTier !== newPlanTier ||
-    workspace.trialEndsAt !== trialEndsAt ||
+    isPaidPlanActivated ||
     (workspace.payoutsLimit < newPlan.limits.payouts &&
       NEW_BUSINESS_PRICE_IDS.includes(priceId))
   ) {
@@ -267,9 +269,6 @@ export async function updateWorkspacePlan({
     }
 
     if (workspaceOwners.length > 0) {
-      const isPaidPlanActivated =
-        workspace.trialEndsAt !== null && trialEndsAt === null;
-
       await Promise.allSettled([
         ...(isPaidPlanActivated
           ? [
