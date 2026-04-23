@@ -5,7 +5,7 @@ import { approvePartner } from "@/lib/partners/approve-partner";
 import { approvePartnerSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
-// POST /api/partners/approve – Approve a pending partner
+// POST /api/partners/applications/approve – Approve a pending partner
 export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const { partnerId, groupId } = approvePartnerSchema.parse(

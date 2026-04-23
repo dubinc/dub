@@ -25,10 +25,10 @@ export const partnersPaths: ZodOpenApiPathsObject = {
   "/partners/analytics": {
     get: retrievePartnerAnalytics,
   },
-  "/partners/approve": {
+  "/partners/applications/approve": {
     post: approvePartner,
   },
-  "/partners/reject": {
+  "/partners/applications/reject": {
     post: rejectPartner,
   },
   "/partners/ban": {
