@@ -93,7 +93,7 @@ function TrialLimitActivateModalInner({
         <p className="text-sm text-neutral-600">
           You&apos;ve hit a{" "}
           <a
-            href="https://dub.co/help/article/trial-limits"
+            href="hthttps://dub.co/help/article/free-trial#trial-limits"
             target="_blank"
             className="cursor-help font-semibold text-neutral-800 underline decoration-dotted underline-offset-2"
           >

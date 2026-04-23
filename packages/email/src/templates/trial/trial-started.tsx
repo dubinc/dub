@@ -268,12 +268,22 @@ export default function TrialStartedEmail({
             <Hr />
 
             <Text className="mb-8 text-sm leading-5 text-neutral-800">
-              You&apos;ll have access to all {planLabel} features during your
-              trial, with trial usage limits in place.
-              <br />
-              <br />
-              To remove these limits, you can activate your paid plan at any
-              time.
+              You&apos;ll have access to all{" "}
+              <Link
+                href={`https://app.dub.co/${workspace.slug}/settings/billing/upgrade`}
+                className="font-medium text-neutral-500 underline underline-offset-2"
+              >
+                {planLabel} features
+              </Link>{" "}
+              during your trial, with{" "}
+              <Link
+                href="https://dub.co/help/article/free-trial#trial-limits"
+                className="font-medium text-neutral-500 underline underline-offset-2"
+              >
+                trial usage limits
+              </Link>{" "}
+              in place. To remove these limits, you can activate your paid plan
+              at any time.
             </Text>
 
             <Section className="my-8">
