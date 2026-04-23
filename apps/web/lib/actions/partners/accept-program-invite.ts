@@ -21,16 +21,6 @@ export const acceptProgramInviteAction = authPartnerActionClient
     const { partner } = ctx;
     const { programId } = parsedInput;
 
-    const program = await prisma.program.findUniqueOrThrow({
-      where: { id: programId },
-      select: {
-        workspaceId: true,
-        workspace: {
-          select: { trialEndsAt: true },
-        },
-      },
-    });
-
     const enrollment = await prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
