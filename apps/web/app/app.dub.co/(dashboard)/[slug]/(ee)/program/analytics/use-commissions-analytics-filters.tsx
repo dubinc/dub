@@ -1,6 +1,5 @@
 "use client";
 
-import useCommissionsBreakdown from "@/lib/swr/use-commissions-breakdown";
 import useCustomers from "@/lib/swr/use-customers";
 import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
@@ -12,13 +11,8 @@ import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
 import { CommissionType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy, Sliders, User, Users, Users6 } from "@dub/ui/icons";
-import {
-  capitalize,
-  COUNTRIES,
-  FilterOperator,
-  parseFilterValue,
-} from "@dub/utils";
+import { Sliders, User, Users, Users6 } from "@dub/ui/icons";
+import { capitalize, FilterOperator, parseFilterValue } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
@@ -27,11 +21,10 @@ const COMMISSION_FILTER_KEYS = [
   "groupId",
   "customerId",
   "type",
-  "country",
 ] as const;
 
 export function useCommissionsAnalyticsFilters(
-  commissionsQueryString?: string,
+  _commissionsQueryString?: string,
 ) {
   const { slug } = useWorkspace();
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -47,12 +40,6 @@ export function useCommissionsAnalyticsFilters(
     selectedFilter === "customerId" ? debouncedSearch : "",
   );
   const { groups } = useGroups();
-
-  const { data: countryData } = useCommissionsBreakdown({
-    queryString: commissionsQueryString ?? "",
-    groupBy: "country",
-    enabled: selectedFilter === "country" && !!commissionsQueryString,
-  });
 
   const filters = useMemo(
     () => [
@@ -102,32 +89,8 @@ export function useCommissionsAnalyticsFilters(
           icon: <CommissionTypeIcon type={type} />,
         })),
       },
-      {
-        key: "country",
-        icon: FlagWavy,
-        label: "Location",
-        getOptionIcon: (value: unknown) => {
-          if (typeof value !== "string") return null;
-          return (
-            <img
-              alt={value}
-              src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-              className="size-4 shrink-0"
-            />
-          );
-        },
-        options: countryData
-          ? countryData
-              .filter((d) => d.key !== "unknown")
-              .map((d) => ({
-                value: d.key,
-                label: COUNTRIES[d.key] ?? d.key,
-                right: d.count > 0 ? String(d.count) : undefined,
-              }))
-          : null,
-      },
     ],
-    [partners, customers, groups, slug, countryData],
+    [partners, customers, groups, slug],
   );
 
   const activeFilters = useMemo(() => {
@@ -151,7 +114,6 @@ export function useCommissionsAnalyticsFilters(
     searchParamsObj.groupId,
     searchParamsObj.customerId,
     searchParamsObj.type,
-    searchParamsObj.country,
   ]);
 
   const onSelect = useCallback(

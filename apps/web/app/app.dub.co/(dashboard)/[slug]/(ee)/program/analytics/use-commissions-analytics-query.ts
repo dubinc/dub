@@ -29,7 +29,6 @@ export function useCommissionsAnalyticsQuery() {
       partnerId,
       groupId,
       type,
-      country,
     } = searchParamsObj;
 
     const params = new URLSearchParams({
@@ -49,7 +48,6 @@ export function useCommissionsAnalyticsQuery() {
     if (partnerId) params.set("partnerId", partnerId);
     if (groupId) params.set("groupId", groupId);
     if (type) params.set("type", type);
-    if (country) params.set("country", country);
 
     return params.toString();
   }, [workspaceId, status, searchParamsObj]);

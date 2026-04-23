@@ -14,27 +14,22 @@ import {
   CircleCheck,
   CircleDotted,
   CircleHalfDottedClock,
-  Globe,
   Users6,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { ReactNode, useCallback, useMemo, useState } from "react";
 import { CommissionStatusFilter } from "./commissions-status-selector";
 
-const FILTER_PARAM_KEYS: Record<string, string> = {
+const FILTER_PARAM_KEYS: Record<string, string | null> = {
   group: "groupId",
-  location: "country",
   type: "type",
   customer: "customerId",
-  country: "country",
 };
 
-const GROUPBY_MAP: Record<string, "type" | "group" | "country" | "customer"> = {
+const GROUPBY_MAP: Record<string, "type" | "group" | "customer"> = {
   group: "group",
-  location: "country",
   type: "type",
   customer: "customer",
-  country: "country",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -53,7 +48,7 @@ const STATUS_ICONS: Record<string, React.ElementType> = {
 
 function mapBreakdownItem(
   item: CommissionsBreakdownItem,
-  groupBy: "type" | "group" | "country" | "customer",
+  groupBy: "type" | "group" | "customer",
   groupColorMap: Map<string, { color: string | null }>,
 ): { icon: ReactNode; title: string; filterValue: string; value: number } {
   let icon: ReactNode = null;
@@ -65,21 +60,8 @@ function mapBreakdownItem(
       />
     );
   } else if (groupBy === "group") {
-    // Same as Performance: use GroupColorCircle with the group's color key
     const group = groupColorMap.get(item.key);
     icon = <GroupColorCircle group={{ color: group?.color ?? null }} />;
-  } else if (groupBy === "country") {
-    // Show globe icon for unknown location, flag otherwise
-    icon =
-      item.key === "unknown" ? (
-        <Globe className="size-4 shrink-0 text-neutral-400" />
-      ) : (
-        <img
-          alt={item.key}
-          src={`https://hatscripts.github.io/circle-flags/flags/${item.key.toLowerCase()}.svg`}
-          className="size-4 shrink-0"
-        />
-      );
   } else if (groupBy === "customer") {
     icon = (
       <CustomerAvatar
@@ -181,10 +163,6 @@ function CommissionsCard({
   );
 }
 
-// ---------------------------------------------------------------------------
-// CommissionsBreakdownCards
-// ---------------------------------------------------------------------------
-
 export function CommissionsBreakdownCards({
   status,
   queryString,
@@ -193,7 +171,7 @@ export function CommissionsBreakdownCards({
   queryString: string;
 }) {
   const { queryParams, searchParams } = useRouterStuff();
-  const [leftTab, setLeftTab] = useState("group");
+  const [leftTab] = useState("group");
   const [rightTab, setRightTab] = useState("type");
 
   const [leftSelectedItems, setLeftSelectedItems] = useState<string[]>([]);
@@ -205,11 +183,6 @@ export function CommissionsBreakdownCards({
     groups?.forEach((g) => map.set(g.id, { color: g.color ?? null }));
     return map;
   }, [groups]);
-
-  const handleLeftTabChange = useCallback((id: string) => {
-    setLeftTab(id);
-    setLeftSelectedItems([]);
-  }, []);
 
   const handleRightTabChange = useCallback((id: string) => {
     setRightTab(id);
@@ -244,17 +217,11 @@ export function CommissionsBreakdownCards({
   const rightGroupBy = GROUPBY_MAP[rightTab];
 
   const { data: leftRawData, isLoading: leftLoading } = useCommissionsBreakdown(
-    {
-      queryString,
-      groupBy: leftGroupBy,
-    },
+    { queryString, groupBy: leftGroupBy },
   );
 
   const { data: rightRawData, isLoading: rightLoading } =
-    useCommissionsBreakdown({
-      queryString,
-      groupBy: rightGroupBy,
-    });
+    useCommissionsBreakdown({ queryString, groupBy: rightGroupBy });
 
   const leftData = useMemo(
     () =>
@@ -336,12 +303,9 @@ export function CommissionsBreakdownCards({
     <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
       <CommissionsCard
         status={status}
-        tabs={[
-          { id: "group", label: "Partner Group", icon: Users6 },
-          { id: "location", label: "Location", icon: Globe },
-        ]}
+        tabs={[{ id: "group", label: "Partner Group", icon: Users6 }]}
         selectedTabId={leftTab}
-        onSelectTab={handleLeftTabChange}
+        onSelectTab={() => {}}
         dataLength={leftData.length}
         expandLimit={EXPAND_LIMIT}
         isFilterActive={isLeftFilterActive}
@@ -392,7 +356,6 @@ export function CommissionsBreakdownCards({
         tabs={[
           { id: "type", label: "Type", icon: Users6 },
           { id: "customer", label: "Customer", icon: Users6 },
-          { id: "country", label: "Country", icon: Globe },
         ]}
         selectedTabId={rightTab}
         onSelectTab={handleRightTabChange}

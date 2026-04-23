@@ -6,14 +6,14 @@ import type { CommissionsBreakdownItem } from "@/lib/swr/use-commissions-breakdo
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus, CommissionType } from "@dub/prisma/client";
-import { capitalize, COUNTRIES, parseFilterValue } from "@dub/utils";
+import { capitalize, parseFilterValue } from "@dub/utils";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
 
 const querySchema = analyticsQuerySchema
   .pick({ start: true, end: true, interval: true, timezone: true })
   .extend({
-    groupBy: z.enum(["type", "group", "country", "customer"]),
+    groupBy: z.enum(["type", "group", "customer"]),
     status: z.enum(CommissionStatus).optional(),
     partnerId: z.string().optional(),
     groupId: z.string().optional(),
@@ -154,33 +154,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         count,
       }))
       .sort((a, b) => b.earnings - a.earnings);
-  } else if (groupBy === "country") {
-    const commissions = await prisma.commission.findMany({
-      where: baseWhere,
-      select: {
-        earnings: true,
-        customer: { select: { country: true } },
-      },
-    });
-
-    const map = new Map<string, { earnings: number; count: number }>();
-    for (const c of commissions) {
-      const key = c.customer?.country ?? "unknown";
-      const entry = map.get(key) ?? { earnings: 0, count: 0 };
-      entry.earnings += c.earnings;
-      entry.count++;
-      map.set(key, entry);
-    }
-
-    result = Array.from(map.entries())
-      .map(([key, { earnings, count }]) => ({
-        key,
-        label: (key !== "unknown" ? COUNTRIES[key] : null) ?? key,
-        earnings,
-        count,
-      }))
-      .sort((a, b) => b.earnings - a.earnings)
-      .slice(0, 20);
   } else if (groupBy === "customer") {
     const rows = await prisma.commission.groupBy({
       by: ["customerId"],

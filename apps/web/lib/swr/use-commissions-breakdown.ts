@@ -8,11 +8,7 @@ export type CommissionsBreakdownItem = {
   count: number;
 };
 
-export type CommissionsBreakdownGroupBy =
-  | "type"
-  | "group"
-  | "country"
-  | "customer";
+export type CommissionsBreakdownGroupBy = "type" | "group" | "customer";
 
 export default function useCommissionsBreakdown({
   queryString,
