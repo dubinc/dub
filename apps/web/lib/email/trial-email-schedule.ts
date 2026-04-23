@@ -76,7 +76,7 @@ export function getTrialEmailSubject({
     companyName && companyName.length <= 12 ? `Dub + ${companyName}: ` : "";
 
   const subjects: Record<TrialEmailType, string> = {
-    [TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING]: `${prefix}7 days left in trial`,
+    [TRIAL_EMAIL_TYPE.SEVEN_DAYS_REMAINING]: `${prefix}Mid-trial check-in`,
     [TRIAL_EMAIL_TYPE.THREE_DAYS_REMAINING]: `${prefix}3 days left in trial`,
   };
   return subjects[type];
