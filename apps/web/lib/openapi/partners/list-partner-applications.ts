@@ -26,6 +26,6 @@ export const listPartnerApplications: ZodOpenApiOperationObject = {
     },
     ...openApiErrorResponses,
   },
-  tags: ["Partners"],
+  tags: ["Partner Applications"],
   security: [{ token: [] }],
 };
