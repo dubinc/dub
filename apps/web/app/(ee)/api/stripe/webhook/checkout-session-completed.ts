@@ -17,7 +17,6 @@ import {
   getWorkspaceLimitsForStripeSubscriptionStatus,
   isWorkspaceBillingTrialActive,
   log,
-  prettyPrint,
 } from "@dub/utils";
 import Stripe from "stripe";
 import { getPlanPeriodFromStripeSubscription } from "./utils/stripe-plan-period";
@@ -216,56 +215,47 @@ async function completeOnboarding({
     return;
   }
 
-  await Promise.allSettled([
-    // Complete onboarding for workspace users
+  const results = await Promise.allSettled([
     onboardingStepCache.mset({
       userIds: users.map(({ id }) => id),
       step: "completed",
     }),
 
-    (async () => {
-      // Register saved domain
-      const data = await redis.get<{ domain: string; userId: string }>(
-        `onboarding-domain:${workspaceId}`,
-      );
-      if (data && data.domain && data.userId) {
-        const { domain, userId } = data;
+    // Create program based on programOnboarding data
+    users.length > 0 &&
+      workspace.programs.length === 0 &&
+      workspace.store?.programOnboarding &&
+      createProgram({
+        workspace,
+        user: users[0],
+      }),
 
-        try {
+    // Claim saved domain (only if not on trial)
+    !isWorkspaceBillingTrialActive(workspace.trialEndsAt) &&
+      (async () => {
+        // Register saved domain
+        const data = await redis.get<{ domain: string; userId: string }>(
+          `onboarding-domain:${workspaceId}`,
+        );
+        if (data && data.domain && data.userId) {
+          const { domain, userId } = data;
+
           await claimDotLinkDomain({
             domain,
             userId,
             workspace,
           });
-          await redis.del(`onboarding-domain:${workspaceId}`);
-        } catch (e) {
-          console.error(
-            "Failed to register saved domain from onboarding",
-            { domain, userId, workspace },
-            e,
-          );
         }
-      }
-
-      // Create program
-      if (
-        users.length > 0 &&
-        workspace.programs.length === 0 &&
-        workspace.store?.programOnboarding
-      ) {
-        try {
-          await createProgram({
-            workspace,
-            user: users[0],
-          });
-        } catch (e) {
-          console.error(
-            "Failed to create program from onboarding",
-            prettyPrint({ workspace, user: users[0] }),
-            e,
-          );
-        }
-      }
-    })(),
+      })(),
   ]);
+
+  if (results.some((result) => result.status === "rejected")) {
+    results.forEach((result, idx) => {
+      if (result.status === "rejected") {
+        console.error(
+          `Failed to ${["update onboardingStepCache", "create program", "claim saved domain"][idx]} from onboarding: ${JSON.stringify(result.reason, null, 2)}`,
+        );
+      }
+    });
+  }
 }
