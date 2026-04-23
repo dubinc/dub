@@ -8,9 +8,11 @@ import { AnalyticsLoadingSpinner } from "@/ui/analytics/analytics-loading-spinne
 import { BarList } from "@/ui/analytics/bar-list";
 import { CustomerAvatar } from "@/ui/customers/customer-avatar";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { TabSelect, useRouterStuff } from "@dub/ui";
 import {
   CircleCheck,
+  CircleDotted,
   CircleHalfDottedClock,
   Globe,
   Users6,
@@ -35,22 +37,24 @@ const GROUPBY_MAP: Record<string, "type" | "group" | "country" | "customer"> = {
   country: "country",
 };
 
-const STATUS_LABELS: Record<CommissionStatusFilter, string> = {
+const STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
   processed: "Processed",
   paid: "Paid",
+  all: "All",
 };
 
-const STATUS_ICONS: Record<CommissionStatusFilter, React.ElementType> = {
+const STATUS_ICONS: Record<string, React.ElementType> = {
   pending: CircleHalfDottedClock,
   processed: CircleHalfDottedClock,
   paid: CircleCheck,
+  all: CircleDotted,
 };
 
 function mapBreakdownItem(
   item: CommissionsBreakdownItem,
   groupBy: "type" | "group" | "country" | "customer",
-  groupColorMap: Map<string, string>,
+  groupColorMap: Map<string, { color: string | null }>,
 ): { icon: ReactNode; title: string; filterValue: string; value: number } {
   let icon: ReactNode = null;
 
@@ -61,15 +65,9 @@ function mapBreakdownItem(
       />
     );
   } else if (groupBy === "group") {
-    const color = groupColorMap.get(item.key);
-    icon = color ? (
-      <span
-        className="size-2 shrink-0 rounded-full"
-        style={{ backgroundColor: color }}
-      />
-    ) : (
-      <span className="size-2 shrink-0 rounded-full bg-neutral-300" />
-    );
+    // Same as Performance: use GroupColorCircle with the group's color key
+    const group = groupColorMap.get(item.key);
+    icon = <GroupColorCircle group={{ color: group?.color ?? null }} />;
   } else if (groupBy === "country") {
     // Show globe icon for unknown location, flag otherwise
     icon =
@@ -132,7 +130,8 @@ function CommissionsCard({
   void showModal;
 
   const showViewAll = (dataLength ?? 0) > expandLimit;
-  const StatusIcon = STATUS_ICONS[status];
+  const statusKey = status ?? "all";
+  const StatusIcon = STATUS_ICONS[statusKey];
 
   return (
     <div className="group relative z-0 h-[400px] overflow-hidden rounded-lg border border-neutral-200 bg-white sm:rounded-xl">
@@ -144,7 +143,7 @@ function CommissionsCard({
         />
         <div className="flex items-center gap-1 pr-2 text-neutral-500">
           <StatusIcon className="hidden h-4 w-4 sm:block" />
-          <p className="text-xs uppercase">{STATUS_LABELS[status]}</p>
+          <p className="text-xs uppercase">{STATUS_LABELS[statusKey]}</p>
         </div>
       </div>
 
@@ -202,10 +201,8 @@ export function CommissionsBreakdownCards({
 
   const { groups } = useGroups();
   const groupColorMap = useMemo(() => {
-    const map = new Map<string, string>();
-    groups?.forEach((g) => {
-      if (g.color) map.set(g.id, g.color);
-    });
+    const map = new Map<string, { color: string | null }>();
+    groups?.forEach((g) => map.set(g.id, { color: g.color ?? null }));
     return map;
   }, [groups]);
 

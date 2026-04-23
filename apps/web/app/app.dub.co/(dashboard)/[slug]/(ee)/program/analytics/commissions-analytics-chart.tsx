@@ -16,12 +16,33 @@ import { useId } from "react";
 import { CommissionStatusFilter } from "./commissions-status-selector";
 
 const STATUS_COLORS: Record<
-  CommissionStatusFilter,
-  { className: string; from: string; to: string }
+  string,
+  { className: string; from: string; to: string; label: string }
 > = {
-  pending: { className: "text-orange-500", from: "#f97316", to: "#fb923c" },
-  processed: { className: "text-blue-500", from: "#3b82f6", to: "#60a5fa" },
-  paid: { className: "text-green-500", from: "#22c55e", to: "#4ade80" },
+  pending: {
+    className: "text-orange-500",
+    from: "#f97316",
+    to: "#fb923c",
+    label: "Pending",
+  },
+  processed: {
+    className: "text-blue-500",
+    from: "#3b82f6",
+    to: "#60a5fa",
+    label: "Processed",
+  },
+  paid: {
+    className: "text-green-500",
+    from: "#22c55e",
+    to: "#4ade80",
+    label: "Paid",
+  },
+  all: {
+    className: "text-violet-500",
+    from: "#7D3AEC",
+    to: "#DA2778",
+    label: "All commissions",
+  },
 };
 
 export function CommissionsAnalyticsChart({
@@ -32,7 +53,7 @@ export function CommissionsAnalyticsChart({
   queryString: string;
 }) {
   const id = useId();
-  const color = STATUS_COLORS[status];
+  const color = STATUS_COLORS[status ?? "all"];
 
   const { data, loading, error } = useCommissionsTimeseries({
     enabled: true,
@@ -62,7 +83,7 @@ export function CommissionsAnalyticsChart({
 
   return (
     <TimeSeriesChart
-      key={`${status}-${queryString}`}
+      key={`${status ?? "all"}-${queryString}`}
       data={chartData ?? []}
       series={[
         {
@@ -83,7 +104,7 @@ export function CommissionsAnalyticsChart({
               <div
                 className={`h-2 w-2 rounded-sm bg-current shadow-[inset_0_0_0_1px_#0003] ${color.className}`}
               />
-              <p className="capitalize text-neutral-600">{status}</p>
+              <p className="text-neutral-600">{color.label}</p>
             </div>
             <p className="text-right font-medium text-neutral-900">
               {currencyFormatter(d.values.amount)}

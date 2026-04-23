@@ -12,8 +12,8 @@ export function useCommissionsAnalyticsQuery() {
 
   const status = useMemo<CommissionStatusFilter>(() => {
     const raw = searchParamsObj.commissionStatus;
-    if (raw === "processed" || raw === "paid") return raw;
-    return "pending";
+    if (raw === "pending" || raw === "processed" || raw === "paid") return raw;
+    return undefined; // undefined = All (no status filter)
   }, [searchParamsObj.commissionStatus]);
 
   const queryString = useMemo(() => {
@@ -35,8 +35,9 @@ export function useCommissionsAnalyticsQuery() {
     const params = new URLSearchParams({
       workspaceId: workspaceId!,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      status,
     });
+
+    if (status) params.set("status", status);
 
     if (start && end) {
       params.set("start", start);
