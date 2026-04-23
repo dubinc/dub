@@ -8,11 +8,11 @@
  *
  *
  * Usage:
- *   pnpm exec tsx apps/web/scripts/migrations/backfill-workspace-stripe-billing-fields.ts
- *   pnpm exec tsx apps/web/scripts/migrations/backfill-workspace-stripe-billing-fields.ts --dry-run
- *   pnpm exec tsx apps/web/scripts/migrations/backfill-workspace-stripe-billing-fields.ts --limit 50
- *   pnpm exec tsx apps/web/scripts/migrations/backfill-workspace-stripe-billing-fields.ts --slug my-workspace --dry-run
- *   pnpm exec tsx apps/web/scripts/migrations/backfill-workspace-stripe-billing-fields.ts --project-id clxxx...
+ *   pnpm exec tsx scripts/migrations/backfill-workspace-stripe-billing-fields.ts
+ *   pnpm exec tsx scripts/migrations/backfill-workspace-stripe-billing-fields.ts --dry-run
+ *   pnpm exec tsx scripts/migrations/backfill-workspace-stripe-billing-fields.ts --limit 50
+ *   pnpm exec tsx scripts/migrations/backfill-workspace-stripe-billing-fields.ts --slug my-workspace --dry-run
+ *   pnpm exec tsx scripts/migrations/backfill-workspace-stripe-billing-fields.ts --project-id clxxx...
  */
 import { prisma } from "@dub/prisma";
 import type { PlanPeriod } from "@dub/prisma/client";
@@ -291,10 +291,10 @@ async function main() {
   /** Single-record mode: no cursor pagination */
   const scopedWhere =
     slug != null
-      ? { slug, stripeId: { not: null } as const }
+      ? { slug, stripeId: { not: null } }
       : projectId != null
-        ? { id: projectId, stripeId: { not: null } as const }
-        : null;
+        ? { id: projectId, stripeId: { not: null } }
+        : { stripeId: { not: null }, billingCycleEndsAt: null };
 
   if (scopedWhere != null) {
     const projects = await prisma.project.findMany({

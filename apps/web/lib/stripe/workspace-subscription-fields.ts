@@ -46,7 +46,7 @@ export function getSubscriptionCancellationFields(
         ? new Date(Number(cancelAtUnix) * 1000)
         : null,
     billingCycleEndsAt:
-      cancelAtPeriodEnd && currentPeriodEnd != null
+      currentPeriodEnd != null
         ? new Date(Number(currentPeriodEnd) * 1000)
         : null,
   };
