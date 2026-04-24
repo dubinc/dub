@@ -10,6 +10,13 @@ export type WorkspaceProps = {
 
 export type PartnerPayoutMethod = "connect" | "stablecoin" | "paypal";
 
+export type TrialMarketingEmailProps = {
+  email: string;
+  name?: string | null;
+  plan: string;
+  workspaceSlug: string;
+};
+
 // constants
 export const STABLECOIN_PAYOUT_FEE_RATE = 0.005;
 export const MIN_WITHDRAWAL_AMOUNT_CENTS = 10_00;
