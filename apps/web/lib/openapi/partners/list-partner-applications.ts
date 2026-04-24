@@ -9,9 +9,9 @@ import * as z from "zod/v4";
 export const listPartnerApplications: ZodOpenApiOperationObject = {
   operationId: "listPartnerApplications",
   "x-speakeasy-name-override": "list",
-  summary: "List pending partner applications",
+  summary: "List all pending partner applications",
   description:
-    "Retrieve pending partner program applications for the authenticated workspace's default program.",
+    "Retrieve a paginated list of pending applications for your partner program.",
   requestParams: {
     query: getPartnerApplicationsQuerySchema,
   },
