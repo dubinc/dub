@@ -96,8 +96,6 @@ function createShopifyDiscountProvider() {
     shouldRetry?: boolean;
   }) => {
     const { credentials } = await getInstallation(workspace);
-    const shopifyStoreId = workspace.shopifyStoreId!;
-    const accessToken = credentials.accessToken!;
 
     let attempt = 0;
     let currentCode = code;
@@ -119,8 +117,8 @@ function createShopifyDiscountProvider() {
             }[];
           };
         }>({
-          shopifyStoreId,
-          accessToken,
+          shopifyStoreId: workspace.shopifyStoreId!,
+          accessToken: credentials.accessToken!,
           query: /* GraphQL */ `
             mutation DiscountCodeBasicCreate(
               $basicCodeDiscount: DiscountCodeBasicInput!
@@ -152,6 +150,7 @@ function createShopifyDiscountProvider() {
               code: currentCode.toUpperCase(),
               startsAt: new Date().toISOString(),
               customerSelection: { all: true },
+              appliesOncePerCustomer: true,
               customerGets: {
                 items: { all: true },
                 value:
@@ -164,7 +163,6 @@ function createShopifyDiscountProvider() {
                         },
                       },
               },
-              appliesOncePerCustomer: true,
             },
           },
         });
@@ -186,7 +184,9 @@ function createShopifyDiscountProvider() {
           );
         }
 
-        return { code: codeDiscountNode.codeDiscount.codes.nodes[0].code };
+        return {
+          code: codeDiscountNode.codeDiscount.codes.nodes[0].code,
+        };
       } catch (error) {
         const isDuplicate =
           error instanceof ShopifyAdminGraphqlError &&
@@ -223,14 +223,12 @@ function createShopifyDiscountProvider() {
     code: string;
   }) => {
     const { credentials } = await getInstallation(workspace);
-    const shopifyStoreId = workspace.shopifyStoreId!;
-    const accessToken = credentials.accessToken!;
 
     const lookup = await shopifyAdminGraphql<{
       codeDiscountNodeByCode: { id: string } | null;
     }>({
-      shopifyStoreId,
-      accessToken,
+      shopifyStoreId: workspace.shopifyStoreId!,
+      accessToken: credentials.accessToken!,
       query: /* GraphQL */ `
         query CodeDiscountNodeByCode($code: String!) {
           codeDiscountNodeByCode(code: $code) {
@@ -245,14 +243,14 @@ function createShopifyDiscountProvider() {
 
     if (!id) {
       console.error(
-        `Shopify discount code ${code} not found (shopifyStoreId=${shopifyStoreId}).`,
+        `Shopify discount code ${code} not found (shopifyStoreId=${workspace.shopifyStoreId!}).`,
       );
       return;
     }
 
     const data = await shopifyAdminGraphql<{
-      discountCodeDeactivate: {
-        codeDiscountNode: { id: string } | null;
+      discountCodeDelete: {
+        deletedCodeDiscountId: string | null;
         userErrors: {
           field: string[] | null;
           message: string;
@@ -260,14 +258,12 @@ function createShopifyDiscountProvider() {
         }[];
       };
     }>({
-      shopifyStoreId,
-      accessToken,
+      shopifyStoreId: workspace.shopifyStoreId!,
+      accessToken: credentials.accessToken!,
       query: /* GraphQL */ `
-        mutation DiscountCodeDeactivate($id: ID!) {
-          discountCodeDeactivate(id: $id) {
-            codeDiscountNode {
-              id
-            }
+        mutation DiscountCodeDelete($id: ID!) {
+          discountCodeDelete(id: $id) {
+            deletedCodeDiscountId
             userErrors {
               field
               message
@@ -279,7 +275,7 @@ function createShopifyDiscountProvider() {
       variables: { id },
     });
 
-    const { userErrors } = data.discountCodeDeactivate;
+    const { userErrors } = data.discountCodeDelete;
 
     if (userErrors.length > 0) {
       throw new ShopifyAdminGraphqlError(
@@ -290,7 +286,7 @@ function createShopifyDiscountProvider() {
     }
 
     console.info(
-      `Disabled Shopify discount code ${code} (id=${id}, shopifyStoreId=${shopifyStoreId}).`,
+      `Deleted Shopify discount code ${code} (id=${id}, shopifyStoreId=${workspace.shopifyStoreId}).`,
     );
 
     return { id, code };

@@ -74,18 +74,6 @@ function createStripeDiscountProvider() {
         data,
       });
     }
-
-    // try {
-
-    // } catch (error) {
-    //   throw new Error(
-    //     error.code === "more_permissions_required_for_application"
-    //       ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe integration in settings or reach out to our support team for help."
-    //       : error.code === "resource_missing"
-    //         ? `The coupon ID you provided (${data.couponId}) was not found in your Stripe account. Please check the coupon ID and try again.`
-    //         : error.message,
-    //   );
-    // }
   };
 
   const getCoupon = async ({

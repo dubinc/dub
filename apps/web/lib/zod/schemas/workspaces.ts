@@ -226,6 +226,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
   ),
   publishableKey: z.string().nullable(),
   fastDirectDebitPayouts: z.boolean().default(false),
+  shopifyStoreId: z.string().nullable(),
 });
 
 export const OnboardingUsageSchema = z.object({

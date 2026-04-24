@@ -35,7 +35,7 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import * as z from "zod/v4";
-import { STRIPE_ERROR_MAP } from "../constants";
+import { ERROR_MAP } from "../constants";
 import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
 
 interface DiscountSheetProps {
@@ -133,12 +133,12 @@ function DiscountSheetContent({
       },
       onError({ error }) {
         if (error.serverError) {
-          const code = Object.keys(STRIPE_ERROR_MAP).find((key) =>
+          const code = Object.keys(ERROR_MAP).find((key) =>
             error.serverError!.startsWith(key),
           );
 
           if (code) {
-            const { title, ctaLabel, ctaUrl } = STRIPE_ERROR_MAP[code];
+            const { title, ctaLabel, ctaUrl } = ERROR_MAP[code];
             const message = error.serverError!.replace(`${code}: `, "");
 
             toast.custom(() => (
