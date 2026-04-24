@@ -125,8 +125,8 @@ export async function rejectPartner({
         action: "partner_application.rejected",
         changeSet: {
           status: {
-            old: "pending",
-            new: "rejected",
+            old: ProgramEnrollmentStatus.pending,
+            new: ProgramEnrollmentStatus.rejected,
           },
         },
       }),

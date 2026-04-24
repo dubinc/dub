@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { triggerWorkflows } from "../../../cron/qstash-workflow";
@@ -124,11 +125,11 @@ export async function approvePartner({
         resourceType: "partner",
         resourceId: partnerId,
         userId,
-        action: "partner.approved",
+        action: "partner_application.approved",
         changeSet: {
           status: {
-            old: "pending",
-            new: programEnrollment.status,
+            old: ProgramEnrollmentStatus.pending,
+            new: ProgramEnrollmentStatus.approved,
           },
         },
       }),

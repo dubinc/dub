@@ -11,7 +11,7 @@ const inputSchema = approvePartnerSchema.extend({
   workspaceId: z.string(),
 });
 
-export const approvePartnerAction = authActionClient
+export const approvePartnerApplicationAction = authActionClient
   .inputSchema(inputSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
