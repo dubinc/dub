@@ -29,7 +29,6 @@ export const POST = withCron(async ({ rawBody }) => {
           workspace: {
             select: {
               id: true,
-              stripeConnectId: true,
             },
           },
         },
@@ -48,13 +47,6 @@ export const POST = withCron(async ({ rawBody }) => {
   }
 
   const { program } = discount;
-  const { workspace } = program;
-
-  if (!workspace.stripeConnectId) {
-    return logAndRespond(
-      `Workspace ${workspace.id} does not have stripeConnectId set. Skipping...`,
-    );
-  }
 
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {

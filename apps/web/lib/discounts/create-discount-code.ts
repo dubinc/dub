@@ -1,25 +1,24 @@
 import { createId } from "@/lib/api/create-id";
-import { createStripeDiscountCode } from "@/lib/stripe/create-stripe-discount-code";
-import { StripeMode } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { Discount, Link, Partner } from "@dub/prisma/client";
+import { Discount, Link, Partner, Project } from "@dub/prisma/client";
 import { constructDiscountCode } from "./construct-discount-code";
+import { getDiscountProvider } from "./discount-provider";
+
+interface CreateDiscountCodeArgs {
+  workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
+  partner: Pick<Partner, "id" | "name">;
+  link: Pick<Link, "id">;
+  discount: Discount;
+  code?: string;
+}
 
 export async function createDiscountCode({
-  stripeConnectId,
-  stripeMode,
+  workspace,
   partner,
   link,
   discount,
   code,
-}: {
-  stripeConnectId: string;
-  stripeMode: StripeMode;
-  partner: Pick<Partner, "id" | "name">;
-  link: Pick<Link, "id">;
-  discount: Pick<Discount, "id" | "programId" | "couponId" | "amount" | "type">;
-  code?: string;
-}) {
+}: CreateDiscountCodeArgs) {
   let finalCode = code;
 
   // Construct the discount code if no code is provided
@@ -30,28 +29,23 @@ export async function createDiscountCode({
     });
   }
 
-  const stripeDiscountCode = await createStripeDiscountCode({
-    stripeConnectId,
-    stripeMode,
+  const discountProvider = getDiscountProvider(discount.provider);
+
+  const discountCode = await discountProvider.createDiscountCode({
+    workspace,
     discount,
     code: finalCode,
     shouldRetry: code ? false : true,
   });
 
-  const discountCode = await prisma.discountCode.create({
+  return await prisma.discountCode.create({
     data: {
       id: createId({ prefix: "dcode_" }),
-      code: stripeDiscountCode.code,
+      code: discountCode.code,
       programId: discount.programId,
       partnerId: partner.id,
       linkId: link.id,
       discountId: discount.id,
     },
   });
-
-  console.log(
-    `Created discount code ${discountCode.code} for the link ${link.id}.`,
-  );
-
-  return discountCode;
 }

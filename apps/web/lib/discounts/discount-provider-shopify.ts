@@ -12,50 +12,52 @@ import { createDiscountSchema } from "../zod/schemas/discount";
 
 const MAX_ATTEMPTS = 3;
 
-function createShopifyDiscountProvider() {
-  const getInstallation = async (workspace: Project) => {
-    if (!workspace.shopifyStoreId) {
-      throw new Error(
-        "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
-      );
-    }
-
-    const installation = await prisma.installedIntegration.findFirst({
-      where: {
-        projectId: workspace.id,
-        integrationId: SHOPIFY_INTEGRATION_ID,
-      },
-    });
-
-    if (!installation) {
-      throw new Error(
-        "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
-      );
-    }
-
-    let credentials = integrationCredentialsSchema.parse(
-      installation.credentials || {},
+async function getInstallation(
+  workspace: Pick<Project, "id" | "shopifyStoreId">,
+) {
+  if (!workspace.shopifyStoreId) {
+    throw new Error(
+      "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
     );
+  }
 
-    if (!credentials?.scope?.includes("write_discounts")) {
-      throw new Error(
-        "SHOPIFY_APP_UPGRADE_REQUIRED: Your connected Shopify store doesn't have permission to create discount codes. Please reinstall or upgrade the Dub Shopify app.",
-      );
-    }
+  const installation = await prisma.installedIntegration.findFirst({
+    where: {
+      projectId: workspace.id,
+      integrationId: SHOPIFY_INTEGRATION_ID,
+    },
+  });
 
-    credentials = {
-      ...credentials,
-      accessToken: credentials.accessToken
-        ? decrypt(credentials.accessToken)
-        : null,
-    };
+  if (!installation) {
+    throw new Error(
+      "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
+    );
+  }
 
-    return {
-      ...installation,
-      credentials,
-    };
+  let credentials = integrationCredentialsSchema.parse(
+    installation.credentials || {},
+  );
+
+  if (!credentials?.scope?.includes("write_discounts")) {
+    throw new Error(
+      "SHOPIFY_APP_UPGRADE_REQUIRED: Your connected Shopify store doesn't have permission to create discount codes. Please reinstall or upgrade the Dub Shopify app.",
+    );
+  }
+
+  credentials = {
+    ...credentials,
+    accessToken: credentials.accessToken
+      ? decrypt(credentials.accessToken)
+      : null,
   };
 
+  return {
+    ...installation,
+    credentials,
+  };
+}
+
+function createShopifyDiscountProvider() {
   const getOrCreateCoupon = async ({
     workspace,
     group,
@@ -88,7 +90,7 @@ function createShopifyDiscountProvider() {
     code,
     shouldRetry = true,
   }: {
-    workspace: Project;
+    workspace: Pick<Project, "id" | "shopifyStoreId">;
     discount: Pick<Discount, "id" | "amount" | "type">;
     code: string;
     shouldRetry?: boolean;
