@@ -86,10 +86,9 @@ export function CommissionsStatusSelector({
               <button
                 className="border-box relative block h-full w-full min-w-[80px] flex-none px-4 py-3 text-left transition-colors hover:bg-neutral-50 focus:outline-none active:bg-neutral-100 sm:min-w-[180px] sm:px-8 sm:py-6"
                 onClick={() =>
-                  queryParams({
-                    set: { commissionStatus: id ?? "all" },
-                    scroll: false,
-                  })
+                  id === undefined
+                    ? queryParams({ del: "status", scroll: false })
+                    : queryParams({ set: { status: id }, scroll: false })
                 }
               >
                 <div

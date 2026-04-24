@@ -192,7 +192,9 @@ export function ProgramAnalyticsPageClient() {
                       />
                     </Link>
                   ) : (
-                    <Link href={`/${slug}/program/commissions`}>
+                    <Link
+                      href={`/${slug}/program/commissions${getQueryString({}, { exclude: ["pageTab", "commissionUnit", "event", "saleUnit", "view"] })}`}
+                    >
                       <Button
                         variant="secondary"
                         className="w-fit"
@@ -256,7 +258,7 @@ export function ProgramAnalyticsPageClient() {
                   set: { pageTab: id as PageTab },
                   del:
                     id === "performance"
-                      ? ["commissionStatus"]
+                      ? ["status", "commissionUnit"]
                       : ["event", "saleUnit", "view"],
                   scroll: false,
                 })

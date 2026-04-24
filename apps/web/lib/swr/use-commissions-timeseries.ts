@@ -41,9 +41,7 @@ export default function useCommissionsTimeseries(
     return `/api/commissions/timeseries?${searchParams.toString()}`;
   })();
 
-  const { data, error } = useSWR<CommissionTimeseriesItem[]>(url, fetcher, {
-    keepPreviousData: true,
-  });
+  const { data, error } = useSWR<CommissionTimeseriesItem[]>(url, fetcher);
 
   return {
     data,

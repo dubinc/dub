@@ -11,11 +11,10 @@ export function useCommissionsAnalyticsQuery() {
   const { searchParamsObj } = useRouterStuff();
 
   const status = useMemo<CommissionStatusFilter>(() => {
-    const raw = searchParamsObj.commissionStatus;
-    if (raw === "pending" || raw === "processed") return raw;
-    if (raw === "all") return undefined;
-    return "paid";
-  }, [searchParamsObj.commissionStatus]);
+    const raw = searchParamsObj.status;
+    if (raw === "pending" || raw === "processed" || raw === "paid") return raw;
+    return undefined; // All (default)
+  }, [searchParamsObj.status]);
 
   const unit = useMemo<"earnings" | "count">(() => {
     return searchParamsObj.commissionUnit === "count" ? "count" : "earnings";
@@ -25,7 +24,7 @@ export function useCommissionsAnalyticsQuery() {
     if (!workspaceId) return "";
 
     const {
-      commissionStatus: _commissionStatus,
+      status: _status, // excluded — added explicitly below via validated `status` variable
       commissionUnit: _commissionUnit,
       pageTab: _pageTab,
       event: _event,
