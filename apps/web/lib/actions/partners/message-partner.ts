@@ -71,11 +71,6 @@ export const messagePartnerAction = authActionClient
       include: {
         _count: {
           select: {
-            programs: {
-              where: {
-                programId,
-              },
-            },
             messages: {
               where: {
                 programId,
@@ -94,9 +89,12 @@ export const messagePartnerAction = authActionClient
       },
     });
 
-    // if the partner has been invited but not yet accepted, cap at one message
+    // if the partner is not enrolled / is in invited status, cap at one message
     const enrollment = programs[0];
-    if (enrollment?.status === "invited" && _count.messages >= 1) {
+    if (
+      (!enrollment || enrollment.status === "invited") &&
+      _count.messages >= 1
+    ) {
       throw new DubApiError({
         code: "forbidden",
         message:
@@ -106,7 +104,7 @@ export const messagePartnerAction = authActionClient
 
     // if partner is not enrolled in the program and it's the first message
     // it means the program is reaching out via the partner network
-    if (_count.programs === 0 && _count.messages === 0) {
+    if (!enrollment && _count.messages === 0) {
       const networkInvitesUsage = await getNetworkInvitesUsage(workspace);
 
       if (networkInvitesUsage >= workspace.networkInvitesLimit) {
