@@ -1,4 +1,4 @@
-import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
+import { approvePartnerApplicationAction } from "@/lib/actions/partners/approve-partner-application";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
 import { PartnerAvatar } from "@/ui/partners/partner-avatar";
@@ -43,7 +43,7 @@ export function ApprovePartnerApplicationModal({
   const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const { executeAsync: approvePartnerApplication, isPending } = useAction(
-    approvePartnerAction,
+    approvePartnerApplicationAction,
     {
       onSuccess: async () => {
         toast.success(
