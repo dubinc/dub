@@ -50,6 +50,7 @@ export const exportPartnerColumns = [
   { id: "email", label: "Email", default: true },
   { id: "country", label: "Country", default: true },
   { id: "status", label: "Status", default: true },
+  { id: "group", label: "Group", default: true },
   { id: "createdAt", label: "Enrolled at", default: true },
   {
     id: "payoutsEnabledAt",
