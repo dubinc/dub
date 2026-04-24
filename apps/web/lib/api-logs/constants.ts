@@ -24,6 +24,8 @@ export const ROUTE_PATTERNS = [
   // Partners
   "/partners/links/upsert",
   "/partners/links",
+  "/partners/applications/approve",
+  "/partners/applications/reject",
   "/partners/ban",
   "/partners/deactivate",
   "/partners/:partnerId",

@@ -9,7 +9,7 @@ import * as z from "zod/v4";
 export const listEvents: ZodOpenApiOperationObject = {
   operationId: "listEvents",
   "x-speakeasy-name-override": "list",
-  summary: "Retrieve a list of events",
+  summary: "List all events",
   description:
     "Retrieve a paginated list of events for the authenticated workspace.",
   requestParams: {

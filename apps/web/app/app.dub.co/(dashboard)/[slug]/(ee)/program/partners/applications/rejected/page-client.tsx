@@ -1,6 +1,6 @@
 "use client";
 
-import { approvePartnerAction } from "@/lib/actions/partners/approve-partner";
+import { approvePartnerApplicationAction } from "@/lib/actions/partners/approve-partner-application";
 import { buildSocialPlatformLookup } from "@/lib/social-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
@@ -456,7 +456,7 @@ function PartnerRowMenuButton({
   const [isOpen, setIsOpen] = useState(false);
 
   const { executeAsync: approvePartner, isPending: isApprovingPartner } =
-    useAction(approvePartnerAction, {
+    useAction(approvePartnerApplicationAction, {
       onError: ({ error }) => {
         toast.error(error.serverError);
       },

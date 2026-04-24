@@ -52,7 +52,8 @@ export const archivePartnerAction = authActionClient
         resourceType: "partner",
         resourceId: partnerId,
         userId: user.id,
-        action: status === "archived" ? "partner.archived" : "partner.approved",
+        action:
+          status === "archived" ? "partner.archived" : "partner.unarchived",
         changeSet: {
           status: {
             old: programEnrollment.status,
