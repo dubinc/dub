@@ -4,7 +4,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 import * as z from "zod/v4";
 
 export const rejectPartner: ZodOpenApiOperationObject = {
-  operationId: "rejectPartner",
+  operationId: "rejectPartnerApplication",
   "x-speakeasy-name-override": "reject",
   summary: "Reject a partner application",
   description:
