@@ -15,7 +15,7 @@ export function ReferralPartnerDetails({
   return (
     <div className="border-border-subtle overflow-hidden rounded-xl border bg-white p-4">
       <h3 className="text-content-emphasis mb-2.5 text-sm font-semibold">
-        Referral partner
+        Partner
       </h3>
       <Link
         href={`/${slug}/program/partners/${referral.partner.id}`}
