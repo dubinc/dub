@@ -7,13 +7,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
 import { Button, Grid } from "@dub/ui";
 import { SlackColorful } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, isWorkspaceBillingTrialActive } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
 export function SlackSupportSettingsCard() {
-  const { slug, plan, role, loading } = useWorkspace();
+  const { slug, plan, role, loading, trialEndsAt } = useWorkspace();
   const [inviting, setInviting] = useState(false);
 
   const [dismissed, setDismissed] = useSyncedLocalStorage<boolean>(
@@ -31,7 +31,8 @@ export function SlackSupportSettingsCard() {
     !slug ||
     dismissed ||
     permissionsError ||
-    !getPlanCapabilities(plan).canRequestSlackSupportInvite
+    !getPlanCapabilities(plan).canRequestSlackSupportInvite ||
+    isWorkspaceBillingTrialActive(trialEndsAt)
   ) {
     return null;
   }

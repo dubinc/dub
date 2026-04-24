@@ -3,6 +3,7 @@ import { withWorkspace } from "@/lib/auth";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { requestSlackConnectSupportInvite } from "@/lib/slack/support-invite";
 import { ratelimit } from "@/lib/upstash";
+import { isWorkspaceBillingTrialActive } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // POST /api/workspaces/[idOrSlug]/support/slack-invite — Slack Connect invite to priority support
@@ -13,6 +14,14 @@ export const POST = withWorkspace(
         code: "forbidden",
         message:
           "Priority Slack support is only available on Advanced and Enterprise plans. Upgrade your workspace to request access.",
+      });
+    }
+
+    if (isWorkspaceBillingTrialActive(workspace.trialEndsAt)) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "Priority Slack support is not available during a free trial. Activate your subscription to request access.",
       });
     }
 

@@ -27,7 +27,7 @@ import {
   Users,
 } from "@dub/ui";
 import { Slack2 } from "@dub/ui/icons";
-import { capitalize, cn } from "@dub/utils";
+import { capitalize, cn, isWorkspaceBillingTrialActive } from "@dub/utils";
 import { usePlausible } from "next-plausible";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -42,11 +42,16 @@ export function SuccessPageClient({
     "name" | "slug" | "logo" | "plan" | "defaultProgramId"
   >;
 }) {
-  const { plan, planPeriod, loading: isLoadingWorkspace } = useWorkspace();
+  const {
+    plan,
+    planPeriod,
+    trialEndsAt,
+    loading: isLoadingWorkspace,
+  } = useWorkspace();
 
-  const showSlackInvite = getPlanCapabilities(
-    workspace.plan,
-  ).canRequestSlackSupportInvite;
+  const showSlackInvite =
+    getPlanCapabilities(workspace.plan).canRequestSlackSupportInvite &&
+    !isWorkspaceBillingTrialActive(trialEndsAt);
 
   const [slackInviteDone, setSlackInviteDone] = useSyncedLocalStorage(
     workspace.slug ? `slack-support-dismissed:${workspace.slug}` : "__none__",
