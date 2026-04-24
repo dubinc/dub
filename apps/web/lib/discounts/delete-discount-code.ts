@@ -17,8 +17,7 @@ type DeleteDiscountCodesParams = DiscountCodePayload & {
 export async function deleteDiscountCodes(
   input: (DeleteDiscountCodesParams | null | undefined)[],
 ) {
-  const raw = Array.isArray(input) ? input : [input];
-  const discountCodes = raw.filter(
+  const discountCodes = input.filter(
     (dc): dc is NonNullable<typeof dc> => dc != null,
   );
 
@@ -40,8 +39,23 @@ export async function deleteDiscountCodes(
     discountCodes.map(({ id, code }) => ({ id, code })),
   );
 
+  // Only enqueue external-provider cleanup for codes whose provider is known.
+  // Orphaned codes (discount relation is null) still get deleted locally above
+  // but we can't tell which external provider to clean up, so we skip them.
+  const codesWithProvider = discountCodes.filter(
+    (dc): dc is typeof dc & { discount: Pick<Discount, "provider"> } =>
+      dc.discount != null,
+  );
+
+  const orphanedCount = discountCodes.length - codesWithProvider.length;
+  if (orphanedCount > 0) {
+    console.warn(
+      `Skipping external provider cleanup for ${orphanedCount} orphaned discount code(s) with no discount relation.`,
+    );
+  }
+
   // Queue the job to remove the discount codes from provider
-  const chunks = chunk(discountCodes, 100);
+  const chunks = chunk(codesWithProvider, 100);
 
   for (const chunkOfCodes of chunks) {
     await enqueueBatchJobs(
@@ -52,7 +66,7 @@ export async function deleteDiscountCodes(
         body: {
           code: discountCode.code,
           programId: discountCode.programId,
-          provider: discountCode.discount?.provider,
+          provider: discountCode.discount.provider,
         },
       })),
     );

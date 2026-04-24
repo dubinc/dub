@@ -30,12 +30,22 @@ export const POST = withCron(async ({ rawBody }) => {
 
   const discountProvider = getDiscountProvider(provider);
 
-  await discountProvider.disableDiscountCode({
-    workspace,
-    code,
-  });
+  try {
+    await discountProvider.disableDiscountCode({
+      workspace,
+      code,
+    });
+  } catch (error) {
+    const message: string = error?.message ?? "";
+    if (
+      message.startsWith("STRIPE_CONNECTION_REQUIRED") ||
+      message.startsWith("SHOPIFY_CONNECTION_REQUIRED") ||
+      message.startsWith("SHOPIFY_APP_UPGRADE_REQUIRED")
+    ) {
+      return logAndRespond(`Skipping ${code}: ${message}`);
+    }
+    throw error;
+  }
 
-  return logAndRespond(
-    `Discount code ${code} disabled from Stripe for ${workspace.stripeConnectId}.`,
-  );
+  return logAndRespond(`Discount code ${code} disabled from ${provider}.`);
 });
