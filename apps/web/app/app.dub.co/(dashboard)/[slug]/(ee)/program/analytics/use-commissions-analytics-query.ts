@@ -12,8 +12,9 @@ export function useCommissionsAnalyticsQuery() {
 
   const status = useMemo<CommissionStatusFilter>(() => {
     const raw = searchParamsObj.commissionStatus;
-    if (raw === "pending" || raw === "processed" || raw === "paid") return raw;
-    return undefined; // undefined = All (no status filter)
+    if (raw === "pending" || raw === "processed") return raw;
+    if (raw === "all") return undefined;
+    return "paid";
   }, [searchParamsObj.commissionStatus]);
 
   const queryString = useMemo(() => {

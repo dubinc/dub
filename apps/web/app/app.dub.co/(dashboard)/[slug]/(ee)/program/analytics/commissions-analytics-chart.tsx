@@ -38,10 +38,10 @@ const STATUS_COLORS: Record<
     label: "Paid",
   },
   all: {
-    className: "text-violet-500",
-    from: "#7D3AEC",
-    to: "#DA2778",
-    label: "All commissions",
+    className: "text-neutral-400",
+    from: "#a3a3a3",
+    to: "#d4d4d4",
+    label: "All",
   },
 };
 
