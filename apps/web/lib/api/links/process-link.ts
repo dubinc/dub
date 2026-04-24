@@ -1,300 +1,106 @@
-import { isBlacklistedDomain } from "@/lib/edge-config";
-import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { checkIfUserExists, getRandomKey } from "@/lib/planetscale";
-import { isNotHostedImage } from "@/lib/storage";
-import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { Project, WorkspaceRole } from "@dub/prisma/client";
-import {
-  DUB_DOMAINS,
-  UTMTags,
-  constructURLFromUTMParams,
-  getApexDomain,
-  getDomainWithoutWWW,
-  getUrlFromString,
-  isDubDomain,
-  isValidUrl,
-  parseDateTime,
-  pluralize,
-} from "@dub/utils";
-import { combineTagIds } from "../tags/combine-tag-ids";
-import { businessFeaturesCheck, proFeaturesCheck } from "./plan-features-check";
-import { keyChecks, processKey } from "./utils";
+import { getDomainWithoutWWW, isValidUrl } from "@dub/utils";
+import { getUrlFromString } from "@dub/utils/src/functions/get-url-from-string";
+import { UTMTags } from "@dub/utils/src/internals";
+import { verifyFolderAccess } from "../folders/verify-folder-access";
+import { isBlacklistedDomain } from "./is-blacklisted-domain";
 
-export async function processLink<T extends Record<string, any>>({
+import { isNotHostedImage } from "@/lib/storage";
+import { ProcessedLinkProps } from "@/lib/types";
+import { parseDateTime } from "@/lib/utils";
+import { createLinkBodySchemaAsync } from "@/lib/zod/schemas/links";
+import * as z from "zod/v4";
+
+export async function processLink({
   payload,
   workspace,
   userId,
   bulk = false,
-  skipKeyChecks = false, // only skip when key doesn't change (e.g. when editing a link)
-  skipExternalIdChecks = false, // only skip when externalId doesn't change (e.g. when editing a link)
-  skipFolderChecks = false, // only skip for update / upsert links
-  skipProgramChecks = false, // only skip for when program is already validated
+  skipProgramChecks = false,
 }: {
-  payload: NewLinkProps & T;
-  workspace?: Pick<Project, "id" | "plan"> & {
-    users: { role: WorkspaceRole }[];
+  payload: z.infer<typeof createLinkBodySchemaAsync>;
+  workspace?: {
+    id: string;
+    plan: string;
   };
   userId?: string;
   bulk?: boolean;
-  skipKeyChecks?: boolean;
-  skipExternalIdChecks?: boolean;
-  skipFolderChecks?: boolean;
   skipProgramChecks?: boolean;
-}): Promise<
-  | {
-      link: NewLinkProps & T;
-      error: string;
-      code?: string;
-      status?: number;
-    }
-  | {
-      link: ProcessedLinkProps & T;
-      error: null;
-      code?: never;
-      status?: never;
-    }
-> {
+}): Promise<{
+  link: ProcessedLinkProps;
+  error: string | null;
+  code: string | null;
+}> {
   let {
     domain,
     key,
-    keyLength,
     url,
-    image,
-    proxy,
-    trackConversion,
+    expiresAt,
     expiredUrl,
+    testVariants,
+    testStartedAt,
+    testCompletedAt,
+    tagIds,
     tagNames,
     folderId,
-    externalId,
+    proxy,
+    image,
+    webhookIds,
+    programId,
     tenantId,
     partnerId,
-    programId,
-    webhookIds,
-    testVariants,
   } = payload;
 
-  let expiresAt: string | Date | null | undefined = payload.expiresAt;
-  let testCompletedAt: string | Date | null | undefined =
-    payload.testCompletedAt;
+  url = getUrlFromString(url);
 
-  let defaultProgramFolderId: string | null = null;
-  const tagIds = combineTagIds(payload);
-
-  // if URL is defined, perform URL checks
-  if (url) {
-    url = getUrlFromString(url);
-    if (!isValidUrl(url)) {
-      return {
-        link: payload,
-        error: "Invalid destination URL",
-        code: "unprocessable_entity",
-      };
-    }
-
-    // Process UTM params only if the key exists, allowing null/empty to clear them.
-    if (UTMTags.some((tag) => tag in payload)) {
-      const utmParams = UTMTags.reduce((acc, tag) => {
-        if (tag in payload) {
-          acc[tag] = payload[tag];
-        }
-        return acc;
-      }, {});
-      url = constructURLFromUTMParams(url, utmParams);
-    }
-    // only root domain links can have empty desintation URL
-  } else if (key !== "_root") {
+  if (!isValidUrl(url)) {
     return {
       link: payload,
-      error: "Missing destination URL",
-      code: "bad_request",
-    };
-  }
-
-  // free plan restrictions
-  if (!workspace || workspace.plan === "free") {
-    if (key === "_root" && url) {
-      return {
-        link: payload,
-        error:
-          "You can only set a redirect for a root domain link on a Pro plan and above. Upgrade to Pro to use this feature.",
-        code: "forbidden",
-      };
-    }
-    try {
-      businessFeaturesCheck(payload);
-      proFeaturesCheck(payload);
-    } catch (error) {
-      return {
-        link: payload,
-        error: error.message,
-        code: "forbidden",
-      };
-    }
-  } else if (workspace.plan === "pro") {
-    try {
-      businessFeaturesCheck(payload);
-    } catch (error) {
-      return {
-        link: payload,
-        error: error.message,
-        code: "forbidden",
-      };
-    }
-  }
-
-  if (!trackConversion && testVariants) {
-    return {
-      link: payload,
-      error: "Conversion tracking must be enabled to use A/B testing.",
+      error: "Invalid destination URL.",
       code: "unprocessable_entity",
     };
   }
 
-  const domains = workspace
-    ? await prisma.domain.findMany({
-        where: { projectId: workspace.id },
-      })
-    : [];
-
-  // if domain is not defined, set it to the workspace's primary domain
-  if (!domain) {
-    domain = domains?.find((d) => d.primary)?.slug || "dub.sh";
-  }
-
-  // checks for dub.sh and dub.link links
-  if (domain === "dub.sh" || domain === "dub.link") {
-    // for dub.link: check if workspace plan is pro+
-    if (domain === "dub.link" && (!workspace || workspace.plan === "free")) {
-      return {
-        link: payload,
-        error:
-          "You can only use dub.link on a Pro plan and above. Upgrade to Pro to use this domain.",
-        code: "forbidden",
-      };
-    }
-
-    // for dub.sh: check if user exists (if userId is passed)
-    if (domain === "dub.sh" && userId) {
-      const userExists = await checkIfUserExists(userId);
-      if (!userExists) {
-        return {
-          link: payload,
-          error: "Session expired. Please log in again.",
-          code: "not_found",
-        };
-      }
-    }
-
-    const isMaliciousLink = await maliciousLinkCheck(url);
-    if (isMaliciousLink) {
-      return {
-        link: payload,
-        error: "Malicious URL detected",
-        code: "unprocessable_entity",
-      };
-    }
-    // checks for other Dub-owned domains (chatg.pt, spti.fi, etc.)
-  } else if (isDubDomain(domain)) {
-    // coerce type with ! cause we already checked if it exists
-    const { allowedHostnames } = DUB_DOMAINS.find((d) => d.slug === domain)!;
-    const urlDomain = getDomainWithoutWWW(url) || "";
-    const apexDomain = getApexDomain(url);
-    if (
-      key !== "_root" &&
-      allowedHostnames &&
-      !allowedHostnames.includes(urlDomain) &&
-      !allowedHostnames.includes(apexDomain)
-    ) {
-      return {
-        link: payload,
-        error: `Invalid destination URL. You can only create ${domain} short links for URLs with the ${pluralize("domain", allowedHostnames.length)} ${allowedHostnames
-          .map((d) => `"${d}"`)
-          .join(", ")}.`,
-        code: "unprocessable_entity",
-      };
-    }
-
-    if (!skipKeyChecks && key?.includes("/")) {
-      // check if the workspace has access to the parent link
-      const parentKey = key.split("/")[0];
-      const parentLink = await prisma.link.findUnique({
-        where: { domain_key: { domain, key: parentKey } },
-      });
-      if (parentLink?.projectId !== workspace?.id) {
-        return {
-          link: payload,
-          error: `You do not have access to create links in the ${domain}/${parentKey}/ subdirectory.`,
-          code: "forbidden",
-        };
-      }
-    }
-
-    // else, check if the domain belongs to the workspace
-  } else if (!domains?.find((d) => d.slug === domain)) {
+  const isMalicious = await maliciousLinkCheck(url);
+  if (isMalicious) {
     return {
       link: payload,
-      error: "Domain does not belong to workspace.",
-      code: "forbidden",
+      error: "The destination URL is flagged as malicious.",
+      code: "unprocessable_entity",
     };
-
-    // else, check if the domain is a free .link and whether the workspace is pro+
-  } else if (domain.endsWith(".link") && workspace?.plan === "free") {
-    // Dub provisioned .link domains can only be used on a Pro plan and above
-    const domainId = domains?.find((d) => d.slug === domain)?.id;
-    const registeredDomain = await prisma.registeredDomain.findUnique({
-      where: {
-        domainId,
-      },
-    });
-    if (registeredDomain) {
-      return {
-        link: payload,
-        error:
-          "You can only use your free .link domain on a Pro plan and above. Upgrade to Pro to use this domain.",
-        code: "forbidden",
-      };
-    }
   }
 
+  // default to random key if not provided
   if (!key) {
-    key = await getRandomKey({
-      domain,
-      prefix: payload["prefix"],
-      length: keyLength,
-    });
-  } else if (!skipKeyChecks) {
-    const processedKey = processKey({ domain, key });
-    if (processedKey === null) {
-      return {
-        link: payload,
-        error: "Invalid key.",
-        code: "unprocessable_entity",
-      };
-    }
-    key = processedKey;
+    key = "";
+  }
 
-    const response = await keyChecks({ domain, key, workspace });
-    if (response.error && response.code) {
+  if (key.length > 0) {
+    const linkExists = await prisma.link.findFirst({
+      where: {
+        domain,
+        key,
+      },
+    });
+
+    if (linkExists) {
       return {
         link: payload,
-        error: response.error,
-        code: response.code,
+        error: "A link with this domain and key already exists.",
+        code: "conflict",
       };
     }
   }
 
-  if (externalId && workspace && !skipExternalIdChecks) {
-    const link = await prisma.link.findUnique({
+  if (payload.externalId) {
+    const linkExists = await prisma.link.findFirst({
       where: {
-        projectId_externalId: {
-          projectId: workspace.id,
-          externalId,
-        },
+        projectId: workspace?.id,
+        externalId: payload.externalId,
       },
     });
 
-    if (link) {
+    if (linkExists) {
       return {
         link: payload,
         error: "A link with this externalId already exists in this workspace.",
@@ -303,16 +109,6 @@ export async function processLink<T extends Record<string, any>>({
     }
   }
 
-  if (bulk) {
-    if (proxy && image && isNotHostedImage(image)) {
-      return {
-        link: payload,
-        error:
-          "You cannot upload custom link preview images with bulk link creation.",
-        code: "unprocessable_entity",
-      };
-    }
-  } else {
     // only perform tag validity checks if:
     // - not bulk creation (we do that check separately in the route itself)
     // - tagIds are present
@@ -345,7 +141,9 @@ export async function processLink<T extends Record<string, any>>({
           code: "unprocessable_entity",
         };
       }
-    } else if (tagNames && tagNames.length > 0) {
+    }
+
+    if (tagNames && tagNames.length > 0) {
       if (!workspace) {
         return {
           link: payload,
@@ -356,12 +154,11 @@ export async function processLink<T extends Record<string, any>>({
       }
 
       const tags = await prisma.tag.findMany({
-        select: {
-          name: true,
-        },
         where: {
           projectId: workspace.id,
-          name: { in: tagNames },
+          name: {
+            in: tagNames,
+          },
         },
       });
 
@@ -383,8 +180,8 @@ export async function processLink<T extends Record<string, any>>({
 
     // only perform folder validity checks if:
     // - not bulk creation (we do that check separately in the route itself)
-    // - folderId is present and we're not skipping folder checks
-    if (folderId && !skipFolderChecks) {
+    // - folderId is present
+    if (folderId) {
       if (!workspace || !userId) {
         return {
           link: payload,
@@ -440,22 +237,44 @@ export async function processLink<T extends Record<string, any>>({
       if (!program || program.workspaceId !== workspace?.id) {
         return {
           link: payload,
-          error: "Program not found.",
-          code: "not_found",
+          error: "Invalid programId detected.",
+          code: "unprocessable_entity",
         };
       }
 
-      if (!partnerId) {
-        partnerId =
-          program?.partners?.length > 0 ? program.partners[0].partnerId : null;
+      if (!partnerId && tenantId) {
+        // @ts-ignore
+        const partner = program.partners?.[0];
+        if (partner) {
+          partnerId = partner.id;
+        } else {
+          const partnerInfo = await getPartnerEnrollmentInfo({
+            programId,
+            tenantId,
+          });
+          if (partnerInfo?.partnerId) {
+            partnerId = partnerInfo.partnerId;
+          }
+        }
       }
+    }
 
-      defaultProgramFolderId = program.defaultFolderId;
+    let defaultProgramFolderId: string | null = null;
+    if (programId && !partnerId) {
+      const program = await prisma.program.findUnique({
+        where: { id: programId },
+        select: {
+          defaultFolderId: true,
+        },
+      });
+      if (program) {
+        defaultProgramFolderId = program.defaultFolderId;
+      }
     }
 
     // Webhook validity checks
     if (webhookIds && webhookIds.length > 0) {
-      if (!workspace || workspace.plan === "free" || workspace.plan === "pro") {
+      if (workspace?.plan === "free" || workspace?.plan === "pro") {
         return {
           link: payload,
           error:
@@ -486,7 +305,6 @@ export async function processLink<T extends Record<string, any>>({
         };
       }
     }
-  }
 
   // custom social media image checks (see if R2 is configured)
   if (proxy && !process.env.STORAGE_SECRET_ACCESS_KEY) {
