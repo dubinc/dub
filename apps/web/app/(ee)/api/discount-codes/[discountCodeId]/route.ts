@@ -17,9 +17,16 @@ export const DELETE = withWorkspace(
       where: {
         id: discountCodeId,
       },
+      include: {
+        discount: {
+          select: {
+            provider: true,
+          },
+        },
+      },
     });
 
-    if (!discountCode || !discountCode.discountId) {
+    if (!discountCode || !discountCode.discount) {
       throw new DubApiError({
         message: `Discount code (${discountCodeId}) not found.`,
         code: "bad_request",
@@ -59,7 +66,7 @@ export const DELETE = withWorkspace(
           ],
         }),
 
-        deleteDiscountCodes(discountCode),
+        deleteDiscountCodes([discountCode]),
       ]),
     );
 

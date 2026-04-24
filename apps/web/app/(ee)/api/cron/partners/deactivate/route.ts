@@ -37,7 +37,15 @@ export const POST = withCron(async ({ rawBody }) => {
         },
       },
       links: true,
-      discountCodes: true,
+      discountCodes: {
+        include: {
+          discount: {
+            select: {
+              provider: true,
+            },
+          },
+        },
+      },
     },
   });
 

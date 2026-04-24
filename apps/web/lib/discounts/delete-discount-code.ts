@@ -1,20 +1,22 @@
 import { prisma } from "@dub/prisma";
-import { DiscountCode } from "@dub/prisma/client";
+import { Discount, DiscountCode } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 
 type DiscountCodePayload = Pick<DiscountCode, "id" | "code" | "programId">;
 
-type DeleteDiscountCodesParams =
-  | DiscountCodePayload
-  | (DiscountCodePayload | null | undefined)[];
+type DeleteDiscountCodesParams = DiscountCodePayload & {
+  discount: Pick<Discount, "provider"> | null;
+};
 
 // Triggered in the following cases:
 // 1. When a discount is deleted
 // 2. When a link is deleted that has a discount code associated with it
 // 3. When partners are banned / deactivated
 // 4. When a partner is moved to a different group
-export async function deleteDiscountCodes(input: DeleteDiscountCodesParams) {
+export async function deleteDiscountCodes(
+  input: (DeleteDiscountCodesParams | null | undefined)[],
+) {
   const raw = Array.isArray(input) ? input : [input];
   const discountCodes = raw.filter(
     (dc): dc is NonNullable<typeof dc> => dc != null,
@@ -50,6 +52,7 @@ export async function deleteDiscountCodes(input: DeleteDiscountCodesParams) {
         body: {
           code: discountCode.code,
           programId: discountCode.programId,
+          provider: discountCode.discount?.provider,
         },
       })),
     );

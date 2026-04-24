@@ -17,7 +17,15 @@ export async function deleteLink(linkId: string) {
     include: {
       ...includeTags,
       ...includeProgramEnrollment,
-      discountCode: true,
+      discountCode: {
+        include: {
+          discount: {
+            select: {
+              provider: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -46,7 +54,7 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.discountCode && deleteDiscountCodes(link.discountCode),
+      link.discountCode && deleteDiscountCodes([link.discountCode]),
     ]),
   );
 

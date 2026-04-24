@@ -2,10 +2,8 @@ import { withCron } from "@/lib/cron/with-cron";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
 import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { isDiscountEquivalent } from "@/lib/discounts/is-discount-equivalent";
-import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@dub/prisma";
-import { DiscountCode } from "@dub/prisma/client";
-import { STRIPE_INTEGRATION_ID } from "@dub/utils";
+import { Discount, DiscountCode } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
 
@@ -69,7 +67,9 @@ export const POST = withCron(async ({ rawBody }) => {
 
   // Find the discount codes to update and remove
   const discountCodesToUpdate: DiscountCode[] = [];
-  const discountCodesToRemove: DiscountCode[] = [];
+  const discountCodesToRemove: (DiscountCode & {
+    discount: Pick<Discount, "provider"> | null;
+  })[] = [];
 
   for (const discountCode of discountCodes) {
     const keepDiscountCode = isDiscountEquivalent(
@@ -147,30 +147,20 @@ export const POST = withCron(async ({ rawBody }) => {
           defaultProgramId: programId,
         },
         select: {
+          id: true,
           stripeConnectId: true,
-          installedIntegrations: {
-            where: {
-              integrationId: STRIPE_INTEGRATION_ID,
-            },
-          },
+          shopifyStoreId: true,
         },
       });
 
       // Create discount code for the partner default links
-      if (workspace.stripeConnectId && workspace.installedIntegrations.length) {
-        const stripeIntegrationSettings = stripeIntegrationSettingsSchema.parse(
-          workspace.installedIntegrations[0].settings || {},
-        );
-
-        for (const link of links) {
-          await createDiscountCode({
-            stripeConnectId: workspace.stripeConnectId,
-            stripeMode: stripeIntegrationSettings.stripeMode,
-            partner: link.programEnrollment!.partner,
-            link,
-            discount: group.discount,
-          });
-        }
+      for (const link of links) {
+        await createDiscountCode({
+          workspace,
+          partner: link.programEnrollment!.partner,
+          link,
+          discount: group.discount,
+        });
       }
     }
   }

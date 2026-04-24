@@ -69,6 +69,11 @@ export async function bulkDeletePartners({
         id: true,
         code: true,
         programId: true,
+        discount: {
+          select: {
+            provider: true,
+          },
+        },
       },
     });
 
