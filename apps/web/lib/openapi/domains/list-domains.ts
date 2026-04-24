@@ -24,9 +24,9 @@ export const listDomains: ZodOpenApiOperationObject = {
       results: "$",
     },
   },
-  summary: "Retrieve a list of domains",
+  summary: "List all domains",
   description:
-    "Retrieve a list of domains associated with the authenticated workspace.",
+    "Retrieve a paginated list of domains for the authenticated workspace.",
   requestParams: {
     query: getDomainsQuerySchema,
   },

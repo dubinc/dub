@@ -54,9 +54,8 @@ const actionSchema = z.enum([
   "partner.created",
   "partner.archived",
   "partner.invited",
-  "partner.approved",
-  "partner.invite_deleted",
-  "partner.invite_resent",
+  "partner.invite_deleted", // TODO: change to partner_invite.deleted
+  "partner.invite_resent", // TODO: change to partner_invite.resent
   "partner.enrollment_updated",
   "partner.deactivated",
   "partner.reactivated",
