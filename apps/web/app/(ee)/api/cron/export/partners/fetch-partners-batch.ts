@@ -21,6 +21,7 @@ export async function* fetchPartnersBatch(
       ...filters,
       page,
       pageSize,
+      includeGroupName: true,
     });
 
     if (partners.length > 0) {

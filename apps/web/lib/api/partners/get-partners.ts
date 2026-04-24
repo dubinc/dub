@@ -6,6 +6,7 @@ import { buildProgramEnrollmentWhereForList } from "./program-enrollment-query";
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
   programId: string;
+  includeGroupName?: boolean;
 };
 
 export async function getPartners(filters: PartnerFilters) {
@@ -16,6 +17,7 @@ export async function getPartners(filters: PartnerFilters) {
     sortOrder,
     programId,
     includePartnerPlatforms: _includePartnerPlatforms,
+    includeGroupName = false,
     ...enrollmentRest
   } = filters;
 
@@ -31,6 +33,15 @@ export async function getPartners(filters: PartnerFilters) {
         },
       },
       links: true,
+      ...(includeGroupName
+        ? {
+            partnerGroup: {
+              select: {
+                name: true,
+              },
+            },
+          }
+        : {}),
     },
     take: pageSize,
     skip: (page - 1) * pageSize,
@@ -39,14 +50,17 @@ export async function getPartners(filters: PartnerFilters) {
     },
   });
 
-  return partners.map(({ partner, links, ...programEnrollment }) => ({
-    ...partner,
-    ...programEnrollment,
-    id: partner.id,
-    createdAt: new Date(programEnrollment.createdAt),
-    links,
-    netRevenue:
-      toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
-      toCentsNumber(programEnrollment.totalCommissions ?? 0),
-  }));
+  return partners.map(
+    ({ partner, links, partnerGroup, ...programEnrollment }) => ({
+      ...partner,
+      ...programEnrollment,
+      id: partner.id,
+      createdAt: new Date(programEnrollment.createdAt),
+      ...(includeGroupName && { group: partnerGroup?.name ?? "" }),
+      links,
+      netRevenue:
+        toCentsNumber(programEnrollment.totalSaleAmount ?? 0) -
+        toCentsNumber(programEnrollment.totalCommissions ?? 0),
+    }),
+  );
 }

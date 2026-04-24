@@ -45,6 +45,7 @@ export const GET = withWorkspace(
       page: 1,
       pageSize: MAX_PARTNERS_TO_EXPORT,
       programId,
+      includeGroupName: true,
     });
 
     const formattedPartners = formatPartnersForExport(partners, columns);
