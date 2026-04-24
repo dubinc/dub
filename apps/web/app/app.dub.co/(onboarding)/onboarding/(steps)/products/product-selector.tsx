@@ -2,6 +2,8 @@
 
 import { MarkdownDescription } from "@/ui/shared/markdown-description";
 import { Button, DubProductIcon } from "@dub/ui";
+import { capitalize } from "@dub/utils";
+import { usePlausible } from "next-plausible";
 import Image from "next/image";
 import { ReactNode } from "react";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
@@ -66,6 +68,7 @@ function ProductOption({
   cta: string;
 }) {
   const { continueTo, isLoading, isSuccessful } = useOnboardingProgress();
+  const plausible = usePlausible();
   return (
     <div className="relative flex h-full flex-col items-center gap-6 rounded-xl border border-neutral-300 p-6 pt-12 transition-all">
       <div className="relative size-36">
@@ -90,7 +93,14 @@ function ProductOption({
           type="button"
           variant="primary"
           className="rounded-lg"
-          onClick={() => continueTo("domain", { params: { product } })}
+          onClick={() => {
+            plausible("Selected Product", {
+              props: {
+                product: capitalize(product),
+              },
+            });
+            continueTo("domain", { params: { product } });
+          }}
           loading={isLoading || isSuccessful}
           text={cta}
         />

@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { Button, FileUpload, Input, useMediaQuery } from "@dub/ui";
 import { Plus } from "lucide-react";
+import { usePlausible } from "next-plausible";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -27,8 +28,12 @@ export function Form() {
     formState: { isSubmitting, errors },
   } = useFormContext<ProgramData>();
 
+  const plausible = usePlausible();
+
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
+      // track program creation event
+      plausible("Created Program");
       continueTo("program/reward");
       mutate();
     },
