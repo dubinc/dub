@@ -12,7 +12,9 @@ import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { updateLinksUsage } from "./update-links-usage";
 import { checkIfLinksHaveTags } from "./utils/check-if-links-have-tags";
 import { checkIfLinksHaveWebhooks } from "./utils/check-if-links-have-webhooks";
+import { isNotHostedImage, storage } from "@/lib/storage";
 import { transformLink } from "./utils/transform-link";
+import { R2_URL } from "@dub/utils";
 
 export async function bulkCreateLinks({
   links,
@@ -44,6 +46,8 @@ export async function bulkCreateLinks({
     }),
   );
 
+  const base64ImagesMap = new Map<string, string>(); // linkId -> base64
+
   // Create all links first using createMany
   await prisma.link.createMany({
     data: links.map(({ tagId, tagIds, tagNames, webhookIds, ...link }) => {
@@ -55,9 +59,22 @@ export async function bulkCreateLinks({
         key: link.key,
       });
 
+      const id = createId({ prefix: "link_" });
+
+      // If it's a base64 image, we need to upload it to R2 later
+      if (
+        link.proxy &&
+        link.image &&
+        isNotHostedImage(link.image) &&
+        link.image.startsWith("data:image/")
+      ) {
+        base64ImagesMap.set(id, link.image);
+        link.image = null;
+      }
+
       return {
         ...link,
-        id: createId({ prefix: "link_" }),
+        id,
         shortLink: linkConstructorSimple({
           domain: link.domain,
           key: link.key,
@@ -221,6 +238,13 @@ export async function bulkCreateLinks({
     });
   }
 
+  // Optimistically set the image URL for base64 images
+  createdLinksData.forEach((link) => {
+    if (base64ImagesMap.has(link.id)) {
+      link.image = `${R2_URL}/images/${link.id}`;
+    }
+  });
+
   waitUntil(
     Promise.all([
       propagateBulkLinkChanges({
@@ -231,6 +255,20 @@ export async function bulkCreateLinks({
         workspaceId: links[0].projectId!, // this will always be present
         increment: links.length,
       }),
+      // upload base64 images to R2
+      ...Array.from(base64ImagesMap.entries()).map(([id, image]) =>
+        storage
+          .upload({
+            key: `images/${id}`,
+            body: image,
+          })
+          .then(async (url) => {
+            await prisma.link.update({
+              where: { id },
+              data: { image: url },
+            });
+          }),
+      ),
     ]),
   );
 
