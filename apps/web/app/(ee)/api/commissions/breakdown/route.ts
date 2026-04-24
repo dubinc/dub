@@ -2,6 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { assertValidDateRangeForPlan } from "@/lib/api/utils/assert-valid-date-range-for-plan";
 import { withWorkspace } from "@/lib/auth";
+import { generateRandomName } from "@/lib/names";
 import type { CommissionsBreakdownItem } from "@/lib/swr/use-commissions-breakdown";
 import { analyticsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { prisma } from "@dub/prisma";
@@ -188,7 +189,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       const customer = r.customerId ? customerMap.get(r.customerId) : null;
       return {
         key: r.customerId ?? "unknown",
-        label: customer?.email ?? customer?.name ?? r.customerId ?? "Unknown",
+        label:
+          customer?.email ??
+          customer?.name ??
+          generateRandomName(r.customerId ?? undefined),
         earnings: r._sum.earnings ?? 0,
         count: r._count._all,
       };

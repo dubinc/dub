@@ -1,5 +1,6 @@
 "use client";
 
+import { generateRandomName } from "@/lib/names";
 import useCustomers from "@/lib/swr/use-customers";
 import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
@@ -75,7 +76,10 @@ export function useCommissionsAnalyticsFilters(
         options:
           customers?.map((customer) => ({
             value: customer.id,
-            label: customer.email ?? customer.name,
+            label:
+              customer.email ??
+              customer.name ??
+              generateRandomName(customer.id),
             icon: <CustomerAvatar customer={customer} className="size-4" />,
           })) ?? null,
       },
@@ -183,6 +187,7 @@ export function useCommissionsAnalyticsFilters(
       const cleanValue = isNegated ? currentParam.slice(1) : currentParam;
       queryParams({
         set: { [key]: isNegated ? cleanValue : `-${cleanValue}` },
+        del: "page",
         scroll: false,
       });
     },
