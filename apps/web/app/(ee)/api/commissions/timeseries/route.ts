@@ -24,6 +24,7 @@ const querySchema = analyticsQuerySchema
 interface CommissionTimeseriesRow {
   start: string;
   earnings: bigint | number;
+  count: bigint | number;
 }
 
 // GET /api/commissions/timeseries - get commissions timeseries for a program
@@ -129,30 +130,36 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const whereClause = Prisma.join(conditions, " AND ");
 
+  console.time("getCommissionsTimeseries");
   const rows = await prisma.$queryRaw<CommissionTimeseriesRow[]>(
     Prisma.sql`
       SELECT
         DATE_FORMAT(CONVERT_TZ(c.createdAt, "UTC", ${timezone || "UTC"}), ${dateFormat}) AS start,
-        SUM(c.earnings) AS earnings
+        SUM(c.earnings) AS earnings,
+        COUNT(c.id) AS count
       FROM Commission c
       WHERE ${whereClause}
       GROUP BY start
       ORDER BY start ASC`,
   );
+  console.timeEnd("getCommissionsTimeseries");
 
   let currentDate = startFunction(startDate);
 
   const earningsLookup = Object.fromEntries(
-    rows.map((item) => [item.start, { earnings: Number(item.earnings) }]),
+    rows.map((item) => [
+      item.start,
+      { earnings: Number(item.earnings), count: Number(item.count) },
+    ]),
   );
 
-  const timeseries: { start: string; earnings: number }[] = [];
+  const timeseries: { start: string; earnings: number; count: number }[] = [];
 
   while (currentDate < endDate) {
     const periodKey = format(currentDate, formatString);
     timeseries.push({
       start: currentDate.toISOString(),
-      ...(earningsLookup[periodKey] ?? { earnings: 0 }),
+      ...(earningsLookup[periodKey] ?? { earnings: 0, count: 0 }),
     });
     currentDate = dateIncrement(currentDate);
   }

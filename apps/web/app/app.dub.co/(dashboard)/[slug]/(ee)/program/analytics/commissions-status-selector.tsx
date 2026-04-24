@@ -1,11 +1,11 @@
 "use client";
 
-import useCommissionsCount from "@/lib/swr/use-commissions-count";
+import { CommissionsCount } from "@/lib/types";
 import { ToggleGroup, useRouterStuff } from "@dub/ui";
+import { fetcher } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { ChevronRight } from "lucide-react";
-import { useState } from "react";
-
+import useSWR from "swr";
 export type CommissionStatusFilter =
   | "pending"
   | "processed"
@@ -41,15 +41,27 @@ const STATUS_TABS: {
 
 export function CommissionsStatusSelector({
   status,
+  queryString,
 }: {
   status: CommissionStatusFilter;
+  queryString: string;
 }) {
-  const { queryParams } = useRouterStuff();
-  const [unit, setUnit] = useState<"earnings" | "count">("earnings");
+  const { queryParams, searchParamsObj } = useRouterStuff();
+  const unit =
+    searchParamsObj.commissionUnit === "count" ? "count" : "earnings";
 
-  const { commissionsCount } = useCommissionsCount({
-    exclude: ["commissionStatus", "pageTab", "event", "saleUnit", "view"],
-  });
+  const countQueryString = (() => {
+    if (!queryString) return null;
+    const params = new URLSearchParams(queryString);
+    params.delete("status");
+    return params.toString();
+  })();
+
+  const { data: commissionsCount } = useSWR<CommissionsCount>(
+    countQueryString ? `/api/commissions/count?${countQueryString}` : null,
+    fetcher,
+    { keepPreviousData: true },
+  );
 
   return (
     <div className="grid w-full grid-cols-4 divide-x divide-neutral-200 overflow-y-hidden">
@@ -135,7 +147,9 @@ export function CommissionsStatusSelector({
                     },
                   ]}
                   selected={unit}
-                  selectAction={(v) => setUnit(v as "earnings" | "count")}
+                  selectAction={(v) =>
+                    queryParams({ set: { commissionUnit: v }, scroll: false })
+                  }
                 />
               )}
             </div>

@@ -80,7 +80,7 @@ function mapBreakdownItem(
     icon,
     title: item.label,
     filterValue: item.key,
-    value: item.earnings,
+    value: item.earnings / 100, // convert cents → dollars for display
   };
 }
 

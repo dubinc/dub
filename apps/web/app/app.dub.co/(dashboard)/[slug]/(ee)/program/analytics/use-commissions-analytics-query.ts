@@ -17,11 +17,16 @@ export function useCommissionsAnalyticsQuery() {
     return "paid";
   }, [searchParamsObj.commissionStatus]);
 
+  const unit = useMemo<"earnings" | "count">(() => {
+    return searchParamsObj.commissionUnit === "count" ? "count" : "earnings";
+  }, [searchParamsObj.commissionUnit]);
+
   const queryString = useMemo(() => {
     if (!workspaceId) return "";
 
     const {
       commissionStatus: _commissionStatus,
+      commissionUnit: _commissionUnit,
       pageTab: _pageTab,
       event: _event,
       saleUnit: _saleUnit,
@@ -53,7 +58,7 @@ export function useCommissionsAnalyticsQuery() {
     if (type) params.set("type", type);
 
     return params.toString();
-  }, [workspaceId, status, searchParamsObj]);
+  }, [workspaceId, status, unit, searchParamsObj]);
 
-  return { queryString, status };
+  return { queryString, status, unit };
 }

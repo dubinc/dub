@@ -52,8 +52,22 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const partnerFilter = parseFilterValue(partnerId);
   const groupFilter = parseFilterValue(groupId);
-  const typeFilter = parseFilterValue(type);
   const countryFilter = parseFilterValue(country);
+
+  const rawTypeFilter = parseFilterValue(type);
+  const validCommissionTypes = new Set(Object.values(CommissionType));
+  const typeFilter =
+    rawTypeFilter &&
+    rawTypeFilter.values.some((v) =>
+      validCommissionTypes.has(v as CommissionType),
+    )
+      ? {
+          ...rawTypeFilter,
+          values: rawTypeFilter.values.filter((v) =>
+            validCommissionTypes.has(v as CommissionType),
+          ) as CommissionType[],
+        }
+      : null;
 
   const grouped = await prisma.commission.groupBy({
     by: ["partnerId"],
@@ -78,8 +92,8 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       ...(typeFilter && {
         type:
           typeFilter.sqlOperator === "NOT IN"
-            ? { notIn: typeFilter.values as CommissionType[] }
-            : { in: typeFilter.values as CommissionType[] },
+            ? { notIn: typeFilter.values }
+            : { in: typeFilter.values },
       }),
       ...(groupFilter && {
         programEnrollment: {

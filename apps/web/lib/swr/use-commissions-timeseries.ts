@@ -7,6 +7,7 @@ import useWorkspace from "./use-workspace";
 export interface CommissionTimeseriesItem {
   start: string;
   earnings: number;
+  count: number;
 }
 
 export default function useCommissionsTimeseries(

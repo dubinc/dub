@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "@dub/ui/charts";
 import { LoadingSpinner } from "@dub/ui/icons";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, nFormatter } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { useId } from "react";
 import { CommissionStatusFilter } from "./commissions-status-selector";
@@ -47,9 +47,11 @@ const STATUS_COLORS: Record<
 
 export function CommissionsAnalyticsChart({
   status,
+  unit = "earnings",
   queryString,
 }: {
   status: CommissionStatusFilter;
+  unit?: "earnings" | "count";
   queryString: string;
 }) {
   const id = useId();
@@ -62,7 +64,7 @@ export function CommissionsAnalyticsChart({
 
   const chartData = data?.map((d) => ({
     date: new Date(d.start),
-    values: { amount: d.earnings },
+    values: { amount: unit === "count" ? d.count : d.earnings },
   }));
 
   if (loading) {
@@ -83,7 +85,7 @@ export function CommissionsAnalyticsChart({
 
   return (
     <TimeSeriesChart
-      key={`${status ?? "all"}-${queryString}`}
+      key={`${status ?? "all"}-${unit}-${queryString}`}
       data={chartData ?? []}
       series={[
         {
@@ -107,7 +109,9 @@ export function CommissionsAnalyticsChart({
               <p className="text-neutral-600">{color.label}</p>
             </div>
             <p className="text-right font-medium text-neutral-900">
-              {currencyFormatter(d.values.amount)}
+              {unit === "count"
+                ? nFormatter(d.values.amount, { full: true })
+                : currencyFormatter(d.values.amount)}
             </p>
           </div>
         </>
@@ -126,7 +130,10 @@ export function CommissionsAnalyticsChart({
         )}
       </ChartContext.Consumer>
       <XAxis tickFormat={(date) => formatDateTooltip(date, {})} maxTicks={2} />
-      <YAxis showGridLines tickFormat={currencyFormatter} />
+      <YAxis
+        showGridLines
+        tickFormat={unit === "count" ? nFormatter : currencyFormatter}
+      />
       <Areas />
     </TimeSeriesChart>
   );

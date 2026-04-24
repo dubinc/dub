@@ -52,8 +52,11 @@ export function ProgramAnalyticsPageClient() {
     return raw === "commissions" ? "commissions" : "performance";
   }, [searchParamsObj]);
 
-  const { queryString: commissionsQueryString, status: commissionStatus } =
-    useCommissionsAnalyticsQuery();
+  const {
+    queryString: commissionsQueryString,
+    status: commissionStatus,
+    unit: commissionUnit,
+  } = useCommissionsAnalyticsQuery();
 
   const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;
@@ -271,11 +274,15 @@ export function ProgramAnalyticsPageClient() {
             </>
           ) : (
             <>
-              <CommissionsStatusSelector status={commissionStatus} />
+              <CommissionsStatusSelector
+                status={commissionStatus}
+                queryString={commissionsQueryString}
+              />
               <div className="relative h-72 md:h-96">
                 <div className="relative size-full p-6 pt-10">
                   <CommissionsAnalyticsChart
                     status={commissionStatus}
+                    unit={commissionUnit}
                     queryString={commissionsQueryString}
                   />
                 </div>
