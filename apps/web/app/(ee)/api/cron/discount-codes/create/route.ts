@@ -80,12 +80,24 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  await createDiscountCode({
-    workspace,
-    partner,
-    link,
-    discount,
-  });
+  try {
+    await createDiscountCode({
+      workspace,
+      partner,
+      link,
+      discount,
+    });
+  } catch (error) {
+    const message: string = error?.message ?? "";
+    if (
+      message.startsWith("STRIPE_CONNECTION_REQUIRED") ||
+      message.startsWith("SHOPIFY_CONNECTION_REQUIRED") ||
+      message.startsWith("SHOPIFY_APP_UPGRADE_REQUIRED")
+    ) {
+      return logAndRespond(`Skipping link ${linkId}: ${message}`);
+    }
+    throw error;
+  }
 
   return logAndRespond(`Discount code created for link ${linkId}.`);
 });
