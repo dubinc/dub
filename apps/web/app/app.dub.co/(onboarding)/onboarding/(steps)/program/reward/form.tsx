@@ -7,7 +7,8 @@ import { ProgramData } from "@/lib/types";
 import { RECURRING_MAX_DURATIONS } from "@/lib/zod/schemas/misc";
 import { COMMISSION_TYPES } from "@/lib/zod/schemas/rewards";
 import { AnimatedSizeContainer, Button, CircleCheckFill } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
+import { usePlausible } from "next-plausible";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
@@ -73,8 +74,16 @@ export function Form() {
     [maxDuration],
   );
 
+  const plausible = usePlausible();
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
+      plausible("Created Reward", {
+        props: {
+          rewardType: capitalize(defaultRewardType),
+          commissionStructure: capitalize(commissionStructure),
+          ...(type && { payoutModel: capitalize(type) }),
+        },
+      });
       continueTo("plan");
       mutate();
     },

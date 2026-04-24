@@ -117,7 +117,6 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                         </>
                       )}
                     </div>
-
                     {plan.name === "Enterprise" ? (
                       <div className="mt-4 flex items-center gap-1.5 text-neutral-400">
                         <CalendarRefresh className="size-4 shrink-0" />
@@ -182,8 +181,8 @@ export function PlanSelector({ product }: { product: OnboardingProduct }) {
                       <UpgradePlanButton
                         plan={plan.name.toLowerCase()}
                         period={period}
-                        text="Get started"
                         className="h-10 rounded-lg shadow-sm"
+                        data-testid={`onboarding-plan-cta-${plan.name.toLowerCase()}`}
                       />
                     )}
                     <button

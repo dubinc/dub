@@ -27,10 +27,11 @@ export const invitePartnerFromNetworkAction = authActionClient
 
     const networkInvitesUsage = await getNetworkInvitesUsage(workspace);
 
-    if (networkInvitesUsage >= workspace.networkInvitesLimit)
+    if (networkInvitesUsage >= workspace.networkInvitesLimit) {
       throw new Error(
         "You have reached your partner network invitations limit.",
       );
+    }
 
     const { partnerId, groupId } = parsedInput;
 

@@ -1,104 +1,63 @@
+import { capitalize } from "@dub/utils";
+import { Body, Head, Html, Link, Preview, Text } from "@react-email/components";
 import {
-  APP_DOMAIN,
-  DUB_WORDMARK,
-  getPlanDetails,
-  type PlanFeature,
-} from "@dub/utils";
-import {
-  Body,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Img,
-  Link,
-  Preview,
-  Section,
-  Tailwind,
-  Text,
-} from "@react-email/components";
-import { Footer } from "../components/footer";
+  bodyStyle,
+  footerLinkStyle,
+  footerStyle,
+  linkStyle,
+  pStyle,
+} from "./trial/styles-constants";
 
 export default function UpgradeEmail({
   name = "Brendon Urie",
-  email = "panic@thedis.co",
   plan = "Business",
-  planTier = 1,
-  workspaceSlug = null,
 }: {
   name: string | null;
   email: string;
   plan: string;
-  planTier: number;
-  workspaceSlug?: string | null;
 }) {
-  const planDetails = getPlanDetails({ plan, planTier });
-  const settingsUrl = workspaceSlug
-    ? `${APP_DOMAIN}/${workspaceSlug}/settings`
-    : `${APP_DOMAIN}/settings`;
-
   return (
     <Html>
       <Head />
-      <Preview>Thank you for upgrading to Dub {plan}!</Preview>
-      <Tailwind>
-        <Body className="mx-auto my-auto bg-white font-sans">
-          <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
-            <Section className="mt-8">
-              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
-            </Section>
-            <Heading className="mx-0 my-7 p-0 text-xl font-medium text-black">
-              Thank you for upgrading to Dub {plan}!
-            </Heading>
-            <Section className="my-8">
-              <Img
-                src="https://assets.dub.co/misc/thank-you-thumbnail.jpg"
-                alt="Thank you"
-                className="max-w-[500px]"
-              />
-            </Section>
-            <Text className="text-sm leading-6 text-black">
-              Hey{name && ` ${name}`}!
-            </Text>
-            <Text className="text-sm leading-6 text-black">
-              My name is Steven, and I'm the founder of Dub.
-            </Text>
-            <Text className="text-sm leading-6 text-black">
-              I wanted to personally reach out to thank you for upgrading to{" "}
-              <strong>Dub {plan}</strong>! Your support means the world to us
-              and helps us continue to build and improve Dub.
-            </Text>
-            <Text className="text-sm leading-6 text-black">
-              On the {plan} plan, you now have access to:
-            </Text>
-            {planDetails.features?.map((feature: PlanFeature, i) => (
-              <Text key={i} className="ml-1 text-sm leading-4 text-black">
-                ◇{" "}
-                {feature.ctaLink ? (
-                  <>
-                    {feature.text} -{" "}
-                    <Link href={settingsUrl} className="text-[#2B7FFF]">
-                      {feature.ctaLink.label}
-                    </Link>
-                  </>
-                ) : feature.tooltip?.href ? (
-                  <Link href={feature.tooltip.href}>{feature.text}</Link>
-                ) : (
-                  feature.text
-                )}
-              </Text>
-            ))}
-            <Text className="text-sm leading-6 text-black">
-              If you have any questions or feedback about Dub, please don't
-              hesitate to reach out – I'm always happy to help!
-            </Text>
-            <Text className="text-sm font-light leading-6 text-neutral-400">
-              Steven from Dub
-            </Text>
-            <Footer email={email} marketing />
-          </Container>
-        </Body>
-      </Tailwind>
+      <Preview>
+        Feel free to reach out if you have any questions or feedback!
+      </Preview>
+      <Body style={bodyStyle}>
+        <Text style={pStyle}>Hi {name ? name.split(" ")[0] : "there"},</Text>
+
+        <Text style={pStyle}>
+          My name is Steven, and I&apos;m the founder of Dub. I wanted to
+          personally reach out to thank you for upgrading to{" "}
+          <strong>Dub {capitalize(plan)}</strong>! Your support means the world
+          to us and helps us continue to build and improve Dub.
+        </Text>
+
+        <Text style={pStyle}>
+          If you have any questions or feedback about Dub, please don&apos;t
+          hesitate to reach out (you can just reply to this email) – I&apos;m
+          always happy to help!
+        </Text>
+
+        <Text style={{ ...pStyle, marginBottom: 0 }}>
+          Best,
+          <br />
+          Steven – Founder,{" "}
+          <Link href="https://dub.co" style={linkStyle}>
+            Dub.co
+          </Link>
+        </Text>
+
+        <Text style={footerStyle}>
+          If you don't want to receive these emails, you can adjust your email
+          preferences{" "}
+          <Link
+            href="https://app.dub.co/account/settings"
+            style={footerLinkStyle}
+          >
+            here
+          </Link>
+        </Text>
+      </Body>
     </Html>
   );
 }

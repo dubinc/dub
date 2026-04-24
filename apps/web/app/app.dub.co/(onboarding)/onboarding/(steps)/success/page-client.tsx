@@ -27,9 +27,10 @@ import {
   Users,
 } from "@dub/ui";
 import { Slack2 } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
+import { usePlausible } from "next-plausible";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useOnboardingProgress } from "../../use-onboarding-progress";
 
@@ -41,7 +42,7 @@ export function SuccessPageClient({
     "name" | "slug" | "logo" | "plan" | "defaultProgramId"
   >;
 }) {
-  const { loading: isLoadingWorkspace } = useWorkspace();
+  const { plan, planPeriod, loading: isLoadingWorkspace } = useWorkspace();
 
   const showSlackInvite = getPlanCapabilities(
     workspace.plan,
@@ -97,6 +98,20 @@ export function SuccessPageClient({
   const connectedBankAccount = paymentMethods?.some((pm) =>
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
   );
+
+  const plausible = usePlausible();
+  useEffect(() => {
+    if (plan && plan !== "free") {
+      plausible(`Upgraded to ${capitalize(plan)}`);
+      plausible("Upgraded Plan", {
+        props: {
+          product: hasProgram ? "Partners" : "Links",
+          plan: capitalize(plan),
+          planPeriod: capitalize(planPeriod),
+        },
+      });
+    }
+  }, [plan]);
 
   return (
     <div className="mx-auto flex w-full max-w-sm flex-col items-center pb-10">
