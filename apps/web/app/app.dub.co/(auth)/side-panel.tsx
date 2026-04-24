@@ -44,7 +44,7 @@ export function SidePanel() {
           </div>
 
           <p className="text-content-default max-w-[370px] text-pretty text-xl font-medium">
-            Learn how Framer manages $500K+ in monthly affiliate payouts with
+            Learn how Framer manages $900K+ in monthly affiliate payouts with
             Dub
           </p>
 

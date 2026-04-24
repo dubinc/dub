@@ -11,16 +11,12 @@ export default function Register() {
   return (
     <StepPage
       title="Claim your free .link domain"
-      paidPlanRequired={true}
-      badge={
-        product === "partners"
-          ? {
-              icon: BoltFill,
-              label: "Instant setup",
-            }
-          : undefined
-      }
+      badge={{
+        icon: BoltFill,
+        label: "Instant setup",
+      }}
       description="Exclusively free for one year"
+      paidPlanRequired
     >
       <Form />
     </StepPage>

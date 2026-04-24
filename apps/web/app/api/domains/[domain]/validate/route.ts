@@ -19,11 +19,14 @@ export const GET = withSession(async ({ params }) => {
       status: "conflict",
     });
   }
-  const hasSite = await hasSiteConfigured(domain);
-  if (hasSite) {
-    return NextResponse.json({
-      status: "has site",
-    });
+  // skip site check for .dub.link subdomains
+  if (!domain.endsWith(".dub.link")) {
+    const hasSite = await hasSiteConfigured(domain);
+    if (hasSite) {
+      return NextResponse.json({
+        status: "has site",
+      });
+    }
   }
   return NextResponse.json({
     status: "available",
