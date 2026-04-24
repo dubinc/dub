@@ -57,22 +57,24 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const rawTypeFilter = parseFilterValue(type);
   const validCommissionTypes = new Set(Object.values(CommissionType));
 
+  const validTypeValues = rawTypeFilter
+    ? (rawTypeFilter.values.filter((v) =>
+        validCommissionTypes.has(v as CommissionType),
+      ) as CommissionType[])
+    : [];
+
   if (
-    rawTypeFilter &&
-    !rawTypeFilter.values.some((v) =>
-      validCommissionTypes.has(v as CommissionType),
-    )
+    rawTypeFilter?.sqlOperator === "IN" &&
+    rawTypeFilter.values.length > 0 &&
+    validTypeValues.length === 0
   ) {
     return NextResponse.json([]);
   }
-  const typeFilter = rawTypeFilter
-    ? {
-        ...rawTypeFilter,
-        values: rawTypeFilter.values.filter((v) =>
-          validCommissionTypes.has(v as CommissionType),
-        ) as CommissionType[],
-      }
-    : null;
+
+  const typeFilter =
+    rawTypeFilter && validTypeValues.length > 0
+      ? { ...rawTypeFilter, values: validTypeValues }
+      : null;
 
   const grouped = await prisma.commission.groupBy({
     by: ["partnerId"],
@@ -145,19 +147,23 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const partnerMap = new Map(partners.map((p) => [p.id, p]));
   const enrollmentMap = new Map(enrollments.map((e) => [e.partnerId, e]));
 
-  const result = grouped.map((g) => {
+  const result = grouped.flatMap((g) => {
     const partner = partnerMap.get(g.partnerId);
+    if (!partner) return [];
+
     const enrollment = enrollmentMap.get(g.partnerId);
-    return {
-      partnerId: g.partnerId,
-      name: partner?.name ?? "",
-      image: partner?.image ?? null,
-      country: partner?.country ?? null,
-      groupId: enrollment?.groupId ?? null,
-      groupName: enrollment?.partnerGroup?.name ?? null,
-      earnings: g._sum.earnings ?? 0,
-      commissionCount: g._count._all,
-    };
+    return [
+      {
+        partnerId: g.partnerId,
+        name: partner.name,
+        image: partner.image ?? null,
+        country: partner.country ?? null,
+        groupId: enrollment?.groupId ?? null,
+        groupName: enrollment?.partnerGroup?.name ?? null,
+        earnings: g._sum.earnings ?? 0,
+        commissionCount: g._count._all,
+      },
+    ];
   });
 
   return NextResponse.json(result);

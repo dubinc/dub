@@ -61,22 +61,24 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const rawTypeFilter = parseFilterValue(type);
   const validCommissionTypes = new Set(Object.values(CommissionType));
 
+  const validTypeValues = rawTypeFilter
+    ? (rawTypeFilter.values.filter((v) =>
+        validCommissionTypes.has(v as CommissionType),
+      ) as CommissionType[])
+    : [];
+
   if (
-    rawTypeFilter &&
-    !rawTypeFilter.values.some((v) =>
-      validCommissionTypes.has(v as CommissionType),
-    )
+    rawTypeFilter?.sqlOperator === "IN" &&
+    rawTypeFilter.values.length > 0 &&
+    validTypeValues.length === 0
   ) {
     return NextResponse.json([]);
   }
-  const typeFilter = rawTypeFilter
-    ? {
-        ...rawTypeFilter,
-        values: rawTypeFilter.values.filter((v) =>
-          validCommissionTypes.has(v as CommissionType),
-        ) as CommissionType[],
-      }
-    : null;
+
+  const typeFilter =
+    rawTypeFilter && validTypeValues.length > 0
+      ? { ...rawTypeFilter, values: validTypeValues }
+      : null;
 
   const baseWhere = {
     programId,

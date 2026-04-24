@@ -80,7 +80,7 @@ function mapBreakdownItem(
     icon,
     title: item.label,
     filterValue: item.key,
-    value: item.earnings / 100, // convert cents → dollars for display
+    value: item.earnings,
   };
 }
 
@@ -340,7 +340,7 @@ export function CommissionsBreakdownCards({
           ) : (
             <BarList
               tab={leftTab}
-              unit="commission"
+              unit="sales"
               data={leftData}
               maxValue={leftMaxValue}
               barBackground="bg-orange-100"
@@ -393,7 +393,7 @@ export function CommissionsBreakdownCards({
           ) : (
             <BarList
               tab={rightTab}
-              unit="commission"
+              unit="sales"
               data={rightData}
               maxValue={rightMaxValue}
               barBackground="bg-neutral-100"
