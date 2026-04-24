@@ -1,4 +1,4 @@
-import { RewardStructure } from "@dub/prisma/client";
+import { DiscountProvider, RewardStructure } from "@dub/prisma/client";
 import * as z from "zod/v4";
 import { getPaginationQuerySchema, maxDurationSchema } from "./misc";
 
@@ -35,6 +35,7 @@ export const createDiscountSchema = z.object({
   couponTestId: z.string().nullish(),
   groupId: z.string(),
   autoProvision: z.boolean().optional(),
+  provider: z.enum(DiscountProvider),
 });
 
 export const updateDiscountSchema = createDiscountSchema

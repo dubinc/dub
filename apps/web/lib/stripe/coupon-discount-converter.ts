@@ -51,7 +51,7 @@ export function dubDiscountToStripeCoupon(
  */
 export function stripeCouponToDubDiscount(
   stripeCoupon: Stripe.Coupon,
-): DubDiscountAttributes {
+): DubDiscountAttributes & { id: string } {
   // Determine discount type and amount
   const type: RewardStructure = stripeCoupon.percent_off
     ? "percentage"
@@ -74,6 +74,7 @@ export function stripeCouponToDubDiscount(
   }
 
   return {
+    id: stripeCoupon.id,
     amount,
     type,
     maxDuration,

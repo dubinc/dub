@@ -1,11 +1,7 @@
-import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
 import { DiscountCode } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
-
-const queue = qstash.queue({
-  queueName: "delete-discount-code",
-});
+import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 
 type DiscountCodePayload = Pick<DiscountCode, "id" | "code" | "programId">;
 
@@ -42,21 +38,20 @@ export async function deleteDiscountCodes(input: DeleteDiscountCodesParams) {
     discountCodes.map(({ id, code }) => ({ id, code })),
   );
 
-  // Queue the job to remove the discount codes from Stripe
+  // Queue the job to remove the discount codes from provider
   const chunks = chunk(discountCodes, 100);
 
   for (const chunkOfCodes of chunks) {
-    await Promise.allSettled(
-      chunkOfCodes.map((discountCode) =>
-        queue.enqueueJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/delete`,
-          method: "POST",
-          body: {
-            code: discountCode.code,
-            programId: discountCode.programId,
-          },
-        }),
-      ),
+    await enqueueBatchJobs(
+      chunkOfCodes.map((discountCode) => ({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/delete`,
+        method: "POST",
+        queueName: "delete-discount-code",
+        body: {
+          code: discountCode.code,
+          programId: discountCode.programId,
+        },
+      })),
     );
   }
 }
