@@ -1,4 +1,4 @@
-import { rejectPartner } from "@/lib/api/partners/reject-partner";
+import { rejectPartner } from "@/lib/api/partners/applications/reject-partner";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";

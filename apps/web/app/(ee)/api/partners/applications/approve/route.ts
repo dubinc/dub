@@ -1,7 +1,7 @@
+import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { approvePartner } from "@/lib/partners/approve-partner";
 import { approvePartnerSchema } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 

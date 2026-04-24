@@ -1,7 +1,7 @@
 "use server";
 
+import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { approvePartner } from "@/lib/partners/approve-partner";
 import { approvePartnerSchema } from "@/lib/zod/schemas/partners";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";

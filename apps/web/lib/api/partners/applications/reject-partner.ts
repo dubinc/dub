@@ -7,10 +7,10 @@ import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { trackActivityLog } from "../activity-log/track-activity-log";
-import { DubApiError } from "../errors";
-import { resolveFraudGroups } from "../fraud/resolve-fraud-groups";
-import { getDefaultProgramIdOrThrow } from "../programs/get-default-program-id-or-throw";
+import { trackActivityLog } from "../../activity-log/track-activity-log";
+import { DubApiError } from "../../errors";
+import { resolveFraudGroups } from "../../fraud/resolve-fraud-groups";
+import { getDefaultProgramIdOrThrow } from "../../programs/get-default-program-id-or-throw";
 
 type RejectPartnerInput = z.infer<typeof rejectPartnerSchema> & {
   userId: string;

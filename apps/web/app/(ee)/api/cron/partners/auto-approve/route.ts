@@ -1,6 +1,6 @@
 import { getPartnerApplicationRisks } from "@/lib/api/fraud/get-partner-application-risks";
+import { approvePartner } from "@/lib/api/partners/applications/approve-partner";
 import { withCron } from "@/lib/cron/with-cron";
-import { approvePartner } from "@/lib/partners/approve-partner";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";

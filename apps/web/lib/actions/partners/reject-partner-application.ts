@@ -1,6 +1,6 @@
 "use server";
 
-import { rejectPartner } from "@/lib/api/partners/reject-partner";
+import { rejectPartner } from "@/lib/api/partners/applications/reject-partner";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
 import * as z from "zod/v4";
 import { authActionClient } from "../safe-action";

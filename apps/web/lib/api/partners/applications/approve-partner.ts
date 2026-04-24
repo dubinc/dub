@@ -1,12 +1,12 @@
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
-import { trackActivityLog } from "../api/activity-log/track-activity-log";
-import { DubApiError } from "../api/errors";
-import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
-import { triggerWorkflows } from "../cron/qstash-workflow";
-import { approvePartnerSchema } from "../zod/schemas/partners";
-import { throwIfTrialProgramEnrollmentLimitExceeded } from "./throw-if-trial-program-enrollment-exceeded";
+import { triggerWorkflows } from "../../../cron/qstash-workflow";
+import { throwIfTrialProgramEnrollmentLimitExceeded } from "../../../partners/throw-if-trial-program-enrollment-exceeded";
+import { approvePartnerSchema } from "../../../zod/schemas/partners";
+import { trackActivityLog } from "../../activity-log/track-activity-log";
+import { DubApiError } from "../../errors";
+import { getGroupOrThrow } from "../../groups/get-group-or-throw";
 
 type ApprovePartnerInput = z.infer<typeof approvePartnerSchema> & {
   programId: string;
