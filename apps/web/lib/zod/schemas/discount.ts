@@ -12,6 +12,7 @@ export const DiscountSchema = z.object({
   description: z.string().nullish(),
   partnersCount: z.number().nullish(),
   autoProvisionEnabledAt: z.coerce.date().nullish(),
+  provider: z.enum(DiscountProvider),
 });
 
 export const DiscountSchemaWithDeprecatedFields = DiscountSchema.omit({

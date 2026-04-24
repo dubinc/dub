@@ -1,6 +1,9 @@
 import { stripeAppClient } from ".";
 import { StripeMode } from "../types";
 
+// TODO:
+// Remove this file and use the disableDiscountCode method from the Stripe provider
+
 export async function disableStripeDiscountCode({
   stripeConnectId,
   stripeMode,

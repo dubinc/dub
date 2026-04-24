@@ -9,6 +9,8 @@ import {
   stripeCouponToDubDiscount,
   validateStripeCouponForDubDiscount,
 } from "../stripe/coupon-discount-converter";
+import { createStripeDiscountCode } from "../stripe/create-stripe-discount-code";
+import { disableStripeDiscountCode } from "../stripe/disable-stripe-discount-code";
 import { createDiscountSchema } from "../zod/schemas/discount";
 
 function createStripeDiscountProvider() {
@@ -130,11 +132,21 @@ function createStripeDiscountProvider() {
     return stripeCouponToDubDiscount(coupon);
   };
 
+  const createDiscountCode = (
+    args: Parameters<typeof createStripeDiscountCode>[0],
+  ) => createStripeDiscountCode(args);
+
+  const disableDiscountCode = (
+    args: Parameters<typeof disableStripeDiscountCode>[0],
+  ) => disableStripeDiscountCode(args);
+
   return {
     getInstallation,
     getOrCreateCoupon,
     getCoupon,
     createCoupon,
+    createDiscountCode,
+    disableDiscountCode,
   };
 }
 

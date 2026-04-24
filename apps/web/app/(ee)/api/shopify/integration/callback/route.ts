@@ -47,7 +47,6 @@ export const PATCH = withWorkspace(
           workspaceId: workspace.id,
           integrationId: SHOPIFY_INTEGRATION_ID,
           credentials: {
-            shopifyStoreId: body.shopifyStoreId,
             accessToken: encrypt(body.accessToken),
             scope: body.scope,
           },

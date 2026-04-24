@@ -54,8 +54,6 @@ export const createDiscountAction = authActionClient
       data: parsedInput,
     });
 
-    console.log("coupon", coupon);
-
     // Create the discount and update the group and program enrollment
     const discount = await prisma.$transaction(async (tx) => {
       const discount = await tx.discount.create({
@@ -65,7 +63,8 @@ export const createDiscountAction = authActionClient
           amount,
           type,
           maxDuration,
-          couponId: coupon?.id || couponId,
+          provider,
+          couponId: coupon?.id || couponId || null,
           ...(couponTestId && { couponTestId }),
           ...(autoProvision && { autoProvisionEnabledAt: new Date() }),
         },

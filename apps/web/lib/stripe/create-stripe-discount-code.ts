@@ -4,6 +4,9 @@ import { DiscountProps, StripeMode } from "../types";
 
 const MAX_ATTEMPTS = 3;
 
+// TODO:
+// Remove this file and use the createDiscountCode method from the Stripe provider
+
 export async function createStripeDiscountCode({
   stripeConnectId,
   stripeMode,
