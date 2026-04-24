@@ -4,42 +4,48 @@ import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "../analytics/constants";
 import { PartnerAnalyticsFilters } from "../analytics/types";
 import useWorkspace from "./use-workspace";
 
-interface Commission {
+export interface CommissionTimeseriesItem {
   start: string;
   earnings: number;
+  count: number;
 }
 
 export default function useCommissionsTimeseries(
-  params?: PartnerAnalyticsFilters & { enabled: boolean },
+  params?: PartnerAnalyticsFilters & {
+    enabled: boolean;
+    queryString?: string;
+  },
 ) {
   const { id: workspaceId } = useWorkspace();
 
-  const searchParams = new URLSearchParams({
-    event: params?.event ?? "composite",
-    ...(params?.start && params?.end
-      ? {
-          start: params.start.toISOString(),
-          end: params.end.toISOString(),
-        }
-      : { interval: params?.interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL }),
-    groupBy: params?.groupBy ?? "count",
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-    workspaceId: workspaceId!,
-  });
+  const url = (() => {
+    if (!params?.enabled) return null;
 
-  const { data, error } = useSWR<Commission[]>(
-    params?.enabled
-      ? `/api/commissions/timeseries?${searchParams.toString()}`
-      : null,
-    fetcher,
-    {
-      dedupingInterval: 60000,
-    },
-  );
+    if (params.queryString) {
+      return `/api/commissions/timeseries?${params.queryString}`;
+    }
+
+    const searchParams = new URLSearchParams({
+      event: params.event ?? "composite",
+      ...(params.start && params.end
+        ? {
+            start: params.start.toISOString(),
+            end: params.end.toISOString(),
+          }
+        : { interval: params.interval ?? DUB_PARTNERS_ANALYTICS_INTERVAL }),
+      groupBy: params.groupBy ?? "count",
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      workspaceId: workspaceId!,
+    });
+
+    return `/api/commissions/timeseries?${searchParams.toString()}`;
+  })();
+
+  const { data, error } = useSWR<CommissionTimeseriesItem[]>(url, fetcher);
 
   return {
     data,
     error,
-    loading: !data && !error ? true : false,
+    loading: !data && !error,
   };
 }

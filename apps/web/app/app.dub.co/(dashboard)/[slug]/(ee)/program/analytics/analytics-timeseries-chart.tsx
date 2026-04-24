@@ -1,15 +1,14 @@
 import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
-import {
-  Areas,
-  ChartContext,
-  TimeSeriesChart,
-  XAxis,
-  YAxis,
-} from "@dub/ui/charts";
-import { capitalize, currencyFormatter, nFormatter } from "@dub/utils";
-import { LinearGradient } from "@visx/gradient";
-import { useContext, useId } from "react";
+import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
+import { capitalize, cn, currencyFormatter, nFormatter } from "@dub/utils";
+import { useContext } from "react";
+
+const TAB_COLOR: Record<string, string> = {
+  clicks: "text-blue-500",
+  leads: "text-violet-600",
+  sales: "text-teal-400",
+};
 
 export function AnalyticsTimeseriesChart({
   data,
@@ -21,10 +20,10 @@ export function AnalyticsTimeseriesChart({
     };
   }[];
 }) {
-  const id = useId();
-
   const { start, end, interval, selectedTab, saleUnit } =
     useContext(AnalyticsContext);
+
+  const colorClassName = TAB_COLOR[selectedTab] ?? "text-violet-500";
 
   return (
     <TimeSeriesChart
@@ -34,7 +33,7 @@ export function AnalyticsTimeseriesChart({
         {
           id: "amount",
           valueAccessor: (d) => d.values.amount,
-          colorClassName: "text-violet-500",
+          colorClassName,
           isActive: true,
         },
       ]}
@@ -47,7 +46,12 @@ export function AnalyticsTimeseriesChart({
             </p>
             <div className="grid grid-cols-2 gap-x-6 gap-y-2 px-4 py-3 text-sm">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
+                <div
+                  className={cn(
+                    colorClassName,
+                    "h-2 w-2 rounded-sm bg-current opacity-50 shadow-[inset_0_0_0_1px_#0003]",
+                  )}
+                />
                 <p className="capitalize text-neutral-600">
                   {capitalize(selectedTab)}
                 </p>
@@ -62,18 +66,7 @@ export function AnalyticsTimeseriesChart({
         );
       }}
     >
-      <ChartContext.Consumer>
-        {(context) => (
-          <LinearGradient
-            id={`${id}-color-gradient`}
-            from="#7D3AEC"
-            to="#DA2778"
-            x1={0}
-            x2={context?.width ?? 1}
-            gradientUnits="userSpaceOnUse"
-          />
-        )}
-      </ChartContext.Consumer>
+      <Areas />
       <XAxis
         tickFormat={(date) => formatDateTooltip(date, { interval, start, end })}
         maxTicks={2}
@@ -86,7 +79,6 @@ export function AnalyticsTimeseriesChart({
             : nFormatter
         }
       />
-      <Areas />
     </TimeSeriesChart>
   );
 }

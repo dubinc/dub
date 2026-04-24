@@ -2,6 +2,7 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getCommissionsCountQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { CommissionStatus, FraudEventStatus } from "@dub/prisma/client";
+import { parseFilterValue } from "@dub/utils";
 import * as z from "zod/v4";
 
 type CommissionsCountFilters = z.infer<
@@ -76,6 +77,9 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     }),
   };
 
+  const partnerFilter = parseFilterValue(partnerId);
+  const customerFilter = parseFilterValue(customerId);
+
   const commissionsCount = await prisma.commission.groupBy({
     by: ["status"],
     where: {
@@ -83,11 +87,21 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
         not: 0,
       },
       programId,
-      partnerId,
+      ...(partnerFilter && {
+        partnerId:
+          partnerFilter.sqlOperator === "NOT IN"
+            ? { notIn: partnerFilter.values }
+            : { in: partnerFilter.values },
+      }),
       status: statusFilter,
       type,
       payoutId,
-      customerId,
+      ...(customerFilter && {
+        customerId:
+          customerFilter.sqlOperator === "NOT IN"
+            ? { notIn: customerFilter.values }
+            : { in: customerFilter.values },
+      }),
       ...(eventIds && {
         eventId: {
           in: eventIds,
