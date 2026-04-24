@@ -56,18 +56,23 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const rawTypeFilter = parseFilterValue(type);
   const validCommissionTypes = new Set(Object.values(CommissionType));
-  const typeFilter =
+
+  if (
     rawTypeFilter &&
-    rawTypeFilter.values.some((v) =>
+    !rawTypeFilter.values.some((v) =>
       validCommissionTypes.has(v as CommissionType),
     )
-      ? {
-          ...rawTypeFilter,
-          values: rawTypeFilter.values.filter((v) =>
-            validCommissionTypes.has(v as CommissionType),
-          ) as CommissionType[],
-        }
-      : null;
+  ) {
+    return NextResponse.json([]);
+  }
+  const typeFilter = rawTypeFilter
+    ? {
+        ...rawTypeFilter,
+        values: rawTypeFilter.values.filter((v) =>
+          validCommissionTypes.has(v as CommissionType),
+        ) as CommissionType[],
+      }
+    : null;
 
   const grouped = await prisma.commission.groupBy({
     by: ["partnerId"],
@@ -77,10 +82,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       status: status
         ? status
         : {
-            in: [
-              CommissionStatus.pending,
-              CommissionStatus.processed,
-              CommissionStatus.paid,
+            notIn: [
+              CommissionStatus.duplicate,
+              CommissionStatus.fraud,
+              CommissionStatus.canceled,
             ],
           },
       ...(partnerFilter && {
@@ -115,7 +120,6 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     _sum: { earnings: true },
     _count: { _all: true },
     orderBy: { _sum: { earnings: "desc" } },
-    // Return up to 100 — client paginates
     take: 100,
   });
 

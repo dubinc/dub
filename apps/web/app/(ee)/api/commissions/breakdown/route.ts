@@ -60,18 +60,23 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const rawTypeFilter = parseFilterValue(type);
   const validCommissionTypes = new Set(Object.values(CommissionType));
-  const typeFilter =
+
+  if (
     rawTypeFilter &&
-    rawTypeFilter.values.some((v) =>
+    !rawTypeFilter.values.some((v) =>
       validCommissionTypes.has(v as CommissionType),
     )
-      ? {
-          ...rawTypeFilter,
-          values: rawTypeFilter.values.filter((v) =>
-            validCommissionTypes.has(v as CommissionType),
-          ) as CommissionType[],
-        }
-      : null;
+  ) {
+    return NextResponse.json([]);
+  }
+  const typeFilter = rawTypeFilter
+    ? {
+        ...rawTypeFilter,
+        values: rawTypeFilter.values.filter((v) =>
+          validCommissionTypes.has(v as CommissionType),
+        ) as CommissionType[],
+      }
+    : null;
 
   const baseWhere = {
     programId,
@@ -79,10 +84,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     status: status
       ? status
       : {
-          in: [
-            CommissionStatus.pending,
-            CommissionStatus.processed,
-            CommissionStatus.paid,
+          notIn: [
+            CommissionStatus.duplicate,
+            CommissionStatus.fraud,
+            CommissionStatus.canceled,
           ],
         },
     ...(partnerFilter && {
