@@ -10,7 +10,6 @@ import {
   stripeCouponToDubDiscount,
   validateStripeCouponForDubDiscount,
 } from "../stripe/coupon-discount-converter";
-import { disableStripeDiscountCode } from "../stripe/disable-stripe-discount-code";
 import { DiscountProps } from "../types";
 import { createDiscountSchema } from "../zod/schemas/discount";
 
@@ -224,9 +223,54 @@ function createStripeDiscountProvider() {
     throw new Error("Failed to create Stripe discount code.");
   };
 
-  const disableDiscountCode = (
-    args: Parameters<typeof disableStripeDiscountCode>[0],
-  ) => disableStripeDiscountCode(args);
+  const disableDiscountCode = async ({
+    workspace,
+    code,
+  }: {
+    workspace: Pick<Project, "id" | "stripeConnectId">;
+    code: string;
+  }) => {
+    const { settings } = await getInstallation(workspace);
+
+    const stripeApp = stripeAppClient({
+      mode: settings.stripeMode,
+    });
+
+    const promotionCodes = await stripeApp.promotionCodes.list(
+      {
+        code,
+        limit: 1,
+      },
+      {
+        stripeAccount: workspace.stripeConnectId!,
+      },
+    );
+
+    if (promotionCodes.data.length === 0) {
+      console.error(
+        `Stripe promotion code ${code} not found (stripeConnectId=${workspace.stripeConnectId}).`,
+      );
+      return;
+    }
+
+    const promotionCode = promotionCodes.data[0];
+
+    await stripeApp.promotionCodes.update(
+      promotionCode.id,
+      {
+        active: false,
+      },
+      {
+        stripeAccount: workspace.stripeConnectId!,
+      },
+    );
+
+    console.info(
+      `Disabled Stripe promotion code ${promotionCode.code} (id=${promotionCode.id}, stripeConnectId=${workspace.stripeConnectId}).`,
+    );
+
+    return promotionCode;
+  };
 
   return {
     getInstallation,

@@ -219,7 +219,7 @@ function createShopifyDiscountProvider() {
     workspace,
     code,
   }: {
-    workspace: Project;
+    workspace: Pick<Project, "id" | "shopifyStoreId">;
     code: string;
   }) => {
     const { credentials } = await getInstallation(workspace);
