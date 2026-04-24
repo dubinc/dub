@@ -6,6 +6,7 @@ import { DubApiError } from "../api/errors";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { triggerWorkflows } from "../cron/qstash-workflow";
 import { approvePartnerSchema } from "../zod/schemas/partners";
+import { throwIfTrialProgramEnrollmentLimitExceeded } from "./throw-if-trial-program-enrollment-exceeded";
 
 type ApprovePartnerInput = z.infer<typeof approvePartnerSchema> & {
   programId: string;
@@ -75,6 +76,12 @@ export async function approvePartner({
   });
 
   await prisma.$transaction(async (tx) => {
+    await throwIfTrialProgramEnrollmentLimitExceeded({
+      programId,
+      trialEndsAt: program.workspace.trialEndsAt,
+      tx,
+    });
+
     const programEnrollment = await tx.programEnrollment.update({
       where: {
         partnerId_programId: {

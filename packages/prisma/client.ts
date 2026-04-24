@@ -25,6 +25,7 @@ export {
   PartnerLinkStructure,
   PartnerProfileType,
   PartnerRole,
+  PlanPeriod,
   PayoutMode,
   PayoutStatus,
   PlatformType,

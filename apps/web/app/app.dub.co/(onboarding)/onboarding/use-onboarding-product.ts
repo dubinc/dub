@@ -3,7 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 
-export const ONBOARDING_PRODUCTS = ["links", "partners"] as const;
+export const ONBOARDING_PRODUCTS = ["partners", "links"] as const;
+
 export type OnboardingProduct = (typeof ONBOARDING_PRODUCTS)[number];
 
 export function useOnboardingProduct(): OnboardingProduct {
@@ -11,7 +12,7 @@ export function useOnboardingProduct(): OnboardingProduct {
   const param = searchParams.get("product");
 
   return useMemo(
-    () => ONBOARDING_PRODUCTS.find((p) => p === param) || "links",
+    () => ONBOARDING_PRODUCTS.find((p) => p === param) || "partners",
     [param],
   );
 }

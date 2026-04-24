@@ -58,6 +58,5 @@ export const trackSingularLeadEvent = async ({
     mode,
     metadata: null,
     workspace,
-    rawBody: queryParams,
   });
 };
