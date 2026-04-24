@@ -3,7 +3,7 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { deleteDiscountCodes } from "../discounts/delete-discount-code";
+import { deleteDiscountCodes } from "../../discounts/delete-discount-code";
 import { linkCache } from "./cache";
 import { includeProgramEnrollment } from "./include-program-enrollment";
 import { includeTags } from "./include-tags";

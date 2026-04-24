@@ -1,8 +1,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";

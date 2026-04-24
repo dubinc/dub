@@ -1,7 +1,7 @@
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
-import { deleteDiscountCodes } from "@/lib/api/discounts/delete-discount-code";
-import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
 import { withCron } from "@/lib/cron/with-cron";
+import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { deleteDiscountCodes } from "@/lib/discounts/delete-discount-code";
+import { isDiscountEquivalent } from "@/lib/discounts/is-discount-equivalent";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@dub/prisma";
 import { DiscountCode } from "@dub/prisma/client";

@@ -1,10 +1,10 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { createDiscountCode } from "@/lib/discounts/create-discount-code";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import {
   createDiscountCodeSchema,

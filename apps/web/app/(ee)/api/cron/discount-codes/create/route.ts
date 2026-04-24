@@ -1,5 +1,5 @@
-import { createDiscountCode } from "@/lib/api/discounts/create-discount-code";
 import { withCron } from "@/lib/cron/with-cron";
+import { createDiscountCode } from "@/lib/discounts/create-discount-code";
 import { stripeIntegrationSettingsSchema } from "@/lib/integrations/stripe/schema";
 import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
