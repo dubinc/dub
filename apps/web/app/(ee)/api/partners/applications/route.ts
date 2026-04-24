@@ -4,7 +4,7 @@ import { formatApplicationFormData } from "@/lib/partners/format-application-for
 import { polyfillSocialMediaFields } from "@/lib/social-utils";
 import {
   getPartnerApplicationsQuerySchema,
-  partnerApplicationSchema,
+  PartnerApplicationSchema,
 } from "@/lib/zod/schemas/program-application";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -13,8 +13,12 @@ import * as z from "zod/v4";
 // GET /api/partners/applications - get all pending applications for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { page = 1, pageSize } =
-      getPartnerApplicationsQuerySchema.parse(searchParams);
+    const {
+      country,
+      groupId,
+      page = 1,
+      pageSize,
+    } = getPartnerApplicationsQuerySchema.parse(searchParams);
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -25,6 +29,12 @@ export const GET = withWorkspace(
         application: {
           isNot: null,
         },
+        ...(groupId && { groupId }),
+        ...(country && {
+          partner: {
+            country,
+          },
+        }),
       },
       include: {
         application: true,
@@ -64,7 +74,7 @@ export const GET = withWorkspace(
       },
     );
 
-    return NextResponse.json(z.array(partnerApplicationSchema).parse(result));
+    return NextResponse.json(z.array(PartnerApplicationSchema).parse(result));
   },
   {
     requiredPlan: [

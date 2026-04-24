@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import {
   getPartnerApplicationsQuerySchema,
-  partnerApplicationSchema,
+  PartnerApplicationSchema,
 } from "@/lib/zod/schemas/program-application";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import * as z from "zod/v4";
@@ -20,7 +20,7 @@ export const listPartnerApplications: ZodOpenApiOperationObject = {
       description: "The list of pending partner applications.",
       content: {
         "application/json": {
-          schema: z.array(partnerApplicationSchema),
+          schema: z.array(PartnerApplicationSchema),
         },
       },
     },
