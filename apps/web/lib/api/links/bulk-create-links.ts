@@ -238,6 +238,14 @@ export async function bulkCreateLinks({
     });
   }
 
+  // Remove orphaned IDs from base64ImagesMap (e.g. if skipDuplicates: true skipped them)
+  const createdIdsSet = new Set(createdLinksData.map((link) => link.id));
+  for (const id of base64ImagesMap.keys()) {
+    if (!createdIdsSet.has(id)) {
+      base64ImagesMap.delete(id);
+    }
+  }
+
   // Optimistically set the image URL for base64 images
   createdLinksData.forEach((link) => {
     if (base64ImagesMap.has(link.id)) {
@@ -246,7 +254,7 @@ export async function bulkCreateLinks({
   });
 
   waitUntil(
-    Promise.all([
+    Promise.allSettled([
       propagateBulkLinkChanges({
         links: createdLinksData,
         skipRedisCache,
@@ -262,10 +270,18 @@ export async function bulkCreateLinks({
             key: `images/${id}`,
             body: image,
           })
-          .then(async (url) => {
+          .then(async ({ url }) => {
             await prisma.link.update({
               where: { id },
               data: { image: url },
+            });
+          })
+          .catch(async (error) => {
+            console.error(`Failed to upload base64 image for link ${id}:`, error);
+            // On failure, clear the optimistic image URL from the database
+            await prisma.link.update({
+              where: { id },
+              data: { image: null },
             });
           }),
       ),

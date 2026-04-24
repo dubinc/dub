@@ -4,8 +4,8 @@ import { getUrlFromString } from "@dub/utils/src/functions/get-url-from-string";
 import { UTMTags } from "@dub/utils/src/internals";
 import { verifyFolderAccess } from "../folders/verify-folder-access";
 import { isBlacklistedDomain } from "./is-blacklisted-domain";
+import { getPartnerEnrollmentInfo } from "@/lib/planetscale/get-partner-enrollment-info";
 
-import { isNotHostedImage } from "@/lib/storage";
 import { ProcessedLinkProps } from "@/lib/types";
 import { parseDateTime } from "@/lib/utils";
 import { createLinkBodySchemaAsync } from "@/lib/zod/schemas/links";
@@ -15,7 +15,6 @@ export async function processLink({
   payload,
   workspace,
   userId,
-  bulk = false,
   skipProgramChecks = false,
 }: {
   payload: z.infer<typeof createLinkBodySchemaAsync>;
@@ -24,7 +23,6 @@ export async function processLink({
     plan: string;
   };
   userId?: string;
-  bulk?: boolean;
   skipProgramChecks?: boolean;
 }): Promise<{
   link: ProcessedLinkProps;
@@ -215,6 +213,8 @@ export async function processLink({
       }
     }
 
+    let defaultProgramFolderId: string | null = null;
+
     // Program validity checks
     if (programId && !skipProgramChecks) {
       const program = await prisma.program.findUnique({
@@ -242,6 +242,8 @@ export async function processLink({
         };
       }
 
+      defaultProgramFolderId = program.defaultFolderId;
+
       if (!partnerId && tenantId) {
         // @ts-ignore
         const partner = program.partners?.[0];
@@ -256,19 +258,6 @@ export async function processLink({
             partnerId = partnerInfo.partnerId;
           }
         }
-      }
-    }
-
-    let defaultProgramFolderId: string | null = null;
-    if (programId && !partnerId) {
-      const program = await prisma.program.findUnique({
-        where: { id: programId },
-        select: {
-          defaultFolderId: true,
-        },
-      });
-      if (program) {
-        defaultProgramFolderId = program.defaultFolderId;
       }
     }
 
@@ -390,6 +379,7 @@ export async function processLink({
       folderId: folderId || defaultProgramFolderId,
     },
     error: null,
+    code: null,
   };
 }
 
