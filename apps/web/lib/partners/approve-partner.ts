@@ -35,6 +35,7 @@ export async function approvePartner({
           workspace: {
             select: {
               id: true,
+              trialEndsAt: true,
             },
           },
         },
