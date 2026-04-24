@@ -65,7 +65,8 @@ type DomainStatus =
   | "has site"
   | "available"
   | "idle"
-  | "invalid";
+  | "invalid"
+  | "error";
 
 const STATUS_CONFIG: Record<
   DomainStatus,
@@ -90,6 +91,10 @@ const STATUS_CONFIG: Record<
     className: "bg-red-100 text-red-600",
   },
   invalid: {
+    icon: AlertCircleFill,
+    className: "bg-red-100 text-red-600",
+  },
+  error: {
     icon: AlertCircleFill,
     className: "bg-red-100 text-red-600",
   },
@@ -209,15 +214,47 @@ export function AddEditDomainForm({
       if (!isValidDomain(value)) return;
       setDomainValidateMessage(null);
       setDomainStatus("checking");
-      fetch(`/api/domains/${encodeURIComponent(value)}/validate`).then(
-        async (res) => {
-          const data = await res.json();
-          setDomainStatus(data.status);
-          setDomainValidateMessage(
-            typeof data.message === "string" ? data.message : null,
-          );
-        },
-      );
+
+      const validationFailedMessage =
+        "Could not check domain availability. Please try again.";
+
+      fetch(`/api/domains/${encodeURIComponent(value)}/validate`)
+        .then(async (res) => {
+          if (!res.ok) {
+            setDomainStatus("error");
+            setDomainValidateMessage(validationFailedMessage);
+            return;
+          }
+
+          let data: { status?: unknown; message?: unknown };
+          try {
+            data = await res.json();
+          } catch {
+            setDomainStatus("error");
+            setDomainValidateMessage(validationFailedMessage);
+            return;
+          }
+
+          const status = data.status;
+          if (
+            status === "invalid" ||
+            status === "conflict" ||
+            status === "has site" ||
+            status === "available"
+          ) {
+            setDomainStatus(status);
+            setDomainValidateMessage(
+              typeof data.message === "string" ? data.message : null,
+            );
+          } else {
+            setDomainStatus("error");
+            setDomainValidateMessage(validationFailedMessage);
+          }
+        })
+        .catch(() => {
+          setDomainStatus("error");
+          setDomainValidateMessage(validationFailedMessage);
+        });
     },
     500,
   );
@@ -421,8 +458,12 @@ export function AddEditDomainForm({
                   <div className="flex items-center justify-between gap-4 p-2 text-sm">
                     <p>
                       {domainStatus !== "idle" ? (
-                        domainStatus === "invalid" ? (
-                          domainValidateMessage ?? "This domain is not valid."
+                        domainStatus === "invalid" ||
+                        domainStatus === "error" ? (
+                          domainValidateMessage ??
+                          (domainStatus === "error"
+                            ? "Could not check domain availability. Please try again."
+                            : "This domain is not valid.")
                         ) : (
                           <>
                             {currentStatusProps.prefix || "The domain"}{" "}

@@ -1,6 +1,6 @@
 import { ErrorCode } from "@/lib/api/error-codes";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
-import type { z } from "zod/v4";
+import * as z from "zod/v4";
 
 const DUB_LINK_SUFFIX = ".dub.link";
 
