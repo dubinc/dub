@@ -6,7 +6,7 @@ import * as z from "zod/v4";
 export const approvePartner: ZodOpenApiOperationObject = {
   operationId: "approvePartner",
   "x-speakeasy-name-override": "approve",
-  summary: "Approve a partner",
+  summary: "Approve a partner application",
   description:
     "Approve a pending partner application to your program. The partner will be enrolled in the specified group and notified of the approval.",
   requestBody: {
