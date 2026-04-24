@@ -5,7 +5,7 @@ import { WorkspaceWithUsers } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import DomainClaimed from "@dub/email/templates/domain-claimed";
 import { prisma } from "@dub/prisma";
-import { DEFAULT_LINK_PROPS } from "@dub/utils";
+import { DEFAULT_LINK_PROPS, isWorkspaceBillingTrialActive } from "@dub/utils";
 import { get } from "@vercel/edge-config";
 import { waitUntil } from "@vercel/functions";
 import { addDomainToVercel } from "./add-domain-vercel";
@@ -33,7 +33,8 @@ export async function claimDotLinkDomain({
     if (!workspace.stripeId) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You cannot register a .link domain on a free trial.",
+        message:
+          "You cannot register a .link domain until you add a payment method.",
       });
     }
 
@@ -43,6 +44,13 @@ export async function claimDotLinkDomain({
         message: "You are limited to one free .link domain per workspace.",
       });
     }
+  }
+
+  if (isWorkspaceBillingTrialActive(workspace.trialEndsAt)) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You cannot register a .link domain during your free trial.",
+    });
   }
 
   const customDomainTerms = await get("customDomainTerms");

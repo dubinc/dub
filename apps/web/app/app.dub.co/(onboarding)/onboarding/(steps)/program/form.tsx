@@ -156,6 +156,7 @@ export function Form() {
           render={({ field }) => (
             <Input
               value={field.value || ""}
+              required
               onChange={(e) => field.onChange(e.target.value)}
               type="url"
               placeholder="https://"
@@ -182,6 +183,7 @@ export function Form() {
           render={({ field }) => (
             <Input
               value={field.value || ""}
+              required
               onChange={(e) => field.onChange(e.target.value)}
               type="email"
               className="max-w-full"

@@ -7,7 +7,6 @@ import {
   Button,
   DynamicTooltipWrapper,
   Icon,
-  LoadingSpinner,
   Popover,
   SquareXmark,
   StripeIcon,
@@ -21,7 +20,14 @@ import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmati
 import { ThreeDots } from "../shared/icons";
 
 export default function SubscriptionMenu() {
-  const { id: workspaceId, role, plan, defaultProgramId } = useWorkspace();
+  const {
+    id: workspaceId,
+    role,
+    plan,
+    defaultProgramId,
+    subscriptionCanceledAt,
+    mutate,
+  } = useWorkspace();
   const router = useRouter();
 
   const permissionsError = clientAccessCheck({
@@ -32,18 +38,37 @@ export default function SubscriptionMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [clicked, setClicked] = useState(false);
 
-  const openBillingPortal = (cancel: boolean) => {
+  const openBillingPortal = () => {
     setIsOpen(false);
     setClicked(true);
-    return fetch(
-      `/api/workspaces/${workspaceId}/billing/${cancel ? "cancel" : "manage"}`,
-      {
-        method: "POST",
-      },
-    ).then(async (res) => {
+    return fetch(`/api/workspaces/${workspaceId}/billing/manage`, {
+      method: "POST",
+    }).then(async (res) => {
       if (res.ok) {
         const url = await res.json();
         router.push(url);
+      } else {
+        const { error } = await res.json();
+        toast.error(error.message);
+        setClicked(false);
+      }
+    });
+  };
+
+  const cancelSubscription = () => {
+    setIsOpen(false);
+    setClicked(true);
+    return fetch(`/api/workspaces/${workspaceId}/billing/cancel`, {
+      method: "POST",
+    }).then(async (res) => {
+      if (res.ok) {
+        // sleep for 2 seconds to make sure Stripe webhook was received, and then mutate
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        await mutate();
+        setClicked(false);
+        toast.success(
+          "Your subscription has been scheduled for cancellation at the end of the current period.",
+        );
       } else {
         const { error } = await res.json();
         toast.error(error.message);
@@ -60,7 +85,10 @@ export default function SubscriptionMenu() {
 
   const { setShowPlanChangeConfirmationModal, PlanChangeConfirmationModal } =
     usePlanChangeConfirmationModal({
-      onConfirm: () => openBillingPortal(true),
+      onConfirm: async () => {
+        await cancelSubscription();
+        setShowPlanChangeConfirmationModal(false);
+      },
     });
 
   const handleCancelSubscription = () => {
@@ -68,7 +96,7 @@ export default function SubscriptionMenu() {
     if (losesPartnerAccess) {
       setShowPlanChangeConfirmationModal(true);
     } else {
-      openBillingPortal(true);
+      cancelSubscription();
     }
   };
 
@@ -88,14 +116,18 @@ export default function SubscriptionMenu() {
               <MenuItem
                 icon={StripeIcon}
                 label="Open billing portal"
-                onSelect={() => openBillingPortal(false)}
+                onSelect={() => openBillingPortal()}
                 disabledTooltip={permissionsError}
               />
               <MenuItem
                 icon={SquareXmark}
                 label="Cancel subscription"
                 onSelect={handleCancelSubscription}
-                disabledTooltip={permissionsError}
+                disabledTooltip={
+                  subscriptionCanceledAt
+                    ? "Your subscription has already been scheduled for cancellation."
+                    : permissionsError
+                }
               />
             </Command.List>
           </Command>
@@ -106,14 +138,8 @@ export default function SubscriptionMenu() {
           type="button"
           className="h-9 px-2"
           variant="secondary"
-          icon={
-            clicked ? (
-              <LoadingSpinner className="size-4 shrink-0" />
-            ) : (
-              <ThreeDots className="size-4 shrink-0" />
-            )
-          }
-          disabled={clicked}
+          icon={<ThreeDots className="size-4 shrink-0" />}
+          loading={clicked}
         />
       </Popover>
     </>
