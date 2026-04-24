@@ -4,7 +4,7 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 import * as z from "zod/v4";
 
 export const approvePartner: ZodOpenApiOperationObject = {
-  operationId: "approvePartner",
+  operationId: "approvePartnerApplication",
   "x-speakeasy-name-override": "approve",
   summary: "Approve a partner application",
   description:
