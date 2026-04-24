@@ -1,3 +1,5 @@
+import "dotenv-flow/config";
+
 import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
@@ -39,6 +41,9 @@ export default defineConfig({
     {
       name: "workspace-setup",
       testMatch: /workspaces\/auth\.setup\.ts/,
+      use: {
+        baseURL: "http://app.localhost:8888",
+      },
     },
     {
       name: "workspaces",
@@ -48,8 +53,19 @@ export default defineConfig({
         storageState: "playwright/.auth/workspace.json",
       },
       testDir: "./playwright/workspaces",
-      testIgnore: /auth\.setup\.ts/,
+      testIgnore: /auth\.setup\.ts|billing-trial\.spec\.ts/,
       dependencies: ["workspace-setup"],
+    },
+    // Billing tests — runs after workspace onboarding so the workspace exists
+    {
+      name: "chromium-workspace",
+      testMatch: /workspaces\/billing-trial\.spec\.ts/,
+      use: {
+        ...devices["Desktop Chrome"],
+        storageState: "playwright/.auth/workspace.json",
+        baseURL: "http://app.localhost:8888",
+      },
+      dependencies: ["workspaces"],
     },
   ],
   webServer: process.env.CI

@@ -1,3 +1,4 @@
+import { withAxiomBodyLog } from "@/lib/axiom/server";
 import { stripe } from "@/lib/stripe";
 import { log } from "@dub/utils";
 import { logAndRespond } from "app/(ee)/api/cron/utils";
@@ -20,12 +21,16 @@ const relevantEvents = new Set([
 const webhookSecret = process.env.STRIPE_CONNECT_V2_WEBHOOK_SECRET;
 
 // POST /api/stripe/connect/v2/webhook – Stripe Connect Account v2 webhooks
-export const POST = async (req: Request) => {
-  const body = await req.text();
-  const signature = req.headers.get("Stripe-Signature");
+export const POST = withAxiomBodyLog(async (req: Request) => {
+  const clonedReq = req.clone();
+  const buf = await clonedReq.text();
+
+  const signature = clonedReq.headers.get("Stripe-Signature");
 
   if (!signature) {
-    return logAndRespond("Missing Stripe-Signature header.");
+    return logAndRespond("Missing Stripe-Signature header.", {
+      status: 400,
+    });
   }
 
   if (!webhookSecret) {
@@ -40,7 +45,7 @@ export const POST = async (req: Request) => {
   let event: Stripe.ThinEvent;
 
   try {
-    event = stripe.parseThinEvent(body, signature, webhookSecret);
+    event = stripe.parseThinEvent(buf, signature, webhookSecret);
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
 
@@ -88,4 +93,4 @@ export const POST = async (req: Request) => {
   }
 
   return logAndRespond(`[${event.type}]: ${response}`);
-};
+});

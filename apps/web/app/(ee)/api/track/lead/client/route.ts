@@ -49,7 +49,6 @@ export const POST = withPublishableKey(
       customerAvatar,
       mode,
       metadata,
-      rawBody: body,
       workspace,
     });
 

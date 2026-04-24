@@ -1,5 +1,6 @@
 import { isValidDomain } from "@/lib/api/domains/is-valid-domain";
 import { domainExists } from "@/lib/api/domains/utils";
+import { validateDubLinkSubdomain } from "@/lib/api/domains/validate-dub-link-subdomain";
 import { withSession } from "@/lib/auth";
 import dns from "dns/promises";
 import { NextResponse } from "next/server";
@@ -13,17 +14,27 @@ export const GET = withSession(async ({ params }) => {
       status: "invalid",
     });
   }
+  const dubLinkError = validateDubLinkSubdomain(domain);
+  if (dubLinkError) {
+    return NextResponse.json({
+      status: "invalid",
+      message: dubLinkError.error,
+    });
+  }
   const exists = await domainExists(domain);
   if (exists) {
     return NextResponse.json({
       status: "conflict",
     });
   }
-  const hasSite = await hasSiteConfigured(domain);
-  if (hasSite) {
-    return NextResponse.json({
-      status: "has site",
-    });
+  // skip site check for .dub.link subdomains
+  if (!domain.endsWith(".dub.link")) {
+    const hasSite = await hasSiteConfigured(domain);
+    if (hasSite) {
+      return NextResponse.json({
+        status: "has site",
+      });
+    }
   }
   return NextResponse.json({
     status: "available",
