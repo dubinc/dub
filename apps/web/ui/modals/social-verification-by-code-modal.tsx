@@ -1,9 +1,8 @@
 import { verifySocialAccountByCodeAction } from "@/lib/actions/partners/verify-social-account-by-code";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PlatformType } from "@dub/prisma/client";
-import { Button, buttonVariants, CopyButton, Modal } from "@dub/ui";
+import { Button, buttonVariants, CopyButton, Modal, ModalCloseButton } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { X } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, ReactNode, SetStateAction, useState } from "react";
 import { toast } from "sonner";
@@ -134,13 +133,7 @@ function SocialVerificationByCodeModalInner({
         <h3 className="text-lg font-semibold leading-none">
           Verify {platformInfo.name} account
         </h3>
-        <button
-          type="button"
-          onClick={() => setShowSocialVerificationModal(false)}
-          className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-        >
-          <X className="h-5 w-5" />
-        </button>
+        <ModalCloseButton onClick={() => setShowSocialVerificationModal(false)} />
       </div>
 
       <div className="flex flex-col gap-4 bg-neutral-50 p-4 sm:p-6">

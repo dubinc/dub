@@ -3,13 +3,13 @@
 import { mutateSuffix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
-import { X } from "@/ui/shared/icons";
 import { QRCode } from "@/ui/shared/qr-code";
 import {
   Button,
   Combobox,
   InfoTooltip,
   Modal,
+  ModalCloseButton,
   ShimmerDots,
   useCopyToClipboard,
   useEnterSubmit,
@@ -323,13 +323,7 @@ function PartnerLinkModalContent({
           <h3 className="text-lg font-medium">
             {isEditingLink ? "Edit Link" : "New Link"}
           </h3>
-          <button
-            type="button"
-            onClick={() => setShowPartnerLinkModal(false)}
-            className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-          >
-            <X className="h-5 w-5" />
-          </button>
+          <ModalCloseButton onClick={() => setShowPartnerLinkModal(false)} />
         </div>
 
         <div className="flex w-full flex-col gap-6">

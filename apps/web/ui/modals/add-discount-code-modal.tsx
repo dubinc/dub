@@ -8,6 +8,7 @@ import {
   Combobox,
   ComboboxOption,
   Modal,
+  ModalCloseButton,
   useCopyToClipboard,
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
@@ -18,7 +19,6 @@ import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import * as z from "zod/v4";
 import { STRIPE_ERROR_MAP } from "../partners/constants";
-import { X } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
 type FormData = z.infer<typeof createDiscountCodeSchema>;
@@ -123,13 +123,7 @@ const AddDiscountCodeModal = ({
         <div className="flex flex-col items-start justify-between gap-4 px-6 py-4">
           <div className="flex w-full items-center justify-between">
             <h3 className="text-lg font-medium">New discount code</h3>
-            <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="group rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            <ModalCloseButton onClick={() => setShowModal(false)} />
           </div>
 
           <div className="flex w-full flex-col gap-6">

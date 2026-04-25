@@ -2,8 +2,7 @@
 
 import { DIRECT_DEBIT_PAYMENT_TYPES_INFO } from "@/lib/constants/payouts";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { X } from "@/ui/shared/icons";
-import { AnimatedSizeContainer, GreekTemple, Modal } from "@dub/ui";
+import { AnimatedSizeContainer, GreekTemple, Modal, ModalCloseButton } from "@dub/ui";
 import { cn, COUNTRIES } from "@dub/utils";
 import { useRouter } from "next/navigation";
 import { CSSProperties, Dispatch, SetStateAction, useState } from "react";
@@ -69,13 +68,10 @@ function AddPaymentMethodModalInner({
       transition={{ duration: 0.1, ease: "easeInOut" }}
     >
       <div className="p-4 sm:p-8">
-        <button
-          type="button"
+        <ModalCloseButton
           onClick={() => setShowAddPaymentMethodModal(false)}
-          className="group absolute right-4 top-4 z-[1] hidden rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none active:bg-neutral-200 md:block"
-        >
-          <X className="size-5" />
-        </button>
+          className="absolute right-4 top-4 z-[1] hidden md:block"
+        />
 
         <div className="flex flex-col gap-7">
           <div className="flex size-12 items-center justify-center rounded-full border border-neutral-200 text-neutral-900">
