@@ -283,7 +283,9 @@ export function ReferralsEmbedPageClient({
           </div>
           <div className="mt-4 grid gap-2 sm:h-32 sm:grid-cols-3">
             <ReferralsEmbedActivity />
-            <ReferralsEmbedEarningsSummary />
+            <ReferralsEmbedEarningsSummary
+              hidePayouts={programEmbedData?.hidePayouts ?? false}
+            />
           </div>
           <div className="mt-4">
             <div className="border-border-subtle flex items-center border-b">
@@ -330,6 +332,7 @@ export function ReferralsEmbedPageClient({
                   <ReferralsEmbedQuickstart
                     hasResources={hasResources}
                     setSelectedTab={setSelectedTab}
+                    hidePayouts={programEmbedData?.hidePayouts ?? false}
                   />
                 ) : selectedTab === "Bounties" ? (
                   <ReferralsEmbedBounties />
