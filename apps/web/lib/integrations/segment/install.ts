@@ -1,6 +1,7 @@
 "use server";
 
 import { authActionClient } from "@/lib/actions/safe-action";
+import { encrypt } from "@/lib/encryption";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { WebhookReceiver } from "@dub/prisma/client";
 import { SEGMENT_INTEGRATION_ID } from "@dub/utils";
@@ -24,7 +25,7 @@ export const installSegmentAction = authActionClient
       userId: user.id,
       workspaceId: workspace.id,
       credentials: {
-        writeKey,
+        writeKey: encrypt(writeKey),
       },
     });
 

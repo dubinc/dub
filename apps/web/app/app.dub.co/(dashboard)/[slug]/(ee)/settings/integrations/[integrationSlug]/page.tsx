@@ -1,3 +1,4 @@
+import { decryptOrPassthrough } from "@/lib/encryption";
 import { prisma } from "@dub/prisma";
 import { APPSFLYER_INTEGRATION_ID } from "@dub/utils/src";
 import { redirect } from "next/navigation";
@@ -49,9 +50,22 @@ export default async function IntegrationPage(props: {
 
   const installed = integration.installations.length > 0;
 
-  const credentials = installed
+  let credentials = installed
     ? integration.installations[0]?.credentials
     : undefined;
+
+  if (
+    credentials &&
+    typeof credentials === "object" &&
+    integration.slug === "segment" &&
+    "writeKey" in credentials &&
+    typeof credentials.writeKey === "string"
+  ) {
+    credentials = {
+      ...credentials,
+      writeKey: decryptOrPassthrough(credentials.writeKey),
+    };
+  }
 
   const settings = installed
     ? integration.installations[0]?.settings
