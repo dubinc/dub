@@ -377,6 +377,19 @@ export const bulkUpdateLinksBodySchema = z.object({
     }),
 });
 
+export const bulkDeleteLinksBodySchema = z.object({
+  linkIds: z
+    .array(z.string())
+    .describe("The IDs of the links to delete.")
+    .max(100, "You can only delete up to 100 links at a time.")
+    .default([]),
+  externalIds: z
+    .array(z.string())
+    .describe("The external IDs of the links to delete.")
+    .max(100, "You can only delete up to 100 links at a time.")
+    .default([]),
+});
+
 export const LinkSchema = z
   .object({
     id: z.string().describe("The unique ID of the short link."),

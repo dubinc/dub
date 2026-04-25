@@ -76,7 +76,12 @@ export const googleUserContentUrlSchema = z
 // This schema contains an async refinement check for base64 image validation,
 // which requires using parseAsync() instead of parse() when validating
 export const uploadedImageSchema = z
-  .union([base64ImageSchema, storedR2ImageUrlSchema, googleFaviconUrlSchema])
+  .union([
+    base64ImageSchema,
+    storedR2ImageUrlSchema,
+    googleFaviconUrlSchema,
+    publicHostedImageSchema,
+  ])
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z
