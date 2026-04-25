@@ -117,7 +117,7 @@ export const bulkApprovePartnersAction = authActionClient
               resourceType: "partner",
               resourceId: partnerId,
               userId: user.id,
-              action: "partner.approved",
+              action: "partner_application.approved",
               changeSet: {
                 status: {
                   old: "pending",

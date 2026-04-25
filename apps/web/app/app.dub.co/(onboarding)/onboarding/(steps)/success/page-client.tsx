@@ -38,12 +38,7 @@ export function SuccessPageClient({
     "name" | "slug" | "logo" | "defaultProgramId"
   >;
 }) {
-  const {
-    plan,
-    planPeriod,
-    planTier,
-    loading: isLoadingWorkspace,
-  } = useWorkspace();
+  const { plan, planPeriod, loading: isLoadingWorkspace } = useWorkspace();
 
   const { finish, isLoading, isSuccessful } = useOnboardingProgress();
 
@@ -67,6 +62,7 @@ export function SuccessPageClient({
       plausible(`Upgraded to ${capitalize(plan)}`);
       plausible("Upgraded Plan", {
         props: {
+          product: hasProgram ? "Partners" : "Links",
           plan: capitalize(plan),
           planPeriod: capitalize(planPeriod),
         },

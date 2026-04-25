@@ -16,6 +16,7 @@ import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useConfirmModal } from "../modals/confirm-modal";
 import { usePlanChangeConfirmationModal } from "../modals/plan-change-confirmation-modal";
 import { ThreeDots } from "../shared/icons";
 
@@ -25,6 +26,7 @@ export default function SubscriptionMenu() {
     role,
     plan,
     defaultProgramId,
+    billingCycleEndsAt,
     subscriptionCanceledAt,
     mutate,
   } = useWorkspace();
@@ -90,13 +92,42 @@ export default function SubscriptionMenu() {
         setShowPlanChangeConfirmationModal(false);
       },
     });
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Cancel subscription",
+    description: (
+      <p>
+        Your subscription will be scheduled for cancellation at the end of your
+        current billing period
+        {billingCycleEndsAt ? (
+          <span className="font-medium text-neutral-900">
+            {" "}
+            (
+            {new Date(billingCycleEndsAt).toLocaleDateString("en-US", {
+              month: "long",
+              day: "numeric",
+              year: "numeric",
+            })}
+            )
+          </span>
+        ) : (
+          ""
+        )}
+        . You will keep access until then.
+      </p>
+    ),
+    cancelText: "Not now",
+    confirmText: "Cancel subscription",
+    onConfirm: async () => {
+      await cancelSubscription();
+    },
+  });
 
   const handleCancelSubscription = () => {
     setIsOpen(false);
     if (losesPartnerAccess) {
       setShowPlanChangeConfirmationModal(true);
     } else {
-      cancelSubscription();
+      setShowConfirmModal(true);
     }
   };
 
@@ -107,6 +138,7 @@ export default function SubscriptionMenu() {
   return (
     <>
       <PlanChangeConfirmationModal />
+      {confirmModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}

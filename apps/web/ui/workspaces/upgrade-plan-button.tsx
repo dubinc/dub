@@ -42,6 +42,7 @@ export function UpgradePlanButton({
   } = useWorkspace();
 
   const plausible = usePlausible();
+  const product = searchParams.get("product");
   const { isTrialVariant } = useOnboardingTrialVariant();
   const isTrialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
@@ -102,6 +103,7 @@ export function UpgradePlanButton({
 
         plausible("Opened Checkout", {
           props: {
+            ...(product && { product: capitalize(product) }),
             plan: capitalize(selectedPlan.name),
             planPeriod: capitalize(period),
           },

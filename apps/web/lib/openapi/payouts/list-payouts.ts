@@ -10,7 +10,7 @@ export const listPayouts: ZodOpenApiOperationObject = {
   operationId: "listPayouts",
   "x-speakeasy-name-override": "list",
   summary: "List all payouts",
-  description: "Retrieve a list of payouts for your partner program.",
+  description: "Retrieve a paginated list of payouts for your partner program.",
   requestParams: {
     query: payoutsQuerySchema,
   },

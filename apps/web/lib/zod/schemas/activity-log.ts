@@ -20,14 +20,15 @@ export const activityLogActionSchema = z.enum([
   "referral.closedWon",
   "referral.closedLost",
 
-  "partner.groupChanged",
-  "partner.approved",
+  "partner_application.approved",
   "partner_application.rejected",
+  "partner.groupChanged", // TODO: change to partner.group_updated
   "partner.banned",
   "partner.unbanned",
   "partner.deactivated",
   "partner.reactivated",
   "partner.archived",
+  "partner.unarchived",
 
   "commission.updated",
 

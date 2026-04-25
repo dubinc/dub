@@ -59,7 +59,14 @@ const formatJson = (string: string) => {
 
 type FormData = z.infer<typeof createDomainBodySchemaExtended>;
 
-type DomainStatus = "checking" | "conflict" | "has site" | "available" | "idle";
+type DomainStatus =
+  | "checking"
+  | "conflict"
+  | "has site"
+  | "available"
+  | "idle"
+  | "invalid"
+  | "error";
 
 const STATUS_CONFIG: Record<
   DomainStatus,
@@ -80,6 +87,14 @@ const STATUS_CONFIG: Record<
   },
   conflict: {
     suffix: "is already in use.",
+    icon: AlertCircleFill,
+    className: "bg-red-100 text-red-600",
+  },
+  invalid: {
+    icon: AlertCircleFill,
+    className: "bg-red-100 text-red-600",
+  },
+  error: {
     icon: AlertCircleFill,
     className: "bg-red-100 text-red-600",
   },
@@ -118,6 +133,9 @@ export function AddEditDomainForm({
   const [domainStatus, setDomainStatus] = useState<DomainStatus>(
     props ? "available" : "idle",
   );
+  const [domainValidateMessage, setDomainValidateMessage] = useState<
+    string | null
+  >(null);
   const [showOptionStates, setShowOptionStates] = useState<
     Record<string, boolean>
   >({});
@@ -194,11 +212,49 @@ export function AddEditDomainForm({
   const debouncedValidateDomain = useDebouncedCallback(
     async (value: string) => {
       if (!isValidDomain(value)) return;
+      setDomainValidateMessage(null);
       setDomainStatus("checking");
-      fetch(`/api/domains/${value}/validate`).then(async (res) => {
-        const data = await res.json();
-        setDomainStatus(data.status);
-      });
+
+      const validationFailedMessage =
+        "Could not check domain availability. Please try again.";
+
+      fetch(`/api/domains/${encodeURIComponent(value)}/validate`)
+        .then(async (res) => {
+          if (!res.ok) {
+            setDomainStatus("error");
+            setDomainValidateMessage(validationFailedMessage);
+            return;
+          }
+
+          let data: { status?: unknown; message?: unknown };
+          try {
+            data = await res.json();
+          } catch {
+            setDomainStatus("error");
+            setDomainValidateMessage(validationFailedMessage);
+            return;
+          }
+
+          const status = data.status;
+          if (
+            status === "invalid" ||
+            status === "conflict" ||
+            status === "has site" ||
+            status === "available"
+          ) {
+            setDomainStatus(status);
+            setDomainValidateMessage(
+              typeof data.message === "string" ? data.message : null,
+            );
+          } else {
+            setDomainStatus("error");
+            setDomainValidateMessage(validationFailedMessage);
+          }
+        })
+        .catch(() => {
+          setDomainStatus("error");
+          setDomainValidateMessage(validationFailedMessage);
+        });
     },
     500,
   );
@@ -365,6 +421,7 @@ export function AddEditDomainForm({
                             shouldDirty: true,
                           });
                           setDomainStatus("idle");
+                          setDomainValidateMessage(null);
                           if (prefix) {
                             debouncedValidateDomain(fullDomain);
                           }
@@ -383,6 +440,7 @@ export function AddEditDomainForm({
                       {...register("slug", {
                         onChange: (e) => {
                           setDomainStatus("idle");
+                          setDomainValidateMessage(null);
                           debouncedValidateDomain(e.target.value);
                         },
                       })}
@@ -400,19 +458,27 @@ export function AddEditDomainForm({
                   <div className="flex items-center justify-between gap-4 p-2 text-sm">
                     <p>
                       {domainStatus !== "idle" ? (
-                        <>
-                          {currentStatusProps.prefix || "The domain"}{" "}
-                          {currentStatusProps.useStrong ? (
-                            <strong className="font-semibold underline underline-offset-2">
-                              {domain}
-                            </strong>
-                          ) : (
-                            <span className="font-semibold underline underline-offset-2">
-                              {domain}
-                            </span>
-                          )}{" "}
-                          {currentStatusProps.suffix}
-                        </>
+                        domainStatus === "invalid" ||
+                        domainStatus === "error" ? (
+                          domainValidateMessage ??
+                          (domainStatus === "error"
+                            ? "Could not check domain availability. Please try again."
+                            : "This domain is not valid.")
+                        ) : (
+                          <>
+                            {currentStatusProps.prefix || "The domain"}{" "}
+                            {currentStatusProps.useStrong ? (
+                              <strong className="font-semibold underline underline-offset-2">
+                                {domain}
+                              </strong>
+                            ) : (
+                              <span className="font-semibold underline underline-offset-2">
+                                {domain}
+                              </span>
+                            )}{" "}
+                            {currentStatusProps.suffix}
+                          </>
+                        )
                       ) : (
                         currentStatusProps.message
                       )}

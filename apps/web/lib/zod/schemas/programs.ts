@@ -125,7 +125,7 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
 
 export const ProgramEnrollmentApplicationSchema = z.object({
   rejectionReason: z
-    .nativeEnum(ProgramApplicationRejectionReason)
+    .enum(ProgramApplicationRejectionReason)
     .nullable()
     .describe("Preset reason when the application was rejected."),
   rejectionNote: z

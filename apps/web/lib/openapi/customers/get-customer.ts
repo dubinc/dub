@@ -9,7 +9,8 @@ export const getCustomer: ZodOpenApiOperationObject = {
   operationId: "getCustomer",
   "x-speakeasy-name-override": "get",
   summary: "Retrieve a customer",
-  description: "Retrieve a customer by ID for the authenticated workspace.",
+  description:
+    "Retrieve a customer by ID for the authenticated workspace. To retrieve a customer by external ID, prefix the ID with `ext_`.",
   requestParams: {
     path: CustomerEnrichedSchema.pick({ id: true }),
     query: getCustomersQuerySchema.pick({ includeExpandedFields: true }),
