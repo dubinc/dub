@@ -99,6 +99,7 @@ type ReferralsEmbedData = {
     saleAmount: number;
   };
   bounties: PartnerBountyProps[];
+  programEmbedData: z.infer<typeof programEmbedSchema>;
 };
 
 type ReferralsEmbedPageClientProps = ReferralsEmbedData & {
@@ -210,6 +211,7 @@ export function ReferralsEmbedPageClient({
       programEnrollment,
       group,
       bounties,
+      programEmbedData,
     }),
     [
       program,
@@ -223,6 +225,7 @@ export function ReferralsEmbedPageClient({
       programEnrollment,
       group,
       bounties,
+      programEmbedData,
     ],
   );
 
