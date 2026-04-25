@@ -19,6 +19,7 @@ const prefixes = [
   "dpn_", // discovered partner
   "prog_", // program
   "pga_", // program application
+  "pga_evt_", // program application event
   "pgi_", // program invitation
   "pge_", // program enrollment
   "pgr_", // program resources

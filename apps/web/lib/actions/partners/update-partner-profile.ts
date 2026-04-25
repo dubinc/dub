@@ -18,11 +18,38 @@ import {
   deepEqual,
   nanoid,
   PARTNERS_DOMAIN,
+  RESERVED_SLUGS,
 } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import * as z from "zod/v4";
 import { uploadedImageSchema } from "../../zod/schemas/images";
 import { authPartnerActionClient } from "../safe-action";
+
+const USERNAME_REGEX = /^(?![_-])(?!.*[_-]{2})[a-z0-9_-]{3,30}(?<![_-])$/;
+
+// TODO: Add more reserved usernames
+const RESERVED_USERNAMES = [...RESERVED_SLUGS, "dub"];
+
+const usernameSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .pipe(
+    z
+      .string()
+      .min(3, "Username must be at least 3 characters")
+      .max(30, "Username must be at most 30 characters")
+      .regex(USERNAME_REGEX, "Invalid username format"),
+  )
+  .pipe(
+    z
+      .string()
+      .refine(
+        (v) => !RESERVED_USERNAMES.includes(v),
+        "This username is reserved",
+      ),
+  )
+  .nullish();
 
 const updatePartnerProfileSchema = z
   .object({
@@ -33,6 +60,7 @@ const updatePartnerProfileSchema = z
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
     profileType: z.enum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
+    username: usernameSchema,
   })
   .extend(PartnerProfileSchema.partial().shape)
   .transform((data) => ({
@@ -63,6 +91,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
       industryInterests,
       preferredEarningStructures,
       salesChannels,
+      username,
     } = parsedInput;
 
     if (
@@ -89,6 +118,21 @@ export const updatePartnerProfileAction = authPartnerActionClient
       imageUrl = uploaded.url;
     }
 
+    if (username && username !== partner.username) {
+      const existingPartner = await prisma.partner.findUnique({
+        where: {
+          username,
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (existingPartner && existingPartner.id !== partner.id) {
+        throw new Error(`Username "${username}" is already taken.`);
+      }
+    }
+
     try {
       const updatedPartner = await prisma.partner.update({
         where: {
@@ -98,6 +142,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
           name,
           description,
           ...(imageUrl && { image: imageUrl }),
+          username,
           country,
           profileType,
           companyName,

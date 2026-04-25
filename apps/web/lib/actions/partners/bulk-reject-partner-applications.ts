@@ -3,6 +3,7 @@
 import { trackActivityLog } from "@/lib/api/activity-log/track-activity-log";
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { markApplicationEvents } from "@/lib/application-events/update-application-event";
 import { bulkRejectPartnersSchema } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationRejected from "@dub/email/templates/partner-application-rejected";
@@ -115,6 +116,12 @@ export const bulkRejectPartnerApplicationsAction = authActionClient
             userId: user.id,
             resolutionReason:
               "Resolved automatically because the partner application was rejected.",
+          }),
+
+          markApplicationEvents({
+            event: "rejected",
+            programId,
+            partnerIds: programEnrollments.map(({ partner }) => partner.id),
           }),
         ]);
 

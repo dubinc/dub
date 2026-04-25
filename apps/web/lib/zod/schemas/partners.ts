@@ -368,6 +368,7 @@ export const PartnerSchema = z
       .describe(
         "The partner's email address. Should be a unique value across Dub.",
       ),
+    username: z.string().nullable().describe("The partner's unique username."),
     image: z.string().nullable().describe("The partner's avatar image."),
     description: z
       .string()

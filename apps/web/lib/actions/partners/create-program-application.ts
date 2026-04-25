@@ -4,6 +4,8 @@ import { createId } from "@/lib/api/create-id";
 import { detectAndRecordFraudApplication } from "@/lib/api/fraud/detect-record-fraud-application";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
 import { getIP } from "@/lib/api/utils/get-ip";
+import { markApplicationEventSubmitted } from "@/lib/application-events/update-application-event";
+import { getApplicationEventCookieName } from "@/lib/application-events/utils";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { getPartnerProfileChecklistProgress } from "@/lib/network/get-partner-profile-checklist-progress";
@@ -371,6 +373,8 @@ async function createApplicationAndEnrollment({
             partner,
           },
         }),
+
+        markApplicationEventSubmitted(programEnrollment),
       ]);
     })(),
   );
@@ -417,6 +421,23 @@ async function createApplication({
       expires: addDays(new Date(), 7), // persist for 7 days
     },
   );
+
+  // Attach application ID to application events
+  const cookieName = getApplicationEventCookieName(program.id);
+  const eventId = cookieStore.get(cookieName)?.value;
+
+  if (eventId) {
+    try {
+      await prisma.programApplicationEvent.update({
+        where: {
+          id: eventId,
+        },
+        data: {
+          programApplicationId: application.id,
+        },
+      });
+    } catch {}
+  }
 
   return {
     programApplicationId: application.id,

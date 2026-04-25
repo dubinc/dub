@@ -1,4 +1,5 @@
 import { resolveFraudGroups } from "@/lib/api/fraud/resolve-fraud-groups";
+import { markApplicationEvents } from "@/lib/application-events/update-application-event";
 import { withCron } from "@/lib/cron/with-cron";
 import { evaluateApplicationRequirements } from "@/lib/partners/evaluate-application-requirements";
 import { sendEmail } from "@dub/email";
@@ -123,36 +124,41 @@ export const POST = withCron(async ({ rawBody }) => {
     );
   }
 
-  await resolveFraudGroups({
-    where: {
-      programId,
-      partnerId,
-    },
-    resolutionReason:
-      "Resolved automatically because the partner application was automatically rejected.",
-  });
-
   const { partner, program } = programEnrollment;
 
-  if (partner.email) {
-    await sendEmail({
-      to: partner.email,
-      subject: `Your application to ${program.name} was not approved`,
-      variant: "notifications",
-      replyTo: program.supportEmail || "noreply",
-      react: PartnerApplicationRejected({
-        partner: {
-          name: partner.name ?? "there",
-          email: partner.email,
-        },
-        program: {
-          name: program.name,
-          slug: program.slug,
-          supportEmail: program.supportEmail ?? undefined,
-        },
+  await Promise.allSettled([
+    resolveFraudGroups({
+      where: {
+        programId,
+        partnerId,
+      },
+      resolutionReason:
+        "Resolved automatically because the partner application was automatically rejected.",
+    }),
+    markApplicationEvents({
+      event: "rejected",
+      programId,
+      partnerIds: [partnerId],
+    }),
+    partner.email &&
+      sendEmail({
+        to: partner.email,
+        subject: `Your application to ${program.name} was not approved`,
+        variant: "notifications",
+        replyTo: program.supportEmail || "noreply",
+        react: PartnerApplicationRejected({
+          partner: {
+            name: partner.name ?? "there",
+            email: partner.email,
+          },
+          program: {
+            name: program.name,
+            slug: program.slug,
+            supportEmail: program.supportEmail ?? undefined,
+          },
+        }),
       }),
-    });
-  }
+  ]);
 
   return logAndRespond(
     `Successfully auto-rejected partner ${partnerId} in program ${programId}.`,

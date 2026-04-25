@@ -1,3 +1,4 @@
+import { markApplicationEvents } from "@/lib/application-events/update-application-event";
 import { getProgramApplicationRejectionReasonLabel } from "@/lib/partners/program-application-rejection";
 import { WorkspaceProps } from "@/lib/types";
 import { rejectPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -129,6 +130,12 @@ export async function rejectPartner({
             new: ProgramEnrollmentStatus.rejected,
           },
         },
+      }),
+
+      markApplicationEvents({
+        event: "rejected",
+        programId,
+        partnerIds: [partnerId],
       }),
 
       resolveFraudGroups({
