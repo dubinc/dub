@@ -69,6 +69,13 @@ export const googleUserContentUrlSchema = z
     message: "Image URL must be a valid Google user content URL",
   });
 
+export const publicHostedImageSchema = z
+  .url()
+  .trim()
+  .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
+    message: "Image URL must start with http:// or https://",
+  });
+
 // Uploaded image could be any of the following:
 // - Base64 encoded image
 // - R2_URL
@@ -76,15 +83,13 @@ export const googleUserContentUrlSchema = z
 // This schema contains an async refinement check for base64 image validation,
 // which requires using parseAsync() instead of parse() when validating
 export const uploadedImageSchema = z
-  .union([base64ImageSchema, storedR2ImageUrlSchema, googleFaviconUrlSchema])
+  .union([
+    base64ImageSchema,
+    storedR2ImageUrlSchema,
+    googleFaviconUrlSchema,
+    publicHostedImageSchema,
+  ])
   .transform((v) => v || null);
-
-export const publicHostedImageSchema = z
-  .url()
-  .trim()
-  .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
-    message: "Image URL must start with http:// or https://",
-  });
 
 /** Coerce unusable preview strings (e.g. data:favicons) to null before create/update link validation. */
 export function preprocessLinkPreviewImage(
