@@ -8,22 +8,37 @@ import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
+import TrialStartedEmail from "@dub/email/templates/trial/trial-started";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { Program, User } from "@dub/prisma/client";
-import { getPlanAndTierFromPriceId, log, prettyPrint } from "@dub/utils";
+import {
+  getPlanAndTierFromPriceId,
+  getWorkspaceLimitsForStripeSubscriptionStatus,
+  isWorkspaceBillingTrialActive,
+  log,
+} from "@dub/utils";
 import Stripe from "stripe";
+import { getPlanPeriodFromStripeSubscription } from "./utils/stripe-plan-period";
 
 export async function checkoutSessionCompleted(
   event: Stripe.CheckoutSessionCompletedEvent,
 ) {
   const checkoutSession = event.data.object;
 
-  if (
-    checkoutSession.mode === "setup" ||
-    checkoutSession.payment_status !== "paid"
-  ) {
-    return "Session is setup mode or not paid, skipping...";
+  if (checkoutSession.mode === "setup") {
+    return "Session is setup mode, skipping...";
+  }
+
+  if (checkoutSession.mode === "subscription") {
+    if (
+      checkoutSession.payment_status !== "paid" &&
+      checkoutSession.payment_status !== "no_payment_required"
+    ) {
+      return "Subscription checkout session not completed (payment status), skipping...";
+    }
+  } else {
+    return `Session mode ${checkoutSession.mode} is not handled here, skipping...`;
   }
 
   if (
@@ -48,9 +63,20 @@ export async function checkoutSessionCompleted(
     return `Invalid price ID in checkout.session.completed event: ${priceId}`;
   }
 
+  const limits = getWorkspaceLimitsForStripeSubscriptionStatus({
+    planLimits: plan.limits,
+    subscriptionStatus: subscription.status,
+  });
+
+  const trialEndsAt =
+    subscription.status === "trialing" && subscription.trial_end
+      ? new Date(subscription.trial_end * 1000)
+      : null;
+
   const stripeId = checkoutSession.customer.toString();
   const workspaceId = checkoutSession.client_reference_id;
   const planName = plan.name.toLowerCase();
+  const planPeriod = getPlanPeriodFromStripeSubscription(subscription);
 
   // when the workspace subscribes to a plan, set their stripe customer ID
   // in the database for easy identification in future webhook events
@@ -65,22 +91,28 @@ export async function checkoutSessionCompleted(
       billingCycleStart: new Date().getDate(),
       plan: planName,
       planTier: planTier,
-      usageLimit: plan.limits.clicks,
-      linksLimit: plan.limits.links,
-      payoutsLimit: plan.limits.payouts,
-      domainsLimit: plan.limits.domains,
-      aiLimit: plan.limits.ai,
-      tagsLimit: plan.limits.tags,
-      foldersLimit: plan.limits.folders,
-      groupsLimit: plan.limits.groups,
-      networkInvitesLimit: plan.limits.networkInvites,
-      usersLimit: plan.limits.users,
+      usageLimit: limits.clicks,
+      linksLimit: limits.links,
+      payoutsLimit: limits.payouts,
+      domainsLimit: limits.domains,
+      aiLimit: limits.ai,
+      tagsLimit: limits.tags,
+      foldersLimit: limits.folders,
+      groupsLimit: limits.groups,
+      networkInvitesLimit: limits.networkInvites,
+      usersLimit: limits.users,
+      trialEndsAt,
       paymentFailedAt: null,
+      ...(planPeriod !== undefined && { planPeriod }),
     },
-    select: {
-      plan: true,
-      defaultProgramId: true,
+    include: {
       users: {
+        where: {
+          role: "owner",
+          user: {
+            isMachine: false,
+          },
+        },
         select: {
           user: {
             select: {
@@ -88,11 +120,6 @@ export async function checkoutSessionCompleted(
               name: true,
               email: true,
             },
-          },
-        },
-        where: {
-          user: {
-            isMachine: false,
           },
         },
       },
@@ -119,20 +146,41 @@ export async function checkoutSessionCompleted(
         newPlan: updatedWorkspace.plan,
       }) &&
       reactivateProgram(updatedWorkspace.defaultProgramId),
-    sendBatchEmail(
-      users.map((user) => ({
-        to: user.email as string,
-        replyTo: "steven.tey@dub.co",
-        subject: `Thank you for upgrading to Dub ${plan.name}!`,
-        react: UpgradeEmail({
-          name: user.name,
-          email: user.email as string,
-          plan: plan.name,
-          planTier: planTier,
-        }),
-        variant: "marketing",
-      })),
-    ),
+    // If trial + no program (Links trial), send TrialStartedEmail – for program trial we send it in create-program.ts
+    // else, we send Upgrade thank you email
+    // TODO: Only send TrialStartedEmail once we remove the trial feature flag
+    isWorkspaceBillingTrialActive(trialEndsAt) &&
+    !updatedWorkspace.store?.["programOnboarding"]
+      ? sendBatchEmail(
+          users.map((user) => ({
+            to: user.email as string,
+            replyTo: "steven.tey@dub.co",
+            subject: "Welcome to your 14-day Dub trial",
+            react: TrialStartedEmail({
+              email: user.email as string,
+              plan: plan.name,
+              workspace: {
+                slug: updatedWorkspace.slug,
+                logo: updatedWorkspace.logo,
+                name: updatedWorkspace.name,
+              },
+            }),
+            variant: "marketing",
+          })),
+        )
+      : sendBatchEmail(
+          users.map((user) => ({
+            to: user.email as string,
+            replyTo: "steven.tey@dub.co",
+            subject: `Thank you for upgrading to Dub ${plan.name}!`,
+            react: UpgradeEmail({
+              name: user.name,
+              email: user.email as string,
+              plan: plan.name,
+            }),
+            variant: "marketing",
+          })),
+        ),
     // expire tokens cache
     tokenCache.expireMany({
       hashedKeys: updatedWorkspace.restrictedTokens.map(
@@ -162,60 +210,53 @@ async function completeOnboarding({
   })) as unknown as (WorkspaceProps & { programs: Program[] }) | null;
 
   if (!workspace) {
-    console.error("Failed to complete onboarding for workspace", workspaceId);
+    console.error(
+      "Failed to find workspace in completeOnboarding",
+      workspaceId,
+    );
     return;
   }
 
   await Promise.allSettled([
-    // Complete onboarding for workspace users
     onboardingStepCache.mset({
       userIds: users.map(({ id }) => id),
       step: "completed",
     }),
 
-    (async () => {
-      // Register saved domain
-      const data = await redis.get<{ domain: string; userId: string }>(
-        `onboarding-domain:${workspaceId}`,
-      );
-      if (data && data.domain && data.userId) {
-        const { domain, userId } = data;
+    // Create program based on programOnboarding data
+    users.length > 0 &&
+      workspace.programs.length === 0 &&
+      workspace.store?.programOnboarding &&
+      createProgram({
+        workspace,
+        user: users[0],
+      }).catch((error) => {
+        console.error("Failed to create program in completeOnboarding", error);
+        return;
+      }),
 
-        try {
+    // Claim saved domain (only if not on trial)
+    !isWorkspaceBillingTrialActive(workspace.trialEndsAt) &&
+      (async () => {
+        // Register saved domain
+        const data = await redis.get<{ domain: string; userId: string }>(
+          `onboarding-domain:${workspaceId}`,
+        );
+        if (data && data.domain && data.userId) {
+          const { domain, userId } = data;
+
           await claimDotLinkDomain({
             domain,
             userId,
             workspace,
+          }).catch((error) => {
+            console.error(
+              "Failed to claim saved domain in completeOnboarding",
+              error,
+            );
+            return;
           });
-          await redis.del(`onboarding-domain:${workspaceId}`);
-        } catch (e) {
-          console.error(
-            "Failed to register saved domain from onboarding",
-            { domain, userId, workspace },
-            e,
-          );
         }
-      }
-
-      // Create program
-      if (
-        users.length > 0 &&
-        workspace.programs.length === 0 &&
-        workspace.store?.programOnboarding
-      ) {
-        try {
-          await createProgram({
-            workspace,
-            user: users[0],
-          });
-        } catch (e) {
-          console.error(
-            "Failed to create program from onboarding",
-            prettyPrint({ workspace, user: users[0] }),
-            e,
-          );
-        }
-      }
-    })(),
+      })(),
   ]);
 }

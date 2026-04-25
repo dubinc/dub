@@ -186,7 +186,7 @@ export function EmbedBountyDetail({
           <div className="flex flex-col gap-6 text-sm">
             <BountySubmissionRequirements bounty={bounty} />
             <BountyRewardCriteria bounty={bounty} />
-            <BountyDescription bounty={bounty} />
+            <BountyDescription bounty={bounty} embed />
           </div>
         </div>
 

@@ -27,6 +27,7 @@ import { TagSelect } from "@/ui/links/link-builder/tag-select";
 import { useLinkBuilderSubmit } from "@/ui/links/link-builder/use-link-builder-submit";
 import { useMetatags } from "@/ui/links/link-builder/use-metatags";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
+import { useTrialLimitActivateModal } from "@/ui/modals/trial-limit-activate-modal";
 import {
   ArrowTurnLeft,
   Button,
@@ -36,7 +37,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, isValidUrl } from "@dub/utils";
+import { cn, isValidUrl, isWorkspaceBillingTrialActive } from "@dub/utils";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -263,7 +264,10 @@ export function CreateLinkButton({
 }: {
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
 } & CreateLinkButtonProps) {
-  const { slug, role, exceededLinks } = useWorkspace();
+  const { slug, role, exceededLinks, trialEndsAt } = useWorkspace();
+  const { openTrialLimitModal, TrialLimitActivateModal } =
+    useTrialLimitActivateModal();
+  const trialActive = isWorkspaceBillingTrialActive(trialEndsAt);
 
   const permissionsError = clientAccessCheck({
     action: "links.write",
@@ -304,23 +308,34 @@ export function CreateLinkButton({
   }, []);
 
   return (
-    <Button
-      text="Create link"
-      shortcut="C"
-      disabledTooltip={
-        exceededLinks ? (
-          <TooltipContent
-            title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
-            cta="Upgrade plan"
-            href={`/${slug}/upgrade`}
-          />
-        ) : (
-          permissionsError || undefined
-        )
-      }
-      onClick={() => setShowLinkBuilder(true)}
-      {...buttonProps}
-    />
+    <>
+      <TrialLimitActivateModal />
+      <Button
+        text="Create link"
+        shortcut="C"
+        disabledTooltip={
+          exceededLinks ? (
+            trialActive ? (
+              <TooltipContent
+                title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
+                cta="Start paid plan"
+                onClick={() => openTrialLimitModal("links")}
+              />
+            ) : (
+              <TooltipContent
+                title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to create more links."
+                cta="Upgrade plan"
+                href={`/${slug}/upgrade`}
+              />
+            )
+          ) : (
+            permissionsError || undefined
+          )
+        }
+        onClick={() => setShowLinkBuilder(true)}
+        {...buttonProps}
+      />
+    </>
   );
 }
 

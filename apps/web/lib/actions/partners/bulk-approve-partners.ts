@@ -5,6 +5,7 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { markApplicationEvents } from "@/lib/application-events/update-application-event";
 import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
+import { throwIfTrialProgramEnrollmentLimitExceeded } from "@/lib/partners/throw-if-trial-program-enrollment-exceeded";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -50,6 +51,13 @@ export const bulkApprovePartnersAction = authActionClient
     const now = new Date();
 
     await prisma.$transaction(async (tx) => {
+      await throwIfTrialProgramEnrollmentLimitExceeded({
+        programId: program.id,
+        additionalEnrollments: programEnrollments.length,
+        trialEndsAt: workspace.trialEndsAt,
+        tx,
+      });
+
       await tx.programEnrollment.updateMany({
         where: {
           id: {
@@ -110,7 +118,7 @@ export const bulkApprovePartnersAction = authActionClient
               resourceType: "partner",
               resourceId: partnerId,
               userId: user.id,
-              action: "partner.approved",
+              action: "partner_application.approved",
               changeSet: {
                 status: {
                   old: "pending",
