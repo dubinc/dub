@@ -14,6 +14,7 @@ import { CircleCheckFill } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { AcceptProgramInviteButton } from "./accept-program-invite-button";
+import { DeclineProgramInviteButton } from "./decline-program-invite-button";
 import { ProgramInviteConfetti } from "./program-invite-confetti";
 
 export default async function ProgramInvitePage(props: {
@@ -116,7 +117,8 @@ export default async function ProgramInvitePage(props: {
             on plans they purchase through your referral.
           </p>
 
-          <div className="mt-4 flex w-full justify-center">
+          <div className="mt-4 flex w-full justify-center gap-2">
+            <DeclineProgramInviteButton program={program} />
             <AcceptProgramInviteButton program={program} />
           </div>
         </div>
