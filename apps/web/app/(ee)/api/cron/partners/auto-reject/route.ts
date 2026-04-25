@@ -140,9 +140,8 @@ export const POST = withCron(async ({ rawBody }) => {
       programId,
       partnerIds: [partnerId],
     }),
-
     partner.email &&
-      (await sendEmail({
+      sendEmail({
         to: partner.email,
         subject: `Your application to ${program.name} was not approved`,
         variant: "notifications",
@@ -158,7 +157,7 @@ export const POST = withCron(async ({ rawBody }) => {
             supportEmail: program.supportEmail ?? undefined,
           },
         }),
-      })),
+      }),
   ]);
 
   return logAndRespond(
