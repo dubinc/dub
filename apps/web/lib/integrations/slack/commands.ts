@@ -120,7 +120,7 @@ export const handleSlashCommand = async (req: Request) => {
   })) as WorkspaceProps;
 
   if (data.command === "/shorten") {
-    return createShortLink({
+    return await createShortLink({
       data,
       workspace,
       user: dubUser,
