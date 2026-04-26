@@ -1,4 +1,4 @@
-import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
+import { checkAccountHasPasswordOrSAML } from "@/lib/actions/check-account-has-password-or-saml";
 import { Button, Input, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { signIn } from "next-auth/react";
@@ -28,7 +28,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
     setShowSSOOption,
   } = useContext(LoginFormContext);
 
-  const { executeAsync, isPending } = useAction(checkAccountExistsAction, {
+  const { executeAsync, isPending } = useAction(checkAccountHasPasswordOrSAML, {
     onError: ({ error }) => {
       toast.error(error.serverError);
     },
@@ -48,7 +48,7 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
               return;
             }
 
-            const { accountExists, hasPassword, requireSAML } = result.data;
+            const { hasPassword, requireSAML } = result.data;
 
             if (requireSAML) {
               setClickedMethod(undefined);
@@ -58,14 +58,8 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
               return;
             }
 
-            if (accountExists && hasPassword) {
+            if (hasPassword) {
               setShowPasswordField(true);
-              return;
-            }
-
-            if (!accountExists) {
-              setClickedMethod(undefined);
-              toast.error("No account found with that email address.");
               return;
             }
           }
@@ -78,50 +72,38 @@ export const EmailSignIn = ({ next }: { next?: string }) => {
             return;
           }
 
-          const { accountExists, hasPassword } = result.data;
-
-          if (!accountExists) {
-            setClickedMethod(undefined);
-            toast.error("No account found with that email address.");
-            return;
-          }
+          const { hasPassword } = result.data;
 
           const provider = password && hasPassword ? "credentials" : "email";
 
-          const response = await signIn(provider, {
-            email,
-            redirect: false,
-            callbackUrl: finalNext || "/workspaces",
-            ...(password && { password }),
-          });
+          if (provider === "credentials") {
+            const response = await signIn(provider, {
+              email,
+              redirect: false,
+              callbackUrl: finalNext || "/workspaces",
+              ...(password && { password }),
+            });
 
-          if (!response) {
-            return;
-          }
-
-          if (!response.ok && response.error) {
-            if (errorCodes[response.error]) {
-              toast.error(errorCodes[response.error]);
-            } else {
-              toast.error(response.error);
+            if (!response) {
+              return;
             }
 
-            setClickedMethod(undefined);
-            return;
+            if (!response.ok && response.error) {
+              if (errorCodes[response.error]) {
+                toast.error(errorCodes[response.error]);
+              } else {
+                toast.error(response.error);
+              }
+
+              setClickedMethod(undefined);
+              return;
+            }
+            router.push(response.url || finalNext || "/workspaces");
           }
+
+          // else, for email login, send OTP
 
           setLastUsedAuthMethod("email");
-
-          if (provider === "email") {
-            toast.success("Email sent - check your inbox!");
-            setEmail("");
-            setClickedMethod(undefined);
-            return;
-          }
-
-          if (provider === "credentials") {
-            router.push(response?.url || finalNext || "/workspaces");
-          }
         }}
         className="flex flex-col gap-y-6"
       >
