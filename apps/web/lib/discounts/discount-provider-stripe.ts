@@ -52,29 +52,6 @@ async function getInstallation(
 }
 
 function createStripeDiscountProvider() {
-  const getOrCreateCoupon = async ({
-    workspace,
-    group,
-    data,
-  }: {
-    workspace: Project;
-    group: PartnerGroup;
-    data: z.infer<typeof createDiscountSchema>;
-  }) => {
-    if (data.couponId) {
-      return await getCoupon({
-        couponId: data.couponId,
-        workspace,
-      });
-    } else {
-      return await createCoupon({
-        workspace,
-        group,
-        data,
-      });
-    }
-  };
-
   const getCoupon = async ({
     couponId,
     workspace,
@@ -273,8 +250,6 @@ function createStripeDiscountProvider() {
   };
 
   return {
-    getInstallation,
-    getOrCreateCoupon,
     getCoupon,
     createCoupon,
     createDiscountCode,

@@ -6,6 +6,7 @@ import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
+import { DubDiscountAttributes } from "@/lib/stripe/coupon-discount-converter";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -48,11 +49,21 @@ export const createDiscountAction = authActionClient
 
     const discountProvider = getDiscountProvider(provider);
 
-    const coupon = await discountProvider.getOrCreateCoupon({
-      workspace,
-      group,
-      data: parsedInput,
-    });
+    let coupon: (DubDiscountAttributes & { id: string }) | null = null;
+
+    // Fetch existing coupon if couponId is provided otherwise create a new coupon on the discount provider
+    if (couponId) {
+      coupon = await discountProvider.getCoupon({
+        couponId,
+        workspace,
+      });
+    } else {
+      coupon = await discountProvider.createCoupon({
+        workspace,
+        group,
+        data: parsedInput,
+      });
+    }
 
     // Create the discount and update the group and program enrollment
     const discount = await prisma.$transaction(async (tx) => {

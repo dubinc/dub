@@ -1,14 +1,12 @@
 import { prisma } from "@dub/prisma";
-import { Discount, PartnerGroup, Project } from "@dub/prisma/client";
-import { SHOPIFY_INTEGRATION_ID, nanoid, truncate } from "@dub/utils";
-import { z } from "zod/v4";
+import { Discount, Project } from "@dub/prisma/client";
+import { SHOPIFY_INTEGRATION_ID, nanoid } from "@dub/utils";
 import { decrypt } from "../encryption";
 import {
   ShopifyAdminGraphqlError,
   shopifyAdminGraphql,
 } from "../integrations/shopify/admin-graphql";
 import { integrationCredentialsSchema } from "../integrations/shopify/schema";
-import { createDiscountSchema } from "../zod/schemas/discount";
 
 const MAX_ATTEMPTS = 3;
 
@@ -58,30 +56,12 @@ async function getInstallation(
 }
 
 function createShopifyDiscountProvider() {
-  const getOrCreateCoupon = async ({
-    workspace,
-    group,
-    data,
-  }: {
-    workspace: Project;
-    group: PartnerGroup;
-    data: z.infer<typeof createDiscountSchema>;
-  }) => {
-    await getInstallation(workspace);
+  const getCoupon = async () => {
+    throw new Error("Shopify does not this method.");
+  };
 
-    if ((data.maxDuration ?? null) !== 0) {
-      throw new Error(
-        "Shopify discounts only support one-time use. Set the discount duration to 'one-time'.",
-      );
-    }
-
-    return {
-      id: null,
-      amount: data.amount,
-      type: data.type,
-      maxDuration: 0,
-      description: `Dub Discount (${truncate(group.name, 25)})`,
-    };
+  const createCoupon = async () => {
+    throw new Error("Shopify does not this method.");
   };
 
   const createDiscountCode = async ({
@@ -293,8 +273,8 @@ function createShopifyDiscountProvider() {
   };
 
   return {
-    getInstallation,
-    getOrCreateCoupon,
+    getCoupon,
+    createCoupon,
     createDiscountCode,
     disableDiscountCode,
   };
