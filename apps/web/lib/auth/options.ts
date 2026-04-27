@@ -11,7 +11,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
-import { AdapterUser } from "next-auth/adapters";
+import { AdapterAccount, AdapterUser } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";
 import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
@@ -46,6 +46,25 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         },
       });
     },
+    // Some IdPs (e.g. Beehiiv) return extra token fields
+    // so we need to only include the fields that are valid columns on Account table
+    linkAccount: (account: AdapterAccount) =>
+      p.account.create({
+        data: {
+          userId: account.userId,
+          type: account.type,
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+          refresh_token: account.refresh_token,
+          refresh_token_expires_in: account.refresh_token_expires_in as any,
+          access_token: account.access_token,
+          expires_at: account.expires_at,
+          token_type: account.token_type,
+          scope: account.scope,
+          id_token: account.id_token,
+          session_state: account.session_state,
+        },
+      }),
   };
 };
 
