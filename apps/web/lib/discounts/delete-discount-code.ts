@@ -3,9 +3,10 @@ import { Discount, DiscountCode } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import { enqueueBatchJobs } from "../cron/enqueue-batch-jobs";
 
-type DiscountCodePayload = Pick<DiscountCode, "id" | "code" | "programId">;
-
-type DeleteDiscountCodesParams = DiscountCodePayload & {
+type DeleteDiscountCodesParams = Pick<
+  DiscountCode,
+  "id" | "code" | "programId"
+> & {
   discount: Pick<Discount, "provider"> | null;
 };
 
