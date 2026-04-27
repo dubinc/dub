@@ -11,7 +11,7 @@ export function SSOLoginButton({ name, slug }: { name: string; slug: string }) {
   const Logo = {
     framer: Framer,
     beehiiv: Beehiiv,
-  }[slug]!;
+  }[slug];
 
   return (
     <Button
@@ -23,7 +23,7 @@ export function SSOLoginButton({ name, slug }: { name: string; slug: string }) {
           callbackUrl: `/programs/${slug}`,
         });
       }}
-      icon={<Logo className="size-4 fill-white text-white" />}
+      {...(Logo && { icon: <Logo className="size-4 fill-white text-white" /> })}
       className={cn(!clicked && "bg-blue-600 text-white hover:bg-blue-700")}
       loading={clicked}
     />
