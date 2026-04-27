@@ -81,15 +81,14 @@ export const uploadedImageSchema = z
     storedR2ImageUrlSchema,
     googleFaviconUrlSchema,
     googleUserContentUrlSchema,
-    publicHostedImageSchema,
   ])
   .transform((v) => v || null);
 
 export const publicHostedImageSchema = z
   .url()
   .trim()
-  .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
-    message: "Image URL must start with http:// or https://",
+  .refine((url) => url.startsWith("https://"), {
+    message: "Image URL must start with https://",
   });
 
 /** Coerce unusable preview strings (e.g. data:favicons) to null before create/update link validation. */

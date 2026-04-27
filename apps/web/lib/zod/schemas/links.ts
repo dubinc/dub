@@ -49,18 +49,18 @@ export const getLinksQuerySchema = z.object({
     .string()
     .optional()
     .describe("The tenant ID to filter the links by."),
-  showArchived: z
-    .boolean()
-    .default(false)
-    .describe(
-      "Whether to include archived links in the response. Defaults to `false` if not provided.",
-    ),
-  withTags: z
-    .boolean()
-    .default(false)
-    .describe(
-      "Whether to include tags in the response. Defaults to `false` if not provided.",
-    ),
+  showArchived: z.preprocess(
+    (v) => v === "true" || v === true,
+    z.boolean().default(false),
+  ).describe(
+    "Whether to include archived links in the response. Defaults to `false` if not provided.",
+  ),
+  withTags: z.preprocess(
+    (v) => v === "true" || v === true,
+    z.boolean().default(false),
+  ).describe(
+    "Whether to include tags in the response. Defaults to `false` if not provided.",
+  ),
   sort: z
     .enum(["createdAt", "clicks", "lastClickedAt"])
     .default("createdAt")
@@ -79,7 +79,10 @@ export const getLinksQuerySchema = z.object({
 });
 
 export const getLinksQuerySchemaExtended = getLinksQuerySchema.extend({
-  includeProgramEnrollment: z.boolean().default(false),
+  includeProgramEnrollment: z.preprocess(
+    (v) => v === "true" || v === true,
+    z.boolean().default(false),
+  ),
 });
 
 export const createLinkBodySchema = z.object({
@@ -377,18 +380,21 @@ export const bulkUpdateLinksBodySchema = z.object({
     }),
 });
 
-export const bulkDeleteLinksBodySchema = z.object({
-  linkIds: z
-    .array(z.string())
-    .describe("The IDs of the links to delete.")
-    .max(100, "You can only delete up to 100 links at a time.")
-    .default([]),
-  externalIds: z
-    .array(z.string())
-    .describe("The external IDs of the links to delete.")
-    .max(100, "You can only delete up to 100 links at a time.")
-    .default([]),
-});
+export const bulkDeleteLinksBodySchema = z.union([
+  z.array(z.string()),
+  z.object({
+    linkIds: z
+      .array(z.string())
+      .describe("The IDs of the links to delete.")
+      .max(100, "You can only delete up to 100 links at a time.")
+      .default([]),
+    externalIds: z
+      .array(z.string())
+      .describe("The external IDs of the links to delete.")
+      .max(100, "You can only delete up to 100 links at a time.")
+      .default([]),
+  }),
+]);
 
 export const LinkSchema = z
   .object({
