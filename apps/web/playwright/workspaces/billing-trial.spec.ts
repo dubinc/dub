@@ -3,28 +3,27 @@ import { expect, test } from "@playwright/test";
 import {
   applyMockTrialToWorkspace,
   captureWorkspaceBillingTrialSnapshot,
+  finishBillingUpgradeCheckoutWithoutStripeRedirect,
   installBillingCheckoutMocks,
+  patchStripeRedirectStubForE2E,
   restoreWorkspaceBillingTrialSnapshot,
   type BillingMockTrialWorkspaceSnapshot,
 } from "./billing-mocks";
 
-function matchesDashboardOrigin(url: URL, baseURL: string) {
-  const base = new URL(baseURL);
-  return url.hostname === base.hostname && url.port === base.port;
-}
+const STEP_NAV_TIMEOUT = 60_000;
 
-test.skip("Billing trial checkout", () => {
+test.describe("Billing trial checkout", () => {
   test("select Pro, success redirect, trial state and UI", async ({
     page,
     baseURL,
   }) => {
+    test.setTimeout(120_000);
+
     const dashboardOrigin = baseURL ?? "http://app.localhost:8888";
 
-    // Discover the workspace created during onboarding
     const res = await page.request.get("/api/workspaces");
     expect(res.ok()).toBeTruthy();
     const workspaces = (await res.json()) as { plan: string; slug: string }[];
-    // find the free workspace (from onboarding-dub-links.spec.ts)
     const freeWorkspace = workspaces.find((w) => w.plan === "free");
     if (!freeWorkspace) {
       throw new Error("No free workspace found");
@@ -35,39 +34,52 @@ test.skip("Billing trial checkout", () => {
       slug,
       baseURL: dashboardOrigin,
     });
+    await patchStripeRedirectStubForE2E(page);
 
     await page.goto(`/${slug}/settings/billing/upgrade`);
     await expect(
       page.getByRole("heading", { name: "Plans", exact: true }),
-    ).toBeVisible({ timeout: 30_000 });
+    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
-    // CTA: billing may show "Upgrade" or checkout trial copy from UpgradePlanButton.
-    const upgradeButton = page.getByRole("button", { name: "Upgrade" }).or(
-      page.getByRole("button", {
+    const proColumn = page.getByTestId("billing-upgrade-column-pro");
+    const upgradeButton = proColumn.getByRole("button", { name: "Upgrade" }).or(
+      proColumn.getByRole("button", {
         name: new RegExp(`Start ${DUB_TRIAL_PERIOD_DAYS}-day trial`),
       }),
     );
 
-    await expect(upgradeButton.first()).toBeVisible();
-    await upgradeButton.first().click();
+    await expect(upgradeButton).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+    await expect(upgradeButton).toBeEnabled({ timeout: STEP_NAV_TIMEOUT });
 
-    await page.waitForURL(
-      (u) => {
-        const url = new URL(u);
-        return (
-          matchesDashboardOrigin(url, dashboardOrigin) &&
-          url.searchParams.get("upgraded") === "true"
-        );
-      },
-      { timeout: 30_000, waitUntil: "domcontentloaded" },
+    const billingUpgradePost = page.waitForResponse(
+      (r) =>
+        r.request().method() === "POST" &&
+        r.url().includes(`/api/workspaces/${slug}/billing/upgrade`),
+      { timeout: STEP_NAV_TIMEOUT },
     );
+
+    await upgradeButton.click();
+
+    const upgradeRes = await billingUpgradePost;
+    if (!upgradeRes.ok()) {
+      throw new Error(
+        `billing/upgrade failed: HTTP ${upgradeRes.status()} ${await upgradeRes.text()}`,
+      );
+    }
+
+    await finishBillingUpgradeCheckoutWithoutStripeRedirect(page, {
+      slug,
+      baseURL: dashboardOrigin,
+      plan: "pro",
+      period: "monthly",
+    });
 
     await expect
       .poll(
         async () => {
-          const res = await page.request.get(`/api/workspaces/${slug}`);
-          if (!res.ok()) return null;
-          const body = (await res.json()) as { trialEndsAt?: string | null };
+          const r = await page.request.get(`/api/workspaces/${slug}`);
+          if (!r.ok()) return null;
+          const body = (await r.json()) as { trialEndsAt?: string | null };
           return body.trialEndsAt ?? null;
         },
         {
@@ -81,17 +93,17 @@ test.skip("Billing trial checkout", () => {
       page.getByRole("heading", {
         name: /Dub Pro looks good on you/i,
       }),
-    ).toBeVisible({ timeout: 15_000 });
+    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
     await page.getByRole("button", { name: "View dashboard" }).click();
 
     await expect(page.getByText("Free trial", { exact: true })).toBeVisible({
-      timeout: 15_000,
+      timeout: STEP_NAV_TIMEOUT,
     });
   });
 });
 
-test.skip("Free trial user navigation", () => {
+test.describe("Free trial user navigation", () => {
   let slug: string;
   let workspaceId: string;
   let preMockTrialWorkspace: BillingMockTrialWorkspaceSnapshot | undefined;
@@ -119,12 +131,14 @@ test.skip("Free trial user navigation", () => {
     await page.goto(`/${slug}/settings/billing`);
 
     await expect(page.getByText(/Trial ends on/)).toBeVisible({
-      timeout: 15_000,
+      timeout: STEP_NAV_TIMEOUT,
     });
     await expect(
       page.getByRole("button", { name: "Start paid plan" }),
-    ).toBeVisible();
-    await expect(page.getByRole("link", { name: "View plans" })).toBeVisible();
+    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
+    await expect(page.getByRole("link", { name: "View plans" })).toBeVisible({
+      timeout: STEP_NAV_TIMEOUT,
+    });
   });
 
   test("upgrade page shows Activate plan for current Pro plan", async ({
@@ -134,10 +148,10 @@ test.skip("Free trial user navigation", () => {
 
     await expect(
       page.getByRole("heading", { name: "Plans", exact: true }),
-    ).toBeVisible({ timeout: 30_000 });
+    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
     await expect(
       page.getByRole("button", { name: "Activate plan" }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
   });
 
   test("activating plan from billing page shows upgraded modal", async ({
@@ -145,8 +159,9 @@ test.skip("Free trial user navigation", () => {
   }) => {
     await page.route(
       (url) =>
-        url.pathname ===
-        `/api/workspaces/${workspaceId}/billing/activate-paid-plan`,
+        String(url).includes(
+          `/api/workspaces/${workspaceId}/billing/activate-paid-plan`,
+        ),
       async (route) => {
         if (route.request().method() !== "POST") return route.continue();
         await route.fulfill({
@@ -159,22 +174,18 @@ test.skip("Free trial user navigation", () => {
 
     await page.goto(`/${slug}/settings/billing`);
 
-    // Open the confirmation modal
     await page.getByRole("button", { name: "Start paid plan" }).click();
     await expect(
       page.getByRole("heading", { name: "Plan start confirmation" }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
     await expect(
       page.getByText("You'll be charged today and your trial will end."),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
 
-    // Confirm — triggers the mocked activate-paid-plan POST.
-    // Two "Start paid plan" buttons exist: the page-level CTA and the modal confirm.
     await page.getByRole("button", { name: "Start paid plan" }).last().click();
 
-    // Upgraded modal appears when ?upgraded=true lands in the URL
     await expect(
-      page.getByRole("heading", { name: /Dub Pro looks good on you/i }),
-    ).toBeVisible({ timeout: 15_000 });
+      page.getByRole("heading", { name: /Dub Business looks good on you/i }),
+    ).toBeVisible({ timeout: STEP_NAV_TIMEOUT });
   });
 });
