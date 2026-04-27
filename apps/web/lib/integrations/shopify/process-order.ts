@@ -104,7 +104,7 @@ export async function attributeViaDiscountCode({
 
   const customer = await prisma.customer.create({
     data: {
-      id: createId({ prefix: "cus_" }),
+      id: customerId,
       name: orderCustomer
         ? `${orderCustomer.first_name} ${orderCustomer.last_name}`.trim()
         : generateRandomName(),

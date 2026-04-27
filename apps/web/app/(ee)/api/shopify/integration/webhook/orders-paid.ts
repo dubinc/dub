@@ -59,6 +59,9 @@ export async function ordersPaid({
       include: {
         link: true,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     if (programDiscountCodes.length > 0) {

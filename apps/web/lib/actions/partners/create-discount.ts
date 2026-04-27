@@ -66,6 +66,10 @@ export const createDiscountAction = authActionClient
           data: parsedInput,
         });
       }
+    } else if (provider === DiscountProvider.shopify) {
+      await discountProvider.assertDiscountIntegrationAvailable({
+        workspace,
+      });
     }
 
     // Create the discount and update the group and program enrollment
