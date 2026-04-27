@@ -49,7 +49,7 @@ export function decrypt(payload: string) {
   );
 }
 
-// Tolerant variant: returns ciphertext when valid, otherwise returns the input unchanged.
+// Tolerant variant: successful decrypt(payload) returns plaintext; if decrypt throws, this returns the input unchanged.
 // Should be removed after migration is complete.
 export function decryptOrPassthrough(payload: string) {
   try {
