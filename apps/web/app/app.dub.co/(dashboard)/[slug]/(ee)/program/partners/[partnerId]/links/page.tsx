@@ -5,11 +5,16 @@ import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import useGroup from "@/lib/swr/use-group";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
+import {
+  DiscountCodeProps,
+  EnrolledPartnerExtendedProps,
+  EnrolledPartnerProps,
+} from "@/lib/types";
 import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
+import { DiscountProvider } from "@dub/prisma/client";
 import {
   Button,
   CopyButton,
@@ -177,9 +182,9 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
 const PartnerDiscountCodes = ({
   partner,
 }: {
-  partner: EnrolledPartnerProps;
+  partner: EnrolledPartnerExtendedProps;
 }) => {
-  const { slug, stripeConnectId } = useWorkspace();
+  const { slug, stripeConnectId, shopifyStoreId } = useWorkspace();
 
   const [selectedDiscountCode, setSelectedDiscountCode] =
     useState<DiscountCodeProps | null>(null);
@@ -252,7 +257,14 @@ const PartnerDiscountCodes = ({
   } as any);
 
   const disabledReason = useMemo(() => {
-    if (!stripeConnectId) {
+    if (!partner.discount) {
+      return "No discount assigned to this partner group. Please add a discount before you can create a discount code.";
+    }
+
+    if (
+      partner.discount.provider === DiscountProvider.stripe &&
+      !stripeConnectId
+    ) {
       return (
         <TooltipContent
           title="Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount codes."
@@ -263,8 +275,18 @@ const PartnerDiscountCodes = ({
       );
     }
 
-    if (!partner.discountId) {
-      return "No discount assigned to this partner group. Please add a discount before you can create a discount code.";
+    if (
+      partner.discount.provider === DiscountProvider.shopify &&
+      !shopifyStoreId
+    ) {
+      return (
+        <TooltipContent
+          title="Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create discount codes."
+          cta="Install Shopify app"
+          href={`/${slug}/settings/integrations/shopify`}
+          target="_blank"
+        />
+      );
     }
 
     if (partner.links?.length === 0) {
@@ -276,7 +298,13 @@ const PartnerDiscountCodes = ({
     }
 
     return undefined;
-  }, [partner.discountId, partner.links, discountCodes, stripeConnectId]);
+  }, [
+    partner.discount,
+    partner.links,
+    discountCodes,
+    stripeConnectId,
+    shopifyStoreId,
+  ]);
 
   return (
     <>

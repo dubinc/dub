@@ -1,19 +1,27 @@
 import { qstash } from "@/lib/cron";
-import { processOrder } from "@/lib/integrations/shopify/process-order";
+import { createShopifySale } from "@/lib/integrations/shopify/create-sale";
+import {
+  attributeViaDiscountCode,
+  processOrder,
+} from "@/lib/integrations/shopify/process-order";
 import { orderSchema } from "@/lib/integrations/shopify/schema";
+import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
 export async function ordersPaid({
   event,
-  workspaceId,
+  workspace,
 }: {
   event: any;
-  workspaceId: string;
+  workspace: Pick<WorkspaceProps, "id" | "defaultProgramId" | "webhookEnabled">;
 }) {
-  const { customer: orderCustomer, checkout_token: checkoutToken } =
-    orderSchema.parse(event);
+  const {
+    customer: orderCustomer,
+    checkout_token: checkoutToken,
+    discount_codes: discountCodes,
+  } = orderSchema.parse(event);
 
   if (orderCustomer) {
     const { id: externalId } = orderCustomer;
@@ -21,7 +29,7 @@ export async function ordersPaid({
     const customer = await prisma.customer.findUnique({
       where: {
         projectId_externalId: {
-          projectId: workspaceId,
+          projectId: workspace.id,
           externalId: externalId.toString(),
         },
       },
@@ -31,11 +39,46 @@ export async function ordersPaid({
     if (customer) {
       await processOrder({
         event,
-        workspaceId,
+        workspaceId: workspace.id,
         customerId: customer.id,
       });
 
       return "[Shopify] Order event processed successfully.";
+    }
+  }
+
+  // Check if the order has created using a program discount code
+  if (discountCodes && discountCodes.length > 0 && workspace.defaultProgramId) {
+    const programDiscountCodes = await prisma.discountCode.findMany({
+      where: {
+        programId: workspace.defaultProgramId,
+        code: {
+          in: discountCodes.map(({ code }) => code),
+        },
+      },
+      include: {
+        link: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    if (programDiscountCodes.length > 0) {
+      const { customer, leadEvent: leadData } = await attributeViaDiscountCode({
+        event,
+        workspace,
+        link: programDiscountCodes[0].link,
+      });
+
+      await createShopifySale({
+        leadData,
+        event,
+        workspaceId: workspace.id,
+        customerId: customer.id,
+      });
+
+      return "[Shopify] Order event processed successfully with discount codes.";
     }
   }
 
@@ -56,7 +99,7 @@ export async function ordersPaid({
   else if (clickId) {
     await processOrder({
       event,
-      workspaceId,
+      workspaceId: workspace.id,
       clickId,
     });
 
@@ -73,7 +116,7 @@ export async function ordersPaid({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/shopify/order-paid`,
       body: {
         checkoutToken,
-        workspaceId,
+        workspaceId: workspace.id,
       },
       retries: 5,
       delay: 3,
