@@ -54,13 +54,17 @@ export const PATCH = withWorkspace(
 
       // Uninstall the integration
       if (body.action === "disconnect") {
-        await prisma.installedIntegration.deleteMany({
-          where: {
-            projectId: workspace.id,
-            integrationId: SHOPIFY_INTEGRATION_ID,
-            userId: session.user.id,
-          },
-        });
+        try {
+          await prisma.installedIntegration.delete({
+            where: {
+              userId_integrationId_projectId: {
+                userId: session.user.id,
+                integrationId: SHOPIFY_INTEGRATION_ID,
+                projectId: workspace.id,
+              },
+            },
+          });
+        } catch {}
       }
 
       return NextResponse.json(response);

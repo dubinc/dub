@@ -20,7 +20,7 @@ const inputSchema = z.object({
 export const POST = withCron(async ({ rawBody }) => {
   const { discountId, startingAfter } = inputSchema.parse(JSON.parse(rawBody));
 
-  const { program, ...discount } = await prisma.discount.findUniqueOrThrow({
+  const discount = await prisma.discount.findUnique({
     where: {
       id: discountId,
     },
@@ -49,6 +49,8 @@ export const POST = withCron(async ({ rawBody }) => {
       `Discount ${discountId} does not have auto-provision enabled. Skipping...`,
     );
   }
+
+  const { program } = discount;
 
   const discountProvider = getDiscountProvider(discount.provider);
 
