@@ -4,19 +4,27 @@ import { withWorkspace } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
 import { prisma } from "@dub/prisma";
 import { SHOPIFY_INTEGRATION_ID } from "@dub/utils";
-import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import * as z from "zod/v4";
+
+const requestSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("connect"),
+    shopifyStoreId: z.string().min(1),
+    accessToken: z.string().min(1),
+    scope: z.string().min(1),
+  }),
+
+  z.object({
+    action: z.literal("disconnect"),
+    shopifyStoreId: z.literal(null),
+  }),
+]);
 
 // PATCH /api/shopify/integration/callback – update a shopify store id
 export const PATCH = withWorkspace(
   async ({ req, workspace, session }) => {
-    const body = await parseRequestBody(req);
-    const { shopifyStoreId } = z
-      .object({
-        shopifyStoreId: z.string().nullable(),
-      })
-      .parse(body);
+    const body = requestSchema.parse(await parseRequestBody(req));
 
     try {
       const response = await prisma.project.update({
@@ -24,57 +32,47 @@ export const PATCH = withWorkspace(
           id: workspace.id,
         },
         data: {
-          shopifyStoreId,
+          shopifyStoreId: body.shopifyStoreId,
         },
         select: {
           shopifyStoreId: true,
         },
       });
 
-      waitUntil(
-        (async () => {
-          const installation = await prisma.installedIntegration.findUnique({
+      // Install the integration
+      if (body.action === "connect") {
+        await installIntegration({
+          userId: session.user.id,
+          workspaceId: workspace.id,
+          integrationId: SHOPIFY_INTEGRATION_ID,
+          credentials: {
+            accessToken: body.accessToken,
+            scope: body.scope,
+          },
+        });
+      }
+
+      // Uninstall the integration
+      if (body.action === "disconnect") {
+        try {
+          await prisma.installedIntegration.delete({
             where: {
               userId_integrationId_projectId: {
                 userId: session.user.id,
-                projectId: workspace.id,
                 integrationId: SHOPIFY_INTEGRATION_ID,
+                projectId: workspace.id,
               },
-            },
-            select: {
-              id: true,
             },
           });
-
-          // Install the integration if it doesn't exist
-          if (!installation) {
-            await installIntegration({
-              userId: session.user.id,
-              workspaceId: workspace.id,
-              integrationId: SHOPIFY_INTEGRATION_ID,
-              credentials: {
-                shopifyStoreId,
-              },
-            });
-          }
-
-          // Uninstall the integration if the shopify store id is null
-          if (installation && shopifyStoreId === null) {
-            await prisma.installedIntegration.delete({
-              where: {
-                id: installation.id,
-              },
-            });
-          }
-        })(),
-      );
+        } catch {}
+      }
 
       return NextResponse.json(response);
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
           code: "conflict",
-          message: `The shopify store "${shopifyStoreId}" is already in use.`,
+          message: `The shopify store "${body.shopifyStoreId}" is already in use.`,
         });
       }
 
