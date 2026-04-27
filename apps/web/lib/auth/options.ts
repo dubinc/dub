@@ -300,7 +300,7 @@ export const authOptions: NextAuthOptions = {
     }),
 
     // SSO Login Programs
-    ...SSO_LOGIN_PROGRAMS.map(({ slug, name, oauth }) => ({
+    ...SSO_LOGIN_PROGRAMS.map(({ slug, name, oauth, mapProfile }) => ({
       id: slug,
       name,
       type: "oauth" as const,
@@ -309,13 +309,16 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         url: oauth.authorizationUrl,
         params: {
-          scope: "email",
+          scope: oauth.scope,
           response_type: "code",
         },
       },
       token: oauth.tokenUrl,
       userinfo: oauth.userInfoUrl,
-      profile({ sub, email, name, picture }) {
+      profile(profile) {
+        if (mapProfile) return mapProfile(profile);
+
+        const { sub, email, name, picture } = profile;
         return {
           id: sub,
           name,
@@ -324,31 +327,6 @@ export const authOptions: NextAuthOptions = {
         };
       },
     })),
-    // {
-    //   id: "framer",
-    //   name: "Framer",
-    //   type: "oauth",
-    //   clientId: process.env.FRAMER_CLIENT_ID,
-    //   clientSecret: process.env.FRAMER_CLIENT_SECRET,
-    //   checks: ["state"],
-    //   authorization: {
-    //     url: `${FRAMER_API_HOST}/auth/oauth/authorize`,
-    //     params: {
-    //       scope: "email",
-    //       response_type: "code",
-    //     },
-    //   },
-    //   token: `${FRAMER_API_HOST}/auth/oauth/token`,
-    //   userinfo: `${FRAMER_API_HOST}/auth/oauth/profile`,
-    //   profile({ sub, email, name, picture }) {
-    //     return {
-    //       id: sub,
-    //       name,
-    //       email,
-    //       image: picture,
-    //     };
-    //   },
-    // },
   ],
   // @ts-ignore
   adapter: CustomPrismaAdapter(prisma),
@@ -502,33 +480,6 @@ export const authOptions: NextAuthOptions = {
             }),
           ]);
         }
-        // Login with Framer
-      } else if (account?.provider === "framer") {
-        const userFound = await prisma.user.findUnique({
-          where: {
-            email: user.email,
-          },
-          include: {
-            accounts: true,
-          },
-        });
-
-        // account doesn't exist, let the user sign in
-        if (!userFound) {
-          return true;
-        }
-
-        const otherAccounts = userFound?.accounts.filter(
-          (account) => account.provider !== "framer",
-        );
-
-        // we don't allow account linking for Framer partners
-        // so redirect to the standard login page
-        if (otherAccounts && otherAccounts.length > 0) {
-          throw new Error("framer-account-linking-not-allowed");
-        }
-
-        return true;
       }
       return true;
     },

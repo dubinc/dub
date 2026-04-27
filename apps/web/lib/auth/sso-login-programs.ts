@@ -8,6 +8,7 @@ export const SSO_LOGIN_PROGRAMS = [
       clientId: process.env.FRAMER_CLIENT_ID as string,
       clientSecret: process.env.FRAMER_CLIENT_SECRET as string,
       authorizationUrl: "https://api.framer.com/auth/oauth/authorize",
+      scope: "email",
       tokenUrl: "https://api.framer.com/auth/oauth/token",
       userInfoUrl: "https://api.framer.com/auth/oauth/profile",
     },
@@ -21,8 +22,20 @@ export const SSO_LOGIN_PROGRAMS = [
       clientId: process.env.BEEHIIV_CLIENT_ID as string,
       clientSecret: process.env.BEEHIIV_CLIENT_SECRET as string,
       authorizationUrl: "https://app.beehiiv.com/oauth/authorize",
+      scope: "identify:read",
       tokenUrl: "https://app.beehiiv.com/oauth/token",
       userInfoUrl: "https://api.beehiiv.com/v2/users/identify",
     },
+    // Beehiiv doesn't use the standard OpenID Connect userinfo payload
+    // @see: https://developers.beehiiv.com/api-reference/oauth-users/identify
+    mapProfile: (profile) => {
+      const { email, first_name, last_name, profile_picture } = profile;
+      return {
+        id: email ?? "",
+        name: `${first_name} ${last_name}`.trim() || null,
+        email: email ?? null,
+        image: profile_picture ?? null,
+      };
+    },
   },
-] as const;
+];
