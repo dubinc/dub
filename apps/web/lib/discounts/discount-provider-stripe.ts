@@ -12,15 +12,15 @@ import {
 } from "../stripe/coupon-discount-converter";
 import { DiscountProps } from "../types";
 import { createDiscountSchema } from "../zod/schemas/discount";
+import { DiscountIntegrationNotAvailableError } from "./discount-error";
 
 const MAX_ATTEMPTS = 3;
 
-async function getInstallation(
+async function requireInstalledIntegration(
   workspace: Pick<Project, "id" | "stripeConnectId">,
 ) {
   if (!workspace.stripeConnectId) {
-    throw new DubApiError({
-      code: "bad_request",
+    throw new DiscountIntegrationNotAvailableError({
       message:
         "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount.",
     });
@@ -34,8 +34,7 @@ async function getInstallation(
   });
 
   if (!installation) {
-    throw new DubApiError({
-      code: "bad_request",
+    throw new DiscountIntegrationNotAvailableError({
       message:
         "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount.",
     });
@@ -59,7 +58,7 @@ function createStripeDiscountProvider() {
     couponId: string;
     workspace: Project;
   }) => {
-    const { settings } = await getInstallation(workspace);
+    const { settings } = await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
       mode: settings.stripeMode,
@@ -101,7 +100,7 @@ function createStripeDiscountProvider() {
     group: PartnerGroup;
     data: z.infer<typeof createDiscountSchema>;
   }) => {
-    const { settings } = await getInstallation(workspace);
+    const { settings } = await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
       mode: settings.stripeMode,
@@ -142,7 +141,7 @@ function createStripeDiscountProvider() {
     code: string;
     shouldRetry?: boolean; // we don't retry if the code is provided by the user
   }) => {
-    const { settings } = await getInstallation(workspace);
+    const { settings } = await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
       mode: settings.stripeMode,
@@ -207,7 +206,7 @@ function createStripeDiscountProvider() {
     workspace: Pick<Project, "id" | "stripeConnectId">;
     code: string;
   }) => {
-    const { settings } = await getInstallation(workspace);
+    const { settings } = await requireInstalledIntegration(workspace);
 
     const stripeApp = stripeAppClient({
       mode: settings.stripeMode,
@@ -249,11 +248,20 @@ function createStripeDiscountProvider() {
     return promotionCode;
   };
 
+  const assertDiscountIntegrationAvailable = async ({
+    workspace,
+  }: {
+    workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
+  }) => {
+    await requireInstalledIntegration(workspace);
+  };
+
   return {
     getCoupon,
     createCoupon,
     createDiscountCode,
     disableDiscountCode,
+    assertDiscountIntegrationAvailable,
   };
 }
 

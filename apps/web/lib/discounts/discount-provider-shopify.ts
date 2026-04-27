@@ -7,16 +7,41 @@ import {
   shopifyAdminGraphql,
 } from "../integrations/shopify/admin-graphql";
 import { integrationCredentialsSchema } from "../integrations/shopify/schema";
+import { DiscountIntegrationNotAvailableError } from "./discount-error";
+
+interface ShopifyDiscountCodeBasicCreate {
+  codeDiscountNode: {
+    id: string;
+    codeDiscount: {
+      codes: { nodes: { code: string }[] };
+    };
+  } | null;
+  userErrors: {
+    field: string[] | null;
+    message: string;
+    code: string;
+  }[];
+}
+
+interface ShopifyDiscountCodeDelete {
+  deletedCodeDiscountId: string | null;
+  userErrors: {
+    field: string[] | null;
+    message: string;
+    code: string;
+  }[];
+}
 
 const MAX_ATTEMPTS = 3;
 
-async function getInstallation(
+async function requireInstalledIntegration(
   workspace: Pick<Project, "id" | "shopifyStoreId">,
 ) {
   if (!workspace.shopifyStoreId) {
-    throw new Error(
-      "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
-    );
+    throw new DiscountIntegrationNotAvailableError({
+      message:
+        "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
+    });
   }
 
   const installation = await prisma.installedIntegration.findFirst({
@@ -27,9 +52,10 @@ async function getInstallation(
   });
 
   if (!installation) {
-    throw new Error(
-      "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
-    );
+    throw new DiscountIntegrationNotAvailableError({
+      message:
+        "SHOPIFY_CONNECTION_REQUIRED: Your workspace isn't connected to Shopify yet. Please install the Dub Shopify app in settings to create a discount.",
+    });
   }
 
   let credentials = integrationCredentialsSchema.parse(
@@ -37,9 +63,10 @@ async function getInstallation(
   );
 
   if (!credentials?.scope?.includes("write_discounts")) {
-    throw new Error(
-      "SHOPIFY_APP_UPGRADE_REQUIRED: Your connected Shopify store doesn't have permission to create discount codes. Please reinstall or upgrade the Dub Shopify app.",
-    );
+    throw new DiscountIntegrationNotAvailableError({
+      message:
+        "SHOPIFY_APP_UPGRADE_REQUIRED: Your connected Shopify store doesn't have permission to create discount codes. Please reinstall or upgrade the Dub Shopify app.",
+    });
   }
 
   credentials = {
@@ -75,7 +102,7 @@ function createShopifyDiscountProvider() {
     code: string;
     shouldRetry?: boolean;
   }) => {
-    const { credentials } = await getInstallation(workspace);
+    const { credentials } = await requireInstalledIntegration(workspace);
 
     let attempt = 0;
     let currentCode = code;
@@ -83,19 +110,7 @@ function createShopifyDiscountProvider() {
     while (attempt < MAX_ATTEMPTS) {
       try {
         const data = await shopifyAdminGraphql<{
-          discountCodeBasicCreate: {
-            codeDiscountNode: {
-              id: string;
-              codeDiscount: {
-                codes: { nodes: { code: string }[] };
-              };
-            } | null;
-            userErrors: {
-              field: string[] | null;
-              message: string;
-              code: string;
-            }[];
-          };
+          discountCodeBasicCreate: ShopifyDiscountCodeBasicCreate;
         }>({
           shopifyStoreId: workspace.shopifyStoreId!,
           accessToken: credentials.accessToken!,
@@ -202,7 +217,7 @@ function createShopifyDiscountProvider() {
     workspace: Pick<Project, "id" | "shopifyStoreId">;
     code: string;
   }) => {
-    const { credentials } = await getInstallation(workspace);
+    const { credentials } = await requireInstalledIntegration(workspace);
 
     const lookup = await shopifyAdminGraphql<{
       codeDiscountNodeByCode: { id: string } | null;
@@ -229,14 +244,7 @@ function createShopifyDiscountProvider() {
     }
 
     const data = await shopifyAdminGraphql<{
-      discountCodeDelete: {
-        deletedCodeDiscountId: string | null;
-        userErrors: {
-          field: string[] | null;
-          message: string;
-          code: string;
-        }[];
-      };
+      discountCodeDelete: ShopifyDiscountCodeDelete;
     }>({
       shopifyStoreId: workspace.shopifyStoreId!,
       accessToken: credentials.accessToken!,
@@ -272,11 +280,20 @@ function createShopifyDiscountProvider() {
     return { id, code };
   };
 
+  const assertDiscountIntegrationAvailable = async ({
+    workspace,
+  }: {
+    workspace: Pick<Project, "id" | "stripeConnectId" | "shopifyStoreId">;
+  }) => {
+    await requireInstalledIntegration(workspace);
+  };
+
   return {
     getCoupon,
     createCoupon,
     createDiscountCode,
     disableDiscountCode,
+    assertDiscountIntegrationAvailable,
   };
 }
 

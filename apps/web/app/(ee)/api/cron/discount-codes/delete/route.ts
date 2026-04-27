@@ -1,4 +1,5 @@
 import { withCron } from "@/lib/cron/with-cron";
+import { isDiscountIntegrationNotAvailableError } from "@/lib/discounts/discount-error";
 import { getDiscountProvider } from "@/lib/discounts/discount-provider";
 import { prisma } from "@dub/prisma";
 import { DiscountProvider } from "@dub/prisma/client";
@@ -8,9 +9,9 @@ import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
 const inputSchema = z.object({
-  provider: z.enum(DiscountProvider),
   code: z.string(),
   programId: z.string(),
+  provider: z.enum(DiscountProvider),
 });
 
 // POST /api/cron/discount-codes/delete
@@ -36,14 +37,10 @@ export const POST = withCron(async ({ rawBody }) => {
       code,
     });
   } catch (error) {
-    const message: string = error?.message ?? "";
-    if (
-      message.startsWith("STRIPE_CONNECTION_REQUIRED") ||
-      message.startsWith("SHOPIFY_CONNECTION_REQUIRED") ||
-      message.startsWith("SHOPIFY_APP_UPGRADE_REQUIRED")
-    ) {
-      return logAndRespond(`Skipping ${code}: ${message}`);
+    if (isDiscountIntegrationNotAvailableError(error)) {
+      return logAndRespond(`Skipping ${code}: ${error.message}`);
     }
+
     throw error;
   }
 

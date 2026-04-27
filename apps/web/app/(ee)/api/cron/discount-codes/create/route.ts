@@ -1,5 +1,6 @@
 import { withCron } from "@/lib/cron/with-cron";
 import { createDiscountCode } from "@/lib/discounts/create-discount-code";
+import { isDiscountIntegrationNotAvailableError } from "@/lib/discounts/discount-error";
 import { prisma } from "@dub/prisma";
 import * as z from "zod/v4";
 import { logAndRespond } from "../../utils";
@@ -88,14 +89,12 @@ export const POST = withCron(async ({ rawBody }) => {
       discount,
     });
   } catch (error) {
-    const message: string = error?.message ?? "";
-    if (
-      message.startsWith("STRIPE_CONNECTION_REQUIRED") ||
-      message.startsWith("SHOPIFY_CONNECTION_REQUIRED") ||
-      message.startsWith("SHOPIFY_APP_UPGRADE_REQUIRED")
-    ) {
-      return logAndRespond(`Skipping link ${linkId}: ${message}`);
+    if (isDiscountIntegrationNotAvailableError(error)) {
+      return logAndRespond(
+        `Workspace has not installed the ${discount.provider} integration. Skipping...`,
+      );
     }
+
     throw error;
   }
 
