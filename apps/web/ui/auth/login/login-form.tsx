@@ -44,7 +44,7 @@ export const errorCodes = {
   OAuthCallback:
     "We faced a problem while processing the response from the OAuth provider. Please try again.",
   OAuthAccountNotLinked:
-    "It looks like you already have an account with with this email. Please sign in with your account email instead.",
+    "It looks like you already have an account with this email. Please sign in with your account email instead.",
 };
 
 export const LoginFormContext = createContext<{
